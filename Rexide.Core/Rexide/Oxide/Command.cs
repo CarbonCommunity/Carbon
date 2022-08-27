@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using ConVar;
+using Facepunch;
 using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,8 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static ConsoleSystem;
+using Pool = Facepunch.Pool;
 
 public class Command
 {
@@ -45,45 +48,78 @@ public class Command
             Pool.Free ( ref result );
         } );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, Func<ConsoleSystem.Arg, bool> callback )
+    public void AddConsoleCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback )
     {
-        if ( Rexide.Instance.AllConsoleCommands.Count ( x => x.Plugin == plugin && x.Command == command ) == 0 )
+        if ( Rexide.Instance.AllConsoleCommands.Count ( x => x.Command == command ) == 0 )
         {
             Rexide.Instance.AllConsoleCommands.Add ( new OxideCommand
             {
                 Command = command,
                 Plugin = plugin,
-                Callback = ( player, cmd, args ) =>
-                {
-                    var arguments2 = Pool.GetList<object> ();
-                    var result2 = ( object [] )null;
-
-                    try
-                    {
-                        var fullString = $"{cmd} {string.Join ( " ", args )}";
-                        var value = new object [] { fullString };
-                        var client = ConsoleSystem.Option.Unrestricted;
-                        var arg = FormatterServices.GetUninitializedObject ( typeof ( ConsoleSystem.Arg ) ) as ConsoleSystem.Arg;
-                        client = client.FromConnection ( player.net.connection );
-                        arg.Option = client;
-                        arg.FullString = fullString;
-                        arg.Args = args;
-
-                        arguments2.Add ( arg );
-                        result2 = arguments2.ToArray ();
-
-                        callback.Invoke ( arg );
-                    }
-                    catch ( TargetParameterCountException ) { }
-                    catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
-
-                    Pool.FreeList ( ref arguments2 );
-                    if ( result2 != null ) Pool.Free ( ref result2 );
-                }
+                Callback = callback
             } );
-
-            plugin.Puts ( $" Added console command: '{command}'" );
         }
         else Rexide.Warn ( $"Console command '{command}' already exists." );
+    }
+    public void AddConsoleCommand ( string command, RustPlugin plugin, string method )
+    {
+        AddConsoleCommand ( command, plugin, ( player, cmd, args ) =>
+        {
+            var arguments = Pool.GetList<object> ();
+            var result = ( object [] )null;
+
+            try
+            {
+                var fullString = $"{cmd} {string.Join ( " ", args )}";
+                var value = new object [] { fullString };
+                var client = Option.Unrestricted;
+                var arg = FormatterServices.GetUninitializedObject ( typeof ( Arg ) ) as Arg;
+                client = client.FromConnection ( player.net.connection );
+                arg.Option = client;
+                arg.FullString = fullString;
+                arg.Args = args;
+
+                arguments.Add ( arg );
+                result = arguments.ToArray ();
+
+                try { plugin.GetType ().GetMethod ( method, BindingFlags.Instance | BindingFlags.NonPublic )?.Invoke ( plugin, result ); }
+                catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
+            }
+            catch ( TargetParameterCountException ) { }
+            catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
+
+            Pool.FreeList ( ref arguments );
+            if ( result != null ) Pool.Free ( ref result );
+        } );
+    }
+    public void AddConsoleCommand ( string command, RustPlugin plugin, Func<Arg, bool> callback )
+    {
+        AddConsoleCommand ( command, plugin, ( player, cmd, args ) =>
+        {
+            var arguments = Pool.GetList<object> ();
+            var result = ( object [] )null;
+
+            try
+            {
+                var fullString = $"{cmd} {string.Join ( " ", args )}";
+                var value = new object [] { fullString };
+                var client = Option.Unrestricted;
+                var arg = FormatterServices.GetUninitializedObject ( typeof ( Arg ) ) as Arg;
+                client = client.FromConnection ( player.net.connection );
+                arg.Option = client;
+                arg.FullString = fullString;
+                arg.Args = args;
+
+                arguments.Add ( arg );
+                result = arguments.ToArray ();
+
+                callback.Invoke ( arg );
+            }
+            catch ( TargetParameterCountException ) { }
+            catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
+
+            Pool.FreeList ( ref arguments );
+            if ( result != null ) Pool.Free ( ref result );
+        } );
     }
 }

@@ -247,12 +247,12 @@ public static class RexideLoader
 
             if ( chatCommand != null )
             {
+                Rexide.Instance.CorePlugin.cmd.AddChatCommand ( chatCommand.Name, plugin, method.Name );
             }
 
             if ( consoleCommand != null )
             {
-
-
+                Rexide.Instance.CorePlugin.cmd.AddConsoleCommand ( consoleCommand.Name, plugin, method.Name );
             }
         }
 

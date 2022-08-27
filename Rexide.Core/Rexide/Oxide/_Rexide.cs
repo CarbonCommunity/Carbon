@@ -1,5 +1,5 @@
-﻿using ConVar;
-using Oxide.Core;
+﻿using Oxide.Core;
+using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +10,7 @@ public class Rexide
 {
     public static Rexide Instance;
     public string Id;
+    public RustPlugin CorePlugin;
 
     internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
 
@@ -87,7 +88,7 @@ public class Rexide
         var cmd = new OxideCommand
         {
             Command = "rexide",
-            Plugin = new Oxide.Plugins.RustPlugin { Name = "Core" },
+            Plugin = CorePlugin = new RustPlugin { Name = "Core" },
             Callback = ( player, command, args2 ) =>
             {
                 player.ChatMessage ( $"You're running <color=orange>Rexide v{Rexide.Version}</color>" );
