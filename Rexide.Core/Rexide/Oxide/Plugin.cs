@@ -1,4 +1,5 @@
 ﻿using Oxide.Plugins;
+using Rexide.Core.Harmony;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +10,11 @@ namespace Oxide.Plugins
 {
     public class Plugin
     {
+        public Type Type { get; set; }
+
         public T Call<T> ( string hook, params object [] args )
         {
-            return default;
+            return ( T )HookExecutor.CallHook ( this, hook, args );
         }
 
         public object Call ( string hook, params object [] args )

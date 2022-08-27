@@ -6,9 +6,9 @@ using System.IO;
 using System.Reflection;
 using UnityEngine;
 
-public class Rexide
+public class RexideCore
 {
-    public static Rexide Instance;
+    public static RexideCore Instance;
     public string Id;
     public RustPlugin CorePlugin;
 
@@ -91,7 +91,7 @@ public class Rexide
             Plugin = CorePlugin = new RustPlugin { Name = "Core" },
             Callback = ( player, command, args2 ) =>
             {
-                player.ChatMessage ( $"You're running <color=orange>Rexide v{Rexide.Version}</color>" );
+                player.ChatMessage ( $"You're running <color=orange>Rexide v{RexideCore.Version}</color>" );
             }
         };
 
@@ -122,33 +122,31 @@ public class Initalizer : IHarmonyModHooks
 {
     public void OnLoaded ( OnHarmonyModLoadedArgs args )
     {
-        Rexide.Log ( "Initializing..." );
+        RexideCore.Log ( "Initializing..." );
 
         var newId = Assembly.GetExecutingAssembly ().GetName ().Name;
 
-        if ( Rexide.Instance != null )
+        if ( RexideCore.Instance != null )
         {
-            DebugEx.Log ( $"{Rexide.Instance?.Id} {newId}" );
-
-            if ( Rexide.Instance.Id != newId )
+            if ( RexideCore.Instance.Id != newId )
             {
-                HarmonyLoader.TryUnloadMod ( Rexide.Instance.Id );
-                Rexide.Warn ( $"Unloaded previous: {Rexide.Instance.Id}" );
+                HarmonyLoader.TryUnloadMod ( RexideCore.Instance.Id );
+                RexideCore.Warn ( $"Unloaded previous: {RexideCore.Instance.Id}" );
             }
         }
 
-        if ( Rexide.Instance == null )
+        if ( RexideCore.Instance == null )
         {
-            Rexide.Instance = new Rexide ();
-            Rexide.Instance.Init ();
+            RexideCore.Instance = new RexideCore ();
+            RexideCore.Instance.Init ();
         }
 
-        Rexide.Instance.Id = newId;
+        RexideCore.Instance.Id = newId;
     }
 
     public void OnUnloaded ( OnHarmonyModUnloadedArgs args )
     {
-        Rexide.ClearPlugins ();
+        RexideCore.ClearPlugins ();
         Debug.Log ( $"Unloaded Rexide." );
     }
 }

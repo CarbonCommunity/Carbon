@@ -286,12 +286,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Harmony\HookExecutor.cs" />
     <Compile Include="Harmony\Loader.cs" />
     <Compile Include="Oxide\Command.cs" />
     <Compile Include="Oxide\Configuration\DataFileSystem.cs" />
     <Compile Include="Oxide\Configuration\DynamicConfigFile.cs" />
     <Compile Include="Oxide\CuiHelper.cs" />
     <Compile Include="Oxide\Hooks\Chat_sayAs.cs" />
+    <Compile Include="Oxide\Hooks\ServerMgr_OnDisconnected.cs" />
+    <Compile Include="Oxide\Hooks\ServerMgr_PlayerInit.cs" />
+    <Compile Include="Oxide\Hooks\ServerMgr_OpenConnection.cs" />
     <Compile Include="Oxide\Hooks\ConsoleSystem_Run.cs" />
     <Compile Include="Oxide\Interface.cs" />
     <Compile Include="Oxide\Libraries\Permission.cs" />

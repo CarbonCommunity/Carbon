@@ -52,14 +52,16 @@ namespace Oxide.Plugins
             Manager = new Manager ();
             plugins = new Plugins ();
             timer = new Timer ();
+
+            Type = GetType ();
         }
         public void Puts ( string message )
         {
-            Rexide.Log ( $"[{Name}] {message}" );
+            RexideCore.Log ( $"[{Name}] {message}" );
         }
-        public void Error(string message, Exception exception )
+        public void Error ( string message, Exception exception )
         {
-            Rexide.Error ( $"[{Name}] {message}", exception );
+            RexideCore.Error ( $"[{Name}] {message}", exception );
         }
     }
 }

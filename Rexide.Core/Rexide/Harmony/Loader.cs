@@ -9,6 +9,7 @@ using Oxide.Plugins;
 using Facepunch;
 using JSON;
 using System.Runtime.Serialization;
+using Rexide.Core.Harmony;
 
 public static class RexideLoader
 {
@@ -17,7 +18,7 @@ public static class RexideLoader
         try
         {
             HarmonyInstance.DEBUG = true;
-            string path = Path.Combine ( Rexide.GetLogsFolder (), ".." );
+            string path = Path.Combine ( RexideCore.GetLogsFolder (), ".." );
             FileLog.logPath = Path.Combine ( path, "rexide_log.txt" );
             try
             {
@@ -26,7 +27,7 @@ public static class RexideLoader
             catch
             {
             }
-            _modPath = Rexide.GetPluginsFolder ();
+            _modPath = RexideCore.GetPluginsFolder ();
             if ( !Directory.Exists ( _modPath ) )
             {
                 try
@@ -198,17 +199,17 @@ public static class RexideLoader
                 if ( type == null || !type.IsSubclassOf ( typeof ( RustPlugin ) ) ) continue;
 
                 var instance = Activator.CreateInstance ( type, true );
-
-                type?.GetMethod ( "SetupMod", BindingFlags.Instance | BindingFlags.Public )?.Invoke ( instance, new object [] { mod } );
-                type?.GetMethod ( "OnServerInitialized", BindingFlags.Instance | BindingFlags.NonPublic )?.Invoke ( instance, null );
-
                 var plugin = instance as RustPlugin;
+
+                plugin.CallHook ( "SetupMod", mod );
+                plugin.CallHook ( "OnServerInitialized" );
+
                 mod.Plugins.Add ( plugin );
                 _processMethods ( plugin );
 
                 Debug.Log ( $"Loaded: {mod.Name}" );
             }
-            catch ( Exception ex ) { Rexide.Error ( $"Failed loading '{mod.Name}'", ex ); }
+            catch ( Exception ex ) { RexideCore.Error ( $"Failed loading '{mod.Name}'", ex ); }
         }
     }
     public static void StalkPluginFolder ()
@@ -219,7 +220,7 @@ public static class RexideLoader
             _folderWatcher = null;
         }
 
-        _folderWatcher = new FileSystemWatcher ( Rexide.GetPluginsFolder () )
+        _folderWatcher = new FileSystemWatcher ( RexideCore.GetPluginsFolder () )
         {
             NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess,
             Filter = "*.dll"
@@ -247,12 +248,12 @@ public static class RexideLoader
 
             if ( chatCommand != null )
             {
-                Rexide.Instance.CorePlugin.cmd.AddChatCommand ( chatCommand.Name, plugin, method.Name );
+                RexideCore.Instance.CorePlugin.cmd.AddChatCommand ( chatCommand.Name, plugin, method.Name );
             }
 
             if ( consoleCommand != null )
             {
-                Rexide.Instance.CorePlugin.cmd.AddConsoleCommand ( consoleCommand.Name, plugin, method.Name );
+                RexideCore.Instance.CorePlugin.cmd.AddConsoleCommand ( consoleCommand.Name, plugin, method.Name );
             }
         }
 
@@ -321,15 +322,15 @@ public static class RexideLoader
     }
     internal static void Log ( string harmonyId, object message )
     {
-        Rexide.Log ( $"[{harmonyId}] {message}" );
+        RexideCore.Log ( $"[{harmonyId}] {message}" );
     }
     internal static void LogError ( string harmonyId, object message )
     {
-        Rexide.Error ( $"[{harmonyId}] {message}" );
+        RexideCore.Error ( $"[{harmonyId}] {message}" );
     }
     internal static void LogError ( object message )
     {
-        Rexide.Error ( message );
+        RexideCore.Error ( message );
     }
 
     internal static string _modPath;

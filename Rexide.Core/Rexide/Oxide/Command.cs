@@ -16,9 +16,9 @@ public class Command
 {
     public void AddChatCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback )
     {
-        if ( Rexide.Instance.AllChatCommands.Count ( x => x.Command == command ) == 0 )
+        if ( RexideCore.Instance.AllChatCommands.Count ( x => x.Command == command ) == 0 )
         {
-            Rexide.Instance.AllChatCommands.Add ( new OxideCommand
+            RexideCore.Instance.AllChatCommands.Add ( new OxideCommand
             {
                 Command = command,
                 Plugin = plugin,
@@ -29,7 +29,7 @@ public class Command
                 }
             } );
         }
-        else Rexide.Warn ( $"Chat command '{command}' already exists." );
+        else RexideCore.Warn ( $"Chat command '{command}' already exists." );
     }
     public void AddChatCommand ( string command, RustPlugin plugin, string method )
     {
@@ -50,16 +50,16 @@ public class Command
     }
     public void AddConsoleCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback )
     {
-        if ( Rexide.Instance.AllConsoleCommands.Count ( x => x.Command == command ) == 0 )
+        if ( RexideCore.Instance.AllConsoleCommands.Count ( x => x.Command == command ) == 0 )
         {
-            Rexide.Instance.AllConsoleCommands.Add ( new OxideCommand
+            RexideCore.Instance.AllConsoleCommands.Add ( new OxideCommand
             {
                 Command = command,
                 Plugin = plugin,
                 Callback = callback
             } );
         }
-        else Rexide.Warn ( $"Console command '{command}' already exists." );
+        else RexideCore.Warn ( $"Console command '{command}' already exists." );
     }
     public void AddConsoleCommand ( string command, RustPlugin plugin, string method )
     {

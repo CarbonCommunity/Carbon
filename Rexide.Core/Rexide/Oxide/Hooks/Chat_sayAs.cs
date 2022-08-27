@@ -8,13 +8,11 @@ public class Chat_SayAs
 {
     public static void Prefix ( Chat.ChatChannel targetChannel, ulong userId, string username, string message, BasePlayer player = null )
     {
-        Debug.Log ( $"TEST: {username}: {message}" );
-
         var split = message.Substring ( 1 ).Split ( ' ' );
         var command = split [ 0 ];
         var args = split.Skip ( 1 ).ToArray ();
 
-        foreach ( var cmd in Rexide.Instance?.AllChatCommands )
+        foreach ( var cmd in RexideCore.Instance?.AllChatCommands )
         {
             if ( cmd.Command == command )
             {
