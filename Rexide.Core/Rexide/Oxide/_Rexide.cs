@@ -122,6 +122,8 @@ public class Initalizer : IHarmonyModHooks
 {
     public void OnLoaded ( OnHarmonyModLoadedArgs args )
     {
+        Rexide.Log ( "Initializing..." );
+
         var newId = Assembly.GetExecutingAssembly ().GetName ().Name;
 
         if ( Rexide.Instance != null )
