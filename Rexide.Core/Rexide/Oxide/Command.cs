@@ -87,4 +87,3 @@ public class Command
         else Rexide.Warn ( $"Console command '{command}' already exists." );
     }
 }
-}
