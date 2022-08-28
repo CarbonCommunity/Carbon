@@ -18,12 +18,3 @@ jobs:
       
     - name: Build
       run: msbuild "Carbon.Core" -t:restore -p:RestorePackagesConfig=true /p:Configuration=Release
-
-    - name: Push tag for released action
-      run: |
-        git config --global user.email "raulssorban@gmail.com"
-        git config --global user.name "raul"
-        git add "Carbon.Core/Carbon/bin/Release"
-        git commit -m "${GITHUB_REF:10} release"
-        git tag "${GITHUB_REF:10}-release"
-        git push origin refs/tags/${GITHUB_REF:10}-release
