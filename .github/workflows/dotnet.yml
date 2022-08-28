@@ -20,6 +20,6 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore "Carbon.Core"
     - name: Build
-      run: dotnet build "Carbon.Core/Carbon.Core.sln" --no-restore
+      run: dotnet build "Carbon.Core" --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
