@@ -9,8 +9,8 @@
     <ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Rexide.Core</RootNamespace>
-    <AssemblyName>Rexide1.0.006</AssemblyName>
+    <RootNamespace>Carbon.Core</RootNamespace>
+    <AssemblyName>Carbon1.0.006</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -312,7 +312,7 @@
     <Compile Include="Oxide\WebRequest.cs" />
     <Compile Include="Oxide\_Attributes.cs" />
     <Compile Include="Oxide\_Extensions.cs" />
-    <Compile Include="Oxide\_Rexide.cs" />
+    <Compile Include="Oxide\_Carbon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

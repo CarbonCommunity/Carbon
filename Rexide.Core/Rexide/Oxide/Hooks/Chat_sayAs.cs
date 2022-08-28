@@ -12,7 +12,7 @@ public class Chat_SayAs
         var command = split [ 0 ];
         var args = split.Skip ( 1 ).ToArray ();
 
-        foreach ( var cmd in RexideCore.Instance?.AllChatCommands )
+        foreach ( var cmd in CarbonCore.Instance?.AllChatCommands )
         {
             if ( cmd.Command == command )
             {

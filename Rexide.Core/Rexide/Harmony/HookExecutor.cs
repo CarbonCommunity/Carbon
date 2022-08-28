@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rexide.Core.Harmony
+namespace Carbon.Core.Harmony
 {
     public static class HookExecutor
     {
@@ -25,7 +25,7 @@ namespace Rexide.Core.Harmony
 
         public static void CallStaticHook ( string hookName, BindingFlags flag, params object [] args )
         {
-            foreach ( var mod in RexideLoader._loadedMods )
+            foreach ( var mod in CarbonLoader._loadedMods )
             {
                 foreach ( var plugin in mod.Plugins )
                 {

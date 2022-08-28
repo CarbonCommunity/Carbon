@@ -16,7 +16,7 @@ public class ConsoleSystem_Run
         var command = split [ 0 ];
         var args2 = split.Skip ( 1 ).ToArray ();
 
-        foreach ( var cmd in RexideCore.Instance?.AllConsoleCommands )
+        foreach ( var cmd in CarbonCore.Instance?.AllConsoleCommands )
         {
             if ( cmd.Command == command )
             {
@@ -26,7 +26,7 @@ public class ConsoleSystem_Run
                 }
                 catch ( Exception ex )
                 {
-                    RexideCore.Error ( "ConsoleSystem_Run", ex );
+                    CarbonCore.Error ( "ConsoleSystem_Run", ex );
                 }
 
                 break;

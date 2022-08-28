@@ -9,17 +9,17 @@ using Oxide.Plugins;
 using Facepunch;
 using JSON;
 using System.Runtime.Serialization;
-using Rexide.Core.Harmony;
+using Carbon.Core.Harmony;
 
-public static class RexideLoader
+public static class CarbonLoader
 {
-    public static void LoadRexideMods ()
+    public static void LoadCarbonMods ()
     {
         try
         {
             HarmonyInstance.DEBUG = true;
-            string path = Path.Combine ( RexideCore.GetLogsFolder (), ".." );
-            FileLog.logPath = Path.Combine ( path, "rexide_log.txt" );
+            string path = Path.Combine ( CarbonCore.GetLogsFolder (), ".." );
+            FileLog.logPath = Path.Combine ( path, "carbon_log.txt" );
             try
             {
                 File.Delete ( FileLog.logPath );
@@ -27,7 +27,7 @@ public static class RexideLoader
             catch
             {
             }
-            _modPath = RexideCore.GetPluginsFolder ();
+            _modPath = CarbonCore.GetPluginsFolder ();
             if ( !Directory.Exists ( _modPath ) )
             {
                 try
@@ -55,7 +55,7 @@ public static class RexideLoader
             {
                 if ( !string.IsNullOrEmpty ( text ) && !IsKnownDependency ( Path.GetFileNameWithoutExtension ( text ) ) )
                 {
-                    LoadRexideMod ( text, true );
+                    LoadCarbonMod ( text, true );
                 }
             }
         }
@@ -64,19 +64,19 @@ public static class RexideLoader
             FileLog.FlushBuffer ();
         }
     }
-    public static void UnloadRexideMods ()
+    public static void UnloadCarbonMods ()
     {
-        var list = Facepunch.Pool.GetList<RexideMod> ();
+        var list = Facepunch.Pool.GetList<CarbonMod> ();
         list.AddRange ( _loadedMods );
 
         foreach ( var mod in list )
         {
-            UnloadRexideMod ( mod.Name );
+            UnloadCarbonMod ( mod.Name );
         }
 
         Facepunch.Pool.FreeList ( ref list );
     }
-    public static bool LoadRexideMod ( string name, bool silent = false )
+    public static bool LoadCarbonMod ( string name, bool silent = false )
     {
         Log ( name, $"Pre load..." );
 
@@ -87,10 +87,10 @@ public static class RexideLoader
             fileName = fileName.Substring ( 0, fileName.Length - 4 );
         }
 
-        UnloadRexideMod ( fileName, silent );
+        UnloadCarbonMod ( fileName, silent );
 
         var fullPath = Path.Combine ( _modPath, fileName + ".dll" );
-        var domain = "com.rust.rexide." + fileName;
+        var domain = "com.rust.carbon." + fileName;
 
         Log ( domain, "Processing..." );
 
@@ -102,7 +102,7 @@ public static class RexideLoader
                 LogError ( domain, $"Failed to load harmony mod '{fileName}.dll' from '{_modPath}'" );
                 return false;
             }
-            var mod = new RexideMod
+            var mod = new CarbonMod
             {
                 Assembly = assembly,
                 AllTypes = assembly.GetTypes (),
@@ -161,9 +161,9 @@ public static class RexideLoader
         }
         return true;
     }
-    public static bool UnloadRexideMod ( string name, bool silent = false )
+    public static bool UnloadCarbonMod ( string name, bool silent = false )
     {
-        RexideMod mod = GetMod ( name );
+        CarbonMod mod = GetMod ( name );
         if ( mod == null )
         {
             if ( !silent ) LogError ( "Couldn't unload mod '" + name + "': not loaded" );
@@ -184,11 +184,11 @@ public static class RexideLoader
         return true;
     }
 
-    #region Rexide
+    #region Carbon
 
     internal static FileSystemWatcher _folderWatcher { get; set; }
 
-    public static void ProcessPlugin ( RexideMod mod )
+    public static void ProcessPlugin ( CarbonMod mod )
     {
         foreach ( var type in mod.AllTypes )
         {
@@ -209,7 +209,7 @@ public static class RexideLoader
 
                 Debug.Log ( $"Loaded: {plugin.Name}" );
             }
-            catch ( Exception ex ) { RexideCore.Error ( $"Failed loading '{mod.Name}'", ex ); }
+            catch ( Exception ex ) { CarbonCore.Error ( $"Failed loading '{mod.Name}'", ex ); }
         }
     }
     public static void StalkPluginFolder ()
@@ -220,7 +220,7 @@ public static class RexideLoader
             _folderWatcher = null;
         }
 
-        _folderWatcher = new FileSystemWatcher ( RexideCore.GetPluginsFolder () )
+        _folderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder () )
         {
             NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess,
             Filter = "*.dll"
@@ -229,8 +229,8 @@ public static class RexideLoader
         _folderWatcher.Created += _onChanged;
         _folderWatcher.Renamed += ( sender, e ) =>
         {
-            UnloadRexideMod ( e.OldFullPath, true );
-            LoadRexideMod ( e.FullPath );
+            UnloadCarbonMod ( e.OldFullPath, true );
+            LoadCarbonMod ( e.FullPath );
         };
         _folderWatcher.Deleted += _onRemoved;
         _folderWatcher.EnableRaisingEvents = true;
@@ -248,12 +248,12 @@ public static class RexideLoader
 
             if ( chatCommand != null )
             {
-                RexideCore.Instance.CorePlugin.cmd.AddChatCommand ( chatCommand.Name, plugin, method.Name );
+                CarbonCore.Instance.CorePlugin.cmd.AddChatCommand ( chatCommand.Name, plugin, method.Name );
             }
 
             if ( consoleCommand != null )
             {
-                RexideCore.Instance.CorePlugin.cmd.AddConsoleCommand ( consoleCommand.Name, plugin, method.Name );
+                CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( consoleCommand.Name, plugin, method.Name );
             }
         }
 
@@ -262,25 +262,25 @@ public static class RexideLoader
 
     internal static void _onChanged ( object sender, FileSystemEventArgs e )
     {
-        LoadRexideMod ( e.FullPath, true );
+        LoadCarbonMod ( e.FullPath, true );
     }
     internal static void _onRemoved ( object sender, FileSystemEventArgs e )
     {
-        UnloadRexideMod ( e.FullPath );
+        UnloadCarbonMod ( e.FullPath );
     }
 
     #endregion
 
-    internal static void UnloadMod ( RexideMod mod )
+    internal static void UnloadMod ( CarbonMod mod )
     {
         Log ( mod.Name, "Unpatching hooks..." );
         mod.Harmony.UnpatchAll ( null );
         _loadedMods.Remove ( mod );
         Log ( mod.Name, "Unloaded mod" );
     }
-    internal static RexideMod GetMod ( string name )
+    internal static CarbonMod GetMod ( string name )
     {
-        return _loadedMods.FirstOrDefault ( ( RexideMod x ) => x.Name.Equals ( name, StringComparison.OrdinalIgnoreCase ) );
+        return _loadedMods.FirstOrDefault ( ( CarbonMod x ) => x.Name.Equals ( name, StringComparison.OrdinalIgnoreCase ) );
     }
     internal static Assembly LoadAssembly ( string assemblyPath )
     {
@@ -322,22 +322,22 @@ public static class RexideLoader
     }
     internal static void Log ( string harmonyId, object message )
     {
-        RexideCore.Log ( $"[{harmonyId}] {message}" );
+        CarbonCore.Log ( $"[{harmonyId}] {message}" );
     }
     internal static void LogError ( string harmonyId, object message )
     {
-        RexideCore.Error ( $"[{harmonyId}] {message}" );
+        CarbonCore.Error ( $"[{harmonyId}] {message}" );
     }
     internal static void LogError ( object message )
     {
-        RexideCore.Error ( message );
+        CarbonCore.Error ( message );
     }
 
     internal static string _modPath;
 
-    internal static List<RexideMod> _loadedMods = new List<RexideMod> ();
+    internal static List<CarbonMod> _loadedMods = new List<CarbonMod> ();
 
-    public class RexideMod
+    public class CarbonMod
     {
         public string Name { get; set; }
         public HarmonyInstance Harmony { get; set; }

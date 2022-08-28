@@ -30,14 +30,14 @@ namespace Oxide.Plugins
         public Timer timer { get; set; } = new Timer ();
         public WebRequests webrequest { get; set; } = new WebRequests ();
 
-        public RexideLoader.RexideMod mod { get; set; }
+        public CarbonLoader.CarbonMod mod { get; set; }
 
         public RustPlugin ()
         {
             Setup ( "Plugin" );
         }
 
-        public void SetupMod ( RexideLoader.RexideMod mod )
+        public void SetupMod ( CarbonLoader.CarbonMod mod )
         {
             this.mod = mod;
             Setup ( mod.Name );
@@ -57,11 +57,11 @@ namespace Oxide.Plugins
         }
         public void Puts ( string message )
         {
-            RexideCore.Log ( $"[{Name}] {message}" );
+            CarbonCore.Log ( $"[{Name}] {message}" );
         }
         public void Error ( string message, Exception exception )
         {
-            RexideCore.Error ( $"[{Name}] {message}", exception );
+            CarbonCore.Error ( $"[{Name}] {message}", exception );
         }
     }
 }

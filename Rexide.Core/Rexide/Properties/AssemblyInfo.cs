@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Rexide")]
+[assembly: AssemblyTitle("Carbon")]
 [assembly: AssemblyDescription ( "A very lightweight version of Oxide, all working within Harmony's environment." )]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany ( "Raul-Sorin Sorban" )]
-[assembly: AssemblyProduct ( "Rexide ©" )]
-[assembly: AssemblyCopyright ( "Copyright © Rexide 2022" )]
+[assembly: AssemblyProduct ( "Carbon ©" )]
+[assembly: AssemblyCopyright ( "Copyright © Carbon 2022" )]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

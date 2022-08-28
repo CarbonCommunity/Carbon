@@ -6,9 +6,9 @@ using System.IO;
 using System.Reflection;
 using UnityEngine;
 
-public class RexideCore
+public class CarbonCore
 {
-    public static RexideCore Instance;
+    public static CarbonCore Instance;
     public string Id;
     public RustPlugin CorePlugin;
 
@@ -21,7 +21,7 @@ public class RexideCore
 
     public static string GetRootFolder ()
     {
-        var folder = Path.Combine ( $"{Application.dataPath}\\..", "rexide" );
+        var folder = Path.Combine ( $"{Application.dataPath}\\..", "carbon" );
         Directory.CreateDirectory ( folder );
 
         return folder;
@@ -57,25 +57,25 @@ public class RexideCore
 
     public static void Log ( object message )
     {
-        Debug.Log ( $"[Rexide v{Version}] {message}" );
+        Debug.Log ( $"[Carbon v{Version}] {message}" );
     }
     public static void Warn ( object message )
     {
-        Debug.LogWarning ( $"[Rexide v{Version}] {message}" );
+        Debug.LogWarning ( $"[Carbon v{Version}] {message}" );
     }
     public static void Error ( object message, Exception exception = null )
     {
         if ( exception == null ) Debug.LogError ( message );
-        else Debug.LogException ( new Exception ( $"[Rexide v{Version}] {message}", exception ) );
+        else Debug.LogException ( new Exception ( $"[Carbon v{Version}] {message}", exception ) );
     }
 
     public static void ReloadPlugins ()
     {
-        RexideLoader.LoadRexideMods ();
+        CarbonLoader.LoadCarbonMods ();
     }
     public static void ClearPlugins ()
     {
-        RexideLoader.UnloadRexideMods ();
+        CarbonLoader.UnloadCarbonMods ();
     }
 
     internal void _clearCommands ()
@@ -87,11 +87,11 @@ public class RexideCore
     {
         var cmd = new OxideCommand
         {
-            Command = "rexide",
+            Command = "carbon",
             Plugin = CorePlugin = new RustPlugin { Name = "Core" },
             Callback = ( player, command, args2 ) =>
             {
-                player.ChatMessage ( $"You're running <color=orange>Rexide v{RexideCore.Version}</color>" );
+                player.ChatMessage ( $"You're running <color=orange>Carbon v{CarbonCore.Version}</color>" );
             }
         };
 
@@ -122,31 +122,31 @@ public class Initalizer : IHarmonyModHooks
 {
     public void OnLoaded ( OnHarmonyModLoadedArgs args )
     {
-        RexideCore.Log ( "Initializing..." );
+        CarbonCore.Log ( "Initializing..." );
 
         var newId = Assembly.GetExecutingAssembly ().GetName ().Name;
 
-        if ( RexideCore.Instance != null )
+        if ( CarbonCore.Instance != null )
         {
-            if ( RexideCore.Instance.Id != newId )
+            if ( CarbonCore.Instance.Id != newId )
             {
-                HarmonyLoader.TryUnloadMod ( RexideCore.Instance.Id );
-                RexideCore.Warn ( $"Unloaded previous: {RexideCore.Instance.Id}" );
+                HarmonyLoader.TryUnloadMod ( CarbonCore.Instance.Id );
+                CarbonCore.Warn ( $"Unloaded previous: {CarbonCore.Instance.Id}" );
             }
         }
 
-        if ( RexideCore.Instance == null )
+        if ( CarbonCore.Instance == null )
         {
-            RexideCore.Instance = new RexideCore ();
-            RexideCore.Instance.Init ();
+            CarbonCore.Instance = new CarbonCore ();
+            CarbonCore.Instance.Init ();
         }
 
-        RexideCore.Instance.Id = newId;
+        CarbonCore.Instance.Id = newId;
     }
 
     public void OnUnloaded ( OnHarmonyModUnloadedArgs args )
     {
-        RexideCore.ClearPlugins ();
-        Debug.Log ( $"Unloaded Rexide." );
+        CarbonCore.ClearPlugins ();
+        Debug.Log ( $"Unloaded Carbon." );
     }
 }
