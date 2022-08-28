@@ -11,9 +11,6 @@ jobs:
     runs-on: windows-latest
           
     steps:
-    - name: Set Actions Allow Unsecure Commands
-      run: |
-        echo "ACTIONS_ALLOW_UNSECURE_COMMANDS=true" >> $GITHUB_ENV
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
@@ -32,9 +29,7 @@ jobs:
       run: dotnet restore "Carbon.Core"
       
     - name: Restore Packages
-      run: nuget restore "Carbon.Core/Carbon.Core.sln"
+      run: dotnet restore "Carbon.Core/Carbon.Core.sln" --force
       
     - name: Build
-      run: |
-        msbuild.exe "Carbon.Core/Carbon.Core.sln" /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
-        
+      run: dotnet build "Carbon.Core/Carbon.Core.sln" --force
