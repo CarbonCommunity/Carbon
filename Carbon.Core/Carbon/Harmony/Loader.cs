@@ -27,6 +27,7 @@ public static class CarbonLoader
             catch
             {
             }
+
             _modPath = CarbonCore.GetPluginsFolder ();
             if ( !Directory.Exists ( _modPath ) )
             {
@@ -40,6 +41,7 @@ public static class CarbonLoader
                     return;
                 }
             }
+
             AppDomain.CurrentDomain.AssemblyResolve += delegate ( object sender, ResolveEventArgs args )
             {
                 Debug.Log ( "Trying to load assembly: " + args.Name );
@@ -51,6 +53,7 @@ public static class CarbonLoader
                 }
                 return LoadAssembly ( text2 );
             };
+
             foreach ( string text in Directory.EnumerateFiles ( _modPath, "*.dll" ) )
             {
                 if ( !string.IsNullOrEmpty ( text ) && !IsKnownDependency ( Path.GetFileNameWithoutExtension ( text ) ) )
@@ -58,6 +61,10 @@ public static class CarbonLoader
                     LoadCarbonMod ( text, true );
                 }
             }
+        }
+        catch (Exception ex )
+        {
+            CarbonCore.Error ( "Loading all DLLs failed.", ex );
         }
         finally
         {
@@ -201,7 +208,10 @@ public static class CarbonLoader
                 var instance = Activator.CreateInstance ( type, true );
                 var plugin = instance as RustPlugin;
 
-                plugin.CallPublicHook ( "SetupMod", mod );
+                plugin.CallPublicHook ( "SetupMod", mod, type.Name );
+                HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
+                plugin.Init ();
+                plugin.LoadConfig ();
                 plugin.CallHook ( "OnServerInitialized" );
 
                 mod.Plugins.Add ( plugin );
@@ -322,11 +332,11 @@ public static class CarbonLoader
     }
     internal static void Log ( string harmonyId, object message )
     {
-        CarbonCore.Log ( $"[{harmonyId}] {message}" );
+        CarbonCore.Format ( $"[{harmonyId}] {message}" );
     }
     internal static void LogError ( string harmonyId, object message )
     {
-        CarbonCore.Error ( $"[{harmonyId}] {message}" );
+        CarbonCore.ErrorFormat ( $"[{harmonyId}] {message}" );
     }
     internal static void LogError ( object message )
     {

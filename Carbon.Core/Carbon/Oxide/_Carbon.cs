@@ -21,7 +21,7 @@ public class CarbonCore
 
     public static string GetRootFolder ()
     {
-        var folder = Path.Combine ( $"{Application.dataPath}\\..", "carbon" );
+        var folder = Path.GetFullPath ( Path.Combine ( $"{Application.dataPath}\\..", "carbon" ) );
         Directory.CreateDirectory ( folder );
 
         return folder;
@@ -54,6 +54,13 @@ public class CarbonCore
 
         return folder;
     }
+    public static string GetLangFolder ()
+    {
+        var folder = Path.Combine ( $"{GetRootFolder ()}", "lang" );
+        Directory.CreateDirectory ( folder );
+
+        return folder;
+    }
 
     public static void Log ( object message )
     {
@@ -67,6 +74,19 @@ public class CarbonCore
     {
         if ( exception == null ) Debug.LogError ( message );
         else Debug.LogException ( new Exception ( $"[Carbon v{Version}] {message}", exception ) );
+    }
+
+    public static void Format ( string format, params object [] args )
+    {
+        Log ( string.Format ( format, args ) );
+    }
+    public static void WarnFormat ( string format, params object [] args )
+    {
+        Warn ( string.Format ( format, args ) );
+    }
+    public static void ErrorFormat ( string format, Exception exception = null, params object [] args )
+    {
+        Error ( string.Format ( format, args ), exception );
     }
 
     public static void ReloadPlugins ()
@@ -85,10 +105,12 @@ public class CarbonCore
     }
     internal void _installDefaultCommands ()
     {
+        CorePlugin = new RustPlugin { Name = "Core" };
+
         var cmd = new OxideCommand
         {
             Command = "carbon",
-            Plugin = CorePlugin = new RustPlugin { Name = "Core" },
+            Plugin = CorePlugin,
             Callback = ( player, command, args2 ) =>
             {
                 player.ChatMessage ( $"You're running <color=orange>Carbon v{CarbonCore.Version}</color>" );
@@ -97,24 +119,36 @@ public class CarbonCore
 
         AllChatCommands.Add ( cmd );
         AllConsoleCommands.Add ( cmd );
+
+        AllConsoleCommands.Add ( new OxideCommand ( "c.reset", ( player, command, args2 ) =>
+        {
+            Log ( $"Resetting Carbon..." );
+
+            Instance = null;
+            new Initalizer ().OnLoaded ( null );
+        } ) );
+
     }
 
     public void Init ()
     {
-        Log ( $"Loading..." );
+        Format ( $"Loading..." );
 
         GetRootFolder ();
         GetConfigsFolder ();
         GetDataFolder ();
         GetPluginsFolder ();
         GetLogsFolder ();
+        GetLangFolder ();
+
+        Interface.Initialize ();
 
         _clearCommands ();
         _installDefaultCommands ();
 
-        Log ( $"Loaded." );
-
         ReloadPlugins ();
+
+        Format ( $"Loaded." );
     }
 }
 
@@ -122,16 +156,19 @@ public class Initalizer : IHarmonyModHooks
 {
     public void OnLoaded ( OnHarmonyModLoadedArgs args )
     {
-        CarbonCore.Log ( "Initializing..." );
+        CarbonCore.Format ( "Initializing..." );
 
         var newId = Assembly.GetExecutingAssembly ().GetName ().Name;
 
         if ( CarbonCore.Instance != null )
         {
+            CarbonCore.WarnFormat ( $"Old: {CarbonCore.Instance.Id} New: {newId}" );
+
             if ( CarbonCore.Instance.Id != newId )
             {
                 HarmonyLoader.TryUnloadMod ( CarbonCore.Instance.Id );
-                CarbonCore.Warn ( $"Unloaded previous: {CarbonCore.Instance.Id}" );
+                CarbonCore.WarnFormat ( $"Unloaded previous: {CarbonCore.Instance.Id}" );
+                CarbonCore.Instance = null;
             }
         }
 
@@ -139,9 +176,9 @@ public class Initalizer : IHarmonyModHooks
         {
             CarbonCore.Instance = new CarbonCore ();
             CarbonCore.Instance.Init ();
-        }
 
-        CarbonCore.Instance.Id = newId;
+            CarbonCore.Instance.Id = newId;
+        }
     }
 
     public void OnUnloaded ( OnHarmonyModUnloadedArgs args )

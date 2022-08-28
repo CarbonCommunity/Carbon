@@ -10,12 +10,13 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Carbon.Core</RootNamespace>
-    <AssemblyName>Carbon1.0.006</AssemblyName>
+    <AssemblyName>Carbon1.0.001</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -101,6 +102,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net, Version=3.0.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\..\..\RustMods\Source\packages\protobuf-net.3.1.17\lib\net461\protobuf-net.dll</HintPath>
+    </Reference>
+    <Reference Include="protobuf-net.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\..\..\RustMods\Source\packages\protobuf-net.Core.3.1.17\lib\net461\protobuf-net.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Rust.Data">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Data.dll</HintPath>
     </Reference>
@@ -124,6 +131,9 @@
     </Reference>
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\Carbon.Core\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable, Version=1.2.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\RustMods\Source\packages\System.Collections.Immutable.1.7.1\lib\net461\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -287,9 +297,13 @@
     <Compile Include="Harmony\HookExecutor.cs" />
     <Compile Include="Harmony\Loader.cs" />
     <Compile Include="Oxide\Command.cs" />
+    <Compile Include="Oxide\Configuration\ConfigFile.cs" />
     <Compile Include="Oxide\Configuration\DataFileSystem.cs" />
     <Compile Include="Oxide\Configuration\DynamicConfigFile.cs" />
-    <Compile Include="Oxide\CuiHelper.cs" />
+    <Compile Include="Oxide\Configuration\KeyValuesConverter.cs" />
+    <Compile Include="Oxide\CUI\CuiHelper.cs" />
+    <Compile Include="Oxide\CUI\CuiCore.cs" />
+    <Compile Include="Oxide\Extensions\ExtensionMethods.cs" />
     <Compile Include="Oxide\Hooks\Chat_sayAs.cs" />
     <Compile Include="Oxide\Hooks\ServerMgr_OnDisconnected.cs" />
     <Compile Include="Oxide\Hooks\SaveRestore_DoAutomatedSave.cs" />
@@ -299,15 +313,20 @@
     <Compile Include="Oxide\Hooks\ServerMgr_OpenConnection.cs" />
     <Compile Include="Oxide\Hooks\ConsoleSystem_Run.cs" />
     <Compile Include="Oxide\Interface.cs" />
-    <Compile Include="Oxide\Libraries\Permission.cs" />
-    <Compile Include="Oxide\Manager.cs" />
+    <Compile Include="Oxide\Libraries\Covalence.cs" />
+    <Compile Include="Oxide\Libraries\GroupData.cs" />
+    <Compile Include="Oxide\Libraries\UserData.cs" />
+    <Compile Include="Oxide\Libraries\Language.cs" />
+    <Compile Include="Oxide\Libraries\Permissions.cs" />
+    <Compile Include="Oxide\PluginManager.cs" />
     <Compile Include="Oxide\OxideMod.cs" />
     <Compile Include="Oxide\Plugin.cs" />
     <Compile Include="Oxide\Plugins.cs" />
-    <Compile Include="Oxide\Protobuf.cs" />
+    <Compile Include="Oxide\ProtoStorage.cs" />
     <Compile Include="Oxide\Rust\OxideCommand.cs" />
     <Compile Include="Oxide\Rust\RustPlugin.cs" />
     <Compile Include="Oxide\Timer.cs" />
+    <Compile Include="Oxide\Utility.cs" />
     <Compile Include="Oxide\Version.cs" />
     <Compile Include="Oxide\WebRequest.cs" />
     <Compile Include="Oxide\_Attributes.cs" />

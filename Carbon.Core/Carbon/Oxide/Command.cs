@@ -29,7 +29,7 @@ public class Command
                 }
             } );
         }
-        else CarbonCore.Warn ( $"Chat command '{command}' already exists." );
+        else CarbonCore.WarnFormat ( $"Chat command '{command}' already exists." );
     }
     public void AddChatCommand ( string command, RustPlugin plugin, string method )
     {
@@ -59,7 +59,7 @@ public class Command
                 Callback = callback
             } );
         }
-        else CarbonCore.Warn ( $"Console command '{command}' already exists." );
+        else CarbonCore.WarnFormat ( $"Console command '{command}' already exists." );
     }
     public void AddConsoleCommand ( string command, RustPlugin plugin, string method )
     {

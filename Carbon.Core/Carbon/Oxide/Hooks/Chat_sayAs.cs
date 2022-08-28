@@ -17,6 +17,7 @@ public class Chat_SayAs
             if ( cmd.Command == command )
             {
                 cmd.Callback?.Invoke ( player, command, args );
+                break;
             }
         }
     }
