@@ -293,6 +293,7 @@
     <Compile Include="Oxide\Hooks\Chat_sayAs.cs" />
     <Compile Include="Oxide\Hooks\ServerMgr_OnDisconnected.cs" />
     <Compile Include="Oxide\Hooks\SaveRestore_DoAutomatedSave.cs" />
+    <Compile Include="Oxide\Hooks\ServerMgr_Shutdown.cs" />
     <Compile Include="Oxide\Hooks\Template.cs" />
     <Compile Include="Oxide\Hooks\ServerMgr_PlayerInit.cs" />
     <Compile Include="Oxide\Hooks\ServerMgr_OpenConnection.cs" />
