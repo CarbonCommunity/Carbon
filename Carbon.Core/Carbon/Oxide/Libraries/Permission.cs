@@ -11,7 +11,7 @@ namespace Oxide.Core.Libraries
     {
         public void RegisterPermission ( string perm, RustPlugin plugin )
         {
-
+            //kekw
         }
 
         public bool UserHasPermission ( string steamId, string perm )
