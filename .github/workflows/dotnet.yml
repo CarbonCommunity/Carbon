@@ -33,10 +33,9 @@ jobs:
 
     - name: Push tag for released action
       run: |
-        echo %cd%
         git config --global user.email "raulssorban@gmail.com"
         git config --global user.name "raul"
-        git add "Carbon.Core/Carbon/bin/Release/*"
+        git add "Carbon.Core/Carbon/bin/Debug/*"
         git commit -m "${GITHUB_REF:10} release"
         git tag "${GITHUB_REF:10}-release"
         git push origin refs/tags/${GITHUB_REF:10}-release
