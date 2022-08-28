@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rexide", "Rexide\Rexide.csproj", "{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon", "Carbon\Carbon.csproj", "{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{EA0C021F-83CC-4D67-A6FE-136B92093BFA}"
 EndProject
