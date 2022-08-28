@@ -18,9 +18,8 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      working-directory: "Carbon.Core"
-      run: dotnet restore
+      run: dotnet restore "Carbon.Core"
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build "Carbon.Core/Carbon.Core.sln" --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
