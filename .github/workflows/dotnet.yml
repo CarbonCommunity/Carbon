@@ -9,10 +9,15 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+          
     steps:
+    - name: Set Actions Allow Unsecure Commands
+      run: |
+        echo "ACTIONS_ALLOW_UNSECURE_COMMANDS=true" >> $GITHUB_ENV
+
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
+      
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.2
       
