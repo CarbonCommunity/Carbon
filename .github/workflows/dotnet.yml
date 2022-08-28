@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
+    
     steps:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
@@ -30,5 +30,6 @@ jobs:
       run: nuget restore "Carbon.Core/Carbon.Core.sln"
       
     - name: Build
-      run: msbuild.exe "Carbon.Core/Carbon.Core.sln" /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
+      run: |
+        msbuild.exe "Carbon.Core/Carbon.Core.sln" /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
         
