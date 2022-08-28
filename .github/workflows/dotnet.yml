@@ -15,18 +15,22 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
             
+            
     - uses: actions/checkout@v3
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
-        
+
+    - name: Navigate to Workspace
+      run: cd "Carbon.Core"
+      
     - name: Restore dependencies
-      run: dotnet restore "Carbon.Core"
+      run: dotnet restore
       
     - name: Restore Packages
-      run: dotnet restore "Carbon.Core/Carbon.Core.sln" --force
+      run: dotnet restore --force
       
     - name: Build
-      run: dotnet build "Carbon.Core/Carbon.Core.sln" --force
+      run: dotnet build --force
