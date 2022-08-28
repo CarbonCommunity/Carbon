@@ -6,6 +6,8 @@ A concept that's becoming reality. **Carbon** is a platform in the form of a DLL
 ## Insight
 This project is designed to work as close as the way Oxide does, with slight interface adjustments but with the sole purpose of allowing most Oxide-dedicated plugins, work in **Carbon**'s environment.
 
+**Follow the development roadmap [here](https://trello.com/b/FMTfHkSg/carboncore).**
+
 ### Similarities
 You'll quickly become familiar with the folder structure. Instead of **root/oxide/config** or **root/oxide/plugins** you now have **root/carbon/plugins**, etc. In the plugins folder you must add your DLLs and/or CS files. This might change in the future to organise and split the two types - and yes, both DLLs and script files will be supported.
 
