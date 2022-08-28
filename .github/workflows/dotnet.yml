@@ -16,28 +16,15 @@ jobs:
       uses: microsoft/setup-msbuild@v1
                  
     - uses: actions/checkout@v3
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 6.0.x
-      
-    - name: Restore dependencies
-      run: dotnet restore "Carbon.Core"
-      
-    - name: Restore Packages
-      run: dotnet restore "Carbon.Core" --force
       
     - name: Build
-      run: msbuild "Carbon.Core" -t:restore -p:RestorePackagesConfig=true /p:Configuration=Release
+      run: msbuild "Carbon.Core" -t:restore -p:RestorePackagesConfig=true;p:Configuration=Release
 
     - name: Push tag for released action
       run: |
         git config --global user.email "raulssorban@gmail.com"
         git config --global user.name "raul"
-        git add "Carbon.Core/Carbon/bin/Debug/*"
+        git add "Carbon.Core/Carbon/bin/Release"
         git commit -m "${GITHUB_REF:10} release"
         git tag "${GITHUB_REF:10}-release"
         git push origin refs/tags/${GITHUB_REF:10}-release
-
-
