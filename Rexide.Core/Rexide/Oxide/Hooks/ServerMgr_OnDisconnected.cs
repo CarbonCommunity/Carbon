@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[HarmonyPatch ( typeof ( BasePlayer ), "OnDisconnected" )]
+[HarmonyPatch ( typeof ( ServerMgr ), "OnDisconnected" )]
 public class ServerMgr_OnDisconnected
 {
     public static void Postfix ( string strReason, Network.Connection connection )

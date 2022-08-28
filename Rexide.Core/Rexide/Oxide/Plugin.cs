@@ -24,7 +24,7 @@ namespace Oxide.Plugins
 
         public object CallHook ( string name )
         {
-            return default;
+            return Call ( name );
         }
 
         public bool IsLoaded => true;

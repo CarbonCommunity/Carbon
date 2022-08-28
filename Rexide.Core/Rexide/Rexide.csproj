@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Rexide.Core</RootNamespace>
-    <AssemblyName>Rexide1.0.001</AssemblyName>
+    <AssemblyName>Rexide1.0.006</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -292,6 +292,8 @@
     <Compile Include="Oxide\CuiHelper.cs" />
     <Compile Include="Oxide\Hooks\Chat_sayAs.cs" />
     <Compile Include="Oxide\Hooks\ServerMgr_OnDisconnected.cs" />
+    <Compile Include="Oxide\Hooks\SaveRestore_DoAutomatedSave.cs" />
+    <Compile Include="Oxide\Hooks\Template.cs" />
     <Compile Include="Oxide\Hooks\ServerMgr_PlayerInit.cs" />
     <Compile Include="Oxide\Hooks\ServerMgr_OpenConnection.cs" />
     <Compile Include="Oxide\Hooks\ConsoleSystem_Run.cs" />

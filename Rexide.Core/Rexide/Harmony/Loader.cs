@@ -201,13 +201,13 @@ public static class RexideLoader
                 var instance = Activator.CreateInstance ( type, true );
                 var plugin = instance as RustPlugin;
 
-                plugin.CallHook ( "SetupMod", mod );
+                plugin.CallPublicHook ( "SetupMod", mod );
                 plugin.CallHook ( "OnServerInitialized" );
 
                 mod.Plugins.Add ( plugin );
                 _processMethods ( plugin );
 
-                Debug.Log ( $"Loaded: {mod.Name}" );
+                Debug.Log ( $"Loaded: {plugin.Name}" );
             }
             catch ( Exception ex ) { RexideCore.Error ( $"Failed loading '{mod.Name}'", ex ); }
         }
