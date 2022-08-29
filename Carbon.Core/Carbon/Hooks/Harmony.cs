@@ -13,7 +13,6 @@ using Carbon.Core;
 public class Harmony_Load
 {
     public const string CARBON_LOADED = nameof ( CARBON_LOADED );
-    public static string LastLoadAttemptMod { get; set; }
 
     public static bool Prefix ( ConsoleSystem.Arg args )
     {
@@ -30,9 +29,8 @@ public class Harmony_Load
         else
         {
             CarbonCore.Instance?.UnInit ();
-            HarmonyLoader.TryUnloadMod ( CarbonCore.Instance.Id );
-            CarbonCore.WarnFormat ( $"Unloaded previous: {CarbonCore.Instance.Id}" );
-            CarbonCore.Instance.Id = LastLoadAttemptMod;
+            HarmonyLoader.TryUnloadMod ( oldMod );
+            CarbonCore.WarnFormat ( $"Unloaded previous: {oldMod}" );
             CarbonCore.Instance = null;
         }
 
@@ -49,7 +47,9 @@ public class Harmony_Unload
     {
         if ( !args.FullString.StartsWith ( "Carbon" ) ) return;
 
-        Harmony_Load.LastLoadAttemptMod = null;
+        CarbonCore.Log ( "Intentional unload happened." );
+
+        PlayerPrefs.SetString ( Harmony_Load.CARBON_LOADED, string.Empty );
         CarbonCore.Instance?.UnInit ();
         CarbonCore.Instance = null;
     }

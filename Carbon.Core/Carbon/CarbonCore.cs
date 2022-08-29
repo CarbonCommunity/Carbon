@@ -12,7 +12,6 @@ namespace Carbon.Core
     {
         public static CarbonCore Instance { get; set; }
         public static bool IsLoaded { get; set; }
-        public string Id { get; set; }
         public RustPlugin CorePlugin { get; set; }
 
         internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
@@ -106,8 +105,6 @@ namespace Carbon.Core
         {
             AllChatCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
             AllConsoleCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
-
-            Log ( $"{AllConsoleCommands.Count} commands left" );
         }
         internal void _installDefaultCommands ()
         {
@@ -142,8 +139,6 @@ namespace Carbon.Core
 
             ClearPlugins ();
             Debug.Log ( $"Unloaded Carbon." );
-
-            PlayerPrefs.SetString ( Harmony_Load.CARBON_LOADED, string.Empty );
         }
     }
 
