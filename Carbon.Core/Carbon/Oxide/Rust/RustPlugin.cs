@@ -129,53 +129,44 @@ namespace Oxide.Plugins
         {
             if ( ( ( player != null ) ? player.net : null ) != null )
             {
-                player.SendConsoleCommand ( "echo " + ( ( args.Length != 0 ) ? string.Format ( format, args ) : format ), Array.Empty<object> () );
+                player.SendConsoleCommand ( "echo " + ( ( args.Length != 0 ) ? string.Format ( format, args ) : format ) );
             }
         }
         protected void PrintToConsole ( string format, params object [] args )
         {
             if ( BasePlayer.activePlayerList.Count >= 1 )
             {
-                ConsoleNetwork.BroadcastToAllClients ( "echo " + ( ( args.Length != 0 ) ? string.Format ( format, args ) : format ), Array.Empty<object> () );
+                ConsoleNetwork.BroadcastToAllClients ( "echo " + ( ( args.Length != 0 ) ? string.Format ( format, args ) : format ) );
             }
         }
         protected void PrintToChat ( BasePlayer player, string format, params object [] args )
         {
-            if ( ( ( player != null ) ? player.net : null ) != null )
+            if ( player?.net != null )
             {
-                player.SendConsoleCommand ( "chat.add", new object []
-                {
-                    2,
-                    0,
-                    (args.Length != 0) ? string.Format(format, args) : format
-                } );
+                player.SendConsoleCommand ( "chat.add", 2, 0, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
             }
         }
         protected void PrintToChat ( string format, params object [] args )
         {
             if ( BasePlayer.activePlayerList.Count >= 1 )
             {
-                ConsoleNetwork.BroadcastToAllClients ( "chat.add", new object []
-                {
-                    2,
-                    0,
-                    (args.Length != 0) ? string.Format(format, args) : format
-                } );
+                ConsoleNetwork.BroadcastToAllClients ( "chat.add", 2, 0, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
             }
         }
 
         protected void SendReply ( ConsoleSystem.Arg arg, string format, params object [] args )
         {
             var connection = arg.Connection;
-            var basePlayer = ( ( connection != null ) ? connection.player : null ) as BasePlayer;
+            var basePlayer = connection?.player as BasePlayer;
             var text = ( args.Length != 0 ) ? string.Format ( format, args ) : format;
-            if ( ( ( basePlayer != null ) ? basePlayer.net : null ) != null )
+
+            if ( basePlayer?.net != null )
             {
-                basePlayer.SendConsoleCommand ( "echo " + text );
+                basePlayer.SendConsoleCommand ( $"echo {text}" );
                 return;
             }
 
-            Puts ( text, Array.Empty<object> () );
+            Puts ( text, null );
         }
         protected void SendReply ( BasePlayer player, string format, params object [] args )
         {
@@ -184,36 +175,42 @@ namespace Oxide.Plugins
         protected void SendWarning ( ConsoleSystem.Arg arg, string format, params object [] args )
         {
             var connection = arg.Connection;
-            var basePlayer = ( ( connection != null ) ? connection.player : null ) as BasePlayer;
+            var basePlayer = connection?.player as BasePlayer;
             var text = ( args.Length != 0 ) ? string.Format ( format, args ) : format;
-            if ( ( ( basePlayer != null ) ? basePlayer.net : null ) != null )
+
+            if ( basePlayer?.net != null )
             {
-                basePlayer.SendConsoleCommand ( "echo " + text );
+                basePlayer.SendConsoleCommand ( $"echo {text}" );
                 return;
             }
+
             Debug.LogWarning ( text );
         }
         protected void SendError ( ConsoleSystem.Arg arg, string format, params object [] args )
         {
             var connection = arg.Connection;
-            var basePlayer = ( ( connection != null ) ? connection.player : null ) as BasePlayer;
+            var basePlayer = connection?.player as BasePlayer;
             var text = ( args.Length != 0 ) ? string.Format ( format, args ) : format;
-            if ( ( ( basePlayer != null ) ? basePlayer.net : null ) != null )
+
+            if ( basePlayer?.net != null )
             {
-                basePlayer.SendConsoleCommand ( "echo " + text );
+                basePlayer.SendConsoleCommand ( $"echo {text}" );
                 return;
             }
+
             Debug.LogError ( text );
         }
 
         protected void ForcePlayerPosition ( BasePlayer player, Vector3 destination )
         {
             player.MovePosition ( destination );
+
             if ( !player.IsSpectating () || ( double )Vector3.Distance ( player.transform.position, destination ) > 25.0 )
             {
-                player.ClientRPCPlayer<Vector3> ( null, player, "ForcePositionTo", destination );
+                player.ClientRPCPlayer ( null, player, "ForcePositionTo", destination );
                 return;
             }
+
             player.SendNetworkUpdate ( BasePlayer.NetworkQueue.UpdateDistance );
         }
     }
