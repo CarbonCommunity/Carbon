@@ -39,6 +39,7 @@ You may already do so, but it is a chore. My goal is to try and minimise modifyi
 * **c.version**: Prints Carbon's current version.
 * **c.list**: Prints all loaded mods and plugins in said mods (you may have DLLs with multiple Oxide plugins inside).
 * **c.reload**: Unloads all plugins and re-loads them from the **root/carbon/plugins** folder.
+* **c.find**: Searches and filters through all the available commands processed by **Carbon**.
 
 ### Installation
 Follow the following steps to understand how to integrate **Carbon** into your server. This is very early development, so I advise you to test it out first and make sure things work. If they don't, use the [issues](https://github.com/raulssorban/Carbon.Core/issues) tab. For testing, I do this:
