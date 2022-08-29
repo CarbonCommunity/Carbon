@@ -8,8 +8,29 @@ This project is designed to work as close as the way Oxide does, with slight int
 
 **Follow the development roadmap [here](https://trello.com/b/FMTfHkSg/carboncore).**
 
-### Similarities
+## Features
+* Extremely lightweight, stripped out of additional, unrelated-to-Rust processes
+* Familiar folder and plugin-making structure, with the intention to have the system run almost any kind of Oxide plugin
+* Permissions system
+* Light Hook system
+
+## Similarities
 You'll quickly become familiar with the folder structure. Instead of **root/oxide/config** or **root/oxide/plugins** you now have **root/carbon/plugins**, etc. In the plugins folder you must add your DLLs and/or CS files. This might change in the future to organise and split the two types - and yes, both DLLs and script files will be supported.
+
+### Hooks
+We've got a very specific and select amount of hooks available by default. Will be working on adding tools for developers to - by the help of Harmony - inject code at specific parts in the original Rust runtime assembly.
+* OnPluginLoaded
+* OnServerSave
+* OnPLayerDisconnected
+* OnPlayerConnected
+* OnServerInitialized
+* OnServerShutdown
+* OnUserGroupAdded
+* OnUserGroupRemoved
+* OnUserPermissionGranted
+* OnUSerPermissionRevoked
+* OnGroupPermissionGranted
+* OnGroupPermissionRevoked
 
 ### Commands
 **Carbon** comes with the following built in commands. They all have the prefix **_c.*_**.
