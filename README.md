@@ -18,7 +18,9 @@ This project is designed to work as close as the way Oxide does, with slight int
 You'll quickly become familiar with the folder structure. Instead of **root/oxide/config** or **root/oxide/plugins** you now have **root/carbon/plugins**, etc. In the plugins folder you must add your DLLs and/or CS files. This might change in the future to organise and split the two types - and yes, both DLLs and script files will be supported.
 
 ### Hooks
-We've got a very specific and select amount of hooks available by default. Will be working on adding tools for developers to - by the help of Harmony - inject code at specific parts in the original Rust runtime assembly.
+We've got a very specific and select amount of hooks available by default. Will be working on adding tools for developers to - by the help of Harmony - inject code at specific parts in the original Rust runtime assembly. 
+
+You may already do so, but it is a chore. My goal is to try and minimise modifying your original Oxide plugins to fit working with Carbon.
 * OnPluginLoaded
 * OnServerSave
 * OnPLayerDisconnected
