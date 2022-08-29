@@ -7,6 +7,7 @@ A concept that's becoming reality. **Carbon** is a platform in the form of a DLL
 This project is designed to work as close as the way Oxide does, with slight interface adjustments but with the sole purpose of allowing most Oxide-dedicated plugins, work in **Carbon**'s environment.
 
 **Follow the development roadmap [here](https://trello.com/b/FMTfHkSg/carboncore).**
+**Join our official [Discord server](https://discord.gg/eXPcNKK4yd) for discussions.
 
 ## Features
 * Extremely lightweight, stripped out of additional, unrelated-to-Rust processes
