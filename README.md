@@ -12,8 +12,10 @@ This project is designed to work as close as the way Oxide does, with slight int
 You'll quickly become familiar with the folder structure. Instead of **root/oxide/config** or **root/oxide/plugins** you now have **root/carbon/plugins**, etc. In the plugins folder you must add your DLLs and/or CS files. This might change in the future to organise and split the two types - and yes, both DLLs and script files will be supported.
 
 ### Commands
-// Explain commands
-
+**Carbon** comes with the following built in commands. They all have the prefix **_c.*_**.
+* **c.version**: Prints Carbon's current version.
+* **c.list**: Prints all loaded mods and plugins in said mods (you may have DLLs with multiple Oxide plugins inside).
+* **c.reload**: Unloads all plugins and re-loads them from the **root/carbon/plugins** folder.
 
 ### Installation
 Follow the following steps to understand how to integrate **Carbon** into your server. This is very early development, so I advise you to test it out first and make sure things work. If they don't, use the [issues](https://github.com/raulssorban/Carbon.Core/issues) tab. For testing, I do this:
