@@ -10,6 +10,7 @@ using Facepunch;
 using JSON;
 using System.Runtime.Serialization;
 using Carbon.Core.Harmony;
+using Carbon.Core;
 
 public static class CarbonLoader
 {
@@ -62,7 +63,7 @@ public static class CarbonLoader
                 }
             }
         }
-        catch (Exception ex )
+        catch ( Exception ex )
         {
             CarbonCore.Error ( "Loading all DLLs failed.", ex );
         }
@@ -215,7 +216,7 @@ public static class CarbonLoader
                 plugin.CallHook ( "OnServerInitialized" );
 
                 mod.Plugins.Add ( plugin );
-                _processMethods ( plugin );
+                ProcessCommands ( type, plugin );
 
                 Debug.Log ( $"Loaded: {plugin.Name}" );
             }
@@ -246,10 +247,9 @@ public static class CarbonLoader
         _folderWatcher.EnableRaisingEvents = true;
     }
 
-    internal static void _processMethods ( RustPlugin plugin )
+    public static void ProcessCommands ( Type type, RustPlugin plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null )
     {
-        var type = plugin.GetType ();
-        var methods = type.GetMethods ( BindingFlags.NonPublic | BindingFlags.Instance );
+        var methods = type.GetMethods ( flags );
 
         foreach ( var method in methods )
         {
@@ -258,12 +258,12 @@ public static class CarbonLoader
 
             if ( chatCommand != null )
             {
-                CarbonCore.Instance.CorePlugin.cmd.AddChatCommand ( chatCommand.Name, plugin, method.Name );
+                CarbonCore.Instance.CorePlugin.cmd.AddChatCommand ( string.IsNullOrEmpty ( prefix ) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", plugin, method.Name );
             }
 
             if ( consoleCommand != null )
             {
-                CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( consoleCommand.Name, plugin, method.Name );
+                CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( string.IsNullOrEmpty ( prefix ) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", plugin, method.Name );
             }
         }
 

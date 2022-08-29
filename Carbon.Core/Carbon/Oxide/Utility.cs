@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using Carbon.Core;
 
 namespace Oxide.Core
 {

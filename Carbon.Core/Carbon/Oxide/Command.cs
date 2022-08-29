@@ -1,4 +1,5 @@
-﻿using ConVar;
+﻿using Carbon.Core;
+using ConVar;
 using Facepunch;
 using Oxide.Plugins;
 using System;
@@ -74,7 +75,7 @@ public class Command
                 var value = new object [] { fullString };
                 var client = Option.Unrestricted;
                 var arg = FormatterServices.GetUninitializedObject ( typeof ( Arg ) ) as Arg;
-                client = client.FromConnection ( player.net.connection );
+                if ( player != null ) client = client.FromConnection ( player.net.connection );
                 arg.Option = client;
                 arg.FullString = fullString;
                 arg.Args = args;
@@ -105,7 +106,7 @@ public class Command
                 var value = new object [] { fullString };
                 var client = Option.Unrestricted;
                 var arg = FormatterServices.GetUninitializedObject ( typeof ( Arg ) ) as Arg;
-                client = client.FromConnection ( player.net.connection );
+                if ( player != null ) client = client.FromConnection ( player.net.connection );
                 arg.Option = client;
                 arg.FullString = fullString;
                 arg.Args = args;

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Oxide.Core;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Oxide.Plugins
 {
@@ -41,8 +42,6 @@ namespace Oxide.Plugins
             }
             stopwatch.Start ();
         }
-
-        // Token: 0x060001A6 RID: 422 RVA: 0x00009074 File Offset: 0x00007274
         public void TrackEnd ()
         {
             if ( this.IsCorePlugin )

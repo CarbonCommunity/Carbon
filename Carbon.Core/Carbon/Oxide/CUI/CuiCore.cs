@@ -9,6 +9,7 @@ using Newtonsoft.Json.Converters;
 using System.ComponentModel;
 using UnityEngine.UI;
 using UnityEngine;
+using MongoDB.Driver.Core.Events;
 
 namespace Oxide.Game.Rust.Cui
 {
@@ -31,78 +32,35 @@ namespace Oxide.Game.Rust.Cui
                     typeFromHandle = typeof ( CuiImageComponent );
                     break;
 
-            }
+                case "UnityEngine.UI.Outline":
+                    typeFromHandle = typeof ( CuiOutlineComponent );
+                    break;
 
-            // uint num = < PrivateImplementationDetails >.ComputeStringHash ( text );
-            // if ( num <= 1466421966U )
-            // {
-            //     if ( num <= 976416075U )
-            //     {
-            //         if ( num != 938738728U )
-            //         {
-            //             if ( num == 976416075U )
-            //             {
-            //                 if ( text == "UnityEngine.UI.Image" )
-            //                 {
-            //                     typeFromHandle = typeof ( CuiImageComponent );
-            //                     goto IL_197;
-            //                 }
-            //             }
-            //         }
-            //         else if ( text == "UnityEngine.UI.Outline" )
-            //         {
-            //             typeFromHandle = typeof ( CuiOutlineComponent );
-            //             goto IL_197;
-            //         }
-            //     }
-            //     else if ( num != 1120441549U )
-            //     {
-            //         if ( num == 1466421966U )
-            //         {
-            //             if ( text == "UnityEngine.UI.InputField" )
-            //             {
-            //                 typeFromHandle = typeof ( CuiInputFieldComponent );
-            //             }
-            //         }
-            //     }
-            //     else if ( text == "UnityEngine.UI.RawImage" )
-            //     {
-            //         typeFromHandle = typeof ( CuiRawImageComponent );
-            //     }
-            // }
-            // else if ( num <= 3307054824U )
-            // {
-            //     if ( num != 2471485801U )
-            //     {
-            //         if ( num == 3307054824U )
-            //         {
-            //             if ( text == "NeedsCursor" )
-            //             {
-            //                 typeFromHandle = typeof ( CuiNeedsCursorComponent );
-            //             }
-            //         }
-            //     }
-            //     else if ( text == "RectTransform" )
-            //     {
-            //         typeFromHandle = typeof ( CuiRectTransformComponent );
-            //     }
-            // }
-            // else if ( num != 4090570613U )
-            // {
-            //     if ( num == 4278175142U )
-            //     {
-            //         if ( text == "UnityEngine.UI.Button" )
-            //         {
-            //             typeFromHandle = typeof ( CuiButtonComponent );
-            //             goto IL_197;
-            //         }
-            //     }
-            // }
-            // else if ( text == "UnityEngine.UI.Text" )
-            // {
-            //     typeFromHandle = typeof ( CuiTextComponent );
-            //     goto IL_197;
-            // }
+                case "UnityEngine.UI.Button":
+                    typeFromHandle = typeof ( CuiButtonComponent );
+                    break;
+
+                case "UnityEngine.UI.Text":
+                    typeFromHandle = typeof ( CuiTextComponent );
+                    break;
+
+                case "UnityEngine.UI.InputField":
+                    typeFromHandle = typeof ( CuiInputFieldComponent );
+                    break;
+
+                case "UnityEngine.UI.RawImage":
+                    typeFromHandle = typeof ( CuiRawImageComponent );
+                    break;
+
+
+                case "RectTransform":
+                    typeFromHandle = typeof ( CuiRectTransformComponent );
+                    break;
+
+                case "NeedsCursor":
+                    typeFromHandle = typeof ( CuiNeedsCursorComponent );
+                    break;
+            }
 
             var instance = Activator.CreateInstance ( typeFromHandle );
             serializer.Populate ( jobject.CreateReader (), instance );

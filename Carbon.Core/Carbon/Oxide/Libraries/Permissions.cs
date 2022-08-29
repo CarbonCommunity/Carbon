@@ -11,10 +11,10 @@ using System.IO;
 using System.Linq;
 using Oxide.Core.Plugins;
 using Carbon.Core.Harmony;
+using Carbon.Core;
 
 namespace Oxide.Core.Libraries
 {
-    // Token: 0x0200003E RID: 62
     public class Permission
     {
         public bool IsGlobal

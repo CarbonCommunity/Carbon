@@ -1,4 +1,5 @@
-﻿using Carbon.Core.Harmony;
+﻿using Carbon.Core;
+using Carbon.Core.Harmony;
 using Network;
 using Oxide.Core;
 using Oxide.Core.Configuration;
@@ -97,7 +98,7 @@ namespace Oxide.Plugins
         }
         protected virtual void LoadDefaultConfig ()
         {
-            // CallHook ( "LoadDefaultConfig" );
+            CallHook ( "LoadDefaultConfig" );
         }
         protected virtual void SaveConfig ()
         {
