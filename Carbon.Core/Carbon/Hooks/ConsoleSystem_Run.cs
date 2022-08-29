@@ -24,7 +24,7 @@ public class ConsoleSystem_Run
                 try
                 {
                     cmd.Callback?.Invoke ( options.Connection?.player as BasePlayer, command, args2 );
-                    return false;
+                    return !cmd.SkipOriginal;
                 }
                 catch ( Exception ex )
                 {

@@ -75,9 +75,11 @@ public class ChatCommandAttribute : Attribute
 public class ConsoleCommandAttribute : Attribute
 {
     public string Name { get; }
+    public bool Skip { get; } = true;
 
-    public ConsoleCommandAttribute ( string name )
+    public ConsoleCommandAttribute ( string name, bool skip = true )
     {
         Name = name;
+        Skip = skip;
     }
 }

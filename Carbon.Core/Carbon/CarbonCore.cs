@@ -10,9 +10,10 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
-        public static CarbonCore Instance;
-        public string Id;
-        public RustPlugin CorePlugin;
+        public static CarbonCore Instance { get; set; }
+        public static bool IsLoaded { get; set; }
+        public string Id { get; set; }
+        public RustPlugin CorePlugin { get; set; }
 
         internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
 
@@ -105,6 +106,8 @@ namespace Carbon.Core
         {
             AllChatCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
             AllConsoleCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
+
+            Log ( $"{AllConsoleCommands.Count} commands left" );
         }
         internal void _installDefaultCommands ()
         {
@@ -133,41 +136,29 @@ namespace Carbon.Core
 
             Format ( $"Loaded." );
         }
+        public void UnInit ()
+        {
+            IsLoaded = false;
+
+            ClearPlugins ();
+            Debug.Log ( $"Unloaded Carbon." );
+
+            PlayerPrefs.SetString ( Harmony_Load.CARBON_LOADED, string.Empty );
+        }
     }
 
-    public class Initalizer : IHarmonyModHooks
+    public class CarbonInitalizer : IHarmonyModHooks
     {
         public void OnLoaded ( OnHarmonyModLoadedArgs args )
         {
             CarbonCore.Format ( "Initializing..." );
 
-            var newId = Assembly.GetExecutingAssembly ().GetName ().Name;
+            if ( CarbonCore.Instance == null ) CarbonCore.Instance = new CarbonCore ();
+            else CarbonCore.Instance?.UnInit ();
 
-            if ( CarbonCore.Instance != null )
-            {
-                CarbonCore.WarnFormat ( $"Old: {CarbonCore.Instance.Id} New: {newId}" );
-
-                if ( CarbonCore.Instance.Id != newId )
-                {
-                    HarmonyLoader.TryUnloadMod ( CarbonCore.Instance.Id );
-                    CarbonCore.WarnFormat ( $"Unloaded previous: {CarbonCore.Instance.Id}" );
-                    CarbonCore.Instance = null;
-                }
-            }
-
-            if ( CarbonCore.Instance == null )
-            {
-                CarbonCore.Instance = new CarbonCore ();
-                CarbonCore.Instance.Init ();
-
-                CarbonCore.Instance.Id = newId;
-            }
+            CarbonCore.Instance.Init ();
         }
 
-        public void OnUnloaded ( OnHarmonyModUnloadedArgs args )
-        {
-            CarbonCore.ClearPlugins ();
-            Debug.Log ( $"Unloaded Carbon." );
-        }
+        public void OnUnloaded ( OnHarmonyModUnloadedArgs args ) { }
     }
 }

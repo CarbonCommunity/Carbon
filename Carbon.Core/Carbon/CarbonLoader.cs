@@ -143,10 +143,14 @@ public static class CarbonLoader
                 LogError ( mod.Name, string.Format ( "Failed to patch all hooks: {0}", arg2 ) );
                 return false;
             }
+
             foreach ( var hook in mod.Hooks )
             {
                 try
                 {
+                    var type = hook.GetType ();
+                    if ( type.Name.Equals ( "CarbonInitalizer" ) ) continue;
+
                     hook.OnLoaded ( new OnHarmonyModLoadedArgs () );
                 }
                 catch ( Exception arg3 )
@@ -177,17 +181,21 @@ public static class CarbonLoader
             if ( !silent ) LogError ( "Couldn't unload mod '" + name + "': not loaded" );
             return false;
         }
-        foreach ( IHarmonyModHooks harmonyModHooks in mod.Hooks )
+        foreach ( var hook in mod.Hooks )
         {
             try
             {
-                harmonyModHooks.OnUnloaded ( new OnHarmonyModUnloadedArgs () );
+                var type = hook.GetType ();
+                if ( type.Name.Equals ( "CarbonInitalizer" ) ) continue;
+
+                hook.OnUnloaded ( new OnHarmonyModUnloadedArgs () );
             }
             catch ( Exception arg )
             {
                 LogError ( mod.Name, string.Format ( "Failed to call hook 'OnLoaded' {0}", arg ) );
             }
         }
+
         UnloadMod ( mod );
         return true;
     }

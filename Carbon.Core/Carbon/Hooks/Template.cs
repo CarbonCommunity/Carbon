@@ -8,11 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[HarmonyPatch ( typeof ( ServerMgr ), "OpenConnection" )]
-public class ServerMgr_OpenConnection
+// [HarmonyPatch ( typeof ( Type ), "Method" )]
+public class Class_Method
 {
     public static void Postfix ()
     {
-        HookExecutor.CallStaticHook ( "OnServerInitialized" );
+
     }
 }

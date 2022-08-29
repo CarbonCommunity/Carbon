@@ -58,5 +58,22 @@ namespace Carbon.Core
             CarbonCore.ClearPlugins ();
             CarbonCore.ReloadPlugins ();
         }
+
+        [ConsoleCommand ( "find" )]
+        private void Find ( ConsoleSystem.Arg arg )
+        {
+            var body = new StringBody ();
+            var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args [ 0 ] : null;
+            body.Add ( $"Commands:" );
+
+            foreach ( var command in CarbonCore.Instance.AllConsoleCommands )
+            {
+                if ( !command.Command.Contains ( filter ) ) continue;
+
+                body.Add ( $" {command.Command}(   )" );
+            }
+
+            Reply ( body.ToNewLine (), arg );
+        }
     }
 }
