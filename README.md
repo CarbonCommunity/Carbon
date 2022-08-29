@@ -30,7 +30,7 @@ You may already do so, but it is a chore. My goal is to try and minimise modifyi
 * OnUserGroupAdded
 * OnUserGroupRemoved
 * OnUserPermissionGranted
-* OnUSerPermissionRevoked
+* OnUserPermissionRevoked
 * OnGroupPermissionGranted
 * OnGroupPermissionRevoked
 
