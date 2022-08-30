@@ -1,13 +1,31 @@
 ﻿using Oxide.Plugins;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Carbon.Core.Harmony
 {
     public static class HookExecutor
     {
+        internal static Dictionary<string, MethodInfo> _hookCache { get; } = new Dictionary<string, MethodInfo> ();
+
         public static object CallHook<T> ( this T plugin, string hookName, BindingFlags flags, params object [] args ) where T : Plugin
         {
-            return plugin.Type.GetMethod ( hookName, flags )?.Invoke ( plugin, args );
+            var hook = ( MethodInfo )null;
+
+            if ( !_hookCache.TryGetValue ( hookName, out hook ) )
+            {
+                hook = plugin.Type.GetMethod ( hookName, flags );
+
+                if ( hook == null )
+                {
+                    CarbonCore.Error ( $"Couldn't find hook '{hookName}'" );
+                    return null;
+                }
+
+                _hookCache.Add ( hookName, hook );
+            }
+
+            return hook?.Invoke ( plugin, args );
         }
         public static object CallHook<T> ( this T plugin, string hookName, params object [] args ) where T : Plugin
         {

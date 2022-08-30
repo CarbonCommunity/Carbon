@@ -44,6 +44,8 @@ namespace Oxide.Plugins
             plugins = new Plugins ();
             timer = new Timers ();
             lang = new Language ();
+            mod = new OxideMod ();
+            webrequest = new WebRequests ();
 
             Type = GetType ();
 
@@ -95,7 +97,7 @@ namespace Oxide.Plugins
         }
         protected virtual void LoadDefaultConfig ()
         {
-            CallHook ( "LoadDefaultConfig" );
+            // CallHook ( "LoadDefaultConfig" );
         }
         protected virtual void SaveConfig ()
         {
@@ -138,7 +140,7 @@ namespace Oxide.Plugins
         }
         protected void PrintToChat ( BasePlayer player, string format, params object [] args )
         {
-            if ( player?.net != null )
+            if ( ( ( player != null ) ? player.net : null ) != null )
             {
                 player.SendConsoleCommand ( "chat.add", 2, 0, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
             }
@@ -157,7 +159,7 @@ namespace Oxide.Plugins
             var basePlayer = connection?.player as BasePlayer;
             var text = ( args.Length != 0 ) ? string.Format ( format, args ) : format;
 
-            if ( basePlayer?.net != null )
+            if ( ( ( basePlayer != null ) ? basePlayer.net : null ) != null )
             {
                 basePlayer.SendConsoleCommand ( $"echo {text}" );
                 return;
@@ -175,7 +177,7 @@ namespace Oxide.Plugins
             var basePlayer = connection?.player as BasePlayer;
             var text = ( args.Length != 0 ) ? string.Format ( format, args ) : format;
 
-            if ( basePlayer?.net != null )
+            if ( ( ( basePlayer != null ) ? basePlayer.net : null ) != null )
             {
                 basePlayer.SendConsoleCommand ( $"echo {text}" );
                 return;
@@ -189,7 +191,7 @@ namespace Oxide.Plugins
             var basePlayer = connection?.player as BasePlayer;
             var text = ( args.Length != 0 ) ? string.Format ( format, args ) : format;
 
-            if ( basePlayer?.net != null )
+            if ( ( ( basePlayer != null ) ? basePlayer.net : null ) != null )
             {
                 basePlayer.SendConsoleCommand ( $"echo {text}" );
                 return;

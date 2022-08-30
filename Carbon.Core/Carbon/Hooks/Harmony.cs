@@ -9,10 +9,18 @@ public class Harmony_Load
 
     public static bool Prefix ( ConsoleSystem.Arg args )
     {
-        if ( !args.FullString.StartsWith ( "Carbon" ) ) return true;
+        return Process ( args.Args );
+    }
+
+    internal static bool Process ( string [] args )
+    {
+        var mod = args != null && args.Length > 0 ? args [ 0 ] : null;
+
+        if ( string.IsNullOrEmpty ( mod ) || !mod.StartsWith ( "Carbon" ) ) return true;
 
         var oldMod = PlayerPrefs.GetString ( CARBON_LOADED );
-        var mod = args.Args != null && args.Args.Length > 0 ? args.Args [ 0 ] : null;
+
+        CarbonCore.Log ( $"Old:{oldMod}  new:{mod}" );
 
         if ( oldMod == mod )
         {

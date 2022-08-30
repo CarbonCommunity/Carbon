@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Carbon.Core</RootNamespace>
-    <AssemblyName>Carbon1.0.002</AssemblyName>
+    <AssemblyName>Carbon1.0.027</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -78,8 +78,18 @@
     <Reference Include="Fleck">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Fleck.dll</HintPath>
     </Reference>
+    <Reference Include="Humanlights.MCS">
+      <HintPath>..\..\External\Humanlights.MCS.dll</HintPath>
+    </Reference>
     <Reference Include="Humanlights.System">
       <HintPath>..\..\External\Humanlights.System.dll</HintPath>
+    </Reference>
+    <Reference Include="Humanlights.Unity">
+      <HintPath>..\..\External\Humanlights.Unity.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Humanlights.Unity.Compiler">
+      <HintPath>..\..\External\Humanlights.Unity.Compiler.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Win32.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\Carbon.Core\packages\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
@@ -299,7 +309,7 @@
   <ItemGroup>
     <Compile Include="CarbonCorePlugin.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
-    <Compile Include="CarbonLoader.cs" />
+    <Compile Include="Processors\CarbonLoader.cs" />
     <Compile Include="Oxide\Command.cs" />
     <Compile Include="Oxide\Configuration\ConfigFile.cs" />
     <Compile Include="Oxide\Configuration\DataFileSystem.cs" />
@@ -338,6 +348,11 @@
     <Compile Include="Oxide\_Attributes.cs" />
     <Compile Include="Oxide\_Extensions.cs" />
     <Compile Include="CarbonCore.cs" />
+    <Compile Include="Processors\PluginLoader.cs" />
+    <Compile Include="Processors\AsyncPluginLoader.cs" />
+    <Compile Include="Processors\HarmonyProcessor.cs" />
+    <Compile Include="Processors\PluginProcessor.cs" />
+    <Compile Include="Processors\ThreadedJob.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using Oxide.Core;
+﻿using Humanlights.Extensions;
+using Oxide.Core;
 using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,8 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
+        public FileSystemWatcher PluginFolderWatcher;
+
         public static CarbonCore Instance { get; set; }
         public static bool IsLoaded { get; set; }
         public RustPlugin CorePlugin { get; set; }
@@ -18,6 +21,8 @@ namespace Carbon.Core
 
         public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand> ();
         public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand> ();
+
+        public PluginProcessor PluginProcessor { get; set; } = new PluginProcessor ();
 
         public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 0 );
 
@@ -97,7 +102,7 @@ namespace Carbon.Core
         }
         public static void ClearPlugins ()
         {
-            Instance._clearCommands ();
+            Instance?._clearCommands ();
             CarbonLoader.UnloadCarbonMods ();
         }
 
@@ -133,10 +138,21 @@ namespace Carbon.Core
             ReloadPlugins ();
 
             Format ( $"Loaded." );
+
+            AsyncPluginLoader.AddCurrentDomainAssemblies ();
+            PluginProcessor = new GameObject ( "PluginProcessor" ).AddComponent<PluginProcessor> ();
+            PluginProcessor.Start ();
         }
         public void UnInit ()
         {
             IsLoaded = false;
+
+            if ( PluginProcessor != null )
+            {
+                var obj = PluginProcessor.gameObject;
+                UnityEngine.Object.DestroyImmediate ( PluginProcessor );
+                UnityEngine.Object.Destroy ( obj );
+            }
 
             ClearPlugins ();
             Debug.Log ( $"Unloaded Carbon." );
@@ -147,6 +163,15 @@ namespace Carbon.Core
     {
         public void OnLoaded ( OnHarmonyModLoadedArgs args )
         {
+            var oldMod = PlayerPrefs.GetString ( Harmony_Load.CARBON_LOADED );
+            if ( !Assembly.GetExecutingAssembly ().FullName.StartsWith ( oldMod ) )
+            {
+                CarbonCore.Instance?.UnInit ();
+                HarmonyLoader.TryUnloadMod ( oldMod );
+                CarbonCore.WarnFormat ( $"Unloaded previous: {oldMod}" );
+                CarbonCore.Instance = null;
+            }
+
             CarbonCore.Format ( "Initializing..." );
 
             if ( CarbonCore.Instance == null ) CarbonCore.Instance = new CarbonCore ();

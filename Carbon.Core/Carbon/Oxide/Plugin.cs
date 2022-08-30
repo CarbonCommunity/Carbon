@@ -2,10 +2,11 @@
 using System;
 using Oxide.Core;
 using System.Diagnostics;
+using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    public class Plugin
+    public class Plugin : MonoBehaviour
     {
         public bool IsCorePlugin { get; set; }
         public Type Type { get; set; }

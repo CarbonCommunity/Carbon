@@ -793,9 +793,9 @@ namespace Oxide.Core.Libraries
 
         private readonly Dictionary<Plugin, HashSet<string>> permset;
 
-        private Dictionary<string, UserData> userdata;
+        private Dictionary<string, UserData> userdata = new Dictionary<string, UserData> ();
 
-        private Dictionary<string, GroupData> groupdata;
+        private Dictionary<string, GroupData> groupdata = new Dictionary<string, GroupData> ();
 
         private Func<string, bool> validate;
     }

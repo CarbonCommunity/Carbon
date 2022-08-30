@@ -11,6 +11,8 @@ using Carbon.Core;
 
 public static class CarbonLoader
 {
+    public static List<Assembly> AssemblyCache { get; } = new List<Assembly> ();
+
     public static void LoadCarbonMods ()
     {
         try
@@ -160,6 +162,7 @@ public static class CarbonLoader
             ProcessPlugin ( mod );
             Log ( mod.Name, $"Processed." );
 
+            AssemblyCache.Add ( assembly );
             _loadedMods.Add ( mod );
         }
         catch ( Exception e )
@@ -199,7 +202,6 @@ public static class CarbonLoader
 
     #region Carbon
 
-    internal static FileSystemWatcher _folderWatcher { get; set; }
 
     public static void ProcessPlugin ( CarbonMod mod )
     {
@@ -230,22 +232,25 @@ public static class CarbonLoader
     }
     public static void StalkPluginFolder ()
     {
-        if ( _folderWatcher != null )
+        if ( CarbonCore.Instance.PluginFolderWatcher != null )
         {
-            _folderWatcher.Dispose ();
-            _folderWatcher = null;
+            CarbonCore.Instance.PluginFolderWatcher.Dispose ();
+            CarbonCore.Instance.PluginFolderWatcher = null;
         }
 
-        _folderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder () )
+        CarbonCore.Instance.PluginFolderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder ())
         {
-            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess,
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.FileName,
             Filter = "*.dll"
         };
-        _folderWatcher.Changed += _onChanged;
-        _folderWatcher.Created += _onChanged;
-        _folderWatcher.Renamed += _onRenamed;
-        _folderWatcher.Deleted += _onRemoved;
-        _folderWatcher.EnableRaisingEvents = true;
+        CarbonCore.Instance.PluginFolderWatcher.Changed += _onChanged;
+        CarbonCore.Instance.PluginFolderWatcher.Created += _onChanged;
+        CarbonCore.Instance.PluginFolderWatcher.Renamed += _onRenamed;
+        CarbonCore.Instance.PluginFolderWatcher.Deleted += _onRemoved;
+        CarbonCore.Instance.PluginFolderWatcher.Error += (sender, err) => { CarbonCore.Error ( $"Shit hit the fan:", err.GetException () ); };
+
+        CarbonCore.Instance.PluginFolderWatcher.EnableRaisingEvents = true;
+        CarbonCore.Log ( $"Started stalking '{CarbonCore.Instance.PluginFolderWatcher.Path}'" );
     }
 
     public static void ProcessCommands ( Type type, RustPlugin plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null )
@@ -273,15 +278,21 @@ public static class CarbonLoader
 
     internal static void _onChanged ( object sender, FileSystemEventArgs e )
     {
+        CarbonCore.Log ( $"onChanged: '{e.FullPath}" );
+
         LoadCarbonMod ( e.FullPath, true );
     }
     internal static void _onRenamed ( object sender, RenamedEventArgs e )
     {
+        CarbonCore.Log ( $"_onRenamed: '{e.OldFullPath}' -> '{e.FullPath}'" );
+
         UnloadCarbonMod ( e.OldFullPath, true );
         LoadCarbonMod ( e.FullPath );
     }
     internal static void _onRemoved ( object sender, FileSystemEventArgs e )
     {
+        CarbonCore.Log ( $"_onRemoved: '{e.FullPath}'" );
+
         UnloadCarbonMod ( e.FullPath );
     }
 

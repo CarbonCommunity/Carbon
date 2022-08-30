@@ -43,5 +43,10 @@ namespace Oxide.Core
         {
 
         }
+
+        public void OnSave ()
+        {
+            
+        }
     }
 }
