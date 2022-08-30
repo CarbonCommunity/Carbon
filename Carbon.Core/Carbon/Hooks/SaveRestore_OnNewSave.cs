@@ -1,18 +1,19 @@
-﻿using ConVar;
-using Facepunch;
-using Harmony;
+﻿using Harmony;
 using Carbon.Core.Harmony;
-using System;
-using System.CodeDom;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+using System.IO;
 
-// [HarmonyPatch ( typeof ( Type ), "Method" )]
-public class Class_Method
+[HarmonyPatch(typeof(SaveRestore), "Load")]
+public class SaveRestore_OnNewSave
 {
-    public static void Postfix ()
+    public static void Prefix(string strFilename = "", bool allowOutOfDateSaves = false)
     {
-
+        if (strFilename == "")
+        {
+            strFilename = string.Concat(World.SaveFolderName, "/", World.SaveFileName);
+        }
+        if (!File.Exists(strFilename))
+        {
+            HookExecutor.CallStaticHook("OnNewSave", strFilename);
+        }
     }
 }

@@ -300,6 +300,7 @@
     <Compile Include="CarbonCorePlugin.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
     <Compile Include="CarbonLoader.cs" />
+    <Compile Include="Hooks\SaveRestore_OnNewSave.cs" />
     <Compile Include="Oxide\Command.cs" />
     <Compile Include="Oxide\Configuration\ConfigFile.cs" />
     <Compile Include="Oxide\Configuration\DataFileSystem.cs" />
