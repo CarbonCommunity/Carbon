@@ -1,12 +1,9 @@
 ﻿using Carbon.Core;
-using Carbon.Core.Harmony;
-using Network;
 using Oxide.Core;
 using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
 using System;
 using System.IO;
-using System.Reflection;
 using UnityEngine;
 
 namespace Oxide.Plugins

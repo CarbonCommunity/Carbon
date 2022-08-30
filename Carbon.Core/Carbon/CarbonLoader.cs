@@ -6,9 +6,6 @@ using System;
 using UnityEngine;
 using System.Linq;
 using Oxide.Plugins;
-using Facepunch;
-using JSON;
-using System.Runtime.Serialization;
 using Carbon.Core.Harmony;
 using Carbon.Core;
 
@@ -246,11 +243,7 @@ public static class CarbonLoader
         };
         _folderWatcher.Changed += _onChanged;
         _folderWatcher.Created += _onChanged;
-        _folderWatcher.Renamed += ( sender, e ) =>
-        {
-            UnloadCarbonMod ( e.OldFullPath, true );
-            LoadCarbonMod ( e.FullPath );
-        };
+        _folderWatcher.Renamed += _onRenamed;
         _folderWatcher.Deleted += _onRemoved;
         _folderWatcher.EnableRaisingEvents = true;
     }
@@ -281,6 +274,11 @@ public static class CarbonLoader
     internal static void _onChanged ( object sender, FileSystemEventArgs e )
     {
         LoadCarbonMod ( e.FullPath, true );
+    }
+    internal static void _onRenamed ( object sender, RenamedEventArgs e )
+    {
+        UnloadCarbonMod ( e.OldFullPath, true );
+        LoadCarbonMod ( e.FullPath );
     }
     internal static void _onRemoved ( object sender, FileSystemEventArgs e )
     {

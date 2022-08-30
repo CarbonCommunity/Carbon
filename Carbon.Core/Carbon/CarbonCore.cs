@@ -129,6 +129,7 @@ namespace Carbon.Core
             _clearCommands ();
             _installDefaultCommands ();
 
+            CarbonLoader.StalkPluginFolder ();
             ReloadPlugins ();
 
             Format ( $"Loaded." );

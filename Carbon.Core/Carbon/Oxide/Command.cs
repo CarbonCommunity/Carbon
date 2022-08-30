@@ -1,15 +1,9 @@
 ﻿using Carbon.Core;
-using ConVar;
-using Facepunch;
 using Oxide.Plugins;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
 

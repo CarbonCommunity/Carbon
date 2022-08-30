@@ -2,7 +2,6 @@
 using ConVar;
 using Harmony;
 using System.Linq;
-using UnityEngine;
 
 [HarmonyPatch ( typeof ( Chat ), "sayAs" )]
 public class Chat_SayAs

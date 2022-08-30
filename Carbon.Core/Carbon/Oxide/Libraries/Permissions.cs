@@ -2,14 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Oxide.Core.Plugins;
 using Carbon.Core.Harmony;
 using Carbon.Core;
 

@@ -1,12 +1,7 @@
 ﻿using Carbon.Core;
-using ConVar;
-using Facepunch;
 using Harmony;
 using System;
-using System.CodeDom;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 [HarmonyPatch ( typeof ( ConsoleSystem ), "Run" )]
 public class ConsoleSystem_Run

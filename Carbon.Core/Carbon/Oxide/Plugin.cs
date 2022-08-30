@@ -1,13 +1,7 @@
-﻿using Oxide.Plugins;
-using Carbon.Core.Harmony;
+﻿using Carbon.Core.Harmony;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Oxide.Core;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace Oxide.Plugins
 {
