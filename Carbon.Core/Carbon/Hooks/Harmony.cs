@@ -1,24 +1,25 @@
-﻿using Harmony;
+﻿using System.Collections.Generic;
+using Harmony;
 using UnityEngine;
 using Carbon.Core;
 
 [HarmonyPatch ( typeof ( ConVar.Harmony ), "Load" )]
 public class Harmony_Load
 {
-    public const string CARBON_LOADED = nameof ( CARBON_LOADED );
+    public const string CarbonLoaded = nameof ( CarbonLoaded );
 
     public static bool Prefix ( ConsoleSystem.Arg args )
     {
         return Process ( args.Args );
     }
 
-    internal static bool Process ( string [] args )
+    private static bool Process ( IReadOnlyList<string> args )
     {
-        var mod = args != null && args.Length > 0 ? args [ 0 ] : null;
+        var mod = args != null && args.Count > 0 ? args [ 0 ] : null;
 
         if ( string.IsNullOrEmpty ( mod ) || !mod.StartsWith ( "Carbon" ) ) return true;
 
-        var oldMod = PlayerPrefs.GetString ( CARBON_LOADED );
+        var oldMod = PlayerPrefs.GetString ( CarbonLoaded );
 
         CarbonCore.Log ( $"Old:{oldMod}  new:{mod}" );
 
@@ -35,7 +36,7 @@ public class Harmony_Load
             CarbonCore.Instance = null;
         }
 
-        PlayerPrefs.SetString ( CARBON_LOADED, mod );
+        PlayerPrefs.SetString ( CarbonLoaded, mod );
 
         return true;
     }
@@ -50,7 +51,7 @@ public class Harmony_Unload
 
         CarbonCore.Log ( "Intentional unload happened." );
 
-        PlayerPrefs.SetString ( Harmony_Load.CARBON_LOADED, string.Empty );
+        PlayerPrefs.SetString ( Harmony_Load.CarbonLoaded, string.Empty );
         CarbonCore.Instance?.UnInit ();
         CarbonCore.Instance = null;
     }

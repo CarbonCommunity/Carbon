@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using Carbon.Core.Processors;
+using Facepunch;
 
 namespace Oxide.Plugins
 {
@@ -12,7 +13,7 @@ namespace Oxide.Plugins
         public Plugin [] GetAll ()
         {
             var list = Pool.GetList<Plugin>();
-            foreach(var mod in CarbonLoader._loadedMods )
+            foreach(var mod in CarbonLoader.LoadedMods )
             {
                 list.AddRange ( mod.Plugins );
             }

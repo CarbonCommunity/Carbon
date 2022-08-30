@@ -13,8 +13,8 @@ namespace Carbon.Core.Oxide.Hooks
         {
             try
             {
-                var gameTags = GameTags.GetValue ( null ) as string;
-
+                var gameTags = (string)GameTags.GetValue ( null );
+                if (gameTags == null) return;
                 if ( !gameTags.Contains ( ",modded" ) ) GameTags.SetValue ( null, $"{gameTags},modded" );
             }
             catch ( Exception ex )

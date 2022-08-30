@@ -1,10 +1,10 @@
-﻿using Humanlights.Extensions;
-using Oxide.Core;
+﻿using Oxide.Core;
 using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using Carbon.Core.Processors;
 using UnityEngine;
 
 namespace Carbon.Core
@@ -14,16 +14,15 @@ namespace Carbon.Core
         public FileSystemWatcher PluginFolderWatcher;
 
         public static CarbonCore Instance { get; set; }
-        public static bool IsLoaded { get; set; }
-        public RustPlugin CorePlugin { get; set; }
+        public RustPlugin CorePlugin { get; private set; }
 
-        internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
+        internal static MethodInfo GetMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
 
         public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand> ();
         public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand> ();
 
-        public PluginProcessor PluginProcessor { get; set; } = new PluginProcessor ();
-
+        public PluginProcessor PluginProcessor { get; private set; } = new PluginProcessor ();
+        
         public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 0 );
 
         public static string GetRootFolder ()
@@ -106,12 +105,13 @@ namespace Carbon.Core
             CarbonLoader.UnloadCarbonMods ();
         }
 
-        internal void _clearCommands ()
+        private void _clearCommands ()
         {
             AllChatCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
             AllConsoleCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
         }
-        internal void _installDefaultCommands ()
+
+        private void _installDefaultCommands ()
         {
             CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
 
@@ -145,8 +145,6 @@ namespace Carbon.Core
         }
         public void UnInit ()
         {
-            IsLoaded = false;
-
             if ( PluginProcessor != null )
             {
                 var obj = PluginProcessor.gameObject;
@@ -159,11 +157,11 @@ namespace Carbon.Core
         }
     }
 
-    public class CarbonInitalizer : IHarmonyModHooks
+    public class CarbonInitializer : IHarmonyModHooks
     {
         public void OnLoaded ( OnHarmonyModLoadedArgs args )
         {
-            var oldMod = PlayerPrefs.GetString ( Harmony_Load.CARBON_LOADED );
+            var oldMod = PlayerPrefs.GetString ( Harmony_Load.CarbonLoaded );
             if ( !Assembly.GetExecutingAssembly ().FullName.StartsWith ( oldMod ) )
             {
                 CarbonCore.Instance?.UnInit ();
@@ -177,7 +175,7 @@ namespace Carbon.Core
             if ( CarbonCore.Instance == null ) CarbonCore.Instance = new CarbonCore ();
             else CarbonCore.Instance?.UnInit ();
 
-            CarbonCore.Instance.Init ();
+            CarbonCore.Instance?.Init ();
         }
 
         public void OnUnloaded ( OnHarmonyModUnloadedArgs args ) { }

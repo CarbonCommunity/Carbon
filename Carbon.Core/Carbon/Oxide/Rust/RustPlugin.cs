@@ -4,6 +4,7 @@ using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
 using System;
 using System.IO;
+using Carbon.Core.Processors;
 using UnityEngine;
 
 namespace Oxide.Plugins

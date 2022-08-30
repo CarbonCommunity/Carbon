@@ -11,15 +11,15 @@ public class Chat_SayAs
         var split = message.Substring ( 1 ).Split ( ' ' );
         var command = split [ 0 ];
         var args = split.Skip ( 1 ).ToArray ();
-
-        foreach ( var cmd in CarbonCore.Instance?.AllChatCommands )
-        {
-            if ( cmd.Command == command )
+        
+            foreach (var cmd in CarbonCore.Instance?.AllChatCommands)
             {
-                cmd.Callback?.Invoke ( player, command, args );
-                return false;
+                if (cmd.Command == command)
+                {
+                    cmd.Callback?.Invoke(player, command, args);
+                    return false;
+                }
             }
-        }
 
         return true;
     }

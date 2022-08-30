@@ -1,23 +1,20 @@
 ﻿using Facepunch;
-using Facepunch.Models;
 using Humanlights.Components;
 using Humanlights.Extensions;
 using Oxide.Plugins;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
+using Carbon.Core.Processors;
 using UnityEngine;
 
 namespace Carbon.Core
 {
     public class CarbonCorePlugin : RustPlugin
     {
-        public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string> ();
+        private static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string> ();
 
-        public static void RefreshOrderedFiles ()
+        private static void RefreshOrderedFiles ()
         {
             OrderedFiles.Clear ();
 
@@ -27,7 +24,7 @@ namespace Carbon.Core
             }
         }
 
-        public static string GetPluginPath ( string shortName )
+        private static string GetPluginPath ( string shortName )
         {
             foreach ( var file in OrderedFiles )
             {
@@ -37,7 +34,7 @@ namespace Carbon.Core
             return null;
         }
 
-        internal static void Reply ( object message, ConsoleSystem.Arg arg )
+        private static void Reply ( object message, ConsoleSystem.Arg arg )
         {
             if ( arg != null && arg.Player () != null )
             {
@@ -63,9 +60,9 @@ namespace Carbon.Core
             var body = new StringTable ( "#", "Mod", "Author", "Version" );
             var count = 1;
 
-            Reply ( $"Found: {CarbonLoader._loadedMods.Count} mods  with {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count )} plugins", arg );
+            Reply ( $"Found: {CarbonLoader.LoadedMods.Count} mods  with {CarbonLoader.LoadedMods.Sum ( x => x.Plugins.Count )} plugins", arg );
 
-            foreach ( var mod in CarbonLoader._loadedMods )
+            foreach ( var mod in CarbonLoader.LoadedMods )
             {
                 body.AddRow ( $"{count:n0}", mod.Name, "", "" );
 

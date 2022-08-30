@@ -1,18 +1,17 @@
 ﻿using Oxide.Plugins;
 using System.Collections.Generic;
 using System.Reflection;
+using Carbon.Core.Processors;
 
 namespace Carbon.Core.Harmony
 {
     public static class HookExecutor
     {
-        internal static Dictionary<string, MethodInfo> _hookCache { get; } = new Dictionary<string, MethodInfo> ();
+        private static Dictionary<string, MethodInfo> HookCache { get; } = new Dictionary<string, MethodInfo> ();
 
         public static object CallHook<T> ( this T plugin, string hookName, BindingFlags flags, params object [] args ) where T : Plugin
         {
-            var hook = ( MethodInfo )null;
-
-            if ( !_hookCache.TryGetValue ( hookName, out hook ) )
+            if ( !HookCache.TryGetValue ( hookName, out var hook ) )
             {
                 hook = plugin.Type.GetMethod ( hookName, flags );
 
@@ -22,7 +21,7 @@ namespace Carbon.Core.Harmony
                     return null;
                 }
 
-                _hookCache.Add ( hookName, hook );
+                HookCache.Add ( hookName, hook );
             }
 
             return hook?.Invoke ( plugin, args );
@@ -41,14 +40,14 @@ namespace Carbon.Core.Harmony
             var objectOverride = ( object )null;
             var pluginOverride = ( Plugin )null;
 
-            foreach ( var mod in CarbonLoader._loadedMods )
+            foreach ( var mod in CarbonLoader.LoadedMods )
             {
                 foreach ( var plugin in mod.Plugins )
                 {
                     try
                     {
-                        var result = plugin.CallHook ( hookName, flag, args ); ;
-                        if ( result != null && objectOverride != null )
+                        var result = plugin.CallHook ( hookName, flag, args );
+                        if ( pluginOverride != null && result != null && objectOverride != null && pluginOverride.Name != null)
                         {
                             CarbonCore.WarnFormat ( $"Hook '{hookName}' conflicts with {pluginOverride.Name}" );
                             break;
@@ -57,7 +56,10 @@ namespace Carbon.Core.Harmony
                         objectOverride = result;
                         pluginOverride = plugin;
                     }
-                    catch { }
+                    catch
+                    {
+                        // ignored
+                    }
                 }
             }
 
