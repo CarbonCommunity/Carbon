@@ -46,7 +46,7 @@ You may already do so, but it is a chore. My goal is to try and minimize modifyi
 Follow the following steps to understand how to integrate **Carbon** into your server. This is very early development, so I advise you to test it out first and make sure things work. If they don't, use the [issues](https://github.com/raulssorban/Carbon.Core/issues) tab. For testing, I do this:
 
 1. Download/clone **Carbon.Core** and compile it yourself. Grab *only* the Carbon0.0.0.dll file out of your Release/Debug directory. If [releases](https://github.com/raulssorban/Carbon.Core/releases) are available, you may directly use those.
-1. Add it to the *root/HarmonyMods* folder. If the server's already live, execute the following command to load **Carbon** up: **harmony.load Carbon0.0.0.dll**
+1. Add it to the *root/HarmonyMods* folder. If the server's already live, execute the following command to load **Carbon** up: **harmony.load Carbon0.0.0**
 1. Once loaded, you'll notice that **Carbon**'s booting up in the console.
 
 **Note:** *Replace the 0.0.0 values with the major/minor/build versions of the build.*
