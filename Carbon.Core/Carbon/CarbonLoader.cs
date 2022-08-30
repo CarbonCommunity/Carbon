@@ -10,6 +10,7 @@ using Facepunch;
 using JSON;
 using System.Runtime.Serialization;
 using Carbon.Core.Harmony;
+using Carbon.Core;
 
 public static class CarbonLoader
 {
@@ -27,6 +28,7 @@ public static class CarbonLoader
             catch
             {
             }
+
             _modPath = CarbonCore.GetPluginsFolder ();
             if ( !Directory.Exists ( _modPath ) )
             {
@@ -40,6 +42,7 @@ public static class CarbonLoader
                     return;
                 }
             }
+
             AppDomain.CurrentDomain.AssemblyResolve += delegate ( object sender, ResolveEventArgs args )
             {
                 Debug.Log ( "Trying to load assembly: " + args.Name );
@@ -51,6 +54,7 @@ public static class CarbonLoader
                 }
                 return LoadAssembly ( text2 );
             };
+
             foreach ( string text in Directory.EnumerateFiles ( _modPath, "*.dll" ) )
             {
                 if ( !string.IsNullOrEmpty ( text ) && !IsKnownDependency ( Path.GetFileNameWithoutExtension ( text ) ) )
@@ -58,6 +62,10 @@ public static class CarbonLoader
                     LoadCarbonMod ( text, true );
                 }
             }
+        }
+        catch ( Exception ex )
+        {
+            CarbonCore.Error ( "Loading all DLLs failed.", ex );
         }
         finally
         {
@@ -135,10 +143,14 @@ public static class CarbonLoader
                 LogError ( mod.Name, string.Format ( "Failed to patch all hooks: {0}", arg2 ) );
                 return false;
             }
+
             foreach ( var hook in mod.Hooks )
             {
                 try
                 {
+                    var type = hook.GetType ();
+                    if ( type.Name.Equals ( "CarbonInitalizer" ) ) continue;
+
                     hook.OnLoaded ( new OnHarmonyModLoadedArgs () );
                 }
                 catch ( Exception arg3 )
@@ -169,17 +181,21 @@ public static class CarbonLoader
             if ( !silent ) LogError ( "Couldn't unload mod '" + name + "': not loaded" );
             return false;
         }
-        foreach ( IHarmonyModHooks harmonyModHooks in mod.Hooks )
+        foreach ( var hook in mod.Hooks )
         {
             try
             {
-                harmonyModHooks.OnUnloaded ( new OnHarmonyModUnloadedArgs () );
+                var type = hook.GetType ();
+                if ( type.Name.Equals ( "CarbonInitalizer" ) ) continue;
+
+                hook.OnUnloaded ( new OnHarmonyModUnloadedArgs () );
             }
             catch ( Exception arg )
             {
                 LogError ( mod.Name, string.Format ( "Failed to call hook 'OnLoaded' {0}", arg ) );
             }
         }
+
         UnloadMod ( mod );
         return true;
     }
@@ -201,11 +217,14 @@ public static class CarbonLoader
                 var instance = Activator.CreateInstance ( type, true );
                 var plugin = instance as RustPlugin;
 
-                plugin.CallPublicHook ( "SetupMod", mod );
+                plugin.CallPublicHook ( "SetupMod", mod, type.Name );
+                HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
+                plugin.Init ();
+                plugin.LoadConfig ();
                 plugin.CallHook ( "OnServerInitialized" );
 
                 mod.Plugins.Add ( plugin );
-                _processMethods ( plugin );
+                ProcessCommands ( type, plugin );
 
                 Debug.Log ( $"Loaded: {plugin.Name}" );
             }
@@ -236,10 +255,9 @@ public static class CarbonLoader
         _folderWatcher.EnableRaisingEvents = true;
     }
 
-    internal static void _processMethods ( RustPlugin plugin )
+    public static void ProcessCommands ( Type type, RustPlugin plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null )
     {
-        var type = plugin.GetType ();
-        var methods = type.GetMethods ( BindingFlags.NonPublic | BindingFlags.Instance );
+        var methods = type.GetMethods ( flags );
 
         foreach ( var method in methods )
         {
@@ -248,12 +266,12 @@ public static class CarbonLoader
 
             if ( chatCommand != null )
             {
-                CarbonCore.Instance.CorePlugin.cmd.AddChatCommand ( chatCommand.Name, plugin, method.Name );
+                CarbonCore.Instance.CorePlugin.cmd.AddChatCommand ( string.IsNullOrEmpty ( prefix ) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", plugin, method.Name );
             }
 
             if ( consoleCommand != null )
             {
-                CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( consoleCommand.Name, plugin, method.Name );
+                CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( string.IsNullOrEmpty ( prefix ) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", plugin, method.Name );
             }
         }
 
@@ -322,11 +340,11 @@ public static class CarbonLoader
     }
     internal static void Log ( string harmonyId, object message )
     {
-        CarbonCore.Log ( $"[{harmonyId}] {message}" );
+        CarbonCore.Format ( $"[{harmonyId}] {message}" );
     }
     internal static void LogError ( string harmonyId, object message )
     {
-        CarbonCore.Error ( $"[{harmonyId}] {message}" );
+        CarbonCore.ErrorFormat ( $"[{harmonyId}] {message}" );
     }
     internal static void LogError ( object message )
     {

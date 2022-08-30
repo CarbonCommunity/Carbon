@@ -75,21 +75,6 @@ namespace Oxide.Game.Rust.Cui
         }
     }
 
-    public class CuiElement
-    {
-        [JsonProperty ( "name" )]
-        public string Name { get; set; }
-
-        [JsonProperty ( "parent" )]
-        public string Parent { get; set; }
-
-        [JsonProperty ( "components" )]
-        public List<ICuiComponent> Components { get; } = new List<ICuiComponent> ();
-
-        [JsonProperty ( "fadeOut" )]
-        public float FadeOut { get; set; }
-    }
-
     [JsonConverter ( typeof ( ComponentConverter ) )]
     public interface ICuiComponent
     {

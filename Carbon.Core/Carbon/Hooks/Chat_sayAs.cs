@@ -1,4 +1,5 @@
-﻿using ConVar;
+﻿using Carbon.Core;
+using ConVar;
 using Harmony;
 using System.Linq;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine;
 [HarmonyPatch ( typeof ( Chat ), "sayAs" )]
 public class Chat_SayAs
 {
-    public static void Prefix ( Chat.ChatChannel targetChannel, ulong userId, string username, string message, BasePlayer player = null )
+    public static bool Prefix ( Chat.ChatChannel targetChannel, ulong userId, string username, string message, BasePlayer player = null )
     {
         var split = message.Substring ( 1 ).Split ( ' ' );
         var command = split [ 0 ];
@@ -17,7 +18,10 @@ public class Chat_SayAs
             if ( cmd.Command == command )
             {
                 cmd.Callback?.Invoke ( player, command, args );
+                return false;
             }
         }
+
+        return true;
     }
 }

@@ -1,4 +1,5 @@
-﻿using ConVar;
+﻿using Carbon.Core;
+using ConVar;
 using Facepunch;
 using Oxide.Plugins;
 using System;
@@ -14,7 +15,7 @@ using Pool = Facepunch.Pool;
 
 public class Command
 {
-    public void AddChatCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback )
+    public void AddChatCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true )
     {
         if ( CarbonCore.Instance.AllChatCommands.Count ( x => x.Command == command ) == 0 )
         {
@@ -22,6 +23,7 @@ public class Command
             {
                 Command = command,
                 Plugin = plugin,
+                SkipOriginal = skipOriginal,
                 Callback = ( player, cmd, args ) =>
                 {
                     try { callback.Invoke ( player, cmd, args ); }
@@ -29,9 +31,9 @@ public class Command
                 }
             } );
         }
-        else CarbonCore.Warn ( $"Chat command '{command}' already exists." );
+        else CarbonCore.WarnFormat ( $"Chat command '{command}' already exists." );
     }
-    public void AddChatCommand ( string command, RustPlugin plugin, string method )
+    public void AddChatCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true )
     {
         AddChatCommand ( command, plugin, ( player, cmd, args ) =>
         {
@@ -46,9 +48,9 @@ public class Command
 
             Pool.FreeList ( ref argData );
             Pool.Free ( ref result );
-        } );
+        }, skipOriginal );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback )
+    public void AddConsoleCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true )
     {
         if ( CarbonCore.Instance.AllConsoleCommands.Count ( x => x.Command == command ) == 0 )
         {
@@ -56,12 +58,13 @@ public class Command
             {
                 Command = command,
                 Plugin = plugin,
+                SkipOriginal = skipOriginal,
                 Callback = callback
             } );
         }
-        else CarbonCore.Warn ( $"Console command '{command}' already exists." );
+        else CarbonCore.WarnFormat ( $"Console command '{command}' already exists." );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, string method )
+    public void AddConsoleCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true )
     {
         AddConsoleCommand ( command, plugin, ( player, cmd, args ) =>
         {
@@ -74,7 +77,7 @@ public class Command
                 var value = new object [] { fullString };
                 var client = Option.Unrestricted;
                 var arg = FormatterServices.GetUninitializedObject ( typeof ( Arg ) ) as Arg;
-                client = client.FromConnection ( player.net.connection );
+                if ( player != null ) client = client.FromConnection ( player.net.connection );
                 arg.Option = client;
                 arg.FullString = fullString;
                 arg.Args = args;
@@ -90,9 +93,9 @@ public class Command
 
             Pool.FreeList ( ref arguments );
             if ( result != null ) Pool.Free ( ref result );
-        } );
+        }, skipOriginal );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, Func<Arg, bool> callback )
+    public void AddConsoleCommand ( string command, RustPlugin plugin, Func<Arg, bool> callback, bool skipOriginal = true )
     {
         AddConsoleCommand ( command, plugin, ( player, cmd, args ) =>
         {
@@ -105,7 +108,7 @@ public class Command
                 var value = new object [] { fullString };
                 var client = Option.Unrestricted;
                 var arg = FormatterServices.GetUninitializedObject ( typeof ( Arg ) ) as Arg;
-                client = client.FromConnection ( player.net.connection );
+                if ( player != null ) client = client.FromConnection ( player.net.connection );
                 arg.Option = client;
                 arg.FullString = fullString;
                 arg.Args = args;
@@ -120,6 +123,6 @@ public class Command
 
             Pool.FreeList ( ref arguments );
             if ( result != null ) Pool.Free ( ref result );
-        } );
+        }, skipOriginal );
     }
 }

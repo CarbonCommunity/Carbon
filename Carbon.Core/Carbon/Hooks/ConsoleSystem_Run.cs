@@ -1,4 +1,5 @@
-﻿using ConVar;
+﻿using Carbon.Core;
+using ConVar;
 using Facepunch;
 using Harmony;
 using System;
@@ -10,7 +11,7 @@ using UnityEngine;
 [HarmonyPatch ( typeof ( ConsoleSystem ), "Run" )]
 public class ConsoleSystem_Run
 {
-    public static void Prefix ( ConsoleSystem.Option options, string strCommand, object [] args, ref string __result )
+    public static bool Prefix ( ConsoleSystem.Option options, string strCommand, object [] args, ref string __result )
     {
         var split = strCommand.Split ( ' ' );
         var command = split [ 0 ];
@@ -23,6 +24,7 @@ public class ConsoleSystem_Run
                 try
                 {
                     cmd.Callback?.Invoke ( options.Connection?.player as BasePlayer, command, args2 );
+                    return !cmd.SkipOriginal;
                 }
                 catch ( Exception ex )
                 {
@@ -32,5 +34,7 @@ public class ConsoleSystem_Run
                 break;
             }
         }
+
+        return true;
     }
 }

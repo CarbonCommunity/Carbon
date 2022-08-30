@@ -23,28 +23,41 @@ namespace Carbon.Core.Harmony
             return CallHook ( plugin, hookName, BindingFlags.Public | BindingFlags.Instance, args );
         }
 
-        public static void CallStaticHook ( string hookName, BindingFlags flag, params object [] args )
+        public static object CallStaticHook ( string hookName, BindingFlags flag, params object [] args )
         {
+            var objectOverride = ( object )null;
+            var pluginOverride = ( Plugin )null;
+
             foreach ( var mod in CarbonLoader._loadedMods )
             {
                 foreach ( var plugin in mod.Plugins )
                 {
                     try
                     {
-                        plugin.CallHook ( hookName, flag, args );
+                        var result = plugin.CallHook ( hookName, flag, args ); ;
+                        if(result != null && objectOverride != null )
+                        {
+                            CarbonCore.WarnFormat ( $"Hook '{hookName}' conflicts with {pluginOverride.Name}" );
+                            break;
+                        }
+
+                        objectOverride = result;
+                        pluginOverride = plugin;
                     }
                     catch { }
                 }
             }
+
+            return objectOverride;
         }
 
-        public static void CallStaticHook ( string hookName, params object [] args )
+        public static object CallStaticHook ( string hookName, params object [] args )
         {
-            CallStaticHook ( hookName, BindingFlags.NonPublic | BindingFlags.Instance, args );
+            return CallStaticHook ( hookName, BindingFlags.NonPublic | BindingFlags.Instance, args );
         }
-        public static void CallPublicStaticHook ( string hookName, params object [] args )
+        public static object CallPublicStaticHook ( string hookName, params object [] args )
         {
-            CallStaticHook ( hookName, BindingFlags.Public | BindingFlags.Instance, args );
+            return CallStaticHook ( hookName, BindingFlags.Public | BindingFlags.Instance, args );
         }
     }
 }

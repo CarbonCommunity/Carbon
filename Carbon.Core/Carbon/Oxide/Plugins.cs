@@ -1,4 +1,5 @@
-﻿using Oxide.Plugins;
+﻿using Facepunch;
+using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,19 @@ namespace Oxide.Plugins
         public Plugin Find ( string name )
         {
             return default;
+        }
+
+        public Plugin [] GetAll ()
+        {
+            var list = Pool.GetList<Plugin>();
+            foreach(var mod in CarbonLoader._loadedMods )
+            {
+                list.AddRange ( mod.Plugins );
+            }
+
+            var result = list.ToArray ();
+            Pool.FreeList ( ref list );
+            return result;
         }
     }
 }
