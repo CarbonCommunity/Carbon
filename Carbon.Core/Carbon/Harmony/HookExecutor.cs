@@ -164,14 +164,16 @@ namespace Carbon.Core.Harmony
 
                 if ( hook == null )
                 {
-                    CarbonCore.Error ( $"Couldn't find hook '{hookName}'[{args?.Length}]" );
                     return null;
                 }
 
                 plugin.HookCache.Add ( hookName + args?.Length, hook );
             }
 
-            return hook?.Invoke ( plugin, args );
+            using ( TimeWarning.New ( $"{plugin?.Name}:{hookName}[{args.Length}", 100 ) )
+            {
+                return hook?.Invoke ( plugin, args );
+            }
         }
 
         private static object CallStaticHook ( string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object [] args = null)
