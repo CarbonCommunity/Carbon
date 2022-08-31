@@ -6,7 +6,7 @@ using System.Linq;
 [HarmonyPatch ( typeof ( ConsoleSystem ), "Run" )]
 public class ConsoleSystem_Run
 {
-    public static bool Prefix ( ConsoleSystem.Option options, string strCommand, object [] args, ref string __result )
+    public static bool Prefix ( ConsoleSystem.Option options, string strCommand, object [] args )
     {
         try
         {
