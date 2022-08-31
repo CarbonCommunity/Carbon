@@ -44,9 +44,9 @@ namespace Carbon.Core
             {
                 if ( CarbonLoader.AssemblyCache.Any ( x => x == assembly ) ) continue;
 
-                if ( assembly.ManifestModule is ModuleBuilder )
+                if ( assembly.ManifestModule is ModuleBuilder builder )
                 {
-                    if ( !( assembly.ManifestModule as ModuleBuilder ).IsTransient () )
+                    if ( !builder.IsTransient () )
                     {
                         CompilerManager.ReferencedAssemblies.Add ( assembly );
                     }

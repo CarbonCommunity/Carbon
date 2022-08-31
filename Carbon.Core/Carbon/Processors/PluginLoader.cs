@@ -59,7 +59,7 @@ namespace Carbon.Core
             }
             else
             {
-                DebugEx.Log ( $"The plugin {type.Name} is not inherited by {typeof ( RustPlugin ).Name}, so it cannot be executed." );
+                DebugEx.Log ( $"The plugin {type.Name} is not inherited by {nameof(RustPlugin)}, so it cannot be executed." );
                 return false;
             }
         }
@@ -80,7 +80,8 @@ namespace Carbon.Core
 
                 All.RemoveAll ( x => x.Name == Plugins [ i ].Name );
 
-                plugin.Instance?.CallHook ( "OnUnload" );
+                if(plugin.Instance != null) plugin.Instance.CallHook ( "OnUnload" );
+                
                 if ( plugin.Instance != null ) DebugEx.Log ( $"Unloaded plugin {plugin.Instance.Name} v{plugin.Instance.Version} by {plugin.Instance.Author}" );
 
                 if ( plugin.Instance != null ) UnityEngine.Object.DestroyImmediate ( plugin.Instance );

@@ -129,7 +129,7 @@ namespace Carbon.Core
                             if ( harmonyModHooks == null ) LogError ( mod.Name, "Failed to create hook instance: Is null" );
                             else mod.Hooks.Add ( harmonyModHooks );
                         }
-                        catch ( Exception arg ) { LogError ( mod.Name, string.Format ( "Failed to create hook instance {0}", arg ) ); }
+                        catch ( Exception arg ) { LogError ( mod.Name, $"Failed to create hook instance {arg}"); }
                     }
                 }
 
@@ -150,7 +150,7 @@ namespace Carbon.Core
                     try
                     {
                         var type = hook.GetType ();
-                        if ( type.Name.Equals ( "CarbonInitalizer" ) ) continue;
+                        if ( type.Name.Equals ( "CarbonInitializer" ) ) continue;
 
                         hook.OnLoaded ( new OnHarmonyModLoadedArgs () );
                     }
@@ -188,13 +188,13 @@ namespace Carbon.Core
                 try
                 {
                     var type = hook.GetType ();
-                    if ( type.Name.Equals ( "CarbonInitalizer" ) ) continue;
+                    if ( type.Name.Equals ( "CarbonInitializer" ) ) continue;
 
                     hook.OnUnloaded ( new OnHarmonyModUnloadedArgs () );
                 }
                 catch ( Exception arg )
                 {
-                    LogError ( mod.Name, string.Format ( "Failed to call hook 'OnLoaded' {0}", arg ) );
+                    LogError ( mod.Name, $"Failed to call hook 'OnLoaded' {arg}");
                 }
             }
 
@@ -213,7 +213,7 @@ namespace Carbon.Core
                 {
                     if ( !type.FullName.StartsWith ( "Oxide.Plugins" ) ) return;
 
-                    if ( type == null || !type.IsSubclassOf ( typeof ( RustPlugin ) ) ) continue;
+                    if ( !type.IsSubclassOf ( typeof ( RustPlugin ) ) ) continue;
 
                     var instance = Activator.CreateInstance ( type, true );
                     var plugin = instance as RustPlugin;
@@ -309,7 +309,7 @@ namespace Carbon.Core
         }
         internal static CarbonMod GetMod ( string name )
         {
-            return _loadedMods.FirstOrDefault ( ( CarbonMod x ) => x.Name.Equals ( name, StringComparison.OrdinalIgnoreCase ) );
+            return _loadedMods.FirstOrDefault ( x => x.Name.Equals ( name, StringComparison.OrdinalIgnoreCase ) );
         }
         internal static Assembly LoadAssembly ( string assemblyPath )
         {
