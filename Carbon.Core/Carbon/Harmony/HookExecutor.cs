@@ -1,4 +1,5 @@
 ﻿using Oxide.Plugins;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -171,9 +172,9 @@ namespace Carbon.Core.Harmony
             }
 
             using ( TimeWarning.New ( $"{plugin?.Name}:{hookName}[{args?.Length}", 100 ) )
-            {
-                return hook?.Invoke ( plugin, args );
-            }
+                {
+                    return hook?.Invoke ( plugin, args );
+                }
         }
 
         private static object CallStaticHook ( string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object [] args = null)
@@ -187,7 +188,7 @@ namespace Carbon.Core.Harmony
                 {
                     try
                     {
-                        var result = plugin.CallHook ( hookName, flag, args );
+                        var result = plugin.CallHook ( hookName, flags: flag, args: args );
                         if ( result != null && objectOverride != null )
                         {
                             CarbonCore.WarnFormat ( $"Hook '{hookName}' conflicts with {pluginOverride.Name}" );
@@ -206,7 +207,7 @@ namespace Carbon.Core.Harmony
 
         public static object CallStaticHook ( string hookName )
         {
-            return CallStaticHook ( hookName, BindingFlags.NonPublic | BindingFlags.Static, null );
+            return CallStaticHook ( hookName, BindingFlags.NonPublic | BindingFlags.Instance, null );
         }
         public static object CallStaticHook ( string hookName, object arg1 ) 
         {

@@ -40,22 +40,32 @@ namespace Carbon.Core
             CompilerManager.ReferencedAssemblies.Clear ();
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
+            var lastCarbon = ( Assembly )null;
             foreach ( var assembly in assemblies )
             {
                 if ( CarbonLoader.AssemblyCache.Any ( x => x == assembly ) ) continue;
 
-                if ( assembly.ManifestModule is ModuleBuilder builder )
+                if ( !assembly.FullName.StartsWith ( "Carbon" ) )
                 {
-                    if ( !builder.IsTransient () )
+                    if ( assembly.ManifestModule is ModuleBuilder builder )
+                    {
+                        if ( !builder.IsTransient () )
+                        {
+                            CompilerManager.ReferencedAssemblies.Add ( assembly );
+                        }
+                    }
+                    else
                     {
                         CompilerManager.ReferencedAssemblies.Add ( assembly );
                     }
                 }
-                else
+                else if ( assembly.FullName.StartsWith ( "Carbon" ) )
                 {
-                    CompilerManager.ReferencedAssemblies.Add ( assembly );
+                    lastCarbon = assembly;
                 }
             }
+
+            if ( lastCarbon != null ) CompilerManager.ReferencedAssemblies.Add ( lastCarbon );
 
             CarbonCore.Log ( $" Added {CompilerManager.ReferencedAssemblies.Count:n0} references." );
         }
