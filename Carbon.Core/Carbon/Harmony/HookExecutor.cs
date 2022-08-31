@@ -204,7 +204,7 @@ namespace Carbon.Core.Harmony
 
         public static object CallStaticHook ( string hookName )
         {
-            return CallStaticHook ( hookName, BindingFlags.NonPublic | BindingFlags.Static );
+            return CallStaticHook ( hookName, BindingFlags.NonPublic | BindingFlags.Static, null );
         }
         public static object CallStaticHook ( string hookName, object arg1 ) 
         {
