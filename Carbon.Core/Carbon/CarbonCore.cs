@@ -158,7 +158,7 @@ namespace Carbon.Core
         }
     }
 
-    public class CarbonInitalizer : IHarmonyModHooks
+    public class CarbonInitializer : IHarmonyModHooks
     {
         public void OnLoaded ( OnHarmonyModLoadedArgs args )
         {
