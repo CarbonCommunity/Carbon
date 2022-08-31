@@ -10,8 +10,7 @@ namespace Carbon.Core.Harmony
 
         internal static object [] _allocateBuffer ( int count )
         {
-            var buffer = ( object [] )null;
-            if ( !_argumentBuffer.TryGetValue ( count, out buffer ) )
+            if ( !_argumentBuffer.TryGetValue ( count, out var buffer ) )
             {
                 _argumentBuffer.Add ( count, buffer = new object [ count ] );
             }
@@ -159,9 +158,7 @@ namespace Carbon.Core.Harmony
 
         private static object CallHook<T> ( this T plugin, string hookName, BindingFlags flags, object [] args ) where T : Plugin
         {
-            var hook = ( MethodInfo )null;
-
-            if ( !plugin.HookCache.TryGetValue ( hookName + args?.Length, out hook ) )
+            if ( !plugin.HookCache.TryGetValue ( hookName + args?.Length, out var hook ) )
             {
                 hook = plugin.Type.GetMethod ( hookName, flags );
 
@@ -188,7 +185,7 @@ namespace Carbon.Core.Harmony
                 {
                     try
                     {
-                        var result = plugin.CallHook ( hookName, flag, args ); ;
+                        var result = plugin.CallHook ( hookName, flag, args );
                         if ( result != null && objectOverride != null )
                         {
                             CarbonCore.WarnFormat ( $"Hook '{hookName}' conflicts with {pluginOverride.Name}" );
@@ -207,7 +204,7 @@ namespace Carbon.Core.Harmony
 
         public static object CallStaticHook ( string hookName )
         {
-            return CallStaticHook ( hookName, BindingFlags.NonPublic | BindingFlags.Static, null );
+            return CallStaticHook ( hookName, BindingFlags.NonPublic | BindingFlags.Static );
         }
         public static object CallStaticHook ( string hookName, object arg1 ) 
         {
