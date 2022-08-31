@@ -170,7 +170,7 @@ namespace Carbon.Core.Harmony
                 plugin.HookCache.Add ( hookName + args?.Length, hook );
             }
 
-            using ( TimeWarning.New ( $"{plugin?.Name}:{hookName}[{args.Length}", 100 ) )
+            using ( TimeWarning.New ( $"{plugin?.Name}:{hookName}[{args?.Length}", 100 ) )
             {
                 return hook?.Invoke ( plugin, args );
             }
