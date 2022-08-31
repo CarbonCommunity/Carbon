@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using Carbon.Core;
+using Facepunch;
 
 namespace Oxide.Plugins
 {

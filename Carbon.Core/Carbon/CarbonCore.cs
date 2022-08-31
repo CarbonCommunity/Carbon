@@ -1,5 +1,4 @@
-﻿using Humanlights.Extensions;
-using Oxide.Core;
+﻿using Oxide.Core;
 using Oxide.Plugins;
 using System;
 using System.Collections.Generic;

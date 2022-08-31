@@ -1,6 +1,5 @@
 ﻿using Harmony;
 using Carbon.Core.Harmony;
-using UnityEngine;
 
 [HarmonyPatch ( typeof ( ServerMgr ), "OpenConnection" )]
 public class ServerMgr_OpenConnection

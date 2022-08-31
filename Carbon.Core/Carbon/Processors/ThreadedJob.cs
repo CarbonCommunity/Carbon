@@ -1,66 +1,69 @@
 ﻿using System;
 using System.Collections;
 
-public class ThreadedJob : IDisposable
+namespace Carbon.Core
 {
-    internal bool _isDone = false;
-    internal object _handle = new object ();
-    internal System.Threading.Thread _thread = null;
-
-    public bool IsDone
+    public class ThreadedJob : IDisposable
     {
-        get
+        internal bool _isDone = false;
+        internal object _handle = new object ();
+        internal System.Threading.Thread _thread = null;
+
+        public bool IsDone
         {
-            bool temp;
-            lock ( _handle )
+            get
             {
-                temp = _isDone;
+                bool temp;
+                lock ( _handle )
+                {
+                    temp = _isDone;
+                }
+                return temp;
             }
-            return temp;
-        }
-        set
-        {
-            lock ( _handle )
+            set
             {
-                _isDone = value;
+                lock ( _handle )
+                {
+                    _isDone = value;
+                }
             }
         }
-    }
 
-    public virtual void Start ()
-    {
-        _thread = new System.Threading.Thread ( Run ) { Priority = System.Threading.ThreadPriority.AboveNormal };
-        _thread.Start ();
-    }
-    public virtual void Abort ()
-    {
-        _thread.Abort ();
-    }
-
-    public virtual void ThreadFunction () { }
-    public virtual void OnFinished () { }
-
-    public virtual bool Update ()
-    {
-        if ( IsDone )
+        public virtual void Start ()
         {
-            OnFinished ();
-            return true;
+            _thread = new System.Threading.Thread ( Run ) { Priority = System.Threading.ThreadPriority.AboveNormal };
+            _thread.Start ();
         }
-        return false;
-    }
-    public IEnumerator WaitFor ()
-    {
-        while ( !Update () )
+        public virtual void Abort ()
         {
-            yield return null;
+            _thread.Abort ();
         }
-    }
-    private void Run ()
-    {
-        ThreadFunction ();
-        IsDone = true;
-    }
 
-    public virtual void Dispose () { }
+        public virtual void ThreadFunction () { }
+        public virtual void OnFinished () { }
+
+        public virtual bool Update ()
+        {
+            if ( IsDone )
+            {
+                OnFinished ();
+                return true;
+            }
+            return false;
+        }
+        public IEnumerator WaitFor ()
+        {
+            while ( !Update () )
+            {
+                yield return null;
+            }
+        }
+        private void Run ()
+        {
+            ThreadFunction ();
+            IsDone = true;
+        }
+
+        public virtual void Dispose () { }
+    }
 }

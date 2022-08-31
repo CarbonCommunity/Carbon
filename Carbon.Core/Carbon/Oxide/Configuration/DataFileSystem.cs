@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 using Oxide.Core.Configuration;
 
 namespace Oxide.Core
@@ -15,7 +14,6 @@ namespace Oxide.Core
         {
             Directory = directory;
             _datafiles = new Dictionary<string, DynamicConfigFile> ();
-            new JsonSerializerSettings ().Converters.Add ( new KeyValuesConverter() );
         }
 
         public DynamicConfigFile GetFile ( string name )
