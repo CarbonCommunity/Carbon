@@ -6,13 +6,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace Carbon.Core
 {
-    public class PluginProcessor : FacepunchBehaviour
+    public class PluginProcessor : FacepunchBehaviour, IDisposable
     {
         public Dictionary<string, AutoUpdatePlugin> Plugins { get; } = new Dictionary<string, AutoUpdatePlugin> ();
         public List<string> IgnoredPlugins { get; } = new List<string> ();
+
+        internal FileSystemWatcher _folderWatcher { get; set; }
+        internal WaitForSeconds _waitSeconds { get; set; } = new WaitForSeconds ( 0.2f );
 
         public void Prepare ( string file )
         {
@@ -66,6 +70,42 @@ namespace Carbon.Core
         public void Start ()
         {
             StartCoroutine ( CompileCheck () );
+
+            _folderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder () )
+            {
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.FileName,
+                Filter = "*.cs"
+            };
+            _folderWatcher.Created += _onCreated;
+            _folderWatcher.Changed += _onChanged;
+            _folderWatcher.Renamed += _onRenamed;
+            _folderWatcher.Deleted += _onRemoved;
+
+            _folderWatcher.IncludeSubdirectories = true;
+            _folderWatcher.EnableRaisingEvents = true;
+
+            CarbonCore.Log ( $" Initialized Plugin Processor" );
+        }
+        internal void _onCreated ( object sender, FileSystemEventArgs e )
+        {
+            Plugins.Add ( Path.GetFileNameWithoutExtension ( e.Name ), null );
+        }
+        internal void _onChanged ( object sender, FileSystemEventArgs e )
+        {
+            Plugins.TryGetValue ( Path.GetFileNameWithoutExtension ( e.Name ), out var mod );
+            if ( mod != null ) mod.SetDirty ();
+        }
+        internal void _onRenamed ( object sender, RenamedEventArgs e )
+        {
+            Plugins.TryGetValue ( Path.GetFileNameWithoutExtension ( e.OldName ), out var mod );
+            if ( mod != null ) mod.MarkDeleted ();
+
+            Plugins.Add ( Path.GetFileNameWithoutExtension ( e.Name ), null );
+        }
+        internal void _onRemoved ( object sender, FileSystemEventArgs e )
+        {
+            Plugins.TryGetValue ( Path.GetFileNameWithoutExtension ( e.Name ), out var mod );
+            if ( mod != null ) mod.MarkDeleted ();
         }
         public void Clear ( string id, AutoUpdatePlugin plugin )
         {
@@ -109,6 +149,11 @@ namespace Carbon.Core
 
                 yield return null;
             }
+        }
+
+        public void Dispose ()
+        {
+            Clear ();
         }
 
         [Serializable]
@@ -205,6 +250,15 @@ namespace Carbon.Core
 
             public bool IsDirty => _hasChanged;
             public bool IsRemoved => _hasRemoved;
+
+            public void SetDirty ()
+            {
+                _hasChanged = true;
+            }
+            public void MarkDeleted ()
+            {
+                _hasRemoved = true;
+            }
         }
     }
 }

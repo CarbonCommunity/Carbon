@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Oxide.Plugins
 {
-    public class Plugin : MonoBehaviour
+    public class Plugin
     {
         public Dictionary<string, MethodInfo> HookCache { get; } = new Dictionary<string, MethodInfo> ();
 

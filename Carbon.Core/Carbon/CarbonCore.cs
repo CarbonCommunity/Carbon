@@ -1,4 +1,5 @@
-﻿using Oxide.Core;
+﻿using Humanlights.Extensions;
+using Oxide.Core;
 using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,6 @@ namespace Carbon.Core
         public FileSystemWatcher PluginFolderWatcher;
 
         public static CarbonCore Instance { get; set; }
-        public static bool IsLoaded { get; set; }
         public RustPlugin CorePlugin { get; set; }
 
         internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
@@ -22,6 +22,7 @@ namespace Carbon.Core
         public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand> ();
 
         public PluginProcessor PluginProcessor { get; set; } = new PluginProcessor ();
+        public HarmonyProcessor HarmonyProcessor { get; set; } = new HarmonyProcessor ();
 
         public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 0 );
 
@@ -63,6 +64,13 @@ namespace Carbon.Core
         public static string GetLangFolder ()
         {
             var folder = Path.Combine ( $"{GetRootFolder ()}", "lang" );
+            Directory.CreateDirectory ( folder );
+
+            return folder;
+        }
+        public static string GetTempFolder ()
+        {
+            var folder = Path.Combine ( $"{GetRootFolder ()}", "temp" );
             Directory.CreateDirectory ( folder );
 
             return folder;
@@ -128,30 +136,41 @@ namespace Carbon.Core
             GetLogsFolder ();
             GetLangFolder ();
 
+            OsEx.Folder.DeleteContents ( GetTempFolder () );
+
             Interface.Initialize ();
 
             _clearCommands ();
             _installDefaultCommands ();
 
-            CarbonLoader.StalkPluginFolder ();
             ReloadPlugins ();
 
             Format ( $"Loaded." );
 
             AsyncPluginLoader.AddCurrentDomainAssemblies ();
-            PluginProcessor = new GameObject ( "PluginProcessor" ).AddComponent<PluginProcessor> ();
-            PluginProcessor.Start ();
+
+            var gameObject = new GameObject ( "PluginProcessor" );
+            PluginProcessor = gameObject.AddComponent<PluginProcessor> ();
+            HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
         }
         public void UnInit ()
         {
-            IsLoaded = false;
-
-            if ( PluginProcessor != null )
+            try
             {
-                var obj = PluginProcessor.gameObject;
-                UnityEngine.Object.DestroyImmediate ( PluginProcessor );
-                UnityEngine.Object.Destroy ( obj );
+                PluginProcessor?.Dispose ();
+                HarmonyProcessor?.Dispose ();
+
+                var obj = PluginProcessor == null ? null : PluginProcessor.gameObject;
+                if ( obj != null )
+                {
+                    UnityEngine.Object.Destroy ( obj );
+                    Log ( $"Deleted shit" );
+                }
+
+                if ( PluginProcessor != null ) UnityEngine.Object.DestroyImmediate ( PluginProcessor );
+                if ( HarmonyProcessor != null ) UnityEngine.Object.DestroyImmediate ( HarmonyProcessor );
             }
+            catch { }
 
             ClearPlugins ();
             Debug.Log ( $"Unloaded Carbon." );
@@ -163,6 +182,8 @@ namespace Carbon.Core
         public void OnLoaded ( OnHarmonyModLoadedArgs args )
         {
             var oldMod = PlayerPrefs.GetString ( Harmony_Load.CARBON_LOADED );
+            CarbonCore.Log ( $"Old: {oldMod} | Current: {Assembly.GetExecutingAssembly ().FullName}" );
+
             if ( !Assembly.GetExecutingAssembly ().FullName.StartsWith ( oldMod ) )
             {
                 CarbonCore.Instance?.UnInit ();

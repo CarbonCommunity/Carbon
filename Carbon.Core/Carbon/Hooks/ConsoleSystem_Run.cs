@@ -8,31 +8,30 @@ public class ConsoleSystem_Run
 {
     public static bool Prefix ( ConsoleSystem.Option options, string strCommand, object [] args )
     {
-        try
+        CarbonCore.Log ( $"ConsoleSystem_Run {strCommand}" );
+        var split = strCommand.Split ( ' ' );
+        var command = split [ 0 ];
+        var args2 = split.Skip ( 1 ).ToArray ();
+
+        if ( CarbonCore.Instance == null ) return true;
+
+        foreach ( var cmd in CarbonCore.Instance.AllConsoleCommands )
         {
-            var split = strCommand.Split ( ' ' );
-            var command = split [ 0 ];
-            var args2 = split.Skip ( 1 ).ToArray ();
-
-            foreach ( var cmd in CarbonCore.Instance?.AllConsoleCommands )
+            if ( cmd.Command == command )
             {
-                if ( cmd.Command == command )
+                try
                 {
-                    try
-                    {
-                        cmd.Callback?.Invoke ( options.Connection?.player as BasePlayer, command, args2 );
-                        return !cmd.SkipOriginal;
-                    }
-                    catch ( Exception ex )
-                    {
-                        CarbonCore.Error ( "ConsoleSystem_Run", ex );
-                    }
-
-                    break;
+                    cmd.Callback?.Invoke ( options.Connection?.player as BasePlayer, command, args2 );
+                    return !cmd.SkipOriginal;
                 }
+                catch ( Exception ex )
+                {
+                    CarbonCore.Error ( "ConsoleSystem_Run", ex );
+                }
+
+                break;
             }
         }
-        catch { }
 
         return true;
     }

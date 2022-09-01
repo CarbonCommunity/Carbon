@@ -8,6 +8,7 @@ using System.Linq;
 using Oxide.Plugins;
 using Carbon.Core.Harmony;
 using Carbon.Core;
+using Humanlights.Extensions;
 
 namespace Carbon.Core
 {
@@ -20,15 +21,13 @@ namespace Carbon.Core
             try
             {
                 HarmonyInstance.DEBUG = true;
-                string path = Path.Combine ( CarbonCore.GetLogsFolder (), ".." );
+                var path = Path.Combine ( CarbonCore.GetLogsFolder (), ".." );
                 FileLog.logPath = Path.Combine ( path, "carbon_log.txt" );
                 try
                 {
                     File.Delete ( FileLog.logPath );
                 }
-                catch
-                {
-                }
+                catch { }
 
                 _modPath = CarbonCore.GetPluginsFolder ();
                 if ( !Directory.Exists ( _modPath ) )
@@ -38,10 +37,7 @@ namespace Carbon.Core
                         Directory.CreateDirectory ( _modPath );
                         return;
                     }
-                    catch
-                    {
-                        return;
-                    }
+                    catch { return; }
                 }
 
                 AppDomain.CurrentDomain.AssemblyResolve += delegate ( object sender, ResolveEventArgs args )
@@ -60,7 +56,7 @@ namespace Carbon.Core
                 {
                     if ( !string.IsNullOrEmpty ( text ) && !IsKnownDependency ( Path.GetFileNameWithoutExtension ( text ) ) )
                     {
-                        LoadCarbonMod ( text, true );
+                        CarbonCore.Instance.HarmonyProcessor.Prepare ( text );
                     }
                 }
             }
@@ -96,9 +92,17 @@ namespace Carbon.Core
                 fileName = fileName.Substring ( 0, fileName.Length - 4 );
             }
 
+            var temp = GetTempModPath ( fileName );
+            fileName = Path.GetFileName ( temp );
+
+            if ( fileName.EndsWith ( ".dll" ) )
+            {
+                fileName = fileName.Substring ( 0, fileName.Length - 4 );
+            }
+
             UnloadCarbonMod ( fileName, silent );
 
-            var fullPath = Path.Combine ( _modPath, fileName + ".dll" );
+            var fullPath = temp;
             var domain = "com.rust.carbon." + fileName;
 
             Log ( domain, "Processing..." );
@@ -115,7 +119,8 @@ namespace Carbon.Core
                 {
                     Assembly = assembly,
                     AllTypes = assembly.GetTypes (),
-                    Name = fileName
+                    Name = fileName,
+                    File = temp
                 };
 
                 foreach ( var type in mod.AllTypes )
@@ -204,6 +209,13 @@ namespace Carbon.Core
 
         #region Carbon
 
+        public static string GetTempModPath ( string name )
+        {
+            var temp = Path.Combine ( CarbonCore.GetTempFolder (), $"{name}_{Guid.NewGuid ()}.dll" );
+            OsEx.File.Copy ( Path.Combine ( CarbonCore.GetPluginsFolder (), $"{name}.dll" ), temp, true );
+
+            return temp;
+        }
 
         public static void ProcessPlugin ( CarbonMod mod )
         {
@@ -211,18 +223,27 @@ namespace Carbon.Core
             {
                 try
                 {
+                    Debug.Log ( $"GAY: {type.FullName} | {type.BaseType?.Name}" );
+
                     if ( !type.FullName.StartsWith ( "Oxide.Plugins" ) ) return;
 
-                    if ( !type.IsSubclassOf ( typeof ( RustPlugin ) ) ) continue;
+                    if ( !IsValidPlugin ( type ) ) continue;
 
-                    var instance = Activator.CreateInstance ( type, true );
+                    Debug.Log ( $"  1 {type.FullName}" );
+
+                    var instance = Activator.CreateInstance ( type, false );
                     var plugin = instance as RustPlugin;
+                    Debug.Log ( $"GAY2: {instance.GetType().FullName} | {instance.GetType ().BaseType.FullName} | {instance.GetType().BaseType == typeof(RustPlugin)} | {(instance as RustPlugin ) == null} ?" );
+
+                    Debug.Log ( $"  2 {type.FullName}" );
 
                     plugin.CallPublicHook ( "SetupMod", mod, type.Name );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Init ();
                     plugin.LoadConfig ();
                     plugin.CallHook ( "OnServerInitialized" );
+
+                    Debug.Log ( $"  3 {type.FullName}" );
 
                     mod.Plugins.Add ( plugin );
                     ProcessCommands ( type, plugin );
@@ -232,27 +253,13 @@ namespace Carbon.Core
                 catch ( Exception ex ) { CarbonCore.Error ( $"Failed loading '{mod.Name}'", ex ); }
             }
         }
-        public static void StalkPluginFolder ()
+
+        public static bool IsValidPlugin ( Type type )
         {
-            if ( CarbonCore.Instance.PluginFolderWatcher != null )
-            {
-                CarbonCore.Instance.PluginFolderWatcher.Dispose ();
-                CarbonCore.Instance.PluginFolderWatcher = null;
-            }
+            if ( type == null ) return false;
+            if ( type.Name == "RustPlugin" ) return true;
 
-            CarbonCore.Instance.PluginFolderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder () )
-            {
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.FileName,
-                Filter = "*.dll"
-            };
-            CarbonCore.Instance.PluginFolderWatcher.Changed += _onChanged;
-            CarbonCore.Instance.PluginFolderWatcher.Created += _onChanged;
-            CarbonCore.Instance.PluginFolderWatcher.Renamed += _onRenamed;
-            CarbonCore.Instance.PluginFolderWatcher.Deleted += _onRemoved;
-            CarbonCore.Instance.PluginFolderWatcher.Error += ( sender, err ) => { CarbonCore.Error ( $"Shit hit the fan:", err.GetException () ); };
-
-            CarbonCore.Instance.PluginFolderWatcher.EnableRaisingEvents = true;
-            CarbonCore.Log ( $"Started stalking '{CarbonCore.Instance.PluginFolderWatcher.Path}'" );
+            return IsValidPlugin ( type.BaseType );
         }
 
         public static void ProcessCommands ( Type type, RustPlugin plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null )
@@ -278,38 +285,20 @@ namespace Carbon.Core
             Facepunch.Pool.Free ( ref methods );
         }
 
-        internal static void _onChanged ( object sender, FileSystemEventArgs e )
-        {
-            CarbonCore.Log ( $"onChanged: '{e.FullPath}" );
-
-            LoadCarbonMod ( e.FullPath, true );
-        }
-        internal static void _onRenamed ( object sender, RenamedEventArgs e )
-        {
-            CarbonCore.Log ( $"_onRenamed: '{e.OldFullPath}' -> '{e.FullPath}'" );
-
-            UnloadCarbonMod ( e.OldFullPath, true );
-            LoadCarbonMod ( e.FullPath );
-        }
-        internal static void _onRemoved ( object sender, FileSystemEventArgs e )
-        {
-            CarbonCore.Log ( $"_onRemoved: '{e.FullPath}'" );
-
-            UnloadCarbonMod ( e.FullPath );
-        }
-
         #endregion
 
         internal static void UnloadMod ( CarbonMod mod )
         {
             Log ( mod.Name, "Unpatching hooks..." );
-            mod.Harmony.UnpatchAll ( null );
+            mod.Harmony.UnpatchAll ( mod.Harmony.Id );
             _loadedMods.Remove ( mod );
             Log ( mod.Name, "Unloaded mod" );
+
+            OsEx.File.Delete ( mod.File );
         }
         internal static CarbonMod GetMod ( string name )
         {
-            return _loadedMods.FirstOrDefault ( x => x.Name.Equals ( name, StringComparison.OrdinalIgnoreCase ) );
+            return _loadedMods.FirstOrDefault ( x => x.Name.StartsWith ( name, StringComparison.OrdinalIgnoreCase ) );
         }
         internal static Assembly LoadAssembly ( string assemblyPath )
         {
@@ -369,6 +358,7 @@ namespace Carbon.Core
         public class CarbonMod
         {
             public string Name { get; set; }
+            public string File { get; set; }
             public HarmonyInstance Harmony { get; set; }
             public Assembly Assembly { get; set; }
             public Type [] AllTypes { get; set; }

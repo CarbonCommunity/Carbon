@@ -1,15 +1,21 @@
 ﻿using Carbon.Core;
 using Facepunch;
+using Mono.CSharp;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using UnityEngine;
 
 namespace Carbon.Core
 {
-    public class HarmonyProcessor : FacepunchBehaviour
+    public class HarmonyProcessor : FacepunchBehaviour, IDisposable
     {
         public Dictionary<string, AutoUpdatePlugin> Mods { get; } = new Dictionary<string, AutoUpdatePlugin> ();
+
+        internal FileSystemWatcher _folderWatcher { get; set; }
+        internal WaitForSeconds _waitSeconds { get; set; } = new WaitForSeconds ( 0.2f );
 
         public void Prepare ( string file )
         {
@@ -51,6 +57,43 @@ namespace Carbon.Core
         public void Start ()
         {
             StartCoroutine ( CompileCheck () );
+
+            _folderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder () )
+            {
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.FileName,
+                Filter = "*.dll"
+            };
+            _folderWatcher.Created += _onCreated;
+            _folderWatcher.Changed += _onChanged;
+            _folderWatcher.Renamed += _onRenamed;
+            _folderWatcher.Deleted += _onRemoved;
+
+            _folderWatcher.IncludeSubdirectories = true;
+            _folderWatcher.EnableRaisingEvents = true;
+
+            CarbonCore.Log ( $" Initialized Harmony Processor" );
+        }
+
+        internal void _onCreated ( object sender, FileSystemEventArgs e )
+        {
+            Mods.Add ( Path.GetFileNameWithoutExtension ( e.Name ), null );
+        }
+        internal void _onChanged ( object sender, FileSystemEventArgs e )
+        {
+            Mods.TryGetValue ( Path.GetFileNameWithoutExtension ( e.Name ), out var mod );
+            if ( mod != null ) mod.SetDirty ();
+        }
+        internal void _onRenamed ( object sender, RenamedEventArgs e )
+        {
+            Mods.TryGetValue ( Path.GetFileNameWithoutExtension ( e.OldName ), out var mod );
+            if ( mod != null ) mod.MarkDeleted ();
+
+            Mods.Add ( Path.GetFileNameWithoutExtension ( e.Name ), null );
+        }
+        internal void _onRemoved ( object sender, FileSystemEventArgs e )
+        {
+            Mods.TryGetValue ( Path.GetFileNameWithoutExtension ( e.Name ), out var mod );
+            if ( mod != null ) mod.MarkDeleted ();
         }
         public void Clear ( string id, AutoUpdatePlugin plugin )
         {
@@ -75,8 +118,19 @@ namespace Carbon.Core
 
                 foreach ( var plugin in temp )
                 {
+                    if ( plugin.Value == null )
+                    {
+                        CarbonCore.Log ( $"New file: {plugin.Key}" );
+                        var p = AutoUpdatePlugin.Create ();
+                        p.File = Path.Combine ( CarbonCore.GetPluginsFolder (), $"{plugin.Key}.dll" );
+                        p.Process ();
+                        Mods [ plugin.Key ] = p;
+                        continue;
+                    }
+
                     if ( plugin.Value.IsRemoved )
                     {
+                        CarbonCore.Log ( $"{plugin.Key} is deleted" );
                         Clear ( plugin.Key, plugin.Value );
                         yield return null;
                         break;
@@ -84,50 +138,36 @@ namespace Carbon.Core
 
                     if ( plugin.Value.IsDirty )
                     {
+                        CarbonCore.Log ( $"{plugin.Key} is dirty" );
                         Process ( plugin.Key, plugin.Value );
                         yield return null;
                     }
-
                 }
 
                 temp.Clear ();
 
-                yield return null;
+                yield return _waitSeconds;
             }
+        }
+
+        public void Dispose ()
+        {
+            Clear ();
+            _folderWatcher?.Dispose ();
+            _folderWatcher = null;
         }
 
         [Serializable]
         public class AutoUpdatePlugin : IDisposable
         {
             public string File { get; set; }
-            public FileSystemWatcher Watcher { get; set; }
 
             internal bool _hasChanged;
             internal bool _hasRemoved;
 
             public static AutoUpdatePlugin Create ()
             {
-                var plugin = new AutoUpdatePlugin
-                {
-                    Watcher = new FileSystemWatcher ()
-                };
-                return plugin;
-            }
-
-            public void AddWatcher ( string path )
-            {
-                Watcher = new FileSystemWatcher ( Path.GetDirectoryName ( path ) )
-                {
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess,
-                    Filter = Path.GetFileName ( path )
-                };
-                Watcher.Changed += OnChanged;
-                Watcher.Created += OnChanged;
-                Watcher.Renamed += OnRemoved;
-                Watcher.Deleted += OnRemoved;
-                Watcher.EnableRaisingEvents = true;
-
-                File = path;
+                return new AutoUpdatePlugin ();
             }
 
             private void OnChanged ( object sender, FileSystemEventArgs e )
@@ -142,20 +182,12 @@ namespace Carbon.Core
             public void Dispose ()
             {
                 CarbonLoader.UnloadCarbonMod ( Path.GetFileNameWithoutExtension ( File ), true );
-                Watcher?.Dispose ();
-                Watcher = null;
             }
             public void Process ()
             {
                 try
                 {
-                    Watcher.EnableRaisingEvents = false;
-                    Watcher.Dispose ();
-                    Watcher = null;
-
-                    AddWatcher ( File );
-
-                    HarmonyLoader.TryLoadMod ( Path.GetFileNameWithoutExtension ( File ) );
+                    CarbonLoader.LoadCarbonMod ( File, true );
                 }
                 catch ( Exception ex )
                 {
@@ -165,6 +197,15 @@ namespace Carbon.Core
 
             public bool IsDirty => _hasChanged;
             public bool IsRemoved => _hasRemoved;
+
+            public void SetDirty ()
+            {
+                _hasChanged = true;
+            }
+            public void MarkDeleted ()
+            {
+                _hasRemoved = true;
+            }
         }
     }
 }

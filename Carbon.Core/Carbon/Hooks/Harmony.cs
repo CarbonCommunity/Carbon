@@ -20,8 +20,6 @@ public class Harmony_Load
 
         var oldMod = PlayerPrefs.GetString ( CARBON_LOADED );
 
-        CarbonCore.Log ( $"Old:{oldMod}  new:{mod}" );
-
         if ( oldMod == mod )
         {
             CarbonCore.Warn ( $"An instance of Carbon v{CarbonCore.Version} is already loaded." );

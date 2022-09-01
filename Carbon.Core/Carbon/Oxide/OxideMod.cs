@@ -15,6 +15,7 @@ namespace Oxide.Core
         public string DataDirectory { get; private set; }
         public string LangDirectory { get; private set; }
         public string LogDirectory { get; private set; }
+        public string TempDirectory { get; private set; }
 
         public float Now => UnityEngine.Time.realtimeSinceStartup;
 
@@ -30,6 +31,7 @@ namespace Oxide.Core
             LangDirectory = CarbonCore.GetLangFolder ();
             LogDirectory = CarbonCore.GetLogsFolder ();
             PluginDirectory = CarbonCore.GetPluginsFolder ();
+            TempDirectory = CarbonCore.GetTempFolder ();
 
             DataFileSystem = new DataFileSystem ( DataDirectory );
         }
