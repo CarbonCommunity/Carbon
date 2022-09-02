@@ -223,19 +223,12 @@ namespace Carbon.Core
             {
                 try
                 {
-                    Debug.Log ( $"GAY: {type.FullName} | {type.BaseType?.Name}" );
-
                     if ( !type.FullName.StartsWith ( "Oxide.Plugins" ) ) return;
 
                     if ( !IsValidPlugin ( type ) ) continue;
 
-                    Debug.Log ( $"  1 {type.FullName}" );
-
                     var instance = Activator.CreateInstance ( type, false );
                     var plugin = instance as RustPlugin;
-                    Debug.Log ( $"GAY2: {instance.GetType().FullName} | {instance.GetType ().BaseType.FullName} | {instance.GetType().BaseType == typeof(RustPlugin)} | {(instance as RustPlugin ) == null} ?" );
-
-                    Debug.Log ( $"  2 {type.FullName}" );
 
                     plugin.CallPublicHook ( "SetupMod", mod, type.Name );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
@@ -243,12 +236,8 @@ namespace Carbon.Core
                     plugin.LoadConfig ();
                     plugin.CallHook ( "OnServerInitialized" );
 
-                    Debug.Log ( $"  3 {type.FullName}" );
-
                     mod.Plugins.Add ( plugin );
                     ProcessCommands ( type, plugin );
-
-                    Debug.Log ( $"Loaded: {plugin.Name}" );
                 }
                 catch ( Exception ex ) { CarbonCore.Error ( $"Failed loading '{mod.Name}'", ex ); }
             }
