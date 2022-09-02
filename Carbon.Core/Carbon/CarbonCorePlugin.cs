@@ -134,16 +134,6 @@ namespace Carbon.Core
                         return;
                     }
 
-                    Puts ( $"LLoadiing" );
-                    CompilerManager.AddCurrentDomainAssemblies ();
-                    Puts ( $"LLoadiing2" );
-
-                    var vs = OsEx.File.ReadText ( path );
-                    Puts ( $"LLoadiing2 {vs.Length}" );
-
-                    var test = CompilerManager.Compile ( vs );
-                    Puts ( $"{test == null}" );
-                    return;
                     CarbonCore.Instance.PluginProcessor.ClearIgnore ( path );
                     CarbonCore.Instance.PluginProcessor.Prepare ( path );
                     break;

@@ -1,5 +1,4 @@
-﻿using Carbon.Core;
-using Facepunch;
+﻿using Facepunch;
 using Humanlights.Extensions;
 using System;
 using System.Collections;
@@ -8,9 +7,9 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-namespace Carbon.Core
+namespace Carbon.Core.Processors
 {
-    public class PluginProcessor : FacepunchBehaviour, IDisposable
+    public class PluginProcessor : BaseProcessor, IDisposable
     {
         public Dictionary<string, AutoUpdatePlugin> Plugins { get; } = new Dictionary<string, AutoUpdatePlugin> ();
         public List<string> IgnoredPlugins { get; } = new List<string> ();
@@ -67,8 +66,12 @@ namespace Carbon.Core
             IgnoredPlugins.RemoveAll ( x => x == file );
         }
 
-        public void Start ()
+        public override void Start ()
         {
+            if ( IsInitialized ) return;
+
+            base.Start ();
+
             StartCoroutine ( CompileCheck () );
 
             _folderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder () )

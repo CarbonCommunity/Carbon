@@ -311,6 +311,7 @@
   <ItemGroup>
     <Compile Include="CarbonCorePlugin.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
+    <Compile Include="Processors\BaseProcessor.cs" />
     <Compile Include="Processors\CarbonLoader.cs" />
     <Compile Include="Oxide\Command.cs" />
     <Compile Include="Oxide\Configuration\ConfigFile.cs" />

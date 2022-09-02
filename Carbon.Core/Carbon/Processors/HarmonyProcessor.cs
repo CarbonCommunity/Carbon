@@ -1,16 +1,13 @@
-﻿using Carbon.Core;
-using Facepunch;
-using Mono.CSharp;
+﻿using Facepunch;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 
-namespace Carbon.Core
+namespace Carbon.Core.Processors
 {
-    public class HarmonyProcessor : FacepunchBehaviour, IDisposable
+    public class HarmonyProcessor : BaseProcessor, IDisposable
     {
         public Dictionary<string, AutoUpdatePlugin> Mods { get; } = new Dictionary<string, AutoUpdatePlugin> ();
 
@@ -54,8 +51,12 @@ namespace Carbon.Core
             Mods.Clear ();
         }
 
-        public void Start ()
+        public override void Start ()
         {
+            if ( IsInitialized ) return;
+
+            base.Start ();
+
             StartCoroutine ( CompileCheck () );
 
             _folderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder () )
