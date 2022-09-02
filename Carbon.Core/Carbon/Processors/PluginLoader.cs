@@ -138,8 +138,8 @@ namespace Carbon.Core
 
             foreach ( var source in Sources )
             {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) );
-                var usingLinesString = usingLines.Count () == 0 ? "" : StringArrayEx.ToString ( usingLines.ToArray (), "\n", "\n" );
+                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) ).ToArray();
+                var usingLinesString = usingLines.Length == 0 ? "" : StringArrayEx.ToString ( usingLines, "\n", "\n" );
 
                 var fixedSource = string.IsNullOrEmpty ( usingLinesString ) ? source.Trim () : source.Replace ( usingLinesString, "" ).Trim ();
                 Source += fixedSource + "\n\n";
