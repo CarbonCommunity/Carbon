@@ -1,5 +1,6 @@
 ﻿using Carbon.Core;
 using Humanlights.Unity.Compiler;
+using Oxide.Game.Rust.Cui;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -45,7 +46,7 @@ namespace Carbon.Core
             {
                 if ( CarbonLoader.AssemblyCache.Any ( x => x == assembly ) ) continue;
 
-                if ( !assembly.FullName.StartsWith ( "Carbon" ) )
+                // if ( !assembly.FullName.StartsWith ( "Carbon" ) )
                 {
                     if ( assembly.ManifestModule is ModuleBuilder builder )
                     {
@@ -59,13 +60,17 @@ namespace Carbon.Core
                         CompilerManager.ReferencedAssemblies.Add ( assembly );
                     }
                 }
-                else if ( assembly.FullName.StartsWith ( "Carbon" ) )
+                //else if ( assembly.FullName.StartsWith ( "Carbon" ) )
                 {
-                    lastCarbon = assembly;
+                    // lastCarbon = assembly;
                 }
             }
 
-            if ( lastCarbon != null ) CompilerManager.ReferencedAssemblies.Add ( lastCarbon );
+            if ( lastCarbon != null )
+            {
+                CompilerManager.ReferencedAssemblies.Add ( lastCarbon );
+                CarbonCore.Log ( $"  Injected {lastCarbon.GetName().Name}" );
+            }
 
             CarbonCore.Log ( $" Added {CompilerManager.ReferencedAssemblies.Count:n0} references." );
         }

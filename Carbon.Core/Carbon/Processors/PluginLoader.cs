@@ -68,6 +68,16 @@ namespace Carbon.Core
             try { CompilerManager.RunMethod ( assembly, type.FullName, method, target ); return true; } catch ( Exception exception ) { CarbonCore.Error ( $"Error: {exception}", exception ); return false; }
         }
 
+        public static void LoadAll ()
+        {
+            var files = OsEx.Folder.GetFilesWithExtension ( CarbonCore.GetPluginsFolder (), "cs" );
+
+            foreach(var file in files )
+            {
+                CarbonCore.Instance.PluginProcessor.Prepare ( file );
+            }
+        }
+
         public void Clear ()
         {
             AsyncLoader?.Abort ();

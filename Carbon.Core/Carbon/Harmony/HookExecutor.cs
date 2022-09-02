@@ -172,12 +172,12 @@ namespace Carbon.Core.Harmony
             }
 
             using ( TimeWarning.New ( $"{plugin?.Name}:{hookName}[{args?.Length}", 100 ) )
-                {
-                    return hook?.Invoke ( plugin, args );
-                }
+            {
+                return hook?.Invoke ( plugin, args );
+            }
         }
 
-        private static object CallStaticHook ( string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object [] args = null)
+        private static object CallStaticHook ( string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object [] args = null )
         {
             var objectOverride = ( object )null;
             var pluginOverride = ( Plugin )null;

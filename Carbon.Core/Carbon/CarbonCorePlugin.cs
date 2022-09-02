@@ -1,10 +1,13 @@
 ﻿using Facepunch;
 using Humanlights.Components;
 using Humanlights.Extensions;
+using Humanlights.Unity.Compiler;
 using Oxide.Plugins;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace Carbon.Core
@@ -130,6 +133,17 @@ namespace Carbon.Core
                         CarbonCore.Warn ( $" Couldn't find plugin with name '{name}'" );
                         return;
                     }
+
+                    Puts ( $"LLoadiing" );
+                    CompilerManager.AddCurrentDomainAssemblies ();
+                    Puts ( $"LLoadiing2" );
+
+                    var vs = OsEx.File.ReadText ( path );
+                    Puts ( $"LLoadiing2 {vs.Length}" );
+
+                    var test = CompilerManager.Compile ( vs );
+                    Puts ( $"{test == null}" );
+                    return;
                     CarbonCore.Instance.PluginProcessor.ClearIgnore ( path );
                     CarbonCore.Instance.PluginProcessor.Prepare ( path );
                     break;
