@@ -8,7 +8,6 @@ public class ConsoleSystem_Run
 {
     public static bool Prefix ( ConsoleSystem.Option options, string strCommand, object [] args )
     {
-        CarbonCore.Log ( $"ConsoleSystem_Run {strCommand}" );
         var split = strCommand.Split ( ' ' );
         var command = split [ 0 ];
         var args2 = split.Skip ( 1 ).ToArray ();
