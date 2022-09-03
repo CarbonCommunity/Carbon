@@ -26,7 +26,7 @@ namespace Doorstop
             {
                 Process.Start ( new ProcessStartInfo
                 {
-                    FileName = $@"NStrip.exe",
+                    FileName = NStripPath,
                     Arguments = $@"-p -cg --keep-resources -n --unity-non-serialized ""{AssemblyCSharp}"" ""{AssemblyCSharp}""",
                     WindowStyle = ProcessWindowStyle.Hidden,
                     CreateNoWindow = true

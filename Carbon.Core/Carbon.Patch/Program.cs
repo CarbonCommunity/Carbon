@@ -35,6 +35,7 @@ namespace Carbon.Patch
                     archive.CreateEntryFromFile ( "Carbon.Core/Carbon.Doorstop/bin/Release/Carbon.Doorstop.dll", "RustDedicated_Data/Managed/Carbon.Doorstop.dll" );
                     archive.CreateEntryFromFile ( "Tools/doorstop_config.ini", "doorstop_config.ini" );
                     archive.CreateEntryFromFile ( "Tools/winhttp.dll", "winhttp.dll" );
+                    archive.CreateEntryFromFile ( "Tools/NStrip.exe", "carbon/tools/NStrip.exe" );
                 }
 
                 var output = $"Carbon.Core{CarbonCore.Version}.zip";
