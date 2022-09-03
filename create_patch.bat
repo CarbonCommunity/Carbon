@@ -8,8 +8,6 @@ cd ../Carbon
 dotnet restore
 msbuild /p:Configuration=Release
 
-echo %cd%
-
 cd ../..
 echo %cd%
 
