@@ -76,7 +76,12 @@ namespace Oxide.Plugins
             CarbonCore.ErrorFormat ( "[{0}] {1}", null, Title, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
         }
 
-        public virtual void LoadConfig ()
+        public void DoLoadConfig ()
+        {
+            LoadConfig ();
+        }
+
+        protected virtual void LoadConfig ()
         {
             Config = new DynamicConfigFile ( Path.Combine ( Manager.ConfigPath, Name + ".json" ) );
 

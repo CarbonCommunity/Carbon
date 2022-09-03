@@ -7,11 +7,15 @@ public class Timers
 {
     public void In ( float time, Action action )
     {
-        ServerMgr.Instance.Invoke ( action, time );
+        CarbonCore.Instance.PluginProcessor.Invoke ( action, time );
     }
     public void Once ( float time, Action action )
     {
         In ( time, action );
+    }
+    public void Every(float time, Action action )
+    {
+        CarbonCore.Instance.PluginProcessor.InvokeRepeating ( action, time, time );
     }
 }
 

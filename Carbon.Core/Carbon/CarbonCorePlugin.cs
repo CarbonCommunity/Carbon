@@ -36,6 +36,15 @@ namespace Carbon.Core
             return null;
         }
 
+        private void OnPluginLoaded ( Plugin plugin )
+        {
+            CarbonCore.Instance.RefreshConsoleInfo ();
+        }
+        private void OnPluginUnloaded ( Plugin plugin )
+        {
+            CarbonCore.Instance.RefreshConsoleInfo ();
+        }
+
         internal static void Reply ( object message, ConsoleSystem.Arg arg )
         {
             if ( arg != null && arg.Player () != null )
@@ -88,7 +97,7 @@ namespace Carbon.Core
             CarbonCore.ReloadPlugins ();
         }
 
-        [ConsoleCommand ( "find" )]
+        [ConsoleCommand ( "find", false )]
         private void Find ( ConsoleSystem.Arg arg )
         {
             var body = new StringBody ();

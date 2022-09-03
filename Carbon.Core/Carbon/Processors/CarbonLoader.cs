@@ -76,6 +76,8 @@ namespace Carbon.Core
 
             foreach ( var mod in list )
             {
+                if ( mod.IsCoreMod ) continue;
+
                 UnloadCarbonMod ( mod.Name );
             }
 
@@ -161,10 +163,10 @@ namespace Carbon.Core
                     }
                 }
 
-                InitializePlugin ( mod );
-
                 AssemblyCache.Add ( assembly );
                 _loadedMods.Add ( mod );
+
+                InitializePlugin ( mod );
             }
             catch ( Exception e )
             {
@@ -196,8 +198,8 @@ namespace Carbon.Core
                 }
             }
 
-            UninitializePlugin ( mod );
             UnloadMod ( mod );
+            UninitializePlugin ( mod );
             return true;
         }
 
@@ -213,6 +215,13 @@ namespace Carbon.Core
 
         public static void InitializePlugin ( CarbonMod mod )
         {
+            mod.IsAddon = CarbonCore.IsAddon ( mod.Name );
+
+            if ( mod.IsAddon )
+            {
+                Log ( mod.Name, "Initialized Carbon extension." );
+            }
+
             foreach ( var type in mod.AllTypes )
             {
                 try
@@ -235,7 +244,7 @@ namespace Carbon.Core
                     plugin.CallPublicHook ( "SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Init ();
-                    plugin.LoadConfig ();
+                    plugin.DoLoadConfig ();
                     plugin.CallHook ( "OnServerInitialized" );
 
                     mod.Plugins.Add ( plugin );
@@ -302,6 +311,8 @@ namespace Carbon.Core
 
         internal static void UnloadMod ( CarbonMod mod )
         {
+            if ( mod.IsCoreMod ) return;
+
             Log ( mod.Name, "Unpatching hooks..." );
             mod.Harmony.UnpatchAll ( mod.Harmony.Id );
             _loadedMods.Remove ( mod );
@@ -311,7 +322,12 @@ namespace Carbon.Core
         }
         internal static CarbonMod GetMod ( string name )
         {
-            return _loadedMods.FirstOrDefault ( x => x.Name.StartsWith ( name, StringComparison.OrdinalIgnoreCase ) );
+            foreach ( var mod in _loadedMods )
+            {
+                if ( mod.Name.StartsWith ( name, StringComparison.OrdinalIgnoreCase ) ) return mod;
+            }
+
+            return null;
         }
         internal static Assembly LoadAssembly ( string assemblyPath )
         {
@@ -370,8 +386,10 @@ namespace Carbon.Core
 
         public class CarbonMod
         {
-            public string Name { get; set; }
-            public string File { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string File { get; set; } = string.Empty;
+            public bool IsCoreMod { get; set; } = false;
+            public bool IsAddon { get; set; } = false;
             public HarmonyInstance Harmony { get; set; }
             public Assembly Assembly { get; set; }
             public Type [] AllTypes { get; set; }

@@ -5,8 +5,10 @@ using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using Windows;
 
 namespace Carbon.Core
 {
@@ -18,6 +20,20 @@ namespace Carbon.Core
         public RustPlugin CorePlugin { get; set; }
 
         internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
+        internal static ConsoleInput _serverConsoleInput = ServerConsole.Instance.GetType ().GetField ( "input", BindingFlags.NonPublic | BindingFlags.Instance )?.GetValue ( ServerConsole.Instance ) as ConsoleInput;
+        internal static List<string> _addons = new List<string> { "carbon." };
+
+        public static bool IsAddon ( string input )
+        {
+            input = input.ToLower ().Trim ();
+
+            foreach ( var addon in _addons )
+            {
+                if ( input.Contains ( addon ) ) return true;
+            }
+
+            return false;
+        }
 
         public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand> ();
         public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand> ();
@@ -115,14 +131,23 @@ namespace Carbon.Core
             CarbonLoader.UnloadCarbonMods ();
         }
 
-        internal void _clearCommands ()
+        internal void _clearCommands ( bool all = false )
         {
-            AllChatCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
-            AllConsoleCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
+            if ( all )
+            {
+                AllChatCommands.Clear ();
+                AllConsoleCommands.Clear ();
+            }
+            else
+            {
+                AllChatCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
+                AllConsoleCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
+            }
         }
         internal void _installDefaultCommands ()
         {
             CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
+            CarbonLoader._loadedMods.Add ( new CarbonLoader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } } );
 
             CarbonLoader.ProcessCommands ( typeof ( CarbonCorePlugin ), CorePlugin, prefix: "c" );
         }
@@ -163,11 +188,22 @@ namespace Carbon.Core
             catch { }
         }
 
+        public void RefreshConsoleInfo ()
+        {
+            if ( _serverConsoleInput != null ) _serverConsoleInput.statusText [ 3 ] = $" Carbon v{Version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count ):n0} plgs";
+        }
+
         public void Init ()
         {
             Format ( $"Loading..." );
 
             AsyncPluginLoader.AddCurrentDomainAssemblies ();
+
+            if ( _serverConsoleInput != null )
+            {
+                _serverConsoleInput.statusText = new string [ 4 ];
+                _serverConsoleInput.statusText [ 3 ] = " Carbon Initializing...";
+            }
 
             GetRootFolder ();
             GetConfigsFolder ();
@@ -188,12 +224,21 @@ namespace Carbon.Core
             ReloadPlugins ();
 
             Format ( $"Loaded." );
+
+            RefreshConsoleInfo ();
         }
         public void UnInit ()
         {
+            if ( _serverConsoleInput != null )
+            {
+                _serverConsoleInput.statusText = new string [ 3 ];
+            }
+
             _uninstallProcessors ();
+            _clearCommands ( all: true );
 
             ClearPlugins ();
+            CarbonLoader._loadedMods.Clear ();
             Debug.Log ( $"Unloaded Carbon." );
         }
     }

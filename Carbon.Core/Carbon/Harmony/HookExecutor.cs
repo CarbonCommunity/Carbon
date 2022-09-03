@@ -214,7 +214,7 @@ namespace Carbon.Core.Harmony
             var buffer = _allocateBuffer ( 1 );
             buffer [ 0 ] = arg1;
 
-            var result = CallStaticHook ( hookName, args: buffer );
+            var result = CallStaticHook ( hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance, args: buffer );
 
             _clearBuffer ( buffer );
             return result;
@@ -225,7 +225,7 @@ namespace Carbon.Core.Harmony
             buffer [ 0 ] = arg1;
             buffer [ 1 ] = arg2;
 
-            var result = CallStaticHook ( hookName, args: buffer );
+            var result = CallStaticHook ( hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance, args: buffer );
 
             _clearBuffer ( buffer );
             return result;
@@ -237,7 +237,7 @@ namespace Carbon.Core.Harmony
             buffer [ 1 ] = arg2;
             buffer [ 2 ] = arg3;
 
-            var result = CallStaticHook ( hookName, args: buffer );
+            var result = CallStaticHook ( hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance, args: buffer );
 
             _clearBuffer ( buffer );
             return result;
@@ -250,7 +250,7 @@ namespace Carbon.Core.Harmony
             buffer [ 2 ] = arg3;
             buffer [ 3 ] = arg4;
 
-            var result = CallStaticHook ( hookName, args: buffer );
+            var result = CallStaticHook ( hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance, args: buffer );
 
             _clearBuffer ( buffer );
             return result;
@@ -264,7 +264,7 @@ namespace Carbon.Core.Harmony
             buffer [ 3 ] = arg4;
             buffer [ 4 ] = arg5;
 
-            var result = CallStaticHook ( hookName, args: buffer );
+            var result = CallStaticHook ( hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance, args: buffer );
 
             _clearBuffer ( buffer );
             return result;
@@ -279,7 +279,7 @@ namespace Carbon.Core.Harmony
             buffer [ 4 ] = arg5;
             buffer [ 6 ] = arg6;
 
-            var result = CallStaticHook ( hookName, args: buffer );
+            var result = CallStaticHook ( hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance, args: buffer );
 
             _clearBuffer ( buffer );
             return result;
@@ -295,7 +295,7 @@ namespace Carbon.Core.Harmony
             buffer [ 6 ] = arg6;
             buffer [ 7 ] = arg7;
 
-            var result = CallStaticHook ( hookName, args: buffer );
+            var result = CallStaticHook ( hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance, args: buffer );
 
             _clearBuffer ( buffer );
             return result;
@@ -312,7 +312,7 @@ namespace Carbon.Core.Harmony
             buffer [ 7 ] = arg7;
             buffer [ 8 ] = arg8;
 
-            var result = CallStaticHook ( hookName, args: buffer );
+            var result = CallStaticHook ( hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance, args: buffer );
 
             _clearBuffer ( buffer );
             return result;
@@ -330,7 +330,7 @@ namespace Carbon.Core.Harmony
             buffer [ 8 ] = arg8;
             buffer [ 9 ] = arg9;
 
-            var result = CallStaticHook ( hookName, args: buffer );
+            var result = CallStaticHook ( hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance, args: buffer );
 
             _clearBuffer ( buffer );
             return result;

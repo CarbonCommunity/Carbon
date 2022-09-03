@@ -5,6 +5,7 @@ using System.Diagnostics;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
+using Carbon.Core;
 
 namespace Oxide.Plugins
 {
