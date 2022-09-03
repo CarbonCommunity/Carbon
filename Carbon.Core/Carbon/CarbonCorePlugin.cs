@@ -3,12 +3,15 @@ using Facepunch;
 using Humanlights.Components;
 using Humanlights.Extensions;
 using Humanlights.Unity.Compiler;
+using Mono.CSharp;
 using Oxide.Plugins;
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 using static ConsoleSystem;
 
@@ -111,6 +114,60 @@ namespace Carbon.Core
                         return;
                     }
 
+                    var source = OsEx.File.ReadText ( path );
+                    var compiler = new CSharpCompiler.CodeCompiler ();
+                    var options = new CompilerParameters ()
+                    {
+                        GenerateInMemory = true,
+                        TreatWarningsAsErrors = false,
+                        GenerateExecutable = false
+                    };
+                    var references = new string [] { "System.dll", "mscorlib.dll" };
+                    options.ReferencedAssemblies.AddRange ( references );
+
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
+                    var lastCarbon = ( Assembly )null;
+                    foreach ( var assembly in assemblies )
+                    {
+                        if ( CarbonLoader.AssemblyCache.Any ( x => x == assembly ) ) continue;
+
+                        if ( !assembly.FullName.StartsWith ( "Carbon" ) )
+                        {
+                            if ( assembly.ManifestModule is ModuleBuilder builder )
+                            {
+                                if ( !builder.IsTransient () )
+                                {
+                                    options.ReferencedAssemblies.Add ( assembly.GetName ().Name );
+                                }
+                            }
+                            else
+                            {
+                                options.ReferencedAssemblies.Add ( assembly.GetName ().Name );
+                            }
+                        }
+                        else if ( assembly.FullName.StartsWith ( "Carbon" ) )
+                        {
+                            lastCarbon = assembly;
+                        }
+                    }
+
+                    if ( lastCarbon != null )
+                    {
+                        options.ReferencedAssemblies.Add ( lastCarbon.GetName().Name );
+                        CarbonCore.Log ( $"  Injected {lastCarbon.GetName ().Name}" );
+                    }
+
+                    var result = compiler.CompileAssemblyFromSource ( options, source );
+                    foreach( CompilerError error in result.Errors )
+                    {
+                        CarbonCore.Error ( $"Eeeh: {error.ErrorText}" );
+                    }
+                    foreach ( var type in result.CompiledAssembly.GetTypes () )
+                    {
+                        CarbonCore.Log ( $"{type?.FullName}" );
+                    }
+
+                    return;
                     CarbonCore.Instance.PluginProcessor.ClearIgnore ( path );
                     CarbonCore.Instance.PluginProcessor.Prepare ( path );
                     break;

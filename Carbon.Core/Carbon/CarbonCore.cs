@@ -194,10 +194,8 @@ namespace Carbon.Core
         }
 
         public void Init ()
-        {
+        {       
             Format ( $"Loading..." );
-
-            AsyncPluginLoader.AddCurrentDomainAssemblies ();
 
             if ( _serverConsoleInput != null )
             {

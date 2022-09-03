@@ -1,10 +1,11 @@
-﻿using Carbon.Core;
+﻿using CSharpCompiler;
 using Humanlights.Unity.Compiler;
-using Oxide.Game.Rust.Cui;
 using System;
+using System.CodeDom.Compiler;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using CodeCompiler = CSharpCompiler.CodeCompiler;
 
 namespace Carbon.Core
 {
@@ -14,13 +15,76 @@ namespace Carbon.Core
         public Assembly Assembly;
         public Exception Exception;
 
+        internal CodeCompiler _compiler;
+        internal CompilerParameters _parameters;
         internal int _retries;
+
+        internal static string [] _defaultReferences = new string [] { "System.dll", "mscorlib.dll" };
+
+        internal void _addReferences ()
+        {
+            _parameters.ReferencedAssemblies.Clear ();
+            _parameters.ReferencedAssemblies.AddRange ( _defaultReferences );
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
+            var lastCarbon = ( Assembly )null;
+            foreach ( var assembly in assemblies )
+            {
+                if ( CarbonLoader.AssemblyCache.Any ( x => x == assembly ) ) continue;
+
+                if ( !assembly.FullName.StartsWith ( "Carbon" ) )
+                {
+                    if ( assembly.ManifestModule is ModuleBuilder builder )
+                    {
+                        if ( !builder.IsTransient () )
+                        {
+                            _parameters.ReferencedAssemblies.Add ( assembly.GetName ().Name );
+                        }
+                    }
+                    else
+                    {
+                        _parameters.ReferencedAssemblies.Add ( assembly.GetName ().Name );
+                    }
+                }
+                else if ( assembly.FullName.StartsWith ( "Carbon" ) )
+                {
+                    lastCarbon = assembly;
+                }
+            }
+
+            if ( lastCarbon != null )
+            {
+                _parameters.ReferencedAssemblies.Add ( lastCarbon.GetName ().Name );
+            }
+        }
+
+        public override void Start ()
+        {
+            base.Start ();
+
+            _compiler = new CodeCompiler ();
+            _parameters = new CompilerParameters
+            {
+                GenerateInMemory = true,
+                GenerateExecutable = false,
+                TreatWarningsAsErrors = false
+            };
+
+            _addReferences ();
+        }
 
         public override void ThreadFunction ()
         {
             try
             {
-                Assembly = CompilerManager.Compile ( Source );
+                var result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
+                Assembly = result.CompiledAssembly;
+
+                if(result.Errors.Count > 0 )
+                {
+                    var error = result.Errors [ 0 ];
+                    throw new Exception ( $"{error.ErrorText} ({error.FileName} {error.Column} line {error.Line})" );
+                }
             }
             catch ( Exception exception )
             {
@@ -31,48 +95,10 @@ namespace Carbon.Core
                 }
                 else
                 {
-                    Exception = new Exception ( $"Failed compilation after {_retries} retries.", exception );
+                    Exception = exception;
                 }
             }
         }
 
-        public static void AddCurrentDomainAssemblies ()
-        {
-            CompilerManager.ReferencedAssemblies.Clear ();
-
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
-            var lastCarbon = ( Assembly )null;
-            foreach ( var assembly in assemblies )
-            {
-                if ( CarbonLoader.AssemblyCache.Any ( x => x == assembly ) ) continue;
-
-                // if ( !assembly.FullName.StartsWith ( "Carbon" ) )
-                {
-                    if ( assembly.ManifestModule is ModuleBuilder builder )
-                    {
-                        if ( !builder.IsTransient () )
-                        {
-                            CompilerManager.ReferencedAssemblies.Add ( assembly );
-                        }
-                    }
-                    else
-                    {
-                        CompilerManager.ReferencedAssemblies.Add ( assembly );
-                    }
-                }
-                //else if ( assembly.FullName.StartsWith ( "Carbon" ) )
-                {
-                    // lastCarbon = assembly;
-                }
-            }
-
-            if ( lastCarbon != null )
-            {
-                CompilerManager.ReferencedAssemblies.Add ( lastCarbon );
-                CarbonCore.Log ( $"  Injected {lastCarbon.GetName().Name}" );
-            }
-
-            CarbonCore.Log ( $" Added {CompilerManager.ReferencedAssemblies.Count:n0} references." );
-        }
     }
 }
