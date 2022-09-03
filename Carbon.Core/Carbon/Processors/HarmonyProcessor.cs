@@ -121,7 +121,6 @@ namespace Carbon.Core.Processors
                 {
                     if ( plugin.Value == null )
                     {
-                        CarbonCore.Log ( $"New file: {plugin.Key}" );
                         var p = AutoUpdatePlugin.Create ();
                         p.File = Path.Combine ( CarbonCore.GetPluginsFolder (), $"{plugin.Key}.dll" );
                         p.Process ();
@@ -131,7 +130,6 @@ namespace Carbon.Core.Processors
 
                     if ( plugin.Value.IsRemoved )
                     {
-                        CarbonCore.Log ( $"{plugin.Key} is deleted" );
                         Clear ( plugin.Key, plugin.Value );
                         yield return null;
                         break;
@@ -139,7 +137,6 @@ namespace Carbon.Core.Processors
 
                     if ( plugin.Value.IsDirty )
                     {
-                        CarbonCore.Log ( $"{plugin.Key} is dirty" );
                         Process ( plugin.Key, plugin.Value );
                         yield return null;
                     }

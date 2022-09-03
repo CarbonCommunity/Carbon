@@ -1,4 +1,5 @@
 ﻿using Carbon.Core;
+using Humanlights.Extensions;
 using Oxide.Core;
 using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
@@ -25,18 +26,20 @@ namespace Oxide.Plugins
 
         public RustPlugin ()
         {
-            Setup ( "Plugin" );
+            Setup ( $"Core Plugin {RandomEx.GetRandomString ( 5 )}", "Carbon Community", new VersionNumber ( 1, 0, 0 ), string.Empty );
         }
 
-        public void SetupMod ( CarbonLoader.CarbonMod mod, string name )
+        public void SetupMod ( CarbonLoader.CarbonMod mod, string name, string author, VersionNumber version, string description )
         {
             carbon = mod;
-            Setup ( name );
+            Setup ( name, author, version, description );
         }
-        public void Setup ( string name )
+        public void Setup ( string name, string author, VersionNumber version, string description )
         {
             Name = name;
-            Puts ( $"Initialized." );
+            Version = version;
+            Author = author;
+            Description = description;
 
             permission = new Permission ();
             cmd = new Command ();
@@ -73,10 +76,6 @@ namespace Oxide.Plugins
             CarbonCore.ErrorFormat ( "[{0}] {1}", null, Title, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
         }
 
-        public virtual void Init ()
-        {
-            CallHook ( "Init" );
-        }
         public virtual void LoadConfig ()
         {
             Config = new DynamicConfigFile ( Path.Combine ( Manager.ConfigPath, Name + ".json" ) );
@@ -122,6 +121,11 @@ namespace Oxide.Plugins
         public void Subscribe ( string hook )
         {
 
+        }
+
+        public override string ToString ()
+        {
+            return $"{Name} v{Version} by {Author}";
         }
 
         protected void PrintToConsole ( BasePlayer player, string format, params object [] args )

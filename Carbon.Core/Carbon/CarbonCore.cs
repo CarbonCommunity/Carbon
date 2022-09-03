@@ -79,16 +79,16 @@ namespace Carbon.Core
 
         public static void Log ( object message )
         {
-            Debug.Log ( $"[Carbon v{Version}] {message}" );
+            Debug.Log ( $"{message}" );
         }
         public static void Warn ( object message )
         {
-            Debug.LogWarning ( $"[Carbon v{Version}] {message}" );
+            Debug.LogWarning ( $"{message}" );
         }
         public static void Error ( object message, Exception exception = null )
         {
             if ( exception == null ) Debug.LogError ( message );
-            else Debug.LogException ( new Exception ( $"[Carbon v{Version}] {message}", exception ) );
+            else Debug.LogException ( new Exception ( $"{message}", exception ) );
         }
 
         public static void Format ( string format, params object [] args )

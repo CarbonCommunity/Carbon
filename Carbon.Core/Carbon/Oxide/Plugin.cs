@@ -57,6 +57,16 @@ namespace Oxide.Plugins
             stopwatch.Reset ();
         }
 
+        public virtual void Init ()
+        {
+            CallHook ( "Init" );
+        }
+        public virtual void Load ()
+        {
+            IsLoaded = true;
+            CallHook ( "OnLoaded" );
+        }
+
         #region Calls
 
         public T Call<T> ( string hook )
@@ -266,6 +276,6 @@ namespace Oxide.Plugins
 
         #endregion
 
-        public bool IsLoaded => true;
+        public bool IsLoaded { get; set; }
     }
 }

@@ -83,8 +83,6 @@ namespace Carbon.Core
         }
         public static bool LoadCarbonMod ( string name, bool silent = false )
         {
-            Log ( name, $"Pre load..." );
-
             var fileName = Path.GetFileName ( name );
 
             if ( fileName.EndsWith ( ".dll" ) )
@@ -104,8 +102,6 @@ namespace Carbon.Core
 
             var fullPath = temp;
             var domain = "com.rust.carbon." + fileName;
-
-            Log ( domain, "Processing..." );
 
             try
             {
@@ -134,7 +130,7 @@ namespace Carbon.Core
                             if ( harmonyModHooks == null ) LogError ( mod.Name, "Failed to create hook instance: Is null" );
                             else mod.Hooks.Add ( harmonyModHooks );
                         }
-                        catch ( Exception arg ) { LogError ( mod.Name, $"Failed to create hook instance {arg}"); }
+                        catch ( Exception arg ) { LogError ( mod.Name, $"Failed to create hook instance {arg}" ); }
                     }
                 }
 
@@ -165,9 +161,7 @@ namespace Carbon.Core
                     }
                 }
 
-                Log ( mod.Name, $"Processing plugin..." );
-                ProcessPlugin ( mod );
-                Log ( mod.Name, $"Processed." );
+                InitializePlugin ( mod );
 
                 AssemblyCache.Add ( assembly );
                 _loadedMods.Add ( mod );
@@ -185,7 +179,6 @@ namespace Carbon.Core
             var mod = GetMod ( name );
             if ( mod == null )
             {
-                if ( !silent ) LogError ( "Couldn't unload mod '" + name + "': not loaded" );
                 return false;
             }
             foreach ( var hook in mod.Hooks )
@@ -199,10 +192,11 @@ namespace Carbon.Core
                 }
                 catch ( Exception arg )
                 {
-                    LogError ( mod.Name, $"Failed to call hook 'OnLoaded' {arg}");
+                    LogError ( mod.Name, $"Failed to call hook 'OnLoaded' {arg}" );
                 }
             }
 
+            UninitializePlugin ( mod );
             UnloadMod ( mod );
             return true;
         }
@@ -217,7 +211,7 @@ namespace Carbon.Core
             return temp;
         }
 
-        public static void ProcessPlugin ( CarbonMod mod )
+        public static void InitializePlugin ( CarbonMod mod )
         {
             foreach ( var type in mod.AllTypes )
             {
@@ -229,8 +223,16 @@ namespace Carbon.Core
 
                     var instance = Activator.CreateInstance ( type, false );
                     var plugin = instance as RustPlugin;
+                    var info = type.GetCustomAttribute<InfoAttribute> ();
+                    var description = type.GetCustomAttribute<DescriptionAttribute> ();
 
-                    plugin.CallPublicHook ( "SetupMod", mod, type.Name );
+                    if ( info == null )
+                    {
+                        CarbonCore.Warn ( $"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute." );
+                        continue;
+                    }
+
+                    plugin.CallPublicHook ( "SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Init ();
                     plugin.LoadConfig ();
@@ -238,8 +240,25 @@ namespace Carbon.Core
 
                     mod.Plugins.Add ( plugin );
                     ProcessCommands ( type, plugin );
+
+                    CarbonCore.Log ( $"Loaded plugin {plugin}" );
                 }
                 catch ( Exception ex ) { CarbonCore.Error ( $"Failed loading '{mod.Name}'", ex ); }
+            }
+        }
+        public static void UninitializePlugin ( CarbonMod mod )
+        {
+            foreach ( var plugin in mod.Plugins )
+            {
+                try
+                {
+                    HookExecutor.CallStaticHook ( "OnPluginUnloaded", plugin );
+                    plugin.CallHook ( "Unload" );
+                    RemoveCommands ( plugin );
+
+                    CarbonCore.Log ( $"Unloaded plugin {plugin}" );
+                }
+                catch ( Exception ex ) { CarbonCore.Error ( $"Failed unloading '{mod.Name}'", ex ); }
             }
         }
 
@@ -272,6 +291,11 @@ namespace Carbon.Core
             }
 
             Facepunch.Pool.Free ( ref methods );
+        }
+        public static void RemoveCommands ( RustPlugin plugin )
+        {
+            CarbonCore.Instance.AllChatCommands.RemoveAll ( x => x.Plugin == plugin );
+            CarbonCore.Instance.AllConsoleCommands.RemoveAll ( x => x.Plugin == plugin );
         }
 
         #endregion
