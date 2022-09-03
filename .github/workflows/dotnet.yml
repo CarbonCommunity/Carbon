@@ -14,6 +14,7 @@ jobs:
     
     - name: Create Release
       uses: ncipollo/release-action@v1.10.0
+      with:
         artifacts: "Carbon.Core1.0.0.zip"
         bodyFile: "body.md"
         token: ${{ secrets.YOUR_GITHUB_TOKEN }}
