@@ -158,23 +158,16 @@ namespace Carbon.Core
 
         public IEnumerator Compile ( GameObject target = null )
         {
-            OsEx.File.Create ( "test.cs", Source );
-
-            Debug.Log ( $"WAAAAT" );
             if ( string.IsNullOrEmpty ( Source ) )
             {
                 CarbonCore.Warn ( "Attempted to compile an empty string of source code." );
                 yield break;
             }
-            Debug.Log ( $"WAAAAT2" );
 
             AsyncLoader.Source = Source;
             AsyncLoader.Start ();
-            Debug.Log ( $"WAAAAT3" );
 
             while ( AsyncLoader != null && !AsyncLoader.IsDone ) { yield return null; }
-
-            Debug.Log ( $"WAAAAT4 {AsyncLoader.Assembly == null} {AsyncLoader.Exception}" );
 
             if ( AsyncLoader == null ) yield break;
 
@@ -184,14 +177,10 @@ namespace Carbon.Core
                 yield break;
             }
 
-            Debug.Log ( $"WAAAAT5" );
-
             try
             {
                 var assembly = AsyncLoader.Assembly;
                 var pluginIndex = 0;
-
-                Debug.Log ( $"WAAAAT6" );
 
                 foreach ( var type in assembly.GetTypes () )
                 {
@@ -200,15 +189,12 @@ namespace Carbon.Core
                     var desc = attributes.Length > 0 ? type.GetCustomAttribute ( typeof ( DescriptionAttribute ), true ) as DescriptionAttribute : null;
                     var plugin = Plugin.Create ( Sources [ pluginIndex ], assembly, type );
 
-                    Debug.Log ( $"WAAAAT6 {type.FullName}" );
-
                     if ( info != null )
                     {
                         plugin.Name = info.Title;
                         plugin.Author = info.Author;
                         plugin.Version = info.Version;
                         plugin.Description = desc?.Description;
-                        Debug.Log ( $"WAAAAT7 {plugin.Name} {plugin.Author} {plugin.Version}" );
 
                         plugin.GameObject = target != null ? target : new GameObject ( $"{info.Title}_{info.Version}" );
                         plugin.Instance = Activator.CreateInstance ( type ) as RustPlugin;
