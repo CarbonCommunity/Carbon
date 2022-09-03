@@ -22,17 +22,19 @@ namespace Carbon.Patch
             {
                 using ( var archive = new ZipArchive ( memoryStream, ZipArchiveMode.Create, true ) )
                 {
-                    foreach(var directory in Directory.GetDirectories ( "Rust/RustDedicated_Data" ) )
+                    foreach ( var directory in Directory.GetDirectories ( "Rust/RustDedicated_Data" ) )
                     {
                         var files = OsEx.Folder.GetFilesWithExtension ( directory, "*" );
-                        foreach(var file in files )
+                        foreach ( var file in files )
                         {
-                            archive.CreateEntryFromFile ( file, file );
+                            archive.CreateEntryFromFile ( file, file.Replace ( "Rust/", "" ) );
                         }
                     }
+
+                    archive.CreateEntryFromFile ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "HarmonyMods/Carbon.dll" );
                 }
 
-                var output = $"Carbon.Core1.0.0.zip";
+                var output = $"Carbon.Core{CarbonCore.Version}.zip";
                 OsEx.File.Delete ( output );
                 OsEx.File.Create ( output, new byte [ 0 ] );
                 using ( var fileStream = new FileStream ( output, FileMode.Open ) )

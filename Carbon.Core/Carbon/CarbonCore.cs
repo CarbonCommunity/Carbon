@@ -20,7 +20,7 @@ namespace Carbon.Core
         public RustPlugin CorePlugin { get; set; }
 
         internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
-        internal static ConsoleInput _serverConsoleInput = ServerConsole.Instance.GetType ().GetField ( "input", BindingFlags.NonPublic | BindingFlags.Instance )?.GetValue ( ServerConsole.Instance ) as ConsoleInput;
+        internal static ConsoleInput _serverConsoleInput = ServerConsole.Instance?.GetType ()?.GetField ( "input", BindingFlags.NonPublic | BindingFlags.Instance )?.GetValue ( ServerConsole.Instance ) as ConsoleInput;
         internal static List<string> _addons = new List<string> { "carbon." };
 
         public static bool IsAddon ( string input )
@@ -41,7 +41,7 @@ namespace Carbon.Core
         public PluginProcessor PluginProcessor { get; set; } = new PluginProcessor ();
         public HarmonyProcessor HarmonyProcessor { get; set; } = new HarmonyProcessor ();
 
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 0 );
+        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 1 );
 
         public static string GetRootFolder ()
         {
