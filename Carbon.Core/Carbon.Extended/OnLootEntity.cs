@@ -14,7 +14,6 @@ namespace Carbon.Extended
     {
         public static void Postfix ( BaseEntity targetEntity, bool doPositionChecks, ref bool __result, ref PlayerLoot __instance )
         {
-            CarbonCore.Log ( $"OnLootEntity: {targetEntity}" );
             HookExecutor.CallStaticHook ( "OnLootEntity", __instance.GetComponent<BasePlayer>(), targetEntity );
         }
     }
