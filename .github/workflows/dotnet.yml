@@ -14,6 +14,12 @@ jobs:
           
     steps:
     
+    - name: Create tag artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{github.ref_name}}
+        path: Release
+    
     - name: Create Release
       uses: ncipollo/release-action@v1.10.0
       with:
