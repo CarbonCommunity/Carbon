@@ -3,8 +3,6 @@ name: .NET
 on:
   push:
     branches: [ "main" ]
-    tags:
-      - '*'
   pull_request:
     branches: [ "main" ]    
 
@@ -14,19 +12,15 @@ jobs:
           
     steps:
     
-    - name: Create tag artifact
-      uses: actions/upload-artifact@v2
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3.1.0
       with:
-        name: ${{github.ref_name}}
-        path: Carbon.Core1.0.0.zip
-    
-    - name: Create Release
-      uses: ncipollo/release-action@v1.10.0
-      with:
-        artifacts: "Carbon.Core1.0.0.zip"
-        bodyFile: "body.md"
-        token: ${{ secrets.GITHUB_TOKEN }}
-        
+        # Artifact name
+        name: "Release"
+        # A file, directory or wildcard pattern that describes what to upload
+        path: Carbon.Core1.0.0*
+        # The desired behavior if no files are found using the provided path.
+            
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
                  
