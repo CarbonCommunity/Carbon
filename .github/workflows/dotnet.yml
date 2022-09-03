@@ -18,7 +18,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{github.ref_name}}
-        path: Release
+        path: Carbon.Core1.0.0.zip
     
     - name: Create Release
       uses: ncipollo/release-action@v1.10.0
