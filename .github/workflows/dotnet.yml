@@ -11,6 +11,13 @@ jobs:
     runs-on: windows-latest
           
     steps:
+    
+    - name: Create Release
+      uses: ncipollo/release-action@v1.10.0
+        artifacts: "Carbon.Core1.0.0.zip"
+        bodyFile: "body.md"
+        token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+        
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
                  
