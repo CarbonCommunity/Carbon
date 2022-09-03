@@ -8,6 +8,10 @@ cd ../Carbon
 dotnet restore
 msbuild /p:Configuration=Release
 
+cd ../Carbon.Doorstep
+dotnet restore
+msbuild /p:Configuration=Release
+
 cd ../..
 echo %cd%
 

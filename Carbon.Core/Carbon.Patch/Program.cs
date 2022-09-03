@@ -32,6 +32,9 @@ namespace Carbon.Patch
                     }
 
                     archive.CreateEntryFromFile ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "HarmonyMods/Carbon.dll" );
+                    archive.CreateEntryFromFile ( "Carbon.Core/Carbon.Doorstop/bin/Release/Carbon.Doorstop.dll", "RustDedicated_Data/Managed/Carbon.Doorstop.dll" );
+                    archive.CreateEntryFromFile ( "Tools/doorstop_config.ini", "doorstop_config.ini" );
+                    archive.CreateEntryFromFile ( "Tools/winhttp.dll", "winhttp.dll" );
                 }
 
                 var output = $"Carbon.Core{CarbonCore.Version}.zip";
