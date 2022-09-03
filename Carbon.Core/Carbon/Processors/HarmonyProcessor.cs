@@ -10,6 +10,7 @@ namespace Carbon.Core.Processors
     public class HarmonyProcessor : BaseProcessor, IDisposable
     {
         public Dictionary<string, AutoUpdatePlugin> Mods { get; } = new Dictionary<string, AutoUpdatePlugin> ();
+        public List<string> IgnoredPlugins { get; } = new List<string> ();
 
         internal FileSystemWatcher _folderWatcher { get; set; }
         internal WaitForSeconds _waitSeconds { get; set; } = new WaitForSeconds ( 0.2f );
@@ -49,6 +50,15 @@ namespace Carbon.Core.Processors
             }
 
             Mods.Clear ();
+        }
+        public void Ignore ( string file )
+        {
+            IgnoredPlugins.Add ( file );
+        }
+
+        public void ClearIgnore ( string file )
+        {
+            IgnoredPlugins.RemoveAll ( x => x == file );
         }
 
         public override void Start ()

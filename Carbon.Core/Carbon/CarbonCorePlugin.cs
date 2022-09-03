@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using Carbon.Core.Processors;
+using Facepunch;
 using Humanlights.Components;
 using Humanlights.Extensions;
 using Humanlights.Unity.Compiler;
@@ -9,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using static ConsoleSystem;
 
 namespace Carbon.Core
 {
@@ -63,40 +65,6 @@ namespace Carbon.Core
             Reply ( $"Carbon v{CarbonCore.Version}", arg );
         }
 
-        [ConsoleCommand ( "list" )]
-        private void GetList ( ConsoleSystem.Arg arg )
-        {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin ) return;
-
-            var body = new StringTable ( "#", "Mod", "Author", "Version" );
-            var count = 1;
-
-            Reply ( $"Found: {CarbonLoader._loadedMods.Count} mods  with {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count )} plugins", arg );
-
-            foreach ( var mod in CarbonLoader._loadedMods )
-            {
-                body.AddRow ( $"{count:n0}", mod.Name, "", "" );
-
-                foreach ( var plugin in mod.Plugins )
-                {
-                    body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}" );
-                }
-
-                count++;
-            }
-
-            Reply ( body.ToStringMinimal (), arg );
-        }
-
-        [ConsoleCommand ( "reload" )]
-        private void Reload ( ConsoleSystem.Arg arg )
-        {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin ) return;
-
-            CarbonCore.ClearPlugins ();
-            CarbonCore.ReloadPlugins ();
-        }
-
         [ConsoleCommand ( "find", false )]
         private void Find ( ConsoleSystem.Arg arg )
         {
@@ -148,5 +116,196 @@ namespace Carbon.Core
                     break;
             }
         }
+
+        #region Mod & Plugin Loading
+
+        [ConsoleCommand ( "list" )]
+        private void GetList ( ConsoleSystem.Arg arg )
+        {
+            if ( arg.Player () != null && !arg.Player ().IsAdmin || arg.HasArgs ( 1 ) ) return;
+
+            var body = new StringTable ( "#", "Mod", "Author", "Version" );
+            var count = 1;
+
+            Reply ( $"Found: {CarbonLoader._loadedMods.Count} mods  with {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count )} plugins", arg );
+
+            foreach ( var mod in CarbonLoader._loadedMods )
+            {
+                body.AddRow ( $"{count:n0}", mod.Name, "", "" );
+
+                foreach ( var plugin in mod.Plugins )
+                {
+                    body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}" );
+                }
+
+                count++;
+            }
+
+            Reply ( body.ToStringMinimal (), arg );
+        }
+
+        [ConsoleCommand ( "reload" )]
+        private void Reload ( ConsoleSystem.Arg arg )
+        {
+            if ( arg.Player () != null && !arg.Player ().IsAdmin || arg.HasArgs ( 1 ) ) return;
+
+            RefreshOrderedFiles ();
+
+            var name = arg.Args [ 0 ];
+            switch ( name )
+            {
+                case "*":
+                    CarbonCore.ClearPlugins ();
+                    CarbonCore.ReloadPlugins ();
+                    break;
+
+                default:
+                    var path = GetPluginPath ( name );
+                    if ( string.IsNullOrEmpty ( path ) )
+                    {
+                        DebugEx.Warning ( $" Couldn't find plugin or mod with name '{name}'" );
+                        return;
+                    }
+                    CarbonCore.Instance.HarmonyProcessor.Prepare ( name, path );
+                    CarbonCore.Instance.PluginProcessor.Prepare ( name, path );
+                    break;
+            }
+        }
+
+        [ConsoleCommand ( "load" )]
+        private void Load ( ConsoleSystem.Arg arg )
+        {
+            if ( arg.Player () != null && !arg.Player ().IsAdmin || arg.HasArgs ( 1 ) ) return;
+
+            RefreshOrderedFiles ();
+
+            var name = arg.Args [ 0 ];
+            switch ( name )
+            {
+                case "*":
+                    //
+                    // Mods
+                    //
+                    {
+                        var tempList = Pool.GetList<string> ();
+                        tempList.AddRange ( CarbonCore.Instance.HarmonyProcessor.IgnoredPlugins );
+                        CarbonCore.Instance.HarmonyProcessor.IgnoredPlugins.Clear ();
+
+                        foreach ( var plugin in tempList )
+                        {
+                            CarbonCore.Instance.HarmonyProcessor.Prepare ( plugin, plugin );
+                        }
+                        Pool.FreeList ( ref tempList );
+                    }
+
+                    //
+                    // Plugins
+                    //
+                    {
+                        var tempList = Pool.GetList<string> ();
+                        tempList.AddRange ( CarbonCore.Instance.PluginProcessor.IgnoredPlugins );
+                        CarbonCore.Instance.PluginProcessor.IgnoredPlugins.Clear ();
+
+                        foreach ( var plugin in tempList )
+                        {
+                            CarbonCore.Instance.PluginProcessor.Prepare ( plugin, plugin );
+                        }
+                        Pool.FreeList ( ref tempList );
+                    }
+                    break;
+
+                default:
+                    var path = GetPluginPath ( name );
+                    if ( string.IsNullOrEmpty ( path ) )
+                    {
+                        DebugEx.Warning ( $" Couldn't find plugin with name '{name}'" );
+                        return;
+                    }
+
+                    //
+                    // Mods
+                    //
+                    {
+                        CarbonCore.Instance.HarmonyProcessor.ClearIgnore ( path );
+                        CarbonCore.Instance.HarmonyProcessor.Prepare ( path );
+                    }
+
+                    //
+                    // Plugins
+                    //
+                    {
+                        CarbonCore.Instance.PluginProcessor.ClearIgnore ( path );
+                        CarbonCore.Instance.PluginProcessor.Prepare ( path );
+                    }
+                    break;
+            }
+        }
+
+        [ConsoleCommand ( "unload" )]
+        private void Unload ( ConsoleSystem.Arg arg )
+        {
+            if ( arg.Player () != null && !arg.Player ().IsAdmin || arg.HasArgs ( 1 ) ) return;
+
+            RefreshOrderedFiles ();
+
+            var name = arg.Args [ 0 ];
+            switch ( name )
+            {
+                case "*":
+                    //
+                    // Mods
+                    //
+                    {
+                        foreach ( var plugin in CarbonCore.Instance.PluginProcessor.Plugins )
+                        {
+                            CarbonCore.Instance.PluginProcessor.Ignore ( plugin.Value.File );
+                        }
+                        CarbonCore.Instance.PluginProcessor.Clear ();
+                    }
+
+                    //
+                    // Plugins
+                    //
+                    {
+                        var tempList = Pool.GetList<string> ();
+                        tempList.AddRange ( CarbonCore.Instance.PluginProcessor.IgnoredPlugins );
+                        CarbonCore.Instance.PluginProcessor.IgnoredPlugins.Clear ();
+
+                        foreach ( var plugin in tempList )
+                        {
+                            CarbonCore.Instance.PluginProcessor.Prepare ( plugin, plugin );
+                        }
+                        Pool.FreeList ( ref tempList );
+                    }
+                    break;
+
+                default:
+                    var path = GetPluginPath ( name );
+                    if ( string.IsNullOrEmpty ( path ) )
+                    {
+                        DebugEx.Warning ( $" Couldn't find plugin with name '{name}'" );
+                        return;
+                    }
+
+                    //
+                    // Mods
+                    //
+                    {
+                        CarbonCore.Instance.HarmonyProcessor.ClearIgnore ( path );
+                        CarbonCore.Instance.HarmonyProcessor.Prepare ( path );
+                    }
+
+                    //
+                    // Plugins
+                    //
+                    {
+                        CarbonCore.Instance.PluginProcessor.ClearIgnore ( path );
+                        CarbonCore.Instance.PluginProcessor.Prepare ( path );
+                    }
+                    break;
+            }
+        }
+
+        #endregion
     }
 }
