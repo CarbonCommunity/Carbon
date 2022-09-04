@@ -309,11 +309,11 @@ namespace Carbon.Core
                     // Mods
                     //
                     {
-                        foreach ( var plugin in CarbonCore.Instance.PluginProcessor.Plugins )
+                        foreach ( var plugin in CarbonCore.Instance.HarmonyProcessor.Mods )
                         {
-                            CarbonCore.Instance.PluginProcessor.Ignore ( plugin.Value.File );
+                            CarbonCore.Instance.HarmonyProcessor.Ignore ( plugin.Value.File );
                         }
-                        CarbonCore.Instance.PluginProcessor.Clear ();
+                        CarbonCore.Instance.HarmonyProcessor.Clear ();
                     }
 
                     //
@@ -326,7 +326,7 @@ namespace Carbon.Core
 
                         foreach ( var plugin in tempList )
                         {
-                            CarbonCore.Instance.PluginProcessor.Prepare ( plugin, plugin );
+                            CarbonCore.Instance.PluginProcessor.Ignore ( plugin );
                         }
                         Pool.FreeList ( ref tempList );
                     }
@@ -344,16 +344,22 @@ namespace Carbon.Core
                     // Mods
                     //
                     {
-                        CarbonCore.Instance.HarmonyProcessor.ClearIgnore ( path );
-                        CarbonCore.Instance.HarmonyProcessor.Prepare ( path );
+                        if ( CarbonCore.Instance.HarmonyProcessor.Mods.TryGetValue ( name, out var value ) )
+                        {
+                            CarbonCore.Instance.HarmonyProcessor.Ignore ( path );
+                            value.Dispose ();
+                        }
                     }
 
                     //
                     // Plugins
                     //
                     {
-                        CarbonCore.Instance.PluginProcessor.ClearIgnore ( path );
-                        CarbonCore.Instance.PluginProcessor.Prepare ( path );
+                        if ( CarbonCore.Instance.PluginProcessor.Plugins.TryGetValue ( name, out var value ) )
+                        {
+                            CarbonCore.Instance.PluginProcessor.Ignore ( path );
+                            value.Dispose ();
+                        }
                     }
                     break;
             }

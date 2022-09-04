@@ -39,7 +39,7 @@ namespace Carbon.Core
         public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand> ();
         public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand> ();
 
-        public PluginProcessor PluginProcessor { get; set; } = new PluginProcessor ();
+        public ScriptProcessor PluginProcessor { get; set; } = new ScriptProcessor ();
         public HarmonyProcessor HarmonyProcessor { get; set; } = new HarmonyProcessor ();
 
         public static string GetRootFolder ()
@@ -122,7 +122,7 @@ namespace Carbon.Core
         public static void ReloadPlugins ()
         {
             CarbonLoader.LoadCarbonMods ();
-            PluginLoader.LoadAll ();
+            ScriptLoader.LoadAll ();
         }
         public static void ClearPlugins ()
         {
@@ -146,7 +146,7 @@ namespace Carbon.Core
         internal void _installDefaultCommands ()
         {
             CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
-            Plugins = new CarbonLoader.CarbonMod { IsCoreMod = true };
+            Plugins = new CarbonLoader.CarbonMod { Name = "Scripts", IsCoreMod = true };
 
             CarbonLoader._loadedMods.Add ( new CarbonLoader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } } );
             CarbonLoader._loadedMods.Add ( Plugins );
@@ -160,7 +160,7 @@ namespace Carbon.Core
                 _uninstallProcessors ();
 
                 var gameObject = new GameObject ( "Processors" );
-                PluginProcessor = gameObject.AddComponent<PluginProcessor> ();
+                PluginProcessor = gameObject.AddComponent<ScriptProcessor> ();
                 HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
             }
 

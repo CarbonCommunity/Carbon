@@ -83,6 +83,12 @@ namespace Carbon.Core.Processors
 
             CarbonCore.Log ( $" Initialized Harmony Processor" );
         }
+        public override void OnDestroy ()
+        {
+            base.OnDestroy ();
+
+            CarbonCore.Log ( $"{GetType().Name} has been unloaded." );
+        }
 
         internal void _onCreated ( object sender, FileSystemEventArgs e )
         {

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Carbon.Core.Processors
 {
-    public class PluginProcessor : BaseProcessor, IDisposable
+    public class ScriptProcessor : BaseProcessor, IDisposable
     {
         public Dictionary<string, AutoUpdatePlugin> Plugins { get; } = new Dictionary<string, AutoUpdatePlugin> ();
         public List<string> IgnoredPlugins { get; } = new List<string> ();
@@ -90,6 +90,13 @@ namespace Carbon.Core.Processors
 
             CarbonCore.Log ( $" Initialized Plugin Processor" );
         }
+        public override void OnDestroy ()
+        {
+            base.OnDestroy ();
+
+            CarbonCore.Log ( $"{GetType ().Name} has been unloaded." );
+        }
+
         internal void _onCreated ( object sender, FileSystemEventArgs e )
         {
             Plugins.Add ( Path.GetFileNameWithoutExtension ( e.Name ), null );
@@ -136,7 +143,13 @@ namespace Carbon.Core.Processors
 
                 foreach ( var plugin in temp )
                 {
-                    if ( plugin.Value == null ) continue;
+                    if ( plugin.Value == null )
+                    {
+                        Plugins [ plugin.Key ] = AutoUpdatePlugin.Create ();
+                        Plugins [ plugin.Key ].File = Path.Combine ( CarbonCore.GetPluginsFolder (), $"{plugin.Key}.cs" );
+                        Plugins [ plugin.Key ].Process ();
+                        continue;
+                    }
 
                     if ( plugin.Value.IsRemoved )
                     {
@@ -172,7 +185,7 @@ namespace Carbon.Core.Processors
 
             internal bool _hasChanged;
             internal bool _hasRemoved;
-            internal PluginLoader _loader;
+            internal ScriptLoader _loader;
 
             public static AutoUpdatePlugin Create ()
             {
@@ -245,7 +258,7 @@ namespace Carbon.Core.Processors
                         AddWatcher ( path );
                     }
 
-                    _loader = new PluginLoader ();
+                    _loader = new ScriptLoader ();
                     _loader.Files = Files;
                     _loader.Load ( true );
                 }

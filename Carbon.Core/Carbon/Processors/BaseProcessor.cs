@@ -10,5 +10,10 @@
 
             IsInitialized = true;
         }
+
+        public virtual void OnDestroy ()
+        {
+
+        }
     }
 }

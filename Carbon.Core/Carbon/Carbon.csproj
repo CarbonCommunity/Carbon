@@ -385,10 +385,10 @@
     <Compile Include="Oxide\_Attributes.cs" />
     <Compile Include="Oxide\_Extensions.cs" />
     <Compile Include="CarbonCore.cs" />
-    <Compile Include="Processors\PluginLoader.cs" />
+    <Compile Include="Processors\ScriptLoader.cs" />
     <Compile Include="Processors\AsyncPluginLoader.cs" />
     <Compile Include="Processors\HarmonyProcessor.cs" />
-    <Compile Include="Processors\PluginProcessor.cs" />
+    <Compile Include="Processors\ScriptProcessor.cs" />
     <Compile Include="Processors\ThreadedJob.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

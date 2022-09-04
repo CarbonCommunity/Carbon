@@ -14,9 +14,9 @@ using UnityEngine;
 
 namespace Carbon.Core
 {
-    public class PluginLoader : IDisposable
+    public class ScriptLoader : IDisposable
     {
-        public List<Plugin> Plugins { get; set; } = new List<Plugin> ();
+        public List<Script> Scripts { get; set; } = new List<Script> ();
 
         public List<string> Files { get; set; } = new List<string> ();
         public List<string> Sources { get; set; } = new List<string> ();
@@ -40,7 +40,7 @@ namespace Carbon.Core
             CarbonCore.Instance.PluginProcessor.StartCoroutine ( Compile ( target ) );
         }
 
-        private bool ExecuteMethod ( Assembly assembly, Type type, GameObject target, string method, Plugin plugin, bool skipAttributes )
+        private bool ExecuteMethod ( Assembly assembly, Type type, GameObject target, string method, Script plugin, bool skipAttributes )
         {
             var hasInfoAttribute = type.GetCustomAttributes ( true ).Any ( x => x.GetType () == typeof ( InfoAttribute ) );
 
@@ -87,9 +87,9 @@ namespace Carbon.Core
             AsyncLoader?.Abort ();
             AsyncLoader = null;
 
-            for ( int i = 0; i < Plugins.Count; i++ )
+            for ( int i = 0; i < Scripts.Count; i++ )
             {
-                var plugin = Plugins [ i ];
+                var plugin = Scripts [ i ];
                 if ( plugin.IsCore ) continue;
 
                 CarbonCore.Instance.Plugins.Plugins.Remove ( plugin.Instance );
@@ -110,9 +110,9 @@ namespace Carbon.Core
                 plugin.Dispose ();
             }
 
-            if ( Plugins.Count > 0 )
+            if ( Scripts.Count > 0 )
             {
-                Plugins.RemoveAll ( x => !x.IsCore );
+                Scripts.RemoveAll ( x => !x.IsCore );
             }
         }
         protected void GetSources ()
@@ -199,7 +199,7 @@ namespace Carbon.Core
                 {
                     var info = type.GetCustomAttribute ( typeof ( InfoAttribute ), true ) as InfoAttribute;
                     var description = type.GetCustomAttribute ( typeof ( DescriptionAttribute ), true ) as DescriptionAttribute;
-                    var plugin = Plugin.Create ( Sources [ pluginIndex ], assembly, type );
+                    var plugin = Script.Create ( Sources [ pluginIndex ], assembly, type );
 
                     if ( info == null )
                     {
@@ -214,7 +214,7 @@ namespace Carbon.Core
 
                     plugin.Instance = Activator.CreateInstance ( type ) as RustPlugin;
                     plugin.IsCore = IsCore;
-                    plugin.Required = Plugins.Count != 0 ? Plugins [ 0 ] : null;
+                    plugin.Required = Scripts.Count != 0 ? Scripts [ 0 ] : null;
 
                     plugin.Instance.CallPublicHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
@@ -230,7 +230,7 @@ namespace Carbon.Core
                     {
                         DebugEx.Log ( $"Loaded plugin {info.Title} v{info.Version} by {info.Author}" );
                     }
-                    Plugins.Add ( plugin );
+                    Scripts.Add ( plugin );
                 }
             }
             catch ( Exception exception )
@@ -247,7 +247,7 @@ namespace Carbon.Core
         }
 
         [Serializable]
-        public class Plugin : IDisposable
+        public class Script : IDisposable
         {
             public Assembly Assembly { get; set; }
             public Type Type { get; set; }
@@ -256,15 +256,15 @@ namespace Carbon.Core
             public string Author;
             public VersionNumber Version;
             public string Description;
-            public Plugin Required;
+            public Script Required;
             [TextArea ( 4, 15 )] public string Source;
-            public PluginLoader Loader;
+            public ScriptLoader Loader;
             public RustPlugin Instance;
             public bool IsCore;
 
-            public static Plugin Create ( string source, Assembly assembly, Type type )
+            public static Script Create ( string source, Assembly assembly, Type type )
             {
-                return new Plugin
+                return new Script
                 {
                     Source = source,
                     Assembly = assembly,
@@ -277,7 +277,7 @@ namespace Carbon.Core
                 };
             }
 
-            public bool Execute ( string method, GameObject target, bool skipAttributes, PluginLoader manager, bool non = false )
+            public bool Execute ( string method, GameObject target, bool skipAttributes, ScriptLoader manager, bool non = false )
             {
                 return non ? manager.ExecuteMethodNon ( Assembly, Type, target, method ) : manager.ExecuteMethod ( Assembly, Type, target, method, this, skipAttributes );
             }
