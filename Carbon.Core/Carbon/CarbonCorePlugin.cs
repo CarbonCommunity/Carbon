@@ -1,9 +1,6 @@
-﻿using Carbon.Core.Processors;
-using Facepunch;
+﻿using Facepunch;
 using Humanlights.Components;
 using Humanlights.Extensions;
-using Humanlights.Unity.Compiler;
-using Mono.CSharp;
 using Oxide.Plugins;
 using System;
 using System.CodeDom.Compiler;
@@ -13,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using static ConsoleSystem;
 
 namespace Carbon.Core
 {
@@ -153,12 +149,12 @@ namespace Carbon.Core
 
                     if ( lastCarbon != null )
                     {
-                        options.ReferencedAssemblies.Add ( lastCarbon.GetName().Name );
+                        options.ReferencedAssemblies.Add ( lastCarbon.GetName ().Name );
                         CarbonCore.Log ( $"  Injected {lastCarbon.GetName ().Name}" );
                     }
 
                     var result = compiler.CompileAssemblyFromSource ( options, source );
-                    foreach( CompilerError error in result.Errors )
+                    foreach ( CompilerError error in result.Errors )
                     {
                         CarbonCore.Error ( $"Eeeh: {error.ErrorText}" );
                     }

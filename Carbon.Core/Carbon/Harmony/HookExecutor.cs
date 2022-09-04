@@ -1,9 +1,8 @@
 ﻿using Oxide.Plugins;
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Carbon.Core.Harmony
+namespace Carbon.Core
 {
     public static class HookExecutor
     {
@@ -209,7 +208,7 @@ namespace Carbon.Core.Harmony
         {
             return CallStaticHook ( hookName, BindingFlags.NonPublic | BindingFlags.Instance, null );
         }
-        public static object CallStaticHook ( string hookName, object arg1 ) 
+        public static object CallStaticHook ( string hookName, object arg1 )
         {
             var buffer = _allocateBuffer ( 1 );
             buffer [ 0 ] = arg1;
@@ -219,7 +218,7 @@ namespace Carbon.Core.Harmony
             _clearBuffer ( buffer );
             return result;
         }
-        public static object CallStaticHook ( string hookName, object arg1, object arg2 ) 
+        public static object CallStaticHook ( string hookName, object arg1, object arg2 )
         {
             var buffer = _allocateBuffer ( 2 );
             buffer [ 0 ] = arg1;
@@ -230,7 +229,7 @@ namespace Carbon.Core.Harmony
             _clearBuffer ( buffer );
             return result;
         }
-        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3 ) 
+        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3 )
         {
             var buffer = _allocateBuffer ( 3 );
             buffer [ 0 ] = arg1;
@@ -242,7 +241,7 @@ namespace Carbon.Core.Harmony
             _clearBuffer ( buffer );
             return result;
         }
-        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4 ) 
+        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4 )
         {
             var buffer = _allocateBuffer ( 4 );
             buffer [ 0 ] = arg1;
@@ -255,7 +254,7 @@ namespace Carbon.Core.Harmony
             _clearBuffer ( buffer );
             return result;
         }
-        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5 ) 
+        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5 )
         {
             var buffer = _allocateBuffer ( 5 );
             buffer [ 0 ] = arg1;
@@ -269,7 +268,7 @@ namespace Carbon.Core.Harmony
             _clearBuffer ( buffer );
             return result;
         }
-        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6 ) 
+        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6 )
         {
             var buffer = _allocateBuffer ( 6 );
             buffer [ 0 ] = arg1;
@@ -284,7 +283,7 @@ namespace Carbon.Core.Harmony
             _clearBuffer ( buffer );
             return result;
         }
-        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7 ) 
+        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7 )
         {
             var buffer = _allocateBuffer ( 7 );
             buffer [ 0 ] = arg1;
@@ -300,7 +299,7 @@ namespace Carbon.Core.Harmony
             _clearBuffer ( buffer );
             return result;
         }
-        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8 ) 
+        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8 )
         {
             var buffer = _allocateBuffer ( 8 );
             buffer [ 0 ] = arg1;
@@ -317,7 +316,7 @@ namespace Carbon.Core.Harmony
             _clearBuffer ( buffer );
             return result;
         }
-        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9 ) 
+        public static object CallStaticHook ( string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9 )
         {
             var buffer = _allocateBuffer ( 9 );
             buffer [ 0 ] = arg1;

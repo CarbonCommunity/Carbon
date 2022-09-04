@@ -1,7 +1,4 @@
-﻿using CSharpCompiler;
-using Humanlights.Unity.Compiler;
-using Microsoft.CodeAnalysis.Scripting;
-using System;
+﻿using System;
 using System.CodeDom.Compiler;
 using System.Linq;
 using System.Reflection;
@@ -62,7 +59,7 @@ namespace Carbon.Core
         {
             public string FileName;
             public CompilerError Error;
-            public CompilerException(string fileName, CompilerError error ) { FileName = fileName; Error = error; }
+            public CompilerException ( string fileName, CompilerError error ) { FileName = fileName; Error = error; }
 
             public override string ToString ()
             {

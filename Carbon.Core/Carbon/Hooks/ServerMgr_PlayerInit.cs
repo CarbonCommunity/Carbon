@@ -1,5 +1,4 @@
 ﻿using Harmony;
-using Carbon.Core.Harmony;
 
 [HarmonyPatch ( typeof ( BasePlayer ), "PlayerInit" )]
 public class ServerMgr_PlayerInit

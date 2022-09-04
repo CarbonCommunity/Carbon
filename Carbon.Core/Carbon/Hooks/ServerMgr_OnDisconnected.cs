@@ -1,5 +1,4 @@
 ﻿using Harmony;
-using Carbon.Core.Harmony;
 
 [HarmonyPatch ( typeof ( ServerMgr ), "OnDisconnected" )]
 public class ServerMgr_OnDisconnected

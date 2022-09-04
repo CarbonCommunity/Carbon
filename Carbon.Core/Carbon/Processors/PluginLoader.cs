@@ -1,5 +1,4 @@
-﻿using Carbon.Core;
-using Facepunch;
+﻿using Facepunch;
 using Humanlights.Extensions;
 using Humanlights.Unity.Compiler;
 using Oxide.Core;
@@ -57,7 +56,7 @@ namespace Carbon.Core
             }
             else
             {
-                DebugEx.Log ( $"The plugin {type.Name} is not inherited by {nameof(RustPlugin)}, so it cannot be executed." );
+                DebugEx.Log ( $"The plugin {type.Name} is not inherited by {nameof ( RustPlugin )}, so it cannot be executed." );
                 return false;
             }
         }
@@ -70,7 +69,7 @@ namespace Carbon.Core
         {
             var files = OsEx.Folder.GetFilesWithExtension ( CarbonCore.GetPluginsFolder (), "cs" );
 
-            foreach(var file in files )
+            foreach ( var file in files )
             {
                 CarbonCore.Instance.PluginProcessor.Prepare ( file );
             }
@@ -88,8 +87,8 @@ namespace Carbon.Core
 
                 All.RemoveAll ( x => x.Name == Plugins [ i ].Name );
 
-                if(plugin.Instance != null) plugin.Instance.CallHook ( "OnUnload" );
-                
+                if ( plugin.Instance != null ) plugin.Instance.CallHook ( "OnUnload" );
+
                 if ( plugin.Instance != null ) DebugEx.Log ( $"Unloaded plugin {plugin.Instance.Name} v{plugin.Instance.Version} by {plugin.Instance.Author}" );
 
                 // if ( plugin.Instance != null ) UnityEngine.Object.DestroyImmediate ( plugin.Instance );
@@ -146,7 +145,7 @@ namespace Carbon.Core
 
             foreach ( var source in Sources )
             {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) ).ToArray();
+                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) ).ToArray ();
                 var usingLinesString = usingLines.Length == 0 ? "" : StringArrayEx.ToString ( usingLines, "\n", "\n" );
 
                 var fixedSource = string.IsNullOrEmpty ( usingLinesString ) ? source.Trim () : source.Replace ( usingLinesString, "" ).Trim ();
@@ -183,30 +182,32 @@ namespace Carbon.Core
 
                 foreach ( var type in assembly.GetTypes () )
                 {
-                    var attributes = ( type.GetCustomAttributes ( typeof ( InfoAttribute ), true ) as InfoAttribute [] );
-                    var info = attributes.Length > 0 ? type.GetCustomAttribute ( typeof ( InfoAttribute ), true ) as InfoAttribute : null;
-                    var desc = attributes.Length > 0 ? type.GetCustomAttribute ( typeof ( DescriptionAttribute ), true ) as DescriptionAttribute : null;
+                    var info = type.GetCustomAttribute ( typeof ( InfoAttribute ), true ) as InfoAttribute;
+                    var description = type.GetCustomAttribute ( typeof ( DescriptionAttribute ), true ) as DescriptionAttribute;
                     var plugin = Plugin.Create ( Sources [ pluginIndex ], assembly, type );
 
-                    if ( info != null )
+                    if ( info == null )
                     {
-                        plugin.Name = info.Title;
-                        plugin.Author = info.Author;
-                        plugin.Version = info.Version;
-                        plugin.Description = desc?.Description;
+                        CarbonCore.Warn ( $"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute." );
+                        continue;
+                    }
 
-                        plugin.GameObject = target != null ? target : new GameObject ( $"{info.Title}_{info.Version}" );
-                        plugin.Instance = Activator.CreateInstance ( type ) as RustPlugin;
-                        plugin.IsCore = IsCore;
-                        plugin.Required = Plugins.Count != 0 ? Plugins [ 0 ] : null;
-                        plugin.Instance.Init ();
-                        plugin.Instance.CallHook ( "OnLoaded" );
-                        plugin.Instance.CallHook ( "OnServerInitialized" );
-                    }
-                    else
-                    {
-                        plugin.GameObject = target != null ? target : new GameObject ( $"Dynamic" );
-                    }
+                    plugin.Name = info.Title;
+                    plugin.Author = info.Author;
+                    plugin.Version = info.Version;
+                    plugin.Description = description?.Description;
+
+                    plugin.GameObject = target != null ? target : new GameObject ( $"{info.Title}_{info.Version}" );
+                    plugin.Instance = Activator.CreateInstance ( type ) as RustPlugin;
+                    plugin.IsCore = IsCore;
+                    plugin.Required = Plugins.Count != 0 ? Plugins [ 0 ] : null;
+
+                    plugin.Instance.CallPublicHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
+                    HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
+                    plugin.Instance.Init ();
+                    plugin.Instance.DoLoadConfig ();
+                    plugin.Instance.CallHook ( "OnServerInitialized" );
+
                     plugin.Loader = this;
 
                     if ( info != null )

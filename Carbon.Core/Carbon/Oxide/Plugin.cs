@@ -1,8 +1,6 @@
-﻿using Carbon.Core.Harmony;
-using System;
+﻿using System;
 using Oxide.Core;
 using System.Diagnostics;
-using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
 using Carbon.Core;

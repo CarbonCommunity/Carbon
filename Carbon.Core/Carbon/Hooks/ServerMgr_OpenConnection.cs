@@ -1,5 +1,4 @@
 ﻿using Harmony;
-using Carbon.Core.Harmony;
 using Carbon.Core;
 
 [HarmonyPatch ( typeof ( ServerMgr ), "OpenConnection" )]

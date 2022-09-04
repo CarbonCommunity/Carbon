@@ -4,10 +4,7 @@ using System.IO;
 using System.Reflection;
 using System;
 using UnityEngine;
-using System.Linq;
 using Oxide.Plugins;
-using Carbon.Core.Harmony;
-using Carbon.Core;
 using Humanlights.Extensions;
 
 namespace Carbon.Core
