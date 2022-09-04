@@ -1,4 +1,5 @@
 ﻿using Oxide.Plugins;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -170,10 +171,16 @@ namespace Carbon.Core
                 plugin.HookCache.Add ( hookName + args?.Length, hook );
             }
 
-            using ( TimeWarning.New ( $"{plugin?.Name}:{hookName}[{args?.Length}", 100 ) )
+            var beforeTicks = Environment.TickCount;
+            var result = hook?.Invoke ( plugin, args );
+            var afterTicks = Environment.TickCount;
+
+            if ( afterTicks > beforeTicks + 100 && afterTicks > beforeTicks )
             {
-                return hook?.Invoke ( plugin, args );
+                CarbonCore.Log ( $"{plugin?.Name} took longer than 100ms {hookName}[{args?.Length}]" );
             }
+
+            return result;
         }
 
         private static object CallStaticHook ( string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object [] args = null )
