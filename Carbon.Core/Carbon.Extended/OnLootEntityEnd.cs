@@ -1,5 +1,4 @@
-﻿using Carbon.Core.Harmony;
-using Harmony;
+﻿using Harmony;
 using System;
 using System.Collections.Generic;
 using System.Linq;
