@@ -14,7 +14,7 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 100 );
+        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 101 );
 
         public FileSystemWatcher PluginFolderWatcher;
 
