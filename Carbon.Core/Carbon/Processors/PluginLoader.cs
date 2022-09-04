@@ -39,8 +39,6 @@ namespace Carbon.Core
             GetNamespaces ();
             GetFullSource ();
 
-            OsEx.File.Create ( "master.cs", Source );
-
             CarbonCore.Instance.PluginProcessor.StartCoroutine ( Compile ( target ) );
         }
 
@@ -164,6 +162,7 @@ namespace Carbon.Core
                 yield break;
             }
 
+            AsyncLoader.FileName = Files [ 0 ];
             AsyncLoader.Source = Source;
             AsyncLoader.Start ();
 

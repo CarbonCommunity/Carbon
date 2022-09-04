@@ -1,5 +1,6 @@
 ﻿using CSharpCompiler;
 using Humanlights.Unity.Compiler;
+using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.CodeDom.Compiler;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace Carbon.Core
 {
     public class AsyncPluginLoader : ThreadedJob
     {
+        public string FileName;
         public string Source;
         public Assembly Assembly;
         public Exception Exception;
@@ -18,9 +20,7 @@ namespace Carbon.Core
         internal CodeCompiler _compiler;
         internal CompilerParameters _parameters;
         internal int _retries;
-
         internal static string [] _defaultReferences = new string [] { "System.dll", "mscorlib.dll" };
-
         internal void _addReferences ()
         {
             _parameters.ReferencedAssemblies.Clear ();
@@ -58,6 +58,18 @@ namespace Carbon.Core
             }
         }
 
+        public class CompilerException : Exception
+        {
+            public string FileName;
+            public CompilerError Error;
+            public CompilerException(string fileName, CompilerError error ) { FileName = fileName; Error = error; }
+
+            public override string ToString ()
+            {
+                return $"{Error.ErrorText} ({FileName}.cs {Error.Column} line {Error.Line})";
+            }
+        }
+
         public override void Start ()
         {
             base.Start ();
@@ -80,10 +92,10 @@ namespace Carbon.Core
                 var result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
                 Assembly = result.CompiledAssembly;
 
-                if(result.Errors.Count > 0 )
+                if ( result.Errors.Count > 0 )
                 {
                     var error = result.Errors [ 0 ];
-                    throw new Exception ( $"{error.ErrorText} ({error.FileName} {error.Column} line {error.Line})" );
+                    throw new CompilerException ( FileName, error );
                 }
             }
             catch ( Exception exception )
