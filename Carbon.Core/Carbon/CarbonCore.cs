@@ -16,10 +16,10 @@ namespace Carbon.Core
     {
         public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 101 );
 
-        public FileSystemWatcher PluginFolderWatcher;
-
         public static CarbonCore Instance { get; set; }
+
         public RustPlugin CorePlugin { get; set; }
+        public CarbonLoader.CarbonMod Plugins { get; set; }
 
         internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
         internal static List<string> _addons = new List<string> { "carbon." };
@@ -146,36 +146,37 @@ namespace Carbon.Core
         internal void _installDefaultCommands ()
         {
             CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
+            Plugins = new CarbonLoader.CarbonMod { IsCoreMod = true };
+
             CarbonLoader._loadedMods.Add ( new CarbonLoader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } } );
+            CarbonLoader._loadedMods.Add ( Plugins );
 
             CarbonLoader.ProcessCommands ( typeof ( CarbonCorePlugin ), CorePlugin, prefix: "c" );
         }
         internal void _installProcessors ()
         {
-            _uninstallProcessors ();
+            if ( PluginProcessor == null || HarmonyProcessor == null )
+            {
+                _uninstallProcessors ();
 
-            var gameObject = new GameObject ( "PluginProcessor" );
-            PluginProcessor = gameObject.AddComponent<PluginProcessor> ();
-            HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
+                var gameObject = new GameObject ( "Processors" );
+                PluginProcessor = gameObject.AddComponent<PluginProcessor> ();
+                HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
+            }
+
+            _registerProcessors ();
         }
         internal void _registerProcessors ()
         {
-            PluginProcessor?.Start ();
-            HarmonyProcessor?.Start ();
+            if ( PluginProcessor != null ) PluginProcessor?.Start ();
+            if ( HarmonyProcessor != null ) HarmonyProcessor?.Start ();
         }
         internal void _uninstallProcessors ()
         {
             try
             {
-                PluginProcessor?.Dispose ();
-                HarmonyProcessor?.Dispose ();
-            }
-            catch { }
-
-            try
-            {
-                var obj = PluginProcessor == null ? null : PluginProcessor.gameObject;
-                if ( obj != null ) UnityEngine.Object.Destroy ( obj );
+                if ( PluginProcessor != null ) PluginProcessor?.Dispose ();
+                if ( HarmonyProcessor != null ) HarmonyProcessor?.Dispose ();
             }
             catch { }
 
@@ -185,24 +186,31 @@ namespace Carbon.Core
                 if ( HarmonyProcessor != null ) UnityEngine.Object.DestroyImmediate ( HarmonyProcessor );
             }
             catch { }
+
+            try
+            {
+                var obj = PluginProcessor == null ? null : PluginProcessor.gameObject;
+                if ( obj != null ) UnityEngine.Object.Destroy ( obj );
+            }
+            catch { }
         }
 
         public void RefreshConsoleInfo ()
         {
             if ( ServerConsole.Instance == null || ServerConsole.Instance.input == null ) return;
+            if ( ServerConsole.Instance.input.statusText.Length != 4 ) ServerConsole.Instance.input.statusText = new string [ 4 ];
 
             ServerConsole.Instance.input.statusText [ 3 ] = $" Carbon v{Version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count ):n0} plgs";
         }
 
         public void Init ()
         {
+            if ( ServerConsole.Instance == null ) return;
+
             Format ( $"Loading..." );
 
-            if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
-            {
-                ServerConsole.Instance.input.statusText = new string [ 4 ];
-                ServerConsole.Instance.input.statusText [ 3 ] = " Carbon Initializing...";
-            }
+            ServerConsole.Instance.input.statusText = new string [ 4 ];
+            ServerConsole.Instance.input.statusText [ 3 ] = " Carbon Initializing...";
 
             GetRootFolder ();
             GetConfigsFolder ();

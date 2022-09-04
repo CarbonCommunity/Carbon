@@ -1,4 +1,5 @@
 ﻿using Facepunch;
+using Harmony;
 using Humanlights.Extensions;
 using Humanlights.Unity.Compiler;
 using Oxide.Core;
@@ -15,8 +16,6 @@ namespace Carbon.Core
 {
     public class PluginLoader : IDisposable
     {
-        public static List<Plugin> All { get; } = new List<Plugin> ();
-
         public List<Plugin> Plugins { get; set; } = new List<Plugin> ();
 
         public List<string> Files { get; set; } = new List<string> ();
@@ -69,9 +68,17 @@ namespace Carbon.Core
         {
             var files = OsEx.Folder.GetFilesWithExtension ( CarbonCore.GetPluginsFolder (), "cs" );
 
+            CarbonCore.Instance.PluginProcessor.Clear ();
+            CarbonCore.Instance.PluginProcessor.IgnoredPlugins.Clear ();
+
             foreach ( var file in files )
             {
                 CarbonCore.Instance.PluginProcessor.Prepare ( file );
+            }
+
+            foreach ( var plugin in CarbonCore.Instance.PluginProcessor.Plugins )
+            {
+                plugin.Value.SetDirty ();
             }
         }
 
@@ -85,20 +92,28 @@ namespace Carbon.Core
                 var plugin = Plugins [ i ];
                 if ( plugin.IsCore ) continue;
 
-                All.RemoveAll ( x => x.Name == Plugins [ i ].Name );
+                CarbonCore.Instance.Plugins.Plugins.Remove ( plugin.Instance );
 
-                if ( plugin.Instance != null ) plugin.Instance.CallHook ( "OnUnload" );
+                if ( plugin.Instance != null )
+                {
+                    try
+                    {
+                        HookExecutor.CallStaticHook ( "OnPluginUnloaded", plugin.Instance );
+                        plugin.Instance.CallHook ( "Unload" );
+                        CarbonLoader.RemoveCommands ( plugin.Instance );
 
-                if ( plugin.Instance != null ) DebugEx.Log ( $"Unloaded plugin {plugin.Instance.Name} v{plugin.Instance.Version} by {plugin.Instance.Author}" );
-
-                // if ( plugin.Instance != null ) UnityEngine.Object.DestroyImmediate ( plugin.Instance );
-                UnityEngine.Object.Destroy ( plugin.GameObject );
+                        CarbonCore.Log ( $"Unloaded plugin {plugin.Instance}" );
+                    }
+                    catch ( Exception ex ) { CarbonCore.Error ( $"Failed unloading '{plugin.Instance}'", ex ); }
+                }
 
                 plugin.Dispose ();
-                if ( plugin.Instance != null ) Pool.Free ( ref plugin.Instance );
             }
 
-            Plugins.RemoveAll ( x => !x.IsCore );
+            if ( Plugins.Count > 0 )
+            {
+                Plugins.RemoveAll ( x => !x.IsCore );
+            }
         }
         protected void GetSources ()
         {
@@ -197,7 +212,6 @@ namespace Carbon.Core
                     plugin.Version = info.Version;
                     plugin.Description = description?.Description;
 
-                    plugin.GameObject = target != null ? target : new GameObject ( $"{info.Title}_{info.Version}" );
                     plugin.Instance = Activator.CreateInstance ( type ) as RustPlugin;
                     plugin.IsCore = IsCore;
                     plugin.Required = Plugins.Count != 0 ? Plugins [ 0 ] : null;
@@ -210,10 +224,11 @@ namespace Carbon.Core
 
                     plugin.Loader = this;
 
+                    CarbonCore.Instance.Plugins.Plugins.Add ( plugin.Instance );
+
                     if ( info != null )
                     {
                         DebugEx.Log ( $"Loaded plugin {info.Title} v{info.Version} by {info.Author}" );
-                        All.Add ( plugin );
                     }
                     Plugins.Add ( plugin );
                 }
@@ -244,7 +259,6 @@ namespace Carbon.Core
             public Plugin Required;
             [TextArea ( 4, 15 )] public string Source;
             public PluginLoader Loader;
-            public GameObject GameObject;
             public RustPlugin Instance;
             public bool IsCore;
 

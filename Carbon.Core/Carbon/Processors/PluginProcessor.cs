@@ -68,12 +68,13 @@ namespace Carbon.Core.Processors
 
         public override void Start ()
         {
-            if ( IsInitialized ) return;
-
             base.Start ();
 
+            StopAllCoroutines ();
             StartCoroutine ( CompileCheck () );
 
+            _folderWatcher?.Dispose ();
+            _folderWatcher = null;
             _folderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder () )
             {
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.FileName,
@@ -129,10 +130,14 @@ namespace Carbon.Core.Processors
 
             while ( true )
             {
+                yield return _waitSeconds;
+
                 foreach ( var plugin in Plugins ) temp.Add ( plugin.Key, plugin.Value );
 
                 foreach ( var plugin in temp )
                 {
+                    if ( plugin.Value == null ) continue;
+
                     if ( plugin.Value.IsRemoved )
                     {
                         Clear ( plugin.Key, plugin.Value );
@@ -149,7 +154,6 @@ namespace Carbon.Core.Processors
                 }
 
                 temp.Clear ();
-
                 yield return null;
             }
         }

@@ -310,12 +310,16 @@ namespace Carbon.Core
         {
             if ( mod.IsCoreMod ) return;
 
-            Log ( mod.Name, "Unpatching hooks..." );
-            mod.Harmony.UnpatchAll ( mod.Harmony.Id );
-            _loadedMods.Remove ( mod );
-            Log ( mod.Name, "Unloaded mod" );
+            if ( mod.Harmony != null )
+            {
+                Log ( mod.Name, "Unpatching hooks..." );
+                mod.Harmony.UnpatchAll ( mod.Harmony.Id );
+                Log ( mod.Name, "Unloaded mod" );
 
-            OsEx.File.Delete ( mod.File );
+                OsEx.File.Delete ( mod.File );
+            }
+
+            _loadedMods.Remove ( mod );
         }
         internal static CarbonMod GetMod ( string name )
         {

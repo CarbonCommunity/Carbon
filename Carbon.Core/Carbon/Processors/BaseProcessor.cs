@@ -6,6 +6,8 @@
     
         public virtual void Start ()
         {
+            DontDestroyOnLoad ( gameObject );
+
             IsInitialized = true;
         }
     }

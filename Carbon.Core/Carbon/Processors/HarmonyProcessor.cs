@@ -63,10 +63,9 @@ namespace Carbon.Core.Processors
 
         public override void Start ()
         {
-            if ( IsInitialized ) return;
-
             base.Start ();
 
+            StopAllCoroutines ();
             StartCoroutine ( CompileCheck () );
 
             _folderWatcher = new FileSystemWatcher ( CarbonCore.GetPluginsFolder () )
@@ -125,6 +124,8 @@ namespace Carbon.Core.Processors
 
             while ( true )
             {
+                yield return _waitSeconds;
+
                 foreach ( var plugin in Mods ) temp.Add ( plugin.Key, plugin.Value );
 
                 foreach ( var plugin in temp )
@@ -153,8 +154,7 @@ namespace Carbon.Core.Processors
                 }
 
                 temp.Clear ();
-
-                yield return _waitSeconds;
+                yield return null;
             }
         }
 

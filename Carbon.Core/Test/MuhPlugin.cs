@@ -15,5 +15,11 @@ namespace Oxide.Plugins
         {
 
         }
+
+        private object OnHammerHit ( BasePlayer player, HitInfo info )
+        {
+            Puts ( $"{player} bonked {info.HitEntity}" );
+            return true;
+        }
     }
 }

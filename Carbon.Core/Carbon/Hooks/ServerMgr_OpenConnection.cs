@@ -6,7 +6,8 @@ public class ServerMgr_OpenConnection
 {
     public static void Postfix ()
     {
-        CarbonCore.Instance._registerProcessors ();
+        CarbonCore.Instance._installProcessors ();
+        CarbonCore.Instance.RefreshConsoleInfo ();
 
         HookExecutor.CallStaticHook ( "OnServerInitialized" );
     }

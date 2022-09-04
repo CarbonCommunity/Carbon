@@ -6,6 +6,6 @@ public class ServerMgr_Shutdown
 {
     public static void Prefix ()
     {
-        HookExecutor.CallStaticHook("OnServerShutdown");
+        HookExecutor.CallStaticHook ( "OnServerShutdown" );
     }
 }

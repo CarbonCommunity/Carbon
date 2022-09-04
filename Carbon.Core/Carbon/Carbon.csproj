@@ -343,6 +343,7 @@
   <ItemGroup>
     <Compile Include="CarbonCorePlugin.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
+    <Compile Include="Hooks\SaveRestore_DoAutomatedSave.cs" />
     <Compile Include="Oxide\Hash.cs" />
     <Compile Include="Processors\BaseProcessor.cs" />
     <Compile Include="Processors\CarbonLoader.cs" />
@@ -357,7 +358,7 @@
     <Compile Include="Hooks\Chat_sayAs.cs" />
     <Compile Include="Hooks\ModdedServerPatch.cs" />
     <Compile Include="Hooks\ServerMgr_OnDisconnected.cs" />
-    <Compile Include="Hooks\SaveRestore_DoAutomatedSave.cs" />
+    <Compile Include="Hooks\Bootstrap_StartupShared.cs" />
     <Compile Include="Hooks\ServerMgr_Shutdown.cs" />
     <Compile Include="Hooks\Harmony.cs" />
     <Compile Include="Hooks\Template.cs" />
