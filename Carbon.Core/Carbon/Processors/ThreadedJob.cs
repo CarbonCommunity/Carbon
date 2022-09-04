@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Carbon.Core
 {
@@ -7,7 +9,8 @@ namespace Carbon.Core
     {
         internal bool _isDone = false;
         internal object _handle = new object ();
-        internal System.Threading.Thread _thread = null;
+        internal Task _task = null;
+        private CancellationTokenSource cancellationToken;
 
         public bool IsDone
         {
@@ -31,12 +34,12 @@ namespace Carbon.Core
 
         public virtual void Start ()
         {
-            _thread = new System.Threading.Thread ( Run ) { Priority = System.Threading.ThreadPriority.AboveNormal };
-            _thread.Start ();
+            cancellationToken = new CancellationTokenSource();
+            _task = Task.Factory.StartNew( Run, cancellationToken.Token );
         }
         public virtual void Abort ()
         {
-            _thread.Abort ();
+            cancellationToken.Cancel();
         }
 
         public virtual void ThreadFunction () { }
