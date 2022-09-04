@@ -177,18 +177,16 @@ namespace Carbon.Core
         {
             if ( arg.Player () != null && !arg.Player ().IsAdmin || arg.HasArgs ( 1 ) ) return;
 
-            var body = new StringTable ( "#", "Mod", "Author", "Version" );
+            var body = new StringTable ( "#", "Mod", "Author", "Version", "Core", "Hook Time" );
             var count = 1;
-
-            Reply ( $"Found: {CarbonLoader._loadedMods.Count} mods  with {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count )} plugins", arg );
 
             foreach ( var mod in CarbonLoader._loadedMods )
             {
-                body.AddRow ( $"{count:n0}", mod.Name, "", "" );
+                body.AddRow ( $"{count:n0}", mod.Name, "", "", mod.IsCoreMod ? "Yes" : "No", "" );
 
                 foreach ( var plugin in mod.Plugins )
                 {
-                    body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}" );
+                    body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms" );
                 }
 
                 count++;
