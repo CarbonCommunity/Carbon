@@ -6,6 +6,8 @@ using System.Reflection;
 using Carbon.Core;
 using Newtonsoft.Json;
 using System.Text.Json.Serialization;
+using Harmony;
+using System.Threading.Tasks;
 
 namespace Oxide.Plugins
 {
@@ -13,6 +15,7 @@ namespace Oxide.Plugins
     public class Plugin
     {
         public Dictionary<string, MethodInfo> HookCache { get; } = new Dictionary<string, MethodInfo> ();
+        public List<string> IgnoredHooks { get; } = new List<string> ();
 
         public bool IsCorePlugin { get; set; }
         public Type Type { get; set; }
@@ -34,14 +37,16 @@ namespace Oxide.Plugins
         private Stopwatch trackStopwatch = new Stopwatch ();
         public double TotalHookTime { get; internal set; }
 
+        public HarmonyInstance HarmonyInstance;
+
         public void TrackStart ()
         {
-            if ( this.IsCorePlugin )
+            if ( IsCorePlugin )
             {
                 return;
             }
 
-            Stopwatch stopwatch = this.trackStopwatch;
+            var stopwatch = trackStopwatch;
             if ( stopwatch.IsRunning )
             {
                 return;
@@ -50,11 +55,12 @@ namespace Oxide.Plugins
         }
         public void TrackEnd ()
         {
-            if ( this.IsCorePlugin )
+            if ( IsCorePlugin )
             {
                 return;
             }
-            Stopwatch stopwatch = this.trackStopwatch;
+
+            var stopwatch = trackStopwatch;
             if ( !stopwatch.IsRunning )
             {
                 return;
@@ -66,12 +72,20 @@ namespace Oxide.Plugins
 
         public virtual void Init ()
         {
+            HarmonyInstance = HarmonyInstance.Create ( Name + "Patches" );
+            HarmonyInstance.PatchAll ();
+
             CallHook ( "Init" );
         }
         public virtual void Load ()
         {
             IsLoaded = true;
             CallHook ( "OnLoaded" );
+        }
+        public virtual void Unload ()
+        {
+            HarmonyInstance?.UnpatchAll ( HarmonyInstance.Id );
+            HarmonyInstance = null;
         }
 
         #region Calls
@@ -110,7 +124,7 @@ namespace Oxide.Plugins
         }
         public T Call<T> ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8 )
         {
-            return ( T )HookExecutor.CallHook ( this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7 , arg8 );
+            return ( T )HookExecutor.CallHook ( this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 );
         }
         public T Call<T> ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9 )
         {
@@ -160,11 +174,11 @@ namespace Oxide.Plugins
 
         public T CallHook<T> ( string hook )
         {
-            return (T)HookExecutor.CallHook ( this, hook );
+            return ( T )HookExecutor.CallHook ( this, hook );
         }
         public T CallHook<T> ( string hook, object arg1 )
         {
-            return (T)HookExecutor.CallHook ( this, hook, arg1 );
+            return ( T )HookExecutor.CallHook ( this, hook, arg1 );
         }
         public T CallHook<T> ( string hook, object arg1, object arg2 )
         {
@@ -192,7 +206,7 @@ namespace Oxide.Plugins
         }
         public T CallHook<T> ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8 )
         {
-            return ( T )    HookExecutor.CallHook ( this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 );
+            return ( T )HookExecutor.CallHook ( this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 );
         }
         public T CallHook<T> ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9 )
         {

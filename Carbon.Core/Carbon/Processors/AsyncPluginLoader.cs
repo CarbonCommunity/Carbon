@@ -12,7 +12,7 @@ namespace Carbon.Core
         public string FileName;
         public string Source;
         public Assembly Assembly;
-        public Exception Exception;
+        public CompilerException Exception;
 
         internal CodeCompiler _compiler;
         internal CompilerParameters _parameters;
@@ -63,7 +63,7 @@ namespace Carbon.Core
 
             public override string ToString ()
             {
-                return $"{Error.ErrorText} ({FileName}.cs {Error.Column} line {Error.Line})";
+                return $"{Error.ErrorText} ({FileName} {Error.Column} line {Error.Line})";
             }
         }
 
@@ -95,7 +95,7 @@ namespace Carbon.Core
                     throw new CompilerException ( FileName, error );
                 }
             }
-            catch ( Exception exception )
+            catch ( CompilerException exception )
             {
                 if ( _retries <= 2 )
                 {
@@ -108,6 +108,5 @@ namespace Carbon.Core
                 }
             }
         }
-
     }
 }

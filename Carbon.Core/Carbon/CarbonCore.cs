@@ -14,7 +14,7 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 101 );
+        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 110 );
 
         public static CarbonCore Instance { get; set; }
 
@@ -236,17 +236,18 @@ namespace Carbon.Core
         }
         public void UnInit ()
         {
-            if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
-            {
-                ServerConsole.Instance.input.statusText = new string [ 3 ];
-            }
-
             _uninstallProcessors ();
             _clearCommands ( all: true );
 
             ClearPlugins ();
             CarbonLoader._loadedMods.Clear ();
             Debug.Log ( $"Unloaded Carbon." );
+
+            if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
+            {
+                ServerConsole.Instance.input.statusText [ 3 ] = "";
+                ServerConsole.Instance.input.statusText = new string [ 3 ];
+            }
         }
     }
 

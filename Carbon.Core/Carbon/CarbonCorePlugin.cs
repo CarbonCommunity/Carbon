@@ -174,7 +174,6 @@ namespace Carbon.Core
         #region Mod & Plugin Loading
 
         [ConsoleCommand ( "list" )]
-        [ConsoleCommand ( "plugins" )]
         private void GetList ( ConsoleSystem.Arg arg )
         {
             if ( arg.Player () != null && !arg.Player ().IsAdmin ) return;

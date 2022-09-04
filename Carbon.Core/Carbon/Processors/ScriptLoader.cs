@@ -186,7 +186,7 @@ namespace Carbon.Core
 
             if ( AsyncLoader.Exception != null )
             {
-                CarbonCore.Error ( $"Failed compiling '{( Files.Count == 0 ? "<custom source>" : Path.GetFileNameWithoutExtension ( Files [ 0 ] ) )}':", AsyncLoader.Exception );
+                CarbonCore.Error ( $"Failed compiling '{( Files.Count == 0 ? "<custom source>" : Path.GetFileNameWithoutExtension ( Files [ 0 ] ) )}':\n{AsyncLoader.Exception}" );
                 yield break;
             }
 
