@@ -22,7 +22,6 @@ namespace Carbon.Core
         public RustPlugin CorePlugin { get; set; }
 
         internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
-        internal static ConsoleInput _serverConsoleInput = ServerConsole.Instance == null ? null : ServerConsole.Instance.GetType ().GetField ( "input", BindingFlags.NonPublic | BindingFlags.Instance )?.GetValue ( ServerConsole.Instance ) as ConsoleInput;
         internal static List<string> _addons = new List<string> { "carbon." };
 
         public static bool IsAddon ( string input )
@@ -190,17 +189,19 @@ namespace Carbon.Core
 
         public void RefreshConsoleInfo ()
         {
-            if ( _serverConsoleInput != null ) _serverConsoleInput.statusText [ 3 ] = $" Carbon v{Version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count ):n0} plgs";
+            if ( ServerConsole.Instance == null || ServerConsole.Instance.input == null ) return;
+
+            ServerConsole.Instance.input.statusText [ 3 ] = $" Carbon v{Version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count ):n0} plgs";
         }
 
         public void Init ()
         {
             Format ( $"Loading..." );
 
-            if ( _serverConsoleInput != null )
+            if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
             {
-                _serverConsoleInput.statusText = new string [ 4 ];
-                _serverConsoleInput.statusText [ 3 ] = " Carbon Initializing...";
+                ServerConsole.Instance.input.statusText = new string [ 4 ];
+                ServerConsole.Instance.input.statusText [ 3 ] = " Carbon Initializing...";
             }
 
             GetRootFolder ();
@@ -227,9 +228,9 @@ namespace Carbon.Core
         }
         public void UnInit ()
         {
-            if ( _serverConsoleInput != null )
+            if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
             {
-                _serverConsoleInput.statusText = new string [ 3 ];
+                ServerConsole.Instance.input.statusText = new string [ 3 ];
             }
 
             _uninstallProcessors ();
