@@ -1,6 +1,7 @@
 ﻿using Facepunch;
 using Humanlights.Components;
 using Humanlights.Extensions;
+using Newtonsoft.Json;
 using Oxide.Plugins;
 using System;
 using System.CodeDom.Compiler;
@@ -173,32 +174,47 @@ namespace Carbon.Core
         #region Mod & Plugin Loading
 
         [ConsoleCommand ( "list" )]
+        [ConsoleCommand ( "plugins" )]
         private void GetList ( ConsoleSystem.Arg arg )
         {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin || arg.HasArgs ( 1 ) ) return;
+            if ( arg.Player () != null && !arg.Player ().IsAdmin ) return;
 
-            var body = new StringTable ( "#", "Mod", "Author", "Version", "Core", "Hook Time" );
-            var count = 1;
+            var mode = arg.HasArgs ( 1 ) ? arg.Args [ 0 ] : null;
 
-            foreach ( var mod in CarbonLoader._loadedMods )
+            switch ( mode )
             {
-                body.AddRow ( $"{count:n0}", mod.Name, "", "", mod.IsCoreMod ? "Yes" : "No", "" );
+                case "-j":
+                case "--j":
+                case "-json":
+                case "--json":
+                    Reply ( JsonConvert.SerializeObject ( CarbonLoader._loadedMods, Formatting.Indented ), arg );
+                    break;
 
-                foreach ( var plugin in mod.Plugins )
-                {
-                    body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms" );
-                }
+                default:
+                    var body = new StringTable ( "#", "Mod", "Author", "Version", "Core", "Hook Time" );
+                    var count = 1;
 
-                count++;
+                    foreach ( var mod in CarbonLoader._loadedMods )
+                    {
+                        body.AddRow ( $"{count:n0}", mod.Name, "", "", mod.IsCoreMod ? "Yes" : "No", "" );
+
+                        foreach ( var plugin in mod.Plugins )
+                        {
+                            body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms" );
+                        }
+
+                        count++;
+                    }
+
+                    Reply ( body.ToStringMinimal (), arg );
+                    break;
             }
-
-            Reply ( body.ToStringMinimal (), arg );
         }
 
         [ConsoleCommand ( "reload" )]
         private void Reload ( ConsoleSystem.Arg arg )
         {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin || arg.HasArgs ( 1 ) ) return;
+            if ( arg.Player () != null && !arg.Player ().IsAdmin || !arg.HasArgs ( 1 ) ) return;
 
             RefreshOrderedFiles ();
 
@@ -226,7 +242,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "load" )]
         private void Load ( ConsoleSystem.Arg arg )
         {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin || arg.HasArgs ( 1 ) ) return;
+            if ( arg.Player () != null && !arg.Player ().IsAdmin || !arg.HasArgs ( 1 ) ) return;
 
             RefreshOrderedFiles ();
 
@@ -295,7 +311,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "unload" )]
         private void Unload ( ConsoleSystem.Arg arg )
         {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin || arg.HasArgs ( 1 ) ) return;
+            if ( arg.Player () != null && !arg.Player ().IsAdmin || !arg.HasArgs ( 1 ) ) return;
 
             RefreshOrderedFiles ();
 

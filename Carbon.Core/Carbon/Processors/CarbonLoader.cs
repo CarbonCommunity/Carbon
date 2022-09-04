@@ -6,6 +6,8 @@ using System;
 using UnityEngine;
 using Oxide.Plugins;
 using Humanlights.Extensions;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Carbon.Core
 {
@@ -385,16 +387,23 @@ namespace Carbon.Core
 
         internal static List<CarbonMod> _loadedMods = new List<CarbonMod> ();
 
+        [JsonObject ( MemberSerialization.OptIn )]
         public class CarbonMod
         {
+            [JsonProperty]
             public string Name { get; set; } = string.Empty;
+            [JsonProperty]
             public string File { get; set; } = string.Empty;
+            [JsonProperty]
             public bool IsCoreMod { get; set; } = false;
+            [JsonProperty]
             public bool IsAddon { get; set; } = false;
             public HarmonyInstance Harmony { get; set; }
             public Assembly Assembly { get; set; }
             public Type [] AllTypes { get; set; }
             public List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks> ();
+
+            [JsonProperty]
             public List<RustPlugin> Plugins { get; set; } = new List<RustPlugin> ();
         }
     }

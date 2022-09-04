@@ -4,9 +4,12 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Reflection;
 using Carbon.Core;
+using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Oxide.Plugins
 {
+    [JsonObject ( MemberSerialization.OptIn )]
     public class Plugin
     {
         public Dictionary<string, MethodInfo> HookCache { get; } = new Dictionary<string, MethodInfo> ();
@@ -14,10 +17,15 @@ namespace Oxide.Plugins
         public bool IsCorePlugin { get; set; }
         public Type Type { get; set; }
 
+        [JsonProperty]
         public string Title { get; set; } = "Rust";
+        [JsonProperty]
         public string Name { get; set; }
+        [JsonProperty]
         public string Description { get; set; }
+        [JsonProperty]
         public string Author { get; set; }
+        [JsonProperty]
         public VersionNumber Version { get; set; }
         public int ResourceId { get; set; }
         public bool HasConfig { get; set; }

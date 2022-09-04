@@ -1,5 +1,6 @@
 ﻿using Carbon.Core;
 using Humanlights.Extensions;
+using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
