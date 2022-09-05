@@ -221,8 +221,8 @@ namespace Oxide.Core.Libraries
             if ( UserExists ( id ) )
             {
                 UserData userData = GetUserData ( id );
-                string lastSeenNickname = userData.LastSeenNickname;
-                string obj = nickname.Sanitize ();
+                var lastSeenNickname = userData.LastSeenNickname;
+                var obj = nickname.Sanitize ();
                 userData.LastSeenNickname = nickname.Sanitize ();
                 Interface.CallHook ( "OnUserNameUpdated", id, lastSeenNickname, obj );
             }

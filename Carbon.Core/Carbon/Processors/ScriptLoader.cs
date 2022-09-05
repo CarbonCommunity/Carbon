@@ -230,6 +230,9 @@ namespace Carbon.Core
                     {
                         DebugEx.Log ( $"Loaded plugin {info.Title} v{info.Version} by {info.Author}" );
                     }
+
+                    CarbonLoader.ProcessCommands ( type, plugin.Instance );
+
                     Scripts.Add ( plugin );
                 }
             }
