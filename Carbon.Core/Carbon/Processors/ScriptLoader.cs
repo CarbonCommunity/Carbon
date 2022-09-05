@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using Carbon.Core.Processors;
+using Facepunch;
 using Harmony;
 using Humanlights.Extensions;
 using Humanlights.Unity.Compiler;
@@ -73,7 +74,9 @@ namespace Carbon.Core
 
             foreach ( var file in files )
             {
-                CarbonCore.Instance.PluginProcessor.Prepare ( file );
+                var plugin = ScriptProcessor.AutoUpdatePlugin.Create ();
+                plugin.File = file;
+                CarbonCore.Instance.PluginProcessor.Plugins.Add ( Path.GetFileNameWithoutExtension(file), plugin );
             }
 
             foreach ( var plugin in CarbonCore.Instance.PluginProcessor.Plugins )
@@ -176,8 +179,27 @@ namespace Carbon.Core
                 yield break;
             }
 
+            var references = Source.Split ( '\n' );
+            var resultReferences = Pool.GetList<string> ();
+            foreach ( var reference in references )
+            {
+                if ( reference.StartsWith ( "// Reference:" ) || reference.StartsWith ( "//Reference:" ) )
+                {
+                    try
+                    {
+                        var @ref = $"{reference.Replace ( "// Reference:", "" ).Replace ( "//Reference:", "" )}.dll".Trim ();
+                        resultReferences.Add ( @ref );
+                        CarbonCore.Log ( $" Added '{reference.Trim ()}'..." );
+                    }
+                    catch { }
+                }
+            }
+
+            Pool.Free ( ref references );
             AsyncLoader.FileName = Files [ 0 ];
             AsyncLoader.Source = Source;
+            AsyncLoader.References = resultReferences.ToArray ();
+            Pool.FreeList ( ref resultReferences );
             AsyncLoader.Start ();
 
             while ( AsyncLoader != null && !AsyncLoader.IsDone ) { yield return null; }

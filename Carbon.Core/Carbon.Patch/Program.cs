@@ -22,15 +22,6 @@ namespace Carbon.Patch
             {
                 using ( var archive = new ZipArchive ( memoryStream, ZipArchiveMode.Create, true ) )
                 {
-                    foreach ( var directory in Directory.GetDirectories ( "Rust/RustDedicated_Data" ) )
-                    {
-                        var files = OsEx.Folder.GetFilesWithExtension ( directory, "*" );
-                        foreach ( var file in files )
-                        {
-                            archive.CreateEntryFromFile ( file, file.Replace ( "Rust/", "" ) );
-                        }
-                    }
-
                     archive.CreateEntryFromFile ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "HarmonyMods/Carbon.dll" );
                     archive.CreateEntryFromFile ( "Carbon.Core/Carbon.Doorstop/bin/Release/Carbon.Doorstop.dll", "RustDedicated_Data/Managed/Carbon.Doorstop.dll" );
                     archive.CreateEntryFromFile ( "Tools/doorstop_config.ini", "doorstop_config.ini" );

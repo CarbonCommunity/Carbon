@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Facepunch;
+using System;
 using System.CodeDom.Compiler;
 using System.Linq;
 using System.Reflection;
@@ -11,13 +12,14 @@ namespace Carbon.Core
     {
         public string FileName;
         public string Source;
+        public string [] References;
         public Assembly Assembly;
         public CompilerException Exception;
 
         internal CodeCompiler _compiler;
         internal CompilerParameters _parameters;
         internal int _retries;
-        internal static string [] _defaultReferences = new string [] { "System.dll", "mscorlib.dll" };
+        internal static string [] _defaultReferences = new string [] { "System.dll", "mscorlib.dll", "protobuf-net.dll", "protobuf-net.Core.dll" };
         internal void _addReferences ()
         {
             _parameters.ReferencedAssemblies.Clear ();
@@ -52,6 +54,11 @@ namespace Carbon.Core
             if ( lastCarbon != null )
             {
                 _parameters.ReferencedAssemblies.Add ( lastCarbon.GetName ().Name );
+            }
+
+            foreach ( var reference in References )
+            {
+                _parameters.ReferencedAssemblies.Add ( reference );
             }
         }
 

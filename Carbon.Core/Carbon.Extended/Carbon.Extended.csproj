@@ -126,6 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="OnHammerHit.cs" />
+    <Compile Include="OnItemUse.cs" />
     <Compile Include="OnLootEntityEnd.cs" />
     <Compile Include="OnLootEntity.cs" />
     <Compile Include="OnEntityDeath.cs" />

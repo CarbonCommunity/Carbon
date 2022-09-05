@@ -14,7 +14,7 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 110 );
+        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 111 );
 
         public static CarbonCore Instance { get; set; }
 
@@ -170,6 +170,8 @@ namespace Carbon.Core
         {
             if ( PluginProcessor != null ) PluginProcessor?.Start ();
             if ( HarmonyProcessor != null ) HarmonyProcessor?.Start ();
+
+            PluginProcessor.InvokeRepeating ( () => { RefreshConsoleInfo (); }, 1f, 1f );
         }
         internal void _uninstallProcessors ()
         {

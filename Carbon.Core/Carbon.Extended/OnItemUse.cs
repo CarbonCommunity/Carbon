@@ -3,19 +3,19 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch(typeof(Item), "UseItem")]
+    [HarmonyPatch ( typeof ( Item ), "UseItem" )]
     public class Item_UseItem
     {
-        public static void Prefix(Item __instance, ref int amountToConsume)
+        public static void Prefix ( Item __instance, ref int amountToConsume )
         {
-            if (amountToConsume == 0)
+            if ( amountToConsume == 0 )
                 return;
 
-            var obj = HookExecutor.CallStaticHook("OnItemUse", __instance, amountToConsume);
+            var obj = HookExecutor.CallStaticHook ( "OnItemUse", __instance, amountToConsume );
 
-            if (obj is int)
+            if ( obj is int )
             {
-                amountToConsume = (int)obj;
+                amountToConsume = ( int )obj;
             }
         }
     }

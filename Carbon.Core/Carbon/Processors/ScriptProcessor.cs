@@ -88,7 +88,7 @@ namespace Carbon.Core.Processors
             _folderWatcher.IncludeSubdirectories = true;
             _folderWatcher.EnableRaisingEvents = true;
 
-            CarbonCore.Log ( $" Initialized Plugin Processor" );
+            CarbonCore.Log ( $" Initialized Script Processor" );
         }
         public override void OnDestroy ()
         {
