@@ -20,6 +20,7 @@ namespace Oxide.Plugins
         public Timers timer { get; set; } = new Timers ();
         public OxideMod mod { get; set; } = new OxideMod ();
         public WebRequests webrequest { get; set; } = new WebRequests ();
+        public Persistence persistence { get; set; }
 
         public CarbonLoader.CarbonMod carbon { get; set; }
 
@@ -46,15 +47,31 @@ namespace Oxide.Plugins
             cmd = new Command ();
             Manager = new PluginManager ();
             plugins = new Plugins ();
-            timer = new Timers ();
+            timer = new Timers ( this );
             lang = new Language ();
             mod = new OxideMod ();
             webrequest = new WebRequests ();
+            persistence = new GameObject ( $"Script_{name}" ).AddComponent<Persistence> ();
+            UnityEngine.Object.DontDestroyOnLoad ( persistence.gameObject );
 
             Type = GetType ();
 
             mod.Load ();
         }
+        public override void Dispose ()
+        {
+            timer.Clear ();
+
+            if ( persistence != null )
+            {
+                var go = persistence.gameObject;
+                UnityEngine.Object.DestroyImmediate ( persistence );
+                UnityEngine.Object.Destroy ( go );
+            }
+
+            base.Dispose ();
+        }
+
         public void Puts ( string message )
         {
             CarbonCore.Format ( $"[{Name}] {message}" );
@@ -222,5 +239,7 @@ namespace Oxide.Plugins
 
             player.SendNetworkUpdate ( BasePlayer.NetworkQueue.UpdateDistance );
         }
+
+        public class Persistence : FacepunchBehaviour { }
     }
 }

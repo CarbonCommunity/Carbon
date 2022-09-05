@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Oxide.Plugins
 {
     [JsonObject ( MemberSerialization.OptIn )]
-    public class Plugin
+    public class Plugin : IDisposable
     {
         public Dictionary<string, MethodInfo> HookCache { get; } = new Dictionary<string, MethodInfo> ();
         public List<string> IgnoredHooks { get; } = new List<string> ();
@@ -298,5 +298,10 @@ namespace Oxide.Plugins
         #endregion
 
         public bool IsLoaded { get; set; }
+
+        public virtual void Dispose ()
+        {
+            IsLoaded = false;
+        }
     }
 }

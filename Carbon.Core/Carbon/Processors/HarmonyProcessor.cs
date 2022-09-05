@@ -87,7 +87,7 @@ namespace Carbon.Core.Processors
         {
             base.OnDestroy ();
 
-            CarbonCore.Log ( $"{GetType().Name} has been unloaded." );
+            CarbonCore.Log ( $"{GetType ().Name} has been unloaded." );
         }
 
         internal void _onCreated ( object sender, FileSystemEventArgs e )
