@@ -79,7 +79,7 @@ namespace Oxide.Core.Libraries
         }
     }
 
-    public class Timer
+    public class Timer : IDisposable
     {
         public Action Callback { get; set; }
         public Persistence Persistence { get; set; }
@@ -102,6 +102,11 @@ namespace Oxide.Core.Libraries
             {
                 Callback = null;
             }
+        }
+
+        public void Dispose ()
+        {
+            Destroy ();
         }
     }
 }
