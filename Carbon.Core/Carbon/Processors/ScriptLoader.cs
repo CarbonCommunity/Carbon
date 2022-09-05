@@ -76,7 +76,7 @@ namespace Carbon.Core
             {
                 var plugin = ScriptProcessor.AutoUpdatePlugin.Create ();
                 plugin.File = file;
-                CarbonCore.Instance.PluginProcessor.Plugins.Add ( Path.GetFileNameWithoutExtension(file), plugin );
+                CarbonCore.Instance.PluginProcessor.Plugins.Add ( Path.GetFileNameWithoutExtension ( file ), plugin );
             }
 
             foreach ( var plugin in CarbonCore.Instance.PluginProcessor.Plugins )
@@ -189,7 +189,7 @@ namespace Carbon.Core
                     {
                         var @ref = $"{reference.Replace ( "// Reference:", "" ).Replace ( "//Reference:", "" )}.dll".Trim ();
                         resultReferences.Add ( @ref );
-                        CarbonCore.Log ( $" Added '{reference.Trim ()}'..." );
+                        CarbonCore.Log ( $" Added reference: {@ref}" );
                     }
                     catch { }
                 }
@@ -206,9 +206,14 @@ namespace Carbon.Core
 
             if ( AsyncLoader == null ) yield break;
 
-            if ( AsyncLoader.Exception != null )
+            if ( AsyncLoader.Exceptions.Count != 0 )
             {
-                CarbonCore.Error ( $"Failed compiling '{( Files.Count == 0 ? "<custom source>" : Path.GetFileNameWithoutExtension ( Files [ 0 ] ) )}':\n{AsyncLoader.Exception}" );
+                CarbonCore.Error ( $"Failed compiling '{AsyncLoader.FileName}':" );
+                for ( int i = 0; i < AsyncLoader.Exceptions.Count; i++ )
+                {
+                    var error = AsyncLoader.Exceptions [ i ];
+                    CarbonCore.Error ( $"  {i + 1:n0}. {error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})" );
+                }
                 yield break;
             }
 
@@ -241,8 +246,16 @@ namespace Carbon.Core
                     plugin.Instance.CallPublicHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Instance.Init ();
-                    plugin.Instance.DoLoadConfig ();
-                    plugin.Instance.CallHook ( "OnServerInitialized" );
+                    try { plugin.Instance.DoLoadConfig (); }
+                    catch ( Exception loadException )
+                    {
+                        plugin.Instance.Error ( $"Failed loading config.", loadException );
+                    }
+                    try { plugin.Instance.CallHook ( "OnServerInitialized" ); }
+                    catch ( Exception initException )
+                    {
+                        plugin.Instance.Error ( $"Failed OnServerInitialized.", initException );
+                    }
 
                     plugin.Loader = this;
 
@@ -260,7 +273,7 @@ namespace Carbon.Core
             }
             catch ( Exception exception )
             {
-                CarbonCore.Error ( $"Failed to compile:", exception );
+                CarbonCore.Error ( $"Failed to compile: ", exception );
             }
 
             yield break;

@@ -177,7 +177,7 @@ namespace Carbon.Core
 
             if ( afterTicks > beforeTicks + 100 && afterTicks > beforeTicks )
             {
-                CarbonCore.Log ( $"{plugin?.Name} took longer than 100ms {hookName}[{args?.Length}]" );
+                CarbonCore.WarnFormat ( $" {plugin?.Name} took longer than 100ms {hookName}{( args == null ? "" : $"[{args?.Length}]" )}" );
             }
 
             return result;

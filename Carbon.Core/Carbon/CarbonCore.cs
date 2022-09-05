@@ -103,7 +103,7 @@ namespace Carbon.Core
         public static void Error ( object message, Exception exception = null )
         {
             if ( exception == null ) Debug.LogError ( message );
-            else Debug.LogException ( new Exception ( $"{message}", exception ) );
+            else Debug.LogError ( new Exception ( $"{message}\n{exception}" ) );
         }
 
         public static void Format ( string format, params object [] args )

@@ -1,6 +1,7 @@
 ﻿using Facepunch;
 using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -14,7 +15,7 @@ namespace Carbon.Core
         public string Source;
         public string [] References;
         public Assembly Assembly;
-        public CompilerException Exception;
+        public List<CompilerException> Exceptions = new List<CompilerException> ();
 
         internal CodeCompiler _compiler;
         internal CompilerParameters _parameters;
@@ -70,14 +71,12 @@ namespace Carbon.Core
 
             public override string ToString ()
             {
-                return $"{Error.ErrorText} ({FileName} {Error.Column} line {Error.Line})";
+                return $"{Error.ErrorText}\n ({FileName} {Error.Column} line {Error.Line})";
             }
         }
 
         public override void Start ()
         {
-            base.Start ();
-
             _compiler = new CodeCompiler ();
             _parameters = new CompilerParameters
             {
@@ -87,31 +86,32 @@ namespace Carbon.Core
             };
 
             _addReferences ();
+
+            base.Start ();
         }
 
         public override void ThreadFunction ()
         {
             try
             {
+                Exceptions.Clear ();
+
                 var result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
                 Assembly = result.CompiledAssembly;
 
-                if ( result.Errors.Count > 0 )
+                foreach ( CompilerError error in result.Errors )
                 {
-                    var error = result.Errors [ 0 ];
-                    throw new CompilerException ( FileName, error );
+                    Exceptions.Add ( new CompilerException ( FileName, error ) );
                 }
+
+                if ( Exceptions.Count > 0 ) throw null;
             }
-            catch ( CompilerException exception )
+            catch
             {
                 if ( _retries <= 2 )
                 {
                     _retries++;
                     ThreadFunction ();
-                }
-                else
-                {
-                    Exception = exception;
                 }
             }
         }
