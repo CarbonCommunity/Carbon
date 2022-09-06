@@ -38,13 +38,22 @@ namespace Carbon.Core
             return null;
         }
 
+        public override void Init ()
+        {
+            foreach ( var player in BasePlayer.activePlayerList )
+            {
+                permission.RefreshUser ( player );
+            }
+        }
         private void OnPluginLoaded ( Plugin plugin )
         {
-            CarbonCore.Instance.RefreshConsoleInfo ();
         }
         private void OnPluginUnloaded ( Plugin plugin )
         {
-            CarbonCore.Instance.RefreshConsoleInfo ();
+        }
+        private void OnPlayerConnected ( BasePlayer player )
+        {
+            permission.RefreshUser ( player );
         }
 
         internal static void Reply ( object message, ConsoleSystem.Arg arg )
@@ -195,7 +204,7 @@ namespace Carbon.Core
 
                     foreach ( var mod in CarbonLoader._loadedMods )
                     {
-                        body.AddRow ( $"{count:n0}", mod.Name, "", "", mod.IsCoreMod ? "Yes" : "No", "" );
+                        body.AddRow ( $"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", mod.IsCoreMod ? "Yes" : "No", "" );
 
                         foreach ( var plugin in mod.Plugins )
                         {
@@ -399,14 +408,14 @@ namespace Carbon.Core
             var action = arg.Args [ 0 ];
             var name = arg.Args [ 1 ];
             var perm = arg.Args [ 2 ];
-            var user = permission.GetUserData ( name );
+            var user = permission.FindUser ( name );
 
             switch ( action )
             {
                 case "user":
-                    if ( permission.GrantUserPermission ( name, perm, null ) )
+                    if ( permission.GrantUserPermission ( user.Key, perm, null ) )
                     {
-                        Reply ( $"Granted user '{user.LastSeenNickname}' permission '{perm}'", arg );
+                        Reply ( $"Granted user '{user.Value.LastSeenNickname}' permission '{perm}'", arg );
                     }
                     break;
 
@@ -440,14 +449,14 @@ namespace Carbon.Core
             var action = arg.Args [ 0 ];
             var name = arg.Args [ 1 ];
             var perm = arg.Args [ 2 ];
-            var user = permission.GetUserData ( name );
+            var user = permission.FindUser ( name );
 
             switch ( action )
             {
                 case "user":
-                    if ( permission.RevokeUserPermission ( name, perm ) )
+                    if ( permission.RevokeUserPermission ( user.Key, perm ) )
                     {
-                        Reply ( $"Revoked user '{user.LastSeenNickname}' permission '{perm}'", arg );
+                        Reply ( $"Revoked user '{user.Value?.LastSeenNickname}' permission '{perm}'", arg );
                     }
                     break;
 

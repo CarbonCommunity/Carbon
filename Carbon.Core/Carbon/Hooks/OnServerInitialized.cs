@@ -2,7 +2,7 @@
 using Carbon.Core;
 
 [HarmonyPatch ( typeof ( ServerMgr ), "OpenConnection" )]
-public class ServerMgr_OpenConnection
+public class OnServerInitialized
 {
     public static void Postfix ()
     {

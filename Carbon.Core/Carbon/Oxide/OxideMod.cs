@@ -1,4 +1,5 @@
 ﻿using Carbon.Core;
+using Oxide.Core.Libraries;
 using System;
 
 namespace Oxide.Core
@@ -6,6 +7,8 @@ namespace Oxide.Core
     public class OxideMod
     {
         public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem ( CarbonCore.GetDataFolder () );
+
+        public Permission Permission { get; private set; }
 
         public string RootDirectory { get; private set; }
         public string ExtensionDirectory { get; private set; }
@@ -34,6 +37,8 @@ namespace Oxide.Core
             TempDirectory = CarbonCore.GetTempFolder ();
 
             DataFileSystem = new DataFileSystem ( DataDirectory );
+
+            Permission = new Permission ();
         }
 
         public void NextTick ( Action action )
@@ -48,7 +53,7 @@ namespace Oxide.Core
 
         public void OnSave ()
         {
-            
+
         }
     }
 }

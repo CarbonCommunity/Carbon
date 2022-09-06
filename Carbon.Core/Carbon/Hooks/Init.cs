@@ -2,7 +2,7 @@
 using Harmony;
 
 [HarmonyPatch ( typeof ( Bootstrap ), "StartupShared" )]
-public class Bootstrap_StartupShared
+public class Init
 {
     public static void Prefix ()
     {

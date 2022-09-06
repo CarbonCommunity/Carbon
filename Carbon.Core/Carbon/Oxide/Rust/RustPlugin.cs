@@ -12,7 +12,7 @@ namespace Oxide.Plugins
 {
     public class RustPlugin : Plugin
     {
-        public Permission permission { get; set; } = new Permission ();
+        public Permission permission { get; set; }
         public Language lang { get; set; } = new Language ();
         public PluginManager Manager { get; set; } = new PluginManager ();
         public Command cmd { get; set; } = new Command ();
@@ -43,7 +43,7 @@ namespace Oxide.Plugins
             Author = author;
             Description = description;
 
-            permission = new Permission ();
+            permission = Interface.Oxide.Permission;
             cmd = new Command ();
             Manager = new PluginManager ();
             plugins = new Plugins ();

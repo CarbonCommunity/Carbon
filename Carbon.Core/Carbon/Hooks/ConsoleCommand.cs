@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 
 [HarmonyPatch ( typeof ( ConsoleSystem ), "Run" )]
-public class ConsoleSystem_Run
+public class ConsoleCommand
 {
     public static bool Prefix ( ConsoleSystem.Option options, string strCommand, object [] args )
     {

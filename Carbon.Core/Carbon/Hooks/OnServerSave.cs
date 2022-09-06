@@ -2,7 +2,7 @@
 using Harmony;
 
 [HarmonyPatch ( typeof ( SaveRestore ), "DoAutomatedSave" )]
-public class SaveRestore_DoAutomatedSave
+public class OnServerSave
 {
     public static void Prefix ()
     {

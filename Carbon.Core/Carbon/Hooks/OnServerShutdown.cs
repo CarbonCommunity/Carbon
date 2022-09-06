@@ -2,7 +2,7 @@
 using Harmony;
 
 [HarmonyPatch ( typeof ( ServerMgr ), "Shutdown" )]
-public class ServerMgr_Shutdown
+public class OnServerShutdown
 {
     public static void Prefix ()
     {

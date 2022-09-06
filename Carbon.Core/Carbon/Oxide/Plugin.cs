@@ -73,7 +73,7 @@ namespace Oxide.Plugins
         public virtual void Init ()
         {
             HarmonyInstance = HarmonyInstance.Create ( Name + "Patches" );
-            HarmonyInstance.PatchAll ();
+            HarmonyInstance.PatchAll ( Assembly.GetExecutingAssembly () );
 
             CallHook ( "Init" );
         }

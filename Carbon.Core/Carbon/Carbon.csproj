@@ -346,7 +346,7 @@
   <ItemGroup>
     <Compile Include="CarbonCorePlugin.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
-    <Compile Include="Hooks\SaveRestore_DoAutomatedSave.cs" />
+    <Compile Include="Hooks\OnServerSave.cs" />
     <Compile Include="Oxide\Hash.cs" />
     <Compile Include="Processors\BaseProcessor.cs" />
     <Compile Include="Processors\CarbonLoader.cs" />
@@ -358,16 +358,16 @@
     <Compile Include="Oxide\CUI\CuiHelper.cs" />
     <Compile Include="Oxide\CUI\CuiCore.cs" />
     <Compile Include="Oxide\Extensions\ExtensionMethods.cs" />
-    <Compile Include="Hooks\Chat_sayAs.cs" />
-    <Compile Include="Hooks\ModdedServerPatch.cs" />
-    <Compile Include="Hooks\ServerMgr_OnDisconnected.cs" />
-    <Compile Include="Hooks\Bootstrap_StartupShared.cs" />
-    <Compile Include="Hooks\ServerMgr_Shutdown.cs" />
+    <Compile Include="Hooks\ChatCommand.cs" />
+    <Compile Include="Hooks\Modded.cs" />
+    <Compile Include="Hooks\OnPlayerDisconnected.cs" />
+    <Compile Include="Hooks\Init.cs" />
+    <Compile Include="Hooks\OnServerShutdown.cs" />
     <Compile Include="Hooks\Harmony.cs" />
     <Compile Include="Hooks\Template.cs" />
-    <Compile Include="Hooks\ServerMgr_PlayerInit.cs" />
-    <Compile Include="Hooks\ServerMgr_OpenConnection.cs" />
-    <Compile Include="Hooks\ConsoleSystem_Run.cs" />
+    <Compile Include="Hooks\OnPlayerConnected.cs" />
+    <Compile Include="Hooks\OnServerInitialized.cs" />
+    <Compile Include="Hooks\ConsoleCommand.cs" />
     <Compile Include="Oxide\Interface.cs" />
     <Compile Include="Oxide\Libraries\Covalence.cs" />
     <Compile Include="Oxide\Libraries\GroupData.cs" />

@@ -146,6 +146,7 @@ namespace Carbon.Core
         {
             CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
             Plugins = new CarbonLoader.CarbonMod { Name = "Scripts", IsCoreMod = true };
+            CorePlugin.Init ();
 
             CarbonLoader._loadedMods.Add ( new CarbonLoader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } } );
             CarbonLoader._loadedMods.Add ( Plugins );

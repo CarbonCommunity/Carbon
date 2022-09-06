@@ -2,7 +2,7 @@
 using Harmony;
 
 [HarmonyPatch ( typeof ( BasePlayer ), "PlayerInit" )]
-public class ServerMgr_PlayerInit
+public class OnPlayerConnected
 {
     public static void Postfix ( Network.Connection c )
     {

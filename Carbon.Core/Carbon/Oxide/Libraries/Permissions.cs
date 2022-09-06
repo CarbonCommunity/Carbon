@@ -122,8 +122,7 @@ namespace Oxide.Core.Libraries
                 return;
             }
 
-            HashSet<string> hashSet;
-            if ( !permset.TryGetValue ( owner, out hashSet ) )
+            if ( !permset.TryGetValue ( owner, out var hashSet ) )
             {
                 hashSet = new HashSet<string> ();
                 permset.Add ( owner, hashSet );
@@ -191,6 +190,31 @@ namespace Oxide.Core.Libraries
             }
 
             return result;
+        }
+
+        public KeyValuePair<string, UserData> FindUser ( string id )
+        {
+            foreach ( var user in userdata )
+            {
+                if ( user.Key == id || user.Value.LastSeenNickname.Equals ( id ) ) return new KeyValuePair<string, UserData> ( user.Key, user.Value );
+            }
+
+            return default;
+        }
+
+        public void RefreshUser ( BasePlayer player )
+        {
+            if ( player == null ) return;
+
+            var user = GetUserData ( player.UserIDString );
+            user.LastSeenNickname = player.displayName;
+
+            AddUserGroup ( player.UserIDString, "default" );
+
+            if ( player.IsAdmin )
+            {
+                AddUserGroup ( player.UserIDString, "admin" );
+            }
         }
 
         public void UpdateNickname ( string id, string nickname )
@@ -419,8 +443,7 @@ namespace Oxide.Core.Libraries
                 if ( !perm.Equals ( "*" ) )
                 {
                     perm = perm.TrimEnd ( Star );
-                    userData.Perms.RemoveWhere ( ( string s ) => s.StartsWith ( perm ) );
-                    return true;
+                    return userData.Perms.RemoveWhere ( ( string s ) => s.StartsWith ( perm ) ) > 0;
                 }
                 if ( userData.Perms.Count <= 0 ) return false;
 
@@ -462,7 +485,7 @@ namespace Oxide.Core.Libraries
                 ( from s in source
                   where s.StartsWith ( perm )
                   select s ).Aggregate ( false, ( bool c, string s ) => c | data.Perms.Add ( s ) );
-                return  true;
+                return true;
             }
             else
             {
@@ -471,7 +494,7 @@ namespace Oxide.Core.Libraries
                 HookExecutor.CallStaticHook ( "OnGroupPermissionGranted", name, perm );
                 return true;
             }
-        }  
+        }
         public bool RevokeGroupPermission ( string name, string perm )
         {
             if ( !GroupExists ( name ) || string.IsNullOrEmpty ( perm ) ) return false;
@@ -483,8 +506,7 @@ namespace Oxide.Core.Libraries
                 if ( !perm.Equals ( "*" ) )
                 {
                     perm = perm.TrimEnd ( Star ).ToLower ();
-                    groupData.Perms.RemoveWhere ( ( string s ) => s.StartsWith ( perm ) );
-                    return true;
+                    return groupData.Perms.RemoveWhere ( ( string s ) => s.StartsWith ( perm ) ) > 0;
                 }
                 if ( groupData.Perms.Count <= 0 ) return false;
                 groupData.Perms.Clear ();
@@ -563,7 +585,7 @@ namespace Oxide.Core.Libraries
 
         public string GetGroupParent ( string group )
         {
-            if ( !GroupExists ( group ) )return string.Empty;
+            if ( !GroupExists ( group ) ) return string.Empty;
             group = group.ToLower ();
             if ( groupdata.TryGetValue ( group, out var groupData ) )
             {
@@ -588,7 +610,7 @@ namespace Oxide.Core.Libraries
             parent = parent.ToLower ();
 
             if ( !string.IsNullOrEmpty ( groupData.ParentGroup ) && groupData.ParentGroup.Equals ( parent ) ) return true;
-            if ( HasCircularParent ( group, parent ) )return false;
+            if ( HasCircularParent ( group, parent ) ) return false;
 
             groupData.ParentGroup = parent;
             Interface.CallHook ( "OnGroupParentSet", group, parent );
