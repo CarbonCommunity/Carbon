@@ -172,20 +172,16 @@ namespace Carbon.Core.Processors
         }
         internal void _onChanged ( object sender, FileSystemEventArgs e )
         {
-            InstanceBuffer.TryGetValue ( Path.GetFileNameWithoutExtension ( e.Name ), out var mod );
-            if ( mod != null ) mod.SetDirty ();
+            if ( InstanceBuffer.TryGetValue ( Path.GetFileNameWithoutExtension ( e.Name ), out var mod ) ) mod.SetDirty ();
         }
         internal void _onRenamed ( object sender, RenamedEventArgs e )
         {
-            InstanceBuffer.TryGetValue ( Path.GetFileNameWithoutExtension ( e.OldName ), out var mod );
-            if ( mod != null ) mod.MarkDeleted ();
-
+            if ( InstanceBuffer.TryGetValue ( Path.GetFileNameWithoutExtension ( e.OldName ), out var mod ) ) mod.MarkDeleted ();
             InstanceBuffer.Add ( Path.GetFileNameWithoutExtension ( e.Name ), null );
         }
         internal void _onRemoved ( object sender, FileSystemEventArgs e )
         {
-            InstanceBuffer.TryGetValue ( Path.GetFileNameWithoutExtension ( e.Name ), out var mod );
-            if ( mod != null ) mod.MarkDeleted ();
+            if ( InstanceBuffer.TryGetValue ( Path.GetFileNameWithoutExtension ( e.Name ), out var mod ) ) mod.MarkDeleted ();
         }
 
         public class Instance : IDisposable
