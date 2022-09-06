@@ -13,7 +13,7 @@ namespace Carbon.Core.Processors
         public List<string> IgnoreList { get; } = new List<string> ();
 
         public virtual string Folder => string.Empty;
-        public virtual string Filter => string.Empty;
+        public virtual string Extension => string.Empty;
         public virtual float Rate => 0.2f;
         public virtual Type IndexedType => null;
         public FileSystemWatcher Watcher { get; private set; }
@@ -35,12 +35,12 @@ namespace Carbon.Core.Processors
 
             Watcher?.Dispose ();
             Watcher = null;
-            if ( !string.IsNullOrEmpty ( Filter ) )
+            if ( !string.IsNullOrEmpty ( Extension ) )
             {
                 Watcher = new FileSystemWatcher ( Folder )
                 {
                     NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.LastAccess | NotifyFilters.FileName,
-                    Filter = Filter
+                    Filter = $"*{Extension}"
                 };
                 Watcher.Created += _onCreated;
                 Watcher.Changed += _onChanged;
@@ -78,7 +78,7 @@ namespace Carbon.Core.Processors
                     if ( element.Value == null )
                     {
                         var instance = Activator.CreateInstance ( IndexedType ) as Instance;
-                        instance.File = Path.Combine ( CarbonCore.GetPluginsFolder (), $"{element.Key}.cs" );
+                        instance.File = Path.Combine ( CarbonCore.GetPluginsFolder (), $"{element.Key}{Extension}" );
                         instance.Execute ();
 
                         InstanceBuffer [ element.Key ] = instance;

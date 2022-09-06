@@ -6,7 +6,7 @@ namespace Carbon.Core.Processors
     public class ScriptProcessor : BaseProcessor
     {
         public override string Folder => CarbonCore.GetPluginsFolder ();
-        public override string Filter => "*.cs";
+        public override string Extension => ".cs";
         public override Type IndexedType => typeof ( Script );
 
         public class Script : Instance

@@ -165,7 +165,7 @@ namespace Carbon.Core
                 AssemblyCache.Add ( assembly );
                 _loadedMods.Add ( mod );
 
-                InitializePlugin ( mod );
+                InitializePlugins ( mod );
             }
             catch ( Exception e )
             {
@@ -198,7 +198,7 @@ namespace Carbon.Core
             }
 
             UnloadMod ( mod );
-            UninitializePlugin ( mod );
+            UninitializePlugins ( mod );
             return true;
         }
 
@@ -212,7 +212,7 @@ namespace Carbon.Core
             return temp;
         }
 
-        public static void InitializePlugin ( CarbonMod mod )
+        public static void InitializePlugins ( CarbonMod mod )
         {
             mod.IsAddon = CarbonCore.IsAddon ( mod.Name );
 
@@ -254,7 +254,7 @@ namespace Carbon.Core
                 catch ( Exception ex ) { CarbonCore.Error ( $"Failed loading '{mod.Name}'", ex ); }
             }
         }
-        public static void UninitializePlugin ( CarbonMod mod )
+        public static void UninitializePlugins ( CarbonMod mod )
         {
             foreach ( var plugin in mod.Plugins )
             {

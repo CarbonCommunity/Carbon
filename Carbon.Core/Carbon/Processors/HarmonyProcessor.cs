@@ -6,7 +6,7 @@ namespace Carbon.Core.Processors
     public class HarmonyProcessor : BaseProcessor
     {
         public override string Folder => CarbonCore.GetPluginsFolder ();
-        public override string Filter => "*.dll";
+        public override string Extension => ".dll";
         public override Type IndexedType => typeof ( Harmony );
 
         public class Harmony : Instance
