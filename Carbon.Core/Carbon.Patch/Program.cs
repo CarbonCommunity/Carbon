@@ -39,6 +39,7 @@ namespace Carbon.Patch
                     memoryStream.CopyTo ( fileStream );
                 }
                 OsEx.File.Copy ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "Release/Carbon.dll" );
+                OsEx.File.Copy ( "Carbon.Core/Carbon.Extended/bin/Release/Carbon.Extended.dll", "Release/Carbon.Extended.dll" );
             }
         }
     }

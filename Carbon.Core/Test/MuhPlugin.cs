@@ -35,6 +35,21 @@ namespace Oxide.Plugins
             return true;
         }
 
+        [ChatCommand("cmdtest")]
+        private void CmdTest ( BasePlayer player, string command, string [] args )
+        {
+            player.ChatMessage ( "MOVEE" );
+            player.MovePosition( player.ServerPosition + ( Vector3.up * 10f ) );
+        }
+
+        [ConsoleCommand ( "cmdtest" )]
+        private void CmdTest2 ( ConsoleSystem.Arg arg)
+        {
+            var player = arg.Player ();
+            player.ChatMessage ( "MOVEEd" );
+            player.MovePosition ( player.ServerPosition + ( Vector3.up * 10f ) );
+        }
+
         [ChatCommand ( "mystuff" )]
         private void DoStuffs ( BasePlayer player, string command, string [] args )
         {

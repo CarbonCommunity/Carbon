@@ -21,7 +21,6 @@ namespace Carbon.Core
         public RustPlugin CorePlugin { get; set; }
         public CarbonLoader.CarbonMod Plugins { get; set; }
 
-        internal static MethodInfo _getMod { get; } = typeof ( HarmonyLoader ).GetMethod ( "GetMod", BindingFlags.Static | BindingFlags.NonPublic );
         internal static List<string> _addons = new List<string> { "carbon." };
 
         public static bool IsAddon ( string input )
