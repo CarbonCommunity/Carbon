@@ -379,5 +379,91 @@ namespace Carbon.Core
         }
 
         #endregion
+
+        #region Permissions
+
+        [ConsoleCommand ( "grant" )]
+        private void Grant ( ConsoleSystem.Arg arg )
+        {
+            void PrintWarn ()
+            {
+                Reply ( $"Syntax: c.grant <user|group> <name|id> <perm>", arg );
+            }
+
+            if ( !arg.HasArgs ( 3 ) )
+            {
+                PrintWarn ();
+                return;
+            }
+
+            var action = arg.Args [ 0 ];
+            var name = arg.Args [ 1 ];
+            var perm = arg.Args [ 2 ];
+            var user = permission.GetUserData ( name );
+
+            switch ( action )
+            {
+                case "user":
+                    if ( permission.GrantUserPermission ( name, perm, null ) )
+                    {
+                        Reply ( $"Granted user '{user.LastSeenNickname}' permission '{perm}'", arg );
+                    }
+                    break;
+
+                case "group":
+                    if ( permission.GrantGroupPermission ( name, perm, null ) )
+                    {
+                        Reply ( $"Granted group '{name}' permission '{perm}'", arg );
+                    }
+                    break;
+
+                default:
+                    PrintWarn ();
+                    break;
+            }
+        }
+
+        [ConsoleCommand ( "revoke" )]
+        private void Revoke ( ConsoleSystem.Arg arg )
+        {
+            void PrintWarn ()
+            {
+                Reply ( $"Syntax: c.revoke <user|group> <name|id> <perm>", arg );
+            }
+
+            if ( !arg.HasArgs ( 3 ) )
+            {
+                PrintWarn ();
+                return;
+            }
+
+            var action = arg.Args [ 0 ];
+            var name = arg.Args [ 1 ];
+            var perm = arg.Args [ 2 ];
+            var user = permission.GetUserData ( name );
+
+            switch ( action )
+            {
+                case "user":
+                    if ( permission.RevokeUserPermission ( name, perm ) )
+                    {
+                        Reply ( $"Revoked user '{user.LastSeenNickname}' permission '{perm}'", arg );
+                    }
+                    break;
+
+                case "group":
+                    if ( permission.RevokeGroupPermission ( name, perm ) )
+                    {
+                        Reply ( $"Revoked group '{name}' permission '{perm}'", arg );
+                    }
+                    break;
+
+                default:
+                    PrintWarn ();
+                    break;
+            }
+        }
+
+        #endregion
     }
 }

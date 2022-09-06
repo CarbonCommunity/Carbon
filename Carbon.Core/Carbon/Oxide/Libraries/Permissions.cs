@@ -25,18 +25,16 @@ namespace Oxide.Core.Libraries
             LoadFromDatafile ();
         }
 
+        public static char [] Star = new char [] { '*' };
+        public static string [] EmptyStringArray = new string [ 0 ];
+
         private void LoadFromDatafile ()
         {
             Utility.DatafileToProto<Dictionary<string, UserData>> ( "oxide.users", true );
             Utility.DatafileToProto<Dictionary<string, GroupData>> ( "oxide.groups", true );
-            userdata = ( ProtoStorage.Load<Dictionary<string, UserData>> ( new string []
-            {
-                "oxide.users"
-            } ) ?? new Dictionary<string, UserData> () );
-            groupdata = ( ProtoStorage.Load<Dictionary<string, GroupData>> ( new string []
-            {
-                "oxide.groups"
-            } ) ?? new Dictionary<string, GroupData> () );
+            userdata = ( ProtoStorage.Load<Dictionary<string, UserData>> ( "oxide.users" ) ?? new Dictionary<string, UserData> () );
+            groupdata = ( ProtoStorage.Load<Dictionary<string, GroupData>> ( "oxide.groups" ) ?? new Dictionary<string, GroupData> () );
+
             foreach ( KeyValuePair<string, GroupData> keyValuePair in groupdata )
             {
                 if ( !string.IsNullOrEmpty ( keyValuePair.Value.ParentGroup ) && HasCircularParent ( keyValuePair.Key, keyValuePair.Value.ParentGroup ) )
@@ -45,17 +43,16 @@ namespace Oxide.Core.Libraries
                     keyValuePair.Value.ParentGroup = null;
                 }
             }
+
             IsLoaded = true;
         }
 
         public void Export ( string prefix = "auth" )
         {
-            if ( !IsLoaded )
-            {
-                return;
-            }
-            Interface.Oxide.DataFileSystem.WriteObject<Dictionary<string, GroupData>> ( prefix + ".groups", groupdata, false );
-            Interface.Oxide.DataFileSystem.WriteObject<Dictionary<string, UserData>> ( prefix + ".users", userdata, false );
+            if ( !IsLoaded ) return;
+
+            Interface.Oxide.DataFileSystem.WriteObject ( prefix + ".groups", groupdata, false );
+            Interface.Oxide.DataFileSystem.WriteObject ( prefix + ".users", userdata, false );
         }
 
         public void SaveData ()
@@ -63,21 +60,13 @@ namespace Oxide.Core.Libraries
             SaveUsers ();
             SaveGroups ();
         }
-
         public void SaveUsers ()
         {
-            ProtoStorage.Save ( userdata, new string []
-            {
-                "oxide.users"
-            } );
+            ProtoStorage.Save ( userdata, "oxide.users" );
         }
-
         public void SaveGroups ()
         {
-            ProtoStorage.Save ( groupdata, new string []
-            {
-                "oxide.groups"
-            } );
+            ProtoStorage.Save ( groupdata, "oxide.groups" );
         }
 
         public void RegisterValidate ( Func<string, bool> val )
@@ -87,17 +76,14 @@ namespace Oxide.Core.Libraries
 
         public void CleanUp ()
         {
-            if ( !IsLoaded || validate == null )
-            {
-                return;
-            }
-            string [] array = ( from k in userdata.Keys
-                                where !validate ( k )
-                                select k ).ToArray<string> ();
-            if ( array.Length == 0 )
-            {
-                return;
-            }
+            if ( !IsLoaded || validate == null ) return;
+
+            var array = ( from k in userdata.Keys
+                          where !validate ( k )
+                          select k ).ToArray ();
+
+            if ( array.Length == 0 ) return;
+
             foreach ( string key in array )
             {
                 userdata.Remove ( key );
@@ -106,18 +92,18 @@ namespace Oxide.Core.Libraries
 
         public void MigrateGroup ( string oldGroup, string newGroup )
         {
-            if ( !IsLoaded )
-            {
-                return;
-            }
+            if ( !IsLoaded ) return;
+
             if ( GroupExists ( oldGroup ) )
             {
-                string fileDataPath = ProtoStorage.GetFileDataPath ( "oxide.groups.data" );
+                var fileDataPath = ProtoStorage.GetFileDataPath ( "oxide.groups.data" );
+
                 File.Copy ( fileDataPath, fileDataPath + ".old", true );
                 foreach ( string perm in GetGroupPermissions ( oldGroup, false ) )
                 {
                     GrantGroupPermission ( newGroup, perm, null );
                 }
+
                 if ( GetUsersInGroup ( oldGroup ).Length == 0 )
                 {
                     RemoveGroup ( oldGroup );
@@ -127,16 +113,15 @@ namespace Oxide.Core.Libraries
 
         public void RegisterPermission ( string name, Plugin owner )
         {
-            if ( string.IsNullOrEmpty ( name ) )
-            {
-                return;
-            }
+            if ( string.IsNullOrEmpty ( name ) ) return;
+
             name = name.ToLower ();
             if ( PermissionExists ( name, null ) )
             {
                 CarbonCore.WarnFormat ( "Duplicate permission registered '{0}' (by plugin '{1}')", name, owner.Name );
                 return;
             }
+
             HashSet<string> hashSet;
             if ( !permset.TryGetValue ( owner, out hashSet ) )
             {
@@ -164,20 +149,15 @@ namespace Oxide.Core.Libraries
                     }
                     if ( name.EndsWith ( "*" ) )
                     {
-                        name = name.TrimEnd ( new char []
-                        {
-                            '*'
-                        } );
+                        name = name.TrimEnd ( Star );
                         return permset.Values.SelectMany ( ( HashSet<string> v ) => v ).Any ( ( string p ) => p.StartsWith ( name ) );
                     }
                 }
                 return permset.Values.Any ( ( HashSet<string> v ) => v.Contains ( name ) );
             }
-            HashSet<string> hashSet;
-            if ( !permset.TryGetValue ( owner, out hashSet ) )
-            {
-                return false;
-            }
+
+            if ( !permset.TryGetValue ( owner, out var hashSet ) ) return false;
+
             if ( hashSet.Count > 0 )
             {
                 if ( name.Equals ( "*" ) )
@@ -186,10 +166,7 @@ namespace Oxide.Core.Libraries
                 }
                 if ( name.EndsWith ( "*" ) )
                 {
-                    name = name.TrimEnd ( new char []
-                    {
-                        '*'
-                    } );
+                    name = name.TrimEnd ( Star );
                     return hashSet.Any ( ( string p ) => p.StartsWith ( name ) );
                 }
             }
@@ -208,11 +185,11 @@ namespace Oxide.Core.Libraries
 
         public UserData GetUserData ( string id )
         {
-            UserData result;
-            if ( !userdata.TryGetValue ( id, out result ) )
+            if ( !userdata.TryGetValue ( id, out var result ) )
             {
                 userdata.Add ( id, result = new UserData () );
             }
+
             return result;
         }
 
@@ -220,7 +197,7 @@ namespace Oxide.Core.Libraries
         {
             if ( UserExists ( id ) )
             {
-                UserData userData = GetUserData ( id );
+                var userData = GetUserData ( id );
                 var lastSeenNickname = userData.LastSeenNickname;
                 var obj = nickname.Sanitize ();
                 userData.LastSeenNickname = nickname.Sanitize ();
@@ -240,39 +217,33 @@ namespace Oxide.Core.Libraries
 
         public bool GroupHasPermission ( string name, string perm )
         {
-            GroupData groupData;
-            return GroupExists ( name ) && !string.IsNullOrEmpty ( perm ) && groupdata.TryGetValue ( name.ToLower (), out groupData ) && ( groupData.Perms.Contains ( perm.ToLower () ) || GroupHasPermission ( groupData.ParentGroup, perm ) );
+            return GroupExists ( name ) && !string.IsNullOrEmpty ( perm ) && groupdata.TryGetValue ( name.ToLower (), out var groupData ) && ( groupData.Perms.Contains ( perm.ToLower () ) || GroupHasPermission ( groupData.ParentGroup, perm ) );
         }
 
         public bool UserHasPermission ( string id, string perm )
         {
-            if ( string.IsNullOrEmpty ( perm ) )
-            {
-                return false;
-            }
-            if ( id.Equals ( "server_console" ) )
-            {
-                return true;
-            }
+            if ( string.IsNullOrEmpty ( perm ) ) return false;
+            if ( id.Equals ( "server_console" ) ) return true;
+
             perm = perm.ToLower ();
-            UserData userData = GetUserData ( id );
+            var userData = GetUserData ( id );
             return userData.Perms.Contains ( perm ) || GroupsHavePermission ( userData.Groups, perm );
         }
 
         public string [] GetUserGroups ( string id )
         {
-            return GetUserData ( id ).Groups.ToArray<string> ();
+            return GetUserData ( id ).Groups.ToArray ();
         }
 
         public string [] GetUserPermissions ( string id )
         {
-            UserData userData = GetUserData ( id );
-            List<string> list = userData.Perms.ToList<string> ();
+            var userData = GetUserData ( id );
+            var list = userData.Perms.ToList ();
             foreach ( string name in userData.Groups )
             {
                 list.AddRange ( GetGroupPermissions ( name, false ) );
             }
-            return new HashSet<string> ( list ).ToArray<string> ();
+            return new HashSet<string> ( list ).ToArray ();
         }
 
         public string [] GetGroupPermissions ( string name, bool parents = false )
@@ -281,32 +252,29 @@ namespace Oxide.Core.Libraries
             {
                 return new string [ 0 ];
             }
-            GroupData groupData;
-            if ( !groupdata.TryGetValue ( name.ToLower (), out groupData ) )
+
+            if ( !groupdata.TryGetValue ( name.ToLower (), out var groupData ) )
             {
                 return new string [ 0 ];
             }
-            List<string> list = groupData.Perms.ToList<string> ();
+
+            var list = groupData.Perms.ToList ();
             if ( parents )
             {
                 list.AddRange ( GetGroupPermissions ( groupData.ParentGroup, false ) );
             }
-            return new HashSet<string> ( list ).ToArray<string> ();
+            return new HashSet<string> ( list ).ToArray ();
         }
-
         public string [] GetPermissions ()
         {
-            return new HashSet<string> ( permset.Values.SelectMany ( ( HashSet<string> v ) => v ) ).ToArray<string> ();
+            return new HashSet<string> ( permset.Values.SelectMany ( ( HashSet<string> v ) => v ) ).ToArray ();
         }
-
         public string [] GetPermissionUsers ( string perm )
         {
-            if ( string.IsNullOrEmpty ( perm ) )
-            {
-                return new string [ 0 ];
-            }
+            if ( string.IsNullOrEmpty ( perm ) ) return EmptyStringArray;
+
             perm = perm.ToLower ();
-            HashSet<string> hashSet = new HashSet<string> ();
+            var hashSet = new HashSet<string> ();
             foreach ( KeyValuePair<string, UserData> keyValuePair in userdata )
             {
                 if ( keyValuePair.Value.Perms.Contains ( perm ) )
@@ -314,17 +282,14 @@ namespace Oxide.Core.Libraries
                     hashSet.Add ( keyValuePair.Key + "(" + keyValuePair.Value.LastSeenNickname + ")" );
                 }
             }
-            return hashSet.ToArray<string> ();
+            return hashSet.ToArray ();
         }
-
         public string [] GetPermissionGroups ( string perm )
         {
-            if ( string.IsNullOrEmpty ( perm ) )
-            {
-                return new string [ 0 ];
-            }
+            if ( string.IsNullOrEmpty ( perm ) ) return EmptyStringArray;
+
             perm = perm.ToLower ();
-            HashSet<string> hashSet = new HashSet<string> ();
+            var hashSet = new HashSet<string> ();
             foreach ( KeyValuePair<string, GroupData> keyValuePair in groupdata )
             {
                 if ( keyValuePair.Value.Perms.Contains ( perm ) )
@@ -332,53 +297,33 @@ namespace Oxide.Core.Libraries
                     hashSet.Add ( keyValuePair.Key );
                 }
             }
-            return hashSet.ToArray<string> ();
+            return hashSet.ToArray ();
         }
 
         public void AddUserGroup ( string id, string name )
         {
-            if ( !GroupExists ( name ) )
-            {
-                return;
-            }
-            if ( !GetUserData ( id ).Groups.Add ( name.ToLower () ) )
-            {
-                return;
-            }
-            HookExecutor.CallStaticHook ( "OnUserGroupAdded", new object []
-            {
-                id,
-                name
-            } );
-        }
+            if ( !GroupExists ( name ) ) return;
+            if ( !GetUserData ( id ).Groups.Add ( name.ToLower () ) ) return;
 
+            HookExecutor.CallStaticHook ( "OnUserGroupAdded", id, name );
+        }
         public void RemoveUserGroup ( string id, string name )
         {
-            if ( !GroupExists ( name ) )
-            {
-                return;
-            }
-            UserData userData = GetUserData ( id );
+            if ( !GroupExists ( name ) ) return;
+
+            var userData = GetUserData ( id );
             if ( name.Equals ( "*" ) )
             {
-                if ( userData.Groups.Count <= 0 )
-                {
-                    return;
-                }
+                if ( userData.Groups.Count <= 0 ) return;
+
                 userData.Groups.Clear ();
                 return;
             }
             else
             {
-                if ( !userData.Groups.Remove ( name.ToLower () ) )
-                {
-                    return;
-                }
-                HookExecutor.CallStaticHook ( "OnUserGroupRemoved", new object []
-                {
-                    id,
-                    name
-                } );
+                if ( !userData.Groups.Remove ( name.ToLower () ) ) return;
+
+                HookExecutor.CallStaticHook ( "OnUserGroupRemoved", id, name );
                 return;
             }
         }
@@ -395,29 +340,24 @@ namespace Oxide.Core.Libraries
 
         public string [] GetGroups ()
         {
-            return groupdata.Keys.ToArray<string> ();
+            return groupdata.Keys.ToArray ();
         }
 
         public string [] GetUsersInGroup ( string group )
         {
-            if ( !GroupExists ( group ) )
-            {
-                return new string [ 0 ];
-            }
+            if ( !GroupExists ( group ) ) return EmptyStringArray;
+
             group = group.ToLower ();
             return ( from u in userdata
                      where u.Value.Groups.Contains ( @group )
-                     select u.Key + " (" + u.Value.LastSeenNickname + ")" ).ToArray<string> ();
+                     select u.Key + " (" + u.Value.LastSeenNickname + ")" ).ToArray ();
         }
 
         public string GetGroupTitle ( string group )
         {
-            if ( !GroupExists ( group ) )
-            {
-                return string.Empty;
-            }
-            GroupData groupData;
-            if ( !groupdata.TryGetValue ( group.ToLower (), out groupData ) )
+            if ( !GroupExists ( group ) ) return string.Empty;
+
+            if ( !groupdata.TryGetValue ( group.ToLower (), out var groupData ) )
             {
                 return string.Empty;
             }
@@ -426,25 +366,17 @@ namespace Oxide.Core.Libraries
 
         public int GetGroupRank ( string group )
         {
-            if ( !GroupExists ( group ) )
-            {
-                return 0;
-            }
-            GroupData groupData;
-            if ( !groupdata.TryGetValue ( group.ToLower (), out groupData ) )
-            {
-                return 0;
-            }
+            if ( !GroupExists ( group ) ) return 0;
+            if ( !groupdata.TryGetValue ( group.ToLower (), out var groupData ) ) return 0;
+
             return groupData.Rank;
         }
 
-        public void GrantUserPermission ( string id, string perm, Plugin owner )
+        public bool GrantUserPermission ( string id, string perm, Plugin owner )
         {
-            if ( !PermissionExists ( perm, owner ) )
-            {
-                return;
-            }
-            UserData data = GetUserData ( id );
+            if ( !PermissionExists ( perm, owner ) ) return false;
+
+            var data = GetUserData ( id );
             perm = perm.ToLower ();
             if ( perm.EndsWith ( "*" ) )
             {
@@ -455,90 +387,61 @@ namespace Oxide.Core.Libraries
                 }
                 else if ( !permset.TryGetValue ( owner, out source ) )
                 {
-                    return;
+                    return false;
                 }
                 if ( perm.Equals ( "*" ) )
                 {
                     source.Aggregate ( false, ( bool c, string s ) => c | data.Perms.Add ( s ) );
-                    return;
+                    return true;
                 }
-                perm = perm.TrimEnd ( new char []
-                {
-                    '*'
-                } );
+                perm = perm.TrimEnd ( Star );
                 ( from s in source
                   where s.StartsWith ( perm )
                   select s ).Aggregate ( false, ( bool c, string s ) => c | data.Perms.Add ( s ) );
-                return;
+                return true;
             }
             else
             {
-                if ( !data.Perms.Add ( perm ) )
-                {
-                    return;
-                }
-                HookExecutor.CallStaticHook ( "OnUserPermissionGranted", new object []
-                {
-                    id,
-                    perm
-                } );
-                return;
+                if ( !data.Perms.Add ( perm ) ) return false;
+
+                HookExecutor.CallStaticHook ( "OnUserPermissionGranted", id, perm );
+                return true;
             }
         }
-
-        public void RevokeUserPermission ( string id, string perm )
+        public bool RevokeUserPermission ( string id, string perm )
         {
-            if ( string.IsNullOrEmpty ( perm ) )
-            {
-                return;
-            }
-            UserData userData = GetUserData ( id );
+            if ( string.IsNullOrEmpty ( perm ) ) return false;
+
+            var userData = GetUserData ( id );
             perm = perm.ToLower ();
             if ( perm.EndsWith ( "*" ) )
             {
                 if ( !perm.Equals ( "*" ) )
                 {
-                    perm = perm.TrimEnd ( new char []
-                    {
-                        '*'
-                    } );
+                    perm = perm.TrimEnd ( Star );
                     userData.Perms.RemoveWhere ( ( string s ) => s.StartsWith ( perm ) );
-                    return;
+                    return true;
                 }
-                if ( userData.Perms.Count <= 0 )
-                {
-                    return;
-                }
+                if ( userData.Perms.Count <= 0 ) return false;
+
                 userData.Perms.Clear ();
-                return;
+                return true;
             }
             else
             {
-                if ( !userData.Perms.Remove ( perm ) )
-                {
-                    return;
-                }
-                HookExecutor.CallStaticHook ( "OnUserPermissionRevoked", new object []
-                {
-                    id,
-                    perm
-                } );
-                return;
+                if ( !userData.Perms.Remove ( perm ) ) return false;
+
+                HookExecutor.CallStaticHook ( "OnUserPermissionRevoked", id, perm );
+                return true;
             }
         }
-
-        public void GrantGroupPermission ( string name, string perm, Plugin owner )
+        public bool GrantGroupPermission ( string name, string perm, Plugin owner )
         {
-            if ( !PermissionExists ( perm, owner ) || !GroupExists ( name ) )
-            {
-                return;
-            }
-            GroupData data;
-            if ( !groupdata.TryGetValue ( name.ToLower (), out data ) )
-            {
-                return;
-            }
+            if ( !PermissionExists ( perm, owner ) || !GroupExists ( name ) ) return false;
+
+            if ( !groupdata.TryGetValue ( name.ToLower (), out var data ) ) return false;
             perm = perm.ToLower ();
+
             if ( perm.EndsWith ( "*" ) )
             {
                 HashSet<string> source;
@@ -548,89 +451,59 @@ namespace Oxide.Core.Libraries
                 }
                 else if ( !permset.TryGetValue ( owner, out source ) )
                 {
-                    return;
+                    return false;
                 }
                 if ( perm.Equals ( "*" ) )
                 {
                     source.Aggregate ( false, ( bool c, string s ) => c | data.Perms.Add ( s ) );
-                    return;
+                    return true;
                 }
-                perm = perm.TrimEnd ( new char []
-                {
-                    '*'
-                } ).ToLower ();
+                perm = perm.TrimEnd ( Star ).ToLower ();
                 ( from s in source
                   where s.StartsWith ( perm )
                   select s ).Aggregate ( false, ( bool c, string s ) => c | data.Perms.Add ( s ) );
-                return;
+                return  true;
             }
             else
             {
-                if ( !data.Perms.Add ( perm ) )
-                {
-                    return;
-                }
-                HookExecutor.CallStaticHook ( "OnGroupPermissionGranted", new object []
-                {
-                    name,
-                    perm
-                } );
-                return;
-            }
-        }
+                if ( !data.Perms.Add ( perm ) ) return false;
 
-        public void RevokeGroupPermission ( string name, string perm )
+                HookExecutor.CallStaticHook ( "OnGroupPermissionGranted", name, perm );
+                return true;
+            }
+        }  
+        public bool RevokeGroupPermission ( string name, string perm )
         {
-            if ( !GroupExists ( name ) || string.IsNullOrEmpty ( perm ) )
-            {
-                return;
-            }
-            GroupData groupData;
-            if ( !groupdata.TryGetValue ( name.ToLower (), out groupData ) )
-            {
-                return;
-            }
+            if ( !GroupExists ( name ) || string.IsNullOrEmpty ( perm ) ) return false;
+            if ( !groupdata.TryGetValue ( name.ToLower (), out var groupData ) ) return false;
+
             perm = perm.ToLower ();
             if ( perm.EndsWith ( "*" ) )
             {
                 if ( !perm.Equals ( "*" ) )
                 {
-                    perm = perm.TrimEnd ( new char []
-                    {
-                        '*'
-                    } ).ToLower ();
+                    perm = perm.TrimEnd ( Star ).ToLower ();
                     groupData.Perms.RemoveWhere ( ( string s ) => s.StartsWith ( perm ) );
-                    return;
+                    return true;
                 }
-                if ( groupData.Perms.Count <= 0 )
-                {
-                    return;
-                }
+                if ( groupData.Perms.Count <= 0 ) return false;
                 groupData.Perms.Clear ();
-                return;
+                return true;
             }
             else
             {
-                if ( !groupData.Perms.Remove ( perm ) )
-                {
-                    return;
-                }
-                HookExecutor.CallStaticHook ( "OnGroupPermissionRevoked", new object []
-                {
-                    name,
-                    perm
-                } );
-                return;
+                if ( !groupData.Perms.Remove ( perm ) ) return false;
+
+                HookExecutor.CallStaticHook ( "OnGroupPermissionRevoked", name, perm );
+                return true;
             }
         }
 
         public bool CreateGroup ( string group, string title, int rank )
         {
-            if ( GroupExists ( group ) || string.IsNullOrEmpty ( group ) )
-            {
-                return false;
-            }
-            GroupData value = new GroupData
+            if ( GroupExists ( group ) || string.IsNullOrEmpty ( group ) ) return false;
+
+            var value = new GroupData
             {
                 Title = title,
                 Rank = rank
@@ -640,19 +513,18 @@ namespace Oxide.Core.Libraries
             Interface.CallHook ( "OnGroupCreated", group, title, rank );
             return true;
         }
-
         public bool RemoveGroup ( string group )
         {
-            if ( !GroupExists ( group ) )
-            {
-                return false;
-            }
+            if ( !GroupExists ( group ) ) return false;
+
             group = group.ToLower ();
-            bool flag = groupdata.Remove ( group );
+            var flag = groupdata.Remove ( group );
             if ( flag )
             {
-                foreach ( GroupData groupData in groupdata.Values.Where ( x => x.ParentGroup == group ) )
+                foreach ( var groupData in groupdata.Values )
                 {
+                    if ( groupData.ParentGroup != group ) continue;
+
                     groupData.ParentGroup = string.Empty;
                 }
             }
@@ -669,41 +541,21 @@ namespace Oxide.Core.Libraries
 
         public bool SetGroupTitle ( string group, string title )
         {
-            if ( !GroupExists ( group ) )
-            {
-                return false;
-            }
+            if ( !GroupExists ( group ) ) return false;
             group = group.ToLower ();
-            GroupData groupData;
-            if ( !groupdata.TryGetValue ( group, out groupData ) )
-            {
-                return false;
-            }
-            if ( groupData.Title == title )
-            {
-                return true;
-            }
+
+            if ( !groupdata.TryGetValue ( group, out var groupData ) ) return false;
+            if ( groupData.Title == title ) return true;
             groupData.Title = title;
             Interface.CallHook ( "OnGroupTitleSet", group, title );
             return true;
         }
-
         public bool SetGroupRank ( string group, int rank )
         {
-            if ( !GroupExists ( group ) )
-            {
-                return false;
-            }
+            if ( !GroupExists ( group ) ) return false;
             group = group.ToLower ();
-            GroupData groupData;
-            if ( !groupdata.TryGetValue ( group, out groupData ) )
-            {
-                return false;
-            }
-            if ( groupData.Rank == rank )
-            {
-                return true;
-            }
+            if ( !groupdata.TryGetValue ( group, out var groupData ) ) return false;
+            if ( groupData.Rank == rank ) return true;
             groupData.Rank = rank;
             Interface.CallHook ( "OnGroupRankSet", group, rank );
             return true;
@@ -711,76 +563,52 @@ namespace Oxide.Core.Libraries
 
         public string GetGroupParent ( string group )
         {
-            if ( !GroupExists ( group ) )
-            {
-                return string.Empty;
-            }
+            if ( !GroupExists ( group ) )return string.Empty;
             group = group.ToLower ();
-            GroupData groupData;
-            if ( groupdata.TryGetValue ( group, out groupData ) )
+            if ( groupdata.TryGetValue ( group, out var groupData ) )
             {
                 return groupData.ParentGroup;
             }
             return string.Empty;
         }
-
         public bool SetGroupParent ( string group, string parent )
         {
-            if ( !GroupExists ( group ) )
-            {
-                return false;
-            }
+            if ( !GroupExists ( group ) ) return false;
             group = group.ToLower ();
-            GroupData groupData;
-            if ( !groupdata.TryGetValue ( group, out groupData ) )
-            {
-                return false;
-            }
+
+            if ( !groupdata.TryGetValue ( group, out var groupData ) ) return false;
+
             if ( string.IsNullOrEmpty ( parent ) )
             {
                 groupData.ParentGroup = null;
                 return true;
             }
-            if ( !GroupExists ( parent ) || group.Equals ( parent.ToLower () ) )
-            {
-                return false;
-            }
+            if ( !GroupExists ( parent ) || group.Equals ( parent.ToLower () ) ) return false;
+
             parent = parent.ToLower ();
-            if ( !string.IsNullOrEmpty ( groupData.ParentGroup ) && groupData.ParentGroup.Equals ( parent ) )
-            {
-                return true;
-            }
-            if ( HasCircularParent ( group, parent ) )
-            {
-                return false;
-            }
+
+            if ( !string.IsNullOrEmpty ( groupData.ParentGroup ) && groupData.ParentGroup.Equals ( parent ) ) return true;
+            if ( HasCircularParent ( group, parent ) )return false;
+
             groupData.ParentGroup = parent;
             Interface.CallHook ( "OnGroupParentSet", group, parent );
             return true;
         }
-
         private bool HasCircularParent ( string group, string parent )
         {
-            GroupData groupData;
-            if ( !groupdata.TryGetValue ( parent, out groupData ) )
+            if ( !groupdata.TryGetValue ( parent, out var groupData ) )
             {
                 return false;
             }
-            HashSet<string> hashSet = new HashSet<string>
+            var hashSet = new HashSet<string>
             {
                 group,
                 parent
             };
             while ( !string.IsNullOrEmpty ( groupData.ParentGroup ) )
             {
-                if ( !hashSet.Add ( groupData.ParentGroup ) )
-                {
-                    return true;
-                }
-                if ( !groupdata.TryGetValue ( groupData.ParentGroup, out groupData ) )
-                {
-                    return false;
-                }
+                if ( !hashSet.Add ( groupData.ParentGroup ) ) return true;
+                if ( !groupdata.TryGetValue ( groupData.ParentGroup, out groupData ) ) return false;
             }
             return false;
         }
