@@ -29,7 +29,7 @@ namespace Carbon.Patch
                     archive.CreateEntryFromFile ( "Tools/NStrip.exe", "carbon/tools/NStrip.exe" );
                 }
 
-                var output = $"Release/Carbon.Core{CarbonCore.Version}.zip";
+                var output = $"Release/Carbon.Patch.zip";
                 OsEx.Folder.Create ( $"Release" );
                 OsEx.File.Delete ( output );
                 OsEx.File.Create ( output, new byte [ 0 ] );
