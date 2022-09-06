@@ -14,8 +14,9 @@ namespace Oxide.Plugins
     [JsonObject ( MemberSerialization.OptIn )]
     public class Plugin : IDisposable
     {
-        public Dictionary<string, MethodInfo> HookCache { get; } = new Dictionary<string, MethodInfo> ();
-        public List<string> IgnoredHooks { get; } = new List<string> ();
+        public Dictionary<string, MethodInfo> HookCache { get; private set; } = new Dictionary<string, MethodInfo> ();
+        public Dictionary<string, MethodInfo> HookMethodAttributeCache { get; private set; } = new Dictionary<string, MethodInfo> ();
+        public List<string> IgnoredHooks { get; private set; } = new List<string> ();
 
         public bool IsCorePlugin { get; set; }
         public Type Type { get; set; }
@@ -76,6 +77,13 @@ namespace Oxide.Plugins
             HarmonyInstance.PatchAll ( Assembly.GetExecutingAssembly () );
 
             CallHook ( "Init" );
+
+            foreach ( var method in GetType ().GetMethods () )
+            {
+                if ( method.GetCustomAttribute<HookMethodAttribute> () == null ) continue;
+
+                HookMethodAttributeCache.Add ( method.Name + method.GetParameters().Length, method );
+            }
         }
         public virtual void Load ()
         {
@@ -86,6 +94,14 @@ namespace Oxide.Plugins
         {
             HarmonyInstance?.UnpatchAll ( HarmonyInstance.Id );
             HarmonyInstance = null;
+
+            IgnoredHooks.Clear ();
+            HookCache.Clear ();
+            HookMethodAttributeCache.Clear ();
+
+            IgnoredHooks = null;
+            HookCache = null;
+            HookMethodAttributeCache = null;
         }
 
         #region Calls

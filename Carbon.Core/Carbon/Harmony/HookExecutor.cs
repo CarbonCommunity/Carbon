@@ -163,7 +163,7 @@ namespace Carbon.Core
             {
                 hook = plugin.Type.GetMethod ( hookName, flags );
 
-                if ( hook == null )
+                if ( hook == null || !plugin.HookMethodAttributeCache.TryGetValue ( hookName + args?.Length, out hook ) )
                 {
                     return null;
                 }
@@ -177,7 +177,7 @@ namespace Carbon.Core
 
             if ( afterTicks > beforeTicks + 100 && afterTicks > beforeTicks )
             {
-                CarbonCore.WarnFormat ( $" {plugin?.Name} took longer than 100ms {hookName}{( args == null ? "" : $"[{args?.Length}]" )}" );
+                CarbonCore.WarnFormat ( $" {plugin?.Name} hook took longer than 100ms {hookName}{( args == null ? "" : $"[{args?.Length}]" )} [{( afterTicks - beforeTicks ):0}ms]" );
             }
 
             return result;
