@@ -126,7 +126,7 @@ namespace Carbon.Core.Processors
         public virtual void Remove ( string id )
         {
             var existent = !InstanceBuffer.ContainsKey ( id ) ? null : InstanceBuffer [ id ];
-            existent?._loader?.Clear ();
+            existent?.Dispose ();
 
             if ( InstanceBuffer.ContainsKey ( id ) ) InstanceBuffer.Remove ( id );
         }
@@ -136,8 +136,7 @@ namespace Carbon.Core.Processors
             {
                 try
                 {
-                    item.Value._loader?.Clear ();
-                    item.Value._loader = null;
+                    item.Value?.Dispose ();
                 }
                 catch ( Exception ex ) { CarbonCore.Error ( $" Processor error: '{item.Key}'", ex ); }
             }
@@ -155,7 +154,7 @@ namespace Carbon.Core.Processors
 
         public virtual void Clear ( string id, Instance instance )
         {
-            instance?._loader?.Clear ();
+            instance?.Dispose ();
             Pool.Free ( ref instance );
             Remove ( id );
         }
@@ -195,7 +194,6 @@ namespace Carbon.Core.Processors
 
             internal bool _hasChanged;
             internal bool _hasRemoved;
-            internal ScriptLoader _loader;
 
             public virtual void Dispose () { }
             public virtual void Execute () { }

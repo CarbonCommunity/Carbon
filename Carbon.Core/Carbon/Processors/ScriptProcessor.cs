@@ -11,6 +11,8 @@ namespace Carbon.Core.Processors
 
         public class Script : Instance
         {
+            internal ScriptLoader _loader;
+
             public override void Dispose ()
             {
                 _loader?.Clear ();
