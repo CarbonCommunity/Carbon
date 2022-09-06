@@ -132,6 +132,9 @@
     <Reference Include="Rust.Harmony">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="Rust.Localization">
+      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Localization.dll</HintPath>
+    </Reference>
     <Reference Include="Rust.Platform.Common">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Platform.Common.dll</HintPath>
     </Reference>

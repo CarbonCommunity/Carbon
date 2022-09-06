@@ -29,7 +29,8 @@ namespace Carbon.Patch
                     archive.CreateEntryFromFile ( "Tools/NStrip.exe", "carbon/tools/NStrip.exe" );
                 }
 
-                var output = $"Carbon.Core{CarbonCore.Version}.zip";
+                var output = $"Release/Carbon.Core{CarbonCore.Version}.zip";
+                OsEx.Folder.Create ( $"Release" );
                 OsEx.File.Delete ( output );
                 OsEx.File.Create ( output, new byte [ 0 ] );
                 using ( var fileStream = new FileStream ( output, FileMode.Open ) )
@@ -37,6 +38,7 @@ namespace Carbon.Patch
                     memoryStream.Seek ( 0, SeekOrigin.Begin );
                     memoryStream.CopyTo ( fileStream );
                 }
+                OsEx.File.Copy ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "Release/Carbon.dll" );
             }
         }
     }

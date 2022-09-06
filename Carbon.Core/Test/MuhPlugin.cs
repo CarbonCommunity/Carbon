@@ -31,6 +31,7 @@ namespace Oxide.Plugins
         {
             player.ChatMessage ( $"You bonked {info.HitEntity}" );
             Puts ( $"{player} bonked {info.HitEntity}     " );
+            info.HitEntity.Kill ();
             return true;
         }
 

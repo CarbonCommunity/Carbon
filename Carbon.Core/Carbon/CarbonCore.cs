@@ -14,7 +14,7 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 111 );
+        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 112 );
 
         public static CarbonCore Instance { get; set; }
 
