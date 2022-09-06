@@ -63,10 +63,12 @@ public class PluginReferenceAttribute : Attribute
 public class ChatCommandAttribute : Attribute
 {
     public string Name { get; }
+    public string Help { get; }
 
-    public ChatCommandAttribute ( string name )
+    public ChatCommandAttribute ( string name, string help = null )
     {
         Name = name;
+        Help = help;
     }
 }
 
@@ -74,11 +76,30 @@ public class ChatCommandAttribute : Attribute
 public class ConsoleCommandAttribute : Attribute
 {
     public string Name { get; }
+    public string Help { get; }
     public bool Skip { get; } = true;
 
-    public ConsoleCommandAttribute ( string name, bool skip = true )
+    public ConsoleCommandAttribute ( string name )
     {
         Name = name;
+    }
+
+    public ConsoleCommandAttribute ( string name, string help )
+    {
+        Name = name;
+        Help = help;
+    }
+
+    public ConsoleCommandAttribute ( string name, bool skip )
+    {
+        Name = name;
+        Skip = skip;
+    }
+
+    public ConsoleCommandAttribute ( string name, string help, bool skip )
+    {
+        Name = name;
+        Help = help;
         Skip = skip;
     }
 }

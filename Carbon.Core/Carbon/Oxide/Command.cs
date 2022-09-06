@@ -9,7 +9,7 @@ using Pool = Facepunch.Pool;
 
 public class Command
 {
-    public void AddChatCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true )
+    public void AddChatCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
     {
         if ( CarbonCore.Instance.AllChatCommands.Count ( x => x.Command == command ) == 0 )
         {
@@ -22,12 +22,13 @@ public class Command
                 {
                     try { callback.Invoke ( player, cmd, args ); }
                     catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
-                }
+                },
+                Help = help
             } );
         }
         else CarbonCore.WarnFormat ( $"Chat command '{command}' already exists." );
     }
-    public void AddChatCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true )
+    public void AddChatCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true, string help = null )
     {
         AddChatCommand ( command, plugin, ( player, cmd, args ) =>
         {
@@ -42,9 +43,9 @@ public class Command
 
             Pool.FreeList ( ref argData );
             Pool.Free ( ref result );
-        }, skipOriginal );
+        }, skipOriginal, help );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true )
+    public void AddConsoleCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
     {
         if ( CarbonCore.Instance.AllConsoleCommands.Count ( x => x.Command == command ) == 0 )
         {
@@ -53,12 +54,13 @@ public class Command
                 Command = command,
                 Plugin = plugin,
                 SkipOriginal = skipOriginal,
-                Callback = callback
+                Callback = callback,
+                Help = help
             } );
         }
         else CarbonCore.WarnFormat ( $"Console command '{command}' already exists." );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true )
+    public void AddConsoleCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true, string help = null )
     {
         AddConsoleCommand ( command, plugin, ( player, cmd, args ) =>
         {
@@ -87,9 +89,9 @@ public class Command
 
             Pool.FreeList ( ref arguments );
             if ( result != null ) Pool.Free ( ref result );
-        }, skipOriginal );
+        }, skipOriginal, help );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, Func<Arg, bool> callback, bool skipOriginal = true )
+    public void AddConsoleCommand ( string command, RustPlugin plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null )
     {
         AddConsoleCommand ( command, plugin, ( player, cmd, args ) =>
         {
@@ -117,6 +119,6 @@ public class Command
 
             Pool.FreeList ( ref arguments );
             if ( result != null ) Pool.Free ( ref result );
-        }, skipOriginal );
+        }, skipOriginal, help );
     }
 }

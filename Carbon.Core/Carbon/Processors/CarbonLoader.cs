@@ -289,12 +289,12 @@ namespace Carbon.Core
 
                 if ( chatCommand != null )
                 {
-                    CarbonCore.Instance.CorePlugin.cmd.AddChatCommand ( string.IsNullOrEmpty ( prefix ) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", plugin, method.Name );
+                    CarbonCore.Instance.CorePlugin.cmd.AddChatCommand ( string.IsNullOrEmpty ( prefix ) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", plugin, method.Name, help: chatCommand.Help );
                 }
 
                 if ( consoleCommand != null )
                 {
-                    CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( string.IsNullOrEmpty ( prefix ) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", plugin, method.Name );
+                    CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( string.IsNullOrEmpty ( prefix ) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", plugin, method.Name, help: consoleCommand.Help );
                 }
             }
 

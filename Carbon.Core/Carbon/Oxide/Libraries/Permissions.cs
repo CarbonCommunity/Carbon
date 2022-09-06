@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using Carbon.Core;
+using System.Xml.Linq;
 
 namespace Oxide.Core.Libraries
 {
@@ -129,6 +130,18 @@ namespace Oxide.Core.Libraries
             }
             hashSet.Add ( name );
             Interface.CallHook ( "OnPermissionRegistered", name, owner );
+        }
+
+        public void UnregisterPermissions(Plugin owner )
+        {
+            if ( owner == null ) return;
+
+            if ( permset.TryGetValue ( owner, out var hashSet ) )
+            {
+                hashSet.Clear ();
+                permset.Remove ( owner );
+                Interface.CallHook ( "OnPermissionsUnregistered", owner );
+            }
         }
 
         public bool PermissionExists ( string name, Plugin owner = null )

@@ -60,6 +60,8 @@ namespace Oxide.Plugins
         }
         public override void Dispose ()
         {
+            permission.UnregisterPermissions ( this );
+
             timer.Clear ();
 
             if ( persistence != null )

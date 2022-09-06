@@ -66,7 +66,7 @@ namespace Carbon.Core
             CarbonCore.Log ( message );
         }
 
-        [ConsoleCommand ( "version" )]
+        [ConsoleCommand ( "version", "Returns currently loaded version of Carbon." )]
         private void GetVersion ( ConsoleSystem.Arg arg )
         {
             if ( arg.Player () != null && !arg.Player ().IsAdmin ) return;
@@ -74,115 +74,43 @@ namespace Carbon.Core
             Reply ( $"Carbon v{CarbonCore.Version}", arg );
         }
 
-        [ConsoleCommand ( "find", false )]
+        [ConsoleCommand ( "find", "Searches through Carbon-processed console commands.", false )]
         private void Find ( ConsoleSystem.Arg arg )
         {
             var body = new StringBody ();
             var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args [ 0 ] : null;
-            body.Add ( $"Commands:" );
+            body.Add ( $"Console Commands:" );
 
             foreach ( var command in CarbonCore.Instance.AllConsoleCommands )
             {
                 if ( !string.IsNullOrEmpty ( filter ) && !command.Command.Contains ( filter ) ) continue;
 
-                body.Add ( $" {command.Command}(   )" );
+                body.Add ( $" {command.Command}(   )  {command.Help}" );
             }
 
             Reply ( body.ToNewLine (), arg );
         }
 
-        [ConsoleCommand ( "loadcs" )]
-        private void LoadCsPlugin ( ConsoleSystem.Arg arg )
+        [ConsoleCommand ( "findchat", "Searches through Carbon-processed chat commands.", false )]
+        private void FindChat ( ConsoleSystem.Arg arg )
         {
-            RefreshOrderedFiles ();
+            var body = new StringBody ();
+            var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args [ 0 ] : null;
+            body.Add ( $"Chat Commands:" );
 
-            var name = arg.Args [ 0 ];
-
-            switch ( name )
+            foreach ( var command in CarbonCore.Instance.AllChatCommands )
             {
-                case "*":
-                    var tempList = Pool.GetList<string> ();
-                    tempList.AddRange ( CarbonCore.Instance.PluginProcessor.IgnoredPlugins );
-                    CarbonCore.Instance.PluginProcessor.IgnoredPlugins.Clear ();
+                if ( !string.IsNullOrEmpty ( filter ) && !command.Command.Contains ( filter ) ) continue;
 
-                    foreach ( var plugin in tempList )
-                    {
-                        CarbonCore.Instance.PluginProcessor.Prepare ( plugin, plugin );
-                    }
-                    Pool.FreeList ( ref tempList );
-                    break;
-
-                default:
-                    var path = GetPluginPath ( name );
-                    if ( string.IsNullOrEmpty ( path ) )
-                    {
-                        CarbonCore.Warn ( $" Couldn't find plugin with name '{name}'" );
-                        return;
-                    }
-
-                    var source = OsEx.File.ReadText ( path );
-                    var compiler = new CSharpCompiler.CodeCompiler ();
-                    var options = new CompilerParameters ()
-                    {
-                        GenerateInMemory = true,
-                        TreatWarningsAsErrors = false,
-                        GenerateExecutable = false
-                    };
-                    var references = new string [] { "System.dll", "mscorlib.dll" };
-                    options.ReferencedAssemblies.AddRange ( references );
-
-                    var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
-                    var lastCarbon = ( Assembly )null;
-                    foreach ( var assembly in assemblies )
-                    {
-                        if ( CarbonLoader.AssemblyCache.Any ( x => x == assembly ) ) continue;
-
-                        if ( !assembly.FullName.StartsWith ( "Carbon" ) )
-                        {
-                            if ( assembly.ManifestModule is ModuleBuilder builder )
-                            {
-                                if ( !builder.IsTransient () )
-                                {
-                                    options.ReferencedAssemblies.Add ( assembly.GetName ().Name );
-                                }
-                            }
-                            else
-                            {
-                                options.ReferencedAssemblies.Add ( assembly.GetName ().Name );
-                            }
-                        }
-                        else if ( assembly.FullName.StartsWith ( "Carbon" ) )
-                        {
-                            lastCarbon = assembly;
-                        }
-                    }
-
-                    if ( lastCarbon != null )
-                    {
-                        options.ReferencedAssemblies.Add ( lastCarbon.GetName ().Name );
-                        CarbonCore.Log ( $"  Injected {lastCarbon.GetName ().Name}" );
-                    }
-
-                    var result = compiler.CompileAssemblyFromSource ( options, source );
-                    foreach ( CompilerError error in result.Errors )
-                    {
-                        CarbonCore.Error ( $"Eeeh: {error.ErrorText}" );
-                    }
-                    foreach ( var type in result.CompiledAssembly.GetTypes () )
-                    {
-                        CarbonCore.Log ( $"{type?.FullName}" );
-                    }
-
-                    return;
-                    CarbonCore.Instance.PluginProcessor.ClearIgnore ( path );
-                    CarbonCore.Instance.PluginProcessor.Prepare ( path );
-                    break;
+                body.Add ( $" {command.Command}(   )  {command.Help}" );
             }
+
+            Reply ( body.ToNewLine (), arg );
         }
 
         #region Mod & Plugin Loading
 
-        [ConsoleCommand ( "list" )]
+        [ConsoleCommand ( "list", "Prints the list of mods and their loaded plugins." )]
         private void GetList ( ConsoleSystem.Arg arg )
         {
             if ( arg.Player () != null && !arg.Player ().IsAdmin ) return;
@@ -219,7 +147,7 @@ namespace Carbon.Core
             }
         }
 
-        [ConsoleCommand ( "reload" )]
+        [ConsoleCommand ( "reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything." )]
         private void Reload ( ConsoleSystem.Arg arg )
         {
             if ( arg.Player () != null && !arg.Player ().IsAdmin || !arg.HasArgs ( 1 ) ) return;
@@ -247,7 +175,7 @@ namespace Carbon.Core
             }
         }
 
-        [ConsoleCommand ( "load" )]
+        [ConsoleCommand ( "load", "Loads all mods and/or plugins. E.g 'c.load *' to load everything you've unloaded." )]
         private void Load ( ConsoleSystem.Arg arg )
         {
             if ( arg.Player () != null && !arg.Player ().IsAdmin || !arg.HasArgs ( 1 ) ) return;
@@ -316,7 +244,7 @@ namespace Carbon.Core
             }
         }
 
-        [ConsoleCommand ( "unload" )]
+        [ConsoleCommand ( "unload", "Unloads all mods and/or plugins. E.g 'c.unload *' to unload everything. They'll be marked as 'ignored'." )]
         private void Unload ( ConsoleSystem.Arg arg )
         {
             if ( arg.Player () != null && !arg.Player ().IsAdmin || !arg.HasArgs ( 1 ) ) return;
@@ -391,7 +319,7 @@ namespace Carbon.Core
 
         #region Permissions
 
-        [ConsoleCommand ( "grant" )]
+        [ConsoleCommand ( "grant", "Grant one or more permissions to users or groups. Do 'c.grant' for syntax info." )]
         private void Grant ( ConsoleSystem.Arg arg )
         {
             void PrintWarn ()
@@ -432,7 +360,7 @@ namespace Carbon.Core
             }
         }
 
-        [ConsoleCommand ( "revoke" )]
+        [ConsoleCommand ( "revoke", "Revoke one or more permissions from users or groups. Do 'c.revoke' for syntax info." )]
         private void Revoke ( ConsoleSystem.Arg arg )
         {
             void PrintWarn ()
