@@ -16,8 +16,6 @@ namespace Carbon.Patch
     {
         static void Main ( string [] args )
         {
-            Process.Start ( "update_rust.bat" ).WaitForExit ();
-
             using ( var memoryStream = new MemoryStream () )
             {
                 using ( var archive = new ZipArchive ( memoryStream, ZipArchiveMode.Create, true ) )
