@@ -59,7 +59,7 @@ public class PluginReferenceAttribute : Attribute
     }
 }
 
-[AttributeUsage ( AttributeTargets.Method )]
+[AttributeUsage ( AttributeTargets.Method, AllowMultiple = true )]
 public class ChatCommandAttribute : Attribute
 {
     public string Name { get; }
@@ -101,5 +101,17 @@ public class ConsoleCommandAttribute : Attribute
         Name = name;
         Help = help;
         Skip = skip;
+    }
+}
+
+[AttributeUsage ( AttributeTargets.Method )]
+public class HookMethodAttribute : Attribute
+{
+    public string Name { get; set; }
+
+    public HookMethodAttribute () { }
+    public HookMethodAttribute ( string name )
+    {
+        Name = name;
     }
 }
