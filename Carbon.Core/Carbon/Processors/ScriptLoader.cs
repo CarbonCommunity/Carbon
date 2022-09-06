@@ -70,16 +70,16 @@ namespace Carbon.Core
             var files = OsEx.Folder.GetFilesWithExtension ( CarbonCore.GetPluginsFolder (), "cs" );
 
             CarbonCore.Instance.PluginProcessor.Clear ();
-            CarbonCore.Instance.PluginProcessor.IgnoredPlugins.Clear ();
+            CarbonCore.Instance.PluginProcessor.IgnoreList.Clear ();
 
             foreach ( var file in files )
             {
-                var plugin = ScriptProcessor.AutoUpdatePlugin.Create ();
+                var plugin = new ScriptProcessor.Script ();
                 plugin.File = file;
-                CarbonCore.Instance.PluginProcessor.Plugins.Add ( Path.GetFileNameWithoutExtension ( file ), plugin );
+                CarbonCore.Instance.PluginProcessor.InstanceBuffer.Add ( Path.GetFileNameWithoutExtension ( file ), plugin );
             }
 
-            foreach ( var plugin in CarbonCore.Instance.PluginProcessor.Plugins )
+            foreach ( var plugin in CarbonCore.Instance.PluginProcessor.InstanceBuffer )
             {
                 plugin.Value.SetDirty ();
             }

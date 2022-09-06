@@ -191,8 +191,8 @@ namespace Carbon.Core
                     //
                     {
                         var tempList = Pool.GetList<string> ();
-                        tempList.AddRange ( CarbonCore.Instance.HarmonyProcessor.IgnoredPlugins );
-                        CarbonCore.Instance.HarmonyProcessor.IgnoredPlugins.Clear ();
+                        tempList.AddRange ( CarbonCore.Instance.HarmonyProcessor.IgnoreList );
+                        CarbonCore.Instance.HarmonyProcessor.IgnoreList.Clear ();
 
                         foreach ( var plugin in tempList )
                         {
@@ -206,8 +206,8 @@ namespace Carbon.Core
                     //
                     {
                         var tempList = Pool.GetList<string> ();
-                        tempList.AddRange ( CarbonCore.Instance.PluginProcessor.IgnoredPlugins );
-                        CarbonCore.Instance.PluginProcessor.IgnoredPlugins.Clear ();
+                        tempList.AddRange ( CarbonCore.Instance.PluginProcessor.IgnoreList );
+                        CarbonCore.Instance.PluginProcessor.IgnoreList.Clear ();
 
                         foreach ( var plugin in tempList )
                         {
@@ -259,7 +259,7 @@ namespace Carbon.Core
                     // Mods
                     //
                     {
-                        foreach ( var plugin in CarbonCore.Instance.HarmonyProcessor.Mods )
+                        foreach ( var plugin in CarbonCore.Instance.HarmonyProcessor.InstanceBuffer )
                         {
                             CarbonCore.Instance.HarmonyProcessor.Ignore ( plugin.Value.File );
                         }
@@ -271,8 +271,8 @@ namespace Carbon.Core
                     //
                     {
                         var tempList = Pool.GetList<string> ();
-                        tempList.AddRange ( CarbonCore.Instance.PluginProcessor.IgnoredPlugins );
-                        CarbonCore.Instance.PluginProcessor.IgnoredPlugins.Clear ();
+                        tempList.AddRange ( CarbonCore.Instance.PluginProcessor.IgnoreList );
+                        CarbonCore.Instance.PluginProcessor.IgnoreList.Clear ();
 
                         foreach ( var plugin in tempList )
                         {
@@ -294,7 +294,7 @@ namespace Carbon.Core
                     // Mods
                     //
                     {
-                        if ( CarbonCore.Instance.HarmonyProcessor.Mods.TryGetValue ( name, out var value ) )
+                        if ( CarbonCore.Instance.HarmonyProcessor.InstanceBuffer.TryGetValue ( name, out var value ) )
                         {
                             CarbonCore.Instance.HarmonyProcessor.Ignore ( path );
                             value.Dispose ();
@@ -305,7 +305,7 @@ namespace Carbon.Core
                     // Plugins
                     //
                     {
-                        if ( CarbonCore.Instance.PluginProcessor.Plugins.TryGetValue ( name, out var value ) )
+                        if ( CarbonCore.Instance.PluginProcessor.InstanceBuffer.TryGetValue ( name, out var value ) )
                         {
                             CarbonCore.Instance.PluginProcessor.Ignore ( path );
                             value.Dispose ();

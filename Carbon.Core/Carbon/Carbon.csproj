@@ -346,6 +346,7 @@
   <ItemGroup>
     <Compile Include="CarbonCorePlugin.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
+    <Compile Include="Hooks\Quit.cs" />
     <Compile Include="Hooks\OnServerSave.cs" />
     <Compile Include="Oxide\Hash.cs" />
     <Compile Include="Processors\BaseProcessor.cs" />
