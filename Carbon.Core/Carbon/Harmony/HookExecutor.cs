@@ -1,4 +1,5 @@
-﻿using Oxide.Plugins;
+﻿using Microsoft.Win32.SafeHandles;
+using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -159,28 +160,39 @@ namespace Carbon.Core
 
         private static object CallHook<T> ( this T plugin, string hookName, BindingFlags flags, object [] args ) where T : Plugin
         {
-            if ( !plugin.HookCache.TryGetValue ( hookName + args?.Length, out var hook ) )
+            var id = args == null ? 0 : args.Length;
+            if ( plugin.HookMethodAttributeCache.TryGetValue ( hookName + id, out var hook ) )
+            {
+                return DoCall ( hook );
+            }
+
+            if ( !plugin.HookCache.TryGetValue ( hookName + id, out hook ) )
             {
                 hook = plugin.Type.GetMethod ( hookName, flags );
 
-                if ( hook == null || !plugin.HookMethodAttributeCache.TryGetValue ( hookName + args?.Length, out hook ) )
+                if ( hook == null )
                 {
                     return null;
                 }
 
-                plugin.HookCache.Add ( hookName + args?.Length, hook );
+                plugin.HookCache.Add ( hookName + id, hook );
             }
 
-            var beforeTicks = Environment.TickCount;
-            var result = hook?.Invoke ( plugin, args );
-            var afterTicks = Environment.TickCount;
-
-            if ( afterTicks > beforeTicks + 100 && afterTicks > beforeTicks )
+            object DoCall ( MethodInfo method )
             {
-                CarbonCore.WarnFormat ( $" {plugin?.Name} hook took longer than 100ms {hookName}{( args == null ? "" : $"[{args?.Length}]" )} [{( afterTicks - beforeTicks ):0}ms]" );
+                var beforeTicks = Environment.TickCount;
+                var result = method?.Invoke ( plugin, args );
+                var afterTicks = Environment.TickCount;
+
+                if ( afterTicks > beforeTicks + 100 && afterTicks > beforeTicks )
+                {
+                    CarbonCore.WarnFormat ( $" {plugin?.Name} hook took longer than 100ms {hookName}{( args == null ? "" : $"[{args.Length}]" )} [{( afterTicks - beforeTicks ):0}ms]" );
+                }
+
+                return result;
             }
 
-            return result;
+            return DoCall ( hook );
         }
 
         private static object CallStaticHook ( string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object [] args = null )

@@ -24,6 +24,8 @@ namespace Carbon.Core.Processors
 
         public virtual void Start ()
         {
+            if ( IsInitialized ) return;
+
             DontDestroyOnLoad ( gameObject );
 
             IsInitialized = true;

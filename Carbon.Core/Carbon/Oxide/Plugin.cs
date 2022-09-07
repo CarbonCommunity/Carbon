@@ -78,11 +78,13 @@ namespace Oxide.Plugins
 
             CallHook ( "Init" );
 
-            foreach ( var method in GetType ().GetMethods () )
+            foreach ( var method in GetType ().GetMethods ( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public ) )
             {
-                if ( method.GetCustomAttribute<HookMethodAttribute> () == null ) continue;
+                var attribute = method.GetCustomAttribute<HookMethodAttribute> ();
+                if ( attribute == null ) continue;
 
-                HookMethodAttributeCache.Add ( method.Name + method.GetParameters().Length, method );
+                var name = string.IsNullOrEmpty ( attribute.Name ) ? method.Name : attribute.Name;
+                HookMethodAttributeCache.Add ( name + method.GetParameters ().Length, method );
             }
         }
         public virtual void Load ()
