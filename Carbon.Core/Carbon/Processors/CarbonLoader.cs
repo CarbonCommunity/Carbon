@@ -240,7 +240,7 @@ namespace Carbon.Core
                         continue;
                     }
 
-                    plugin.CallPublicHook ( "SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description );
+                    plugin.CallHook ( "SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Init ();
                     plugin.DoLoadConfig ();

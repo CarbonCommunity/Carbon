@@ -74,6 +74,8 @@ namespace Carbon.Core
             Reply ( $"Carbon v{CarbonCore.Version}", arg );
         }
 
+        #region Commands
+
         [ConsoleCommand ( "find", "Searches through Carbon-processed console commands.", false )]
         private void Find ( ConsoleSystem.Arg arg )
         {
@@ -108,10 +110,10 @@ namespace Carbon.Core
             Reply ( body.ToNewLine (), arg );
         }
 
-        #region Mod & Plugin Loading
+        #endregion
 
         [ConsoleCommand ( "list", "Prints the list of mods and their loaded plugins." )]
-        private void GetList ( ConsoleSystem.Arg arg )
+        private void List ( ConsoleSystem.Arg arg )
         {
             if ( arg.Player () != null && !arg.Player ().IsAdmin ) return;
 
@@ -132,7 +134,7 @@ namespace Carbon.Core
 
                     foreach ( var mod in CarbonLoader._loadedMods )
                     {
-                        body.AddRow ( $"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", mod.IsCoreMod ? "Yes" : "No", "" );
+                        body.AddRow ( $"{count:n0}", $"{mod.Name}{( mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "" )}", "", "", mod.IsCoreMod ? "Yes" : "No", "" );
 
                         foreach ( var plugin in mod.Plugins )
                         {
@@ -146,6 +148,8 @@ namespace Carbon.Core
                     break;
             }
         }
+
+        #region Mod & Plugin Loading
 
         [ConsoleCommand ( "reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything." )]
         private void Reload ( ConsoleSystem.Arg arg )
@@ -401,6 +405,55 @@ namespace Carbon.Core
             }
         }
 
+        [ConsoleCommand ( "show", "Displays information about a specific player or group (incl. permissions, groups and user list). Do 'c.show' for syntax info." )]
+        private void Show ( ConsoleSystem.Arg arg )
+        {
+            void PrintWarn ()
+            {
+                Reply ( $"Syntax: c.show <user|group> <name|id>", arg );
+            }
+
+            if ( !arg.HasArgs ( 2 ) )
+            {
+                PrintWarn ();
+                return;
+            }
+
+            var action = arg.Args [ 0 ];
+            var name = arg.Args [ 1 ];
+
+            switch ( action )
+            {
+                case "user":
+                    var user = permission.FindUser ( name );
+                    if ( user.Value == null )
+                    {
+                        Reply ( $"Couldn't find that user.", arg );
+                        return;
+                    }
+
+                    Reply ( $"User {user.Value.LastSeenNickname}[{user.Key}] found in {user.Value.Groups.Count:n0} groups:\n  {user.Value.Groups.Select ( x => x ).ToArray ().ToString ( ", ", " and " )}", arg );
+                    Reply ( $"and has {user.Value.Perms.Count:n0} permissions:\n  {user.Value.Perms.Select ( x => x ).ToArray ().ToString ( ", ", " and " )}", arg );
+                    break;
+
+                case "group":
+                    if ( !permission.GroupExists(name) )
+                    {
+                        Reply ( $"Couldn't find that group.", arg );
+                        return;
+                    }
+
+                    var users = permission.GetUsersInGroup ( name );
+                    var permissions = permission.GetGroupPermissions ( name, false );
+                    Reply ( $"Group {name} has {users.Length:n0} users:\n  {users.Select ( x => x ).ToArray ().ToString ( ", ", " and " )}", arg );
+                    Reply ( $"and has {permissions.Length:n0} permissions:\n  {permissions.Select ( x => x ).ToArray ().ToString ( ", ", " and " )}", arg );
+                    break;
+
+                default:
+                    PrintWarn ();
+                    break;
+            }
+        }
         #endregion
     }
 }

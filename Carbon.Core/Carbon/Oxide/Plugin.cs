@@ -76,8 +76,6 @@ namespace Oxide.Plugins
             HarmonyInstance = HarmonyInstance.Create ( Name + "Patches" );
             HarmonyInstance.PatchAll ( Assembly.GetExecutingAssembly () );
 
-            CallHook ( "Init" );
-
             foreach ( var method in GetType ().GetMethods ( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public ) )
             {
                 var attribute = method.GetCustomAttribute<HookMethodAttribute> ();
@@ -270,47 +268,6 @@ namespace Oxide.Plugins
         public object CallHook ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9 )
         {
             return HookExecutor.CallHook ( this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 );
-        }
-
-        public object CallPublicHook ( string hook )
-        {
-            return HookExecutor.CallPublicHook ( this, hook );
-        }
-        public object CallPublicHook ( string hook, object arg1 )
-        {
-            return HookExecutor.CallPublicHook ( this, hook, arg1 );
-        }
-        public object CallPublicHook ( string hook, object arg1, object arg2 )
-        {
-            return HookExecutor.CallPublicHook ( this, hook, arg1, arg2 );
-        }
-        public object CallPublicHook ( string hook, object arg1, object arg2, object arg3 )
-        {
-            return HookExecutor.CallPublicHook ( this, hook, arg1, arg2, arg3 );
-        }
-        public object CallPublicHook ( string hook, object arg1, object arg2, object arg3, object arg4 )
-        {
-            return HookExecutor.CallPublicHook ( this, hook, arg1, arg2, arg3, arg4 );
-        }
-        public object CallPublicHook ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5 )
-        {
-            return HookExecutor.CallPublicHook ( this, hook, arg1, arg2, arg3, arg4, arg5 );
-        }
-        public object CallPublicHook ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6 )
-        {
-            return HookExecutor.CallPublicHook ( this, hook, arg1, arg2, arg3, arg4, arg5, arg6 );
-        }
-        public object CallPublicHook ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7 )
-        {
-            return HookExecutor.CallPublicHook ( this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7 );
-        }
-        public object CallPublicHook ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8 )
-        {
-            return HookExecutor.CallPublicHook ( this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 );
-        }
-        public object CallPublicHook ( string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9 )
-        {
-            return HookExecutor.CallPublicHook ( this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 );
         }
 
         #endregion

@@ -243,7 +243,7 @@ namespace Carbon.Core
                     plugin.IsCore = IsCore;
                     plugin.Required = Scripts.Count != 0 ? Scripts [ 0 ] : null;
 
-                    plugin.Instance.CallPublicHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
+                    plugin.Instance.CallHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Instance.Init ();
                     try { plugin.Instance.DoLoadConfig (); }

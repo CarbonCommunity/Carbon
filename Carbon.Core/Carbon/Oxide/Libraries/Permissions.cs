@@ -209,7 +209,7 @@ namespace Oxide.Core.Libraries
         {
             foreach ( var user in userdata )
             {
-                if ( user.Key == id || user.Value.LastSeenNickname.Equals ( id ) ) return new KeyValuePair<string, UserData> ( user.Key, user.Value );
+                if ( user.Value != null && user.Key == id || ( !string.IsNullOrEmpty ( user.Value.LastSeenNickname ) && user.Value.LastSeenNickname.Equals ( id ) ) ) return new KeyValuePair<string, UserData> ( user.Key, user.Value );
             }
 
             return default;
@@ -287,12 +287,12 @@ namespace Oxide.Core.Libraries
         {
             if ( !GroupExists ( name ) )
             {
-                return new string [ 0 ];
+                return EmptyStringArray;
             }
 
             if ( !groupdata.TryGetValue ( name.ToLower (), out var groupData ) )
             {
-                return new string [ 0 ];
+                return EmptyStringArray;
             }
 
             var list = groupData.Perms.ToList ();
