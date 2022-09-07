@@ -16,6 +16,11 @@ namespace Carbon.Patch
     {
         static void Main ( string [] args )
         {
+            try { OsEx.Folder.DeleteContents ( "Release" ); } catch { }
+
+            //
+            // Windows patch
+            //
             using ( var memoryStream = new MemoryStream () )
             {
                 using ( var archive = new ZipArchive ( memoryStream, ZipArchiveMode.Create, true ) )
@@ -36,9 +41,37 @@ namespace Carbon.Patch
                     memoryStream.Seek ( 0, SeekOrigin.Begin );
                     memoryStream.CopyTo ( fileStream );
                 }
-                OsEx.File.Copy ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "Release/Carbon.dll" );
-                OsEx.File.Copy ( "Carbon.Core/Carbon.Extended/bin/Release/Carbon.Extended.dll", "Release/Carbon.Extended.dll" );
             }
+
+            //
+            // Linux patch
+            //
+            using ( var memoryStream = new MemoryStream () )
+            {
+                using ( var archive = new ZipArchive ( memoryStream, ZipArchiveMode.Create, true ) )
+                {
+                    archive.CreateEntryFromFile ( "Carbon.Core/Carbon/bin/ReleaseUnix/Carbon.dll", "HarmonyMods/Carbon.dll" );
+                    archive.CreateEntryFromFile ( "Carbon.Core/Carbon.Doorstop/bin/Release/Carbon.Doorstop.dll", "RustDedicated_Data/Managed/Carbon.Doorstop.dll" );
+                    archive.CreateEntryFromFile ( "Tools/libdoorstop_x64.so", "libdoorstop_x64.so" );
+                    archive.CreateEntryFromFile ( "Tools/libdoorstop_x86.so", "libdoorstop_x86.so" );
+                    archive.CreateEntryFromFile ( "Tools/run.sh", "carbon_run.sh" );
+                    archive.CreateEntryFromFile ( "Tools/NStrip", "carbon/tools/NStrip" );
+                }
+
+                var output = $"Release/Carbon.Patch-Unix.zip";
+                OsEx.Folder.Create ( $"Release" );
+                OsEx.File.Delete ( output );
+                OsEx.File.Create ( output, new byte [ 0 ] );
+                using ( var fileStream = new FileStream ( output, FileMode.Open ) )
+                {
+                    memoryStream.Seek ( 0, SeekOrigin.Begin );
+                    memoryStream.CopyTo ( fileStream );
+                }
+            }
+
+            OsEx.File.Copy ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "Release/Carbon.dll" );
+            OsEx.File.Copy ( "Carbon.Core/Carbon/bin/ReleaseUnix/Carbon.dll", "Release/Carbon-Unix.dll" );
+            OsEx.File.Copy ( "Carbon.Core/Carbon.Extended/bin/Release/Carbon.Extended.dll", "Release/Carbon.Extended.dll" );
         }
     }
 }

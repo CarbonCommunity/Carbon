@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace Doorstop
 {
@@ -13,17 +14,35 @@ namespace Doorstop
 
         public static void Start ()
         {
-            try
+            if ( RuntimeInformation.IsOSPlatform ( OSPlatform.Linux ) )
             {
-                Process.Start ( new ProcessStartInfo
+                try
                 {
-                    FileName = NStripPath,
-                    Arguments = $@"-p -cg --keep-resources -n --unity-non-serialized ""{AssemblyCSharp}"" ""{AssemblyCSharp}""",
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    CreateNoWindow = true
-                } ).WaitForExit ();
+                    File.WriteAllText ( "mytest.txt", "WEEEE" );
+                    Process.Start ( new ProcessStartInfo
+                    {
+                        FileName = Path.Combine ( AppDomain.CurrentDomain.BaseDirectory, "carbon", "tools", "NStrip" ),
+                        Arguments = $@"-p -cg --keep-resources -n --unity-non-serialized ""{AssemblyCSharp}"" ""{AssemblyCSharp}""",
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        CreateNoWindow = true
+                    } ).WaitForExit ();
+                }
+                catch { }
             }
-            catch { }
+            else
+            {
+                try
+                {
+                    Process.Start ( new ProcessStartInfo
+                    {
+                        FileName = Path.Combine ( AppDomain.CurrentDomain.BaseDirectory, "carbon", "tools", "NStrip.exe" ),
+                        Arguments = $@"-p -cg --keep-resources -n --unity-non-serialized ""{AssemblyCSharp}"" ""{AssemblyCSharp}""",
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        CreateNoWindow = true
+                    } ).WaitForExit ();
+                }
+                catch { }
+            }
         }
     }
 }

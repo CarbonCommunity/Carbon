@@ -31,3 +31,4 @@ regex:Facepunch.Steamworks.Win64.dll
 regex:Facepunch.Steamworks.Win64.dll
 regex:System.Drawing.dll
 regex:System.Drawing.Design.dll
+regex:mscorlib.dll

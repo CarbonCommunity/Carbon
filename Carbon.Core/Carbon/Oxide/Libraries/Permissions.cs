@@ -228,6 +228,10 @@ namespace Oxide.Core.Libraries
             {
                 AddUserGroup ( player.UserIDString, "admin" );
             }
+            else if ( UserHasGroup ( player.UserIDString, "admin" ) )
+            {
+                RemoveUserGroup ( player.UserIDString, "admin" );
+            }
         }
 
         public void UpdateNickname ( string id, string nickname )

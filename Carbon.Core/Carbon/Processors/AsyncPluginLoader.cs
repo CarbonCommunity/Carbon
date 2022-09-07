@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using UnityEngine;
 using CodeCompiler = CSharpCompiler.CodeCompiler;
 
 namespace Carbon.Core
@@ -30,15 +31,17 @@ namespace Carbon.Core
             var lastCarbon = ( Assembly )null;
             foreach ( var assembly in assemblies )
             {
-                if ( CarbonLoader.AssemblyCache.Any ( x => x == assembly ) ) continue;
+                if ( CarbonLoader.AssemblyCache.Contains ( assembly ) ) continue;
 
-                if ( !assembly.FullName.StartsWith ( "Carbon" ) )
+                var name = assembly.GetName ().Name;
+
+                if ( !name.StartsWith ( "Carbon" ) )
                 {
                     if ( assembly.ManifestModule is ModuleBuilder builder )
                     {
                         if ( !builder.IsTransient () )
                         {
-                            _parameters.ReferencedAssemblies.Add ( assembly.GetName ().Name );
+                            _parameters.ReferencedAssemblies.Add ( name );
                         }
                     }
                     else
@@ -46,7 +49,7 @@ namespace Carbon.Core
                         _parameters.ReferencedAssemblies.Add ( assembly.GetName ().Name );
                     }
                 }
-                else if ( assembly.FullName.StartsWith ( "Carbon" ) )
+                else
                 {
                     lastCarbon = assembly;
                 }

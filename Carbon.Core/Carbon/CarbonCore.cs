@@ -20,6 +20,7 @@ namespace Carbon.Core
 
         public RustPlugin CorePlugin { get; set; }
         public CarbonLoader.CarbonMod Plugins { get; set; }
+        public bool IsInitialized { get; set; }
 
         internal static List<string> _addons = new List<string> { "carbon." };
 
@@ -43,7 +44,7 @@ namespace Carbon.Core
 
         public static string GetRootFolder ()
         {
-            var folder = Path.GetFullPath ( Path.Combine ( $"{Application.dataPath}\\..", "carbon" ) );
+            var folder = Path.GetFullPath ( Path.Combine ( $"{Application.dataPath}/..", "carbon" ) );
             Directory.CreateDirectory ( folder );
 
             return folder;
@@ -199,20 +200,24 @@ namespace Carbon.Core
 
         public void RefreshConsoleInfo ()
         {
+#if WIN
             if ( ServerConsole.Instance == null || ServerConsole.Instance.input == null ) return;
             if ( ServerConsole.Instance.input.statusText.Length != 4 ) ServerConsole.Instance.input.statusText = new string [ 4 ];
 
             ServerConsole.Instance.input.statusText [ 3 ] = $" Carbon v{Version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count ):n0} plgs";
-        }
+#endif
+            }
 
         public void Init ()
         {
+#if WIN
             if ( ServerConsole.Instance == null ) return;
+#endif
+
+            if ( IsInitialized ) return;
+            IsInitialized = true;
 
             Format ( $"Loading..." );
-
-            ServerConsole.Instance.input.statusText = new string [ 4 ];
-            ServerConsole.Instance.input.statusText [ 3 ] = " Carbon Initializing...";
 
             GetRootFolder ();
             GetConfigsFolder ();
@@ -245,11 +250,13 @@ namespace Carbon.Core
             CarbonLoader._loadedMods.Clear ();
             Debug.Log ( $"Unloaded Carbon." );
 
+#if WIN
             if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
             {
                 ServerConsole.Instance.input.statusText [ 3 ] = "";
                 ServerConsole.Instance.input.statusText = new string [ 3 ];
             }
+#endif
         }
     }
 

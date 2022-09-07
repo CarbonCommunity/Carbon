@@ -17,8 +17,16 @@ namespace Oxide.Plugins
     {
         public static MuhPlugin Instance;
 
+        [PluginReference]
+        public Plugin Locker;
+
+        [PluginReference]
+        public Plugin PortableLocker;
+
         private void OnServerInitialized ()
         {
+            PortableLocker.Call ( "OpenLocker", BasePlayer.Find ( "Raul" ), null );
+
             Instance = this;
 
             HarmonyInstance.DEBUG = true;
