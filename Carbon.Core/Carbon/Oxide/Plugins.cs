@@ -7,7 +7,15 @@ namespace Oxide.Plugins
     {
         public Plugin Find ( string name )
         {
-            return default;
+            foreach(var mod in CarbonLoader._loadedMods )
+            {
+                foreach (var plugin in mod.Plugins )
+                {
+                    if ( plugin.Name == name ) return plugin;
+                }
+            }
+
+            return null;
         }
 
         public Plugin [] GetAll ()

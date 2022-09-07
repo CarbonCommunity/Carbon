@@ -26,6 +26,12 @@ namespace Oxide.Plugins
 
             Puts ( $"{Assembly.GetExecutingAssembly ()?.GetTypes () [ 0 ]?.FullName}" );
 
+            permission.CreateGroup ( "admin", "admin", 0 );
+            permission.CreateGroup ( "default", "default", 0 );
+            permission.SaveData ();
+
+            Puts ( $"{permission.GroupExists ( "default" )} {permission.PermissionExists ( "portablelocker.use" )}" );
+
             // var counter = 1;
             // var timeTest = timer.Every ( 0.25f, () =>
             // {
@@ -35,6 +41,19 @@ namespace Oxide.Plugins
             // {
             //     timeTest.Destroy ();
             // } );
+
+            timer.In ( 1f, () =>
+            {
+                Puts ( $"heh?" );
+                Oxide.Core.Interface.CallHook ( "ayaya" );
+                Oxide.Core.Interface.CallHook ( "MyHookTest" );
+            } );
+        }
+
+        [HookMethod ( "ayaya" )]
+        public void MyHookTest ()
+        {
+            CarbonCore.Log ( $"Howdy partner" );
         }
 
         private void Unload ()
@@ -91,7 +110,7 @@ namespace Oxide.Plugins
     {
         public static void Prefix ( BaseEntity.RPCMessage msg, ref BaseProjectile __instance )
         {
-            HookExecutor.CallStaticHook ( "OnWeaponFired", __instance, msg.player,  __instance.PrimaryMagazineAmmo.GetComponent<ItemModProjectile>(), null );
+            HookExecutor.CallStaticHook ( "OnWeaponFired", __instance, msg.player, __instance.PrimaryMagazineAmmo.GetComponent<ItemModProjectile> (), null );
         }
     }
 }

@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 using Harmony;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Oxide.Plugins
 {
@@ -83,6 +84,15 @@ namespace Oxide.Plugins
 
                 var name = string.IsNullOrEmpty ( attribute.Name ) ? method.Name : attribute.Name;
                 HookMethodAttributeCache.Add ( name + method.GetParameters ().Length, method );
+            }
+
+            foreach ( var field in GetType ().GetFields ( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public ) )
+            {
+                var attribute = field.GetCustomAttribute<PluginReferenceAttribute> ();
+                if ( attribute == null ) continue;
+
+                var plugin = CarbonCore.Instance.CorePlugin.plugins.Find ( field.Name );
+                if ( plugin != null ) field.SetValue ( this, plugin );
             }
         }
         public virtual void Load ()
