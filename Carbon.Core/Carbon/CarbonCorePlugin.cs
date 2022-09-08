@@ -437,7 +437,7 @@ namespace Carbon.Core
                     break;
 
                 case "group":
-                    if ( !permission.GroupExists(name) )
+                    if ( !permission.GroupExists ( name ) )
                     {
                         Reply ( $"Couldn't find that group.", arg );
                         return;
@@ -454,6 +454,69 @@ namespace Carbon.Core
                     break;
             }
         }
+
+        [ConsoleCommand ( "usergroup", "Adds or removes a player from a group. Do 'c.usergroup' for syntax info." )]
+        private void UserGroup ( ConsoleSystem.Arg arg )
+        {
+            void PrintWarn ()
+            {
+                Reply ( $"Syntax: c.usergroup <add|remove> <player> <group>", arg );
+            }
+
+            if ( !arg.HasArgs ( 3 ) )
+            {
+                PrintWarn ();
+                return;
+            }
+
+            var action = arg.Args [ 0 ];
+            var player = arg.Args [ 1 ];
+            var group = arg.Args [ 2 ];
+
+            var user = permission.FindUser ( player );
+
+            if ( user.Value == null )
+            {
+                Reply ( $"Couldn't find that player.", arg );
+                return;
+            }
+
+            if ( !permission.GroupExists ( group ) )
+            {
+                Reply ( $"Group '{group}' could not be found.", arg );
+                return;
+            }
+
+            switch ( action )
+            {
+                case "add":
+                    if ( permission.UserHasGroup ( user.Key, group ) )
+                    {
+                        Reply ( $"{user.Value.LastSeenNickname}[{user.Key}] is already in '{group}' group.", arg );
+                        return;
+                    }
+
+                    permission.AddUserGroup ( user.Key, group );
+                    Reply ( $"Added {user.Value.LastSeenNickname}[{user.Key}] to '{group}' group.", arg );
+                    break;
+
+                case "remove":
+                    if ( !permission.UserHasGroup ( user.Key, group ) )
+                    {
+                        Reply ( $"{user.Value.LastSeenNickname}[{user.Key}] isn't in '{group}' group.", arg );
+                        return;
+                    }
+
+                    permission.RemoveUserGroup ( user.Key, group );
+                    Reply ( $"Removed {user.Value.LastSeenNickname}[{user.Key}] from '{group}' group.", arg );
+                    break;
+
+                default:
+                    PrintWarn ();
+                    break;
+            }
+        }
+
         #endregion
     }
 }

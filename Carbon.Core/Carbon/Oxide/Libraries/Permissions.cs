@@ -45,6 +45,9 @@ namespace Oxide.Core.Libraries
                 }
             }
 
+            if ( !GroupExists ( "default" ) ) CreateGroup ( "default", "default", 0 );
+            if ( !GroupExists ( "admin" ) ) CreateGroup ( "admin", "admin", 1 );
+
             IsLoaded = true;
         }
 

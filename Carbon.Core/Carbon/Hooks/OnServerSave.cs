@@ -1,5 +1,6 @@
 ﻿using Carbon.Core;
 using Harmony;
+using Oxide.Core;
 using System.Collections;
 
 [HarmonyPatch ( typeof ( SaveRestore ), "DoAutomatedSave" )]
@@ -13,6 +14,7 @@ public class OnServerSave
 
         CarbonCore.Log ( $"Saving Carbon plugins" );
         HookExecutor.CallStaticHook ( "OnServerSave" );
+        Interface.Oxide.Permission.SaveData ();
         _call = 0;
     }
 }

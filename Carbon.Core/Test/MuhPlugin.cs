@@ -1,12 +1,6 @@
 ﻿using Carbon.Core;
 using Harmony;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Oxide.Plugins
@@ -33,10 +27,6 @@ namespace Oxide.Plugins
             HarmonyInstance.PatchAll ( Assembly.GetExecutingAssembly () );
 
             Puts ( $"{Assembly.GetExecutingAssembly ()?.GetTypes () [ 0 ]?.FullName}" );
-
-            permission.CreateGroup ( "admin", "admin", 0 );
-            permission.CreateGroup ( "default", "default", 0 );
-            permission.SaveData ();
 
             Puts ( $"{permission.GroupExists ( "default" )} {permission.PermissionExists ( "portablelocker.use" )}" );
 
