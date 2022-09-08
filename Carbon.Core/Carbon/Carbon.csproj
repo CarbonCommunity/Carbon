@@ -35,6 +35,7 @@
     <DefineConstants>TRACE;WIN</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseUnix|AnyCPU'">
     <OutputPath>bin\ReleaseUnix\</OutputPath>
@@ -44,6 +45,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
@@ -356,6 +358,7 @@
     <Compile Include="Hooks\Quit.cs" />
     <Compile Include="Hooks\OnServerSave.cs" />
     <Compile Include="Oxide\Hash.cs" />
+    <Compile Include="Placebo\SystemConsole.cs" />
     <Compile Include="Processors\BaseProcessor.cs" />
     <Compile Include="Processors\CarbonLoader.cs" />
     <Compile Include="Oxide\Command.cs" />
