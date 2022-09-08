@@ -14,8 +14,9 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 125 );
+        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 140 );
 
+        public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
         public static CarbonCore Instance { get; set; }
 
         public RustPlugin CorePlugin { get; set; }
@@ -172,7 +173,7 @@ namespace Carbon.Core
             if ( PluginProcessor != null ) PluginProcessor?.Start ();
             if ( HarmonyProcessor != null ) HarmonyProcessor?.Start ();
 
-            PluginProcessor.InvokeRepeating ( () => { RefreshConsoleInfo (); }, 1f, 1f );
+            if ( PluginProcessor != null ) PluginProcessor.InvokeRepeating ( () => { RefreshConsoleInfo (); }, 1f, 1f );
         }
         internal void _uninstallProcessors ()
         {
@@ -201,7 +202,7 @@ namespace Carbon.Core
         public void RefreshConsoleInfo ()
         {
 #if WIN
-            if ( ServerConsole.Instance == null || ServerConsole.Instance.input == null ) return;
+            if ( !IsServerFullyInitialized ) return;
             if ( ServerConsole.Instance.input.statusText.Length != 4 ) ServerConsole.Instance.input.statusText = new string [ 4 ];
 
             ServerConsole.Instance.input.statusText [ 3 ] = $" Carbon v{Version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count ):n0} plgs";
@@ -210,10 +211,6 @@ namespace Carbon.Core
 
         public void Init ()
         {
-#if WIN
-            if ( ServerConsole.Instance == null ) return;
-#endif
-
             if ( IsInitialized ) return;
             IsInitialized = true;
 

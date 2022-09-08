@@ -244,7 +244,11 @@ namespace Carbon.Core
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Init ();
                     plugin.DoLoadConfig ();
-                    plugin.CallHook ( "OnServerInitialized" );
+
+                    if ( CarbonCore.IsServerFullyInitialized )
+                    {
+                        plugin.CallHook ( "OnServerInitialized" );
+                    }
 
                     mod.Plugins.Add ( plugin );
                     ProcessCommands ( type, plugin );

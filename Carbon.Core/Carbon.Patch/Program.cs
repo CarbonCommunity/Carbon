@@ -17,6 +17,11 @@ namespace Carbon.Patch
         static void Main ( string [] args )
         {
             try { OsEx.Folder.DeleteContents ( "Release" ); } catch { }
+            OsEx.Folder.Create ( $"Release" );
+
+            OsEx.File.Copy ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "Release/Carbon.dll" );
+            OsEx.File.Copy ( "Carbon.Core/Carbon/bin/ReleaseUnix/Carbon.dll", "Release/Carbon-Unix.dll" );
+            OsEx.File.Copy ( "Carbon.Core/Carbon.Extended/bin/Release/Carbon.Extended.dll", "Release/Carbon.Extended.dll" );
 
             //
             // Windows patch
@@ -59,7 +64,6 @@ namespace Carbon.Patch
                 }
 
                 var output = $"Release/Carbon.Patch-Unix.zip";
-                OsEx.Folder.Create ( $"Release" );
                 OsEx.File.Delete ( output );
                 OsEx.File.Create ( output, new byte [ 0 ] );
                 using ( var fileStream = new FileStream ( output, FileMode.Open ) )
@@ -68,10 +72,6 @@ namespace Carbon.Patch
                     memoryStream.CopyTo ( fileStream );
                 }
             }
-
-            OsEx.File.Copy ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "Release/Carbon.dll" );
-            OsEx.File.Copy ( "Carbon.Core/Carbon/bin/ReleaseUnix/Carbon.dll", "Release/Carbon-Unix.dll" );
-            OsEx.File.Copy ( "Carbon.Core/Carbon.Extended/bin/Release/Carbon.Extended.dll", "Release/Carbon.Extended.dll" );
         }
     }
 }

@@ -10,8 +10,8 @@ msbuild /p:Configuration=Release
 
 cd ../Carbon
 dotnet restore
-msbuild /p:Configuration=Release
 msbuild /p:Configuration=ReleaseUnix
+msbuild /p:Configuration=Release
 
 cd ../Carbon.Extended
 dotnet restore

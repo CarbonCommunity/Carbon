@@ -251,10 +251,14 @@ namespace Carbon.Core
                     {
                         plugin.Instance.Error ( $"Failed loading config.", loadException );
                     }
-                    try { plugin.Instance.CallHook ( "OnServerInitialized" ); }
-                    catch ( Exception initException )
+
+                    if ( CarbonCore.IsServerFullyInitialized )
                     {
-                        plugin.Instance.Error ( $"Failed OnServerInitialized.", initException );
+                        try { plugin.Instance.CallHook ( "OnServerInitialized" ); }
+                        catch ( Exception initException )
+                        {
+                            plugin.Instance.Error ( $"Failed OnServerInitialized.", initException );
+                        }
                     }
 
                     plugin.Loader = this;
