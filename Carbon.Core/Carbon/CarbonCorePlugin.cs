@@ -517,6 +517,77 @@ namespace Carbon.Core
             }
         }
 
+        [ConsoleCommand ( "group", "Adds or removes a group. Do 'c.group' for syntax info." )]
+        private void Group ( ConsoleSystem.Arg arg )
+        {
+            void PrintWarn ()
+            {
+                Reply ( $"Syntax: c.group add <group> [<displayName>] [<rank>]", arg );
+                Reply ( $"Syntax: c.group remove <group>", arg );
+                Reply ( $"Syntax: c.group set <group> <title|rank> <value>", arg );
+                Reply ( $"Syntax: c.group parent <group> [<parent>]", arg );
+            }
+
+            if ( !arg.HasArgs ( 1 ) ) { PrintWarn (); return; }
+
+            var action = arg.Args [ 0 ];
+
+            switch ( action )
+            {
+                case "add":
+                    {
+                        if ( !arg.HasArgs ( 2 ) ) { PrintWarn (); return; }
+
+                        var group = arg.Args [ 1 ];
+
+                        if ( permission.GroupExists ( group ) )
+                        {
+                            Reply ( $"Group '{group}' already exists. To set any values for this group, use 'c.group set'.", arg );
+                            return;
+                        }
+
+                        if ( permission.CreateGroup ( group, arg.HasArgs ( 3 ) ? arg.Args [ 2 ] : group, arg.HasArgs ( 4 ) ? arg.Args [ 3 ].ToInt () : 0 ) )
+                        {
+                            Reply ( $"Created '{group}' group.", arg );
+                        }
+                    }
+                    break;
+
+                case "set":
+                    {
+                        if ( !arg.HasArgs ( 2 ) ) { PrintWarn (); return; }
+
+                        var group = arg.Args [ 1 ];
+
+                        if ( !permission.GroupExists ( group ) )
+                        {
+                            Reply ( $"Group '{group}' does not exists.", arg );
+                            return;
+                        }
+
+                        if ( arg.HasArgs ( 3 ) ) permission.SetGroupTitle ( group, arg.Args [ 2 ] );
+                        if ( arg.HasArgs ( 4 ) ) permission.SetGroupTitle ( group, arg.Args [ 3 ] );
+
+                        Reply ( $"Set '{group}' group.", arg );
+                    }
+                    break;
+                case "remove":
+                    {
+                        if ( !arg.HasArgs ( 2 ) ) { PrintWarn (); return; }
+
+                        var group = arg.Args [ 1 ];
+
+                        if ( permission.RemoveGroup ( group ) ) Reply ( $"Removed '{group}' group.", arg );
+                        else Reply ( $"Couldn't remove '{group}' group.", arg );
+                    }
+                    break;
+
+                default:
+                    PrintWarn ();
+                    break;
+            }
+        }
+
         #endregion
     }
 }

@@ -4,7 +4,6 @@ using System.Text;
 
 namespace System
 {
-
     public static class Console
     {
         public static bool IsInputRedirected => false;

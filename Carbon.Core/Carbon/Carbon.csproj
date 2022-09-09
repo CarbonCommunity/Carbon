@@ -39,7 +39,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseUnix|AnyCPU'">
     <OutputPath>bin\ReleaseUnix\</OutputPath>
-    <DefineConstants>TRACE;LINUX</DefineConstants>
+    <DefineConstants>TRACE;LINUX;</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -355,7 +355,6 @@
   <ItemGroup>
     <Compile Include="CarbonCorePlugin.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
-    <Compile Include="Hooks\Quit.cs" />
     <Compile Include="Hooks\OnServerSave.cs" />
     <Compile Include="Oxide\Hash.cs" />
     <Compile Include="Placebo\SystemConsole.cs" />
