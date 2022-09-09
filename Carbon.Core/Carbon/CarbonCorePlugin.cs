@@ -326,6 +326,8 @@ namespace Carbon.Core
         [ConsoleCommand ( "grant", "Grant one or more permissions to users or groups. Do 'c.grant' for syntax info." )]
         private void Grant ( ConsoleSystem.Arg arg )
         {
+            if ( !arg.IsAdmin ) return;
+
             void PrintWarn ()
             {
                 Reply ( $"Syntax: c.grant <user|group> <name|id> <perm>", arg );
@@ -367,6 +369,8 @@ namespace Carbon.Core
         [ConsoleCommand ( "revoke", "Revoke one or more permissions from users or groups. Do 'c.revoke' for syntax info." )]
         private void Revoke ( ConsoleSystem.Arg arg )
         {
+            if ( !arg.IsAdmin ) return;
+
             void PrintWarn ()
             {
                 Reply ( $"Syntax: c.revoke <user|group> <name|id> <perm>", arg );
@@ -408,6 +412,8 @@ namespace Carbon.Core
         [ConsoleCommand ( "show", "Displays information about a specific player or group (incl. permissions, groups and user list). Do 'c.show' for syntax info." )]
         private void Show ( ConsoleSystem.Arg arg )
         {
+            if ( !arg.IsAdmin ) return;
+
             void PrintWarn ()
             {
                 Reply ( $"Syntax: c.show <user|group> <name|id>", arg );
@@ -458,6 +464,8 @@ namespace Carbon.Core
         [ConsoleCommand ( "usergroup", "Adds or removes a player from a group. Do 'c.usergroup' for syntax info." )]
         private void UserGroup ( ConsoleSystem.Arg arg )
         {
+            if ( !arg.IsAdmin ) return;
+
             void PrintWarn ()
             {
                 Reply ( $"Syntax: c.usergroup <add|remove> <player> <group>", arg );
@@ -520,6 +528,8 @@ namespace Carbon.Core
         [ConsoleCommand ( "group", "Adds or removes a group. Do 'c.group' for syntax info." )]
         private void Group ( ConsoleSystem.Arg arg )
         {
+            if ( !arg.IsAdmin ) return;
+
             void PrintWarn ()
             {
                 Reply ( $"Syntax: c.group add <group> [<displayName>] [<rank>]", arg );
