@@ -181,7 +181,9 @@ namespace Carbon.Core
             object DoCall ( MethodInfo method )
             {
                 var beforeTicks = Environment.TickCount;
+                plugin.TrackStart ();
                 var result = method?.Invoke ( plugin, args );
+                plugin.TrackEnd ();
                 var afterTicks = Environment.TickCount;
 
                 if ( afterTicks > beforeTicks + 100 && afterTicks > beforeTicks )

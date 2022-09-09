@@ -9,6 +9,8 @@ using System.Text.Json.Serialization;
 using Harmony;
 using System.Threading.Tasks;
 using System.Linq;
+using Newtonsoft.Json.Schema;
+using Carbon.Core.Processors;
 
 namespace Oxide.Plugins
 {
@@ -35,20 +37,25 @@ namespace Oxide.Plugins
         public int ResourceId { get; set; }
         public bool HasConfig { get; set; }
         public bool HasMessages { get; set; }
-
-        private Stopwatch trackStopwatch = new Stopwatch ();
         public double TotalHookTime { get; internal set; }
+
+        public CarbonLoader.CarbonMod carbon { get; set; }
+
+        public Plugin [] Requires { get; internal set; }
+
+        internal Stopwatch _trackStopwatch = new Stopwatch ();
+        internal BaseProcessor _processor;
 
         public HarmonyInstance HarmonyInstance;
 
         public void TrackStart ()
         {
-            if ( IsCorePlugin )
+            if ( !CarbonCore.IsServerFullyInitialized || IsCorePlugin )
             {
                 return;
             }
 
-            var stopwatch = trackStopwatch;
+            var stopwatch = _trackStopwatch;
             if ( stopwatch.IsRunning )
             {
                 return;
@@ -57,12 +64,12 @@ namespace Oxide.Plugins
         }
         public void TrackEnd ()
         {
-            if ( IsCorePlugin )
+            if ( !CarbonCore.IsServerFullyInitialized || IsCorePlugin )
             {
                 return;
             }
 
-            var stopwatch = trackStopwatch;
+            var stopwatch = _trackStopwatch;
             if ( !stopwatch.IsRunning )
             {
                 return;
@@ -102,6 +109,16 @@ namespace Oxide.Plugins
         }
         public virtual void Unload ()
         {
+            foreach ( var plugin in CarbonCore.Instance.CorePlugin.plugins.GetAll () )
+            {
+                if ( plugin == null || plugin.Requires == null || plugin.Requires.Length == 0 ) continue;
+
+                if ( plugin.Requires.Contains ( this ) )
+                {
+                    plugin.InternalUnload ();
+                }
+            }
+
             HarmonyInstance?.UnpatchAll ( HarmonyInstance.Id );
             HarmonyInstance = null;
 
@@ -112,6 +129,21 @@ namespace Oxide.Plugins
             IgnoredHooks = null;
             HookCache = null;
             HookMethodAttributeCache = null;
+        }
+        internal void InternalUnload ()
+        {
+            switch ( _processor )
+            {
+                case ScriptProcessor script:
+                    foreach ( var t in script.InstanceBuffer ) CarbonCore.Log ( $"kkkkk: {t.Key} ||| {Name}" );
+                    _processor.Clear ( Name, script.InstanceBuffer [ Name ] );
+                    break;
+            }
+        }
+
+        public void SetProcessor(BaseProcessor processor )
+        {
+            _processor = processor;
         }
 
         #region Calls

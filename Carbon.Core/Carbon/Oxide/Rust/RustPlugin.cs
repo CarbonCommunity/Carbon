@@ -22,8 +22,6 @@ namespace Oxide.Plugins
         public WebRequests webrequest { get; set; } = new WebRequests ();
         public Persistence persistence { get; set; }
 
-        public CarbonLoader.CarbonMod carbon { get; set; }
-
         public DynamicConfigFile Config { get; private set; }
 
         public RustPlugin ()

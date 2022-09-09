@@ -15,7 +15,15 @@ namespace Carbon.Core.Processors
 
             public override void Dispose ()
             {
-                _loader?.Clear ();
+                try
+                {
+                    _loader?.Clear ();
+                }
+                catch ( Exception ex )
+                {
+                    CarbonCore.Error ( $"Error disposing {File}", ex );
+                }
+
                 _loader = null;
             }
             public override void Execute ()

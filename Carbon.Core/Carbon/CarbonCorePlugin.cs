@@ -138,7 +138,7 @@ namespace Carbon.Core
 
                         foreach ( var plugin in mod.Plugins )
                         {
-                            body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms" );
+                            body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}", mod.IsAddon ? "Addon" : plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms" );
                         }
 
                         count++;
@@ -174,7 +174,7 @@ namespace Carbon.Core
                         return;
                     }
                     CarbonCore.Instance.HarmonyProcessor.Prepare ( name, path );
-                    CarbonCore.Instance.PluginProcessor.Prepare ( name, path );
+                    CarbonCore.Instance.ScriptProcessor.Prepare ( name, path );
                     break;
             }
         }
@@ -210,12 +210,12 @@ namespace Carbon.Core
                     //
                     {
                         var tempList = Pool.GetList<string> ();
-                        tempList.AddRange ( CarbonCore.Instance.PluginProcessor.IgnoreList );
-                        CarbonCore.Instance.PluginProcessor.IgnoreList.Clear ();
+                        tempList.AddRange ( CarbonCore.Instance.ScriptProcessor.IgnoreList );
+                        CarbonCore.Instance.ScriptProcessor.IgnoreList.Clear ();
 
                         foreach ( var plugin in tempList )
                         {
-                            CarbonCore.Instance.PluginProcessor.Prepare ( plugin, plugin );
+                            CarbonCore.Instance.ScriptProcessor.Prepare ( plugin, plugin );
                         }
                         Pool.FreeList ( ref tempList );
                     }
@@ -241,8 +241,8 @@ namespace Carbon.Core
                     // Plugins
                     //
                     {
-                        CarbonCore.Instance.PluginProcessor.ClearIgnore ( path );
-                        CarbonCore.Instance.PluginProcessor.Prepare ( path );
+                        CarbonCore.Instance.ScriptProcessor.ClearIgnore ( path );
+                        CarbonCore.Instance.ScriptProcessor.Prepare ( path );
                     }
                     break;
             }
@@ -275,12 +275,12 @@ namespace Carbon.Core
                     //
                     {
                         var tempList = Pool.GetList<string> ();
-                        tempList.AddRange ( CarbonCore.Instance.PluginProcessor.IgnoreList );
-                        CarbonCore.Instance.PluginProcessor.IgnoreList.Clear ();
+                        tempList.AddRange ( CarbonCore.Instance.ScriptProcessor.IgnoreList );
+                        CarbonCore.Instance.ScriptProcessor.IgnoreList.Clear ();
 
                         foreach ( var plugin in tempList )
                         {
-                            CarbonCore.Instance.PluginProcessor.Ignore ( plugin );
+                            CarbonCore.Instance.ScriptProcessor.Ignore ( plugin );
                         }
                         Pool.FreeList ( ref tempList );
                     }
@@ -309,9 +309,9 @@ namespace Carbon.Core
                     // Plugins
                     //
                     {
-                        if ( CarbonCore.Instance.PluginProcessor.InstanceBuffer.TryGetValue ( name, out var value ) )
+                        if ( CarbonCore.Instance.ScriptProcessor.InstanceBuffer.TryGetValue ( name, out var value ) )
                         {
-                            CarbonCore.Instance.PluginProcessor.Ignore ( path );
+                            CarbonCore.Instance.ScriptProcessor.Ignore ( path );
                             value.Dispose ();
                         }
                     }

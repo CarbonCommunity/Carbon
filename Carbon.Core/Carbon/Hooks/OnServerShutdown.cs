@@ -15,7 +15,7 @@ public class OnServerShutdown
         HookExecutor.CallStaticHook ( "OnServerShutdown" );
 
         CarbonCore.Instance.HarmonyProcessor.Clear ();
-        CarbonCore.Instance.PluginProcessor.Clear ();
+        CarbonCore.Instance.ScriptProcessor.Clear ();
         _call = 0;
     }
 }

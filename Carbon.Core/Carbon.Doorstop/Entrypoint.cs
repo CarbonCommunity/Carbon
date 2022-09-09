@@ -18,7 +18,6 @@ namespace Doorstop
             {
                 try
                 {
-                    File.WriteAllText ( "mytest.txt", "WEEEE" );
                     Process.Start ( new ProcessStartInfo
                     {
                         FileName = Path.Combine ( AppDomain.CurrentDomain.BaseDirectory, "carbon", "tools", "NStrip" ),

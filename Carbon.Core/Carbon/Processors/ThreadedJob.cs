@@ -39,7 +39,7 @@ namespace Carbon.Core
         }
         public virtual void Abort ()
         {
-            cancellationToken.Cancel();
+            if ( cancellationToken != null ) cancellationToken.Cancel ();
         }
 
         public virtual void ThreadFunction () { }

@@ -39,7 +39,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseUnix|AnyCPU'">
     <OutputPath>bin\ReleaseUnix\</OutputPath>
-    <DefineConstants>TRACE;LINUX;</DefineConstants>
+    <DefineConstants>TRACE;LINUX</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>

@@ -40,7 +40,7 @@ namespace Carbon.Core
         public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand> ();
         public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand> ();
 
-        public ScriptProcessor PluginProcessor { get; set; } = new ScriptProcessor ();
+        public ScriptProcessor ScriptProcessor { get; set; } = new ScriptProcessor ();
         public HarmonyProcessor HarmonyProcessor { get; set; } = new HarmonyProcessor ();
 
         public static string GetRootFolder ()
@@ -157,12 +157,12 @@ namespace Carbon.Core
         }
         internal void _installProcessors ()
         {
-            if ( PluginProcessor == null || HarmonyProcessor == null )
+            if ( ScriptProcessor == null || HarmonyProcessor == null )
             {
                 _uninstallProcessors ();
 
                 var gameObject = new GameObject ( "Processors" );
-                PluginProcessor = gameObject.AddComponent<ScriptProcessor> ();
+                ScriptProcessor = gameObject.AddComponent<ScriptProcessor> ();
                 HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
             }
 
@@ -170,30 +170,30 @@ namespace Carbon.Core
         }
         internal void _registerProcessors ()
         {
-            if ( PluginProcessor != null ) PluginProcessor?.Start ();
+            if ( ScriptProcessor != null ) ScriptProcessor?.Start ();
             if ( HarmonyProcessor != null ) HarmonyProcessor?.Start ();
 
-            if ( PluginProcessor != null ) PluginProcessor.InvokeRepeating ( () => { RefreshConsoleInfo (); }, 1f, 1f );
+            if ( ScriptProcessor != null ) ScriptProcessor.InvokeRepeating ( () => { RefreshConsoleInfo (); }, 1f, 1f );
         }
         internal void _uninstallProcessors ()
         {
             try
             {
-                if ( PluginProcessor != null ) PluginProcessor?.Dispose ();
+                if ( ScriptProcessor != null ) ScriptProcessor?.Dispose ();
                 if ( HarmonyProcessor != null ) HarmonyProcessor?.Dispose ();
             }
             catch { }
 
             try
             {
-                if ( PluginProcessor != null ) UnityEngine.Object.DestroyImmediate ( PluginProcessor );
+                if ( ScriptProcessor != null ) UnityEngine.Object.DestroyImmediate ( ScriptProcessor );
                 if ( HarmonyProcessor != null ) UnityEngine.Object.DestroyImmediate ( HarmonyProcessor );
             }
             catch { }
 
             try
             {
-                var obj = PluginProcessor == null ? null : PluginProcessor.gameObject;
+                var obj = ScriptProcessor == null ? null : ScriptProcessor.gameObject;
                 if ( obj != null ) UnityEngine.Object.Destroy ( obj );
             }
             catch { }

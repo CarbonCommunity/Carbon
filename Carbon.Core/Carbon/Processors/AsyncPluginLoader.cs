@@ -12,15 +12,16 @@ namespace Carbon.Core
 {
     public class AsyncPluginLoader : ThreadedJob
     {
-        public string FileName;
+        public string FilePath;
         public string Source;
         public string [] References;
+        public string [] Requires;
         public Assembly Assembly;
         public List<CompilerException> Exceptions = new List<CompilerException> ();
+        internal int Retries;
 
-        internal CodeCompiler _compiler;
+        internal static CodeCompiler _compiler = new CodeCompiler ();
         internal CompilerParameters _parameters;
-        internal int _retries;
         internal static string [] _defaultReferences = new string [] { "System.dll", "mscorlib.dll", "protobuf-net.dll", "protobuf-net.Core.dll" };
         internal void _addReferences ()
         {
@@ -65,30 +66,49 @@ namespace Carbon.Core
                 _parameters.ReferencedAssemblies.Add ( reference );
             }
         }
+        internal bool _addRequires ()
+        {
+            if ( Requires == null ) return true;
+
+            foreach ( var require in Requires )
+            {
+                if ( !CarbonLoader.AssemblyDictionaryCache.TryGetValue ( require, out var assembly ) ) return false;
+
+                if ( assembly != null ) _parameters.ReferencedAssemblies.Add ( assembly.GetName ().Name );
+            }
+
+            return true;
+        }
 
         public class CompilerException : Exception
         {
-            public string FileName;
+            public string FilePath;
             public CompilerError Error;
-            public CompilerException ( string fileName, CompilerError error ) { FileName = fileName; Error = error; }
+            public CompilerException ( string filePath, CompilerError error ) { FilePath = filePath; Error = error; }
 
             public override string ToString ()
             {
-                return $"{Error.ErrorText}\n ({FileName} {Error.Column} line {Error.Line})";
+                return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
             }
         }
 
         public override void Start ()
         {
-            _compiler = new CodeCompiler ();
             _parameters = new CompilerParameters
             {
                 GenerateInMemory = true,
                 GenerateExecutable = false,
-                TreatWarningsAsErrors = false
+                TreatWarningsAsErrors = false,
+                IncludeDebugInformation = false,
+                WarningLevel = -1
             };
 
             _addReferences ();
+            if ( !_addRequires () )
+            {
+                Exceptions.Add ( new CompilerException ( FilePath, new CompilerError { ErrorText = "Couldn't find all required references." } ) );
+                return;
+            }
 
             base.Start ();
         }
@@ -104,17 +124,30 @@ namespace Carbon.Core
 
                 foreach ( CompilerError error in result.Errors )
                 {
-                    Exceptions.Add ( new CompilerException ( FileName, error ) );
+                    Exceptions.Add ( new CompilerException ( FilePath, error ) );
                 }
 
                 if ( Exceptions.Count > 0 ) throw null;
             }
             catch
             {
-                if ( _retries <= 2 )
+
+                if ( Retries <= 2 )
                 {
-                    _retries++;
+                    Retries++;
                     ThreadFunction ();
+                    return;
+                }
+
+                if ( Exceptions.Count > 0 )
+                {
+                    var exception = Exceptions [ 0 ];
+                    if ( exception.Error.ErrorText.Contains ( "Mono.CSharp.CSharpParser" ) ||
+                        exception.Error.ErrorText.Contains ( "Index was outside the bounds of the array." ) )
+                    {
+                        Retries++;
+                        ThreadFunction ();
+                    }
                 }
             }
         }

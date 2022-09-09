@@ -14,6 +14,13 @@ namespace Carbon.Core
     public static class CarbonLoader
     {
         public static List<Assembly> AssemblyCache { get; } = new List<Assembly> ();
+        public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new Dictionary<string, Assembly> ();
+
+        public static void AppendAssembly ( string key, Assembly assembly )
+        {
+            if ( !AssemblyDictionaryCache.ContainsKey ( key ) ) AssemblyDictionaryCache.Add ( key, assembly );
+            else AssemblyDictionaryCache [ key ] = assembly;
+        }
 
         public static void LoadCarbonMods ()
         {
@@ -162,6 +169,7 @@ namespace Carbon.Core
                     }
                 }
 
+                AppendAssembly( mod.Name, assembly );
                 AssemblyCache.Add ( assembly );
                 _loadedMods.Add ( mod );
 
@@ -225,10 +233,11 @@ namespace Carbon.Core
             {
                 try
                 {
-                    if ( !type.FullName.StartsWith ( "Oxide.Plugins" ) ) return;
+                    if ( !( type.Namespace.Equals ( "Oxide.Plugins" ) ||
+                        type.Namespace.Equals ( "Carbon.Plugins" ) ) ) return;
 
                     if ( !IsValidPlugin ( type ) ) continue;
-
+                
                     var instance = Activator.CreateInstance ( type, false );
                     var plugin = instance as RustPlugin;
                     var info = type.GetCustomAttribute<InfoAttribute> ();
@@ -244,6 +253,7 @@ namespace Carbon.Core
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Init ();
                     plugin.DoLoadConfig ();
+                    plugin.SetProcessor ( CarbonCore.Instance.HarmonyProcessor );
 
                     if ( CarbonCore.IsServerFullyInitialized )
                     {
