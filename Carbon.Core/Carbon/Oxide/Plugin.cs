@@ -135,7 +135,6 @@ namespace Oxide.Plugins
             switch ( _processor )
             {
                 case ScriptProcessor script:
-                    foreach ( var t in script.InstanceBuffer ) CarbonCore.Log ( $"kkkkk: {t.Key} ||| {Name}" );
                     _processor.Clear ( Name, script.InstanceBuffer [ Name ] );
                     break;
             }
