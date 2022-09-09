@@ -6,7 +6,7 @@
 #
 # Usage: Configure the script below and simply run this script when you want to run your game modded.
 
-doorstop_libname="doorstop.so"
+doorstop_libname="libdoorstop_x64.so"
 doorstop_dir=$PWD
 case "$(uname -s)" in
     Linux*)  export LD_LIBRARY_PATH=${doorstop_dir}:${LD_LIBRARY_PATH};
@@ -22,7 +22,7 @@ esac
 export DOORSTOP_ENABLE=TRUE;
 
 # What .NET assembly to execute. Valid value is a path to a .NET DLL that mono can execute.
-export DOORSTOP_INVOKE_DLL_PATH=RustDedicated_Data/Managed/Carbon.Doorstop.dll;
+export DOORSTOP_INVOKE_DLL_PATH=./RustDedicated_Data/Managed/Carbon.Doorstop.dll;
 
 # If enabled, this will prioritize assembly resolving from the given directory
 # export DOORSTOP_CORLIB_OVERRIDE_PATH=""

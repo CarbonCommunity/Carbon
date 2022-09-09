@@ -354,6 +354,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CarbonCorePlugin.cs" />
+    <Compile Include="Carbon\CarbonPlugin.cs" />
+    <Compile Include="Extensions\ConsoleArgEx.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
     <Compile Include="Hooks\OnServerSave.cs" />
     <Compile Include="Oxide\Hash.cs" />

@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using Carbon.Core.Extensions;
+using Facepunch;
 using Humanlights.Components;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
@@ -69,53 +70,13 @@ namespace Carbon.Core
         [ConsoleCommand ( "version", "Returns currently loaded version of Carbon." )]
         private void GetVersion ( ConsoleSystem.Arg arg )
         {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin ) return;
-
             Reply ( $"Carbon v{CarbonCore.Version}", arg );
         }
-
-        #region Commands
-
-        [ConsoleCommand ( "find", "Searches through Carbon-processed console commands.", false )]
-        private void Find ( ConsoleSystem.Arg arg )
-        {
-            var body = new StringBody ();
-            var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args [ 0 ] : null;
-            body.Add ( $"Console Commands:" );
-
-            foreach ( var command in CarbonCore.Instance.AllConsoleCommands )
-            {
-                if ( !string.IsNullOrEmpty ( filter ) && !command.Command.Contains ( filter ) ) continue;
-
-                body.Add ( $" {command.Command}(   )  {command.Help}" );
-            }
-
-            Reply ( body.ToNewLine (), arg );
-        }
-
-        [ConsoleCommand ( "findchat", "Searches through Carbon-processed chat commands.", false )]
-        private void FindChat ( ConsoleSystem.Arg arg )
-        {
-            var body = new StringBody ();
-            var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args [ 0 ] : null;
-            body.Add ( $"Chat Commands:" );
-
-            foreach ( var command in CarbonCore.Instance.AllChatCommands )
-            {
-                if ( !string.IsNullOrEmpty ( filter ) && !command.Command.Contains ( filter ) ) continue;
-
-                body.Add ( $" {command.Command}(   )  {command.Help}" );
-            }
-
-            Reply ( body.ToNewLine (), arg );
-        }
-
-        #endregion
 
         [ConsoleCommand ( "list", "Prints the list of mods and their loaded plugins." )]
         private void List ( ConsoleSystem.Arg arg )
         {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
 
             var mode = arg.HasArgs ( 1 ) ? arg.Args [ 0 ] : null;
 
@@ -149,12 +110,54 @@ namespace Carbon.Core
             }
         }
 
+        #region Commands
+
+        [ConsoleCommand ( "find", "Searches through Carbon-processed console commands.", false )]
+        private void Find ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
+
+            var body = new StringBody ();
+            var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args [ 0 ] : null;
+            body.Add ( $"Console Commands:" );
+
+            foreach ( var command in CarbonCore.Instance.AllConsoleCommands )
+            {
+                if ( !string.IsNullOrEmpty ( filter ) && !command.Command.Contains ( filter ) ) continue;
+
+                body.Add ( $" {command.Command}(   )  {command.Help}" );
+            }
+
+            Reply ( body.ToNewLine (), arg );
+        }
+
+        [ConsoleCommand ( "findchat", "Searches through Carbon-processed chat commands.", false )]
+        private void FindChat ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
+
+            var body = new StringBody ();
+            var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args [ 0 ] : null;
+            body.Add ( $"Chat Commands:" );
+
+            foreach ( var command in CarbonCore.Instance.AllChatCommands )
+            {
+                if ( !string.IsNullOrEmpty ( filter ) && !command.Command.Contains ( filter ) ) continue;
+
+                body.Add ( $" {command.Command}(   )  {command.Help}" );
+            }
+
+            Reply ( body.ToNewLine (), arg );
+        }
+
+        #endregion
+
         #region Mod & Plugin Loading
 
         [ConsoleCommand ( "reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything." )]
         private void Reload ( ConsoleSystem.Arg arg )
         {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin || !arg.HasArgs ( 1 ) ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
 
             RefreshOrderedFiles ();
 
@@ -182,7 +185,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "load", "Loads all mods and/or plugins. E.g 'c.load *' to load everything you've unloaded." )]
         private void Load ( ConsoleSystem.Arg arg )
         {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin || !arg.HasArgs ( 1 ) ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
 
             RefreshOrderedFiles ();
 
@@ -251,7 +254,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "unload", "Unloads all mods and/or plugins. E.g 'c.unload *' to unload everything. They'll be marked as 'ignored'." )]
         private void Unload ( ConsoleSystem.Arg arg )
         {
-            if ( arg.Player () != null && !arg.Player ().IsAdmin || !arg.HasArgs ( 1 ) ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
 
             RefreshOrderedFiles ();
 
@@ -326,7 +329,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "grant", "Grant one or more permissions to users or groups. Do 'c.grant' for syntax info." )]
         private void Grant ( ConsoleSystem.Arg arg )
         {
-            if ( !arg.IsAdmin ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
 
             void PrintWarn ()
             {
@@ -369,7 +372,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "revoke", "Revoke one or more permissions from users or groups. Do 'c.revoke' for syntax info." )]
         private void Revoke ( ConsoleSystem.Arg arg )
         {
-            if ( !arg.IsAdmin ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
 
             void PrintWarn ()
             {
@@ -412,7 +415,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "show", "Displays information about a specific player or group (incl. permissions, groups and user list). Do 'c.show' for syntax info." )]
         private void Show ( ConsoleSystem.Arg arg )
         {
-            if ( !arg.IsAdmin ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
 
             void PrintWarn ()
             {
@@ -464,7 +467,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "usergroup", "Adds or removes a player from a group. Do 'c.usergroup' for syntax info." )]
         private void UserGroup ( ConsoleSystem.Arg arg )
         {
-            if ( !arg.IsAdmin ) return;
+            if ( !arg.IsPlayerCalledAndAdmin() ) return;
 
             void PrintWarn ()
             {
@@ -528,7 +531,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "group", "Adds or removes a group. Do 'c.group' for syntax info." )]
         private void Group ( ConsoleSystem.Arg arg )
         {
-            if ( !arg.IsAdmin ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
 
             void PrintWarn ()
             {
