@@ -5,12 +5,12 @@ namespace Oxide.Core.Libraries
 {
     public class Language
     {
-        public void RegisterMessages ( Dictionary<string, string> messages, RustPlugin plugin )
+        public void RegisterMessages ( Dictionary<string, string> messages, RustPlugin plugin, string lang = "en" )
         {
 
         }
 
-        public string GetMessage(string name, RustPlugin plugin )
+        public string GetMessage(string name, RustPlugin plugin, string player = null )
         {
             return default;
         }

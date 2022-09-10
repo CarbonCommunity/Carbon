@@ -41,7 +41,12 @@ namespace Oxide.Core.Libraries
             var timer = new Timer ( Persistence );
             var activity = new Action ( () =>
             {
-                try { action?.Invoke (); } catch ( Exception ex ) { Plugin.Error ( $" Timer {time}s has failed:", ex ); }
+                try
+                {
+                    action?.Invoke ();
+                    timer.TimesTriggered++;
+                }
+                catch ( Exception ex ) { Plugin.LogError ( $" Timer {time}s has failed:", ex ); }
 
                 timer.Destroy ();
                 Pool.Free ( ref timer );
@@ -62,10 +67,45 @@ namespace Oxide.Core.Libraries
             var timer = new Timer ( Persistence );
             var activity = new Action ( () =>
             {
-                try { action?.Invoke (); }
+                try
+                {
+                    action?.Invoke ();
+                    timer.TimesTriggered++;
+                }
                 catch ( Exception ex )
                 {
-                    Plugin.Error ( $" Timer {time}s has failed:", ex );
+                    Plugin.LogError ( $" Timer {time}s has failed:", ex );
+
+                    timer.Destroy ();
+                    Pool.Free ( ref timer );
+                }
+            } );
+
+            timer.Callback = activity;
+            Persistence.InvokeRepeating ( activity, time, time );
+            return timer;
+        }
+        public Timer Repeat ( float time, int times, Action action )
+        {
+            if ( !IsValid () ) return null;
+
+            var timer = new Timer ( Persistence );
+            var activity = new Action ( () =>
+            {
+                try
+                {
+                    action?.Invoke ();
+                    timer.TimesTriggered++;
+
+                    if ( timer.TimesTriggered >= times )
+                    {
+                        timer.Dispose ();
+                        Pool.Free ( ref timer );
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    Plugin.LogError ( $" Timer {time}s has failed:", ex );
 
                     timer.Destroy ();
                     Pool.Free ( ref timer );
@@ -82,6 +122,7 @@ namespace Oxide.Core.Libraries
     {
         public Action Callback { get; set; }
         public Persistence Persistence { get; set; }
+        public int TimesTriggered { get; set; }
 
         public Timer () { }
         public Timer ( Persistence persistence )

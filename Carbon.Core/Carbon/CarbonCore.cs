@@ -12,7 +12,7 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 150 );
+        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 160 );
 
         public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
         public static CarbonCore Instance { get; set; }
@@ -39,6 +39,7 @@ namespace Carbon.Core
         public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand> ();
 
         public ScriptProcessor ScriptProcessor { get; set; } = new ScriptProcessor ();
+        public WebScriptProcessor WebScriptProcessor { get; set; } = new WebScriptProcessor ();
         public HarmonyProcessor HarmonyProcessor { get; set; } = new HarmonyProcessor ();
 
         public static string GetRootFolder ()
@@ -155,12 +156,15 @@ namespace Carbon.Core
         }
         internal void _installProcessors ()
         {
-            if ( ScriptProcessor == null || HarmonyProcessor == null )
+            if ( ScriptProcessor == null ||
+                WebScriptProcessor == null ||
+                HarmonyProcessor == null )
             {
                 _uninstallProcessors ();
 
                 var gameObject = new GameObject ( "Processors" );
                 ScriptProcessor = gameObject.AddComponent<ScriptProcessor> ();
+                WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor> ();
                 HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
             }
 
@@ -169,29 +173,32 @@ namespace Carbon.Core
         internal void _registerProcessors ()
         {
             if ( ScriptProcessor != null ) ScriptProcessor?.Start ();
+            if ( WebScriptProcessor != null ) WebScriptProcessor?.Start ();
             if ( HarmonyProcessor != null ) HarmonyProcessor?.Start ();
 
             if ( ScriptProcessor != null ) ScriptProcessor.InvokeRepeating ( () => { RefreshConsoleInfo (); }, 1f, 1f );
         }
         internal void _uninstallProcessors ()
         {
+            var obj = ScriptProcessor == null ? null : ScriptProcessor.gameObject;
+
             try
             {
                 if ( ScriptProcessor != null ) ScriptProcessor?.Dispose ();
+                if ( WebScriptProcessor != null ) WebScriptProcessor?.Dispose ();
                 if ( HarmonyProcessor != null ) HarmonyProcessor?.Dispose ();
             }
             catch { }
 
             try
             {
-                if ( ScriptProcessor != null ) UnityEngine.Object.DestroyImmediate ( ScriptProcessor );
+                if ( WebScriptProcessor != null ) UnityEngine.Object.DestroyImmediate ( WebScriptProcessor );
                 if ( HarmonyProcessor != null ) UnityEngine.Object.DestroyImmediate ( HarmonyProcessor );
             }
             catch { }
 
             try
             {
-                var obj = ScriptProcessor == null ? null : ScriptProcessor.gameObject;
                 if ( obj != null ) UnityEngine.Object.Destroy ( obj );
             }
             catch { }

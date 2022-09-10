@@ -79,15 +79,26 @@ namespace Oxide.Plugins
         {
             Puts ( string.Format ( message, args ) );
         }
-        public void Error ( string message, Exception exception )
+        public void Log ( string message )
+        {
+            Puts ( message );
+        }
+        public void LogWarning ( string message )
+        {
+            PrintWarning ( message );
+        }
+        public void LogError ( string message, Exception exception )
         {
             CarbonCore.Error ( $"[{Name}] {message}", exception );
+        }
+        public void LogError ( string message )
+        {
+            LogError ( message, null );
         }
         protected void PrintWarning ( string format, params object [] args )
         {
             CarbonCore.WarnFormat ( "[{0}] {1}", Title, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
         }
-
         protected void PrintError ( string format, params object [] args )
         {
             CarbonCore.ErrorFormat ( "[{0}] {1}", null, Title, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
@@ -134,6 +145,11 @@ namespace Oxide.Plugins
             {
                 CarbonCore.Error ( "Failed to save config file (does the config have illegal objects in it?) (" + ex.Message + ")", ex );
             }
+        }
+
+        protected virtual void LoadDefaultMessages ()
+        {
+
         }
 
         public void Unsubscribe ( string hook )

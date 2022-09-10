@@ -1,19 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Carbon.Core.Processors
 {
-    public class ScriptProcessor : BaseProcessor
+    public class WebScriptProcessor : BaseProcessor
     {
-        public override string Folder => CarbonCore.GetPluginsFolder ();
         public override string Extension => ".cs";
-        public override Type IndexedType => typeof ( Script );
+        public override Type IndexedType => typeof ( WebScript );
 
-        public class Script : Instance
+        public class WebScript : Instance
         {
             internal ScriptLoader _loader;
-
-            public override Parser Parser => new ScriptParser ();
 
             public override void Dispose ()
             {
@@ -33,7 +34,6 @@ namespace Carbon.Core.Processors
                 try
                 {
                     _loader = new ScriptLoader ();
-                    _loader.Parser = Parser;
                     _loader.Files.Add ( File );
                     _loader.Load ( true );
                 }
@@ -41,14 +41,6 @@ namespace Carbon.Core.Processors
                 {
                     CarbonCore.Warn ( $"Failed processing {Path.GetFileNameWithoutExtension ( File )}:\n{ex}" );
                 }
-            }
-        }
-
-        public class ScriptParser : Parser
-        {
-            public override void Process ( string input, out string output )
-            {
-                output = input.Replace ( ".IPlayer", ".AsIPlayer()" );
             }
         }
     }

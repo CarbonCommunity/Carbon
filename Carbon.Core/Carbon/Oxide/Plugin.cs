@@ -315,6 +315,11 @@ namespace Oxide.Plugins
 
         #endregion
 
+        public void NextTick(Action action )
+        {
+            action?.Invoke ();
+        }
+
         public bool IsLoaded { get; set; }
 
         public virtual void Dispose ()

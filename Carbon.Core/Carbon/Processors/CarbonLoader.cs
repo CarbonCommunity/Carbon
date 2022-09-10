@@ -299,6 +299,16 @@ namespace Carbon.Core
             {
                 var chatCommand = method.GetCustomAttribute<ChatCommandAttribute> ();
                 var consoleCommand = method.GetCustomAttribute<ConsoleCommandAttribute> ();
+                var command = method.GetCustomAttribute<CommandAttribute> ();
+
+                if ( command != null )
+                {
+                    foreach(var commandName in command.Names )
+                    {
+                        CarbonCore.Instance.CorePlugin.cmd.AddChatCommand ( string.IsNullOrEmpty ( prefix ) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help );
+                        CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( string.IsNullOrEmpty ( prefix ) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help );
+                    }
+                }
 
                 if ( chatCommand != null )
                 {

@@ -24,6 +24,8 @@ namespace Carbon.Core
         public string Source { get; set; }
         public bool IsCore { get; set; }
 
+        public BaseProcessor.Parser Parser { get; set; }
+
         public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader ();
 
         public void Load ( bool customFiles = false, bool customSources = false, GameObject target = null )
@@ -36,6 +38,12 @@ namespace Carbon.Core
             if ( !customSources ) GetSources ();
             GetNamespaces ();
             GetFullSource ();
+
+            if ( Parser != null )
+            {
+                Parser.Process ( Source, out var newSource );
+                Source = newSource;
+            }
 
             CarbonCore.Instance.ScriptProcessor.StartCoroutine ( Compile ( target ) );
         }
@@ -293,7 +301,7 @@ namespace Carbon.Core
                     try { plugin.Instance.DoLoadConfig (); }
                     catch ( Exception loadException )
                     {
-                        plugin.Instance.Error ( $"Failed loading config.", loadException );
+                        plugin.Instance.LogError ( $"Failed loading config.", loadException );
                     }
 
                     if ( CarbonCore.IsServerFullyInitialized )
@@ -301,7 +309,7 @@ namespace Carbon.Core
                         try { plugin.Instance.CallHook ( "OnServerInitialized" ); }
                         catch ( Exception initException )
                         {
-                            plugin.Instance.Error ( $"Failed OnServerInitialized.", initException );
+                            plugin.Instance.LogError ( $"Failed OnServerInitialized.", initException );
                         }
                     }
 

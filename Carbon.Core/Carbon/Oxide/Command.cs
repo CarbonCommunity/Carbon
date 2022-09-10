@@ -21,7 +21,7 @@ public class Command
                 Callback = ( player, cmd, args ) =>
                 {
                     try { callback.Invoke ( player, cmd, args ); }
-                    catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
+                    catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
                 },
                 Help = help
             } );
@@ -39,7 +39,7 @@ public class Command
             var result = argData.ToArray ();
 
             try { plugin.GetType ().GetMethod ( method, BindingFlags.Instance | BindingFlags.NonPublic )?.Invoke ( plugin, result ); }
-            catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
+            catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
 
             Pool.FreeList ( ref argData );
             Pool.Free ( ref result );
@@ -82,10 +82,10 @@ public class Command
                 result = arguments.ToArray ();
 
                 try { plugin.GetType ().GetMethod ( method, BindingFlags.Instance | BindingFlags.NonPublic )?.Invoke ( plugin, result ); }
-                catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
+                catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
             }
             catch ( TargetParameterCountException ) { }
-            catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
+            catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
 
             Pool.FreeList ( ref arguments );
             if ( result != null ) Pool.Free ( ref result );
@@ -115,7 +115,7 @@ public class Command
                 callback.Invoke ( arg );
             }
             catch ( TargetParameterCountException ) { }
-            catch ( Exception ex ) { plugin.Error ( "Error", ex ); }
+            catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
 
             Pool.FreeList ( ref arguments );
             if ( result != null ) Pool.Free ( ref result );

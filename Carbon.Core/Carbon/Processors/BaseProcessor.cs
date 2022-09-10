@@ -188,6 +188,8 @@ namespace Carbon.Core.Processors
 
         public class Instance : IDisposable
         {
+            public virtual Parser Parser { get; }
+
             public string File { get; set; }
 
             internal bool _hasChanged;
@@ -206,6 +208,13 @@ namespace Carbon.Core.Processors
             public void MarkDeleted ()
             {
                 _hasRemoved = true;
+            }
+        }
+        public class Parser
+        {
+            public virtual void Process ( string input, out string output )
+            {
+                output = null;
             }
         }
     }

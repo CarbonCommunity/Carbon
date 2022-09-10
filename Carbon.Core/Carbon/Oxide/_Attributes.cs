@@ -60,6 +60,24 @@ public class PluginReferenceAttribute : Attribute
 }
 
 [AttributeUsage ( AttributeTargets.Method, AllowMultiple = true )]
+public class CommandAttribute : Attribute
+{
+    public string [] Names { get; } = new string [ 1 ];
+    public string Help { get; }
+
+    public CommandAttribute ( string name, string help = null )
+    {
+        Names [ 0 ] = name;
+        Help = help;
+    }
+
+    public CommandAttribute ( params string [] commands )
+    {
+        Names = commands;
+    }
+}
+
+[AttributeUsage ( AttributeTargets.Method, AllowMultiple = true )]
 public class ChatCommandAttribute : Attribute
 {
     public string Name { get; }
