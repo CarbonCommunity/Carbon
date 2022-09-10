@@ -37,7 +37,7 @@ namespace Carbon.Core.Processors
 
             Watcher?.Dispose ();
             Watcher = null;
-            if ( !string.IsNullOrEmpty ( Extension ) )
+            if ( !string.IsNullOrEmpty ( Extension ) && !string.IsNullOrEmpty ( Folder ) )
             {
                 Watcher = new FileSystemWatcher ( Folder )
                 {
