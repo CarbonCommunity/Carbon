@@ -189,6 +189,7 @@ namespace Carbon.Core
             {
                 return false;
             }
+
             foreach ( var hook in mod.Hooks )
             {
                 try

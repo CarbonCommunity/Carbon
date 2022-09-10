@@ -285,7 +285,6 @@ namespace Carbon.Core
 
                     if ( info == null )
                     {
-                        CarbonCore.Warn ( $"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute." );
                         continue;
                     }
 
