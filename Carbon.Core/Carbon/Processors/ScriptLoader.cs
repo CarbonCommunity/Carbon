@@ -42,7 +42,11 @@ namespace Carbon.Core
             if ( Parser != null )
             {
                 Parser.Process ( Source, out var newSource );
-                Source = newSource;
+
+                if ( !string.IsNullOrEmpty ( newSource ) )
+                {
+                    Source = newSource;
+                }
             }
 
             CarbonCore.Instance.ScriptProcessor.StartCoroutine ( Compile ( target ) );
@@ -254,7 +258,7 @@ namespace Carbon.Core
 
             if ( AsyncLoader.Exceptions.Count != 0 )
             {
-                CarbonCore.Error ( $"Failed compiling '{AsyncLoader.FilePath}' after {AsyncLoader.Retries}:" );
+                CarbonCore.Error ( $"Failed compiling '{AsyncLoader.FilePath}' after {AsyncLoader.Retries} retries:" );
                 for ( int i = 0; i < AsyncLoader.Exceptions.Count; i++ )
                 {
                     var error = AsyncLoader.Exceptions [ i ];
