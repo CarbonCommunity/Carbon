@@ -1,5 +1,4 @@
-﻿using Carbon.Core;
-using Facepunch;
+﻿using Facepunch;
 using Oxide.Plugins;
 using System;
 using System.Collections.Generic;

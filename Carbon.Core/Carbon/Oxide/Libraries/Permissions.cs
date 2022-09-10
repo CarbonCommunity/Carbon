@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using Carbon.Core;
-using System.Xml.Linq;
 
 namespace Oxide.Core.Libraries
 {

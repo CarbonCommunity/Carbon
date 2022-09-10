@@ -1,11 +1,8 @@
-﻿using Facepunch;
-using System;
+﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using UnityEngine;
 using CodeCompiler = CSharpCompiler.CodeCompiler;
 
 namespace Carbon.Core

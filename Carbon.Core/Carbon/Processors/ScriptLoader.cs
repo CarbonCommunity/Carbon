@@ -1,6 +1,5 @@
 ﻿using Carbon.Core.Processors;
 using Facepunch;
-using Harmony;
 using Humanlights.Extensions;
 using Humanlights.Unity.Compiler;
 using Oxide.Core;

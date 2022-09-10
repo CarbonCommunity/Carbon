@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32.SafeHandles;
-using Oxide.Plugins;
+﻿using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Reflection;

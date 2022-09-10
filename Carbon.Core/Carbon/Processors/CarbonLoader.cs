@@ -6,7 +6,6 @@ using System;
 using UnityEngine;
 using Oxide.Plugins;
 using Humanlights.Extensions;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
 namespace Carbon.Core

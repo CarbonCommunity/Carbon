@@ -1,7 +1,4 @@
 ﻿using Carbon.Core;
-using Oxide.Plugins;
-using System.Reflection;
-using static ConsoleSystem;
 
 namespace Oxide.Core
 {

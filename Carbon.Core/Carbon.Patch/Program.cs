@@ -1,14 +1,6 @@
-﻿using Carbon.Core;
-using Humanlights.Extensions;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
+﻿using Humanlights.Extensions;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Carbon.Patch
 {

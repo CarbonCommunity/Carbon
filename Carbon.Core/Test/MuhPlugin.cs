@@ -19,7 +19,7 @@ namespace Oxide.Plugins
 
         private void OnServerInitialized ()
         {
-            PortableLocker.Call ( "OpenLocker", BasePlayer.Find ( "Raul" ), null );
+            PortableLocker?.Call ( "OpenLocker", BasePlayer.Find ( "Raul" ), null );
 
             Instance = this;
 
@@ -27,18 +27,7 @@ namespace Oxide.Plugins
             HarmonyInstance.PatchAll ( Assembly.GetExecutingAssembly () );
 
             Puts ( $"{Assembly.GetExecutingAssembly ()?.GetTypes () [ 0 ]?.FullName}" );
-
             Puts ( $"{permission.GroupExists ( "default" )} {permission.PermissionExists ( "portablelocker.use" )}" );
-
-            // var counter = 1;
-            // var timeTest = timer.Every ( 0.25f, () =>
-            // {
-            //     Puts ( $"YEEET" );
-            // } );
-            // timer.In ( 2f, () =>
-            // {
-            //     timeTest.Destroy ();
-            // } );
 
             timer.In ( 1f, () =>
             {
@@ -46,6 +35,11 @@ namespace Oxide.Plugins
                 Oxide.Core.Interface.CallHook ( "ayaya" );
                 Oxide.Core.Interface.CallHook ( "MyHookTest" );
             } );
+
+            webrequest.Enqueue ( "https://codefling.com/capi/category-2/?do=apicall", null, ( error, result ) =>
+            {
+                Puts ( $"This worked :D {result.Length}" );
+            }, this );
         }
 
         [HookMethod ( "ayaya" )]
@@ -103,12 +97,12 @@ namespace Oxide.Plugins
         }
     }
 
-    [HarmonyPatch ( typeof ( BaseProjectile ), "CLProject" )]
-    public class BaseProjectile_CLProject
-    {
-        public static void Prefix ( BaseEntity.RPCMessage msg, ref BaseProjectile __instance )
-        {
-            HookExecutor.CallStaticHook ( "OnWeaponFired", __instance, msg.player, __instance.PrimaryMagazineAmmo.GetComponent<ItemModProjectile> (), null );
-        }
-    }
+    // [HarmonyPatch ( typeof ( BaseProjectile ), "CLProject" )]
+    // public class BaseProjectile_CLProject
+    // {
+    //     public static void Prefix ( BaseEntity.RPCMessage msg, ref BaseProjectile __instance )
+    //     {
+    //         HookExecutor.CallStaticHook ( "OnWeaponFired", __instance, msg.player, __instance.PrimaryMagazineAmmo.GetComponent<ItemModProjectile> (), null );
+    //     }
+    // }
 }

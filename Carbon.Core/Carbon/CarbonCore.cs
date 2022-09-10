@@ -5,10 +5,8 @@ using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using Windows;
 
 namespace Carbon.Core
 {
@@ -207,7 +205,7 @@ namespace Carbon.Core
 
             ServerConsole.Instance.input.statusText [ 3 ] = $" Carbon v{Version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count ):n0} plgs";
 #endif
-            }
+        }
 
         public void Init ()
         {

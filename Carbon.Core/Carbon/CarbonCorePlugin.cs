@@ -4,13 +4,9 @@ using Humanlights.Components;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Oxide.Plugins;
-using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
 using UnityEngine;
 
 namespace Carbon.Core
@@ -467,7 +463,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "usergroup", "Adds or removes a player from a group. Do 'c.usergroup' for syntax info." )]
         private void UserGroup ( ConsoleSystem.Arg arg )
         {
-            if ( !arg.IsPlayerCalledAndAdmin() ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
 
             void PrintWarn ()
             {

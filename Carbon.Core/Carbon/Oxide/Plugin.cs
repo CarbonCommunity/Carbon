@@ -5,11 +5,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using Carbon.Core;
 using Newtonsoft.Json;
-using System.Text.Json.Serialization;
 using Harmony;
-using System.Threading.Tasks;
 using System.Linq;
-using Newtonsoft.Json.Schema;
 using Carbon.Core.Processors;
 
 namespace Oxide.Plugins
@@ -47,6 +44,11 @@ namespace Oxide.Plugins
         internal BaseProcessor _processor;
 
         public HarmonyInstance HarmonyInstance;
+
+        public static implicit operator bool ( Plugin other )
+        {
+            return other != null;
+        }
 
         public void TrackStart ()
         {
@@ -140,7 +142,7 @@ namespace Oxide.Plugins
             }
         }
 
-        public void SetProcessor(BaseProcessor processor )
+        public void SetProcessor ( BaseProcessor processor )
         {
             _processor = processor;
         }

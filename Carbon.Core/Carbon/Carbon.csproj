@@ -11,7 +11,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Carbon.Core</RootNamespace>
-    <AssemblyName>Carbon</AssemblyName>
+    <AssemblyName>Carbon1</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -358,6 +358,7 @@
     <Compile Include="Extensions\ConsoleArgEx.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
     <Compile Include="Hooks\OnServerSave.cs" />
+    <Compile Include="Oxide\Extensions\HttpWebRequestExtensions.cs" />
     <Compile Include="Oxide\Hash.cs" />
     <Compile Include="Placebo\SystemConsole.cs" />
     <Compile Include="Processors\BaseProcessor.cs" />
