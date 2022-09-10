@@ -48,10 +48,7 @@ namespace Carbon.Patch
                 using ( var archive = new ZipArchive ( memoryStream, ZipArchiveMode.Create, true ) )
                 {
                     archive.CreateEntryFromFile ( "Carbon.Core/Carbon/bin/ReleaseUnix/Carbon.dll", "HarmonyMods/Carbon.dll" );
-                    archive.CreateEntryFromFile ( "Carbon.Core/Carbon.Doorstop/bin/Release/Carbon.Doorstop.dll", "RustDedicated_Data/Managed/Carbon.Doorstop.dll" );
-                    archive.CreateEntryFromFile ( "Tools/libdoorstop_x64.so", "libdoorstop_x64.so" );
-                    archive.CreateEntryFromFile ( "Tools/libdoorstop_x86.so", "libdoorstop_x86.so" );
-                    archive.CreateEntryFromFile ( "Tools/run.sh", "carbon_run.sh" );
+                    archive.CreateEntryFromFile ( "Tools/patch.sh", "carbon_prepatch.sh" );
                     archive.CreateEntryFromFile ( "Tools/NStrip", "carbon/tools/NStrip" );
                 }
 

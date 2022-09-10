@@ -358,13 +358,13 @@
     <Compile Include="Extensions\ConsoleArgEx.cs" />
     <Compile Include="Extensions\CovalenceEx.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
+    <Compile Include="Hooks\RconCommand.cs" />
     <Compile Include="Hooks\OnServerSave.cs" />
     <Compile Include="Oxide\Covalence\CovalencePlugin.cs" />
     <Compile Include="Oxide\Covalence\IPlayer.cs" />
     <Compile Include="Oxide\Extensions\HttpWebRequestExtensions.cs" />
     <Compile Include="Oxide\Hash.cs" />
     <Compile Include="Oxide\Libraries\CommandType.cs" />
-    <Compile Include="Placebo\SystemConsole.cs" />
     <Compile Include="Processors\BaseProcessor.cs" />
     <Compile Include="Processors\CarbonLoader.cs" />
     <Compile Include="Oxide\Command.cs" />

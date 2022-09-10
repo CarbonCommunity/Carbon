@@ -1,4 +1,5 @@
 ﻿using Carbon.Core;
+using Carbon.Core.Extensions;
 using Harmony;
 using System;
 using System.Linq;
@@ -8,13 +9,13 @@ public class ConsoleCommand
 {
     public static bool Prefix ( ConsoleSystem.Option options, string strCommand, object [] args )
     {
+        if ( CarbonCore.Instance == null ) return true;
+
         try
         {
-            var split = strCommand.Split ( ' ' );
-            var command = split [ 0 ];
-            var args2 = split.Skip ( 1 ).ToArray ();
-
-            if ( CarbonCore.Instance == null ) return true;
+            var split = strCommand.Split ( ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries );
+            var command = split [ 0 ].Trim ();
+            var args2 = split.Length > 1 ? split.Skip ( 1 ).ToArray () : null;
 
             foreach ( var cmd in CarbonCore.Instance.AllConsoleCommands )
             {

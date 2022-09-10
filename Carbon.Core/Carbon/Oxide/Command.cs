@@ -69,7 +69,7 @@ public class Command
 
             try
             {
-                var fullString = $"{cmd} {string.Join ( " ", args )}";
+                var fullString = args == null || args.Length == 0 ? cmd : $"{cmd} {string.Join ( " ", args )}";
                 var value = new object [] { fullString };
                 var client = Option.Unrestricted;
                 var arg = FormatterServices.GetUninitializedObject ( typeof ( Arg ) ) as Arg;
@@ -100,7 +100,7 @@ public class Command
 
             try
             {
-                var fullString = $"{cmd} {string.Join ( " ", args )}";
+                var fullString = args == null || args.Length == 0 ? cmd : $"{cmd} {string.Join ( " ", args )}";
                 var value = new object [] { fullString };
                 var client = Option.Unrestricted;
                 var arg = FormatterServices.GetUninitializedObject ( typeof ( Arg ) ) as Arg;
