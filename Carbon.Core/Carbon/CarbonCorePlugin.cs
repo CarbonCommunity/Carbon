@@ -106,6 +106,41 @@ namespace Carbon.Core
             }
         }
 
+        #region Config
+
+        [ConsoleCommand ( "loadconfig", "Loads Carbon config from file.", false )]
+        private void LoadConfig ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null ) return;
+
+            CarbonCore.Instance.LoadConfig ();
+
+            Reply ( "Loaded Carbon config.", arg );
+        }
+
+        [ConsoleCommand ( "saveconfig", "Saves Carbon config to file.", false )]
+        private void SaveConfig ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null ) return;
+
+            CarbonCore.Instance.SaveConfig ();
+
+            Reply ( "Saved Carbon config.", arg );
+        }
+
+        [ConsoleCommand ( "modding", "Mark this server as moddable or not.", false )]
+        private void Modding ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || arg.HasArgs ( 1 ) ) return;
+
+            CarbonCore.Instance.Config.IsModded = arg.GetBool ( 0 );
+            CarbonCore.Instance.SaveConfig ();
+
+            Reply ( $"Set server as '{( CarbonCore.Instance.Config.IsModded ? "Modded" : "Community" )}'", arg );
+        }
+
+        #endregion
+
         #region Commands
 
         [ConsoleCommand ( "find", "Searches through Carbon-processed console commands.", false )]

@@ -357,6 +357,7 @@
     <Compile Include="Carbon\CarbonPlugin.cs" />
     <Compile Include="Extensions\ConsoleArgEx.cs" />
     <Compile Include="Extensions\CovalenceEx.cs" />
+    <Compile Include="Extensions\ServerTagEx.cs" />
     <Compile Include="Harmony\HookExecutor.cs" />
     <Compile Include="Hooks\RconCommand.cs" />
     <Compile Include="Hooks\OnServerSave.cs" />

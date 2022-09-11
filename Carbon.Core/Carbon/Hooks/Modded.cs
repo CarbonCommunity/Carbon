@@ -1,4 +1,5 @@
-﻿using Harmony;
+﻿using Carbon.Core.Extensions;
+using Harmony;
 using System;
 using System.Reflection;
 
@@ -7,15 +8,20 @@ namespace Carbon.Core.Oxide.Hooks
     [HarmonyPatch ( typeof ( ServerMgr ), "UpdateServerInformation" )]
     internal class ServerMgr_UpdateServerInformation
     {
-        private static readonly PropertyInfo GameTags = AccessTools.TypeByName ( "Steamworks.SteamServer" ).GetProperty ( "GameTags", BindingFlags.Static | BindingFlags.Public );
-
         public static void Postfix ()
         {
+            if ( CarbonCore.Instance == null || CarbonCore.Instance.Config == null ) return;
+
             try
             {
-                var gameTags = GameTags.GetValue ( null ) as string;
-
-                if ( !gameTags.Contains ( ",modded" ) ) GameTags.SetValue ( null, $"{gameTags},modded" );
+                if ( CarbonCore.Instance.Config.IsModded )
+                {
+                    ServerTagEx.SetRequiredTag ( "modded" );
+                }
+                else
+                {
+                    ServerTagEx.UnsetRequiredTag ( "modded" );
+                }
             }
             catch ( Exception ex )
             {
