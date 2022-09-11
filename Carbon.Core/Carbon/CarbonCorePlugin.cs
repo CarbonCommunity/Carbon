@@ -109,7 +109,7 @@ namespace Carbon.Core
         #region Config
 
         [ConsoleCommand ( "loadconfig", "Loads Carbon config from file.", false )]
-        private void LoadConfig ( ConsoleSystem.Arg arg )
+        private void CarbonLoadConfig ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null ) return;
 
@@ -119,7 +119,7 @@ namespace Carbon.Core
         }
 
         [ConsoleCommand ( "saveconfig", "Saves Carbon config to file.", false )]
-        private void SaveConfig ( ConsoleSystem.Arg arg )
+        private void CarbonSaveConfig ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null ) return;
 
@@ -129,9 +129,9 @@ namespace Carbon.Core
         }
 
         [ConsoleCommand ( "modding", "Mark this server as moddable or not.", false )]
-        private void Modding ( ConsoleSystem.Arg arg )
+        private void CarbonModding ( ConsoleSystem.Arg arg )
         {
-            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || arg.HasArgs ( 1 ) ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
 
             CarbonCore.Instance.Config.IsModded = arg.GetBool ( 0 );
             CarbonCore.Instance.SaveConfig ();
