@@ -113,7 +113,7 @@ namespace Carbon.Core
                     try
                     {
                         HookExecutor.CallStaticHook ( "OnPluginUnloaded", plugin.Instance );
-                        plugin.Instance.Unload ();
+                        plugin.Instance.IUnload ();
                         CarbonLoader.RemoveCommands ( plugin.Instance );
                         plugin.Instance.Dispose ();
                         CarbonCore.Log ( $"Unloaded plugin {plugin.Instance}" );
@@ -300,7 +300,7 @@ namespace Carbon.Core
 
                     plugin.Instance.CallHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
-                    plugin.Instance.Init ();
+                    plugin.Instance.IInit ();
                     try { plugin.Instance.DoLoadConfig (); }
                     catch ( Exception loadException )
                     {

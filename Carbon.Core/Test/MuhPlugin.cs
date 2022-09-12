@@ -22,9 +22,8 @@ namespace Oxide.Plugins
             PortableLocker?.Call ( "OpenLocker", BasePlayer.Find ( "Raul" ), null );
 
             Instance = this;
-
-            HarmonyInstance.DEBUG = true;
-            HarmonyInstance.PatchAll ( Assembly.GetExecutingAssembly () );
+    
+            PatchPlugin ( Assembly.GetExecutingAssembly () );
 
             Puts ( $"{Assembly.GetExecutingAssembly ()?.GetTypes () [ 0 ]?.FullName}" );
             Puts ( $"{permission.GroupExists ( "default" )} {permission.PermissionExists ( "portablelocker.use" )}" );
@@ -50,7 +49,7 @@ namespace Oxide.Plugins
 
         private void Unload ()
         {
-            HarmonyInstance.UnpatchAll ( HarmonyInstance.Id );
+            UnpatchPlugin ();
         }
 
         private object OnHammerHit ( BasePlayer player, HitInfo info )

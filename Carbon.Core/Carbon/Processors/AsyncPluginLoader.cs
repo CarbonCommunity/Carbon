@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Humanlights.Extensions;
+using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 using CodeCompiler = CSharpCompiler.CodeCompiler;
 
 namespace Carbon.Core
@@ -19,7 +21,14 @@ namespace Carbon.Core
 
         internal static CodeCompiler _compiler = new CodeCompiler ();
         internal CompilerParameters _parameters;
-        internal static string [] _defaultReferences = new string [] { "System.dll", "mscorlib.dll", "protobuf-net.dll", "protobuf-net.Core.dll" };
+        internal static string [] _defaultReferences = new string [] {
+            "System.dll",
+            "mscorlib.dll",
+            "protobuf-net.dll",
+            "protobuf-net.Core.dll",
+            "Assembly-CSharp.dll",
+            "Carbon.dll",
+            "Carbon-Unix.dll" };
         internal void _addReferences ()
         {
             _parameters.ReferencedAssemblies.Clear ();
@@ -116,7 +125,11 @@ namespace Carbon.Core
             {
                 Exceptions.Clear ();
 
+                if ( string.IsNullOrEmpty ( Source ) ) Source = OsEx.File.ReadText ( FilePath );
+
                 var result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
+                if ( result.CompiledAssembly == null ) result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
+
                 Assembly = result.CompiledAssembly;
 
                 foreach ( CompilerError error in result.Errors )
@@ -129,8 +142,9 @@ namespace Carbon.Core
             catch
             {
 
-                if ( Retries <= 2 )
+                if ( Retries < 10 )
                 {
+                    Thread.Sleep ( 100 );
                     Retries++;
                     ThreadFunction ();
                     return;

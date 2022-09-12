@@ -14,7 +14,7 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 165 );
+        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 170 );
 
         public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
         public static CarbonCore Instance { get; set; }
@@ -82,7 +82,7 @@ namespace Carbon.Core
         {
             CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
             Plugins = new CarbonLoader.CarbonMod { Name = "Scripts", IsCoreMod = true };
-            CorePlugin.Init ();
+            CorePlugin.IInit ();
 
             CarbonLoader._loadedMods.Add ( new CarbonLoader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } } );
             CarbonLoader._loadedMods.Add ( Plugins );

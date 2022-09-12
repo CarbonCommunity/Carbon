@@ -43,7 +43,7 @@ namespace Oxide.Plugins
         internal Stopwatch _trackStopwatch = new Stopwatch ();
         internal BaseProcessor _processor;
 
-        public HarmonyInstance HarmonyInstance;
+        public HarmonyInstance Harmony;
 
         public static implicit operator bool ( Plugin other )
         {
@@ -81,11 +81,8 @@ namespace Oxide.Plugins
             stopwatch.Reset ();
         }
 
-        public virtual void Init ()
+        public virtual void IInit ()
         {
-            HarmonyInstance = HarmonyInstance.Create ( Name + "Patches" );
-            HarmonyInstance.PatchAll ( Assembly.GetExecutingAssembly () );
-
             foreach ( var method in GetType ().GetMethods ( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public ) )
             {
                 var attribute = method.GetCustomAttribute<HookMethodAttribute> ();
@@ -104,12 +101,12 @@ namespace Oxide.Plugins
                 if ( plugin != null ) field.SetValue ( this, plugin );
             }
         }
-        public virtual void Load ()
+        public virtual void ILoad ()
         {
             IsLoaded = true;
             CallHook ( "OnLoaded" );
         }
-        public virtual void Unload ()
+        public virtual void IUnload ()
         {
             foreach ( var plugin in CarbonCore.Instance.CorePlugin.plugins.GetAll () )
             {
@@ -120,9 +117,6 @@ namespace Oxide.Plugins
                     plugin.InternalUnload ();
                 }
             }
-
-            HarmonyInstance?.UnpatchAll ( HarmonyInstance.Id );
-            HarmonyInstance = null;
 
             IgnoredHooks.Clear ();
             HookCache.Clear ();
@@ -140,6 +134,20 @@ namespace Oxide.Plugins
                     _processor.Clear ( Name, script.InstanceBuffer [ Name ] );
                     break;
             }
+        }
+
+        public void PatchPlugin ( Assembly assembly = null )
+        {
+            if ( assembly == null ) assembly = Assembly.GetExecutingAssembly ();
+
+            Harmony = null;
+            Harmony = HarmonyInstance.Create ( Name + "Patches" );
+            Harmony.PatchAll ( assembly );
+        }
+        public void UnpatchPlugin ()
+        {
+            Harmony?.UnpatchAll ( Harmony.Id );
+            Harmony = null;
         }
 
         public void SetProcessor ( BaseProcessor processor )
@@ -315,7 +323,7 @@ namespace Oxide.Plugins
 
         #endregion
 
-        public void NextTick(Action action )
+        public void NextTick ( Action action )
         {
             action?.Invoke ();
         }

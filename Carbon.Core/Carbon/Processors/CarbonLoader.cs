@@ -168,7 +168,7 @@ namespace Carbon.Core
                     }
                 }
 
-                AppendAssembly( mod.Name, assembly );
+                AppendAssembly ( mod.Name, assembly );
                 AssemblyCache.Add ( assembly );
                 _loadedMods.Add ( mod );
 
@@ -237,7 +237,7 @@ namespace Carbon.Core
                         type.Namespace.Equals ( "Carbon.Plugins" ) ) ) return;
 
                     if ( !IsValidPlugin ( type ) ) continue;
-                
+
                     var instance = Activator.CreateInstance ( type, false );
                     var plugin = instance as RustPlugin;
                     var info = type.GetCustomAttribute<InfoAttribute> ();
@@ -248,12 +248,12 @@ namespace Carbon.Core
                         CarbonCore.Warn ( $"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute." );
                         continue;
                     }
-
+                    plugin.SetProcessor ( CarbonCore.Instance.HarmonyProcessor );
                     plugin.CallHook ( "SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
-                    plugin.Init ();
+                    plugin.IInit ();
+                    plugin.ILoad ();
                     plugin.DoLoadConfig ();
-                    plugin.SetProcessor ( CarbonCore.Instance.HarmonyProcessor );
 
                     if ( CarbonCore.IsServerFullyInitialized )
                     {
@@ -276,6 +276,7 @@ namespace Carbon.Core
                 {
                     HookExecutor.CallStaticHook ( "OnPluginUnloaded", plugin );
                     plugin.CallHook ( "Unload" );
+                    plugin.IUnload ();
                     RemoveCommands ( plugin );
                     plugin.Dispose ();
                     CarbonCore.Log ( $"Unloaded plugin {plugin}" );
@@ -304,7 +305,7 @@ namespace Carbon.Core
 
                 if ( command != null )
                 {
-                    foreach(var commandName in command.Names )
+                    foreach ( var commandName in command.Names )
                     {
                         CarbonCore.Instance.CorePlugin.cmd.AddChatCommand ( string.IsNullOrEmpty ( prefix ) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help );
                         CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( string.IsNullOrEmpty ( prefix ) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help );
@@ -362,13 +363,16 @@ namespace Carbon.Core
             {
                 return null;
             }
-            byte [] rawAssembly = File.ReadAllBytes ( assemblyPath );
-            string path = assemblyPath.Substring ( 0, assemblyPath.Length - 4 ) + ".pdb";
+
+            var rawAssembly = File.ReadAllBytes ( assemblyPath );
+            var path = assemblyPath.Substring ( 0, assemblyPath.Length - 4 ) + ".pdb";
+
             if ( File.Exists ( path ) )
             {
-                byte [] rawSymbolStore = File.ReadAllBytes ( path );
+                var rawSymbolStore = File.ReadAllBytes ( path );
                 return Assembly.Load ( rawAssembly, rawSymbolStore );
             }
+
             return Assembly.Load ( rawAssembly );
         }
         internal static bool IsKnownDependency ( string assemblyName )

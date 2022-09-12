@@ -33,14 +33,42 @@ public class Command
         AddChatCommand ( command, plugin, ( player, cmd, args ) =>
         {
             var argData = Pool.GetList<object> ();
-            argData.Add ( player );
-            argData.Add ( cmd );
-            argData.Add ( args );
-            var result = argData.ToArray ();
+            var result = ( object [] )null;
+            try
+            {
+                var m = plugin.GetType ().GetMethod ( method, BindingFlags.Instance | BindingFlags.NonPublic );
+                switch( m.GetParameters ().Length )
+                {
+                    case 1:
+                        {
+                            argData.Add ( player );
+                            result = argData.ToArray ();
+                            break;
+                        }
 
-            try { plugin.GetType ().GetMethod ( method, BindingFlags.Instance | BindingFlags.NonPublic )?.Invoke ( plugin, result ); }
+                    case 2:
+                        {
+                            argData.Add ( player );
+                            argData.Add ( cmd );
+                            result = argData.ToArray ();
+                            break;
+                        }
+
+                    case 3:
+                        {
+                            argData.Add ( player );
+                            argData.Add ( cmd );
+                            argData.Add ( args );
+                            result = argData.ToArray ();
+                            break;
+                        }
+                }
+
+                m?.Invoke ( plugin, result );
+            }
             catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
 
+            Pool.Free ( ref result );
             Pool.FreeList ( ref argData );
             Pool.Free ( ref result );
         }, skipOriginal, help );
@@ -120,5 +148,15 @@ public class Command
             Pool.FreeList ( ref arguments );
             if ( result != null ) Pool.Free ( ref result );
         }, skipOriginal, help );
+    }
+    public void AddCovalenceCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true, string help = null )
+    {
+        AddChatCommand ( command, plugin, method, skipOriginal, help );
+        AddConsoleCommand ( command, plugin, method, skipOriginal, help );
+    }
+    public void AddCovalenceCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
+    {
+        AddChatCommand ( command, plugin, callback, skipOriginal, help );
+        AddConsoleCommand ( command, plugin, callback, skipOriginal, help );
     }
 }

@@ -35,7 +35,7 @@ namespace Carbon.Core
             return null;
         }
 
-        public override void Init ()
+        public override void IInit ()
         {
             foreach ( var player in BasePlayer.activePlayerList )
             {
@@ -328,7 +328,7 @@ namespace Carbon.Core
                         DebugEx.Warning ( $" Couldn't find plugin with name '{name}'" );
                         return;
                     }
-                    
+
                     //
                     // Mods
                     //
