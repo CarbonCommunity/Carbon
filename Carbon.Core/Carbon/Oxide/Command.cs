@@ -37,7 +37,7 @@ public class Command
             try
             {
                 var m = plugin.GetType ().GetMethod ( method, BindingFlags.Instance | BindingFlags.NonPublic );
-                switch( m.GetParameters ().Length )
+                switch ( m.GetParameters ().Length )
                 {
                     case 1:
                         {
@@ -68,9 +68,8 @@ public class Command
             }
             catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
 
-            Pool.Free ( ref result );
-            Pool.FreeList ( ref argData );
-            Pool.Free ( ref result );
+            if ( argData != null ) Pool.FreeList ( ref argData );
+            if ( result != null ) Pool.Free ( ref result );
         }, skipOriginal, help );
     }
     public void AddConsoleCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
