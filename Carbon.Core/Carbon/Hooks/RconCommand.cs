@@ -16,7 +16,11 @@ public class RconCommand
         {
             var split = cmd.Message.Split ( ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries );
             var command = split [ 0 ].Trim ();
-            var args2 = split.Length > 1 ? split.Skip ( 1 ).ToArray () : null;
+
+            var arguments = Pool.GetList<string> ();
+            foreach ( var arg in split.Skip ( 1 ) ) arguments.Add ( arg.Trim () );
+            var args2 = arguments.ToArray ();
+            Pool.FreeList ( ref arguments );
 
             foreach ( var carbonCommand in CarbonCore.Instance.AllConsoleCommands )
             {

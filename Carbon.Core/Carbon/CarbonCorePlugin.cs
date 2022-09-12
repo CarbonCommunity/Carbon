@@ -311,6 +311,7 @@ namespace Carbon.Core
                         var tempList = Pool.GetList<string> ();
                         tempList.AddRange ( CarbonCore.Instance.ScriptProcessor.IgnoreList );
                         CarbonCore.Instance.ScriptProcessor.IgnoreList.Clear ();
+                        CarbonCore.Instance.ScriptProcessor.Clear ();
 
                         foreach ( var plugin in tempList )
                         {
@@ -327,7 +328,7 @@ namespace Carbon.Core
                         DebugEx.Warning ( $" Couldn't find plugin with name '{name}'" );
                         return;
                     }
-
+                    
                     //
                     // Mods
                     //

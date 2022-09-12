@@ -8,7 +8,7 @@ namespace Carbon.Core.Extensions
 {
     public static class ServerTagEx
     {
-        public static bool SetRequiredTag(string tag )
+        public static bool SetRequiredTag ( string tag )
         {
             var tags = Steamworks.SteamServer.GameTags;
 
@@ -21,7 +21,7 @@ namespace Carbon.Core.Extensions
             return false;
         }
 
-        public static bool UnsetRequiredTag(string tag )
+        public static bool UnsetRequiredTag ( string tag )
         {
             var tags = Steamworks.SteamServer.GameTags;
 

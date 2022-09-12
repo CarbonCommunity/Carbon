@@ -164,6 +164,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OxideTemplate.cs" />
+    <Compile Include="CarbonTemplate.cs" />
     <Compile Include="MuhPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
