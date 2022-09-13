@@ -267,6 +267,8 @@ namespace Carbon.Core
                 yield break;
             }
 
+            CarbonCore.Warn ( $" Compiling '{Path.GetFileNameWithoutExtension( Files [ 0 ] )}' took {AsyncLoader.CompileTime * 1000:0}ms..." );
+
             try
             {
                 CarbonLoader.AssemblyCache.Add ( AsyncLoader.Assembly );

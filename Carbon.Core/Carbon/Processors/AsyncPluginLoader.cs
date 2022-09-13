@@ -15,9 +15,11 @@ namespace Carbon.Core
         public string Source;
         public string [] References;
         public string [] Requires;
+        public float CompileTime;
         public Assembly Assembly;
         public List<CompilerException> Exceptions = new List<CompilerException> ();
         internal int Retries;
+        internal RealTimeSince TimeSinceCompile;
 
         internal static CodeCompiler _compiler = new CodeCompiler ();
         internal CompilerParameters _parameters;
@@ -27,8 +29,12 @@ namespace Carbon.Core
             "protobuf-net.dll",
             "protobuf-net.Core.dll",
             "Assembly-CSharp.dll",
+#if WIN
             "Carbon.dll",
-            "Carbon-Unix.dll" };
+#elif LINUX
+            "Carbon-Unix.dll" 
+#endif
+        };
         internal void _addReferences ()
         {
             _parameters.ReferencedAssemblies.Clear ();
@@ -125,10 +131,10 @@ namespace Carbon.Core
             {
                 Exceptions.Clear ();
 
-                if ( string.IsNullOrEmpty ( Source ) ) Source = OsEx.File.ReadText ( FilePath );
-
+                TimeSinceCompile = 0;
                 var result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
-                if ( result.CompiledAssembly == null ) result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
+                if ( result == null || result.CompiledAssembly == null ) result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
+                CompileTime = TimeSinceCompile;
 
                 Assembly = result.CompiledAssembly;
 
@@ -137,11 +143,11 @@ namespace Carbon.Core
                     Exceptions.Add ( new CompilerException ( FilePath, error ) );
                 }
 
+
                 if ( Exceptions.Count > 0 ) throw null;
             }
             catch
             {
-
                 if ( Retries < 10 )
                 {
                     Thread.Sleep ( 100 );
