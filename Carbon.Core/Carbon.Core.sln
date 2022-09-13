@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Patch", "Carbon.Patc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Doorstop", "Carbon.Doorstop\Carbon.Doorstop.csproj", "{6872448A-98BF-45B3-88D8-AF80F8E562CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.CodeGen", "Carbon.CodeGen\Carbon.CodeGen.csproj", "{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,12 @@ Global
 		{6872448A-98BF-45B3-88D8-AF80F8E562CA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6872448A-98BF-45B3-88D8-AF80F8E562CA}.ReleaseUnix|Any CPU.ActiveCfg = ReleaseUnix|Any CPU
 		{6872448A-98BF-45B3-88D8-AF80F8E562CA}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|Any CPU
+		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.ReleaseUnix|Any CPU.ActiveCfg = Release|Any CPU
+		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.ReleaseUnix|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
