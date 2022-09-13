@@ -128,7 +128,7 @@ namespace Carbon.Core
             Reply ( "Saved Carbon config.", arg );
         }
 
-        [ConsoleCommand ( "modding", "Mark this server as moddable or not.", false )]
+        [ConsoleCommand ( "modding", "Mark this server as modded or not.", false )]
         private void CarbonModding ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
