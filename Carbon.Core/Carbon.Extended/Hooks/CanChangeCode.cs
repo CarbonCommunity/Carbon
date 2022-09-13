@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( CodeLock ), "RPC_ChangeCode" )]
     public class CanChangeCode
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "CanChangeCode" );
         }

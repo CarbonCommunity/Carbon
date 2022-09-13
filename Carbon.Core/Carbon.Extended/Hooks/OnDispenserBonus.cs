@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ResourceDispenser ), "AssignFinishBonus" )]
     public class OnDispenserBonus
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnDispenserBonus" );
         }

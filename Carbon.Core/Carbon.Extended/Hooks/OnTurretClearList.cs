@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( AutoTurret ), "ClearList" )]
     public class OnTurretClearList
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnTurretClearList" );
         }

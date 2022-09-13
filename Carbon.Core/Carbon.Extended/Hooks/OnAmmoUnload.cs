@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BaseProjectile ), "UnloadAmmo" )]
     public class OnAmmoUnload
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnAmmoUnload" );
         }

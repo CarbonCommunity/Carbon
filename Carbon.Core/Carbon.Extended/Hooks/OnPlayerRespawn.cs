@@ -3,10 +3,10 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch ( typeof ( BasePlayer ), "Respawn" )]
+    [HarmonyPatch ( typeof ( SleepingBag ), "SpawnPlayer" )]
     public class OnPlayerRespawn
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnPlayerRespawn" );
         }

@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( VendingMachine ), "RefreshSellOrderStockLevel" )]
     public class OnRefreshVendingStock
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnRefreshVendingStock" );
         }

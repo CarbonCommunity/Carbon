@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BasePlayer ), "ChatMessage" )]
     public class OnMessagePlayer
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnMessagePlayer" );
         }

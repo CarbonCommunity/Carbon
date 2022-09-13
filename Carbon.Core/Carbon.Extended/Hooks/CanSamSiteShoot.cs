@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( SamSite ), "WeaponTick" )]
     public class CanSamSiteShoot
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "CanSamSiteShoot" );
         }

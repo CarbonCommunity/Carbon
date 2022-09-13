@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BasePlayer ), "ApplyFallDamageFromVelocity" )]
     public class OnPlayerLand
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnPlayerLand" );
         }

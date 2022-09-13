@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( StabilityEntity ), "StabilityCheck" )]
     public class OnEntityStabilityCheck
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnEntityStabilityCheck" );
         }

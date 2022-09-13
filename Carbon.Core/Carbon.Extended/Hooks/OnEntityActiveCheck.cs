@@ -3,10 +3,10 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch ( typeof ( BaseEntity/RPC_Server/IsActiveItem ), "Test" )]
+    [HarmonyPatch ( typeof ( BaseEntity.RPC_Server.IsActiveItem ), "Test" )]
     public class OnEntityActiveCheck
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnEntityActiveCheck" );
         }

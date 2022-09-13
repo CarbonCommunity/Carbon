@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ServerMgr ), "OnDisconnected" )]
     public class OnPlayerDisconnected
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnPlayerDisconnected" );
         }

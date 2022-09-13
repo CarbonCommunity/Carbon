@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( RepairBench ), "ChangeSkin" )]
     public class OnItemSkinChange
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnItemSkinChange" );
         }

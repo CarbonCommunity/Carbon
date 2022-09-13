@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( TerrainMeta ), "PostSetupComponents" )]
     public class OnTerrainInitialized
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnTerrainInitialized" );
         }

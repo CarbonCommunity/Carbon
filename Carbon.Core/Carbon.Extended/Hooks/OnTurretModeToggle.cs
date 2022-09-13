@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( AutoTurret ), "SetPeacekeepermode" )]
     public class OnTurretModeToggle
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnTurretModeToggle" );
         }

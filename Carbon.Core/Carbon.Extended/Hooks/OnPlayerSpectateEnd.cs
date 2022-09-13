@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BasePlayer ), "StopSpectating" )]
     public class OnPlayerSpectateEnd
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnPlayerSpectateEnd" );
         }

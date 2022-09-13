@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ShopFront ), "CancelClicked" )]
     public class OnShopCancelClick
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnShopCancelClick" );
         }

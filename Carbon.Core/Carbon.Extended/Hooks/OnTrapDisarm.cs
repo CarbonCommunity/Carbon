@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( Landmine ), "RPC_Disarm" )]
     public class OnTrapDisarm
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnTrapDisarm" );
         }

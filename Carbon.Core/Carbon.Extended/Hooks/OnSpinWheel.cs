@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( SpinnerWheel ), "RPC_Spin" )]
     public class OnSpinWheel
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnSpinWheel" );
         }

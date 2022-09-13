@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch ( typeof ( BaseCombatEntity ), "MarkHostileFor" )]
+    [HarmonyPatch ( typeof ( BasePlayer ), "MarkHostileFor" )]
     public class OnEntityMarkHostile
     {
         public static void Prefix ()

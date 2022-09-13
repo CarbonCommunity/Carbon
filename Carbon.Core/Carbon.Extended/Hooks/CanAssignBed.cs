@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( SleepingBag ), "AssignToFriend" )]
     public class CanAssignBed
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "CanAssignBed" );
         }

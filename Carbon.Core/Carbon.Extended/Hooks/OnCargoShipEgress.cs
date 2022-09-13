@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( CargoShip ), "StartEgress" )]
     public class OnCargoShipEgress
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnCargoShipEgress" );
         }

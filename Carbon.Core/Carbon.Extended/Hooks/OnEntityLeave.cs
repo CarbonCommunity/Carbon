@@ -3,10 +3,10 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch ( typeof ( TriggerBase ), "OnEntityLeave" )]
+    [HarmonyPatch ( typeof ( TriggerComfort ), "OnEntityLeave" )]
     public class OnEntityLeave
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnEntityLeave" );
         }

@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ItemContainer ), "Remove" )]
     public class OnItemRemovedFromContainer
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnItemRemovedFromContainer" );
         }

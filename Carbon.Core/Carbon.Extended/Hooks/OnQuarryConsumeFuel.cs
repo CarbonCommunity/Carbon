@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( MiningQuarry ), "FuelCheck" )]
     public class OnQuarryConsumeFuel
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnQuarryConsumeFuel" );
         }

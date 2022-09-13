@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( SleepingBag ), "RPC_MakePublic" )]
     public class CanSetBedPublic
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "CanSetBedPublic" );
         }

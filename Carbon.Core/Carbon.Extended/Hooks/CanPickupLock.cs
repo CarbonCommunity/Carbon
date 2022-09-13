@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BaseLock ), "RPC_TakeLock" )]
     public class CanPickupLock
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "CanPickupLock" );
         }

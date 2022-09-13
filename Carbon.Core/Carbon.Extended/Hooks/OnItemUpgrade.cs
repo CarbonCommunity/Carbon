@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ItemModUpgrade ), "ServerCommand" )]
     public class OnItemUpgrade
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnItemUpgrade" );
         }

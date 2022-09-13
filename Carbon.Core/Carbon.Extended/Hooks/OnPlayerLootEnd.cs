@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( PlayerLoot ), "Clear" )]
     public class OnPlayerLootEnd
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnPlayerLootEnd" );
         }

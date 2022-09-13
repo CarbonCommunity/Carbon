@@ -19,6 +19,8 @@ namespace Carbon.CodeGen
             public class HookData
             {
                 public int InjectionIndex { get; set; }
+                public int RemoveCount { get; set; }
+                public HookOp [] Instructions { get; set; }
                 public string HookTypeName { get; set; }
                 public string Name { get; set; }
                 public string HookName { get; set; }
@@ -27,6 +29,7 @@ namespace Carbon.CodeGen
                 public bool Flagged { get; set; }
                 public HookSignature Signature { get; set; }
                 public string MSILHash { get; set; }
+                public string BaseHookName { get; set; }
                 public string HookCategory { get; set; }
             }
 
@@ -36,6 +39,13 @@ namespace Carbon.CodeGen
                 public string Name { get; set; }
                 public string ReturnType { get; set; }
                 public string [] Parameters { get; set; }
+            }
+
+            public class HookOp
+            {
+                public string OpCode { get; set; }
+                public string OpType { get; set; }
+                public string Operand { get; set; }
             }
         }
     }

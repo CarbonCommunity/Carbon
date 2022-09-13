@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ThrownWeapon ), "DoDrop" )]
     public class OnExplosiveDropped
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnExplosiveDropped" );
         }

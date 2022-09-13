@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BasePlayer ), "Server_RemovePointOfInterest" )]
     public class OnMapMarkerRemove
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnMapMarkerRemove" );
         }

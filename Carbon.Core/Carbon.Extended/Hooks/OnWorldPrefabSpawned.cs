@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( World ), "Spawn" )]
     public class OnWorldPrefabSpawned
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnWorldPrefabSpawned" );
         }

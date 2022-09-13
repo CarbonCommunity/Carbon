@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( HackableLockedCrate ), "HackProgress" )]
     public class OnCrateHackEnd
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnCrateHackEnd" );
         }

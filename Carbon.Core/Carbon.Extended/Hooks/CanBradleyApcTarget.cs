@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BradleyAPC ), "VisibilityTest" )]
     public class CanBradleyApcTarget
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "CanBradleyApcTarget" );
         }

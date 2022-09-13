@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BaseRidableAnimal ), "RPC_Lead" )]
     public class OnHorseLead
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnHorseLead" );
         }

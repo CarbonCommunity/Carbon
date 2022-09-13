@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( CollectibleEntity ), "DoPickup" )]
     public class OnCollectiblePickup
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnCollectiblePickup" );
         }

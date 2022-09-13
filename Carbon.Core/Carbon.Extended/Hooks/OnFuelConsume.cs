@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BaseOven ), "ConsumeFuel" )]
     public class OnFuelConsume
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnFuelConsume" );
         }

@@ -3,10 +3,10 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch ( typeof ( TriggerBase ), "OnEntityEnter" )]
+    [HarmonyPatch ( typeof ( TriggerComfort ), "OnEntityEnter" )]
     public class OnEntityEnter
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnEntityEnter" );
         }

@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( SupplyDrop ), "OnCollisionEnter" )]
     public class OnSupplyDropLanded
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnSupplyDropLanded" );
         }

@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ResourceDispenser ), "GiveResourceFromItem" )]
     public class OnDispenserGather
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnDispenserGather" );
         }

@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ItemCrafter ), "FinishCrafting" )]
     public class OnItemCraftFinished
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnItemCraftFinished" );
         }

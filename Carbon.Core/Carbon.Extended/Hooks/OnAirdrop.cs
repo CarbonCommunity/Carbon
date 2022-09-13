@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( CargoPlane ), "UpdateDropPosition" )]
     public class OnAirdrop
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnAirdrop" );
         }

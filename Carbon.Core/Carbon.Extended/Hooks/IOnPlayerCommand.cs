@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ConVar.Chat ), "sayAs" )]
     public class IOnPlayerCommand
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "IOnPlayerCommand" );
         }

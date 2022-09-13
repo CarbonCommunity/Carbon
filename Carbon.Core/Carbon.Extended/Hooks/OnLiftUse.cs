@@ -3,10 +3,10 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch ( typeof ( Lift ), "RPC_UseLift" )]
+    [HarmonyPatch ( typeof ( ProceduralLift ), "RPC_UseLift" )]
     public class OnLiftUse
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnLiftUse" );
         }

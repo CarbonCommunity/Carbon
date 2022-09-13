@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( PlayerInventory ), "OnClothingChanged" )]
     public class OnClothingItemChanged
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnClothingItemChanged" );
         }

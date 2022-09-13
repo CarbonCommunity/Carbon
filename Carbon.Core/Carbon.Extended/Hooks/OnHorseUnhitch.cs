@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( HitchTrough ), "Unhitch" )]
     public class OnHorseUnhitch
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnHorseUnhitch" );
         }

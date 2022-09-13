@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( FlameThrower ), "FlameTick" )]
     public class OnFlameThrowerBurn
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnFlameThrowerBurn" );
         }

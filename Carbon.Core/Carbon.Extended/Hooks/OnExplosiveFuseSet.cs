@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( TimedExplosive ), "SetFuse" )]
     public class OnExplosiveFuseSet
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnExplosiveFuseSet" );
         }

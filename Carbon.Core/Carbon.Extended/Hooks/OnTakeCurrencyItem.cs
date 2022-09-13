@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch ( typeof ( VendingMachine ), "TakeCurrencyItem" )]
+    [HarmonyPatch ( typeof ( NPCVendingMachine ), "TakeCurrencyItem" )]
     public class OnTakeCurrencyItem
     {
         public static void Prefix ()

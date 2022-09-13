@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( RelationshipManager ), "sendinvite" )]
     public class OnTeamInvite
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnTeamInvite" );
         }

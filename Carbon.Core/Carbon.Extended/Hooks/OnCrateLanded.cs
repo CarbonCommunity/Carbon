@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( HackableLockedCrate ), "LandCheck" )]
     public class OnCrateLanded
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnCrateLanded" );
         }

@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( AutoTurret ), "SetIsOnline" )]
     public class OnTurretToggle
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnTurretToggle" );
         }

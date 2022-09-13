@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( DroppedItem ), "OnDroppedOn" )]
     public class CanCombineDroppedItem
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "CanCombineDroppedItem" );
         }

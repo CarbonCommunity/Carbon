@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( RelationshipManager ), "acceptinvite" )]
     public class OnTeamAcceptInvite
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnTeamAcceptInvite" );
         }

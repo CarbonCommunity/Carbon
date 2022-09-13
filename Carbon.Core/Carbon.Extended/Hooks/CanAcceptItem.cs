@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( ItemContainer ), "CanAcceptItem" )]
     public class CanAcceptItem
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "CanAcceptItem" );
         }

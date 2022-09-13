@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BaseVehicle ), "RPC_WantsPush" )]
     public class OnVehiclePush
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnVehiclePush" );
         }

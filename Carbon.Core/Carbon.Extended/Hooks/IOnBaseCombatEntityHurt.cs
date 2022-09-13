@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BaseCombatEntity ), "Hurt" )]
     public class IOnBaseCombatEntityHurt
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "IOnBaseCombatEntityHurt" );
         }

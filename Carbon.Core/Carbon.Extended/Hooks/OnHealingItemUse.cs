@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( MedicalTool ), "GiveEffectsTo" )]
     public class OnHealingItemUse
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnHealingItemUse" );
         }

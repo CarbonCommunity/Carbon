@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( GrowableEntity ), "TakeClones" )]
     public class CanTakeCutting
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "CanTakeCutting" );
         }

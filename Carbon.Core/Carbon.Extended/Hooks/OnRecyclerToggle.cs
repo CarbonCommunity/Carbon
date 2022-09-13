@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( Recycler ), "SVSwitch" )]
     public class OnRecyclerToggle
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnRecyclerToggle" );
         }

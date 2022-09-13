@@ -7,6 +7,7 @@ using UnityEngine;
 using Oxide.Plugins;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
+using Mono.CSharp;
 
 namespace Carbon.Core
 {
@@ -47,7 +48,8 @@ namespace Carbon.Core
 
                 AppDomain.CurrentDomain.AssemblyResolve += delegate ( object sender, ResolveEventArgs args )
                 {
-                    Debug.Log ( "Trying to load assembly: " + args.Name );
+                    if ( !args.Name.StartsWith ( "DynamicAssembly" ) ) Debug.Log ( "Trying to load assembly: " + args.Name );
+
                     AssemblyName assemblyName = new AssemblyName ( args.Name );
                     string text2 = Path.Combine ( _modPath, assemblyName.Name + ".dll" );
                     if ( !File.Exists ( text2 ) )

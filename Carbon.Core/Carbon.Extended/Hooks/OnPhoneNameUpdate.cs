@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( PhoneController ), "UpdatePhoneName" )]
     public class OnPhoneNameUpdate
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnPhoneNameUpdate" );
         }

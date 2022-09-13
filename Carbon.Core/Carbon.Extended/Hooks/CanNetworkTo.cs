@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch ( typeof ( BaseNetworkable ), "ShouldNetworkTo" )]
+    [HarmonyPatch ( typeof ( BasePlayer ), "ShouldNetworkTo" )]
     public class CanNetworkTo
     {
         public static void Prefix ()

@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( VendingMachine ), "RPC_UpdateShopName" )]
     public class OnVendingShopRename
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnVendingShopRename" );
         }

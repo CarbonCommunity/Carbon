@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BradleyAPC ), "UpdateMovement_Patrol" )]
     public class OnBradleyApcPatrol
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnBradleyApcPatrol" );
         }

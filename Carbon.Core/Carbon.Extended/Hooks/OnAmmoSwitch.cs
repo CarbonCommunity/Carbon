@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BaseProjectile ), "SwitchAmmoTo" )]
     public class OnAmmoSwitch
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnAmmoSwitch" );
         }

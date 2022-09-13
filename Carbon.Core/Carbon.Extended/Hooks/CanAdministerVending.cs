@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [HarmonyPatch ( typeof ( VendingMachine ), "CanPlayerAdmin" )]
+    [HarmonyPatch ( typeof ( NPCVendingMachine ), "CanPlayerAdmin" )]
     public class CanAdministerVending
     {
         public static void Prefix ()

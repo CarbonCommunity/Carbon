@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( AutoTurret ), "RemoveSelfAuthorize" )]
     public class OnTurretDeauthorize
     {
-        public static void Prefix ()
+        public static void Postfix ()
         {
             HookExecutor.CallStaticHook ( "OnTurretDeauthorize" );
         }
