@@ -134,14 +134,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Hooks\CanDropActiveItem.cs" />
-    <Compile Include="Hooks\CanMoveItem.cs" />
-    <Compile Include="Hooks\OnPlayerDropActiveItem.cs" />
-    <Compile Include="OnHammerHit.cs" />
-    <Compile Include="OnItemUse.cs" />
-    <Compile Include="OnLootEntityEnd.cs" />
-    <Compile Include="OnLootEntity.cs" />
-    <Compile Include="OnEntityDeath.cs" />
+    <Compile Include="Hooks\Item\CanMoveItem.cs" />
+    <Compile Include="Hooks\Structure\OnHammerHit.cs" />
+    <Compile Include="Hooks\Item\OnItemUse.cs" />
+    <Compile Include="Hooks\Player\OnLootEntityEnd.cs" />
+    <Compile Include="Hooks\Player\OnLootEntity.cs" />
+    <Compile Include="Hooks\Entity\OnEntityDeath.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -153,5 +151,6 @@
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

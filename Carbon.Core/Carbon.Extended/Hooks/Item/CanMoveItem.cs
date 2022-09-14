@@ -8,6 +8,7 @@ namespace Carbon.Extended
     {
         public static bool Prefix ( BaseEntity.RPCMessage msg , ref PlayerInventory __instance )
         {
+            var oldPosition = msg.read.Position;
             var num = msg.read.UInt32 ();
             var num2 = msg.read.UInt32 ();
             var num3 = ( int )msg.read.Int8 ();
@@ -18,7 +19,7 @@ namespace Carbon.Extended
                 msg.player.ChatMessage ( "Invalid item (" + num + ")" );
                 return false;
             }
-            msg.read.Position = 0;
+            msg.read.Position = oldPosition;
             return HookExecutor.CallStaticHook ( "CanMoveItem", item, __instance, num2, num3, num4 ) == null;
         }
     }
