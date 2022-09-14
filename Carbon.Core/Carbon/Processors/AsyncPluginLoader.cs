@@ -163,7 +163,9 @@ namespace Carbon.Core
                         exception.Error.ErrorText.Contains ( "Index was outside the bounds of the array." ) )
                     {
                         Retries++;
-                        ThreadFunction ();
+
+                        // Probably fixes thread stack overflow
+                        if ( Retries < 200 ) ThreadFunction ();
                     }
                 }
             }
