@@ -22,7 +22,7 @@ namespace Oxide.Plugins
             PortableLocker?.Call ( "OpenLocker", BasePlayer.Find ( "Raul" ), null );
 
             Instance = this;
-    
+
             PatchPlugin ( Assembly.GetExecutingAssembly () );
 
             Puts ( $"{Assembly.GetExecutingAssembly ()?.GetTypes () [ 0 ]?.FullName}" );
@@ -85,6 +85,23 @@ namespace Oxide.Plugins
         {
             // Puts ( $"{player} {input.current.buttons}" );
         }
+
+        private void OnPlayerDropActiveItem ()
+        {
+            Puts ( $"we did a thing3" );
+        }
+
+        private bool CanDropActiveItem ()
+        {
+            Puts ( $"we did a thing2" );
+            return false;
+        }
+
+        private object CanMoveItem ()
+        {
+            Puts ( $"we did a thing" );
+            return null;
+        }
     }
 
     [HarmonyPatch ( typeof ( BasePlayer ), "OnReceiveTick" )]
@@ -92,7 +109,7 @@ namespace Oxide.Plugins
     {
         public static void Prefix ( PlayerTick msg, bool wasPlayerStalled, ref BasePlayer __instance )
         {
-            HookExecutor.CallStaticHook ( "OnPlayerInput", __instance, __instance.serverInput );
+            // HookExecutor.CallStaticHook ( "OnPlayerInput", __instance, __instance.serverInput );
         }
     }
 

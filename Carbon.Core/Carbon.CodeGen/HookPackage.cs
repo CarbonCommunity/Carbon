@@ -21,6 +21,9 @@ namespace Carbon.CodeGen
                 public int InjectionIndex { get; set; }
                 public int RemoveCount { get; set; }
                 public HookOp [] Instructions { get; set; }
+                public int ReturnBehaviour { get; set; }
+                public int ArgumentBehaviour { get; set; }
+                public string ArgumentString { get; set; }
                 public string HookTypeName { get; set; }
                 public string Name { get; set; }
                 public string HookName { get; set; }

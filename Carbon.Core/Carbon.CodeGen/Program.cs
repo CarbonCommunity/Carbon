@@ -22,7 +22,6 @@ namespace Carbon.CodeGen
             Console.ReadLine ();
         }
 
-
         public static void DoHookDocs ()
         {
             var hooks = "..\\..\\..\\..\\Tools\\hooks.json";
@@ -105,33 +104,34 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
                     var typeName = hook.Hook.TypeName.Replace ( "/", "." ).Split ( new string [] { ".<" }, StringSplitOptions.RemoveEmptyEntries ) [ 0 ];
                     var methodName = hook.Hook.Signature.Name.Contains ( "<Start" ) ? "Start" : hook.Hook.Signature.Name;
                     var method = rust.GetType ( typeName ).GetMethod ( methodName );
-                    var parameters = method.GetParameters ().Select ( x => $"{x.ParameterType.FullName.Replace("+", ".")} {x.Name}" ).ToArray ();
+                    var parameters = method.GetParameters ().Select ( x => $"{x.ParameterType.FullName.Replace ( "+", "." )} {x.Name}" ).ToArray ();
+                    var arguments = hook.Hook.ArgumentString;
 
                     if ( hook.Hook.Instructions != null && hook.Hook.Instructions.Length > 0 )
                     {
 
                     }
                     else if ( hook.Hook.InjectionIndex > 0 && !hookName.StartsWith ( "Can" ) ) output = ( method.ReturnType == typeof ( void ) ?
-                            GetTemplate_NoReturn ( "Postfix", parameters.ToString ( ", " ) ) :
-                            GetTemplate_Return ( "Postfix", parameters.ToString ( ", " ), method.ReturnType.FullName ) )
+                            GetTemplate_NoReturn ( "Postfix", parameters.ToString ( ", " ), arguments ) :
+                            GetTemplate_Return ( "Postfix", parameters.ToString ( ", " ), method.ReturnType.FullName, arguments ) )
                             .Replace ( "[TYPE]", typeName )
                             .Replace ( "[METHOD]", methodName )
                             .Replace ( "[HOOK]", hookName );
                     else output = ( method.ReturnType == typeof ( void ) ?
-                            GetTemplate_NoReturn ( "Prefix", parameters.ToString ( ", " ) ) :
-                            GetTemplate_Return ( "Prefix", parameters.ToString ( ", " ), method.ReturnType.FullName ) )
+                            GetTemplate_NoReturn ( "Prefix", parameters.ToString ( ", " ), arguments ) :
+                            GetTemplate_Return ( "Prefix", parameters.ToString ( ", " ), method.ReturnType.FullName, arguments ) )
                             .Replace ( "[TYPE]", typeName )
                             .Replace ( "[METHOD]", methodName )
                             .Replace ( "[HOOK]", hookName );
 
-                    Console.WriteLine ( $"{typeName}.{methodName} -> {hookName}" );
+                    Console.WriteLine ( $"{typeName}.{methodName} -> {hookName} {arguments}" );
 
                     if ( output.Length > 0 ) OsEx.File.Create ( Path.Combine ( hookFolder, $"{hookName}.cs" ), output );
                 }
             }
         }
 
-        public static string GetTemplate_NoReturn ( string method, string parameters = null )
+        public static string GetTemplate_NoReturn ( string method, string parameters = null, string arguments = null )
         {
             return $@"using Carbon.Core;
 using Harmony;
@@ -141,14 +141,14 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( [TYPE] ), ""[METHOD]"" )]
     public class [HOOK]
     {{
-        public static {( method == "Prefix" ? "bool" : "void" )} {method} ( {( string.IsNullOrEmpty ( parameters ) ? "" : $"{parameters} " )})
+        public static {( method == "Prefix" ? "bool" : "void" )} {method} ( {( string.IsNullOrEmpty ( parameters ) ? "" : $"{parameters} " )}{( arguments != null && arguments.Contains ( "this" ) ? $", ref [TYPE] __instance " : "" )})
         {{
-            {(method == "Prefix" ? "return HookExecutor.CallStaticHook ( \"[HOOK]\" ) == null;" : "HookExecutor.CallStaticHook ( \"[HOOK]\" );" )}
+            {(method == "Prefix" ? $"return HookExecutor.CallStaticHook ( \"[HOOK]\"{(string.IsNullOrEmpty( arguments ) ? "" : $", {arguments.Replace ( "this", "__instance" )}")} ) == null;" : "HookExecutor.CallStaticHook ( \"[HOOK]\" );" )}
         }}
     }}
 }}";
         }
-        public static string GetTemplate_Return ( string method, string parameters = null, string returnType = "object" )
+        public static string GetTemplate_Return ( string method, string parameters = null, string returnType = "object", string arguments = null )
         {
             return $@"using Carbon.Core;
 using Harmony;
@@ -158,11 +158,11 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( [TYPE] ), ""[METHOD]"" )]
     public class [HOOK]
     {{
-        public static bool {method} ( {( string.IsNullOrEmpty ( parameters ) ? "" : $"{parameters}, " )}ref {returnType} __result )
+        public static bool {method} ( {( string.IsNullOrEmpty ( parameters ) ? "" : $"{parameters}, " )}ref {returnType} __result{( arguments != null && arguments.Contains("this") ? $", ref [TYPE] __instance" : "")} )
         {{
             CarbonCore.Log ( $""{method} [HOOK]"" );
 
-            var result = HookExecutor.CallStaticHook ( ""[HOOK]"" );
+            var result = HookExecutor.CallStaticHook ( ""[HOOK]""{( string.IsNullOrEmpty ( arguments ) ? "" : $", {arguments.Replace("this", "__instance")}" )} );
             
             if ( result != null )
             {{
