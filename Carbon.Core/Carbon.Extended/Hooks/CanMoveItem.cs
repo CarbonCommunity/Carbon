@@ -18,6 +18,7 @@ namespace Carbon.Extended
                 msg.player.ChatMessage ( "Invalid item (" + num + ")" );
                 return false;
             }
+            msg.read.Position = 0;
             return HookExecutor.CallStaticHook ( "CanMoveItem", item, __instance, num2, num3, num4 ) == null;
         }
     }
