@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,7 +19,7 @@ namespace Carbon.CodeGen
         {
             DoHooks ();
 
-            // Console.ReadLine ();
+            Console.ReadLine ();
         }
 
 
@@ -76,10 +78,19 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
             OsEx.File.Create ( "test.md", result );
         }
+
+        public static string [] WhitelistedHooks = new string []
+        {
+            "CanDropActiveItem",
+            "OnPlayerDropActiveItem",
+            "CanMoveItem"
+        };
+
         public static void DoHooks ()
         {
             var hooks = JsonConvert.DeserializeObject<HookPackage> ( OsEx.File.ReadText ( "..\\..\\..\\..\\Tools\\Rust.opj" ) );
             var hookFolder = "..\\..\\..\\Carbon.Extended\\Hooks";
+            var rust = typeof ( Bootstrap ).Assembly;
 
             OsEx.Folder.Create ( hookFolder, true );
 
@@ -89,30 +100,38 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
                 {
                     var output = string.Empty;
                     var hookName = ( string.IsNullOrEmpty ( hook.Hook.BaseHookName ) ? hook.Hook.HookName : hook.Hook.BaseHookName ).Split ( ' ' ) [ 0 ];
-                    if ( hookName.Contains ( "/" ) ) continue;
+                    if ( hookName.Contains ( "/" ) || !WhitelistedHooks.Contains ( hookName ) ) continue;
 
                     var typeName = hook.Hook.TypeName.Replace ( "/", "." ).Split ( new string [] { ".<" }, StringSplitOptions.RemoveEmptyEntries ) [ 0 ];
                     var methodName = hook.Hook.Signature.Name.Contains ( "<Start" ) ? "Start" : hook.Hook.Signature.Name;
+                    var method = rust.GetType ( typeName ).GetMethod ( methodName );
+                    var parameters = method.GetParameters ().Select ( x => $"{x.ParameterType.FullName.Replace("+", ".")} {x.Name}" ).ToArray ();
 
                     if ( hook.Hook.Instructions != null && hook.Hook.Instructions.Length > 0 )
                     {
 
                     }
-                    else if ( hook.Hook.InjectionIndex > 0 ) output = GetTemplate_NoReturn ( "Postfix" )
+                    else if ( hook.Hook.InjectionIndex > 0 && !hookName.StartsWith ( "Can" ) ) output = ( method.ReturnType == typeof ( void ) ?
+                            GetTemplate_NoReturn ( "Postfix", parameters.ToString ( ", " ) ) :
+                            GetTemplate_Return ( "Postfix", parameters.ToString ( ", " ), method.ReturnType.FullName ) )
                             .Replace ( "[TYPE]", typeName )
                             .Replace ( "[METHOD]", methodName )
                             .Replace ( "[HOOK]", hookName );
-                    else output = GetTemplate_NoReturn ( "Prefix" )
+                    else output = ( method.ReturnType == typeof ( void ) ?
+                            GetTemplate_NoReturn ( "Prefix", parameters.ToString ( ", " ) ) :
+                            GetTemplate_Return ( "Prefix", parameters.ToString ( ", " ), method.ReturnType.FullName ) )
                             .Replace ( "[TYPE]", typeName )
                             .Replace ( "[METHOD]", methodName )
                             .Replace ( "[HOOK]", hookName );
+
+                    Console.WriteLine ( $"{typeName}.{methodName} -> {hookName}" );
 
                     if ( output.Length > 0 ) OsEx.File.Create ( Path.Combine ( hookFolder, $"{hookName}.cs" ), output );
                 }
             }
         }
 
-        public static string GetTemplate_NoReturn ( string method )
+        public static string GetTemplate_NoReturn ( string method, string parameters = null )
         {
             return $@"using Carbon.Core;
 using Harmony;
@@ -122,14 +141,14 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( [TYPE] ), ""[METHOD]"" )]
     public class [HOOK]
     {{
-        public static void {method} ()
+        public static {( method == "Prefix" ? "bool" : "void" )} {method} ( {( string.IsNullOrEmpty ( parameters ) ? "" : $"{parameters} " )})
         {{
-            HookExecutor.CallStaticHook ( ""[HOOK]"" );
+            {(method == "Prefix" ? "return HookExecutor.CallStaticHook ( \"[HOOK]\" ) == null;" : "HookExecutor.CallStaticHook ( \"[HOOK]\" );" )}
         }}
     }}
 }}";
         }
-        public static string GetTemplate_Return ( string method )
+        public static string GetTemplate_Return ( string method, string parameters = null, string returnType = "object" )
         {
             return $@"using Carbon.Core;
 using Harmony;
@@ -139,9 +158,19 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( [TYPE] ), ""[METHOD]"" )]
     public class [HOOK]
     {{
-        public static void {method} ( ret object __result )
+        public static bool {method} ( {( string.IsNullOrEmpty ( parameters ) ? "" : $"{parameters}, " )}ref {returnType} __result )
         {{
-            __result = HookExecutor.CallStaticHook ( ""[HOOK]"" );
+            CarbonCore.Log ( $""{method} [HOOK]"" );
+
+            var result = HookExecutor.CallStaticHook ( ""[HOOK]"" );
+            
+            if ( result != null )
+            {{
+                __result = ( {returnType} ) result;
+                return false;
+            }}
+
+            return true;
         }}
     }}
 }}";

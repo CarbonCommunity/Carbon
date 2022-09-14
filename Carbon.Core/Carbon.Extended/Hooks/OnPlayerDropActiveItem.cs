@@ -6,7 +6,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( PlayerBelt ), "DropActive" )]
     public class OnPlayerDropActiveItem
     {
-        public static void Postfix ()
+        public static void Postfix ( UnityEngine.Vector3 position, UnityEngine.Vector3 velocity )
         {
             HookExecutor.CallStaticHook ( "OnPlayerDropActiveItem" );
         }

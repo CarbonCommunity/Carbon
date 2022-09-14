@@ -200,7 +200,7 @@ namespace Carbon.Core
         {
             var objectOverride = ( object )null;
             var pluginOverride = ( Plugin )null;
-            
+
             foreach ( var mod in CarbonLoader._loadedMods )
             {
                 foreach ( var plugin in mod.Plugins )
@@ -214,7 +214,7 @@ namespace Carbon.Core
                             break;
                         }
 
-                        objectOverride = result;
+                        if ( result != null ) objectOverride = result;
                         pluginOverride = plugin;
                     }
                     catch { }

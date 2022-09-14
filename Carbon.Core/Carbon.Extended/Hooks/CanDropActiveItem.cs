@@ -6,9 +6,19 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( BasePlayer ), "ShouldDropActiveItem" )]
     public class CanDropActiveItem
     {
-        public static void Prefix ()
+        public static bool Prefix ( ref System.Boolean __result )
         {
-            HookExecutor.CallStaticHook ( "CanDropActiveItem" );
+            CarbonCore.Log ( $"Prefix CanDropActiveItem" );
+
+            var result = HookExecutor.CallStaticHook ( "CanDropActiveItem" );
+            
+            if ( result != null )
+            {
+                __result = ( System.Boolean ) result;
+                return false;
+            }
+
+            return true;
         }
     }
 }

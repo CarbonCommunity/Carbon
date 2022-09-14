@@ -6,9 +6,9 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( PlayerInventory ), "MoveItem" )]
     public class CanMoveItem
     {
-        public static void Postfix ()
+        public static bool Prefix ( BaseEntity.RPCMessage msg )
         {
-            HookExecutor.CallStaticHook ( "CanMoveItem" );
+            return HookExecutor.CallStaticHook ( "CanMoveItem" ) == null;
         }
     }
 }
