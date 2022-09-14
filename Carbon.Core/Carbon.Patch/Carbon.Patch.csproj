@@ -200,9 +200,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Carbon\Carbon.csproj">
       <Project>{db7ac4b9-e0f3-4e8f-b977-dd32709359a4}</Project>
       <Name>Carbon</Name>
