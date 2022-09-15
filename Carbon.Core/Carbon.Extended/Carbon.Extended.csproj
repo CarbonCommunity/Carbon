@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Hooks\Item\CanMoveItem.cs" />
+    <Compile Include="Hooks\Player\OnPlayerRecover_OnPlayerRecovered.cs" />
     <Compile Include="Hooks\Player\OnPlayerRevive_OnHealingItemUse.cs" />
     <Compile Include="Hooks\Player\CanAssignBed.cs" />
     <Compile Include="Hooks\Player\CanAffordUpgrade.cs" />
