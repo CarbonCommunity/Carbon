@@ -325,6 +325,7 @@ namespace Carbon.Core
 
                     if ( info != null )
                     {
+                        plugin.ProcessHooks ();
                         DebugEx.Log ( $"Loaded plugin {info.Title} v{info.Version} by {info.Author}" );
                     }
 
@@ -387,6 +388,14 @@ namespace Carbon.Core
             {
                 Assembly = null;
                 Type = null;
+            }
+
+            public void ProcessHooks ()
+            {
+                foreach ( var method in Type.GetMethods ( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic ) )
+                {
+                    CarbonCore.Instance.Addon.InstallHooks ( method.Name );
+                }
             }
 
             public override string ToString ()

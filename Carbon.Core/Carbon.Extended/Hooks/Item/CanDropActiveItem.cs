@@ -8,7 +8,7 @@ namespace Carbon.Extended
     [Hook.Parameter ( "this", typeof ( BasePlayer ) )]
     [Hook.Info ( "Called when a player attempts to drop their active item." )]
     [Hook.Info ( "Returning true or false overrides default behavior." )]
-    [HarmonyPatch ( typeof ( Item ), "Remove" )]
+    [HarmonyPatch ( typeof ( BasePlayer ), "ShouldDropActiveItem" )]
     public class BasePlayer_ShouldDropActiveItem
     {
         public static bool Prefix ( ref Item __instance, out bool __result )

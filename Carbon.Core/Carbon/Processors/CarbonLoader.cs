@@ -145,14 +145,22 @@ namespace Carbon.Core
 
                 mod.Harmony = HarmonyInstance.Create ( domain );
 
-                try
+                if ( !CarbonCore.IsAddon ( mod.Name ) )
                 {
-                    mod.Harmony.PatchAll ( assembly );
+                    try
+                    {
+                        mod.Harmony.PatchAll ( assembly );
+                    }
+                    catch ( Exception arg2 )
+                    {
+                        LogError ( mod.Name, string.Format ( "Failed to patch all hooks: {0}", arg2 ) );
+                        return false;
+                    }
                 }
-                catch ( Exception arg2 )
+                else
                 {
-                    LogError ( mod.Name, string.Format ( "Failed to patch all hooks: {0}", arg2 ) );
-                    return false;
+                    CarbonCore.Warn ( $" Loaded addon '{mod.Name}'" );
+                    CarbonCore.Instance.Addon.Addons.Add ( mod.Assembly );
                 }
 
                 foreach ( var hook in mod.Hooks )

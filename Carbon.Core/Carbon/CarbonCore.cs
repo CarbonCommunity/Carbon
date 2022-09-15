@@ -19,6 +19,7 @@ namespace Carbon.Core
         public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
         public static CarbonCore Instance { get; set; }
 
+        public CarbonAddonProcessor Addon { get; set; }
         public CarbonConfig Config { get; set; }
         public RustPlugin CorePlugin { get; set; }
         public CarbonLoader.CarbonMod Plugins { get; set; }
@@ -110,6 +111,7 @@ namespace Carbon.Core
                 ScriptProcessor = gameObject.AddComponent<ScriptProcessor> ();
                 WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor> ();
                 HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
+                Addon = new CarbonAddonProcessor ();
             }
 
             _registerProcessors ();
