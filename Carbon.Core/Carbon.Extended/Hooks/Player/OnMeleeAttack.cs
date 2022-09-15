@@ -13,12 +13,12 @@ namespace Carbon.Extended
         {
             var player = msg.player;
             var result = true;
+            var oldPosition = msg.read.Position;
 
             if ( !__instance.VerifyClientAttack ( player ) )
             {
                 return true;
             }
-
             using ( var playerAttack = ProtoBuf.PlayerAttack.Deserialize ( msg.read ) )
             {
                 if ( playerAttack != null )
@@ -34,6 +34,8 @@ namespace Carbon.Extended
                     Facepunch.Pool.Free ( ref hitInfo );
                 }
             }
+
+            msg.read.Position = oldPosition;
 
             return result;
         }

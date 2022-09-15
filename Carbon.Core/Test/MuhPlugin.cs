@@ -97,9 +97,21 @@ namespace Oxide.Plugins
             return false;
         }
 
-        private object CanMoveItem ()
+        private bool OnMeleeAttack ( BasePlayer player, HitInfo info )
         {
-            Puts ( $"we did a thing" );
+            Puts ( $"{player} hit {info.HitEntity}!" );
+            return false;
+        }
+
+        private bool CanDeployItem ( BasePlayer player, Deployer deployer, uint entityId )
+        {
+            Puts ( $"CanDeployItem {player} {deployer} {entityId}" );
+            return false;
+        }
+
+        private object CanMoveItem ( Item item, PlayerInventory inv, uint targetContainer, int targetSlot, int amount )
+        {
+            Puts ( $"{item} {inv} {targetContainer} {targetSlot} {amount}" );
             return null;
         }
     }
@@ -109,7 +121,7 @@ namespace Oxide.Plugins
     {
         public static void Prefix ( PlayerTick msg, bool wasPlayerStalled, ref BasePlayer __instance )
         {
-            // HookExecutor.CallStaticHook ( "OnPlayerInput", __instance, __instance.serverInput );
+            HookExecutor.CallStaticHook ( "OnPlayerInput", __instance, __instance.serverInput );
         }
     }
 
