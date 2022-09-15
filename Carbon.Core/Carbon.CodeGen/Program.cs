@@ -71,20 +71,20 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
                     foreach ( var e in info ) resultInfo.Add ( $"<li>{e.Value}</li>" );
                     if ( !resultInfo.Any ( x => x.StartsWith ( "<li>Return" ) ) )
                     {
-                        if( hook.ReturnType == typeof(void)) resultInfo.Add ( $"<li>No return behavior.</li>" );
+                        if ( hook.ReturnType == typeof ( void ) ) resultInfo.Add ( $"<li>No return behavior.</li>" );
                         else resultInfo.Add ( $"<li>Returning a non-null value cancels default behavior.</li>" );
                     }
 
                     result += $@"<details>
-<summary>{hook.Name}{( category.Value .Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType( parameters.FirstOrDefault ( x => x.Name == "this" ).Type )})" : "")}</summary>
+<summary>{hook.Name}{( category.Value.Count ( x => x.GetCustomAttribute<Hook> ().Name == hook.Name ) > 1 ? $" ({GetType ( parameters.FirstOrDefault ( x => x.Name == "this" ).Type )})" : "" )}</summary>
 {resultInfo.ToArray ().ToString ( "\n" )}
 
-{GetExample(hook, parameters.ToArray())}
+{GetExample ( hook, parameters.ToArray () )}
 </details>
 
 ";
 
-                    Console.WriteLine ( $"{hook.Name} -> {GetType(hook.ReturnType)}" );
+                    Console.WriteLine ( $"{hook.Name} -> {GetType ( hook.ReturnType )}" );
                 }
             }
 
@@ -94,14 +94,14 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
         public static string GetExample ( Hook hook, Hook.Parameter [] parameters )
         {
             return $@"```csharp
-{GetType( hook.ReturnType )} {hook.Name} ( {parameters.Select(x => $"{GetType( x.Type )} {x.Name}").ToArray().ToString(", ")} )
+{GetType ( hook.ReturnType )} {hook.Name} ( {parameters.Select ( x => $"{GetType ( x.Type )} {x.Name}" ).ToArray ().ToString ( ", " )} )
 {{
-    Puts ( ""{hook.Name} works!"" );" + (  hook.ReturnType == typeof(void) ? "" : $@"
-    return {GetType( hook.ReturnType )};" ) + $@"
+    Puts ( ""{hook.Name} works!"" );" + ( hook.ReturnType == typeof ( void ) ? "" : $@"
+    return {GetType ( hook.ReturnType )};" ) + $@"
 }}
 ```";
         }
-        public static string GetType(Type type )
+        public static string GetType ( Type type )
         {
             if ( type == typeof ( void ) ) return "void";
             else if ( type == typeof ( string ) ) return "string";
@@ -111,7 +111,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
             else if ( type == typeof ( object ) ) return "object";
             else if ( type == typeof ( bool ) ) return "bool";
 
-            return type.FullName;
+            return type.FullName.Replace ( "+", "." );
         }
 
         public static void DoHookDocs ()
