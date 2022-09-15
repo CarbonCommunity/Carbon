@@ -134,7 +134,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Hooks\Item\OnItemRemove.cs" />
     <Compile Include="Hooks\Item\CanMoveItem.cs" />
+    <Compile Include="Hooks\Item\CanDropActiveItem.cs" />
     <Compile Include="Hooks\Player\CanDeployItem.cs" />
     <Compile Include="Hooks\Player\OnPlayerRespawned.cs" />
     <Compile Include="Hooks\Player\OnPlayerRespawn.cs" />

@@ -2,6 +2,7 @@
 using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Oxide.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -94,10 +95,10 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
         public static string GetExample ( Hook hook, Hook.Parameter [] parameters )
         {
             return $@"```csharp
-{GetType ( hook.ReturnType )} {hook.Name} ( {parameters.Select ( x => $"{GetType ( x.Type )} {x.Name}" ).ToArray ().ToString ( ", " )} )
+{( hook.ReturnType  == typeof(void) ? "void" : "object")} {hook.Name} ( {parameters.Select ( x => $"{GetType ( x.Type )} {( x.Name == "this" ? GetType(x.Type).Sanitize().ToLower().Trim() : x.Name )}" ).ToArray ().ToString ( ", " )} )
 {{
     Puts ( ""{hook.Name} works!"" );" + ( hook.ReturnType == typeof ( void ) ? "" : $@"
-    return {GetType ( hook.ReturnType )};" ) + $@"
+    return ({GetType ( hook.ReturnType )}) null;" ) + $@"
 }}
 ```";
         }

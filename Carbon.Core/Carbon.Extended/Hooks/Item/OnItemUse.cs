@@ -11,9 +11,9 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( Item ), "UseItem" )]
     public class Item_UseItem
     {
-        public static void Prefix ( Item __instance, ref int amountToConsume )
+        public static void Prefix ( int amountToConsume, ref Item __instance )
         {
-            if ( amountToConsume == 0 )
+            if ( amountToConsume <= 0 )
                 return;
 
             var obj = HookExecutor.CallStaticHook ( "OnItemUse", __instance, amountToConsume );

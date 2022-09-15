@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Carbon.Extended
 {
     [Hook ( "OnPlayerRespawn", typeof ( BasePlayer.SpawnPoint ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "this", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "spawnPoint", typeof ( BasePlayer.SpawnPoint ) )]
+    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [Hook.Parameter ( "this", typeof ( BasePlayer.SpawnPoint ) )]
     [Hook.Info ( "Called when a player is attempting to respawn." )]
     [Hook.Info ( "Returning a BasePlayer.SpawnPoint (takes a position and rotation) overrides the respawn location." )]
     [Hook.Info ( "Returning a SleepingBag overrides the respawn location." )]
@@ -32,8 +32,8 @@ namespace Carbon.Extended
     }
 
     [Hook ( "OnPlayerRespawn", typeof ( SleepingBag ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "this", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "bag", typeof ( SleepingBag ) )]
+    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [Hook.Parameter ( "this", typeof ( SleepingBag ) )]
     [Hook.Info ( "Called when a player is attempting to respawn." )]
     [Hook.Info ( "Returning a SleepingBag overrides the respawn location." )]
     [HarmonyPatch ( typeof ( SleepingBag ), "SpawnPlayer" )]
