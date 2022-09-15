@@ -69,6 +69,11 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
                     var resultInfo = new List<string> ();
                     foreach ( var e in info ) resultInfo.Add ( $"<li>{e.Value}</li>" );
+                    if ( !resultInfo.Any ( x => x.StartsWith ( "<li>Return" ) ) )
+                    {
+                        if( hook.ReturnType == typeof(void)) resultInfo.Add ( $"<li>No return behavior.</li>" );
+                        else resultInfo.Add ( $"<li>Returning a non-null value cancels default behavior.</li>" );
+                    }
 
                     result += $@"<details>
 <summary>{hook.Name}{( category.Value .Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType( parameters.FirstOrDefault ( x => x.Name == "this" ).Type )})" : "")}</summary>

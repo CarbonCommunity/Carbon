@@ -15,7 +15,7 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnPlayerRecovered", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnPlayerRecovered" ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "this", typeof ( BasePlayer ) )]
     [Hook.Info ( "Called when the player was recovered." )]
     [HarmonyPatch ( typeof ( BasePlayer ), "RecoverFromWounded" )]
