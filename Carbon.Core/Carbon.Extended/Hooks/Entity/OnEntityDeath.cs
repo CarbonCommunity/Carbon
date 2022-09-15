@@ -3,6 +3,9 @@ using Harmony;
 
 namespace Carbon.Extended
 {
+    [Hook ( "OnEntityDeath" )]
+    [Hook.Parameter ( "this", typeof ( BaseCombatEntity ) )]
+    [Hook.Parameter ( "info", typeof ( HitInfo ) )]
     [HarmonyPatch ( typeof ( BaseCombatEntity ), "Die" )]
     public class BaseCombatEntity_Die
     {
@@ -12,6 +15,9 @@ namespace Carbon.Extended
         }
     }
 
+    [Hook ( "OnEntityDeath" )]
+    [Hook.Parameter ( "this", typeof ( ResourceEntity ) )]
+    [Hook.Parameter ( "info", typeof ( HitInfo ) )]
     [HarmonyPatch ( typeof ( ResourceEntity ), "OnKilled" )]
     public class ResourceEntity_OnKilled
     {
