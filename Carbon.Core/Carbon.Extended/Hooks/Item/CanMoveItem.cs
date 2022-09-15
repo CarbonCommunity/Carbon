@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanMoveItem" ), Hook.Category ( Hook.Category.Enum.Item )]
+    [Hook ( "CanMoveItem", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Item )]
     [Hook.Parameter ( "item", typeof ( Item ) )]
     [Hook.Parameter ( "this", typeof ( PlayerInventory ) )]
     [Hook.Parameter ( "targetContainer", typeof ( uint ) )]
@@ -13,7 +13,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( PlayerInventory ), "MoveItem" )]
     public class CanMoveItem
     {
-        public static bool Prefix ( BaseEntity.RPCMessage msg , ref PlayerInventory __instance )
+        public static bool Prefix ( BaseEntity.RPCMessage msg, ref PlayerInventory __instance )
         {
             var oldPosition = msg.read.Position;
             var num = msg.read.UInt32 ();

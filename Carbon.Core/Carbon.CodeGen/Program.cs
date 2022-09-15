@@ -1,4 +1,5 @@
-﻿using Humanlights.Extensions;
+﻿using Carbon.Extended;
+using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -10,6 +11,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using static SteamInventoryItem;
 
 namespace Carbon.CodeGen
 {
@@ -17,9 +19,91 @@ namespace Carbon.CodeGen
     {
         static void Main ( string [] args )
         {
-            DoHooks ();
+            DoExtendedDocs ();
 
             Console.ReadLine ();
+        }
+
+        public static void DoExtendedDocs ()
+        {
+            var assembly = typeof ( Hammer_DoAttackShared ).Assembly;
+            var result = $@"---
+description: >-
+  This is a solution to your hook problems. Carbon.Extended provides an
+  extensive amount of hooks that work with most Oxide plugins, and more!
+---
+
+# Carbon.Extended
+
+## Download
+
+Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-Modding/Carbon.Core/releases/latest/download/Carbon.Extended.dll)!
+
+# Hooks
+";
+            var categories = new Dictionary<Hook.Category.Enum, List<Type>> ();
+
+            foreach ( var type in assembly.GetTypes () )
+            {
+                var list = ( List<Type> )null;
+                var category = type.GetCustomAttribute<Hook.Category> ();
+                if ( category == null ) continue;
+
+                if ( !categories.TryGetValue ( category.Value, out list ) )
+                {
+                    categories.Add ( category.Value, list = new List<Type> () );
+                }
+
+                list.Add ( type );
+            }
+
+            foreach ( var category in categories )
+            {
+                result += $"## {category.Key}\n";
+
+                foreach ( var entry in category.Value )
+                {
+                    var hook = entry.GetCustomAttribute<Hook> ();
+                    var info = entry.GetCustomAttributes<Hook.Info> ();
+                    var parameters = entry.GetCustomAttributes<Hook.Parameter> ();
+
+                    var resultInfo = new List<string> ();
+                    foreach ( var e in info ) resultInfo.Add ( $"<li>{e.Value}</li>" );
+
+                    result += $@"<details>
+<summary>{hook.Name}</summary>
+{resultInfo.ToArray ().ToString ( "\n" )}
+
+{GetExample(hook, parameters.ToArray())}
+</details>
+
+";
+                }
+            }
+
+            OsEx.File.Create ( "extended.md", result );
+        }
+
+        public static string GetExample ( Hook hook, Hook.Parameter [] parameters )
+        {
+            return $@"```csharp
+{GetType( hook.ReturnType )} {hook.Name} ( {parameters.Select(x => $"{GetType( x.Type )} {x.Name}").ToArray().ToString(", ")} )
+{{
+    Puts ( ""{hook.Name} works!"" );" + (  hook.ReturnType == typeof(void) ? "" : $@"
+    return {GetType( hook.ReturnType )};" ) + $@"
+}}
+```";
+        }
+        public static string GetType(Type type )
+        {
+            if ( type == typeof ( void ) ) return "void";
+            else if ( type == typeof ( string ) ) return "string";
+            else if ( type == typeof ( uint ) ) return "uint";
+            else if ( type == typeof ( int ) ) return "int";
+            else if ( type == typeof ( ulong ) ) return "ulong";
+            else if ( type == typeof ( object ) ) return "object";
+
+            return type.FullName;
         }
 
         public static void DoHookDocs ()
@@ -78,13 +162,6 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
             OsEx.File.Create ( "test.md", result );
         }
 
-        public static string [] WhitelistedHooks = new string []
-        {
-            "CanDropActiveItem",
-            "OnPlayerDropActiveItem",
-            "CanMoveItem"
-        };
-
         public static void DoHooks ()
         {
             var hooks = JsonConvert.DeserializeObject<HookPackage> ( OsEx.File.ReadText ( "..\\..\\..\\..\\Tools\\Rust.opj" ) );
@@ -134,7 +211,6 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
                 }
             }
         }
-
         public static string GetTemplate_NoReturn ( string method, string parameters = null, string arguments = null )
         {
             return $@"using Carbon.Core;

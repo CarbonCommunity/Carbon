@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnLootEntity" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnLootEntity", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "targetEntity", typeof ( BaseEntity ) )]
     [Hook.Info ( "Called when the player starts looting an entity." )]

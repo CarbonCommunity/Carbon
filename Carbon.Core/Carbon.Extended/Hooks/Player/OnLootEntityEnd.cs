@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnLootEntityEnd" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnLootEntityEnd", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "this", typeof ( LootableCorpse ) )]
     [Hook.Info ( "Called when the player stops looting an entity." )]
@@ -16,7 +16,7 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnLootEntityEnd" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnLootEntityEnd", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "this", typeof ( StorageContainer ) )]
     [Hook.Info ( "Called when the player stops looting an entity." )]
@@ -29,7 +29,7 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnLootEntityEnd" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnLootEntityEnd", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "this", typeof ( ItemBasedFlowRestrictor ) )]
     [Hook.Info ( "Called when the player stops looting an entity." )]
@@ -42,7 +42,7 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnLootEntityEnd" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnLootEntityEnd", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "this", typeof ( DroppedItemContainer ) )]
     [Hook.Info ( "Called when the player stops looting an entity." )]
@@ -55,7 +55,7 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnLootEntityEnd" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnLootEntityEnd", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "this", typeof ( ContainerIOEntity ) )]
     [Hook.Info ( "Called when the player stops looting an entity." )]

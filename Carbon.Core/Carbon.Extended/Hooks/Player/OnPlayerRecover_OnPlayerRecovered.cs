@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnPlayerRecover" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnPlayerRecover", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "this", typeof ( BasePlayer ) )]
     [Hook.Info ( "Called when the player is about to recover from the 'wounded' state." )]
     [HarmonyPatch ( typeof ( BasePlayer ), "RecoverFromWounded" )]
@@ -15,7 +15,7 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnPlayerRecovered" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnPlayerRecovered", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "this", typeof ( BasePlayer ) )]
     [Hook.Info ( "Called when the player was recovered." )]
     [HarmonyPatch ( typeof ( BasePlayer ), "RecoverFromWounded" )]

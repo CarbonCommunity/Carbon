@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnItemUse" ), Hook.Category ( Hook.Category.Enum.Item )]
+    [Hook ( "OnItemUse", typeof ( int ) ), Hook.Category ( Hook.Category.Enum.Item )]
     [Hook.Parameter ( "this", typeof ( Item ) )]
     [Hook.Parameter ( "amountToConsume", typeof ( int ) )]
     [Hook.Info ( "Called when an item is used." )]

@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanAffordUpgrade" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "CanAffordUpgrade", typeof ( bool ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "this", typeof ( BuildingBlock ) )]
     [Hook.Parameter ( "grade", typeof ( BuildingGrade.Enum ) )]

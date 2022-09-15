@@ -4,7 +4,7 @@ using Oxide.Core;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnPlayerRevive" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnPlayerRevive", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "target", typeof ( BasePlayer ) )]
     [Hook.Info ( "Called when the recover after reviving with a medical tool." )]
@@ -34,7 +34,7 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnHealingItemUse" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnHealingItemUse", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "this", typeof ( MedicalTool ) )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Info ( "Called when a player attempts to use a medical tool." )]

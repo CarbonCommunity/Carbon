@@ -3,7 +3,7 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanAssignBed" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "CanAssignBed", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "this", typeof ( SleepingBag ) )]
     [Hook.Parameter ( "friendId", typeof ( ulong ) )]

@@ -6,7 +6,7 @@ using ProtoBuf;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnMeleeAttack" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "OnMeleeAttack", typeof ( bool ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "hitInfo", typeof ( HitInfo ) )]
     [Hook.Info ( "Useful for canceling melee attacks." )]

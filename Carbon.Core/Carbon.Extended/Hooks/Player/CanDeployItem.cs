@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanDeployItem" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook ( "CanDeployItem", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
     [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
     [Hook.Parameter ( "this", typeof ( Deployer ) )]
     [Hook.Parameter ( "entityId", typeof ( uint ) )]
