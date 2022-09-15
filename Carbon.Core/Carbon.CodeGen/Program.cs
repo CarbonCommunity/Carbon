@@ -71,13 +71,15 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
                     foreach ( var e in info ) resultInfo.Add ( $"<li>{e.Value}</li>" );
 
                     result += $@"<details>
-<summary>{hook.Name}</summary>
+<summary>{hook.Name}{( category.Value .Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType( parameters.FirstOrDefault ( x => x.Name == "this" ).Type )})" : "")}</summary>
 {resultInfo.ToArray ().ToString ( "\n" )}
 
 {GetExample(hook, parameters.ToArray())}
 </details>
 
 ";
+
+                    Console.WriteLine ( $"{hook.Name} -> {GetType(hook.ReturnType)}" );
                 }
             }
 
@@ -102,6 +104,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
             else if ( type == typeof ( int ) ) return "int";
             else if ( type == typeof ( ulong ) ) return "ulong";
             else if ( type == typeof ( object ) ) return "object";
+            else if ( type == typeof ( bool ) ) return "bool";
 
             return type.FullName;
         }
