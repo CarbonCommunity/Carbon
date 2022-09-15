@@ -136,6 +136,8 @@
   <ItemGroup>
     <Compile Include="Hooks\Item\CanMoveItem.cs" />
     <Compile Include="Hooks\Player\CanDeployItem.cs" />
+    <Compile Include="Hooks\Player\OnPlayerRespawned.cs" />
+    <Compile Include="Hooks\Player\OnPlayerRespawn.cs" />
     <Compile Include="Hooks\Player\OnMeleeAttack.cs" />
     <Compile Include="Hooks\Player\OnPlayerRecover_OnPlayerRecovered.cs" />
     <Compile Include="Hooks\Player\CanLock.cs" />
