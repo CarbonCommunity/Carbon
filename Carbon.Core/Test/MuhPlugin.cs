@@ -103,6 +103,12 @@ namespace Oxide.Plugins
             return false;
         }
 
+        private bool OnItemUse ( Item item, int amount )
+        {
+            Puts ( $"OnItemUse {item} {amount}" );
+            return false;
+        }
+
         private bool CanDeployItem ( BasePlayer player, Deployer deployer, uint entityId )
         {
             Puts ( $"CanDeployItem {player} {deployer} {entityId}" );
