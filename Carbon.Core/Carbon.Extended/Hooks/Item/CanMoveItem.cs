@@ -3,6 +3,13 @@ using Harmony;
 
 namespace Carbon.Extended
 {
+    [Hook ( "CanMoveItem" ), Hook.Category ( Hook.Category.Enum.Item )]
+    [Hook.Parameter ( "item", typeof ( Item ) )]
+    [Hook.Parameter ( "this", typeof ( PlayerInventory ) )]
+    [Hook.Parameter ( "targetContainer", typeof ( uint ) )]
+    [Hook.Parameter ( "targetSlot", typeof ( int ) )]
+    [Hook.Parameter ( "amount", typeof ( int ) )]
+    [Hook.Info ( "Called when moving an item from one inventory slot to another." )]
     [HarmonyPatch ( typeof ( PlayerInventory ), "MoveItem" )]
     public class CanMoveItem
     {

@@ -5,6 +5,10 @@ using Oxide.Core;
 
 namespace Carbon.Extended
 {
+    [Hook ( "CanLock" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [Hook.Parameter ( "this", typeof ( KeyLock ) )]
+    [Hook.Info ( "Usefol for canceling the lock action." )]
     [HarmonyPatch ( typeof ( KeyLock ), "Lock" )]
     public class KeyLock_Lock
     {
@@ -29,6 +33,9 @@ namespace Carbon.Extended
         }
     }
 
+    [Hook ( "CanLock" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [Hook.Parameter ( "this", typeof ( CodeLock ) )]
     [HarmonyPatch ( typeof ( CodeLock ), "TryLock" )]
     public class CodeLock_Lock
     {

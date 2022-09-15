@@ -3,6 +3,11 @@ using Harmony;
 
 namespace Carbon.Extended
 {
+    [Hook ( "CanAssignBed" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [Hook.Parameter ( "this", typeof ( SleepingBag ) )]
+    [Hook.Parameter ( "friendId", typeof ( ulong ) )]
+    [Hook.Info ( "Called when a player attempts to assign a bed or sleeping bag to another player." )]
     [HarmonyPatch ( typeof ( SleepingBag ), "AssignToFriend" )]
     public class SleepingBag_CanAffordUpgrade
     {

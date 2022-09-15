@@ -7,6 +7,11 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
+    [Hook ( "CanDeployItem" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [Hook.Parameter ( "this", typeof ( Deployer ) )]
+    [Hook.Parameter ( "entityId", typeof ( uint ) )]
+    [Hook.Info ( "Useful for denying items' deployment." )]
     [HarmonyPatch ( typeof ( Deployer ), "DoDeploy" )]
     public class Deployer_DoDeploy
     {

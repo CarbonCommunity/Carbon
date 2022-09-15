@@ -22,6 +22,17 @@ public class Hook : Attribute
     }
 
     [AttributeUsage ( AttributeTargets.Class, AllowMultiple = true )]
+    public class Info : Attribute
+    {
+        public string Value { get; set; }
+
+        public Info ( string value )
+        {
+            Value = value;
+        }
+    }
+
+    [AttributeUsage ( AttributeTargets.Class, AllowMultiple = true )]
     public class Parameter : Attribute
     {
         public string Name { get; set; }
@@ -32,6 +43,26 @@ public class Hook : Attribute
         {
             Name = name;
             Type = type ?? typeof ( object );
+        }
+    }
+
+    [AttributeUsage ( AttributeTargets.Class )]
+    public class Category : Attribute
+    {
+        public Enum Value { get; set; }
+
+        public enum Enum
+        {
+            General,
+            Entity,
+            Item,
+            Player,
+            Structure
+        }
+
+        public Category ( Enum @enum )
+        {
+            Value = @enum;
         }
     }
 }

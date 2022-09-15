@@ -3,6 +3,11 @@ using Harmony;
 
 namespace Carbon.Extended
 {
+    [Hook ( "CanAffordUpgrade" ), Hook.Category ( Hook.Category.Enum.Player )]
+    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [Hook.Parameter ( "this", typeof ( BuildingBlock ) )]
+    [Hook.Parameter ( "grade", typeof ( BuildingGrade.Enum ) )]
+    [Hook.Info ( "Called when the resources for an upgrade are checked." )]
     [HarmonyPatch ( typeof ( BuildingBlock ), "CanAffordUpgrade" )]
     public class BuildingBlock_CanAffordUpgrade
     {
