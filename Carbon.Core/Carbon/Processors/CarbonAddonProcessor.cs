@@ -1,4 +1,6 @@
-﻿using Harmony;
+﻿using Facepunch;
+using Harmony;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -79,16 +81,27 @@ namespace Carbon.Core
                         var prefix = type.GetMethod ( "Prefix" );
                         var postfix = type.GetMethod ( "Postfix" );
                         var transplier = type.GetMethod ( "Transplier" );
+                        var patchId = $"{hook.Name}.{args}";
 
-                        if ( hookInstance.Patches.Any ( x => x.Id == $"{hook.Name}.{args}" ) ) continue;
+                        if ( hookInstance.Patches.Any ( x => x.Id == patchId ) ) continue;
 
-                        var instance = HarmonyInstance.Create ( $"{hook.Name}.{args}" );
-                        instance.Patch ( patch.info.declaringType.GetMethod ( patch.info.methodName ),
+                        var originalMethodParameters = Pool.GetList<Type> ();
+                        foreach(var param in prefix.GetParameters () )
+                        {
+                            if ( !param.ParameterType.IsByRef && !param.IsOut ) originalMethodParameters.Add ( param.ParameterType );
+                        }
+                        var originalMethodParametersResult = originalMethodParameters.ToArray ();
+
+                        var instance = HarmonyInstance.Create ( patchId );
+                        instance.Patch ( patch.info.declaringType.GetMethod ( patch.info.methodName, originalMethodParametersResult ),
                             prefix: prefix == null ? null : new HarmonyMethod ( prefix ),
                             postfix: postfix == null ? null : new HarmonyMethod ( postfix ),
                             transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
                         hookInstance.Patches.Add ( instance );
-                        CarbonCore.Log ( $" Patched '{hookName}'..." );
+                        CarbonCore.Log ( $" Patched '{hookName}'[{args}]..." );
+
+                        Pool.FreeList ( ref originalMethodParameters );
+                        Pool.Free ( ref originalMethodParametersResult );
                     }
                 }
             }
@@ -99,7 +112,7 @@ namespace Carbon.Core
             {
                 foreach ( var patch in list.Patches )
                 {
-                    patch.UnpatchAll ( hookName );
+                    patch.UnpatchAll ();
                 }
 
                 list.Patches.Clear ();

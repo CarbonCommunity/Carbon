@@ -27,7 +27,7 @@ namespace Carbon.Extended
             {
                 if ( playerAttack != null )
                 {
-                    var hitInfo = Facepunch.Pool.Get<global::HitInfo> ();
+                    var hitInfo = Facepunch.Pool.Get<HitInfo> ();
                     hitInfo.LoadFromAttack ( playerAttack.attack, true );
                     hitInfo.Initiator = player;
                     hitInfo.Weapon = __instance;
