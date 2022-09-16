@@ -11,7 +11,7 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( Item ), "UseItem" )]
     public class Item_UseItem
     {
-        public static void Prefix ( int amountToConsume, ref Item __instance )
+        public static void Prefix ( ref int amountToConsume, ref Item __instance )
         {
             if ( amountToConsume <= 0 )
                 return;
