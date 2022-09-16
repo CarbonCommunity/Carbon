@@ -81,6 +81,22 @@ namespace Oxide.Plugins
             stopwatch.Reset ();
         }
 
+        internal void _processHooks ()
+        {
+            foreach ( var method in Type.GetMethods ( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic ) )
+            {
+                CarbonCore.Instance.Addon.InstallHooks ( method.Name );
+                CarbonCore.Instance.Addon.AppendHook ( method.Name );
+            }
+        }
+        internal void _unprocessHooks ()
+        {
+            foreach ( var method in Type.GetMethods ( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic ) )
+            {
+                CarbonCore.Instance.Addon.UnappendHook ( method.Name );
+            }
+        }
+
         public virtual void IInit ()
         {
             foreach ( var method in GetType ().GetMethods ( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public ) )
@@ -100,6 +116,8 @@ namespace Oxide.Plugins
                 var plugin = CarbonCore.Instance.CorePlugin.plugins.Find ( field.Name );
                 if ( plugin != null ) field.SetValue ( this, plugin );
             }
+
+            _processHooks ();
         }
         public virtual void ILoad ()
         {
@@ -108,6 +126,8 @@ namespace Oxide.Plugins
         }
         public virtual void IUnload ()
         {
+            _unprocessHooks ();
+
             foreach ( var plugin in CarbonCore.Instance.CorePlugin.plugins.GetAll () )
             {
                 if ( plugin == null || plugin.Requires == null || plugin.Requires.Length == 0 ) continue;

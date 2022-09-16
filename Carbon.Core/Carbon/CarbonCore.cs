@@ -341,6 +341,10 @@ namespace Carbon.Core
     [Serializable]
     public class CarbonConfig
     {
-        public bool IsModded { get; set; }
+        public int Debug { get; set; }
+
+        public bool IsModded { get; set; } = true;
+        public bool ScriptWatchers { get; set; } = true;
+        public bool HarmonyWatchers { get; set; } = true;
     }
 }
