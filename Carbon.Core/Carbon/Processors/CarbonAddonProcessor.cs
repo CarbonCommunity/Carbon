@@ -86,7 +86,7 @@ namespace Carbon.Core
                         if ( hookInstance.Patches.Any ( x => x.Id == patchId ) ) continue;
 
                         var originalMethodParameters = Pool.GetList<Type> ();
-                        foreach(var param in prefix.GetParameters () )
+                        foreach ( var param in prefix.GetParameters () )
                         {
                             if ( !param.ParameterType.IsByRef && !param.IsOut ) originalMethodParameters.Add ( param.ParameterType );
                         }
@@ -98,6 +98,7 @@ namespace Carbon.Core
                             postfix: postfix == null ? null : new HarmonyMethod ( postfix ),
                             transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
                         hookInstance.Patches.Add ( instance );
+                        hookInstance.Id = patchId;
                         CarbonCore.Log ( $" Patched '{hookName}'[{args}]..." );
 
                         Pool.FreeList ( ref originalMethodParameters );
@@ -108,19 +109,20 @@ namespace Carbon.Core
         }
         public void UninstallHooks ( string hookName )
         {
-            if ( Patches.TryGetValue ( hookName, out var list ) )
+            if ( Patches.TryGetValue ( hookName, out var instance ) )
             {
-                foreach ( var patch in list.Patches )
+                foreach ( var patch in instance.Patches )
                 {
-                    patch.UnpatchAll ();
+                    patch.UnpatchAll ( instance.Id );
                 }
 
-                list.Patches.Clear ();
+                instance.Patches.Clear ();
             }
         }
 
         public class HookInstance
         {
+            public string Id { get; set; }
             public int Hooks { get; set; } = 0;
             public List<HarmonyInstance> Patches { get; } = new List<HarmonyInstance> ();
         }
