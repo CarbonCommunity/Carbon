@@ -57,7 +57,8 @@ public class Hook : Attribute
             Entity,
             Item,
             Player,
-            Structure
+            Structure,
+            Resources
         }
 
         public Category ( Enum @enum )

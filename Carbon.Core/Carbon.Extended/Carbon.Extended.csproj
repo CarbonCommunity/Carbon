@@ -146,6 +146,9 @@
     <Compile Include="Hooks\Player\OnPlayerRevive_OnHealingItemUse.cs" />
     <Compile Include="Hooks\Player\CanAssignBed.cs" />
     <Compile Include="Hooks\Player\CanAffordUpgrade.cs" />
+    <Compile Include="Hooks\Resources\OnQuarryToggled.cs" />
+    <Compile Include="Hooks\Resources\OnCollectiblePickup.cs" />
+    <Compile Include="Hooks\Resources\CanTakeCutting.cs" />
     <Compile Include="Hooks\Structure\OnHammerHit.cs" />
     <Compile Include="Hooks\Item\OnItemUse.cs" />
     <Compile Include="Hooks\Player\OnLootEntityEnd.cs" />
