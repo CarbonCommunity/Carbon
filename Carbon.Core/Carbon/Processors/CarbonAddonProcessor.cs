@@ -115,7 +115,11 @@ namespace Carbon.Core
             {
                 foreach ( var patch in instance.Patches )
                 {
-                    patch.UnpatchAll ( instance.Id );
+                    try
+                    {
+                        patch.UnpatchAll ( instance.Id );
+                    }
+                    catch { }
                 }
 
                 instance.Patches.Clear ();
