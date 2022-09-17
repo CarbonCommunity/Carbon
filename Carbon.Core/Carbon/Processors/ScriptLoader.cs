@@ -30,26 +30,33 @@ namespace Carbon.Core
 
         public void Load ( bool customFiles = false, bool customSources = false, GameObject target = null )
         {
-            if ( !customFiles )
+            try
             {
-                if ( Files.Count == 0 ) return;
-            }
-
-            if ( !customSources ) GetSources ();
-            GetNamespaces ();
-            GetFullSource ();
-
-            if ( Parser != null )
-            {
-                Parser.Process ( Source, out var newSource );
-
-                if ( !string.IsNullOrEmpty ( newSource ) )
+                if ( !customFiles )
                 {
-                    Source = newSource;
+                    if ( Files.Count == 0 ) return;
                 }
-            }
 
-            CarbonCore.Instance.ScriptProcessor.StartCoroutine ( Compile ( target ) );
+                if ( !customSources ) GetSources ();
+                GetNamespaces ();
+                GetFullSource ();
+
+                if ( Parser != null )
+                {
+                    Parser.Process ( Source, out var newSource );
+
+                    if ( !string.IsNullOrEmpty ( newSource ) )
+                    {
+                        Source = newSource;
+                    }
+                }
+
+                CarbonCore.Instance.ScriptProcessor.StartCoroutine ( Compile ( target ) );
+            }
+            catch ( Exception exception )
+            {
+                CarbonCore.Error ( $"Failed loading script;", exception );
+            }
         }
 
         private bool ExecuteMethod ( Assembly assembly, Type type, GameObject target, string method, Script plugin, bool skipAttributes )
@@ -165,8 +172,6 @@ namespace Carbon.Core
             }
 
             Namespaces = Namespaces.OrderBy ( x => x ).ToList ();
-
-            // OsEx.File.Create ( $"{TempFolder}/namespaces.txt", StringArrayEx.ToString ( Namespaces.ToArray (), "\n", "\n" ) );
         }
         protected void GetFullSource ()
         {
@@ -224,7 +229,7 @@ namespace Carbon.Core
             }
 
             Pool.Free ( ref lines );
-            AsyncLoader.FilePath = Files [ 0 ];
+            if ( Files.Count > 0 ) AsyncLoader.FilePath = Files [ 0 ];
             AsyncLoader.Source = Source;
             AsyncLoader.References = resultReferences?.ToArray ();
             AsyncLoader.Requires = resultRequires?.ToArray ();
@@ -238,7 +243,7 @@ namespace Carbon.Core
                 var plugin = CarbonCore.Instance.CorePlugin.plugins.Find ( require );
                 if ( plugin == null )
                 {
-                    CarbonCore.Warn ( $"Couldn't find required plugin '{require}' for '{Path.GetFileNameWithoutExtension ( Files [ 0 ] )}'" );
+                    CarbonCore.Warn ( $"Couldn't find required plugin '{require}' for '{( Files.Count > 0 ? Path.GetFileNameWithoutExtension ( Files [ 0 ] ) : "<unknown>" )}'" );
                     noRequiresFound = true;
                 }
                 else requires.Add ( plugin );
@@ -267,7 +272,7 @@ namespace Carbon.Core
                 yield break;
             }
 
-            CarbonCore.Warn ( $" Compiling '{Path.GetFileNameWithoutExtension( Files [ 0 ] )}' took {AsyncLoader.CompileTime * 1000:0}ms..." );
+            CarbonCore.Warn ( $" Compiling '{( Files.Count > 0 ? Path.GetFileNameWithoutExtension ( Files [ 0 ] ) : "<unknown>" )}' took {AsyncLoader.CompileTime * 1000:0}ms..." );
 
             try
             {

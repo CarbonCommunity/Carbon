@@ -99,7 +99,6 @@ namespace Carbon.Core.Processors
                         Process ( element.Key, element.Value );
                         yield return null;
                     }
-
                 }
 
                 _tempBuffer.Clear ();
@@ -109,7 +108,12 @@ namespace Carbon.Core.Processors
 
         public virtual void Prepare ( string file )
         {
-            Prepare ( Path.GetFileNameWithoutExtension ( file ), file );
+            if ( file.StartsWith ( "http" ) )
+            {                
+                var filename = Path.GetFileName ( file.Replace ( "http://", string.Empty ).Replace ( "https://", string.Empty ) );
+                Prepare ( filename, file );
+            }
+            else Prepare ( Path.GetFileNameWithoutExtension ( file ), file );
         }
         public virtual void Prepare ( string id, string file )
         {

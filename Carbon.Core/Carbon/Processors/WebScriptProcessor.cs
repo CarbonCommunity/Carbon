@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Oxide.Core.Libraries;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +10,6 @@ namespace Carbon.Core.Processors
 {
     public class WebScriptProcessor : BaseProcessor
     {
-        public override string Extension => ".cs";
         public override Type IndexedType => typeof ( WebScript );
 
         public class WebScript : Instance
@@ -34,8 +34,14 @@ namespace Carbon.Core.Processors
                 try
                 {
                     _loader = new ScriptLoader ();
-                    _loader.Files.Add ( File );
-                    _loader.Load ( true );
+
+                    CarbonCore.Instance.CorePlugin.webrequest.Enqueue ( File, null, ( error, result ) =>
+                    {
+                        CarbonCore.Log ( $"Downloaded '{File}': {result.Length}" );
+
+                        _loader.Sources.Add ( result );
+                        _loader.Load ( customFiles: true, customSources: true );
+                    }, CarbonCore.Instance.CorePlugin );
                 }
                 catch ( Exception ex )
                 {

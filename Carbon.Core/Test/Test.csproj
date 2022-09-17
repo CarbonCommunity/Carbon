@@ -164,6 +164,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dummy.cs" />
     <Compile Include="OxideTemplate.cs" />
     <Compile Include="CarbonTemplate.cs" />
     <Compile Include="MuhPlugin.cs" />

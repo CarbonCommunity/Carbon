@@ -107,6 +107,14 @@ namespace Carbon.Core
             }
         }
 
+        [ConsoleCommand ( "webload" )]
+        private void WebLoad ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
+
+            CarbonCore.Instance.WebScriptProcessor.Prepare ( arg.Args [ 0 ] );
+        }
+
         #region Config
 
         [ConsoleCommand ( "loadconfig", "Loads Carbon config from file.", false )]
