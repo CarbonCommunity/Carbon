@@ -49,6 +49,12 @@
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
+    <Reference Include="EasyAntiCheat.Client">
+      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="EasyAntiCheat.Server">
+      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Server.dll</HintPath>
+    </Reference>
     <Reference Include="Facepunch.Console">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Console.dll</HintPath>
     </Reference>
@@ -138,6 +144,10 @@
     <Compile Include="Hooks\Item\CanMoveItem.cs" />
     <Compile Include="Hooks\Item\CanDropActiveItem.cs" />
     <Compile Include="Hooks\Player\CanDeployItem.cs" />
+    <Compile Include="Hooks\Player\CanPickupEntity.cs" />
+    <Compile Include="Hooks\Player\OnPlayerBanned.cs" />
+    <Compile Include="Hooks\Player\OnPlayerSleep.cs" />
+    <Compile Include="Hooks\Player\OnPlayerSleepEnd.cs" />
     <Compile Include="Hooks\Player\OnPlayerRespawned.cs" />
     <Compile Include="Hooks\Player\OnPlayerRespawn.cs" />
     <Compile Include="Hooks\Player\OnMeleeAttack.cs" />
@@ -146,6 +156,8 @@
     <Compile Include="Hooks\Player\OnPlayerRevive_OnHealingItemUse.cs" />
     <Compile Include="Hooks\Player\CanAssignBed.cs" />
     <Compile Include="Hooks\Player\CanAffordUpgrade.cs" />
+    <Compile Include="Hooks\Resources\OnHorseDung.cs" />
+    <Compile Include="Hooks\Resources\OnGrowableGathered.cs" />
     <Compile Include="Hooks\Resources\OnQuarryToggled.cs" />
     <Compile Include="Hooks\Resources\OnCollectiblePickup.cs" />
     <Compile Include="Hooks\Resources\CanTakeCutting.cs" />

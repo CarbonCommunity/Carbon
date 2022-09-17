@@ -123,6 +123,7 @@ namespace Oxide.Plugins
         {
             IsLoaded = true;
             CallHook ( "OnLoaded" );
+            CallHook ( "Loaded" );
         }
         public virtual void IUnload ()
         {

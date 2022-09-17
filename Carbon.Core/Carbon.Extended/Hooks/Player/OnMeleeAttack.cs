@@ -40,7 +40,6 @@ namespace Carbon.Extended
             }
 
             msg.read.Position = oldPosition;
-
             return result;
         }
     }

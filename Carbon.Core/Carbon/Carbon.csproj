@@ -63,6 +63,12 @@
     <Reference Include="DnsClient, Version=1.6.1.0, Culture=neutral, PublicKeyToken=4574bb5573c51424, processorArchitecture=MSIL">
       <HintPath>..\..\Carbon.Core\packages\DnsClient.1.6.1\lib\net471\DnsClient.dll</HintPath>
     </Reference>
+    <Reference Include="EasyAntiCheat.Client">
+      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="EasyAntiCheat.Server">
+      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Server.dll</HintPath>
+    </Reference>
     <Reference Include="Facepunch.Console">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Console.dll</HintPath>
     </Reference>
