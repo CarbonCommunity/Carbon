@@ -6,7 +6,7 @@ using System.Reflection;
 namespace Carbon.Core.Oxide.Hooks
 {
     [HarmonyPatch ( typeof ( ServerMgr ), "UpdateServerInformation" )]
-    internal class ServerMgr_UpdateServerInformation
+    public class ServerMgr_UpdateServerInformation
     {
         public static void Postfix ()
         {

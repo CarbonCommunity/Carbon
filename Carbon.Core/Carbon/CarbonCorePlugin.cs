@@ -42,6 +42,7 @@ namespace Carbon.Core
                 permission.RefreshUser ( player );
             }
         }
+
         private void OnPluginLoaded ( Plugin plugin )
         {
         }

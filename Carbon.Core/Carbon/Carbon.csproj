@@ -75,9 +75,6 @@
     <Reference Include="Facepunch.Sqlite">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Sqlite.dll</HintPath>
     </Reference>
-    <Reference Include="Facepunch.Steamworks.Win64">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
-    </Reference>
     <Reference Include="Facepunch.System">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.System.dll</HintPath>
     </Reference>

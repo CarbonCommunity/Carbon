@@ -1,5 +1,6 @@
 ﻿using Carbon.Core;
 using Harmony;
+using Oxide.Core;
 using System.Reflection;
 using UnityEngine;
 
@@ -13,6 +14,9 @@ namespace Oxide.Plugins
 
         [PluginReference]
         public Plugin Locker;
+
+        [PluginReference]
+        public Plugin RustPlus;
 
         [PluginReference]
         public Plugin PortableLocker;
@@ -55,7 +59,7 @@ namespace Oxide.Plugins
         private object OnHammerHit ( BasePlayer player, HitInfo info )
         {
             player.ChatMessage ( $"You bonked {info.HitEntity}" );
-            Puts ( $"{player} bonked {info.HitEntity}     " );
+            Puts ( $"{player} bonked {info.HitEntity}" );
             info.HitEntity.Kill ();
             return true;
         }
@@ -86,6 +90,11 @@ namespace Oxide.Plugins
             // Puts ( $"{player} {input.current.buttons}" );
         }
 
+        private void OnPlayerRespawn ( BasePlayer player, BasePlayer.SpawnPoint point )
+        {
+            Puts ( $"{player} respawned at {point}" );
+        }
+
         private void OnPlayerDropActiveItem ()
         {
             Puts ( $"we did a thing3" );
@@ -97,10 +106,20 @@ namespace Oxide.Plugins
             return false;
         }
 
-        private bool OnMeleeAttack ( BasePlayer player, HitInfo info )
+        private object OnMeleeAttack ( BasePlayer player, HitInfo info )
         {
-            Puts ( $"{player} hit {info.HitEntity}!" );
-            return false;
+            var item = player.GetActiveItem ();
+            if ( item != null )
+            {
+                item.condition = item.maxCondition;
+                item.MarkDirty ();
+            }
+
+            player.ChatMessage ( $"You ouched {info.HitEntity}" );
+            Puts ( $"{player} ouched {info.HitEntity}" );
+
+            info.HitEntity.Kill ();
+            return null;
         }
 
         private bool OnItemUse ( Item item, int amount )

@@ -1,5 +1,6 @@
 ﻿using Facepunch;
 using Harmony;
+using Humanlights.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,50 +63,51 @@ namespace Carbon.Core
             {
                 foreach ( var type in addon.GetTypes () )
                 {
-                    var parameters = type.GetCustomAttributes<Hook.Parameter> ();
-                    var hook = type.GetCustomAttribute<Hook> ();
-                    var args = parameters == null || !parameters.Any () ? 0 : parameters.Count ();
-
-                    if ( hook == null ) continue;
-
-                    if ( hook.Name == hookName )
+                    try
                     {
-                        var patch = type.GetCustomAttribute<HarmonyPatch> ();
-                        var hookInstance = ( HookInstance )null;
+                        var parameters = type.GetCustomAttributes<Hook.Parameter> ();
+                        var hook = type.GetCustomAttribute<Hook> ();
+                        var args = parameters == null || !parameters.Any () ? 0 : parameters.Count ();
 
-                        if ( !Patches.TryGetValue ( hookName, out hookInstance ) )
+                        if ( hook == null ) continue;
+
+                        if ( hook.Name == hookName )
                         {
-                            Patches.Add ( hookName, hookInstance = new HookInstance () );
+                            var patch = type.GetCustomAttribute<HarmonyPatch> ();
+                            var hookInstance = ( HookInstance )null;
+
+                            if ( !Patches.TryGetValue ( hookName, out hookInstance ) )
+                            {
+                                Patches.Add ( hookName, hookInstance = new HookInstance () );
+                            }
+
+                            var prefix = type.GetMethod ( "Prefix" );
+                            var postfix = type.GetMethod ( "Postfix" );
+                            var transplier = type.GetMethod ( "Transplier" );
+                            var patchId = $"{hook.Name}.{args}";
+
+                            if ( hookInstance.Patches.Any ( x => x.Id == patchId ) ) continue;
+
+                            var matchedParameters = GetMatchedParameters ( patch.info.declaringType, patch.info.methodName, prefix.GetParameters () );
+                            var instance = HarmonyInstance.Create ( patchId );
+                            instance.Patch ( patch.info.declaringType.GetMethod ( patch.info.methodName, matchedParameters ),
+                                prefix: prefix == null ? null : new HarmonyMethod ( prefix ),
+                                postfix: postfix == null ? null : new HarmonyMethod ( postfix ),
+                                transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
+                            hookInstance.Patches.Add ( instance );
+                            hookInstance.Id = patchId;
+                            CarbonCore.Log ( $" Patched '{hookName}'[{args}]..." );
+
+                            Pool.Free ( ref matchedParameters );
                         }
-
-                        var prefix = type.GetMethod ( "Prefix" );
-                        var postfix = type.GetMethod ( "Postfix" );
-                        var transplier = type.GetMethod ( "Transplier" );
-                        var patchId = $"{hook.Name}.{args}";
-
-                        if ( hookInstance.Patches.Any ( x => x.Id == patchId ) ) continue;
-
-                        var originalMethodParameters = Pool.GetList<Type> ();
-                        foreach ( var param in prefix.GetParameters () )
-                        {
-                            if ( !param.ParameterType.IsByRef && !param.IsOut ) originalMethodParameters.Add ( param.ParameterType );
-                        }
-                        var originalMethodParametersResult = originalMethodParameters.ToArray ();
-
-                        var instance = HarmonyInstance.Create ( patchId );
-                        instance.Patch ( patch.info.declaringType.GetMethod ( patch.info.methodName, originalMethodParametersResult ),
-                            prefix: prefix == null ? null : new HarmonyMethod ( prefix ),
-                            postfix: postfix == null ? null : new HarmonyMethod ( postfix ),
-                            transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
-                        hookInstance.Patches.Add ( instance );
-                        hookInstance.Id = patchId;
-                        CarbonCore.Log ( $" Patched '{hookName}'[{args}]..." );
-
-                        Pool.FreeList ( ref originalMethodParameters );
-                        Pool.Free ( ref originalMethodParametersResult );
+                    }
+                    catch ( Exception exception )
+                    {
+                        CarbonCore.Error ( $"Couldn't patch hook '{hookName}' ({type.FullName})", exception );
                     }
                 }
             }
+
         }
         public void UninstallHooks ( string hookName )
         {
@@ -118,6 +120,36 @@ namespace Carbon.Core
 
                 instance.Patches.Clear ();
             }
+        }
+
+        internal Type [] GetMatchedParameters ( Type type, string methodName, ParameterInfo [] parameters )
+        {
+            var list = Pool.GetList<Type> ();
+
+            foreach ( var method in type.GetMethods ( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic ) )
+            {
+                if ( method.Name != methodName ) continue;
+
+                var @params = method.GetParameters ();
+
+                for ( int i = 0; i < @params.Length; i++ )
+                {
+                    try
+                    {
+                        var param = @params [ i ];
+                        var otherParam = parameters [ i ];
+                        if ( param.Name == otherParam.Name && param.ParameterType.FullName == otherParam.ParameterType.FullName )
+                        {
+                            list.Add ( param.ParameterType );
+                        }
+                    }
+                    catch { }
+                }
+            }
+
+            var result = list.ToArray ();
+            Pool.FreeList ( ref list );
+            return result;
         }
 
         public class HookInstance
