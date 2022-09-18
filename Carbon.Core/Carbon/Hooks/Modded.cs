@@ -14,6 +14,8 @@ namespace Carbon.Core.Oxide.Hooks
 
             try
             {
+                ServerTagEx.SetRequiredTag ( "carbon" );
+
                 if ( CarbonCore.Instance.Config.IsModded )
                 {
                     ServerTagEx.SetRequiredTag ( "modded" );

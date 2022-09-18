@@ -6,10 +6,9 @@ using UnityEngine;
 namespace Carbon.Extended
 {
     [Hook ( "OnHorseDung" ), Hook.Category ( Hook.Category.Enum.Entity )]
-    [Hook.Parameter ( "this", typeof ( GrowableEntity ) )]
-    [Hook.Parameter ( "item", typeof ( Item ) )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Called before the player receives an item from gathering a growable entity." )]
+    [Hook.Parameter ( "horse", typeof ( BaseRidableAnimal ) )]
+    [Hook.Info ( "Called when a dung is spawned at the backside of the horse." )]
+    [Hook.Info ( "Override the return with an item to replace the Dung with any other item that's being dropped." )]
     [HarmonyPatch ( typeof ( BaseRidableAnimal ), "DoDung" )]
     public class GrowableEntity_DoDung
     {

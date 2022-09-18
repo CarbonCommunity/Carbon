@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseUnix|AnyCPU'">
-    <OutputPath>bin\ReleaseUnix\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -166,6 +166,18 @@
     <Compile Include="Hooks\Player\OnLootEntityEnd.cs" />
     <Compile Include="Hooks\Player\OnLootEntity.cs" />
     <Compile Include="Hooks\Entity\OnEntityDeath.cs" />
+    <Compile Include="Hooks\Team\OnTeamAcceptInvite.cs" />
+    <Compile Include="Hooks\Team\OnTeamCreated.cs" />
+    <Compile Include="Hooks\Team\OnTeamUpdate.cs" />
+    <Compile Include="Hooks\Team\OnTeamUpdated.cs" />
+    <Compile Include="Hooks\Team\OnTeamDisbanded.cs" />
+    <Compile Include="Hooks\Team\OnTeamDisband.cs" />
+    <Compile Include="Hooks\Team\OnTeamKick.cs" />
+    <Compile Include="Hooks\Team\OnTeamLeave.cs" />
+    <Compile Include="Hooks\Team\OnTeamPromote.cs" />
+    <Compile Include="Hooks\Team\OnTeamRejectInvite.cs" />
+    <Compile Include="Hooks\Team\OnTeamInvite.cs" />
+    <Compile Include="Hooks\Team\OnTeamCreate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

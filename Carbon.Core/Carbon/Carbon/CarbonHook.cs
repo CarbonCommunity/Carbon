@@ -22,6 +22,18 @@ public class Hook : Attribute
     }
 
     [AttributeUsage ( AttributeTargets.Class, AllowMultiple = true )]
+    public class Require : Attribute
+    {
+        public string Hook { get; set; }
+
+        public Require () { }
+        public Require ( string hook )
+        {
+            Hook = hook;
+        }
+    }
+
+    [AttributeUsage ( AttributeTargets.Class, AllowMultiple = true )]
     public class Info : Attribute
     {
         public string Value { get; set; }
@@ -58,7 +70,8 @@ public class Hook : Attribute
             Item,
             Player,
             Structure,
-            Resources
+            Resources,
+            Team
         }
 
         public Category ( Enum @enum )

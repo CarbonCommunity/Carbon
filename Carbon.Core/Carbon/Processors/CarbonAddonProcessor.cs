@@ -28,6 +28,15 @@ namespace Carbon.Core
 
             return false;
         }
+        public bool HasHook ( Type type, string hookName )
+        {
+            foreach ( var method in type.GetMethods ( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ) )
+            {
+                if ( method.Name == hookName ) return true;
+            }
+
+            return false;
+        }
 
         public void AppendHook ( string hookName )
         {
@@ -67,12 +76,25 @@ namespace Carbon.Core
                     {
                         var parameters = type.GetCustomAttributes<Hook.Parameter> ();
                         var hook = type.GetCustomAttribute<Hook> ();
+                        var requires = type.GetCustomAttributes<Hook.Require> ();
                         var args = parameters == null || !parameters.Any () ? 0 : parameters.Count ();
 
                         if ( hook == null ) continue;
 
+                        if ( requires != null )
+                        {
+                            foreach ( var require in requires )
+                            {
+                                if ( require.Hook == hookName ) continue;
+
+                                InstallHooks ( require.Hook );
+                            }
+                        }
+
                         if ( hook.Name == hookName )
                         {
+
+                            var patchId = $"{hook.Name}.{args}";
                             var patch = type.GetCustomAttribute<HarmonyPatch> ();
                             var hookInstance = ( HookInstance )null;
 
@@ -81,16 +103,19 @@ namespace Carbon.Core
                                 Patches.Add ( hookName, hookInstance = new HookInstance () );
                             }
 
+                            if ( hookInstance.Patches.Any ( x => x != null && x.Id == patchId ) ) continue;
+                            CarbonCore.Log ( $"   Got hooked passed. {patchId} {patch == null} {hookInstance == null}" );
+
                             var prefix = type.GetMethod ( "Prefix" );
                             var postfix = type.GetMethod ( "Postfix" );
                             var transplier = type.GetMethod ( "Transplier" );
-                            var patchId = $"{hook.Name}.{args}";
 
-                            if ( hookInstance.Patches.Any ( x => x.Id == patchId ) ) continue;
-
-                            var matchedParameters = GetMatchedParameters ( patch.info.declaringType, patch.info.methodName, prefix.GetParameters () );
+                            var matchedParameters = GetMatchedParameters ( patch.info.declaringType, patch.info.methodName, ( prefix ?? postfix ?? transplier ).GetParameters () );
+                            CarbonCore.Log ( $"   Matched parameters passed." );
                             var instance = HarmonyInstance.Create ( patchId );
-                            instance.Patch ( patch.info.declaringType.GetMethod ( patch.info.methodName, matchedParameters ),
+                            var originalMethod = patch.info.declaringType.GetMethod ( patch.info.methodName, matchedParameters );
+                            CarbonCore.Log ( $"Info: {hookName} | {originalMethod == null} | {parameters.Select ( x => x.Type.FullName ).ToArray ().ToString ( ", ", " and " )} | {matchedParameters.Select ( x => x.FullName ).ToArray ().ToString ( ", ", " and " )} | {prefix.GetParameters ().Select ( x => x.ParameterType.FullName ).ToArray ().ToString ( ", ", " and " )}" );
+                            instance.Patch ( originalMethod,
                                 prefix: prefix == null ? null : new HarmonyMethod ( prefix ),
                                 postfix: postfix == null ? null : new HarmonyMethod ( postfix ),
                                 transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
@@ -130,7 +155,7 @@ namespace Carbon.Core
         {
             var list = Pool.GetList<Type> ();
 
-            foreach ( var method in type.GetMethods ( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic ) )
+            foreach ( var method in type.GetMethods ( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static ) )
             {
                 if ( method.Name != methodName ) continue;
 
@@ -142,7 +167,7 @@ namespace Carbon.Core
                     {
                         var param = @params [ i ];
                         var otherParam = parameters [ i ];
-                        if ( param.Name == otherParam.Name && param.ParameterType.FullName == otherParam.ParameterType.FullName )
+                        if ( param.ParameterType.FullName == otherParam.ParameterType.FullName )
                         {
                             list.Add ( param.ParameterType );
                         }
