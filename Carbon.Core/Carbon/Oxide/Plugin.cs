@@ -88,6 +88,8 @@ namespace Oxide.Plugins
                 CarbonCore.Instance.Addon.InstallHooks ( method.Name );
                 CarbonCore.Instance.Addon.AppendHook ( method.Name );
             }
+
+            CarbonCore.Debug ( Name, "Processed hooks", 2 );
         }
         internal void _unprocessHooks ()
         {
@@ -95,6 +97,8 @@ namespace Oxide.Plugins
             {
                 CarbonCore.Instance.Addon.UnappendHook ( method.Name );
             }
+
+            CarbonCore.Debug ( Name, "Unprocessed hooks", 2 );
         }
 
         public virtual void IInit ()
@@ -108,6 +112,8 @@ namespace Oxide.Plugins
                 HookMethodAttributeCache.Add ( name + method.GetParameters ().Length, method );
             }
 
+            CarbonCore.Debug ( Name, "Installed hook method attributes", 2 );
+
             foreach ( var field in GetType ().GetFields ( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public ) )
             {
                 var attribute = field.GetCustomAttribute<PluginReferenceAttribute> ();
@@ -116,6 +122,8 @@ namespace Oxide.Plugins
                 var plugin = CarbonCore.Instance.CorePlugin.plugins.Find ( field.Name );
                 if ( plugin != null ) field.SetValue ( this, plugin );
             }
+
+            CarbonCore.Debug ( Name, "Assigned plugin references", 2 );
 
             _processHooks ();
         }

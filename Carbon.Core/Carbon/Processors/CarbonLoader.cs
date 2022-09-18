@@ -219,6 +219,8 @@ namespace Carbon.Core
 
             UnloadMod ( mod );
             UninitializePlugins ( mod );
+
+            if ( mod.IsAddon ) CarbonCore.Instance.Addon.Addons.Remove ( mod.Assembly );
             return true;
         }
 
@@ -235,6 +237,8 @@ namespace Carbon.Core
         public static void InitializePlugins ( CarbonMod mod )
         {
             mod.IsAddon = CarbonCore.IsAddon ( mod.Name );
+
+            CarbonCore.Debug ( $"Initializing mod '{mod.Name}'", 1 );
 
             if ( mod.IsAddon )
             {

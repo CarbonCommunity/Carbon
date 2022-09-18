@@ -145,7 +145,18 @@ namespace Carbon.Core
             CarbonCore.Instance.Config.IsModded = arg.GetBool ( 0 );
             CarbonCore.Instance.SaveConfig ();
 
-            Reply ( $"Set server as '{( CarbonCore.Instance.Config.IsModded ? "Modded" : "Community" )}'", arg );
+            Reply ( $"Server mode: '{( CarbonCore.Instance.Config.IsModded ? "Modded" : "Community" )}'", arg );
+        }
+
+        [ConsoleCommand ( "debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", false )]
+        private void CarbonDebug ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
+
+            CarbonCore.Instance.Config.Debug = arg.GetInt ( 0 );
+            CarbonCore.Instance.SaveConfig ();
+
+            Reply ( $"Debug logging: '{CarbonCore.Instance.Config.Debug}'", arg );
         }
 
         #endregion

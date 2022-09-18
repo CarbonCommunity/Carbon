@@ -113,6 +113,7 @@ namespace Carbon.Core
                 HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
                 Addon = new CarbonAddonProcessor ();
             }
+            Debug ( "Installed processors", 3 );
 
             _registerProcessors ();
         }
@@ -123,6 +124,7 @@ namespace Carbon.Core
             if ( HarmonyProcessor != null ) HarmonyProcessor?.Start ();
 
             if ( ScriptProcessor != null ) ScriptProcessor.InvokeRepeating ( () => { RefreshConsoleInfo (); }, 1f, 1f );
+            Debug ( "Registered processors", 3 );
         }
         internal void _uninstallProcessors ()
         {
@@ -213,18 +215,43 @@ namespace Carbon.Core
 
         #region Logging
 
+        public static void Debug ( object message, int level = 0, LogType log = LogType.Log )
+        {
+            if ( Instance.Config.Debug <= -1 ||
+                Instance.Config.Debug <= level ) return;
+
+            switch ( log )
+            {
+                case LogType.Log:
+                    Log ( $"[Carbon] {message}" );
+                    break;
+
+                case LogType.Warning:
+                    Warn ( $"[Carbon] {message}" );
+                    break;
+
+                case LogType.Error:
+                    Error ( $"[Carbon] {message}" );
+                    break;
+            }
+        }
+        public static void Debug ( object header, object message, int level = 0, LogType log = LogType.Log )
+        {
+            Debug ( $"[{header}] {message}", level, log );
+        }
+
         public static void Log ( object message )
         {
-            Debug.Log ( $"{message}" );
+            UnityEngine.Debug.Log ( $"{message}" );
         }
         public static void Warn ( object message )
         {
-            Debug.LogWarning ( $"{message}" );
+            UnityEngine.Debug.LogWarning ( $"{message}" );
         }
         public static void Error ( object message, Exception exception = null )
         {
-            if ( exception == null ) Debug.LogError ( message );
-            else Debug.LogError ( new Exception ( $"{message}\n{exception}" ) );
+            if ( exception == null ) UnityEngine.Debug.LogError ( message );
+            else UnityEngine.Debug.LogError ( new Exception ( $"{message}\n{exception}" ) );
         }
 
         public static void Format ( string format, params object [] args )
@@ -269,6 +296,7 @@ namespace Carbon.Core
             IsInitialized = true;
 
             LoadConfig ();
+            Debug ( "Loaded config", 3 );
 
             Format ( $"Loading..." );
 
@@ -278,8 +306,8 @@ namespace Carbon.Core
             GetPluginsFolder ();
             GetLogsFolder ();
             GetLangFolder ();
-
             OsEx.Folder.DeleteContents ( GetTempFolder () );
+            Debug ( "Loaded folders", 3 );
 
             _installProcessors ();
 
@@ -301,7 +329,7 @@ namespace Carbon.Core
 
             ClearPlugins ();
             CarbonLoader._loadedMods.Clear ();
-            Debug.Log ( $"Unloaded Carbon." );
+            UnityEngine.Debug.Log ( $"Unloaded Carbon." );
 
 #if WIN
             if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )

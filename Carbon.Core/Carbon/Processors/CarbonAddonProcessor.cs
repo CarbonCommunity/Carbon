@@ -37,6 +37,10 @@ namespace Carbon.Core
 
             return false;
         }
+        public bool IsPatched ( string hookName )
+        {
+            return Patches.ContainsKey ( hookName );
+        }
 
         public void AppendHook ( string hookName )
         {
@@ -66,7 +70,7 @@ namespace Carbon.Core
         public void InstallHooks ( string hookName )
         {
             if ( !DoesHookExist ( hookName ) ) return;
-            CarbonCore.Log ( $" Found '{hookName}'." );
+            if ( !IsPatched ( hookName ) ) CarbonCore.Debug ( $"Found '{hookName}'..." );
 
             foreach ( var addon in Addons )
             {
@@ -93,7 +97,6 @@ namespace Carbon.Core
 
                         if ( hook.Name == hookName )
                         {
-
                             var patchId = $"{hook.Name}.{args}";
                             var patch = type.GetCustomAttribute<HarmonyPatch> ();
                             var hookInstance = ( HookInstance )null;
@@ -104,24 +107,21 @@ namespace Carbon.Core
                             }
 
                             if ( hookInstance.Patches.Any ( x => x != null && x.Id == patchId ) ) continue;
-                            CarbonCore.Log ( $"   Got hooked passed. {patchId} {patch == null} {hookInstance == null}" );
 
                             var prefix = type.GetMethod ( "Prefix" );
                             var postfix = type.GetMethod ( "Postfix" );
                             var transplier = type.GetMethod ( "Transplier" );
 
                             var matchedParameters = GetMatchedParameters ( patch.info.declaringType, patch.info.methodName, ( prefix ?? postfix ?? transplier ).GetParameters () );
-                            CarbonCore.Log ( $"   Matched parameters passed." );
                             var instance = HarmonyInstance.Create ( patchId );
                             var originalMethod = patch.info.declaringType.GetMethod ( patch.info.methodName, matchedParameters );
-                            CarbonCore.Log ( $"Info: {hookName} | {originalMethod == null} | {parameters.Select ( x => x.Type.FullName ).ToArray ().ToString ( ", ", " and " )} | {matchedParameters.Select ( x => x.FullName ).ToArray ().ToString ( ", ", " and " )} | {prefix.GetParameters ().Select ( x => x.ParameterType.FullName ).ToArray ().ToString ( ", ", " and " )}" );
                             instance.Patch ( originalMethod,
                                 prefix: prefix == null ? null : new HarmonyMethod ( prefix ),
                                 postfix: postfix == null ? null : new HarmonyMethod ( postfix ),
                                 transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
                             hookInstance.Patches.Add ( instance );
                             hookInstance.Id = patchId;
-                            CarbonCore.Log ( $" Patched '{hookName}'[{args}]..." );
+                            CarbonCore.Debug ( $"Patched {hookName}[{args}]..." );
 
                             Pool.Free ( ref matchedParameters );
                         }
@@ -167,7 +167,8 @@ namespace Carbon.Core
                     {
                         var param = @params [ i ];
                         var otherParam = parameters [ i ];
-                        if ( param.ParameterType.FullName == otherParam.ParameterType.FullName )
+
+                        if ( param.ParameterType.FullName.Replace ( "&", "" ) == otherParam.ParameterType.FullName.Replace ( "&", "" ) )
                         {
                             list.Add ( param.ParameterType );
                         }
