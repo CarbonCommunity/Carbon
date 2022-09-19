@@ -371,6 +371,7 @@ namespace Carbon.Core
     {
         public int Debug { get; set; }
 
+        public bool CarbonTag { get; set; } = true;
         public bool IsModded { get; set; } = true;
         public bool ScriptWatchers { get; set; } = true;
         public bool HarmonyWatchers { get; set; } = true;

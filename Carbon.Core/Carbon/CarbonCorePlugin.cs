@@ -148,6 +148,17 @@ namespace Carbon.Core
             Reply ( $"Server mode: '{( CarbonCore.Instance.Config.IsModded ? "Modded" : "Community" )}'", arg );
         }
 
+        [ConsoleCommand ( "tag", "Displays this server in the browser list with the 'carbon' tag.", false )]
+        private void CarbonTag ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
+
+            CarbonCore.Instance.Config.CarbonTag = arg.GetBool ( 0 );
+            CarbonCore.Instance.SaveConfig ();
+
+            Reply ( $"Carbon tag: '{CarbonCore.Instance.Config.CarbonTag}'", arg );
+        }
+
         [ConsoleCommand ( "debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", false )]
         private void CarbonDebug ( ConsoleSystem.Arg arg )
         {
