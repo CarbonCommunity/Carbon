@@ -117,7 +117,7 @@ namespace Carbon.Core
 
         #region Config
 
-        [ConsoleCommand ( "loadconfig", "Loads Carbon config from file.", false )]
+        [ConsoleCommand ( "loadconfig", "Loads Carbon config from file." )]
         private void CarbonLoadConfig ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null ) return;
@@ -127,7 +127,7 @@ namespace Carbon.Core
             Reply ( "Loaded Carbon config.", arg );
         }
 
-        [ConsoleCommand ( "saveconfig", "Saves Carbon config to file.", false )]
+        [ConsoleCommand ( "saveconfig", "Saves Carbon config to file." )]
         private void CarbonSaveConfig ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null ) return;
@@ -137,7 +137,7 @@ namespace Carbon.Core
             Reply ( "Saved Carbon config.", arg );
         }
 
-        [ConsoleCommand ( "modding", "Mark this server as modded or not.", false )]
+        [ConsoleCommand ( "modding", "Mark this server as modded or not.", )]
         private void CarbonModding ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
@@ -148,7 +148,7 @@ namespace Carbon.Core
             Reply ( $"Server mode: '{( CarbonCore.Instance.Config.IsModded ? "Modded" : "Community" )}'", arg );
         }
 
-        [ConsoleCommand ( "tag", "Displays this server in the browser list with the 'carbon' tag.", false )]
+        [ConsoleCommand ( "tag", "Displays this server in the browser list with the 'carbon' tag." )]
         private void CarbonTag ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
@@ -159,7 +159,7 @@ namespace Carbon.Core
             Reply ( $"Carbon tag: '{CarbonCore.Instance.Config.CarbonTag}'", arg );
         }
 
-        [ConsoleCommand ( "debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", false )]
+        [ConsoleCommand ( "debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)" )]
         private void CarbonDebug ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
@@ -193,7 +193,7 @@ namespace Carbon.Core
             Reply ( body.ToNewLine (), arg );
         }
 
-        [ConsoleCommand ( "findchat", "Searches through Carbon-processed chat commands.", false )]
+        [ConsoleCommand ( "findchat", "Searches through Carbon-processed chat commands." )]
         private void FindChat ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () ) return;
