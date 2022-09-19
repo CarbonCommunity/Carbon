@@ -47,7 +47,7 @@ namespace Carbon.Patch
             {
                 using ( var archive = new ZipArchive ( memoryStream, ZipArchiveMode.Create, true ) )
                 {
-                    archive.CreateEntryFromFile ( "Carbon.Core/Carbon/bin/ReleaseUnix/Carbon.dll", "HarmonyMods/Carbon.dll" );
+                    archive.CreateEntryFromFile ( "Carbon.Core/Carbon/bin/ReleaseUnix/Carbon.dll", "HarmonyMods/Carbon-Unix.dll" );
                     archive.CreateEntryFromFile ( "Tools/patch.sh", "carbon_prepatch.sh" );
                     archive.CreateEntryFromFile ( "Tools/NStrip", "carbon/tools/NStrip" );
                 }
