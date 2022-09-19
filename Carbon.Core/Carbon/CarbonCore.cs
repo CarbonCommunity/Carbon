@@ -15,10 +15,23 @@ namespace Carbon.Core
 {
     public class CarbonCore
     {
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 300 );
+        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 350 );
 
         public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
         public static CarbonCore Instance { get; set; }
+
+        public const OS OperatingSystem =
+#if WIN
+             OS.Win;
+#elif LINUX
+             OS.Linux;
+#endif
+    
+        public enum OS
+        {
+            Win,
+            Linux
+        }
 
         public CarbonAddonProcessor Addon { get; set; }
         public CarbonConfig Config { get; set; }
@@ -40,7 +53,7 @@ namespace Carbon.Core
             return false;
         }
 
-        #region Config
+#region Config
 
         public void LoadConfig ()
         {
@@ -60,9 +73,9 @@ namespace Carbon.Core
             OsEx.File.Create ( GetConfigFile (), JsonConvert.SerializeObject ( Config, Formatting.Indented ) );
         }
 
-        #endregion
+#endregion
 
-        #region Commands
+#region Commands
 
         public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand> ();
         public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand> ();
@@ -92,9 +105,9 @@ namespace Carbon.Core
             CarbonLoader.ProcessCommands ( typeof ( CarbonCorePlugin ), CorePlugin, prefix: "c" );
         }
 
-        #endregion
+#endregion
 
-        #region Processors
+#region Processors
 
         public ScriptProcessor ScriptProcessor { get; set; } = new ScriptProcessor ();
         public WebScriptProcessor WebScriptProcessor { get; set; } = new WebScriptProcessor ();
@@ -153,9 +166,9 @@ namespace Carbon.Core
             catch { }
         }
 
-        #endregion
+#endregion
 
-        #region Paths
+#region Paths
 
         public static string GetConfigFile ()
         {
@@ -212,9 +225,9 @@ namespace Carbon.Core
             return folder;
         }
 
-        #endregion
+#endregion
 
-        #region Logging
+#region Logging
 
         public static void Debug ( object message, int level = 0, LogType log = LogType.Log )
         {
@@ -279,7 +292,7 @@ namespace Carbon.Core
             Error ( string.Format ( format, args ), exception );
         }
 
-        #endregion
+#endregion
 
         public static void ReloadPlugins ()
         {
@@ -344,11 +357,15 @@ namespace Carbon.Core
             UnityEngine.Debug.Log ( $"Unloaded Carbon." );
 
 #if WIN
-            if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
+            try
             {
-                ServerConsole.Instance.input.statusText [ 3 ] = "";
-                ServerConsole.Instance.input.statusText = new string [ 3 ];
+                if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
+                {
+                    ServerConsole.Instance.input.statusText [ 3 ] = "";
+                    ServerConsole.Instance.input.statusText = new string [ 3 ];
+                }
             }
+            catch { }
 #endif
         }
     }

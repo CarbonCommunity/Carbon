@@ -13,7 +13,6 @@ namespace Carbon.Patch
 
             OsEx.File.Copy ( "Carbon.Core/Carbon/bin/Release/net48/Carbon.dll", "Release/Carbon.dll" );
             OsEx.File.Copy ( "Carbon.Core/Carbon/bin/ReleaseUnix/net48/Carbon.dll", "Release/Carbon-Unix.dll" );
-            OsEx.File.Copy ( "Carbon.Core/Carbon.Extended/bin/Release/Carbon.Extended.dll", "Release/Carbon.Extended.dll" );
 
             //
             // Windows patch
@@ -47,7 +46,7 @@ namespace Carbon.Patch
             {
                 using ( var archive = new ZipArchive ( memoryStream, ZipArchiveMode.Create, true ) )
                 {
-                    archive.CreateEntryFromFile ( "Carbon.Core/Carbon/bin/ReleaseUnix/net48/Carbon.dll", "HarmonyMods/Carbon.dll" );
+                    archive.CreateEntryFromFile ( "Carbon.Core/Carbon/bin/ReleaseUnix/net48/Carbon.dll", "HarmonyMods/Carbon-Unix.dll" );
                     archive.CreateEntryFromFile ( "Tools/Scripts/linux_prepatch.sh", "carbon_prepatch.sh" );
                     archive.CreateEntryFromFile ( "Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip" );
                 }

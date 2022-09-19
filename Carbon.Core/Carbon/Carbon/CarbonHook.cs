@@ -22,6 +22,25 @@ public class Hook : Attribute
     }
 
     [AttributeUsage ( AttributeTargets.Class, AllowMultiple = true )]
+    public class Patch : Attribute
+    {
+        public Type Type { get; set; }
+        public string Method { get; set; }
+        public Type [] Parameters { get; set; }
+
+        public Patch () { }
+        public Patch ( Type type, string method )
+        {
+            Type = type;
+            Method = method;
+        }
+        public Patch ( Type type, string method, Type [] parameters ) : this ( type, method )
+        {
+            Parameters = parameters;
+        }
+    }
+
+    [AttributeUsage ( AttributeTargets.Class, AllowMultiple = true )]
     public class Require : Attribute
     {
         public string Hook { get; set; }
@@ -79,4 +98,20 @@ public class Hook : Attribute
             Value = @enum;
         }
     }
+}
+
+[AttributeUsage ( AttributeTargets.Class )]
+public class OxideHook : Hook
+{
+    public OxideHook () { }
+    public OxideHook ( string name ) : base ( name ) { }
+    public OxideHook ( string name, Type returnType = null ) : base ( name, returnType ) { }
+}
+
+[AttributeUsage ( AttributeTargets.Class )]
+public class CarbonHook : Hook
+{
+    public CarbonHook () { }
+    public CarbonHook ( string name ) : base ( name ) { }
+    public CarbonHook ( string name, Type returnType = null ) : base ( name, returnType ) { }
 }

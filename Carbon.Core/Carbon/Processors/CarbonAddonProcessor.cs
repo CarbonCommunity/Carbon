@@ -13,6 +13,11 @@ namespace Carbon.Core
         public List<Assembly> Addons { get; } = new List<Assembly> ();
         public Dictionary<string, HookInstance> Patches { get; } = new Dictionary<string, HookInstance> ();
 
+        public CarbonAddonProcessor ()
+        {
+            Addons.Add ( GetType ().Assembly );
+        }
+
         public bool DoesHookExist ( string hookName )
         {
             foreach ( var addon in Addons )
@@ -98,7 +103,7 @@ namespace Carbon.Core
                         if ( hook.Name == hookName )
                         {
                             var patchId = $"{hook.Name}.{args}";
-                            var patch = type.GetCustomAttribute<HarmonyPatch> ();
+                            var patch = type.GetCustomAttribute<Hook.Patch> ();
                             var hookInstance = ( HookInstance )null;
 
                             if ( !Patches.TryGetValue ( hookName, out hookInstance ) )
@@ -112,9 +117,9 @@ namespace Carbon.Core
                             var postfix = type.GetMethod ( "Postfix" );
                             var transplier = type.GetMethod ( "Transplier" );
 
-                            var matchedParameters = GetMatchedParameters ( patch.info.declaringType, patch.info.methodName, ( prefix ?? postfix ?? transplier ).GetParameters () );
+                            var matchedParameters = GetMatchedParameters ( patch.Type, patch.Method, ( prefix ?? postfix ?? transplier ).GetParameters () );
                             var instance = HarmonyInstance.Create ( patchId );
-                            var originalMethod = patch.info.declaringType.GetMethod ( patch.info.methodName, matchedParameters );
+                            var originalMethod = patch.Type.GetMethod ( patch.Method, matchedParameters );
                             instance.Patch ( originalMethod,
                                 prefix: prefix == null ? null : new HarmonyMethod ( prefix ),
                                 postfix: postfix == null ? null : new HarmonyMethod ( postfix ),
