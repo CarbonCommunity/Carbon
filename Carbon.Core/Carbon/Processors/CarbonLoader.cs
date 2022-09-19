@@ -380,6 +380,10 @@ namespace Carbon.Core
                                 {
                                     value = rawString.ToUlong ();
                                 }
+                                else if ( field.FieldType == typeof ( bool ) )
+                                {
+                                    value = rawString.ToBool ();
+                                }
 
                                 field.SetValue ( plugin, value );
                             }
@@ -428,6 +432,10 @@ namespace Carbon.Core
                                 else if ( property.PropertyType == typeof ( ulong ) )
                                 {
                                     value = rawString.ToUlong ();
+                                }
+                                else if ( property.PropertyType == typeof ( bool ) )
+                                {
+                                    value = rawString.ToBool ();
                                 }
 
                                 property.SetValue ( plugin, value );

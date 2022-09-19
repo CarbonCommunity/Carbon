@@ -247,7 +247,7 @@ namespace Carbon.Core
                     }
 
                     //
-                    // Plugins
+                    // Scripts
                     //
                     {
                         var tempList = Pool.GetList<string> ();
@@ -279,7 +279,7 @@ namespace Carbon.Core
                     }
 
                     //
-                    // Plugins
+                    // Scripts
                     //
                     {
                         CarbonCore.Instance.ScriptProcessor.ClearIgnore ( path );
@@ -312,7 +312,7 @@ namespace Carbon.Core
                     }
 
                     //
-                    // Plugins
+                    // Scripts
                     //
                     {
                         var tempList = Pool.GetList<string> ();
@@ -323,6 +323,22 @@ namespace Carbon.Core
                         foreach ( var plugin in tempList )
                         {
                             CarbonCore.Instance.ScriptProcessor.Ignore ( plugin );
+                        }
+                        Pool.FreeList ( ref tempList );
+                    }
+
+                    //
+                    // Web-Scripts
+                    //
+                    {
+                        var tempList = Pool.GetList<string> ();
+                        tempList.AddRange ( CarbonCore.Instance.WebScriptProcessor.IgnoreList );
+                        CarbonCore.Instance.WebScriptProcessor.IgnoreList.Clear ();
+                        CarbonCore.Instance.WebScriptProcessor.Clear ();
+
+                        foreach ( var plugin in tempList )
+                        {
+                            CarbonCore.Instance.WebScriptProcessor.Ignore ( plugin );
                         }
                         Pool.FreeList ( ref tempList );
                     }
@@ -348,12 +364,23 @@ namespace Carbon.Core
                     }
 
                     //
-                    // Plugins
+                    // Scripts
                     //
                     {
                         if ( CarbonCore.Instance.ScriptProcessor.InstanceBuffer.TryGetValue ( name, out var value ) )
                         {
                             CarbonCore.Instance.ScriptProcessor.Ignore ( path );
+                            value.Dispose ();
+                        }
+                    }
+
+                    //
+                    // Web-Scripts
+                    //
+                    {
+                        if ( CarbonCore.Instance.WebScriptProcessor.InstanceBuffer.TryGetValue ( name, out var value ) )
+                        {
+                            CarbonCore.Instance.WebScriptProcessor.Ignore ( path );
                             value.Dispose ();
                         }
                     }
