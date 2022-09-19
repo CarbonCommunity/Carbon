@@ -34,7 +34,7 @@ bld/
 [Ll]ogs/
 
 # Carbon
-[R]rust/RustDedicated_Data
+[Rr]ust/RustDedicated_Data
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
