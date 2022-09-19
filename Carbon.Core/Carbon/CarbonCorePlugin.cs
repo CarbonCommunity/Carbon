@@ -137,38 +137,14 @@ namespace Carbon.Core
             Reply ( "Saved Carbon config.", arg );
         }
 
-        [ConsoleCommand ( "modding", "Mark this server as modded or not.", )]
-        private void CarbonModding ( ConsoleSystem.Arg arg )
-        {
-            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
+        [CommandVar ( "modding", "Mark this server as modded or not.", true )]
+        private bool Modding { get { return CarbonCore.Instance.Config.IsModded; } set { CarbonCore.Instance.Config.IsModded = value; } }
 
-            CarbonCore.Instance.Config.IsModded = arg.GetBool ( 0 );
-            CarbonCore.Instance.SaveConfig ();
+        [CommandVar ( "tag", "Displays this server in the browser list with the 'carbon' tag.", true )]
+        private bool CarbonTag { get { return CarbonCore.Instance.Config.CarbonTag; } set { CarbonCore.Instance.Config.CarbonTag = value; } }
 
-            Reply ( $"Server mode: '{( CarbonCore.Instance.Config.IsModded ? "Modded" : "Community" )}'", arg );
-        }
-
-        [ConsoleCommand ( "tag", "Displays this server in the browser list with the 'carbon' tag." )]
-        private void CarbonTag ( ConsoleSystem.Arg arg )
-        {
-            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
-
-            CarbonCore.Instance.Config.CarbonTag = arg.GetBool ( 0 );
-            CarbonCore.Instance.SaveConfig ();
-
-            Reply ( $"Carbon tag: '{CarbonCore.Instance.Config.CarbonTag}'", arg );
-        }
-
-        [ConsoleCommand ( "debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)" )]
-        private void CarbonDebug ( ConsoleSystem.Arg arg )
-        {
-            if ( !arg.IsPlayerCalledAndAdmin () || CarbonCore.Instance == null || !arg.HasArgs ( 1 ) ) return;
-
-            CarbonCore.Instance.Config.Debug = arg.GetInt ( 0 );
-            CarbonCore.Instance.SaveConfig ();
-
-            Reply ( $"Debug logging: '{CarbonCore.Instance.Config.Debug}'", arg );
-        }
+        [CommandVar ( "debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true )]
+        private int CarbonDebug { get { return CarbonCore.Instance.Config.Debug; } set { CarbonCore.Instance.Config.Debug = value; } }
 
         #endregion
 

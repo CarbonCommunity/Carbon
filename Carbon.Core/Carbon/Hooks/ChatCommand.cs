@@ -1,6 +1,7 @@
 ﻿using Carbon.Core;
 using Carbon.Core.Extensions;
 using ConVar;
+using Facepunch.Extend;
 using Harmony;
 using System;
 using System.Linq;
@@ -14,15 +15,26 @@ public class Chat_SayAs
 
         try
         {
-            var split = message.Substring ( 1 ).Split ( ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries );
+            var fullString = message.Substring ( 1 );
+            var split = fullString.Split ( ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries );
             var command = split [ 0 ].Trim ();
-            var args = split.Length > 1 ? split.Skip ( 1 ).ToArray () : null;
+            var args = split.Length > 1 ? fullString.Substring ( command.Length + 1 ).SplitQuotesStrings () : null;
+            Facepunch.Pool.Free ( ref split );
 
             foreach ( var cmd in CarbonCore.Instance?.AllChatCommands )
             {
                 if ( cmd.Command == command )
                 {
-                    cmd.Callback?.Invoke ( player, command, args );
+                    try
+                    {
+                        cmd.Callback?.Invoke ( player, command, args );
+                    }
+                    catch ( Exception ex )
+                    {
+                        CarbonCore.Error ( "ConsoleSystem_Run", ex );
+                    }
+
+                    Facepunch.Pool.Free ( ref args );
                     return false;
                 }
             }

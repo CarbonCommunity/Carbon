@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using static ConsoleSystem;
 
 namespace Carbon.Core
 {
@@ -252,6 +253,17 @@ namespace Carbon.Core
         {
             if ( exception == null ) UnityEngine.Debug.LogError ( message );
             else UnityEngine.Debug.LogError ( new Exception ( $"{message}\n{exception}" ) );
+        }
+
+        public static void LogCommand ( object message, BasePlayer player = null )
+        {
+            if ( player == null )
+            {
+                Log ( message );
+                return;
+            }
+
+            player.SendConsoleCommand ( $"echo {message}" );
         }
 
         public static void Format ( string format, params object [] args )

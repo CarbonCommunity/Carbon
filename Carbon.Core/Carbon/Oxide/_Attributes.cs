@@ -122,6 +122,26 @@ public class ConsoleCommandAttribute : Attribute
     }
 }
 
+[AttributeUsage ( AttributeTargets.Field | AttributeTargets.Property )]
+public class CommandVarAttribute : Attribute
+{
+    public string Name { get; }
+    public string Help { get; }
+    public bool AdminOnly { get; set; }
+
+    public CommandVarAttribute ( string name, bool adminOnly = false )
+    {
+        Name = name;
+        AdminOnly = adminOnly;
+    }
+    public CommandVarAttribute ( string name, string help, bool adminOnly = false )
+    {
+        Name = name;
+        Help = help;
+        AdminOnly = adminOnly;
+    }
+}
+
 [AttributeUsage ( AttributeTargets.Method )]
 public class HookMethodAttribute : Attribute
 {

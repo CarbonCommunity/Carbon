@@ -8,6 +8,7 @@ using Oxide.Plugins;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Mono.CSharp;
+using static ConsoleSystem;
 
 namespace Carbon.Core
 {
@@ -312,6 +313,8 @@ namespace Carbon.Core
         public static void ProcessCommands ( Type type, RustPlugin plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null )
         {
             var methods = type.GetMethods ( flags );
+            var fields = type.GetFields ( flags | BindingFlags.Public );
+            var properties = type.GetProperties ( flags | BindingFlags.Public );
 
             foreach ( var method in methods )
             {
@@ -339,7 +342,105 @@ namespace Carbon.Core
                 }
             }
 
+            foreach ( var field in fields )
+            {
+                var var = field.GetCustomAttribute<CommandVarAttribute> ();
+
+                if ( var != null )
+                {
+                    CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( string.IsNullOrEmpty ( prefix ) ? var.Name : $"{prefix}.{var.Name}", plugin, ( player, command, args ) =>
+                    {
+                        if ( player != null && var.AdminOnly && !player.IsAdmin )
+                        {
+                            CarbonCore.LogCommand ( $"You don't have permission to set this value", player );
+                            return;
+                        }
+
+                        var rawString = args.ToString ( " " );
+                        var value = field.GetValue ( plugin );
+
+                        if ( args != null && args.Length > 0 )
+                        {
+                            try
+                            {
+                                if ( field.FieldType == typeof ( string ) )
+                                {
+                                    value = rawString.ToFloat ();
+                                }
+                                if ( field.FieldType == typeof ( int ) )
+                                {
+                                    value = rawString.ToInt ();
+                                }
+                                else if ( field.FieldType == typeof ( float ) )
+                                {
+                                    value = rawString.ToFloat ();
+                                }
+                                else if ( field.FieldType == typeof ( ulong ) )
+                                {
+                                    value = rawString.ToUlong ();
+                                }
+
+                                field.SetValue ( plugin, value );
+                            }
+                            catch { }
+                        }
+
+                        CarbonCore.LogCommand ( $"{command}: \"{value}\"", player );
+                    }, help: var.Help );
+                }
+            }
+
+            foreach ( var property in properties )
+            {
+                var var = property.GetCustomAttribute<CommandVarAttribute> ();
+
+                if ( var != null )
+                {
+                    CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand ( string.IsNullOrEmpty ( prefix ) ? var.Name : $"{prefix}.{var.Name}", plugin, ( player, command, args ) =>
+                    {
+                        if ( player != null && var.AdminOnly && !player.IsAdmin )
+                        {
+                            CarbonCore.LogCommand ( $"You don't have permission to set this value", player );
+                            return;
+                        }
+
+                        var rawString = args.ToString ( " " );
+                        var value = property.GetValue ( plugin );
+
+                        if ( args != null && args.Length > 0 )
+                        {
+                            try
+                            {
+                                if ( property.PropertyType == typeof ( string ) )
+                                {
+                                    value = rawString.ToFloat ();
+                                }
+                                if ( property.PropertyType == typeof ( int ) )
+                                {
+                                    value = rawString.ToInt ();
+                                }
+                                else if ( property.PropertyType == typeof ( float ) )
+                                {
+                                    value = rawString.ToFloat ();
+                                }
+                                else if ( property.PropertyType == typeof ( ulong ) )
+                                {
+                                    value = rawString.ToUlong ();
+                                }
+
+                                property.SetValue ( plugin, value );
+                            }
+                            catch { }
+                        }
+
+                        CarbonCore.LogCommand ( $"{command}: \"{value}\"", player );
+                    }, help: var.Help );
+                }
+            }
+
             Facepunch.Pool.Free ( ref methods );
+            Facepunch.Pool.Free ( ref fields );
+            Facepunch.Pool.Free ( ref properties );
         }
         public static void RemoveCommands ( RustPlugin plugin )
         {
