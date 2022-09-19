@@ -13,7 +13,6 @@ namespace Carbon.Patch
 
             OsEx.File.Copy ( "Carbon.Core/Carbon/bin/Release/Carbon.dll", "Release/Carbon.dll" );
             OsEx.File.Copy ( "Carbon.Core/Carbon/bin/ReleaseUnix/Carbon.dll", "Release/Carbon-Unix.dll" );
-            OsEx.File.Copy ( "Carbon.Core/Carbon.Extended/bin/Release/Carbon.Extended.dll", "Release/Carbon.Extended.dll" );
 
             //
             // Windows patch

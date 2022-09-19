@@ -357,11 +357,15 @@ namespace Carbon.Core
             UnityEngine.Debug.Log ( $"Unloaded Carbon." );
 
 #if WIN
-            if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
+            try
             {
-                ServerConsole.Instance.input.statusText [ 3 ] = "";
-                ServerConsole.Instance.input.statusText = new string [ 3 ];
+                if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
+                {
+                    ServerConsole.Instance.input.statusText [ 3 ] = "";
+                    ServerConsole.Instance.input.statusText = new string [ 3 ];
+                }
             }
+            catch { }
 #endif
         }
     }

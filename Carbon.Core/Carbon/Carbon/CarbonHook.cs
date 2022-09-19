@@ -22,6 +22,25 @@ public class Hook : Attribute
     }
 
     [AttributeUsage ( AttributeTargets.Class, AllowMultiple = true )]
+    public class Patch : Attribute
+    {
+        public Type Type { get; set; }
+        public string Method { get; set; }
+        public Type [] Parameters { get; set; }
+
+        public Patch () { }
+        public Patch ( Type type, string method )
+        {
+            Type = type;
+            Method = method;
+        }
+        public Patch ( Type type, string method, Type [] parameters ) : this ( type, method )
+        {
+            Parameters = parameters;
+        }
+    }
+
+    [AttributeUsage ( AttributeTargets.Class, AllowMultiple = true )]
     public class Require : Attribute
     {
         public string Hook { get; set; }

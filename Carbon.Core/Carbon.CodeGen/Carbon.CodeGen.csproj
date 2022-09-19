@@ -230,10 +230,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Carbon.Extended\Carbon.Extended.csproj">
-      <Project>{f680af83-68b8-4762-a4f3-1757e7dc7a22}</Project>
-      <Name>Carbon.Extended</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Carbon\Carbon.csproj">
       <Project>{db7ac4b9-e0f3-4e8f-b977-dd32709359a4}</Project>
       <Name>Carbon</Name>
