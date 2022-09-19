@@ -3,12 +3,12 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanAssignBed", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "this", typeof ( SleepingBag ) )]
-    [Hook.Parameter ( "friendId", typeof ( ulong ) )]
-    [Hook.Info ( "Called when a player attempts to assign a bed or sleeping bag to another player." )]
-    [Hook.Patch ( typeof ( SleepingBag ), "AssignToFriend" )]
+    [OxideHook ( "CanAssignBed", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "this", typeof ( SleepingBag ) )]
+    [OxideHook.Parameter ( "friendId", typeof ( ulong ) )]
+    [OxideHook.Info ( "Called when a player attempts to assign a bed or sleeping bag to another player." )]
+    [OxideHook.Patch ( typeof ( SleepingBag ), "AssignToFriend" )]
     public class SleepingBag_CanAffordUpgrade
     {
         public static bool Prefix ( BaseEntity.RPCMessage msg, ref SleepingBag __instance )

@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamInvite", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Useful for canceling sending an invitation." )]
-    [Hook.Patch ( typeof ( RelationshipManager ), "sendinvite" )]
+    [Hook ( "OnTeamInvite", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Useful for canceling sending an invitation." )]
+    [OxideHook.Patch ( typeof ( RelationshipManager ), "sendinvite" )]
     public class RelationshipManager_sendinvite
     {
         public static bool Prefix ( ConsoleSystem.Arg arg )

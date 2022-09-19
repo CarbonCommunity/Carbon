@@ -13,10 +13,6 @@ dotnet restore
 msbuild /p:Configuration=ReleaseUnix
 msbuild /p:Configuration=Release
 
-cd ../Carbon.Extended
-dotnet restore
-msbuild /p:Configuration=Release
-
 cd ../..
 
 "Carbon.Core/Carbon.Patch/bin/Release/Carbon.Patch.exe"

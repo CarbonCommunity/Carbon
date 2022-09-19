@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamLeave", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Useful for canceling the leave from the team." )]
-    [Hook.Patch ( typeof ( RelationshipManager ), "leaveteam" )]
+    [OxideHook ( "OnTeamLeave", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Useful for canceling the leave from the team." )]
+    [OxideHook.Patch ( typeof ( RelationshipManager ), "leaveteam" )]
     public class RelationshipManager_leaveteam
     {
         public static bool Prefix ( ConsoleSystem.Arg arg )

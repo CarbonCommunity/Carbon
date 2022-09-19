@@ -3,11 +3,11 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanPickupEntity", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "this", typeof ( BaseCombatEntity ) )]
-    [Hook.Info ( "alled when a player attempts to pickup a deployed entity (AutoTurret, BaseMountable, BearTrap, DecorDeployable, Door, DoorCloser, ReactiveTarget, SamSite, SleepingBag, SpinnerWheel, StorageContainer, etc.)." )]
-    [Hook.Patch ( typeof ( BaseCombatEntity ), "CanPickup" )]
+    [OxideHook ( "CanPickupEntity", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "this", typeof ( BaseCombatEntity ) )]
+    [OxideHook.Info ( "alled when a player attempts to pickup a deployed entity (AutoTurret, BaseMountable, BearTrap, DecorDeployable, Door, DoorCloser, ReactiveTarget, SamSite, SleepingBag, SpinnerWheel, StorageContainer, etc.)." )]
+    [OxideHook.Patch ( typeof ( BaseCombatEntity ), "CanPickup" )]
     public class BaseCombatEntity_CanPickup
     {
         public static bool Prefix ( BasePlayer player, ref bool __result, ref BaseCombatEntity __instance )

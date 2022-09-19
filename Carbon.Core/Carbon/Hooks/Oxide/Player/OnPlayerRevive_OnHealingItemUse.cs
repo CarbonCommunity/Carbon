@@ -4,12 +4,12 @@ using Oxide.Core;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnPlayerRevive", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "target", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Called when the recover after reviving with a medical tool." )]
-    [Hook.Info ( "Useful for canceling the reviving." )]
-    [Hook.Patch ( typeof ( MedicalTool ), "GiveEffectsTo" )]
+    [OxideHook ( "OnPlayerRevive", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "target", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Called when the recover after reviving with a medical tool." )]
+    [OxideHook.Info ( "Useful for canceling the reviving." )]
+    [OxideHook.Patch ( typeof ( MedicalTool ), "GiveEffectsTo" )]
     public class MedicalTool_GiveEffectsTo
     {
         public static bool Prefix ( BasePlayer player, ref MedicalTool __instance )
@@ -34,11 +34,11 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnHealingItemUse", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "this", typeof ( MedicalTool ) )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Called when a player attempts to use a medical tool." )]
-    [Hook.Patch ( typeof ( MedicalTool ), "GiveEffectsTo" )]
+    [OxideHook ( "OnHealingItemUse", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "this", typeof ( MedicalTool ) )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Called when a player attempts to use a medical tool." )]
+    [OxideHook.Patch ( typeof ( MedicalTool ), "GiveEffectsTo" )]
     public class MedicalTool_GiveEffectsTo_OnHealingItemUse
     {
         public static bool Prefix ( BasePlayer player, ref MedicalTool __instance )

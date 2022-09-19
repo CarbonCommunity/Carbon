@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamRejectInvite", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Parameter ( "rejector", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
-    [Hook.Info ( "Useful for canceling the invitation rejection." )]
-    [Hook.Patch ( typeof ( RelationshipManager ), "rejectinvite" )]
+    [OxideHook ( "OnTeamRejectInvite", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Parameter ( "rejector", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
+    [OxideHook.Info ( "Useful for canceling the invitation rejection." )]
+    [OxideHook.Patch ( typeof ( RelationshipManager ), "rejectinvite" )]
     public class RelationshipManager_rejectinvite
     {
         public static bool Prefix ( ConsoleSystem.Arg arg )

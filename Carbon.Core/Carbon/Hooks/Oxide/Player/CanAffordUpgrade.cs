@@ -3,12 +3,12 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanAffordUpgrade", typeof ( bool ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "this", typeof ( BuildingBlock ) )]
-    [Hook.Parameter ( "grade", typeof ( BuildingGrade.Enum ) )]
-    [Hook.Info ( "Called when the resources for an upgrade are checked." )]
-    [Hook.Patch ( typeof ( BuildingBlock ), "CanAffordUpgrade" )]
+    [OxideHook ( "CanAffordUpgrade", typeof ( bool ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "this", typeof ( BuildingBlock ) )]
+    [OxideHook.Parameter ( "grade", typeof ( BuildingGrade.Enum ) )]
+    [OxideHook.Info ( "Called when the resources for an upgrade are checked." )]
+    [OxideHook.Patch ( typeof ( BuildingBlock ), "CanAffordUpgrade" )]
     public class BuildingBlock_CanAffordUpgrade
     {
         public static bool Prefix ( BuildingGrade.Enum iGrade, BasePlayer player, ref BuildingBlock __instance, ref bool __result )

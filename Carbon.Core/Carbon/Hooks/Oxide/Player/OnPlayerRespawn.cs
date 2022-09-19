@@ -7,13 +7,13 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnPlayerRespawn", typeof ( BasePlayer.SpawnPoint ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "this", typeof ( BasePlayer.SpawnPoint ) )]
-    [Hook.Info ( "Called when a player is attempting to respawn." )]
-    [Hook.Info ( "Returning a BasePlayer.SpawnPoint (takes a position and rotation) overrides the respawn location." )]
-    [Hook.Info ( "Returning a SleepingBag overrides the respawn location." )]
-    [Hook.Patch ( typeof ( BasePlayer ), "Respawn" )]
+    [OxideHook ( "OnPlayerRespawn", typeof ( BasePlayer.SpawnPoint ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "this", typeof ( BasePlayer.SpawnPoint ) )]
+    [OxideHook.Info ( "Called when a player is attempting to respawn." )]
+    [OxideHook.Info ( "Returning a BasePlayer.SpawnPoint (takes a position and rotation) overrides the respawn location." )]
+    [OxideHook.Info ( "Returning a SleepingBag overrides the respawn location." )]
+    [OxideHook.Patch ( typeof ( BasePlayer ), "Respawn" )]
     public class BasePlayer_Respawn
     {
         public static bool Prefix ( ref BasePlayer __instance )
@@ -31,12 +31,12 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnPlayerRespawn", typeof ( SleepingBag ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "this", typeof ( SleepingBag ) )]
-    [Hook.Info ( "Called when a player is attempting to respawn." )]
-    [Hook.Info ( "Returning a SleepingBag overrides the respawn location." )]
-    [Hook.Patch ( typeof ( SleepingBag ), "SpawnPlayer" )]
+    [OxideHook ( "OnPlayerRespawn", typeof ( SleepingBag ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "this", typeof ( SleepingBag ) )]
+    [OxideHook.Info ( "Called when a player is attempting to respawn." )]
+    [OxideHook.Info ( "Returning a SleepingBag overrides the respawn location." )]
+    [OxideHook.Patch ( typeof ( SleepingBag ), "SpawnPlayer" )]
     public class SleepingBag_SpawnPlayer
     {
         public static bool Prefix ( BasePlayer player, uint sleepingBag, ref BasePlayer __instance, out bool __result )

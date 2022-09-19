@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamPromote", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
-    [Hook.Parameter ( "newLeader", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Useful for canceling player's promotion in the team." )]
-    [Hook.Patch ( typeof ( RelationshipManager ), "promote" )]
+    [OxideHook ( "OnTeamPromote", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
+    [OxideHook.Parameter ( "newLeader", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Useful for canceling player's promotion in the team." )]
+    [OxideHook.Patch ( typeof ( RelationshipManager ), "promote" )]
     public class RelationshipManager_promote
     {
         public static bool Prefix ( ConsoleSystem.Arg arg )

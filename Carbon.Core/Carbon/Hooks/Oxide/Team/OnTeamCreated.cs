@@ -5,12 +5,12 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamCreated" ), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Require ( "OnTeamCreate" )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
-    [Hook.Info ( "Called after a team was created." )]
-    [Hook.Patch ( typeof ( RelationshipManager ), "trycreateteam" )]
+    [OxideHook ( "OnTeamCreated" ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Require ( "OnTeamCreate" )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
+    [OxideHook.Info ( "Called after a team was created." )]
+    [OxideHook.Patch ( typeof ( RelationshipManager ), "trycreateteam" )]
     public class RelationshipManager_trycreateteam_OnTeamCreated
     {
         public static void Postfix ( ConsoleSystem.Arg arg )

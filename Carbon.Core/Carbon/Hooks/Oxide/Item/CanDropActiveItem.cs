@@ -4,11 +4,11 @@ using Oxide.Core;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanDropActiveItem", typeof ( bool ) ), Hook.Category ( Hook.Category.Enum.Item )]
-    [Hook.Parameter ( "this", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Called when a player attempts to drop their active item." )]
-    [Hook.Info ( "Returning true or false overrides default behavior." )]
-    [Hook.Patch ( typeof ( BasePlayer ), "ShouldDropActiveItem" )]
+    [OxideHook ( "CanDropActiveItem", typeof ( bool ) ), OxideHook.Category ( OxideHook.Category.Enum.Item )]
+    [OxideHook.Parameter ( "this", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Called when a player attempts to drop their active item." )]
+    [OxideHook.Info ( "Returning true or false overrides default behavior." )]
+    [OxideHook.Patch ( typeof ( BasePlayer ), "ShouldDropActiveItem" )]
     public class BasePlayer_ShouldDropActiveItem
     {
         public static bool Prefix ( ref Item __instance, out bool __result )

@@ -3,12 +3,12 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnEntityDeath" ), Hook.Category ( Hook.Category.Enum.Entity )]
-    [Hook.Parameter ( "this", typeof ( BaseCombatEntity ) )]
-    [Hook.Parameter ( "info", typeof ( HitInfo ) )]
-    [Hook.Info ( "HitInfo might be null, check it before use." )]
-    [Hook.Info ( "Editing hitInfo has no effect because the death has already happened." )]
-    [Hook.Patch ( typeof ( BaseCombatEntity ), "Die" )]
+    [OxideHook ( "OnEntityDeath" ), OxideHook.Category ( OxideHook.Category.Enum.Entity )]
+    [OxideHook.Parameter ( "this", typeof ( BaseCombatEntity ) )]
+    [OxideHook.Parameter ( "info", typeof ( HitInfo ) )]
+    [OxideHook.Info ( "HitInfo might be null, check it before use." )]
+    [OxideHook.Info ( "Editing hitInfo has no effect because the death has already happened." )]
+    [OxideHook.Patch ( typeof ( BaseCombatEntity ), "Die" )]
     public class BaseCombatEntity_Die
     {
         public static void Prefix ( HitInfo info, ref BaseCombatEntity __instance )
@@ -17,12 +17,12 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnEntityDeath" ), Hook.Category ( Hook.Category.Enum.Entity )]
-    [Hook.Parameter ( "this", typeof ( ResourceEntity ) )]
-    [Hook.Parameter ( "info", typeof ( HitInfo ) )]
-    [Hook.Info ( "HitInfo might be null, check it before use." )]
-    [Hook.Info ( "Editing hitInfo has no effect because the death has already happened." )]
-    [Hook.Patch ( typeof ( ResourceEntity ), "OnKilled" )]
+    [OxideHook ( "OnEntityDeath" ), OxideHook.Category ( OxideHook.Category.Enum.Entity )]
+    [OxideHook.Parameter ( "this", typeof ( ResourceEntity ) )]
+    [OxideHook.Parameter ( "info", typeof ( HitInfo ) )]
+    [OxideHook.Info ( "HitInfo might be null, check it before use." )]
+    [OxideHook.Info ( "Editing hitInfo has no effect because the death has already happened." )]
+    [OxideHook.Patch ( typeof ( ResourceEntity ), "OnKilled" )]
     public class ResourceEntity_OnKilled
     {
         public static void Prefix ( HitInfo info, ref ResourceEntity __instance )

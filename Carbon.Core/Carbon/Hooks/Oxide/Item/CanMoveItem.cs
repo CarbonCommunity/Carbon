@@ -3,14 +3,14 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanMoveItem", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Item )]
-    [Hook.Parameter ( "item", typeof ( Item ) )]
-    [Hook.Parameter ( "this", typeof ( PlayerInventory ) )]
-    [Hook.Parameter ( "targetContainer", typeof ( uint ) )]
-    [Hook.Parameter ( "targetSlot", typeof ( int ) )]
-    [Hook.Parameter ( "amount", typeof ( int ) )]
-    [Hook.Info ( "Called when moving an item from one inventory slot to another." )]
-    [Hook.Patch ( typeof ( PlayerInventory ), "MoveItem" )]
+    [OxideHook ( "CanMoveItem", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Item )]
+    [OxideHook.Parameter ( "item", typeof ( Item ) )]
+    [OxideHook.Parameter ( "this", typeof ( PlayerInventory ) )]
+    [OxideHook.Parameter ( "targetContainer", typeof ( uint ) )]
+    [OxideHook.Parameter ( "targetSlot", typeof ( int ) )]
+    [OxideHook.Parameter ( "amount", typeof ( int ) )]
+    [OxideHook.Info ( "Called when moving an item from one inventory slot to another." )]
+    [OxideHook.Patch ( typeof ( PlayerInventory ), "MoveItem" )]
     public class CanMoveItem
     {
         public static bool Prefix ( BaseEntity.RPCMessage msg, ref PlayerInventory __instance )

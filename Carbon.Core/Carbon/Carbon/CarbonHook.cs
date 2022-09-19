@@ -99,3 +99,19 @@ public class Hook : Attribute
         }
     }
 }
+
+[AttributeUsage ( AttributeTargets.Class )]
+public class OxideHook : Hook
+{
+    public OxideHook () { }
+    public OxideHook ( string name ) : base ( name ) { }
+    public OxideHook ( string name, Type returnType = null ) : base ( name, returnType ) { }
+}
+
+[AttributeUsage ( AttributeTargets.Class )]
+public class CarbonHook : Hook
+{
+    public CarbonHook () { }
+    public CarbonHook ( string name ) : base ( name ) { }
+    public CarbonHook ( string name, Type returnType = null ) : base ( name, returnType ) { }
+}

@@ -5,12 +5,12 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnGrowableGathered" ), Hook.Category ( Hook.Category.Enum.Resources )]
-    [Hook.Parameter ( "this", typeof ( GrowableEntity ) )]
-    [Hook.Parameter ( "item", typeof ( Item ) )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Called before the player receives an item from gathering a growable entity." )]
-    [Hook.Patch ( typeof ( GrowableEntity ), "GiveFruit" )]
+    [OxideHook ( "OnGrowableGathered" ), OxideHook.Category ( OxideHook.Category.Enum.Resources )]
+    [OxideHook.Parameter ( "this", typeof ( GrowableEntity ) )]
+    [OxideHook.Parameter ( "item", typeof ( Item ) )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Called before the player receives an item from gathering a growable entity." )]
+    [OxideHook.Patch ( typeof ( GrowableEntity ), "GiveFruit" )]
     public class GrowableEntity_GiveFruit
     {
         public static bool Prefix ( BasePlayer player, int amount, bool applyCondition, ref GrowableEntity __instance )

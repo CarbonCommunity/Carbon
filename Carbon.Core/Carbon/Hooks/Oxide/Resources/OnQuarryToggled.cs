@@ -3,11 +3,11 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnQuarryToggled", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Resources )]
-    [Hook.Parameter ( "this", typeof ( EngineSwitch ) )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Called when a quarry has just been toggled." )]
-    [Hook.Patch ( typeof ( EngineSwitch ), "StartEngine" )]
+    [OxideHook ( "OnQuarryToggled", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Resources )]
+    [OxideHook.Parameter ( "this", typeof ( EngineSwitch ) )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Called when a quarry has just been toggled." )]
+    [OxideHook.Patch ( typeof ( EngineSwitch ), "StartEngine" )]
     public class EngineSwitch_StartEngine
     {
         public static bool Prefix ( BaseEntity.RPCMessage msg, ref EngineSwitch __instance )

@@ -5,12 +5,12 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamKick", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "target", typeof ( ulong ) )]
-    [Hook.Info ( "Useful for canceling kick of the player from the team." )]
-    [Hook.Patch ( typeof ( RelationshipManager ), "kickmember" )]
+    [OxideHook ( "OnTeamKick", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "target", typeof ( ulong ) )]
+    [OxideHook.Info ( "Useful for canceling kick of the player from the team." )]
+    [OxideHook.Patch ( typeof ( RelationshipManager ), "kickmember" )]
     public class RelationshipManager_kickmember
     {
         public static bool Prefix ( ConsoleSystem.Arg arg )

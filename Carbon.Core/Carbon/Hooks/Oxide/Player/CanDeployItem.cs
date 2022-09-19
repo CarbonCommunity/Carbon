@@ -7,12 +7,12 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanDeployItem", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "this", typeof ( Deployer ) )]
-    [Hook.Parameter ( "entityId", typeof ( uint ) )]
-    [Hook.Info ( "Useful for denying items' deployment." )]
-    [Hook.Patch ( typeof ( Deployer ), "DoDeploy" )]
+    [OxideHook ( "CanDeployItem", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "this", typeof ( Deployer ) )]
+    [OxideHook.Parameter ( "entityId", typeof ( uint ) )]
+    [OxideHook.Info ( "Useful for denying items' deployment." )]
+    [OxideHook.Patch ( typeof ( Deployer ), "DoDeploy" )]
     public class Deployer_DoDeploy
     {
         public static bool Prefix ( BaseEntity.RPCMessage msg, ref Deployer __instance )

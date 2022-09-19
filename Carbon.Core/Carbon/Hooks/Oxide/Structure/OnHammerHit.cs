@@ -3,11 +3,11 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnHammerHit", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "hitInfo", typeof ( HitInfo ) )]
-    [Hook.Info ( "Called when the player has hit something with a hammer." )]
-    [Hook.Patch ( typeof ( Hammer ), "DoAttackShared" )]
+    [OxideHook ( "OnHammerHit", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "hitInfo", typeof ( HitInfo ) )]
+    [OxideHook.Info ( "Called when the player has hit something with a hammer." )]
+    [OxideHook.Patch ( typeof ( Hammer ), "DoAttackShared" )]
     public class Hammer_DoAttackShared
     {
         public static bool Prefix ( HitInfo info, ref Hammer __instance )

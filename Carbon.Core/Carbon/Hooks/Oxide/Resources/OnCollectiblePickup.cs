@@ -3,11 +3,11 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnCollectiblePickup", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Resources )]
-    [Hook.Parameter ( "this", typeof ( CollectibleEntity ) )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Called when the player collects an item." )]
-    [Hook.Patch ( typeof ( CollectibleEntity ), "DoPickup" )]
+    [OxideHook ( "OnCollectiblePickup", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Resources )]
+    [OxideHook.Parameter ( "this", typeof ( CollectibleEntity ) )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Called when the player collects an item." )]
+    [OxideHook.Patch ( typeof ( CollectibleEntity ), "DoPickup" )]
     public class CollectibleEntity_DoPickup
     {
         public static bool Prefix ( BasePlayer reciever, ref CollectibleEntity __instance )

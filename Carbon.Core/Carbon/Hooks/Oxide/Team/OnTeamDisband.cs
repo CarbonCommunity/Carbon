@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamDisband", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
-    [Hook.Info ( "Useful for canceling team disbandment." )]
-    [Hook.Patch ( typeof ( RelationshipManager ), "DisbandTeam" )]
+    [OxideHook ( "OnTeamDisband", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
+    [OxideHook.Info ( "Useful for canceling team disbandment." )]
+    [OxideHook.Patch ( typeof ( RelationshipManager ), "DisbandTeam" )]
     public class RelationshipManager_DisbandTeam_OnTeamDisband
     {
         public static bool Prefix ( ref RelationshipManager.PlayerTeam teamToDisband, ref RelationshipManager __instance )

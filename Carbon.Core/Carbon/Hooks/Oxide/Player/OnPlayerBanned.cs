@@ -9,12 +9,12 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnUserBanned", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "connection", typeof ( Network.Connection ) )]
-    [Hook.Parameter ( "reason", typeof ( string ) )]
-    [Hook.Info ( "Called when a player has been banned from the server." )]
-    [Hook.Info ( "Will have reason available if provided." )]
-    [Hook.Patch ( typeof ( EACServer ), "HandleClientUpdate" )]
+    [OxideHook ( "OnUserBanned", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "connection", typeof ( Network.Connection ) )]
+    [OxideHook.Parameter ( "reason", typeof ( string ) )]
+    [OxideHook.Info ( "Called when a player has been banned from the server." )]
+    [OxideHook.Info ( "Will have reason available if provided." )]
+    [OxideHook.Patch ( typeof ( EACServer ), "HandleClientUpdate" )]
     public class EACServer_HandleClientUpdate_OnPlayerBanned
     {
         public static void Prefix ( ClientStatusUpdate<EasyAntiCheat.Server.Hydra.Client> clientStatus )
@@ -43,11 +43,11 @@ namespace Carbon.Extended
         }
     }
 
-    [Hook ( "OnPlayerKicked", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "connection", typeof ( Network.Connection ) )]
-    [Hook.Parameter ( "reason", typeof ( string ) )]
-    [Hook.Info ( "Called after the player is kicked from the server." )]
-    [Hook.Patch ( typeof ( EACServer ), "HandleClientUpdate" )]
+    [OxideHook ( "OnPlayerKicked", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "connection", typeof ( Network.Connection ) )]
+    [OxideHook.Parameter ( "reason", typeof ( string ) )]
+    [OxideHook.Info ( "Called after the player is kicked from the server." )]
+    [OxideHook.Patch ( typeof ( EACServer ), "HandleClientUpdate" )]
     public class EACServer_HandleClientUpdate_OnPlayerKicked
     {
         public static void Prefix ( ClientStatusUpdate<EasyAntiCheat.Server.Hydra.Client> clientStatus )

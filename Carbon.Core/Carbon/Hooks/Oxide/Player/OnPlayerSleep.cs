@@ -6,10 +6,10 @@ using static BasePlayer;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnPlayerSleep", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "this", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Called when the player is about to go to sleep." )]
-    [Hook.Patch ( typeof ( BasePlayer ), "StartSleeping" )]
+    [OxideHook ( "OnPlayerSleep", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "this", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Called when the player is about to go to sleep." )]
+    [OxideHook.Patch ( typeof ( BasePlayer ), "StartSleeping" )]
     public class BasePlayer_StartSleeping
     {
         public static bool Prefix ( ref BasePlayer __instance )

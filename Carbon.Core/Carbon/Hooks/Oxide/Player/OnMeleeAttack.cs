@@ -6,11 +6,11 @@ using ProtoBuf;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnMeleeAttack", typeof ( bool ) ), Hook.Category ( Hook.Category.Enum.Player )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "hitInfo", typeof ( HitInfo ) )]
-    [Hook.Info ( "Useful for canceling melee attacks." )]
-    [Hook.Patch ( typeof ( BaseMelee ), "PlayerAttack" )]
+    [OxideHook ( "OnMeleeAttack", typeof ( bool ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "hitInfo", typeof ( HitInfo ) )]
+    [OxideHook.Info ( "Useful for canceling melee attacks." )]
+    [OxideHook.Patch ( typeof ( BaseMelee ), "PlayerAttack" )]
     public class BaseMelee_PlayerAttack
     {
         public static bool Prefix ( BaseEntity.RPCMessage msg, ref BaseMelee __instance )

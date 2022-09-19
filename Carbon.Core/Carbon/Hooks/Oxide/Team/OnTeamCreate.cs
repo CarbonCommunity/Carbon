@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamCreate", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Useful for canceling team creation." )]
-    [Hook.Patch ( typeof ( RelationshipManager ), "trycreateteam" )]
+    [OxideHook ( "OnTeamCreate", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Useful for canceling team creation." )]
+    [OxideHook.Patch ( typeof ( RelationshipManager ), "trycreateteam" )]
     public class RelationshipManager_trycreateteam_OnTeamCreate
     {
         public static bool Prefix ( ConsoleSystem.Arg arg )

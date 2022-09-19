@@ -3,12 +3,12 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnItemUse", typeof ( int ) ), Hook.Category ( Hook.Category.Enum.Item )]
-    [Hook.Parameter ( "this", typeof ( Item ) )]
-    [Hook.Parameter ( "amountToConsume", typeof ( int ) )]
-    [Hook.Info ( "Called when an item is used." )]
-    [Hook.Info ( "Returning an int overrides the amount consumed." )]
-    [Hook.Patch ( typeof ( Item ), "UseItem" )]
+    [OxideHook ( "OnItemUse", typeof ( int ) ), OxideHook.Category ( OxideHook.Category.Enum.Item )]
+    [OxideHook.Parameter ( "this", typeof ( Item ) )]
+    [OxideHook.Parameter ( "amountToConsume", typeof ( int ) )]
+    [OxideHook.Info ( "Called when an item is used." )]
+    [OxideHook.Info ( "Returning an int overrides the amount consumed." )]
+    [OxideHook.Patch ( typeof ( Item ), "UseItem" )]
     public class Item_UseItem
     {
         public static void Prefix ( ref int amountToConsume, ref Item __instance )

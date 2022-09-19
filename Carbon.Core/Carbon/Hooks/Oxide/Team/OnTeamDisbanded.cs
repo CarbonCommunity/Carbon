@@ -6,10 +6,10 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamDisbanded"), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
-    [Hook.Info ( "Called when the team was disbanded." )]
-    [Hook.Patch ( typeof ( RelationshipManager ), "DisbandTeam" )]
+    [OxideHook ( "OnTeamDisbanded"), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
+    [OxideHook.Info ( "Called when the team was disbanded." )]
+    [OxideHook.Patch ( typeof ( RelationshipManager ), "DisbandTeam" )]
     public class RelationshipManager_DisbandTeam_OnTeamDisbanded
     {
         public static void Postfix ( RelationshipManager.PlayerTeam teamToDisband )

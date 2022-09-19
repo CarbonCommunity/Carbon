@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamUpdate", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Team )]
-    [Hook.Parameter ( "currentTeam", typeof ( ulong ) )]
-    [Hook.Parameter ( "newTeam", typeof ( ulong ) )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Info ( "Called when player's team is updated." )]
-    [Hook.Patch ( typeof ( BasePlayer ), "UpdateTeam" )]
+    [OxideHook ( "OnTeamUpdate", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook.Parameter ( "currentTeam", typeof ( ulong ) )]
+    [OxideHook.Parameter ( "newTeam", typeof ( ulong ) )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Info ( "Called when player's team is updated." )]
+    [OxideHook.Patch ( typeof ( BasePlayer ), "UpdateTeam" )]
     public class BasePlayer_UpdateTeam
     {
         public static bool Prefix ( ulong newTeam, ref BasePlayer __instance )

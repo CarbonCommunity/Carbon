@@ -3,11 +3,11 @@ using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "CanTakeCutting", typeof ( object ) ), Hook.Category ( Hook.Category.Enum.Resources )]
-    [Hook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [Hook.Parameter ( "this", typeof ( GrowableEntity ) )]
-    [Hook.Info ( "Called when a player is trying to take a cutting (clone) of a GrowableEntity." )]
-    [Hook.Patch ( typeof ( GrowableEntity ), "TakeClones" )]
+    [OxideHook ( "CanTakeCutting", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Resources )]
+    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
+    [OxideHook.Parameter ( "this", typeof ( GrowableEntity ) )]
+    [OxideHook.Info ( "Called when a player is trying to take a cutting (clone) of a GrowableEntity." )]
+    [OxideHook.Patch ( typeof ( GrowableEntity ), "TakeClones" )]
     public class GrowableEntity_TakeClones
     {
         public static bool Prefix ( BasePlayer player, ref GrowableEntity __instance )
