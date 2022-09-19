@@ -95,7 +95,6 @@ public class ConsoleCommandAttribute : Attribute
 {
     public string Name { get; }
     public string Help { get; }
-    public bool Skip { get; } = true;
 
     public ConsoleCommandAttribute ( string name )
     {
@@ -106,19 +105,6 @@ public class ConsoleCommandAttribute : Attribute
     {
         Name = name;
         Help = help;
-    }
-
-    public ConsoleCommandAttribute ( string name, bool skip )
-    {
-        Name = name;
-        Skip = skip;
-    }
-
-    public ConsoleCommandAttribute ( string name, string help, bool skip )
-    {
-        Name = name;
-        Help = help;
-        Skip = skip;
     }
 }
 

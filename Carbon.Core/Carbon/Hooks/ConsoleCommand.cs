@@ -33,8 +33,7 @@ public class ConsoleCommand
                         CarbonCore.Error ( "ConsoleSystem_Run", ex );
                     }
 
-                    Facepunch.Pool.Free ( ref args2 );
-                    return !cmd.SkipOriginal;
+                    return false;
                 }
             }
 

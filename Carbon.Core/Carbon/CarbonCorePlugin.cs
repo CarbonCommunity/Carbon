@@ -150,7 +150,7 @@ namespace Carbon.Core
 
         #region Commands
 
-        [ConsoleCommand ( "find", "Searches through Carbon-processed console commands.", false )]
+        [ConsoleCommand ( "find", "Searches through Carbon-processed console commands." )]
         private void Find ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () ) return;

@@ -34,7 +34,6 @@ public class Chat_SayAs
                         CarbonCore.Error ( "ConsoleSystem_Run", ex );
                     }
 
-                    Facepunch.Pool.Free ( ref args );
                     return false;
                 }
             }

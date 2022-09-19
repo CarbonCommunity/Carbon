@@ -356,11 +356,12 @@ namespace Carbon.Core
                             return;
                         }
 
-                        var rawString = args.ToString ( " " );
                         var value = field.GetValue ( plugin );
 
                         if ( args != null && args.Length > 0 )
                         {
+                            var rawString = args.ToString ( " " );
+
                             try
                             {
                                 if ( field.FieldType == typeof ( string ) )
@@ -404,11 +405,12 @@ namespace Carbon.Core
                             return;
                         }
 
-                        var rawString = args.ToString ( " " );
                         var value = property.GetValue ( plugin );
 
                         if ( args != null && args.Length > 0 )
                         {
+                            var rawString = args.ToString ( " " );
+
                             try
                             {
                                 if ( property.PropertyType == typeof ( string ) )
