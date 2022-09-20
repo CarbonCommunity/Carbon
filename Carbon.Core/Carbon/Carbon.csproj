@@ -1,10 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Restore;Clean;Build">
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
   <PropertyGroup>
+    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
     <TargetFrameworks>net48</TargetFrameworks>
-    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -24,8 +25,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
     <OutputPath>bin\Debug\</OutputPath>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
@@ -33,8 +33,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
     <OutputPath>bin\DebugUnix\</OutputPath>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
@@ -42,6 +41,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DefineConstants>TRACE;WIN</DefineConstants>
     <OutputPath>bin\Release\</OutputPath>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
@@ -49,6 +49,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DefineConstants>TRACE;UNIX</DefineConstants>
     <OutputPath>bin\ReleaseUnix\</OutputPath>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
 

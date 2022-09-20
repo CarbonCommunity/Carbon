@@ -9,45 +9,45 @@ namespace Carbon.Patch
 {
 	internal class Program
 	{
-		private static Dictionary<string, string> commonList = new Dictionary <string, string>
+		private static Dictionary<string, string> commonList = new Dictionary<string, string>
 		{
-			{ "/Carbon.Core/Carbon/bin/Release/net48/Carbon.dll", "Release/Carbon.dll" },
-			{ "/Carbon.Core/Carbon/bin/ReleaseUnix/net48/Carbon.dll", "Release/Carbon-Unix.dll" },
+			{ "Carbon.Core/Carbon/bin/Release/net48/Carbon.dll", "Release/Carbon.dll" },
+			{ "Carbon.Core/Carbon/bin/ReleaseUnix/net48/Carbon.dll", "Release/Carbon-Unix.dll" },
 		};
 
 		private static Dictionary<string, string> windowsList = new Dictionary<string, string>
 		{
-			{ "/Carbon.Core/Carbon/bin/Release/net48/Carbon.dll", "HarmonyMods/Carbon.dll" },
-			{ "/Carbon.Core/Carbon.Doorstop/bin/Release/net48/Carbon.Doorstop.dll", "RustDedicated_Data/Managed/Carbon.Doorstop.dll" },
-			{ "/Tools/Helpers/doorstop_config.ini", "doorstop_config.ini" },
-			{ "/Tools/UnityDoorStop/winhttp.dll", "winhttp.dll" },
-			{ "/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip.exe" },
+			{ "Tools/UnityDoorStop/winhttp.dll", "winhttp.dll" },
+			{ "Tools/Helpers/doorstop_config.ini", "doorstop_config.ini" },
+			{ "Carbon.Core/Carbon/bin/Release/net48/Carbon.dll", "HarmonyMods/Carbon.dll" },
+			{ "Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip.exe" },
+			{ "Carbon.Core/Carbon.Doorstop/bin/Release/net48/Carbon.Doorstop.dll", "RustDedicated_Data/Managed/Carbon.Doorstop.dll" },
 		};
 
 		private static Dictionary<string, string> unixList = new Dictionary<string, string>
 		{
-			{ "/Carbon.Core/Carbon/bin/ReleaseUnix/net48/Carbon.dll", "HarmonyMods/Carbon-Unix.dll" },
-			{ "/Tools/Helpers/linux_prepatch.sh", "carbon_prepatch.sh" },
-			{ "/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip.exe" },
+			{ "Tools/Helpers/linux_prepatch.sh", "carbon_prepatch.sh" },
+			{ "Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip.exe" },
+			{ "Carbon.Core/Carbon/bin/ReleaseUnix/net48/Carbon.dll", "HarmonyMods/Carbon-Unix.dll" },
 		};
 
 		public static void Main(string[] args)
 		{
-			Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed<CommandLineOptions>(Arguments =>
+			Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(Arguments =>
 			{
-				var f = Arguments.Path + "/Release";
-				Console.WriteLine(f);
+				string Root = Path.GetFullPath(Arguments.Path);
+				string Release = Path.GetFullPath(Path.Combine(Root, "Release"));
 
-				try { OsEx.Folder.DeleteContents(f); } catch { }
-				OsEx.Folder.Create(f);
+				try { OsEx.Folder.DeleteContents(Release); } catch { }
+				OsEx.Folder.Create(Release);
 
 				foreach (KeyValuePair<string, string> File in commonList)
 				{
 					try
 					{
-						OsEx.File.Copy($"{Arguments.Path}/{File.Key}", $"{Arguments.Path}/{File.Value}");
+						OsEx.File.Copy(Path.Combine(Root, File.Key), Path.Combine(Root, File.Value));
 					}
-					catch { new Exception($"Error processing: {Arguments.Path}/{File.Key}"); }
+					catch { new Exception($"Error processing: {File.Key}"); }
 				}
 
 				//
@@ -61,13 +61,13 @@ namespace Carbon.Patch
 						{
 							try
 							{
-								archive.CreateEntryFromFile($"{Arguments.Path}/{File.Key}", $"{Arguments.Path}/{File.Value}");
-							} 
-							catch { new Exception($"Error processing: {Arguments.Path}/{File.Key}"); }
+								archive.CreateEntryFromFile(Path.Combine(Root, File.Key), File.Value);
+							}
+							catch { new Exception($"Error processing: {File.Key}"); }
 						}
 					}
 
-					var output = $"{Arguments.Path}/Release/Carbon.Patch.zip";
+					var output = Path.Combine(Release, "Carbon.Patch.zip");
 					OsEx.File.Delete(output);
 					OsEx.File.Create(output, new byte[0]);
 
@@ -89,13 +89,13 @@ namespace Carbon.Patch
 						{
 							try
 							{
-								archive.CreateEntryFromFile($"{Arguments.Path}/{File.Key}", $"{Arguments.Path}/{File.Value}");
+								archive.CreateEntryFromFile(Path.Combine(Root, File.Key), File.Value);
 							}
-							catch { new Exception($"Error processing: {Arguments.Path}/{File.Key}"); }
+							catch { new Exception($"Error processing: {File.Key}"); }
 						}
 					}
 
-					var output = $"{Arguments.Path}/Release/Carbon.Patch-Unix.zip";
+					var output = Path.Combine(Release, "Carbon.Patch-Unix.zip");
 					OsEx.File.Delete(output);
 					OsEx.File.Create(output, new byte[0]);
 

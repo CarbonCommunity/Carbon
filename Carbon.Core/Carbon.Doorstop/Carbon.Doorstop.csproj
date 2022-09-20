@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Restore;Clean;Build">
   <PropertyGroup>
+    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{6872448A-98BF-45B3-88D8-AF80F8E562CA}</ProjectGuid>
     <TargetFrameworks>net48</TargetFrameworks>
-    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -25,21 +26,19 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
     <OutputPath>bin\Debug\</OutputPath>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
+  <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
     <OutputPath>bin\DebugUnix\</OutputPath>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
@@ -47,6 +46,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DefineConstants>TRACE;WIN</DefineConstants>
     <OutputPath>bin\Release\</OutputPath>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
@@ -54,6 +54,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DefineConstants>TRACE;UNIX</DefineConstants>
     <OutputPath>bin\ReleaseUnix\</OutputPath>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
