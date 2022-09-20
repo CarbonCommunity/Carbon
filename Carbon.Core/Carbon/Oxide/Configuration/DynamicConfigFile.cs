@@ -14,76 +14,76 @@ namespace Oxide.Core.Configuration
 
         public DynamicConfigFile ( string filename ) : base ( filename )
         {
-            this._keyvalues = new Dictionary<string, object> ();
-            this._settings = new JsonSerializerSettings ();
-            this._settings.Converters.Add ( new KeyValuesConverter () );
-            this._chroot = Interface.Oxide.InstanceDirectory;
+            _keyvalues = new Dictionary<string, object> ();
+            _settings = new JsonSerializerSettings ();
+            _settings.Converters.Add ( new KeyValuesConverter () );
+            _chroot = Interface.Oxide.InstanceDirectory;
         }
 
         public override void Load ( string filename = null )
         {
-            filename = this.CheckPath ( filename ?? base.Filename );
+            filename = CheckPath ( filename ?? Filename );
             string value = File.ReadAllText ( filename );
-            this._keyvalues = JsonConvert.DeserializeObject<Dictionary<string, object>> ( value, this._settings );
+            _keyvalues = JsonConvert.DeserializeObject<Dictionary<string, object>> ( value, _settings );
         }
 
         public T ReadObject<T> ( string filename = null )
         {
-            filename = this.CheckPath ( filename ?? base.Filename );
+            filename = CheckPath ( filename ?? Filename );
             T t;
-            if ( this.Exists ( filename ) )
+            if ( Exists ( filename ) )
             {
-                t = JsonConvert.DeserializeObject<T> ( File.ReadAllText ( filename ), this.Settings );
+                t = JsonConvert.DeserializeObject<T> ( File.ReadAllText ( filename ), Settings );
             }
             else
             {
                 t = Activator.CreateInstance<T> ();
-                this.WriteObject<T> ( t, false, filename );
+                WriteObject<T> ( t, false, filename );
             }
             return t;
         }
 
         public override void Save ( string filename = null )
         {
-            filename = this.CheckPath ( filename ?? base.Filename );
+            filename = CheckPath ( filename ?? Filename );
             string directoryName = Utility.GetDirectoryName ( filename );
             if ( directoryName != null && !Directory.Exists ( directoryName ) )
             {
                 Directory.CreateDirectory ( directoryName );
             }
-            File.WriteAllText ( filename, JsonConvert.SerializeObject ( this._keyvalues, Formatting.Indented, this._settings ) );
+            File.WriteAllText ( filename, JsonConvert.SerializeObject ( _keyvalues, Formatting.Indented, _settings ) );
         }
 
         public void WriteObject<T> ( T config, bool sync = false, string filename = null )
         {
-            filename = this.CheckPath ( filename ?? base.Filename );
+            filename = CheckPath ( filename ?? Filename );
             string directoryName = Utility.GetDirectoryName ( filename );
             if ( directoryName != null && !Directory.Exists ( directoryName ) )
             {
                 Directory.CreateDirectory ( directoryName );
             }
-            string text = JsonConvert.SerializeObject ( config, Formatting.Indented, this.Settings );
+            string text = JsonConvert.SerializeObject ( config, Formatting.Indented, Settings );
             File.WriteAllText ( filename, text );
             if ( sync )
             {
-                this._keyvalues = JsonConvert.DeserializeObject<Dictionary<string, object>> ( text, this._settings );
+                _keyvalues = JsonConvert.DeserializeObject<Dictionary<string, object>> ( text, _settings );
             }
         }
 
         public bool Exists ( string filename = null )
         {
-            filename = this.CheckPath ( filename ?? base.Filename );
+            filename = CheckPath ( filename ?? Filename );
             string directoryName = Utility.GetDirectoryName ( filename );
             return ( directoryName == null || Directory.Exists ( directoryName ) ) && File.Exists ( filename );
         }
 
         private string CheckPath ( string filename )
         {
-            filename = DynamicConfigFile.SanitizeName ( filename );
+            filename = SanitizeName ( filename );
             string fullPath = Path.GetFullPath ( filename );
-            if ( !fullPath.StartsWith ( this._chroot, StringComparison.Ordinal ) )
+            if ( !fullPath.StartsWith ( _chroot, StringComparison.Ordinal ) )
             {
-                CarbonCore.Log ( $"{fullPath}" );
+                CarbonCore.Log ( $"{filename} ||| {fullPath}" );
                 throw new Exception ( "Only access to Carbon directory!\nPath: " + fullPath );
             }
             return fullPath;
@@ -107,17 +107,17 @@ namespace Oxide.Core.Configuration
         [Obsolete ( "SanitiseName is deprecated, use SanitizeName instead" )]
         public static string SanitiseName ( string name )
         {
-            return DynamicConfigFile.SanitizeName ( name );
+            return SanitizeName ( name );
         }
 
         public void Clear ()
         {
-            this._keyvalues.Clear ();
+            _keyvalues.Clear ();
         }
 
         public void Remove ( string key )
         {
-            this._keyvalues.Remove ( key );
+            _keyvalues.Remove ( key );
         }
 
         public object this [ string key ]
@@ -125,7 +125,7 @@ namespace Oxide.Core.Configuration
             get
             {
                 object result;
-                if ( !this._keyvalues.TryGetValue ( key, out result ) )
+                if ( !_keyvalues.TryGetValue ( key, out result ) )
                 {
                     return null;
                 }
@@ -133,7 +133,7 @@ namespace Oxide.Core.Configuration
             }
             set
             {
-                this._keyvalues [ key ] = value;
+                _keyvalues [ key ] = value;
             }
         }
 
@@ -141,7 +141,7 @@ namespace Oxide.Core.Configuration
         {
             get
             {
-                return this.Get ( new string []
+                return Get ( new string []
                 {
                     keyLevel1,
                     keyLevel2
@@ -149,7 +149,7 @@ namespace Oxide.Core.Configuration
             }
             set
             {
-                this.Set ( new object []
+                Set ( new object []
                 {
                     keyLevel1,
                     keyLevel2,
@@ -162,7 +162,7 @@ namespace Oxide.Core.Configuration
         {
             get
             {
-                return this.Get ( new string []
+                return Get ( new string []
                 {
                     keyLevel1,
                     keyLevel2,
@@ -171,7 +171,7 @@ namespace Oxide.Core.Configuration
             }
             set
             {
-                this.Set ( new object []
+                Set ( new object []
                 {
                     keyLevel1,
                     keyLevel2,
@@ -213,7 +213,7 @@ namespace Oxide.Core.Configuration
 
         public T ConvertValue<T> ( object value )
         {
-            return ( T )( ( object )this.ConvertValue ( value, typeof ( T ) ) );
+            return ( T )( ( object )ConvertValue ( value, typeof ( T ) ) );
         }
 
         public object Get ( params string [] path )
@@ -223,7 +223,7 @@ namespace Oxide.Core.Configuration
                 throw new ArgumentException ( "path must not be empty" );
             }
             object obj;
-            if ( !this._keyvalues.TryGetValue ( path [ 0 ], out obj ) )
+            if ( !_keyvalues.TryGetValue ( path [ 0 ], out obj ) )
             {
                 return null;
             }
@@ -240,7 +240,7 @@ namespace Oxide.Core.Configuration
 
         public T Get<T> ( params string [] path )
         {
-            return this.ConvertValue<T> ( this.Get ( path ) );
+            return ConvertValue<T> ( Get ( path ) );
         }
 
         public void Set ( params object [] pathAndTrailingValue )
@@ -257,13 +257,13 @@ namespace Oxide.Core.Configuration
             object value = pathAndTrailingValue [ pathAndTrailingValue.Length - 1 ];
             if ( array.Length == 1 )
             {
-                this._keyvalues [ array [ 0 ] ] = value;
+                _keyvalues [ array [ 0 ] ] = value;
                 return;
             }
             object obj;
-            if ( !this._keyvalues.TryGetValue ( array [ 0 ], out obj ) )
+            if ( !_keyvalues.TryGetValue ( array [ 0 ], out obj ) )
             {
-                obj = ( this._keyvalues [ array [ 0 ] ] = new Dictionary<string, object> () );
+                obj = ( _keyvalues [ array [ 0 ] ] = new Dictionary<string, object> () );
             }
             for ( int j = 1; j < array.Length - 1; j++ )
             {
@@ -282,12 +282,12 @@ namespace Oxide.Core.Configuration
 
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator ()
         {
-            return this._keyvalues.GetEnumerator ();
+            return _keyvalues.GetEnumerator ();
         }
 
         IEnumerator IEnumerable.GetEnumerator ()
         {
-            return this._keyvalues.GetEnumerator ();
+            return _keyvalues.GetEnumerator ();
         }
 
         private Dictionary<string, object> _keyvalues;

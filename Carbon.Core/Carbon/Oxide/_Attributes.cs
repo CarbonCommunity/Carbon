@@ -1,5 +1,4 @@
 ﻿using Oxide.Core;
-using System.Collections.Generic;
 using System.Linq;
 using System;
 using UnityEngine;
@@ -60,26 +59,83 @@ public class PluginReferenceAttribute : Attribute
     }
 }
 
-[AttributeUsage ( AttributeTargets.Method )]
+[AttributeUsage ( AttributeTargets.Method, AllowMultiple = true )]
+public class CommandAttribute : Attribute
+{
+    public string [] Names { get; } = new string [ 1 ];
+    public string Help { get; }
+
+    public CommandAttribute ( string name, string help = null )
+    {
+        Names [ 0 ] = name;
+        Help = help;
+    }
+
+    public CommandAttribute ( params string [] commands )
+    {
+        Names = commands;
+    }
+}
+
+[AttributeUsage ( AttributeTargets.Method, AllowMultiple = true )]
 public class ChatCommandAttribute : Attribute
 {
     public string Name { get; }
+    public string Help { get; }
 
-    public ChatCommandAttribute ( string name )
+    public ChatCommandAttribute ( string name, string help = null )
     {
         Name = name;
+        Help = help;
+    }
+}
+
+[AttributeUsage ( AttributeTargets.Method, AllowMultiple = true )]
+public class ConsoleCommandAttribute : Attribute
+{
+    public string Name { get; }
+    public string Help { get; }
+
+    public ConsoleCommandAttribute ( string name )
+    {
+        Name = name;
+    }
+
+    public ConsoleCommandAttribute ( string name, string help )
+    {
+        Name = name;
+        Help = help;
+    }
+}
+
+[AttributeUsage ( AttributeTargets.Field | AttributeTargets.Property )]
+public class CommandVarAttribute : Attribute
+{
+    public string Name { get; }
+    public string Help { get; }
+    public bool AdminOnly { get; set; }
+
+    public CommandVarAttribute ( string name, bool adminOnly = false )
+    {
+        Name = name;
+        AdminOnly = adminOnly;
+    }
+    public CommandVarAttribute ( string name, string help, bool adminOnly = false )
+    {
+        Name = name;
+        Help = help;
+        AdminOnly = adminOnly;
     }
 }
 
 [AttributeUsage ( AttributeTargets.Method )]
-public class ConsoleCommandAttribute : Attribute
+public class HookMethodAttribute : Attribute
 {
-    public string Name { get; }
-    public bool Skip { get; } = true;
+    public string Name { get; set; }
 
-    public ConsoleCommandAttribute ( string name, bool skip = true )
+    public HookMethodAttribute () { }
+    public HookMethodAttribute ( string name )
     {
         Name = name;
-        Skip = skip;
     }
 }

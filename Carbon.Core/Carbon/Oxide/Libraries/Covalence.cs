@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static ByteQuadtree;
-using static LTGUI;
 
 namespace Oxide.Core.Libraries.Covalence
 {

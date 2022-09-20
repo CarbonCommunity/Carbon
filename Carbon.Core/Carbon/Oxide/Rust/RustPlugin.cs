@@ -1,19 +1,17 @@
 ﻿using Carbon.Core;
-using Carbon.Core.Harmony;
-using Network;
+using Humanlights.Extensions;
 using Oxide.Core;
 using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
 using System;
 using System.IO;
-using System.Reflection;
 using UnityEngine;
 
 namespace Oxide.Plugins
 {
     public class RustPlugin : Plugin
     {
-        public Permission permission { get; set; } = new Permission ();
+        public Permission permission { get; set; }
         public Language lang { get; set; } = new Language ();
         public PluginManager Manager { get; set; } = new PluginManager ();
         public Command cmd { get; set; } = new Command ();
@@ -21,37 +19,58 @@ namespace Oxide.Plugins
         public Timers timer { get; set; } = new Timers ();
         public OxideMod mod { get; set; } = new OxideMod ();
         public WebRequests webrequest { get; set; } = new WebRequests ();
-
-        public CarbonLoader.CarbonMod carbon { get; set; }
+        public Persistence persistence { get; set; }
 
         public DynamicConfigFile Config { get; private set; }
 
         public RustPlugin ()
         {
-            Setup ( "Plugin" );
+            Setup ( $"Core Plugin {RandomEx.GetRandomString ( 5 )}", "Carbon Community", new VersionNumber ( 1, 0, 0 ), string.Empty );
         }
 
-        public void SetupMod ( CarbonLoader.CarbonMod mod, string name )
+        public void SetupMod ( CarbonLoader.CarbonMod mod, string name, string author, VersionNumber version, string description )
         {
             carbon = mod;
-            Setup ( name );
+            Setup ( name, author, version, description );
         }
-        public void Setup ( string name )
+        public void Setup ( string name, string author, VersionNumber version, string description )
         {
             Name = name;
-            Puts ( $"Initialized." );
+            Version = version;
+            Author = author;
+            Description = description;
 
-            permission = new Permission ();
+            permission = Interface.Oxide.Permission;
             cmd = new Command ();
             Manager = new PluginManager ();
             plugins = new Plugins ();
-            timer = new Timers ();
+            timer = new Timers ( this );
             lang = new Language ();
+            mod = new OxideMod ();
+            webrequest = new WebRequests ();
+            persistence = new GameObject ( $"Script_{name}" ).AddComponent<Persistence> ();
+            UnityEngine.Object.DontDestroyOnLoad ( persistence.gameObject );
 
             Type = GetType ();
 
             mod.Load ();
         }
+        public override void Dispose ()
+        {
+            permission.UnregisterPermissions ( this );
+
+            timer.Clear ();
+
+            if ( persistence != null )
+            {
+                var go = persistence.gameObject;
+                UnityEngine.Object.DestroyImmediate ( persistence );
+                UnityEngine.Object.Destroy ( go );
+            }
+
+            base.Dispose ();
+        }
+
         public void Puts ( string message )
         {
             CarbonCore.Format ( $"[{Name}] {message}" );
@@ -60,25 +79,37 @@ namespace Oxide.Plugins
         {
             Puts ( string.Format ( message, args ) );
         }
-        public void Error ( string message, Exception exception )
+        public void Log ( string message )
+        {
+            Puts ( message );
+        }
+        public void LogWarning ( string message )
+        {
+            PrintWarning ( message );
+        }
+        public void LogError ( string message, Exception exception )
         {
             CarbonCore.Error ( $"[{Name}] {message}", exception );
+        }
+        public void LogError ( string message )
+        {
+            LogError ( message, null );
         }
         protected void PrintWarning ( string format, params object [] args )
         {
             CarbonCore.WarnFormat ( "[{0}] {1}", Title, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
         }
-
         protected void PrintError ( string format, params object [] args )
         {
             CarbonCore.ErrorFormat ( "[{0}] {1}", null, Title, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
         }
 
-        public virtual void Init ()
+        public void DoLoadConfig ()
         {
-            CallHook ( "Init" );
+            LoadConfig ();
         }
-        public virtual void LoadConfig ()
+
+        protected virtual void LoadConfig ()
         {
             Config = new DynamicConfigFile ( Path.Combine ( Manager.ConfigPath, Name + ".json" ) );
 
@@ -98,7 +129,7 @@ namespace Oxide.Plugins
         }
         protected virtual void LoadDefaultConfig ()
         {
-            CallHook ( "LoadDefaultConfig" );
+            // CallHook ( "LoadDefaultConfig" );
         }
         protected virtual void SaveConfig ()
         {
@@ -116,6 +147,11 @@ namespace Oxide.Plugins
             }
         }
 
+        protected virtual void LoadDefaultMessages ()
+        {
+
+        }
+
         public void Unsubscribe ( string hook )
         {
 
@@ -123,6 +159,11 @@ namespace Oxide.Plugins
         public void Subscribe ( string hook )
         {
 
+        }
+
+        public override string ToString ()
+        {
+            return $"{Name} v{Version} by {Author}";
         }
 
         protected void PrintToConsole ( BasePlayer player, string format, params object [] args )
@@ -141,7 +182,7 @@ namespace Oxide.Plugins
         }
         protected void PrintToChat ( BasePlayer player, string format, params object [] args )
         {
-            if ( player?.net != null )
+            if ( ( ( player != null ) ? player.net : null ) != null )
             {
                 player.SendConsoleCommand ( "chat.add", 2, 0, ( args.Length != 0 ) ? string.Format ( format, args ) : format );
             }
@@ -160,7 +201,7 @@ namespace Oxide.Plugins
             var basePlayer = connection?.player as BasePlayer;
             var text = ( args.Length != 0 ) ? string.Format ( format, args ) : format;
 
-            if ( basePlayer?.net != null )
+            if ( ( ( basePlayer != null ) ? basePlayer.net : null ) != null )
             {
                 basePlayer.SendConsoleCommand ( $"echo {text}" );
                 return;
@@ -178,7 +219,7 @@ namespace Oxide.Plugins
             var basePlayer = connection?.player as BasePlayer;
             var text = ( args.Length != 0 ) ? string.Format ( format, args ) : format;
 
-            if ( basePlayer?.net != null )
+            if ( ( ( basePlayer != null ) ? basePlayer.net : null ) != null )
             {
                 basePlayer.SendConsoleCommand ( $"echo {text}" );
                 return;
@@ -192,7 +233,7 @@ namespace Oxide.Plugins
             var basePlayer = connection?.player as BasePlayer;
             var text = ( args.Length != 0 ) ? string.Format ( format, args ) : format;
 
-            if ( basePlayer?.net != null )
+            if ( ( ( basePlayer != null ) ? basePlayer.net : null ) != null )
             {
                 basePlayer.SendConsoleCommand ( $"echo {text}" );
                 return;
@@ -213,5 +254,7 @@ namespace Oxide.Plugins
 
             player.SendNetworkUpdate ( BasePlayer.NetworkQueue.UpdateDistance );
         }
+
+        public class Persistence : FacepunchBehaviour { }
     }
 }

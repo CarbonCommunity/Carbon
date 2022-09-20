@@ -1,17 +1,14 @@
 ﻿using Carbon.Core;
 using Oxide.Core.Libraries;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Oxide.Core
 {
     public class OxideMod
     {
         public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem ( CarbonCore.GetDataFolder () );
+
+        public Permission Permission { get; private set; }
 
         public string RootDirectory { get; private set; }
         public string ExtensionDirectory { get; private set; }
@@ -21,6 +18,7 @@ namespace Oxide.Core
         public string DataDirectory { get; private set; }
         public string LangDirectory { get; private set; }
         public string LogDirectory { get; private set; }
+        public string TempDirectory { get; private set; }
 
         public float Now => UnityEngine.Time.realtimeSinceStartup;
 
@@ -36,8 +34,11 @@ namespace Oxide.Core
             LangDirectory = CarbonCore.GetLangFolder ();
             LogDirectory = CarbonCore.GetLogsFolder ();
             PluginDirectory = CarbonCore.GetPluginsFolder ();
+            TempDirectory = CarbonCore.GetTempFolder ();
 
             DataFileSystem = new DataFileSystem ( DataDirectory );
+
+            Permission = new Permission ();
         }
 
         public void NextTick ( Action action )
@@ -46,6 +47,11 @@ namespace Oxide.Core
         }
 
         public void UnloadPlugin ( string name )
+        {
+
+        }
+
+        public void OnSave ()
         {
 
         }

@@ -1,10 +1,5 @@
-﻿using Facepunch;
-using Oxide.Plugins;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Carbon.Core;
+using Facepunch;
 
 namespace Oxide.Plugins
 {
@@ -12,7 +7,15 @@ namespace Oxide.Plugins
     {
         public Plugin Find ( string name )
         {
-            return default;
+            foreach(var mod in CarbonLoader._loadedMods )
+            {
+                foreach (var plugin in mod.Plugins )
+                {
+                    if ( plugin.Name == name ) return plugin;
+                }
+            }
+
+            return null;
         }
 
         public Plugin [] GetAll ()
