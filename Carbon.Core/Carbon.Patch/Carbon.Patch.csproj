@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <ProjectGuid>{C7A9EC64-357C-4411-85CB-AF342FAB6654}</ProjectGuid>
     <TargetFrameworks>net48</TargetFrameworks>
+    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,41 +21,42 @@
     <FileVersion>$(Version)</FileVersion>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
+    <OutputPath>bin\Debug\</OutputPath>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <WarningLevel>4</WarningLevel>
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>pdbonly</DebugType>
+    <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
+    <OutputPath>bin\DebugUnix\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DefineConstants>TRACE;WIN</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <WarningLevel>4</WarningLevel>
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseUnix|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>pdbonly</DebugType>
-    <DefineConstants>TRACE;LINUX</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <LangVersion>7.3</LangVersion>
-    <Optimize>true</Optimize>
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseUnix'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DefineConstants>TRACE;UNIX</DefineConstants>
     <OutputPath>bin\ReleaseUnix\</OutputPath>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Optimize>true</Optimize>
   </PropertyGroup>
+
+ <Target Name="Cleanup">
+    <RemoveDir Directories="$(BaseIntermediateOutputPath)" /><!-- obj -->
+    <RemoveDir Directories="$(BaseOutputPath)" /><!-- bin -->
+  </Target>
 
   <ItemGroup>
     <Reference Include="System" />
@@ -85,5 +87,9 @@
     <Reference Include="Humanlights.Unity.Compiler">
       <HintPath>..\..\External\Humanlights.Unity.Compiler.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
   </ItemGroup>
 </Project>
