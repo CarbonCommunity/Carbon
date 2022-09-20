@@ -5,8 +5,6 @@ VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon", "Carbon\Carbon.csproj", "{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{EA0C021F-83CC-4D67-A6FE-136B92093BFA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Patch", "Carbon.Patch\Carbon.Patch.csproj", "{C7A9EC64-357C-4411-85CB-AF342FAB6654}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Doorstop", "Carbon.Doorstop\Carbon.Doorstop.csproj", "{6872448A-98BF-45B3-88D8-AF80F8E562CA}"
@@ -26,12 +24,6 @@ Global
 		{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}.ReleaseUnix|Any CPU.ActiveCfg = ReleaseUnix|Any CPU
 		{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|Any CPU
-		{EA0C021F-83CC-4D67-A6FE-136B92093BFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EA0C021F-83CC-4D67-A6FE-136B92093BFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EA0C021F-83CC-4D67-A6FE-136B92093BFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EA0C021F-83CC-4D67-A6FE-136B92093BFA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EA0C021F-83CC-4D67-A6FE-136B92093BFA}.ReleaseUnix|Any CPU.ActiveCfg = ReleaseUnix|Any CPU
-		{EA0C021F-83CC-4D67-A6FE-136B92093BFA}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|Any CPU
 		{C7A9EC64-357C-4411-85CB-AF342FAB6654}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C7A9EC64-357C-4411-85CB-AF342FAB6654}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7A9EC64-357C-4411-85CB-AF342FAB6654}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,5 +1,4 @@
 ![Carbon](https://i.imgur.com/sG6X07A.jpg)
-[![.NET](https://github.com/raulssorban/Carbon.Core/actions/workflows/dotnet.yml/badge.svg)](https://github.com/raulssorban/Carbon.Core/actions/workflows/dotnet.yml)
 
 A concept that's becoming reality. **Carbon** is a platform in the form of a DLL which gets added under your Rust server, in the *HarmonyMods* folder. 
 
