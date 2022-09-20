@@ -17,4 +17,4 @@ dotnet clean %ROOT%\Carbon.Core -t:Cleanup --configuration Release
 dotnet build %ROOT%\Carbon.Core --configuration Release --no-incremental
 dotnet build %ROOT%\Carbon.Core --configuration ReleaseUnix --no-incremental
 
-"%ROOT%\Carbon.Core\Carbon.Patch\bin\Release\net48\Carbon.Patch.exe"
+"%ROOT%\Carbon.Core\Carbon.Patch\bin\Release\net48\Carbon.Patch.exe" --path %ROOT%
