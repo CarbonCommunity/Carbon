@@ -1,174 +1,177 @@
-﻿using Humanlights.Extensions;
-using System;
+﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
+using Humanlights.Extensions;
 using CodeCompiler = CSharpCompiler.CodeCompiler;
 
 namespace Carbon.Core
 {
-    public class AsyncPluginLoader : ThreadedJob
-    {
-        public string FilePath;
-        public string Source;
-        public string [] References;
-        public string [] Requires;
-        public float CompileTime;
-        public Assembly Assembly;
-        public List<CompilerException> Exceptions = new List<CompilerException> ();
-        internal int Retries;
-        internal RealTimeSince TimeSinceCompile;
+	public class AsyncPluginLoader : ThreadedJob
+	{
+		public string FilePath;
+		public string Source;
+		public string[] References;
+		public string[] Requires;
+		public float CompileTime;
+		public Assembly Assembly;
+		public List<CompilerException> Exceptions = new List<CompilerException>();
+		internal int Retries;
+		internal RealTimeSince TimeSinceCompile;
 
-        internal static CodeCompiler _compiler = new CodeCompiler ();
-        internal CompilerParameters _parameters;
-        internal static string [] _defaultReferences = new string [] {
-            "System.dll",
-            "mscorlib.dll",
-            "protobuf-net.dll",
-            "protobuf-net.Core.dll",
-            "Assembly-CSharp.dll",
+		internal static CodeCompiler _compiler = new CodeCompiler();
+		internal CompilerParameters _parameters;
+		internal static string[] _defaultReferences = new string[] {
+			"System.dll",
+			"mscorlib.dll",
+			"protobuf-net.dll",
+			"protobuf-net.Core.dll",
+			"Assembly-CSharp.dll",
 #if WIN
             "Carbon.dll",
-#elif LINUX
+#elif UNIX
             "Carbon-Unix.dll" 
+#else
+#error Target architecture not defined
+            null;
 #endif
         };
-        internal void _addReferences ()
-        {
-            _parameters.ReferencedAssemblies.Clear ();
-            _parameters.ReferencedAssemblies.AddRange ( _defaultReferences );
+		internal void _addReferences()
+		{
+			_parameters.ReferencedAssemblies.Clear();
+			_parameters.ReferencedAssemblies.AddRange(_defaultReferences);
 
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
-            var lastCarbon = ( Assembly )null;
-            foreach ( var assembly in assemblies )
-            {
-                if ( CarbonLoader.AssemblyCache.Contains ( assembly ) ) continue;
+			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+			var lastCarbon = (Assembly)null;
+			foreach (var assembly in assemblies)
+			{
+				if (CarbonLoader.AssemblyCache.Contains(assembly)) continue;
 
-                var name = assembly.GetName ().Name;
+				var name = assembly.GetName().Name;
 
-                if ( !name.StartsWith ( "Carbon" ) )
-                {
-                    if ( assembly.ManifestModule is ModuleBuilder builder )
-                    {
-                        if ( !builder.IsTransient () )
-                        {
-                            _parameters.ReferencedAssemblies.Add ( name );
-                        }
-                    }
-                    else
-                    {
-                        _parameters.ReferencedAssemblies.Add ( assembly.GetName ().Name );
-                    }
-                }
-                else
-                {
-                    lastCarbon = assembly;
-                }
-            }
+				if (!name.StartsWith("Carbon"))
+				{
+					if (assembly.ManifestModule is ModuleBuilder builder)
+					{
+						if (!builder.IsTransient())
+						{
+							_parameters.ReferencedAssemblies.Add(name);
+						}
+					}
+					else
+					{
+						_parameters.ReferencedAssemblies.Add(assembly.GetName().Name);
+					}
+				}
+				else
+				{
+					lastCarbon = assembly;
+				}
+			}
 
-            if ( lastCarbon != null )
-            {
-                _parameters.ReferencedAssemblies.Add ( lastCarbon.GetName ().Name );
-            }
+			if (lastCarbon != null)
+			{
+				_parameters.ReferencedAssemblies.Add(lastCarbon.GetName().Name);
+			}
 
-            foreach ( var reference in References )
-            {
-                _parameters.ReferencedAssemblies.Add ( reference );
-            }
-        }
-        internal bool _addRequires ()
-        {
-            if ( Requires == null ) return true;
+			foreach (var reference in References)
+			{
+				_parameters.ReferencedAssemblies.Add(reference);
+			}
+		}
+		internal bool _addRequires()
+		{
+			if (Requires == null) return true;
 
-            foreach ( var require in Requires )
-            {
-                if ( !CarbonLoader.AssemblyDictionaryCache.TryGetValue ( require, out var assembly ) ) return false;
+			foreach (var require in Requires)
+			{
+				if (!CarbonLoader.AssemblyDictionaryCache.TryGetValue(require, out var assembly)) return false;
 
-                if ( assembly != null ) _parameters.ReferencedAssemblies.Add ( assembly.GetName ().Name );
-            }
+				if (assembly != null) _parameters.ReferencedAssemblies.Add(assembly.GetName().Name);
+			}
 
-            return true;
-        }
+			return true;
+		}
 
-        public class CompilerException : Exception
-        {
-            public string FilePath;
-            public CompilerError Error;
-            public CompilerException ( string filePath, CompilerError error ) { FilePath = filePath; Error = error; }
+		public class CompilerException : Exception
+		{
+			public string FilePath;
+			public CompilerError Error;
+			public CompilerException(string filePath, CompilerError error) { FilePath = filePath; Error = error; }
 
-            public override string ToString ()
-            {
-                return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
-            }
-        }
+			public override string ToString()
+			{
+				return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
+			}
+		}
 
-        public override void Start ()
-        {
-            _parameters = new CompilerParameters
-            {
-                GenerateInMemory = true,
-                GenerateExecutable = false,
-                TreatWarningsAsErrors = false,
-                IncludeDebugInformation = false,
-                WarningLevel = -1
-            };
+		public override void Start()
+		{
+			_parameters = new CompilerParameters
+			{
+				GenerateInMemory = true,
+				GenerateExecutable = false,
+				TreatWarningsAsErrors = false,
+				IncludeDebugInformation = false,
+				WarningLevel = -1
+			};
 
-            _addReferences ();
-            if ( !_addRequires () )
-            {
-                Exceptions.Add ( new CompilerException ( FilePath, new CompilerError { ErrorText = "Couldn't find all required references." } ) );
-                return;
-            }
+			_addReferences();
+			if (!_addRequires())
+			{
+				Exceptions.Add(new CompilerException(FilePath, new CompilerError { ErrorText = "Couldn't find all required references." }));
+				return;
+			}
 
-            base.Start ();
-        }
+			base.Start();
+		}
 
-        public override void ThreadFunction ()
-        {
-            try
-            {
-                Exceptions.Clear ();
+		public override void ThreadFunction()
+		{
+			try
+			{
+				Exceptions.Clear();
 
-                TimeSinceCompile = 0;
-                var result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
-                if ( result == null || result.CompiledAssembly == null ) result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
-                CompileTime = TimeSinceCompile;
+				TimeSinceCompile = 0;
+				var result = _compiler.CompileAssemblyFromSource(_parameters, Source);
+				if (result == null || result.CompiledAssembly == null) result = _compiler.CompileAssemblyFromSource(_parameters, Source);
+				CompileTime = TimeSinceCompile;
 
-                Assembly = result.CompiledAssembly;
+				Assembly = result.CompiledAssembly;
 
-                foreach ( CompilerError error in result.Errors )
-                {
-                    Exceptions.Add ( new CompilerException ( FilePath, error ) );
-                }
+				foreach (CompilerError error in result.Errors)
+				{
+					Exceptions.Add(new CompilerException(FilePath, error));
+				}
 
 
-                if ( Exceptions.Count > 0 ) throw null;
-            }
-            catch
-            {
-                if ( Retries < 10 )
-                {
-                    Thread.Sleep ( 100 );
-                    Retries++;
-                    ThreadFunction ();
-                    return;
-                }
+				if (Exceptions.Count > 0) throw null;
+			}
+			catch
+			{
+				if (Retries < 10)
+				{
+					Thread.Sleep(100);
+					Retries++;
+					ThreadFunction();
+					return;
+				}
 
-                if ( Exceptions.Count > 0 )
-                {
-                    var exception = Exceptions [ 0 ];
-                    if ( exception.Error.ErrorText.Contains ( "Mono.CSharp.CSharpParser" ) ||
-                        exception.Error.ErrorText.Contains ( "Index was outside the bounds of the array." ) )
-                    {
-                        Retries++;
+				if (Exceptions.Count > 0)
+				{
+					var exception = Exceptions[0];
+					if (exception.Error.ErrorText.Contains("Mono.CSharp.CSharpParser") ||
+						exception.Error.ErrorText.Contains("Index was outside the bounds of the array."))
+					{
+						Retries++;
 
-                        // Probably fixes thread stack overflow
-                        if ( Retries < 200 ) ThreadFunction ();
-                    }
-                }
-            }
-        }
-    }
+						// Probably fixes thread stack overflow
+						if (Retries < 200) ThreadFunction();
+					}
+				}
+			}
+		}
+	}
 }

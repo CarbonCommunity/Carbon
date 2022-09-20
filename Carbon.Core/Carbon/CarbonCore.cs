@@ -1,408 +1,411 @@
-﻿using Carbon.Core.Processors;
-using Humanlights.Extensions;
-using Newtonsoft.Json;
-using Oxide.Core;
-using Oxide.Plugins;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Carbon.Core.Processors;
+using Humanlights.Extensions;
+using Newtonsoft.Json;
+using Oxide.Core;
+using Oxide.Plugins;
 using UnityEngine;
 using static ConsoleSystem;
 
 namespace Carbon.Core
 {
-    public class CarbonCore
-    {
-        public static VersionNumber Version { get; } = new VersionNumber ( 1, 0, 350 );
+	public class CarbonCore
+	{
+		public static VersionNumber Version { get; } = new VersionNumber(1, 0, 350);
 
-        public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
-        public static CarbonCore Instance { get; set; }
+		public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
+		public static CarbonCore Instance { get; set; }
 
-        public const OS OperatingSystem =
+		public const OS OperatingSystem =
 #if WIN
-             OS.Win;
-#elif LINUX
+			 OS.Win;
+#elif UNIX
              OS.Linux;
+#else
+#error Target architecture not defined
+            null;
 #endif
-    
-        public enum OS
-        {
-            Win,
-            Linux
-        }
 
-        public CarbonAddonProcessor Addon { get; set; }
-        public CarbonConfig Config { get; set; }
-        public RustPlugin CorePlugin { get; set; }
-        public CarbonLoader.CarbonMod Plugins { get; set; }
-        public bool IsInitialized { get; set; }
+		public enum OS
+		{
+			Win,
+			Linux
+		}
 
-        internal static List<string> _addons = new List<string> { "carbon." };
+		public CarbonAddonProcessor Addon { get; set; }
+		public CarbonConfig Config { get; set; }
+		public RustPlugin CorePlugin { get; set; }
+		public CarbonLoader.CarbonMod Plugins { get; set; }
+		public bool IsInitialized { get; set; }
 
-        public static bool IsAddon ( string input )
-        {
-            input = input.ToLower ().Trim ();
+		internal static List<string> _addons = new List<string> { "carbon." };
 
-            foreach ( var addon in _addons )
-            {
-                if ( input.Contains ( addon ) ) return true;
-            }
+		public static bool IsAddon(string input)
+		{
+			input = input.ToLower().Trim();
 
-            return false;
-        }
+			foreach (var addon in _addons)
+			{
+				if (input.Contains(addon)) return true;
+			}
 
-#region Config
+			return false;
+		}
 
-        public void LoadConfig ()
-        {
-            if ( !OsEx.File.Exists ( GetConfigFile () ) )
-            {
-                SaveConfig ();
-                return;
-            }
+		#region Config
 
-            Config = JsonConvert.DeserializeObject<CarbonConfig> ( OsEx.File.ReadText ( GetConfigFile () ) );
-        }
+		public void LoadConfig()
+		{
+			if (!OsEx.File.Exists(GetConfigFile()))
+			{
+				SaveConfig();
+				return;
+			}
 
-        public void SaveConfig ()
-        {
-            if ( Config == null ) Config = new CarbonConfig ();
+			Config = JsonConvert.DeserializeObject<CarbonConfig>(OsEx.File.ReadText(GetConfigFile()));
+		}
 
-            OsEx.File.Create ( GetConfigFile (), JsonConvert.SerializeObject ( Config, Formatting.Indented ) );
-        }
+		public void SaveConfig()
+		{
+			if (Config == null) Config = new CarbonConfig();
 
-#endregion
+			OsEx.File.Create(GetConfigFile(), JsonConvert.SerializeObject(Config, Formatting.Indented));
+		}
 
-#region Commands
+		#endregion
 
-        public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand> ();
-        public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand> ();
+		#region Commands
 
-        internal void _clearCommands ( bool all = false )
-        {
-            if ( all )
-            {
-                AllChatCommands.Clear ();
-                AllConsoleCommands.Clear ();
-            }
-            else
-            {
-                AllChatCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
-                AllConsoleCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
-            }
-        }
-        internal void _installDefaultCommands ()
-        {
-            CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
-            Plugins = new CarbonLoader.CarbonMod { Name = "Scripts", IsCoreMod = true };
-            CorePlugin.IInit ();
+		public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand>();
+		public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand>();
 
-            CarbonLoader._loadedMods.Add ( new CarbonLoader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } } );
-            CarbonLoader._loadedMods.Add ( Plugins );
+		internal void _clearCommands(bool all = false)
+		{
+			if (all)
+			{
+				AllChatCommands.Clear();
+				AllConsoleCommands.Clear();
+			}
+			else
+			{
+				AllChatCommands.RemoveAll(x => !x.Plugin.IsCorePlugin);
+				AllConsoleCommands.RemoveAll(x => !x.Plugin.IsCorePlugin);
+			}
+		}
+		internal void _installDefaultCommands()
+		{
+			CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
+			Plugins = new CarbonLoader.CarbonMod { Name = "Scripts", IsCoreMod = true };
+			CorePlugin.IInit();
 
-            CarbonLoader.ProcessCommands ( typeof ( CarbonCorePlugin ), CorePlugin, prefix: "c" );
-        }
+			CarbonLoader._loadedMods.Add(new CarbonLoader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
+			CarbonLoader._loadedMods.Add(Plugins);
 
-#endregion
+			CarbonLoader.ProcessCommands(typeof(CarbonCorePlugin), CorePlugin, prefix: "c");
+		}
 
-#region Processors
+		#endregion
 
-        public ScriptProcessor ScriptProcessor { get; set; } = new ScriptProcessor ();
-        public WebScriptProcessor WebScriptProcessor { get; set; } = new WebScriptProcessor ();
-        public HarmonyProcessor HarmonyProcessor { get; set; } = new HarmonyProcessor ();
+		#region Processors
 
-        internal void _installProcessors ()
-        {
-            if ( ScriptProcessor == null ||
-                WebScriptProcessor == null ||
-                HarmonyProcessor == null )
-            {
-                _uninstallProcessors ();
+		public ScriptProcessor ScriptProcessor { get; set; } = new ScriptProcessor();
+		public WebScriptProcessor WebScriptProcessor { get; set; } = new WebScriptProcessor();
+		public HarmonyProcessor HarmonyProcessor { get; set; } = new HarmonyProcessor();
 
-                var gameObject = new GameObject ( "Processors" );
-                ScriptProcessor = gameObject.AddComponent<ScriptProcessor> ();
-                WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor> ();
-                HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
-                Addon = new CarbonAddonProcessor ();
-            }
-            Debug ( "Installed processors", 3 );
+		internal void _installProcessors()
+		{
+			if (ScriptProcessor == null ||
+				WebScriptProcessor == null ||
+				HarmonyProcessor == null)
+			{
+				_uninstallProcessors();
 
-            _registerProcessors ();
-        }
-        internal void _registerProcessors ()
-        {
-            if ( ScriptProcessor != null ) ScriptProcessor?.Start ();
-            if ( WebScriptProcessor != null ) WebScriptProcessor?.Start ();
-            if ( HarmonyProcessor != null ) HarmonyProcessor?.Start ();
+				var gameObject = new GameObject("Processors");
+				ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
+				WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
+				HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor>();
+				Addon = new CarbonAddonProcessor();
+			}
+			Debug("Installed processors", 3);
 
-            if ( ScriptProcessor != null ) ScriptProcessor.InvokeRepeating ( () => { RefreshConsoleInfo (); }, 1f, 1f );
-            Debug ( "Registered processors", 3 );
-        }
-        internal void _uninstallProcessors ()
-        {
-            var obj = ScriptProcessor == null ? null : ScriptProcessor.gameObject;
+			_registerProcessors();
+		}
+		internal void _registerProcessors()
+		{
+			if (ScriptProcessor != null) ScriptProcessor?.Start();
+			if (WebScriptProcessor != null) WebScriptProcessor?.Start();
+			if (HarmonyProcessor != null) HarmonyProcessor?.Start();
 
-            try
-            {
-                if ( ScriptProcessor != null ) ScriptProcessor?.Dispose ();
-                if ( WebScriptProcessor != null ) WebScriptProcessor?.Dispose ();
-                if ( HarmonyProcessor != null ) HarmonyProcessor?.Dispose ();
-            }
-            catch { }
+			if (ScriptProcessor != null) ScriptProcessor.InvokeRepeating(() => { RefreshConsoleInfo(); }, 1f, 1f);
+			Debug("Registered processors", 3);
+		}
+		internal void _uninstallProcessors()
+		{
+			var obj = ScriptProcessor == null ? null : ScriptProcessor.gameObject;
 
-            try
-            {
-                if ( WebScriptProcessor != null ) UnityEngine.Object.DestroyImmediate ( WebScriptProcessor );
-                if ( HarmonyProcessor != null ) UnityEngine.Object.DestroyImmediate ( HarmonyProcessor );
-            }
-            catch { }
+			try
+			{
+				if (ScriptProcessor != null) ScriptProcessor?.Dispose();
+				if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
+				if (HarmonyProcessor != null) HarmonyProcessor?.Dispose();
+			}
+			catch { }
 
-            try
-            {
-                if ( obj != null ) UnityEngine.Object.Destroy ( obj );
-            }
-            catch { }
-        }
+			try
+			{
+				if (WebScriptProcessor != null) UnityEngine.Object.DestroyImmediate(WebScriptProcessor);
+				if (HarmonyProcessor != null) UnityEngine.Object.DestroyImmediate(HarmonyProcessor);
+			}
+			catch { }
 
-#endregion
+			try
+			{
+				if (obj != null) UnityEngine.Object.Destroy(obj);
+			}
+			catch { }
+		}
 
-#region Paths
+		#endregion
 
-        public static string GetConfigFile ()
-        {
-            return Path.Combine ( GetRootFolder (), "config.json" );
-        }
+		#region Paths
 
-        public static string GetRootFolder ()
-        {
-            var folder = Path.GetFullPath ( Path.Combine ( $"{Application.dataPath}/..", "carbon" ) );
-            Directory.CreateDirectory ( folder );
+		public static string GetConfigFile()
+		{
+			return Path.Combine(GetRootFolder(), "config.json");
+		}
 
-            return folder;
-        }
-        public static string GetConfigsFolder ()
-        {
-            var folder = Path.Combine ( $"{GetRootFolder ()}", "configs" );
-            Directory.CreateDirectory ( folder );
+		public static string GetRootFolder()
+		{
+			var folder = Path.GetFullPath(Path.Combine($"{Application.dataPath}/..", "carbon"));
+			Directory.CreateDirectory(folder);
 
-            return folder;
-        }
-        public static string GetDataFolder ()
-        {
-            var folder = Path.Combine ( $"{GetRootFolder ()}", "data" );
-            Directory.CreateDirectory ( folder );
+			return folder;
+		}
+		public static string GetConfigsFolder()
+		{
+			var folder = Path.Combine($"{GetRootFolder()}", "configs");
+			Directory.CreateDirectory(folder);
 
-            return folder;
-        }
-        public static string GetPluginsFolder ()
-        {
-            var folder = Path.Combine ( $"{GetRootFolder ()}", "plugins" );
-            Directory.CreateDirectory ( folder );
+			return folder;
+		}
+		public static string GetDataFolder()
+		{
+			var folder = Path.Combine($"{GetRootFolder()}", "data");
+			Directory.CreateDirectory(folder);
 
-            return folder;
-        }
-        public static string GetLogsFolder ()
-        {
-            var folder = Path.Combine ( $"{GetRootFolder ()}", "logs" );
-            Directory.CreateDirectory ( folder );
+			return folder;
+		}
+		public static string GetPluginsFolder()
+		{
+			var folder = Path.Combine($"{GetRootFolder()}", "plugins");
+			Directory.CreateDirectory(folder);
 
-            return folder;
-        }
-        public static string GetLangFolder ()
-        {
-            var folder = Path.Combine ( $"{GetRootFolder ()}", "lang" );
-            Directory.CreateDirectory ( folder );
+			return folder;
+		}
+		public static string GetLogsFolder()
+		{
+			var folder = Path.Combine($"{GetRootFolder()}", "logs");
+			Directory.CreateDirectory(folder);
 
-            return folder;
-        }
-        public static string GetTempFolder ()
-        {
-            var folder = Path.Combine ( $"{GetRootFolder ()}", "temp" );
-            Directory.CreateDirectory ( folder );
+			return folder;
+		}
+		public static string GetLangFolder()
+		{
+			var folder = Path.Combine($"{GetRootFolder()}", "lang");
+			Directory.CreateDirectory(folder);
 
-            return folder;
-        }
+			return folder;
+		}
+		public static string GetTempFolder()
+		{
+			var folder = Path.Combine($"{GetRootFolder()}", "temp");
+			Directory.CreateDirectory(folder);
 
-#endregion
+			return folder;
+		}
 
-#region Logging
+		#endregion
 
-        public static void Debug ( object message, int level = 0, LogType log = LogType.Log )
-        {
-            if ( Instance.Config.Debug <= -1 ||
-                Instance.Config.Debug <= level ) return;
+		#region Logging
 
-            switch ( log )
-            {
-                case LogType.Log:
-                    Log ( $"[Carbon] {message}" );
-                    break;
+		public static void Debug(object message, int level = 0, LogType log = LogType.Log)
+		{
+			if (Instance.Config.Debug <= -1 ||
+				Instance.Config.Debug <= level) return;
 
-                case LogType.Warning:
-                    Warn ( $"[Carbon] {message}" );
-                    break;
+			switch (log)
+			{
+				case LogType.Log:
+					Log($"[Carbon] {message}");
+					break;
 
-                case LogType.Error:
-                    Error ( $"[Carbon] {message}" );
-                    break;
-            }
-        }
-        public static void Debug ( object header, object message, int level = 0, LogType log = LogType.Log )
-        {
-            Debug ( $"[{header}] {message}", level, log );
-        }
+				case LogType.Warning:
+					Warn($"[Carbon] {message}");
+					break;
 
-        public static void Log ( object message )
-        {
-            UnityEngine.Debug.Log ( $"{message}" );
-        }
-        public static void Warn ( object message )
-        {
-            UnityEngine.Debug.LogWarning ( $"{message}" );
-        }
-        public static void Error ( object message, Exception exception = null )
-        {
-            if ( exception == null ) UnityEngine.Debug.LogError ( message );
-            else UnityEngine.Debug.LogError ( new Exception ( $"{message}\n{exception}" ) );
-        }
+				case LogType.Error:
+					Error($"[Carbon] {message}");
+					break;
+			}
+		}
+		public static void Debug(object header, object message, int level = 0, LogType log = LogType.Log)
+		{
+			Debug($"[{header}] {message}", level, log);
+		}
 
-        public static void LogCommand ( object message, BasePlayer player = null )
-        {
-            if ( player == null )
-            {
-                Log ( message );
-                return;
-            }
+		public static void Log(object message)
+		{
+			UnityEngine.Debug.Log($"{message}");
+		}
+		public static void Warn(object message)
+		{
+			UnityEngine.Debug.LogWarning($"{message}");
+		}
+		public static void Error(object message, Exception exception = null)
+		{
+			if (exception == null) UnityEngine.Debug.LogError(message);
+			else UnityEngine.Debug.LogError(new Exception($"{message}\n{exception}"));
+		}
 
-            player.SendConsoleCommand ( $"echo {message}" );
-        }
+		public static void LogCommand(object message, BasePlayer player = null)
+		{
+			if (player == null)
+			{
+				Log(message);
+				return;
+			}
 
-        public static void Format ( string format, params object [] args )
-        {
-            Log ( string.Format ( format, args ) );
-        }
-        public static void WarnFormat ( string format, params object [] args )
-        {
-            Warn ( string.Format ( format, args ) );
-        }
-        public static void ErrorFormat ( string format, Exception exception = null, params object [] args )
-        {
-            Error ( string.Format ( format, args ), exception );
-        }
+			player.SendConsoleCommand($"echo {message}");
+		}
 
-#endregion
+		public static void Format(string format, params object[] args)
+		{
+			Log(string.Format(format, args));
+		}
+		public static void WarnFormat(string format, params object[] args)
+		{
+			Warn(string.Format(format, args));
+		}
+		public static void ErrorFormat(string format, Exception exception = null, params object[] args)
+		{
+			Error(string.Format(format, args), exception);
+		}
 
-        public static void ReloadPlugins ()
-        {
-            CarbonLoader.LoadCarbonMods ();
-            ScriptLoader.LoadAll ();
-        }
-        public static void ClearPlugins ()
-        {
-            Instance?._clearCommands ();
-            CarbonLoader.UnloadCarbonMods ();
-        }
+		#endregion
 
-        public void RefreshConsoleInfo ()
-        {
+		public static void ReloadPlugins()
+		{
+			CarbonLoader.LoadCarbonMods();
+			ScriptLoader.LoadAll();
+		}
+		public static void ClearPlugins()
+		{
+			Instance?._clearCommands();
+			CarbonLoader.UnloadCarbonMods();
+		}
+
+		public void RefreshConsoleInfo()
+		{
 #if WIN
-            if ( !IsServerFullyInitialized ) return;
-            if ( ServerConsole.Instance.input.statusText.Length != 4 ) ServerConsole.Instance.input.statusText = new string [ 4 ];
+			if (!IsServerFullyInitialized) return;
+			if (ServerConsole.Instance.input.statusText.Length != 4) ServerConsole.Instance.input.statusText = new string[4];
 
-            ServerConsole.Instance.input.statusText [ 3 ] = $" Carbon v{Version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum ( x => x.Plugins.Count ):n0} plgs";
+			ServerConsole.Instance.input.statusText[3] = $" Carbon v{Version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum(x => x.Plugins.Count):n0} plgs";
 #endif
-        }
+		}
 
-        public void Init ()
-        {
-            if ( IsInitialized ) return;
-            IsInitialized = true;
+		public void Init()
+		{
+			if (IsInitialized) return;
+			IsInitialized = true;
 
-            LoadConfig ();
-            Debug ( "Loaded config", 3 );
+			LoadConfig();
+			Debug("Loaded config", 3);
 
-            Format ( $"Loading..." );
+			Format($"Loading...");
 
-            GetRootFolder ();
-            GetConfigsFolder ();
-            GetDataFolder ();
-            GetPluginsFolder ();
-            GetLogsFolder ();
-            GetLangFolder ();
-            OsEx.Folder.DeleteContents ( GetTempFolder () );
-            Debug ( "Loaded folders", 3 );
+			GetRootFolder();
+			GetConfigsFolder();
+			GetDataFolder();
+			GetPluginsFolder();
+			GetLogsFolder();
+			GetLangFolder();
+			OsEx.Folder.DeleteContents(GetTempFolder());
+			Debug("Loaded folders", 3);
 
-            _installProcessors ();
+			_installProcessors();
 
-            Interface.Initialize ();
+			Interface.Initialize();
 
-            _clearCommands ();
-            _installDefaultCommands ();
+			_clearCommands();
+			_installDefaultCommands();
 
-            ReloadPlugins ();
+			ReloadPlugins();
 
-            Format ( $"Loaded." );
+			Format($"Loaded.");
 
-            RefreshConsoleInfo ();
-        }
-        public void UnInit ()
-        {
-            _uninstallProcessors ();
-            _clearCommands ( all: true );
+			RefreshConsoleInfo();
+		}
+		public void UnInit()
+		{
+			_uninstallProcessors();
+			_clearCommands(all: true);
 
-            ClearPlugins ();
-            CarbonLoader._loadedMods.Clear ();
-            UnityEngine.Debug.Log ( $"Unloaded Carbon." );
+			ClearPlugins();
+			CarbonLoader._loadedMods.Clear();
+			UnityEngine.Debug.Log($"Unloaded Carbon.");
 
 #if WIN
-            try
-            {
-                if ( ServerConsole.Instance != null && ServerConsole.Instance.input != null )
-                {
-                    ServerConsole.Instance.input.statusText [ 3 ] = "";
-                    ServerConsole.Instance.input.statusText = new string [ 3 ];
-                }
-            }
-            catch { }
+			try
+			{
+				if (ServerConsole.Instance != null && ServerConsole.Instance.input != null)
+				{
+					ServerConsole.Instance.input.statusText[3] = "";
+					ServerConsole.Instance.input.statusText = new string[3];
+				}
+			}
+			catch { }
 #endif
-        }
-    }
+		}
+	}
 
-    public class CarbonInitializer : IHarmonyModHooks
-    {
-        public void OnLoaded ( OnHarmonyModLoadedArgs args )
-        {
-            var oldMod = PlayerPrefs.GetString ( Harmony_Load.CARBON_LOADED );
+	public class CarbonInitializer : IHarmonyModHooks
+	{
+		public void OnLoaded(OnHarmonyModLoadedArgs args)
+		{
+			var oldMod = PlayerPrefs.GetString(Harmony_Load.CARBON_LOADED);
 
-            if ( !Assembly.GetExecutingAssembly ().FullName.StartsWith ( oldMod ) )
-            {
-                CarbonCore.Instance?.UnInit ();
-                HarmonyLoader.TryUnloadMod ( oldMod );
-                CarbonCore.WarnFormat ( $"Unloaded previous: {oldMod}" );
-                CarbonCore.Instance = null;
-            }
+			if (!Assembly.GetExecutingAssembly().FullName.StartsWith(oldMod))
+			{
+				CarbonCore.Instance?.UnInit();
+				HarmonyLoader.TryUnloadMod(oldMod);
+				CarbonCore.WarnFormat($"Unloaded previous: {oldMod}");
+				CarbonCore.Instance = null;
+			}
 
-            CarbonCore.Format ( "Initializing..." );
+			CarbonCore.Format("Initializing...");
 
-            if ( CarbonCore.Instance == null ) CarbonCore.Instance = new CarbonCore ();
-            else CarbonCore.Instance?.UnInit ();
+			if (CarbonCore.Instance == null) CarbonCore.Instance = new CarbonCore();
+			else CarbonCore.Instance?.UnInit();
 
-            CarbonCore.Instance.Init ();
-        }
+			CarbonCore.Instance.Init();
+		}
 
-        public void OnUnloaded ( OnHarmonyModUnloadedArgs args ) { }
-    }
+		public void OnUnloaded(OnHarmonyModUnloadedArgs args) { }
+	}
 
-    [Serializable]
-    public class CarbonConfig
-    {
-        public int Debug { get; set; }
+	[Serializable]
+	public class CarbonConfig
+	{
+		public int Debug { get; set; }
 
-        public bool CarbonTag { get; set; } = true;
-        public bool IsModded { get; set; } = true;
-        public bool ScriptWatchers { get; set; } = true;
-        public bool HarmonyWatchers { get; set; } = true;
-    }
+		public bool CarbonTag { get; set; } = true;
+		public bool IsModded { get; set; } = true;
+		public bool ScriptWatchers { get; set; } = true;
+		public bool HarmonyWatchers { get; set; } = true;
+	}
 }
