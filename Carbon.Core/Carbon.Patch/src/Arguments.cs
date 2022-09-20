@@ -7,6 +7,5 @@ namespace Carbon.Patch
 	{
 		[Option('p', "path", Required = true)]
 		public string Path { get; set; }
-
 	}
 }
