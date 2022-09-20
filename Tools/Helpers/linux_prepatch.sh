@@ -5,7 +5,7 @@ set -e
 # |      |   _   |   __ \   __ \       |    |  |
 # |   ---|       |      <   __ <   -   |       |
 # |______|___|___|___|__|______/_______|__|____|
-#               https://tinyurl.com/carbon-core  
+#         github.com/Carbon-Modding/Carbon.Core
 
 BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 TARGETDLL=${BASE}/RustDedicated_Data/Managed/Assembly-CSharp.dll

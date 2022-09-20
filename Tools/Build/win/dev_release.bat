@@ -4,7 +4,7 @@
 :: |      |   _   |   __ \   __ \       |    |  |
 :: |   ---|       |      <   __ <   -   |       |
 :: |______|___|___|___|__|______/_______|__|____|
-::               https://tinyurl.com/carbon-core  
+::         github.com/Carbon-Modding/Carbon.Core
 
 set BASE=%~dp0
 
