@@ -1,24 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
   <PropertyGroup>
-    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <TargetFrameworks>net48</TargetFrameworks>
+    <ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
-    <TargetFrameworks>net48</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetName>Carbon</TargetName>
+    <AssemblyVersion>0.0.1.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <Product>Carbon</Product>
-    <AssemblyName>Carbon</AssemblyName>
     <Company>Raul-Sorin Sorban</Company>
     <Copyright>Copyright © Carbon 2022</Copyright>
     <Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0.0</Version>
+    <AssemblyName>Carbon-$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</AssemblyName>
+    <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+    <VersionSuffix>$(Configuration)</VersionSuffix>
     <FileVersion>$(Version)</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
