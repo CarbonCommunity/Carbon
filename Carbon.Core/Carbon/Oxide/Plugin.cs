@@ -126,6 +126,8 @@ namespace Oxide.Plugins
             CarbonCore.Debug ( Name, "Assigned plugin references", 2 );
 
             _processHooks ();
+
+            CallHook ( "Init" );
         }
         public virtual void ILoad ()
         {

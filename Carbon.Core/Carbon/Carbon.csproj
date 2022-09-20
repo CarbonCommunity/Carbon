@@ -360,6 +360,8 @@
     <Compile Include="Carbon\CarbonHook.cs" />
     <Compile Include="Extensions\ItemContainerEx.cs" />
     <Compile Include="Hooks\Core\ServerConsoleLog.cs" />
+    <Compile Include="Hooks\Oxide\Entity\OnEntitySpawned.cs" />
+    <Compile Include="Hooks\Carbon\Entity\OnEntitySpawn.cs" />
     <Compile Include="Hooks\Oxide\Entity\OnEntityDeath.cs" />
     <Compile Include="Hooks\Oxide\Item\CanDropActiveItem.cs" />
     <Compile Include="Hooks\Oxide\Item\CanMoveItem.cs" />
