@@ -1,4 +1,5 @@
-﻿using Humanlights.Extensions;
+﻿using Carbon.Extended;
+using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Oxide.Core;
@@ -6,12 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using static SteamInventoryItem;
 
 namespace Carbon.CodeGen
 {
@@ -68,16 +64,19 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
                     var parameters = entry.GetCustomAttributes<Hook.Parameter> ();
 
                     var resultInfo = new List<string> ();
-                    foreach ( var e in info ) resultInfo.Add ( $"<li>{e.Value}</li>" );
-                    if ( !resultInfo.Any ( x => x.StartsWith ( "<li>Return" ) ) )
+                    foreach ( var e in info ) resultInfo.Add ( $"{e.Value}" );
+                    if ( !resultInfo.Any ( x => x.StartsWith ( "Return" ) ) )
                     {
-                        if ( hook.ReturnType == typeof ( void ) ) resultInfo.Add ( $"<li>No return behavior.</li>" );
-                        else resultInfo.Add ( $"<li>Returning a non-null value cancels default behavior.</li>" );
+                        if ( hook.ReturnType == typeof ( void ) ) resultInfo.Add ( $"No return behavior." );
+                        else resultInfo.Add ( $"Returning a non-null value cancels default behavior." );
                     }
+
+                    if ( hook is CarbonHook ) resultInfo.Add ( $"This is a Carbon-only compatible hook." );
+                    else resultInfo.Add ( $"This is a Carbon+Oxide-compatible hook." );
 
                     result += $@"<details>
 <summary>{hook.Name}{( category.Value.Count ( x => x.GetCustomAttribute<Hook> ().Name == hook.Name ) > 1 ? $" ({GetType ( parameters.FirstOrDefault ( x => x.Name == "this" ).Type )})" : "" )}</summary>
-{resultInfo.ToArray ().ToString ( "\n" )}
+{resultInfo.ToArray ().ToString ( "\n\n" )}
 
 {GetExample ( hook, parameters.ToArray () )}
 </details>
@@ -93,13 +92,15 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
         public static string GetExample ( Hook hook, Hook.Parameter [] parameters )
         {
-            return $@"```csharp
-{( hook.ReturnType  == typeof(void) ? "void" : "object")} {hook.Name} ( {parameters.Select ( x => $"{GetType ( x.Type )} {( x.Name == "this" ? GetType(x.Type).Sanitize().ToLower().Trim() : x.Name )}" ).ToArray ().ToString ( ", " )} )
+            return $@"{{% code title=""Example"" %}}
+```csharp
+{( hook.ReturnType  == typeof(void) ? "void" : "object")} {hook.Name} ( {parameters.Select ( x => $"{GetType ( x.Type )} {( x.Name == "this" ? GetParameterName(x.Type).Trim() : x.Name )}" ).ToArray ().ToString ( ", " )} )
 {{
     Puts ( ""{hook.Name} works!"" );" + ( hook.ReturnType == typeof ( void ) ? "" : $@"
     return ({GetType ( hook.ReturnType )}) null;" ) + $@"
 }}
-```";
+```
+{{% endcode %}}";
         }
         public static string GetType ( Type type )
         {
@@ -112,6 +113,10 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
             else if ( type == typeof ( bool ) ) return "bool";
 
             return type.FullName.Replace ( "+", "." );
+        }
+        public static string GetParameterName (Type type)
+        {
+            return $"{char.ToLower ( type.Name [ 0 ] )}{type.Name.Substring(1)}";
         }
 
         public static void DoHookDocs ()
