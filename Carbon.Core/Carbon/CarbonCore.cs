@@ -15,7 +15,7 @@ namespace Carbon.Core
 {
 	public class CarbonCore
 	{
-		public static VersionNumber Version { get; } = new VersionNumber(1, 0, 350);
+		public static VersionNumber Version { get; } = new VersionNumber(1, 1, 0);
 
 		public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
 		public static CarbonCore Instance { get; set; }
