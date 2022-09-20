@@ -68,6 +68,7 @@ namespace Oxide.Core
             }
             return GetFile ( name ).ReadObject<T> ( null );
         }
+
         public void WriteObject<T> ( string name, T Object, bool sync = false )
         {
             GetFile ( name ).WriteObject<T> ( Object, sync, null );
