@@ -1,11 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
   <PropertyGroup>
+    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
     <OutputType>Exe</OutputType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{C7A9EC64-357C-4411-85CB-AF342FAB6654}</ProjectGuid>
+    <StartupObject>Carbon.Patch.Program</StartupObject>
     <TargetFrameworks>net48</TargetFrameworks>
-    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,8 +21,6 @@
   <PropertyGroup>
     <Version>1.0.0.0</Version>
     <FileVersion>$(Version)</FileVersion>
-    <StartupObject>Carbon.Patch.Program</StartupObject>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
