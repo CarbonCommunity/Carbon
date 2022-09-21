@@ -45,14 +45,19 @@ namespace Carbon.Patch
 				{
 					try
 					{
-						OsEx.File.Copy(Path.Combine(Root, File.Key), Path.Combine(Root, File.Value));
+						string Source = Path.Combine(Root, File.Key);
+						string Destination = Path.Combine(Root, File.Value);
+
+						OsEx.File.Copy(Source, Destination);
+						Console.WriteLine($"Copy {Source} to {Destination}");
 					}
 					catch { new Exception($"Error processing: {File.Key}"); }
 				}
 
 				//
 				// Windows patch
-				//
+				Console.WriteLine();
+
 				using (var memoryStream = new MemoryStream())
 				{
 					using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
@@ -61,7 +66,11 @@ namespace Carbon.Patch
 						{
 							try
 							{
+								string Source = Path.Combine(Root, File.Key);
+								string Destination = File.Value;
+
 								archive.CreateEntryFromFile(Path.Combine(Root, File.Key), File.Value);
+								Console.WriteLine($"Added {Source}");
 							}
 							catch { new Exception($"Error processing: {File.Key}"); }
 						}
@@ -70,6 +79,7 @@ namespace Carbon.Patch
 					var output = Path.Combine(Release, "Carbon.Patch.zip");
 					OsEx.File.Delete(output);
 					OsEx.File.Create(output, new byte[0]);
+					Console.WriteLine($"Zip archive {output} saved");
 
 					using (var fileStream = new FileStream(output, FileMode.Open))
 					{
@@ -80,7 +90,8 @@ namespace Carbon.Patch
 
 				//
 				// Linux patch
-				//
+				Console.WriteLine();
+
 				using (var memoryStream = new MemoryStream())
 				{
 					using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
@@ -89,7 +100,11 @@ namespace Carbon.Patch
 						{
 							try
 							{
+								string Source = Path.Combine(Root, File.Key);
+								string Destination = File.Value;
+
 								archive.CreateEntryFromFile(Path.Combine(Root, File.Key), File.Value);
+								Console.WriteLine($"Added {Source}");
 							}
 							catch { new Exception($"Error processing: {File.Key}"); }
 						}
@@ -98,6 +113,7 @@ namespace Carbon.Patch
 					var output = Path.Combine(Release, "Carbon.Patch-Unix.zip");
 					OsEx.File.Delete(output);
 					OsEx.File.Create(output, new byte[0]);
+					Console.WriteLine($"Zip archive {output} saved");
 
 					using (var fileStream = new FileStream(output, FileMode.Open))
 					{

@@ -55,11 +55,6 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
- <Target Name="Cleanup">
-    <RemoveDir Directories="$(BaseIntermediateOutputPath)" /><!-- obj -->
-    <RemoveDir Directories="$(BaseOutputPath)" /><!-- bin -->
-  </Target>
-
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />

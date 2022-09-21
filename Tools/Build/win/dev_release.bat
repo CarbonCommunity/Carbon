@@ -8,13 +8,23 @@
 
 set BASE=%~dp0
 
+rem Get the base path of the script
 pushd %BASE%..\..\..
 set ROOT=%CD%
 popd
 
-rem Build the solution
-dotnet clean %ROOT%\Carbon.Core -t:Cleanup --configuration Release
-dotnet build %ROOT%\Carbon.Core --configuration Release --no-incremental
-dotnet build %ROOT%\Carbon.Core --configuration ReleaseUnix --no-incremental
+rem Get the build target argument
+if "%1" EQU "" (
+	set TARGET=Debug
+) else (
+	set TARGET=%1
+)
 
-%ROOT%\Carbon.Core\Carbon.Patch\bin\Release\net48\Carbon.Patch.exe --path %ROOT%
+rem Build the solution
+dotnet restore %ROOT%\Carbon.Core --nologo
+dotnet   clean %ROOT%\Carbon.Core --configuration %TARGET% --nologo
+dotnet   build %ROOT%\Carbon.Core --configuration %TARGET% --no-restore --no-incremental
+dotnet   build %ROOT%\Carbon.Core --configuration %TARGET%Unix --no-restore --no-incremental
+
+rem Create the patch file(s)
+%ROOT%\Carbon.Core\Carbon.Patch\bin\%TARGET%\net48\Carbon.Patch.exe --path %ROOT%

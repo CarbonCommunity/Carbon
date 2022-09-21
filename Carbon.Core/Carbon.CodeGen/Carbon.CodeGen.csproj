@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Restore;Clean;Build">
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
   <PropertyGroup>
     <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
     <Deterministic>true</Deterministic>
@@ -56,11 +56,6 @@
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
-
- <Target Name="Cleanup">
-    <RemoveDir Directories="$(BaseIntermediateOutputPath)" /><!-- obj -->
-    <RemoveDir Directories="$(BaseOutputPath)" /><!-- bin -->
-  </Target>
 
   <ItemGroup>
     <Reference Include="System" />
