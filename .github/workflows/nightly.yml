@@ -13,12 +13,18 @@ jobs:
     name: 🌙 Update the nightly release tag
     runs-on: ubuntu-latest
     
-    steps:
+    steps:    
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: dev
-
+        ref: alpha
+        
+    - name: 📅 Gather information
+      id: info
+      run: |
+        echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M:%S')"
+        echo "::set-output name=ref::$(git log -1 '--format=format:%H')"
+      
     - name: 🛤️ Setup the build environment
       uses: actions/setup-dotnet@v2
       with:
@@ -39,9 +45,13 @@ jobs:
         name: '🌙 Nightly build ($$)'
         prerelease: true
         body: |
-          This is the nightly build of Carbon.
+          🚨 This is the nightly build of Carbon.
           The general public is advised to use one of the stable builds.
           This build is targeted at Developers and/or server owners with existing issues.
+          
+          📅 Built at ${{ steps.info.outputs.date }} from commit ${{ steps.info.outputs.ref }}.
         files: |
           Release/Carbon.Patch.zip
           Release/Carbon.Patch-Unix.zip
+          Release/Carbon.dll
+          Release/Carbon-Unix.dll
