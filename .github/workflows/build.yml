@@ -1,11 +1,11 @@
-name: 🦺 Build Carbon
+name: 🦺 Validate build status
 
 on:
   push:
-    branches: [ "alpha", "beta", "main" ]
+    branches: [ "alpha" ]
     
   pull_request:
-    branches: [ "alpha", "beta", "main" ]
+    branches: [ "alpha" ]
 
 jobs:
   build:
