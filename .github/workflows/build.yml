@@ -1,30 +1,39 @@
-name: Build project
+name: 🦺 Build Carbon
 
 on:
   push:
-    branches: [ "dev", "beta", "main" ]
+    branches: [ "alpha", "beta", "main" ]
+    
   pull_request:
-    branches: [ "dev", "beta", "main" ]
+    branches: [ "alpha", "beta", "main" ]
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    name: 🔨 Build Carbon on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
     
     steps:
-    - uses: actions/checkout@v3
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
 
-    - name: Setup .NET
+    - name: 🛤️ Setup the build environment
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
 
-    - name: Navigate to Workspace
-      run: cd ${GITHUB_WORKSPACE}/Carbon.Core
-
-    - name: Execute the buildroot init process
-      run: ./Tools/Build/linux/dev_init.sh
+    - name: 🐧 Execute the build process on Linux
+      if: matrix.os == 'ubuntu-latest'
       shell: bash
+      run: |
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh
 
-    - name: Execute the release process
-      run: ./Tools/Build/linux/dev_release.sh 
-      shell: bash
+    - name: 🪟 Execute the build process on Windows
+      shell: cmd
+      if: matrix.os == 'windows-latest'
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\win\dev_init.bat
+        %GITHUB_WORKSPACE%\Tools\Build\win\dev_release.bat
