@@ -17,14 +17,14 @@ git submodule init
 git submodule update
 
 rem Build Steam Downloading Utility
-dotnet restore %ROOT%\Tools\DepotDownloader --force
-dotnet clean   %ROOT%\Tools\DepotDownloader --configuration Release
-dotnet build   %ROOT%\Tools\DepotDownloader --configuration Release --no-incremental
+dotnet restore %ROOT%\Tools\DepotDownloader --nologo --force
+dotnet clean   %ROOT%\Tools\DepotDownloader --configuration Release --nologo
+dotnet build   %ROOT%\Tools\DepotDownloader --configuration Release --no-restore --no-incremental
 
 rem Build .NET Assembly stripper, publicizer and general utility tool
-dotnet restore %ROOT%\Tools\NStrip --force
-dotnet clean   %ROOT%\Tools\NStrip --configuration Release
-dotnet build   %ROOT%\Tools\NStrip --configuration Release --no-incremental
+dotnet restore %ROOT%\Tools\NStrip --nologo --force
+dotnet clean   %ROOT%\Tools\NStrip --configuration Release --nologo
+dotnet build   %ROOT%\Tools\NStrip --configuration Release --no-restore --no-incremental
 
 rem Keeping Unity DoorStop out of the game for now due to the more complex
 rem build process.

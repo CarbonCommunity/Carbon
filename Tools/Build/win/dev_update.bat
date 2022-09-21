@@ -22,3 +22,5 @@ rem Show me all you've got baby
 	-p -cg --keep-resources -n --unity-non-serialized ^
 	%ROOT%\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll ^
 	%ROOT%\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll
+
+dotnet restore %ROOT%\Carbon.Core --nologo
