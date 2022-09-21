@@ -1,0 +1,47 @@
+name: 🌙 Nightly build
+
+on:
+  workflow_dispatch:
+  
+  schedule:
+    - cron: '0 7 * * *'
+    # technically this is more a "morningly" build
+    # but we do work late.. :-)
+
+jobs:
+  nightly:
+    name: 🌙 Update the nightly release tag
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+      with:
+        ref: dev
+
+    - name: 🛤️ Setup the build environment
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: 🐧 Execute the build process on Linux
+      shell: bash
+      run: |
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh
+
+    - name: 🏷️ Update the github release
+      uses: andelf/nightly-release@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: nightly
+        name: '🌙 Nightly build ($$)'
+        prerelease: true
+        body: |
+          This is the nightly build of Carbon.
+          The general public is advised to use one of the stable builds.
+          This build is targeted at Developers and/or server owners with existing issues.
+        files: |
+          Release/Carbon.Patch.zip
+          Release/Carbon.Patch-Unix.zip
