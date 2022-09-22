@@ -13,11 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Apply Secrets
+    - name: Apply Secrets 1
       env:
         PFXCERT: ${{ secrets.PFXCERT }}
-        CERTPASS: ${{ secrets.CERTPASS }}
     
+    - name: Apply Secrets 2
+      env:
+        CERTPASS: ${{ secrets.CERTPASS }}
+
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
 
