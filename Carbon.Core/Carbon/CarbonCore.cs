@@ -111,9 +111,9 @@ namespace Carbon.Core
 
 		#region Processors
 
-		public ScriptProcessor ScriptProcessor { get; set; } = new ScriptProcessor();
-		public WebScriptProcessor WebScriptProcessor { get; set; } = new WebScriptProcessor();
-		public HarmonyProcessor HarmonyProcessor { get; set; } = new HarmonyProcessor();
+		public ScriptProcessor ScriptProcessor { get; set; }
+		public WebScriptProcessor WebScriptProcessor { get; set; }
+		public HarmonyProcessor HarmonyProcessor { get; set; }
 
 		internal void _installProcessors()
 		{
