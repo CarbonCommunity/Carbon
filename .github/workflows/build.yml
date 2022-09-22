@@ -23,11 +23,13 @@ jobs:
 
     - name: 🐧 Prepare the build environment
       shell: bash
-      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
+      run: |
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
 
     - name: 🐧 Built the application
       shell: bash
-      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh Debug
+      run: |
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh Debug
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -49,15 +51,17 @@ jobs:
         dotnet-version: 6.0.x
 
     - name: 🐧 Prepare the build environment
-      run: %GITHUB_WORKSPACE%\Tools\Build\win\dev_init.bat
       shell: cmd
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\win\dev_init.bat
 
     - name: 🐧 Built the application
-      run: %GITHUB_WORKSPACE%\Tools\Build\win\dev_release.bat Debug
       shell: cmd
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\win\dev_release.bat Debug
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: artifact-build-linux-${{ github.run_id }}
+        name: artifact-build-windows-${{ github.run_id }}
         path: Release
