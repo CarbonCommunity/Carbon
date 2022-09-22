@@ -13,14 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Apply Secrets 1
-      env:
-        PFXCERT: ${{ secrets.PFXCERT }}
-    
-    - name: Apply Secrets 2
-      env:
-        CERTPASS: ${{ secrets.CERTPASS }}
-
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
 
@@ -38,7 +30,10 @@ jobs:
       shell: bash
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh Debug
-
+      env:
+        PFXCERT: ${{ secrets.PFXCERT }}
+        CERTPASS: ${{ secrets.CERTPASS }}
+        
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
