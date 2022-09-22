@@ -23,6 +23,11 @@ jobs:
   build:
     name: 🦺 Build
     runs-on: ubuntu-latest
+
+    outputs:
+      date: ${{ steps.info.outputs.date }}
+      tag: ${{ steps.info.outputs.tag }}
+      ref: ${{ steps.info.outputs.ref }}
       
     steps:    
     - name: 🔗 Checkout source code from github
@@ -73,7 +78,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: '🔥 Unstable build (${{ steps.info.outputs.tag }})'
+        name: '🔥 Unstable build (${{ needs.build.outputs.tag }})'
         tag_name: unstable
         prerelease: true
         body: |
@@ -81,9 +86,30 @@ jobs:
           The general public is advised to use one of the stable builds.
           This build is targeted at Developers and/or server owners with existing issues.
           
-          📅 Built at ${{ steps.info.outputs.date }} from commit ${{ steps.info.outputs.ref }}.
+          📅 Built at ${{ needs.build.outputs.date }} from commit ${{ needs.build.outputs.ref }}.
         files: |
           Release/Carbon.dll
           Release/Carbon.Patch.zip
           Release/Carbon-Unix.dll
           Release/Carbon.Patch-Unix.zip
+
+  staging:
+    name: 🔃 Update beta
+    runs-on: ubuntu-latest
+    needs: tag
+
+    steps:
+      - name: 🔗 Checkout source code from github
+        uses: actions/checkout@v3
+        with:
+          ref: alpha
+
+      - name: ⤵️ Merge alpha to beta (staging)
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: alpha
+          target_branch: beta
+          github_token: ${{ github.token }}
+          label_name: staging
+          message: ⚗️ Merge 'alpha' to 'beta' (staging)
