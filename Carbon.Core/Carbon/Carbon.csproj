@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
   <PropertyGroup>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworks>net48</TargetFrameworks>
@@ -23,10 +23,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>Carbon-$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</AssemblyName>
+  <AssemblyName>Carbon-1.1.0-202209222046</AssemblyName>
     <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
     <VersionSuffix>$(Configuration)</VersionSuffix>
-    <FileVersion>$(Version)</FileVersion>
+    <FileVersion>1.1.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup>

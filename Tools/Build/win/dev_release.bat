@@ -27,5 +27,18 @@ dotnet   clean %ROOT%\Carbon.Core --configuration %TARGET% --nologo
 dotnet   build %ROOT%\Carbon.Core --configuration %TARGET% --no-restore --no-incremental
 dotnet   build %ROOT%\Carbon.Core --configuration %TARGET%Unix --no-restore --no-incremental
 
+rem Update Assembly version
+%ROOT%\Carbon.Core\Carbon.Patch\bin\%TARGET%\net48\Carbon.Patch.exe --path %ROOT% --versionupdate
+
+rem Build the solution
+dotnet   build %ROOT%\Carbon.Core --configuration %TARGET% --no-restore --no-incremental
+dotnet   build %ROOT%\Carbon.Core --configuration %TARGET%Unix --no-restore --no-incremental
+
+set CERT=%ROOT%\Tools\Humanlights.SignTool\Certificate\carbon
+echo %PFXCERT%> %CERT%.pfx_base64
+certutil -f -decode %CERT%.pfx_base64 %CERT%.pfx
+
+%ROOT%\Tools\Humanlights.SignTool\Humanlights.SignTool.exe sign -folder "%ROOT%\Carbon.Core\Carbon\bin" -certificate "%CERT%.pfx" -altcertificate "%CERT%.cer" +password "%CERTPASS%" /da "sha256"
+
 rem Create the patch file(s)
 %ROOT%\Carbon.Core\Carbon.Patch\bin\%TARGET%\net48\Carbon.Patch.exe --path %ROOT% --configuration %TARGET%
