@@ -19,6 +19,7 @@ namespace Oxide.Plugins
         public Timers timer { get; set; } = new Timers ();
         public OxideMod mod { get; set; } = new OxideMod ();
         public WebRequests webrequest { get; set; } = new WebRequests ();
+        public Oxide.Game.Rust.Libraries.Rust rust { get; set; }
         public Persistence persistence { get; set; }
 
         public DynamicConfigFile Config { get; private set; }
@@ -47,6 +48,7 @@ namespace Oxide.Plugins
             timer = new Timers ( this );
             lang = new Language ();
             mod = new OxideMod ();
+            rust = new Game.Rust.Libraries.Rust ();
             webrequest = new WebRequests ();
             persistence = new GameObject ( $"Script_{name}" ).AddComponent<Persistence> ();
             UnityEngine.Object.DontDestroyOnLoad ( persistence.gameObject );
