@@ -14,7 +14,7 @@
     <Product>Carbon</Product>
     <AssemblyName>Carbon.Patch</AssemblyName>
     <Company>Raul-Sorin Sorban</Company>
-    <Copyright>Copyright © Carbon 2022</Copyright>
+    <Copyright>Copyright (c) 2022 Carbon [discord.gg/eXPcNKK4yd]</Copyright>
     <Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
   </PropertyGroup>
 
