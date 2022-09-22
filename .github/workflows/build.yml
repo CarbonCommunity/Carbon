@@ -13,9 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
-    - name: Decrypt large secret
-      run: ./decrypt_secret.sh
+    - name: Apply Secrets
       env:
         PFXCERT: ${{ secrets.PFXCERT }}
         CERTPASS: ${{ secrets.CERTPASS }}
