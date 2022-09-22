@@ -1,30 +1,40 @@
-name: 🔥 Unstable weekly build
+# 
+#   ______ _______ ______ ______ _______ _______ 
+#  |      |   _   |   __ \   __ \       |    |  |
+#  |   ---|       |      <   __ <   -   |       |
+#  |______|___|___|___|__|______/_______|__|____|
+#                         discord.gg/eXPcNKK4yd
+# 
+name: 🔥 Unstable build
 
 on:
   # allow manual action trigger
   workflow_dispatch:
-  
+
+  # technically this is more a "morningly" build
+  # but we do work late.. :-)  
   schedule:
     - cron: '0 7 * * 0'
-    # technically this is more a "morningly" build
-    # but we do work late.. :-)
+
+env:
+  configuration: Debug
 
 jobs:
-  unstable:
-    name: 🔥 Update the unstable release tag
+  build:
+    name: 🦺 Build
     runs-on: ubuntu-latest
-    
+      
     steps:    
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: beta
+        ref: alpha
         
-    - name: 📅 Gather information
+    - name: 📅 Prepare the environment
       id: info
       run: |
         echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M:%S')"
-        echo "::set-output name=tag::$(date +'%Yw%U')"
+        echo "::set-output name=tag::$(date +'%Yd%j')"
         echo "::set-output name=ref::$(git log -1 '--format=format:%H')"
       
     - name: 🛤️ Setup the build environment
@@ -32,19 +42,39 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: 🐧 Execute the build process on Linux
+    - name: ✔️ Prepare the build environment
       shell: bash
-      run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
 
-    - name: 🏷️ Update the github release
+    - name: 🐧 Built the application
+      shell: bash
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh ${configuration}
+
+    - name: ⬆️ Upload the artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: artifact-build-unstable
+        path: Release/
+
+  tag:
+    name: 💾 Release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: ⬇️ Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: artifact-build-unstable
+        path: Release/
+
+    - name: 🏷️ Update release tag
       uses: andelf/nightly-release@main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: unstable
         name: '🔥 Unstable build (${{ steps.info.outputs.tag }})'
+        tag_name: unstable
         prerelease: true
         body: |
           🚨 This is the unstable build of Carbon.
@@ -53,7 +83,7 @@ jobs:
           
           📅 Built at ${{ steps.info.outputs.date }} from commit ${{ steps.info.outputs.ref }}.
         files: |
-          Release/Carbon.Patch.zip
-          Release/Carbon.Patch-Unix.zip
           Release/Carbon.dll
+          Release/Carbon.Patch.zip
           Release/Carbon-Unix.dll
+          Release/Carbon.Patch-Unix.zip

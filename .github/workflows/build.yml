@@ -5,15 +5,12 @@ on:
     branches: [ "alpha" ]
     
   pull_request:
-    branches: [ "alpha" ]
+    branches: [ "alpha", "beta", "main" ]
 
 jobs:
-  build:
-    name: 🔨 Build Carbon on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, windows-latest ]
+  build-linux:
+    name: 🐧 Linux
+    runs-on: ubuntu-latest
     
     steps:
     - name: 🔗 Checkout source code from github
@@ -24,16 +21,43 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: 🐧 Execute the build process on Linux
-      if: matrix.os == 'ubuntu-latest'
+    - name: 🐧 Prepare the build environment
       shell: bash
-      run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
 
-    - name: 🪟 Execute the build process on Windows
+    - name: 🐧 Built the application
+      shell: bash
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh Debug
+
+    - name: ⬆️ Upload the artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: artifact-build-linux-${{ github.run_id }}
+        path: Release
+
+  build-windows:
+    name: 🪟 Windows
+    runs-on: windows-latest
+    
+    steps:
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+
+    - name: 🛤️ Setup the build environment
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: 🐧 Prepare the build environment
+      run: %GITHUB_WORKSPACE%\Tools\Build\win\dev_init.bat
       shell: cmd
-      if: matrix.os == 'windows-latest'
-      run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\dev_init.bat
-        %GITHUB_WORKSPACE%\Tools\Build\win\dev_release.bat
+
+    - name: 🐧 Built the application
+      run: %GITHUB_WORKSPACE%\Tools\Build\win\dev_release.bat Debug
+      shell: cmd
+
+    - name: ⬆️ Upload the artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: artifact-build-linux-${{ github.run_id }}
+        path: Release
