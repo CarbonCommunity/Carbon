@@ -8,8 +8,7 @@ namespace Carbon.Patch
 			Utility.LogNone(@" |      |   _   |   __ \   __ \       |    |  |");
 			Utility.LogNone(@" |   ---|       |      <   __ <   -   |       |");
 			Utility.LogNone(@" |______|___|___|___|__|______/_______|__|____|");
-			Utility.LogNone(string.Empty);
-			Utility.LogNone($" {Utility.GetAssemblyName()} {Utility.GetCopyright()}");
+			Utility.LogNone(@"                         discord.gg/eXPcNKK4yd");
 			Utility.LogNone(string.Empty);
 		}
 	}
