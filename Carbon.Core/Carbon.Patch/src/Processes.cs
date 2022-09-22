@@ -1,10 +1,9 @@
-using Carbon.Core;
 using Humanlights.Extensions;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Compression;
+using System.Reflection;
 
 namespace Carbon.Patch
 {
@@ -69,7 +68,10 @@ namespace Carbon.Patch
 			string Output = Path.GetFullPath (
 				Path.Combine ( Arguments.basePath, "Carbon.Core/Carbon/Carbon.csproj" ) );
 
-			if ( !PatchVersion ( Output ) )
+			string Carbon = Path.GetFullPath (
+				Path.Combine ( Arguments.basePath, "Carbon.Core/Carbon/bin/Debug/net48/Carbon.dll" ) );
+
+			if ( !PatchVersion ( Output, Carbon ) )
 			{
 				Utility.LogError ( "Unable to update assembly version, execution aborted" );
 				Environment.Exit ( 6 );
@@ -150,28 +152,31 @@ namespace Carbon.Patch
 			return true;
 		}
 
-		static bool PatchVersion ( string root )
-		{
-			string [] Content = OsEx.File.ReadTextLines ( root );
+		static bool PatchVersion ( string root, string carbon )
+        {
+            string [] Content = OsEx.File.ReadTextLines ( root );
+			Assembly Carbon = Assembly.LoadFrom ( carbon );
+            object Version = Carbon?.GetType ( "Carbon.Core.CarbonCore" ).GetProperty ( "Version", BindingFlags.Public | BindingFlags.Static ).GetValue ( null );
 
-			for ( int i = 0; i < Content.Length; i++ )
+            for ( int i = 0; i < Content.Length; i++ )
 			{
 				var Line = Content [ i ];
 
 				if ( Line.Contains ( "AssemblyName" ) )
 				{
-                    Content [ i ] = $@"  <AssemblyName>Carbon-{CarbonCore.Version}-{DateTime.UtcNow.ToString ( "yyyyMMddHHmm" )}</AssemblyName>";
-                }
+					Content [ i ] = $@"  <AssemblyName>Carbon-{Version}-{DateTime.UtcNow.ToString ( "yyyyMMddHHmm" )}</AssemblyName>";
+				}
 				else if ( Line.Contains ( "FileVersion" ) )
 				{
-                    Content [ i ] = $@"    <FileVersion>{CarbonCore.Version}</FileVersion>";
-                }
+					Content [ i ] = $@"    <FileVersion>{Version}</FileVersion>";
+				}
 			}
 
-            Utility.LogInformation ( $"Updated  {root} version" );
-            OsEx.File.Create ( root, Content );
+			OsEx.File.Create ( root, Content );
+            Utility.LogInformation ( $"Updated {root} version" );
 
-			return true;
+            return true;
 		}
-	}
+
+    }
 }

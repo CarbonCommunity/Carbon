@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-  <AssemblyName>Carbon-1.1.0-202209222046</AssemblyName>
+  <AssemblyName>Carbon-1.1.0-202209222352</AssemblyName>
     <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
     <VersionSuffix>$(Configuration)</VersionSuffix>
     <FileVersion>1.1.0</FileVersion>
