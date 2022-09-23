@@ -5,7 +5,7 @@ on:
     branches: [ "alpha" ]
     
   pull_request:
-    branches: [ "alpha", "beta", "main" ]
+    branches: [ "alpha" ]
 
 jobs:
   build-linux:
