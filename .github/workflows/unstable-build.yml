@@ -99,12 +99,25 @@ jobs:
     needs: build
 
     steps:
-    - name: ⤵️ Merge alpha to beta (staging)
-      uses: devmasx/merge-branch@master
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
       with:
-        type: now
-        from_branch: alpha
-        target_branch: beta
-        github_token: ${{ github.token }}
-        message: |
+        ref: beta
+
+    - name: 🧹 Reset branch
+      run: |
+        git fetch origin alpha:alpha
+        git reset --hard alpha
+
+    - name: 📦 Create pull request
+      uses: peter-evans/create-pull-request@v4
+      id: cpr
+      with:
+        branch: beta-promotion
+        delete-branch: true
+        labels: automation
+        title: |
           ci(auto): 🤖 Merge branch 'alpha' into 'beta'
+        body: |
+          This is an automated PR.
+          📅 ${{ needs.build.outputs.date }}
