@@ -155,8 +155,9 @@ namespace Carbon.Patch
 		static bool PatchVersion ( string root, string carbon )
         {
             string [] Content = OsEx.File.ReadTextLines ( root );
-			Assembly Carbon = Assembly.LoadFrom ( carbon );
-            object Version = Carbon?.GetType ( "Carbon.Core.CarbonCore" ).GetProperty ( "Version", BindingFlags.Public | BindingFlags.Static ).GetValue ( null );
+			// Assembly Carbon = Assembly.LoadFrom ( carbon );
+			// object Version = Carbon?.GetType ( "Carbon.Core.CarbonCore" ).GetProperty ( "Version", BindingFlags.Public | BindingFlags.Static ).GetValue ( null );
+			object Version = Carbon.Core.CarbonCore.Version;
 
             for ( int i = 0; i < Content.Length; i++ )
 			{
