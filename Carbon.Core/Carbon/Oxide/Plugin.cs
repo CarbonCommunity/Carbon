@@ -14,8 +14,8 @@ namespace Oxide.Plugins
     [JsonObject ( MemberSerialization.OptIn )]
     public class Plugin : IDisposable
     {
-        public Dictionary<string, MethodInfo> HookCache { get; private set; } = new Dictionary<string, MethodInfo> ();
-        public Dictionary<string, MethodInfo> HookMethodAttributeCache { get; private set; } = new Dictionary<string, MethodInfo> ();
+        public Dictionary<string, List<MethodInfo>> HookCache { get; private set; } = new Dictionary<string, List<MethodInfo>> ();
+        public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; private set; } = new Dictionary<string, List<MethodInfo>> ();
         public List<string> IgnoredHooks { get; private set; } = new List<string> ();
 
         public bool IsCorePlugin { get; set; }
@@ -108,8 +108,14 @@ namespace Oxide.Plugins
                 var attribute = method.GetCustomAttribute<HookMethodAttribute> ();
                 if ( attribute == null ) continue;
 
-                var name = string.IsNullOrEmpty ( attribute.Name ) ? method.Name : attribute.Name;
-                HookMethodAttributeCache.Add ( name + method.GetParameters ().Length, method );
+                var name = ( string.IsNullOrEmpty ( attribute.Name ) ? method.Name : attribute.Name ) + method.GetParameters ().Length;
+                if ( !HookMethodAttributeCache.TryGetValue ( name, out var list ) )
+                {
+                    list = new List<MethodInfo> ( 50 ) { method };
+
+                    HookMethodAttributeCache.Add ( name, list );
+                }
+                else list.Add ( method );
             }
 
             CarbonCore.Debug ( Name, "Installed hook method attributes", 2 );

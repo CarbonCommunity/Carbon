@@ -159,41 +159,53 @@ namespace Carbon.Core
 
         private static object CallHook<T> ( this T plugin, string hookName, BindingFlags flags, object [] args ) where T : Plugin
         {
-            var id = args == null ? 0 : args.Length;
-            if ( plugin.HookMethodAttributeCache.TryGetValue ( hookName + id, out var hook ) )
+            var id = $"{hookName}[{( args == null ? 0 : args.Length )}";
+            var result = ( object )null;
+            if ( plugin.HookMethodAttributeCache.TryGetValue ( id, out var hooks ) )
             {
-                return DoCall ( hook );
-            }
-
-            if ( !plugin.HookCache.TryGetValue ( hookName + id, out hook ) )
-            {
-                hook = plugin.Type.GetMethod ( hookName, flags );
-
-                if ( hook == null )
+                foreach ( var method in hooks )
                 {
-                    return null;
+                    var methodResult = DoCall ( method );
+                    if ( methodResult != null ) result = methodResult;
                 }
 
-                plugin.HookCache.Add ( hookName + id, hook );
+                return result;
+            }
+
+            foreach ( var method in plugin.Type.GetMethods ( flags ) )
+            {
+                if ( method.Name != hookName ) continue;
+
+                if ( !plugin.HookCache.TryGetValue ( id, out hooks ) )
+                {
+                    plugin.HookCache.Add ( id, new List<MethodInfo> ( 50 ) { method } );
+                }
+                else hooks.Add ( method );
             }
 
             object DoCall ( MethodInfo method )
             {
                 var beforeTicks = Environment.TickCount;
                 plugin.TrackStart ();
-                var result = method?.Invoke ( plugin, args );
+                result = method?.Invoke ( plugin, args );
                 plugin.TrackEnd ();
                 var afterTicks = Environment.TickCount;
 
                 if ( afterTicks > beforeTicks + 100 && afterTicks > beforeTicks )
                 {
-                    CarbonCore.WarnFormat ( $" {plugin?.Name} hook took longer than 100ms {hookName}{( args == null ? "" : $"[{args.Length}]" )} [{( afterTicks - beforeTicks ):0}ms]" );
+                    CarbonCore.WarnFormat ( $" {plugin?.Name} hook took longer than 100ms {hookName} [{( afterTicks - beforeTicks ):0}ms]" );
                 }
 
                 return result;
             }
 
-            return DoCall ( hook );
+            foreach ( var method in hooks )
+            {
+                var methodResult = DoCall ( method );
+                if ( methodResult != null ) result = methodResult;
+            }
+
+            return result;
         }
 
         private static object CallStaticHook ( string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object [] args = null )
