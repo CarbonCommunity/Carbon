@@ -32,7 +32,7 @@ dotnet   build ${ROOT}/Carbon.Core --configuration ${TARGET}Unix --no-restore --
 
 CERT=${ROOT}/Tools/Humanlights.SignTool/Certificate/carbon
 echo ${PFXCERT}> ${CERT}.pfx_base64
-base64 --decode "${CERT}.pfx_base64" "${CERT}.pfx"
+base64 --decode "${CERT}.pfx_base64" > "${CERT}.pfx"
 
 mono ${ROOT}/Tools/Humanlights.SignTool/Humanlights.SignTool.exe sign -folder "${ROOT}/Carbon.Core/Carbon/bin" -certificate "${CERT}.pfx" -altcertificate "${CERT}.cer" +password "${CERTPASS}" /da "sha256"
 
