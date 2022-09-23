@@ -1,0 +1,17 @@
+- name: ⤵️ Merge alpha to beta (staging)
+  uses: devmasx/merge-branch@master
+  with:
+    type: now
+    from_branch: alpha
+    target_branch: beta
+    github_token: ${{ github.token }}
+    message: |
+      ci(auto): 🤖 Merge branch 'alpha' into 'beta'
+
+- name: 🗜️ Auto squash pull request
+  uses: markelliot/autosquash@v1
+  with:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+      pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+      squash-commit-title: "${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }})"
+      squash-commit-message: "${{ github.event.pull_request.body }}"
