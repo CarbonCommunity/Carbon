@@ -155,8 +155,6 @@ namespace Carbon.Patch
 		static bool PatchVersion ( string root, string carbon )
         {
             string [] Content = OsEx.File.ReadTextLines ( root );
-			// Assembly Carbon = Assembly.LoadFrom ( carbon );
-			// object Version = Carbon?.GetType ( "Carbon.Core.CarbonCore" ).GetProperty ( "Version", BindingFlags.Public | BindingFlags.Static ).GetValue ( null );
 			object Version = Carbon.Core.CarbonCore.Version;
 
             for ( int i = 0; i < Content.Length; i++ )
@@ -165,7 +163,7 @@ namespace Carbon.Patch
 
 				if ( Line.Contains ( "AssemblyName" ) )
 				{
-					Content [ i ] = $@"  <AssemblyName>Carbon-{Version}-{DateTime.UtcNow.ToString ( "yyyyMMddHHmm" )}</AssemblyName>";
+					Content [ i ] = $@"  <AssemblyName>Carbon-{Version}-{DateTime.UtcNow:yyyyMMddHHmm}</AssemblyName>";
 				}
 				else if ( Line.Contains ( "FileVersion" ) )
 				{
