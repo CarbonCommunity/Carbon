@@ -17,8 +17,8 @@ namespace Carbon.Patch
 			{ "%BASE%/Carbon.Core/Carbon.Doorstop/bin/%TARGET%/net48/Carbon.Doorstop.dll", "RustDedicated_Data/Managed/Carbon.Doorstop.dll" },
 
 			// tools
-			{ "%BASE%/Tools/UnityDoorstop/winhttp.dll", "winhttp.dll" },
 			{ "%BASE%/Tools/Helpers/doorstop_config.ini", "doorstop_config.ini" },
+			{ "%BASE%/Tools/UnityDoorstop/windows/x64/doorstop.dll", "winhttp.dll" },
 			{ "%BASE%/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip.exe" },
 		};
 

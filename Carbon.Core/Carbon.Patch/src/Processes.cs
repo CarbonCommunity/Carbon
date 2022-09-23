@@ -1,108 +1,111 @@
-using Humanlights.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using Humanlights.Extensions;
 
 namespace Carbon.Patch
 {
 	internal partial class Program
 	{
-		static void CreateReleaseDirectory ()
+		static void CreateReleaseDirectory()
 		{
 			try
 			{
-				string Release = Path.GetFullPath (
-					Path.Combine ( Arguments.basePath, "Release" ) );
+				string Release = Path.GetFullPath(
+					Path.Combine(Arguments.basePath, "Release"));
 
-				if ( Directory.Exists ( Release ) )
-					Directory.Delete ( Release, true );
+				if (Directory.Exists(Release))
+					Directory.Delete(Release, true);
 
-				Directory.CreateDirectory ( Release );
-				Utility.LogInformation ( $"Created {Release}" );
+				Directory.CreateDirectory(Release);
+				Utility.LogInformation($"Created {Release}");
 			}
-			catch ( Exception e )
+			catch (Exception e)
 			{
-				Utility.LogError ( "Prepare release folder failed, execution aborted." );
-				Utility.LogError ( e.Message );
-				Environment.Exit ( 2 );
-			}
-		}
-
-		static void ProcessCommonFiles ()
-		{
-			if ( !CopyFiles ( commonList ) )
-			{
-				Utility.LogError ( "Some files failed to copy, execution aborted" );
-				Environment.Exit ( 3 );
+				Utility.LogError("Prepare release folder failed, execution aborted.");
+				Utility.LogError(e.Message);
+				Environment.Exit(2);
 			}
 		}
 
-		static void ProcessWindowsFiles ()
+		static void ProcessCommonFiles()
 		{
-			string Output = Path.GetFullPath (
-					Path.Combine ( Arguments.basePath, "Release/Carbon.Patch.zip" ) );
-
-			if ( !CreateArchive ( Output, windowsList ) )
+			if (!CopyFiles(commonList))
 			{
-				Utility.LogError ( "Unable to create archive, execution aborted" );
-				Environment.Exit ( 4 );
+				Utility.LogError("Some files failed to copy, execution aborted");
+				Environment.Exit(3);
 			}
 		}
 
-		static void ProcessUnixFiles ()
+		static void ProcessWindowsFiles()
 		{
-			string Output = Path.GetFullPath (
-					Path.Combine ( Arguments.basePath, "Release/Carbon.Patch-Unix.zip" ) );
+			string Output = Path.GetFullPath(
+					Path.Combine(Arguments.basePath, "Release/Carbon.Patch.zip"));
 
-			if ( !CreateArchive ( Output, unixList ) )
+			if (!CreateArchive(Output, windowsList))
 			{
-				Utility.LogError ( "Unable to create archive, execution aborted" );
-				Environment.Exit ( 5 );
+				Utility.LogError("Unable to create archive, execution aborted");
+				Environment.Exit(4);
 			}
 		}
 
-		static void UpdateVersion ()
+		static void ProcessUnixFiles()
 		{
-			string Output = Path.GetFullPath (
-				Path.Combine ( Arguments.basePath, "Carbon.Core/Carbon/Carbon.csproj" ) );
+			string Output = Path.GetFullPath(
+					Path.Combine(Arguments.basePath, "Release/Carbon.Patch-Unix.zip"));
 
-			string Carbon = Path.GetFullPath (
-				Path.Combine ( Arguments.basePath, "Carbon.Core/Carbon/bin/Debug/net48/Carbon.dll" ) );
-
-			if ( !PatchVersion ( Output, Carbon ) )
+			if (!CreateArchive(Output, unixList))
 			{
-				Utility.LogError ( "Unable to update assembly version, execution aborted" );
-				Environment.Exit ( 6 );
+				Utility.LogError("Unable to create archive, execution aborted");
+				Environment.Exit(5);
 			}
 		}
 
-		static bool CopyFiles ( Dictionary<string, string> Files )
+		static void UpdateVersion()
 		{
-			Utility.LogNone ( string.Empty );
+			string Output = Path.GetFullPath(
+				Path.Combine(Arguments.basePath, "Carbon.Core/Carbon/Carbon.csproj"));
 
-			foreach ( KeyValuePair<string, string> File in Files )
+			string Carbon = Path.GetFullPath(
+				Path.Combine(Arguments.basePath, "Carbon.Core/Carbon/bin/Debug/net48/Carbon.dll"));
+
+			if (!PatchVersion(Output, Carbon))
 			{
-				string Source = Path.GetFullPath ( File.Key
-					.Replace ( "%TARGET%", Arguments.targetConfiguration )
-					.Replace ( "%BASE%", Arguments.basePath )
+				Utility.LogError("Unable to update assembly version, execution aborted");
+				Environment.Exit(6);
+			}
+		}
+
+		static bool CopyFiles(Dictionary<string, string> Files)
+		{
+			Utility.LogNone(string.Empty);
+
+			foreach (KeyValuePair<string, string> File in Files)
+			{
+				string Source = Path.GetFullPath(File.Key
+					.Replace("%TARGET%", Arguments.targetConfiguration)
+					.Replace("%BASE%", Arguments.basePath)
 				);
 
-				string Destination = Path.GetFullPath ( File.Value
-					.Replace ( "%TARGET%", Arguments.targetConfiguration )
-					.Replace ( "%BASE%", Arguments.basePath )
+				string Destination = Path.GetFullPath(File.Value
+					.Replace("%TARGET%", Arguments.targetConfiguration)
+					.Replace("%BASE%", Arguments.basePath)
 				);
 
 				try
 				{
-					System.IO.File.Copy ( Source, Destination );
-					Utility.LogInformation ( $"Copied {Source} to {Destination}" );
+					System.IO.File.Copy(Source, Destination);
+					Utility.LogInformation(
+						$"Copied {Utility.GetSmallerString(Source)}" +
+						$" to {Utility.GetSmallerString(Destination)}"
+					);
 				}
-				catch ( Exception e )
+				catch (Exception e)
 				{
-					Utility.LogError ( "File copy operation failed." );
-					Utility.LogError ( e.Message );
+					Utility.LogError("File copy operation failed.");
+					Utility.LogError(e.Message);
 					return false;
 				}
 			}
@@ -110,72 +113,73 @@ namespace Carbon.Patch
 			return true;
 		}
 
-		static bool CreateArchive ( string Output, Dictionary<string, string> Files )
+		static bool CreateArchive(string Output, Dictionary<string, string> Files)
 		{
-			Utility.LogNone ( string.Empty );
-			Utility.LogInformation ( $"New ZIP archive {Output}" );
+			Utility.LogNone(string.Empty);
+			Utility.LogInformation($"New ZIP archive {Output}");
 
-			using ( var memoryStream = new MemoryStream () )
+			using (var memoryStream = new MemoryStream())
 			{
-				using ( var archive = new ZipArchive ( memoryStream, ZipArchiveMode.Create, true ) )
+				using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
 				{
-					foreach ( KeyValuePair<string, string> File in Files )
+					foreach (KeyValuePair<string, string> File in Files)
 					{
-						string Source = Path.GetFullPath ( File.Key
-							.Replace ( "%TARGET%", Arguments.targetConfiguration )
-							.Replace ( "%BASE%", Arguments.basePath )
+						string Source = Path.GetFullPath(File.Key
+							.Replace("%TARGET%", Arguments.targetConfiguration)
+							.Replace("%BASE%", Arguments.basePath)
 						);
 
 						try
 						{
-							archive.CreateEntryFromFile ( Source, File.Value );
-							Utility.LogInformation ( $" > Added {Source}" );
+							archive.CreateEntryFromFile(Source, File.Value);
+							Utility.LogInformation(
+								$" > Added {Utility.GetSmallerString(Source)}");
 						}
-						catch ( Exception e )
+						catch (Exception e)
 						{
-							Utility.LogError ( " > File archive operation failed." );
-							Utility.LogError ( $" > {e.Message}" );
+							Utility.LogError(" > File archive operation failed.");
+							Utility.LogError($" > {e.Message}");
 							return false;
 						}
 					}
 				}
 
-				if ( File.Exists ( Output ) ) File.Delete ( Output );
+				if (File.Exists(Output)) File.Delete(Output);
 
-				using ( var fileStream = new FileStream ( Output, FileMode.Create ) )
+				using (var fileStream = new FileStream(Output, FileMode.Create))
 				{
-					memoryStream.Seek ( 0, SeekOrigin.Begin );
-					memoryStream.CopyTo ( fileStream );
+					memoryStream.Seek(0, SeekOrigin.Begin);
+					memoryStream.CopyTo(fileStream);
 				}
 			}
 
 			return true;
 		}
 
-		static bool PatchVersion ( string root, string carbon )
-        {
-            string [] Content = OsEx.File.ReadTextLines ( root );
+		static bool PatchVersion(string root, string carbon)
+		{
+			string[] Content = OsEx.File.ReadTextLines(root);
 			object Version = Carbon.Core.CarbonCore.Version;
 
-            for ( int i = 0; i < Content.Length; i++ )
+			for (int i = 0; i < Content.Length; i++)
 			{
-				var Line = Content [ i ];
+				var Line = Content[i];
 
-				if ( Line.Contains ( "AssemblyName" ) )
+				if (Line.Contains("AssemblyName"))
 				{
-					Content [ i ] = $@"  <AssemblyName>Carbon-{Version}-{DateTime.UtcNow:yyyyMMddHHmm}</AssemblyName>";
+					Content[i] = $@"  <AssemblyName>Carbon-{Version}-{DateTime.UtcNow:yyyyMMddHHmm}</AssemblyName>";
 				}
-				else if ( Line.Contains ( "FileVersion" ) )
+				else if (Line.Contains("FileVersion"))
 				{
-					Content [ i ] = $@"    <FileVersion>{Version}</FileVersion>";
+					Content[i] = $@"    <FileVersion>{Version}</FileVersion>";
 				}
 			}
 
-			OsEx.File.Create ( root, Content );
-            Utility.LogInformation ( $"Updated {root} version" );
+			OsEx.File.Create(root, Content);
+			Utility.LogInformation($"Updated {root} version");
 
-            return true;
+			return true;
 		}
 
-    }
+	}
 }

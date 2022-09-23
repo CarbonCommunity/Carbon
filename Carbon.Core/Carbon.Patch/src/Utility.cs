@@ -55,5 +55,11 @@ namespace Carbon.Patch
 			}
 			catch { return "Unknown"; }
 		}
+
+		internal static string GetSmallerString(string Input, int MaxSize = 60)
+		{
+			if (Input.Length <= MaxSize) return Input;
+			return $"(...){Input.Substring(Input.Length - MaxSize + 5)}";
+		}
 	}
 }
