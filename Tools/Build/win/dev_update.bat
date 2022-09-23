@@ -23,8 +23,7 @@ rem Download rust binary libs
 
 rem Show me all you've got baby
 %ROOT%\Tools\NStrip\NStrip\bin\Release\net452\NStrip.exe ^
-	-p -cg --keep-resources -n --unity-non-serialized ^
-	%ROOT%\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll ^
-	%ROOT%\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll
+	--public --include-compiler-generated --keep-resources --no-strip --overwrite ^
+	--unity-non-serialized %ROOT%\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll
 
 dotnet restore %ROOT%\Carbon.Core --nologo

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Reflection;
-using Humanlights.Extensions;
 
 namespace Carbon.Patch
 {
@@ -60,21 +58,6 @@ namespace Carbon.Patch
 			{
 				Utility.LogError("Unable to create archive, execution aborted");
 				Environment.Exit(5);
-			}
-		}
-
-		static void UpdateVersion()
-		{
-			string Output = Path.GetFullPath(
-				Path.Combine(Arguments.basePath, "Carbon.Core/Carbon/Carbon.csproj"));
-
-			string Carbon = Path.GetFullPath(
-				Path.Combine(Arguments.basePath, "Carbon.Core/Carbon/bin/Debug/net48/Carbon.dll"));
-
-			if (!PatchVersion(Output, Carbon))
-			{
-				Utility.LogError("Unable to update assembly version, execution aborted");
-				Environment.Exit(6);
 			}
 		}
 
@@ -155,31 +138,5 @@ namespace Carbon.Patch
 
 			return true;
 		}
-
-		static bool PatchVersion(string root, string carbon)
-		{
-			string[] Content = OsEx.File.ReadTextLines(root);
-			object Version = Carbon.Core.CarbonCore.Version;
-
-			for (int i = 0; i < Content.Length; i++)
-			{
-				var Line = Content[i];
-
-				if (Line.Contains("AssemblyName"))
-				{
-					Content[i] = $@"  <AssemblyName>Carbon-{Version}-{DateTime.UtcNow:yyyyMMddHHmm}</AssemblyName>";
-				}
-				else if (Line.Contains("FileVersion"))
-				{
-					Content[i] = $@"    <FileVersion>{Version}</FileVersion>";
-				}
-			}
-
-			OsEx.File.Create(root, Content);
-			Utility.LogInformation($"Updated {root} version");
-
-			return true;
-		}
-
 	}
 }

@@ -11,9 +11,5 @@ namespace Carbon.Patch
 		[Option('c', "configuration", Required = false,
 			Default = "Debug", HelpText = ".NET target build configuration.")]
 		public string targetConfiguration { get; set; }
-
-        [Option ( 'v', "versionupdate", Required = false,
-			Default = false, HelpText = "Update the assembly-related version info." )]
-        public bool versionUpdate { get; set; }
-    }
+	}
 }

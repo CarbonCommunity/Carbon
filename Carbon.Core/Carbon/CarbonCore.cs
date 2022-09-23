@@ -14,7 +14,20 @@ namespace Carbon.Core
 {
 	public class CarbonCore
 	{
-		public static VersionNumber Version { get; } = new VersionNumber(1, 1, 0);
+		public static string Version
+		{
+			get
+			{
+				try
+				{
+					Assembly asm = typeof(CarbonCore).Assembly;
+					AssemblyInformationalVersionAttribute[] attr
+						= asm.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), true) as AssemblyInformationalVersionAttribute[];
+					return attr[0].InformationalVersion;
+				}
+				catch { return "Unknown"; }
+			}
+		}
 
 		public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
 		public static CarbonCore Instance { get; set; }

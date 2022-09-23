@@ -55,138 +55,13 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\0Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="EasyAntiCheat.Client">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="EasyAntiCheat.Server">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Server.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Console">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Console.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Network">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Network.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Rcon">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Rcon.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Sqlite">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Sqlite.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Steamworks.Win64">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.System">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.System.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Unity">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Unity.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.UnityEngine">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="Fleck">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Fleck.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Data">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Global">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Global.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Harmony">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Localization">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Localization.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Platform.Common">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Platform.Common.dll</HintPath>
-    </Reference>
+ <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Drawing.Design" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Humanlights.MCS">
-      <HintPath>..\..\External\Humanlights.MCS.dll</HintPath>
-    </Reference>
-    <Reference Include="Humanlights.System">
-      <HintPath>..\..\External\Humanlights.System.dll</HintPath>
-    </Reference>
-    <Reference Include="Humanlights.Unity">
-      <HintPath>..\..\External\Humanlights.Unity.dll</HintPath>
-    </Reference>
-    <Reference Include="Humanlights.Unity.Compiler">
-      <HintPath>..\..\External\Humanlights.Unity.Compiler.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.SharedInternalsModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.SharedInternalsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestTextureModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Carbon\Carbon.csproj" />
   </ItemGroup>
 </Project>

@@ -23,9 +23,6 @@ dotnet   clean ${ROOT}/Carbon.Core --configuration ${TARGET} --nologo
 dotnet   build ${ROOT}/Carbon.Core --configuration ${TARGET} --no-restore --no-incremental
 dotnet   build ${ROOT}/Carbon.Core --configuration ${TARGET}Unix --no-restore --no-incremental
 
-# Update Assembly version
-mono ${ROOT}/Carbon.Core/Carbon.Patch/bin/${TARGET}/net48/Carbon.Patch.exe --path ${ROOT} --versionupdate
-
 # Rebuild the solution
 dotnet   build ${ROOT}/Carbon.Core --configuration ${TARGET} --no-restore --no-incremental
 dotnet   build ${ROOT}/Carbon.Core --configuration ${TARGET}Unix --no-restore --no-incremental

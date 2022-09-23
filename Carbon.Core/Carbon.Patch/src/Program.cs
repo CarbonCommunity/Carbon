@@ -7,26 +7,19 @@ namespace Carbon.Patch
 	{
 		private static Options Arguments;
 
-		public static void Main ( string [] args )
+		public static void Main(string[] args)
 		{
 			// ASCii art
-			PrintBanner ();
+			PrintBanner();
 
-			CommandLine.Parser.Default.ParseArguments<Options> ( args )
-				.WithNotParsed ( x => Environment.Exit ( 1 ) )
-				.WithParsed ( x => Arguments = x );
+			CommandLine.Parser.Default.ParseArguments<Options>(args)
+				.WithNotParsed(x => Environment.Exit(1))
+				.WithParsed(x => Arguments = x);
 
-			if ( Arguments.versionUpdate )
-			{
-				UpdateVersion ();
-			}
-			else
-			{
-				CreateReleaseDirectory ();
-				ProcessCommonFiles ();
-				ProcessWindowsFiles ();
-				ProcessUnixFiles ();
-			}
+			CreateReleaseDirectory();
+			ProcessCommonFiles();
+			ProcessWindowsFiles();
+			ProcessUnixFiles();
 		}
 	}
 }

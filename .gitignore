@@ -2,6 +2,9 @@
 [Rr]ust/
 [Rr]elease/
 
+# Random assembly names
+.rndasm
+
 # Build results
 [Bb]in/
 [Oo]bj/
