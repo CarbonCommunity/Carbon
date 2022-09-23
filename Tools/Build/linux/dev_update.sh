@@ -13,6 +13,9 @@ EOF
 BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 ROOT="$(realpath "${BASE}/../../../")"
 
+# Cleans the exiting files
+git clean -fx ${ROOT}/Rust/RustDedicated_Data
+
 # Download rust binary libs
 ${ROOT}/Tools/DepotDownloader/DepotDownloader/bin/Release/net6.0/DepotDownloader \
 	-app 258550 -branch public -depot 258551 -filelist \

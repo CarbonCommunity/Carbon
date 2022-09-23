@@ -13,6 +13,9 @@ pushd %BASE%..\..\..
 set ROOT=%CD%
 popd
 
+rem Cleans the exiting files
+git clean -fx %ROOT%\Rust\RustDedicated_Data
+
 rem Download rust binary libs
 %ROOT%\Tools\DepotDownloader\DepotDownloader\bin\Release\net6.0\DepotDownloader.exe ^
 	-app 258550 -branch public -depot 258551 -filelist ^
