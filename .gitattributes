@@ -1,5 +1,6 @@
 *          eol=crlf
 *.cs       diff=csharp
 *.dll      binary
+*.exe      binary
 *.json     text
 *.sh       eol=lf
