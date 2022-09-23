@@ -27,9 +27,5 @@ dotnet   clean %ROOT%\Carbon.Core --configuration %TARGET% --nologo
 dotnet   build %ROOT%\Carbon.Core --configuration %TARGET% --no-restore --no-incremental
 dotnet   build %ROOT%\Carbon.Core --configuration %TARGET%Unix --no-restore --no-incremental
 
-rem Build the solution
-dotnet   build %ROOT%\Carbon.Core --configuration %TARGET% --no-restore --no-incremental
-dotnet   build %ROOT%\Carbon.Core --configuration %TARGET%Unix --no-restore --no-incremental
-
 rem Create the patch file(s)
 %ROOT%\Carbon.Core\Carbon.Patch\bin\%TARGET%\net48\Carbon.Patch.exe --path %ROOT% --configuration %TARGET%

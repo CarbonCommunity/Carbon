@@ -34,7 +34,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;UNIX</DefineConstants>
     <OutputPath>bin\Debug\</OutputPath>
     <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
@@ -42,7 +42,7 @@
 
     <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;UNIX</DefineConstants>
     <OutputPath>bin\DebugUnix\</OutputPath>
     <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
@@ -50,7 +50,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>TRACE;WIN</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;UNIX</DefineConstants>
     <OutputPath>bin\Release\</OutputPath>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
@@ -58,7 +58,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseUnix'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>TRACE;UNIX</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;UNIX</DefineConstants>
     <OutputPath>bin\ReleaseUnix\</OutputPath>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
@@ -199,8 +199,7 @@
   </ItemGroup>
 
   <Target Name="CustomAfterBuild" AfterTargets="AfterBuild">
-    <WriteLinesToFile File=".rndasm" Overwrite="true" 
-        Lines="$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))" />
+    <WriteLinesToFile File=".rndasm" Overwrite="true" Lines="$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))" />
     <!--<Message Text="A new assembly name was generated" Importance="high"/>-->
   </Target>
 
