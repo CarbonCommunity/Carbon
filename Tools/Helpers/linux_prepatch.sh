@@ -13,4 +13,4 @@ TARGETDLL=${BASE}/RustDedicated_Data/Managed/Assembly-CSharp.dll
 # Patch Rust's assemblies
 chmod +x ${BASE}/carbon/tools/NStrip
 ${BASE}/carbon/tools/NStrip -p -cg --keep-resources -n \
-	--unity-non-serialized ${BASE} ${TARGETDLL}
+	--unity-non-serialized ${TARGETDLL} ${TARGETDLL}
