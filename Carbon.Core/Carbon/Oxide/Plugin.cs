@@ -110,10 +110,8 @@ namespace Oxide.Plugins
 
                 var name = ( string.IsNullOrEmpty ( attribute.Name ) ? method.Name : attribute.Name ) + method.GetParameters ().Length;
                 if ( !HookMethodAttributeCache.TryGetValue ( name, out var list ) )
-                {
-                    list = new List<MethodInfo> ( 50 ) { method };
-
-                    HookMethodAttributeCache.Add ( name, list );
+                {         
+                    HookMethodAttributeCache.Add ( name, new List<MethodInfo> () { method } );
                 }
                 else list.Add ( method );
             }

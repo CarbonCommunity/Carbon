@@ -34,7 +34,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;TRACE;UNIX</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
     <OutputPath>bin\Debug\</OutputPath>
     <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
@@ -50,7 +50,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;TRACE;UNIX</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
     <OutputPath>bin\Release\</OutputPath>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>

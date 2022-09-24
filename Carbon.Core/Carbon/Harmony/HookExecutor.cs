@@ -161,6 +161,7 @@ namespace Carbon.Core
         {
             var id = $"{hookName}[{( args == null ? 0 : args.Length )}";
             var result = ( object )null;
+
             if ( plugin.HookMethodAttributeCache.TryGetValue ( id, out var hooks ) )
             {
                 foreach ( var method in hooks )
@@ -177,15 +178,9 @@ namespace Carbon.Core
 
                 if ( !plugin.HookCache.TryGetValue ( id, out hooks ) )
                 {
-                    plugin.HookCache.Add ( id, hooks = new List<MethodInfo> ( 50 ) { method } );
+                    plugin.HookCache.Add ( id, hooks = new List<MethodInfo> () { method } );
                 }
                 else hooks.Add ( method );
-            }
-
-            foreach ( var method in hooks )
-            {
-                var methodResult = DoCall ( method );
-                if ( methodResult != null ) result = methodResult;
             }
 
             object DoCall ( MethodInfo method )
@@ -202,6 +197,12 @@ namespace Carbon.Core
                 }
 
                 return result;
+            }
+
+            foreach ( var method in hooks )
+            {
+                var methodResult = DoCall ( method );
+                if ( methodResult != null ) result = methodResult;
             }
 
             return result;
