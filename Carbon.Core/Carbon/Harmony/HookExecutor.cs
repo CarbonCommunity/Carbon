@@ -1,5 +1,4 @@
-﻿using Harmony;
-using Oxide.Plugins;
+﻿using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -176,19 +175,23 @@ namespace Carbon.Core
             if ( !plugin.HookCache.TryGetValue ( id, out hooks ) )
             {
                 plugin.HookCache.Add ( id, hooks = new List<MethodInfo> () );
-            }
 
-            foreach ( var method in plugin.Type.GetMethods ( flags ) )
-            {
-                if ( method.Name != hookName ) continue;
+                foreach ( var method in plugin.Type.GetMethods ( flags ) )
+                {
+                    if ( method.Name != hookName ) continue;
 
-                if ( !hooks.Contains ( method ) ) hooks.Add ( method );
+                    hooks.Add ( method );
+                }
             }
 
             foreach ( var method in hooks )
             {
-                var methodResult = DoCall ( method );
-                if ( methodResult != null ) result = methodResult;
+                try
+                {
+                    var methodResult = DoCall ( method );
+                    if ( methodResult != null ) result = methodResult;
+                }
+                catch { }
             }
 
             object DoCall ( MethodInfo method )
