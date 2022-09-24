@@ -1,4 +1,5 @@
-﻿using Oxide.Plugins;
+﻿using Harmony;
+using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -159,7 +160,7 @@ namespace Carbon.Core
 
         private static object CallHook<T> ( this T plugin, string hookName, BindingFlags flags, object [] args ) where T : Plugin
         {
-            var id = $"{hookName}[{( args == null ? 0 : args.Length )}";
+            var id = $"{hookName}[{( args == null ? 0 : args.Length )}]";
             var result = ( object )null;
 
             if ( plugin.HookMethodAttributeCache.TryGetValue ( id, out var hooks ) )
@@ -172,15 +173,22 @@ namespace Carbon.Core
                 return result;
             }
 
+            if ( !plugin.HookCache.TryGetValue ( id, out hooks ) )
+            {
+                plugin.HookCache.Add ( id, hooks = new List<MethodInfo> () );
+            }
+
             foreach ( var method in plugin.Type.GetMethods ( flags ) )
             {
                 if ( method.Name != hookName ) continue;
 
-                if ( !plugin.HookCache.TryGetValue ( id, out hooks ) )
-                {
-                    plugin.HookCache.Add ( id, hooks = new List<MethodInfo> () { method } );
-                }
-                else hooks.Add ( method );
+                if ( !hooks.Contains ( method ) ) hooks.Add ( method );
+            }
+
+            foreach ( var method in hooks )
+            {
+                var methodResult = DoCall ( method );
+                if ( methodResult != null ) result = methodResult;
             }
 
             object DoCall ( MethodInfo method )
@@ -197,12 +205,6 @@ namespace Carbon.Core
                 }
 
                 return result;
-            }
-
-            foreach ( var method in hooks )
-            {
-                var methodResult = DoCall ( method );
-                if ( methodResult != null ) result = methodResult;
             }
 
             return result;
