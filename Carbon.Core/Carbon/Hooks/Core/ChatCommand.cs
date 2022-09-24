@@ -1,4 +1,9 @@
-﻿using Carbon.Core;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Carbon.Core;
 using Carbon.Core.Extensions;
 using ConVar;
 using Facepunch.Extend;

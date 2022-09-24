@@ -1,3 +1,8 @@
+///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
 using Carbon.Core;
 using Harmony;
 

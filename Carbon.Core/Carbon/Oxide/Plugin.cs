@@ -1,4 +1,9 @@
-﻿using System;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using System;
 using Oxide.Core;
 using System.Diagnostics;
 using System.Collections.Generic;

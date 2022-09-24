@@ -1,4 +1,9 @@
-﻿using Carbon.Core.Extensions;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Carbon.Core.Extensions;
 using Facepunch;
 using Humanlights.Components;
 using Humanlights.Extensions;

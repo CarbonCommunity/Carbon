@@ -1,4 +1,9 @@
-﻿using Harmony;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Harmony;
 
 [HarmonyPatch ( typeof ( ItemContainer ), "GetAmount" )]
 public class ItemContainer_GetAmount

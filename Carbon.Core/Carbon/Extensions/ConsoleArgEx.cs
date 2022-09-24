@@ -1,4 +1,9 @@
-﻿using UnityEngine;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using UnityEngine;
 
 namespace Carbon.Core.Extensions
 {
