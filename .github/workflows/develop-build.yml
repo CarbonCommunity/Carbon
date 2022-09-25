@@ -79,7 +79,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         name: 'Development build (${{ needs.build.outputs.tag }})'
-        tag_name: develop
+        tag_name: heads/tags/develop
         prerelease: true
         body: |
           🚨 This is the development build of Carbon.

@@ -33,7 +33,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: staging
+        ref: heads/staging
         
     - name: 📅 Prepare the environment
       id: info
@@ -79,7 +79,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         name: 'Staging build (${{ needs.build.outputs.tag }})'
-        tag_name: staging
+        tag_name: refs/tags/staging
         prerelease: true
         body: |
           🚨 This is the staging build of Carbon.
@@ -102,18 +102,18 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: develop
+        ref: heads/staging
 
     - name: 🧹 Reset branch
       run: |
-        git fetch origin develop:develop
-        git reset --hard develop
+        git fetch origin heads/develop:heads/develop
+        git reset --hard heads/develop
 
     - name: 📦 Create pull request
       uses: peter-evans/create-pull-request@v4
       id: cpr
       with:
-        branch: staging
+        branch: staging-promotion
         delete-branch: true
         labels: automation
         title: |
