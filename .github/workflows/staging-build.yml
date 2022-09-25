@@ -102,7 +102,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: staging_build
+        ref: staging
 
     - name: 🧹 Reset branch
       run: |
