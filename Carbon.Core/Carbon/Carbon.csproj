@@ -205,7 +205,8 @@
   </Target>
 
   <Target Name="CustomAfterBuild" AfterTargets="AfterBuild">
-    <Exec Command="copy $(OutputPath)$(TargetName).dll $(OutputPath)Carbon.dll" IgnoreExitCode="True" />        
+    <Exec Command="copy $(OutputPath)$(TargetName).dll $(OutputPath)Carbon.dll" IgnoreExitCode="True" />
+    <Exec Command="cp (OutputPath)$(TargetName).dll $(OutputPath)Carbon.dll" IgnoreExitCode="True" />
   </Target>
 
   <PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
