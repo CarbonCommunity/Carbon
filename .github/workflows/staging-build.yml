@@ -33,7 +33,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: heads/staging
+        ref: staging
         
     - name: 📅 Prepare the environment
       id: info
@@ -79,7 +79,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         name: 'Staging build (${{ needs.build.outputs.tag }})'
-        tag_name: refs/tags/staging
+        tag_name: staging
         prerelease: true
         body: |
           🚨 This is the staging build of Carbon.
@@ -102,7 +102,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: heads/staging
+        ref: staging
 
     - name: 🧹 Reset branch
       run: |
@@ -115,7 +115,9 @@ jobs:
       with:
         branch: staging-promotion
         delete-branch: true
-        labels: automation
+        labels: |
+          automation
+          staging-promotion
         title: |
           ci(auto): 🤖 Merge branch 'develop' into 'staging'
         body: |
