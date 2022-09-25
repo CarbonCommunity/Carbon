@@ -24,12 +24,12 @@ jobs:
     - name: 🐧 Prepare the build environment
       shell: bash
       run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
 
     - name: 🐧 Built the application
       shell: bash
       run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh Debug
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build_debug.sh
       env:
         PFXCERT: ${{ secrets.PFXCERT }}
         CERTPASS: ${{ secrets.CERTPASS }}
@@ -56,12 +56,12 @@ jobs:
     - name: 🐧 Prepare the build environment
       shell: cmd
       run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\dev_init.bat
+        %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
 
     - name: 🐧 Built the application
       shell: cmd
       run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\dev_release.bat Debug
+        %GITHUB_WORKSPACE%\Tools\Build\win\build_debug.bat
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3

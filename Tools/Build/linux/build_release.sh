@@ -14,8 +14,8 @@ EOF
 BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 ROOT="$(realpath "${BASE}/../../../")"
 
-# Get the build target argument
-TARGET=${1:-Debug}
+# Set the build target config
+TARGET=Release
 
 # Build the solution + generate identifier
 dotnet restore ${ROOT}/Carbon.Core --nologo
