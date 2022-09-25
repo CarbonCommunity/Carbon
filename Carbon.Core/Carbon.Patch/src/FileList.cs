@@ -26,7 +26,7 @@ namespace Carbon.Patch
 		{
 			// carbon
 			{ "%BASE%/Tools/Helpers/linux_prepatch.sh", "carbon_prepatch.sh" },
-			{ "%BASE%/Carbon.Core/Carbon/bin/%TARGET%Unix/net48/Carbon.dll", "HarmonyMods/Carbon-Unix.dll" },
+			{ "%BASE%/Carbon.Core/Carbon/bin/%TARGET%Unix/net48/Carbon.dll", "HarmonyMods/Carbon.dll" },
 
 			// tools
 			{ "%BASE%/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip.exe" },
