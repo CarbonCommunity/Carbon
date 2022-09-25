@@ -23,13 +23,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetName>Carbon</TargetName><!-- This has impact on the output file name -->
+    <TargetName>$([System.IO.File]::ReadAllText("$(SolutionDir)Carbon/.rndasm").Trim())</TargetName><!-- This has impact on the output file name -->
     <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
     <VersionSuffix>$(Configuration)</VersionSuffix>
 
     <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(VersionPrefix)</FileVersion>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -200,6 +201,8 @@
 
   <Target Name="CustomAfterBuild" AfterTargets="AfterBuild">
     <WriteLinesToFile File=".rndasm" Overwrite="true" Lines="$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))" />
+    <Exec Command="copy $(OutputPath)$(TargetName).dll $(OutputPath)Carbon.dll" IgnoreExitCode="True" />
+        
     <!--<Message Text="A new assembly name was generated" Importance="high"/>-->
   </Target>
 
