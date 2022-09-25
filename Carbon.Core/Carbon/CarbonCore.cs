@@ -37,6 +37,8 @@ namespace Carbon.Core
 		public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
 		public static CarbonCore Instance { get; set; }
 
+		public static bool IsConfigReady => Instance != null && Instance.Config != null;
+
 		public const OS OperatingSystem =
 #if WIN
 			 OS.Win;
@@ -338,7 +340,6 @@ namespace Carbon.Core
 		public void Init()
 		{
 			if (IsInitialized) return;
-			IsInitialized = true;
 
 			LoadConfig();
 			Debug("Loaded config", 3);
@@ -366,8 +367,10 @@ namespace Carbon.Core
 			Format($"Loaded.");
 
 			RefreshConsoleInfo();
-		}
-		public void UnInit()
+
+            IsInitialized = true;
+        }
+        public void UnInit()
 		{
 			_uninstallProcessors();
 			_clearCommands(all: true);
@@ -422,7 +425,8 @@ namespace Carbon.Core
 
 		public bool CarbonTag { get; set; } = true;
 		public bool IsModded { get; set; } = true;
-		public bool ScriptWatchers { get; set; } = true;
+        public bool HookTimeTracker { get; set; } = false;
+        public bool ScriptWatchers { get; set; } = true;
 		public bool HarmonyWatchers { get; set; } = true;
-	}
+    }
 }

@@ -51,6 +51,15 @@ namespace Carbon.Core
         {
             return Patches.ContainsKey ( hookName );
         }
+        public HookInstance GetInstance ( string hookName )
+        {
+            if ( !Patches.TryGetValue ( hookName, out var instance ) )
+            {
+                return null;
+            }
+
+            return instance;
+        }
 
         public void AppendHook ( string hookName )
         {

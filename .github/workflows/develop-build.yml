@@ -5,7 +5,7 @@
 #  |______|___|___|___|__|______/_______|__|____|
 #                         discord.gg/eXPcNKK4yd
 # 
-name: 🌙 Nightly build
+name: 🥉 Develop branch
 
 on:
   # allow manual action trigger
@@ -33,7 +33,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: alpha
+        ref: develop
         
     - name: 📅 Prepare the environment
       id: info
@@ -58,7 +58,7 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: artifact-build-nightly
+        name: artifact-build-develop
         path: Release/
 
   tag:
@@ -70,7 +70,7 @@ jobs:
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: artifact-build-nightly
+        name: artifact-build-develop
         path: Release/
 
     - name: 🏷️ Update release tag
@@ -78,11 +78,11 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: '🌙 Nightly build (${{ needs.build.outputs.tag }})'
-        tag_name: nightly
+        name: 'Development build (${{ needs.build.outputs.tag }})'
+        tag_name: develop_build
         prerelease: true
         body: |
-          🚨 This is the nightly build of Carbon.
+          🚨 This is the development build of Carbon.
           The general public is advised to use one of the stable builds.
           This build is targeted at Developers and/or server owners with existing issues.
           

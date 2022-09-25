@@ -11,7 +11,7 @@ namespace Carbon.Extended
     [OxideHook ( "CanPickupEntity", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( BaseCombatEntity ) )]
-    [OxideHook.Info ( "alled when a player attempts to pickup a deployed entity (AutoTurret, BaseMountable, BearTrap, DecorDeployable, Door, DoorCloser, ReactiveTarget, SamSite, SleepingBag, SpinnerWheel, StorageContainer, etc.)." )]
+    [OxideHook.Info ( "Called when a player attempts to pickup a deployed entity (AutoTurret, BaseMountable, BearTrap, DecorDeployable, Door, DoorCloser, ReactiveTarget, SamSite, SleepingBag, SpinnerWheel, StorageContainer, etc.)." )]
     [OxideHook.Patch ( typeof ( BaseCombatEntity ), "CanPickup" )]
     public class BaseCombatEntity_CanPickup
     {

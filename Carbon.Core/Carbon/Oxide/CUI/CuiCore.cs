@@ -244,7 +244,7 @@ namespace Oxide.Game.Rust.Cui
         public float FadeIn { get; set; }
 
         [JsonProperty ( "itemId" )]
-        public ulong ItemId { get; set; }
+        public int ItemId { get; set; }
 
         [JsonProperty ( "skinId" )]
         public ulong SkinId { get; set; }
@@ -457,6 +457,8 @@ namespace Oxide.Game.Rust.Cui
         public CuiRawImageComponent RawImage { get; set; }
 
         public CuiRectTransformComponent RectTransform { get; } = new CuiRectTransformComponent ();
+
+        public bool KeyboardEnabled { get; set; }
 
         public bool CursorEnabled { get; set; }
 

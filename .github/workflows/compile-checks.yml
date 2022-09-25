@@ -1,15 +1,15 @@
-name: 🦺 Validate build status
+name: 🚧 Compile check
 
 on:
   push:
-    branches: [ "alpha" ]
+    branches: [ "develop" ]
     
   pull_request:
-    branches: [ "alpha" ]
+    branches: [ "develop" ]
 
 jobs:
   build-linux:
-    name: 🐧 Linux
+    name: Linux
     runs-on: ubuntu-latest
     
     steps:
@@ -41,7 +41,7 @@ jobs:
         path: Release
 
   build-windows:
-    name: 🪟 Windows
+    name: Windows
     runs-on: windows-latest
     
     steps:

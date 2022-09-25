@@ -95,7 +95,8 @@ public class Hook : Attribute
             Player,
             Structure,
             Resources,
-            Team
+            Team,
+            Weapon
         }
 
         public Category ( Enum @enum )

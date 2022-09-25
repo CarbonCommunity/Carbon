@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
   <PropertyGroup>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworks>net48</TargetFrameworks>
@@ -23,13 +23,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetName>Carbon</TargetName><!-- This has impact on the output file name -->
     <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
     <VersionSuffix>$(Configuration)</VersionSuffix>
 
     <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(VersionPrefix)</FileVersion>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -40,7 +40,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
+  <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DefineConstants>DEBUG;TRACE;UNIX</DefineConstants>
     <OutputPath>bin\DebugUnix\</OutputPath>
@@ -94,7 +94,7 @@
     </Reference>
   </ItemGroup>
 
- <ItemGroup>
+  <ItemGroup>
     <Reference Include="0Harmony">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\0Harmony.dll</HintPath>
     </Reference>
@@ -198,13 +198,30 @@
     <PackageReference Include="protobuf-net.Core" Version="3.1.17" />
   </ItemGroup>
 
-  <Target Name="CustomAfterBuild" AfterTargets="AfterBuild">
-    <WriteLinesToFile File=".rndasm" Overwrite="true" Lines="$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))" />
-    <!--<Message Text="A new assembly name was generated" Importance="high"/>-->
+  <Target Name="CleanOutput" AfterTargets="Clean">
+    <!-- <Message Text=">>> CleanOutput" Importance="high"/> -->
+    <Delete Files="$(OutputPath)Carbon.dll" />
+    <Delete Files="$(OutputPath)$(TargetName).dll" />
   </Target>
+
+  <Target Name="MoveOutput" AfterTargets="AfterBuild">
+    <!-- <Message Text=">>> MoveOutput" Importance="high"/> -->
+    <Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll" />
+
+    <PropertyGroup>
+      <RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
+    </PropertyGroup>
+
+    <Message Text="RandomASM property set to $(RandomASM)" Importance="high" />
+    <WriteLinesToFile File="$(SolutionDir)Carbon/.rndasm" Overwrite="true" Lines="$(RandomASM)" />
+  </Target>
+
+  <PropertyGroup Condition="!Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
+    <AssemblyName>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</AssemblyName>
+  </PropertyGroup>
 
   <PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
     <AssemblyName>$([System.Text.RegularExpressions.Regex]::Replace(
-	    $([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm')), '\r?\n?', ''))</AssemblyName>
+		  $([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm')), '\r?\n?', ''))</AssemblyName>
   </PropertyGroup>
 </Project>
