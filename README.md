@@ -13,3 +13,13 @@ A concept that's becoming reality. **Carbon** is a platform in the form of a DLL
 * Familiar folder and plugin-making structure, with the intention to have the system run almost any kind of Oxide plugin
 * Permissions system
 * Light Hook system
+
+## Compilation
+This is ideally written for Windows environments.
+1. Clone the project on your machine.
+1. Go to the Tools\Build\win folder.
+1. Run dev_init.bat for it to download all Rust-related DLLs.
+1. Open the solution found in Carbon.Core.
+1. Develop and build.
+
+To export your own patches locally, run the Tools\Build\win\dev_release.bat file. The Releases folder will be populated in root. 
