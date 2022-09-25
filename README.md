@@ -1,9 +1,12 @@
+[![🚧 Bleeding edge](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml/badge.svg?branch=develop)](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml)
+[![🥉 Develop branch](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg?branch=develop)](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml)
+[![🥈 Staging branch](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml/badge.svg?branch=staging)](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml)
+
 ![Carbon](https://i.imgur.com/sG6X07A.jpg)
-[![🦺 Validate build status](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/alpha-build.yml/badge.svg)](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/alpha-build.yml)
 
 A concept that's becoming reality. **Carbon** is a platform in the form of a DLL which gets added under your Rust server, in the *HarmonyMods* folder. 
 
-**Follow the development roadmap [here](https://trello.com/b/FMTfHkSg/carboncore).**
+**Follow the development roadmap [here](https://github.com/orgs/Carbon-Modding/projects/1).**
 **Join our official [Discord server](https://discord.gg/eXPcNKK4yd) for discussions.**
 
 ## Documentation
