@@ -12,7 +12,7 @@
 
   <PropertyGroup>
     <Product>Carbon</Product>
-    <AssemblyName>Carbon.Core.AssemblyName</AssemblyName>
+    <AssemblyName>Carbon.Core</AssemblyName>
     <Version>1.1.0.0</Version>
 
     <Company>Raul-Sorin Sorban</Company>
