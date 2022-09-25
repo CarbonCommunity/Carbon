@@ -201,6 +201,7 @@
   <Target Name="CleanOutput" AfterTargets="Clean">
     <!-- <Message Text=">>> CleanOutput" Importance="high"/> -->
     <Delete Files="$(OutputPath)Carbon.dll" />
+    <Delete Files="$(OutputPath)$(TargetName).dll" />
   </Target>
 
   <Target Name="MoveOutput" AfterTargets="AfterBuild">
