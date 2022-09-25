@@ -14,12 +14,8 @@ pushd %BASE%..\..\..
 set ROOT=%CD%
 popd
 
-rem Get the build target argument
-if "%1" EQU "" (
-	set TARGET=Debug
-) else (
-	set TARGET=%1
-)
+rem Set the build target config
+set TARGET=Release
 
 rem Build the solution + generate identifier
 dotnet restore %ROOT%\Carbon.Core --nologo

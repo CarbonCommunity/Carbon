@@ -16,9 +16,6 @@ on:
   schedule:
     - cron: '0 7 * * *'
 
-env:
-  configuration: Debug
-
 jobs:
   build:
     name: 🦺 Build
@@ -49,11 +46,11 @@ jobs:
 
     - name: ✔️ Prepare the build environment
       shell: bash
-      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
 
     - name: 🐧 Built the application
       shell: bash
-      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh ${configuration}
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/build_debug.sh
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
