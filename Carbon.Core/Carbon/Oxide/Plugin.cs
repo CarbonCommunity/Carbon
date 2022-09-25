@@ -40,7 +40,10 @@ namespace Oxide.Plugins
         public bool HasConfig { get; set; }
         public bool HasMessages { get; set; }
 
+        [JsonProperty]
         public double CompileTime { get; internal set; }
+
+        [JsonProperty]
         public double TotalHookTime { get; internal set; }
 
         public CarbonLoader.CarbonMod carbon { get; set; }
