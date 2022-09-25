@@ -199,14 +199,14 @@
     <PackageReference Include="protobuf-net.Core" Version="3.1.17" />
   </ItemGroup>
 
-  <Target Name="CustomBeforeCompile" AfterTargets="BeforeCompile">
-    <WriteLinesToFile File=".rndasm" Overwrite="true" Lines="$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))" />
+  <Target Name="CustomBeforeBuild" AfterTargets="BeforeBuild">
+    <WriteLinesToFile File="$(SolutionDir)Carbon/.rndasm" Overwrite="true" Lines="$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))" />
     <!--<Message Text="A new assembly name was generated" Importance="high"/>-->
   </Target>
 
   <Target Name="CustomAfterBuild" AfterTargets="AfterBuild">
     <Exec Command="copy $(OutputPath)$(TargetName).dll $(OutputPath)Carbon.dll" IgnoreExitCode="True" />
-    <Exec Command="cp (OutputPath)$(TargetName).dll $(OutputPath)Carbon.dll" IgnoreExitCode="True" />
+    <Exec Command="cp $(OutputPath)$(TargetName).dll $(OutputPath)Carbon.dll" IgnoreExitCode="True" />
   </Target>
 
   <PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
