@@ -10,6 +10,7 @@ namespace Carbon.Core.Processors
 {
     public class ScriptProcessor : BaseProcessor
     {
+        public override bool EnableWatcher => CarbonCore.IsConfigReady ? CarbonCore.Instance.Config.ScriptWatchers : true;
         public override string Folder => CarbonCore.GetPluginsFolder ();
         public override string Extension => ".cs";
         public override Type IndexedType => typeof ( Script );

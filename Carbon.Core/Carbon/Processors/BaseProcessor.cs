@@ -17,6 +17,7 @@ namespace Carbon.Core.Processors
         public Dictionary<string, Instance> InstanceBuffer { get; } = new Dictionary<string, Instance> ();
         public List<string> IgnoreList { get; } = new List<string> ();
 
+        public virtual bool EnableWatcher => true;
         public virtual string Folder => string.Empty;
         public virtual string Extension => string.Empty;
         public virtual float Rate => 0.2f;
@@ -76,6 +77,12 @@ namespace Carbon.Core.Processors
 
             while ( true )
             {
+                if ( !EnableWatcher )
+                {
+                    yield return null;
+                    continue;
+                }
+
                 yield return _wfsInstance;
 
                 foreach ( var element in InstanceBuffer ) _tempBuffer.Add ( element.Key, element.Value );
@@ -107,6 +114,7 @@ namespace Carbon.Core.Processors
                 }
 
                 _tempBuffer.Clear ();
+
                 yield return null;
             }
         }
