@@ -106,8 +106,8 @@ jobs:
       uses: devmasx/merge-branch@master
       with:
         type: now
-        from_branch: development
+        from_branch: develop
         target_branch: staging
         github_token: ${{ github.token }}
         message: |
-          ci(auto): 🤖 Merge development with staging (${{ needs.build.outputs.tag }})
+          ci(auto): 🤖 Merge develop with staging (${{ needs.build.outputs.tag }})
