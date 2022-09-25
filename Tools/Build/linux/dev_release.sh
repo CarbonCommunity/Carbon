@@ -17,7 +17,13 @@ ROOT="$(realpath "${BASE}/../../../")"
 # Get the build target argument
 TARGET=${1:-Debug}
 
-# Build the solution
+# Build the solution + generate identifier
+dotnet restore ${ROOT}/Carbon.Core --nologo
+dotnet   clean ${ROOT}/Carbon.Core --configuration ${TARGET} --nologo
+dotnet   build ${ROOT}/Carbon.Core --configuration ${TARGET} --no-restore --no-incremental
+dotnet   build ${ROOT}/Carbon.Core --configuration ${TARGET}Unix --no-restore --no-incremental
+
+# Build the solution for actual release
 dotnet restore ${ROOT}/Carbon.Core --nologo
 dotnet   clean ${ROOT}/Carbon.Core --configuration ${TARGET} --nologo
 dotnet   build ${ROOT}/Carbon.Core --configuration ${TARGET} --no-restore --no-incremental

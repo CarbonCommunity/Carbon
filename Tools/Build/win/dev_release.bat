@@ -21,7 +21,13 @@ if "%1" EQU "" (
 	set TARGET=%1
 )
 
-rem Build the solution
+rem Build the solution + generate identifier
+dotnet restore %ROOT%\Carbon.Core --nologo
+dotnet   clean %ROOT%\Carbon.Core --configuration %TARGET% --nologo
+dotnet   build %ROOT%\Carbon.Core --configuration %TARGET% --no-restore --no-incremental
+dotnet   build %ROOT%\Carbon.Core --configuration %TARGET%Unix --no-restore --no-incremental
+
+rem Build the solution for actual release
 dotnet restore %ROOT%\Carbon.Core --nologo
 dotnet   clean %ROOT%\Carbon.Core --configuration %TARGET% --nologo
 dotnet   build %ROOT%\Carbon.Core --configuration %TARGET% --no-restore --no-incremental
