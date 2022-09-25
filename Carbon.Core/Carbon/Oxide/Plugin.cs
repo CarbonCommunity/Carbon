@@ -39,6 +39,8 @@ namespace Oxide.Plugins
         public int ResourceId { get; set; }
         public bool HasConfig { get; set; }
         public bool HasMessages { get; set; }
+
+        public double CompileTime { get; internal set; }
         public double TotalHookTime { get; internal set; }
 
         public CarbonLoader.CarbonMod carbon { get; set; }

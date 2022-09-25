@@ -206,13 +206,13 @@
 
   <Target Name="MoveOutput" AfterTargets="AfterBuild">
     <!-- <Message Text=">>> MoveOutput" Importance="high"/> -->
-    <Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll"/>
+    <Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll" />
 
     <PropertyGroup>
       <RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
     </PropertyGroup>
 
-    <Message Text="RandomASM property set to $(RandomASM)" Importance="high"/>
+    <Message Text="RandomASM property set to $(RandomASM)" Importance="high" />
     <WriteLinesToFile File="$(SolutionDir)Carbon/.rndasm" Overwrite="true" Lines="$(RandomASM)" />
   </Target>
 

@@ -13,6 +13,41 @@ namespace Carbon.Core
     public static class HookExecutor
     {
         internal static Dictionary<int, object []> _argumentBuffer { get; } = new Dictionary<int, object []> ();
+        internal static Dictionary<string, int> _hookTimeBuffer { get; } = new Dictionary<string, int> ();
+
+        internal static void _appendHookTime ( string hook, int time )
+        {
+            if ( !CarbonCore.Instance.Config.HookTimeTracker ) return;
+
+            if ( !_hookTimeBuffer.TryGetValue ( hook, out var total ) )
+            {
+                _hookTimeBuffer.Add ( hook, time );
+            }
+            else _hookTimeBuffer [ hook ] = total + time;
+        }
+        internal static void _clearHookTime ( string hook )
+        {
+            if ( !CarbonCore.Instance.Config.HookTimeTracker ) return;
+
+            if ( !_hookTimeBuffer.ContainsKey ( hook ) )
+            {
+                _hookTimeBuffer.Add ( hook, 0 );
+            }
+            else
+            {
+                _hookTimeBuffer [ hook ] = 0;
+            }
+        }
+
+        public static int GetHookTime ( string hook )
+        {
+            if ( !_hookTimeBuffer.TryGetValue ( hook, out var total ) )
+            {
+                return 0;
+            }
+
+            return total;
+        }
 
         internal static object [] _allocateBuffer ( int count )
         {
@@ -206,10 +241,13 @@ namespace Carbon.Core
                 result = method?.Invoke ( plugin, args );
                 plugin.TrackEnd ();
                 var afterTicks = Environment.TickCount;
+                var totalTicks = afterTicks - beforeTicks;
+
+                _appendHookTime ( hookName, totalTicks );
 
                 if ( afterTicks > beforeTicks + 100 && afterTicks > beforeTicks )
                 {
-                    CarbonCore.WarnFormat ( $" {plugin?.Name} hook took longer than 100ms {hookName} [{( afterTicks - beforeTicks ):0}ms]" );
+                    CarbonCore.WarnFormat ( $" {plugin?.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]" );
                 }
 
                 return result;
@@ -222,6 +260,8 @@ namespace Carbon.Core
         {
             var objectOverride = ( object )null;
             var pluginOverride = ( Plugin )null;
+
+            _clearHookTime ( hookName );
 
             foreach ( var mod in CarbonLoader._loadedMods )
             {

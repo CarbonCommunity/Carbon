@@ -75,8 +75,8 @@ namespace Carbon.Core
             Reply ( $"Carbon v{CarbonCore.Version}", arg );
         }
 
-        [ConsoleCommand ( "list", "Prints the list of mods and their loaded plugins." )]
-        private void List ( ConsoleSystem.Arg arg )
+        [ConsoleCommand ( "plugins", "Prints the list of mods and their loaded plugins." )]
+        private void Plugins ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () ) return;
 
@@ -92,16 +92,16 @@ namespace Carbon.Core
                     break;
 
                 default:
-                    var body = new StringTable ( "#", "Mod", "Author", "Version", "Core", "Hook Time" );
+                    var body = new StringTable ( "#", "Mod", "Author", "Version", "Core", "Hook Time", "Compile Time" );
                     var count = 1;
 
                     foreach ( var mod in CarbonLoader._loadedMods )
                     {
-                        body.AddRow ( $"{count:n0}", $"{mod.Name}{( mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "" )}", "", "", mod.IsCoreMod ? "Yes" : "No", "" );
+                        body.AddRow ( $"{count:n0}", $"{mod.Name}{( mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "" )}", "", "", mod.IsCoreMod ? "Yes" : "No", "", "" );
 
                         foreach ( var plugin in mod.Plugins )
                         {
-                            body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}", mod.IsAddon ? "Addon" : plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms" );
+                            body.AddRow ( $"", plugin.Name, plugin.Author, $"v{plugin.Version}", mod.IsAddon ? "Addon" : plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms", $"{plugin.CompileTime:0.0}s" );
                         }
 
                         count++;
@@ -110,6 +110,28 @@ namespace Carbon.Core
                     Reply ( body.ToStringMinimal (), arg );
                     break;
             }
+        }
+
+        [ConsoleCommand ( "hooks", "Prints the list of all hooks that have been called at least once." )]
+        private void Hooks ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
+
+            var body = new StringTable ( "#", "Hook", "Time", "Plugins Using" );
+            var count = 1;
+
+            foreach ( var mod in CarbonCore.Instance.Addon.Patches )
+            {
+                if ( !CarbonCore.Instance.Addon.Patches.TryGetValue ( mod.Key, out var instance ) )
+                {
+                    continue;
+                }
+
+                body.AddRow ( $"{count:n0}", mod.Key, $"{HookExecutor.GetHookTime ( mod.Key )}ms", $"{instance.Hooks}" );
+                count++;
+            }
+
+            Reply ( body.ToStringMinimal (), arg );
         }
 
         [ConsoleCommand ( "webload" )]
@@ -150,6 +172,9 @@ namespace Carbon.Core
 
         [CommandVar ( "debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true )]
         private int CarbonDebug { get { return CarbonCore.Instance.Config.Debug; } set { CarbonCore.Instance.Config.Debug = value; } }
+
+        [CommandVar ( "hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true )]
+        private bool HookTimeTracker { get { return CarbonCore.Instance.Config.HookTimeTracker; } set { CarbonCore.Instance.Config.HookTimeTracker = value; } }
 
         #endregion
 
