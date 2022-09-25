@@ -106,8 +106,8 @@ jobs:
 
     - name: 🧹 Reset branch
       run: |
-        git fetch origin development:development
-        git reset --hard development
+        git fetch origin develop:develop
+        git reset --hard develop
 
     - name: 📦 Create pull request
       uses: peter-evans/create-pull-request@v4
@@ -117,7 +117,7 @@ jobs:
         delete-branch: true
         labels: automation
         title: |
-          ci(auto): 🤖 Merge branch 'development' into 'staging'
+          ci(auto): 🤖 Merge branch 'develop' into 'staging'
         body: |
           This is an automated PR.
           📅 ${{ needs.build.outputs.date }}
