@@ -14,6 +14,7 @@ namespace Carbon.Core
     {
         internal static Dictionary<int, object []> _argumentBuffer { get; } = new Dictionary<int, object []> ();
         internal static Dictionary<string, int> _hookTimeBuffer { get; } = new Dictionary<string, int> ();
+        internal static Dictionary<string, int> _hookTotalTimeBuffer { get; } = new Dictionary<string, int> ();
 
         internal static void _appendHookTime ( string hook, int time )
         {
@@ -24,6 +25,13 @@ namespace Carbon.Core
                 _hookTimeBuffer.Add ( hook, time );
             }
             else _hookTimeBuffer [ hook ] = total + time;
+
+            if ( !_hookTotalTimeBuffer.TryGetValue ( hook, out total ) )
+            {
+                _hookTotalTimeBuffer.Add ( hook, time );
+            }
+            else _hookTotalTimeBuffer [ hook ] = total + time;
+
         }
         internal static void _clearHookTime ( string hook )
         {
@@ -42,6 +50,15 @@ namespace Carbon.Core
         public static int GetHookTime ( string hook )
         {
             if ( !_hookTimeBuffer.TryGetValue ( hook, out var total ) )
+            {
+                return 0;
+            }
+
+            return total;
+        }
+        public static int GetHookTotalTime ( string hook )
+        {
+            if ( !_hookTotalTimeBuffer.TryGetValue ( hook, out var total ) )
             {
                 return 0;
             }

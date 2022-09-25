@@ -117,7 +117,7 @@ namespace Carbon.Core
         {
             if ( !arg.IsPlayerCalledAndAdmin () ) return;
 
-            var body = new StringTable ( "#", "Hook", "Time", "Plugins Using" );
+            var body = new StringTable ( "#", "Hook", "Current Time", "Total Time", "Plugins Using" );
             var count = 1;
 
             foreach ( var mod in CarbonCore.Instance.Addon.Patches )
@@ -127,7 +127,7 @@ namespace Carbon.Core
                     continue;
                 }
 
-                body.AddRow ( $"{count:n0}", mod.Key, $"{HookExecutor.GetHookTime ( mod.Key )}ms", $"{instance.Hooks}" );
+                body.AddRow ( $"{count:n0}", mod.Key, $"{HookExecutor.GetHookTime ( mod.Key )}ms", $"{HookExecutor.GetHookTotalTime ( mod.Key )}ms", $"{instance.Hooks}" );
                 count++;
             }
 
