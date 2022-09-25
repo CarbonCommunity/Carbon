@@ -5,7 +5,7 @@
 #  |______|___|___|___|__|______/_______|__|____|
 #                         discord.gg/eXPcNKK4yd
 # 
-name: Staging
+name: 🥈 Staging
 
 on:
   # allow manual action trigger
@@ -102,22 +102,22 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: beta
+        ref: staging
 
     - name: 🧹 Reset branch
       run: |
-        git fetch origin staging:staging
-        git reset --hard staging
+        git fetch origin development:development
+        git reset --hard development
 
     - name: 📦 Create pull request
       uses: peter-evans/create-pull-request@v4
       id: cpr
       with:
-        branch: beta-promotion
+        branch: staging-promotion
         delete-branch: true
         labels: automation
         title: |
-          ci(auto): 🤖 Merge branch 'alpha' into 'beta'
+          ci(auto): 🤖 Merge branch 'development' into 'staging'
         body: |
           This is an automated PR.
           📅 ${{ needs.build.outputs.date }}

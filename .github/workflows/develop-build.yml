@@ -5,7 +5,7 @@
 #  |______|___|___|___|__|______/_______|__|____|
 #                         discord.gg/eXPcNKK4yd
 # 
-name: Develop
+name: 🥉 Develop
 
 on:
   # allow manual action trigger
@@ -33,7 +33,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: alpha
+        ref: development
         
     - name: 📅 Prepare the environment
       id: info
