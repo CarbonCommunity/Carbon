@@ -1,4 +1,5 @@
 ![Carbon](https://i.imgur.com/sG6X07A.jpg)
+[![🦺 Validate build status](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/alpha-build.yml/badge.svg)](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/alpha-build.yml)
 
 A concept that's becoming reality. **Carbon** is a platform in the form of a DLL which gets added under your Rust server, in the *HarmonyMods* folder. 
 
