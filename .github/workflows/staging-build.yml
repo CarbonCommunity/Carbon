@@ -5,7 +5,7 @@
 #  |______|___|___|___|__|______/_______|__|____|
 #                         discord.gg/eXPcNKK4yd
 # 
-name: 🔥 Unstable build
+name: Staging
 
 on:
   # allow manual action trigger
@@ -21,7 +21,7 @@ env:
 
 jobs:
   build:
-    name: 🦺 Build alpha
+    name: 🦺 Build
     runs-on: ubuntu-latest
 
     outputs:
@@ -33,7 +33,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: alpha
+        ref: staging
         
     - name: 📅 Prepare the environment
       id: info
@@ -58,11 +58,11 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: artifact-build-unstable
+        name: artifact-build-staging
         path: Release/
 
   tag:
-    name: 💾 Release unstable
+    name: 💾 Release staging
     runs-on: ubuntu-latest
     needs: build
 
@@ -70,7 +70,7 @@ jobs:
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: artifact-build-unstable
+        name: artifact-build-staging
         path: Release/
 
     - name: 🏷️ Update release tag
@@ -78,11 +78,11 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: '🔥 Unstable build (${{ needs.build.outputs.tag }})'
-        tag_name: unstable
+        name: 'Staging build (${{ needs.build.outputs.tag }})'
+        tag_name: staging
         prerelease: true
         body: |
-          🚨 This is the unstable build of Carbon.
+          🚨 This is the staging build of Carbon.
           The general public is advised to use one of the stable builds.
           This build is targeted at Developers and/or server owners with existing issues.
           
@@ -106,8 +106,8 @@ jobs:
 
     - name: 🧹 Reset branch
       run: |
-        git fetch origin alpha:alpha
-        git reset --hard alpha
+        git fetch origin staging:staging
+        git reset --hard staging
 
     - name: 📦 Create pull request
       uses: peter-evans/create-pull-request@v4
