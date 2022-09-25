@@ -94,32 +94,20 @@ jobs:
           Release/Carbon.Patch-Unix.zip
 
   staging:
-    name: 🔃 Update unstable branch
+    name: 🔃 Update the staging branch
     runs-on: ubuntu-latest
     needs: tag
 
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
-      with:
-        ref: staging
 
-    - name: 🧹 Reset branch
-      run: |
-        git fetch origin heads/develop:heads/develop
-        git reset --hard heads/develop
-
-    - name: 📦 Create pull request
-      uses: peter-evans/create-pull-request@v4
-      id: cpr
+    - name: ⤵️ Merge development with staging
+      uses: devmasx/merge-branch@master
       with:
-        branch: staging-promotion
-        delete-branch: true
-        labels: |
-          automation
-          staging-promotion
-        title: |
-          ci(auto): 🤖 Merge branch 'develop' into 'staging'
-        body: |
-          This is an automated PR.
-          📅 ${{ needs.build.outputs.date }}
+        type: now
+        from_branch: development
+        target_branch: staging
+        github_token: ${{ github.token }}
+        message: |
+          ci(auto): 🤖 Merge development with staging (${{ needs.build.outputs.tag }})
