@@ -1,4 +1,4 @@
-[![🚧 Bleeding edge](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml/badge.svg?branch=develop)](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml)
+[![🚧 Compile check](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml/badge.svg?branch=develop)](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml)
 [![🥉 Develop branch](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg?branch=develop)](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml)
 [![🥈 Staging branch](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml/badge.svg?branch=staging)](https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml)
 

@@ -1,4 +1,4 @@
-name: 🚧 Bleeding edge
+name: 🚧 Compile check
 
 on:
   push:
