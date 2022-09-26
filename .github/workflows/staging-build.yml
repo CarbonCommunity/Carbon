@@ -30,7 +30,9 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: staging
+        ref: develop
+        # we check the build against the develop branch
+        # because it's that version that will be merged
         
     - name: 📅 Prepare the environment
       id: info
