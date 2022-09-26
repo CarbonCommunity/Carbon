@@ -109,4 +109,4 @@ jobs:
         target_branch: staging
         github_token: ${{ github.token }}
         message: |
-          ci(auto): 🤖 Merge develop with staging
+          ci(auto): 🤖 Merge staging with develop
