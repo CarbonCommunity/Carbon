@@ -159,6 +159,9 @@
     <Reference Include="UnityEngine">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AIModule">
+      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.AIModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
