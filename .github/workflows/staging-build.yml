@@ -16,9 +16,6 @@ on:
   schedule:
     - cron: '0 7 * * 0'
 
-env:
-  configuration: Debug
-
 jobs:
   build:
     name: 🦺 Build
@@ -33,7 +30,9 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: staging
+        ref: develop
+        # we check the build against the develop branch
+        # because it's that version that will be merged
         
     - name: 📅 Prepare the environment
       id: info
@@ -49,11 +48,11 @@ jobs:
 
     - name: ✔️ Prepare the build environment
       shell: bash
-      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_init.sh
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
 
     - name: 🐧 Built the application
       shell: bash
-      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/dev_release.sh ${configuration}
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/build_debug.sh
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -110,4 +109,4 @@ jobs:
         target_branch: staging
         github_token: ${{ github.token }}
         message: |
-          ci(auto): 🤖 Merge develop with staging (${{ needs.build.outputs.tag }})
+          ci(auto): 🤖 Merge develop with staging
