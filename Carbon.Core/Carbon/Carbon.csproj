@@ -13,7 +13,7 @@
   <PropertyGroup>
     <Product>Carbon</Product>
     <AssemblyName>Carbon</AssemblyName>
-    <Version>1.1.0.0</Version>
+    <Version>1.$([System.DateTime]::UtcNow.ToString('yy.ddMM')).10</Version>
 
     <Company>Raul-Sorin Sorban</Company>
     <Copyright>Copyright © Carbon 2022</Copyright>
