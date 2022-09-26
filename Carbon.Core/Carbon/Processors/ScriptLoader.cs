@@ -1,4 +1,9 @@
-﻿using Carbon.Core.Processors;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Carbon.Core.Processors;
 using Facepunch;
 using Humanlights.Extensions;
 using Humanlights.Unity.Compiler;
@@ -57,30 +62,6 @@ namespace Carbon.Core
             {
                 CarbonCore.Error ( $"Failed loading script;", exception );
             }
-        }
-
-        private bool ExecuteMethod ( Assembly assembly, Type type, GameObject target, string method, Script plugin, bool skipAttributes )
-        {
-            var hasInfoAttribute = type.GetCustomAttributes ( true ).Any ( x => x.GetType () == typeof ( InfoAttribute ) );
-
-            if ( !hasInfoAttribute && !skipAttributes )
-            {
-                DebugEx.Log ( $"The plugin {type.FullName} does not have Info attribute. Fix that by adding [Info(pluginName, authorName, version)] on top of the class." );
-                return false;
-            }
-            else if ( type.BaseType == typeof ( RustPlugin ) )
-            {
-                try { CompilerManager.RunMethod ( assembly, type.FullName, method, target ); return true; } catch ( Exception exception ) { CarbonCore.Error ( $"Plugin Error:{plugin.Name}.{plugin.Version}", exception ); return false; }
-            }
-            else
-            {
-                DebugEx.Log ( $"The plugin {type.Name} is not inherited by {nameof ( RustPlugin )}, so it cannot be executed." );
-                return false;
-            }
-        }
-        private bool ExecuteMethodNon ( Assembly assembly, Type type, GameObject target, string method )
-        {
-            try { CompilerManager.RunMethod ( assembly, type.FullName, method, target ); return true; } catch ( Exception exception ) { CarbonCore.Error ( $"Error: {exception}", exception ); return false; }
         }
 
         public static void LoadAll ()
@@ -304,6 +285,7 @@ namespace Carbon.Core
                     plugin.IsCore = IsCore;
                     plugin.Instance.Requires = requires.ToArray ();
                     plugin.Instance.SetProcessor ( CarbonCore.Instance.ScriptProcessor );
+                    plugin.Instance.CompileTime = AsyncLoader.CompileTime;
 
                     plugin.Instance.CallHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
@@ -381,11 +363,6 @@ namespace Carbon.Core
                     Version = new VersionNumber ( 1, 0, 0 ),
                     Description = null,
                 };
-            }
-
-            public bool Execute ( string method, GameObject target, bool skipAttributes, ScriptLoader manager, bool non = false )
-            {
-                return non ? manager.ExecuteMethodNon ( Assembly, Type, target, method ) : manager.ExecuteMethod ( Assembly, Type, target, method, this, skipAttributes );
             }
 
             public void Dispose ()

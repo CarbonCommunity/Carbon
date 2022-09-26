@@ -1,4 +1,9 @@
-﻿using Carbon.Core;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Carbon.Core;
 using CompanionServer.Handlers;
 using EasyAntiCheat.Server.Hydra;
 using Harmony;

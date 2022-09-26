@@ -1,33 +1,43 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Restore;Clean;Build">
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
   <PropertyGroup>
-    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <TargetFrameworks>net48</TargetFrameworks>
+
+    <StartupObject>Carbon.CodeGen.Program</StartupObject>
+    <OutputType>Exe</OutputType>
+
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
+
     <ProjectGuid>{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}</ProjectGuid>
-    <TargetFrameworks>net48</TargetFrameworks>
+    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
   </PropertyGroup>
 
-  <PropertyGroup>
+    <PropertyGroup>
     <Product>Carbon</Product>
-    <AssemblyName>Carbon.CodeGen</AssemblyName>
+    <Version>1.0.0.0</Version>
+
     <Company>Raul-Sorin Sorban</Company>
     <Copyright>Copyright © Carbon 2022</Copyright>
+    <PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
     <Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0.0</Version>
-    <FileVersion>$(Version)</FileVersion>
-  </PropertyGroup>
+    <TargetName>Carbon.CodeGen</TargetName><!-- This has impact on the output file name -->
+    <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+    <VersionSuffix>$(Configuration)</VersionSuffix>
 
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(VersionPrefix)</FileVersion>
+    <AssemblyName>$(TargetName)</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
+    <DefineConstants>DEBUG;WIN</DefineConstants>
     <OutputPath>bin\Debug\</OutputPath>
     <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
@@ -35,7 +45,7 @@
 
     <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
+    <DefineConstants>DEBUG;UNIX</DefineConstants>
     <OutputPath>bin\DebugUnix\</OutputPath>
     <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
@@ -43,7 +53,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>TRACE;WIN</DefineConstants>
+    <DefineConstants>WIN</DefineConstants>
     <OutputPath>bin\Release\</OutputPath>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
@@ -51,16 +61,11 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseUnix'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>TRACE;UNIX</DefineConstants>
+    <DefineConstants>UNIX</DefineConstants>
     <OutputPath>bin\ReleaseUnix\</OutputPath>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
-
- <Target Name="Cleanup">
-    <RemoveDir Directories="$(BaseIntermediateOutputPath)" /><!-- obj -->
-    <RemoveDir Directories="$(BaseOutputPath)" /><!-- bin -->
-  </Target>
 
   <ItemGroup>
     <Reference Include="System" />
@@ -102,9 +107,6 @@
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="EasyAntiCheat.Client">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Client.dll</HintPath>
-    </Reference>
     <Reference Include="EasyAntiCheat.Server">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Server.dll</HintPath>
     </Reference>
@@ -119,9 +121,6 @@
     </Reference>
     <Reference Include="Facepunch.Sqlite">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Sqlite.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Steamworks.Win64">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
     </Reference>
     <Reference Include="Facepunch.System">
       <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.System.dll</HintPath>

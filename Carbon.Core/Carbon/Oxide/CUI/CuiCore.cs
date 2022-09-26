@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -237,6 +242,12 @@ namespace Oxide.Game.Rust.Cui
 
         [JsonProperty ( "fadeIn" )]
         public float FadeIn { get; set; }
+
+        [JsonProperty ( "itemId" )]
+        public int ItemId { get; set; }
+
+        [JsonProperty ( "skinId" )]
+        public ulong SkinId { get; set; }
     }
     public class CuiInputFieldComponent : ICuiComponent, ICuiColor
     {
@@ -285,6 +296,16 @@ namespace Oxide.Game.Rust.Cui
             get
             {
                 return "NeedsCursor";
+            }
+        }
+    }
+    public class CuiNeedsKeyboardComponent : ICuiComponent
+    {
+        public string Type
+        {
+            get
+            {
+                return "NeedsKeyboard";
             }
         }
     }
@@ -436,6 +457,8 @@ namespace Oxide.Game.Rust.Cui
         public CuiRawImageComponent RawImage { get; set; }
 
         public CuiRectTransformComponent RectTransform { get; } = new CuiRectTransformComponent ();
+
+        public bool KeyboardEnabled { get; set; }
 
         public bool CursorEnabled { get; set; }
 

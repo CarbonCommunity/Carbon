@@ -1,24 +1,36 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
   <PropertyGroup>
-    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <TargetFrameworks>net48</TargetFrameworks>
+
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+
     <ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
-    <TargetFrameworks>net48</TargetFrameworks>
+    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
     <Product>Carbon</Product>
     <AssemblyName>Carbon</AssemblyName>
+    <Version>1.1.0.0</Version>
+
     <Company>Raul-Sorin Sorban</Company>
     <Copyright>Copyright © Carbon 2022</Copyright>
+    <PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
     <Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0.0</Version>
-    <FileVersion>$(Version)</FileVersion>
+    <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+    <VersionSuffix>$(Configuration)</VersionSuffix>
+
+    <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(VersionPrefix)</FileVersion>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <Title>Carbon</Title>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -29,9 +41,9 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
+  <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;UNIX</DefineConstants>
     <OutputPath>bin\DebugUnix\</OutputPath>
     <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
@@ -39,7 +51,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>TRACE;WIN</DefineConstants>
+    <DefineConstants>WIN</DefineConstants>
     <OutputPath>bin\Release\</OutputPath>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
@@ -47,16 +59,11 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseUnix'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>TRACE;UNIX</DefineConstants>
+    <DefineConstants>UNIX</DefineConstants>
     <OutputPath>bin\ReleaseUnix\</OutputPath>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
-
-  <Target Name="Cleanup">
-    <RemoveDir Directories="$(BaseIntermediateOutputPath)" /><!-- obj -->
-    <RemoveDir Directories="$(BaseOutputPath)" /><!-- bin -->
-  </Target>
 
   <ItemGroup>
     <Reference Include="System" />
@@ -191,4 +198,31 @@
     <PackageReference Include="protobuf-net" Version="3.1.17" />
     <PackageReference Include="protobuf-net.Core" Version="3.1.17" />
   </ItemGroup>
+
+  <Target Name="CleanOutput" AfterTargets="Clean">
+    <!-- <Message Text=">>> CleanOutput" Importance="high"/> -->
+    <Delete Files="$(OutputPath)Carbon.dll" />
+    <Delete Files="$(OutputPath)$(TargetName).dll" />
+  </Target>
+
+  <Target Name="MoveOutput" AfterTargets="AfterBuild">
+    <!-- <Message Text=">>> MoveOutput" Importance="high"/> -->
+    <Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll" />
+
+    <PropertyGroup>
+      <RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
+    </PropertyGroup>
+
+    <Message Text="RandomASM property set to $(RandomASM)" Importance="high" />
+    <WriteLinesToFile File="$(SolutionDir)Carbon/.rndasm" Overwrite="true" Lines="$(RandomASM)" />
+  </Target>
+
+  <PropertyGroup Condition="!Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
+    <AssemblyName>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
+    <AssemblyName>$([System.Text.RegularExpressions.Regex]::Replace(
+		  $([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm')), '\r?\n?', ''))</AssemblyName>
+  </PropertyGroup>
 </Project>

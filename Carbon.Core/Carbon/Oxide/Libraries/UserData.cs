@@ -1,4 +1,9 @@
-﻿using ProtoBuf;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using ProtoBuf;
 using System.Collections.Generic;
 
 namespace Oxide.Core.Libraries

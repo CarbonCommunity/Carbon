@@ -1,4 +1,9 @@
-﻿using Oxide.Plugins;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -8,6 +13,58 @@ namespace Carbon.Core
     public static class HookExecutor
     {
         internal static Dictionary<int, object []> _argumentBuffer { get; } = new Dictionary<int, object []> ();
+        internal static Dictionary<string, int> _hookTimeBuffer { get; } = new Dictionary<string, int> ();
+        internal static Dictionary<string, int> _hookTotalTimeBuffer { get; } = new Dictionary<string, int> ();
+
+        internal static void _appendHookTime ( string hook, int time )
+        {
+            if ( !CarbonCore.Instance.Config.HookTimeTracker ) return;
+
+            if ( !_hookTimeBuffer.TryGetValue ( hook, out var total ) )
+            {
+                _hookTimeBuffer.Add ( hook, time );
+            }
+            else _hookTimeBuffer [ hook ] = total + time;
+
+            if ( !_hookTotalTimeBuffer.TryGetValue ( hook, out total ) )
+            {
+                _hookTotalTimeBuffer.Add ( hook, time );
+            }
+            else _hookTotalTimeBuffer [ hook ] = total + time;
+
+        }
+        internal static void _clearHookTime ( string hook )
+        {
+            if ( !CarbonCore.Instance.Config.HookTimeTracker ) return;
+
+            if ( !_hookTimeBuffer.ContainsKey ( hook ) )
+            {
+                _hookTimeBuffer.Add ( hook, 0 );
+            }
+            else
+            {
+                _hookTimeBuffer [ hook ] = 0;
+            }
+        }
+
+        public static int GetHookTime ( string hook )
+        {
+            if ( !_hookTimeBuffer.TryGetValue ( hook, out var total ) )
+            {
+                return 0;
+            }
+
+            return total;
+        }
+        public static int GetHookTotalTime ( string hook )
+        {
+            if ( !_hookTotalTimeBuffer.TryGetValue ( hook, out var total ) )
+            {
+                return 0;
+            }
+
+            return total;
+        }
 
         internal static object [] _allocateBuffer ( int count )
         {
@@ -159,47 +216,69 @@ namespace Carbon.Core
 
         private static object CallHook<T> ( this T plugin, string hookName, BindingFlags flags, object [] args ) where T : Plugin
         {
-            var id = args == null ? 0 : args.Length;
-            if ( plugin.HookMethodAttributeCache.TryGetValue ( hookName + id, out var hook ) )
+            var id = $"{hookName}[{( args == null ? 0 : args.Length )}]";
+            var result = ( object )null;
+
+            if ( plugin.HookMethodAttributeCache.TryGetValue ( id, out var hooks ) )
             {
-                return DoCall ( hook );
+                foreach ( var method in hooks )
+                {
+                    var methodResult = DoCall ( method );
+                    if ( methodResult != null ) result = methodResult;
+                }
+                return result;
             }
 
-            if ( !plugin.HookCache.TryGetValue ( hookName + id, out hook ) )
+            if ( !plugin.HookCache.TryGetValue ( id, out hooks ) )
             {
-                hook = plugin.Type.GetMethod ( hookName, flags );
+                plugin.HookCache.Add ( id, hooks = new List<MethodInfo> () );
 
-                if ( hook == null )
+                foreach ( var method in plugin.Type.GetMethods ( flags ) )
                 {
-                    return null;
-                }
+                    if ( method.Name != hookName ) continue;
 
-                plugin.HookCache.Add ( hookName + id, hook );
+                    hooks.Add ( method );
+                }
+            }
+
+            foreach ( var method in hooks )
+            {
+                try
+                {
+                    var methodResult = DoCall ( method );
+                    if ( methodResult != null ) result = methodResult;
+                }
+                catch { }
             }
 
             object DoCall ( MethodInfo method )
             {
                 var beforeTicks = Environment.TickCount;
                 plugin.TrackStart ();
-                var result = method?.Invoke ( plugin, args );
+                result = method?.Invoke ( plugin, args );
                 plugin.TrackEnd ();
                 var afterTicks = Environment.TickCount;
+                var totalTicks = afterTicks - beforeTicks;
+
+                _appendHookTime ( hookName, totalTicks );
 
                 if ( afterTicks > beforeTicks + 100 && afterTicks > beforeTicks )
                 {
-                    CarbonCore.WarnFormat ( $" {plugin?.Name} hook took longer than 100ms {hookName}{( args == null ? "" : $"[{args.Length}]" )} [{( afterTicks - beforeTicks ):0}ms]" );
+                    CarbonCore.WarnFormat ( $" {plugin?.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]" );
                 }
 
                 return result;
             }
 
-            return DoCall ( hook );
+            return result;
         }
 
         private static object CallStaticHook ( string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object [] args = null )
         {
             var objectOverride = ( object )null;
             var pluginOverride = ( Plugin )null;
+
+            _clearHookTime ( hookName );
 
             foreach ( var mod in CarbonLoader._loadedMods )
             {

@@ -1,4 +1,9 @@
-﻿using Facepunch;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Facepunch;
 using Oxide.Plugins;
 using System;
 using System.Collections.Generic;

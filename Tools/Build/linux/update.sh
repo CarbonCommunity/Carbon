@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 set -e
 
-#  ______ _______ ______ ______ _______ _______ 
-# |      |   _   |   __ /   __ /       |    |  |
-# |   ---|       |      <   __ <   -   |       |
-# |______|___|___|___|__|______/_______|__|____|
-#         github.com/Carbon-Modding/Carbon.Core
+cat <<EOF
+  ______ _______ ______ ______ _______ _______ 
+ |      |   _   |   __ \   __ \       |    |  |
+ |   ---|       |      <   __ <   -   |       |
+ |______|___|___|___|__|______/_______|__|____|
+                         discord.gg/eXPcNKK4yd
+
+EOF
 
 BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 ROOT="$(realpath "${BASE}/../../../")"
+
+# Cleans the exiting files
+git clean -fx ${ROOT}/Rust/RustDedicated_Data
 
 # Download rust binary libs
 ${ROOT}/Tools/DepotDownloader/DepotDownloader/bin/Release/net6.0/DepotDownloader \
@@ -20,3 +26,5 @@ mono ${ROOT}/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe \
 	-p -cg --keep-resources -n --unity-non-serialized \
 	${ROOT}/Rust/RustDedicated_Data/Managed/Assembly-CSharp.dll \
 	${ROOT}/Rust/RustDedicated_Data/Managed/Assembly-CSharp.dll
+
+dotnet restore ${ROOT}/Carbon.Core --nologo

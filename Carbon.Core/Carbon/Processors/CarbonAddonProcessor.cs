@@ -1,4 +1,9 @@
-﻿using Facepunch;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Facepunch;
 using Harmony;
 using Humanlights.Extensions;
 using System;
@@ -45,6 +50,15 @@ namespace Carbon.Core
         public bool IsPatched ( string hookName )
         {
             return Patches.ContainsKey ( hookName );
+        }
+        public HookInstance GetInstance ( string hookName )
+        {
+            if ( !Patches.TryGetValue ( hookName, out var instance ) )
+            {
+                return null;
+            }
+
+            return instance;
         }
 
         public void AppendHook ( string hookName )

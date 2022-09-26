@@ -1,4 +1,9 @@
-﻿using System;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using System;
 using Oxide.Core;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -14,8 +19,8 @@ namespace Oxide.Plugins
     [JsonObject ( MemberSerialization.OptIn )]
     public class Plugin : IDisposable
     {
-        public Dictionary<string, MethodInfo> HookCache { get; private set; } = new Dictionary<string, MethodInfo> ();
-        public Dictionary<string, MethodInfo> HookMethodAttributeCache { get; private set; } = new Dictionary<string, MethodInfo> ();
+        public Dictionary<string, List<MethodInfo>> HookCache { get; private set; } = new Dictionary<string, List<MethodInfo>> ();
+        public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; private set; } = new Dictionary<string, List<MethodInfo>> ();
         public List<string> IgnoredHooks { get; private set; } = new List<string> ();
 
         public bool IsCorePlugin { get; set; }
@@ -34,6 +39,11 @@ namespace Oxide.Plugins
         public int ResourceId { get; set; }
         public bool HasConfig { get; set; }
         public bool HasMessages { get; set; }
+
+        [JsonProperty]
+        public double CompileTime { get; internal set; }
+
+        [JsonProperty]
         public double TotalHookTime { get; internal set; }
 
         public CarbonLoader.CarbonMod carbon { get; set; }
@@ -108,8 +118,12 @@ namespace Oxide.Plugins
                 var attribute = method.GetCustomAttribute<HookMethodAttribute> ();
                 if ( attribute == null ) continue;
 
-                var name = string.IsNullOrEmpty ( attribute.Name ) ? method.Name : attribute.Name;
-                HookMethodAttributeCache.Add ( name + method.GetParameters ().Length, method );
+                var name = ( string.IsNullOrEmpty ( attribute.Name ) ? method.Name : attribute.Name ) + method.GetParameters ().Length;
+                if ( !HookMethodAttributeCache.TryGetValue ( name, out var list ) )
+                {         
+                    HookMethodAttributeCache.Add ( name, new List<MethodInfo> () { method } );
+                }
+                else list.Add ( method );
             }
 
             CarbonCore.Debug ( Name, "Installed hook method attributes", 2 );

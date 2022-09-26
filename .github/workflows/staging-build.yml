@@ -1,0 +1,112 @@
+# 
+#   ______ _______ ______ ______ _______ _______ 
+#  |      |   _   |   __ \   __ \       |    |  |
+#  |   ---|       |      <   __ <   -   |       |
+#  |______|___|___|___|__|______/_______|__|____|
+#                         discord.gg/eXPcNKK4yd
+# 
+name: 🥈 Staging branch
+
+on:
+  # allow manual action trigger
+  workflow_dispatch:
+
+  # technically this is more a "morningly" build
+  # but we do work late.. :-)  
+  schedule:
+    - cron: '0 7 * * 0'
+
+jobs:
+  build:
+    name: 🦺 Build
+    runs-on: ubuntu-latest
+
+    outputs:
+      date: ${{ steps.info.outputs.date }}
+      tag: ${{ steps.info.outputs.tag }}
+      ref: ${{ steps.info.outputs.ref }}
+      
+    steps:    
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+      with:
+        ref: develop
+        # we check the build against the develop branch
+        # because it's that version that will be merged
+        
+    - name: 📅 Prepare the environment
+      id: info
+      run: |
+        echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M:%S')"
+        echo "::set-output name=tag::$(date +'%Yd%j')"
+        echo "::set-output name=ref::$(git log -1 '--format=format:%H')"
+      
+    - name: 🛤️ Setup the build environment
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: ✔️ Prepare the build environment
+      shell: bash
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
+
+    - name: 🐧 Built the application
+      shell: bash
+      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/build_debug.sh
+
+    - name: ⬆️ Upload the artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: artifact-build-staging
+        path: Release/
+
+  tag:
+    name: 💾 Release staging
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: ⬇️ Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: artifact-build-staging
+        path: Release/
+
+    - name: 🏷️ Update release tag
+      uses: andelf/nightly-release@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        name: 'Staging build (${{ needs.build.outputs.tag }})'
+        tag_name: staging_build
+        prerelease: true
+        body: |
+          🚨 This is the staging build of Carbon.
+          The general public is advised to use one of the stable builds.
+          This build is targeted at Developers and/or server owners with existing issues.
+          
+          📅 Built at ${{ needs.build.outputs.date }} from commit ${{ needs.build.outputs.ref }}.
+        files: |
+          Release/Carbon.dll
+          Release/Carbon.Patch.zip
+          Release/Carbon-Unix.dll
+          Release/Carbon.Patch-Unix.zip
+
+  staging:
+    name: 🔃 Update the staging branch
+    runs-on: ubuntu-latest
+    needs: tag
+
+    steps:
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+
+    - name: ⤵️ Merge development with staging
+      uses: devmasx/merge-branch@master
+      with:
+        type: now
+        from_branch: develop
+        target_branch: staging
+        github_token: ${{ github.token }}
+        message: |
+          ci(auto): 🤖 Merge develop with staging

@@ -1,4 +1,9 @@
-﻿using System;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using System;
 
 [AttributeUsage ( AttributeTargets.Class )]
 public class Hook : Attribute
@@ -90,7 +95,8 @@ public class Hook : Attribute
             Player,
             Structure,
             Resources,
-            Team
+            Team,
+            Weapon
         }
 
         public Category ( Enum @enum )

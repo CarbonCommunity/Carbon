@@ -1,4 +1,9 @@
-﻿using Harmony;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Harmony;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;

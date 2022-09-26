@@ -1,4 +1,9 @@
-﻿using System;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Reflection;
@@ -23,7 +28,7 @@ namespace Carbon.Core
 
 		internal static CodeCompiler _compiler = new CodeCompiler();
 		internal CompilerParameters _parameters;
-		internal static string[] _defaultReferences = new string[] {
+		internal static string [] _defaultReferences = new string [] {
 			"System.dll",
 			"mscorlib.dll",
 			"protobuf-net.dll",
@@ -32,12 +37,12 @@ namespace Carbon.Core
 #if WIN
             "Carbon.dll",
 #elif UNIX
-            "Carbon-Unix.dll" 
+            "Carbon-Unix.dll"
 #else
 #error Target architecture not defined
             null;
 #endif
-        };
+		};
 		internal void _addReferences()
 		{
 			_parameters.ReferencedAssemblies.Clear();
