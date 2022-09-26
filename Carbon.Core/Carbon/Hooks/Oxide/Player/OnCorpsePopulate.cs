@@ -37,7 +37,8 @@ namespace Carbon.Extended
                 npcplayerCorpse.playerName = __instance.OverrideCorpseName ();
                 npcplayerCorpse.playerSteamID = __instance.userID;
                 npcplayerCorpse.Spawn ();
-                ItemContainer [] containers = npcplayerCorpse.containers;
+
+                var containers = npcplayerCorpse.containers;
                 for ( int i = 0; i < containers.Length; i++ )
                 {
                     containers [ i ].Clear ();
@@ -93,7 +94,8 @@ namespace Carbon.Extended
                 npcplayerCorpse.playerSteamID = __instance.userID;
                 npcplayerCorpse.Spawn ();
                 npcplayerCorpse.TakeChildren ( __instance );
-                ItemContainer [] containers = npcplayerCorpse.containers;
+
+                var containers = npcplayerCorpse.containers;
                 for ( int i = 0; i < containers.Length; i++ )
                 {
                     containers [ i ].Clear ();
