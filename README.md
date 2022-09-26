@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml/badge.svg?branch=develop"></a>
   <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg?branch=develop"></a>
-  <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml/badge.svg?branch=staging"></a>
+  <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml/badge.svg"></a>
 </p>
 
 
