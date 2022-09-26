@@ -22,34 +22,39 @@ namespace Carbon.Extended
         {
             if ( !__instance.HasItemAmount () || __instance.HasAttackCooldown () )
             {
-                return true;
+                return false;
             }
-            Vector3 vector = msg.read.Vector3 ();
-            Vector3 normalized = msg.read.Vector3 ().normalized;
+
+            var vector = msg.read.Vector3 ();
+            var normalized = msg.read.Vector3 ().normalized;
+
             if ( msg.player.isMounted || msg.player.HasParent () )
             {
                 vector = msg.player.eyes.position;
             }
             else if ( !__instance.ValidateEyePos ( msg.player, vector ) )
             {
-                return true;
+                return false;
             }
-            global::BaseEntity baseEntity = global::GameManager.server.CreateEntity ( __instance.prefabToThrow.resourcePath, vector, Quaternion.LookRotation ( Vector3.up ), true );
+
+            var baseEntity = GameManager.server.CreateEntity ( __instance.prefabToThrow.resourcePath, vector, Quaternion.LookRotation ( Vector3.up ), true );
             if ( baseEntity == null )
             {
-                return true;
+                return false;
             }
+
             RaycastHit hit;
             if ( __instance.canStick && UnityEngine.Physics.SphereCast ( new Ray ( vector, normalized ), 0.05f, out hit, 1.5f, 1236478737 ) )
             {
-                Vector3 point = hit.point;
-                Vector3 normal = hit.normal;
-                global::BaseEntity baseEntity2 = hit.GetEntity ();
-                Collider collider = hit.collider;
-                if ( baseEntity2 && baseEntity2 is global::StabilityEntity && baseEntity is global::TimedExplosive )
+                var point = hit.point;
+                var normal = hit.normal;
+                var baseEntity2 = hit.GetEntity ();
+                var collider = hit.collider;
+
+                if ( baseEntity2 && baseEntity2 is StabilityEntity && baseEntity is TimedExplosive )
                 {
-                    baseEntity2 = baseEntity2.ToServer<global::BaseEntity> ();
-                    global::TimedExplosive timedExplosive = baseEntity as global::TimedExplosive;
+                    baseEntity2 = baseEntity2.ToServer<BaseEntity> ();
+                    var timedExplosive = baseEntity as TimedExplosive;
                     timedExplosive.onlyDamageParent = true;
                     timedExplosive.DoStick ( point, normal, baseEntity2, collider );
                 }
@@ -62,6 +67,7 @@ namespace Carbon.Extended
             {
                 baseEntity.SetVelocity ( normalized );
             }
+
             baseEntity.creatorEntity = msg.player;
             baseEntity.skinID = __instance.skinID;
             baseEntity.Spawn ();

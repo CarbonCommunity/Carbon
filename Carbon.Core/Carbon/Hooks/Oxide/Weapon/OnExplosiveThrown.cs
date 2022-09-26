@@ -22,7 +22,7 @@ namespace Carbon.Extended
         {
             if ( !__instance.HasItemAmount () || __instance.HasAttackCooldown () )
             {
-                return true;
+                return false;
             }
 
             var vector = msg.read.Vector3 ();
@@ -35,13 +35,13 @@ namespace Carbon.Extended
             }
             else if ( !__instance.ValidateEyePos ( msg.player, vector ) )
             {
-                return true;
+                return false;
             }
 
-            var baseEntity = global::GameManager.server.CreateEntity ( __instance.prefabToThrow.resourcePath, vector, Quaternion.LookRotation ( ( this.overrideAngle == Vector3.zero ) ? ( -normalized ) : this.overrideAngle ), true );
+            var baseEntity = GameManager.server.CreateEntity ( __instance.prefabToThrow.resourcePath, vector, Quaternion.LookRotation ( ( __instance.overrideAngle == Vector3.zero ) ? ( -normalized ) : __instance.overrideAngle ), true );
             if ( baseEntity == null )
             {
-                return true;
+                return false;
             }
 
             baseEntity.creatorEntity = msg.player;
@@ -49,7 +49,7 @@ namespace Carbon.Extended
             baseEntity.SetVelocity ( __instance.GetInheritedVelocity ( msg.player ) + normalized * __instance.maxThrowVelocity * d + msg.player.estimatedVelocity * 0.5f );
             if ( __instance.tumbleVelocity > 0f )
             {
-                baseEntity.SetAngularVelocity ( new Vector3 ( UnityEngine.Random.Range ( -1f, 1f ), UnityEngine.Random.Range ( -1f, 1f ), UnityEngine.Random.Range ( -1f, 1f ) ) * this.tumbleVelocity );
+                baseEntity.SetAngularVelocity ( new Vector3 ( UnityEngine.Random.Range ( -1f, 1f ), UnityEngine.Random.Range ( -1f, 1f ), UnityEngine.Random.Range ( -1f, 1f ) ) * __instance.tumbleVelocity );
             }
 
             baseEntity.Spawn ();
@@ -62,7 +62,7 @@ namespace Carbon.Extended
 
             if ( player != null )
             {
-                var timedExplosive = baseEntity as global::TimedExplosive;
+                var timedExplosive = baseEntity as TimedExplosive;
                 if ( timedExplosive != null )
                 {
                     float num = 0f;
