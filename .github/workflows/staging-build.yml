@@ -136,17 +136,17 @@ jobs:
         tag_name: staging_build
         name: 'Carbon Build (staging)'
         body: |
-          🥈 This is a build of Carbon based on the `staging` branch.
+          This is a build of Carbon based on the `staging` branch.
           
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.
 
           ### How to install
-          1. ⬇️ Download the `Carbon.Patch.zip` archive from the attachments below.
-          2. 🗜️ Unzip the archive to the root of your Rust Dedicated Server.
-          3. 🔃 Restart the server and enjoy 🎉.
+          1. Download the `Carbon.Patch.zip` archive from the attachments below.
+          2. Unzip the archive to the root of your Rust Dedicated Server.
+          3. Restart the server and enjoy.
           
-          📅 ${{ needs.build-linux.outputs.build_info }}
+          ${{ needs.build-linux.outputs.build_info }}
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
