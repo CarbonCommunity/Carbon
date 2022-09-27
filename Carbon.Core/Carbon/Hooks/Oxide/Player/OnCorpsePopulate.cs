@@ -65,7 +65,7 @@ namespace Carbon.Extended
     }
 
     [OxideHook ( "OnCorpsePopulate", typeof ( BaseCorpse ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
-    [OxideHook.Parameter ( "this", typeof ( ScarecrowNPC ) )]
+    [OxideHook.Parameter ( "this", typeof ( HumanNPC ) )]
     [OxideHook.Parameter ( "corpse", typeof ( NPCPlayerCorpse ) )]
     [OxideHook.Info ( "Useful for denying items' deployment." )]
     [OxideHook.Patch ( typeof ( HumanNPC ), "CreateCorpse" )]
@@ -122,7 +122,7 @@ namespace Carbon.Extended
     }
 
     [OxideHook ( "OnCorpsePopulate", typeof ( BaseCorpse ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
-    [OxideHook.Parameter ( "this", typeof ( ScarecrowNPC ) )]
+    [OxideHook.Parameter ( "this", typeof ( FrankensteinPet ) )]
     [OxideHook.Parameter ( "corpse", typeof ( NPCPlayerCorpse ) )]
     [OxideHook.Info ( "Useful for denying items' deployment." )]
     [OxideHook.Patch ( typeof ( FrankensteinPet ), "CreateCorpse" )]
