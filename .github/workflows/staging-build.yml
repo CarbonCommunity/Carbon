@@ -5,7 +5,7 @@
 #  |______|___|___|___|__|______/_______|__|____|
 #                         discord.gg/eXPcNKK4yd
 # 
-name: 🚧 build-2-staging
+name: Staging Build
 concurrency: build-2-staging
 
 on:
@@ -24,13 +24,6 @@ on:
       - staging
 
 jobs:
-  dump:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Dump context
-        uses: crazy-max/ghaction-dump-context@v1
-
   bootstrap:
     name: 🥾 Bootstrap
     runs-on: ubuntu-latest
@@ -141,9 +134,9 @@ jobs:
       with:
         prerelease: true
         tag_name: staging_build
-        name: 'Carbon build (staging)'
+        name: 'Carbon Build (staging)'
         body: |
-          🥈 This is a build of carbon based on the `staging` branch.
+          🥈 This is a build of Carbon based on the `staging` branch.
           
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.
