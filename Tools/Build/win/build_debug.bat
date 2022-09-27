@@ -17,6 +17,8 @@ popd
 rem Set the build target config
 set TARGET=Debug
 
+%ROOT%\Tools\Humanlights.GitBatch\Humanlights.GitBatch -git %ROOT%\.git -json %ROOT%\Carbon.Core\Carbon\git.txt
+
 rem Build the solution + generate identifier
 dotnet restore %ROOT%\Carbon.Core --nologo
 dotnet   clean %ROOT%\Carbon.Core --configuration %TARGET% --nologo
