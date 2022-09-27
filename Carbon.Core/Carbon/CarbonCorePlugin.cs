@@ -153,7 +153,7 @@ namespace Carbon.Core
         [ConsoleCommand ( "commit" )]
         private void Commit ( ConsoleSystem.Arg arg )
         {
-            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
 
             Reply ( CarbonCommit.Source, arg );
         }
