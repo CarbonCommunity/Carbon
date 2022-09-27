@@ -20,6 +20,8 @@ on:
   schedule:
     - cron: '0 5 * * *'
 
+  workflow_dispatch:
+
 jobs:
   bootstrap:
     name: 🥾 Bootstrap
@@ -118,8 +120,9 @@ jobs:
     name: 💾 Release
     needs: [ "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'schedule' }}
-    # only release if trigered by the scheduler
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    # only release if triggered by the scheduler
+    # or if manually triggered by a developer
 
     steps:
     - name: ⬇️ Download artifacts
