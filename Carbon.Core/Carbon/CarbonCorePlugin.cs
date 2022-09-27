@@ -75,6 +75,12 @@ namespace Carbon.Core
             Reply ( $"Carbon v{CarbonCore.Version}", arg );
         }
 
+        [ConsoleCommand ( "build", "Returns current version of Carbon's Assembly." )]
+        private void GetBuild ( ConsoleSystem.Arg arg )
+        {
+            Reply ( $"{CarbonCore.InformationalVersion}", arg );
+        }
+
         [ConsoleCommand ( "plugins", "Prints the list of mods and their loaded plugins." )]
         private void Plugins ( ConsoleSystem.Arg arg )
         {

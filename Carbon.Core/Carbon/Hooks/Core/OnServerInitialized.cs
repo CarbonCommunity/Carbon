@@ -15,7 +15,8 @@ public class OnServerInitialized
     {
         if ( _call <= 0.5f ) return;
 
-        HookExecutor.CallStaticHook ( "OnServerInitialized" );
+        HookExecutor.CallStaticHook ( "OnServerInitialized" ); 
+        HookExecutor.CallStaticHook ( "OnServerInitialized", CarbonCore.IsServerFullyInitialized );
         _call = 0;
     }
 }
