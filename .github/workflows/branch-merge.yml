@@ -47,4 +47,4 @@ jobs:
         target_branch: ${{ inputs.target }}
         github_token: ${{ secrets.PAT_PUBLIC_REPO }}
         message: |
-          🤖 Merged ${{ inputs.target }} with ${{ inputs.source }}
+          Merged ${{ inputs.target }} with ${{ inputs.source }}
