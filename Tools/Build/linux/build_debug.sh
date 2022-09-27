@@ -17,8 +17,6 @@ ROOT="$(realpath "${BASE}/../../../")"
 # Set the build target config
 TARGET=Debug
 
-mono ${ROOT}/Tools/Humanlights.GitBatch/Humanlights.GitBatch.exe -git ${ROOT}/.git -json %ROOT%/Carbon.Core/Carbon/git.txt
-
 # Build the solution + generate identifier
 dotnet restore ${ROOT}/Carbon.Core --nologo
 dotnet   clean ${ROOT}/Carbon.Core --configuration ${TARGET} --nologo
