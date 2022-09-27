@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamUpdated", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook ( "OnTeamUpdated", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Parameter ( "currentTeam", typeof ( ulong ) )]
     [OxideHook.Parameter ( "playerTeam", typeof ( PlayerTeam ) )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]

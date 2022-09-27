@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "CanMoveItem", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Item )]
+    [OxideHook ( "CanMoveItem", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Item )]
     [OxideHook.Parameter ( "item", typeof ( Item ) )]
     [OxideHook.Parameter ( "this", typeof ( PlayerInventory ) )]
     [OxideHook.Parameter ( "targetContainer", typeof ( uint ) )]

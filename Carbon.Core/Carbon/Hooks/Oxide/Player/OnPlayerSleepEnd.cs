@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnPlayerSleepEnded", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerSleepEnded", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "this", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when the player awakes." )]
     [OxideHook.Patch ( typeof ( BasePlayer ), "EndSleeping" )]

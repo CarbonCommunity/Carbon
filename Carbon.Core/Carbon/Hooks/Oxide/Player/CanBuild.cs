@@ -8,7 +8,7 @@ using ProtoBuf;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "CanPickupEntity", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "CanPickupEntity", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "this", typeof ( Planner ) )]
     [OxideHook.Parameter ( "prefab", typeof ( Construction ) )]
     [OxideHook.Parameter ( "target", typeof ( Construction.Target ) )]

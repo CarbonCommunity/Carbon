@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "CanAffordUpgrade", typeof ( bool ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "CanAffordUpgrade", typeof ( bool ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( BuildingBlock ) )]
     [OxideHook.Parameter ( "grade", typeof ( BuildingGrade.Enum ) )]

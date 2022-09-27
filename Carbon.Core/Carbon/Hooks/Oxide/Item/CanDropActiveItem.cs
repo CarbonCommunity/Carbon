@@ -7,7 +7,7 @@ using Oxide.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "CanDropActiveItem", typeof ( bool ) ), OxideHook.Category ( OxideHook.Category.Enum.Item )]
+    [OxideHook ( "CanDropActiveItem", typeof ( bool ) ), OxideHook.Category ( Hook.Category.Enum.Item )]
     [OxideHook.Parameter ( "this", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when a player attempts to drop their active item." )]
     [OxideHook.Info ( "Returning true or false overrides default behavior." )]

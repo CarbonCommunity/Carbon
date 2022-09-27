@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnEntitySpawned" ), OxideHook.Category ( OxideHook.Category.Enum.Entity )]
+    [OxideHook ( "OnEntitySpawned" ), OxideHook.Category ( Hook.Category.Enum.Entity )]
     [OxideHook.Parameter ( "entity", typeof ( BaseNetworkable ) )]
     [OxideHook.Info ( "Called after any networked entity has spawned (including trees)." )]
     [OxideHook.Patch ( typeof ( BaseNetworkable ), "Spawn" )]

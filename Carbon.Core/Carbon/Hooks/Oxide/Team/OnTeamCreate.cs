@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamCreate", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook ( "OnTeamCreate", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Useful for canceling team creation." )]
     [OxideHook.Patch ( typeof ( RelationshipManager ), "trycreateteam" )]

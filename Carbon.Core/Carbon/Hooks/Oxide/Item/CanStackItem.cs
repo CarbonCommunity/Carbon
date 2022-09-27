@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "CanStackItem", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Item )]
+    [OxideHook ( "CanStackItem", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Item )]
     [OxideHook.Parameter ( "item", typeof ( Item ) )]
     [OxideHook.Parameter ( "targetItem", typeof ( Item ) )]
     [OxideHook.Info ( "Called when moving an item onto another item." )]

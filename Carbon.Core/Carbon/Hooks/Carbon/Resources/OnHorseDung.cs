@@ -28,7 +28,7 @@ namespace Carbon.Extended
             if ( dungItem == null ) dungItem = ItemManager.Create ( __instance.Dung, 1, 0uL );
 
             __instance.dungProduction -= 1f;
-            dungItem.Drop ( __instance.transform.position + -__instance.transform.forward + Vector3.up * 1.1f + UnityEngine.Random.insideUnitSphere * 0.1f, -__instance.transform.forward );
+            dungItem.Drop ( __instance.transform.position + -__instance.transform.forward + Vector3.up * 1.1f + Random.insideUnitSphere * 0.1f, -__instance.transform.forward );
             return false;
         }
     }

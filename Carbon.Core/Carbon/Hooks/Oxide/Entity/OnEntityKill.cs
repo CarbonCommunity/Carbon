@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnEntityKill", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Entity )]
+    [OxideHook ( "OnEntityKill", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Entity )]
     [OxideHook.Parameter ( "this", typeof ( BaseNetworkable ) )]
     [OxideHook.Info ( "Called when an entity is destroyed." )]
     [OxideHook.Patch ( typeof ( BaseNetworkable ), "Kill" )]

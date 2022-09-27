@@ -8,7 +8,7 @@ using Oxide.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnUserBanned", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnUserBanned", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "connection", typeof ( Network.Connection ) )]
     [OxideHook.Parameter ( "reason", typeof ( string ) )]
     [OxideHook.Info ( "Called when a player has been banned from the server." )]
@@ -42,7 +42,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnPlayerKicked", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerKicked", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "connection", typeof ( Network.Connection ) )]
     [OxideHook.Parameter ( "reason", typeof ( string ) )]
     [OxideHook.Info ( "Called after the player is kicked from the server." )]

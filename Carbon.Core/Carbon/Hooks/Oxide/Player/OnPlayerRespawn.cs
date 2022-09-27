@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnPlayerRespawn", typeof ( BasePlayer.SpawnPoint ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerRespawn", typeof ( BasePlayer.SpawnPoint ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( BasePlayer.SpawnPoint ) )]
     [OxideHook.Info ( "Called when a player is attempting to respawn." )]
@@ -33,7 +33,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnPlayerRespawn", typeof ( SleepingBag ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerRespawn", typeof ( SleepingBag ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( SleepingBag ) )]
     [OxideHook.Info ( "Called when a player is attempting to respawn." )]

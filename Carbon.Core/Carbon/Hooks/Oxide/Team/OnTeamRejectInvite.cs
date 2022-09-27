@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamRejectInvite", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook ( "OnTeamRejectInvite", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Parameter ( "rejector", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
     [OxideHook.Info ( "Useful for canceling the invitation rejection." )]

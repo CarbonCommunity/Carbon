@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnTeamInvite", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [Hook ( "OnTeamInvite", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Useful for canceling sending an invitation." )]
     [OxideHook.Patch ( typeof ( RelationshipManager ), "sendinvite" )]
@@ -35,7 +35,7 @@ namespace Carbon.Extended
             }
 
             RaycastHit hit;
-            if ( UnityEngine.Physics.Raycast ( basePlayer.eyes.position, basePlayer.eyes.HeadForward (), out hit, 5f, 1218652417, QueryTriggerInteraction.Ignore ) )
+            if ( Physics.Raycast ( basePlayer.eyes.position, basePlayer.eyes.HeadForward (), out hit, 5f, 1218652417, QueryTriggerInteraction.Ignore ) )
             {
                 var entity = hit.GetEntity ();
 

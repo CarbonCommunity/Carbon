@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnEntityDeath" ), OxideHook.Category ( OxideHook.Category.Enum.Entity )]
+    [OxideHook ( "OnEntityDeath" ), OxideHook.Category ( Hook.Category.Enum.Entity )]
     [OxideHook.Parameter ( "this", typeof ( BaseCombatEntity ) )]
     [OxideHook.Parameter ( "info", typeof ( HitInfo ) )]
     [OxideHook.Info ( "HitInfo might be null, check it before use." )]
@@ -21,7 +21,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnEntityDeath" ), OxideHook.Category ( OxideHook.Category.Enum.Entity )]
+    [OxideHook ( "OnEntityDeath" ), OxideHook.Category ( Hook.Category.Enum.Entity )]
     [OxideHook.Parameter ( "this", typeof ( ResourceEntity ) )]
     [OxideHook.Parameter ( "info", typeof ( HitInfo ) )]
     [OxideHook.Info ( "HitInfo might be null, check it before use." )]

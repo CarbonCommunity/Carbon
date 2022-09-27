@@ -7,7 +7,7 @@ using Oxide.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnPlayerAttack", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerAttack", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "hitInfo", typeof ( HitInfo ) )]
     [OxideHook.Info ( "Useful for modifying an attack before it goes out." )]

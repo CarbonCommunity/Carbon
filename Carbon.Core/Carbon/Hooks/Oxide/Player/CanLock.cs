@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "CanLock", typeof ( bool ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "CanLock", typeof ( bool ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( KeyLock ) )]
     [OxideHook.Info ( "Useful for canceling the lock action." )]

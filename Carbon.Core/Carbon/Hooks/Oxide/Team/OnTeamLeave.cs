@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamLeave", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook ( "OnTeamLeave", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Useful for canceling the leave from the team." )]

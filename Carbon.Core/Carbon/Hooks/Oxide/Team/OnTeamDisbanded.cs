@@ -6,7 +6,7 @@
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamDisbanded"), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook ( "OnTeamDisbanded"), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
     [OxideHook.Info ( "Called when the team was disbanded." )]
     [OxideHook.Patch ( typeof ( RelationshipManager ), "DisbandTeam" )]

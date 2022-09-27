@@ -7,7 +7,7 @@ using Oxide.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamUpdate", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook ( "OnTeamUpdate", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Parameter ( "currentTeam", typeof ( ulong ) )]
     [OxideHook.Parameter ( "newTeam", typeof ( ulong ) )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]

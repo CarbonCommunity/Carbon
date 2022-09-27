@@ -6,7 +6,7 @@
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamCreated" ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook ( "OnTeamCreated" ), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Require ( "OnTeamCreate" )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]

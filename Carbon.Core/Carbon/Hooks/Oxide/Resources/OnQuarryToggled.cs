@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnQuarryToggled", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Resources )]
+    [OxideHook ( "OnQuarryToggled", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Resources )]
     [OxideHook.Parameter ( "this", typeof ( EngineSwitch ) )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when a quarry has just been toggled." )]

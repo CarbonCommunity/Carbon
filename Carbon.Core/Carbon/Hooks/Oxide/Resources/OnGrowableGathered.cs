@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnGrowableGathered" ), OxideHook.Category ( OxideHook.Category.Enum.Resources )]
+    [OxideHook ( "OnGrowableGathered" ), OxideHook.Category ( Hook.Category.Enum.Resources )]
     [OxideHook.Parameter ( "this", typeof ( GrowableEntity ) )]
     [OxideHook.Parameter ( "item", typeof ( Item ) )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
