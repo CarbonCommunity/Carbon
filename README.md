@@ -1,9 +1,10 @@
 ![Carbon](https://i.imgur.com/sG6X07A.jpg)
 
 <p align="center">
-  <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/compile-checks.yml/badge.svg?branch=develop"></a>
-  <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg?branch=develop"></a>
+  <a href="https://github.com/Carbon-Modding/Carbon.Core/blob/develop/.github/workflows/branch-merge.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/branch-merge.yml/badge.svg"></a>
+  <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg"></a>
   <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml/badge.svg"></a>
+  <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml/badge.svg?branch=production"></a>
 </p>
 
 
