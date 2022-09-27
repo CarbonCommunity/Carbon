@@ -5,7 +5,7 @@
 #  |______|___|___|___|__|______/_______|__|____|
 #                         discord.gg/eXPcNKK4yd
 # 
-name: ⤵️ merge-process-exec
+name: Branch Merge
 concurrency: merge-process-exec
 
 on:
@@ -47,4 +47,4 @@ jobs:
         target_branch: ${{ inputs.target }}
         github_token: ${{ secrets.PAT_PUBLIC_REPO }}
         message: |
-          🤖 Merged ${{ inputs.target }} with ${{ inputs.source }}
+          Merged ${{ inputs.target }} with ${{ inputs.source }}
