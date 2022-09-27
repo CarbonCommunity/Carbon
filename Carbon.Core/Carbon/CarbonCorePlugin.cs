@@ -148,18 +148,6 @@ namespace Carbon.Core
             CarbonCore.Instance.WebScriptProcessor.Prepare ( arg.Args [ 0 ] );
         }
 
-        #region Commit
-
-        [ConsoleCommand ( "commit" )]
-        private void Commit ( ConsoleSystem.Arg arg )
-        {
-            if ( !arg.IsPlayerCalledAndAdmin () ) return;
-
-            Reply ( CarbonCommit.Source, arg );
-        }
-
-        #endregion
-
         #region Config
 
         [ConsoleCommand ( "loadconfig", "Loads Carbon config from file." )]

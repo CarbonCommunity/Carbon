@@ -336,8 +336,6 @@ namespace Carbon.Core
 		{
 			if ( IsInitialized ) return;
 
-			CarbonCommit.Refresh ();
-
 			#region Handle Versions
 
 			var assembly = typeof ( CarbonCore ).Assembly;
