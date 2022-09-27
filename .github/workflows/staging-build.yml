@@ -5,7 +5,7 @@
 #  |______|___|___|___|__|______/_______|__|____|
 #                         discord.gg/eXPcNKK4yd
 # 
-name: 🚧 build-2-staging
+name: Staging Build
 concurrency: build-2-staging
 
 on:
