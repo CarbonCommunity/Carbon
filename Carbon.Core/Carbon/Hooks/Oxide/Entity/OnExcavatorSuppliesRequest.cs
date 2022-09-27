@@ -3,10 +3,7 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using Harmony;
 using Oxide.Core;
-using UnityEngine;
 
 namespace Carbon.Hooks.Oxide.Entity
 {

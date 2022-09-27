@@ -278,22 +278,21 @@ namespace Carbon.Core
 			else UnityEngine.Debug.LogError ( new Exception ( $"{message}\n{exception}" ) );
 		}
 
-		public static void LogCommand ( object message, BasePlayer player = null )
-		{
-			if ( player == null )
-			{
-				Log ( message );
-				return;
-			}
-
-			player.SendConsoleCommand ( $"echo {message}" );
-		}
-
 		public static void Format ( string format, params object [] args )
 		{
 			Log ( string.Format ( format, args ) );
 		}
-		public static void WarnFormat ( string format, params object [] args )
+        public static void LogCommand ( object message, BasePlayer player = null )
+        {
+            if ( player == null )
+            {
+                Log ( message );
+                return;
+            }
+
+            player.SendConsoleCommand ( $"echo {message}" );
+        }
+        public static void WarnFormat ( string format, params object [] args )
 		{
 			Warn ( string.Format ( format, args ) );
 		}

@@ -3,14 +3,12 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using Harmony;
 using Oxide.Core;
 using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnExplosiveThrown" ), OxideHook.Category ( OxideHook.Category.Enum.Weapon )]
+    [OxideHook ( "OnExplosiveThrown" ), OxideHook.Category ( Hook.Category.Enum.Weapon )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "entity", typeof ( BaseEntity ) )]
     [OxideHook.Parameter ( "item", typeof ( ThrownWeapon ) )]
@@ -49,7 +47,7 @@ namespace Carbon.Extended
             baseEntity.SetVelocity ( __instance.GetInheritedVelocity ( msg.player ) + normalized * __instance.maxThrowVelocity * d + msg.player.estimatedVelocity * 0.5f );
             if ( __instance.tumbleVelocity > 0f )
             {
-                baseEntity.SetAngularVelocity ( new Vector3 ( UnityEngine.Random.Range ( -1f, 1f ), UnityEngine.Random.Range ( -1f, 1f ), UnityEngine.Random.Range ( -1f, 1f ) ) * __instance.tumbleVelocity );
+                baseEntity.SetAngularVelocity ( new Vector3 ( Random.Range ( -1f, 1f ), Random.Range ( -1f, 1f ), Random.Range ( -1f, 1f ) ) * __instance.tumbleVelocity );
             }
 
             baseEntity.Spawn ();

@@ -4,11 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( LootableCorpse ) )]
     [OxideHook.Info ( "Called when the player stops looting an entity." )]
@@ -21,7 +20,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( StorageContainer ) )]
     [OxideHook.Info ( "Called when the player stops looting an entity." )]
@@ -34,7 +33,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( ItemBasedFlowRestrictor ) )]
     [OxideHook.Info ( "Called when the player stops looting an entity." )]
@@ -47,7 +46,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( DroppedItemContainer ) )]
     [OxideHook.Info ( "Called when the player stops looting an entity." )]
@@ -60,7 +59,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnLootEntityEnd", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( ContainerIOEntity ) )]
     [OxideHook.Info ( "Called when the player stops looting an entity." )]

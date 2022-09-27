@@ -4,15 +4,12 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 using Oxide.Core;
-using ProtoBuf;
 using System.Linq;
-using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnPlayerRespawn", typeof ( BasePlayer.SpawnPoint ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerRespawn", typeof ( BasePlayer.SpawnPoint ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( BasePlayer.SpawnPoint ) )]
     [OxideHook.Info ( "Called when a player is attempting to respawn." )]
@@ -36,7 +33,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnPlayerRespawn", typeof ( SleepingBag ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerRespawn", typeof ( SleepingBag ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "this", typeof ( SleepingBag ) )]
     [OxideHook.Info ( "Called when a player is attempting to respawn." )]

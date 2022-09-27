@@ -9,12 +9,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
-using Humanlights.Extensions;
 using CodeCompiler = CSharpCompiler.CodeCompiler;
 
 namespace Carbon.Core
 {
-	public class AsyncPluginLoader : ThreadedJob
+    public class AsyncPluginLoader : ThreadedJob
 	{
 		public string FilePath;
 		public string Source;

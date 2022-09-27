@@ -3,15 +3,11 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using CompanionServer.Handlers;
-using Harmony;
 using Oxide.Core;
-using ProtoBuf;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnPlayerAttack", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerAttack", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "hitInfo", typeof ( HitInfo ) )]
     [OxideHook.Info ( "Useful for modifying an attack before it goes out." )]

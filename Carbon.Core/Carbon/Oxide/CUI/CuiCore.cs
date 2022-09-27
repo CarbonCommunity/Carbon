@@ -53,7 +53,6 @@ namespace Oxide.Game.Rust.Cui
                     typeFromHandle = typeof ( CuiRawImageComponent );
                     break;
 
-
                 case "RectTransform":
                     typeFromHandle = typeof ( CuiRectTransformComponent );
                     break;
@@ -126,7 +125,7 @@ namespace Oxide.Game.Rust.Cui
             {
                 name = CuiHelper.GetGuid ();
             }
-            base.Add ( new CuiElement
+            Add ( new CuiElement
             {
                 Name = name,
                 Parent = parent,
@@ -139,7 +138,7 @@ namespace Oxide.Game.Rust.Cui
             } );
             if ( !string.IsNullOrEmpty ( button.Text.Text ) )
             {
-                base.Add ( new CuiElement
+                Add ( new CuiElement
                 {
                     Parent = name,
                     FadeOut = button.FadeOut,
@@ -159,7 +158,7 @@ namespace Oxide.Game.Rust.Cui
             {
                 name = CuiHelper.GetGuid ();
             }
-            base.Add ( new CuiElement
+            Add ( new CuiElement
             {
                 Name = name,
                 Parent = parent,
@@ -198,7 +197,7 @@ namespace Oxide.Game.Rust.Cui
             {
                 cuiElement.Components.Add ( new CuiNeedsCursorComponent () );
             }
-            base.Add ( cuiElement );
+            Add ( cuiElement );
             return name;
         }
 

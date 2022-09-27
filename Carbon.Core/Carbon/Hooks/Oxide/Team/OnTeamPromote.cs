@@ -3,14 +3,12 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using Harmony;
 using Oxide.Core;
 using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamPromote", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook ( "OnTeamPromote", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
     [OxideHook.Parameter ( "newLeader", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Useful for canceling player's promotion in the team." )]

@@ -8,8 +8,6 @@ using Carbon.Core.Extensions;
 using Facepunch.Extend;
 using Harmony;
 using System;
-using System.Collections.Generic;
-using UnityEngine.UI;
 
 [HarmonyPatch ( typeof ( ConsoleSystem ), "Run" )]
 public class ConsoleCommand
