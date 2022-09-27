@@ -24,13 +24,6 @@ on:
       - production
 
 jobs:
-  dump:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Dump context
-        uses: crazy-max/ghaction-dump-context@v1
-
   bootstrap:
     name: 🥾 Bootstrap
     runs-on: ubuntu-latest
