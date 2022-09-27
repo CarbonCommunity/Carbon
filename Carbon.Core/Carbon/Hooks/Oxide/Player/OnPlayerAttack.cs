@@ -3,11 +3,7 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using CompanionServer.Handlers;
-using Harmony;
 using Oxide.Core;
-using ProtoBuf;
 
 namespace Carbon.Extended
 {

@@ -4,11 +4,6 @@
 /// 
 
 using Carbon.Core;
-using CompanionServer.Handlers;
-using Harmony;
-using Oxide.Core;
-using ProtoBuf;
-using UnityEngine;
 
 namespace Carbon.Extended
 {

@@ -4,9 +4,6 @@
 /// 
 
 using Carbon.Core;
-using ConVar;
-using Harmony;
-using Oxide.Core;
 
 namespace Carbon.Extended
 {

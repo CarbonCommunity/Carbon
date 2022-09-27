@@ -3,11 +3,6 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using ConVar;
-using Harmony;
-using Oxide.Core;
-using UnityEngine;
 
 namespace Carbon.Extended
 {

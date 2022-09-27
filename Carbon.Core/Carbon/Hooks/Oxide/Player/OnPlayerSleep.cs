@@ -4,10 +4,6 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
-using Oxide.Core;
-using UnityEngine;
-using static BasePlayer;
 
 namespace Carbon.Extended
 {

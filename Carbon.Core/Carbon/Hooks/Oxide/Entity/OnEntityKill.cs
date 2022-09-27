@@ -4,7 +4,6 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {

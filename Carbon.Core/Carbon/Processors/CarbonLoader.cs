@@ -12,8 +12,6 @@ using UnityEngine;
 using Oxide.Plugins;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
-using Mono.CSharp;
-using static ConsoleSystem;
 
 namespace Carbon.Core
 {
