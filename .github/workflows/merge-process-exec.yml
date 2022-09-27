@@ -1,0 +1,50 @@
+# 
+#   ______ _______ ______ ______ _______ _______ 
+#  |      |   _   |   __ \   __ \       |    |  |
+#  |   ---|       |      <   __ <   -   |       |
+#  |______|___|___|___|__|______/_______|__|____|
+#                         discord.gg/eXPcNKK4yd
+# 
+name: ⤵️ merge-process-exec
+concurrency: merge-process-exec
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'From branch'
+        required: true
+        default: 'develop'
+        type: choice
+        options:
+        - develop
+        - staging
+        - production
+      target:
+        description: 'Target branch'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - develop
+        - staging
+        - production
+
+jobs:
+  merge:
+    name: 🔃 Merge branches
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+
+    - name: ⤵️ Merge staging with production
+      uses: devmasx/merge-branch@master
+      with:
+        type: now
+        from_branch: ${{ inputs.source }}
+        target_branch: ${{ inputs.target }}
+        github_token: ${{ secrets.PAT_PUBLIC_REPO }}
+        message: |
+          🤖 Merged ${{ inputs.target }} with ${{ inputs.source }}
