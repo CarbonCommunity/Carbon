@@ -52,7 +52,7 @@ jobs:
     continue-on-error: false
 
     outputs:
-      artifact: build-staging-${{ needs.bootstrap.outputs.ref }}-linux
+      artifact: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
       build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
     
     steps:
@@ -132,7 +132,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         prerelease: true
-        tag_name: staging_build
+        tag_name: develop_build
         name: 'Carbon Build (development)'
         body: |
           This is a build of Carbon based on the `develop` branch.
