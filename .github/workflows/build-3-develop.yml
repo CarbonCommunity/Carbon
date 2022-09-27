@@ -133,9 +133,9 @@ jobs:
       with:
         prerelease: true
         tag_name: staging_build
-        name: 'Carbon build (development)'
+        name: 'Carbon Build (development)'
         body: |
-          🥉 This is a build of carbon based on the `develop` branch.
+          🥉 This is a build of Carbon based on the `develop` branch.
           
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.

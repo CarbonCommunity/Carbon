@@ -134,9 +134,9 @@ jobs:
       with:
         prerelease: true
         tag_name: production_build
-        name: 'Carbon build (production)'
+        name: 'Carbon Build (production)'
         body: |
-          🥈 This is a build of carbon based on the `production` branch.
+          🥈 This is a build of Carbon based on the `production` branch.
           This build is targeted at the general public.
 
           ### How to install
