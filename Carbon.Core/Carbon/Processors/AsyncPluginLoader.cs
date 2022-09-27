@@ -18,15 +18,15 @@ namespace Carbon.Core
 	{
 		public string FilePath;
 		public string Source;
-		public string[] References;
-		public string[] Requires;
+		public string [] References;
+		public string [] Requires;
 		public float CompileTime;
 		public Assembly Assembly;
-		public List<CompilerException> Exceptions = new List<CompilerException>();
+		public List<CompilerException> Exceptions = new List<CompilerException> ();
 		internal int Retries;
 		internal RealTimeSince TimeSinceCompile;
 
-		internal static CodeCompiler _compiler = new CodeCompiler();
+		internal static CodeCompiler _compiler = new CodeCompiler ();
 		internal CompilerParameters _parameters;
 		internal static string [] _defaultReferences = new string [] {
 			"System.dll",
@@ -43,58 +43,50 @@ namespace Carbon.Core
             null;
 #endif
 		};
-		internal void _addReferences()
+		internal void _addReferences ()
 		{
-			_parameters.ReferencedAssemblies.Clear();
-			_parameters.ReferencedAssemblies.AddRange(_defaultReferences);
+			_parameters.ReferencedAssemblies.Clear ();
+			_parameters.ReferencedAssemblies.AddRange ( _defaultReferences );
 
-			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-			var lastCarbon = (Assembly)null;
-			foreach (var assembly in assemblies)
+			var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
+			foreach ( var assembly in assemblies )
 			{
-				if (CarbonLoader.AssemblyCache.Contains(assembly)) continue;
+				if ( CarbonLoader.AssemblyCache.Contains ( assembly ) ) continue;
 
-				var name = assembly.GetName().Name;
+				var name = assembly.GetName ().Name;
 
-				if (!name.StartsWith("Carbon"))
+				if ( !name.StartsWith ( "Carbon" ) )
 				{
-					if (assembly.ManifestModule is ModuleBuilder builder)
+					if ( assembly.ManifestModule is ModuleBuilder builder )
 					{
-						if (!builder.IsTransient())
+						if ( !builder.IsTransient () )
 						{
-							_parameters.ReferencedAssemblies.Add(name);
+							_parameters.ReferencedAssemblies.Add ( name );
 						}
 					}
 					else
 					{
-						_parameters.ReferencedAssemblies.Add(assembly.GetName().Name);
+						_parameters.ReferencedAssemblies.Add ( assembly.GetName ().Name );
 					}
 				}
-				else
-				{
-					lastCarbon = assembly;
-				}
 			}
 
-			if (lastCarbon != null)
-			{
-				_parameters.ReferencedAssemblies.Add(lastCarbon.GetName().Name);
-			}
+			_parameters.ReferencedAssemblies.Add ( typeof ( CarbonCore ).Assembly.GetName ().Name );
 
-			foreach (var reference in References)
+			foreach ( var reference in References )
 			{
-				_parameters.ReferencedAssemblies.Add(reference);
+				_parameters.ReferencedAssemblies.Add ( reference );
 			}
 		}
-		internal bool _addRequires()
+		internal bool _addRequires ()
 		{
-			if (Requires == null) return true;
+			if ( Requires == null ) return true;
 
-			foreach (var require in Requires)
+			foreach ( var require in Requires )
 			{
-				if (!CarbonLoader.AssemblyDictionaryCache.TryGetValue(require, out var assembly)) return false;
+				if ( !CarbonLoader.AssemblyDictionaryCache.TryGetValue ( require, out var assembly ) ) return false;
 
-				if (assembly != null) _parameters.ReferencedAssemblies.Add(assembly.GetName().Name);
+				if ( assembly != null ) _parameters.ReferencedAssemblies.Add ( assembly.GetName ().Name );
 			}
 
 			return true;
@@ -104,15 +96,15 @@ namespace Carbon.Core
 		{
 			public string FilePath;
 			public CompilerError Error;
-			public CompilerException(string filePath, CompilerError error) { FilePath = filePath; Error = error; }
+			public CompilerException ( string filePath, CompilerError error ) { FilePath = filePath; Error = error; }
 
-			public override string ToString()
+			public override string ToString ()
 			{
 				return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
 			}
 		}
 
-		public override void Start()
+		public override void Start ()
 		{
 			_parameters = new CompilerParameters
 			{
@@ -123,57 +115,57 @@ namespace Carbon.Core
 				WarningLevel = -1
 			};
 
-			_addReferences();
-			if (!_addRequires())
+			_addReferences ();
+			if ( !_addRequires () )
 			{
-				Exceptions.Add(new CompilerException(FilePath, new CompilerError { ErrorText = "Couldn't find all required references." }));
+				Exceptions.Add ( new CompilerException ( FilePath, new CompilerError { ErrorText = "Couldn't find all required references." } ) );
 				return;
 			}
 
-			base.Start();
+			base.Start ();
 		}
 
-		public override void ThreadFunction()
+		public override void ThreadFunction ()
 		{
 			try
 			{
-				Exceptions.Clear();
+				Exceptions.Clear ();
 
 				TimeSinceCompile = 0;
-				var result = _compiler.CompileAssemblyFromSource(_parameters, Source);
-				if (result == null || result.CompiledAssembly == null) result = _compiler.CompileAssemblyFromSource(_parameters, Source);
+				var result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
+				if ( result == null || result.CompiledAssembly == null ) result = _compiler.CompileAssemblyFromSource ( _parameters, Source );
 				CompileTime = TimeSinceCompile;
 
 				Assembly = result.CompiledAssembly;
 
-				foreach (CompilerError error in result.Errors)
+				foreach ( CompilerError error in result.Errors )
 				{
-					Exceptions.Add(new CompilerException(FilePath, error));
+					Exceptions.Add ( new CompilerException ( FilePath, error ) );
 				}
 
 
-				if (Exceptions.Count > 0) throw null;
+				if ( Exceptions.Count > 0 ) throw null;
 			}
 			catch
 			{
-				if (Retries < 10)
+				if ( Retries < 10 )
 				{
-					Thread.Sleep(100);
+					Thread.Sleep ( 100 );
 					Retries++;
-					ThreadFunction();
+					ThreadFunction ();
 					return;
 				}
 
-				if (Exceptions.Count > 0)
+				if ( Exceptions.Count > 0 )
 				{
-					var exception = Exceptions[0];
-					if (exception.Error.ErrorText.Contains("Mono.CSharp.CSharpParser") ||
-						exception.Error.ErrorText.Contains("Index was outside the bounds of the array."))
+					var exception = Exceptions [ 0 ];
+					if ( exception.Error.ErrorText.Contains ( "Mono.CSharp.CSharpParser" ) ||
+						exception.Error.ErrorText.Contains ( "Index was outside the bounds of the array." ) )
 					{
 						Retries++;
 
 						// Probably fixes thread stack overflow
-						if (Retries < 200) ThreadFunction();
+						if ( Retries < 200 ) ThreadFunction ();
 					}
 				}
 			}

@@ -280,6 +280,7 @@ namespace Carbon.Core
                     if ( CarbonCore.IsServerFullyInitialized )
                     {
                         plugin.CallHook ( "OnServerInitialized" );
+                        plugin.CallHook ( "OnServerInitialized", CarbonCore.IsServerFullyInitialized );
                     }
 
                     mod.Plugins.Add ( plugin );

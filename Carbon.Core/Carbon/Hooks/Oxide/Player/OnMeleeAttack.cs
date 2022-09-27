@@ -11,7 +11,7 @@ using ProtoBuf;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnMeleeAttack", typeof ( bool ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnMeleeAttack", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "hitInfo", typeof ( HitInfo ) )]
     [OxideHook.Info ( "Useful for canceling melee attacks." )]

@@ -1,0 +1,159 @@
+# 
+#   ______ _______ ______ ______ _______ _______ 
+#  |      |   _   |   __ \   __ \       |    |  |
+#  |   ---|       |      <   __ <   -   |       |
+#  |______|___|___|___|__|______/_______|__|____|
+#                         discord.gg/eXPcNKK4yd
+# 
+name: 🚧 build-1-production
+concurrency: build-1-production
+
+on:
+  push:
+    branches:
+      - production
+
+  schedule:
+    - cron: '0 5 * * 0'
+
+  workflow_run:
+    workflows: [⤵️ merge-process-exec]
+    types:
+      - completed
+    branches:
+      - production
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Dump context
+        uses: crazy-max/ghaction-dump-context@v1
+
+  bootstrap:
+    name: 🥾 Bootstrap
+    runs-on: ubuntu-latest
+
+    outputs:
+      date:  ${{ steps.step1.outputs.date }}
+      clock: ${{ steps.step1.outputs.clock }}
+      tag:   ${{ steps.step1.outputs.tag }}
+      ref:   ${{ steps.step1.outputs.ref }}
+
+    steps:
+      - name: 🔗 Checkout source code from github
+        uses: actions/checkout@v3
+        with:
+          ref: develop
+
+      - name: 📅 Prepare the environment
+        id: step1
+        run: |
+          echo "::set-output name=date::$(date +'%Y-%m-%d')"
+          echo "::set-output name=clock::$(date +'%H:%M:%S')"
+          echo "::set-output name=tag::$(date +'%Yd%j')"
+          echo "::set-output name=ref::$(git rev-parse --short HEAD)"
+
+  build-linux:
+    name: 🐧 Linux
+    needs: bootstrap
+    runs-on: ubuntu-latest
+    continue-on-error: false
+
+    outputs:
+      artifact: build-production-${{ needs.bootstrap.outputs.ref }}-linux
+      build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
+    
+    steps:
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+      with:
+        ref: production
+
+    - name: 🛤️ Setup the dotnet build environment
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: 🪚 Setup the Carbon build environment
+      shell: bash
+      run: |
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
+
+    - name: 🐧 Built Carbon on Linux
+      shell: bash
+      run: |
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build_debug.sh
+        
+    - name: ⬆️ Upload the artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-production-${{ needs.bootstrap.outputs.ref }}-linux
+        path: Release
+
+  build-windows:
+    name: 🪟 Windows
+    needs: bootstrap
+    runs-on: windows-latest
+    
+    steps:
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+      with:
+        ref: production
+
+    - name: 🛤️ Setup the dotnet build environment
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: 🪚 Setup the Carbon build environment
+      shell: cmd
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
+
+    - name: 🪟 Built Carbon on Windows
+      shell: cmd
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\win\build_debug.bat
+
+    - name: ⬆️ Upload the artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-production-${{ needs.bootstrap.outputs.ref }}-windows
+        path: Release
+
+  release:
+    name: 💾 Release
+    needs: [ "build-linux", "build-windows" ]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: ⬇️ Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ needs.build-linux.outputs.artifact }}
+        path: Release/
+
+    - name: 🏷️ Update release tag
+      uses: softprops/action-gh-release@v1
+      with:
+        prerelease: true
+        tag_name: production_build
+        name: 'Carbon build (production)'
+        body: |
+          🥈 This is a build of carbon based on the `production` branch.
+          This build is targeted at the general public.
+
+          ### How to install
+          1. ⬇️ Download the `Carbon.Patch.zip` archive from the attachments below.
+          2. 🗜️ Unzip the archive to the root of your Rust Dedicated Server.
+          3. 🔃 Restart the server and enjoy 🎉.
+          
+          📅 ${{ needs.build-linux.outputs.build_info }}
+        files: |
+          Release/Carbon.dll
+          Release/Carbon.Patch.zip
+          Release/Carbon-Unix.dll
+          Release/Carbon.Patch-Unix.zip

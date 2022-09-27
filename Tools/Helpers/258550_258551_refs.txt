@@ -18,6 +18,7 @@ regex:Rust.Platform.Common.dll
 regex:Rust.Harmony.dll
 regex:Newtonsoft.Json.dll
 regex:UnityEngine.dll
+regex:UnityEngine.AIModule.dll
 regex:UnityEngine.CoreModule.dll
 regex:UnityEngine.PhysicsModule.dll
 regex:UnityEngine.TextRenderingModule.dll

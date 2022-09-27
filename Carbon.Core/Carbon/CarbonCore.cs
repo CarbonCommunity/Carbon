@@ -338,21 +338,10 @@ namespace Carbon.Core
 
 			#region Handle Versions
 
-			try
-			{
-				var assembly = typeof ( CarbonCore ).Assembly;
-				var attr = assembly.GetCustomAttributes ( typeof ( AssemblyInformationalVersionAttribute ), true ) as AssemblyInformationalVersionAttribute [];
-				InformationalVersion = attr [ 0 ].InformationalVersion;
-			}
-			catch { }
+			var assembly = typeof ( CarbonCore ).Assembly;
 
-			try
-			{
-				var assembly = typeof ( CarbonCore ).Assembly;
-				var attr = assembly.GetCustomAttributes ( typeof ( AssemblyVersionAttribute ), true ) as AssemblyVersionAttribute [];
-				Version = attr [ 0 ].Version;
-			}
-			catch { }
+            try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute> ().InformationalVersion; } catch { }
+			try { Version = assembly.GetName().Version.ToString(); } catch { }
 
 			#endregion
 

@@ -298,7 +298,11 @@ namespace Carbon.Core
 
                     if ( CarbonCore.IsServerFullyInitialized )
                     {
-                        try { plugin.Instance.CallHook ( "OnServerInitialized" ); }
+                        try
+                        {
+                            plugin.Instance.CallHook ( "OnServerInitialized" );
+                            plugin.Instance.CallHook ( "OnServerInitialized", CarbonCore.IsServerFullyInitialized );
+                        }
                         catch ( Exception initException )
                         {
                             plugin.Instance.LogError ( $"Failed OnServerInitialized.", initException );

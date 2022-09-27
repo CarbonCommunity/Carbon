@@ -176,7 +176,8 @@ namespace Oxide.Plugins
             switch ( _processor )
             {
                 case ScriptProcessor script:
-                    _processor.Clear ( Name, script.InstanceBuffer [ Name ] );
+                    if ( script.InstanceBuffer.TryGetValue ( Name, out var instance ) )
+                        _processor.Clear ( Name, instance );
                     break;
             }
         }
