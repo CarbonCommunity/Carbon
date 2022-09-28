@@ -3,8 +3,12 @@
 /// All rights reserved
 /// 
 
-using EasyAntiCheat.Server.Hydra;
+using Carbon.Core;
+using Epic.OnlineServices;
+using Epic.OnlineServices.AntiCheatCommon;
+using Epic.OnlineServices.AntiCheatServer;
 using Oxide.Core;
+using System;
 
 namespace Carbon.Extended
 {
@@ -13,63 +17,61 @@ namespace Carbon.Extended
     [OxideHook.Parameter ( "reason", typeof ( string ) )]
     [OxideHook.Info ( "Called when a player has been banned from the server." )]
     [OxideHook.Info ( "Will have reason available if provided." )]
-    [OxideHook.Patch ( typeof ( EACServer ), "HandleClientUpdate" )]
-    public class EACServer_HandleClientUpdate_OnPlayerBanned
+    [OxideHook.Patch ( typeof ( EACServer ), "OnClientActionRequired" )]
+    public class EACServer_OnClientActionRequired_OnPlayerBanned
     {
-        public static void Prefix ( ClientStatusUpdate<EasyAntiCheat.Server.Hydra.Client> clientStatus )
+        public static bool Prefix ( ref OnClientActionRequiredCallbackInfo data )
         {
-            var client = clientStatus.Client;
-            var connection = EACServer.GetConnection ( client );
+            var clientHandle = data.ClientHandle;
+            var connection = EACServer.GetConnection ( clientHandle );
 
-            if ( !EACServer.ShouldIgnore ( connection ) )
+            if ( connection == null )
             {
-                if ( clientStatus.RequiresKick )
+                CarbonCore.ErrorFormat ( "[EAC] Status update for invalid client: " + clientHandle.ToString () );
+            }
+            else
+            {
+                AntiCheatCommonClientAction clientAction = data.ClientAction;
+
+                if ( clientAction == AntiCheatCommonClientAction.RemovePlayer )
                 {
-                    var text = clientStatus.Message;
+                    var actionReasonDetailsString = data.ActionReasonDetailsString;
 
-                    if ( string.IsNullOrEmpty ( text ) )
-                    {
-                        text = clientStatus.Status.ToString ();
-                    }
+                    CarbonCore.Log ( string.Format ( "[EAC] Kicking {0} / {1} ({2})", connection.userid, connection.username, actionReasonDetailsString ) );
+                    connection.authStatus = "eac";
+                    Network.Net.sv.Kick ( connection, "EAC: " + actionReasonDetailsString, false );
+                    Interface.CallHook ( "OnPlayerKicked", connection, actionReasonDetailsString.ToString () );
 
-                    if ( clientStatus.IsBanned ( out var dateTime ) )
+                    if ( data.ActionReasonCode == AntiCheatCommonClientActionReason.PermanentBanned || data.ActionReasonCode == AntiCheatCommonClientActionReason.TemporaryBanned )
                     {
                         connection.authStatus = "eacbanned";
-                        Interface.CallHook ( "OnPlayerBanned", connection, text );
+                        ConsoleNetwork.BroadcastToAllClients ( "chat.add", 2, 0, "<color=#fff>SERVER</color> Kicking " + connection.username + " (banned by anticheat)" );
+                        Interface.CallHook ( "OnPlayerBanned", connection, actionReasonDetailsString.ToString () );
                     }
+
+                    var unregisterClientOptions = new UnregisterClientOptions { ClientHandle = clientHandle };
+                    EACServer.Interface.UnregisterClient ( ref unregisterClientOptions );
+                    EACServer.client2connection.Remove ( clientHandle );
+                    EACServer.connection2client.Remove ( connection );
+                    EACServer.connection2status.Remove ( connection );
                 }
             }
+
+            return false;
         }
     }
 
     [OxideHook ( "OnPlayerKicked", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
+    [OxideHook.Require ( "OnPlayerBanned" )]
     [OxideHook.Parameter ( "connection", typeof ( Network.Connection ) )]
     [OxideHook.Parameter ( "reason", typeof ( string ) )]
     [OxideHook.Info ( "Called after the player is kicked from the server." )]
-    [OxideHook.Patch ( typeof ( EACServer ), "HandleClientUpdate" )]
-    public class EACServer_HandleClientUpdate_OnPlayerKicked
+    [OxideHook.Patch ( typeof ( EACServer ), "OnClientActionRequired" )]
+    public class EACServer_OnClientActionRequired_OnPlayerKicked
     {
-        public static void Prefix ( ClientStatusUpdate<EasyAntiCheat.Server.Hydra.Client> clientStatus )
+        public static void Prefix ( ref OnClientActionRequiredCallbackInfo data )
         {
-            var client = clientStatus.Client;
-            var connection = EACServer.GetConnection ( client );
 
-            if ( !EACServer.ShouldIgnore ( connection ) )
-            {
-                if ( clientStatus.RequiresKick )
-                {
-                    var text = clientStatus.Message;
-
-                    if ( string.IsNullOrEmpty ( text ) )
-                    {
-                        text = clientStatus.Status.ToString ();
-                    }
-
-                    connection.authStatus = "eac";
-                    Network.Net.sv.Kick ( connection, "EAC: " + text, false );
-                    Interface.CallHook ( "OnPlayerKicked", connection, text );
-                }
-            }
         }
     }
 }
