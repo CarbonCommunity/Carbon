@@ -21,6 +21,10 @@ namespace Carbon.Core.Modules
         {
             CarbonCore.Log ( $" [{Name}] {message}" );
         }
+        public void PutsError ( object message, Exception exception = null )
+        {
+            CarbonCore.Error ( $" [{Name}] {message}", exception );
+        }
 
         public virtual void Dispose ()
         {
@@ -32,12 +36,16 @@ namespace Carbon.Core.Modules
         {
             File = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), $"{Name}.json" ) );
         }
+        public virtual void InitEnd ()
+        {
+            Puts ( $"Initialized." );
+        }
         public virtual void Load ()
         {
             ConfigInstance = File.ReadObject<Configuration<T>> ();
             Config = ConfigInstance.Config;
 
-            if ( ConfigInstance.Enabled ) OnEnabled (); else OnDisabled ();
+            OnEnableStatus ();
         }
         public virtual void Save ()
         {
@@ -50,13 +58,26 @@ namespace Carbon.Core.Modules
             File.WriteObject ( ConfigInstance );
         }
 
-        public virtual void OnDisabled ()
-        {
+        public virtual void OnDisabled () { }
+        public virtual void OnEnabled () { }
 
-        }
-        public virtual void OnEnabled ()
-        {
+        public virtual void OnEnabledServerInit () { }
+        public virtual void OnDisabledServerInit () { }
 
+        public void OnEnableStatus ()
+        {
+            try
+            {
+                if ( CarbonCore.IsServerFullyInitialized )
+                {
+                    if ( ConfigInstance.Enabled ) OnEnabledServerInit (); else OnDisabledServerInit ();
+                }
+                else
+                {
+                    if ( ConfigInstance.Enabled ) OnEnabled (); else OnDisabled ();
+                }
+            }
+            catch ( Exception ex ) { PutsError ( $"Failed {( ConfigInstance.Enabled ? "Enable" : "Disable" )} initialization.", ex ); }
         }
     }
 

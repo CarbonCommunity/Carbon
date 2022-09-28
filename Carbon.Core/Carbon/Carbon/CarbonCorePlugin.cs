@@ -48,7 +48,11 @@ namespace Carbon.Core
                 permission.RefreshUser ( player );
             }
 
-            CarbonCore.Instance.ModuleProcessor.Setup ( new AutoWipeModule () );
+            CarbonCore.Instance.ModuleProcessor.Init ();
+        }
+        private void OnServerInitialized ()
+        {
+            CarbonCore.Instance.ModuleProcessor.OnServerInitialized ();
         }
 
         private void OnPluginLoaded ( Plugin plugin )
