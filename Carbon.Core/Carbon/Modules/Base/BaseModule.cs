@@ -4,6 +4,7 @@
 /// 
 
 using Oxide.Core.Configuration;
+using System;
 using System.IO;
 
 namespace Carbon.Core.Modules
@@ -15,6 +16,12 @@ namespace Carbon.Core.Modules
 
         public virtual string Id => "Not set";
 
+        public virtual void Dispose ()
+        {
+            Config = null;
+            ConfigInstance = null;
+        }
+
         public virtual void Init ()
         {
             Config = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), $"{Id}.json" ) );
@@ -25,7 +32,7 @@ namespace Carbon.Core.Modules
         }
         public virtual void Save ()
         {
-            Config.WriteObject ( ConfigInstance );
+            Config.WriteObject ( ConfigInstance ?? ( ConfigInstance = new Configuration<T> () ) );
         }
     }
 

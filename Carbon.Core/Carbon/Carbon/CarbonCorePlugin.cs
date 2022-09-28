@@ -4,6 +4,7 @@
 /// 
 
 using Carbon.Core.Extensions;
+using Carbon.Core.Modules;
 using Facepunch;
 using Humanlights.Components;
 using Humanlights.Extensions;
@@ -46,6 +47,8 @@ namespace Carbon.Core
             {
                 permission.RefreshUser ( player );
             }
+
+            CarbonCore.Instance.ModuleProcessor.Setup ( new AutoWipeModule () );
         }
 
         private void OnPluginLoaded ( Plugin plugin )
@@ -57,6 +60,15 @@ namespace Carbon.Core
         private void OnPlayerConnected ( BasePlayer player )
         {
             permission.RefreshUser ( player );
+        }
+
+        private void OnServerSave ()
+        {
+            CarbonCore.Instance.ModuleProcessor.Save ();
+        }
+        private void Loaded ()
+        {
+            CarbonCore.Instance.ModuleProcessor.Load ();
         }
 
         internal static void Reply ( object message, ConsoleSystem.Arg arg )
