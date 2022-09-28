@@ -12,7 +12,7 @@ using System;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnUserBanned", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerBanned" ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "connection", typeof ( Network.Connection ) )]
     [OxideHook.Parameter ( "reason", typeof ( string ) )]
     [OxideHook.Info ( "Called when a player has been banned from the server." )]
@@ -61,7 +61,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnPlayerKicked", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerKicked" ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Require ( "OnPlayerBanned" )]
     [OxideHook.Parameter ( "connection", typeof ( Network.Connection ) )]
     [OxideHook.Parameter ( "reason", typeof ( string ) )]
