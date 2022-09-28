@@ -14,7 +14,7 @@ set ROOT=%CD%
 popd
 
 rem Cleans the exiting files
-git clean -fx "%ROOT%\Rust\RustDedicated_Data"
+git clean -fx "%ROOT%\Rust"
 
 rem Download rust binary libs
 "%ROOT%\Tools\DepotDownloader\DepotDownloader\bin\Release\net6.0\DepotDownloader.exe" ^

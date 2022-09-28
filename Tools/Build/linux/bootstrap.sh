@@ -18,17 +18,17 @@ git submodule init
 git submodule update
 
 # Build Steam Downloading Utility
-dotnet restore ${ROOT}/Tools/DepotDownloader --nologo --force
-dotnet clean   ${ROOT}/Tools/DepotDownloader --configuration Release --nologo
-dotnet build   ${ROOT}/Tools/DepotDownloader --configuration Release --no-restore --no-incremental
+dotnet restore "${ROOT}/Tools/DepotDownloader" --nologo --force
+dotnet clean   "${ROOT}/Tools/DepotDownloader" --configuration Release --nologo
+dotnet build   "${ROOT}/Tools/DepotDownloader" --configuration Release --no-restore --no-incremental
 
 # Build .NET Assembly stripper, publicizer and general utility tool
-dotnet restore ${ROOT}/Tools/NStrip --nologo --force
-dotnet clean   ${ROOT}/Tools/NStrip --configuration Release --nologo
-dotnet build   ${ROOT}/Tools/NStrip --configuration Release --no-restore --no-incremental
+dotnet restore "${ROOT}/Tools/NStrip" --nologo --force
+dotnet clean   "${ROOT}/Tools/NStrip" --configuration Release --nologo
+dotnet build   "${ROOT}/Tools/NStrip" --configuration Release --no-restore --no-incremental
 
 # Keeping Unity DoorStop out of the game for now due to the more
 # complex build process.
 
 # Download rust binary libs
-exec ${BASE}/update.sh
+exec "${BASE}/update.sh"
