@@ -78,142 +78,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="..\..\External\Humanlights.MCS.dll" />
-    <Reference Include="..\..\External\Humanlights.System.dll" />
-    <Reference Include="..\..\External\Humanlights.Unity.dll" />
-    <Reference Include="..\..\External\Humanlights.Unity.Compiler.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\0Harmony.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp-firstpass.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Client.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Server.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Console.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Network.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Rcon.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Sqlite.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Steamworks.Win64.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.System.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Unity.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.UnityEngine.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Fleck.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Newtonsoft.Json.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Data.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Global.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Harmony.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Localization.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Platform.Common.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.AIModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.ImageConversionModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.PhysicsModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.SharedInternalsModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.TextRenderingModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UI.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAssetBundleModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAudioModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll">
-      <PrivateAssets>all</PrivateAssets>
-      <SpecificVersion>false</SpecificVersion>
-    </Reference>
-    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll">
+    <Reference Include="..\..\External\*.dll" />
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\*.dll">
       <PrivateAssets>all</PrivateAssets>
       <SpecificVersion>false</SpecificVersion>
     </Reference>
@@ -237,6 +103,21 @@
       <RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
     </PropertyGroup>
 
+    <Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+    </Exec>
+
+    <Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+    </Exec>
+
+    <PropertyGroup>
+      <Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
+    </PropertyGroup>
+
+    <Message Text="&gt;&gt; Build id tag is $(Gitag)" Importance="high" />
+    <WriteLinesToFile File="$(SolutionDir)Carbon\.gitag" Overwrite="true" Lines="$(Gitag)" />
+
     <Message Text="&gt;&gt; RandomASM property set to $(RandomASM)" Importance="high" />
     <WriteLinesToFile File="$(SolutionDir)Carbon\.rndasm" Overwrite="true" Lines="$(RandomASM)" />
   </Target>
@@ -253,6 +134,10 @@
       <Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />
     </Delete>
   </Target>
+
+  <PropertyGroup Condition="Exists('.gitag')">
+    <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.gitag').Trim())</InformationalVersion>
+  </PropertyGroup>
 
   <PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
     <AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm').Trim())</AssemblyName>
