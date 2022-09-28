@@ -32,7 +32,7 @@ namespace Carbon.Core.Modules
         }
         public virtual void Save ()
         {
-            Config.WriteObject ( ConfigInstance ?? ( ConfigInstance = new Configuration<T> () ) );
+            Config.WriteObject ( ConfigInstance ?? ( ConfigInstance = new Configuration<T> { Config = Activator.CreateInstance<T> () } ) );
         }
     }
 
