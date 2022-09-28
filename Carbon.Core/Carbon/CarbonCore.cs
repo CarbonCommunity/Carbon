@@ -204,7 +204,14 @@ namespace Carbon.Core
 
 			return folder;
 		}
-		public static string GetDataFolder ()
+        public static string GetModulesFolder ()
+        {
+            var folder = Path.Combine ( $"{GetRootFolder ()}", "modules" );
+            Directory.CreateDirectory ( folder );
+
+            return folder;
+        }
+        public static string GetDataFolder ()
 		{
 			var folder = Path.Combine ( $"{GetRootFolder ()}", "data" );
 			Directory.CreateDirectory ( folder );
@@ -356,6 +363,7 @@ namespace Carbon.Core
 
 			GetRootFolder ();
 			GetConfigsFolder ();
+			GetModulesFolder ();
 			GetDataFolder ();
 			GetPluginsFolder ();
 			GetLogsFolder ();
