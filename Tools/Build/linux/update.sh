@@ -21,7 +21,7 @@ git clean -fx "${ROOT}/Rust"
 
 # Download rust binary libs
 "${ROOT}/Tools/DepotDownloader/DepotDownloader/bin/Release/net6.0/DepotDownloader" \
-	-os linux -validate -app 258550 -branch ${TARGET} -filelist \
+	-validate -app 258550 -depot 258551 -branch ${TARGET} -filelist \
 	"${ROOT}/Tools/Helpers/258550_258551_refs.txt" -dir "${ROOT}/Rust"
 
 # Show me all you've got baby
