@@ -3,6 +3,10 @@
 /// All rights reserved
 /// 
 
+#if !( WIN || UNIX )
+#error Target architecture not defined
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.IO;
