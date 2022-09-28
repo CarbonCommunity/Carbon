@@ -85,7 +85,7 @@ namespace Carbon.Core
             }
         }
 
-        public void InstallHooks ( string hookName )
+        public void InstallHooks ( string hookName, bool doRequires = true )
         {
             if ( !DoesHookExist ( hookName ) ) return;
             if ( !IsPatched ( hookName ) ) CarbonCore.Debug ( $"Found '{hookName}'..." );
@@ -98,18 +98,22 @@ namespace Carbon.Core
                     {
                         var parameters = type.GetCustomAttributes<Hook.Parameter> ();
                         var hook = type.GetCustomAttribute<Hook> ();
-                        var requires = type.GetCustomAttributes<Hook.Require> ();
                         var args = parameters == null || !parameters.Any () ? 0 : parameters.Count ();
 
                         if ( hook == null ) continue;
 
-                        if ( requires != null )
+                        if ( doRequires )
                         {
-                            foreach ( var require in requires )
-                            {
-                                if ( require.Hook == hookName ) continue;
+                            var requires = type.GetCustomAttributes<Hook.Require> ();
 
-                                InstallHooks ( require.Hook );
+                            if ( requires != null )
+                            {
+                                foreach ( var require in requires )
+                                {
+                                    if ( require.Hook == hookName ) continue;
+
+                                    InstallHooks ( require.Hook, false );
+                                }
                             }
                         }
 
