@@ -11,5 +11,8 @@ namespace Carbon.Core.Modules
         void Init ();
         void Save ();
         void Load ();
+
+        void OnEnabled ();
+        void OnDisabled ();
     }
 }

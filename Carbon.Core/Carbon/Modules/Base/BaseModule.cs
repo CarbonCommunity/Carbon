@@ -11,28 +11,52 @@ namespace Carbon.Core.Modules
 {
     public class BaseModule<T> : IModule
     {
-        public DynamicConfigFile Config { get; private set; }
+        public DynamicConfigFile File { get; private set; }
         public Configuration<T> ConfigInstance { get; private set; }
+        public T Config { get; private set; }
 
-        public virtual string Id => "Not set";
+        public virtual string Name => "Not set";
+
+        public void Puts ( object message )
+        {
+            CarbonCore.Log ( $" [{Name}] {message}" );
+        }
 
         public virtual void Dispose ()
         {
-            Config = null;
+            File = null;
             ConfigInstance = null;
         }
 
         public virtual void Init ()
         {
-            Config = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), $"{Id}.json" ) );
+            File = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), $"{Name}.json" ) );
         }
         public virtual void Load ()
         {
-            ConfigInstance = Config.ReadObject<Configuration<T>> ();
+            ConfigInstance = File.ReadObject<Configuration<T>> ();
+            Config = ConfigInstance.Config;
+
+            if ( ConfigInstance.Enabled ) OnEnabled (); else OnDisabled ();
         }
         public virtual void Save ()
         {
-            Config.WriteObject ( ConfigInstance ?? ( ConfigInstance = new Configuration<T> { Config = Activator.CreateInstance<T> () } ) );
+            if ( ConfigInstance == null )
+            {
+                ConfigInstance = new Configuration<T> { Config = Activator.CreateInstance<T> () };
+                Config = ConfigInstance.Config;
+            }
+
+            File.WriteObject ( ConfigInstance );
+        }
+
+        public virtual void OnDisabled ()
+        {
+
+        }
+        public virtual void OnEnabled ()
+        {
+
         }
     }
 
