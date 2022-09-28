@@ -182,6 +182,9 @@ namespace Carbon.Core
         [CommandVar ( "hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true )]
         private bool HookTimeTracker { get { return CarbonCore.Instance.Config.HookTimeTracker; } set { CarbonCore.Instance.Config.HookTimeTracker = value; } }
 
+        [CommandVar ( "hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.", true )]
+        private bool HookValidation { get { return CarbonCore.Instance.Config.HookValidation; } set { CarbonCore.Instance.Config.HookValidation = value; } }
+
         #endregion
 
         #region Commands

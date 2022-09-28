@@ -258,19 +258,22 @@ namespace Carbon.Core
 
                     if ( !IsValidPlugin ( type ) ) continue;
 
-                    var counter = 0;
-                    foreach ( var method in type.GetMethods ( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance ) )
+                    if ( CarbonCore.Instance.Config.HookValidation )
                     {
-                        if ( CarbonHookValidator.IsIncompatibleOxideHook ( method.Name ) )
+                        var counter = 0;
+                        foreach ( var method in type.GetMethods ( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance ) )
                         {
-                            CarbonCore.Warn ( $" Hook '{method.Name}' is not supported." );
-                            counter++;
+                            if ( CarbonHookValidator.IsIncompatibleOxideHook ( method.Name ) )
+                            {
+                                CarbonCore.Warn ( $" Hook '{method.Name}' is not supported." );
+                                counter++;
+                            }
                         }
-                    }
 
-                    if ( counter > 0 )
-                    {
-                        CarbonCore.Warn ( $" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.\n The plugin will not work as expected." );
+                        if ( counter > 0 )
+                        {
+                            CarbonCore.Warn ( $" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.\n The plugin will not work as expected." );
+                        }
                     }
 
                     var instance = Activator.CreateInstance ( type, false );
