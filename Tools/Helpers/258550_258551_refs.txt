@@ -28,6 +28,3 @@ regex:UnityEngine.UnityWebRequestAudioModule.dll
 regex:UnityEngine.UnityWebRequestModule.dll
 regex:UnityEngine.UnityWebRequestTextureModule.dll
 regex:UnityEngine.UnityWebRequestWWWModule.dll
-regex:Facepunch.Steamworks.Posix.dll
-regex:Facepunch.Steamworks.Win64.dll
-regex:Facepunch.Steamworks.Win64.dll
