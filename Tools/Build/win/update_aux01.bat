@@ -14,16 +14,16 @@ set ROOT=%CD%
 popd
 
 rem Cleans the exiting files
-git clean -fx %ROOT%\Rust\RustDedicated_Data
+git clean -fx "%ROOT%\Rust\RustDedicated_Data"
 
 rem Download rust binary libs
-%ROOT%\Tools\DepotDownloader\DepotDownloader\bin\Release\net6.0\DepotDownloader.exe ^
+"%ROOT%\Tools\DepotDownloader\DepotDownloader\bin\Release\net6.0\DepotDownloader.exe" ^
 	-app 258550 -branch aux01 -depot 258551 -filelist ^
-	%ROOT%\Tools\Helpers\258550_258551_refs.txt -dir %ROOT%\Rust
+	"%ROOT%\Tools\Helpers\258550_258551_refs.txt" -dir "%ROOT%\Rust"
 
 rem Show me all you've got baby
-%ROOT%\Tools\NStrip\NStrip\bin\Release\net452\NStrip.exe ^
+"%ROOT%\Tools\NStrip\NStrip\bin\Release\net452\NStrip.exe" ^
 	--public --include-compiler-generated --keep-resources --no-strip --overwrite ^
-	--unity-non-serialized %ROOT%\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll
+	--unity-non-serialized "%ROOT%\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll"
 
-dotnet restore %ROOT%\Carbon.Core --nologo
+dotnet restore "%ROOT%\Carbon.Core" --nologo
