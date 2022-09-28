@@ -3,14 +3,22 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
+
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon", "Carbon\Carbon.csproj", "{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}"
 EndProject
+
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.CodeGen", "Carbon.CodeGen\Carbon.CodeGen.csproj", "{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C7A9EC64-357C-4411-85CB-AF342FAB6654} = {C7A9EC64-357C-4411-85CB-AF342FAB6654}
+	EndProjectSection
 EndProject
+
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Doorstop", "Carbon.Doorstop\Carbon.Doorstop.csproj", "{6872448A-98BF-45B3-88D8-AF80F8E562CA}"
 EndProject
+
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Patch", "Carbon.Patch\Carbon.Patch.csproj", "{C7A9EC64-357C-4411-85CB-AF342FAB6654}"
 EndProject
+
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,13 +36,9 @@ Global
 		{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}.ReleaseUnix|Any CPU.ActiveCfg = ReleaseUnix|Any CPU
 		{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|Any CPU
 		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.DebugUnix|Any CPU.ActiveCfg = DebugUnix|Any CPU
-		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.DebugUnix|Any CPU.Build.0 = DebugUnix|Any CPU
 		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.ReleaseUnix|Any CPU.ActiveCfg = ReleaseUnix|Any CPU
-		{A65D823D-2855-4D0C-8DA8-E10E1FAC426F}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|Any CPU
 		{6872448A-98BF-45B3-88D8-AF80F8E562CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6872448A-98BF-45B3-88D8-AF80F8E562CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6872448A-98BF-45B3-88D8-AF80F8E562CA}.DebugUnix|Any CPU.ActiveCfg = DebugUnix|Any CPU

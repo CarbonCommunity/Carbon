@@ -11,10 +11,7 @@ public class Hook : Attribute
     public string Name { get; set; }
     public Type ReturnType { get; set; }
 
-    public Hook ()
-    {
-
-    }
+    public Hook () { }
     public Hook ( string name )
     {
         Name = name;

@@ -4,10 +4,9 @@
     <TargetFrameworks>net48</TargetFrameworks>
 
     <StartupObject>Carbon.Patch.Program</StartupObject>
-    <OutputType>exe</OutputType>
-
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
+    <OutputType>Exe</OutputType>
 
     <ProjectGuid>{C7A9EC64-357C-4411-85CB-AF342FAB6654}</ProjectGuid>
     <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
@@ -15,6 +14,7 @@
 
   <PropertyGroup>
     <Product>Carbon</Product>
+    <AssemblyName>Carbon.Patch</AssemblyName>
     <Version>1.1.0.0</Version>
 
     <Company>Raul-Sorin Sorban</Company>
@@ -25,14 +25,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetName>Carbon.Patch</TargetName><!-- This has impact on the output file name -->
     <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
     <VersionSuffix>$(Configuration)</VersionSuffix>
 
     <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(VersionPrefix)</FileVersion>
-    <AssemblyName>$(TargetName)</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -43,7 +41,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
+  <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DefineConstants>DEBUG;WIN</DefineConstants>
     <OutputPath>bin\DebugUnix\</OutputPath>
@@ -67,7 +65,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
- <ItemGroup>
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />

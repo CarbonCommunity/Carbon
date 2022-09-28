@@ -5,6 +5,7 @@
 
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
+    <OutputType>Library</OutputType>
 
     <ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
     <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
@@ -29,8 +30,6 @@
     <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(VersionPrefix)</FileVersion>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
-    <Title>Carbon</Title>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -66,131 +65,156 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Drawing.Design" />
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml" />
+    <Reference Include="System" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Humanlights.MCS">
-      <HintPath>..\..\External\Humanlights.MCS.dll</HintPath>
-    </Reference>
-    <Reference Include="Humanlights.System">
-      <HintPath>..\..\External\Humanlights.System.dll</HintPath>
-    </Reference>
-    <Reference Include="Humanlights.Unity">
-      <HintPath>..\..\External\Humanlights.Unity.dll</HintPath>
-    </Reference>
-    <Reference Include="Humanlights.Unity.Compiler">
-      <HintPath>..\..\External\Humanlights.Unity.Compiler.dll</HintPath>
-    </Reference>
+    <Reference Include="..\..\External\Humanlights.MCS.dll"/>
+    <Reference Include="..\..\External\Humanlights.System.dll"/>
+    <Reference Include="..\..\External\Humanlights.Unity.dll"/>
+    <Reference Include="..\..\External\Humanlights.Unity.Compiler.dll"/>
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\0Harmony.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\0Harmony.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp-firstpass.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="EasyAntiCheat.Client">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Client.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Client.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="EasyAntiCheat.Server">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Server.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Server.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Facepunch.Console">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Console.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Console.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Facepunch.Network">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Network.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Network.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Facepunch.Rcon">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Rcon.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Rcon.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Facepunch.Sqlite">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Sqlite.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Sqlite.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Facepunch.Steamworks.Win64">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Steamworks.Win64.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Facepunch.System">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.System.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.System.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Facepunch.Unity">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Unity.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.Unity.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Facepunch.UnityEngine">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.UnityEngine.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Facepunch.UnityEngine.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Fleck">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Fleck.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Fleck.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Newtonsoft.Json.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Rust.Data">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Data.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Data.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Rust.Global">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Global.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Global.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Rust.Harmony">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Harmony.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Harmony.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Rust.Localization">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Localization.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Localization.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="Rust.Platform.Common">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Platform.Common.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\Rust.Platform.Common.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.AIModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.AIModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.AIModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.ImageConversionModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.PhysicsModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.SharedInternalsModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UI.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.TextRenderingModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UI.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAssetBundleModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAudioModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestTextureModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
+    </Reference>
+    <Reference Include="..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll">
+      <PrivateAssets>all</PrivateAssets>
+      <SpecificVersion>false</SpecificVersion>
     </Reference>
   </ItemGroup>
 
@@ -203,29 +227,33 @@
   </ItemGroup>
 
   <Target Name="CleanOutput" AfterTargets="Clean">
-    <!-- <Message Text=">>> CleanOutput" Importance="high"/> -->
     <Delete Files="$(OutputPath)Carbon.dll" />
     <Delete Files="$(OutputPath)$(TargetName).dll" />
   </Target>
 
-  <Target Name="MoveOutput" AfterTargets="AfterBuild">
-    <!-- <Message Text=">>> MoveOutput" Importance="high"/> -->
-    <Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll" />
-
+  <Target Name="CustomPrepareForBuild" AfterTargets="_GenerateRestoreProjectSpec">
     <PropertyGroup>
       <RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
     </PropertyGroup>
 
-    <Message Text="RandomASM property set to $(RandomASM)" Importance="high" />
-    <WriteLinesToFile File="$(SolutionDir)Carbon/.rndasm" Overwrite="true" Lines="$(RandomASM)" />
+    <Message Text=">> RandomASM property set to $(RandomASM)" Importance="high" />
+    <WriteLinesToFile File="$(SolutionDir)Carbon\.rndasm" Overwrite="true" Lines="$(RandomASM)" />
   </Target>
 
-  <PropertyGroup Condition="!Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
-    <AssemblyName>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</AssemblyName>
-  </PropertyGroup>
+  <Target Name="CustomAfterBuild" AfterTargets="AfterBuild">
+    <Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll" />
+
+    <ItemGroup>
+      <FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)Carbon.dll;$(OutputPath)Carbon-*.dll"/>
+    </ItemGroup>
+
+    <Message Text=">> Cleaning output folder" Importance="high" />
+    <Delete Files="@(FilesToDelete)">
+      <Output TaskParameter="DeletedFiles" ItemName="FilesDeleted"/>
+    </Delete>
+  </Target>
 
   <PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
-    <AssemblyName>$([System.Text.RegularExpressions.Regex]::Replace(
-		  $([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm')), '\r?\n?', ''))</AssemblyName>
+    <AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm').Trim())</AssemblyName>
   </PropertyGroup>
 </Project>

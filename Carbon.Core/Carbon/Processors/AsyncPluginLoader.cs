@@ -34,9 +34,9 @@ namespace Carbon.Core
 			"protobuf-net.Core.dll",
 			"Assembly-CSharp.dll",
 #if WIN
-            "Carbon.dll",
+			"Carbon.dll"
 #elif UNIX
-            "Carbon-Unix.dll"
+			"Carbon-Unix.dll"
 #else
 #error Target architecture not defined
             null;
