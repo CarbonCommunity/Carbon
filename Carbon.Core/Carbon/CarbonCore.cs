@@ -359,20 +359,23 @@ namespace Carbon.Core
 			OsEx.Folder.DeleteContents ( GetTempFolder () );
 			Debug ( "Loaded folders", 3 );
 
-			_installProcessors ();
+            _installProcessors ();
 
 			Interface.Initialize ();
 
 			_clearCommands ();
 			_installDefaultCommands ();
 
-			ReloadPlugins ();
+            CarbonHookValidator.Refresh ();
+            Debug ( "Fetched oxide hooks", 3 );
+
+            ReloadPlugins ();
 
 			Format ( $"Loaded." );
 
 			RefreshConsoleInfo ();
 
-			IsInitialized = true;
+            IsInitialized = true;
 		}
 		public void UnInit ()
 		{

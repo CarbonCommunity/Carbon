@@ -1,4 +1,5 @@
 ﻿using Carbon.Extended;
+using Carbon.Oxide.Metadata;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

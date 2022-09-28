@@ -266,6 +266,21 @@ namespace Carbon.Core
                     if ( !( type.Namespace.Equals ( "Oxide.Plugins" ) ||
                         type.Namespace.Equals ( "Carbon.Plugins" ) ) ) continue;
 
+                    var counter = 0;
+                    foreach ( var method in type.GetMethods ( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance ) )
+                    {
+                        if ( CarbonHookValidator.IsIncompatibleOxideHook ( method.Name ) )
+                        {
+                            CarbonCore.Warn ( $" Hook '{method.Name}' is not supported." );
+                            counter++;
+                        }
+                    }
+
+                    if ( counter > 0 )
+                    {
+                        CarbonCore.Warn ( $" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.\n The plugin will not work as expected." );
+                    }
+
                     var info = type.GetCustomAttribute ( typeof ( InfoAttribute ), true ) as InfoAttribute;
                     var description = type.GetCustomAttribute ( typeof ( DescriptionAttribute ), true ) as DescriptionAttribute;
                     var plugin = Script.Create ( Sources [ pluginIndex ], assembly, type );

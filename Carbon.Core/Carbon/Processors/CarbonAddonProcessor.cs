@@ -139,7 +139,7 @@ namespace Carbon.Core
                                 transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
                             hookInstance.Patches.Add ( instance );
                             hookInstance.Id = patchId;
-                            CarbonCore.Debug ( $"Patched {hookName}[{args}]..." );
+                            CarbonCore.Warn ( $" Patched {hookName}[{args}]..." );
 
                             Pool.Free ( ref matchedParameters );
                         }

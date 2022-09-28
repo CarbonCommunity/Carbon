@@ -30,6 +30,7 @@
     <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(VersionPrefix)</FileVersion>
+    <RootNamespace>$(MSBuildProjectName.Replace(" ", "_")).Core</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -77,10 +78,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="..\..\External\Humanlights.MCS.dll"/>
-    <Reference Include="..\..\External\Humanlights.System.dll"/>
-    <Reference Include="..\..\External\Humanlights.Unity.dll"/>
-    <Reference Include="..\..\External\Humanlights.Unity.Compiler.dll"/>
+    <Reference Include="..\..\External\Humanlights.MCS.dll" />
+    <Reference Include="..\..\External\Humanlights.System.dll" />
+    <Reference Include="..\..\External\Humanlights.Unity.dll" />
+    <Reference Include="..\..\External\Humanlights.Unity.Compiler.dll" />
   </ItemGroup>
 
   <ItemGroup>
@@ -236,7 +237,7 @@
       <RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
     </PropertyGroup>
 
-    <Message Text=">> RandomASM property set to $(RandomASM)" Importance="high" />
+    <Message Text="&gt;&gt; RandomASM property set to $(RandomASM)" Importance="high" />
     <WriteLinesToFile File="$(SolutionDir)Carbon\.rndasm" Overwrite="true" Lines="$(RandomASM)" />
   </Target>
 
@@ -244,12 +245,12 @@
     <Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll" />
 
     <ItemGroup>
-      <FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)Carbon.dll;$(OutputPath)Carbon-*.dll"/>
+      <FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)Carbon.dll;$(OutputPath)Carbon-*.dll" />
     </ItemGroup>
 
-    <Message Text=">> Cleaning output folder" Importance="high" />
+    <Message Text="&gt;&gt; Cleaning output folder" Importance="high" />
     <Delete Files="@(FilesToDelete)">
-      <Output TaskParameter="DeletedFiles" ItemName="FilesDeleted"/>
+      <Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />
     </Delete>
   </Target>
 
