@@ -42,8 +42,8 @@ namespace Carbon.Core
                 }
 
                 if ( !customSources ) GetSources ();
-                GetNamespaces ();
-                GetFullSource ();
+
+                if( Sources.Count > 0 ) Source = Sources [ 0 ];
 
                 if ( Parser != null )
                 {
@@ -129,41 +129,7 @@ namespace Carbon.Core
                 }
 
                 var source = OsEx.File.ReadText ( file );
-                Sources.Add ( source.Trim () );
-            }
-        }
-        protected void GetNamespaces ()
-        {
-            Namespaces.Clear ();
-
-            foreach ( var source in Sources )
-            {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) );
-
-                foreach ( var usingLine in usingLines )
-                {
-                    if ( Namespaces.Exists ( x => x == usingLine ) )
-                    {
-                        continue;
-                    }
-
-                    Namespaces.Add ( usingLine );
-                }
-            }
-
-            Namespaces = Namespaces.OrderBy ( x => x ).ToList ();
-        }
-        protected void GetFullSource ()
-        {
-            Source = StringArrayEx.ToString ( Namespaces.ToArray (), "\n", "\n" ) + "\n\n";
-
-            foreach ( var source in Sources )
-            {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) ).ToArray ();
-                var usingLinesString = usingLines.Length == 0 ? "" : StringArrayEx.ToString ( usingLines, "\n", "\n" );
-
-                var fixedSource = string.IsNullOrEmpty ( usingLinesString ) ? source.Trim () : source.Replace ( usingLinesString, "" ).Trim ();
-                Source += fixedSource + "\n\n";
+                Sources.Add ( source );
             }
         }
 

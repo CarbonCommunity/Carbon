@@ -15,7 +15,7 @@ namespace Carbon.Extended
     [OxideHook.Patch ( typeof ( RepairBench ), "RepairAnItem" )]
     public class RepairBench_RepairAnItem
     {
-        public static bool Prefix ( Item itemToRepair, BasePlayer player, BaseEntity repairBenchEntity, float maxConditionLostOnRepair, bool mustKnowBlueprint, ref RepairBench __instance )
+        public static bool Prefix ( Item itemToRepair, BasePlayer player, BaseEntity repairBenchEntity, float maxConditionLostOnRepair, bool mustKnowBlueprint )
         {
             if ( itemToRepair == null )
             {
