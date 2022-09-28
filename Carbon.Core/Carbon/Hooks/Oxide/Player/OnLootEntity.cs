@@ -4,11 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnLootEntity", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnLootEntity", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "targetEntity", typeof ( BaseEntity ) )]
     [OxideHook.Info ( "Called when the player starts looting an entity." )]

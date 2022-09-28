@@ -4,11 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {
-    [Hook ( "OnPlayerRecover", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [Hook ( "OnPlayerRecover", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "this", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when the player is about to recover from the 'wounded' state." )]
     [OxideHook.Patch ( typeof ( BasePlayer ), "RecoverFromWounded" )]
@@ -20,7 +19,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnPlayerRecovered" ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerRecovered" ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "this", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when the player was recovered." )]
     [OxideHook.Patch ( typeof ( BasePlayer ), "RecoverFromWounded" )]

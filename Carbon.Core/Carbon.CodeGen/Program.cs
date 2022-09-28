@@ -20,6 +20,35 @@ namespace Carbon.CodeGen
             Console.ReadLine ();
         }
 
+        public static string GetExample ( Hook hook, Hook.Parameter [] parameters )
+        {
+            return $@"{{% code title=""Example"" %}}
+```csharp
+{( hook.ReturnType  == typeof(void) ? "void" : "object")} {hook.Name} ( {parameters.Select ( x => $"{GetType ( x.Type )} {( x.Name == "this" ? GetParameterName(x.Type).Trim() : x.Name )}" ).ToArray ().ToString ( ", " )} )
+{{
+    Puts ( ""{hook.Name} works!"" );" + ( hook.ReturnType == typeof ( void ) ? "" : $@"
+    return ({GetType ( hook.ReturnType )}) null;" ) + $@"
+}}
+```
+{{% endcode %}}";
+        }
+        public static string GetType ( Type type )
+        {
+            if ( type == typeof ( void ) ) return "void";
+            else if ( type == typeof ( string ) ) return "string";
+            else if ( type == typeof ( uint ) ) return "uint";
+            else if ( type == typeof ( int ) ) return "int";
+            else if ( type == typeof ( ulong ) ) return "ulong";
+            else if ( type == typeof ( object ) ) return "object";
+            else if ( type == typeof ( bool ) ) return "bool";
+
+            return type.FullName.Replace ( "+", "." );
+        }
+        public static string GetParameterName (Type type)
+        {
+            return $"{char.ToLower ( type.Name [ 0 ] )}{type.Name.Substring(1)}";
+        }
+
         public static void DoExtendedDocs ()
         {
             var assembly = typeof ( Hammer_DoAttackShared ).Assembly;
@@ -89,36 +118,6 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
             OsEx.File.Create ( "extended.md", result );
         }
-
-        public static string GetExample ( Hook hook, Hook.Parameter [] parameters )
-        {
-            return $@"{{% code title=""Example"" %}}
-```csharp
-{( hook.ReturnType  == typeof(void) ? "void" : "object")} {hook.Name} ( {parameters.Select ( x => $"{GetType ( x.Type )} {( x.Name == "this" ? GetParameterName(x.Type).Trim() : x.Name )}" ).ToArray ().ToString ( ", " )} )
-{{
-    Puts ( ""{hook.Name} works!"" );" + ( hook.ReturnType == typeof ( void ) ? "" : $@"
-    return ({GetType ( hook.ReturnType )}) null;" ) + $@"
-}}
-```
-{{% endcode %}}";
-        }
-        public static string GetType ( Type type )
-        {
-            if ( type == typeof ( void ) ) return "void";
-            else if ( type == typeof ( string ) ) return "string";
-            else if ( type == typeof ( uint ) ) return "uint";
-            else if ( type == typeof ( int ) ) return "int";
-            else if ( type == typeof ( ulong ) ) return "ulong";
-            else if ( type == typeof ( object ) ) return "object";
-            else if ( type == typeof ( bool ) ) return "bool";
-
-            return type.FullName.Replace ( "+", "." );
-        }
-        public static string GetParameterName (Type type)
-        {
-            return $"{char.ToLower ( type.Name [ 0 ] )}{type.Name.Substring(1)}";
-        }
-
         public static void DoHookDocs ()
         {
             var hooks = "..\\..\\..\\..\\Tools\\hooks.json";
@@ -174,7 +173,6 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
             OsEx.File.Create ( "test.md", result );
         }
-
         public static void DoHooks ()
         {
             var hooks = JsonConvert.DeserializeObject<HookPackage> ( OsEx.File.ReadText ( "..\\..\\..\\..\\Tools\\Rust.opj" ) );

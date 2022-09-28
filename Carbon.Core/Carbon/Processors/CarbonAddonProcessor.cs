@@ -5,7 +5,6 @@
 
 using Facepunch;
 using Harmony;
-using Humanlights.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

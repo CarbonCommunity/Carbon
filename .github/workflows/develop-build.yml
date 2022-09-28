@@ -20,6 +20,8 @@ on:
   schedule:
     - cron: '0 5 * * *'
 
+  workflow_dispatch:
+
 jobs:
   bootstrap:
     name: 🥾 Bootstrap
@@ -52,7 +54,7 @@ jobs:
     continue-on-error: false
 
     outputs:
-      artifact: build-staging-${{ needs.bootstrap.outputs.ref }}-linux
+      artifact: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
       build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
     
     steps:
@@ -118,8 +120,9 @@ jobs:
     name: 💾 Release
     needs: [ "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'schedule' }}
-    # only release if trigered by the scheduler
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    # only release if triggered by the scheduler
+    # or if manually triggered by a developer
 
     steps:
     - name: ⬇️ Download artifacts
@@ -132,20 +135,20 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         prerelease: true
-        tag_name: staging_build
+        tag_name: develop_build
         name: 'Carbon Build (development)'
         body: |
-          🥉 This is a build of Carbon based on the `develop` branch.
+          This is a build of Carbon based on the `develop` branch.
           
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.
 
           ### How to install
-          1. ⬇️ Download the `Carbon.Patch.zip` archive from the attachments below.
-          2. 🗜️ Unzip the archive to the root of your Rust Dedicated Server.
-          3. 🔃 Restart the server and enjoy 🎉.
+          1. Download the `Carbon.Patch.zip` archive from the attachments below.
+          2. Unzip the archive to the root of your Rust Dedicated Server.
+          3. Restart the server and enjoy.
           
-          📅 ${{ needs.build-linux.outputs.build_info }}
+          ${{ needs.build-linux.outputs.build_info }}
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |

@@ -3,13 +3,11 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using Harmony;
 using Oxide.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnPlayerRevive", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerRevive", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "target", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when the recover after reviving with a medical tool." )]
@@ -39,7 +37,7 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnHealingItemUse", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnHealingItemUse", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "this", typeof ( MedicalTool ) )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when a player attempts to use a medical tool." )]

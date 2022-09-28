@@ -4,14 +4,11 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
-using Oxide.Core;
 using UnityEngine;
-using static BasePlayer;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnPlayerRespawned" ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerRespawned" ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "this", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when the player has respawned (specifically when they click the \"Respawn\" button)." )]
     [OxideHook.Info ( "ONLY called after the player has transitioned from dead to not-dead, so not when they're waking up." )]

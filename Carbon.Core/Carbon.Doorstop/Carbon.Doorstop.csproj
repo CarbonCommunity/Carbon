@@ -12,6 +12,7 @@
 
   <PropertyGroup>
     <Product>Carbon</Product>
+    <AssemblyName>Carbon.Doorstop</AssemblyName>
     <Version>1.1.0.0</Version>
 
     <Company>Raul-Sorin Sorban</Company>
@@ -22,14 +23,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetName>Carbon.Doorstop</TargetName><!-- This has impact on the output file name -->
     <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
     <VersionSuffix>$(Configuration)</VersionSuffix>
 
     <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(VersionPrefix)</FileVersion>
-    <AssemblyName>$(TargetName)</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -40,7 +39,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
+  <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DefineConstants>DEBUG;UNIX</DefineConstants>
     <OutputPath>bin\DebugUnix\</OutputPath>

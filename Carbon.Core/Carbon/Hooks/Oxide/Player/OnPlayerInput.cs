@@ -4,11 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnPlayerInput" ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerInput" ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "input", typeof ( InputState ) )]
     [OxideHook.Info ( "Called when input is received from a connected client." )]

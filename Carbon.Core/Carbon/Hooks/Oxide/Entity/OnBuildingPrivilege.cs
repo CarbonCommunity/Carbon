@@ -4,11 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnBuildingPrivilege", typeof ( BuildingPrivlidge ) ), OxideHook.Category ( OxideHook.Category.Enum.Entity )]
+    [OxideHook ( "OnBuildingPrivilege", typeof ( BuildingPrivlidge ) ), OxideHook.Category ( Hook.Category.Enum.Entity )]
     [OxideHook.Parameter ( "entity", typeof ( BaseNetworkable ) )]
     [OxideHook.Info ( "Useful for overriding a building privilege on specific entities and etc.." )]
     [OxideHook.Info ( "Returning BuildingPrivlidge value overrides default behavior." )]
