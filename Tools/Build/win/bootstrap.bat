@@ -31,4 +31,4 @@ rem Keeping Unity DoorStop out of the game for now due to the more complex
 rem build process.
 
 rem Download rust binary libs
-call "%BASE%\update.bat"
+call "%BASE%\update.bat" public

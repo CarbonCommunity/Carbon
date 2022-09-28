@@ -31,4 +31,4 @@ dotnet build   "${ROOT}/Tools/NStrip" --configuration Release --no-restore --no-
 # complex build process.
 
 # Download rust binary libs
-exec "${BASE}/update.sh"
+exec "${BASE}/update.sh" public
