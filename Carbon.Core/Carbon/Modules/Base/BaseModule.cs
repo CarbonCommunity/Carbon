@@ -1,11 +1,10 @@
-﻿using Oxide.Core.Configuration;
-using System;
-using System.Collections.Generic;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using Oxide.Core.Configuration;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Carbon.Core.Modules.BaseModule<T>;
 
 namespace Carbon.Core.Modules
 {
