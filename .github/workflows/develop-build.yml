@@ -150,7 +150,7 @@ jobs:
           
           ${{ needs.build-linux.outputs.build_info }}
 
-          [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
+          Production: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
           Release/Carbon.dll
           Release/Carbon.Patch.zip
