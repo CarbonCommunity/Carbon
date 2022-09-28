@@ -12,7 +12,7 @@ namespace Carbon.Core.Modules
     public class BaseModule<T> : IModule
     {
         public DynamicConfigFile File { get; private set; }
-        public Configuration<T> ConfigInstance { get; private set; }
+        public Configuration ConfigInstance { get; set; }
         public T Config { get; private set; }
 
         public virtual string Name => "Not set";
@@ -35,6 +35,7 @@ namespace Carbon.Core.Modules
         public virtual void Init ()
         {
             File = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), $"{Name}.json" ) );
+            Load ();
         }
         public virtual void InitEnd ()
         {
@@ -42,7 +43,7 @@ namespace Carbon.Core.Modules
         }
         public virtual void Load ()
         {
-            ConfigInstance = File.ReadObject<Configuration<T>> ();
+            ConfigInstance = File.ReadObject<Configuration> ();
             Config = ConfigInstance.Config;
 
             OnEnableStatus ();
@@ -51,11 +52,21 @@ namespace Carbon.Core.Modules
         {
             if ( ConfigInstance == null )
             {
-                ConfigInstance = new Configuration<T> { Config = Activator.CreateInstance<T> () };
+                ConfigInstance = new Configuration { Config = Activator.CreateInstance<T> () };
                 Config = ConfigInstance.Config;
             }
 
             File.WriteObject ( ConfigInstance );
+        }
+
+        public void SetEnabled ( bool enable )
+        {
+            if ( ConfigInstance != null ) ConfigInstance.Enabled = enable;
+            OnEnableStatus ();
+        }
+        public bool GetEnabled ()
+        {
+            return ConfigInstance.Enabled;
         }
 
         public virtual void OnDisabled () { }
@@ -79,11 +90,11 @@ namespace Carbon.Core.Modules
             }
             catch ( Exception ex ) { PutsError ( $"Failed {( ConfigInstance.Enabled ? "Enable" : "Disable" )} initialization.", ex ); }
         }
-    }
 
-    public class Configuration<T>
-    {
-        public bool Enabled { get; set; }
-        public T Config { get; set; }
+        public class Configuration : IModuleConfig
+        {
+            public bool Enabled { get; set; }
+            public T Config { get; set; }
+        }
     }
 }

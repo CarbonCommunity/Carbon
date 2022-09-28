@@ -29,7 +29,7 @@ namespace Carbon.Core.Processors
         }
         public void OnServerInitialized ()
         {
-            foreach(var module in Modules)
+            foreach ( var module in Modules )
             {
                 module.OnEnableStatus ();
             }

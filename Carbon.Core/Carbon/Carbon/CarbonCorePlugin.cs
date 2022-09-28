@@ -70,10 +70,6 @@ namespace Carbon.Core
         {
             CarbonCore.Instance.ModuleProcessor.Save ();
         }
-        private void Loaded ()
-        {
-            CarbonCore.Instance.ModuleProcessor.Load ();
-        }
 
         internal static void Reply ( object message, ConsoleSystem.Arg arg )
         {
@@ -241,6 +237,28 @@ namespace Carbon.Core
             }
 
             Reply ( body.ToNewLine (), arg );
+        }
+
+        #endregion
+
+        #region Modules
+
+        [ConsoleCommand ( "setmodule", "Enables or disables Carbon modules. Visit root/carbon/modules and use the config file names as IDs." )]
+        private void SetModule ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 2 ) ) return;
+
+            var module = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+
+            if ( module == null )
+            {
+                Reply ( $"Couldn't find that module.", arg );
+                return;
+            }
+
+            module.SetEnabled ( arg.Args [ 1 ].ToBool () );
+            module.Save ();
+            Reply ( $"{module.Name} marked {( module.GetEnabled () ? "Enabled" : "Disabled" )}", arg );
         }
 
         #endregion

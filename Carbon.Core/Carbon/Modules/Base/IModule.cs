@@ -8,11 +8,15 @@ namespace Carbon.Core.Modules
 {
     public interface IModule : IDisposable
     {
+        string Name { get; }
+
         void Init ();
         void InitEnd ();
         void Save ();
         void Load ();
 
+        void SetEnabled ( bool enabled );
+        bool GetEnabled ();
         void OnEnableStatus ();
 
         void OnEnabled ();
