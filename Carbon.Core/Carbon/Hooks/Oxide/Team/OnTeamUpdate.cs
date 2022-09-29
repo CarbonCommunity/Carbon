@@ -3,15 +3,11 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using Harmony;
 using Oxide.Core;
-using ProtoBuf;
-using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamUpdate", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
+    [OxideHook ( "OnTeamUpdate", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Team )]
     [OxideHook.Parameter ( "currentTeam", typeof ( ulong ) )]
     [OxideHook.Parameter ( "newTeam", typeof ( ulong ) )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]

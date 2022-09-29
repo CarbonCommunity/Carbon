@@ -4,11 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnCollectiblePickup", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Resources )]
+    [OxideHook ( "OnCollectiblePickup", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Resources )]
     [OxideHook.Parameter ( "this", typeof ( CollectibleEntity ) )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when the player collects an item." )]

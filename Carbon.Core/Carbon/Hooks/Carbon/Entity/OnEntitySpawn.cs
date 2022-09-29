@@ -4,11 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {
-    [CarbonHook ( "OnEntitySpawn" ), CarbonHook.Category ( CarbonHook.Category.Enum.Entity )]
+    [CarbonHook ( "OnEntitySpawn" ), CarbonHook.Category ( Hook.Category.Enum.Entity )]
     [CarbonHook.Parameter ( "entity", typeof ( BaseNetworkable ) )]
     [CarbonHook.Info ( "Called before any networked entity has spawned (including trees)." )]
     [CarbonHook.Patch ( typeof ( BaseNetworkable ), "Spawn" )]

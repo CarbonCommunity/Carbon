@@ -6,7 +6,6 @@
 using Carbon.Core.Processors;
 using Facepunch;
 using Humanlights.Extensions;
-using Humanlights.Unity.Compiler;
 using Oxide.Core;
 using Oxide.Plugins;
 using System;
@@ -43,8 +42,8 @@ namespace Carbon.Core
                 }
 
                 if ( !customSources ) GetSources ();
-                GetNamespaces ();
-                GetFullSource ();
+
+                if( Sources.Count > 0 ) Source = Sources [ 0 ];
 
                 if ( Parser != null )
                 {
@@ -130,41 +129,7 @@ namespace Carbon.Core
                 }
 
                 var source = OsEx.File.ReadText ( file );
-                Sources.Add ( source.Trim () );
-            }
-        }
-        protected void GetNamespaces ()
-        {
-            Namespaces.Clear ();
-
-            foreach ( var source in Sources )
-            {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) );
-
-                foreach ( var usingLine in usingLines )
-                {
-                    if ( Namespaces.Exists ( x => x == usingLine ) )
-                    {
-                        continue;
-                    }
-
-                    Namespaces.Add ( usingLine );
-                }
-            }
-
-            Namespaces = Namespaces.OrderBy ( x => x ).ToList ();
-        }
-        protected void GetFullSource ()
-        {
-            Source = StringArrayEx.ToString ( Namespaces.ToArray (), "\n", "\n" ) + "\n\n";
-
-            foreach ( var source in Sources )
-            {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) ).ToArray ();
-                var usingLinesString = usingLines.Length == 0 ? "" : StringArrayEx.ToString ( usingLines, "\n", "\n" );
-
-                var fixedSource = string.IsNullOrEmpty ( usingLinesString ) ? source.Trim () : source.Replace ( usingLinesString, "" ).Trim ();
-                Source += fixedSource + "\n\n";
+                Sources.Add ( source );
             }
         }
 
@@ -266,6 +231,24 @@ namespace Carbon.Core
                 {
                     if ( !( type.Namespace.Equals ( "Oxide.Plugins" ) ||
                         type.Namespace.Equals ( "Carbon.Plugins" ) ) ) continue;
+
+                    if ( CarbonCore.Instance.Config.HookValidation )
+                    {
+                        var counter = 0;
+                        foreach ( var method in type.GetMethods ( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance ) )
+                        {
+                            if ( CarbonHookValidator.IsIncompatibleOxideHook ( method.Name ) )
+                            {
+                                CarbonCore.Warn ( $" Hook '{method.Name}' is not supported." );
+                                counter++;
+                            }
+                        }
+
+                        if ( counter > 0 )
+                        {
+                            CarbonCore.Warn ( $" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.\n The plugin will not work as expected." );
+                        }
+                    }
 
                     var info = type.GetCustomAttribute ( typeof ( InfoAttribute ), true ) as InfoAttribute;
                     var description = type.GetCustomAttribute ( typeof ( DescriptionAttribute ), true ) as DescriptionAttribute;

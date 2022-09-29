@@ -3,16 +3,12 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using CompanionServer.Handlers;
-using Harmony;
 using Oxide.Core;
-using ProtoBuf;
 using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnCorpsePopulate", typeof ( BaseCorpse ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnCorpsePopulate", typeof ( BaseCorpse ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "this", typeof ( ScarecrowNPC ) )]
     [OxideHook.Parameter ( "corpse", typeof ( NPCPlayerCorpse ) )]
     [OxideHook.Info ( "Useful for denying items' deployment." )]
@@ -55,7 +51,7 @@ namespace Carbon.Extended
                     {
                         for ( int j = 0; j < lootSpawnSlot.numberToSpawn; j++ )
                         {
-                            if ( UnityEngine.Random.Range ( 0f, 1f ) <= lootSpawnSlot.probability )
+                            if ( Random.Range ( 0f, 1f ) <= lootSpawnSlot.probability )
                             {
                                 lootSpawnSlot.definition.SpawnIntoContainer ( npcplayerCorpse.containers [ 0 ] );
                             }
@@ -68,8 +64,8 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnCorpsePopulate", typeof ( BaseCorpse ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
-    [OxideHook.Parameter ( "this", typeof ( ScarecrowNPC ) )]
+    [OxideHook ( "OnCorpsePopulate", typeof ( BaseCorpse ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "this", typeof ( HumanNPC ) )]
     [OxideHook.Parameter ( "corpse", typeof ( NPCPlayerCorpse ) )]
     [OxideHook.Info ( "Useful for denying items' deployment." )]
     [OxideHook.Patch ( typeof ( HumanNPC ), "CreateCorpse" )]
@@ -112,7 +108,7 @@ namespace Carbon.Extended
                     {
                         for ( int j = 0; j < lootSpawnSlot.numberToSpawn; j++ )
                         {
-                            if ( UnityEngine.Random.Range ( 0f, 1f ) <= lootSpawnSlot.probability )
+                            if ( Random.Range ( 0f, 1f ) <= lootSpawnSlot.probability )
                             {
                                 lootSpawnSlot.definition.SpawnIntoContainer ( npcplayerCorpse.containers [ 0 ] );
                             }
@@ -125,8 +121,8 @@ namespace Carbon.Extended
         }
     }
 
-    [OxideHook ( "OnCorpsePopulate", typeof ( BaseCorpse ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
-    [OxideHook.Parameter ( "this", typeof ( ScarecrowNPC ) )]
+    [OxideHook ( "OnCorpsePopulate", typeof ( BaseCorpse ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
+    [OxideHook.Parameter ( "this", typeof ( FrankensteinPet ) )]
     [OxideHook.Parameter ( "corpse", typeof ( NPCPlayerCorpse ) )]
     [OxideHook.Info ( "Useful for denying items' deployment." )]
     [OxideHook.Patch ( typeof ( FrankensteinPet ), "CreateCorpse" )]

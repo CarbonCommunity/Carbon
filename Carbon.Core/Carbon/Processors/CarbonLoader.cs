@@ -12,8 +12,6 @@ using UnityEngine;
 using Oxide.Plugins;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
-using Mono.CSharp;
-using static ConsoleSystem;
 
 namespace Carbon.Core
 {
@@ -260,6 +258,24 @@ namespace Carbon.Core
 
                     if ( !IsValidPlugin ( type ) ) continue;
 
+                    if ( CarbonCore.Instance.Config.HookValidation )
+                    {
+                        var counter = 0;
+                        foreach ( var method in type.GetMethods ( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance ) )
+                        {
+                            if ( CarbonHookValidator.IsIncompatibleOxideHook ( method.Name ) )
+                            {
+                                CarbonCore.Warn ( $" Hook '{method.Name}' is not supported." );
+                                counter++;
+                            }
+                        }
+
+                        if ( counter > 0 )
+                        {
+                            CarbonCore.Warn ( $" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.\n The plugin will not work as expected." );
+                        }
+                    }
+
                     var instance = Activator.CreateInstance ( type, false );
                     var plugin = instance as RustPlugin;
                     var info = type.GetCustomAttribute<InfoAttribute> ();
@@ -311,8 +327,7 @@ namespace Carbon.Core
         public static bool IsValidPlugin ( Type type )
         {
             if ( type == null ) return false;
-            if ( type.Name == "RustPlugin" ) return true;
-
+            if ( type.Name == "RustPlugin" || type.Name == "CarbonPlugin" ) return true;
             return IsValidPlugin ( type.BaseType );
         }
 

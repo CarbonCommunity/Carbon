@@ -3,14 +3,12 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using Harmony;
 using Oxide.Core;
 using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnExplosiveDropped" ), OxideHook.Category ( OxideHook.Category.Enum.Weapon )]
+    [OxideHook ( "OnExplosiveDropped" ), OxideHook.Category ( Hook.Category.Enum.Weapon )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "entity", typeof ( BaseEntity ) )]
     [OxideHook.Parameter ( "item", typeof ( ThrownWeapon ) )]
@@ -44,7 +42,7 @@ namespace Carbon.Extended
             }
 
             RaycastHit hit;
-            if ( __instance.canStick && UnityEngine.Physics.SphereCast ( new Ray ( vector, normalized ), 0.05f, out hit, 1.5f, 1236478737 ) )
+            if ( __instance.canStick && Physics.SphereCast ( new Ray ( vector, normalized ), 0.05f, out hit, 1.5f, 1236478737 ) )
             {
                 var point = hit.point;
                 var normal = hit.normal;

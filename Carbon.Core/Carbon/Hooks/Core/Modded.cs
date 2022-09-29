@@ -6,7 +6,6 @@
 using Carbon.Core.Extensions;
 using Harmony;
 using System;
-using System.Reflection;
 
 namespace Carbon.Core.Oxide.Hooks
 {

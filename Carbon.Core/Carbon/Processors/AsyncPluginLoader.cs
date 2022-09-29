@@ -9,14 +9,13 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
-using Humanlights.Extensions;
 using CodeCompiler = CSharpCompiler.CodeCompiler;
 
 namespace Carbon.Core
 {
-	public class AsyncPluginLoader : ThreadedJob
-	{
-		public string FilePath;
+    public class AsyncPluginLoader : ThreadedJob
+    {
+        public string FilePath;
 		public string Source;
 		public string [] References;
 		public string [] Requires;
@@ -28,25 +27,10 @@ namespace Carbon.Core
 
 		internal static CodeCompiler _compiler = new CodeCompiler ();
 		internal CompilerParameters _parameters;
-		internal static string [] _defaultReferences = new string [] {
-			"System.dll",
-			"mscorlib.dll",
-			"protobuf-net.dll",
-			"protobuf-net.Core.dll",
-			"Assembly-CSharp.dll",
-#if WIN
-            "Carbon.dll",
-#elif UNIX
-            "Carbon-Unix.dll"
-#else
-#error Target architecture not defined
-            null;
-#endif
-		};
+
 		internal void _addReferences ()
 		{
 			_parameters.ReferencedAssemblies.Clear ();
-			_parameters.ReferencedAssemblies.AddRange ( _defaultReferences );
 
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
 			foreach ( var assembly in assemblies )
@@ -112,7 +96,7 @@ namespace Carbon.Core
 				GenerateExecutable = false,
 				TreatWarningsAsErrors = false,
 				IncludeDebugInformation = false,
-				WarningLevel = -1
+				WarningLevel = -10
 			};
 
 			_addReferences ();

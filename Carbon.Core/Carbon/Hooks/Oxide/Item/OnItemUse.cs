@@ -4,11 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnItemUse", typeof ( int ) ), OxideHook.Category ( OxideHook.Category.Enum.Item )]
+    [OxideHook ( "OnItemUse", typeof ( int ) ), OxideHook.Category ( Hook.Category.Enum.Item )]
     [OxideHook.Parameter ( "this", typeof ( Item ) )]
     [OxideHook.Parameter ( "amountToConsume", typeof ( int ) )]
     [OxideHook.Info ( "Called when an item is used." )]

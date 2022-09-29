@@ -4,11 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnWeaponFired" ), OxideHook.Category ( OxideHook.Category.Enum.Weapon )]
+    [OxideHook ( "OnWeaponFired" ), OxideHook.Category ( Hook.Category.Enum.Weapon )]
     [OxideHook.Parameter ( "projectile", typeof ( BaseProjectile ) )]
     [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
     [OxideHook.Parameter ( "mod", typeof ( ItemModProjectile ) )]

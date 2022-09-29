@@ -9,7 +9,6 @@ using ConVar;
 using Facepunch.Extend;
 using Harmony;
 using System;
-using System.Linq;
 
 [HarmonyPatch ( typeof ( Chat ), "sayAs" )]
 public class Chat_SayAs

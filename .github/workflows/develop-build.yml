@@ -5,85 +5,152 @@
 #  |______|___|___|___|__|______/_______|__|____|
 #                         discord.gg/eXPcNKK4yd
 # 
-name: 🥉 Develop branch
+name: Develop Build
+concurrency: build-3-develop
 
 on:
-  # allow manual action trigger
+  push:
+    branches:
+      - develop
+    
+  pull_request:
+    branches:
+      - develop
+
+  schedule:
+    - cron: '0 5 * * *'
+
   workflow_dispatch:
 
-  # technically this is more a "morningly" build
-  # but we do work late.. :-)  
-  schedule:
-    - cron: '0 7 * * *'
-
 jobs:
-  build:
-    name: 🦺 Build
+  bootstrap:
+    name: 🥾 Bootstrap
     runs-on: ubuntu-latest
 
     outputs:
-      date: ${{ steps.info.outputs.date }}
-      tag: ${{ steps.info.outputs.tag }}
-      ref: ${{ steps.info.outputs.ref }}
-      
-    steps:    
+      date:  ${{ steps.step1.outputs.date }}
+      clock: ${{ steps.step1.outputs.clock }}
+      tag:   ${{ steps.step1.outputs.tag }}
+      ref:   ${{ steps.step1.outputs.ref }}
+
+    steps:
+      - name: 🔗 Checkout source code from github
+        uses: actions/checkout@v3
+        with:
+          ref: develop
+
+      - name: 📅 Prepare the environment
+        id: step1
+        run: |
+          echo "::set-output name=date::$(date +'%Y-%m-%d')"
+          echo "::set-output name=clock::$(date +'%H:%M:%S')"
+          echo "::set-output name=tag::$(date +'%Yd%j')"
+          echo "::set-output name=ref::$(git rev-parse --short HEAD)"
+
+  build-linux:
+    name: 🐧 Linux
+    needs: bootstrap
+    runs-on: ubuntu-latest
+    continue-on-error: false
+
+    outputs:
+      artifact: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
+      build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
+    
+    steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
         ref: develop
-        
-    - name: 📅 Prepare the environment
-      id: info
-      run: |
-        echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M:%S')"
-        echo "::set-output name=tag::$(date +'%Yd%j')"
-        echo "::set-output name=ref::$(git log -1 '--format=format:%H')"
-      
-    - name: 🛤️ Setup the build environment
+
+    - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
 
-    - name: ✔️ Prepare the build environment
+    - name: 🪚 Setup the Carbon build environment
       shell: bash
-      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
+      run: |
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
 
-    - name: 🐧 Built the application
+    - name: 🐧 Built Carbon on Linux
       shell: bash
-      run: ${GITHUB_WORKSPACE}/Tools/Build/linux/build_debug.sh
+      run: |
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build_debug.sh
+        
+    - name: ⬆️ Upload the artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
+        path: Release
+
+  build-windows:
+    name: 🪟 Windows
+    needs: bootstrap
+    runs-on: windows-latest
+    
+    steps:
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+      with:
+        ref: develop
+
+    - name: 🛤️ Setup the dotnet build environment
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: 🪚 Setup the Carbon build environment
+      shell: cmd
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
+
+    - name: 🪟 Built Carbon on Windows
+      shell: cmd
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\win\build_debug.bat
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: artifact-build-develop
-        path: Release/
+        name: build-develop-${{ needs.bootstrap.outputs.ref }}-windows
+        path: Release
 
-  tag:
+  release:
     name: 💾 Release
+    needs: [ "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
-    needs: build
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    # only release if triggered by the scheduler
+    # or if manually triggered by a developer
 
     steps:
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: artifact-build-develop
+        name: ${{ needs.build-linux.outputs.artifact }}
         path: Release/
 
     - name: 🏷️ Update release tag
-      uses: andelf/nightly-release@main
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        name: 'Development build (${{ needs.build.outputs.tag }})'
-        tag_name: develop_build
         prerelease: true
+        tag_name: develop_build
+        name: 'Carbon Build (develop)'
         body: |
-          🚨 This is the development build of Carbon.
-          The general public is advised to use one of the stable builds.
-          This build is targeted at Developers and/or server owners with existing issues.
+          This is a build of Carbon based on the `develop` branch.
           
-          📅 Built at ${{ needs.build.outputs.date }} from commit ${{ needs.build.outputs.ref }}.
+          This build is targeted at developers.
+          The general public is advised to use one of the [stable] builds.
+
+          ### How to install
+          1. Download the `Carbon.Patch.zip` archive from the attachments below.
+          2. Unzip the archive to the root of your Rust Dedicated Server.
+          3. Restart the server and enjoy.
+          
+          ${{ needs.build-linux.outputs.build_info }}
+
+          Production: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
           Release/Carbon.dll
           Release/Carbon.Patch.zip

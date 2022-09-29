@@ -4,14 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
-using Oxide.Core;
-using UnityEngine;
-using static BasePlayer;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnPlayerSleepEnded", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Player )]
+    [OxideHook ( "OnPlayerSleepEnded", typeof ( object ) ), OxideHook.Category ( Hook.Category.Enum.Player )]
     [OxideHook.Parameter ( "this", typeof ( BasePlayer ) )]
     [OxideHook.Info ( "Called when the player awakes." )]
     [OxideHook.Patch ( typeof ( BasePlayer ), "EndSleeping" )]
