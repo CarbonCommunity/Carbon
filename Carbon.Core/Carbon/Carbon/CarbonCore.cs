@@ -39,7 +39,6 @@ namespace Carbon.Core
              OS.Linux;
 #else
 #error Target architecture not defined
-            null;
 #endif
 
 		public enum OS
@@ -127,12 +126,14 @@ namespace Carbon.Core
 		public ScriptProcessor ScriptProcessor { get; set; }
 		public WebScriptProcessor WebScriptProcessor { get; set; }
 		public HarmonyProcessor HarmonyProcessor { get; set; }
+        public ModuleProcessor ModuleProcessor { get; set; }
 
-		internal void _installProcessors ()
+        internal void _installProcessors ()
 		{
 			if ( ScriptProcessor == null ||
 				WebScriptProcessor == null ||
-				HarmonyProcessor == null )
+				HarmonyProcessor == null || 
+				ModuleProcessor == null )
 			{
 				_uninstallProcessors ();
 
@@ -141,6 +142,7 @@ namespace Carbon.Core
 				WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor> ();
 				HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
 				Addon = new CarbonAddonProcessor ();
+				ModuleProcessor = new ModuleProcessor ();
 			}
 			Debug ( "Installed processors", 3 );
 
@@ -163,9 +165,10 @@ namespace Carbon.Core
 			{
 				if ( ScriptProcessor != null ) ScriptProcessor?.Dispose ();
 				if ( WebScriptProcessor != null ) WebScriptProcessor?.Dispose ();
-				if ( HarmonyProcessor != null ) HarmonyProcessor?.Dispose ();
-			}
-			catch { }
+                if ( HarmonyProcessor != null ) HarmonyProcessor?.Dispose ();
+                if ( ModuleProcessor != null ) ModuleProcessor?.Dispose ();
+            }
+            catch { }
 
 			try
 			{
@@ -204,7 +207,14 @@ namespace Carbon.Core
 
 			return folder;
 		}
-		public static string GetDataFolder ()
+        public static string GetModulesFolder ()
+        {
+            var folder = Path.Combine ( $"{GetRootFolder ()}", "modules" );
+            Directory.CreateDirectory ( folder );
+
+            return folder;
+        }
+        public static string GetDataFolder ()
 		{
 			var folder = Path.Combine ( $"{GetRootFolder ()}", "data" );
 			Directory.CreateDirectory ( folder );
@@ -356,6 +366,7 @@ namespace Carbon.Core
 
 			GetRootFolder ();
 			GetConfigsFolder ();
+			GetModulesFolder ();
 			GetDataFolder ();
 			GetPluginsFolder ();
 			GetLogsFolder ();
@@ -402,43 +413,5 @@ namespace Carbon.Core
 			catch { }
 #endif
 		}
-	}
-
-	public class CarbonInitializer : IHarmonyModHooks
-	{
-		public void OnLoaded ( OnHarmonyModLoadedArgs args )
-		{
-			var oldMod = PlayerPrefs.GetString ( Harmony_Load.CARBON_LOADED );
-
-			if ( !Assembly.GetExecutingAssembly ().FullName.StartsWith ( oldMod ) )
-			{
-				CarbonCore.Instance?.UnInit ();
-				HarmonyLoader.TryUnloadMod ( oldMod );
-				CarbonCore.WarnFormat ( $"Unloaded previous: {oldMod}" );
-				CarbonCore.Instance = null;
-			}
-
-			CarbonCore.Format ( "Initializing..." );
-
-			if ( CarbonCore.Instance == null ) CarbonCore.Instance = new CarbonCore ();
-			else CarbonCore.Instance?.UnInit ();
-
-			CarbonCore.Instance.Init ();
-		}
-
-		public void OnUnloaded ( OnHarmonyModUnloadedArgs args ) { }
-	}
-
-	[Serializable]
-	public class CarbonConfig
-	{
-		public int Debug { get; set; }
-
-		public bool CarbonTag { get; set; } = true;
-		public bool IsModded { get; set; } = true;
-		public bool HookTimeTracker { get; set; } = false;
-        public bool HookValidation { get; set; } = true;
-        public bool ScriptWatchers { get; set; } = true;
-		public bool HarmonyWatchers { get; set; } = true;
 	}
 }
