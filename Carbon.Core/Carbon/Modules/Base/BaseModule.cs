@@ -69,7 +69,7 @@ namespace Carbon.Core.Modules
             }
             else
             {
-                try { DataInstance = File.ReadObject<D> (); } catch ( Exception exception ) { PutsError ( $"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}" ); }
+                try { DataInstance = Data.ReadObject<D> (); } catch ( Exception exception ) { PutsError ( $"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}" ); }
             }
 
             if ( shouldSave ) Save ();
