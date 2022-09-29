@@ -256,9 +256,37 @@ namespace Carbon.Core
                 return;
             }
 
-            module.SetEnabled ( arg.Args [ 1 ].ToBool () );
-            module.Save ();
-            Reply ( $"{module.Name} marked {( module.GetEnabled () ? "Enabled" : "Disabled" )}", arg );
+            var previousEnabled = module.GetEnabled ();
+            var newEnabled = arg.Args [ 1 ].ToBool ();
+
+            if ( previousEnabled != newEnabled )
+            {
+                module.SetEnabled ( newEnabled );
+                module.Save ();
+            }
+
+            Reply ( $"{module.Name} marked {( module.GetEnabled () ? "enabled" : "disabled" )}.", arg );
+        }
+
+        [ConsoleCommand ( "loadmoduleconfig", "Loads Carbon module config." )]
+        private void LoadModuleConfig ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
+
+            var module = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+
+            if ( module == null )
+            {
+                Reply ( $"Couldn't find that module.", arg );
+                return;
+            }
+
+            var previousEnabled = module.GetEnabled ();
+            module.SetEnabled ( false );
+            module.Load ();
+            if ( module.GetEnabled () != previousEnabled ) module.OnEnableStatus ();
+
+            Reply ( $"Reloaded '{module.Name}' module config.", arg );
         }
 
         #endregion

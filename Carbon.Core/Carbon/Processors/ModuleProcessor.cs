@@ -47,6 +47,7 @@ namespace Carbon.Core.Processors
             foreach ( var module in Modules )
             {
                 module.Load ();
+                module.OnEnableStatus ();
             }
         }
 
