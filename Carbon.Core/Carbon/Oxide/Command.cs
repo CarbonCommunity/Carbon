@@ -111,9 +111,23 @@ public class Command
                 arg.Args = args;
 
                 arguments.Add ( arg );
-                result = arguments.ToArray ();
 
-                try { plugin.GetType ().GetMethod ( method, BindingFlags.Instance | BindingFlags.NonPublic )?.Invoke ( plugin, result ); }
+                try
+                {
+                    var methodInfo = plugin.GetType ().GetMethod ( method, BindingFlags.Instance | BindingFlags.NonPublic );
+                    var parameters = methodInfo.GetParameters ();
+
+                    if ( parameters.Length > 0 )
+                    {
+                        for ( int i = 1; i < parameters.Length; i++ )
+                        {
+                            arguments.Add ( null );
+                        }
+                    }
+
+                    result = arguments.ToArray ();
+                    methodInfo?.Invoke ( plugin, result );
+                }
                 catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
             }
             catch ( TargetParameterCountException ) { }

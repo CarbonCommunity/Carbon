@@ -13,6 +13,8 @@ using System;
 [HarmonyPatch ( typeof ( Chat ), "sayAs" )]
 public class Chat_SayAs
 {
+    internal static string [] EmptyArgs = new string [ 0 ];
+
     public static bool Prefix ( Chat.ChatChannel targetChannel, ulong userId, string username, string message, BasePlayer player = null )
     {
         if ( CarbonCore.Instance == null ) return true;
@@ -22,7 +24,7 @@ public class Chat_SayAs
             var fullString = message.Substring ( 1 );
             var split = fullString.Split ( ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries );
             var command = split [ 0 ].Trim ();
-            var args = split.Length > 1 ? fullString.Substring ( command.Length + 1 ).SplitQuotesStrings () : null;
+            var args = split.Length > 1 ? fullString.Substring ( command.Length + 1 ).SplitQuotesStrings () : EmptyArgs;
             Facepunch.Pool.Free ( ref split );
 
             foreach ( var cmd in CarbonCore.Instance?.AllChatCommands )
