@@ -71,24 +71,14 @@ namespace Carbon.Core.Modules
             return ConfigInstance.Enabled;
         }
 
-        public virtual void OnDisabled () { }
-        public virtual void OnEnabled () { }
-
-        public virtual void OnEnabledServerInit () { }
-        public virtual void OnDisabledServerInit () { }
+        public virtual void OnDisabled ( bool initialized ) { }
+        public virtual void OnEnabled ( bool initialized ) { }
 
         public void OnEnableStatus ()
         {
             try
             {
-                if ( CarbonCore.IsServerFullyInitialized )
-                {
-                    if ( ConfigInstance.Enabled ) OnEnabledServerInit (); else OnDisabledServerInit ();
-                }
-                else
-                {
-                    if ( ConfigInstance.Enabled ) OnEnabled (); else OnDisabled ();
-                }
+                if ( ConfigInstance.Enabled ) OnEnabled ( CarbonCore.IsServerFullyInitialized ); else OnDisabled ( CarbonCore.IsServerFullyInitialized );
             }
             catch ( Exception ex ) { PutsError ( $"Failed {( ConfigInstance.Enabled ? "Enable" : "Disable" )} initialization.", ex ); }
         }

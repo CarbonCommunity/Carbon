@@ -13,11 +13,11 @@ namespace Carbon.Core.Modules
     {
         public override string Name => "StackManager";
 
-        public override void OnEnabledServerInit ()
+        public override void OnEnabled ( bool initialized )
         {
-            base.OnEnabledServerInit ();
+            base.OnEnabled ( initialized );
 
-            if ( ItemManager.itemList == null ) return;
+            if ( !initialized || ItemManager.itemList == null ) return;
 
             foreach ( var category in Config.Categories )
             {
@@ -38,9 +38,11 @@ namespace Carbon.Core.Modules
 
             Puts ( "Item stacks patched" );
         }
-        public override void OnDisabledServerInit ()
+        public override void OnDisabled ( bool initialized )
         {
-            base.OnDisabledServerInit ();
+            base.OnDisabled ( initialized );
+
+            if ( !initialized ) return;
 
             Puts ( "Rolling back item manager" );
 

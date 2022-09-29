@@ -19,10 +19,7 @@ namespace Carbon.Core.Modules
         bool GetEnabled ();
         void OnEnableStatus ();
 
-        void OnEnabled ();
-        void OnDisabled ();
-
-        void OnEnabledServerInit ();
-        void OnDisabledServerInit ();
+        void OnEnabled ( bool initialized );
+        void OnDisabled ( bool initialized );
     }
 }
