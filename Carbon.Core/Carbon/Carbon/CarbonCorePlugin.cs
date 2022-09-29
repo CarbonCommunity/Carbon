@@ -66,11 +66,6 @@ namespace Carbon.Core
             permission.RefreshUser ( player );
         }
 
-        private void OnServerSave ()
-        {
-            CarbonCore.Instance.ModuleProcessor.Save ();
-        }
-
         internal static void Reply ( object message, ConsoleSystem.Arg arg )
         {
             if ( arg != null && arg.Player () != null )
