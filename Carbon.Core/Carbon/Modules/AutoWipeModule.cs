@@ -5,7 +5,7 @@
 
 namespace Carbon.Core.Modules
 {
-    public class AutoWipeModule : BaseModule<AutoWipeConfig>
+    public class AutoWipeModule : BaseModule<AutoWipeConfig, AutoWipeData>
     {
         public override string Name => "AutoWipe";
     }
@@ -13,5 +13,9 @@ namespace Carbon.Core.Modules
     public class AutoWipeConfig
     {
         public int NextWipeSeed = -1;
+    }
+    public class AutoWipeData
+    {
+
     }
 }
