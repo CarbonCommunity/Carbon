@@ -57,14 +57,20 @@ namespace Carbon.Core.Modules
                 ConfigInstance = new Configuration { Config = Activator.CreateInstance<C> () };
                 shouldSave = true;
             }
-            else ConfigInstance = File.ReadObject<Configuration> ();
+            else
+            {
+                try { ConfigInstance = File.ReadObject<Configuration> (); } catch ( Exception exception ) { PutsError ( $"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}" ); }
+            }
 
             if ( !Data.Exists () )
             {
                 DataInstance = Activator.CreateInstance<D> ();
                 shouldSave = true;
             }
-            else DataInstance = Data.ReadObject<D> ();
+            else
+            {
+                try { DataInstance = Data.ReadObject<D> (); } catch ( Exception exception ) { PutsError ( $"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}" ); }
+            }
 
             if ( shouldSave ) Save ();
 
