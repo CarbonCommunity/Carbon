@@ -276,8 +276,7 @@ namespace Carbon.Core
                 return;
             }
 
-            var previousEnabled = module.GetEnabled ();
-            module.SetEnabled ( false );
+            if ( module.GetEnabled () ) module.SetEnabled ( false );
             module.Load ();
             if ( module.GetEnabled () ) module.OnEnableStatus ();
 

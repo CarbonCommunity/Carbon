@@ -21,6 +21,8 @@ namespace Carbon.Core.Modules
 
             foreach ( var category in Config.Categories )
             {
+                if ( StackManagerConfig.IsValueInvalid ( category.Value ) ) continue;
+
                 foreach ( var item in ItemManager.itemList )
                 {
                     if ( item.category != category.Key || Config.Blacklist.Contains ( item.shortname ) || Config.Items.ContainsKey ( item.shortname ) ) continue;
@@ -33,7 +35,11 @@ namespace Carbon.Core.Modules
             {
                 if ( !Config.Items.ContainsKey ( item.shortname ) ) continue;
 
-                item.stackable = Mathf.CeilToInt ( item.stackable * Config.Items [ item.shortname ] );
+                var multiplier = Config.Items [ item.shortname ];
+
+                if ( StackManagerConfig.IsValueInvalid ( multiplier ) ) continue;
+
+                item.stackable = Mathf.CeilToInt ( item.stackable * multiplier );
             }
 
             Puts ( "Item stacks patched" );
@@ -48,6 +54,8 @@ namespace Carbon.Core.Modules
 
             foreach ( var category in Config.Categories )
             {
+                if ( StackManagerConfig.IsValueInvalid ( category.Value ) ) continue;
+
                 foreach ( var item in ItemManager.itemList )
                 {
                     if ( item.category != category.Key || Config.Blacklist.Contains ( item.shortname ) || Config.Items.ContainsKey ( item.shortname ) ) continue;
@@ -58,15 +66,22 @@ namespace Carbon.Core.Modules
 
             foreach ( var item in ItemManager.itemList )
             {
-                if ( !Config.Items.TryGetValue ( item.shortname, out var multiply ) ) continue;
+                if ( !Config.Items.TryGetValue ( item.shortname, out var multiplier ) ) continue;
 
-                item.stackable = Mathf.CeilToInt ( item.stackable / multiply );
+                if ( StackManagerConfig.IsValueInvalid ( multiplier ) ) continue;
+
+                item.stackable = Mathf.CeilToInt ( item.stackable / multiplier );
             }
         }
     }
 
     public class StackManagerConfig
     {
+        public static bool IsValueInvalid ( float value )
+        {
+            return value < 0.1f;
+        }
+
         public HashSet<string> Blacklist = new HashSet<string>
         {
             "water",

@@ -36,7 +36,7 @@ namespace Carbon.Core.Modules
         {
             File = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), $"{Name}.json" ) );
             Load ();
-            OnEnableStatus ();
+            if ( ConfigInstance.Enabled ) OnEnableStatus ();
         }
         public virtual void InitEnd ()
         {
