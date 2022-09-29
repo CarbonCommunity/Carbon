@@ -31,7 +31,7 @@ namespace Carbon.Core.Processors
         {
             foreach ( var module in Modules )
             {
-                module.OnEnableStatus ();
+                if ( module.GetEnabled () ) module.OnEnableStatus ();
             }
         }
 

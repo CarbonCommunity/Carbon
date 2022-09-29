@@ -9,11 +9,15 @@ using System.IO;
 
 namespace Carbon.Core.Modules
 {
-    public class BaseModule<T> : IModule
+    public class BaseModule<C, D> : IModule
     {
         public DynamicConfigFile File { get; private set; }
+        public DynamicConfigFile Data { get; private set; }
+
         public Configuration ConfigInstance { get; set; }
-        public T Config { get; private set; }
+        public D DataInstance { get; private set; }
+
+        public C Config { get; private set; }
 
         public virtual string Name => "Not set";
 
@@ -34,7 +38,9 @@ namespace Carbon.Core.Modules
 
         public virtual void Init ()
         {
-            File = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), $"{Name}.json" ) );
+            File = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (),Name, "config.json" ) );
+            Data = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), Name, "data.json" ) );
+
             Load ();
             if ( ConfigInstance.Enabled ) OnEnableStatus ();
         }
@@ -44,18 +50,41 @@ namespace Carbon.Core.Modules
         }
         public virtual void Load ()
         {
-            ConfigInstance = File.ReadObject<Configuration> ();
+            var shouldSave = false;
+
+            if ( !File.Exists () )
+            {
+                ConfigInstance = new Configuration { Config = Activator.CreateInstance<C> () };
+                shouldSave = true;
+            }
+            else ConfigInstance = File.ReadObject<Configuration> ();
+
+            if ( !Data.Exists () )
+            {
+                DataInstance = Activator.CreateInstance<D> ();
+                shouldSave = true;
+            }
+            else DataInstance = Data.ReadObject<D> ();
+
+            if ( shouldSave ) Save ();
+
             Config = ConfigInstance.Config;
         }
         public virtual void Save ()
         {
             if ( ConfigInstance == null )
             {
-                ConfigInstance = new Configuration { Config = Activator.CreateInstance<T> () };
+                ConfigInstance = new Configuration { Config = Activator.CreateInstance<C> () };
                 Config = ConfigInstance.Config;
             }
 
+            if ( DataInstance == null )
+            {
+                DataInstance = Activator.CreateInstance<D> ();
+            }
+
             File.WriteObject ( ConfigInstance );
+            Data.WriteObject ( DataInstance );
         }
 
         public void SetEnabled ( bool enable )
@@ -86,7 +115,7 @@ namespace Carbon.Core.Modules
         public class Configuration : IModuleConfig
         {
             public bool Enabled { get; set; }
-            public T Config { get; set; }
+            public C Config { get; set; }
         }
     }
 }
