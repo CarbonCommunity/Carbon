@@ -37,15 +37,13 @@ namespace Carbon.Core.Modules
 
             foreach ( var category in Config.Categories )
             {
-                if ( StackManagerConfig.IsValueInvalid ( category.Value ) ) continue;
-
                 foreach ( var item in ItemManager.itemList )
                 {                    
                     if ( item.category != category.Key || Config.Blacklist.Contains ( item.shortname ) || Config.Items.ContainsKey ( item.shortname ) ) continue;
 
                     DataInstance.ItemMapping.TryGetValue ( item.itemid, out var originalStack );
 
-                    item.stackable = ( int )( originalStack * category.Value );
+                    item.stackable = Mathf.Clamp ( ( int )( originalStack * category.Value ), 1, int.MaxValue );
                 }
             }
 
@@ -55,11 +53,9 @@ namespace Carbon.Core.Modules
 
                 var multiplier = Config.Items [ item.shortname ];
 
-                if ( StackManagerConfig.IsValueInvalid ( multiplier ) ) continue;
-
                 DataInstance.ItemMapping.TryGetValue ( item.itemid, out var originalStack );
 
-                item.stackable = ( int )( originalStack * multiplier );
+                item.stackable = Mathf.Clamp ( ( int )( originalStack * multiplier ), 1, int.MaxValue );
             }
 
             Puts ( "Item stacks patched" );
@@ -74,8 +70,6 @@ namespace Carbon.Core.Modules
 
             foreach ( var category in Config.Categories )
             {
-                if ( StackManagerConfig.IsValueInvalid ( category.Value ) ) continue;
-
                 foreach ( var item in ItemManager.itemList )
                 {
                     if ( item.category != category.Key || Config.Blacklist.Contains ( item.shortname ) || Config.Items.ContainsKey ( item.shortname ) ) continue;
@@ -88,9 +82,7 @@ namespace Carbon.Core.Modules
 
             foreach ( var item in ItemManager.itemList )
             {
-                if ( !Config.Items.TryGetValue ( item.shortname, out var multiplier ) ) continue;
-
-                if ( StackManagerConfig.IsValueInvalid ( multiplier ) ) continue;
+                if ( !Config.Items.ContainsKey ( item.shortname ) ) continue;
 
                 DataInstance.ItemMapping.TryGetValue ( item.itemid, out var originalStack );
 
@@ -101,11 +93,6 @@ namespace Carbon.Core.Modules
 
     public class StackManagerConfig
     {
-        public static bool IsValueInvalid ( float value )
-        {
-            return value < 0.1;
-        }
-
         public HashSet<string> Blacklist = new HashSet<string>
         {
             "water",
