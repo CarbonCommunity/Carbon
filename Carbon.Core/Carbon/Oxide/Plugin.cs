@@ -120,7 +120,7 @@ namespace Oxide.Plugins
 
                 var name = ( string.IsNullOrEmpty ( attribute.Name ) ? method.Name : attribute.Name ) + method.GetParameters ().Length;
                 if ( !HookMethodAttributeCache.TryGetValue ( name, out var list ) )
-                {         
+                {
                     HookMethodAttributeCache.Add ( name, new List<MethodInfo> () { method } );
                 }
                 else list.Add ( method );
@@ -375,6 +375,11 @@ namespace Oxide.Plugins
         }
 
         public bool IsLoaded { get; set; }
+
+        public new string ToString ()
+        {
+            return GetType ().Name;
+        }
 
         public virtual void Dispose ()
         {

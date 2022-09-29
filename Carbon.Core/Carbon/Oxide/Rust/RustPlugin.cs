@@ -168,7 +168,7 @@ namespace Oxide.Plugins
 
         }
 
-        public override string ToString ()
+        public new string ToString ()
         {
             return $"{Name} v{Version} by {Author}";
         }
