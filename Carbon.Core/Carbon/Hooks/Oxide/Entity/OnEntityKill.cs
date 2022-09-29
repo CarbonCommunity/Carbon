@@ -15,7 +15,7 @@ namespace Carbon.Extended
     {
         public static bool Prefix ( BaseNetworkable.DestroyMode mode, ref BaseNetworkable __instance )
         {
-            if ( __instance.IsDestroyed )
+            if ( __instance.IsDestroyed ) 
             {
                 return true;
             }

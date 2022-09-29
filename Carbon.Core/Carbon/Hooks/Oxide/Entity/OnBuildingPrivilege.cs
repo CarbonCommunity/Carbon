@@ -4,6 +4,7 @@
 /// 
 
 using Carbon.Core;
+using System;
 
 namespace Carbon.Extended
 {
@@ -16,16 +17,23 @@ namespace Carbon.Extended
     {
         public static bool Prefix ( OBB obb, ref BaseNetworkable __instance, out BuildingPrivlidge __result )
         {
-            var obj = HookExecutor.CallStaticHook ( "OnBuildingPrivilege", __instance, obb );
-
-            if ( obj is BuildingPrivlidge )
+            try
             {
-                __result = ( BuildingPrivlidge )obj;
-                return false;
+                var obj = HookExecutor.CallStaticHook ( "OnBuildingPrivilege", __instance, obb );
+
+                if ( obj is BuildingPrivlidge )
+                {
+                    __result = ( BuildingPrivlidge )obj;
+                    return false;
+                }
+
+                __result = null;
+                return true;
             }
+            catch ( Exception ex ) { CarbonCore.Error ( $"Failed OnBuildingPrivilege", ex ); }
 
             __result = null;
-            return true;
+            return false;
         }
     }
 }

@@ -4,8 +4,11 @@
 /// 
 
 using Carbon.Core;
+using Humanlights.Extensions;
 using Oxide.Core;
+using System;
 using UnityEngine;
+using static BaseCombatEntity;
 
 namespace Carbon.Extended
 {
@@ -19,25 +22,57 @@ namespace Carbon.Extended
     {
         public static bool Prefix ( HitInfo info, ref BasePlayer __instance )
         {
-            if ( !__instance.IsDead () )
+            try
             {
-                if ( __instance.Belt != null && __instance.ShouldDropActiveItem () )
+                if ( !__instance.IsDead () )
                 {
-                    var vector = new Vector3 ( UnityEngine.Random.Range ( -2f, 2f ), 0.2f, UnityEngine.Random.Range ( -2f, 2f ) );
-                    __instance.Belt.DropActive ( __instance.GetDropPosition (), __instance.GetInheritedDropVelocity () + vector.normalized * 3f );
-                }
-                if ( !__instance.WoundInsteadOfDying ( info ) )
-                {
-                    if ( Interface.CallHook ( "OnPlayerDeath", __instance, info ) != null )
+                    if ( __instance.Belt != null && __instance.ShouldDropActiveItem () )
                     {
-                        return false;
+                        var vector = new Vector3 ( UnityEngine.Random.Range ( -2f, 2f ), 0.2f, UnityEngine.Random.Range ( -2f, 2f ) );
+                        __instance.Belt.DropActive ( __instance.GetDropPosition (), __instance.GetInheritedDropVelocity () + vector.normalized * 3f );
                     }
-                    SleepingBag.OnPlayerDeath ( __instance );
-                    __instance.Die ( info );
+                    if ( !__instance.WoundInsteadOfDying ( info ) )
+                    {
+                        if ( Interface.CallHook ( "OnPlayerDeath", __instance, info ) != null )
+                        {
+                            return false;
+                        }
+                        SleepingBag.OnPlayerDeath ( __instance );
+                        BaseDie ( __instance, info );
+                    }
+                }
+
+                return false;
+            }
+            catch ( Exception ex ) { CarbonCore.Error ( $"Failed OnPlayerDeath", ex ); }
+
+            return false;
+        }
+
+        public static void BaseDie (BasePlayer player, HitInfo info)
+        {
+            if ( player.IsDead () )
+            {
+                return;
+            }
+
+            if ( ConVar.Global.developer > 1 )
+            {
+                Debug.Log ( "[Combat]".PadRight ( 10 ) + player.gameObject.name + " died" );
+            }
+
+            player.health = 0f;
+            player.lifestate = LifeState.Dead;
+            if ( info != null && ( bool )info.InitiatorPlayer )
+            {
+                BasePlayer initiatorPlayer = info.InitiatorPlayer;
+                if ( initiatorPlayer != null && initiatorPlayer.GetActiveMission () != -1 && !initiatorPlayer.IsNpc )
+                {
+                    initiatorPlayer.ProcessMissionEvent ( BaseMission.MissionEventType.KILL_ENTITY, player.prefabID.ToString (), 1f );
                 }
             }
 
-            return false;
+            player.OnKilled ( info );
         }
     }
 }

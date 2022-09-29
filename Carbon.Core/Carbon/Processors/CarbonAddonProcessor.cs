@@ -98,7 +98,15 @@ namespace Carbon.Core
                     {
                         var parameters = type.GetCustomAttributes<Hook.Parameter> ();
                         var hook = type.GetCustomAttribute<Hook> ();
-                        var args = parameters == null || !parameters.Any () ? 0 : parameters.Count ();
+                        var args = string.Empty;
+
+                        if ( parameters != null )
+                        {
+                            foreach ( var parameter in parameters )
+                            {
+                                args += $"_{parameter.Type.Name}";
+                            }
+                        }
 
                         if ( hook == null ) continue;
 
@@ -143,7 +151,7 @@ namespace Carbon.Core
                                 transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
                             hookInstance.Patches.Add ( instance );
                             hookInstance.Id = patchId;
-                            CarbonCore.Warn ( $" Patched {hookName}[{args}]..." );
+                            CarbonCore.Warn ( $" Patched {hookName}{args}..." );
 
                             Pool.Free ( ref matchedParameters );
                         }
