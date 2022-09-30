@@ -72,7 +72,8 @@
   </ItemGroup>
 
   <ItemGroup>    <!-- External libs -->
-    <Reference Include="..\..\External\*.dll" />
+    <Reference Include="..\..\External\Humanlights.System.dll" />
+    <Reference Include="..\..\External\Humanlights.Unity.dll" />
   </ItemGroup>
 
   <ItemGroup Condition="!$(Configuration.Contains('Unix'))">    <!-- Windows packages -->
