@@ -12,7 +12,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -150,8 +149,7 @@ namespace Carbon.Core
                 {
                     if ( reference.StartsWith ( "// Reference:" ) || reference.StartsWith ( "//Reference:" ) )
                     {
-
-                        var @ref = $"{reference.Replace ( "// Reference:", "" ).Replace ( "//Reference:", "" )}.dll".Trim ();
+                        var @ref = $"{reference.Replace ( "// Reference:", "" ).Replace ( "//Reference:", "" )}".Trim ();
                         resultReferences.Add ( @ref );
                         CarbonCore.Log ( $" Added reference: {@ref}" );
                     }

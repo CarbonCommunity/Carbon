@@ -13,6 +13,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Application = UnityEngine.Application;
@@ -75,9 +76,8 @@ namespace Carbon.Core
 
             foreach ( var reference in References )
             {
-                if ( string.IsNullOrEmpty ( reference ) ) continue;
+                if ( string.IsNullOrEmpty ( reference ) || _metadataReferences.Any ( x => x.Display.Contains ( reference ) ) ) continue;
 
-                Console.WriteLine ( $"{reference}" );
                 references.Add ( _getReferenceFromCache ( reference ) );
             }
 
