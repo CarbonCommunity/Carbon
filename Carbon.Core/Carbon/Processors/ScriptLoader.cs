@@ -207,9 +207,9 @@ namespace Carbon.Core
 
             if ( AsyncLoader == null ) yield break;
 
-            if ( AsyncLoader.Exceptions.Count != 0 )
+            if ( AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0 )
             {
-                CarbonCore.Error ( $"Failed compiling '{AsyncLoader.FilePath}' after {AsyncLoader.Retries} retries:" );
+                CarbonCore.Error ( $"Failed compiling '{AsyncLoader.FilePath}':" );
                 for ( int i = 0; i < AsyncLoader.Exceptions.Count; i++ )
                 {
                     var error = AsyncLoader.Exceptions [ i ];
