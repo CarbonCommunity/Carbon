@@ -103,7 +103,7 @@ namespace Carbon.Core
                         plugin.Instance.IUnload ();
                         CarbonLoader.RemoveCommands ( plugin.Instance );
                         plugin.Instance.Dispose ();
-                        CarbonCore.Log ( $"Unloaded plugin {plugin.Instance}" );
+                        CarbonCore.Log ( $"Unloaded plugin {plugin.Instance.ToString()}" );
                     }
                     catch ( Exception ex ) { CarbonCore.Error ( $"Failed unloading '{plugin.Instance}'", ex ); }
                 }

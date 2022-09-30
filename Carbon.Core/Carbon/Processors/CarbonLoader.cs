@@ -302,7 +302,7 @@ namespace Carbon.Core
                     mod.Plugins.Add ( plugin );
                     ProcessCommands ( type, plugin );
 
-                    CarbonCore.Log ( $"Loaded plugin {plugin}" );
+                    CarbonCore.Log ( $"Loaded plugin {plugin.ToString()}" );
                 }
                 catch ( Exception ex ) { CarbonCore.Error ( $"Failed loading '{mod.Name}'", ex ); }
             }
@@ -314,11 +314,10 @@ namespace Carbon.Core
                 try
                 {
                     HookExecutor.CallStaticHook ( "OnPluginUnloaded", plugin );
-                    plugin.CallHook ( "Unload" );
                     plugin.IUnload ();
                     RemoveCommands ( plugin );
                     plugin.Dispose ();
-                    CarbonCore.Log ( $"Unloaded plugin {plugin}" );
+                    CarbonCore.Log ( $"Unloaded plugin {plugin.ToString()}" );
                 }
                 catch ( Exception ex ) { CarbonCore.Error ( $"Failed unloading '{mod.Name}'", ex ); }
             }

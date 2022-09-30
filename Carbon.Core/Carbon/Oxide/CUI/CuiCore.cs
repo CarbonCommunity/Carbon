@@ -258,7 +258,7 @@ namespace Oxide.Game.Rust.Cui
         }
 
         [DefaultValue ( "Text" )]
-        [JsonProperty ( "text" )]
+        [JsonProperty ( "text", NullValueHandling = NullValueHandling.Ignore )]
         public string Text { get; set; } = "Text";
 
         [DefaultValue ( 14 )]
@@ -337,10 +337,11 @@ namespace Oxide.Game.Rust.Cui
             }
         }
 
-        [DefaultValue ( "Assets/Icons/rust.png" )]
+        [DefaultValue ( "assets/content/textures/generic/fulltransparent.tga" )]
         [JsonProperty ( "sprite", NullValueHandling = NullValueHandling.Ignore )]
-        public string Sprite { get; set; } = "Assets/Icons/rust.png";
+        public string Sprite { get; set; } = "assets/content/textures/generic/fulltransparent.tga";
 
+        [JsonProperty ( "color" )]
         public string Color { get; set; } = "1.0 1.0 1.0 1.0";
 
         [JsonProperty ( "material" )]
@@ -352,6 +353,7 @@ namespace Oxide.Game.Rust.Cui
         [JsonProperty ( "png" )]
         public string Png { get; set; }
 
+        [JsonProperty ( "fadeIn" )]
         public float FadeIn { get; set; }
     }
     public class CuiRectTransformComponent : ICuiComponent
@@ -426,6 +428,7 @@ namespace Oxide.Game.Rust.Cui
         [JsonProperty ( "align" )]
         public TextAnchor Align { get; set; }
 
+        [JsonProperty ( "color" )]
         public string Color { get; set; } = "1.0 1.0 1.0 1.0";
 
         [JsonProperty ( "fadeIn" )]

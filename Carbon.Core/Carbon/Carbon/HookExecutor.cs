@@ -248,7 +248,13 @@ namespace Carbon.Core
                     var methodResult = DoCall ( method );
                     if ( methodResult != null ) result = methodResult;
                 }
-                catch { }
+                catch ( ArgumentException ) { }
+                catch ( TargetParameterCountException ) { }
+                catch ( Exception ex )
+                {
+                    var exception = ex.InnerException ?? ex;
+                    CarbonCore.Error ( $"Failed to call hook '{hookName}' on plugin '{plugin.Name} v{plugin.Version}' ({exception.Message})\n{exception.StackTrace}" );
+                }
             }
 
             object DoCall ( MethodInfo method )
