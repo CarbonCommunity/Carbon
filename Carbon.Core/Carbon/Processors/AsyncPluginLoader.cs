@@ -20,186 +20,186 @@ using LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
 
 namespace Carbon.Core
 {
-	public class AsyncPluginLoader : ThreadedJob
-	{
-		public string FilePath;
-		public string FileName;
-		public string Source;
-		public string [] References;
-		public string [] Requires;
-		public float CompileTime;
-		public Assembly Assembly;
-		public List<CompilerException> Exceptions = new List<CompilerException> ();
-		internal RealTimeSince TimeSinceCompile;
+    public class AsyncPluginLoader : ThreadedJob
+    {
+        public string FilePath;
+        public string FileName;
+        public string Source;
+        public string [] References;
+        public string [] Requires;
+        public float CompileTime;
+        public Assembly Assembly;
+        public List<CompilerException> Exceptions = new List<CompilerException> ();
+        internal RealTimeSince TimeSinceCompile;
 
-		internal static int _assemblyIndex = 0;
-		internal static bool _hasInit { get; set; }
-		internal static void _doInit ()
-		{
-			if ( _hasInit ) return;
-			_hasInit = true;
+        internal static int _assemblyIndex = 0;
+        internal static bool _hasInit { get; set; }
+        internal static void _doInit ()
+        {
+            if ( _hasInit ) return;
+            _hasInit = true;
 
-			_metadataReferences.Add ( _humanlightsSystemRef );
-			_metadataReferences.Add ( _humanlightsUnityRef );
-			_metadataReferences.Add ( _protobufRef );
-			_metadataReferences.Add ( _protobufCoreRef );
-            _metadataReferences.Add ( _carbonRef );
-
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
-
-			foreach ( var assembly in assemblies )
-			{
-				if ( assembly.IsDynamic || !OsEx.File.Exists ( assembly.Location ) || CarbonLoader.AssemblyCache.Contains ( assembly ) ) continue;
-
-				_metadataReferences.Add ( MetadataReference.CreateFromFile ( assembly.Location ) );
-			}
-		}
-
-		internal static List<MetadataReference> _metadataReferences = new List<MetadataReference> ();
-		internal static MetadataReference _humanlightsSystemRef = MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.Humanlights_System ) );
-		internal static MetadataReference _humanlightsUnityRef = MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.Humanlights_Unity ) );
-		internal static MetadataReference _protobufRef = MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.protobuf_net ) );
-		internal static MetadataReference _protobufCoreRef = MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.protobuf_net_Core ) );
-		internal static MetadataReference _carbonRef = MetadataReference.CreateFromStream ( new MemoryStream ( OsEx.File.ReadBytes ( Path.Combine ( Application.dataPath, "..", "HarmonyMods",
+            _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.Humanlights_System ) ) );
+            _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.Humanlights_Unity ) ) );
+            _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.protobuf_net ) ) );
+            _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.protobuf_net_Core ) ) );
+            _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( OsEx.File.ReadBytes ( Path.Combine ( Application.dataPath, "..", "HarmonyMods",
 #if WIN
-	"Carbon.dll"
+    "Carbon.dll"
 #elif UNIX
 			"Carbon-Unix.dll"
 #endif
-	) ) ) );
+    ) ) ) ) );
 
-		internal static Dictionary<string, MetadataReference> _referenceCache = new Dictionary<string, MetadataReference> ();
-		internal static MetadataReference _getReferenceFromCache ( string reference )
-		{
-			if ( !_referenceCache.TryGetValue ( reference, out var metaReference ) )
-			{
-				_referenceCache.Add ( reference, MetadataReference.CreateFromFile ( Path.Combine ( Application.dataPath, "..", "RustDedicated_Data", "Managed", reference ) ) );
-			}
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
 
-			return metaReference;
-		}
+            foreach ( var assembly in assemblies )
+            {
+                if ( assembly.IsDynamic || !OsEx.File.Exists ( assembly.Location ) || CarbonLoader.AssemblyCache.Contains ( assembly ) ) continue;
 
-		internal List<MetadataReference> _addReferences ()
-		{
-			var references = Pool.GetList<MetadataReference> ();
-			references.AddRange ( _metadataReferences );
+                _metadataReferences.Add ( MetadataReference.CreateFromFile ( assembly.Location ) );
+            }
+        }
 
-			foreach ( var reference in References )
-			{
-				if ( string.IsNullOrEmpty ( reference ) ) continue;
+        internal static List<MetadataReference> _metadataReferences = new List<MetadataReference> ();
+        internal static Dictionary<string, MetadataReference> _referenceCache = new Dictionary<string, MetadataReference> ();
 
-				// references.Add ( _getReferenceFromCache ( reference ) );
-			}
+        internal static MetadataReference _getReferenceFromCache ( string reference )
+        {
+            if ( !_referenceCache.TryGetValue ( reference, out var metaReference ) )
+            {
+                _referenceCache.Add ( reference, MetadataReference.CreateFromFile ( Path.Combine ( Application.dataPath, "..", "RustDedicated_Data", "Managed", reference ) ) );
+            }
 
-			return references;
-		}
-		internal bool _addRequires ()
-		{
-			if ( Requires == null ) return true;
+            return metaReference;
+        }
 
-			foreach ( var require in Requires )
-			{
-				if ( !CarbonLoader.AssemblyDictionaryCache.TryGetValue ( require, out var assembly ) ) return false;
+        internal List<MetadataReference> _addReferences ()
+        {
+            var references = Pool.GetList<MetadataReference> ();
+            references.AddRange ( _metadataReferences );
 
-				// if ( assembly != null ) _options.ReferencedAssemblies.Add ( assembly.GetName ().Name );
-			}
+            foreach ( var reference in References )
+            {
+                if ( string.IsNullOrEmpty ( reference ) ) continue;
 
-			return true;
-		}
+                // references.Add ( _getReferenceFromCache ( reference ) );
+            }
 
-		public class CompilerException : Exception
-		{
-			public string FilePath;
-			public CompilerError Error;
-			public CompilerException ( string filePath, CompilerError error ) { FilePath = filePath; Error = error; }
+            return references;
+        }
+        internal bool _addRequires ()
+        {
+            if ( Requires == null ) return true;
 
-			public override string ToString ()
-			{
-				return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
-			}
-		}
+            foreach ( var require in Requires )
+            {
+                if ( !CarbonLoader.AssemblyDictionaryCache.TryGetValue ( require, out var assembly ) ) return false;
 
-		public override void Start ()
-		{
-			_doInit ();
+                // if ( assembly != null ) _options.ReferencedAssemblies.Add ( assembly.GetName ().Name );
+            }
 
-			FileName = Path.GetFileNameWithoutExtension ( FilePath );
+            return true;
+        }
 
-			if ( !_addRequires () )
-			{
-				Exceptions.Add ( new CompilerException ( FilePath, new CompilerError { ErrorText = "Couldn't find all required references." } ) );
-				return;
-			}
+        public class CompilerException : Exception
+        {
+            public string FilePath;
+            public CompilerError Error;
+            public CompilerException ( string filePath, CompilerError error ) { FilePath = filePath; Error = error; }
 
-			base.Start ();
-		}
+            public override string ToString ()
+            {
+                return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
+            }
+        }
 
-		public override void ThreadFunction ()
-		{
-			try
-			{
-				Exceptions.Clear ();
+        public override void Start ()
+        {
+            try
+            {
 
-				TimeSinceCompile = 0;
+                FileName = Path.GetFileNameWithoutExtension ( FilePath );
 
-				var references = _addReferences ();
-				var tree = Pool.GetList<SyntaxTree> ();
-				tree.Add ( CSharpSyntaxTree.ParseText ( Source ) );
+                _doInit ();
 
-				foreach ( var require in Requires )
-				{
-					try
-					{
-						tree.Add ( CSharpSyntaxTree.ParseText ( OsEx.File.ReadText ( Path.Combine ( CarbonCore.GetPluginsFolder (), $"{require}.cs" ) ) ) );
-					}
-					catch ( Exception treeEx )
-					{
-						throw treeEx;
-					}
-				}
+                if ( !_addRequires () )
+                {
+                    Exceptions.Add ( new CompilerException ( FilePath, new CompilerError { ErrorText = "Couldn't find all required references." } ) );
+                    return;
+                }
+            }
+            catch ( Exception ex ) { Console.WriteLine ( $"Couldn't compile '{FileName}'\n{ex}" ); }
+           
+            base.Start ();
+        }
 
-				var options = new CSharpCompilationOptions ( OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, warningLevel: 4 );
-				var compilation = CSharpCompilation.Create ( $"{FileName}_{RandomEx.GetRandomInteger()}", tree, references, options );
+        public override void ThreadFunction ()
+        {
+            try
+            {
+                Exceptions.Clear ();
 
-				using ( var dllStream = new MemoryStream () )
-				{
-					var emit = compilation.Emit ( dllStream );
+                TimeSinceCompile = 0;
 
-					foreach ( var error in emit.Diagnostics )
-					{
-						var span = error.Location.GetMappedLineSpan ().Span;
-						switch ( error.Severity )
-						{
-							case DiagnosticSeverity.Error:
-								Exceptions.Add ( new CompilerException ( FilePath, new CompilerError ( FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage ( CultureInfo.InvariantCulture ) ) ) );
-								break;
-						}
-					}
+                var references = _addReferences ();
+                var tree = Pool.GetList<SyntaxTree> ();
+                tree.Add ( CSharpSyntaxTree.ParseText ( Source ) );
 
-					if ( emit.Success )
-					{
-						Assembly = Assembly.Load ( dllStream.ToArray () );
-					}
-				}
+                foreach ( var require in Requires )
+                {
+                    try
+                    {
+                        tree.Add ( CSharpSyntaxTree.ParseText ( OsEx.File.ReadText ( Path.Combine ( CarbonCore.GetPluginsFolder (), $"{require}.cs" ) ) ) );
+                    }
+                    catch ( Exception treeEx )
+                    {
+                        throw treeEx;
+                    }
+                }
 
-				CompileTime = TimeSinceCompile;
+                var options = new CSharpCompilationOptions ( OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, warningLevel: 4 );
+                var compilation = CSharpCompilation.Create ( $"{FileName}_{RandomEx.GetRandomInteger ()}", tree, references, options );
 
-				Pool.FreeList ( ref references );
-				Pool.FreeList ( ref tree );
+                using ( var dllStream = new MemoryStream () )
+                {
+                    var emit = compilation.Emit ( dllStream );
 
-				if ( Exceptions.Count > 0 ) throw null;
-			}
-			catch { }
-		}
+                    foreach ( var error in emit.Diagnostics )
+                    {
+                        var span = error.Location.GetMappedLineSpan ().Span;
+                        switch ( error.Severity )
+                        {
+                            case DiagnosticSeverity.Error:
+                                Exceptions.Add ( new CompilerException ( FilePath, new CompilerError ( FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage ( CultureInfo.InvariantCulture ) ) ) );
+                                break;
+                        }
+                    }
 
-		private SyntaxTree GetSyntaxTree ( string code, params string [] defines )
-		{
-			return SyntaxFactory.ParseSyntaxTree ( SourceText.From ( code, Encoding.UTF8 ), GetOptions ( defines ) );
-		}
+                    if ( emit.Success )
+                    {
+                        Assembly = Assembly.Load ( dllStream.ToArray () );
+                    }
+                }
 
-		private CSharpParseOptions GetOptions ( string [] defines )
-		{
-			return new CSharpParseOptions ( languageVersion: LanguageVersion.CSharp9, preprocessorSymbols: defines );
-		}
-	}
+                CompileTime = TimeSinceCompile;
+
+                Pool.FreeList ( ref references );
+                Pool.FreeList ( ref tree );
+
+                if ( Exceptions.Count > 0 ) throw null;
+            }
+            catch ( Exception ex ) { Console.WriteLine ( $"Couldn't compile '{FileName}'\n{ex}" ); }
+        }
+
+        private SyntaxTree GetSyntaxTree ( string code, params string [] defines )
+        {
+            return SyntaxFactory.ParseSyntaxTree ( SourceText.From ( code, Encoding.UTF8 ), GetOptions ( defines ) );
+        }
+
+        private CSharpParseOptions GetOptions ( string [] defines )
+        {
+            return new CSharpParseOptions ( languageVersion: LanguageVersion.CSharp9, preprocessorSymbols: defines );
+        }
+    }
 }
