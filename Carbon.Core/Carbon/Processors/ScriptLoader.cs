@@ -100,6 +100,7 @@ namespace Carbon.Core
                     try
                     {
                         HookExecutor.CallStaticHook ( "OnPluginUnloaded", plugin.Instance );
+                        plugin.Instance.CallHook ( "Unload" );
                         plugin.Instance.IUnload ();
                         CarbonLoader.RemoveCommands ( plugin.Instance );
                         plugin.Instance.Dispose ();

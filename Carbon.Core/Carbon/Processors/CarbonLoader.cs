@@ -326,7 +326,8 @@ namespace Carbon.Core
 				try
 				{
 					HookExecutor.CallStaticHook("OnPluginUnloaded", plugin);
-					plugin.IUnload();
+                    plugin.CallHook ( "Unload" );
+                    plugin.IUnload();
 					RemoveCommands(plugin);
 					plugin.Dispose();
 					CarbonCore.Log($"Unloaded plugin {plugin.ToString()}");

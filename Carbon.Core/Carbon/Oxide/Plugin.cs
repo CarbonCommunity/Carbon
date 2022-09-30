@@ -151,8 +151,6 @@ namespace Oxide.Plugins
         }
         public virtual void IUnload ()
         {
-            try { CallHook ( "Unload" ); } catch { }
-
             _unprocessHooks ();
 
             foreach ( var plugin in CarbonCore.Instance.CorePlugin.plugins.GetAll () )
