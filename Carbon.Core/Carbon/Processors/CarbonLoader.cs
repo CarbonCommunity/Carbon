@@ -302,8 +302,8 @@ namespace Carbon.Core
 					plugin.CallHook("SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description);
 					HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
 					plugin.IInit();
-					plugin.ILoad();
-					plugin.DoLoadConfig();
+                    plugin.DoLoadConfig ();
+                    plugin.Load();
 
 					if (CarbonCore.IsServerFullyInitialized)
 					{

@@ -143,7 +143,7 @@ namespace Oxide.Plugins
 
             CallHook ( "Init" );
         }
-        public virtual void ILoad ()
+        public virtual void Load ()
         {
             IsLoaded = true;
             CallHook ( "OnLoaded" );

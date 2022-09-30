@@ -55,7 +55,7 @@ namespace Carbon.Core
                     }
                 }
 
-                CarbonCore.Instance.ScriptProcessor.StartCoroutine ( Compile ( target ) );
+                CarbonCore.Instance.ScriptProcessor.StartCoroutine ( Compile () );
             }
             catch ( Exception exception )
             {
@@ -134,7 +134,7 @@ namespace Carbon.Core
             }
         }
 
-        public IEnumerator Compile ( GameObject target = null )
+        public IEnumerator Compile ()
         {
             if ( string.IsNullOrEmpty ( Source ) )
             {
@@ -274,11 +274,8 @@ namespace Carbon.Core
                     plugin.Instance.CallHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Instance.IInit ();
-                    try { plugin.Instance.DoLoadConfig (); }
-                    catch ( Exception loadException )
-                    {
-                        plugin.Instance.LogError ( $"Failed loading config.", loadException );
-                    }
+                    try { plugin.Instance.DoLoadConfig (); } catch ( Exception loadException ) { plugin.Instance.LogError ( $"Failed loading config.", loadException ); }
+                    plugin.Instance.Load ();
 
                     if ( CarbonCore.IsServerFullyInitialized )
                     {
