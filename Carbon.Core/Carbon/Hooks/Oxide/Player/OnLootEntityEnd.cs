@@ -29,7 +29,6 @@ namespace Carbon.Extended
     {
         public static void Prefix ( BasePlayer player, ref StorageContainer __instance )
         {
-            CarbonCore.Log ( $"works?" );
             HookExecutor.CallStaticHook ( "OnLootEntityEnd", player, __instance );
         }
     }
