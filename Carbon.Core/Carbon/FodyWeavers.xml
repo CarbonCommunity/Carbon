@@ -1,3 +1,13 @@
 ﻿<Weavers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="FodyWeavers.xsd">
-  <Costura />
+  <Costura IncludeDebugSymbols="false">
+    <IncludeAssemblies>
+      Humanlights.MCS
+      Humanlights.System
+      Humanlights.Unity
+      Humanlights.Unity.Compiler
+      protobuf-net
+      protobuf-net.Core
+      System.Collections.Immutable
+    </IncludeAssemblies>
+  </Costura>
 </Weavers>
