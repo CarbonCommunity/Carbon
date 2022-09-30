@@ -110,21 +110,6 @@ namespace Carbon.Core
 
                         if ( hook == null ) continue;
 
-                        if ( doRequires )
-                        {
-                            var requires = type.GetCustomAttributes<Hook.Require> ();
-
-                            if ( requires != null )
-                            {
-                                foreach ( var require in requires )
-                                {
-                                    if ( require.Hook == hookName ) continue;
-
-                                    InstallHooks ( require.Hook, false );
-                                }
-                            }
-                        }
-
                         if ( hook.Name == hookName )
                         {
                             var patchId = $"{hook.Name}.{args}";
@@ -137,6 +122,21 @@ namespace Carbon.Core
                             }
 
                             if ( hookInstance.Patches.Any ( x => x != null && x.Id == patchId ) ) continue;
+
+                            if ( doRequires )
+                            {
+                                var requires = type.GetCustomAttributes<Hook.Require> ();
+
+                                if ( requires != null )
+                                {
+                                    foreach ( var require in requires )
+                                    {
+                                        if ( require.Hook == hookName ) continue;
+
+                                        InstallHooks ( require.Hook, false );
+                                    }
+                                }
+                            }
 
                             var prefix = type.GetMethod ( "Prefix" );
                             var postfix = type.GetMethod ( "Postfix" );
