@@ -318,7 +318,31 @@ namespace Carbon.Core
 
 		#endregion
 
-		public static void ReloadPlugins ()
+		#region Path
+
+		public const string Name =
+#if WIN
+			"Carbon";
+#elif UNIX
+			"Carbon-Unix";
+#endif
+        public const string DllName =
+#if WIN
+			"Carbon.dll";
+#elif UNIX
+			"Carbon-Unix.dll";
+#endif
+		public static string DllPath => Path.GetFullPath ( Path.Combine ( AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods",
+#if WIN
+			"Carbon.dll"
+#elif UNIX
+            "Carbon-Unix.dll"
+#endif
+	) );
+
+        #endregion
+
+        public static void ReloadPlugins ()
 		{
 			CarbonLoader.LoadCarbonMods ();
 			ScriptLoader.LoadAll ();
@@ -350,14 +374,14 @@ namespace Carbon.Core
 		{
 			if ( IsInitialized ) return;
 
-			#region Handle Versions
+#region Handle Versions
 
 			var assembly = typeof ( CarbonCore ).Assembly;
 
             try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute> ().InformationalVersion; } catch { }
 			try { Version = assembly.GetName().Version.ToString(); } catch { }
 
-			#endregion
+#endregion
 
 			LoadConfig ();
 			Debug ( "Loaded config", 3 );

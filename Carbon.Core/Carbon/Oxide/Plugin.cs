@@ -143,7 +143,7 @@ namespace Oxide.Plugins
 
             CallHook ( "Init" );
         }
-        public virtual void ILoad ()
+        public virtual void Load ()
         {
             IsLoaded = true;
             CallHook ( "OnLoaded" );
@@ -173,13 +173,13 @@ namespace Oxide.Plugins
         }
         internal void InternalUnload ()
         {
-            switch ( _processor )
-            {
-                case ScriptProcessor script:
-                    if ( script.InstanceBuffer.TryGetValue ( Name, out var instance ) )
-                        _processor.Clear ( Name, instance );
-                    break;
-            }
+            // switch ( _processor )
+            // {
+            //     case ScriptProcessor script:
+            //         if ( script.InstanceBuffer.TryGetValue ( Name, out var instance ) )
+            //             _processor.Clear ( Name, instance );
+            //         break;
+            // }
         }
 
         public void PatchPlugin ( Assembly assembly = null )

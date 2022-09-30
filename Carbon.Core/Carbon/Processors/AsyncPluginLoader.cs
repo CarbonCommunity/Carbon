@@ -43,13 +43,7 @@ namespace Carbon.Core
             _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.Humanlights_Unity ) ) );
             _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.protobuf_net ) ) );
             _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( Properties.Resources.protobuf_net_Core ) ) );
-            _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( OsEx.File.ReadBytes ( Path.Combine ( Application.dataPath, "..", "HarmonyMods",
-#if WIN
-    "Carbon.dll"
-#elif UNIX
-			"Carbon-Unix.dll"
-#endif
-    ) ) ) ) );
+            _metadataReferences.Add ( MetadataReference.CreateFromStream ( new MemoryStream ( OsEx.File.ReadBytes ( CarbonCore.DllPath ) ) ) );
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies ();
 
@@ -68,7 +62,7 @@ namespace Carbon.Core
         {
             if ( !_referenceCache.TryGetValue ( reference, out var metaReference ) )
             {
-                _referenceCache.Add ( reference, MetadataReference.CreateFromFile ( Path.Combine ( Application.dataPath, "..", "RustDedicated_Data", "Managed", reference ) ) );
+                _referenceCache.Add ( reference, MetadataReference.CreateFromFile ( Path.Combine ( Application.dataPath, "..", "RustDedicated_Data", "Managed", $"{reference}.dll" ) ) );
             }
 
             return metaReference;
@@ -83,7 +77,8 @@ namespace Carbon.Core
             {
                 if ( string.IsNullOrEmpty ( reference ) ) continue;
 
-                // references.Add ( _getReferenceFromCache ( reference ) );
+                Console.WriteLine ( $"{reference}" );
+                references.Add ( _getReferenceFromCache ( reference ) );
             }
 
             return references;
