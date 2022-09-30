@@ -54,13 +54,8 @@ public class Harmony_Unload
         if ( string.IsNullOrEmpty ( mod ) ) return true;
 
         if ( mod.Equals ( "carbon", System.StringComparison.OrdinalIgnoreCase ) ||
-             mod.Equals ( "carbon-unix", System.StringComparison.OrdinalIgnoreCase ) ) 
-             mod =
-#if WIN
-                "Carbon";
-#elif UNIX
-                "Carbon-Unix";
-#endif
+             mod.Equals ( "carbon-unix", System.StringComparison.OrdinalIgnoreCase ) )
+            mod = CarbonCore.Name;
 
         if ( !mod.StartsWith ( "carbon", System.StringComparison.OrdinalIgnoreCase )
             || CarbonCore.IsAddon ( mod ) ) return true;
