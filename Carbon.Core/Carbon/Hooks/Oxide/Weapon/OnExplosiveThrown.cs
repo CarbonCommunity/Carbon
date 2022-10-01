@@ -5,6 +5,7 @@
 
 using Oxide.Core;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Carbon.Extended
 {
