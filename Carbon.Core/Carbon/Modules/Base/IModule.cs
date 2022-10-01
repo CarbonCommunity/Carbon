@@ -1,12 +1,13 @@
-﻿
-using System;
-///
+﻿///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
+
+using System;
+
 namespace Carbon.Core.Modules
 {
-    public interface IModule : IDisposable
+    public interface IModule : IHookableModule, IDisposable
     {
         string Name { get; }
 

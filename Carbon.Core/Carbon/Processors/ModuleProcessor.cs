@@ -10,7 +10,7 @@ namespace Carbon.Core.Processors
 {
     public class ModuleProcessor : IDisposable
     {
-        public List<IModule> Modules { get; set; } = new List<IModule> ( 100 );
+        public List<BaseHookable> Modules { get; set; } = new List<BaseHookable> ( 50 );
 
         public void Init ()
         {
@@ -18,34 +18,34 @@ namespace Carbon.Core.Processors
             {
                 if ( type.BaseType == null || !type.BaseType.Name.Contains ( "BaseModule" ) ) continue;
 
-                Setup ( Activator.CreateInstance ( type ) as IModule );
+                Setup ( Activator.CreateInstance ( type ) as BaseHookable );
             }
         }
-        public void Setup ( IModule module )
+        public void Setup ( BaseHookable module )
         {
-            module.Init ();
-            Modules.Add ( module );
-            module.InitEnd ();
-        }
-        public void OnServerInitialized ()
-        {
-            foreach ( var module in Modules )
+            if ( module is IModule hookable )
             {
-                if ( module.GetEnabled () ) module.OnEnableStatus ();
+                hookable.Init ();
+                Modules.Add ( module );
+                hookable.InitEnd ();
             }
         }
 
         public void Save ()
         {
-            foreach ( var module in Modules )
+            foreach ( var hookable in Modules )
             {
+                var module = hookable.To<IModule> ();
+
                 module.Save ();
             }
         }
         public void Load ()
         {
-            foreach ( var module in Modules )
+            foreach ( var hookable in Modules )
             {
+                var module = hookable.To<IModule> ();
+
                 module.Load ();
                 module.OnEnableStatus ();
             }
@@ -53,8 +53,10 @@ namespace Carbon.Core.Processors
 
         public void Dispose ()
         {
-            foreach ( var module in Modules )
+            foreach ( var hookable in Modules )
             {
+                var module = hookable.To<IModule> ();
+
                 module.Dispose ();
             }
 

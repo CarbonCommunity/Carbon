@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon;
+using Carbon.Core.Modules;
 using Carbon.Core.Processors;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
@@ -103,8 +104,8 @@ namespace Carbon.Core
 			}
 			else
 			{
-				AllChatCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
-				AllConsoleCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
+				AllChatCommands.RemoveAll ( x => !( x.Plugin is IModule ) && ( x.Plugin is RustPlugin && ( x.Plugin as RustPlugin ).IsCorePlugin ) );
+				AllConsoleCommands.RemoveAll ( x => !( x.Plugin is IModule ) && ( x.Plugin is RustPlugin && ( x.Plugin as RustPlugin ).IsCorePlugin ) );
 			}
 		}
 		internal void _installDefaultCommands ()

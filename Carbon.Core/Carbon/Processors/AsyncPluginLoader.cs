@@ -21,7 +21,7 @@ using LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
 
 namespace Carbon.Core
 {
-    public class AsyncPluginLoader : ThreadedJob
+    public class AsyncPluginLoader : ThreadedJob_RaulsVersion
     {
         public string FilePath;
         public string FileName;

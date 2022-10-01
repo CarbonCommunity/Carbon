@@ -138,22 +138,33 @@ namespace Carbon.Core
                                 }
                             }
 
+                            var originalParameters = Pool.GetList<Type> ();
                             var prefix = type.GetMethod ( "Prefix" );
                             var postfix = type.GetMethod ( "Postfix" );
                             var transplier = type.GetMethod ( "Transplier" );
 
-                            var matchedParameters = GetMatchedParameters ( patch.Type, patch.Method, ( prefix ?? postfix ?? transplier ).GetParameters () );
+                            foreach ( var param in ( prefix ?? postfix ?? transplier ).GetParameters () )
+                            {
+                                originalParameters.Add ( param.ParameterType );
+                            }
+                            var originalParametersResult = originalParameters.ToArray ();
+
+                            var matchedParameters = patch.UseProvidedParameters ? originalParametersResult : GetMatchedParameters ( patch.Type, patch.Method, ( prefix ?? postfix ?? transplier ).GetParameters () );
                             var instance = HarmonyInstance.Create ( patchId );
-                            var originalMethod = patch.Type.GetMethod ( patch.Method, matchedParameters );
+                            var originalMethod = patch.Type.GetMethod ( patch.Method, matchedParameters);
+
                             instance.Patch ( originalMethod,
                                 prefix: prefix == null ? null : new HarmonyMethod ( prefix ),
                                 postfix: postfix == null ? null : new HarmonyMethod ( postfix ),
                                 transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
                             hookInstance.Patches.Add ( instance );
                             hookInstance.Id = patchId;
+
                             CarbonCore.Warn ( $" Patched {hookName}{args}..." );
 
                             Pool.Free ( ref matchedParameters );
+                            Pool.Free ( ref originalParametersResult );
+                            Pool.FreeList ( ref originalParameters );
                         }
                     }
                     catch ( Exception exception )

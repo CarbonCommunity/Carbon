@@ -241,10 +241,10 @@ namespace Oxide.Game.Rust.Cui
         [JsonProperty ( "fadeIn" )]
         public float FadeIn { get; set; }
 
-        [JsonProperty ( "itemId" )]
+        [JsonProperty ( "itemid" )]
         public int ItemId { get; set; }
 
-        [JsonProperty ( "skinId" )]
+        [JsonProperty ( "skinid" )]
         public ulong SkinId { get; set; }
     }
     public class CuiInputFieldComponent : ICuiComponent, ICuiColor

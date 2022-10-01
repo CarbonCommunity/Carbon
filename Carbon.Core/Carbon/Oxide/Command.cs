@@ -14,7 +14,7 @@ using Pool = Facepunch.Pool;
 
 public class Command
 {
-    public void AddChatCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
+    public void AddChatCommand ( string command, BaseHookable plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
     {
         if ( CarbonCore.Instance.AllChatCommands.Count ( x => x.Command == command ) == 0 )
         {
@@ -26,14 +26,14 @@ public class Command
                 Callback = ( player, cmd, args ) =>
                 {
                     try { callback.Invoke ( player, cmd, args ); }
-                    catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
+                    catch ( Exception ex ) { if ( plugin is RustPlugin rustPlugin ) rustPlugin.LogError ( "Error", ex ); }
                 },
                 Help = help
             } );
         }
         else CarbonCore.WarnFormat ( $"Chat command '{command}' already exists." );
     }
-    public void AddChatCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true, string help = null )
+    public void AddChatCommand ( string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null )
     {
         AddChatCommand ( command, plugin, ( player, cmd, args ) =>
         {
@@ -71,13 +71,13 @@ public class Command
 
                 m?.Invoke ( plugin, result );
             }
-            catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
+            catch ( Exception ex ) { if ( plugin is RustPlugin rustPlugin ) rustPlugin.LogError ( "Error", ex ); }
 
             if ( argData != null ) Pool.FreeList ( ref argData );
             if ( result != null ) Pool.Free ( ref result );
         }, skipOriginal, help );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
+    public void AddConsoleCommand ( string command, BaseHookable plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
     {
         if ( CarbonCore.Instance.AllConsoleCommands.Count ( x => x.Command == command ) == 0 )
         {
@@ -92,7 +92,7 @@ public class Command
         }
         else CarbonCore.WarnFormat ( $"Console command '{command}' already exists." );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true, string help = null )
+    public void AddConsoleCommand ( string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null )
     {
         AddConsoleCommand ( command, plugin, ( player, cmd, args ) =>
         {
@@ -128,16 +128,16 @@ public class Command
                     result = arguments.ToArray ();
                     methodInfo?.Invoke ( plugin, result );
                 }
-                catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
+                catch ( Exception ex ) { if ( plugin is RustPlugin rustPlugin ) rustPlugin.LogError ( "Error", ex ); }
             }
             catch ( TargetParameterCountException ) { }
-            catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
+            catch ( Exception ex ) { if ( plugin is RustPlugin rustPlugin ) rustPlugin.LogError ( "Error", ex ); }
 
             Pool.FreeList ( ref arguments );
             if ( result != null ) Pool.Free ( ref result );
         }, skipOriginal, help );
     }
-    public void AddConsoleCommand ( string command, RustPlugin plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null )
+    public void AddConsoleCommand ( string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null )
     {
         AddConsoleCommand ( command, plugin, ( player, cmd, args ) =>
         {
@@ -161,18 +161,18 @@ public class Command
                 callback.Invoke ( arg );
             }
             catch ( TargetParameterCountException ) { }
-            catch ( Exception ex ) { plugin.LogError ( "Error", ex ); }
+            catch ( Exception ex ) { if ( plugin is RustPlugin rustPlugin ) rustPlugin.LogError ( "Error", ex ); }
 
             Pool.FreeList ( ref arguments );
             if ( result != null ) Pool.Free ( ref result );
         }, skipOriginal, help );
     }
-    public void AddCovalenceCommand ( string command, RustPlugin plugin, string method, bool skipOriginal = true, string help = null )
+    public void AddCovalenceCommand ( string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null )
     {
         AddChatCommand ( command, plugin, method, skipOriginal, help );
         AddConsoleCommand ( command, plugin, method, skipOriginal, help );
     }
-    public void AddCovalenceCommand ( string command, RustPlugin plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
+    public void AddCovalenceCommand ( string command, BaseHookable plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null )
     {
         AddChatCommand ( command, plugin, callback, skipOriginal, help );
         AddConsoleCommand ( command, plugin, callback, skipOriginal, help );

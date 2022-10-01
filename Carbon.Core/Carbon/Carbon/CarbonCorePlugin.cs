@@ -50,10 +50,6 @@ namespace Carbon.Core
 
             CarbonCore.Instance.ModuleProcessor.Init ();
         }
-        private void OnServerInitialized ()
-        {
-            CarbonCore.Instance.ModuleProcessor.OnServerInitialized ();
-        }
 
         private void OnPluginLoaded ( Plugin plugin )
         {
@@ -243,7 +239,8 @@ namespace Carbon.Core
         {
             if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 2 ) ) return;
 
-            var module = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+            var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+            var module = hookable.To<IModule> ();
 
             if ( module == null )
             {
@@ -263,12 +260,46 @@ namespace Carbon.Core
             Reply ( $"{module.Name} marked {( module.GetEnabled () ? "enabled" : "disabled" )}.", arg );
         }
 
-        [ConsoleCommand ( "loadmoduleconfig", "Loads Carbon module config." )]
+        [ConsoleCommand ( "saveallmodules", "Saves the configs and data files of all available modules." )]
+        private void SaveAllModules ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
+
+            foreach(var hookable in CarbonCore.Instance.ModuleProcessor.Modules )
+            {
+                var module = hookable.To<IModule> ();
+                module.Save ();
+            }
+
+            Reply ( $"Saved {CarbonCore.Instance.ModuleProcessor.Modules.Count:n0} module configs and data files.", arg );
+        }
+
+        [ConsoleCommand ( "savemoduleconfig", "Saves Carbon module config & data file." )]
+        private void SaveModuleConfig ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
+
+            var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+            var module = hookable.To<IModule> ();
+
+            if ( module == null )
+            {
+                Reply ( $"Couldn't find that module.", arg );
+                return;
+            }
+
+            module.Save  ();
+
+            Reply ( $"Saved '{module.Name}' module config & data file.", arg );
+        }
+
+        [ConsoleCommand ( "loadmoduleconfig", "Loads Carbon module config & data file." )]
         private void LoadModuleConfig ( ConsoleSystem.Arg arg )
         {
             if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
 
-            var module = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+            var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+            var module = hookable.To<IModule> ();
 
             if ( module == null )
             {

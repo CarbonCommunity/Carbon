@@ -13,6 +13,7 @@ namespace Carbon.Core.Modules
     public class StackManagerModule : BaseModule<StackManagerConfig, StackManagerData>
     {
         public override string Name => "StackManager";
+        public override Type Type => typeof ( StackManagerModule );
 
         public override void Init ()
         {

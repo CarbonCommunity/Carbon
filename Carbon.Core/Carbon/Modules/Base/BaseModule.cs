@@ -5,21 +5,26 @@
 
 using Oxide.Core.Configuration;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using UnityEngine;
 
 namespace Carbon.Core.Modules
 {
-    public class BaseModule<C, D> : IModule
+    public class BaseModule<C, D> : BaseHookable, IModule
     {
         public DynamicConfigFile File { get; private set; }
         public DynamicConfigFile Data { get; private set; }
+
+        public new virtual Type Type => default;
 
         public Configuration ConfigInstance { get; set; }
         public D DataInstance { get; private set; }
 
         public C Config { get; private set; }
 
-        public virtual string Name => "Not set";
+        public new virtual string Name => "Not set";
 
         public void Puts ( object message )
         {
@@ -38,7 +43,20 @@ namespace Carbon.Core.Modules
 
         public virtual void Init ()
         {
-            File = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (),Name, "config.json" ) );
+            base.Name = Name;
+            base.Type = Type;
+
+            foreach ( var method in Type.GetMethods ( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic ) )
+            {
+                CarbonCore.Instance.Addon.InstallHooks ( method.Name );
+                CarbonCore.Instance.Addon.AppendHook ( method.Name );
+            }
+            CarbonCore.Debug ( Name, "Processed hooks", 2 );
+
+            CarbonLoader.ProcessCommands ( Type, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance );
+            CarbonCore.Debug ( Name, "Processed commands", 2 );
+
+            File = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), Name, "config.json" ) );
             Data = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), Name, "data.json" ) );
 
             Load ();
@@ -116,6 +134,17 @@ namespace Carbon.Core.Modules
                 if ( ConfigInstance.Enabled ) OnEnabled ( CarbonCore.IsServerFullyInitialized ); else OnDisabled ( CarbonCore.IsServerFullyInitialized );
             }
             catch ( Exception ex ) { PutsError ( $"Failed {( ConfigInstance.Enabled ? "Enable" : "Disable" )} initialization.", ex ); }
+        }
+
+        #region Hooks
+
+        public virtual void OnWorldPrefabSpawned ( GameObject gameObject, string category ) { }
+
+        #endregion
+
+        private void OnServerInitialized ()
+        {
+            if ( GetEnabled () ) OnEnableStatus ();
         }
 
         public class Configuration : IModuleConfig
