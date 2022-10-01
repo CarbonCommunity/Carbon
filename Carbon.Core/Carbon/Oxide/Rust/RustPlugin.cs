@@ -159,15 +159,6 @@ namespace Oxide.Plugins
 
 		}
 
-		public void Unsubscribe(string hook)
-		{
-
-		}
-		public void Subscribe(string hook)
-		{
-
-		}
-
 		public new string ToString()
 		{
 			return $"{Name} v{Version} by {Author}";

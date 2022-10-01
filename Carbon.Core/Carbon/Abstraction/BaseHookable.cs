@@ -11,6 +11,7 @@ namespace Carbon.Core
 	{
 		public Dictionary<string, List<MethodInfo>> HookCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
 		public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
+		public List<string> IgnoredHooks { get; internal set; } = new List<string>();
 
 		[JsonProperty]
 		public string Name { get; set; }
@@ -59,6 +60,23 @@ namespace Carbon.Core
 		}
 
 		#endregion
+
+		public void Unsubscribe(string hook)
+		{
+			if (IgnoredHooks.Contains(hook)) return;
+
+			IgnoredHooks.Add(hook);
+		}
+		public void Subscribe(string hook)
+		{
+			if (!IgnoredHooks.Contains(hook)) return;
+
+			IgnoredHooks.Remove(hook);
+		}
+		public bool IsHookIgnored(string hook)
+		{
+			return IgnoredHooks.Contains(hook);
+		}
 
 		public T To<T>()
 		{

@@ -19,8 +19,6 @@ namespace Oxide.Plugins
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Plugin : BaseHookable, IDisposable
 	{
-		public List<string> IgnoredHooks { get; private set; } = new List<string>();
-
 		public bool IsCorePlugin { get; set; }
 
 		[JsonProperty]
