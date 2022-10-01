@@ -69,7 +69,7 @@ jobs:
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
         dotnet restore ${GITHUB_WORKSPACE}/Carbon.Core --nologo --force
-        dotnet format ${GITHUB_WORKSPACE}/Carbon.Core --verbosity diagnostic
+        dotnet format ${GITHUB_WORKSPACE}/Carbon.Core --verbosity diag --verify-no-changes
 
   build-linux:
     name: 🐧 Linux
