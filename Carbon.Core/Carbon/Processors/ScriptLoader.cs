@@ -31,7 +31,7 @@ namespace Carbon.Core
 
 		public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader();
 
-		public void Load(bool customFiles = false, bool customSources = false, GameObject target = null)
+		public void Load (bool customFiles = false, bool customSources = false, GameObject target = null)
 		{
 			try
 			{
@@ -42,7 +42,7 @@ namespace Carbon.Core
 
 				if (!customSources) GetSources();
 
-				if (Sources.Count > 0) Source = Sources[0];
+				if (Sources.Count > 0) Source = Sources [ 0 ];
 
 				if (Parser != null)
 				{
@@ -62,7 +62,7 @@ namespace Carbon.Core
 			}
 		}
 
-		public static void LoadAll()
+		public static void LoadAll ()
 		{
 			var files = OsEx.Folder.GetFilesWithExtension(CarbonCore.GetPluginsFolder(), "cs");
 
@@ -82,14 +82,14 @@ namespace Carbon.Core
 			}
 		}
 
-		public void Clear()
+		public void Clear ()
 		{
 			AsyncLoader?.Abort();
 			AsyncLoader = null;
 
 			for (int i = 0; i < Scripts.Count; i++)
 			{
-				var plugin = Scripts[i];
+				var plugin = Scripts [ i ];
 				if (plugin.IsCore) continue;
 
 				CarbonCore.Instance.Plugins.Plugins.Remove(plugin.Instance);
@@ -116,7 +116,7 @@ namespace Carbon.Core
 				Scripts.RemoveAll(x => !x.IsCore);
 			}
 		}
-		protected void GetSources()
+		protected void GetSources ()
 		{
 			Sources.Clear();
 
@@ -133,7 +133,7 @@ namespace Carbon.Core
 			}
 		}
 
-		public IEnumerator Compile()
+		public IEnumerator Compile ()
 		{
 			if (string.IsNullOrEmpty(Source))
 			{
@@ -174,7 +174,7 @@ namespace Carbon.Core
 			}
 
 			Pool.Free(ref lines);
-			if (Files.Count > 0) AsyncLoader.FilePath = Files[0];
+			if (Files.Count > 0) AsyncLoader.FilePath = Files [ 0 ];
 			AsyncLoader.Source = Source;
 			AsyncLoader.References = resultReferences?.ToArray();
 			AsyncLoader.Requires = resultRequires?.ToArray();
@@ -188,7 +188,7 @@ namespace Carbon.Core
 				var plugin = CarbonCore.Instance.CorePlugin.plugins.Find(require);
 				if (plugin == null)
 				{
-					CarbonCore.Warn($"Couldn't find required plugin '{require}' for '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}'");
+					CarbonCore.Warn($"Couldn't find required plugin '{require}' for '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files [ 0 ]) : "<unknown>")}'");
 					noRequiresFound = true;
 				}
 				else requires.Add(plugin);
@@ -211,13 +211,13 @@ namespace Carbon.Core
 				CarbonCore.Error($"Failed compiling '{AsyncLoader.FilePath}':");
 				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
 				{
-					var error = AsyncLoader.Exceptions[i];
+					var error = AsyncLoader.Exceptions [ i ];
 					CarbonCore.Error($"  {i + 1:n0}. {error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})");
 				}
 				yield break;
 			}
 
-			CarbonCore.Warn($" Compiling '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
+			CarbonCore.Warn($" Compiling '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files [ 0 ]) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
 
 			try
 			{
@@ -251,7 +251,7 @@ namespace Carbon.Core
 
 					var info = type.GetCustomAttribute(typeof(InfoAttribute), true) as InfoAttribute;
 					var description = type.GetCustomAttribute(typeof(DescriptionAttribute), true) as DescriptionAttribute;
-					var plugin = Script.Create(Sources[pluginIndex], assembly, type);
+					var plugin = Script.Create(Sources [ pluginIndex ], assembly, type);
 
 					if (info == null)
 					{
@@ -313,7 +313,7 @@ namespace Carbon.Core
 			yield break;
 		}
 
-		public void Dispose()
+		public void Dispose ()
 		{
 
 		}
@@ -333,7 +333,7 @@ namespace Carbon.Core
 			public RustPlugin Instance;
 			public bool IsCore;
 
-			public static Script Create(string source, Assembly assembly, Type type)
+			public static Script Create (string source, Assembly assembly, Type type)
 			{
 				return new Script
 				{
@@ -348,13 +348,13 @@ namespace Carbon.Core
 				};
 			}
 
-			public void Dispose()
+			public void Dispose ()
 			{
 				Assembly = null;
 				Type = null;
 			}
 
-			public override string ToString()
+			public override string ToString ()
 			{
 				return $"{Name} v{Version}";
 			}

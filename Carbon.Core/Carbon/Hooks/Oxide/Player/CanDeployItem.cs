@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(Deployer), "DoDeploy")]
 	public class Deployer_DoDeploy
 	{
-		public static bool Prefix(BaseEntity.RPCMessage msg, ref Deployer __instance)
+		public static bool Prefix (BaseEntity.RPCMessage msg, ref Deployer __instance)
 		{
 			if (!msg.player.CanInteract())
 			{

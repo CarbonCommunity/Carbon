@@ -12,21 +12,21 @@ namespace Oxide.Core.Libraries.Covalence
 {
 	public class Formatter
 	{
-		private static List<Element> Parse(List<Token> tokens)
+		private static List<Element> Parse (List<Token> tokens)
 		{
 			int i = 0;
 			Stack<Entry> s = new Stack<Entry>();
 			s.Push(new Entry(null, Element.Tag(ElementType.String)));
 			while (i < tokens.Count)
 			{
-				Token t = tokens[i++];
+				Token t = tokens [ i++ ];
 				Action<Element> action = delegate (Element el)
 				{
 					s.Push(new Entry(t.Pattern, el));
 				};
 				Element element = s.Peek().Element;
 				TokenType type = t.Type;
-				TokenType? tokenType = closeTags[element.Type];
+				TokenType? tokenType = closeTags [ element.Type ];
 				if (type == tokenType.GetValueOrDefault() & tokenType != null)
 				{
 					s.Pop();
@@ -67,12 +67,12 @@ namespace Oxide.Core.Libraries.Covalence
 			return s.Pop().Element.Body;
 		}
 
-		public static List<Element> Parse(string text)
+		public static List<Element> Parse (string text)
 		{
 			return Parse(Lexer.Lex(text));
 		}
 
-		private static Tag Translation(Element e, Dictionary<ElementType, Func<object, Tag>> translations)
+		private static Tag Translation (Element e, Dictionary<ElementType, Func<object, Tag>> translations)
 		{
 			Func<object, Tag> func;
 			if (!translations.TryGetValue(e.Type, out func))
@@ -82,7 +82,7 @@ namespace Oxide.Core.Libraries.Covalence
 			return func(e.Val);
 		}
 
-		private static string ToTreeFormat(List<Element> tree, Dictionary<ElementType, Func<object, Tag>> translations)
+		private static string ToTreeFormat (List<Element> tree, Dictionary<ElementType, Func<object, Tag>> translations)
 		{
 			StringBuilder stringBuilder = new StringBuilder();
 			foreach (Element element in tree)
@@ -102,84 +102,84 @@ namespace Oxide.Core.Libraries.Covalence
 			return stringBuilder.ToString();
 		}
 
-		private static string ToTreeFormat(string text, Dictionary<ElementType, Func<object, Tag>> translations)
+		private static string ToTreeFormat (string text, Dictionary<ElementType, Func<object, Tag>> translations)
 		{
 			return ToTreeFormat(Parse(text), translations);
 		}
 
-		private static string RGBAtoRGB(object rgba)
+		private static string RGBAtoRGB (object rgba)
 		{
 			return rgba.ToString().Substring(0, 6);
 		}
 
-		public static string ToPlaintext(string text)
+		public static string ToPlaintext (string text)
 		{
 			return ToTreeFormat(text, new Dictionary<ElementType, Func<object, Tag>>());
 		}
 
-		public static string ToUnity(string text)
+		public static string ToUnity (string text)
 		{
 			Dictionary<ElementType, Func<object, Tag>> dictionary = new Dictionary<ElementType, Func<object, Tag>>();
-			dictionary[ElementType.Bold] = ((object _) => new Tag("<b>", "</b>"));
-			dictionary[ElementType.Italic] = ((object _) => new Tag("<i>", "</i>"));
-			dictionary[ElementType.Color] = ((object c) => new Tag(string.Format("<color=#{0}>", c), "</color>"));
-			dictionary[ElementType.Size] = ((object s) => new Tag(string.Format("<size={0}>", s), "</size>"));
+			dictionary [ ElementType.Bold ] = ((object _) => new Tag("<b>", "</b>"));
+			dictionary [ ElementType.Italic ] = ((object _) => new Tag("<i>", "</i>"));
+			dictionary [ ElementType.Color ] = ((object c) => new Tag(string.Format("<color=#{0}>", c), "</color>"));
+			dictionary [ ElementType.Size ] = ((object s) => new Tag(string.Format("<size={0}>", s), "</size>"));
 			return ToTreeFormat(text, dictionary);
 		}
 
-		public static string ToRustLegacy(string text)
+		public static string ToRustLegacy (string text)
 		{
 			Dictionary<ElementType, Func<object, Tag>> dictionary = new Dictionary<ElementType, Func<object, Tag>>();
-			dictionary[ElementType.Color] = ((object c) => new Tag("[color #" + RGBAtoRGB(c) + "]", "[color #ffffff]"));
+			dictionary [ ElementType.Color ] = ((object c) => new Tag("[color #" + RGBAtoRGB(c) + "]", "[color #ffffff]"));
 			return ToTreeFormat(text, dictionary);
 		}
 
-		public static string ToRoKAnd7DTD(string text)
+		public static string ToRoKAnd7DTD (string text)
 		{
 			Dictionary<ElementType, Func<object, Tag>> dictionary = new Dictionary<ElementType, Func<object, Tag>>();
-			dictionary[ElementType.Color] = ((object c) => new Tag("[" + RGBAtoRGB(c) + "]", "[e7e7e7]"));
+			dictionary [ ElementType.Color ] = ((object c) => new Tag("[" + RGBAtoRGB(c) + "]", "[e7e7e7]"));
 			return ToTreeFormat(text, dictionary);
 		}
 
-		public static string ToTerraria(string text)
+		public static string ToTerraria (string text)
 		{
 			Dictionary<ElementType, Func<object, Tag>> dictionary = new Dictionary<ElementType, Func<object, Tag>>();
-			dictionary[ElementType.Color] = ((object c) => new Tag("[c/" + RGBAtoRGB(c) + ":", "]"));
+			dictionary [ ElementType.Color ] = ((object c) => new Tag("[c/" + RGBAtoRGB(c) + ":", "]"));
 			return ToTreeFormat(text, dictionary);
 		}
 
-		static Formatter()
+		static Formatter ()
 		{
 			Dictionary<string, string> dictionary = new Dictionary<string, string>();
-			dictionary["aqua"] = "00ffff";
-			dictionary["black"] = "000000";
-			dictionary["blue"] = "0000ff";
-			dictionary["brown"] = "a52a2a";
-			dictionary["cyan"] = "00ffff";
-			dictionary["darkblue"] = "0000a0";
-			dictionary["fuchsia"] = "ff00ff";
-			dictionary["green"] = "008000";
-			dictionary["grey"] = "808080";
-			dictionary["lightblue"] = "add8e6";
-			dictionary["lime"] = "00ff00";
-			dictionary["magenta"] = "ff00ff";
-			dictionary["maroon"] = "800000";
-			dictionary["navy"] = "000080";
-			dictionary["olive"] = "808000";
-			dictionary["orange"] = "ffa500";
-			dictionary["purple"] = "800080";
-			dictionary["red"] = "ff0000";
-			dictionary["silver"] = "c0c0c0";
-			dictionary["teal"] = "008080";
-			dictionary["white"] = "ffffff";
-			dictionary["yellow"] = "ffff00";
+			dictionary [ "aqua" ] = "00ffff";
+			dictionary [ "black" ] = "000000";
+			dictionary [ "blue" ] = "0000ff";
+			dictionary [ "brown" ] = "a52a2a";
+			dictionary [ "cyan" ] = "00ffff";
+			dictionary [ "darkblue" ] = "0000a0";
+			dictionary [ "fuchsia" ] = "ff00ff";
+			dictionary [ "green" ] = "008000";
+			dictionary [ "grey" ] = "808080";
+			dictionary [ "lightblue" ] = "add8e6";
+			dictionary [ "lime" ] = "00ff00";
+			dictionary [ "magenta" ] = "ff00ff";
+			dictionary [ "maroon" ] = "800000";
+			dictionary [ "navy" ] = "000080";
+			dictionary [ "olive" ] = "808000";
+			dictionary [ "orange" ] = "ffa500";
+			dictionary [ "purple" ] = "800080";
+			dictionary [ "red" ] = "ff0000";
+			dictionary [ "silver" ] = "c0c0c0";
+			dictionary [ "teal" ] = "008080";
+			dictionary [ "white" ] = "ffffff";
+			dictionary [ "yellow" ] = "ffff00";
 			colorNames = dictionary;
 			Dictionary<ElementType, TokenType?> dictionary2 = new Dictionary<ElementType, TokenType?>();
-			dictionary2[ElementType.String] = null;
-			dictionary2[ElementType.Bold] = new Formatter.TokenType?(TokenType.CloseBold);
-			dictionary2[ElementType.Italic] = new Formatter.TokenType?(TokenType.CloseItalic);
-			dictionary2[ElementType.Color] = new Formatter.TokenType?(TokenType.CloseColor);
-			dictionary2[ElementType.Size] = new Formatter.TokenType?(TokenType.CloseSize);
+			dictionary2 [ ElementType.String ] = null;
+			dictionary2 [ ElementType.Bold ] = new Formatter.TokenType?(TokenType.CloseBold);
+			dictionary2 [ ElementType.Italic ] = new Formatter.TokenType?(TokenType.CloseItalic);
+			dictionary2 [ ElementType.Color ] = new Formatter.TokenType?(TokenType.CloseColor);
+			dictionary2 [ ElementType.Size ] = new Formatter.TokenType?(TokenType.CloseSize);
 			closeTags = dictionary2;
 		}
 
@@ -209,38 +209,38 @@ namespace Oxide.Core.Libraries.Covalence
 
 		private class Lexer
 		{
-			private char Current()
+			private char Current ()
 			{
-				return text[position];
+				return text [ position ];
 			}
 
-			private void Next()
+			private void Next ()
 			{
 				position++;
 			}
 
-			private void StartNewToken()
+			private void StartNewToken ()
 			{
 				tokenStart = position;
 			}
 
-			private void StartNewPattern()
+			private void StartNewPattern ()
 			{
 				patternStart = position;
 				StartNewToken();
 			}
 
-			private void Reset()
+			private void Reset ()
 			{
 				tokenStart = patternStart;
 			}
 
-			private string Token()
+			private string Token ()
 			{
 				return text.Substring(tokenStart, position - tokenStart);
 			}
 
-			private void Add(TokenType type, object val = null)
+			private void Add (TokenType type, object val = null)
 			{
 				Token item = new Token
 				{
@@ -251,7 +251,7 @@ namespace Oxide.Core.Libraries.Covalence
 				tokens.Add(item);
 			}
 
-			private void WritePatternString()
+			private void WritePatternString ()
 			{
 				if (patternStart >= position)
 				{
@@ -263,7 +263,7 @@ namespace Oxide.Core.Libraries.Covalence
 				tokenStart = num;
 			}
 
-			private static bool IsValidColorCode(string val)
+			private static bool IsValidColorCode (string val)
 			{
 				if (val.Length == 6 || val.Length == 8)
 				{
@@ -272,7 +272,7 @@ namespace Oxide.Core.Libraries.Covalence
 				return false;
 			}
 
-			private static object ParseColor(string val)
+			private static object ParseColor (string val)
 			{
 				string text;
 				if (!colorNames.TryGetValue(val.ToLower(), out text) && !IsValidColorCode(val))
@@ -287,7 +287,7 @@ namespace Oxide.Core.Libraries.Covalence
 				return text;
 			}
 
-			private static object ParseSize(string val)
+			private static object ParseSize (string val)
 			{
 				int num;
 				if (int.TryParse(val, out num))
@@ -297,7 +297,7 @@ namespace Oxide.Core.Libraries.Covalence
 				return null;
 			}
 
-			private State EndTag(TokenType t)
+			private State EndTag (TokenType t)
 			{
 				Next();
 				return delegate ()
@@ -314,7 +314,7 @@ namespace Oxide.Core.Libraries.Covalence
 				};
 			}
 
-			private State ParamTag(TokenType t, Func<string, object> parse)
+			private State ParamTag (TokenType t, Func<string, object> parse)
 			{
 				Next();
 				StartNewToken();
@@ -340,7 +340,7 @@ namespace Oxide.Core.Libraries.Covalence
 				return s;
 			}
 
-			private State CloseTag()
+			private State CloseTag ()
 			{
 				char c = Current();
 				if (c <= '+')
@@ -369,7 +369,7 @@ namespace Oxide.Core.Libraries.Covalence
 				return new State(Str);
 			}
 
-			private State Tag()
+			private State Tag ()
 			{
 				char c = Current();
 				if (c <= '+')
@@ -403,7 +403,7 @@ namespace Oxide.Core.Libraries.Covalence
 				return new State(Str);
 			}
 
-			private State Str()
+			private State Str ()
 			{
 				if (Current() == '[')
 				{
@@ -416,7 +416,7 @@ namespace Oxide.Core.Libraries.Covalence
 				return new State(Str);
 			}
 
-			public static List<Token> Lex(string text)
+			public static List<Token> Lex (string text)
 			{
 				Lexer lexer = new Lexer
 				{
@@ -441,12 +441,12 @@ namespace Oxide.Core.Libraries.Covalence
 
 			private List<Token> tokens = new List<Token>();
 
-			private delegate State State();
+			private delegate State State ();
 		}
 
 		private class Entry
 		{
-			public Entry(string pattern, Element e)
+			public Entry (string pattern, Element e)
 			{
 				Pattern = pattern;
 				Element = e;
@@ -459,7 +459,7 @@ namespace Oxide.Core.Libraries.Covalence
 
 		private class Tag
 		{
-			public Tag(string open, string close)
+			public Tag (string open, string close)
 			{
 				Open = open;
 				Close = close;
@@ -473,23 +473,23 @@ namespace Oxide.Core.Libraries.Covalence
 
 	public class Element
 	{
-		private Element(ElementType type, object val)
+		private Element (ElementType type, object val)
 		{
 			Type = type;
 			Val = val;
 		}
 
-		public static Element String(object s)
+		public static Element String (object s)
 		{
 			return new Element(ElementType.String, s);
 		}
 
-		public static Element Tag(ElementType type)
+		public static Element Tag (ElementType type)
 		{
 			return new Element(type, null);
 		}
 
-		public static Element ParamTag(ElementType type, object val)
+		public static Element ParamTag (ElementType type, object val)
 		{
 			return new Element(type, val);
 		}

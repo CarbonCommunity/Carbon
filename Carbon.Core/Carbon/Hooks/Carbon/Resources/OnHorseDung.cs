@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[Hook.Patch(typeof(BaseRidableAnimal), "DoDung")]
 	public class GrowableEntity_DoDung
 	{
-		public static bool Prefix(ref BaseRidableAnimal __instance)
+		public static bool Prefix (ref BaseRidableAnimal __instance)
 		{
 			var result = Interface.CallHook("OnHorseDung", __instance);
 			var dungItem = (Item)null;

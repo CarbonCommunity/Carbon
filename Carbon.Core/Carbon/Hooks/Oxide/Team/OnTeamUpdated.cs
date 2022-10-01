@@ -17,7 +17,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "TeamUpdate")]
 	public class BasePlayer_TeamUpdate
 	{
-		public static bool Prefix(ref BasePlayer __instance)
+		public static bool Prefix (ref BasePlayer __instance)
 		{
 			if (!RelationshipManager.TeamsEnabled())
 			{

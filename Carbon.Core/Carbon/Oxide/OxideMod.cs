@@ -27,7 +27,7 @@ namespace Oxide.Core
 
 		public float Now => UnityEngine.Time.realtimeSinceStartup;
 
-		public void Load()
+		public void Load ()
 		{
 			InstanceDirectory = CarbonCore.GetRootFolder();
 			RootDirectory = Environment.CurrentDirectory;
@@ -46,17 +46,17 @@ namespace Oxide.Core
 			Permission = new Permission();
 		}
 
-		public void NextTick(Action action)
+		public void NextTick (Action action)
 		{
 
 		}
 
-		public void UnloadPlugin(string name)
+		public void UnloadPlugin (string name)
 		{
 
 		}
 
-		public void OnSave()
+		public void OnSave ()
 		{
 
 		}

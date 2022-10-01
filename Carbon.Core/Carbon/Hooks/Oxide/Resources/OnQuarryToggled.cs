@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(EngineSwitch), "StartEngine")]
 	public class EngineSwitch_StartEngine
 	{
-		public static bool Prefix(BaseEntity.RPCMessage msg, ref EngineSwitch __instance)
+		public static bool Prefix (BaseEntity.RPCMessage msg, ref EngineSwitch __instance)
 		{
 			var miningQuarry = __instance.GetParentEntity() as global::MiningQuarry;
 
@@ -35,7 +35,7 @@ namespace Carbon.Extended
 	[Hook.Patch(typeof(EngineSwitch), "StopEngine")]
 	public class EngineSwitch_StopEngine
 	{
-		public static bool Prefix(BaseEntity.RPCMessage msg, ref EngineSwitch __instance)
+		public static bool Prefix (BaseEntity.RPCMessage msg, ref EngineSwitch __instance)
 		{
 			var miningQuarry = __instance.GetParentEntity() as global::MiningQuarry;
 

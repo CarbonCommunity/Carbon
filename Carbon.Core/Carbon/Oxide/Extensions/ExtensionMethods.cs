@@ -15,30 +15,30 @@ namespace Oxide.Core
 {
 	public static class ExtensionMethods
 	{
-		public static string Basename(this string text, string extension = null)
+		public static string Basename (this string text, string extension = null)
 		{
 			if (extension != null)
 			{
 				if (!extension.Equals("*.*"))
 				{
-					if (extension[0] == '*')
+					if (extension [ 0 ] == '*')
 					{
 						extension = extension.Substring(1);
 					}
-					return Regex.Match(text, "([^\\\\/]+)\\" + extension + "+$").Groups[1].Value;
+					return Regex.Match(text, "([^\\\\/]+)\\" + extension + "+$").Groups [ 1 ].Value;
 				}
 
 				var match = Regex.Match(text, "([^\\\\/]+)\\.[^\\.]+$");
 				if (match.Success)
 				{
-					return match.Groups[1].Value;
+					return match.Groups [ 1 ].Value;
 				}
 			}
 
-			return Regex.Match(text, "[^\\\\/]+$").Groups[0].Value;
+			return Regex.Match(text, "[^\\\\/]+$").Groups [ 0 ].Value;
 		}
 
-		public static bool Contains<T>(this T[] array, T value)
+		public static bool Contains<T> (this T [] array, T value)
 		{
 			foreach (T t in array)
 			{
@@ -51,71 +51,71 @@ namespace Oxide.Core
 			return false;
 		}
 
-		public static string Dirname(this string text)
+		public static string Dirname (this string text)
 		{
-			return Regex.Match(text, "(.+)[\\/][^\\/]+$").Groups[1].Value;
+			return Regex.Match(text, "(.+)[\\/][^\\/]+$").Groups [ 1 ].Value;
 		}
 
-		public static string Humanize(this string name)
+		public static string Humanize (this string name)
 		{
 			return Regex.Replace(name, "(\\B[A-Z])", " $1");
 		}
 
-		public static bool IsSteamId(this string id)
+		public static bool IsSteamId (this string id)
 		{
 			ulong num;
 			return ulong.TryParse(id, out num) && num > 76561197960265728UL;
 		}
 
-		public static bool IsSteamId(this ulong id)
+		public static bool IsSteamId (this ulong id)
 		{
 			return id > 76561197960265728UL;
 		}
 
-		public static string Plaintext(this string text)
+		public static string Plaintext (this string text)
 		{
 			return Formatter.ToPlaintext(text);
 		}
 
-		public static string QuoteSafe(this string text)
+		public static string QuoteSafe (this string text)
 		{
-			return "\"" + text.Replace("\"", "\\\"").TrimEnd(new char[]
+			return "\"" + text.Replace("\"", "\\\"").TrimEnd(new char []
 			{
 				'\\'
 			}) + "\"";
 		}
 
-		public static string Quote(this string text)
+		public static string Quote (this string text)
 		{
 			return text.QuoteSafe();
 		}
 
-		public static T Sample<T>(this T[] array)
+		public static T Sample<T> (this T [] array)
 		{
-			return array[UnityEngine.Random.Range(0, array.Length)];
+			return array [ UnityEngine.Random.Range(0, array.Length) ];
 		}
 
-		public static string Sanitize(this string text)
+		public static string Sanitize (this string text)
 		{
 			return text.Replace("{", "{{").Replace("}", "}}");
 		}
 
-		public static string SentenceCase(this string text)
+		public static string SentenceCase (this string text)
 		{
 			return new Regex("(^[a-z])|\\.\\s+(.)", RegexOptions.ExplicitCapture).Replace(text.ToLower(), (Match s) => s.Value.ToUpper());
 		}
 
-		public static string TitleCase(this string text)
+		public static string TitleCase (this string text)
 		{
 			return CultureInfo.InstalledUICulture.TextInfo.ToTitleCase(text.Contains('_') ? text.Replace('_', ' ') : text);
 		}
 
-		public static string Titleize(this string text)
+		public static string Titleize (this string text)
 		{
 			return text.TitleCase();
 		}
 
-		public static string ToSentence<T>(this IEnumerable<T> items)
+		public static string ToSentence<T> (this IEnumerable<T> items)
 		{
 			var enumerator = items.GetEnumerator();
 
@@ -147,7 +147,7 @@ namespace Oxide.Core
 			return t.ToString();
 		}
 
-		public static string Truncate(this string text, int max)
+		public static string Truncate (this string text, int max)
 		{
 			if (text.Length > max)
 			{

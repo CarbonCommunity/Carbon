@@ -3,10 +3,7 @@
 /// All rights reserved
 /// 
 
-using System;
-using Carbon.Core;
 using Oxide.Core;
-using ProtoBuf;
 using UnityEngine;
 
 namespace Carbon.Extended
@@ -17,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(DestroyOnGroundMissing), "OnGroundMissing")]
 	public class DestroyOnGroundMissing_OnGroundMissing
 	{
-		public static bool Prefix(ref DestroyOnGroundMissing __instance)
+		public static bool Prefix (ref DestroyOnGroundMissing __instance)
 		{
 			var entity = __instance.gameObject.ToBaseEntity();
 			if (entity == null) return false;

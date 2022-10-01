@@ -16,7 +16,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(ThrownWeapon), "DoDrop")]
 	public class ThrownWeapon_DoDrop
 	{
-		public static bool Prefix(BaseEntity.RPCMessage msg, ref ThrownWeapon __instance)
+		public static bool Prefix (BaseEntity.RPCMessage msg, ref ThrownWeapon __instance)
 		{
 			if (!__instance.HasItemAmount() || __instance.HasAttackCooldown())
 			{

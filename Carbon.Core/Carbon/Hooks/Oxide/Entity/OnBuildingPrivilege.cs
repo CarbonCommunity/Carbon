@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseEntity), "GetBuildingPrivilege")]
 	public class BaseEntity_GetBuildingPrivilege
 	{
-		public static bool Prefix(OBB obb, ref BaseNetworkable __instance, out BuildingPrivlidge __result)
+		public static bool Prefix (OBB obb, ref BaseNetworkable __instance, out BuildingPrivlidge __result)
 		{
 			try
 			{

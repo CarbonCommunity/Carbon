@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(LootableCorpse), "PlayerStoppedLooting")]
 	public class LootableCorpse_PlayerStoppedLooting
 	{
-		public static void Prefix(BasePlayer player, ref LootableCorpse __instance)
+		public static void Prefix (BasePlayer player, ref LootableCorpse __instance)
 		{
 			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}
@@ -27,7 +27,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(StorageContainer), "PlayerStoppedLooting")]
 	public class StorageContainer_PlayerStoppedLooting
 	{
-		public static void Prefix(BasePlayer player, ref StorageContainer __instance)
+		public static void Prefix (BasePlayer player, ref StorageContainer __instance)
 		{
 			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}
@@ -40,7 +40,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(ItemBasedFlowRestrictor), "PlayerStoppedLooting")]
 	public class ItemBasedFlowRestrictor_PlayerStoppedLooting
 	{
-		public static void Prefix(BasePlayer player, ref ItemBasedFlowRestrictor __instance)
+		public static void Prefix (BasePlayer player, ref ItemBasedFlowRestrictor __instance)
 		{
 			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}
@@ -53,7 +53,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(DroppedItemContainer), "PlayerStoppedLooting")]
 	public class DroppedItemContainer_PlayerStoppedLooting
 	{
-		public static void Prefix(BasePlayer player, ref DroppedItemContainer __instance)
+		public static void Prefix (BasePlayer player, ref DroppedItemContainer __instance)
 		{
 			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}
@@ -66,7 +66,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(ContainerIOEntity), "PlayerStoppedLooting")]
 	public class ContainerIOEntity_PlayerStoppedLooting
 	{
-		public static void Prefix(BasePlayer player, ref ContainerIOEntity __instance)
+		public static void Prefix (BasePlayer player, ref ContainerIOEntity __instance)
 		{
 			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}

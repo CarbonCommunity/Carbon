@@ -5,7 +5,7 @@ namespace Carbon.Core
 {
 	public class CarbonInitializer : IHarmonyModHooks
 	{
-		public void OnLoaded(OnHarmonyModLoadedArgs args)
+		public void OnLoaded (OnHarmonyModLoadedArgs args)
 		{
 			var oldMod = PlayerPrefs.GetString(Harmony_Load.CARBON_LOADED);
 
@@ -25,6 +25,6 @@ namespace Carbon.Core
 			CarbonCore.Instance.Init();
 		}
 
-		public void OnUnloaded(OnHarmonyModUnloadedArgs args) { }
+		public void OnUnloaded (OnHarmonyModUnloadedArgs args) { }
 	}
 }

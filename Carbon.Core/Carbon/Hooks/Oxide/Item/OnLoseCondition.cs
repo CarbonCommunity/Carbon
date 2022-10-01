@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(Item), "LoseCondition")]
 	public class Item_LoseCondition
 	{
-		public static bool Prefix(ref float amount, ref Item __instance)
+		public static bool Prefix (ref float amount, ref Item __instance)
 		{
 			if (!__instance.hasCondition || ConVar.Debugging.disablecondition) return false;
 

@@ -26,8 +26,8 @@ namespace Carbon.Core
 		public string FilePath;
 		public string FileName;
 		public string Source;
-		public string[] References;
-		public string[] Requires;
+		public string [] References;
+		public string [] Requires;
 		public float CompileTime;
 		public Assembly Assembly;
 		public List<CompilerException> Exceptions = new List<CompilerException>();
@@ -35,7 +35,7 @@ namespace Carbon.Core
 
 		internal static int _assemblyIndex = 0;
 		internal static bool _hasInit { get; set; }
-		internal static void _doInit()
+		internal static void _doInit ()
 		{
 			if (_hasInit) return;
 			_hasInit = true;
@@ -59,7 +59,7 @@ namespace Carbon.Core
 		internal static List<MetadataReference> _metadataReferences = new List<MetadataReference>();
 		internal static Dictionary<string, MetadataReference> _referenceCache = new Dictionary<string, MetadataReference>();
 
-		internal static MetadataReference _getReferenceFromCache(string reference)
+		internal static MetadataReference _getReferenceFromCache (string reference)
 		{
 			if (!_referenceCache.TryGetValue(reference, out var metaReference))
 			{
@@ -69,7 +69,7 @@ namespace Carbon.Core
 			return metaReference;
 		}
 
-		internal List<MetadataReference> _addReferences()
+		internal List<MetadataReference> _addReferences ()
 		{
 			var references = Pool.GetList<MetadataReference>();
 			references.AddRange(_metadataReferences);
@@ -83,7 +83,7 @@ namespace Carbon.Core
 
 			return references;
 		}
-		internal bool _addRequires()
+		internal bool _addRequires ()
 		{
 			if (Requires == null) return true;
 
@@ -101,15 +101,15 @@ namespace Carbon.Core
 		{
 			public string FilePath;
 			public CompilerError Error;
-			public CompilerException(string filePath, CompilerError error) { FilePath = filePath; Error = error; }
+			public CompilerException (string filePath, CompilerError error) { FilePath = filePath; Error = error; }
 
-			public override string ToString()
+			public override string ToString ()
 			{
 				return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
 			}
 		}
 
-		public override void Start()
+		public override void Start ()
 		{
 			try
 			{
@@ -129,7 +129,7 @@ namespace Carbon.Core
 			base.Start();
 		}
 
-		public override void ThreadFunction()
+		public override void ThreadFunction ()
 		{
 			try
 			{
@@ -187,12 +187,12 @@ namespace Carbon.Core
 			catch (Exception ex) { Console.WriteLine($"Couldn't compile '{FileName}'\n{ex}"); }
 		}
 
-		private SyntaxTree GetSyntaxTree(string code, params string[] defines)
+		private SyntaxTree GetSyntaxTree (string code, params string [] defines)
 		{
 			return SyntaxFactory.ParseSyntaxTree(SourceText.From(code, Encoding.UTF8), GetOptions(defines));
 		}
 
-		private CSharpParseOptions GetOptions(string[] defines)
+		private CSharpParseOptions GetOptions (string [] defines)
 		{
 			return new CSharpParseOptions(languageVersion: LanguageVersion.CSharp9, preprocessorSymbols: defines);
 		}

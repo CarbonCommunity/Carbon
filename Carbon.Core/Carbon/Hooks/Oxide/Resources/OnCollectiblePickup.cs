@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(CollectibleEntity), "DoPickup")]
 	public class CollectibleEntity_DoPickup
 	{
-		public static bool Prefix(BasePlayer reciever, ref CollectibleEntity __instance)
+		public static bool Prefix (BasePlayer reciever, ref CollectibleEntity __instance)
 		{
 			if (__instance.itemList == null)
 			{

@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(RelationshipManager), "acceptinvite")]
 	public class RelationshipManager_acceptinvite
 	{
-		public static bool Prefix(ConsoleSystem.Arg arg)
+		public static bool Prefix (ConsoleSystem.Arg arg)
 		{
 			var basePlayer = arg.Player();
 

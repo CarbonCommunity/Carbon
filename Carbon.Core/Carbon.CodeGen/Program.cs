@@ -8,20 +8,19 @@ using Carbon.Oxide.Metadata;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Oxide.Core;
 
 namespace Carbon.CodeGen
 {
 	internal class Program
 	{
-		static void Main(string[] args)
+		static void Main (string [] args)
 		{
 			DoExtendedDocs();
 
 			Console.ReadLine();
 		}
 
-		public static string GetExample(Hook hook, Hook.Parameter[] parameters)
+		public static string GetExample (Hook hook, Hook.Parameter [] parameters)
 		{
 			return $@"{{% code title=""Example"" %}}
 ```csharp
@@ -33,7 +32,7 @@ namespace Carbon.CodeGen
 ```
 {{% endcode %}}";
 		}
-		public static string GetType(Type type)
+		public static string GetType (Type type)
 		{
 			if (type == typeof(void)) return "void";
 			else if (type == typeof(string)) return "string";
@@ -45,12 +44,12 @@ namespace Carbon.CodeGen
 
 			return type.FullName.Replace("+", ".");
 		}
-		public static string GetParameterName(Type type)
+		public static string GetParameterName (Type type)
 		{
-			return $"{char.ToLower(type.Name[0])}{type.Name.Substring(1)}";
+			return $"{char.ToLower(type.Name [ 0 ])}{type.Name.Substring(1)}";
 		}
 
-		public static void DoExtendedDocs()
+		public static void DoExtendedDocs ()
 		{
 			var assembly = typeof(Hammer_DoAttackShared).Assembly;
 			var result = $@"---
@@ -119,7 +118,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
 			OsEx.File.Create("extended.md", result);
 		}
-		public static void DoHookDocs()
+		public static void DoHookDocs ()
 		{
 			var hooks = "..\\..\\..\\..\\Tools\\hooks.json";
 			var jobject = JsonConvert.DeserializeObject<JObject>(OsEx.File.ReadText(hooks));
@@ -140,9 +139,9 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
 			var categories = new Dictionary<string, List<JObject>>();
 
-			foreach (var entry in jobject["data"])
+			foreach (var entry in jobject [ "data" ])
 			{
-				var subcategory = entry["subcategory"].ToString();
+				var subcategory = entry [ "subcategory" ].ToString();
 				var list = (List<JObject>)null;
 
 				if (!categories.TryGetValue(subcategory, out list))
@@ -152,7 +151,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
 				list.Add(entry.ToObject<JObject>());
 
-				Console.WriteLine($"{entry["example"]}");
+				Console.WriteLine($"{entry [ "example" ]}");
 			}
 
 			foreach (var category in categories)
@@ -162,10 +161,10 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 				foreach (var entry in category.Value)
 				{
 					result += $@"<details>
-<summary>{entry["name"]}</summary>
-{entry["description"]}
+<summary>{entry [ "name" ]}</summary>
+{entry [ "description" ]}
 
-{entry["example"]}
+{entry [ "example" ]}
 </details>
 
 ";
@@ -174,7 +173,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
 			OsEx.File.Create("test.md", result);
 		}
-		public static void DoHooks()
+		public static void DoHooks ()
 		{
 			var hooks = JsonConvert.DeserializeObject<HookPackage>(OsEx.File.ReadText("..\\..\\..\\..\\Tools\\Rust.opj"));
 			var hookFolder = "..\\..\\..\\Carbon.Extended\\Generated Hooks";
@@ -189,10 +188,10 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 					try
 					{
 						var output = string.Empty;
-						var hookName = (string.IsNullOrEmpty(hook.Hook.BaseHookName) ? hook.Hook.HookName : hook.Hook.BaseHookName).Split(' ')[0];
+						var hookName = (string.IsNullOrEmpty(hook.Hook.BaseHookName) ? hook.Hook.HookName : hook.Hook.BaseHookName).Split(' ') [ 0 ];
 						if (hookName.Contains("/") /*|| !WhitelistedHooks.Contains ( hookName )*/ ) continue;
 
-						var typeName = hook.Hook.TypeName.Replace("/", ".").Split(new string[] { ".<" }, StringSplitOptions.RemoveEmptyEntries)[0];
+						var typeName = hook.Hook.TypeName.Replace("/", ".").Split(new string [] { ".<" }, StringSplitOptions.RemoveEmptyEntries) [ 0 ];
 						var methodName = hook.Hook.Signature.Name.Contains("<Start") ? "Start" : hook.Hook.Signature.Name;
 						var method = rust.GetType(typeName).GetMethod(methodName);
 						var parameters = method.GetParameters().Select(x => $"{x.ParameterType.FullName.Replace("+", ".")} {x.Name}").ToArray();
@@ -223,7 +222,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 				}
 			}
 		}
-		public static string GetTemplate_NoReturn(string method, string parameters = null, string arguments = null)
+		public static string GetTemplate_NoReturn (string method, string parameters = null, string arguments = null)
 		{
 			return $@"using Carbon.Core;
 using Harmony;
@@ -240,7 +239,7 @@ namespace Carbon.Extended
     }}
 }}";
 		}
-		public static string GetTemplate_Return(string method, string parameters = null, string returnType = "object", string arguments = null)
+		public static string GetTemplate_Return (string method, string parameters = null, string returnType = "object", string arguments = null)
 		{
 			return $@"using Carbon.Core;
 using Harmony;

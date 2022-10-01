@@ -16,7 +16,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(Planner), "DoBuild")]
 	public class Planner_DoBuild
 	{
-		public static bool Prefix(CreateBuilding msg, ref Planner __instance)
+		public static bool Prefix (CreateBuilding msg, ref Planner __instance)
 		{
 			var ownerPlayer = __instance.GetOwnerPlayer();
 			if (!ownerPlayer)

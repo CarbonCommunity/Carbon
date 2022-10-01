@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(RelationshipManager), "trycreateteam")]
 	public class RelationshipManager_trycreateteam_OnTeamCreate
 	{
-		public static bool Prefix(ConsoleSystem.Arg arg)
+		public static bool Prefix (ConsoleSystem.Arg arg)
 		{
 			if (RelationshipManager.maxTeamSize == 0)
 			{

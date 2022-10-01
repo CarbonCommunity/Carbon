@@ -10,11 +10,11 @@ namespace Carbon.Oxide.Metadata
 	[Serializable]
 	public class HookPackage
 	{
-		public Manifest[] Manifests { get; set; }
+		public Manifest [] Manifests { get; set; }
 
 		public class Manifest
 		{
-			public HookInfo[] Hooks { get; set; }
+			public HookInfo [] Hooks { get; set; }
 
 			public class HookInfo
 			{
@@ -25,7 +25,7 @@ namespace Carbon.Oxide.Metadata
 			{
 				public int InjectionIndex { get; set; }
 				public int RemoveCount { get; set; }
-				public HookOp[] Instructions { get; set; }
+				public HookOp [] Instructions { get; set; }
 				public int ReturnBehaviour { get; set; }
 				public int ArgumentBehaviour { get; set; }
 				public string ArgumentString { get; set; }
@@ -46,7 +46,7 @@ namespace Carbon.Oxide.Metadata
 				public int Exposure { get; set; }
 				public string Name { get; set; }
 				public string ReturnType { get; set; }
-				public string[] Parameters { get; set; }
+				public string [] Parameters { get; set; }
 			}
 
 			public class HookOp

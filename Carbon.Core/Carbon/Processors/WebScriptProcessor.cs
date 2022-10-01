@@ -16,7 +16,7 @@ namespace Carbon.Core.Processors
 		{
 			internal ScriptLoader _loader;
 
-			public override void Dispose()
+			public override void Dispose ()
 			{
 				try
 				{
@@ -29,7 +29,7 @@ namespace Carbon.Core.Processors
 
 				_loader = null;
 			}
-			public override void Execute()
+			public override void Execute ()
 			{
 				try
 				{

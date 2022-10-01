@@ -22,14 +22,14 @@ namespace Oxide.Core.Libraries
 
 	public class WebRequests
 	{
-		public WebRequests()
+		public WebRequests ()
 		{
 			ServicePointManager.Expect100Continue = false;
 			ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, error) => true;
 			ServicePointManager.DefaultConnectionLimit = 200;
 		}
 
-		public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+		public WebRequest Enqueue (string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
 		{
 			return new WebRequest(url, callback, owner)
 			{
@@ -41,19 +41,19 @@ namespace Oxide.Core.Libraries
 		}
 
 		[Obsolete("EnqueueGet is deprecated, use Enqueue instead")]
-		public void EnqueueGet(string url, Action<int, string> callback, Plugin owner, Dictionary<string, string> headers = null, float timeout = 0f)
+		public void EnqueueGet (string url, Action<int, string> callback, Plugin owner, Dictionary<string, string> headers = null, float timeout = 0f)
 		{
 			Enqueue(url, null, callback, owner, RequestMethod.GET, headers, timeout);
 		}
 
 		[Obsolete("EnqueuePost is deprecated, use Enqueue instead")]
-		public void EnqueuePost(string url, string body, Action<int, string> callback, Plugin owner, Dictionary<string, string> headers = null, float timeout = 0f)
+		public void EnqueuePost (string url, string body, Action<int, string> callback, Plugin owner, Dictionary<string, string> headers = null, float timeout = 0f)
 		{
 			Enqueue(url, body, callback, owner, RequestMethod.POST, headers, timeout);
 		}
 
 		[Obsolete("EnqueuePut is deprecated, use Enqueue instead")]
-		public void EnqueuePut(string url, string body, Action<int, string> callback, Plugin owner, Dictionary<string, string> headers = null, float timeout = 0f)
+		public void EnqueuePut (string url, string body, Action<int, string> callback, Plugin owner, Dictionary<string, string> headers = null, float timeout = 0f)
 		{
 			Enqueue(url, body, callback, owner, RequestMethod.PUT, headers, timeout);
 		}
@@ -78,7 +78,7 @@ namespace Oxide.Core.Libraries
 			internal Uri _uri;
 			internal WebClient _client;
 
-			public WebRequest(string url, Action<int, string> callback, Plugin owner)
+			public WebRequest (string url, Action<int, string> callback, Plugin owner)
 			{
 				Url = url;
 				SuccessCallback = callback;
@@ -86,7 +86,7 @@ namespace Oxide.Core.Libraries
 				_uri = new Uri(url);
 			}
 
-			public WebRequest Start()
+			public WebRequest Start ()
 			{
 				_client = new WebClient();
 				_client.Headers.Add("User-Agent", $"Carbon Mod (v{CarbonCore.Version}; https://github.com/Carbon-Modding/Carbon.Core");
@@ -140,7 +140,7 @@ namespace Oxide.Core.Libraries
 				return this;
 			}
 
-			private void OnComplete(bool failure)
+			private void OnComplete (bool failure)
 			{
 				Owner?.TrackStart();
 
@@ -164,7 +164,7 @@ namespace Oxide.Core.Libraries
 				Owner?.TrackEnd();
 				Dispose();
 			}
-			public void Dispose()
+			public void Dispose ()
 			{
 				Owner = null;
 

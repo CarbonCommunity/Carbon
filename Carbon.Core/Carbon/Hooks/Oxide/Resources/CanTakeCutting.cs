@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(GrowableEntity), "TakeClones")]
 	public class GrowableEntity_TakeClones
 	{
-		public static bool Prefix(BasePlayer player, ref GrowableEntity __instance)
+		public static bool Prefix (BasePlayer player, ref GrowableEntity __instance)
 		{
 			if (player == null)
 			{

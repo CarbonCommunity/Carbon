@@ -7,7 +7,7 @@ namespace Carbon.Patch
 	{
 		private static Options Arguments;
 
-		public static void Main(string[] args)
+		public static void Main (string [] args)
 		{
 			// ASCii art
 			PrintBanner();

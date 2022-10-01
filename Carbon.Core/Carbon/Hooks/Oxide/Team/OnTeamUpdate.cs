@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "UpdateTeam")]
 	public class BasePlayer_UpdateTeam
 	{
-		public static bool Prefix(ulong newTeam, ref BasePlayer __instance)
+		public static bool Prefix (ulong newTeam, ref BasePlayer __instance)
 		{
 			return Interface.CallHook("OnTeamUpdate", __instance.currentTeam, newTeam, __instance) == null;
 		}

@@ -13,7 +13,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(RelationshipManager), "DisbandTeam")]
 	public class RelationshipManager_DisbandTeam_OnTeamDisband
 	{
-		public static bool Prefix(ref RelationshipManager.PlayerTeam teamToDisband, ref RelationshipManager __instance)
+		public static bool Prefix (ref RelationshipManager.PlayerTeam teamToDisband, ref RelationshipManager __instance)
 		{
 			if (Interface.CallHook("OnTeamDisband", teamToDisband) != null)
 			{

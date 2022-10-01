@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseCombatEntity), "DoRepair")]
 	public class BaseCombatEntity_DoRepair
 	{
-		public static bool Prefix(BasePlayer player, ref BaseCombatEntity __instance)
+		public static bool Prefix (BasePlayer player, ref BaseCombatEntity __instance)
 		{
 			if (!__instance.repair.enabled) return false;
 

@@ -13,7 +13,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseFirework), "Begin")]
 	public class BaseFirework_Begin
 	{
-		public static void Postfix(ref BaseFirework __instance)
+		public static void Postfix (ref BaseFirework __instance)
 		{
 			HookExecutor.CallStaticHook("OnFireworkStarted", __instance);
 		}

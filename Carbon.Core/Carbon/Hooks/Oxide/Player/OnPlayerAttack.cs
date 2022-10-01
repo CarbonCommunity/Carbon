@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseMelee), "DoAttackShared")]
 	public class BaseMelee_DoAttackShared
 	{
-		public static bool Prefix(HitInfo info, ref BaseMelee __instance)
+		public static bool Prefix (HitInfo info, ref BaseMelee __instance)
 		{
 			return Interface.CallHook("OnPlayerAttack", __instance.GetOwnerPlayer(), info) == null;
 		}

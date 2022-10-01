@@ -15,7 +15,7 @@ namespace Carbon.Hooks.Oxide.Entity
 	[OxideHook.Patch(typeof(CargoPlane), "Update")]
 	public class CargoPlane_Update
 	{
-		public static bool Prefix(ref CargoPlane __instance)
+		public static bool Prefix (ref CargoPlane __instance)
 		{
 			if (!__instance.isServer)
 			{

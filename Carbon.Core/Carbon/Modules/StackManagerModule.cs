@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Carbon.Core.Modules
@@ -15,7 +14,7 @@ namespace Carbon.Core.Modules
 		public override string Name => "StackManager";
 		public override Type Type => typeof(StackManagerModule);
 
-		public override void Init()
+		public override void Init ()
 		{
 			base.Init();
 
@@ -30,7 +29,7 @@ namespace Carbon.Core.Modules
 
 			if (hasChanged) Save();
 		}
-		public override void OnEnabled(bool initialized)
+		public override void OnEnabled (bool initialized)
 		{
 			base.OnEnabled(initialized);
 
@@ -52,7 +51,7 @@ namespace Carbon.Core.Modules
 			{
 				if (!Config.Items.ContainsKey(item.shortname)) continue;
 
-				var multiplier = Config.Items[item.shortname];
+				var multiplier = Config.Items [ item.shortname ];
 
 				DataInstance.ItemMapping.TryGetValue(item.itemid, out var originalStack);
 
@@ -61,7 +60,7 @@ namespace Carbon.Core.Modules
 
 			Puts("Item stacks patched");
 		}
-		public override void OnDisabled(bool initialized)
+		public override void OnDisabled (bool initialized)
 		{
 			base.OnDisabled(initialized);
 

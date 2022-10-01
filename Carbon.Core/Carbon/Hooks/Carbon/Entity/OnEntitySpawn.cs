@@ -13,7 +13,7 @@ namespace Carbon.Extended
 	[CarbonHook.Patch(typeof(BaseNetworkable), "Spawn")]
 	public class BaseNetworkable_Spawn_OnEntitySpawn
 	{
-		public static void Prefix(ref BaseNetworkable __instance)
+		public static void Prefix (ref BaseNetworkable __instance)
 		{
 			HookExecutor.CallStaticHook("OnEntitySpawn", __instance);
 		}

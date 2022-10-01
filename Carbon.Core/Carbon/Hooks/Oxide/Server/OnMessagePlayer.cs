@@ -3,7 +3,6 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
 using Oxide.Core;
 
 namespace Carbon.Extended
@@ -13,7 +12,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "ChatMessage")]
 	public class BasePlayer_ChatMessage
 	{
-		public static bool Prefix(string msg, ref BasePlayer __instance)
+		public static bool Prefix (string msg, ref BasePlayer __instance)
 		{
 			if (!__instance.isServer) return false;
 

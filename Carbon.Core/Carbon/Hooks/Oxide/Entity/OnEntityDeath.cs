@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseCombatEntity), "Die")]
 	public class BaseCombatEntity_Die
 	{
-		public static void Prefix(HitInfo info, ref BaseCombatEntity __instance)
+		public static void Prefix (HitInfo info, ref BaseCombatEntity __instance)
 		{
 			HookExecutor.CallStaticHook("OnEntityDeath", __instance, info);
 		}
@@ -29,7 +29,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(ResourceEntity), "OnKilled")]
 	public class ResourceEntity_OnKilled
 	{
-		public static void Prefix(HitInfo info, ref ResourceEntity __instance)
+		public static void Prefix (HitInfo info, ref ResourceEntity __instance)
 		{
 			HookExecutor.CallStaticHook("OnEntityDeath", __instance, info);
 		}

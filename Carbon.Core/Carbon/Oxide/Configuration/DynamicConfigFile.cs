@@ -17,7 +17,7 @@ namespace Oxide.Core.Configuration
 	{
 		public JsonSerializerSettings Settings { get; set; } = new JsonSerializerSettings();
 
-		public DynamicConfigFile(string filename) : base(filename)
+		public DynamicConfigFile (string filename) : base(filename)
 		{
 			_keyvalues = new Dictionary<string, object>();
 			_settings = new JsonSerializerSettings();
@@ -25,14 +25,14 @@ namespace Oxide.Core.Configuration
 			_chroot = Interface.Oxide.InstanceDirectory;
 		}
 
-		public override void Load(string filename = null)
+		public override void Load (string filename = null)
 		{
 			filename = CheckPath(filename ?? Filename);
 			string value = File.ReadAllText(filename);
 			_keyvalues = JsonConvert.DeserializeObject<Dictionary<string, object>>(value, _settings);
 		}
 
-		public T ReadObject<T>(string filename = null)
+		public T ReadObject<T> (string filename = null)
 		{
 			filename = CheckPath(filename ?? Filename);
 			T t;
@@ -48,7 +48,7 @@ namespace Oxide.Core.Configuration
 			return t;
 		}
 
-		public override void Save(string filename = null)
+		public override void Save (string filename = null)
 		{
 			filename = CheckPath(filename ?? Filename);
 			string directoryName = Utility.GetDirectoryName(filename);
@@ -59,7 +59,7 @@ namespace Oxide.Core.Configuration
 			File.WriteAllText(filename, JsonConvert.SerializeObject(_keyvalues, Formatting.Indented, _settings));
 		}
 
-		public void WriteObject<T>(T config, bool sync = false, string filename = null)
+		public void WriteObject<T> (T config, bool sync = false, string filename = null)
 		{
 			filename = CheckPath(filename ?? Filename);
 			string directoryName = Utility.GetDirectoryName(filename);
@@ -75,14 +75,14 @@ namespace Oxide.Core.Configuration
 			}
 		}
 
-		public bool Exists(string filename = null)
+		public bool Exists (string filename = null)
 		{
 			filename = CheckPath(filename ?? Filename);
 			string directoryName = Utility.GetDirectoryName(filename);
 			return (directoryName == null || Directory.Exists(directoryName)) && File.Exists(filename);
 		}
 
-		private string CheckPath(string filename)
+		private string CheckPath (string filename)
 		{
 			filename = SanitizeName(filename);
 			string fullPath = Path.GetFullPath(filename);
@@ -94,7 +94,7 @@ namespace Oxide.Core.Configuration
 			return fullPath;
 		}
 
-		public static string SanitizeName(string name)
+		public static string SanitizeName (string name)
 		{
 			if (string.IsNullOrEmpty(name))
 			{
@@ -103,28 +103,28 @@ namespace Oxide.Core.Configuration
 			name = name.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
 			name = Regex.Replace(name, "[" + Regex.Escape(new string(Path.GetInvalidPathChars())) + "]", "_");
 			name = Regex.Replace(name, "\\.+", ".");
-			return name.TrimStart(new char[]
+			return name.TrimStart(new char []
 			{
 				'.'
 			});
 		}
 
-		public static string SanitiseName(string name)
+		public static string SanitiseName (string name)
 		{
 			return SanitizeName(name);
 		}
 
-		public void Clear()
+		public void Clear ()
 		{
 			_keyvalues.Clear();
 		}
 
-		public void Remove(string key)
+		public void Remove (string key)
 		{
 			_keyvalues.Remove(key);
 		}
 
-		public object this[string key]
+		public object this [ string key ]
 		{
 			get
 			{
@@ -137,15 +137,15 @@ namespace Oxide.Core.Configuration
 			}
 			set
 			{
-				_keyvalues[key] = value;
+				_keyvalues [ key ] = value;
 			}
 		}
 
-		public object this[string keyLevel1, string keyLevel2]
+		public object this [ string keyLevel1, string keyLevel2 ]
 		{
 			get
 			{
-				return Get(new string[]
+				return Get(new string []
 				{
 					keyLevel1,
 					keyLevel2
@@ -153,7 +153,7 @@ namespace Oxide.Core.Configuration
 			}
 			set
 			{
-				Set(new object[]
+				Set(new object []
 				{
 					keyLevel1,
 					keyLevel2,
@@ -162,11 +162,11 @@ namespace Oxide.Core.Configuration
 			}
 		}
 
-		public object this[string keyLevel1, string keyLevel2, string keyLevel3]
+		public object this [ string keyLevel1, string keyLevel2, string keyLevel3 ]
 		{
 			get
 			{
-				return Get(new string[]
+				return Get(new string []
 				{
 					keyLevel1,
 					keyLevel2,
@@ -175,7 +175,7 @@ namespace Oxide.Core.Configuration
 			}
 			set
 			{
-				Set(new object[]
+				Set(new object []
 				{
 					keyLevel1,
 					keyLevel2,
@@ -185,7 +185,7 @@ namespace Oxide.Core.Configuration
 			}
 		}
 
-		public object ConvertValue(object value, Type destinationType)
+		public object ConvertValue (object value, Type destinationType)
 		{
 			if (!destinationType.IsGenericType)
 			{
@@ -193,7 +193,7 @@ namespace Oxide.Core.Configuration
 			}
 			if (destinationType.GetGenericTypeDefinition() == typeof(List<>))
 			{
-				Type conversionType = destinationType.GetGenericArguments()[0];
+				Type conversionType = destinationType.GetGenericArguments() [ 0 ];
 				IList list = (IList)Activator.CreateInstance(destinationType);
 				foreach (object value2 in ((IList)value))
 				{
@@ -203,38 +203,38 @@ namespace Oxide.Core.Configuration
 			}
 			if (destinationType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
 			{
-				Type conversionType2 = destinationType.GetGenericArguments()[0];
-				Type conversionType3 = destinationType.GetGenericArguments()[1];
+				Type conversionType2 = destinationType.GetGenericArguments() [ 0 ];
+				Type conversionType3 = destinationType.GetGenericArguments() [ 1 ];
 				IDictionary dictionary = (IDictionary)Activator.CreateInstance(destinationType);
 				foreach (object obj in ((IDictionary)value).Keys)
 				{
-					dictionary.Add(Convert.ChangeType(obj, conversionType2), Convert.ChangeType(((IDictionary)value)[obj], conversionType3));
+					dictionary.Add(Convert.ChangeType(obj, conversionType2), Convert.ChangeType(((IDictionary)value) [ obj ], conversionType3));
 				}
 				return dictionary;
 			}
 			throw new InvalidCastException("Generic types other than List<> and Dictionary<,> are not supported");
 		}
 
-		public T ConvertValue<T>(object value)
+		public T ConvertValue<T> (object value)
 		{
 			return (T)((object)ConvertValue(value, typeof(T)));
 		}
 
-		public object Get(params string[] path)
+		public object Get (params string [] path)
 		{
 			if (path.Length < 1)
 			{
 				throw new ArgumentException("path must not be empty");
 			}
 			object obj;
-			if (!_keyvalues.TryGetValue(path[0], out obj))
+			if (!_keyvalues.TryGetValue(path [ 0 ], out obj))
 			{
 				return null;
 			}
 			for (int i = 1; i < path.Length; i++)
 			{
 				Dictionary<string, object> dictionary = obj as Dictionary<string, object>;
-				if (dictionary == null || !dictionary.TryGetValue(path[i], out obj))
+				if (dictionary == null || !dictionary.TryGetValue(path [ i ], out obj))
 				{
 					return null;
 				}
@@ -242,32 +242,32 @@ namespace Oxide.Core.Configuration
 			return obj;
 		}
 
-		public T Get<T>(params string[] path)
+		public T Get<T> (params string [] path)
 		{
 			return ConvertValue<T>(Get(path));
 		}
 
-		public void Set(params object[] pathAndTrailingValue)
+		public void Set (params object [] pathAndTrailingValue)
 		{
 			if (pathAndTrailingValue.Length < 2)
 			{
 				throw new ArgumentException("path must not be empty");
 			}
-			string[] array = new string[pathAndTrailingValue.Length - 1];
+			string [] array = new string [ pathAndTrailingValue.Length - 1 ];
 			for (int i = 0; i < pathAndTrailingValue.Length - 1; i++)
 			{
-				array[i] = (string)pathAndTrailingValue[i];
+				array [ i ] = (string)pathAndTrailingValue [ i ];
 			}
-			object value = pathAndTrailingValue[pathAndTrailingValue.Length - 1];
+			object value = pathAndTrailingValue [ pathAndTrailingValue.Length - 1 ];
 			if (array.Length == 1)
 			{
-				_keyvalues[array[0]] = value;
+				_keyvalues [ array [ 0 ] ] = value;
 				return;
 			}
 			object obj;
-			if (!_keyvalues.TryGetValue(array[0], out obj))
+			if (!_keyvalues.TryGetValue(array [ 0 ], out obj))
 			{
-				obj = (_keyvalues[array[0]] = new Dictionary<string, object>());
+				obj = (_keyvalues [ array [ 0 ] ] = new Dictionary<string, object>());
 			}
 			for (int j = 1; j < array.Length - 1; j++)
 			{
@@ -276,20 +276,20 @@ namespace Oxide.Core.Configuration
 					throw new ArgumentException("path is not a dictionary");
 				}
 				Dictionary<string, object> dictionary = (Dictionary<string, object>)obj;
-				if (!dictionary.TryGetValue(array[j], out obj))
+				if (!dictionary.TryGetValue(array [ j ], out obj))
 				{
-					obj = (dictionary[array[j]] = new Dictionary<string, object>());
+					obj = (dictionary [ array [ j ] ] = new Dictionary<string, object>());
 				}
 			}
-			((Dictionary<string, object>)obj)[array[array.Length - 1]] = value;
+			((Dictionary<string, object>)obj) [ array [ array.Length - 1 ] ] = value;
 		}
 
-		public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+		public IEnumerator<KeyValuePair<string, object>> GetEnumerator ()
 		{
 			return _keyvalues.GetEnumerator();
 		}
 
-		IEnumerator IEnumerable.GetEnumerator()
+		IEnumerator IEnumerable.GetEnumerator ()
 		{
 			return _keyvalues.GetEnumerator();
 		}

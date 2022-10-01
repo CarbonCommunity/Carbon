@@ -12,7 +12,7 @@ namespace Carbon.Core.Extensions
 	{
 		internal static PropertyInfo _gameTags = AccessTools.TypeByName("Steamworks.SteamServer").GetProperty("GameTags", BindingFlags.Public | BindingFlags.Static);
 
-		public static bool SetRequiredTag(string tag)
+		public static bool SetRequiredTag (string tag)
 		{
 			var tags = _gameTags.GetValue(null) as string;
 
@@ -25,7 +25,7 @@ namespace Carbon.Core.Extensions
 			return false;
 		}
 
-		public static bool UnsetRequiredTag(string tag)
+		public static bool UnsetRequiredTag (string tag)
 		{
 			var tags = _gameTags.GetValue(null) as string;
 

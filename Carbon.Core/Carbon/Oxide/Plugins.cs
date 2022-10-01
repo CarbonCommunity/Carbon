@@ -10,7 +10,7 @@ namespace Oxide.Plugins
 {
 	public class Plugins
 	{
-		public Plugin Find(string name)
+		public Plugin Find (string name)
 		{
 			foreach (var mod in CarbonLoader._loadedMods)
 			{
@@ -23,7 +23,7 @@ namespace Oxide.Plugins
 			return null;
 		}
 
-		public Plugin[] GetAll()
+		public Plugin [] GetAll ()
 		{
 			var list = Pool.GetList<Plugin>();
 			foreach (var mod in CarbonLoader._loadedMods)

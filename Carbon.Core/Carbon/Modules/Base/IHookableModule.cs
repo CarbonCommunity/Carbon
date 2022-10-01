@@ -13,6 +13,6 @@ namespace Carbon.Core.Modules
 	{
 		Dictionary<string, List<MethodInfo>> HookCache { get; }
 
-		void OnWorldPrefabSpawned(GameObject gameObject, string category);
+		void OnWorldPrefabSpawned (GameObject gameObject, string category);
 	}
 }

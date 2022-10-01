@@ -16,7 +16,7 @@ namespace Doorstop
 			=> Path.GetFullPath(Path.Combine(
 				AppDomain.CurrentDomain.BaseDirectory, "RustDedicated_Data", "Managed", "Assembly-CSharp.dll"));
 
-		public static void Start()
+		public static void Start ()
 		{
 			File.WriteAllText("__doorstop.log", "Carbon.Doorstop starting");
 

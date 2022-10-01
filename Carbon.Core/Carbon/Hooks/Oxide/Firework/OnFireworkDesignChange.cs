@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(PatternFirework), "ServerSetFireworkDesign")]
 	public class PatternFirework_ServerSetFireworkDesign_OnFireworkDesignChange
 	{
-		public static bool Prefix(BaseEntity.RPCMessage rpc, ref PatternFirework __instance)
+		public static bool Prefix (BaseEntity.RPCMessage rpc, ref PatternFirework __instance)
 		{
 			if (!__instance.PlayerCanModify(rpc.player))
 			{

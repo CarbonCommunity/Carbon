@@ -18,7 +18,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "Respawn")]
 	public class BasePlayer_Respawn
 	{
-		public static bool Prefix(ref BasePlayer __instance)
+		public static bool Prefix (ref BasePlayer __instance)
 		{
 			var spawnPoint = ServerMgr.FindSpawnPoint(__instance);
 			var obj = HookExecutor.CallStaticHook("OnPlayerRespawn", __instance, spawnPoint);
@@ -41,7 +41,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(SleepingBag), "SpawnPlayer")]
 	public class SleepingBag_SpawnPlayer
 	{
-		public static bool Prefix(BasePlayer player, uint sleepingBag, out bool __result)
+		public static bool Prefix (BasePlayer player, uint sleepingBag, out bool __result)
 		{
 			var array = SleepingBag.FindForPlayer(player.userID, true);
 			var sleepingBag2 = Enumerable.FirstOrDefault(array, (SleepingBag x) => x.ValidForPlayer(player.userID, false) && x.net.ID == sleepingBag && x.unlockTime < UnityEngine.Time.realtimeSinceStartup);
@@ -70,7 +70,7 @@ namespace Carbon.Extended
 
 			for (int i = 0; i < array.Length; i++)
 			{
-				SleepingBag.SetBagTimer(array[i], position, SleepingBag.SleepingBagResetReason.Respawned);
+				SleepingBag.SetBagTimer(array [ i ], position, SleepingBag.SleepingBagResetReason.Respawned);
 			}
 
 			__result = true;

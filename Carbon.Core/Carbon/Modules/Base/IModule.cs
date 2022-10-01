@@ -11,16 +11,16 @@ namespace Carbon.Core.Modules
 	{
 		string Name { get; }
 
-		void Init();
-		void InitEnd();
-		void Save();
-		void Load();
+		void Init ();
+		void InitEnd ();
+		void Save ();
+		void Load ();
 
-		void SetEnabled(bool enabled);
-		bool GetEnabled();
-		void OnEnableStatus();
+		void SetEnabled (bool enabled);
+		bool GetEnabled ();
+		void OnEnableStatus ();
 
-		void OnEnabled(bool initialized);
-		void OnDisabled(bool initialized);
+		void OnEnabled (bool initialized);
+		void OnDisabled (bool initialized);
 	}
 }

@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(RelationshipManager), "trycreateteam")]
 	public class RelationshipManager_trycreateteam_OnTeamCreated
 	{
-		public static void Postfix(ConsoleSystem.Arg arg)
+		public static void Postfix (ConsoleSystem.Arg arg)
 		{
 
 		}

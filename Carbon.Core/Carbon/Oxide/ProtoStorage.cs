@@ -13,7 +13,7 @@ namespace Oxide.Core
 {
 	public class ProtoStorage
 	{
-		public static IEnumerable<string> GetFiles(string subDirectory)
+		public static IEnumerable<string> GetFiles (string subDirectory)
 		{
 			var fileDataPath = GetFileDataPath(subDirectory.Replace("..", ""));
 
@@ -30,7 +30,7 @@ namespace Oxide.Core
 			yield break;
 		}
 
-		public static T Load<T>(params string[] subPaths)
+		public static T Load<T> (params string [] subPaths)
 		{
 			var fileName = GetFileName(subPaths);
 			var fileDataPath = GetFileDataPath(fileName);
@@ -55,7 +55,7 @@ namespace Oxide.Core
 			return default(T);
 		}
 
-		public static void Save<T>(T data, params string[] subPaths)
+		public static void Save<T> (T data, params string [] subPaths)
 		{
 			var fileName = GetFileName(subPaths);
 			var fileDataPath = GetFileDataPath(fileName);
@@ -80,17 +80,17 @@ namespace Oxide.Core
 			}
 		}
 
-		public static bool Exists(params string[] subPaths)
+		public static bool Exists (params string [] subPaths)
 		{
 			return File.Exists(GetFileDataPath(GetFileName(subPaths)));
 		}
 
-		public static string GetFileName(params string[] subPaths)
+		public static string GetFileName (params string [] subPaths)
 		{
 			return string.Join(Path.DirectorySeparatorChar.ToString(), subPaths).Replace("..", "") + ".data";
 		}
 
-		public static string GetFileDataPath(string name)
+		public static string GetFileDataPath (string name)
 		{
 			return Path.Combine(Interface.Oxide.DataDirectory, name);
 		}

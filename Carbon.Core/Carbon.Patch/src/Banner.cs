@@ -2,7 +2,7 @@
 {
 	internal partial class Program
 	{
-		public static void PrintBanner()
+		public static void PrintBanner ()
 		{
 			Utility.LogNone(@"  ______ _______ ______ ______ _______ _______ ");
 			Utility.LogNone(@" |      |   _   |   __ \   __ \       |    |  |");

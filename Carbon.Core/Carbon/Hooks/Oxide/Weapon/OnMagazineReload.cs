@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseProjectile), "ReloadMagazine")]
 	public class BaseProjectile_ReloadMagazine
 	{
-		public static bool Prefix(int desiredAmount, ref BaseProjectile __instance)
+		public static bool Prefix (int desiredAmount, ref BaseProjectile __instance)
 		{
 			var ownerPlayer = __instance.GetOwnerPlayer();
 			if (ownerPlayer == null) return false;

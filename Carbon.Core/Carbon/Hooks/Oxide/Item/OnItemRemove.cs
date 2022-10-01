@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(Item), "Remove")]
 	public class Item_Remove
 	{
-		public static bool Prefix(float fTime, ref Item __instance)
+		public static bool Prefix (float fTime, ref Item __instance)
 		{
 			if (__instance.removeTime > 0f)
 			{

@@ -10,7 +10,7 @@ using Harmony;
 [HarmonyPatch(typeof(ItemContainer), "Take")]
 public class ItemContainer_Take
 {
-	public static bool Prefix(List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)
+	public static bool Prefix (List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)
 	{
 		var num = 0;
 		if (iAmount == 0)

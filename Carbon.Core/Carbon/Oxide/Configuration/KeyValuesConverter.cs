@@ -12,17 +12,17 @@ namespace Oxide.Core.Configuration
 {
 	public class KeyValuesConverter : JsonConverter
 	{
-		public override bool CanConvert(Type objectType)
+		public override bool CanConvert (Type objectType)
 		{
 			return objectType == typeof(Dictionary<string, object>) || objectType == typeof(List<object>);
 		}
 
-		private void Throw(string message)
+		private void Throw (string message)
 		{
 			throw new Exception(message);
 		}
 
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object ReadJson (JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			if (objectType == typeof(Dictionary<string, object>))
 			{
@@ -50,10 +50,10 @@ namespace Oxide.Core.Configuration
 					switch (reader.TokenType)
 					{
 						case JsonToken.StartObject:
-							dictionary[key] = serializer.Deserialize<Dictionary<string, object>>(reader);
+							dictionary [ key ] = serializer.Deserialize<Dictionary<string, object>>(reader);
 							continue;
 						case JsonToken.StartArray:
-							dictionary[key] = serializer.Deserialize<List<object>>(reader);
+							dictionary [ key ] = serializer.Deserialize<List<object>>(reader);
 							continue;
 						case JsonToken.Integer:
 							{
@@ -61,10 +61,10 @@ namespace Oxide.Core.Configuration
 								int num;
 								if (int.TryParse(text, out num))
 								{
-									dictionary[key] = num;
+									dictionary [ key ] = num;
 									continue;
 								}
-								dictionary[key] = text;
+								dictionary [ key ] = text;
 								continue;
 							}
 						case JsonToken.Float:
@@ -73,7 +73,7 @@ namespace Oxide.Core.Configuration
 						case JsonToken.Null:
 						case JsonToken.Date:
 						case JsonToken.Bytes:
-							dictionary[key] = reader.Value;
+							dictionary [ key ] = reader.Value;
 							continue;
 					}
 
@@ -127,7 +127,7 @@ namespace Oxide.Core.Configuration
 			}
 		}
 
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+		public override void WriteJson (JsonWriter writer, object value, JsonSerializer serializer)
 		{
 			if (value is Dictionary<string, object>)
 			{

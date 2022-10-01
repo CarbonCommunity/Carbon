@@ -3,9 +3,7 @@
 /// All rights reserved
 /// 
 
-using System;
 using Carbon.Core;
-using Epic.OnlineServices;
 using Epic.OnlineServices.AntiCheatCommon;
 using Epic.OnlineServices.AntiCheatServer;
 using Oxide.Core;
@@ -20,7 +18,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(EACServer), "OnClientActionRequired")]
 	public class EACServer_OnClientActionRequired_OnPlayerBanned
 	{
-		public static bool Prefix(ref OnClientActionRequiredCallbackInfo data)
+		public static bool Prefix (ref OnClientActionRequiredCallbackInfo data)
 		{
 			var clientHandle = data.ClientHandle;
 			var connection = EACServer.GetConnection(clientHandle);
@@ -69,7 +67,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(EACServer), "OnClientActionRequired")]
 	public class EACServer_OnClientActionRequired_OnPlayerKicked
 	{
-		public static void Prefix(ref OnClientActionRequiredCallbackInfo data)
+		public static void Prefix (ref OnClientActionRequiredCallbackInfo data)
 		{
 
 		}

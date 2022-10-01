@@ -3,7 +3,6 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
 
 namespace Carbon.Extended
 {
@@ -11,6 +10,6 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(SaveRestore), "DoAutomatedSave")]
 	public class SaveRestore_DoAutomatedSave
 	{
-		public static void Prefix(bool AndWait) { }
+		public static void Prefix (bool AndWait) { }
 	}
 }

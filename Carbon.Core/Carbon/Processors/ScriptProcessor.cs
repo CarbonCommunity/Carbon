@@ -21,7 +21,7 @@ namespace Carbon.Core.Processors
 
 			public override Parser Parser => new ScriptParser();
 
-			public override void Dispose()
+			public override void Dispose ()
 			{
 				try
 				{
@@ -34,7 +34,7 @@ namespace Carbon.Core.Processors
 
 				_loader = null;
 			}
-			public override void Execute()
+			public override void Execute ()
 			{
 				try
 				{
@@ -52,7 +52,7 @@ namespace Carbon.Core.Processors
 
 		public class ScriptParser : Parser
 		{
-			public override void Process(string input, out string output)
+			public override void Process (string input, out string output)
 			{
 				output = input.Replace(".IPlayer", ".AsIPlayer()");
 			}

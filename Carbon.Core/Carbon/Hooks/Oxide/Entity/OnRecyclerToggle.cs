@@ -3,7 +3,6 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
 using Oxide.Core;
 
 namespace Carbon.Extended
@@ -15,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(Recycler), "SVSwitch")]
 	public class Recycler_SVSwitch
 	{
-		public static bool Prefix(BaseEntity.RPCMessage msg, ref Recycler __instance)
+		public static bool Prefix (BaseEntity.RPCMessage msg, ref Recycler __instance)
 		{
 			var oldPosition = msg.read.Position;
 			var flag = msg.read.Bit();

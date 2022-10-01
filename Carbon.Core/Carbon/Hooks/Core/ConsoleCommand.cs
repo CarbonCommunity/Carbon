@@ -12,16 +12,16 @@ using Harmony;
 [HarmonyPatch(typeof(ConsoleSystem), "Run")]
 public class ConsoleCommand
 {
-	internal static string[] EmptyArgs = new string[0];
+	internal static string [] EmptyArgs = new string [ 0 ];
 
-	public static bool Prefix(ConsoleSystem.Option options, string strCommand, object[] args)
+	public static bool Prefix (ConsoleSystem.Option options, string strCommand, object [] args)
 	{
 		if (CarbonCore.Instance == null) return true;
 
 		try
 		{
 			var split = strCommand.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
-			var command = split[0].Trim();
+			var command = split [ 0 ].Trim();
 			var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 			Facepunch.Pool.Free(ref split);
 

@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Configuration;
-using System.Text;
-using System.Threading.Tasks;
 using Carbon.Core.Modules;
 
 namespace Carbon.Core.Processors
@@ -12,7 +8,7 @@ namespace Carbon.Core.Processors
 	{
 		public List<BaseHookable> Modules { get; set; } = new List<BaseHookable>(50);
 
-		public void Init()
+		public void Init ()
 		{
 			foreach (var type in typeof(ModuleProcessor).Assembly.GetTypes())
 			{
@@ -21,7 +17,7 @@ namespace Carbon.Core.Processors
 				Setup(Activator.CreateInstance(type) as BaseHookable);
 			}
 		}
-		public void Setup(BaseHookable module)
+		public void Setup (BaseHookable module)
 		{
 			if (module is IModule hookable)
 			{
@@ -31,7 +27,7 @@ namespace Carbon.Core.Processors
 			}
 		}
 
-		public void Save()
+		public void Save ()
 		{
 			foreach (var hookable in Modules)
 			{
@@ -40,7 +36,7 @@ namespace Carbon.Core.Processors
 				module.Save();
 			}
 		}
-		public void Load()
+		public void Load ()
 		{
 			foreach (var hookable in Modules)
 			{
@@ -51,7 +47,7 @@ namespace Carbon.Core.Processors
 			}
 		}
 
-		public void Dispose()
+		public void Dispose ()
 		{
 			foreach (var hookable in Modules)
 			{

@@ -13,7 +13,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "RecoverFromWounded")]
 	public class BasePlayer_RecoverFromWounded_OnPlayerRecover
 	{
-		public static bool Prefix(ref BasePlayer __instance)
+		public static bool Prefix (ref BasePlayer __instance)
 		{
 			return HookExecutor.CallStaticHook("OnPlayerRecover", __instance) == null;
 		}
@@ -25,7 +25,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "RecoverFromWounded")]
 	public class BasePlayer_RecoverFromWounded_OnPlayerRecovered
 	{
-		public static void Postfix(ref BasePlayer __instance)
+		public static void Postfix (ref BasePlayer __instance)
 		{
 			HookExecutor.CallStaticHook("OnPlayerRecovered", __instance);
 		}

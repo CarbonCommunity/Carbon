@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Oxide.Core;
 
@@ -30,7 +27,7 @@ namespace Carbon.Core
 
 		internal Stopwatch _trackStopwatch = new Stopwatch();
 
-		public virtual void TrackStart()
+		public virtual void TrackStart ()
 		{
 			if (!CarbonCore.IsServerFullyInitialized)
 			{
@@ -44,7 +41,7 @@ namespace Carbon.Core
 			}
 			stopwatch.Start();
 		}
-		public virtual void TrackEnd()
+		public virtual void TrackEnd ()
 		{
 			if (!CarbonCore.IsServerFullyInitialized)
 			{
@@ -63,7 +60,7 @@ namespace Carbon.Core
 
 		#endregion
 
-		public T To<T>()
+		public T To<T> ()
 		{
 			if (this is T result)
 			{

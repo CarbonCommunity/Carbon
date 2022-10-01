@@ -15,17 +15,17 @@ namespace Oxide.Plugins
 		public RustPlugin Plugin { get; }
 		internal List<Timer> _timers { get; set; } = new List<Timer>();
 
-		public Timers() { }
-		public Timers(RustPlugin plugin)
+		public Timers () { }
+		public Timers (RustPlugin plugin)
 		{
 			Plugin = plugin;
 		}
 
-		public bool IsValid()
+		public bool IsValid ()
 		{
 			return Plugin != null && Plugin.persistence != null;
 		}
-		public void Clear()
+		public void Clear ()
 		{
 			foreach (var timer in _timers)
 			{
@@ -38,7 +38,7 @@ namespace Oxide.Plugins
 
 		public Persistence Persistence => Plugin.persistence;
 
-		public Timer In(float time, Action action)
+		public Timer In (float time, Action action)
 		{
 			if (!IsValid()) return null;
 
@@ -60,11 +60,11 @@ namespace Oxide.Plugins
 			Persistence.Invoke(activity, time);
 			return timer;
 		}
-		public Timer Once(float time, Action action)
+		public Timer Once (float time, Action action)
 		{
 			return In(time, action);
 		}
-		public Timer Every(float time, Action action)
+		public Timer Every (float time, Action action)
 		{
 			if (!IsValid()) return null;
 
@@ -89,7 +89,7 @@ namespace Oxide.Plugins
 			Persistence.InvokeRepeating(activity, time, time);
 			return timer;
 		}
-		public Timer Repeat(float time, int times, Action action)
+		public Timer Repeat (float time, int times, Action action)
 		{
 			if (!IsValid()) return null;
 
@@ -128,13 +128,13 @@ namespace Oxide.Plugins
 		public Persistence Persistence { get; set; }
 		public int TimesTriggered { get; set; }
 
-		public Timer() { }
-		public Timer(Persistence persistence)
+		public Timer () { }
+		public Timer (Persistence persistence)
 		{
 			Persistence = persistence;
 		}
 
-		public void Destroy()
+		public void Destroy ()
 		{
 			if (Persistence != null)
 			{
@@ -148,7 +148,7 @@ namespace Oxide.Plugins
 			}
 		}
 
-		public void Dispose()
+		public void Dispose ()
 		{
 			Destroy();
 		}

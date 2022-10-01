@@ -13,14 +13,14 @@ using Harmony;
 [HarmonyPatch(typeof(RCon), "OnCommand")]
 public class RconCommand
 {
-	public static bool Prefix(RCon.Command cmd)
+	public static bool Prefix (RCon.Command cmd)
 	{
 		if (CarbonCore.Instance == null) return true;
 
 		try
 		{
 			var split = cmd.Message.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
-			var command = split[0].Trim();
+			var command = split [ 0 ].Trim();
 
 			var arguments = Pool.GetList<string>();
 			foreach (var arg in split.Skip(1)) arguments.Add(arg.Trim());

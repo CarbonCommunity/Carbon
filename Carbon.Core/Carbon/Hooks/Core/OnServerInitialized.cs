@@ -11,7 +11,7 @@ public class OnServerInitialized
 {
 	internal static TimeSince _call;
 
-	public static void Postfix()
+	public static void Postfix ()
 	{
 		if (_call <= 0.5f) return;
 

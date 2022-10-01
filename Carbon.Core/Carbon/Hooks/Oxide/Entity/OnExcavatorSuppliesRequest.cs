@@ -15,7 +15,7 @@ namespace Carbon.Hooks.Oxide.Entity
 	[OxideHook.Patch(typeof(ExcavatorSignalComputer), "RequestSupplies")]
 	public class ExcavatorSignalComputer_RequestSupplies
 	{
-		public static bool Prefix(BaseEntity.RPCMessage rpc, ref ExcavatorSignalComputer __instance)
+		public static bool Prefix (BaseEntity.RPCMessage rpc, ref ExcavatorSignalComputer __instance)
 		{
 			if (__instance.HasFlag(BaseEntity.Flags.Reserved7) && __instance.IsPowered() && __instance.chargePower >= ExcavatorSignalComputer.chargeNeededForSupplies)
 			{

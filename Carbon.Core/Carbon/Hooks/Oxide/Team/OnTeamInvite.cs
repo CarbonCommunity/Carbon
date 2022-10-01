@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(RelationshipManager), "sendinvite")]
 	public class RelationshipManager_sendinvite
 	{
-		public static bool Prefix(ConsoleSystem.Arg arg)
+		public static bool Prefix (ConsoleSystem.Arg arg)
 		{
 			var basePlayer = arg.Player();
 			var playerTeam = RelationshipManager.ServerInstance.FindTeam(basePlayer.currentTeam);

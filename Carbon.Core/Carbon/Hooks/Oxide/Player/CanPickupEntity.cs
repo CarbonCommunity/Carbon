@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseCombatEntity), "CanPickup")]
 	public class BaseCombatEntity_CanPickup
 	{
-		public static bool Prefix(BasePlayer player, ref bool __result, ref BaseCombatEntity __instance)
+		public static bool Prefix (BasePlayer player, ref bool __result, ref BaseCombatEntity __instance)
 		{
 			var result = HookExecutor.CallStaticHook("CanPickupEntity", player, __instance);
 

@@ -15,11 +15,11 @@ namespace Carbon.Hooks.Oxide.Entity
 	[OxideHook.Patch(typeof(ExcavatorArm), "ProduceResources")]
 	public class ExcavatorArm_ProduceResources
 	{
-		public static bool Prefix(ref ExcavatorArm __instance)
+		public static bool Prefix (ref ExcavatorArm __instance)
 		{
 			var num = __instance.resourceProductionTickRate / __instance.timeForFullResources;
-			var num2 = __instance.resourcesToMine[__instance.resourceMiningIndex].amount * num;
-			__instance.pendingResources[__instance.resourceMiningIndex].amount += num2;
+			var num2 = __instance.resourcesToMine [ __instance.resourceMiningIndex ].amount * num;
+			__instance.pendingResources [ __instance.resourceMiningIndex ].amount += num2;
 
 			foreach (var itemAmount in __instance.pendingResources)
 			{
@@ -30,7 +30,7 @@ namespace Carbon.Hooks.Oxide.Entity
 
 					foreach (var excavatorOutputPile in __instance.outputPiles)
 					{
-						var item = ItemManager.Create(__instance.resourcesToMine[__instance.resourceMiningIndex].itemDef, num3, 0UL);
+						var item = ItemManager.Create(__instance.resourcesToMine [ __instance.resourceMiningIndex ].itemDef, num3, 0UL);
 						if (Interface.CallHook("OnExcavatorGather", __instance, item) != null)
 						{
 							return false;

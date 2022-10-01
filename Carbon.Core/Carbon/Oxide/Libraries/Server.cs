@@ -9,7 +9,7 @@ namespace Oxide.Game.Rust.Libraries
 {
 	public class Server
 	{
-		public void Broadcast(string message, string prefix, ulong userId = 0uL, params object[] args)
+		public void Broadcast (string message, string prefix, ulong userId = 0uL, params object [] args)
 		{
 			if (!string.IsNullOrEmpty(message))
 			{
@@ -18,12 +18,12 @@ namespace Oxide.Game.Rust.Libraries
 				ConsoleNetwork.BroadcastToAllClients("chat.add", 2, userId, text);
 			}
 		}
-		public void Broadcast(string message, ulong userId = 0uL)
+		public void Broadcast (string message, ulong userId = 0uL)
 		{
 			Broadcast(message, null, userId);
 		}
 
-		public void Command(string command, params object[] args)
+		public void Command (string command, params object [] args)
 		{
 			ConsoleSystem.Run(ConsoleSystem.Option.Server, command, args);
 		}

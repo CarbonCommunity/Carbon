@@ -7,7 +7,7 @@ namespace Oxide.Core.Plugins
 {
 	public static class Extensions
 	{
-		public static void Clear(this ItemContainer cont)
+		public static void Clear (this ItemContainer cont)
 		{
 			var items = Facepunch.Pool.GetList<Item>();
 			items.AddRange(cont.itemList);

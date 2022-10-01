@@ -15,13 +15,13 @@ namespace Oxide.Core
 	{
 		public string Directory { get; private set; }
 
-		public DataFileSystem(string directory)
+		public DataFileSystem (string directory)
 		{
 			Directory = directory;
 			_datafiles = new Dictionary<string, DynamicConfigFile>();
 		}
 
-		public DynamicConfigFile GetFile(string name)
+		public DynamicConfigFile GetFile (string name)
 		{
 			name = DynamicConfigFile.SanitizeName(name);
 			DynamicConfigFile dynamicConfigFile;
@@ -34,12 +34,12 @@ namespace Oxide.Core
 			return dynamicConfigFile;
 		}
 
-		public bool ExistsDatafile(string name)
+		public bool ExistsDatafile (string name)
 		{
 			return GetFile(name).Exists(null);
 		}
 
-		public DynamicConfigFile GetDatafile(string name)
+		public DynamicConfigFile GetDatafile (string name)
 		{
 			var file = GetFile(name);
 			if (file.Exists(null))
@@ -53,17 +53,17 @@ namespace Oxide.Core
 			return file;
 		}
 
-		public string[] GetFiles(string path = "", string searchPattern = "*")
+		public string [] GetFiles (string path = "", string searchPattern = "*")
 		{
 			return System.IO.Directory.GetFiles(Path.Combine(Directory, path), searchPattern);
 		}
 
-		public void SaveDatafile(string name)
+		public void SaveDatafile (string name)
 		{
 			GetFile(name).Save(null);
 		}
 
-		public T ReadObject<T>(string name)
+		public T ReadObject<T> (string name)
 		{
 			if (!ExistsDatafile(name))
 			{
@@ -74,12 +74,12 @@ namespace Oxide.Core
 			return GetFile(name).ReadObject<T>(null);
 		}
 
-		public void WriteObject<T>(string name, T Object, bool sync = false)
+		public void WriteObject<T> (string name, T Object, bool sync = false)
 		{
 			GetFile(name).WriteObject<T>(Object, sync, null);
 		}
 
-		public void ForEachObject<T>(string name, Action<T> callback)
+		public void ForEachObject<T> (string name, Action<T> callback)
 		{
 			string folder = DynamicConfigFile.SanitizeName(name);
 			foreach (DynamicConfigFile dynamicConfigFile in from d in _datafiles

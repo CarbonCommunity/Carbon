@@ -21,7 +21,7 @@ namespace Carbon.Core
 	{
 		public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
-		public static void RefreshOrderedFiles()
+		public static void RefreshOrderedFiles ()
 		{
 			OrderedFiles.Clear();
 
@@ -31,7 +31,7 @@ namespace Carbon.Core
 			}
 		}
 
-		public static string GetPluginPath(string shortName)
+		public static string GetPluginPath (string shortName)
 		{
 			foreach (var file in OrderedFiles)
 			{
@@ -41,7 +41,7 @@ namespace Carbon.Core
 			return null;
 		}
 
-		public override void IInit()
+		public override void IInit ()
 		{
 			foreach (var player in BasePlayer.activePlayerList)
 			{
@@ -51,18 +51,18 @@ namespace Carbon.Core
 			CarbonCore.Instance.ModuleProcessor.Init();
 		}
 
-		private void OnPluginLoaded(Plugin plugin)
+		private void OnPluginLoaded (Plugin plugin)
 		{
 		}
-		private void OnPluginUnloaded(Plugin plugin)
+		private void OnPluginUnloaded (Plugin plugin)
 		{
 		}
-		private void OnPlayerConnected(BasePlayer player)
+		private void OnPlayerConnected (BasePlayer player)
 		{
 			permission.RefreshUser(player);
 		}
 
-		internal static void Reply(object message, ConsoleSystem.Arg arg)
+		internal static void Reply (object message, ConsoleSystem.Arg arg)
 		{
 			if (arg != null && arg.Player() != null)
 			{
@@ -73,23 +73,23 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
-		private void GetVersion(ConsoleSystem.Arg arg)
+		private void GetVersion (ConsoleSystem.Arg arg)
 		{
 			Reply($"Carbon v{CarbonCore.Version}", arg);
 		}
 
 		[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
-		private void GetBuild(ConsoleSystem.Arg arg)
+		private void GetBuild (ConsoleSystem.Arg arg)
 		{
 			Reply($"{CarbonCore.InformationalVersion}", arg);
 		}
 
 		[ConsoleCommand("plugins", "Prints the list of mods and their loaded plugins.")]
-		private void Plugins(ConsoleSystem.Arg arg)
+		private void Plugins (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			var mode = arg.HasArgs(1) ? arg.Args[0] : null;
+			var mode = arg.HasArgs(1) ? arg.Args [ 0 ] : null;
 
 			switch (mode)
 			{
@@ -122,7 +122,7 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
-		private void Hooks(ConsoleSystem.Arg arg)
+		private void Hooks (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
@@ -144,17 +144,17 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("webload")]
-		private void WebLoad(ConsoleSystem.Arg arg)
+		private void WebLoad (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-			CarbonCore.Instance.WebScriptProcessor.Prepare(arg.Args[0]);
+			CarbonCore.Instance.WebScriptProcessor.Prepare(arg.Args [ 0 ]);
 		}
 
 		#region Config
 
 		[ConsoleCommand("loadconfig", "Loads Carbon config from file.")]
-		private void CarbonLoadConfig(ConsoleSystem.Arg arg)
+		private void CarbonLoadConfig (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || CarbonCore.Instance == null) return;
 
@@ -164,7 +164,7 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("saveconfig", "Saves Carbon config to file.")]
-		private void CarbonSaveConfig(ConsoleSystem.Arg arg)
+		private void CarbonSaveConfig (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || CarbonCore.Instance == null) return;
 
@@ -193,12 +193,12 @@ namespace Carbon.Core
 		#region Commands
 
 		[ConsoleCommand("find", "Searches through Carbon-processed console commands.")]
-		private void Find(ConsoleSystem.Arg arg)
+		private void Find (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
 			var body = new StringBody();
-			var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
+			var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args [ 0 ] : null;
 			body.Add($"Console Commands:");
 
 			foreach (var command in CarbonCore.Instance.AllConsoleCommands)
@@ -212,12 +212,12 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("findchat", "Searches through Carbon-processed chat commands.")]
-		private void FindChat(ConsoleSystem.Arg arg)
+		private void FindChat (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
 			var body = new StringBody();
-			var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
+			var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args [ 0 ] : null;
 			body.Add($"Chat Commands:");
 
 			foreach (var command in CarbonCore.Instance.AllChatCommands)
@@ -235,11 +235,11 @@ namespace Carbon.Core
 		#region Modules
 
 		[ConsoleCommand("setmodule", "Enables or disables Carbon modules. Visit root/carbon/modules and use the config file names as IDs.")]
-		private void SetModule(ConsoleSystem.Arg arg)
+		private void SetModule (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(2)) return;
 
-			var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+			var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args [ 0 ]);
 			var module = hookable.To<IModule>();
 
 			if (module == null)
@@ -249,7 +249,7 @@ namespace Carbon.Core
 			}
 
 			var previousEnabled = module.GetEnabled();
-			var newEnabled = arg.Args[1].ToBool();
+			var newEnabled = arg.Args [ 1 ].ToBool();
 
 			if (previousEnabled != newEnabled)
 			{
@@ -261,7 +261,7 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("saveallmodules", "Saves the configs and data files of all available modules.")]
-		private void SaveAllModules(ConsoleSystem.Arg arg)
+		private void SaveAllModules (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
@@ -275,11 +275,11 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("savemoduleconfig", "Saves Carbon module config & data file.")]
-		private void SaveModuleConfig(ConsoleSystem.Arg arg)
+		private void SaveModuleConfig (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-			var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+			var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args [ 0 ]);
 			var module = hookable.To<IModule>();
 
 			if (module == null)
@@ -294,11 +294,11 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("loadmoduleconfig", "Loads Carbon module config & data file.")]
-		private void LoadModuleConfig(ConsoleSystem.Arg arg)
+		private void LoadModuleConfig (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-			var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+			var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args [ 0 ]);
 			var module = hookable.To<IModule>();
 
 			if (module == null)
@@ -319,13 +319,13 @@ namespace Carbon.Core
 		#region Mod & Plugin Loading
 
 		[ConsoleCommand("reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything.")]
-		private void Reload(ConsoleSystem.Arg arg)
+		private void Reload (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
 			RefreshOrderedFiles();
 
-			var name = arg.Args[0];
+			var name = arg.Args [ 0 ];
 			switch (name)
 			{
 				case "*":
@@ -347,13 +347,13 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("load", "Loads all mods and/or plugins. E.g 'c.load *' to load everything you've unloaded.")]
-		private void Load(ConsoleSystem.Arg arg)
+		private void Load (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
 			RefreshOrderedFiles();
 
-			var name = arg.Args[0];
+			var name = arg.Args [ 0 ];
 			switch (name)
 			{
 				case "*":
@@ -416,13 +416,13 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("unload", "Unloads all mods and/or plugins. E.g 'c.unload *' to unload everything. They'll be marked as 'ignored'.")]
-		private void Unload(ConsoleSystem.Arg arg)
+		private void Unload (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
 			RefreshOrderedFiles();
 
-			var name = arg.Args[0];
+			var name = arg.Args [ 0 ];
 			switch (name)
 			{
 				case "*":
@@ -519,11 +519,11 @@ namespace Carbon.Core
 		#region Permissions
 
 		[ConsoleCommand("grant", "Grant one or more permissions to users or groups. Do 'c.grant' for syntax info.")]
-		private void Grant(ConsoleSystem.Arg arg)
+		private void Grant (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			void PrintWarn()
+			void PrintWarn ()
 			{
 				Reply($"Syntax: c.grant <user|group> <name|id> <perm>", arg);
 			}
@@ -534,9 +534,9 @@ namespace Carbon.Core
 				return;
 			}
 
-			var action = arg.Args[0];
-			var name = arg.Args[1];
-			var perm = arg.Args[2];
+			var action = arg.Args [ 0 ];
+			var name = arg.Args [ 1 ];
+			var perm = arg.Args [ 2 ];
 			var user = permission.FindUser(name);
 
 			switch (action)
@@ -562,11 +562,11 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("revoke", "Revoke one or more permissions from users or groups. Do 'c.revoke' for syntax info.")]
-		private void Revoke(ConsoleSystem.Arg arg)
+		private void Revoke (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			void PrintWarn()
+			void PrintWarn ()
 			{
 				Reply($"Syntax: c.revoke <user|group> <name|id> <perm>", arg);
 			}
@@ -577,9 +577,9 @@ namespace Carbon.Core
 				return;
 			}
 
-			var action = arg.Args[0];
-			var name = arg.Args[1];
-			var perm = arg.Args[2];
+			var action = arg.Args [ 0 ];
+			var name = arg.Args [ 1 ];
+			var perm = arg.Args [ 2 ];
 			var user = permission.FindUser(name);
 
 			switch (action)
@@ -605,11 +605,11 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("show", "Displays information about a specific player or group (incl. permissions, groups and user list). Do 'c.show' for syntax info.")]
-		private void Show(ConsoleSystem.Arg arg)
+		private void Show (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			void PrintWarn()
+			void PrintWarn ()
 			{
 				Reply($"Syntax: c.show <user|group> <name|id>", arg);
 			}
@@ -620,8 +620,8 @@ namespace Carbon.Core
 				return;
 			}
 
-			var action = arg.Args[0];
-			var name = arg.Args[1];
+			var action = arg.Args [ 0 ];
+			var name = arg.Args [ 1 ];
 
 			switch (action)
 			{
@@ -657,11 +657,11 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("usergroup", "Adds or removes a player from a group. Do 'c.usergroup' for syntax info.")]
-		private void UserGroup(ConsoleSystem.Arg arg)
+		private void UserGroup (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			void PrintWarn()
+			void PrintWarn ()
 			{
 				Reply($"Syntax: c.usergroup <add|remove> <player> <group>", arg);
 			}
@@ -672,9 +672,9 @@ namespace Carbon.Core
 				return;
 			}
 
-			var action = arg.Args[0];
-			var player = arg.Args[1];
-			var group = arg.Args[2];
+			var action = arg.Args [ 0 ];
+			var player = arg.Args [ 1 ];
+			var group = arg.Args [ 2 ];
 
 			var user = permission.FindUser(player);
 
@@ -721,11 +721,11 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("group", "Adds or removes a group. Do 'c.group' for syntax info.")]
-		private void Group(ConsoleSystem.Arg arg)
+		private void Group (ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			void PrintWarn()
+			void PrintWarn ()
 			{
 				Reply($"Syntax: c.group add <group> [<displayName>] [<rank>]", arg);
 				Reply($"Syntax: c.group remove <group>", arg);
@@ -735,7 +735,7 @@ namespace Carbon.Core
 
 			if (!arg.HasArgs(1)) { PrintWarn(); return; }
 
-			var action = arg.Args[0];
+			var action = arg.Args [ 0 ];
 
 			switch (action)
 			{
@@ -743,7 +743,7 @@ namespace Carbon.Core
 					{
 						if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-						var group = arg.Args[1];
+						var group = arg.Args [ 1 ];
 
 						if (permission.GroupExists(group))
 						{
@@ -751,7 +751,7 @@ namespace Carbon.Core
 							return;
 						}
 
-						if (permission.CreateGroup(group, arg.HasArgs(3) ? arg.Args[2] : group, arg.HasArgs(4) ? arg.Args[3].ToInt() : 0))
+						if (permission.CreateGroup(group, arg.HasArgs(3) ? arg.Args [ 2 ] : group, arg.HasArgs(4) ? arg.Args [ 3 ].ToInt() : 0))
 						{
 							Reply($"Created '{group}' group.", arg);
 						}
@@ -762,7 +762,7 @@ namespace Carbon.Core
 					{
 						if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-						var group = arg.Args[1];
+						var group = arg.Args [ 1 ];
 
 						if (!permission.GroupExists(group))
 						{
@@ -770,8 +770,8 @@ namespace Carbon.Core
 							return;
 						}
 
-						if (arg.HasArgs(3)) permission.SetGroupTitle(group, arg.Args[2]);
-						if (arg.HasArgs(4)) permission.SetGroupTitle(group, arg.Args[3]);
+						if (arg.HasArgs(3)) permission.SetGroupTitle(group, arg.Args [ 2 ]);
+						if (arg.HasArgs(4)) permission.SetGroupTitle(group, arg.Args [ 3 ]);
 
 						Reply($"Set '{group}' group.", arg);
 					}
@@ -780,7 +780,7 @@ namespace Carbon.Core
 					{
 						if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-						var group = arg.Args[1];
+						var group = arg.Args [ 1 ];
 
 						if (permission.RemoveGroup(group)) Reply($"Removed '{group}' group.", arg);
 						else Reply($"Couldn't remove '{group}' group.", arg);

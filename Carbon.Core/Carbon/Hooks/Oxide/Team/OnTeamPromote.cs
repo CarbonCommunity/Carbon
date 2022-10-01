@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(RelationshipManager), "promote")]
 	public class RelationshipManager_promote
 	{
-		public static bool Prefix(ConsoleSystem.Arg arg)
+		public static bool Prefix (ConsoleSystem.Arg arg)
 		{
 			var basePlayer = arg.Player();
 
@@ -43,7 +43,7 @@ namespace Carbon.Extended
 
 			if (lookingAtPlayer.currentTeam == basePlayer.currentTeam)
 			{
-				var playerTeam = RelationshipManager.ServerInstance.teams[basePlayer.currentTeam];
+				var playerTeam = RelationshipManager.ServerInstance.teams [ basePlayer.currentTeam ];
 
 				if (playerTeam != null && playerTeam.teamLeader == basePlayer.userID)
 				{
