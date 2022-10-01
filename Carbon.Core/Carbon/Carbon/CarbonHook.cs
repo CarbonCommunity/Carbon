@@ -102,7 +102,9 @@ public class Hook : Attribute
 			Weapon,
 			Network,
 			Server,
-			World
+			World,
+			Shop,
+			Elevator
 		}
 
 		public Category (Enum @enum)
