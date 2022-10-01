@@ -43,7 +43,7 @@ namespace Carbon.Core.Modules
 
                     DataInstance.ItemMapping.TryGetValue ( item.itemid, out var originalStack );
 
-                    item.stackable = Mathf.Clamp ( ( int )( originalStack * category.Value ), 1, int.MaxValue );
+                    item.stackable = Mathf.Clamp ( ( int )( originalStack * category.Value * Config.GlobalMultiplier ), 1, int.MaxValue );
                 }
             }
 
@@ -55,7 +55,7 @@ namespace Carbon.Core.Modules
 
                 DataInstance.ItemMapping.TryGetValue ( item.itemid, out var originalStack );
 
-                item.stackable = Mathf.Clamp ( ( int )( originalStack * multiplier ), 1, int.MaxValue );
+                item.stackable = Mathf.Clamp ( ( int )( originalStack * multiplier * Config.GlobalMultiplier ), 1, int.MaxValue );
             }
 
             Puts ( "Item stacks patched" );
@@ -93,6 +93,8 @@ namespace Carbon.Core.Modules
 
     public class StackManagerConfig
     {
+        public float GlobalMultiplier = 1f;
+
         public HashSet<string> Blacklist = new HashSet<string>
         {
             "water",
