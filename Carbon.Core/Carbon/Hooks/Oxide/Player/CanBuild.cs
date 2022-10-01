@@ -28,6 +28,7 @@ namespace Carbon.Extended
                 ownerPlayer.ChatMessage ( "AntiHack!" );
                 return false;
             }
+
             var construction = PrefabAttribute.server.Find<Construction> ( msg.blockID );
             if ( construction == null )
             {
@@ -44,6 +45,7 @@ namespace Carbon.Extended
                 ownerPlayer.ChatMessage ( "Building is blocked!" );
                 return false;
             }
+
             var deployable = __instance.GetDeployable ();
             if ( construction.deployable != deployable )
             {
@@ -51,48 +53,49 @@ namespace Carbon.Extended
                 AntiHack.NoteAdminHack ( ownerPlayer );
                 return false;
             }
-            var activeGameMode = BaseGameMode.GetActiveGameMode ( true );
-            BaseGameMode.CanBuildResult? canBuildResult = ( activeGameMode != null ) ? activeGameMode.CanBuildEntity ( ownerPlayer, construction ) : null;
-            if ( canBuildResult != null )
-            {
-                if ( canBuildResult.Value.Phrase != null )
-                {
-                    ownerPlayer.ShowToast ( canBuildResult.Value.Result ? GameTip.Styles.Blue_Long : GameTip.Styles.Red_Normal, canBuildResult.Value.Phrase, canBuildResult.Value.Arguments );
-                }
-                if ( !canBuildResult.Value.Result )
-                {
-                    return false;
-                }
-            }
+
             var target = default ( Construction.Target );
             if ( msg.entity > 0U )
             {
-                target.entity = ( BaseNetworkable.serverEntities.Find ( msg.entity ) as BaseEntity );
-                if ( target.entity == null )
+                var baseEntity = BaseNetworkable.serverEntities.Find ( msg.entity ) as BaseEntity;
+
+                if ( !baseEntity )
                 {
                     ownerPlayer.ChatMessage ( "Couldn't find entity " + msg.entity );
                     return false;
                 }
-                msg.position = target.entity.transform.TransformPoint ( msg.position );
-                msg.normal = target.entity.transform.TransformDirection ( msg.normal );
-                msg.rotation = target.entity.transform.rotation * msg.rotation;
-                if ( msg.socket > 0U )
+
+                msg.position = baseEntity.transform.TransformPoint ( msg.position );
+                msg.normal = baseEntity.transform.TransformDirection ( msg.normal );
+                msg.rotation = baseEntity.transform.rotation * msg.rotation;
+
+                if ( msg.socket == 0U )
                 {
-                    string text = StringPool.Get ( msg.socket );
-                    if ( text != "" )
+                    if ( deployable && deployable.setSocketParent && baseEntity.Distance ( msg.position ) > 1f )
                     {
-                        target.socket = __instance.FindSocket ( text, target.entity.prefabID );
+                        ownerPlayer.ChatMessage ( "Parent too far away: " + baseEntity.Distance ( msg.position ) );
+                        return false;
                     }
-                    if ( target.socket == null )
+                    if ( baseEntity is Door )
                     {
-                        ownerPlayer.ChatMessage ( "Couldn't find socket " + msg.socket );
+                        ownerPlayer.ChatMessage ( "Can't deploy on door" );
                         return false;
                     }
                 }
-                else if ( target.entity is Door )
+
+                target.entity = baseEntity;
+
+                if ( msg.socket > 0U )
                 {
-                    ownerPlayer.ChatMessage ( "Can't deploy on door" );
-                    return false;
+                    string text = StringPool.Get ( msg.socket );
+                    if ( text != "" && target.entity != null )
+                    {
+                        target.socket = __instance.FindSocket ( text, target.entity.prefabID );
+                    }
+                    else
+                    {
+                        ownerPlayer.ChatMessage ( "Invalid Socket!" );
+                    }
                 }
             }
             target.ray = msg.ray;
@@ -102,21 +105,9 @@ namespace Carbon.Extended
             target.rotation = msg.rotation;
             target.player = ownerPlayer;
             target.valid = true;
-
             if ( Interface.CallHook ( "CanBuild", __instance, construction, target ) != null )
             {
                 return false;
-            }
-
-            if ( target.entity != null && deployable != null && deployable.setSocketParent )
-            {
-                var position = ( target.socket != null ) ? target.GetWorldPosition () : target.position;
-                var num = target.entity.Distance ( position );
-                if ( num > 1f )
-                {
-                    ownerPlayer.ChatMessage ( "Parent too far away: " + num );
-                    return false;
-                }
             }
             __instance.DoBuild ( target, construction );
             return false;
