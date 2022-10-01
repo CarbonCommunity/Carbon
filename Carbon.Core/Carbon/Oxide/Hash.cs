@@ -13,7 +13,7 @@ namespace Oxide.Core
 	{
 		private readonly IDictionary<TKey, TValue> dictionary;
 
-		public TValue this[ TKey key ]
+		public TValue this[TKey key]
 		{
 			get
 			{
@@ -37,7 +37,7 @@ namespace Oxide.Core
 				}
 				else
 				{
-					dictionary[ key ] = value;
+					dictionary[key] = value;
 				}
 			}
 		}
