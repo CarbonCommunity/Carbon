@@ -4,6 +4,7 @@
 /// 
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Carbon.Core;
 using Humanlights.Extensions;
@@ -28,6 +29,8 @@ namespace Oxide.Plugins
 		public Persistence persistence { get; set; }
 
 		public DynamicConfigFile Config { get; private set; }
+
+		internal Dictionary<string, StreamWriter> _logWriters = new Dictionary<string, StreamWriter>();
 
 		public RustPlugin()
 		{
@@ -75,6 +78,13 @@ namespace Oxide.Plugins
 				UnityEngine.Object.Destroy(go);
 			}
 
+			foreach (var writer in _logWriters)
+			{
+				writer.Value.Flush();
+				writer.Value.Close();
+				writer.Value.Dispose();
+			}
+
 			base.Dispose();
 		}
 
@@ -112,18 +122,23 @@ namespace Oxide.Plugins
 		}
 		protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 		{
-			string text2 = Path.Combine(CarbonCore.GetLogsFolder(), plugin.Name);
-			
+			var text2 = Path.Combine(CarbonCore.GetLogsFolder(), plugin.Name);
+
 			if (!Directory.Exists(text2))
 			{
 				Directory.CreateDirectory(text2);
 			}
 
 			filename = plugin.Name.ToLower() + "_" + filename.ToLower() + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
-			
-			StreamWriter streamWriter = new StreamWriter(Path.Combine(text2, Utility.CleanPath(filename)), append: true);
-			
-			streamWriter.WriteLine(timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text);
+
+			var path = Path.Combine(text2, Utility.CleanPath(filename));
+
+			if (!_logWriters.TryGetValue(path, out var writer))
+			{
+				_logWriters.Add(path, new StreamWriter(path, append: true));
+			}
+
+			writer.WriteLine(timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text);
 		}
 
 		public void DoLoadConfig()
