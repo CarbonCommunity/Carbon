@@ -94,7 +94,8 @@ public class Hook : Attribute
             Resources,
             Team,
             Weapon,
-            Network
+            Network,
+            Server
         }
 
         public Category ( Enum @enum )
