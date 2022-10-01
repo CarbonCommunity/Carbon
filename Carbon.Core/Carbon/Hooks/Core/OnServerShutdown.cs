@@ -5,6 +5,7 @@
 
 using Carbon.Core;
 using Harmony;
+using Oxide.Core;
 
 [HarmonyPatch(typeof(ServerMgr), "Shutdown")]
 public class OnServerShutdown
@@ -16,11 +17,15 @@ public class OnServerShutdown
 		if (_call <= 0.5f) return;
 
 		CarbonCore.Log($"Saving Carbon plugins & shutting down");
+		
+		Interface.Oxide.OnShutdown();
+
 		HookExecutor.CallStaticHook("OnServerSave");
 		HookExecutor.CallStaticHook("OnServerShutdown");
 
 		CarbonCore.Instance.HarmonyProcessor.Clear();
 		CarbonCore.Instance.ScriptProcessor.Clear();
+
 		_call = 0;
 	}
 }

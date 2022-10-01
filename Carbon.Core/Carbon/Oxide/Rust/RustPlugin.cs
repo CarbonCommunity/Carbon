@@ -110,6 +110,21 @@ namespace Oxide.Plugins
 		{
 			CarbonCore.ErrorFormat("[{0}] {1}", null, Title, (args.Length != 0) ? string.Format(format, args) : format);
 		}
+		protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
+		{
+			string text2 = Path.Combine(CarbonCore.GetLogsFolder(), plugin.Name);
+			
+			if (!Directory.Exists(text2))
+			{
+				Directory.CreateDirectory(text2);
+			}
+
+			filename = plugin.Name.ToLower() + "_" + filename.ToLower() + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
+			
+			StreamWriter streamWriter = new StreamWriter(Path.Combine(text2, Utility.CleanPath(filename)), append: true);
+			
+			streamWriter.WriteLine(timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text);
+		}
 
 		public void DoLoadConfig()
 		{
@@ -136,7 +151,7 @@ namespace Oxide.Plugins
 		}
 		protected virtual void LoadDefaultConfig()
 		{
-			// CallHook ( "LoadDefaultConfig" );
+			//CallHook ( "LoadDefaultConfig" );
 		}
 		protected virtual void SaveConfig()
 		{

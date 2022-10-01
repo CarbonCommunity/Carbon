@@ -25,6 +25,8 @@ namespace Oxide.Core
 		public string LogDirectory { get; private set; }
 		public string TempDirectory { get; private set; }
 
+		public bool IsShuttingDown { get; private set; }
+
 		public float Now => UnityEngine.Time.realtimeSinceStartup;
 
 		public void Load()
@@ -59,6 +61,24 @@ namespace Oxide.Core
 		public void OnSave()
 		{
 
+		}
+
+		public void OnShutdown()
+		{
+			if (!IsShuttingDown)
+			{
+				IsShuttingDown = true;
+			}
+		}
+
+		public object CallHook(string hookName, params object[] args)
+		{
+			return HookExecutor.CallStaticHook(hookName, args);
+		}
+
+		public object CallDeprecatedHook(string oldHook, string newHook, DateTime expireDate, params object[] args)
+		{
+			return HookExecutor.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿///
+///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
@@ -14,6 +14,7 @@ namespace Carbon.Core
 		internal static Dictionary<int, object[]> _argumentBuffer { get; } = new Dictionary<int, object[]>();
 		internal static Dictionary<string, int> _hookTimeBuffer { get; } = new Dictionary<string, int>();
 		internal static Dictionary<string, int> _hookTotalTimeBuffer { get; } = new Dictionary<string, int>();
+		internal static Dictionary<string, DateTime> _lastDeprecatedWarningAt { get; } = new Dictionary<string, DateTime>();
 
 		internal static void _appendHookTime(string hook, int time)
 		{
@@ -85,7 +86,7 @@ namespace Carbon.Core
 		private static object CallHook<T>(this T plugin, string hookName, BindingFlags flags, object[] args) where T : BaseHookable
 		{
 			if (plugin.IsHookIgnored(hookName)) return null;
-
+			
 			var id = $"{hookName}[{(args == null ? 0 : args.Length)}]";
 			var result = (object)null;
 
@@ -148,6 +149,26 @@ namespace Carbon.Core
 
 			return result;
 		}
+
+		private static object CallDeprecatedHook<T>(this T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args) where T : BaseHookable
+		{
+			if (expireDate < DateTime.Now)
+			{
+				return null;
+			}
+
+			DateTime now = DateTime.Now;
+
+			if (!_lastDeprecatedWarningAt.TryGetValue(oldHook, out DateTime lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
+			{
+				_lastDeprecatedWarningAt[oldHook] = now;
+
+				CarbonCore.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
+			}
+
+			return CallDeprecatedHook(plugin, oldHook, newHook, expireDate, flags, args);
+		}
+
 		private static object CallStaticHook(string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object[] args = null)
 		{
 			var objectOverride = (object)null;
@@ -191,9 +212,32 @@ namespace Carbon.Core
 			return objectOverride;
 		}
 
+		private static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object[] args = null)
+		{			
+			if (expireDate < DateTime.Now)
+			{
+				return null;
+			}
+
+			DateTime now = DateTime.Now;
+			
+			if (!_lastDeprecatedWarningAt.TryGetValue(oldHook, out DateTime lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
+			{
+				_lastDeprecatedWarningAt[oldHook] = now;
+
+				CarbonCore.Warn($"A plugin is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
+			}
+
+			return CallStaticHook(oldHook, flag, args);
+		}
+
 		public static object CallHook<T>(T plugin, string hookName) where T : BaseHookable
 		{
 			return CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null) == null;
+		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate) where T : BaseHookable
+		{
+			return CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null) == null;
 		}
 		public static object CallHook<T>(T plugin, string hookName, object arg1) where T : BaseHookable
 		{
@@ -205,6 +249,16 @@ namespace Carbon.Core
 			_clearBuffer(buffer);
 			return result;
 		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, object arg1) where T : BaseHookable
+		{
+			var buffer = _allocateBuffer(1);
+			buffer[0] = arg1;
+
+			var result = CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
 		public static object CallHook<T>(T plugin, string hookName, object arg1, object arg2) where T : BaseHookable
 		{
 			var buffer = _allocateBuffer(2);
@@ -212,6 +266,17 @@ namespace Carbon.Core
 			buffer[1] = arg2;
 
 			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2) where T : BaseHookable
+		{
+			var buffer = _allocateBuffer(2);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+
+			var result = CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			_clearBuffer(buffer);
 			return result;
@@ -228,6 +293,18 @@ namespace Carbon.Core
 			_clearBuffer(buffer);
 			return result;
 		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3) where T : BaseHookable
+		{
+			var buffer = _allocateBuffer(3);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+
+			var result = CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
 		public static object CallHook<T>(T plugin, string hookName, object arg1, object arg2, object arg3, object arg4) where T : BaseHookable
 		{
 			var buffer = _allocateBuffer(4);
@@ -237,6 +314,19 @@ namespace Carbon.Core
 			buffer[3] = arg4;
 
 			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4) where T : BaseHookable
+		{
+			var buffer = _allocateBuffer(4);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+
+			var result = CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			_clearBuffer(buffer);
 			return result;
@@ -255,6 +345,20 @@ namespace Carbon.Core
 			_clearBuffer(buffer);
 			return result;
 		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5) where T : BaseHookable
+		{
+			var buffer = _allocateBuffer(5);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+
+			var result = CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
 		public static object CallHook<T>(T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6) where T : BaseHookable
 		{
 			var buffer = _allocateBuffer(6);
@@ -266,6 +370,21 @@ namespace Carbon.Core
 			buffer[6] = arg6;
 
 			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6) where T : BaseHookable
+		{
+			var buffer = _allocateBuffer(6);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+			buffer[6] = arg6;
+
+			var result = CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			_clearBuffer(buffer);
 			return result;
@@ -286,6 +405,22 @@ namespace Carbon.Core
 			_clearBuffer(buffer);
 			return result;
 		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7) where T : BaseHookable
+		{
+			var buffer = _allocateBuffer(7);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+			buffer[6] = arg6;
+			buffer[7] = arg7;
+
+			var result = CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
 		public static object CallHook<T>(T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8) where T : BaseHookable
 		{
 			var buffer = _allocateBuffer(8);
@@ -299,6 +434,23 @@ namespace Carbon.Core
 			buffer[8] = arg8;
 
 			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8) where T : BaseHookable
+		{
+			var buffer = _allocateBuffer(8);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+			buffer[6] = arg6;
+			buffer[7] = arg7;
+			buffer[8] = arg8;
+
+			var result = CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			_clearBuffer(buffer);
 			return result;
@@ -321,10 +473,32 @@ namespace Carbon.Core
 			_clearBuffer(buffer);
 			return result;
 		}
+		public static object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9) where T : BaseHookable
+		{
+			var buffer = _allocateBuffer(9);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+			buffer[6] = arg6;
+			buffer[7] = arg7;
+			buffer[8] = arg8;
+			buffer[9] = arg9;
+
+			var result = CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
 
 		public static object CallStaticHook(string hookName)
 		{
 			return CallStaticHook(hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
+		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate)
+		{
+			return CallStaticDeprecatedHook(oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
 		}
 		public static object CallStaticHook(string hookName, object arg1)
 		{
@@ -332,6 +506,16 @@ namespace Carbon.Core
 			buffer[0] = arg1;
 
 			var result = CallStaticHook(hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1)
+		{
+			var buffer = _allocateBuffer(1);
+			buffer[0] = arg1;
+
+			var result = CallStaticDeprecatedHook(oldHook, newHook, expireDate, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
 
 			_clearBuffer(buffer);
 			return result;
@@ -347,6 +531,17 @@ namespace Carbon.Core
 			_clearBuffer(buffer);
 			return result;
 		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2)
+		{
+			var buffer = _allocateBuffer(2);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+
+			var result = CallStaticDeprecatedHook(oldHook, newHook, expireDate, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
 		public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3)
 		{
 			var buffer = _allocateBuffer(3);
@@ -355,6 +550,18 @@ namespace Carbon.Core
 			buffer[2] = arg3;
 
 			var result = CallStaticHook(hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3)
+		{
+			var buffer = _allocateBuffer(3);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+
+			var result = CallStaticDeprecatedHook(oldHook, newHook, expireDate, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
 
 			_clearBuffer(buffer);
 			return result;
@@ -372,6 +579,19 @@ namespace Carbon.Core
 			_clearBuffer(buffer);
 			return result;
 		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4)
+		{
+			var buffer = _allocateBuffer(4);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+
+			var result = CallStaticDeprecatedHook(oldHook, newHook, expireDate, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
 		public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5)
 		{
 			var buffer = _allocateBuffer(5);
@@ -382,6 +602,20 @@ namespace Carbon.Core
 			buffer[4] = arg5;
 
 			var result = CallStaticHook(hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5)
+		{
+			var buffer = _allocateBuffer(5);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+
+			var result = CallStaticDeprecatedHook(oldHook, newHook, expireDate, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
 
 			_clearBuffer(buffer);
 			return result;
@@ -401,6 +635,21 @@ namespace Carbon.Core
 			_clearBuffer(buffer);
 			return result;
 		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
+		{
+			var buffer = _allocateBuffer(6);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+			buffer[6] = arg6;
+
+			var result = CallStaticDeprecatedHook(oldHook, newHook, expireDate, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
 		public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 		{
 			var buffer = _allocateBuffer(7);
@@ -413,6 +662,22 @@ namespace Carbon.Core
 			buffer[7] = arg7;
 
 			var result = CallStaticHook(hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
+		{
+			var buffer = _allocateBuffer(7);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+			buffer[6] = arg6;
+			buffer[7] = arg7;
+
+			var result = CallStaticDeprecatedHook(oldHook, newHook, expireDate, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
 
 			_clearBuffer(buffer);
 			return result;
@@ -434,6 +699,23 @@ namespace Carbon.Core
 			_clearBuffer(buffer);
 			return result;
 		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
+		{
+			var buffer = _allocateBuffer(8);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+			buffer[6] = arg6;
+			buffer[7] = arg7;
+			buffer[8] = arg8;
+
+			var result = CallStaticDeprecatedHook(oldHook, newHook, expireDate, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
 		public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 		{
 			var buffer = _allocateBuffer(9);
@@ -448,6 +730,24 @@ namespace Carbon.Core
 			buffer[9] = arg9;
 
 			var result = CallStaticHook(hookName, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
+
+			_clearBuffer(buffer);
+			return result;
+		}
+		public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
+		{
+			var buffer = _allocateBuffer(9);
+			buffer[0] = arg1;
+			buffer[1] = arg2;
+			buffer[2] = arg3;
+			buffer[3] = arg4;
+			buffer[4] = arg5;
+			buffer[6] = arg6;
+			buffer[7] = arg7;
+			buffer[8] = arg8;
+			buffer[9] = arg9;
+
+			var result = CallStaticDeprecatedHook(oldHook, newHook, expireDate, flag: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args: buffer);
 
 			_clearBuffer(buffer);
 			return result;

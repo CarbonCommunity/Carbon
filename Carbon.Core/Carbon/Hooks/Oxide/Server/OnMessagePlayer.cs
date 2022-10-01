@@ -7,8 +7,10 @@ using Oxide.Core;
 
 namespace Carbon.Extended
 {
-	[OxideHook("OnMessagePlayer"), OxideHook.Category(Hook.Category.Enum.Server)]
+	[OxideHook("OnMessagePlayer", typeof(object)), OxideHook.Category(Hook.Category.Enum.Server)]
 	[OxideHook.Info("Useful for intercepting server messages before they get to their intended target.")]
+	[OxideHook.Parameter("msg", typeof(string))]
+	[OxideHook.Parameter("this", typeof(BasePlayer))]
 	[OxideHook.Patch(typeof(BasePlayer), "ChatMessage")]
 	public class BasePlayer_ChatMessage
 	{
