@@ -6,18 +6,18 @@ using System;
 /// 
 namespace Carbon.Core.Modules
 {
-    public class AutoWipeModule : BaseModule<AutoWipeConfig, AutoWipeData>
-    {
-        public override string Name => "AutoWipe";
-        public override Type Type => typeof ( AutoWipeModule );
-    }
+	public class AutoWipeModule : BaseModule<AutoWipeConfig, AutoWipeData>
+	{
+		public override string Name => "AutoWipe";
+		public override Type Type => typeof(AutoWipeModule);
+	}
 
-    public class AutoWipeConfig
-    {
-        public int NextWipeSeed = -1;
-    }
-    public class AutoWipeData
-    {
+	public class AutoWipeConfig
+	{
+		public int NextWipeSeed = -1;
+	}
+	public class AutoWipeData
+	{
 
-    }
+	}
 }

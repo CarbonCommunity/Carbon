@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -16,8 +16,8 @@ namespace Carbon.Patch
 
 				try
 				{
-					if ( Directory.Exists ( Release ) )
-						Directory.Delete ( Release, true );
+					if (Directory.Exists(Release))
+						Directory.Delete(Release, true);
 				}
 				catch { }
 

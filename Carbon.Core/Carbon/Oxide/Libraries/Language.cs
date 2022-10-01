@@ -3,21 +3,21 @@
 /// All rights reserved
 /// 
 
-using Oxide.Plugins;
 using System.Collections.Generic;
+using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries
 {
-    public class Language
-    {
-        public void RegisterMessages ( Dictionary<string, string> messages, RustPlugin plugin, string lang = "en" )
-        {
+	public class Language
+	{
+		public void RegisterMessages(Dictionary<string, string> messages, RustPlugin plugin, string lang = "en")
+		{
 
-        }
+		}
 
-        public string GetMessage(string name, RustPlugin plugin, string player = null )
-        {
-            return name;
-        }
-    }
+		public string GetMessage(string name, RustPlugin plugin, string player = null)
+		{
+			return name;
+		}
+	}
 }

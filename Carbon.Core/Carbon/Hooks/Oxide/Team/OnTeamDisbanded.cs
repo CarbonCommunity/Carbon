@@ -6,14 +6,14 @@
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamDisbanded"), OxideHook.Category ( Hook.Category.Enum.Team )]
-    [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
-    [OxideHook.Info ( "Called when the team was disbanded." )]
-    [OxideHook.Patch ( typeof ( RelationshipManager ), "DisbandTeam" )]
-    public class RelationshipManager_DisbandTeam_OnTeamDisbanded
-    {
-        public static void Postfix ( RelationshipManager.PlayerTeam teamToDisband )
-        {
-        }
-    }
+	[OxideHook("OnTeamDisbanded"), OxideHook.Category(Hook.Category.Enum.Team)]
+	[OxideHook.Parameter("team", typeof(RelationshipManager.PlayerTeam))]
+	[OxideHook.Info("Called when the team was disbanded.")]
+	[OxideHook.Patch(typeof(RelationshipManager), "DisbandTeam")]
+	public class RelationshipManager_DisbandTeam_OnTeamDisbanded
+	{
+		public static void Postfix(RelationshipManager.PlayerTeam teamToDisband)
+		{
+		}
+	}
 }

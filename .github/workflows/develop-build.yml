@@ -47,6 +47,28 @@ jobs:
           echo "::set-output name=tag::$(date +'%Yd%j')"
           echo "::set-output name=ref::$(git rev-parse --short HEAD)"
 
+  code-format:
+    name: 🔎 Code formatting
+    needs: bootstrap
+    runs-on: ubuntu-latest
+    continue-on-error: false
+
+    steps:
+    - name: 🛤️ Setup the dotnet build environment
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+      with:
+        ref: develop
+
+    - name: ▶️ Execute the code formatting tool
+      shell: bash
+      run: |
+        dotnet format --verbosity diagnostic ${GITHUB_WORKSPACE}/Carbon.Core
+
   build-linux:
     name: 🐧 Linux
     needs: bootstrap
@@ -88,6 +110,7 @@ jobs:
     name: 🪟 Windows
     needs: bootstrap
     runs-on: windows-latest
+    continue-on-error: false
     
     steps:
     - name: 🔗 Checkout source code from github

@@ -9,10 +9,10 @@ using UnityEngine;
 
 namespace Carbon.Core.Modules
 {
-    public interface IHookableModule
-    {
-        Dictionary<string, List<MethodInfo>> HookCache { get; }
+	public interface IHookableModule
+	{
+		Dictionary<string, List<MethodInfo>> HookCache { get; }
 
-        void OnWorldPrefabSpawned ( GameObject gameObject, string category );
-    }
+		void OnWorldPrefabSpawned(GameObject gameObject, string category);
+	}
 }
