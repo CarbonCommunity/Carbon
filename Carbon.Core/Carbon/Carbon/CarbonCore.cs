@@ -10,7 +10,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Carbon.Core.Modules;
 using Carbon.Core.Processors;
@@ -55,7 +54,7 @@ namespace Carbon.Core
 
 		internal static List<string> _addons = new List<string> { "carbon." };
 
-		public static bool IsAddon (string input)
+		public static bool IsAddon(string input)
 		{
 			input = input.ToLower().Trim();
 
@@ -69,7 +68,7 @@ namespace Carbon.Core
 
 		#region Config
 
-		public void LoadConfig ()
+		public void LoadConfig()
 		{
 			if (!OsEx.File.Exists(GetConfigFile()))
 			{
@@ -80,7 +79,7 @@ namespace Carbon.Core
 			Config = JsonConvert.DeserializeObject<CarbonConfig>(OsEx.File.ReadText(GetConfigFile()));
 		}
 
-		public void SaveConfig ()
+		public void SaveConfig()
 		{
 			if (Config == null) Config = new CarbonConfig();
 
@@ -94,7 +93,7 @@ namespace Carbon.Core
 		public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand>();
 		public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand>();
 
-		internal void _clearCommands (bool all = false)
+		internal void _clearCommands(bool all = false)
 		{
 			if (all)
 			{
@@ -107,7 +106,7 @@ namespace Carbon.Core
 				AllConsoleCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && (x.Plugin as RustPlugin).IsCorePlugin));
 			}
 		}
-		internal void _installDefaultCommands ()
+		internal void _installDefaultCommands()
 		{
 			CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
 			Plugins = new CarbonLoader.CarbonMod { Name = "Scripts", IsCoreMod = true };
@@ -128,7 +127,7 @@ namespace Carbon.Core
 		public HarmonyProcessor HarmonyProcessor { get; set; }
 		public ModuleProcessor ModuleProcessor { get; set; }
 
-		internal void _installProcessors ()
+		internal void _installProcessors()
 		{
 			if (ScriptProcessor == null ||
 				WebScriptProcessor == null ||
@@ -148,7 +147,7 @@ namespace Carbon.Core
 
 			_registerProcessors();
 		}
-		internal void _registerProcessors ()
+		internal void _registerProcessors()
 		{
 			if (ScriptProcessor != null) ScriptProcessor?.Start();
 			if (WebScriptProcessor != null) WebScriptProcessor?.Start();
@@ -157,7 +156,7 @@ namespace Carbon.Core
 			if (ScriptProcessor != null) ScriptProcessor.InvokeRepeating(() => { RefreshConsoleInfo(); }, 1f, 1f);
 			Debug("Registered processors", 3);
 		}
-		internal void _uninstallProcessors ()
+		internal void _uninstallProcessors()
 		{
 			var obj = ScriptProcessor == null ? null : ScriptProcessor.gameObject;
 
@@ -188,61 +187,61 @@ namespace Carbon.Core
 
 		#region Paths
 
-		public static string GetConfigFile ()
+		public static string GetConfigFile()
 		{
 			return Path.Combine(GetRootFolder(), "config.json");
 		}
 
-		public static string GetRootFolder ()
+		public static string GetRootFolder()
 		{
 			var folder = Path.GetFullPath(Path.Combine($"{Application.dataPath}/..", "carbon"));
 			Directory.CreateDirectory(folder);
 
 			return folder;
 		}
-		public static string GetConfigsFolder ()
+		public static string GetConfigsFolder()
 		{
 			var folder = Path.Combine($"{GetRootFolder()}", "configs");
 			Directory.CreateDirectory(folder);
 
 			return folder;
 		}
-		public static string GetModulesFolder ()
+		public static string GetModulesFolder()
 		{
 			var folder = Path.Combine($"{GetRootFolder()}", "modules");
 			Directory.CreateDirectory(folder);
 
 			return folder;
 		}
-		public static string GetDataFolder ()
+		public static string GetDataFolder()
 		{
 			var folder = Path.Combine($"{GetRootFolder()}", "data");
 			Directory.CreateDirectory(folder);
 
 			return folder;
 		}
-		public static string GetPluginsFolder ()
+		public static string GetPluginsFolder()
 		{
 			var folder = Path.Combine($"{GetRootFolder()}", "plugins");
 			Directory.CreateDirectory(folder);
 
 			return folder;
 		}
-		public static string GetLogsFolder ()
+		public static string GetLogsFolder()
 		{
 			var folder = Path.Combine($"{GetRootFolder()}", "logs");
 			Directory.CreateDirectory(folder);
 
 			return folder;
 		}
-		public static string GetLangFolder ()
+		public static string GetLangFolder()
 		{
 			var folder = Path.Combine($"{GetRootFolder()}", "lang");
 			Directory.CreateDirectory(folder);
 
 			return folder;
 		}
-		public static string GetTempFolder ()
+		public static string GetTempFolder()
 		{
 			var folder = Path.Combine($"{GetRootFolder()}", "temp");
 			Directory.CreateDirectory(folder);
@@ -254,7 +253,7 @@ namespace Carbon.Core
 
 		#region Logging
 
-		public static void Debug (object message, int level = 0, LogType log = LogType.Log)
+		public static void Debug(object message, int level = 0, LogType log = LogType.Log)
 		{
 			if (Instance.Config.Debug <= -1 ||
 				Instance.Config.Debug <= level) return;
@@ -274,30 +273,30 @@ namespace Carbon.Core
 					break;
 			}
 		}
-		public static void Debug (object header, object message, int level = 0, LogType log = LogType.Log)
+		public static void Debug(object header, object message, int level = 0, LogType log = LogType.Log)
 		{
 			Debug($"[{header}] {message}", level, log);
 		}
 
-		public static void Log (object message)
+		public static void Log(object message)
 		{
 			UnityEngine.Debug.Log($"{message}");
 		}
-		public static void Warn (object message)
+		public static void Warn(object message)
 		{
 			UnityEngine.Debug.LogWarning($"{message}");
 		}
-		public static void Error (object message, Exception exception = null)
+		public static void Error(object message, Exception exception = null)
 		{
 			if (exception == null) UnityEngine.Debug.LogError(message);
 			else UnityEngine.Debug.LogError(new Exception($"{message}\n{exception}"));
 		}
 
-		public static void Format (string format, params object [] args)
+		public static void Format(string format, params object[] args)
 		{
 			Log(string.Format(format, args));
 		}
-		public static void LogCommand (object message, BasePlayer player = null)
+		public static void LogCommand(object message, BasePlayer player = null)
 		{
 			if (player == null)
 			{
@@ -307,11 +306,11 @@ namespace Carbon.Core
 
 			player.SendConsoleCommand($"echo {message}");
 		}
-		public static void WarnFormat (string format, params object [] args)
+		public static void WarnFormat(string format, params object[] args)
 		{
 			Warn(string.Format(format, args));
 		}
-		public static void ErrorFormat (string format, Exception exception = null, params object [] args)
+		public static void ErrorFormat(string format, Exception exception = null, params object[] args)
 		{
 			Error(string.Format(format, args), exception);
 		}
@@ -342,18 +341,18 @@ namespace Carbon.Core
 
 		#endregion
 
-		public static void ReloadPlugins ()
+		public static void ReloadPlugins()
 		{
 			CarbonLoader.LoadCarbonMods();
 			ScriptLoader.LoadAll();
 		}
-		public static void ClearPlugins ()
+		public static void ClearPlugins()
 		{
 			Instance?._clearCommands();
 			CarbonLoader.UnloadCarbonMods();
 		}
 
-		public void RefreshConsoleInfo ()
+		public void RefreshConsoleInfo()
 		{
 #if WIN
 			if (!IsServerFullyInitialized) return;
@@ -370,7 +369,7 @@ namespace Carbon.Core
 #endif
 		}
 
-		public void Init ()
+		public void Init()
 		{
 			if (IsInitialized) return;
 
@@ -416,7 +415,7 @@ namespace Carbon.Core
 
 			IsInitialized = true;
 		}
-		public void UnInit ()
+		public void UnInit()
 		{
 			_uninstallProcessors();
 			_clearCommands(all: true);

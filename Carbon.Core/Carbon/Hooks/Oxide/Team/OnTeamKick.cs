@@ -16,7 +16,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(RelationshipManager), "kickmember")]
 	public class RelationshipManager_kickmember
 	{
-		public static bool Prefix (ConsoleSystem.Arg arg)
+		public static bool Prefix(ConsoleSystem.Arg arg)
 		{
 			var basePlayer = arg.Player();
 

@@ -14,7 +14,7 @@ namespace Oxide.Game.Rust.Cui
 {
 	public static class CuiHelper
 	{
-		public static string ToJson (List<CuiElement> elements, bool format = false)
+		public static string ToJson(List<CuiElement> elements, bool format = false)
 		{
 			return JsonConvert.SerializeObject(elements, format ? Formatting.Indented : Formatting.None, new JsonSerializerSettings
 			{
@@ -22,13 +22,13 @@ namespace Oxide.Game.Rust.Cui
 			}).Replace("\\n", "\n");
 		}
 
-		public static List<CuiElement> FromJson (string json) => JsonConvert.DeserializeObject<List<CuiElement>>(json);
+		public static List<CuiElement> FromJson(string json) => JsonConvert.DeserializeObject<List<CuiElement>>(json);
 
-		public static string GetGuid () => Guid.NewGuid().ToString().Replace("-", string.Empty);
+		public static string GetGuid() => Guid.NewGuid().ToString().Replace("-", string.Empty);
 
-		public static bool AddUi (BasePlayer player, List<CuiElement> elements) => AddUi(player, ToJson(elements));
+		public static bool AddUi(BasePlayer player, List<CuiElement> elements) => AddUi(player, ToJson(elements));
 
-		public static bool AddUi (BasePlayer player, string json)
+		public static bool AddUi(BasePlayer player, string json)
 		{
 			if (player?.net != null && Interface.CallHook("CanUseUI", player, json) == null)
 			{
@@ -39,7 +39,7 @@ namespace Oxide.Game.Rust.Cui
 			return false;
 		}
 
-		public static bool DestroyUi (BasePlayer player, string elem)
+		public static bool DestroyUi(BasePlayer player, string elem)
 		{
 			if (player?.net != null)
 			{
@@ -51,12 +51,12 @@ namespace Oxide.Game.Rust.Cui
 			return false;
 		}
 
-		public static void SetColor (this ICuiColor elem, Color color)
+		public static void SetColor(this ICuiColor elem, Color color)
 		{
 			elem.Color = $"{color.r} {color.g} {color.b} {color.a}";
 		}
 
-		public static Color GetColor (this ICuiColor elem) => ColorEx.Parse(elem.Color);
+		public static Color GetColor(this ICuiColor elem) => ColorEx.Parse(elem.Color);
 	}
 
 	[JsonConverter(typeof(ComponentConverter))]

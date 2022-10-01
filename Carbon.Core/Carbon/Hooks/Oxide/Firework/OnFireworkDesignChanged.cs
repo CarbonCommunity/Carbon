@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(PatternFirework), "ServerSetFireworkDesign")]
 	public class PatternFirework_ServerSetFireworkDesign_OnFireworkDesignChanged
 	{
-		public static void Postfix (BaseEntity.RPCMessage rpc, ref PatternFirework __instance)
+		public static void Postfix(BaseEntity.RPCMessage rpc, ref PatternFirework __instance)
 		{
 			ProtoBuf.PatternFirework.Design design = ProtoBuf.PatternFirework.Design.Deserialize(rpc.read);
 

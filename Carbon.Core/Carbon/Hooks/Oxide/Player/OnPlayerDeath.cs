@@ -19,7 +19,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "Die")]
 	public class BasePlayer_Die
 	{
-		public static bool Prefix (HitInfo info, ref BasePlayer __instance)
+		public static bool Prefix(HitInfo info, ref BasePlayer __instance)
 		{
 			try
 			{
@@ -48,7 +48,7 @@ namespace Carbon.Extended
 			return false;
 		}
 
-		public static void BaseDie (BasePlayer player, HitInfo info)
+		public static void BaseDie(BasePlayer player, HitInfo info)
 		{
 			if (player.IsDead())
 			{

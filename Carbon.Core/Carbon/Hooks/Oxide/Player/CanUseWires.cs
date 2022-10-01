@@ -13,7 +13,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(WireTool), "CanPlayerUseWires")]
 	public class WireTool_CanPlayerUseWires
 	{
-		public static bool Prefix (BasePlayer player)
+		public static bool Prefix(BasePlayer player)
 		{
 			return Interface.CallHook("CanUseWires", player) == null;
 		}

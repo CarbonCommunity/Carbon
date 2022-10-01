@@ -29,17 +29,17 @@ namespace Oxide.Plugins
 
 		public DynamicConfigFile Config { get; private set; }
 
-		public RustPlugin ()
+		public RustPlugin()
 		{
 			Setup($"Core Plugin {RandomEx.GetRandomString(5)}", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
 		}
 
-		public void SetupMod (CarbonLoader.CarbonMod mod, string name, string author, VersionNumber version, string description)
+		public void SetupMod(CarbonLoader.CarbonMod mod, string name, string author, VersionNumber version, string description)
 		{
 			carbon = mod;
 			Setup(name, author, version, description);
 		}
-		public void Setup (string name, string author, VersionNumber version, string description)
+		public void Setup(string name, string author, VersionNumber version, string description)
 		{
 			Name = name;
 			Version = version;
@@ -62,7 +62,7 @@ namespace Oxide.Plugins
 
 			mod.Load();
 		}
-		public override void Dispose ()
+		public override void Dispose()
 		{
 			permission.UnregisterPermissions(this);
 
@@ -78,45 +78,45 @@ namespace Oxide.Plugins
 			base.Dispose();
 		}
 
-		public void Puts (string message)
+		public void Puts(string message)
 		{
 			CarbonCore.Format($"[{Name}] {message}");
 		}
-		public void Puts (string message, params object [] args)
+		public void Puts(string message, params object[] args)
 		{
 			Puts(string.Format(message, args));
 		}
-		public void Log (string message)
+		public void Log(string message)
 		{
 			Puts(message);
 		}
-		public void LogWarning (string message)
+		public void LogWarning(string message)
 		{
 			PrintWarning(message);
 		}
-		public void LogError (string message, Exception exception)
+		public void LogError(string message, Exception exception)
 		{
 			CarbonCore.Error($"[{Name}] {message}", exception);
 		}
-		public void LogError (string message)
+		public void LogError(string message)
 		{
 			LogError(message, null);
 		}
-		protected void PrintWarning (string format, params object [] args)
+		protected void PrintWarning(string format, params object[] args)
 		{
 			CarbonCore.WarnFormat("[{0}] {1}", Title, (args.Length != 0) ? string.Format(format, args) : format);
 		}
-		protected void PrintError (string format, params object [] args)
+		protected void PrintError(string format, params object[] args)
 		{
 			CarbonCore.ErrorFormat("[{0}] {1}", null, Title, (args.Length != 0) ? string.Format(format, args) : format);
 		}
 
-		public void DoLoadConfig ()
+		public void DoLoadConfig()
 		{
 			LoadConfig();
 		}
 
-		protected virtual void LoadConfig ()
+		protected virtual void LoadConfig()
 		{
 			Config = new DynamicConfigFile(Path.Combine(Manager.ConfigPath, Name + ".json"));
 
@@ -134,11 +134,11 @@ namespace Oxide.Plugins
 				CarbonCore.Error("Failed to load config file (is the config file corrupt?) (" + ex.Message + ")");
 			}
 		}
-		protected virtual void LoadDefaultConfig ()
+		protected virtual void LoadDefaultConfig()
 		{
 			// CallHook ( "LoadDefaultConfig" );
 		}
-		protected virtual void SaveConfig ()
+		protected virtual void SaveConfig()
 		{
 			if (Config == null)
 			{
@@ -154,47 +154,47 @@ namespace Oxide.Plugins
 			}
 		}
 
-		protected virtual void LoadDefaultMessages ()
+		protected virtual void LoadDefaultMessages()
 		{
 
 		}
 
-		public void Unsubscribe (string hook)
+		public void Unsubscribe(string hook)
 		{
 
 		}
-		public void Subscribe (string hook)
+		public void Subscribe(string hook)
 		{
 
 		}
 
-		public new string ToString ()
+		public new string ToString()
 		{
 			return $"{Name} v{Version} by {Author}";
 		}
 
-		protected void PrintToConsole (BasePlayer player, string format, params object [] args)
+		protected void PrintToConsole(BasePlayer player, string format, params object[] args)
 		{
 			if (((player != null) ? player.net : null) != null)
 			{
 				player.SendConsoleCommand("echo " + ((args.Length != 0) ? string.Format(format, args) : format));
 			}
 		}
-		protected void PrintToConsole (string format, params object [] args)
+		protected void PrintToConsole(string format, params object[] args)
 		{
 			if (BasePlayer.activePlayerList.Count >= 1)
 			{
 				ConsoleNetwork.BroadcastToAllClients("echo " + ((args.Length != 0) ? string.Format(format, args) : format));
 			}
 		}
-		protected void PrintToChat (BasePlayer player, string format, params object [] args)
+		protected void PrintToChat(BasePlayer player, string format, params object[] args)
 		{
 			if (((player != null) ? player.net : null) != null)
 			{
 				player.SendConsoleCommand("chat.add", 2, 0, (args.Length != 0) ? string.Format(format, args) : format);
 			}
 		}
-		protected void PrintToChat (string format, params object [] args)
+		protected void PrintToChat(string format, params object[] args)
 		{
 			if (BasePlayer.activePlayerList.Count >= 1)
 			{
@@ -202,7 +202,7 @@ namespace Oxide.Plugins
 			}
 		}
 
-		protected void SendReply (ConsoleSystem.Arg arg, string format, params object [] args)
+		protected void SendReply(ConsoleSystem.Arg arg, string format, params object[] args)
 		{
 			var connection = arg.Connection;
 			var basePlayer = connection?.player as BasePlayer;
@@ -216,11 +216,11 @@ namespace Oxide.Plugins
 
 			Puts(text, null);
 		}
-		protected void SendReply (BasePlayer player, string format, params object [] args)
+		protected void SendReply(BasePlayer player, string format, params object[] args)
 		{
 			PrintToChat(player, format, args);
 		}
-		protected void SendWarning (ConsoleSystem.Arg arg, string format, params object [] args)
+		protected void SendWarning(ConsoleSystem.Arg arg, string format, params object[] args)
 		{
 			var connection = arg.Connection;
 			var basePlayer = connection?.player as BasePlayer;
@@ -234,7 +234,7 @@ namespace Oxide.Plugins
 
 			Debug.LogWarning(text);
 		}
-		protected void SendError (ConsoleSystem.Arg arg, string format, params object [] args)
+		protected void SendError(ConsoleSystem.Arg arg, string format, params object[] args)
 		{
 			var connection = arg.Connection;
 			var basePlayer = connection?.player as BasePlayer;
@@ -249,7 +249,7 @@ namespace Oxide.Plugins
 			Debug.LogError(text);
 		}
 
-		protected void ForcePlayerPosition (BasePlayer player, Vector3 destination)
+		protected void ForcePlayerPosition(BasePlayer player, Vector3 destination)
 		{
 			player.MovePosition(destination);
 

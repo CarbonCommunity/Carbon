@@ -15,7 +15,7 @@ namespace Carbon.Core
 		public static List<string> CarbonHooks { get; private set; } = new List<string>(500);
 		public static HookPackage OxideHooks { get; private set; }
 
-		public static void Refresh ()
+		public static void Refresh()
 		{
 			CarbonHooks.Clear();
 
@@ -32,7 +32,7 @@ namespace Carbon.Core
 			}, null);
 		}
 
-		public static bool IsIncompatibleOxideHook (string hook)
+		public static bool IsIncompatibleOxideHook(string hook)
 		{
 			if (CarbonHooks.Contains(hook)) return false;
 
@@ -42,7 +42,7 @@ namespace Carbon.Core
 				{
 					foreach (var entry in manifest.Hooks)
 					{
-						var hookName = (string.IsNullOrEmpty(entry.Hook.BaseHookName) ? entry.Hook.HookName : entry.Hook.BaseHookName).Split(' ') [ 0 ];
+						var hookName = (string.IsNullOrEmpty(entry.Hook.BaseHookName) ? entry.Hook.HookName : entry.Hook.BaseHookName).Split(' ')[0];
 						if (hookName.Contains("/")) continue;
 
 						if (hookName == hook) return true;

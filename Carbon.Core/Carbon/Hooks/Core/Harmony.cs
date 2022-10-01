@@ -12,9 +12,9 @@ public class Harmony_Load
 {
 	public const string CARBON_LOADED = nameof(CARBON_LOADED);
 
-	public static bool Prefix (ConsoleSystem.Arg args)
+	public static bool Prefix(ConsoleSystem.Arg args)
 	{
-		var mod = args.Args != null && args.Args.Length > 0 ? args.Args [ 0 ] : null;
+		var mod = args.Args != null && args.Args.Length > 0 ? args.Args[0] : null;
 
 		if (!mod.Equals("carbon", System.StringComparison.OrdinalIgnoreCase) &&
 			 !mod.Equals("carbon-unix", System.StringComparison.OrdinalIgnoreCase)) return true;
@@ -47,9 +47,9 @@ public class Harmony_Load
 [HarmonyPatch(typeof(ConVar.Harmony), "Unload")]
 public class Harmony_Unload
 {
-	public static bool Prefix (ConsoleSystem.Arg args)
+	public static bool Prefix(ConsoleSystem.Arg args)
 	{
-		var mod = args.Args != null && args.Args.Length > 0 ? args.Args [ 0 ] : null;
+		var mod = args.Args != null && args.Args.Length > 0 ? args.Args[0] : null;
 
 		if (string.IsNullOrEmpty(mod)) return true;
 

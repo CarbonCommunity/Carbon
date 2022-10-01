@@ -13,7 +13,7 @@ namespace Oxide.Core
 	{
 		private readonly IDictionary<TKey, TValue> dictionary;
 
-		public TValue this [ TKey key ]
+		public TValue this[ TKey key ]
 		{
 			get
 			{
@@ -37,7 +37,7 @@ namespace Oxide.Core
 				}
 				else
 				{
-					dictionary [ key ] = value;
+					dictionary[ key ] = value;
 				}
 			}
 		}
@@ -50,67 +50,67 @@ namespace Oxide.Core
 
 		public bool IsReadOnly => dictionary.IsReadOnly;
 
-		public Hash ()
+		public Hash()
 		{
 			dictionary = new Dictionary<TKey, TValue>();
 		}
 
-		public Hash (IEqualityComparer<TKey> comparer)
+		public Hash(IEqualityComparer<TKey> comparer)
 		{
 			dictionary = new Dictionary<TKey, TValue>(comparer);
 		}
 
-		public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator ()
+		public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
 		{
 			return dictionary.GetEnumerator();
 		}
 
-		public bool ContainsKey (TKey key)
+		public bool ContainsKey(TKey key)
 		{
 			return dictionary.ContainsKey(key);
 		}
 
-		public bool Contains (KeyValuePair<TKey, TValue> item)
+		public bool Contains(KeyValuePair<TKey, TValue> item)
 		{
 			return dictionary.Contains(item);
 		}
 
-		public void CopyTo (KeyValuePair<TKey, TValue> [] array, int index)
+		public void CopyTo(KeyValuePair<TKey, TValue>[] array, int index)
 		{
 			dictionary.CopyTo(array, index);
 		}
 
-		public bool TryGetValue (TKey key, out TValue value)
+		public bool TryGetValue(TKey key, out TValue value)
 		{
 			return dictionary.TryGetValue(key, out value);
 		}
 
-		public void Add (TKey key, TValue value)
+		public void Add(TKey key, TValue value)
 		{
 			dictionary.Add(key, value);
 		}
 
-		public void Add (KeyValuePair<TKey, TValue> item)
+		public void Add(KeyValuePair<TKey, TValue> item)
 		{
 			dictionary.Add(item);
 		}
 
-		public bool Remove (TKey key)
+		public bool Remove(TKey key)
 		{
 			return dictionary.Remove(key);
 		}
 
-		public bool Remove (KeyValuePair<TKey, TValue> item)
+		public bool Remove(KeyValuePair<TKey, TValue> item)
 		{
 			return dictionary.Remove(item);
 		}
 
-		public void Clear ()
+		public void Clear()
 		{
 			dictionary.Clear();
 		}
 
-		IEnumerator IEnumerable.GetEnumerator ()
+		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}

@@ -13,19 +13,19 @@ namespace Oxide.Core
 
 		public int Patch;
 
-		public VersionNumber (int major, int minor, int patch)
+		public VersionNumber(int major, int minor, int patch)
 		{
 			Major = major;
 			Minor = minor;
 			Patch = patch;
 		}
 
-		public override string ToString ()
+		public override string ToString()
 		{
 			return $"{Major}.{Minor}.{Patch}";
 		}
 
-		public static bool operator == (VersionNumber a, VersionNumber b)
+		public static bool operator ==(VersionNumber a, VersionNumber b)
 		{
 			if (a.Major == b.Major && a.Minor == b.Minor)
 			{
@@ -35,7 +35,7 @@ namespace Oxide.Core
 			return false;
 		}
 
-		public static bool operator != (VersionNumber a, VersionNumber b)
+		public static bool operator !=(VersionNumber a, VersionNumber b)
 		{
 			if (a.Major == b.Major && a.Minor == b.Minor)
 			{
@@ -45,7 +45,7 @@ namespace Oxide.Core
 			return true;
 		}
 
-		public static bool operator > (VersionNumber a, VersionNumber b)
+		public static bool operator >(VersionNumber a, VersionNumber b)
 		{
 			if (a.Major < b.Major)
 			{
@@ -70,7 +70,7 @@ namespace Oxide.Core
 			return a.Patch > b.Patch;
 		}
 
-		public static bool operator >= (VersionNumber a, VersionNumber b)
+		public static bool operator >=(VersionNumber a, VersionNumber b)
 		{
 			if (a.Major < b.Major)
 			{
@@ -95,7 +95,7 @@ namespace Oxide.Core
 			return a.Patch >= b.Patch;
 		}
 
-		public static bool operator < (VersionNumber a, VersionNumber b)
+		public static bool operator <(VersionNumber a, VersionNumber b)
 		{
 			if (a.Major > b.Major)
 			{
@@ -120,7 +120,7 @@ namespace Oxide.Core
 			return a.Patch < b.Patch;
 		}
 
-		public static bool operator <= (VersionNumber a, VersionNumber b)
+		public static bool operator <=(VersionNumber a, VersionNumber b)
 		{
 			if (a.Major > b.Major)
 			{
@@ -145,7 +145,7 @@ namespace Oxide.Core
 			return a.Patch <= b.Patch;
 		}
 
-		public override bool Equals (object obj)
+		public override bool Equals(object obj)
 		{
 			if (!(obj is VersionNumber))
 			{
@@ -156,7 +156,7 @@ namespace Oxide.Core
 			return this == versionNumber;
 		}
 
-		public override int GetHashCode ()
+		public override int GetHashCode()
 		{
 			return ((17 * 23 + Major.GetHashCode()) * 23 + Minor.GetHashCode()) * 23 + Patch.GetHashCode();
 		}

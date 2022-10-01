@@ -15,7 +15,7 @@ namespace Carbon.Hooks.Oxide.Entity
 	[OxideHook.Patch(typeof(ExcavatorArm), "RPC_SetResourceTarget")]
 	public class ExcavatorArm_RPC_SetResourceTarget
 	{
-		public static bool Prefix (BaseEntity.RPCMessage msg, ref ExcavatorArm __instance)
+		public static bool Prefix(BaseEntity.RPCMessage msg, ref ExcavatorArm __instance)
 		{
 			var oldPosition = msg.read.Position;
 			var text = msg.read.String(256);

@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(RelationshipManager), "leaveteam")]
 	public class RelationshipManager_leaveteam
 	{
-		public static bool Prefix (ConsoleSystem.Arg arg)
+		public static bool Prefix(ConsoleSystem.Arg arg)
 		{
 			var basePlayer = arg.Player();
 

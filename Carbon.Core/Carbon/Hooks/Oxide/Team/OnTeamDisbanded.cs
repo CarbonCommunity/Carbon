@@ -12,7 +12,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(RelationshipManager), "DisbandTeam")]
 	public class RelationshipManager_DisbandTeam_OnTeamDisbanded
 	{
-		public static void Postfix (RelationshipManager.PlayerTeam teamToDisband)
+		public static void Postfix(RelationshipManager.PlayerTeam teamToDisband)
 		{
 		}
 	}

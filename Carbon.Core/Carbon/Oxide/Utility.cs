@@ -18,7 +18,7 @@ namespace Oxide.Core
 {
 	public class Utility
 	{
-		public static void DatafileToProto<T> (string name, bool deleteAfter = true)
+		public static void DatafileToProto<T>(string name, bool deleteAfter = true)
 		{
 			var dataFileSystem = Interface.Oxide.DataFileSystem;
 
@@ -48,12 +48,12 @@ namespace Oxide.Core
 			}
 		}
 
-		public static void PrintCallStack ()
+		public static void PrintCallStack()
 		{
 			CarbonCore.Format("CallStack:{0}{1}", Environment.NewLine, new StackTrace(1, true));
 		}
 
-		public static string FormatBytes (double bytes)
+		public static string FormatBytes(double bytes)
 		{
 			string arg;
 
@@ -74,7 +74,7 @@ namespace Oxide.Core
 			return string.Format("{0:0}{1}", bytes, arg);
 		}
 
-		public static string GetDirectoryName (string name)
+		public static string GetDirectoryName(string name)
 		{
 			string result;
 
@@ -90,13 +90,13 @@ namespace Oxide.Core
 			return result;
 		}
 
-		public static string GetFileNameWithoutExtension (string value)
+		public static string GetFileNameWithoutExtension(string value)
 		{
 			int num = value.Length - 1;
 
 			for (int i = num; i >= 1; i--)
 			{
-				if (value [ i ] == '.')
+				if (value[i] == '.')
 				{
 					num = i - 1;
 					break;
@@ -107,7 +107,7 @@ namespace Oxide.Core
 
 			for (int j = num - 1; j >= 0; j--)
 			{
-				char c = value [ j ];
+				char c = value[j];
 				if (c == '/' || c == '\\')
 				{
 					num2 = j + 1;
@@ -118,7 +118,7 @@ namespace Oxide.Core
 			return value.Substring(num2, num - num2 + 1);
 		}
 
-		public static string CleanPath (string path)
+		public static string CleanPath(string path)
 		{
 			if (path == null)
 			{
@@ -128,17 +128,17 @@ namespace Oxide.Core
 			return path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
 		}
 
-		public static T ConvertFromJson<T> (string jsonstr)
+		public static T ConvertFromJson<T>(string jsonstr)
 		{
 			return JsonConvert.DeserializeObject<T>(jsonstr);
 		}
 
-		public static string ConvertToJson (object obj, bool indented = false)
+		public static string ConvertToJson(object obj, bool indented = false)
 		{
 			return JsonConvert.SerializeObject(obj, indented ? Formatting.Indented : Formatting.None);
 		}
 
-		public static IPAddress GetLocalIP ()
+		public static IPAddress GetLocalIP()
 		{
 			UnicastIPAddressInformation unicastIPAddressInformation = null;
 			foreach (NetworkInterface networkInterface in NetworkInterface.GetAllNetworkInterfaces())
@@ -146,7 +146,7 @@ namespace Oxide.Core
 				if (networkInterface.OperationalStatus == OperationalStatus.Up)
 				{
 					IPInterfaceProperties ipproperties = networkInterface.GetIPProperties();
-					if (ipproperties.GatewayAddresses.Count != 0 && !ipproperties.GatewayAddresses [ 0 ].Address.Equals(IPAddress.Parse("0.0.0.0")))
+					if (ipproperties.GatewayAddresses.Count != 0 && !ipproperties.GatewayAddresses[0].Address.Equals(IPAddress.Parse("0.0.0.0")))
 					{
 						foreach (UnicastIPAddressInformation unicastIPAddressInformation2 in ipproperties.UnicastAddresses)
 						{
@@ -182,13 +182,13 @@ namespace Oxide.Core
 			return unicastIPAddressInformation.Address;
 		}
 
-		internal static string [] _dotSplit = new string [] { "." };
+		internal static string[] _dotSplit = new string[] { "." };
 
-		public static bool IsLocalIP (string ipAddress)
+		public static bool IsLocalIP(string ipAddress)
 		{
 			var array = ipAddress.Split(_dotSplit, StringSplitOptions.RemoveEmptyEntries); ;
 
-			var array2 = new int []
+			var array2 = new int[]
 			 {
 				int.Parse(array[0]),
 				int.Parse(array[1]),
@@ -196,10 +196,10 @@ namespace Oxide.Core
 				int.Parse(array[3])
 			 };
 
-			return array2 [ 0 ] == 0 || array2 [ 0 ] == 10 || (array2 [ 0 ] == 100 && array2 [ 1 ] == 64) || array2 [ 0 ] == 127 || (array2 [ 0 ] == 192 && array2 [ 1 ] == 168) || (array2 [ 0 ] == 172 && array2 [ 1 ] >= 16 && array2 [ 1 ] <= 31);
+			return array2[0] == 0 || array2[0] == 10 || (array2[0] == 100 && array2[1] == 64) || array2[0] == 127 || (array2[0] == 192 && array2[1] == 168) || (array2[0] == 172 && array2[1] >= 16 && array2[1] <= 31);
 		}
 
-		public static bool ValidateIPv4 (string ipAddress)
+		public static bool ValidateIPv4(string ipAddress)
 		{
 			if (string.IsNullOrEmpty(ipAddress.Trim()))
 			{
@@ -218,7 +218,7 @@ namespace Oxide.Core
 			return false;
 		}
 
-		public static int GetNumbers (string input)
+		public static int GetNumbers(string input)
 		{
 			int result;
 			int.TryParse(Regex.Replace(input, "[^.0-9]", ""), out result);

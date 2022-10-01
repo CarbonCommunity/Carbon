@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(PatternFirework), "PlayerCanModify")]
 	public class PatternFirework_PlayerCanModify
 	{
-		public static bool Prefix (BasePlayer player, ref PatternFirework __instance, ref bool __result)
+		public static bool Prefix(BasePlayer player, ref PatternFirework __instance, ref bool __result)
 		{
 			if (player == null || !player.CanInteract())
 			{

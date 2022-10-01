@@ -25,22 +25,22 @@ namespace Carbon.Core.Modules
 
 		public new virtual string Name => "Not set";
 
-		public void Puts (object message)
+		public void Puts(object message)
 		{
 			CarbonCore.Log($" [{Name}] {message}");
 		}
-		public void PutsError (object message, Exception exception = null)
+		public void PutsError(object message, Exception exception = null)
 		{
 			CarbonCore.Error($" [{Name}] {message}", exception);
 		}
 
-		public virtual void Dispose ()
+		public virtual void Dispose()
 		{
 			File = null;
 			ConfigInstance = null;
 		}
 
-		public virtual void Init ()
+		public virtual void Init()
 		{
 			base.Name = Name;
 			base.Type = Type;
@@ -61,11 +61,11 @@ namespace Carbon.Core.Modules
 			Load();
 			if (ConfigInstance.Enabled) OnEnableStatus();
 		}
-		public virtual void InitEnd ()
+		public virtual void InitEnd()
 		{
 			Puts($"Initialized.");
 		}
-		public virtual void Load ()
+		public virtual void Load()
 		{
 			var shouldSave = false;
 
@@ -93,7 +93,7 @@ namespace Carbon.Core.Modules
 
 			Config = ConfigInstance.Config;
 		}
-		public virtual void Save ()
+		public virtual void Save()
 		{
 			if (ConfigInstance == null)
 			{
@@ -110,7 +110,7 @@ namespace Carbon.Core.Modules
 			Data.WriteObject(DataInstance);
 		}
 
-		public void SetEnabled (bool enable)
+		public void SetEnabled(bool enable)
 		{
 			if (ConfigInstance != null)
 			{
@@ -118,15 +118,15 @@ namespace Carbon.Core.Modules
 				OnEnableStatus();
 			}
 		}
-		public bool GetEnabled ()
+		public bool GetEnabled()
 		{
 			return ConfigInstance.Enabled;
 		}
 
-		public virtual void OnDisabled (bool initialized) { }
-		public virtual void OnEnabled (bool initialized) { }
+		public virtual void OnDisabled(bool initialized) { }
+		public virtual void OnEnabled(bool initialized) { }
 
-		public void OnEnableStatus ()
+		public void OnEnableStatus()
 		{
 			try
 			{
@@ -137,11 +137,11 @@ namespace Carbon.Core.Modules
 
 		#region Hooks
 
-		public virtual void OnWorldPrefabSpawned (GameObject gameObject, string category) { }
+		public virtual void OnWorldPrefabSpawned(GameObject gameObject, string category) { }
 
 		#endregion
 
-		private void OnServerInitialized ()
+		private void OnServerInitialized()
 		{
 			if (GetEnabled()) OnEnableStatus();
 		}

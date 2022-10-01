@@ -19,14 +19,14 @@ namespace Carbon.Core.Modules
         public const string SpawnpointPrefab = "assets/bundled/prefabs/modding/volumes_and_triggers/spawn_point.prefab";
 
         [ChatCommand("/showspawnpoints")]
-        public void BroadcastSpawnPoints (BasePlayer player, string command, string [] args)
+        public void BroadcastSpawnPoints(BasePlayer player, string command, string[] args)
         {
             player.ChatMessage("Showing spawn points");
 
             BroadcastSpawnpoints(player);
         }
 
-        public void BroadcastSpawnpoints (BasePlayer player)
+        public void BroadcastSpawnpoints(BasePlayer player)
         {
             if (!player.IsAdmin) return;
 
@@ -35,7 +35,7 @@ namespace Carbon.Core.Modules
                 player.SendConsoleCommand("ddraw.sphere", 8f, Color.blue, spawnpoint, 1f);
             }
         }
-        public bool OnPlayerRespawn (BasePlayer __instance)
+        public bool OnPlayerRespawn(BasePlayer __instance)
         {
             if (Spawnpoints == null || Spawnpoints.Count == 0) { return true; }
 
@@ -47,7 +47,7 @@ namespace Carbon.Core.Modules
 
             return false;
         }
-        public bool SpawnHook (Vector3 position, Prefab prefab)
+        public bool SpawnHook(Vector3 position, Prefab prefab)
         {
             if (prefab.Name.Equals(SpawnpointPrefab))
             {

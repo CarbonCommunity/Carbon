@@ -12,7 +12,7 @@ namespace Carbon.Core.Oxide.Hooks
 	[HarmonyPatch(typeof(ServerMgr), "UpdateServerInformation")]
 	public class ServerMgr_UpdateServerInformation
 	{
-		public static void Postfix ()
+		public static void Postfix()
 		{
 			if (CarbonCore.Instance == null || CarbonCore.Instance.Config == null) return;
 

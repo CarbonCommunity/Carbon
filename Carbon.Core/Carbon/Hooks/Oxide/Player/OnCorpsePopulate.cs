@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(ScarecrowNPC), "CreateCorpse")]
 	public class ScarecrowNPC_CreateCorpse
 	{
-		public static bool Prefix (ref ScarecrowNPC __instance, out BaseCorpse __result)
+		public static bool Prefix(ref ScarecrowNPC __instance, out BaseCorpse __result)
 		{
 			var npcplayerCorpse = __instance.DropCorpse("assets/rust.ai/agents/npcplayer/pet/frankensteinpet_corpse.prefab") as NPCPlayerCorpse;
 			if (npcplayerCorpse)
@@ -24,7 +24,7 @@ namespace Carbon.Extended
 				npcplayerCorpse.SetLootableIn(2f);
 				npcplayerCorpse.SetFlag(BaseEntity.Flags.Reserved5, __instance.HasPlayerFlag(BasePlayer.PlayerFlags.DisplaySash), false, true);
 				npcplayerCorpse.SetFlag(BaseEntity.Flags.Reserved2, true, false, true);
-				npcplayerCorpse.TakeFrom(new ItemContainer []
+				npcplayerCorpse.TakeFrom(new ItemContainer[]
 				{
 					__instance.inventory.containerMain,
 					__instance.inventory.containerWear,
@@ -37,7 +37,7 @@ namespace Carbon.Extended
 				var containers = npcplayerCorpse.containers;
 				for (int i = 0; i < containers.Length; i++)
 				{
-					containers [ i ].Clear();
+					containers[i].Clear();
 				}
 				if (__instance.LootSpawnSlots.Length != 0)
 				{
@@ -53,7 +53,7 @@ namespace Carbon.Extended
 						{
 							if (Random.Range(0f, 1f) <= lootSpawnSlot.probability)
 							{
-								lootSpawnSlot.definition.SpawnIntoContainer(npcplayerCorpse.containers [ 0 ]);
+								lootSpawnSlot.definition.SpawnIntoContainer(npcplayerCorpse.containers[0]);
 							}
 						}
 					}
@@ -71,7 +71,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(HumanNPC), "CreateCorpse")]
 	public class HumanNPC_CreateCorpse
 	{
-		public static bool Prefix (ref HumanNPC __instance, out BaseCorpse __result)
+		public static bool Prefix(ref HumanNPC __instance, out BaseCorpse __result)
 		{
 			var npcplayerCorpse = __instance.DropCorpse("assets/rust.ai/agents/npcplayer/pet/frankensteinpet_corpse.prefab") as NPCPlayerCorpse;
 			if (npcplayerCorpse)
@@ -80,7 +80,7 @@ namespace Carbon.Extended
 				npcplayerCorpse.SetLootableIn(2f);
 				npcplayerCorpse.SetFlag(BaseEntity.Flags.Reserved5, __instance.HasPlayerFlag(BasePlayer.PlayerFlags.DisplaySash), false, true);
 				npcplayerCorpse.SetFlag(BaseEntity.Flags.Reserved2, true, false, true);
-				npcplayerCorpse.TakeFrom(new ItemContainer []
+				npcplayerCorpse.TakeFrom(new ItemContainer[]
 				{
 					__instance.inventory.containerMain,
 					__instance.inventory.containerWear,
@@ -94,7 +94,7 @@ namespace Carbon.Extended
 				var containers = npcplayerCorpse.containers;
 				for (int i = 0; i < containers.Length; i++)
 				{
-					containers [ i ].Clear();
+					containers[i].Clear();
 				}
 				if (__instance.LootSpawnSlots.Length != 0)
 				{
@@ -110,7 +110,7 @@ namespace Carbon.Extended
 						{
 							if (Random.Range(0f, 1f) <= lootSpawnSlot.probability)
 							{
-								lootSpawnSlot.definition.SpawnIntoContainer(npcplayerCorpse.containers [ 0 ]);
+								lootSpawnSlot.definition.SpawnIntoContainer(npcplayerCorpse.containers[0]);
 							}
 						}
 					}
@@ -128,7 +128,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(FrankensteinPet), "CreateCorpse")]
 	public class FrankensteinPet_CreateCorpse
 	{
-		public static bool Prefix (ref FrankensteinPet __instance, out BaseCorpse __result)
+		public static bool Prefix(ref FrankensteinPet __instance, out BaseCorpse __result)
 		{
 			var npcplayerCorpse = __instance.DropCorpse("assets/rust.ai/agents/npcplayer/pet/frankensteinpet_corpse.prefab") as NPCPlayerCorpse;
 			if (npcplayerCorpse)
@@ -137,7 +137,7 @@ namespace Carbon.Extended
 				npcplayerCorpse.SetLootableIn(2f);
 				npcplayerCorpse.SetFlag(BaseEntity.Flags.Reserved5, __instance.HasPlayerFlag(BasePlayer.PlayerFlags.DisplaySash), false, true);
 				npcplayerCorpse.SetFlag(BaseEntity.Flags.Reserved2, true, false, true);
-				npcplayerCorpse.TakeFrom(new ItemContainer []
+				npcplayerCorpse.TakeFrom(new ItemContainer[]
 				{
 					__instance.inventory.containerMain,
 					__instance.inventory.containerWear,
@@ -150,7 +150,7 @@ namespace Carbon.Extended
 				var containers = npcplayerCorpse.containers;
 				for (int i = 0; i < containers.Length; i++)
 				{
-					containers [ i ].Clear();
+					containers[i].Clear();
 				}
 				var obj = Interface.CallHook("OnCorpsePopulate", __instance, npcplayerCorpse);
 				if (obj is global::BaseCorpse)

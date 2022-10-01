@@ -13,7 +13,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "StartSleeping")]
 	public class BasePlayer_StartSleeping
 	{
-		public static bool Prefix (ref BasePlayer __instance)
+		public static bool Prefix(ref BasePlayer __instance)
 		{
 			if (__instance.IsSleeping())
 			{

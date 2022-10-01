@@ -13,7 +13,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseNetworkable), "Spawn")]
 	public class BaseNetworkable_Spawn_OnEntitySpawned
 	{
-		public static void Postfix (ref BaseNetworkable __instance)
+		public static void Postfix(ref BaseNetworkable __instance)
 		{
 			HookExecutor.CallStaticHook("OnEntitySpawned", __instance);
 		}

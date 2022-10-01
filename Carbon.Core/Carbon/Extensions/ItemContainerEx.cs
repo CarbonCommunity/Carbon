@@ -6,7 +6,7 @@
 
 public static class ItemContainerEx
 {
-	public static int TakeSkinned (this ItemContainer container, int itemid, ulong skinId, bool onlyUsableAmounts)
+	public static int TakeSkinned(this ItemContainer container, int itemid, ulong skinId, bool onlyUsableAmounts)
 	{
 		var num = 0;
 

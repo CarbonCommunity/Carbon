@@ -17,12 +17,12 @@ namespace Carbon.Core
 		public List<Assembly> Addons { get; } = new List<Assembly>();
 		public Dictionary<string, HookInstance> Patches { get; } = new Dictionary<string, HookInstance>();
 
-		public CarbonAddonProcessor ()
+		public CarbonAddonProcessor()
 		{
 			Addons.Add(GetType().Assembly);
 		}
 
-		public bool DoesHookExist (string hookName)
+		public bool DoesHookExist(string hookName)
 		{
 			foreach (var addon in Addons)
 			{
@@ -37,7 +37,7 @@ namespace Carbon.Core
 
 			return false;
 		}
-		public bool HasHook (Type type, string hookName)
+		public bool HasHook(Type type, string hookName)
 		{
 			foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
 			{
@@ -46,11 +46,11 @@ namespace Carbon.Core
 
 			return false;
 		}
-		public bool IsPatched (string hookName)
+		public bool IsPatched(string hookName)
 		{
 			return Patches.ContainsKey(hookName);
 		}
-		public HookInstance GetInstance (string hookName)
+		public HookInstance GetInstance(string hookName)
 		{
 			if (!Patches.TryGetValue(hookName, out var instance))
 			{
@@ -60,7 +60,7 @@ namespace Carbon.Core
 			return instance;
 		}
 
-		public void AppendHook (string hookName)
+		public void AppendHook(string hookName)
 		{
 			if (!DoesHookExist(hookName)) return;
 
@@ -69,7 +69,7 @@ namespace Carbon.Core
 				instance.Hooks++;
 			}
 		}
-		public void UnappendHook (string hookName)
+		public void UnappendHook(string hookName)
 		{
 			if (!DoesHookExist(hookName)) return;
 
@@ -85,7 +85,7 @@ namespace Carbon.Core
 			}
 		}
 
-		public void InstallHooks (string hookName, bool doRequires = true)
+		public void InstallHooks(string hookName, bool doRequires = true)
 		{
 			if (!DoesHookExist(hookName)) return;
 			if (!IsPatched(hookName)) CarbonCore.Debug($"Found '{hookName}'...");
@@ -175,7 +175,7 @@ namespace Carbon.Core
 			}
 
 		}
-		public void UninstallHooks (string hookName)
+		public void UninstallHooks(string hookName)
 		{
 			if (Patches.TryGetValue(hookName, out var instance))
 			{
@@ -192,7 +192,7 @@ namespace Carbon.Core
 			}
 		}
 
-		internal Type [] GetMatchedParameters (Type type, string methodName, ParameterInfo [] parameters)
+		internal Type[] GetMatchedParameters(Type type, string methodName, ParameterInfo[] parameters)
 		{
 			var list = Pool.GetList<Type>();
 
@@ -206,8 +206,8 @@ namespace Carbon.Core
 				{
 					try
 					{
-						var param = @params [ i ];
-						var otherParam = parameters [ i ];
+						var param = @params[i];
+						var otherParam = parameters[i];
 
 						if (param.ParameterType.FullName.Replace("&", "") == otherParam.ParameterType.FullName.Replace("&", ""))
 						{

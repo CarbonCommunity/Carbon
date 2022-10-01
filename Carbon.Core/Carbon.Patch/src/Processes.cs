@@ -7,7 +7,7 @@ namespace Carbon.Patch
 {
 	internal partial class Program
 	{
-		static void CreateReleaseDirectory ()
+		static void CreateReleaseDirectory()
 		{
 			try
 			{
@@ -32,7 +32,7 @@ namespace Carbon.Patch
 			}
 		}
 
-		static void ProcessCommonFiles ()
+		static void ProcessCommonFiles()
 		{
 			if (!CopyFiles(commonList))
 			{
@@ -41,7 +41,7 @@ namespace Carbon.Patch
 			}
 		}
 
-		static void ProcessWindowsFiles ()
+		static void ProcessWindowsFiles()
 		{
 			string Output = Path.GetFullPath(
 					Path.Combine(Arguments.basePath, "Release/Carbon.Patch.zip"));
@@ -53,7 +53,7 @@ namespace Carbon.Patch
 			}
 		}
 
-		static void ProcessUnixFiles ()
+		static void ProcessUnixFiles()
 		{
 			string Output = Path.GetFullPath(
 					Path.Combine(Arguments.basePath, "Release/Carbon.Patch-Unix.zip"));
@@ -65,7 +65,7 @@ namespace Carbon.Patch
 			}
 		}
 
-		static bool CopyFiles (Dictionary<string, string> Files)
+		static bool CopyFiles(Dictionary<string, string> Files)
 		{
 			Utility.LogNone(string.Empty);
 
@@ -100,7 +100,7 @@ namespace Carbon.Patch
 			return true;
 		}
 
-		static bool CreateArchive (string Output, Dictionary<string, string> Files)
+		static bool CreateArchive(string Output, Dictionary<string, string> Files)
 		{
 			Utility.LogNone(string.Empty);
 			Utility.LogInformation($"New ZIP archive {Output}");

@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BuildingBlock), "CanAffordUpgrade")]
 	public class BuildingBlock_CanAffordUpgrade
 	{
-		public static bool Prefix (BuildingGrade.Enum iGrade, BasePlayer player, ref BuildingBlock __instance, ref bool __result)
+		public static bool Prefix(BuildingGrade.Enum iGrade, BasePlayer player, ref BuildingBlock __instance, ref bool __result)
 		{
 			var result = HookExecutor.CallStaticHook("CanAffordUpgrade", player, __instance, iGrade);
 

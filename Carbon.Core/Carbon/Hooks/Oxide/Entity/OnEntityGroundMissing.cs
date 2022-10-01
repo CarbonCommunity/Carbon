@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(DestroyOnGroundMissing), "OnGroundMissing")]
 	public class DestroyOnGroundMissing_OnGroundMissing
 	{
-		public static bool Prefix (ref DestroyOnGroundMissing __instance)
+		public static bool Prefix(ref DestroyOnGroundMissing __instance)
 		{
 			var entity = __instance.gameObject.ToBaseEntity();
 			if (entity == null) return false;

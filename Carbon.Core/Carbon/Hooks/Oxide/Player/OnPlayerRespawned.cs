@@ -16,7 +16,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "RespawnAt")]
 	public class BasePlayer_Respawned
 	{
-		public static void Postfix (Vector3 position, Quaternion rotation, ref BasePlayer __instance)
+		public static void Postfix(Vector3 position, Quaternion rotation, ref BasePlayer __instance)
 		{
 			HookExecutor.CallStaticHook("OnPlayerRespawned", __instance);
 		}

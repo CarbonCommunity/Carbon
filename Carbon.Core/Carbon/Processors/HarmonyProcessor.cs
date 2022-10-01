@@ -17,11 +17,11 @@ namespace Carbon.Core.Processors
 
 		public class Harmony : Instance
 		{
-			public override void Dispose ()
+			public override void Dispose()
 			{
 				CarbonLoader.UnloadCarbonMod(Path.GetFileNameWithoutExtension(File), true);
 			}
-			public override void Execute ()
+			public override void Execute()
 			{
 				try
 				{
