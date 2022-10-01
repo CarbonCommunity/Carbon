@@ -12,11 +12,11 @@ namespace Oxide.Plugins
     {
         public Plugin Find ( string name )
         {
-            foreach(var mod in CarbonLoader._loadedMods )
+            foreach ( var mod in CarbonLoader._loadedMods )
             {
-                foreach (var plugin in mod.Plugins )
+                foreach ( var plugin in mod.Plugins )
                 {
-                    if ( plugin.Name == name ) return plugin;
+                    if ( plugin.Name.Replace ( " ", "" ) == name ) return plugin;
                 }
             }
 
@@ -25,8 +25,8 @@ namespace Oxide.Plugins
 
         public Plugin [] GetAll ()
         {
-            var list = Pool.GetList<Plugin>();
-            foreach(var mod in CarbonLoader._loadedMods )
+            var list = Pool.GetList<Plugin> ();
+            foreach ( var mod in CarbonLoader._loadedMods )
             {
                 list.AddRange ( mod.Plugins );
             }

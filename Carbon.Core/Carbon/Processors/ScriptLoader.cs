@@ -12,7 +12,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -42,8 +41,8 @@ namespace Carbon.Core
                 }
 
                 if ( !customSources ) GetSources ();
-                GetNamespaces ();
-                GetFullSource ();
+
+                if( Sources.Count > 0 ) Source = Sources [ 0 ];
 
                 if ( Parser != null )
                 {
@@ -55,7 +54,7 @@ namespace Carbon.Core
                     }
                 }
 
-                CarbonCore.Instance.ScriptProcessor.StartCoroutine ( Compile ( target ) );
+                CarbonCore.Instance.ScriptProcessor.StartCoroutine ( Compile () );
             }
             catch ( Exception exception )
             {
@@ -100,10 +99,11 @@ namespace Carbon.Core
                     try
                     {
                         HookExecutor.CallStaticHook ( "OnPluginUnloaded", plugin.Instance );
+                        plugin.Instance.CallHook ( "Unload" );
                         plugin.Instance.IUnload ();
                         CarbonLoader.RemoveCommands ( plugin.Instance );
                         plugin.Instance.Dispose ();
-                        CarbonCore.Log ( $"Unloaded plugin {plugin.Instance}" );
+                        CarbonCore.Log ( $"Unloaded plugin {plugin.Instance.ToString()}" );
                     }
                     catch ( Exception ex ) { CarbonCore.Error ( $"Failed unloading '{plugin.Instance}'", ex ); }
                 }
@@ -129,45 +129,11 @@ namespace Carbon.Core
                 }
 
                 var source = OsEx.File.ReadText ( file );
-                Sources.Add ( source.Trim () );
-            }
-        }
-        protected void GetNamespaces ()
-        {
-            Namespaces.Clear ();
-
-            foreach ( var source in Sources )
-            {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) );
-
-                foreach ( var usingLine in usingLines )
-                {
-                    if ( Namespaces.Exists ( x => x == usingLine ) )
-                    {
-                        continue;
-                    }
-
-                    Namespaces.Add ( usingLine );
-                }
-            }
-
-            Namespaces = Namespaces.OrderBy ( x => x ).ToList ();
-        }
-        protected void GetFullSource ()
-        {
-            Source = StringArrayEx.ToString ( Namespaces.ToArray (), "\n", "\n" ) + "\n\n";
-
-            foreach ( var source in Sources )
-            {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) ).ToArray ();
-                var usingLinesString = usingLines.Length == 0 ? "" : StringArrayEx.ToString ( usingLines, "\n", "\n" );
-
-                var fixedSource = string.IsNullOrEmpty ( usingLinesString ) ? source.Trim () : source.Replace ( usingLinesString, "" ).Trim ();
-                Source += fixedSource + "\n\n";
+                Sources.Add ( source );
             }
         }
 
-        public IEnumerator Compile ( GameObject target = null )
+        public IEnumerator Compile ()
         {
             if ( string.IsNullOrEmpty ( Source ) )
             {
@@ -183,8 +149,7 @@ namespace Carbon.Core
                 {
                     if ( reference.StartsWith ( "// Reference:" ) || reference.StartsWith ( "//Reference:" ) )
                     {
-
-                        var @ref = $"{reference.Replace ( "// Reference:", "" ).Replace ( "//Reference:", "" )}.dll".Trim ();
+                        var @ref = $"{reference.Replace ( "// Reference:", "" ).Replace ( "//Reference:", "" )}".Trim ();
                         resultReferences.Add ( @ref );
                         CarbonCore.Log ( $" Added reference: {@ref}" );
                     }
@@ -241,9 +206,9 @@ namespace Carbon.Core
 
             if ( AsyncLoader == null ) yield break;
 
-            if ( AsyncLoader.Exceptions.Count != 0 )
+            if ( AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0 )
             {
-                CarbonCore.Error ( $"Failed compiling '{AsyncLoader.FilePath}' after {AsyncLoader.Retries} retries:" );
+                CarbonCore.Error ( $"Failed compiling '{AsyncLoader.FilePath}':" );
                 for ( int i = 0; i < AsyncLoader.Exceptions.Count; i++ )
                 {
                     var error = AsyncLoader.Exceptions [ i ];
@@ -265,6 +230,24 @@ namespace Carbon.Core
                 {
                     if ( !( type.Namespace.Equals ( "Oxide.Plugins" ) ||
                         type.Namespace.Equals ( "Carbon.Plugins" ) ) ) continue;
+
+                    if ( CarbonCore.Instance.Config.HookValidation )
+                    {
+                        var counter = 0;
+                        foreach ( var method in type.GetMethods ( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance ) )
+                        {
+                            if ( CarbonHookValidator.IsIncompatibleOxideHook ( method.Name ) )
+                            {
+                                CarbonCore.Warn ( $" Hook '{method.Name}' is not supported." );
+                                counter++;
+                            }
+                        }
+
+                        if ( counter > 0 )
+                        {
+                            CarbonCore.Warn ( $" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.\n The plugin will not work as expected." );
+                        }
+                    }
 
                     var info = type.GetCustomAttribute ( typeof ( InfoAttribute ), true ) as InfoAttribute;
                     var description = type.GetCustomAttribute ( typeof ( DescriptionAttribute ), true ) as DescriptionAttribute;
@@ -289,11 +272,8 @@ namespace Carbon.Core
                     plugin.Instance.CallHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
                     HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
                     plugin.Instance.IInit ();
-                    try { plugin.Instance.DoLoadConfig (); }
-                    catch ( Exception loadException )
-                    {
-                        plugin.Instance.LogError ( $"Failed loading config.", loadException );
-                    }
+                    try { plugin.Instance.DoLoadConfig (); } catch ( Exception loadException ) { plugin.Instance.LogError ( $"Failed loading config.", loadException ); }
+                    plugin.Instance.Load ();
 
                     if ( CarbonCore.IsServerFullyInitialized )
                     {

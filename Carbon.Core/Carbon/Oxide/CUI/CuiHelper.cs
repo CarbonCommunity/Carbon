@@ -23,29 +23,17 @@ namespace Oxide.Game.Rust.Cui
             } ).Replace ( "\\n", "\n" );
         }
 
-        public static List<CuiElement> FromJson ( string json )
-        {
-            return JsonConvert.DeserializeObject<List<CuiElement>> ( json );
-        }
+        public static List<CuiElement> FromJson ( string json ) => JsonConvert.DeserializeObject<List<CuiElement>> ( json );
 
-        public static string GetGuid ()
-        {
-            return Guid.NewGuid ().ToString ().Replace ( "-", string.Empty );
-        }
+        public static string GetGuid () => Guid.NewGuid ().ToString ().Replace ( "-", string.Empty );
 
-        public static bool AddUi ( BasePlayer player, List<CuiElement> elements )
-        {
-            return AddUi ( player, ToJson ( elements ) );
-        }
+        public static bool AddUi ( BasePlayer player, List<CuiElement> elements ) => AddUi ( player, ToJson ( elements ) );
 
         public static bool AddUi ( BasePlayer player, string json )
         {
             if ( player?.net != null && Interface.CallHook ( "CanUseUI", player, json ) == null )
             {
-                CommunityEntity.ServerInstance.ClientRPCEx ( new SendInfo
-                {
-                    connection = player.net.connection
-                }, null, "AddUI", json );
+                CommunityEntity.ServerInstance.ClientRPCEx ( new Network.SendInfo { connection = player.net.connection }, null, "AddUI", json );
                 return true;
             }
 
@@ -57,10 +45,7 @@ namespace Oxide.Game.Rust.Cui
             if ( player?.net != null )
             {
                 Interface.CallHook ( "OnDestroyUI", player, elem );
-                CommunityEntity.ServerInstance.ClientRPCEx ( new SendInfo
-                {
-                    connection = player.net.connection
-                }, null, "DestroyUI", elem );
+                CommunityEntity.ServerInstance.ClientRPCEx ( new Network.SendInfo { connection = player.net.connection }, null, "DestroyUI", elem );
                 return true;
             }
 
@@ -72,10 +57,7 @@ namespace Oxide.Game.Rust.Cui
             elem.Color = $"{color.r} {color.g} {color.b} {color.a}";
         }
 
-        public static Color GetColor ( this ICuiColor elem )
-        {
-            return ColorEx.Parse ( elem.Color );
-        }
+        public static Color GetColor ( this ICuiColor elem ) => ColorEx.Parse ( elem.Color );
     }
 
     [JsonConverter ( typeof ( ComponentConverter ) )]

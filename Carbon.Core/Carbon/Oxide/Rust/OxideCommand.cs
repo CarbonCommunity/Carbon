@@ -10,7 +10,7 @@ using Carbon.Core;
 public class OxideCommand
 {
     public string Command { get; set; }
-    public RustPlugin Plugin { get; set; }
+    public BaseHookable Plugin { get; set; }
     public Action<BasePlayer, string, string []> Callback { get; set; }
     public bool SkipOriginal { get; set; }
     public string Help { get; set; }

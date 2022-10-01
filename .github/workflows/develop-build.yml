@@ -136,7 +136,7 @@ jobs:
       with:
         prerelease: true
         tag_name: develop_build
-        name: 'Carbon Build (development)'
+        name: 'Carbon Build (develop)'
         body: |
           This is a build of Carbon based on the `develop` branch.
           

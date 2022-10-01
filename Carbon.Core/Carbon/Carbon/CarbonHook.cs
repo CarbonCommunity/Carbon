@@ -29,6 +29,7 @@ public class Hook : Attribute
         public Type Type { get; set; }
         public string Method { get; set; }
         public Type [] Parameters { get; set; }
+        public bool UseProvidedParameters { get; set; } = false;
 
         public Patch () { }
         public Patch ( Type type, string method )
@@ -36,9 +37,13 @@ public class Hook : Attribute
             Type = type;
             Method = method;
         }
-        public Patch ( Type type, string method, Type [] parameters ) : this ( type, method )
+        public Patch ( Type type, string method, params Type [] parameters ) : this ( type, method )
         {
             Parameters = parameters;
+        }
+        public Patch ( Type type, string method, bool useProvidedParameters, params Type [] parameters ) : this ( type, method, parameters )
+        {
+            UseProvidedParameters = useProvidedParameters;
         }
     }
 
@@ -93,7 +98,10 @@ public class Hook : Attribute
             Structure,
             Resources,
             Team,
-            Weapon
+            Weapon,
+            Network,
+            Server,
+            World
         }
 
         public Category ( Enum @enum )

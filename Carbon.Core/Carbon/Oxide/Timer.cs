@@ -4,12 +4,11 @@
 /// 
 
 using Facepunch;
-using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
 using static Oxide.Plugins.RustPlugin;
 
-namespace Oxide.Core.Libraries
+namespace Oxide.Plugins
 {
     public class Timers
     {
