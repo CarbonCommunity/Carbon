@@ -42,7 +42,7 @@ namespace Oxide.Plugins
 		{
 			if (!IsValid()) return null;
 
-			var timer = new Timer(Persistence);
+			var timer = new Timer(Persistence, action, Plugin);
 			var activity = new Action(() =>
 			{
 				try
@@ -68,7 +68,7 @@ namespace Oxide.Plugins
 		{
 			if (!IsValid()) return null;
 
-			var timer = new Timer(Persistence);
+			var timer = new Timer(Persistence, action, Plugin);
 			var activity = new Action(() =>
 			{
 				try
@@ -93,7 +93,7 @@ namespace Oxide.Plugins
 		{
 			if (!IsValid()) return null;
 
-			var timer = new Timer(Persistence);
+			var timer = new Timer(Persistence, action, Plugin);
 			var activity = new Action(() =>
 			{
 				try
@@ -124,16 +124,71 @@ namespace Oxide.Plugins
 
 	public class Timer : IDisposable
 	{
+		public Action Activity { get; set; }
 		public Action Callback { get; set; }
 		public Persistence Persistence { get; set; }
 		public int TimesTriggered { get; set; }
+		public RustPlugin Plugin { get; set; }
 
 		public Timer() { }
-		public Timer(Persistence persistence)
+		public Timer(Persistence persistence, Action activity, RustPlugin plugin = null)
 		{
 			Persistence = persistence;
+			Activity = activity;
+			Plugin = plugin;
 		}
 
+		public void Reset(float delay = -1f, int repetitions = 1)
+		{
+			if (Persistence != null)
+			{
+				Persistence.CancelInvoke(Callback);
+				Persistence.CancelInvokeFixedTime(Callback);
+			}
+
+			TimesTriggered = 0;
+
+			if (repetitions == 1)
+			{
+				Callback = new Action(() =>
+				{
+					try
+					{
+						Activity?.Invoke();
+						TimesTriggered++;
+					}
+					catch (Exception ex) { Plugin.LogError($" Timer {delay}s has failed:", ex); }
+
+					Destroy();
+				});
+
+				Persistence.Invoke(Callback, delay);
+			}
+			else
+			{
+				Callback = new Action(() =>
+				{
+					try
+					{
+						Activity?.Invoke();
+						TimesTriggered++;
+
+						if (TimesTriggered >= repetitions)
+						{
+							Dispose();
+						}
+					}
+					catch (Exception ex)
+					{
+						Plugin.LogError($" Timer {delay}s has failed:", ex);
+
+						Destroy();
+					}
+				});
+
+				Persistence.InvokeRepeating(Callback, delay, delay);
+			}
+		}
 		public void Destroy()
 		{
 			if (Persistence != null)
@@ -147,7 +202,6 @@ namespace Oxide.Plugins
 				Callback = null;
 			}
 		}
-
 		public void Dispose()
 		{
 			Destroy();
