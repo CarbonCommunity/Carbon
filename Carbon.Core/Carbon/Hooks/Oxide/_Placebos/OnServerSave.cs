@@ -7,10 +7,10 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnServerSave" ), OxideHook.Category ( Hook.Category.Enum.Player )]
+    [OxideHook ( "OnServerSave" ), OxideHook.Category ( Hook.Category.Enum.Server )]
     [OxideHook.Patch ( typeof ( SaveRestore ), "DoAutomatedSave" )]
     public class SaveRestore_DoAutomatedSave
     {
-        public static void Prefix () { }
+        public static void Prefix ( bool AndWait ) { }
     }
 }
