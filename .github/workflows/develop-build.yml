@@ -64,10 +64,15 @@ jobs:
       with:
         ref: develop
 
+    - name: ▶️ Prepare the solution
+      shell: bash
+      run: |
+        dotnet restore ${GITHUB_WORKSPACE}/Carbon.Core --nologo --force
+
     - name: ▶️ Execute the code formatting tool
       shell: bash
       run: |
-        dotnet format --verbosity diagnostic ${GITHUB_WORKSPACE}/Carbon.Core
+        dotnet format ${GITHUB_WORKSPACE}/Carbon.Core --verbosity diagnostic
 
   build-linux:
     name: 🐧 Linux
