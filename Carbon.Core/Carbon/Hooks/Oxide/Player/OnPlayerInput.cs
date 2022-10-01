@@ -16,8 +16,10 @@ namespace Carbon.Extended
     {
         public static bool Prefix ( PlayerTick msg, bool wasPlayerStalled, ref BasePlayer __instance )
         {
-            return HookExecutor.CallStaticHook ( "OnPlayerTick", __instance, msg, wasPlayerStalled ) == null ||
-                 HookExecutor.CallStaticHook ( "OnPlayerInput", __instance, __instance.serverInput ) == null;
+            var onTick = HookExecutor.CallStaticHook ( "OnPlayerTick", __instance, msg, wasPlayerStalled );
+            var onInput = HookExecutor.CallStaticHook ( "OnPlayerInput", __instance, __instance.serverInput );
+
+            return onTick == null && onInput == null;
         }
     }
 
