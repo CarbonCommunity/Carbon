@@ -78,7 +78,7 @@ namespace Carbon.Core
             {
                 if ( string.IsNullOrEmpty ( reference ) || _metadataReferences.Any ( x => x.Display.Contains ( reference ) ) ) continue;
 
-                references.Add ( _getReferenceFromCache ( reference ) );
+                try { references.Add ( _getReferenceFromCache ( reference ) ); } catch { }
             }
 
             return references;
