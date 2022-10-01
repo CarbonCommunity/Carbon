@@ -85,6 +85,8 @@ namespace Carbon.Core
 
 		private static object CallHook<T>(this T plugin, string hookName, BindingFlags flags, object[] args) where T : BaseHookable
 		{
+			if (plugin.IsHookIgnored(hookName)) return null;
+			
 			var id = $"{hookName}[{(args == null ? 0 : args.Length)}]";
 			var result = (object)null;
 
