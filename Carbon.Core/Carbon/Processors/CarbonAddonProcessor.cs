@@ -85,7 +85,7 @@ namespace Carbon.Core
             }
         }
 
-        public void InstallHooks ( string hookName )
+        public void InstallHooks ( string hookName, bool doRequires = true )
         {
             if ( !DoesHookExist ( hookName ) ) return;
             if ( !IsPatched ( hookName ) ) CarbonCore.Debug ( $"Found '{hookName}'..." );
@@ -98,20 +98,17 @@ namespace Carbon.Core
                     {
                         var parameters = type.GetCustomAttributes<Hook.Parameter> ();
                         var hook = type.GetCustomAttribute<Hook> ();
-                        var requires = type.GetCustomAttributes<Hook.Require> ();
-                        var args = parameters == null || !parameters.Any () ? 0 : parameters.Count ();
+                        var args = string.Empty;
 
-                        if ( hook == null ) continue;
-
-                        if ( requires != null )
+                        if ( parameters != null )
                         {
-                            foreach ( var require in requires )
+                            foreach ( var parameter in parameters )
                             {
-                                if ( require.Hook == hookName ) continue;
-
-                                InstallHooks ( require.Hook );
+                                args += $"_{parameter.Type.Name}";
                             }
                         }
+
+                        if ( hook == null ) continue;
 
                         if ( hook.Name == hookName )
                         {
@@ -126,22 +123,48 @@ namespace Carbon.Core
 
                             if ( hookInstance.Patches.Any ( x => x != null && x.Id == patchId ) ) continue;
 
+                            if ( doRequires )
+                            {
+                                var requires = type.GetCustomAttributes<Hook.Require> ();
+
+                                if ( requires != null )
+                                {
+                                    foreach ( var require in requires )
+                                    {
+                                        if ( require.Hook == hookName ) continue;
+
+                                        InstallHooks ( require.Hook, false );
+                                    }
+                                }
+                            }
+
+                            var originalParameters = Pool.GetList<Type> ();
                             var prefix = type.GetMethod ( "Prefix" );
                             var postfix = type.GetMethod ( "Postfix" );
                             var transplier = type.GetMethod ( "Transplier" );
 
-                            var matchedParameters = GetMatchedParameters ( patch.Type, patch.Method, ( prefix ?? postfix ?? transplier ).GetParameters () );
+                            foreach ( var param in ( prefix ?? postfix ?? transplier ).GetParameters () )
+                            {
+                                originalParameters.Add ( param.ParameterType );
+                            }
+                            var originalParametersResult = originalParameters.ToArray ();
+
+                            var matchedParameters = patch.UseProvidedParameters ? originalParametersResult : GetMatchedParameters ( patch.Type, patch.Method, ( prefix ?? postfix ?? transplier ).GetParameters () );
                             var instance = HarmonyInstance.Create ( patchId );
-                            var originalMethod = patch.Type.GetMethod ( patch.Method, matchedParameters );
+                            var originalMethod = patch.Type.GetMethod ( patch.Method, matchedParameters);
+
                             instance.Patch ( originalMethod,
                                 prefix: prefix == null ? null : new HarmonyMethod ( prefix ),
                                 postfix: postfix == null ? null : new HarmonyMethod ( postfix ),
                                 transpiler: transplier == null ? null : new HarmonyMethod ( transplier ) );
                             hookInstance.Patches.Add ( instance );
                             hookInstance.Id = patchId;
-                            CarbonCore.Debug ( $"Patched {hookName}[{args}]..." );
+
+                            CarbonCore.Warn ( $" Patched {hookName}{args}..." );
 
                             Pool.Free ( ref matchedParameters );
+                            Pool.Free ( ref originalParametersResult );
+                            Pool.FreeList ( ref originalParameters );
                         }
                     }
                     catch ( Exception exception )

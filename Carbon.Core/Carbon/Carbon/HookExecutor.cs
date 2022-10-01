@@ -3,6 +3,8 @@
 /// All rights reserved
 /// 
 
+using Carbon.Core.Modules;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Oxide.Plugins;
 using System;
 using System.Collections.Generic;
@@ -83,138 +85,7 @@ namespace Carbon.Core
             }
         }
 
-        public static object CallHook<T> ( T plugin, string hookName ) where T : Plugin
-        {
-            return CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null );
-        }
-        public static object CallHook<T> ( T plugin, string hookName, object arg1 ) where T : Plugin
-        {
-            var buffer = _allocateBuffer ( 1 );
-            buffer [ 0 ] = arg1;
-
-            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
-
-            _clearBuffer ( buffer );
-            return result;
-        }
-        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2 ) where T : Plugin
-        {
-            var buffer = _allocateBuffer ( 2 );
-            buffer [ 0 ] = arg1;
-            buffer [ 1 ] = arg2;
-
-            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
-
-            _clearBuffer ( buffer );
-            return result;
-        }
-        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3 ) where T : Plugin
-        {
-            var buffer = _allocateBuffer ( 3 );
-            buffer [ 0 ] = arg1;
-            buffer [ 1 ] = arg2;
-            buffer [ 2 ] = arg3;
-
-            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
-
-            _clearBuffer ( buffer );
-            return result;
-        }
-        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4 ) where T : Plugin
-        {
-            var buffer = _allocateBuffer ( 4 );
-            buffer [ 0 ] = arg1;
-            buffer [ 1 ] = arg2;
-            buffer [ 2 ] = arg3;
-            buffer [ 3 ] = arg4;
-
-            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
-
-            _clearBuffer ( buffer );
-            return result;
-        }
-        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5 ) where T : Plugin
-        {
-            var buffer = _allocateBuffer ( 5 );
-            buffer [ 0 ] = arg1;
-            buffer [ 1 ] = arg2;
-            buffer [ 2 ] = arg3;
-            buffer [ 3 ] = arg4;
-            buffer [ 4 ] = arg5;
-
-            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
-
-            _clearBuffer ( buffer );
-            return result;
-        }
-        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6 ) where T : Plugin
-        {
-            var buffer = _allocateBuffer ( 6 );
-            buffer [ 0 ] = arg1;
-            buffer [ 1 ] = arg2;
-            buffer [ 2 ] = arg3;
-            buffer [ 3 ] = arg4;
-            buffer [ 4 ] = arg5;
-            buffer [ 6 ] = arg6;
-
-            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
-
-            _clearBuffer ( buffer );
-            return result;
-        }
-        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7 ) where T : Plugin
-        {
-            var buffer = _allocateBuffer ( 7 );
-            buffer [ 0 ] = arg1;
-            buffer [ 1 ] = arg2;
-            buffer [ 2 ] = arg3;
-            buffer [ 3 ] = arg4;
-            buffer [ 4 ] = arg5;
-            buffer [ 6 ] = arg6;
-            buffer [ 7 ] = arg7;
-
-            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
-
-            _clearBuffer ( buffer );
-            return result;
-        }
-        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8 ) where T : Plugin
-        {
-            var buffer = _allocateBuffer ( 8 );
-            buffer [ 0 ] = arg1;
-            buffer [ 1 ] = arg2;
-            buffer [ 2 ] = arg3;
-            buffer [ 3 ] = arg4;
-            buffer [ 4 ] = arg5;
-            buffer [ 6 ] = arg6;
-            buffer [ 7 ] = arg7;
-            buffer [ 8 ] = arg8;
-
-            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
-
-            _clearBuffer ( buffer );
-            return result;
-        }
-        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9 ) where T : Plugin
-        {
-            var buffer = _allocateBuffer ( 9 );
-            buffer [ 0 ] = arg1;
-            buffer [ 1 ] = arg2;
-            buffer [ 2 ] = arg3;
-            buffer [ 3 ] = arg4;
-            buffer [ 4 ] = arg5;
-            buffer [ 6 ] = arg6;
-            buffer [ 7 ] = arg7;
-            buffer [ 8 ] = arg8;
-            buffer [ 9 ] = arg9;
-
-            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
-
-            _clearBuffer ( buffer );
-            return result;
-        }
-
-        private static object CallHook<T> ( this T plugin, string hookName, BindingFlags flags, object [] args ) where T : Plugin
+        private static object CallHook<T> ( this T plugin, string hookName, BindingFlags flags, object [] args ) where T : BaseHookable
         {
             var id = $"{hookName}[{( args == null ? 0 : args.Length )}]";
             var result = ( object )null;
@@ -248,7 +119,13 @@ namespace Carbon.Core
                     var methodResult = DoCall ( method );
                     if ( methodResult != null ) result = methodResult;
                 }
-                catch { }
+                catch ( ArgumentException ) { }
+                catch ( TargetParameterCountException ) { }
+                catch ( Exception ex )
+                {
+                    var exception = ex.InnerException ?? ex;
+                    CarbonCore.Error ( $"Failed to call hook '{hookName}' on plugin '{plugin.Name} v{plugin.Version}' ({exception.Message})\n{exception.StackTrace}" );
+                }
             }
 
             object DoCall ( MethodInfo method )
@@ -272,13 +149,25 @@ namespace Carbon.Core
 
             return result;
         }
-
         private static object CallStaticHook ( string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object [] args = null )
         {
             var objectOverride = ( object )null;
-            var pluginOverride = ( Plugin )null;
+            var hookableOverride = ( BaseHookable )null;
 
             _clearHookTime ( hookName );
+
+            foreach ( var module in CarbonCore.Instance.ModuleProcessor.Modules )
+            {
+                var result = module.CallHook ( hookName, flags: flag, args: args );
+                if ( result != null && objectOverride != null )
+                {
+                    CarbonCore.WarnFormat ( $"Hook '{hookName}' conflicts with {hookableOverride.Name}" );
+                    break;
+                }
+
+                if ( result != null ) objectOverride = result;
+                hookableOverride = module;
+            }
 
             foreach ( var mod in CarbonLoader._loadedMods )
             {
@@ -289,18 +178,149 @@ namespace Carbon.Core
                         var result = plugin.CallHook ( hookName, flags: flag, args: args );
                         if ( result != null && objectOverride != null )
                         {
-                            CarbonCore.WarnFormat ( $"Hook '{hookName}' conflicts with {pluginOverride.Name}" );
+                            CarbonCore.WarnFormat ( $"Hook '{hookName}' conflicts with {hookableOverride.Name}" );
                             break;
                         }
 
                         if ( result != null ) objectOverride = result;
-                        pluginOverride = plugin;
+                        hookableOverride = plugin;
                     }
                     catch { }
                 }
             }
 
             return objectOverride;
+        }
+
+        public static object CallHook<T> ( T plugin, string hookName ) where T : BaseHookable
+        {
+            return CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null ) == null;
+        }
+        public static object CallHook<T> ( T plugin, string hookName, object arg1 ) where T : BaseHookable
+        {
+            var buffer = _allocateBuffer ( 1 );
+            buffer [ 0 ] = arg1;
+
+            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
+
+            _clearBuffer ( buffer );
+            return result;
+        }
+        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2 ) where T : BaseHookable
+        {
+            var buffer = _allocateBuffer ( 2 );
+            buffer [ 0 ] = arg1;
+            buffer [ 1 ] = arg2;
+
+            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
+
+            _clearBuffer ( buffer );
+            return result;
+        }
+        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3 ) where T : BaseHookable
+        {
+            var buffer = _allocateBuffer ( 3 );
+            buffer [ 0 ] = arg1;
+            buffer [ 1 ] = arg2;
+            buffer [ 2 ] = arg3;
+
+            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
+
+            _clearBuffer ( buffer );
+            return result;
+        }
+        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4 ) where T : BaseHookable
+        {
+            var buffer = _allocateBuffer ( 4 );
+            buffer [ 0 ] = arg1;
+            buffer [ 1 ] = arg2;
+            buffer [ 2 ] = arg3;
+            buffer [ 3 ] = arg4;
+
+            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
+
+            _clearBuffer ( buffer );
+            return result;
+        }
+        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5 ) where T : BaseHookable
+        {
+            var buffer = _allocateBuffer ( 5 );
+            buffer [ 0 ] = arg1;
+            buffer [ 1 ] = arg2;
+            buffer [ 2 ] = arg3;
+            buffer [ 3 ] = arg4;
+            buffer [ 4 ] = arg5;
+
+            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
+
+            _clearBuffer ( buffer );
+            return result;
+        }
+        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6 ) where T : BaseHookable
+        {
+            var buffer = _allocateBuffer ( 6 );
+            buffer [ 0 ] = arg1;
+            buffer [ 1 ] = arg2;
+            buffer [ 2 ] = arg3;
+            buffer [ 3 ] = arg4;
+            buffer [ 4 ] = arg5;
+            buffer [ 6 ] = arg6;
+
+            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
+
+            _clearBuffer ( buffer );
+            return result;
+        }
+        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7 ) where T : BaseHookable
+        {
+            var buffer = _allocateBuffer ( 7 );
+            buffer [ 0 ] = arg1;
+            buffer [ 1 ] = arg2;
+            buffer [ 2 ] = arg3;
+            buffer [ 3 ] = arg4;
+            buffer [ 4 ] = arg5;
+            buffer [ 6 ] = arg6;
+            buffer [ 7 ] = arg7;
+
+            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
+
+            _clearBuffer ( buffer );
+            return result;
+        }
+        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8 ) where T : BaseHookable
+        {
+            var buffer = _allocateBuffer ( 8 );
+            buffer [ 0 ] = arg1;
+            buffer [ 1 ] = arg2;
+            buffer [ 2 ] = arg3;
+            buffer [ 3 ] = arg4;
+            buffer [ 4 ] = arg5;
+            buffer [ 6 ] = arg6;
+            buffer [ 7 ] = arg7;
+            buffer [ 8 ] = arg8;
+
+            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
+
+            _clearBuffer ( buffer );
+            return result;
+        }
+        public static object CallHook<T> ( T plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9 ) where T : BaseHookable
+        {
+            var buffer = _allocateBuffer ( 9 );
+            buffer [ 0 ] = arg1;
+            buffer [ 1 ] = arg2;
+            buffer [ 2 ] = arg3;
+            buffer [ 3 ] = arg4;
+            buffer [ 4 ] = arg5;
+            buffer [ 6 ] = arg6;
+            buffer [ 7 ] = arg7;
+            buffer [ 8 ] = arg8;
+            buffer [ 9 ] = arg9;
+
+            var result = CallHook ( plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer );
+
+            _clearBuffer ( buffer );
+            return result;
         }
 
         public static object CallStaticHook ( string hookName )
@@ -434,7 +454,7 @@ namespace Carbon.Core
             return result;
         }
 
-        private static object CallPublicHook<T> ( this T plugin, string hookName, object [] args ) where T : Plugin
+        private static object CallPublicHook<T> ( this T plugin, string hookName, object [] args ) where T : BaseHookable
         {
             return CallHook ( plugin, hookName, BindingFlags.Public | BindingFlags.Instance, args );
         }

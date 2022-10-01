@@ -17,7 +17,7 @@ namespace Oxide.Core.Libraries
 
         public string GetMessage(string name, RustPlugin plugin, string player = null )
         {
-            return default;
+            return name;
         }
     }
 }

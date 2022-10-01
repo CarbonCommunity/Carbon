@@ -3,12 +3,17 @@
 /// All rights reserved
 /// 
 
+#if !( WIN || UNIX )
+#error Target architecture not defined
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon;
+using Carbon.Core.Modules;
 using Carbon.Core.Processors;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
@@ -35,7 +40,6 @@ namespace Carbon.Core
              OS.Linux;
 #else
 #error Target architecture not defined
-            null;
 #endif
 
 		public enum OS
@@ -100,8 +104,8 @@ namespace Carbon.Core
 			}
 			else
 			{
-				AllChatCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
-				AllConsoleCommands.RemoveAll ( x => !x.Plugin.IsCorePlugin );
+				AllChatCommands.RemoveAll ( x => !( x.Plugin is IModule ) && ( x.Plugin is RustPlugin && ( x.Plugin as RustPlugin ).IsCorePlugin ) );
+				AllConsoleCommands.RemoveAll ( x => !( x.Plugin is IModule ) && ( x.Plugin is RustPlugin && ( x.Plugin as RustPlugin ).IsCorePlugin ) );
 			}
 		}
 		internal void _installDefaultCommands ()
@@ -123,12 +127,14 @@ namespace Carbon.Core
 		public ScriptProcessor ScriptProcessor { get; set; }
 		public WebScriptProcessor WebScriptProcessor { get; set; }
 		public HarmonyProcessor HarmonyProcessor { get; set; }
+        public ModuleProcessor ModuleProcessor { get; set; }
 
-		internal void _installProcessors ()
+        internal void _installProcessors ()
 		{
 			if ( ScriptProcessor == null ||
 				WebScriptProcessor == null ||
-				HarmonyProcessor == null )
+				HarmonyProcessor == null || 
+				ModuleProcessor == null )
 			{
 				_uninstallProcessors ();
 
@@ -137,6 +143,7 @@ namespace Carbon.Core
 				WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor> ();
 				HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor> ();
 				Addon = new CarbonAddonProcessor ();
+				ModuleProcessor = new ModuleProcessor ();
 			}
 			Debug ( "Installed processors", 3 );
 
@@ -159,9 +166,10 @@ namespace Carbon.Core
 			{
 				if ( ScriptProcessor != null ) ScriptProcessor?.Dispose ();
 				if ( WebScriptProcessor != null ) WebScriptProcessor?.Dispose ();
-				if ( HarmonyProcessor != null ) HarmonyProcessor?.Dispose ();
-			}
-			catch { }
+                if ( HarmonyProcessor != null ) HarmonyProcessor?.Dispose ();
+                if ( ModuleProcessor != null ) ModuleProcessor?.Dispose ();
+            }
+            catch { }
 
 			try
 			{
@@ -200,7 +208,14 @@ namespace Carbon.Core
 
 			return folder;
 		}
-		public static string GetDataFolder ()
+        public static string GetModulesFolder ()
+        {
+            var folder = Path.Combine ( $"{GetRootFolder ()}", "modules" );
+            Directory.CreateDirectory ( folder );
+
+            return folder;
+        }
+        public static string GetDataFolder ()
 		{
 			var folder = Path.Combine ( $"{GetRootFolder ()}", "data" );
 			Directory.CreateDirectory ( folder );
@@ -304,7 +319,31 @@ namespace Carbon.Core
 
 		#endregion
 
-		public static void ReloadPlugins ()
+		#region Path
+
+		public const string Name =
+#if WIN
+			"Carbon";
+#elif UNIX
+			"Carbon-Unix";
+#endif
+        public const string DllName =
+#if WIN
+			"Carbon.dll";
+#elif UNIX
+			"Carbon-Unix.dll";
+#endif
+		public static string DllPath => Path.GetFullPath ( Path.Combine ( AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods",
+#if WIN
+			"Carbon.dll"
+#elif UNIX
+            "Carbon-Unix.dll"
+#endif
+	) );
+
+        #endregion
+
+        public static void ReloadPlugins ()
 		{
 			CarbonLoader.LoadCarbonMods ();
 			ScriptLoader.LoadAll ();
@@ -336,14 +375,14 @@ namespace Carbon.Core
 		{
 			if ( IsInitialized ) return;
 
-			#region Handle Versions
+#region Handle Versions
 
 			var assembly = typeof ( CarbonCore ).Assembly;
 
             try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute> ().InformationalVersion; } catch { }
 			try { Version = assembly.GetName().Version.ToString(); } catch { }
 
-			#endregion
+#endregion
 
 			LoadConfig ();
 			Debug ( "Loaded config", 3 );
@@ -352,6 +391,7 @@ namespace Carbon.Core
 
 			GetRootFolder ();
 			GetConfigsFolder ();
+			GetModulesFolder ();
 			GetDataFolder ();
 			GetPluginsFolder ();
 			GetLogsFolder ();
@@ -359,20 +399,23 @@ namespace Carbon.Core
 			OsEx.Folder.DeleteContents ( GetTempFolder () );
 			Debug ( "Loaded folders", 3 );
 
-			_installProcessors ();
+            _installProcessors ();
 
 			Interface.Initialize ();
 
 			_clearCommands ();
 			_installDefaultCommands ();
 
-			ReloadPlugins ();
+            CarbonHookValidator.Refresh ();
+            Debug ( "Fetched oxide hooks", 3 );
+
+            ReloadPlugins ();
 
 			Format ( $"Loaded." );
 
 			RefreshConsoleInfo ();
 
-			IsInitialized = true;
+            IsInitialized = true;
 		}
 		public void UnInit ()
 		{
@@ -395,42 +438,5 @@ namespace Carbon.Core
 			catch { }
 #endif
 		}
-	}
-
-	public class CarbonInitializer : IHarmonyModHooks
-	{
-		public void OnLoaded ( OnHarmonyModLoadedArgs args )
-		{
-			var oldMod = PlayerPrefs.GetString ( Harmony_Load.CARBON_LOADED );
-
-			if ( !Assembly.GetExecutingAssembly ().FullName.StartsWith ( oldMod ) )
-			{
-				CarbonCore.Instance?.UnInit ();
-				HarmonyLoader.TryUnloadMod ( oldMod );
-				CarbonCore.WarnFormat ( $"Unloaded previous: {oldMod}" );
-				CarbonCore.Instance = null;
-			}
-
-			CarbonCore.Format ( "Initializing..." );
-
-			if ( CarbonCore.Instance == null ) CarbonCore.Instance = new CarbonCore ();
-			else CarbonCore.Instance?.UnInit ();
-
-			CarbonCore.Instance.Init ();
-		}
-
-		public void OnUnloaded ( OnHarmonyModUnloadedArgs args ) { }
-	}
-
-	[Serializable]
-	public class CarbonConfig
-	{
-		public int Debug { get; set; }
-
-		public bool CarbonTag { get; set; } = true;
-		public bool IsModded { get; set; } = true;
-		public bool HookTimeTracker { get; set; } = false;
-		public bool ScriptWatchers { get; set; } = true;
-		public bool HarmonyWatchers { get; set; } = true;
 	}
 }

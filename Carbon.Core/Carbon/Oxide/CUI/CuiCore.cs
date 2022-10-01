@@ -16,69 +16,68 @@ namespace Oxide.Game.Rust.Cui
 {
     public class ComponentConverter : JsonConverter
     {
-        public override void WriteJson ( JsonWriter writer, object value, JsonSerializer serializer )
-        {
-            throw new NotImplementedException ();
-        }
+        public override void WriteJson ( JsonWriter writer, object value, JsonSerializer serializer ) { }
 
         public override object ReadJson ( JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer )
         {
-            var jobject = JObject.Load ( reader );
-            var text = jobject [ "type" ].ToString ();
-            var typeFromHandle = ( Type )null;
+            var jObject = JObject.Load ( reader );
+            var typeName = jObject [ "type" ].ToString ();
+            var type = (Type)null;
 
-            switch ( text )
+            switch ( typeName )
             {
-                case "UnityEngine.UI.Image":
-                    typeFromHandle = typeof ( CuiImageComponent );
-                    break;
-
-                case "UnityEngine.UI.Outline":
-                    typeFromHandle = typeof ( CuiOutlineComponent );
-                    break;
-
-                case "UnityEngine.UI.Button":
-                    typeFromHandle = typeof ( CuiButtonComponent );
-                    break;
-
                 case "UnityEngine.UI.Text":
-                    typeFromHandle = typeof ( CuiTextComponent );
+                    type = typeof ( CuiTextComponent );
                     break;
 
-                case "UnityEngine.UI.InputField":
-                    typeFromHandle = typeof ( CuiInputFieldComponent );
+                case "UnityEngine.UI.Image":
+                    type = typeof ( CuiImageComponent );
                     break;
 
                 case "UnityEngine.UI.RawImage":
-                    typeFromHandle = typeof ( CuiRawImageComponent );
+                    type = typeof ( CuiRawImageComponent );
                     break;
 
-                case "RectTransform":
-                    typeFromHandle = typeof ( CuiRectTransformComponent );
+                case "UnityEngine.UI.Button":
+                    type = typeof ( CuiButtonComponent );
+                    break;
+
+                case "UnityEngine.UI.Outline":
+                    type = typeof ( CuiOutlineComponent );
+                    break;
+
+                case "UnityEngine.UI.InputField":
+                    type = typeof ( CuiInputFieldComponent );
+                    break;
+
+                case "Countdown":
+                    type = typeof ( CuiCountdownComponent );
                     break;
 
                 case "NeedsCursor":
-                    typeFromHandle = typeof ( CuiNeedsCursorComponent );
+                    type = typeof ( CuiNeedsCursorComponent );
                     break;
+
+                case "NeedsKeyboard":
+                    type = typeof ( CuiNeedsKeyboardComponent );
+                    break;
+
+                case "RectTransform":
+                    type = typeof ( CuiRectTransformComponent );
+                    break;
+
+                default:
+                    return null;
             }
 
-            var instance = Activator.CreateInstance ( typeFromHandle );
-            serializer.Populate ( jobject.CreateReader (), instance );
-            return instance;
+            var target = Activator.CreateInstance ( type );
+            serializer.Populate ( jObject.CreateReader (), target );
+            return target;
         }
 
-        public override bool CanConvert ( Type objectType )
-        {
-            return objectType == typeof ( ICuiComponent );
-        }
+        public override bool CanConvert ( Type objectType ) => objectType == typeof ( ICuiComponent );
 
-        public override bool CanWrite
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool CanWrite => false;
     }
 
     #region Components
@@ -100,7 +99,7 @@ namespace Oxide.Game.Rust.Cui
         public string Close { get; set; }
 
         [DefaultValue ( "Assets/Content/UI/UI.Background.Tile.psd" )]
-        [JsonProperty ( "sprite" )]
+        [JsonProperty ( "sprite", NullValueHandling = NullValueHandling.Ignore )]
         public string Sprite { get; set; } = "Assets/Content/UI/UI.Background.Tile.psd";
 
         [DefaultValue ( "Assets/Icons/IconMaterial.mat" )]
@@ -222,7 +221,7 @@ namespace Oxide.Game.Rust.Cui
         }
 
         [DefaultValue ( "Assets/Content/UI/UI.Background.Tile.psd" )]
-        [JsonProperty ( "sprite" )]
+        [JsonProperty ( "sprite", NullValueHandling = NullValueHandling.Ignore )]
         public string Sprite { get; set; } = "Assets/Content/UI/UI.Background.Tile.psd";
 
         [DefaultValue ( "Assets/Icons/IconMaterial.mat" )]
@@ -242,10 +241,10 @@ namespace Oxide.Game.Rust.Cui
         [JsonProperty ( "fadeIn" )]
         public float FadeIn { get; set; }
 
-        [JsonProperty ( "itemId" )]
+        [JsonProperty ( "itemid" )]
         public int ItemId { get; set; }
 
-        [JsonProperty ( "skinId" )]
+        [JsonProperty ( "skinid" )]
         public ulong SkinId { get; set; }
     }
     public class CuiInputFieldComponent : ICuiComponent, ICuiColor
@@ -259,7 +258,7 @@ namespace Oxide.Game.Rust.Cui
         }
 
         [DefaultValue ( "Text" )]
-        [JsonProperty ( "text" )]
+        [JsonProperty ( "text", NullValueHandling = NullValueHandling.Ignore )]
         public string Text { get; set; } = "Text";
 
         [DefaultValue ( 14 )]
@@ -338,10 +337,11 @@ namespace Oxide.Game.Rust.Cui
             }
         }
 
-        [DefaultValue ( "Assets/Icons/rust.png" )]
-        [JsonProperty ( "sprite" )]
-        public string Sprite { get; set; } = "Assets/Icons/rust.png";
+        [DefaultValue ( "assets/content/textures/generic/fulltransparent.tga" )]
+        [JsonProperty ( "sprite", NullValueHandling = NullValueHandling.Ignore )]
+        public string Sprite { get; set; } = "assets/content/textures/generic/fulltransparent.tga";
 
+        [JsonProperty ( "color" )]
         public string Color { get; set; } = "1.0 1.0 1.0 1.0";
 
         [JsonProperty ( "material" )]
@@ -353,6 +353,7 @@ namespace Oxide.Game.Rust.Cui
         [JsonProperty ( "png" )]
         public string Png { get; set; }
 
+        [JsonProperty ( "fadeIn" )]
         public float FadeIn { get; set; }
     }
     public class CuiRectTransformComponent : ICuiComponent
@@ -381,6 +382,25 @@ namespace Oxide.Game.Rust.Cui
         [JsonProperty ( "offsetmax" )]
         public string OffsetMax { get; set; } = "0.0 0.0";
     }
+    public class CuiCountdownComponent : ICuiComponent
+    {
+        public string Type => "Countdown";
+
+        [JsonProperty ( "endTime" )]
+        public int EndTime { get; set; }
+
+        [JsonProperty ( "startTime" )]
+        public int StartTime { get; set; }
+
+        [JsonProperty ( "step" )]
+        public int Step { get; set; }
+
+        [JsonProperty ( "command" )]
+        public string Command { get; set; }
+
+        [JsonProperty ( "fadeIn" )]
+        public float FadeIn { get; set; }
+    }
     public class CuiTextComponent : ICuiComponent, ICuiColor
     {
         public string Type
@@ -408,6 +428,7 @@ namespace Oxide.Game.Rust.Cui
         [JsonProperty ( "align" )]
         public TextAnchor Align { get; set; }
 
+        [JsonProperty ( "color" )]
         public string Color { get; set; } = "1.0 1.0 1.0 1.0";
 
         [JsonProperty ( "fadeIn" )]
@@ -419,11 +440,8 @@ namespace Oxide.Game.Rust.Cui
     public class CuiButton
     {
         public CuiButtonComponent Button { get; } = new CuiButtonComponent ();
-
         public CuiRectTransformComponent RectTransform { get; } = new CuiRectTransformComponent ();
-
         public CuiTextComponent Text { get; } = new CuiTextComponent ();
-
         public float FadeOut { get; set; }
     }
     public class CuiElement
@@ -444,23 +462,16 @@ namespace Oxide.Game.Rust.Cui
     public class CuiLabel
     {
         public CuiTextComponent Text { get; } = new CuiTextComponent ();
-
         public CuiRectTransformComponent RectTransform { get; } = new CuiRectTransformComponent ();
-
         public float FadeOut { get; set; }
     }
     public class CuiPanel
     {
         public CuiImageComponent Image { get; set; } = new CuiImageComponent ();
-
         public CuiRawImageComponent RawImage { get; set; }
-
         public CuiRectTransformComponent RectTransform { get; } = new CuiRectTransformComponent ();
-
         public bool KeyboardEnabled { get; set; }
-
         public bool CursorEnabled { get; set; }
-
         public float FadeOut { get; set; }
     }
 }

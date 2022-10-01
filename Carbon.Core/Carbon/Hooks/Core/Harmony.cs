@@ -16,7 +16,12 @@ public class Harmony_Load
     {
         var mod = args.Args != null && args.Args.Length > 0 ? args.Args [ 0 ] : null;
 
-        if ( string.IsNullOrEmpty ( mod ) || !mod.StartsWith ( "Carbon" ) || CarbonCore.IsAddon ( mod ) ) return true;
+        if ( !mod.Equals ( "carbon", System.StringComparison.OrdinalIgnoreCase ) &&
+             !mod.Equals ( "carbon-unix", System.StringComparison.OrdinalIgnoreCase ) ) return true;
+
+        if ( string.IsNullOrEmpty ( mod ) || 
+            !mod.StartsWith ( "carbon", System.StringComparison.OrdinalIgnoreCase ) 
+            || CarbonCore.IsAddon ( mod ) ) return true;
 
         var oldMod = PlayerPrefs.GetString ( CARBON_LOADED );
 
@@ -42,16 +47,24 @@ public class Harmony_Load
 [HarmonyPatch ( typeof ( ConVar.Harmony ), "Unload" )]
 public class Harmony_Unload
 {
-    public static void Prefix ( ConsoleSystem.Arg args )
+    public static bool Prefix ( ConsoleSystem.Arg args )
     {
         var mod = args.Args != null && args.Args.Length > 0 ? args.Args [ 0 ] : null;
 
-        if ( string.IsNullOrEmpty ( mod ) || !mod.StartsWith ( "Carbon" ) || CarbonCore.IsAddon ( mod ) ) return;
+        if ( string.IsNullOrEmpty ( mod ) ) return true;
 
-        CarbonCore.Log ( "Intentional unload happened." );
+        if ( mod.Equals ( "carbon", System.StringComparison.OrdinalIgnoreCase ) ||
+             mod.Equals ( "carbon-unix", System.StringComparison.OrdinalIgnoreCase ) )
+            mod = CarbonCore.Name;
+
+        if ( !mod.StartsWith ( "carbon", System.StringComparison.OrdinalIgnoreCase )
+            || CarbonCore.IsAddon ( mod ) ) return true;
 
         PlayerPrefs.SetString ( Harmony_Load.CARBON_LOADED, string.Empty );
         CarbonCore.Instance?.UnInit ();
         CarbonCore.Instance = null;
+
+        HarmonyLoader.TryUnloadMod ( mod );
+        return false;
     }
 }

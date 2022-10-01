@@ -1,6 +1,11 @@
-﻿using System;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
 
-namespace Carbon.CodeGen
+using System;
+
+namespace Carbon.Oxide.Metadata
 {
     [Serializable]
     public class HookPackage

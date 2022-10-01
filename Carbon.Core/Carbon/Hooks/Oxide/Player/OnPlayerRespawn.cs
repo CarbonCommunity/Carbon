@@ -41,7 +41,7 @@ namespace Carbon.Extended
     [OxideHook.Patch ( typeof ( SleepingBag ), "SpawnPlayer" )]
     public class SleepingBag_SpawnPlayer
     {
-        public static bool Prefix ( BasePlayer player, uint sleepingBag, ref BasePlayer __instance, out bool __result )
+        public static bool Prefix ( BasePlayer player, uint sleepingBag, out bool __result )
         {
             var array = SleepingBag.FindForPlayer ( player.userID, true );
             var sleepingBag2 = Enumerable.FirstOrDefault ( array, ( SleepingBag x ) => x.ValidForPlayer ( player.userID, false ) && x.net.ID == sleepingBag && x.unlockTime < UnityEngine.Time.realtimeSinceStartup );

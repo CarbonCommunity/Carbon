@@ -2,7 +2,8 @@
 [Rr]ust/
 [Rr]elease/
 
-# Random assembly names
+# msbuild cached stuff
+.gitag
 .rndasm
 
 # Build results

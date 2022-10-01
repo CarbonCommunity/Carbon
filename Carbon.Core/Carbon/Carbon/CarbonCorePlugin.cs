@@ -4,6 +4,7 @@
 /// 
 
 using Carbon.Core.Extensions;
+using Carbon.Core.Modules;
 using Facepunch;
 using Humanlights.Components;
 using Humanlights.Extensions;
@@ -46,6 +47,8 @@ namespace Carbon.Core
             {
                 permission.RefreshUser ( player );
             }
+
+            CarbonCore.Instance.ModuleProcessor.Init ();
         }
 
         private void OnPluginLoaded ( Plugin plugin )
@@ -182,6 +185,9 @@ namespace Carbon.Core
         [CommandVar ( "hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true )]
         private bool HookTimeTracker { get { return CarbonCore.Instance.Config.HookTimeTracker; } set { CarbonCore.Instance.Config.HookTimeTracker = value; } }
 
+        [CommandVar ( "hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.", true )]
+        private bool HookValidation { get { return CarbonCore.Instance.Config.HookValidation; } set { CarbonCore.Instance.Config.HookValidation = value; } }
+
         #endregion
 
         #region Commands
@@ -222,6 +228,90 @@ namespace Carbon.Core
             }
 
             Reply ( body.ToNewLine (), arg );
+        }
+
+        #endregion
+
+        #region Modules
+
+        [ConsoleCommand ( "setmodule", "Enables or disables Carbon modules. Visit root/carbon/modules and use the config file names as IDs." )]
+        private void SetModule ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 2 ) ) return;
+
+            var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+            var module = hookable.To<IModule> ();
+
+            if ( module == null )
+            {
+                Reply ( $"Couldn't find that module.", arg );
+                return;
+            }
+
+            var previousEnabled = module.GetEnabled ();
+            var newEnabled = arg.Args [ 1 ].ToBool ();
+
+            if ( previousEnabled != newEnabled )
+            {
+                module.SetEnabled ( newEnabled );
+                module.Save ();
+            }
+
+            Reply ( $"{module.Name} marked {( module.GetEnabled () ? "enabled" : "disabled" )}.", arg );
+        }
+
+        [ConsoleCommand ( "saveallmodules", "Saves the configs and data files of all available modules." )]
+        private void SaveAllModules ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () ) return;
+
+            foreach(var hookable in CarbonCore.Instance.ModuleProcessor.Modules )
+            {
+                var module = hookable.To<IModule> ();
+                module.Save ();
+            }
+
+            Reply ( $"Saved {CarbonCore.Instance.ModuleProcessor.Modules.Count:n0} module configs and data files.", arg );
+        }
+
+        [ConsoleCommand ( "savemoduleconfig", "Saves Carbon module config & data file." )]
+        private void SaveModuleConfig ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
+
+            var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+            var module = hookable.To<IModule> ();
+
+            if ( module == null )
+            {
+                Reply ( $"Couldn't find that module.", arg );
+                return;
+            }
+
+            module.Save  ();
+
+            Reply ( $"Saved '{module.Name}' module config & data file.", arg );
+        }
+
+        [ConsoleCommand ( "loadmoduleconfig", "Loads Carbon module config & data file." )]
+        private void LoadModuleConfig ( ConsoleSystem.Arg arg )
+        {
+            if ( !arg.IsPlayerCalledAndAdmin () || !arg.HasArgs ( 1 ) ) return;
+
+            var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault ( x => x.Name == arg.Args [ 0 ] );
+            var module = hookable.To<IModule> ();
+
+            if ( module == null )
+            {
+                Reply ( $"Couldn't find that module.", arg );
+                return;
+            }
+
+            if ( module.GetEnabled () ) module.SetEnabled ( false );
+            module.Load ();
+            if ( module.GetEnabled () ) module.OnEnableStatus ();
+
+            Reply ( $"Reloaded '{module.Name}' module config.", arg );
         }
 
         #endregion
