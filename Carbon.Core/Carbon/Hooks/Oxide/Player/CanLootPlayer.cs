@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "CanBeLooted")]
 	public class BasePlayer_CanBeLooted
 	{
-		public static bool Prefix (BasePlayer player, ref BasePlayer __instance, out bool __result)
+		public static bool Prefix(BasePlayer player, ref BasePlayer __instance, out bool __result)
 		{
 			var obj = Interface.CallHook("CanLootPlayer", __instance, player);
 

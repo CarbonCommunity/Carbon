@@ -16,7 +16,7 @@ namespace Carbon.Core.Hooks.Oxide.Item
 	[OxideHook.Patch(typeof(Deployer), "DoDeploy_Regular")]
 	public class Deployer_OnItemDeployed
 	{
-		public static bool Prefix (Deployable deployable, Ray ray, ref Deployer __instance)
+		public static bool Prefix(Deployable deployable, Ray ray, ref Deployer __instance)
 		{
 			if (!__instance.HasItemAmount())
 			{
@@ -89,7 +89,7 @@ namespace Carbon.Core.Hooks.Oxide.Item
 	[OxideHook.Patch(typeof(Deployer), "DoDeploy_Slot")]
 	public class Deployer_DoDeploy_Slot
 	{
-		public static bool Prefix (Deployable deployable, Ray ray, uint entityID, ref Deployer __instance)
+		public static bool Prefix(Deployable deployable, Ray ray, uint entityID, ref Deployer __instance)
 		{
 			if (!__instance.HasItemAmount())
 			{

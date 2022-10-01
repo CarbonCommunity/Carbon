@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(Item), "CanStack")]
 	public class PlayerInventory_MoveItem
 	{
-		public static bool Prefix (Item item, ref Item __instance)
+		public static bool Prefix(Item item, ref Item __instance)
 		{
 			return HookExecutor.CallStaticHook("CanStackItem", __instance, item) == null;
 		}

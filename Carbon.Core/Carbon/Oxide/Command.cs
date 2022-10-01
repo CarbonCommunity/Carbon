@@ -14,7 +14,7 @@ using Pool = Facepunch.Pool;
 
 public class Command
 {
-	public void AddChatCommand (string command, BaseHookable plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null)
+	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null)
 	{
 		if (CarbonCore.Instance.AllChatCommands.Count(x => x.Command == command) == 0)
 		{
@@ -33,12 +33,12 @@ public class Command
 		}
 		else CarbonCore.WarnFormat($"Chat command '{command}' already exists.");
 	}
-	public void AddChatCommand (string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
+	public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
 	{
 		AddChatCommand(command, plugin, (player, cmd, args) =>
 		{
 			var argData = Pool.GetList<object>();
-			var result = (object [])null;
+			var result = (object[])null;
 			try
 			{
 				var m = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic);
@@ -77,7 +77,7 @@ public class Command
 			if (result != null) Pool.Free(ref result);
 		}, skipOriginal, help);
 	}
-	public void AddConsoleCommand (string command, BaseHookable plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null)
 	{
 		if (CarbonCore.Instance.AllConsoleCommands.Count(x => x.Command == command) == 0)
 		{
@@ -92,17 +92,17 @@ public class Command
 		}
 		else CarbonCore.WarnFormat($"Console command '{command}' already exists.");
 	}
-	public void AddConsoleCommand (string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
 	{
 		AddConsoleCommand(command, plugin, (player, cmd, args) =>
 		{
 			var arguments = Pool.GetList<object>();
-			var result = (object [])null;
+			var result = (object[])null;
 
 			try
 			{
 				var fullString = args == null || args.Length == 0 ? cmd : $"{cmd} {string.Join(" ", args)}";
-				var value = new object [] { fullString };
+				var value = new object[] { fullString };
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
@@ -137,17 +137,17 @@ public class Command
 			if (result != null) Pool.Free(ref result);
 		}, skipOriginal, help);
 	}
-	public void AddConsoleCommand (string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null)
 	{
 		AddConsoleCommand(command, plugin, (player, cmd, args) =>
 		{
 			var arguments = Pool.GetList<object>();
-			var result = (object [])null;
+			var result = (object[])null;
 
 			try
 			{
 				var fullString = args == null || args.Length == 0 ? cmd : $"{cmd} {string.Join(" ", args)}";
-				var value = new object [] { fullString };
+				var value = new object[] { fullString };
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
@@ -167,12 +167,12 @@ public class Command
 			if (result != null) Pool.Free(ref result);
 		}, skipOriginal, help);
 	}
-	public void AddCovalenceCommand (string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
 	{
 		AddChatCommand(command, plugin, method, skipOriginal, help);
 		AddConsoleCommand(command, plugin, method, skipOriginal, help);
 	}
-	public void AddCovalenceCommand (string command, BaseHookable plugin, Action<BasePlayer, string, string []> callback, bool skipOriginal = true, string help = null)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null)
 	{
 		AddChatCommand(command, plugin, callback, skipOriginal, help);
 		AddConsoleCommand(command, plugin, callback, skipOriginal, help);

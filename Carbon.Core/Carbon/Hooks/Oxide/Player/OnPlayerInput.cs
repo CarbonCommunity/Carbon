@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "OnReceiveTick")]
 	public class BasePlayer_OnReceiveTick_OnPlayerInput
 	{
-		public static bool Prefix (PlayerTick msg, bool wasPlayerStalled, ref BasePlayer __instance)
+		public static bool Prefix(PlayerTick msg, bool wasPlayerStalled, ref BasePlayer __instance)
 		{
 			var onTick = HookExecutor.CallStaticHook("OnPlayerTick", __instance, msg, wasPlayerStalled);
 			var onInput = HookExecutor.CallStaticHook("OnPlayerInput", __instance, __instance.serverInput);
@@ -31,7 +31,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BasePlayer), "OnReceiveTick")]
 	public class BasePlayer_OnReceiveTick_OnPlayerTick
 	{
-		public static void Prefix (PlayerTick msg, bool wasPlayerStalled)
+		public static void Prefix(PlayerTick msg, bool wasPlayerStalled)
 		{
 		}
 	}

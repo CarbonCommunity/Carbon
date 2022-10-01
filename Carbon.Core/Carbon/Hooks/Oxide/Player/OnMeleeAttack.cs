@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseMelee), "PlayerAttack")]
 	public class BaseMelee_PlayerAttack
 	{
-		public static bool Prefix (BaseEntity.RPCMessage msg, ref BaseMelee __instance)
+		public static bool Prefix(BaseEntity.RPCMessage msg, ref BaseMelee __instance)
 		{
 			try
 			{

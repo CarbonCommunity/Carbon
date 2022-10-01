@@ -13,7 +13,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseNetworkable), "Kill")]
 	public class BaseNetworkable_Kill
 	{
-		public static bool Prefix (BaseNetworkable.DestroyMode mode, ref BaseNetworkable __instance)
+		public static bool Prefix(BaseNetworkable.DestroyMode mode, ref BaseNetworkable __instance)
 		{
 			if (__instance.IsDestroyed)
 			{

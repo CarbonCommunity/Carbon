@@ -14,7 +14,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(DroppedItem), "OnDroppedOn")]
 	public class DroppedItem_OnDroppedOn
 	{
-		public static bool Prefix (DroppedItem di, ref DroppedItem __instance)
+		public static bool Prefix(DroppedItem di, ref DroppedItem __instance)
 		{
 			if (__instance.item == null || di.item == null)
 			{

@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(MedicalTool), "GiveEffectsTo")]
 	public class MedicalTool_GiveEffectsTo
 	{
-		public static bool Prefix (BasePlayer player, ref MedicalTool __instance)
+		public static bool Prefix(BasePlayer player, ref MedicalTool __instance)
 		{
 			if (player == null) return true;
 
@@ -44,7 +44,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(MedicalTool), "GiveEffectsTo")]
 	public class MedicalTool_GiveEffectsTo_OnHealingItemUse
 	{
-		public static bool Prefix (BasePlayer player, ref MedicalTool __instance)
+		public static bool Prefix(BasePlayer player, ref MedicalTool __instance)
 		{
 			if (player == null) return true;
 

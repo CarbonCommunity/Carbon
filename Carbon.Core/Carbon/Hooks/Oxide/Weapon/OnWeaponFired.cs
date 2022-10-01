@@ -16,7 +16,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseProjectile), "CLProject")]
 	public class BaseProjectile_CLProject
 	{
-		public static void Prefix (BaseEntity.RPCMessage msg, ref BaseProjectile __instance)
+		public static void Prefix(BaseEntity.RPCMessage msg, ref BaseProjectile __instance)
 		{
 			HookExecutor.CallStaticHook("OnWeaponFired", __instance, msg.player, __instance.PrimaryMagazineAmmo.GetComponent<ItemModProjectile>(), null);
 		}

@@ -14,14 +14,14 @@ namespace Oxide.Core.Configuration
 		[JsonIgnore]
 		public string Filename { get; private set; }
 
-		protected ConfigFile (string filename)
+		protected ConfigFile(string filename)
 		{
 			Filename = filename;
 		}
 
-		public static T Load<T> (string filename) where T : ConfigFile
+		public static T Load<T>(string filename) where T : ConfigFile
 		{
-			T t = (T)((object)Activator.CreateInstance(typeof(T), new object []
+			T t = (T)((object)Activator.CreateInstance(typeof(T), new object[]
 			{
 				filename
 			}));
@@ -29,12 +29,12 @@ namespace Oxide.Core.Configuration
 			return t;
 		}
 
-		public virtual void Load (string filename = null)
+		public virtual void Load(string filename = null)
 		{
 			JsonConvert.PopulateObject(File.ReadAllText(filename ?? this.Filename), this);
 		}
 
-		public virtual void Save (string filename = null)
+		public virtual void Save(string filename = null)
 		{
 			string contents = JsonConvert.SerializeObject(this, Formatting.Indented);
 			File.WriteAllText(filename ?? this.Filename, contents);

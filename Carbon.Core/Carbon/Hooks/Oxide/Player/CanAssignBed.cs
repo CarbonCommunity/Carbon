@@ -15,7 +15,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(SleepingBag), "AssignToFriend")]
 	public class SleepingBag_CanAffordUpgrade
 	{
-		public static bool Prefix (BaseEntity.RPCMessage msg, ref SleepingBag __instance)
+		public static bool Prefix(BaseEntity.RPCMessage msg, ref SleepingBag __instance)
 		{
 			if (!msg.player.CanInteract())
 			{

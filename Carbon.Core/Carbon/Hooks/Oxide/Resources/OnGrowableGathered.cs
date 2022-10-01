@@ -16,7 +16,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(GrowableEntity), "GiveFruit")]
 	public class GrowableEntity_GiveFruit
 	{
-		public static bool Prefix (BasePlayer player, int amount, bool applyCondition, ref GrowableEntity __instance)
+		public static bool Prefix(BasePlayer player, int amount, bool applyCondition, ref GrowableEntity __instance)
 		{
 			var item = ItemManager.Create(__instance.Properties.pickupItem, amount, 0UL);
 

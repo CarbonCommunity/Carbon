@@ -16,12 +16,12 @@ namespace Oxide.Game.Rust.Cui
 {
 	public class ComponentConverter : JsonConverter
 	{
-		public override void WriteJson (JsonWriter writer, object value, JsonSerializer serializer) { }
+		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) { }
 
-		public override object ReadJson (JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			var jObject = JObject.Load(reader);
-			var typeName = jObject [ "type" ].ToString();
+			var typeName = jObject["type"].ToString();
 			var type = (Type)null;
 
 			switch (typeName)
@@ -75,7 +75,7 @@ namespace Oxide.Game.Rust.Cui
 			return target;
 		}
 
-		public override bool CanConvert (Type objectType) => objectType == typeof(ICuiComponent);
+		public override bool CanConvert(Type objectType) => objectType == typeof(ICuiComponent);
 
 		public override bool CanWrite => false;
 	}
@@ -118,7 +118,7 @@ namespace Oxide.Game.Rust.Cui
 	}
 	public class CuiElementContainer : List<CuiElement>
 	{
-		public string Add (CuiButton button, string parent = "Hud", string name = null)
+		public string Add(CuiButton button, string parent = "Hud", string name = null)
 		{
 			if (string.IsNullOrEmpty(name))
 			{
@@ -151,7 +151,7 @@ namespace Oxide.Game.Rust.Cui
 			return name;
 		}
 
-		public string Add (CuiLabel label, string parent = "Hud", string name = null)
+		public string Add(CuiLabel label, string parent = "Hud", string name = null)
 		{
 			if (string.IsNullOrEmpty(name))
 			{
@@ -171,7 +171,7 @@ namespace Oxide.Game.Rust.Cui
 			return name;
 		}
 
-		public string Add (CuiPanel panel, string parent = "Hud", string name = null)
+		public string Add(CuiPanel panel, string parent = "Hud", string name = null)
 		{
 			if (string.IsNullOrEmpty(name))
 			{
@@ -200,12 +200,12 @@ namespace Oxide.Game.Rust.Cui
 			return name;
 		}
 
-		public string ToJson ()
+		public string ToJson()
 		{
 			return this.ToString();
 		}
 
-		public override string ToString ()
+		public override string ToString()
 		{
 			return CuiHelper.ToJson(this, false);
 		}

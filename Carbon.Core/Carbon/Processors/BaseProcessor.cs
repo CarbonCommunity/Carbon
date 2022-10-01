@@ -28,7 +28,7 @@ namespace Carbon.Core.Processors
 
 		public bool IsInitialized { get; set; }
 
-		public virtual void Start ()
+		public virtual void Start()
 		{
 			if (IsInitialized) return;
 
@@ -60,18 +60,18 @@ namespace Carbon.Core.Processors
 
 			CarbonCore.Log($" Initialized {IndexedType?.Name} processor...");
 		}
-		public virtual void OnDestroy ()
+		public virtual void OnDestroy()
 		{
 			IsInitialized = false;
 
 			CarbonCore.Log($"{IndexedType?.Name} processor has been unloaded.");
 		}
-		public virtual void Dispose ()
+		public virtual void Dispose()
 		{
 			Clear();
 		}
 
-		public virtual IEnumerator Run ()
+		public virtual IEnumerator Run()
 		{
 			var _tempBuffer = new Dictionary<string, Instance>();
 
@@ -95,7 +95,7 @@ namespace Carbon.Core.Processors
 						instance.File = Path.Combine(CarbonCore.GetPluginsFolder(), $"{element.Key}{Extension}");
 						instance.Execute();
 
-						InstanceBuffer [ element.Key ] = instance;
+						InstanceBuffer[element.Key] = instance;
 						continue;
 					}
 
@@ -119,7 +119,7 @@ namespace Carbon.Core.Processors
 			}
 		}
 
-		public virtual void Prepare (string file)
+		public virtual void Prepare(string file)
 		{
 			if (file.StartsWith("http"))
 			{
@@ -128,7 +128,7 @@ namespace Carbon.Core.Processors
 			}
 			else Prepare(Path.GetFileNameWithoutExtension(file), file);
 		}
-		public virtual void Prepare (string id, string file)
+		public virtual void Prepare(string id, string file)
 		{
 			if (IgnoreList.Contains(file)) return;
 
@@ -142,14 +142,14 @@ namespace Carbon.Core.Processors
 			instance.File = file;
 			instance.Execute();
 		}
-		public virtual void Remove (string id)
+		public virtual void Remove(string id)
 		{
-			var existent = !InstanceBuffer.ContainsKey(id) ? null : InstanceBuffer [ id ];
+			var existent = !InstanceBuffer.ContainsKey(id) ? null : InstanceBuffer[id];
 			existent?.Dispose();
 
 			if (InstanceBuffer.ContainsKey(id)) InstanceBuffer.Remove(id);
 		}
-		public virtual void Clear ()
+		public virtual void Clear()
 		{
 			foreach (var item in InstanceBuffer)
 			{
@@ -162,22 +162,22 @@ namespace Carbon.Core.Processors
 
 			InstanceBuffer.Clear();
 		}
-		public virtual void Ignore (string file)
+		public virtual void Ignore(string file)
 		{
 			if (!IgnoreList.Contains(file)) IgnoreList.Add(file);
 		}
-		public virtual void ClearIgnore (string file)
+		public virtual void ClearIgnore(string file)
 		{
 			IgnoreList.RemoveAll(x => x == file);
 		}
 
-		public virtual void Clear (string id, Instance instance)
+		public virtual void Clear(string id, Instance instance)
 		{
 			instance?.Dispose();
 			Pool.Free(ref instance);
 			Remove(id);
 		}
-		public virtual void Process (string id, Instance instance)
+		public virtual void Process(string id, Instance instance)
 		{
 			var file = instance.File;
 
@@ -185,20 +185,20 @@ namespace Carbon.Core.Processors
 			Prepare(id, file);
 		}
 
-		internal void _onCreated (object sender, FileSystemEventArgs e)
+		internal void _onCreated(object sender, FileSystemEventArgs e)
 		{
 			InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
 		}
-		internal void _onChanged (object sender, FileSystemEventArgs e)
+		internal void _onChanged(object sender, FileSystemEventArgs e)
 		{
 			if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.SetDirty();
 		}
-		internal void _onRenamed (object sender, RenamedEventArgs e)
+		internal void _onRenamed(object sender, RenamedEventArgs e)
 		{
 			if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.OldName), out var mod)) mod.MarkDeleted();
 			InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
 		}
-		internal void _onRemoved (object sender, FileSystemEventArgs e)
+		internal void _onRemoved(object sender, FileSystemEventArgs e)
 		{
 			if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.MarkDeleted();
 		}
@@ -212,24 +212,24 @@ namespace Carbon.Core.Processors
 			internal bool _hasChanged;
 			internal bool _hasRemoved;
 
-			public virtual void Dispose () { }
-			public virtual void Execute () { }
+			public virtual void Dispose() { }
+			public virtual void Execute() { }
 
 			public bool IsDirty => _hasChanged;
 			public bool IsRemoved => _hasRemoved;
 
-			public void SetDirty ()
+			public void SetDirty()
 			{
 				_hasChanged = true;
 			}
-			public void MarkDeleted ()
+			public void MarkDeleted()
 			{
 				_hasRemoved = true;
 			}
 		}
 		public class Parser
 		{
-			public virtual void Process (string input, out string output)
+			public virtual void Process(string input, out string output)
 			{
 				output = null;
 			}

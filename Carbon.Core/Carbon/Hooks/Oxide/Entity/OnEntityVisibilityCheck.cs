@@ -17,7 +17,7 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(BaseEntity.RPC_Server.IsVisible), "Test", typeof(uint), typeof(string), typeof(BaseEntity), typeof(BasePlayer), typeof(float))]
 	public class BaseEntity_IsVisible_Test
 	{
-		public static bool Prefix (uint id, string debugName, BaseEntity ent, BasePlayer player, float maximumDistance, ref bool __result)
+		public static bool Prefix(uint id, string debugName, BaseEntity ent, BasePlayer player, float maximumDistance, ref bool __result)
 		{
 			if (ent == null || player == null)
 			{

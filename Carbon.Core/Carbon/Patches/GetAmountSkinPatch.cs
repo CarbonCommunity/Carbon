@@ -8,7 +8,7 @@ using Harmony;
 [HarmonyPatch(typeof(ItemContainer), "GetAmount")]
 public class ItemContainer_GetAmount
 {
-	public static bool Prefix (int itemid, bool onlyUsableAmounts, out int __result, ref ItemContainer __instance)
+	public static bool Prefix(int itemid, bool onlyUsableAmounts, out int __result, ref ItemContainer __instance)
 	{
 		var num = 0;
 		foreach (var item in __instance.itemList)

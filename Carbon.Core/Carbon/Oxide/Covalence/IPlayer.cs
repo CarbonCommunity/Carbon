@@ -22,28 +22,28 @@ namespace Oxide.Core.Libraries.Covalence
 		bool IsServer { get; }
 		bool IsAdmin { get; }
 		bool IsBanned { get; }
-		void Ban (string reason, TimeSpan duration = default(TimeSpan));
+		void Ban(string reason, TimeSpan duration = default(TimeSpan));
 		TimeSpan BanTimeRemaining { get; }
-		void Heal (float amount);
+		void Heal(float amount);
 		float Health { get; set; }
-		void Hurt (float amount);
-		void Kick (string reason);
-		void Kill ();
+		void Hurt(float amount);
+		void Kick(string reason);
+		void Kill();
 		float MaxHealth { get; set; }
-		void Rename (string name);
-		void Teleport (float x, float y, float z);
-		void Unban ();
-		void Position (out float x, out float y, out float z);
-		void Message (string message, string prefix, params object [] args);
-		void Message (string message);
-		void Reply (string message, string prefix, params object [] args);
-		void Reply (string message);
-		void Command (string command, params object [] args);
-		bool HasPermission (string perm);
-		void GrantPermission (string perm);
-		void RevokePermission (string perm);
-		bool BelongsToGroup (string group);
-		void AddToGroup (string group);
-		void RemoveFromGroup (string group);
+		void Rename(string name);
+		void Teleport(float x, float y, float z);
+		void Unban();
+		void Position(out float x, out float y, out float z);
+		void Message(string message, string prefix, params object[] args);
+		void Message(string message);
+		void Reply(string message, string prefix, params object[] args);
+		void Reply(string message);
+		void Command(string command, params object[] args);
+		bool HasPermission(string perm);
+		void GrantPermission(string perm);
+		void RevokePermission(string perm);
+		bool BelongsToGroup(string group);
+		void AddToGroup(string group);
+		void RemoveFromGroup(string group);
 	}
 }

@@ -14,16 +14,16 @@ namespace Oxide.Game.Rust.Libraries
 	{
 		internal static readonly string ipPattern = ":{1}[0-9]{1}\\d*";
 
-		public CultureInfo Language (BasePlayer player)
+		public CultureInfo Language(BasePlayer player)
 		{
 			return CultureInfo.GetCultureInfo(player.net.connection.info.GetString("global.language") ?? "en");
 		}
 
-		public string Address (Connection connection)
+		public string Address(Connection connection)
 		{
 			return Regex.Replace(connection.ipaddress, ipPattern, "");
 		}
-		public string Address (BasePlayer player)
+		public string Address(BasePlayer player)
 		{
 			if (player?.net?.connection == null)
 			{
@@ -33,16 +33,16 @@ namespace Oxide.Game.Rust.Libraries
 			return Address(player.net.connection);
 		}
 
-		public int Ping (Connection connection)
+		public int Ping(Connection connection)
 		{
 			return Net.sv.GetAveragePing(connection);
 		}
-		public int Ping (BasePlayer player)
+		public int Ping(BasePlayer player)
 		{
 			return Ping(player.net.connection);
 		}
 
-		public void Message (BasePlayer player, string message, string prefix, ulong userId = 0uL, params object [] args)
+		public void Message(BasePlayer player, string message, string prefix, ulong userId = 0uL, params object[] args)
 		{
 			if (!string.IsNullOrEmpty(message))
 			{
@@ -51,11 +51,11 @@ namespace Oxide.Game.Rust.Libraries
 				player.SendConsoleCommand("chat.add", 2, userId, text);
 			}
 		}
-		public void Message (BasePlayer player, string message, ulong userId = 0uL)
+		public void Message(BasePlayer player, string message, ulong userId = 0uL)
 		{
 			Message(player, message, null, userId);
 		}
-		public void Command (BasePlayer player, string command, params object [] args)
+		public void Command(BasePlayer player, string command, params object[] args)
 		{
 			player.SendConsoleCommand(command, args);
 		}

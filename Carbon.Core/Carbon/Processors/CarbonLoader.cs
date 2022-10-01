@@ -21,13 +21,13 @@ namespace Carbon.Core
 		public static List<Assembly> AssemblyCache { get; } = new List<Assembly>();
 		public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new Dictionary<string, Assembly>();
 
-		public static void AppendAssembly (string key, Assembly assembly)
+		public static void AppendAssembly(string key, Assembly assembly)
 		{
 			if (!AssemblyDictionaryCache.ContainsKey(key)) AssemblyDictionaryCache.Add(key, assembly);
-			else AssemblyDictionaryCache [ key ] = assembly;
+			else AssemblyDictionaryCache[key] = assembly;
 		}
 
-		public static void LoadCarbonMods ()
+		public static void LoadCarbonMods()
 		{
 			try
 			{
@@ -86,7 +86,7 @@ namespace Carbon.Core
 				FileLog.FlushBuffer();
 			}
 		}
-		public static void UnloadCarbonMods ()
+		public static void UnloadCarbonMods()
 		{
 			var list = Facepunch.Pool.GetList<CarbonMod>();
 			list.AddRange(_loadedMods);
@@ -100,7 +100,7 @@ namespace Carbon.Core
 
 			Facepunch.Pool.FreeList(ref list);
 		}
-		public static bool LoadCarbonMod (string name, bool silent = false)
+		public static bool LoadCarbonMod(string name, bool silent = false)
 		{
 			var fileName = Path.GetFileName(name);
 
@@ -109,17 +109,9 @@ namespace Carbon.Core
 				fileName = fileName.Substring(0, fileName.Length - 4);
 			}
 
-			var temp = GetTempModPath(fileName);
-			fileName = Path.GetFileName(temp);
-
-			if (fileName.EndsWith(".dll"))
-			{
-				fileName = fileName.Substring(0, fileName.Length - 4);
-			}
-
 			UnloadCarbonMod(fileName, silent);
 
-			var fullPath = temp;
+			var fullPath = name;
 			var domain = "com.rust.carbon." + fileName;
 
 			try
@@ -135,7 +127,7 @@ namespace Carbon.Core
 					Assembly = assembly,
 					AllTypes = assembly.GetTypes(),
 					Name = fileName,
-					File = temp
+					File = name
 				};
 
 				foreach (var type in mod.AllTypes)
@@ -202,7 +194,7 @@ namespace Carbon.Core
 			}
 			return true;
 		}
-		public static bool UnloadCarbonMod (string name, bool silent = false)
+		public static bool UnloadCarbonMod(string name, bool silent = false)
 		{
 			var mod = GetMod(name);
 			if (mod == null)
@@ -234,15 +226,7 @@ namespace Carbon.Core
 
 		#region Carbon
 
-		public static string GetTempModPath (string name)
-		{
-			var temp = Path.Combine(CarbonCore.GetTempFolder(), $"{name}_{Guid.NewGuid()}.dll");
-			OsEx.File.Copy(Path.Combine(CarbonCore.GetPluginsFolder(), $"{name}.dll"), temp, true);
-
-			return temp;
-		}
-
-		public static void InitializePlugins (CarbonMod mod)
+		public static void InitializePlugins(CarbonMod mod)
 		{
 			mod.IsAddon = CarbonCore.IsAddon(mod.Name);
 
@@ -311,7 +295,7 @@ namespace Carbon.Core
 				catch (Exception ex) { CarbonCore.Error($"Failed loading '{mod.Name}'", ex); }
 			}
 		}
-		public static void UninitializePlugins (CarbonMod mod)
+		public static void UninitializePlugins(CarbonMod mod)
 		{
 			foreach (var plugin in mod.Plugins)
 			{
@@ -328,14 +312,14 @@ namespace Carbon.Core
 			}
 		}
 
-		public static bool IsValidPlugin (Type type)
+		public static bool IsValidPlugin(Type type)
 		{
 			if (type == null) return false;
 			if (type.Name == "RustPlugin" || type.Name == "CarbonPlugin") return true;
 			return IsValidPlugin(type.BaseType);
 		}
 
-		public static void ProcessCommands (Type type, RustPlugin plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)
+		public static void ProcessCommands(Type type, RustPlugin plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)
 		{
 			var methods = type.GetMethods(flags);
 			var fields = type.GetFields(flags | BindingFlags.Public);
@@ -477,7 +461,7 @@ namespace Carbon.Core
 			Facepunch.Pool.Free(ref fields);
 			Facepunch.Pool.Free(ref properties);
 		}
-		public static void RemoveCommands (RustPlugin plugin)
+		public static void RemoveCommands(RustPlugin plugin)
 		{
 			CarbonCore.Instance.AllChatCommands.RemoveAll(x => x.Plugin == plugin);
 			CarbonCore.Instance.AllConsoleCommands.RemoveAll(x => x.Plugin == plugin);
@@ -485,7 +469,7 @@ namespace Carbon.Core
 
 		#endregion
 
-		internal static void UnloadMod (CarbonMod mod)
+		internal static void UnloadMod(CarbonMod mod)
 		{
 			if (mod.IsCoreMod) return;
 
@@ -494,13 +478,11 @@ namespace Carbon.Core
 				Log(mod.Name, "Unpatching hooks...");
 				mod.Harmony.UnpatchAll(mod.Harmony.Id);
 				Log(mod.Name, "Unloaded mod");
-
-				OsEx.File.Delete(mod.File);
 			}
 
 			_loadedMods.Remove(mod);
 		}
-		internal static CarbonMod GetMod (string name)
+		internal static CarbonMod GetMod(string name)
 		{
 			foreach (var mod in _loadedMods)
 			{
@@ -509,7 +491,7 @@ namespace Carbon.Core
 
 			return null;
 		}
-		internal static Assembly LoadAssembly (string assemblyPath)
+		internal static Assembly LoadAssembly(string assemblyPath)
 		{
 			if (!File.Exists(assemblyPath))
 			{
@@ -527,12 +509,12 @@ namespace Carbon.Core
 
 			return Assembly.Load(rawAssembly);
 		}
-		internal static bool IsKnownDependency (string assemblyName)
+		internal static bool IsKnownDependency(string assemblyName)
 		{
 			return assemblyName.StartsWith("System.", StringComparison.InvariantCultureIgnoreCase) || assemblyName.StartsWith("Microsoft.", StringComparison.InvariantCultureIgnoreCase) || assemblyName.StartsWith("Newtonsoft.", StringComparison.InvariantCultureIgnoreCase) || assemblyName.StartsWith("UnityEngine.", StringComparison.InvariantCultureIgnoreCase);
 		}
 
-		internal static void ReportException (string harmonyId, Exception e)
+		internal static void ReportException(string harmonyId, Exception e)
 		{
 			LogError(harmonyId, e);
 			ReflectionTypeLoadException ex;
@@ -550,15 +532,15 @@ namespace Carbon.Core
 				ReportException(harmonyId, e.InnerException);
 			}
 		}
-		internal static void Log (string harmonyId, object message)
+		internal static void Log(string harmonyId, object message)
 		{
 			CarbonCore.Format($"[{harmonyId}] {message}");
 		}
-		internal static void LogError (string harmonyId, object message)
+		internal static void LogError(string harmonyId, object message)
 		{
 			CarbonCore.ErrorFormat($"[{harmonyId}] {message}");
 		}
-		internal static void LogError (object message)
+		internal static void LogError(object message)
 		{
 			CarbonCore.Error(message);
 		}
@@ -580,7 +562,7 @@ namespace Carbon.Core
 			public bool IsAddon { get; set; } = false;
 			public HarmonyInstance Harmony { get; set; }
 			public Assembly Assembly { get; set; }
-			public Type [] AllTypes { get; set; }
+			public Type[] AllTypes { get; set; }
 			public List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks>();
 
 			[JsonProperty]

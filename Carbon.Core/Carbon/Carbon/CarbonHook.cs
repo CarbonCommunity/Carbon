@@ -11,13 +11,13 @@ public class Hook : Attribute
 	public string Name { get; set; }
 	public Type ReturnType { get; set; }
 
-	public Hook () { }
-	public Hook (string name)
+	public Hook() { }
+	public Hook(string name)
 	{
 		Name = name;
 		ReturnType = typeof(void);
 	}
-	public Hook (string name, Type returnType = null)
+	public Hook(string name, Type returnType = null)
 	{
 		Name = name;
 		ReturnType = returnType ?? typeof(void);
@@ -28,20 +28,20 @@ public class Hook : Attribute
 	{
 		public Type Type { get; set; }
 		public string Method { get; set; }
-		public Type [] Parameters { get; set; }
+		public Type[] Parameters { get; set; }
 		public bool UseProvidedParameters { get; set; } = false;
 
-		public Patch () { }
-		public Patch (Type type, string method)
+		public Patch() { }
+		public Patch(Type type, string method)
 		{
 			Type = type;
 			Method = method;
 		}
-		public Patch (Type type, string method, params Type [] parameters) : this(type, method)
+		public Patch(Type type, string method, params Type[] parameters) : this(type, method)
 		{
 			Parameters = parameters;
 		}
-		public Patch (Type type, string method, bool useProvidedParameters, params Type [] parameters) : this(type, method, parameters)
+		public Patch(Type type, string method, bool useProvidedParameters, params Type[] parameters) : this(type, method, parameters)
 		{
 			UseProvidedParameters = useProvidedParameters;
 		}
@@ -52,8 +52,8 @@ public class Hook : Attribute
 	{
 		public string Hook { get; set; }
 
-		public Require () { }
-		public Require (string hook)
+		public Require() { }
+		public Require(string hook)
 		{
 			Hook = hook;
 		}
@@ -64,7 +64,7 @@ public class Hook : Attribute
 	{
 		public string Value { get; set; }
 
-		public Info (string value)
+		public Info(string value)
 		{
 			Value = value;
 		}
@@ -76,8 +76,8 @@ public class Hook : Attribute
 		public string Name { get; set; }
 		public Type Type { get; set; }
 
-		public Parameter () { }
-		public Parameter (string name, Type type = null)
+		public Parameter() { }
+		public Parameter(string name, Type type = null)
 		{
 			Name = name;
 			Type = type ?? typeof(object);
@@ -107,7 +107,7 @@ public class Hook : Attribute
 			Elevator
 		}
 
-		public Category (Enum @enum)
+		public Category(Enum @enum)
 		{
 			Value = @enum;
 		}
@@ -117,15 +117,15 @@ public class Hook : Attribute
 [AttributeUsage(AttributeTargets.Class)]
 public class OxideHook : Hook
 {
-	public OxideHook () { }
-	public OxideHook (string name) : base(name) { }
-	public OxideHook (string name, Type returnType = null) : base(name, returnType) { }
+	public OxideHook() { }
+	public OxideHook(string name) : base(name) { }
+	public OxideHook(string name, Type returnType = null) : base(name, returnType) { }
 }
 
 [AttributeUsage(AttributeTargets.Class)]
 public class CarbonHook : Hook
 {
-	public CarbonHook () { }
-	public CarbonHook (string name) : base(name) { }
-	public CarbonHook (string name, Type returnType = null) : base(name, returnType) { }
+	public CarbonHook() { }
+	public CarbonHook(string name) : base(name) { }
+	public CarbonHook(string name, Type returnType = null) : base(name, returnType) { }
 }

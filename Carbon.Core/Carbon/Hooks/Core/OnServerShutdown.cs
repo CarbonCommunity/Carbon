@@ -12,7 +12,7 @@ public class OnServerShutdown
 {
 	internal static TimeSince _call;
 
-	public static void Prefix ()
+	public static void Prefix()
 	{
 		if (_call <= 0.5f) return;
 

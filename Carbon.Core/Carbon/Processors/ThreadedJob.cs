@@ -10,71 +10,7 @@ using System.Threading.Tasks;
 
 namespace Carbon.Core
 {
-	public class ThreadedJob_RaulsVersion : IDisposable
-	{
-		internal bool _isDone = false;
-		internal object _handle = new object();
-		internal System.Threading.Thread _thread = null;
-
-		public bool IsDone
-		{
-			get
-			{
-				bool temp;
-				lock (_handle)
-				{
-					temp = _isDone;
-				}
-				return temp;
-			}
-			set
-			{
-				lock (_handle)
-				{
-					_isDone = value;
-				}
-			}
-		}
-
-		public virtual void Start ()
-		{
-			_thread = new System.Threading.Thread(Run) { Priority = System.Threading.ThreadPriority.AboveNormal };
-			_thread.Start();
-		}
-		public virtual void Abort ()
-		{
-			_thread.Abort();
-		}
-
-		public virtual void ThreadFunction () { }
-		public virtual void OnFinished () { }
-
-		public virtual bool Update ()
-		{
-			if (IsDone)
-			{
-				OnFinished();
-				return true;
-			}
-			return false;
-		}
-		public IEnumerator WaitFor ()
-		{
-			while (!Update())
-			{
-				yield return null;
-			}
-		}
-		private void Run ()
-		{
-			ThreadFunction();
-			IsDone = true;
-		}
-
-		public virtual void Dispose () { }
-	}
-
-	public class ThreadedJob_JakesVersion : IDisposable
+	public class ThreadedJob : IDisposable
 	{
 		internal bool _isDone = false;
 		internal object _handle = new object();
@@ -101,20 +37,20 @@ namespace Carbon.Core
 			}
 		}
 
-		public virtual void Start ()
+		public virtual void Start()
 		{
 			cancellationToken = new CancellationTokenSource();
 			_task = Task.Factory.StartNew(Run, cancellationToken.Token);
 		}
-		public virtual void Abort ()
+		public virtual void Abort()
 		{
 			if (cancellationToken != null) cancellationToken.Cancel();
 		}
 
-		public virtual void ThreadFunction () { }
-		public virtual void OnFinished () { }
+		public virtual void ThreadFunction() { }
+		public virtual void OnFinished() { }
 
-		public virtual bool Update ()
+		public virtual bool Update()
 		{
 			if (IsDone)
 			{
@@ -123,19 +59,19 @@ namespace Carbon.Core
 			}
 			return false;
 		}
-		public IEnumerator WaitFor ()
+		public IEnumerator WaitFor()
 		{
 			while (!Update())
 			{
 				yield return null;
 			}
 		}
-		private void Run ()
+		private void Run()
 		{
 			ThreadFunction();
 			IsDone = true;
 		}
 
-		public virtual void Dispose () { }
+		public virtual void Dispose() { }
 	}
 }
