@@ -93,6 +93,7 @@ public class Hook : Attribute
         {
             General,
             Entity,
+            Firework,
             Item,
             Player,
             Structure,
