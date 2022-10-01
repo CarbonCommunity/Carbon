@@ -53,24 +53,16 @@ namespace Carbon.Core
 
 				AppDomain.CurrentDomain.AssemblyResolve += delegate (object sender, ResolveEventArgs args)
 				{
-					Debug.Log($"Resolving assembly ref: {args.Name}");
+					if (!Regex.IsMatch(args.Name, @"^(Microsoft|System)\."))
+						Debug.Log($"Resolving assembly ref: {args.Name}");
 
 					AssemblyName assemblyName = new AssemblyName(args.Name);
 					string assemblyPath = Path.GetFullPath(
 						Path.Combine(_modPath, assemblyName.Name, ".dll"));
 
 					// This allows plugins to use Carbon.xxx
-					if (Regex.Match(assemblyName.Name, @"^([Cc]arbon(-.+)?)$").Success)
-					{
-						string[] carbonDLL = { "Carbon.dll", "Carbon-Unix.dll" };
-
-						foreach (string dll in carbonDLL)
-						{
-							assemblyPath = Path.GetFullPath(
-								Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods", dll));
-							if (File.Exists(assemblyPath)) break;
-						}
-					}
+					if (Regex.IsMatch(assemblyName.Name, @"^([Cc]arbon(-.+)?)$"))
+						assemblyPath = CarbonCore.DllPath;
 
 					if (File.Exists(assemblyPath))
 						return LoadAssembly(assemblyPath);
@@ -302,8 +294,8 @@ namespace Carbon.Core
 					plugin.CallHook("SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description);
 					HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
 					plugin.IInit();
-                    plugin.DoLoadConfig ();
-                    plugin.Load();
+					plugin.DoLoadConfig();
+					plugin.Load();
 
 					if (CarbonCore.IsServerFullyInitialized)
 					{
@@ -326,8 +318,8 @@ namespace Carbon.Core
 				try
 				{
 					HookExecutor.CallStaticHook("OnPluginUnloaded", plugin);
-                    plugin.CallHook ( "Unload" );
-                    plugin.IUnload();
+					plugin.CallHook("Unload");
+					plugin.IUnload();
 					RemoveCommands(plugin);
 					plugin.Dispose();
 					CarbonCore.Log($"Unloaded plugin {plugin.ToString()}");
