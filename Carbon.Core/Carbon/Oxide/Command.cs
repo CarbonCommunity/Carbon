@@ -41,7 +41,7 @@ public class Command
 			var result = (object[])null;
 			try
 			{
-				var m = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic);
+				var m = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 				switch (m.GetParameters().Length)
 				{
 					case 1:
@@ -114,7 +114,7 @@ public class Command
 
 				try
 				{
-					var methodInfo = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic);
+					var methodInfo = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 					var parameters = methodInfo.GetParameters();
 
 					if (parameters.Length > 0)

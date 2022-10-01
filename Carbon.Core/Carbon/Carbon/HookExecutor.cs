@@ -1,4 +1,4 @@
-///
+﻿///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
@@ -86,7 +86,7 @@ namespace Carbon.Core
 		private static object CallHook<T>(this T plugin, string hookName, BindingFlags flags, object[] args) where T : BaseHookable
 		{
 			if (plugin.IsHookIgnored(hookName)) return null;
-			
+
 			var id = $"{hookName}[{(args == null ? 0 : args.Length)}]";
 			var result = (object)null;
 
@@ -149,7 +149,6 @@ namespace Carbon.Core
 
 			return result;
 		}
-
 		private static object CallDeprecatedHook<T>(this T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args) where T : BaseHookable
 		{
 			if (expireDate < DateTime.Now)
@@ -211,16 +210,15 @@ namespace Carbon.Core
 
 			return objectOverride;
 		}
-
 		private static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object[] args = null)
-		{			
+		{
 			if (expireDate < DateTime.Now)
 			{
 				return null;
 			}
 
 			DateTime now = DateTime.Now;
-			
+
 			if (!_lastDeprecatedWarningAt.TryGetValue(oldHook, out DateTime lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
 			{
 				_lastDeprecatedWarningAt[oldHook] = now;

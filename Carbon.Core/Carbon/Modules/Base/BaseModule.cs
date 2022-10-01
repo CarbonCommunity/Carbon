@@ -52,7 +52,7 @@ namespace Carbon.Core.Modules
 			}
 			CarbonCore.Debug(Name, "Processed hooks", 2);
 
-			CarbonLoader.ProcessCommands(Type, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+			CarbonLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 			CarbonCore.Debug(Name, "Processed commands", 2);
 
 			File = new DynamicConfigFile(Path.Combine(CarbonCore.GetModulesFolder(), Name, "config.json"));

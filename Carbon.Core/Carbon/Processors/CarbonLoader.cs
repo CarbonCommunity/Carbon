@@ -318,7 +318,7 @@ namespace Carbon.Core
 			return IsValidPlugin(type.BaseType);
 		}
 
-		public static void ProcessCommands(Type type, RustPlugin plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)
+		public static void ProcessCommands(Type type, BaseHookable plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)
 		{
 			var methods = type.GetMethods(flags);
 			var fields = type.GetFields(flags | BindingFlags.Public);
