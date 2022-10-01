@@ -100,9 +100,9 @@ namespace Carbon.Core
 
 			Facepunch.Pool.FreeList(ref list);
 		}
-		public static bool LoadCarbonMod(string name, bool silent = false)
+		public static bool LoadCarbonMod(string fullPath, bool silent = false)
 		{
-			var fileName = Path.GetFileName(name);
+			var fileName = Path.GetFileName(fullPath);
 
 			if (fileName.EndsWith(".dll"))
 			{
@@ -111,7 +111,6 @@ namespace Carbon.Core
 
 			UnloadCarbonMod(fileName, silent);
 
-			var fullPath = name;
 			var domain = "com.rust.carbon." + fileName;
 
 			try
@@ -127,7 +126,7 @@ namespace Carbon.Core
 					Assembly = assembly,
 					AllTypes = assembly.GetTypes(),
 					Name = fileName,
-					File = name
+					File = fullPath
 				};
 
 				foreach (var type in mod.AllTypes)
