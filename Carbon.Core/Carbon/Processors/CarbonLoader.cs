@@ -109,17 +109,9 @@ namespace Carbon.Core
 				fileName = fileName.Substring(0, fileName.Length - 4);
 			}
 
-			var temp = GetTempModPath(fileName);
-			fileName = Path.GetFileName(temp);
-
-			if (fileName.EndsWith(".dll"))
-			{
-				fileName = fileName.Substring(0, fileName.Length - 4);
-			}
-
 			UnloadCarbonMod(fileName, silent);
 
-			var fullPath = temp;
+			var fullPath = name;
 			var domain = "com.rust.carbon." + fileName;
 
 			try
@@ -135,7 +127,7 @@ namespace Carbon.Core
 					Assembly = assembly,
 					AllTypes = assembly.GetTypes(),
 					Name = fileName,
-					File = temp
+					File = name
 				};
 
 				foreach (var type in mod.AllTypes)
@@ -233,14 +225,6 @@ namespace Carbon.Core
 		}
 
 		#region Carbon
-
-		public static string GetTempModPath(string name)
-		{
-			var temp = Path.Combine(CarbonCore.GetTempFolder(), $"{name}_{Guid.NewGuid()}.dll");
-			OsEx.File.Copy(Path.Combine(CarbonCore.GetPluginsFolder(), $"{name}.dll"), temp, true);
-
-			return temp;
-		}
 
 		public static void InitializePlugins(CarbonMod mod)
 		{
@@ -494,8 +478,6 @@ namespace Carbon.Core
 				Log(mod.Name, "Unpatching hooks...");
 				mod.Harmony.UnpatchAll(mod.Harmony.Id);
 				Log(mod.Name, "Unloaded mod");
-
-				OsEx.File.Delete(mod.File);
 			}
 
 			_loadedMods.Remove(mod);
