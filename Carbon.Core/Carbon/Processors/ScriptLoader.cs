@@ -29,8 +29,9 @@ namespace Carbon.Core
 		public bool IsCore { get; set; }
 
 		public BaseProcessor.Parser Parser { get; set; }
-
 		public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader();
+
+		internal WaitForSeconds _serverExhale = new WaitForSeconds(0.1f);
 
 		public void Load(bool customFiles = false, bool customSources = false, GameObject target = null)
 		{
@@ -219,14 +220,15 @@ namespace Carbon.Core
 
 			CarbonCore.Warn($" Compiling '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
 
-			try
+
+			CarbonLoader.AssemblyCache.Add(AsyncLoader.Assembly);
+
+			var assembly = AsyncLoader.Assembly;
+			var pluginIndex = 0;
+
+			foreach (var type in assembly.GetTypes())
 			{
-				CarbonLoader.AssemblyCache.Add(AsyncLoader.Assembly);
-
-				var assembly = AsyncLoader.Assembly;
-				var pluginIndex = 0;
-
-				foreach (var type in assembly.GetTypes())
+				try
 				{
 					if (string.IsNullOrEmpty(type.Namespace) ||
 						!(type.Namespace.Equals("Oxide.Plugins") ||
@@ -235,13 +237,10 @@ namespace Carbon.Core
 					if (CarbonCore.Instance.Config.HookValidation)
 					{
 						var counter = 0;
-						foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+						foreach (var hook in AsyncLoader.UnsupportedHooks[type])
 						{
-							if (CarbonHookValidator.IsIncompatibleOxideHook(method.Name))
-							{
-								CarbonCore.Warn($" Hook '{method.Name}' is not supported.");
-								counter++;
-							}
+							CarbonCore.Warn($" Hook '{hook}' is not supported.");
+							counter++;
 						}
 
 						if (counter > 0)
@@ -264,6 +263,12 @@ namespace Carbon.Core
 					plugin.Description = description?.Description;
 
 					plugin.Instance = Activator.CreateInstance(type) as RustPlugin;
+					{
+						plugin.Instance.Hooks = AsyncLoader.Hooks[type];
+						plugin.Instance.HookMethods = AsyncLoader.HookMethods[type];
+						plugin.Instance.PluginReferences = AsyncLoader.PluginReferences[type];
+
+					}
 					plugin.IsCore = IsCore;
 					plugin.Instance.Requires = requires.ToArray();
 					plugin.Instance.SetProcessor(CarbonCore.Instance.ScriptProcessor);
@@ -302,15 +307,32 @@ namespace Carbon.Core
 
 					Scripts.Add(plugin);
 				}
+				catch (Exception exception)
+				{
+					CarbonCore.Error($"Failed to compile: ", exception);
+				}
+
+				yield return _serverExhale;
 			}
-			catch (Exception exception)
+
+			foreach (var uhList in AsyncLoader.UnsupportedHooks)
 			{
-				CarbonCore.Error($"Failed to compile: ", exception);
+				uhList.Value.Clear();
 			}
+
+			AsyncLoader.Hooks.Clear();
+			AsyncLoader.UnsupportedHooks.Clear();
+			AsyncLoader.HookMethods.Clear();
+			AsyncLoader.PluginReferences.Clear();
+
+			AsyncLoader.Hooks = null;
+			AsyncLoader.UnsupportedHooks = null;
+			AsyncLoader.HookMethods = null;
+			AsyncLoader.PluginReferences = null;
 
 			Pool.FreeList(ref requires);
 
-			yield break;
+			yield return null;
 		}
 
 		public void Dispose()

@@ -103,8 +103,8 @@ namespace Carbon.Core
 			}
 			else
 			{
-				AllChatCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && (x.Plugin as RustPlugin).IsCorePlugin));
-				AllConsoleCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && (x.Plugin as RustPlugin).IsCorePlugin));
+				AllChatCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
+				AllConsoleCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
 			}
 		}
 		internal void _installDefaultCommands()
@@ -280,7 +280,7 @@ namespace Carbon.Core
 					break;
 			}
 		}
-		public static void Debug(object header, object message, int level = 0, LogType log = LogType.Log)
+		public static void Debug(object header, object message, int level = 1, LogType log = LogType.Log)
 		{
 			Debug($"[{header}] {message}", level, log);
 		}

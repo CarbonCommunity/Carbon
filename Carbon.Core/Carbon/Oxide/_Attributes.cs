@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using Oxide.Core;
 using UnityEngine;
 
@@ -56,6 +57,8 @@ public class DescriptionAttribute : Attribute
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field)]
 public class PluginReferenceAttribute : Attribute
 {
+	public FieldInfo Field { get; set; }
+
 	public PluginReferenceAttribute()
 	{
 	}
@@ -134,6 +137,7 @@ public class CommandVarAttribute : Attribute
 public class HookMethodAttribute : Attribute
 {
 	public string Name { get; set; }
+	public MethodInfo Method { get; set; }
 
 	public HookMethodAttribute() { }
 	public HookMethodAttribute(string name)

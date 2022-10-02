@@ -9,6 +9,10 @@ namespace Carbon.Core
 {
 	public class BaseHookable
 	{
+		public List<string> Hooks { get; internal set; }
+		public List<HookMethodAttribute> HookMethods { get; internal set; }
+		public List<PluginReferenceAttribute> PluginReferences { get; internal set; }
+
 		public Dictionary<string, List<MethodInfo>> HookCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
 		public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
 		public List<string> IgnoredHooks { get; internal set; } = new List<string>();

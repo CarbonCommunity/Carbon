@@ -60,68 +60,68 @@ namespace Oxide.Plugins
 			return other != null;
 		}
 
-		internal void _processHooks()
-		{
-			foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
-			{
-				CarbonCore.Instance.Addon.InstallHooks(method.Name);
-				CarbonCore.Instance.Addon.AppendHook(method.Name);
-			}
-
-			CarbonCore.Debug(Name, "Processed hooks", 2);
-		}
 		internal void _unprocessHooks()
 		{
-			foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
+			foreach (var hook in Hooks)
 			{
-				CarbonCore.Instance.Addon.UnappendHook(method.Name);
+				CarbonCore.Instance.Addon.UnappendHook(hook);
 			}
-
 			CarbonCore.Debug(Name, "Unprocessed hooks", 2);
 		}
 
 		public virtual void IInit()
 		{
-			foreach (var method in GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+			using (TimeMeasure.New($"Processing HookMethods on '{this}'"))
 			{
-				var attribute = method.GetCustomAttribute<HookMethodAttribute>();
-				if (attribute == null) continue;
-
-				var name = (string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length;
-				if (!HookMethodAttributeCache.TryGetValue(name, out var list))
+				foreach (var attribute in HookMethods)
 				{
-					HookMethodAttributeCache.Add(name, new List<MethodInfo>() { method });
+					var method = attribute.Method;
+					var name = (string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length;
+					if (!HookMethodAttributeCache.TryGetValue(name, out var list))
+					{
+						HookMethodAttributeCache.Add(name, new List<MethodInfo>() { method });
+					}
+					else list.Add(method);
 				}
-				else list.Add(method);
 			}
-
 			CarbonCore.Debug(Name, "Installed hook method attributes", 2);
 
-			foreach (var field in GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+			using (TimeMeasure.New($"Processing PluginReferences on '{this}'"))
 			{
-				var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
-				if (attribute == null) continue;
-
-				var plugin = (Plugin)null;
-				if (field.FieldType != typeof(Plugin) && field.FieldType != typeof(RustPlugin))
+				foreach (var reference in PluginReferences)
 				{
-					var info = field.FieldType.GetCustomAttribute<InfoAttribute>();
-					if (info == null)
+					var field = reference.Field;
+					var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
+					if (attribute == null) continue;
+
+					var plugin = (Plugin)null;
+					if (field.FieldType.Name != nameof(Plugin) && field.FieldType.Name != nameof(RustPlugin))
 					{
-						CarbonCore.Error($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
-						continue;
+						var info = field.FieldType.GetCustomAttribute<InfoAttribute>();
+						if (info == null)
+						{
+							CarbonCore.Error($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
+							continue;
+						}
+
+						plugin = CarbonCore.Instance.CorePlugin.plugins.Find(info.Title);
 					}
+					else plugin = CarbonCore.Instance.CorePlugin.plugins.Find(field.Name);
 
-					plugin = CarbonCore.Instance.CorePlugin.plugins.Find(info.Title);
+					if (plugin != null) field.SetValue(this, plugin);
 				}
-				else plugin = CarbonCore.Instance.CorePlugin.plugins.Find(field.Name);
-
-				if (plugin != null) field.SetValue(this, plugin);
 			}
-
 			CarbonCore.Debug(Name, "Assigned plugin references", 2);
 
-			_processHooks();
+			using (TimeMeasure.New($"Processing Hooks on '{this}'"))
+			{
+				foreach (var hook in Hooks)
+				{
+					CarbonCore.Instance.Addon.InstallHooks(hook);
+					CarbonCore.Instance.Addon.AppendHook(hook);
+				}
+			}
+			CarbonCore.Debug(Name, "Processed hooks", 2);
 
 			CallHook("Init");
 		}
@@ -158,10 +158,16 @@ namespace Oxide.Plugins
 			{
 				IgnoredHooks.Clear();
 				HookCache.Clear();
+				Hooks.Clear();
+				HookMethods.Clear();
+				PluginReferences.Clear();
 				HookMethodAttributeCache.Clear();
 
 				IgnoredHooks = null;
 				HookCache = null;
+				Hooks = null;
+				HookMethods = null;
+				PluginReferences = null;
 				HookMethodAttributeCache = null;
 			}
 		}

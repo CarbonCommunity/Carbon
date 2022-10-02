@@ -7,7 +7,7 @@ using System;
 
 namespace Carbon.Core
 {
-	public struct TimeMeasure : IDisposable
+	public class TimeMeasure : IDisposable
 	{
 		internal string _name;
 		internal string _warn;
@@ -16,7 +16,7 @@ namespace Carbon.Core
 
 		public static TimeMeasure New(string name, int miliseconds = 75, string warn = null)
 		{
-			var result = default(TimeMeasure);
+			var result = new TimeMeasure();
 			result._name = name;
 			result._warn = warn;
 			result._miliseconds = miliseconds;

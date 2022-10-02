@@ -7,8 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using Facepunch;
 using Harmony;
+using static Carbon.Core.Processors.BaseProcessor;
 
 namespace Carbon.Core
 {
@@ -24,14 +26,17 @@ namespace Carbon.Core
 
 		public bool DoesHookExist(string hookName)
 		{
-			foreach (var addon in Addons)
+			using (TimeMeasure.New($"DoesHookExist: {hookName}"))
 			{
-				foreach (var type in addon.GetTypes())
+				foreach (var addon in Addons)
 				{
-					var hook = type.GetCustomAttribute<Hook>();
-					if (hook == null) continue;
+					foreach (var type in addon.GetTypes())
+					{
+						var hook = type.GetCustomAttribute<Hook>();
+						if (hook == null) continue;
 
-					if (hook.Name == hookName) return true;
+						if (hook.Name == hookName) return true;
+					}
 				}
 			}
 
@@ -90,105 +95,23 @@ namespace Carbon.Core
 			if (!DoesHookExist(hookName)) return;
 			if (!IsPatched(hookName)) CarbonCore.Debug($"Found '{hookName}'...");
 
-			foreach (var addon in Addons)
-			{
-				foreach (var type in addon.GetTypes())
-				{
-					try
-					{
-						var parameters = type.GetCustomAttributes<Hook.Parameter>();
-						var hook = type.GetCustomAttribute<Hook>();
-						var args = string.Empty;
-
-						if (parameters != null)
-						{
-							foreach (var parameter in parameters)
-							{
-								args += $"_{parameter.Type.Name}";
-							}
-						}
-
-						if (hook == null) continue;
-
-						if (hook.Name == hookName)
-						{
-							var patchId = $"{hook.Name}.{args}";
-							var patch = type.GetCustomAttribute<Hook.Patch>();
-							var hookInstance = (HookInstance)null;
-
-							if (!Patches.TryGetValue(hookName, out hookInstance))
-							{
-								Patches.Add(hookName, hookInstance = new HookInstance());
-							}
-
-							if (hookInstance.Patches.Any(x => x != null && x.Id == patchId)) continue;
-
-							if (doRequires)
-							{
-								var requires = type.GetCustomAttributes<Hook.Require>();
-
-								if (requires != null)
-								{
-									foreach (var require in requires)
-									{
-										if (require.Hook == hookName) continue;
-
-										InstallHooks(require.Hook, false);
-									}
-								}
-							}
-
-							var originalParameters = Pool.GetList<Type>();
-							var prefix = type.GetMethod("Prefix");
-							var postfix = type.GetMethod("Postfix");
-							var transplier = type.GetMethod("Transplier");
-
-							foreach (var param in (prefix ?? postfix ?? transplier).GetParameters())
-							{
-								originalParameters.Add(param.ParameterType);
-							}
-							var originalParametersResult = originalParameters.ToArray();
-
-							var matchedParameters = patch.UseProvidedParameters ? originalParametersResult : GetMatchedParameters(patch.Type, patch.Method, (prefix ?? postfix ?? transplier).GetParameters());
-							var instance = HarmonyInstance.Create(patchId);
-							var originalMethod = patch.Type.GetMethod(patch.Method, matchedParameters);
-
-							instance.Patch(originalMethod,
-								prefix: prefix == null ? null : new HarmonyMethod(prefix),
-								postfix: postfix == null ? null : new HarmonyMethod(postfix),
-								transpiler: transplier == null ? null : new HarmonyMethod(transplier));
-							hookInstance.Patches.Add(instance);
-							hookInstance.Id = patchId;
-
-							CarbonCore.Warn($" Patched {hookName}{args}...");
-
-							Pool.Free(ref matchedParameters);
-							Pool.Free(ref originalParametersResult);
-							Pool.FreeList(ref originalParameters);
-						}
-					}
-					catch (Exception exception)
-					{
-						CarbonCore.Error($"Couldn't patch hook '{hookName}' ({type.FullName})", exception);
-					}
-				}
-			}
-
+			new HookInstallerThread { HookName = hookName, DoRequires = doRequires, Processor = this }.Start();
 		}
 		public void UninstallHooks(string hookName)
 		{
-			if (Patches.TryGetValue(hookName, out var instance))
+			using (TimeMeasure.New($"UninstallHooks: {hookName}"))
 			{
-				foreach (var patch in instance.Patches)
+				if (Patches.TryGetValue(hookName, out var instance))
 				{
-					try
+					foreach (var patch in instance.Patches)
 					{
+						if (string.IsNullOrEmpty(instance.Id)) continue;
+
 						patch.UnpatchAll(instance.Id);
 					}
-					catch { }
-				}
 
-				instance.Patches.Clear();
+					instance.Patches.Clear();
+				}
 			}
 		}
 
@@ -228,6 +151,101 @@ namespace Carbon.Core
 			public string Id { get; set; }
 			public int Hooks { get; set; } = 0;
 			public List<HarmonyInstance> Patches { get; } = new List<HarmonyInstance>();
+		}
+
+		public class HookInstallerThread : ThreadedJob
+		{
+			public string HookName;
+			public bool DoRequires = true;
+			public CarbonAddonProcessor Processor;
+
+			public override void ThreadFunction()
+			{
+				foreach (var addon in Processor.Addons)
+				{
+					foreach (var type in addon.GetTypes())
+					{
+						try
+						{
+							var parameters = type.GetCustomAttributes<Hook.Parameter>();
+							var hook = type.GetCustomAttribute<Hook>();
+							var args = string.Empty;
+
+							if (parameters != null)
+							{
+								foreach (var parameter in parameters)
+								{
+									args += $"_{parameter.Type.Name}";
+								}
+							}
+
+							if (hook == null) continue;
+
+							if (hook.Name == HookName)
+							{
+								var patchId = $"{hook.Name}.{args}";
+								var patch = type.GetCustomAttribute<Hook.Patch>();
+								var hookInstance = (HookInstance)null;
+
+								if (!Processor.Patches.TryGetValue(HookName, out hookInstance))
+								{
+									Processor.Patches.Add(HookName, hookInstance = new HookInstance());
+								}
+
+								if (hookInstance.Patches.Any(x => x != null && x.Id == patchId)) continue;
+
+								if (DoRequires)
+								{
+									var requires = type.GetCustomAttributes<Hook.Require>();
+
+									if (requires != null)
+									{
+										foreach (var require in requires)
+										{
+											if (require.Hook == HookName) continue;
+
+											Processor.InstallHooks(require.Hook, false);
+										}
+									}
+								}
+
+								var originalParameters = Pool.GetList<Type>();
+								var prefix = type.GetMethod("Prefix");
+								var postfix = type.GetMethod("Postfix");
+								var transplier = type.GetMethod("Transplier");
+
+								foreach (var param in (prefix ?? postfix ?? transplier).GetParameters())
+								{
+									originalParameters.Add(param.ParameterType);
+								}
+								var originalParametersResult = originalParameters.ToArray();
+
+								var matchedParameters = patch.UseProvidedParameters ? originalParametersResult : Processor.GetMatchedParameters(patch.Type, patch.Method, (prefix ?? postfix ?? transplier).GetParameters());
+								var instance = HarmonyInstance.Create(patchId);
+								var originalMethod = patch.Type.GetMethod(patch.Method, matchedParameters);
+
+								instance.Patch(originalMethod,
+									prefix: prefix == null ? null : new HarmonyMethod(prefix),
+									postfix: postfix == null ? null : new HarmonyMethod(postfix),
+									transpiler: transplier == null ? null : new HarmonyMethod(transplier));
+								hookInstance.Patches.Add(instance);
+								hookInstance.Id = patchId;
+
+								CarbonCore.Warn($" Patched {HookName}{args}...");
+
+								Pool.Free(ref matchedParameters);
+								Pool.Free(ref originalParametersResult);
+								Pool.FreeList(ref originalParameters);
+							}
+						}
+						catch (Exception exception)
+						{
+							CarbonCore.Error($"Couldn't patch hook '{HookName}' ({type.FullName})", exception);
+						}
+					}
+
+				}
+			}
 		}
 	}
 }

@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Facepunch;
+using Harmony;
 using Humanlights.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,6 +26,10 @@ namespace Carbon.Core
 		public string Source;
 		public string[] References;
 		public string[] Requires;
+		public Dictionary<Type, List<string>> Hooks = new Dictionary<Type, List<string>>();
+		public Dictionary<Type, List<string>> UnsupportedHooks = new Dictionary<Type, List<string>>();
+		public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new Dictionary<Type, List<HookMethodAttribute>>();
+		public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new Dictionary<Type, List<PluginReferenceAttribute>>();
 		public float CompileTime;
 		public Assembly Assembly;
 		public List<CompilerException> Exceptions = new List<CompilerException>();
@@ -179,6 +184,48 @@ namespace Carbon.Core
 
 				Pool.FreeList(ref references);
 				Pool.FreeList(ref tree);
+
+				foreach (var type in Assembly.GetTypes())
+				{
+					var hooks = new List<string>();
+					var unsupportedHooks = new List<string>();
+					var hookMethods = new List<HookMethodAttribute>();
+					var pluginReferences = new List<PluginReferenceAttribute>();
+					Hooks.Add(type, hooks);
+					UnsupportedHooks.Add(type, unsupportedHooks);
+					HookMethods.Add(type, hookMethods);
+					PluginReferences.Add(type, pluginReferences);
+
+					foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
+					{
+						if (CarbonHookValidator.IsIncompatibleOxideHook(method.Name))
+						{
+							unsupportedHooks.Add(method.Name);
+						}
+
+						if (CarbonCore.Instance.Addon.DoesHookExist(method.Name))
+						{
+							if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
+						}
+						else
+						{
+							var attribute = method.GetCustomAttribute<HookMethodAttribute>();
+							if (attribute == null) continue;
+
+							attribute.Method = method;
+							hookMethods.Add(attribute);
+						}
+					}
+
+					foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+					{
+						var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
+						if (attribute == null) continue;
+
+						attribute.Field = field;
+						pluginReferences.Add(attribute);
+					}
+				}
 
 				if (Exceptions.Count > 0) throw null;
 			}
