@@ -12,6 +12,8 @@ namespace Oxide.Plugins
 	{
 		public Plugin Find(string name)
 		{
+			name = name.Replace(" ", "");
+
 			foreach (var mod in CarbonLoader._loadedMods)
 			{
 				foreach (var plugin in mod.Plugins)

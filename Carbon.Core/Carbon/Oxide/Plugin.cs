@@ -102,7 +102,20 @@ namespace Oxide.Plugins
 				var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
 				if (attribute == null) continue;
 
-				var plugin = CarbonCore.Instance.CorePlugin.plugins.Find(field.Name);
+				var plugin = (Plugin)null;
+				if (field.FieldType != typeof(Plugin) && field.FieldType != typeof(RustPlugin))
+				{
+					var info = field.FieldType.GetCustomAttribute<InfoAttribute>();
+					if (info == null)
+					{
+						CarbonCore.Error($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
+						continue;
+					}
+
+					plugin = CarbonCore.Instance.CorePlugin.plugins.Find(info.Title);
+				}
+				else plugin = CarbonCore.Instance.CorePlugin.plugins.Find(field.Name);
+
 				if (plugin != null) field.SetValue(this, plugin);
 			}
 

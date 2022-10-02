@@ -492,21 +492,27 @@ namespace Carbon.Core
 		}
 		internal static Assembly LoadAssembly(string assemblyPath)
 		{
-			if (!File.Exists(assemblyPath))
+			try
 			{
-				return null;
+				if (!File.Exists(assemblyPath))
+				{
+					return null;
+				}
+
+				var rawAssembly = File.ReadAllBytes(assemblyPath);
+				var path = assemblyPath.Substring(0, assemblyPath.Length - 4) + ".pdb";
+
+				if (File.Exists(path))
+				{
+					var rawSymbolStore = File.ReadAllBytes(path);
+					return Assembly.Load(rawAssembly, rawSymbolStore);
+				}
+
+				return Assembly.Load(rawAssembly);
 			}
+			catch { }
 
-			var rawAssembly = File.ReadAllBytes(assemblyPath);
-			var path = assemblyPath.Substring(0, assemblyPath.Length - 4) + ".pdb";
-
-			if (File.Exists(path))
-			{
-				var rawSymbolStore = File.ReadAllBytes(path);
-				return Assembly.Load(rawAssembly, rawSymbolStore);
-			}
-
-			return Assembly.Load(rawAssembly);
+			return null;
 		}
 		internal static bool IsKnownDependency(string assemblyName)
 		{
