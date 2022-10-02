@@ -84,13 +84,7 @@ namespace Oxide.Game.Rust.Cui
 
 	public class CuiButtonComponent : ICuiComponent, ICuiColor
 	{
-		public string Type
-		{
-			get
-			{
-				return "UnityEngine.UI.Button";
-			}
-		}
+		public string Type => "UnityEngine.UI.Button";
 
 		[JsonProperty("command")]
 		public string Command { get; set; }
@@ -212,25 +206,16 @@ namespace Oxide.Game.Rust.Cui
 	}
 	public class CuiImageComponent : ICuiComponent, ICuiColor
 	{
-		public string Type
-		{
-			get
-			{
-				return "UnityEngine.UI.Image";
-			}
-		}
+		public string Type => "UnityEngine.UI.Image";
 
-		[DefaultValue("Assets/Content/UI/UI.Background.Tile.psd")]
-		[JsonProperty("sprite", NullValueHandling = NullValueHandling.Ignore)]
-		public string Sprite { get; set; } = "Assets/Content/UI/UI.Background.Tile.psd";
+		[JsonProperty("sprite")]
+		public string Sprite { get; set; }
 
-		[DefaultValue("Assets/Icons/IconMaterial.mat")]
 		[JsonProperty("material")]
-		public string Material { get; set; } = "Assets/Icons/IconMaterial.mat";
+		public string Material { get; set; }
 
-		public string Color { get; set; } = "1.0 1.0 1.0 1.0";
+		public string Color { get; set; }
 
-		[DefaultValue(Image.Type.Simple)]
 		[JsonConverter(typeof(StringEnumConverter))]
 		[JsonProperty("imagetype")]
 		public Image.Type ImageType { get; set; }
@@ -249,13 +234,7 @@ namespace Oxide.Game.Rust.Cui
 	}
 	public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 	{
-		public string Type
-		{
-			get
-			{
-				return "UnityEngine.UI.InputField";
-			}
-		}
+		public string Type => "UnityEngine.UI.InputField";
 
 		[DefaultValue("Text")]
 		[JsonProperty("text", NullValueHandling = NullValueHandling.Ignore)]
@@ -289,33 +268,15 @@ namespace Oxide.Game.Rust.Cui
 	}
 	public class CuiNeedsCursorComponent : ICuiComponent
 	{
-		public string Type
-		{
-			get
-			{
-				return "NeedsCursor";
-			}
-		}
+		public string Type => "NeedsCursor";
 	}
 	public class CuiNeedsKeyboardComponent : ICuiComponent
 	{
-		public string Type
-		{
-			get
-			{
-				return "NeedsKeyboard";
-			}
-		}
+		public string Type => "NeedsKeyboard";
 	}
 	public class CuiOutlineComponent : ICuiComponent, ICuiColor
 	{
-		public string Type
-		{
-			get
-			{
-				return "UnityEngine.UI.Outline";
-			}
-		}
+		public string Type => "UnityEngine.UI.Outline";
 
 		public string Color { get; set; } = "1.0 1.0 1.0 1.0";
 
@@ -329,20 +290,12 @@ namespace Oxide.Game.Rust.Cui
 	}
 	public class CuiRawImageComponent : ICuiComponent, ICuiColor
 	{
-		public string Type
-		{
-			get
-			{
-				return "UnityEngine.UI.RawImage";
-			}
-		}
+		public string Type => "UnityEngine.UI.RawImage";
 
-		[DefaultValue("assets/content/textures/generic/fulltransparent.tga")]
-		[JsonProperty("sprite", NullValueHandling = NullValueHandling.Ignore)]
+		[JsonProperty("sprite")]
 		public string Sprite { get; set; } = "assets/content/textures/generic/fulltransparent.tga";
 
-		[JsonProperty("color")]
-		public string Color { get; set; } = "1.0 1.0 1.0 1.0";
+		public string Color { get; set; }
 
 		[JsonProperty("material")]
 		public string Material { get; set; }
@@ -358,13 +311,7 @@ namespace Oxide.Game.Rust.Cui
 	}
 	public class CuiRectTransformComponent : ICuiComponent
 	{
-		public string Type
-		{
-			get
-			{
-				return "RectTransform";
-			}
-		}
+		public string Type => "RectTransform";
 
 		[DefaultValue("0.0 0.0")]
 		[JsonProperty("anchormin")]
@@ -403,13 +350,7 @@ namespace Oxide.Game.Rust.Cui
 	}
 	public class CuiTextComponent : ICuiComponent, ICuiColor
 	{
-		public string Type
-		{
-			get
-			{
-				return "UnityEngine.UI.Text";
-			}
-		}
+		public string Type => "UnityEngine.UI.Text";
 
 		[DefaultValue("Text")]
 		[JsonProperty("text")]
