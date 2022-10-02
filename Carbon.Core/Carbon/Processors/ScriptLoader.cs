@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Carbon.Core.Processors;
 using Facepunch;
@@ -251,13 +252,12 @@ namespace Carbon.Core
 					}
 
 					var info = type.GetCustomAttribute(typeof(InfoAttribute), true) as InfoAttribute;
+					if (info == null) continue;
+
+					if (requires.Any(x => x.Name == info.Title)) continue;
+
 					var description = type.GetCustomAttribute(typeof(DescriptionAttribute), true) as DescriptionAttribute;
 					var plugin = Script.Create(Sources[pluginIndex], assembly, type);
-
-					if (info == null)
-					{
-						continue;
-					}
 
 					plugin.Name = info.Title;
 					plugin.Author = info.Author;

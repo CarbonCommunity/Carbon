@@ -10,14 +10,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Facepunch;
 using Humanlights.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 using Application = UnityEngine.Application;
-using LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
 
 namespace Carbon.Core
 {
@@ -58,6 +55,26 @@ namespace Carbon.Core
 
 		internal static List<MetadataReference> _metadataReferences = new List<MetadataReference>();
 		internal static Dictionary<string, MetadataReference> _referenceCache = new Dictionary<string, MetadataReference>();
+		internal static Dictionary<string, byte[]> _compilationCache = new Dictionary<string, byte[]>();
+
+		internal static byte[] _getPlugin(string name)
+		{
+			if (!_compilationCache.TryGetValue(name, out var result)) return null;
+
+			return result;
+		}
+		internal static void _overridePlugin(string name, byte[] pluginAssembly)
+		{
+			var plugin = _getPlugin(name);
+			if (plugin == null)
+			{
+				_compilationCache.Add(name, pluginAssembly);
+				return;
+			}
+
+			Array.Clear(plugin, 0, plugin.Length);
+			_compilationCache[name] = pluginAssembly;
+		}
 
 		internal static MetadataReference _getReferenceFromCache(string reference)
 		{
@@ -83,19 +100,6 @@ namespace Carbon.Core
 
 			return references;
 		}
-		internal bool _addRequires()
-		{
-			if (Requires == null) return true;
-
-			foreach (var require in Requires)
-			{
-				if (!CarbonLoader.AssemblyDictionaryCache.TryGetValue(require, out var assembly)) return false;
-
-				// if ( assembly != null ) _options.ReferencedAssemblies.Add ( assembly.GetName ().Name );
-			}
-
-			return true;
-		}
 
 		public class CompilerException : Exception
 		{
@@ -117,12 +121,6 @@ namespace Carbon.Core
 				FileName = Path.GetFileNameWithoutExtension(FilePath);
 
 				_doInit();
-
-				if (!_addRequires())
-				{
-					Exceptions.Add(new CompilerException(FilePath, new CompilerError { ErrorText = "Couldn't find all required references." }));
-					return;
-				}
 			}
 			catch (Exception ex) { Console.WriteLine($"Couldn't compile '{FileName}'\n{ex}"); }
 
@@ -143,13 +141,11 @@ namespace Carbon.Core
 
 				foreach (var require in Requires)
 				{
-					try
+					var requiredPlugin = _getPlugin(require);
+
+					using (var dllStream = new MemoryStream(requiredPlugin))
 					{
-						tree.Add(CSharpSyntaxTree.ParseText(OsEx.File.ReadText(Path.Combine(CarbonCore.GetPluginsFolder(), $"{require}.cs"))));
-					}
-					catch (Exception treeEx)
-					{
-						throw treeEx;
+						references.Add(MetadataReference.CreateFromStream(dllStream));
 					}
 				}
 
@@ -173,7 +169,9 @@ namespace Carbon.Core
 
 					if (emit.Success)
 					{
-						Assembly = Assembly.Load(dllStream.ToArray());
+						var assembly = dllStream.ToArray();
+						_overridePlugin(FileName, assembly);
+						Assembly = Assembly.Load(assembly);
 					}
 				}
 
@@ -184,7 +182,7 @@ namespace Carbon.Core
 
 				if (Exceptions.Count > 0) throw null;
 			}
-			catch (Exception ex) { Console.WriteLine($"Couldn't compile '{FileName}'\n{ex}"); }
+			catch { }
 		}
 	}
 }
