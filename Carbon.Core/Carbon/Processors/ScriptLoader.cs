@@ -72,8 +72,7 @@ namespace Carbon.Core
 
 			foreach (var file in files)
 			{
-				var plugin = new ScriptProcessor.Script();
-				plugin.File = file;
+				var plugin = new ScriptProcessor.Script { File = file };
 				CarbonCore.Instance.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
 			}
 

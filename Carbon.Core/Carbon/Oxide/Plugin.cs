@@ -127,31 +127,43 @@ namespace Oxide.Plugins
 		}
 		public virtual void Load()
 		{
-			IsLoaded = true;
-			CallHook("OnLoaded");
-			CallHook("Loaded");
+			using (TimeMeasure.New($"Load on '{this}'"))
+			{
+				IsLoaded = true;
+				CallHook("OnLoaded");
+				CallHook("Loaded");
+			}
 		}
 		public virtual void IUnload()
 		{
-			_unprocessHooks();
-
-			foreach (var plugin in CarbonCore.Instance.CorePlugin.plugins.GetAll())
+			using (TimeMeasure.New($"IUnload._unprocessHooks on '{this}'"))
 			{
-				if (plugin == null || plugin.Requires == null || plugin.Requires.Length == 0) continue;
+				_unprocessHooks();
+			}
 
-				if (plugin.Requires.Contains(this))
+			using (TimeMeasure.New($"IUnload.requires on '{this}'"))
+			{
+				foreach (var plugin in CarbonCore.Instance.CorePlugin.plugins.GetAll())
 				{
-					plugin.InternalUnload();
+					if (plugin == null || plugin.Requires == null || plugin.Requires.Length == 0) continue;
+
+					if (plugin.Requires.Contains(this))
+					{
+						plugin.InternalUnload();
+					}
 				}
 			}
 
-			IgnoredHooks.Clear();
-			HookCache.Clear();
-			HookMethodAttributeCache.Clear();
+			using (TimeMeasure.New($"IUnload.disposal on '{this}'"))
+			{
+				IgnoredHooks.Clear();
+				HookCache.Clear();
+				HookMethodAttributeCache.Clear();
 
-			IgnoredHooks = null;
-			HookCache = null;
-			HookMethodAttributeCache = null;
+				IgnoredHooks = null;
+				HookCache = null;
+				HookMethodAttributeCache = null;
+			}
 		}
 		internal void InternalUnload()
 		{
