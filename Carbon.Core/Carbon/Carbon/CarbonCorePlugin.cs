@@ -122,7 +122,7 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
-		private void Hooks(ConsoleSystem.Arg arg)
+		private void HookInfo(ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
