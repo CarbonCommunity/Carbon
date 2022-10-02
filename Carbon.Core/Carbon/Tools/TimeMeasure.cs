@@ -9,19 +9,25 @@ namespace Carbon.Core
 {
 	public struct TimeMeasure : IDisposable
 	{
+#if DEBUG
 		internal string _name;
 		internal string _warn;
 		internal int _miliseconds;
 		internal RealTimeSince _timeSince;
+#else
 
 		public static TimeMeasure New(string name, int miliseconds = 75, string warn = null)
 		{
+#if DEBUG
 			var result = default(TimeMeasure);
 			result._name = name;
 			result._warn = warn;
 			result._miliseconds = miliseconds;
 			result._timeSince = 0f;
 			return result;
+#else
+			return default;
+#endif
 		}
 
 		public void Dispose()
