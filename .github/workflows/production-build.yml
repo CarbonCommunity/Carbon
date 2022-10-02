@@ -14,10 +14,10 @@ on:
       - production
 
   schedule:
-    - cron: '0 5 * * 0'
+    - cron: '30 18 * * 4'
 
   workflow_run:
-    workflows: [branch-merge]
+    workflows: [ "branch-merge" ]
     types:
       - completed
     branches:
@@ -33,6 +33,7 @@ jobs:
       clock: ${{ steps.step1.outputs.clock }}
       tag:   ${{ steps.step1.outputs.tag }}
       ref:   ${{ steps.step1.outputs.ref }}
+      wipe:  ${{ steps.step1.outputs.wipe }}
 
     steps:
       - name: 🔗 Checkout source code from github
@@ -47,6 +48,7 @@ jobs:
           echo "::set-output name=clock::$(date +'%H:%M:%S')"
           echo "::set-output name=tag::$(date +'%Yd%j')"
           echo "::set-output name=ref::$(git rev-parse --short HEAD)"
+          echo "::set-output name=wipe::$( [ $(date +%u) -eq 4 ] && [ $(date +%d) -le 7 ] && echo true || echo false )"
 
   build-linux:
     name: 🐧 Linux
@@ -55,6 +57,7 @@ jobs:
     continue-on-error: false
 
     outputs:
+      wipe: ${{ needs.bootstrap.outputs.wipe }}
       artifact: build-production-${{ needs.bootstrap.outputs.ref }}-linux
       build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
     
@@ -89,6 +92,7 @@ jobs:
     name: 🪟 Windows
     needs: bootstrap
     runs-on: windows-latest
+    continue-on-error: false
     
     steps:
     - name: 🔗 Checkout source code from github
@@ -121,6 +125,8 @@ jobs:
     name: 💾 Release
     needs: [ "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
+
+    if: github.event_name == 'workflow_run' || (github.event_name == 'schedule' && needs.build-linux.outputs.wipe == 'true')
 
     steps:
     - name: ⬇️ Download artifacts
