@@ -25,10 +25,16 @@ namespace Oxide.Plugins
 		public Timers timer { get; set; } = new Timers();
 		public OxideMod mod { get; set; } = new OxideMod();
 		public WebRequests webrequest { get; set; } = new WebRequests();
-		public Oxide.Game.Rust.Libraries.Rust rust { get; set; }
+		public Oxide.Game.Rust.Libraries.Rust rust { get; set; } = new Game.Rust.Libraries.Rust();
 		public Persistence persistence { get; set; }
 
 		public DynamicConfigFile Config { get; private set; }
+
+		public Oxide.Game.Rust.Libraries.Player Player
+		{ get { return rust.Player; } private set { } }
+
+		public Oxide.Game.Rust.Libraries.Server Server
+		{ get { return rust.Server; } private set { } }
 
 		internal Dictionary<string, StreamWriter> _logWriters = new Dictionary<string, StreamWriter>();
 
@@ -56,7 +62,7 @@ namespace Oxide.Plugins
 			timer = new Timers(this);
 			lang = new Language();
 			mod = new OxideMod();
-			rust = new Game.Rust.Libraries.Rust();
+			//rust = new Game.Rust.Libraries.Rust();
 			webrequest = new WebRequests();
 			persistence = new GameObject($"Script_{name}").AddComponent<Persistence>();
 			UnityEngine.Object.DontDestroyOnLoad(persistence.gameObject);
