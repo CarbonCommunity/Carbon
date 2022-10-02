@@ -34,6 +34,8 @@ namespace Carbon.CodeGen
 		}
 		public static string GetType(Type type)
 		{
+			if (type == null) return "null";
+
 			if (type == typeof(void)) return "void";
 			else if (type == typeof(string)) return "string";
 			else if (type == typeof(uint)) return "uint";
@@ -91,6 +93,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 					var hook = entry.GetCustomAttribute<Hook>();
 					var info = entry.GetCustomAttributes<Hook.Info>();
 					var parameters = entry.GetCustomAttributes<Hook.Parameter>();
+					var require = entry.GetCustomAttribute<Hook.Require>();
 
 					var resultInfo = new List<string>();
 					foreach (var e in info) resultInfo.Add($"{e.Value}");
@@ -100,19 +103,22 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 						else resultInfo.Add($"Returning a non-null value cancels default behavior.");
 					}
 
-					if (hook is CarbonHook) resultInfo.Add($"This is a Carbon-only compatible hook.");
-					else resultInfo.Add($"This is a Carbon+Oxide-compatible hook.");
+					if (hook is CarbonHook) resultInfo.Add($"This is a <b>Carbon</b>-only compatible hook.");
+					else resultInfo.Add($"This hook is compatible within <b>Oxide</b> and <b>Carbon</b>.");
+
+					Console.WriteLine($"{hook.Name} -> {GetType(hook.ReturnType)}");
 
 					result += $@"<details>
-<summary>{hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this").Type)})" : "")}</summary>
+<summary>{hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")}</summary>
 {resultInfo.ToArray().ToString("\n\n")}
 
 {GetExample(hook, parameters.ToArray())}
+
+{(require == null ? "" : $"This hook requires <b>{require.Hook}</b>, which loads alongside <b>{hook.Name}</b>.")}
+
 </details>
 
 ";
-
-					Console.WriteLine($"{hook.Name} -> {GetType(hook.ReturnType)}");
 				}
 			}
 

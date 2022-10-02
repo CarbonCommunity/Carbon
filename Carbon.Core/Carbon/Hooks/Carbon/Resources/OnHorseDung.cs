@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace Carbon.Extended
 {
-	[CarbonHook("OnHorseDung"), Hook.Category(Hook.Category.Enum.Entity)]
+	[CarbonHook("OnHorseDung", typeof(Item)), Hook.Category(Hook.Category.Enum.Entity)]
 	[Hook.Parameter("horse", typeof(BaseRidableAnimal))]
 	[Hook.Info("Called when a dung is spawned at the backside of the horse.")]
 	[Hook.Info("Override the return with an item to replace the Dung with any other item that's being dropped.")]

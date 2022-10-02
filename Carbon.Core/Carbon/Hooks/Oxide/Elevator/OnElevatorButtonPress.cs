@@ -7,28 +7,28 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-    [OxideHook("OnElevatorButtonPress", typeof(object)), OxideHook.Category(Hook.Category.Enum.Elevator)]
-    [OxideHook.Parameter("this", typeof(ShopFront))]
-    [OxideHook.Parameter("player", typeof(BasePlayer))]
-    [OxideHook.Parameter("direction", typeof(Elevator.Direction))]
-    [OxideHook.Parameter("flag", typeof(bool))]
-    [OxideHook.Info("Called when a player presses a button on an elevator lift")]
-    [OxideHook.Info("Return a non-null value to override default behavior")]
-    [OxideHook.Patch(typeof(ElevatorLift), "Server_RaiseLowerFloor")]
-    public class ElevatorLift_Server_RaiseLowerFloor
-    {
-        public static bool Prefix(BaseEntity.RPCMessage msg, ref ElevatorLift __instance)
-        {
-            if (!__instance.CanMove())
-            {
-                return false;
-            }
+	[OxideHook("OnElevatorButtonPress", typeof(object)), OxideHook.Category(Hook.Category.Enum.Elevator)]
+	[OxideHook.Parameter("this", typeof(ElevatorLift))]
+	[OxideHook.Parameter("player", typeof(BasePlayer))]
+	[OxideHook.Parameter("direction", typeof(Elevator.Direction))]
+	[OxideHook.Parameter("upwards", typeof(bool))]
+	[OxideHook.Info("Called when a player presses a button on an elevator lift")]
+	[OxideHook.Info("Return a non-null value to override default behavior")]
+	[OxideHook.Patch(typeof(ElevatorLift), "Server_RaiseLowerFloor")]
+	public class ElevatorLift_Server_RaiseLowerFloor
+	{
+		public static bool Prefix(BaseEntity.RPCMessage msg, ref ElevatorLift __instance)
+		{
+			if (!__instance.CanMove())
+			{
+				return false;
+			}
 
-            Elevator.Direction direction = (Elevator.Direction)msg.read.Int32();
+			Elevator.Direction direction = (Elevator.Direction)msg.read.Int32();
 
-            bool flag = msg.read.Bit();
+			bool flag = msg.read.Bit();
 
-            return HookExecutor.CallStaticHook("OnElevatorButtonPress", __instance, msg.player, direction, flag) == null;
-        }
-    }
+			return HookExecutor.CallStaticHook("OnElevatorButtonPress", __instance, msg.player, direction, flag) == null;
+		}
+	}
 }
