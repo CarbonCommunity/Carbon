@@ -123,6 +123,7 @@ namespace Carbon.Core
 
 		#region Processors
 
+		public CarbonProcessor CarbonProcessor { get; set; }
 		public ScriptProcessor ScriptProcessor { get; set; }
 		public WebScriptProcessor WebScriptProcessor { get; set; }
 		public HarmonyProcessor HarmonyProcessor { get; set; }
@@ -133,7 +134,8 @@ namespace Carbon.Core
 			if (ScriptProcessor == null ||
 				WebScriptProcessor == null ||
 				HarmonyProcessor == null ||
-				ModuleProcessor == null)
+				ModuleProcessor == null ||
+				CarbonProcessor)
 			{
 				_uninstallProcessors();
 
@@ -141,6 +143,7 @@ namespace Carbon.Core
 				ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 				WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 				HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor>();
+				CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 				Addon = new CarbonAddonProcessor();
 				ModuleProcessor = new ModuleProcessor();
 			}
@@ -167,13 +170,16 @@ namespace Carbon.Core
 				if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
 				if (HarmonyProcessor != null) HarmonyProcessor?.Dispose();
 				if (ModuleProcessor != null) ModuleProcessor?.Dispose();
+				if (CarbonProcessor != null) CarbonProcessor?.Dispose();
 			}
 			catch { }
 
 			try
 			{
+				if (ScriptProcessor != null) UnityEngine.Object.DestroyImmediate(ScriptProcessor);
 				if (WebScriptProcessor != null) UnityEngine.Object.DestroyImmediate(WebScriptProcessor);
 				if (HarmonyProcessor != null) UnityEngine.Object.DestroyImmediate(HarmonyProcessor);
+				if (CarbonProcessor != null) UnityEngine.Object.DestroyImmediate(CarbonProcessor);
 			}
 			catch { }
 

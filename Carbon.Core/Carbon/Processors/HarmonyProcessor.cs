@@ -19,7 +19,7 @@ namespace Carbon.Core.Processors
 		{
 			public override void Dispose()
 			{
-				CarbonLoader.UnloadCarbonMod(Path.GetFileNameWithoutExtension(File), true);
+				CarbonLoader.UnloadCarbonMod(Path.GetFileNameWithoutExtension(File));
 			}
 			public override void Execute()
 			{

@@ -18,23 +18,20 @@ namespace Oxide.Plugins
 	public class RustPlugin : Plugin
 	{
 		public Permission permission { get; set; }
-		public Language lang { get; set; } = new Language();
-		public PluginManager Manager { get; set; } = new PluginManager();
-		public Command cmd { get; set; } = new Command();
-		public Plugins plugins { get; set; } = new Plugins();
-		public Timers timer { get; set; } = new Timers();
-		public OxideMod mod { get; set; } = new OxideMod();
-		public WebRequests webrequest { get; set; } = new WebRequests();
+		public Language lang { get; set; }
+		public PluginManager Manager { get; set; }
+		public Command cmd { get; set; }
+		public Plugins plugins { get; set; }
+		public Timers timer { get; set; }
+		public OxideMod mod { get; set; }
+		public WebRequests webrequest { get; set; }
 		public Oxide.Game.Rust.Libraries.Rust rust { get; set; }
 		public Persistence persistence { get; set; }
 
 		public DynamicConfigFile Config { get; private set; }
 
-		public Oxide.Game.Rust.Libraries.Player Player
-		{ get { return rust.Player; } private set { } }
-
-		public Oxide.Game.Rust.Libraries.Server Server
-		{ get { return rust.Server; } private set { } }
+		public Oxide.Game.Rust.Libraries.Player Player { get { return rust.Player; } private set { } }
+		public Oxide.Game.Rust.Libraries.Server Server { get { return rust.Server; } private set { } }
 
 		internal Dictionary<string, StreamWriter> _logWriters = new Dictionary<string, StreamWriter>();
 

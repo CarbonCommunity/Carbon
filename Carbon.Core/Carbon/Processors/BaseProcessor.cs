@@ -14,8 +14,8 @@ namespace Carbon.Core.Processors
 {
 	public class BaseProcessor : FacepunchBehaviour, IDisposable
 	{
-		public Dictionary<string, Instance> InstanceBuffer { get; } = new Dictionary<string, Instance>();
-		public List<string> IgnoreList { get; } = new List<string>();
+		public Dictionary<string, Instance> InstanceBuffer { get; private set; }
+		public List<string> IgnoreList { get; private set; }
 
 		public virtual bool EnableWatcher => true;
 		public virtual string Folder => string.Empty;
@@ -31,6 +31,9 @@ namespace Carbon.Core.Processors
 		public virtual void Start()
 		{
 			if (IsInitialized) return;
+
+			InstanceBuffer = new Dictionary<string, Instance>();
+			IgnoreList = new List<string>();
 
 			DontDestroyOnLoad(gameObject);
 

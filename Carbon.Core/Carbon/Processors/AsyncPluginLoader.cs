@@ -186,15 +186,5 @@ namespace Carbon.Core
 			}
 			catch (Exception ex) { Console.WriteLine($"Couldn't compile '{FileName}'\n{ex}"); }
 		}
-
-		private SyntaxTree GetSyntaxTree(string code, params string[] defines)
-		{
-			return SyntaxFactory.ParseSyntaxTree(SourceText.From(code, Encoding.UTF8), GetOptions(defines));
-		}
-
-		private CSharpParseOptions GetOptions(string[] defines)
-		{
-			return new CSharpParseOptions(languageVersion: LanguageVersion.CSharp9, preprocessorSymbols: defines);
-		}
 	}
 }

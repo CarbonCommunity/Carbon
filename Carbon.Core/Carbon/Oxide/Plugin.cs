@@ -338,9 +338,13 @@ namespace Oxide.Plugins
 
 		#endregion
 
-		public void NextTick(Action action)
+		public void NextTick(Action callback)
 		{
-			action?.Invoke();
+			CarbonCore.Instance.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+		}
+		public void NextFrame(Action callback)
+		{
+			CarbonCore.Instance.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 		}
 
 		public bool IsLoaded { get; set; }

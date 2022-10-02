@@ -228,7 +228,8 @@ namespace Carbon.Core
 
 				foreach (var type in assembly.GetTypes())
 				{
-					if (!(type.Namespace.Equals("Oxide.Plugins") ||
+					if (string.IsNullOrEmpty(type.Namespace) ||
+						!(type.Namespace.Equals("Oxide.Plugins") ||
 						type.Namespace.Equals("Carbon.Plugins"))) continue;
 
 					if (CarbonCore.Instance.Config.HookValidation)

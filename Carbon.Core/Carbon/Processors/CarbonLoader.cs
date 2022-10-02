@@ -109,7 +109,7 @@ namespace Carbon.Core
 				fileName = fileName.Substring(0, fileName.Length - 4);
 			}
 
-			UnloadCarbonMod(fileName, silent);
+			UnloadCarbonMod(fileName);
 
 			var domain = "com.rust.carbon." + fileName;
 
@@ -193,7 +193,7 @@ namespace Carbon.Core
 			}
 			return true;
 		}
-		public static bool UnloadCarbonMod(string name, bool silent = false)
+		public static bool UnloadCarbonMod(string name)
 		{
 			var mod = GetMod(name);
 			if (mod == null)
