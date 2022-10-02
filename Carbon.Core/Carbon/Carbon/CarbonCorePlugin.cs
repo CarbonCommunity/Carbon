@@ -347,7 +347,7 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("load", "Loads all mods and/or plugins. E.g 'c.load *' to load everything you've unloaded.")]
-		private void Load(ConsoleSystem.Arg arg)
+		private void LoadPlugin(ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
@@ -416,7 +416,7 @@ namespace Carbon.Core
 		}
 
 		[ConsoleCommand("unload", "Unloads all mods and/or plugins. E.g 'c.unload *' to unload everything. They'll be marked as 'ignored'.")]
-		private void Unload(ConsoleSystem.Arg arg)
+		private void UnloadPlugin(ConsoleSystem.Arg arg)
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 

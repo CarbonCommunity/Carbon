@@ -320,6 +320,11 @@ namespace Carbon.Core
 				uhList.Value.Clear();
 			}
 
+			foreach (var plugin in CarbonCore.Instance.Plugins.Plugins)
+			{
+				plugin.InternalApplyPluginReferences();
+			}
+
 			AsyncLoader.Hooks.Clear();
 			AsyncLoader.UnsupportedHooks.Clear();
 			AsyncLoader.HookMethods.Clear();

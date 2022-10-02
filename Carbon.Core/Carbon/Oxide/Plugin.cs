@@ -88,28 +88,7 @@ namespace Oxide.Plugins
 
 			using (TimeMeasure.New($"Processing PluginReferences on '{this}'"))
 			{
-				foreach (var reference in PluginReferences)
-				{
-					var field = reference.Field;
-					var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
-					if (attribute == null) continue;
-
-					var plugin = (Plugin)null;
-					if (field.FieldType.Name != nameof(Plugin) && field.FieldType.Name != nameof(RustPlugin))
-					{
-						var info = field.FieldType.GetCustomAttribute<InfoAttribute>();
-						if (info == null)
-						{
-							CarbonCore.Error($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
-							continue;
-						}
-
-						plugin = CarbonCore.Instance.CorePlugin.plugins.Find(info.Title);
-					}
-					else plugin = CarbonCore.Instance.CorePlugin.plugins.Find(field.Name);
-
-					if (plugin != null) field.SetValue(this, plugin);
-				}
+				InternalApplyPluginReferences();
 			}
 			CarbonCore.Debug(Name, "Assigned plugin references", 2);
 
@@ -136,12 +115,12 @@ namespace Oxide.Plugins
 		}
 		public virtual void IUnload()
 		{
-			using (TimeMeasure.New($"IUnload._unprocessHooks on '{this}'"))
+			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 			{
 				_unprocessHooks();
 			}
 
-			using (TimeMeasure.New($"IUnload.requires on '{this}'"))
+			using (TimeMeasure.New($"IUnload.Requires on '{this}'"))
 			{
 				foreach (var plugin in CarbonCore.Instance.CorePlugin.plugins.GetAll())
 				{
@@ -154,7 +133,7 @@ namespace Oxide.Plugins
 				}
 			}
 
-			using (TimeMeasure.New($"IUnload.disposal on '{this}'"))
+			using (TimeMeasure.New($"IUnload.Disposal on '{this}'"))
 			{
 				IgnoredHooks.Clear();
 				HookCache.Clear();
@@ -180,6 +159,31 @@ namespace Oxide.Plugins
 			//             _processor.Clear ( Name, instance );
 			//         break;
 			// }
+		}
+		internal void InternalApplyPluginReferences()
+		{
+			foreach (var reference in PluginReferences)
+			{
+				var field = reference.Field;
+				var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
+				if (attribute == null) continue;
+
+				var plugin = (Plugin)null;
+				if (field.FieldType.Name != nameof(Plugin) && field.FieldType.Name != nameof(RustPlugin))
+				{
+					var info = field.FieldType.GetCustomAttribute<InfoAttribute>();
+					if (info == null)
+					{
+						CarbonCore.Warn($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
+						continue;
+					}
+
+					plugin = CarbonCore.Instance.CorePlugin.plugins.Find(info.Title);
+				}
+				else plugin = CarbonCore.Instance.CorePlugin.plugins.Find(field.Name);
+
+				if (plugin != null) field.SetValue(this, plugin);
+			}
 		}
 
 		public void PatchPlugin(Assembly assembly = null)
@@ -384,7 +388,6 @@ namespace Oxide.Plugins
 		{
 			return GetType().Name;
 		}
-
 		public virtual void Dispose()
 		{
 			IsLoaded = false;
