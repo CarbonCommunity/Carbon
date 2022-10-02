@@ -5,13 +5,30 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Oxide.Core.Configuration;
 using UnityEngine;
 
 namespace Carbon.Core.Modules
 {
-	public class BaseModule<C, D> : BaseHookable, IModule
+	public class BaseModule : BaseHookable
+	{
+		public virtual bool EnabledByDefault => false;
+
+		public static T GetModule<T>()
+		{
+			foreach (var module in CarbonCore.Instance.ModuleProcessor.Modules)
+			{
+				if (module.GetType() == typeof(T) && module is T result) return result;
+			}
+
+			return default;
+		}
+	}
+	public class CarbonModule<C, D> : BaseModule, IModule
 	{
 		public DynamicConfigFile File { get; private set; }
 		public DynamicConfigFile Data { get; private set; }
@@ -72,6 +89,7 @@ namespace Carbon.Core.Modules
 			if (!File.Exists())
 			{
 				ConfigInstance = new Configuration { Config = Activator.CreateInstance<C>() };
+				if (EnabledByDefault) ConfigInstance.Enabled = true;
 				shouldSave = true;
 			}
 			else
@@ -134,12 +152,6 @@ namespace Carbon.Core.Modules
 			}
 			catch (Exception ex) { PutsError($"Failed {(ConfigInstance.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 		}
-
-		#region Hooks
-
-		public virtual void OnWorldPrefabSpawned(GameObject gameObject, string category) { }
-
-		#endregion
 
 		private void OnServerInitialized()
 		{

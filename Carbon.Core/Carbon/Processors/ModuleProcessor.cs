@@ -12,7 +12,7 @@ namespace Carbon.Core.Processors
 		{
 			foreach (var type in typeof(ModuleProcessor).Assembly.GetTypes())
 			{
-				if (type.BaseType == null || !type.BaseType.Name.Contains("BaseModule")) continue;
+				if (type.BaseType == null || !type.BaseType.Name.Contains("CarbonModule")) continue;
 
 				Setup(Activator.CreateInstance(type) as BaseHookable);
 			}

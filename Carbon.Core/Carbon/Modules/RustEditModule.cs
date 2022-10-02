@@ -12,7 +12,7 @@ using Network;
 
 namespace Carbon.Core.Modules
 {
-	public class RustEditModule : BaseModule<RustEditConfig, RustEditData>
+	public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		public override string Name => "RustEdit.Ext";
 		public override Type Type => typeof(RustEditModule);

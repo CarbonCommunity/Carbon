@@ -4,6 +4,7 @@
 /// 
 
 using System.Collections.Generic;
+using Carbon.Core.Modules;
 using Facepunch;
 using Harmony;
 
@@ -12,6 +13,13 @@ public class ItemContainer_Take
 {
 	public static bool Prefix(List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)
 	{
+		var overrides = BaseModule.GetModule<RustOverridesModule>();
+		if (!overrides.ConfigInstance.Enabled || !overrides.Config.DisallowSkinnedItemsFromBeingCraftable)
+		{
+			__result = default;
+			return true;
+		}
+
 		var num = 0;
 		if (iAmount == 0)
 		{

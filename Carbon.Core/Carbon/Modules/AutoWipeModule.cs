@@ -6,7 +6,7 @@ using System;
 /// 
 namespace Carbon.Core.Modules
 {
-	public class AutoWipeModule : BaseModule<AutoWipeConfig, AutoWipeData>
+	public class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	{
 		public override string Name => "AutoWipe";
 		public override Type Type => typeof(AutoWipeModule);

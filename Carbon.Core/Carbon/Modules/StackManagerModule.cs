@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Carbon.Core.Modules
 {
-	public class StackManagerModule : BaseModule<StackManagerConfig, StackManagerData>
+	public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerData>
 	{
 		public override string Name => "StackManager";
 		public override Type Type => typeof(StackManagerModule);
