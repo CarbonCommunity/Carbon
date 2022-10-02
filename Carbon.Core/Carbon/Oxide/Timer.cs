@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Carbon.Core;
 using Facepunch;
 using static Oxide.Plugins.RustPlugin;
 
@@ -124,11 +125,13 @@ namespace Oxide.Plugins
 
 	public class Timer : IDisposable
 	{
+		public RustPlugin Plugin { get; set; }
+
 		public Action Activity { get; set; }
 		public Action Callback { get; set; }
 		public Persistence Persistence { get; set; }
 		public int TimesTriggered { get; set; }
-		public RustPlugin Plugin { get; set; }
+		public bool Destroyed { get; set; }
 
 		public Timer() { }
 		public Timer(Persistence persistence, Action activity, RustPlugin plugin = null)
@@ -140,6 +143,12 @@ namespace Oxide.Plugins
 
 		public void Reset(float delay = -1f, int repetitions = 1)
 		{
+			if (Destroyed)
+			{
+				CarbonCore.Warn($"You cannot restart a timer that has been destroyed.");
+				return;
+			}
+
 			if (Persistence != null)
 			{
 				Persistence.CancelInvoke(Callback);
@@ -191,6 +200,9 @@ namespace Oxide.Plugins
 		}
 		public void Destroy()
 		{
+			if (Destroyed) return;
+			Destroyed = true;
+
 			if (Persistence != null)
 			{
 				Persistence.CancelInvoke(Callback);
