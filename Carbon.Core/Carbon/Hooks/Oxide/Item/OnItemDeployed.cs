@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Carbon.Core.Hooks.Oxide.Item
 {
 	[OxideHook("OnItemDeployed"), OxideHook.Category(Hook.Category.Enum.Item)]
-	[OxideHook.Parameter("deployer", typeof(Deployer))]
+	[OxideHook.Parameter("this", typeof(Deployer))]
 	[OxideHook.Parameter("baseEntity", typeof(BaseEntity))]
 	[OxideHook.Parameter("slotEntity", typeof(BaseEntity))]
 	[OxideHook.Info("Called right after an item has been deployed.")]
@@ -82,7 +82,7 @@ namespace Carbon.Core.Hooks.Oxide.Item
 	}
 
 	[OxideHook("OnItemDeployed"), OxideHook.Category(Hook.Category.Enum.Item)]
-	[OxideHook.Parameter("deployer", typeof(Deployer))]
+	[OxideHook.Parameter("this", typeof(Deployer))]
 	[OxideHook.Parameter("baseEntity", typeof(BaseEntity))]
 	[OxideHook.Parameter("slotEntity", typeof(BaseEntity))]
 	[OxideHook.Info("Called right after an item has been deployed.")]
