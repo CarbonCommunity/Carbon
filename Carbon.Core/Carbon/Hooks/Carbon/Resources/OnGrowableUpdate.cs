@@ -10,7 +10,8 @@ namespace Carbon.Extended
     [CarbonHook("OnGrowableUpdate"), CarbonHook.Category(CarbonHook.Category.Enum.Resources)]
     [CarbonHook.Parameter("this", typeof(GrowableEntity))]
     [CarbonHook.Info("Called before growable entity will be updated.")]
-    [CarbonHook.Patch(typeof(GrowableEntity), "RunUpdate")]
+	[CarbonHook.Info("No return behavior.")]
+	[CarbonHook.Patch(typeof(GrowableEntity), "RunUpdate")]
     public class GrowableEntity_RunUpdate
     {
         public static void Prefix(ref GrowableEntity __instance)
