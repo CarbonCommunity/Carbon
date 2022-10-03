@@ -346,11 +346,11 @@ namespace Carbon.Core
 
 		public void OnFinished()
 		{
-			CarbonCore.Log("Everything finished. Running OSI.");
-
+			var counter = 0;
 			foreach (var plugin in CarbonCore.Instance.Plugins.Plugins)
 			{
 				if (plugin.HasInitialized) continue;
+				counter++;
 
 				if (CarbonCore.IsServerFullyInitialized)
 				{
@@ -367,6 +367,7 @@ namespace Carbon.Core
 					plugin.HasInitialized = true;
 				}
 			}
+			CarbonCore.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
 		}
 		public void Dispose()
 		{
