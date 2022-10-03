@@ -33,8 +33,6 @@ namespace Carbon.Extended
 	{
 		public static bool Prefix(BaseEntity.RPCMessage msg, ref BasePlayer __instance)
 		{
-			Core.CarbonCore.Log($"Test {__instance}");
-
 			PlayerProjectileAttack playerProjectileAttack = PlayerProjectileAttack.Deserialize(msg.read);
 			if (playerProjectileAttack == null)
 			{
