@@ -175,7 +175,7 @@ namespace Carbon.Core
 							{
 								foreach (var parameter in parameters)
 								{
-									args += $"_{parameter.Type.Name}";
+									args += $"_[{parameter.Type.Name}]{parameter.Name}";
 								}
 							}
 
