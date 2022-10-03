@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using Carbon;
 using Carbon.Core;
 using Carbon.Core.Extensions;
 using Facepunch;
@@ -38,7 +39,7 @@ public class RconCommand
 					}
 					catch (Exception ex)
 					{
-						CarbonCore.Error("RconCommand_OnCommand", ex);
+						Logger.Instance.Error("RconCommand_OnCommand", ex);
 					}
 
 					break;

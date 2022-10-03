@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using Carbon;
 using Carbon.Core;
 using Oxide.Plugins;
 
@@ -158,7 +159,7 @@ namespace Oxide.Core.Libraries
 						text += $" in '{Owner.Name} v{Owner.Version}' plugin";
 					}
 
-					CarbonCore.Error(text, ex);
+					Logger.Instance.Error(text, ex);
 				}
 
 				Owner?.TrackEnd();

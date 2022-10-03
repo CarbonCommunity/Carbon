@@ -3,6 +3,7 @@
 /// All rights reserved
 /// 
 
+using Carbon;
 using Carbon.Core;
 using Harmony;
 using Oxide.Core;
@@ -16,8 +17,8 @@ public class OnServerShutdown
 	{
 		if (_call <= 0.5f) return;
 
-		CarbonCore.Log($"Saving Carbon plugins & shutting down");
-		
+		Logger.Instance.Log($"Saving Carbon plugins & shutting down");
+
 		Interface.Oxide.OnShutdown();
 
 		HookExecutor.CallStaticHook("OnServerSave");

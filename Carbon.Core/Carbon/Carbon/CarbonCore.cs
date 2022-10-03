@@ -149,7 +149,7 @@ namespace Carbon.Core
 				ModuleProcessor = new ModuleProcessor();
 				Entities = new Entities();
 			}
-			Debug("Installed processors", 3);
+			Carbon.Logger.Instance.Log("Installed processors");
 
 			_registerProcessors();
 		}
@@ -160,7 +160,7 @@ namespace Carbon.Core
 			if (HarmonyProcessor != null) HarmonyProcessor?.Start();
 
 			if (ScriptProcessor != null) ScriptProcessor.InvokeRepeating(() => { RefreshConsoleInfo(); }, 1f, 1f);
-			Debug("Registered processors", 3);
+			Carbon.Logger.Instance.Log("Registered processors");
 		}
 		internal void _uninstallProcessors()
 		{
@@ -262,66 +262,15 @@ namespace Carbon.Core
 
 		#region Logging
 
-		public static void Debug(object message, int level = 0, LogType log = LogType.Log)
-		{
-			if (Instance.Config.Debug <= -1 ||
-				Instance.Config.Debug <= level) return;
-
-			switch (log)
-			{
-				case LogType.Log:
-					Log($"[Carbon] {message}");
-					break;
-
-				case LogType.Warning:
-					Warn($"[Carbon] {message}");
-					break;
-
-				case LogType.Error:
-					Error($"[Carbon] {message}");
-					break;
-			}
-		}
-		public static void Debug(object header, object message, int level = 1, LogType log = LogType.Log)
-		{
-			Debug($"[{header}] {message}", level, log);
-		}
-
-		public static void Log(object message)
-		{
-			UnityEngine.Debug.Log($"{message}");
-		}
-		public static void Warn(object message)
-		{
-			UnityEngine.Debug.LogWarning($"{message}");
-		}
-		public static void Error(object message, Exception exception = null)
-		{
-			if (exception == null) UnityEngine.Debug.LogError(message);
-			else UnityEngine.Debug.LogError(new Exception($"{message}\n{exception}"));
-		}
-
-		public static void Format(string format, params object[] args)
-		{
-			Log(string.Format(format, args));
-		}
 		public static void LogCommand(object message, BasePlayer player = null)
 		{
 			if (player == null)
 			{
-				Log(message);
+				Carbon.Logger.Instance.Log(message);
 				return;
 			}
 
 			player.SendConsoleCommand($"echo {message}");
-		}
-		public static void WarnFormat(string format, params object[] args)
-		{
-			Warn(string.Format(format, args));
-		}
-		public static void ErrorFormat(string format, Exception exception = null, params object[] args)
-		{
-			Error(string.Format(format, args), exception);
 		}
 
 		#endregion
@@ -392,9 +341,9 @@ namespace Carbon.Core
 			#endregion
 
 			LoadConfig();
-			Debug("Loaded config", 3);
+			Carbon.Logger.Instance.Log("Loaded config");
 
-			Format($"Loading...");
+			Carbon.Logger.Instance.Format($"Loading...");
 
 			GetRootFolder();
 			GetConfigsFolder();
@@ -404,7 +353,7 @@ namespace Carbon.Core
 			GetLogsFolder();
 			GetLangFolder();
 			OsEx.Folder.DeleteContents(GetTempFolder());
-			Debug("Loaded folders", 3);
+			Carbon.Logger.Instance.Log("Loaded folders");
 
 			_installProcessors();
 
@@ -414,11 +363,11 @@ namespace Carbon.Core
 			_installDefaultCommands();
 
 			CarbonHookValidator.Refresh();
-			Debug("Fetched oxide hooks", 3);
+			Carbon.Logger.Instance.Log("Fetched oxide hooks");
 
 			ReloadPlugins();
 
-			Format($"Loaded.");
+			Carbon.Logger.Instance.Format($"Loaded.");
 
 			RefreshConsoleInfo();
 

@@ -4,6 +4,7 @@
 /// 
 
 using System;
+using Carbon;
 using Carbon.Core;
 
 namespace Oxide.Core
@@ -16,13 +17,13 @@ namespace Oxide.Core
 		public static void Initialize()
 		{
 			Oxide.Load();
-			CarbonCore.Log($"  Instance Directory: {Oxide.InstanceDirectory}");
-			CarbonCore.Log($"  Root Directory: {Oxide.RootDirectory}");
-			CarbonCore.Log($"  Config Directory: {Oxide.ConfigDirectory}");
-			CarbonCore.Log($"  Data Directory: {Oxide.DataDirectory}");
-			CarbonCore.Log($"  Lang Directory: {Oxide.LangDirectory}");
-			CarbonCore.Log($"  Log Directory: {Oxide.LogDirectory}");
-			CarbonCore.Log($"  Plugin Directory: {Oxide.PluginDirectory}");
+			Logger.Instance.Log($"  Instance Directory: {Oxide.InstanceDirectory}");
+			Logger.Instance.Log($"  Root Directory: {Oxide.RootDirectory}");
+			Logger.Instance.Log($"  Config Directory: {Oxide.ConfigDirectory}");
+			Logger.Instance.Log($"  Data Directory: {Oxide.DataDirectory}");
+			Logger.Instance.Log($"  Lang Directory: {Oxide.LangDirectory}");
+			Logger.Instance.Log($"  Log Directory: {Oxide.LogDirectory}");
+			Logger.Instance.Log($"  Plugin Directory: {Oxide.PluginDirectory}");
 		}
 
 		public static OxideMod GetMod() => Oxide;

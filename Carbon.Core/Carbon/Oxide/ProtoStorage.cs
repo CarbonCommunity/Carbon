@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Carbon.Core;
+using Carbon;
 using ProtoBuf;
 
 namespace Oxide.Core
@@ -49,7 +49,7 @@ namespace Oxide.Core
 			}
 			catch (Exception ex)
 			{
-				CarbonCore.Error("Failed to load protobuf data from " + fileName, ex);
+				Logger.Instance.Error("Failed to load protobuf data from " + fileName, ex);
 			}
 
 			return default(T);
@@ -76,7 +76,7 @@ namespace Oxide.Core
 			}
 			catch (Exception ex)
 			{
-				CarbonCore.Error("Failed to save protobuf data to " + fileName, ex);
+				Logger.Instance.Error("Failed to save protobuf data to " + fileName, ex);
 			}
 		}
 

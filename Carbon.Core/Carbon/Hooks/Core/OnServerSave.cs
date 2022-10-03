@@ -3,6 +3,7 @@
 /// All rights reserved
 /// 
 
+using Carbon;
 using Carbon.Core;
 using Harmony;
 using Oxide.Core;
@@ -16,7 +17,7 @@ public class OnServerSave
 	{
 		if (_call <= 0.5f) return;
 
-		CarbonCore.Log($"Saving Carbon plugins");
+		Logger.Instance.Log($"Saving Carbon plugins");
 		HookExecutor.CallStaticHook("OnServerSave");
 		Interface.Oxide.Permission.SaveData();
 		_call = 0;

@@ -11,7 +11,6 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using Carbon.Core;
 using Newtonsoft.Json;
 
 namespace Oxide.Core
@@ -29,7 +28,7 @@ namespace Oxide.Core
 
 			if (ProtoStorage.Exists(name))
 			{
-				CarbonCore.WarnFormat("Failed to import JSON file: {0} already exists.", name);
+				Carbon.Logger.Instance.WarnFormat($"Failed to import JSON file: {name} already exists.");
 				return;
 			}
 
@@ -44,13 +43,13 @@ namespace Oxide.Core
 			}
 			catch (Exception ex)
 			{
-				CarbonCore.Error("Failed to convert datafile to proto storage: " + name, ex);
+				Carbon.Logger.Instance.Error("Failed to convert datafile to proto storage: " + name, ex);
 			}
 		}
 
 		public static void PrintCallStack()
 		{
-			CarbonCore.Format("CallStack:{0}{1}", Environment.NewLine, new StackTrace(1, true));
+			Carbon.Logger.Instance.Format("CallStack: {0}{1}", new StackTrace(1, true));
 		}
 
 		public static string FormatBytes(double bytes)

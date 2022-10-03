@@ -81,7 +81,7 @@ namespace Carbon.Core
 				arg.Player().SendConsoleCommand($"echo {message}");
 				return;
 			}
-			CarbonCore.Log(message);
+			Logger.Instance.Log(message);
 		}
 
 		[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
@@ -191,6 +191,7 @@ namespace Carbon.Core
 		[CommandVar("tag", "Displays this server in the browser list with the 'carbon' tag.", true)]
 		private bool CarbonTag { get { return CarbonCore.Instance.Config.CarbonTag; } set { CarbonCore.Instance.Config.CarbonTag = value; } }
 
+		// TODO: Make this work with the global logger
 		[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true)]
 		private int CarbonDebug { get { return CarbonCore.Instance.Config.Debug; } set { CarbonCore.Instance.Config.Debug = value; } }
 

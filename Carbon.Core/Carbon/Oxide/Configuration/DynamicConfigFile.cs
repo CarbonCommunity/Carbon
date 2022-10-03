@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using Carbon.Core;
+using Carbon;
 using Newtonsoft.Json;
 
 namespace Oxide.Core.Configuration
@@ -88,7 +88,7 @@ namespace Oxide.Core.Configuration
 			string fullPath = Path.GetFullPath(filename);
 			if (!fullPath.StartsWith(_chroot, StringComparison.Ordinal))
 			{
-				CarbonCore.Log($"{filename} ||| {fullPath}");
+				Logger.Instance.Log($"{filename} ||| {fullPath}");
 				throw new Exception("Only access to Carbon directory!\nPath: " + fullPath);
 			}
 			return fullPath;

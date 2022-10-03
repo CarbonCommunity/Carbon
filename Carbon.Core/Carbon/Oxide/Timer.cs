@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using Carbon.Core;
+using Carbon;
 using Facepunch;
 using static Oxide.Plugins.RustPlugin;
 
@@ -145,7 +145,7 @@ namespace Oxide.Plugins
 		{
 			if (Destroyed)
 			{
-				CarbonCore.Warn($"You cannot restart a timer that has been destroyed.");
+				Logger.Instance.Warn($"You cannot restart a timer that has been destroyed.");
 				return;
 			}
 

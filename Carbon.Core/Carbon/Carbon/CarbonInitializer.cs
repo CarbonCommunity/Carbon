@@ -13,11 +13,11 @@ namespace Carbon.Core
 			{
 				CarbonCore.Instance?.UnInit();
 				HarmonyLoader.TryUnloadMod(oldMod);
-				CarbonCore.WarnFormat($"Unloaded previous: {oldMod}");
+				Logger.Instance.WarnFormat($"Unloaded previous: {oldMod}");
 				CarbonCore.Instance = null;
 			}
 
-			CarbonCore.Format("Initializing...");
+			Logger.Instance.Format("Initializing...");
 
 			if (CarbonCore.Instance == null) CarbonCore.Instance = new CarbonCore();
 			else CarbonCore.Instance?.UnInit();

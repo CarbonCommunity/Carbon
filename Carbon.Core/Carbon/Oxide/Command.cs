@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using Carbon;
 using Carbon.Core;
 using Oxide.Plugins;
 using static ConsoleSystem;
@@ -31,7 +32,7 @@ public class Command
 				Help = help
 			});
 		}
-		else CarbonCore.WarnFormat($"Chat command '{command}' already exists.");
+		else Logger.Instance.WarnFormat($"Chat command '{command}' already exists.");
 	}
 	public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
 	{
@@ -90,7 +91,7 @@ public class Command
 				Help = help
 			});
 		}
-		else CarbonCore.WarnFormat($"Console command '{command}' already exists.");
+		else Logger.Instance.WarnFormat($"Console command '{command}' already exists.");
 	}
 	public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
 	{

@@ -37,7 +37,10 @@ namespace Carbon.Core
 
 			if (num >= _miliseconds)
 			{
-				DebugEx.Warning(string.Format("{0} took {1:0}ms [abv {2}]{3}", _name, num, _miliseconds, string.IsNullOrEmpty(_warn) ? "" : (": " + _warn)));
+				Carbon.Logger.Instance.Format(
+					"{0} took {1:0}ms [abv {2}]{3}",
+					_name, num, _miliseconds, string.IsNullOrEmpty(_warn) ? "" : (": " + _warn)
+				);
 			}
 #endif
 		}

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Carbon;
 using Carbon.Core;
 using Oxide.Plugins;
 
@@ -44,7 +45,7 @@ namespace Oxide.Core.Libraries
 			{
 				if (!string.IsNullOrEmpty(keyValuePair.Value.ParentGroup) && HasCircularParent(keyValuePair.Key, keyValuePair.Value.ParentGroup))
 				{
-					CarbonCore.WarnFormat("Detected circular parent group for '{0}'! Removing parent '{1}'", keyValuePair.Key, keyValuePair.Value.ParentGroup);
+					Logger.Instance.Warn("Detected circular parent group for '{keyValuePair.Key}'! Removing parent '{keyValuePair.Value.ParentGroup}'");
 					keyValuePair.Value.ParentGroup = null;
 				}
 			}
@@ -126,7 +127,7 @@ namespace Oxide.Core.Libraries
 			name = name.ToLower();
 			if (PermissionExists(name, null))
 			{
-				CarbonCore.WarnFormat("Duplicate permission registered '{0}' (by plugin '{1}')", name, owner.Name);
+				Logger.Instance.Warn("Duplicate permission registered '{name}' (by plugin '{owner.Name}')");
 				return;
 			}
 

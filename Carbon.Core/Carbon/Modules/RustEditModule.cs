@@ -5,10 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using Harmony;
-using System.Reflection;
 using UnityEngine;
-using Network;
 
 namespace Carbon.Core.Modules
 {

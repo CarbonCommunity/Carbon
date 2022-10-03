@@ -124,7 +124,10 @@ namespace Carbon.Core
 				catch (Exception ex)
 				{
 					var exception = ex.InnerException ?? ex;
-					CarbonCore.Error($"Failed to call hook '{hookName}' on plugin '{plugin.Name} v{plugin.Version}' ({exception.Message})\n{exception.StackTrace}");
+					Logger.Instance.Error(
+						$"Failed to call hook '{hookName}' on plugin '{plugin.Name} v{plugin.Version}'",
+						exception
+					);
 				}
 			}
 
@@ -141,7 +144,7 @@ namespace Carbon.Core
 
 				if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
 				{
-					CarbonCore.WarnFormat($" {plugin?.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
+					Logger.Instance.WarnFormat($" {plugin?.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
 				}
 
 				return result;
@@ -162,7 +165,7 @@ namespace Carbon.Core
 			{
 				_lastDeprecatedWarningAt[oldHook] = now;
 
-				CarbonCore.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
+				Logger.Instance.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 			}
 
 			return CallDeprecatedHook(plugin, oldHook, newHook, expireDate, flags, args);
@@ -180,7 +183,7 @@ namespace Carbon.Core
 				var result = module.CallHook(hookName, flags: flag, args: args);
 				if (result != null && objectOverride != null)
 				{
-					CarbonCore.WarnFormat($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
+					Logger.Instance.WarnFormat($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
 					break;
 				}
 
@@ -197,7 +200,7 @@ namespace Carbon.Core
 						var result = plugin.CallHook(hookName, flags: flag, args: args);
 						if (result != null && objectOverride != null)
 						{
-							CarbonCore.WarnFormat($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
+							Logger.Instance.WarnFormat($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
 							break;
 						}
 
@@ -223,7 +226,7 @@ namespace Carbon.Core
 			{
 				_lastDeprecatedWarningAt[oldHook] = now;
 
-				CarbonCore.Warn($"A plugin is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
+				Logger.Instance.Warn($"A plugin is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 			}
 
 			return CallStaticHook(oldHook, flag, args);

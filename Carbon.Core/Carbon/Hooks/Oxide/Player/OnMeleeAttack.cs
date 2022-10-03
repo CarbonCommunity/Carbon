@@ -46,7 +46,7 @@ namespace Carbon.Extended
 				msg.read.Position = oldPosition;
 				return result;
 			}
-			catch (Exception ex) { CarbonCore.Error($"Failed OnMeleeAttack", ex); }
+			catch (Exception ex) { Logger.Instance.Error($"Failed OnMeleeAttack", ex); }
 
 			return false;
 		}

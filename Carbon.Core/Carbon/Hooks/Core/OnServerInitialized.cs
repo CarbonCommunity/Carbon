@@ -3,11 +3,8 @@
 /// All rights reserved
 /// 
 
-using System;
 using Carbon.Core;
-using Carbon.Core.Processors;
 using Harmony;
-using Humanlights.Extensions;
 
 [HarmonyPatch(typeof(ServerMgr), "OpenConnection")]
 public class OnServerInitialized

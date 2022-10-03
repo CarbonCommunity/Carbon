@@ -29,7 +29,7 @@ namespace Carbon.Core.Processors
 				}
 				catch (Exception ex)
 				{
-					CarbonCore.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
+					Logger.Instance.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
 				}
 			}
 		}

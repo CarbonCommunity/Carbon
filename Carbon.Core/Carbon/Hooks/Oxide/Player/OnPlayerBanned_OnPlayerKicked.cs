@@ -3,7 +3,6 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
 using Epic.OnlineServices.AntiCheatCommon;
 using Epic.OnlineServices.AntiCheatServer;
 using Oxide.Core;
@@ -25,7 +24,9 @@ namespace Carbon.Extended
 
 			if (connection == null)
 			{
-				CarbonCore.ErrorFormat("[EAC] Status update for invalid client: " + clientHandle.ToString());
+				Logger.Instance.Error(
+					$"[EAC] Status update for invalid client: {clientHandle.ToString()}"
+				);
 			}
 			else
 			{
@@ -35,7 +36,7 @@ namespace Carbon.Extended
 				{
 					var actionReasonDetailsString = data.ActionReasonDetailsString;
 
-					CarbonCore.Log(string.Format("[EAC] Kicking {0} / {1} ({2})", connection.userid, connection.username, actionReasonDetailsString));
+					Logger.Instance.Log(string.Format("[EAC] Kicking {0} / {1} ({2})", connection.userid, connection.username, actionReasonDetailsString));
 					connection.authStatus = "eac";
 					Network.Net.sv.Kick(connection, "EAC: " + actionReasonDetailsString, false);
 					Interface.CallHook("OnPlayerKicked", connection, actionReasonDetailsString.ToString());

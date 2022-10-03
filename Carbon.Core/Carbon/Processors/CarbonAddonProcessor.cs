@@ -7,10 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using Facepunch;
 using Harmony;
-using static Carbon.Core.Processors.BaseProcessor;
 
 namespace Carbon.Core
 {
@@ -84,7 +82,7 @@ namespace Carbon.Core
 
 				if (instance.Hooks <= 0)
 				{
-					CarbonCore.Warn($" No plugin is using '{hookName}'. Unpatching.");
+					Logger.Instance.Warn($" No plugin is using '{hookName}'. Unpatching.");
 					UninstallHooks(hookName);
 				}
 			}
@@ -93,7 +91,7 @@ namespace Carbon.Core
 		public void InstallHooks(string hookName, bool doRequires = true)
 		{
 			if (!DoesHookExist(hookName)) return;
-			if (!IsPatched(hookName)) CarbonCore.Debug($"Found '{hookName}'...");
+			if (!IsPatched(hookName)) Carbon.Logger.Instance.Warn($"Found '{hookName}'...");
 
 			new HookInstallerThread { HookName = hookName, DoRequires = doRequires, Processor = this }.Start();
 		}
@@ -231,7 +229,7 @@ namespace Carbon.Core
 								hookInstance.Patches.Add(instance);
 								hookInstance.Id = patchId;
 
-								CarbonCore.Warn($" Patched {HookName}{args}...");
+								Logger.Instance.Warn($" Patched {HookName}{args}...");
 
 								Pool.Free(ref matchedParameters);
 								Pool.Free(ref originalParametersResult);
@@ -240,7 +238,7 @@ namespace Carbon.Core
 						}
 						catch (Exception exception)
 						{
-							CarbonCore.Error($"Couldn't patch hook '{HookName}' ({type.FullName})", exception);
+							Logger.Instance.Error($"Couldn't patch hook '{HookName}' ({type.FullName})", exception);
 						}
 					}
 

@@ -5,14 +5,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Carbon.Core;
 using Carbon.Core.Processors;
 using Harmony;
 using Newtonsoft.Json;
-using Oxide.Core;
-using UnityEngine;
 
 namespace Oxide.Plugins
 {
@@ -66,7 +63,7 @@ namespace Oxide.Plugins
 			{
 				CarbonCore.Instance.Addon.UnappendHook(hook);
 			}
-			CarbonCore.Debug(Name, "Unprocessed hooks", 2);
+			Carbon.Logger.Instance.Log($"{Name} Unprocessed hooks");
 		}
 
 		public virtual void IInit()
@@ -84,13 +81,13 @@ namespace Oxide.Plugins
 					else list.Add(method);
 				}
 			}
-			CarbonCore.Debug(Name, "Installed hook method attributes", 2);
+			Carbon.Logger.Instance.Log($"{Name} Installed hook method attributes");
 
 			using (TimeMeasure.New($"Processing PluginReferences on '{this}'"))
 			{
 				InternalApplyPluginReferences();
 			}
-			CarbonCore.Debug(Name, "Assigned plugin references", 2);
+			Carbon.Logger.Instance.Log($"{Name} Assigned plugin references");
 
 			using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 			{
@@ -100,7 +97,7 @@ namespace Oxide.Plugins
 					CarbonCore.Instance.Addon.AppendHook(hook);
 				}
 			}
-			CarbonCore.Debug(Name, "Processed hooks", 2);
+			Carbon.Logger.Instance.Log($"{Name} Processed hooks");
 
 			CallHook("Init");
 		}
@@ -151,7 +148,7 @@ namespace Oxide.Plugins
 					var info = field.FieldType.GetCustomAttribute<InfoAttribute>();
 					if (info == null)
 					{
-						CarbonCore.Warn($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
+						Carbon.Logger.Instance.Warn($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
 						continue;
 					}
 

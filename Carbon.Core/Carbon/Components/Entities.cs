@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Carbon.Core;
-using Facepunch;
-using ProtoBuf;
-using UnityEngine;
 
 public class Entities : IDisposable
 {
@@ -89,7 +83,7 @@ public class Entities : IDisposable
 
 		public void Dispose()
 		{
-			CarbonCore.Log($"Cleaned {typeof(T).Name}");
+			Carbon.Logger.Instance.Warn($"Cleaned {typeof(T).Name}");
 			Facepunch.Pool.FreeList(ref Pool);
 		}
 	}

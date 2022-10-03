@@ -30,7 +30,7 @@ namespace Carbon.Extended
 				__result = null;
 				return true;
 			}
-			catch (Exception ex) { CarbonCore.Error($"Failed OnBuildingPrivilege", ex); }
+			catch (Exception ex) { Logger.Instance.Error($"Failed OnBuildingPrivilege", ex); }
 
 			__result = null;
 			return false;

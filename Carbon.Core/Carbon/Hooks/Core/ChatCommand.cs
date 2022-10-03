@@ -4,6 +4,7 @@
 /// 
 
 using System;
+using Carbon;
 using Carbon.Core;
 using Carbon.Core.Extensions;
 using ConVar;
@@ -37,7 +38,7 @@ public class Chat_SayAs
 					}
 					catch (Exception ex)
 					{
-						CarbonCore.Error("ConsoleSystem_Run", ex);
+						Logger.Instance.Error("ConsoleSystem_Run", ex);
 					}
 
 					return false;

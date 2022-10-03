@@ -4,7 +4,6 @@
 /// 
 
 using System;
-using Carbon.Core;
 using Oxide.Core;
 using UnityEngine;
 using static BaseCombatEntity;
@@ -43,7 +42,7 @@ namespace Carbon.Extended
 
 				return false;
 			}
-			catch (Exception ex) { CarbonCore.Error($"Failed OnPlayerDeath", ex); }
+			catch (Exception ex) { Logger.Instance.Error($"Failed OnPlayerDeath", ex); }
 
 			return false;
 		}
