@@ -3,8 +3,11 @@
 /// All rights reserved
 /// 
 
+using System;
 using Carbon.Core;
+using Carbon.Core.Processors;
 using Harmony;
+using Humanlights.Extensions;
 
 [HarmonyPatch(typeof(ServerMgr), "OpenConnection")]
 public class OnServerInitialized
@@ -15,8 +18,7 @@ public class OnServerInitialized
 	{
 		if (_call <= 0.5f) return;
 
-		HookExecutor.CallStaticHook("OnServerInitialized");
-		HookExecutor.CallStaticHook("OnServerInitialized", CarbonCore.IsServerFullyInitialized);
+		ScriptLoader.OnFinished();
 		_call = 0;
 	}
 }

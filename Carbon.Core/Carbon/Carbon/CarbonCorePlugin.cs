@@ -61,6 +61,18 @@ namespace Carbon.Core
 		{
 			permission.RefreshUser(player);
 		}
+		private void OnEntitySpawned(BaseEntity entity)
+		{
+			Entities.AddMap(entity);
+		}
+		private void OnEntityDeath(BaseCombatEntity entity, HitInfo info)
+		{
+			Entities.RemoveMap(entity);
+		}
+		private void OnEntityKill(BaseEntity entity)
+		{
+			Entities.RemoveMap(entity);
+		}
 
 		internal static void Reply(object message, ConsoleSystem.Arg arg)
 		{
@@ -187,6 +199,9 @@ namespace Carbon.Core
 
 		[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.", true)]
 		private bool HookValidation { get { return CarbonCore.Instance.Config.HookValidation; } set { CarbonCore.Instance.Config.HookValidation = value; } }
+
+		[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
+		private int EntityMapBufferSize { get { return CarbonCore.Instance.Config.EntityMapBufferSize; } set { CarbonCore.Instance.Config.EntityMapBufferSize = value; } }
 
 		#endregion
 

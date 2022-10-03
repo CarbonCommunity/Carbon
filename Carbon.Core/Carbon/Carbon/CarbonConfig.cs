@@ -13,5 +13,6 @@ namespace Carbon.Core
 		public bool HookValidation { get; set; } = true;
 		public bool ScriptWatchers { get; set; } = true;
 		public bool HarmonyWatchers { get; set; } = true;
+		public int EntityMapBufferSize { get; set; } = 100000;
 	}
 }

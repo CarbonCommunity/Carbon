@@ -344,16 +344,16 @@ namespace Carbon.Core
 			yield return null;
 		}
 
-		public void OnFinished()
+		public static void OnFinished()
 		{
-			var counter = 0;
-			foreach (var plugin in CarbonCore.Instance.Plugins.Plugins)
+			if (CarbonCore.IsServerFullyInitialized)
 			{
-				if (plugin.HasInitialized) continue;
-				counter++;
-
-				if (CarbonCore.IsServerFullyInitialized)
+				var counter = 0;
+				foreach (var plugin in CarbonCore.Instance.Plugins.Plugins)
 				{
+					if (plugin.HasInitialized) continue;
+					counter++;
+
 					try
 					{
 						plugin.CallHook("OnServerInitialized");
@@ -365,10 +365,11 @@ namespace Carbon.Core
 					}
 
 					plugin.HasInitialized = true;
-				}
-			}
 
-			if (counter > 1) CarbonCore.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
+				}
+
+				if (counter > 1) CarbonCore.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
+			}
 		}
 		public void Dispose()
 		{

@@ -51,6 +51,7 @@ namespace Carbon.Core
 		public CarbonConfig Config { get; set; }
 		public RustPlugin CorePlugin { get; set; }
 		public CarbonLoader.CarbonMod Plugins { get; set; }
+		public Entities Entities { get; set; }
 		public bool IsInitialized { get; set; }
 
 		internal static List<string> _addons = new List<string> { "carbon." };
@@ -146,6 +147,7 @@ namespace Carbon.Core
 				CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 				Addon = new CarbonAddonProcessor();
 				ModuleProcessor = new ModuleProcessor();
+				Entities = new Entities();
 			}
 			Debug("Installed processors", 3);
 
@@ -421,6 +423,8 @@ namespace Carbon.Core
 			RefreshConsoleInfo();
 
 			IsInitialized = true;
+
+			Entities.Init();
 		}
 		public void UnInit()
 		{
@@ -442,6 +446,8 @@ namespace Carbon.Core
 			}
 			catch { }
 #endif
+
+			Entities.Dispose();
 		}
 	}
 }
