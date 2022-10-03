@@ -367,7 +367,8 @@ namespace Carbon.Core
 					plugin.HasInitialized = true;
 				}
 			}
-			CarbonCore.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
+
+			if (counter > 1) CarbonCore.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
 		}
 		public void Dispose()
 		{
