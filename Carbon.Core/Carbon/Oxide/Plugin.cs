@@ -120,19 +120,6 @@ namespace Oxide.Plugins
 				_unprocessHooks();
 			}
 
-			using (TimeMeasure.New($"IUnload.Requires on '{this}'"))
-			{
-				foreach (var plugin in CarbonCore.Instance.CorePlugin.plugins.GetAll())
-				{
-					if (plugin == null || plugin.Requires == null || plugin.Requires.Length == 0) continue;
-
-					if (plugin.Requires.Contains(this))
-					{
-						plugin.InternalUnload();
-					}
-				}
-			}
-
 			using (TimeMeasure.New($"IUnload.Disposal on '{this}'"))
 			{
 				IgnoredHooks.Clear();
@@ -149,16 +136,6 @@ namespace Oxide.Plugins
 				PluginReferences = null;
 				HookMethodAttributeCache = null;
 			}
-		}
-		internal void InternalUnload()
-		{
-			// switch ( _processor )
-			// {
-			//     case ScriptProcessor script:
-			//         if ( script.InstanceBuffer.TryGetValue ( Name, out var instance ) )
-			//             _processor.Clear ( Name, instance );
-			//         break;
-			// }
 		}
 		internal void InternalApplyPluginReferences()
 		{
@@ -383,6 +360,7 @@ namespace Oxide.Plugins
 		}
 
 		public bool IsLoaded { get; set; }
+		public bool HasInitialized { get; set; }
 
 		public new string ToString()
 		{

@@ -15,6 +15,19 @@ namespace Carbon.Core.Processors
 		public override string Extension => ".cs";
 		public override Type IndexedType => typeof(Script);
 
+		public bool AllPendingScriptsComplete()
+		{
+			foreach (var instance in InstanceBuffer)
+			{
+				if (instance.Value is Script script)
+				{
+					if (script._loader != null && !script._loader.HasFinished) return false;
+				}
+			}
+
+			return true;
+		}
+
 		public class Script : Instance
 		{
 			internal ScriptLoader _loader;

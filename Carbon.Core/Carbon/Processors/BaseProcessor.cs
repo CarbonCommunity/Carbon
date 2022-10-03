@@ -218,6 +218,7 @@ namespace Carbon.Core.Processors
 			public virtual void Dispose() { }
 			public virtual void Execute() { }
 
+			public bool HasSucceeded { get; set; }
 			public bool IsDirty => _hasChanged;
 			public bool IsRemoved => _hasRemoved;
 

@@ -28,6 +28,8 @@ namespace Carbon.Core
 		public string Source { get; set; }
 		public bool IsCore { get; set; }
 
+		public bool HasFinished { get; set; }
+
 		public BaseProcessor.Parser Parser { get; set; }
 		public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader();
 
@@ -138,6 +140,7 @@ namespace Carbon.Core
 		{
 			if (string.IsNullOrEmpty(Source))
 			{
+				HasFinished = true;
 				CarbonCore.Warn("Attempted to compile an empty string of source code.");
 				yield break;
 			}
@@ -197,15 +200,22 @@ namespace Carbon.Core
 
 			if (noRequiresFound)
 			{
+				HasFinished = true;
 				Pool.FreeList(ref requires);
 				yield break;
 			}
+
+			var requiresResult = requires.ToArray();
 
 			AsyncLoader.Start();
 
 			while (AsyncLoader != null && !AsyncLoader.IsDone) { yield return null; }
 
-			if (AsyncLoader == null) yield break;
+			if (AsyncLoader == null)
+			{
+				HasFinished = true;
+				yield break;
+			}
 
 			if (AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0)
 			{
@@ -215,11 +225,12 @@ namespace Carbon.Core
 					var error = AsyncLoader.Exceptions[i];
 					CarbonCore.Error($"  {i + 1:n0}. {error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})");
 				}
+
+				HasFinished = true;
 				yield break;
 			}
 
 			CarbonCore.Warn($" Compiling '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
-
 
 			CarbonLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
@@ -270,7 +281,7 @@ namespace Carbon.Core
 
 					}
 					plugin.IsCore = IsCore;
-					plugin.Instance.Requires = requires.ToArray();
+					plugin.Instance.Requires = requiresResult;
 					plugin.Instance.SetProcessor(CarbonCore.Instance.ScriptProcessor);
 					plugin.Instance.CompileTime = AsyncLoader.CompileTime;
 
@@ -279,20 +290,6 @@ namespace Carbon.Core
 					plugin.Instance.IInit();
 					try { plugin.Instance.DoLoadConfig(); } catch (Exception loadException) { plugin.Instance.LogError($"Failed loading config.", loadException); }
 					plugin.Instance.Load();
-
-					if (CarbonCore.IsServerFullyInitialized)
-					{
-						try
-						{
-							plugin.Instance.CallHook("OnServerInitialized");
-							plugin.Instance.CallHook("OnServerInitialized", CarbonCore.IsServerFullyInitialized);
-						}
-						catch (Exception initException)
-						{
-							plugin.Instance.LogError($"Failed OnServerInitialized.", initException);
-						}
-					}
-
 					plugin.Loader = this;
 
 					CarbonLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
@@ -309,6 +306,7 @@ namespace Carbon.Core
 				}
 				catch (Exception exception)
 				{
+					HasFinished = true;
 					CarbonCore.Error($"Failed to compile: ", exception);
 				}
 
@@ -335,11 +333,41 @@ namespace Carbon.Core
 			AsyncLoader.HookMethods = null;
 			AsyncLoader.PluginReferences = null;
 
-			Pool.FreeList(ref requires);
+			HasFinished = true;
 
+			if (CarbonCore.Instance.ScriptProcessor.AllPendingScriptsComplete())
+			{
+				OnFinished();
+			}
+
+			Pool.FreeList(ref requires);
 			yield return null;
 		}
 
+		public void OnFinished()
+		{
+			CarbonCore.Log("Everything finished. Running OSI.");
+
+			foreach (var plugin in CarbonCore.Instance.Plugins.Plugins)
+			{
+				if (plugin.HasInitialized) continue;
+
+				if (CarbonCore.IsServerFullyInitialized)
+				{
+					try
+					{
+						plugin.CallHook("OnServerInitialized");
+						plugin.CallHook("OnServerInitialized", CarbonCore.IsServerFullyInitialized);
+					}
+					catch (Exception initException)
+					{
+						plugin.LogError($"Failed OnServerInitialized.", initException);
+					}
+
+					plugin.HasInitialized = true;
+				}
+			}
+		}
 		public void Dispose()
 		{
 
