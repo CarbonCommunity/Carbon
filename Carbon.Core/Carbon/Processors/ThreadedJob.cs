@@ -10,68 +10,68 @@ using System.Threading.Tasks;
 
 namespace Carbon.Core
 {
-    public class ThreadedJob : IDisposable
-    {
-        internal bool _isDone = false;
-        internal object _handle = new object ();
-        internal Task _task = null;
-        private CancellationTokenSource cancellationToken;
+	public class ThreadedJob : IDisposable
+	{
+		internal bool _isDone = false;
+		internal object _handle = new object();
+		internal Task _task = null;
+		private CancellationTokenSource cancellationToken;
 
-        public bool IsDone
-        {
-            get
-            {
-                bool temp;
-                lock ( _handle )
-                {
-                    temp = _isDone;
-                }
-                return temp;
-            }
-            set
-            {
-                lock ( _handle )
-                {
-                    _isDone = value;
-                }
-            }
-        }
+		public bool IsDone
+		{
+			get
+			{
+				bool temp;
+				lock (_handle)
+				{
+					temp = _isDone;
+				}
+				return temp;
+			}
+			set
+			{
+				lock (_handle)
+				{
+					_isDone = value;
+				}
+			}
+		}
 
-        public virtual void Start ()
-        {
-            cancellationToken = new CancellationTokenSource();
-            _task = Task.Factory.StartNew( Run, cancellationToken.Token );
-        }
-        public virtual void Abort ()
-        {
-            if ( cancellationToken != null ) cancellationToken.Cancel ();
-        }
+		public virtual void Start()
+		{
+			cancellationToken = new CancellationTokenSource();
+			_task = Task.Factory.StartNew(Run, cancellationToken.Token);
+		}
+		public virtual void Abort()
+		{
+			if (cancellationToken != null) cancellationToken.Cancel();
+		}
 
-        public virtual void ThreadFunction () { }
-        public virtual void OnFinished () { }
+		public virtual void ThreadFunction() { }
+		public virtual void OnFinished() { }
 
-        public virtual bool Update ()
-        {
-            if ( IsDone )
-            {
-                OnFinished ();
-                return true;
-            }
-            return false;
-        }
-        public IEnumerator WaitFor ()
-        {
-            while ( !Update () )
-            {
-                yield return null;
-            }
-        }
-        private void Run ()
-        {
-            ThreadFunction ();
-            IsDone = true;
-        }
+		public virtual bool Update()
+		{
+			if (IsDone)
+			{
+				OnFinished();
+				return true;
+			}
+			return false;
+		}
+		public IEnumerator WaitFor()
+		{
+			while (!Update())
+			{
+				yield return null;
+			}
+		}
+		private void Run()
+		{
+			ThreadFunction();
+			IsDone = true;
+		}
 
-        public virtual void Dispose () { }
-    }
+		public virtual void Dispose() { }
+	}
 }

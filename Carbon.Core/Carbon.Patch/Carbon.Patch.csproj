@@ -1,20 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
   <PropertyGroup>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <TargetFrameworks>net48</TargetFrameworks>
-
-    <StartupObject>Carbon.Patch.Program</StartupObject>
-    <OutputType>exe</OutputType>
+    <ProjectGuid>{C7A9EC64-357C-4411-85CB-AF342FAB6654}</ProjectGuid>
 
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
+    <OutputType>Exe</OutputType>
+    <StartupObject>Carbon.Patch.Program</StartupObject>
+    <TargetFrameworks>net48</TargetFrameworks>
 
-    <ProjectGuid>{C7A9EC64-357C-4411-85CB-AF342FAB6654}</ProjectGuid>
-    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+    <Configurations>Debug;Release</Configurations>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup>    <!-- User defined properties -->
     <Product>Carbon</Product>
+    <AssemblyName>Carbon.Patch</AssemblyName>
     <Version>1.1.0.0</Version>
 
     <Company>Raul-Sorin Sorban</Company>
@@ -24,56 +25,43 @@
     <Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetName>Carbon.Patch</TargetName><!-- This has impact on the output file name -->
-    <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
-    <VersionSuffix>$(Configuration)</VersionSuffix>
-
-    <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
+  <PropertyGroup>    <!-- Automatically generated properties -->
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(VersionPrefix)</FileVersion>
-    <AssemblyName>$(TargetName)</AssemblyName>
+    <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
+    <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+    <VersionSuffix>$(Configuration)</VersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;WIN</DefineConstants>
+    <DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
     <OutputPath>bin\Debug\</OutputPath>
-    <DebugType>embedded</DebugType>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;WIN</DefineConstants>
-    <OutputPath>bin\DebugUnix\</OutputPath>
     <DebugType>embedded</DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>WIN</DefineConstants>
+    <DefineConstants>$(DefineConstants)</DefineConstants>
     <OutputPath>bin\Release\</OutputPath>
     <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseUnix'">
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>UNIX</DefineConstants>
-    <OutputPath>bin\ReleaseUnix\</OutputPath>
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-
- <ItemGroup>
+  <ItemGroup>    <!-- System libs -->
     <Reference Include="System" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup>    <!-- Nuget packages -->
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
   </ItemGroup>
+
+  <Target Name="CustomBeforeCompile" BeforeTargets="BeforeCompile">
+    <Message Text="&gt;&gt; Product: $(Product)" Importance="high" />
+    <Message Text="&gt;&gt; Build ID: $(VersionPrefix)-$(VersionSuffix)" Importance="high" />
+    <Message Text="&gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
+    <Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
+  </Target>
 </Project>

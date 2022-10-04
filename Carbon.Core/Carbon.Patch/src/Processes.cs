@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -14,8 +14,12 @@ namespace Carbon.Patch
 				string Release = Path.GetFullPath(
 					Path.Combine(Arguments.basePath, "Release"));
 
-				if (Directory.Exists(Release))
-					Directory.Delete(Release, true);
+				try
+				{
+					if (Directory.Exists(Release))
+						Directory.Delete(Release, true);
+				}
+				catch { }
 
 				Directory.CreateDirectory(Release);
 				Utility.LogInformation($"Created {Release}");

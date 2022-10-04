@@ -18,12 +18,14 @@ namespace Doorstop
 
 		public static void Start()
 		{
+			File.WriteAllText("__doorstop.log", "Carbon.Doorstop starting");
+
 			try
 			{
 				Process.Start(new ProcessStartInfo
 				{
 					FileName = NStripPath,
-					Arguments = $@"{NStripOpts} '{AssemblyCSharp}'",
+					Arguments = $@"{NStripOpts} ""{AssemblyCSharp}""",
 					WindowStyle = ProcessWindowStyle.Hidden,
 					CreateNoWindow = true
 				}).WaitForExit();

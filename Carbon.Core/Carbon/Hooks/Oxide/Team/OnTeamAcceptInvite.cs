@@ -3,51 +3,49 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using Harmony;
 using Oxide.Core;
 using UnityEngine;
 
 namespace Carbon.Extended
 {
-    [OxideHook ( "OnTeamAcceptInvite", typeof ( object ) ), OxideHook.Category ( OxideHook.Category.Enum.Team )]
-    [OxideHook.Parameter ( "team", typeof ( RelationshipManager.PlayerTeam ) )]
-    [OxideHook.Parameter ( "player", typeof ( BasePlayer ) )]
-    [OxideHook.Info ( "Useful for canceling team invitation acceptation." )]
-    [OxideHook.Patch ( typeof ( RelationshipManager ), "acceptinvite" )]
-    public class RelationshipManager_acceptinvite
-    {
-        public static bool Prefix ( ConsoleSystem.Arg arg )
-        {
-            var basePlayer = arg.Player ();
+	[OxideHook("OnTeamAcceptInvite", typeof(object)), OxideHook.Category(Hook.Category.Enum.Team)]
+	[OxideHook.Parameter("team", typeof(RelationshipManager.PlayerTeam))]
+	[OxideHook.Parameter("player", typeof(BasePlayer))]
+	[OxideHook.Info("Useful for canceling team invitation acceptation.")]
+	[OxideHook.Patch(typeof(RelationshipManager), "acceptinvite")]
+	public class RelationshipManager_acceptinvite
+	{
+		public static bool Prefix(ConsoleSystem.Arg arg)
+		{
+			var basePlayer = arg.Player();
 
-            if ( basePlayer == null )
-            {
-                return false;
-            }
+			if (basePlayer == null)
+			{
+				return false;
+			}
 
-            if ( basePlayer.currentTeam != 0UL )
-            {
-                return false;
-            }
+			if (basePlayer.currentTeam != 0UL)
+			{
+				return false;
+			}
 
-            var @ulong = arg.GetULong ( 0, 0UL );
-            var playerTeam = RelationshipManager.ServerInstance.FindTeam ( @ulong );
-           
-            if ( playerTeam == null )
-            {
-                basePlayer.ClearPendingInvite ();
-                return false;
-            }
+			var @ulong = arg.GetULong(0, 0UL);
+			var playerTeam = RelationshipManager.ServerInstance.FindTeam(@ulong);
 
-            if ( Interface.CallHook ( "OnTeamAcceptInvite", playerTeam, basePlayer ) != null )
-            {
-                return false;
-            }
+			if (playerTeam == null)
+			{
+				basePlayer.ClearPendingInvite();
+				return false;
+			}
 
-            playerTeam.AcceptInvite ( basePlayer );
+			if (Interface.CallHook("OnTeamAcceptInvite", playerTeam, basePlayer) != null)
+			{
+				return false;
+			}
 
-            return false;
-        }
-    }
+			playerTeam.AcceptInvite(basePlayer);
+
+			return false;
+		}
+	}
 }
