@@ -11,7 +11,7 @@ namespace Carbon.Core.Processors
 	public class HarmonyProcessor : BaseProcessor
 	{
 		public override bool EnableWatcher => CarbonCore.IsConfigReady ? CarbonCore.Instance.Config.HarmonyWatchers : true;
-		public override string Folder => CarbonCore.GetPluginsFolder();
+		public override string Folder => CarbonCore.GetHarmonyFolder();
 		public override string Extension => ".dll";
 		public override Type IndexedType => typeof(Harmony);
 

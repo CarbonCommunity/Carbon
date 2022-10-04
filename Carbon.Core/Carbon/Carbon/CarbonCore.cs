@@ -236,6 +236,13 @@ namespace Carbon.Core
 
 			return folder;
 		}
+		public static string GetHarmonyFolder()
+		{
+			var folder = Path.Combine($"{GetRootFolder()}", "harmony");
+			Directory.CreateDirectory(folder);
+
+			return folder;
+		}
 		public static string GetLogsFolder()
 		{
 			var folder = Path.Combine($"{GetRootFolder()}", "logs");
@@ -350,6 +357,7 @@ namespace Carbon.Core
 			GetModulesFolder();
 			GetDataFolder();
 			GetPluginsFolder();
+			GetHarmonyFolder();
 			GetLogsFolder();
 			GetLangFolder();
 			OsEx.Folder.DeleteContents(GetTempFolder());
