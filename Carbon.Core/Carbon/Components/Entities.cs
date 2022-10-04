@@ -105,7 +105,7 @@ public class Entities : IDisposable
 			// EntityMapping.Add(entity.GetType(), map = new List<BaseEntity> { entity });
 		}
 
-		if (!map.Contains(entity)) map.Add(entity);
+		map.Add(entity);
 	}
 	public static void RemoveMap(BaseEntity entity)
 	{
@@ -114,7 +114,7 @@ public class Entities : IDisposable
 			return;
 		}
 
-		if (map.Contains(entity)) map.Remove(entity);
+		map.Remove(entity);
 	}
 
 	public struct Map<T> : IDisposable where T : BaseEntity
