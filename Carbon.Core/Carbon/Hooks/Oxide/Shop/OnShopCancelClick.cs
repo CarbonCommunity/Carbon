@@ -11,7 +11,6 @@ namespace Carbon.Extended
 	[OxideHook.Parameter("this", typeof(ShopFront))]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
 	[OxideHook.Info("Called when a player is cancelling a trade")]
-	[OxideHook.Info("Return a non-null value to override default behavior")]
 	[OxideHook.Patch(typeof(ShopFront), "CancelClicked")]
 	public class ShopFront_CancelClicked
 	{

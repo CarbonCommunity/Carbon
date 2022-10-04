@@ -13,8 +13,7 @@ namespace Carbon.Extended
 	[OxideHook.Parameter("position", typeof(Vector3))]
 	[OxideHook.Parameter("radius", typeof(float))]
 	[OxideHook.Parameter("amount", typeof(int))]
-	[OxideHook.Info("Called before water is poured from a liquid vessel or shot from a water gun")]
-	[OxideHook.Info("Returning a false value overrides default behavior")]
+	[OxideHook.Info("Called before water is poured from a liquid vessel or shot from a water gun.")]
 	[OxideHook.Patch(typeof(WaterBall), "DoSplash", typeof(Vector3), typeof(float), typeof(ItemDefinition), typeof(int))]
 	public class WaterBall_DoSplash
 	{

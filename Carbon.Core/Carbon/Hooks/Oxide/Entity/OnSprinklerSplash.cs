@@ -10,7 +10,6 @@ namespace Carbon.Extended
 	[OxideHook("OnSprinklerSplashed"), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("this", typeof(Sprinkler))]
 	[OxideHook.Info("Called after any sprinkler has splashed water.")]
-	[OxideHook.Info("No return behavior.")]
 	[OxideHook.Patch(typeof(Sprinkler), "DoSplash")]
 	public class Sprinkler_DoSplash
 	{
