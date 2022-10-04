@@ -38,7 +38,7 @@ public class Chat_SayAs
 					}
 					catch (Exception ex)
 					{
-						Logger.Instance.Error("ConsoleSystem_Run", ex);
+						Logger.Error("ConsoleSystem_Run", ex);
 					}
 
 					return false;

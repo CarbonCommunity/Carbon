@@ -82,7 +82,7 @@ namespace Carbon.Core
 
 				if (instance.Hooks <= 0)
 				{
-					Logger.Instance.Warn($" No plugin is using '{hookName}'. Unpatching.");
+					Logger.Warn($" No plugin is using '{hookName}'. Unpatching.");
 					UninstallHooks(hookName);
 				}
 			}
@@ -91,7 +91,7 @@ namespace Carbon.Core
 		public void InstallHooks(string hookName, bool doRequires = true)
 		{
 			if (!DoesHookExist(hookName)) return;
-			if (!IsPatched(hookName)) Carbon.Logger.Instance.Warn($"Found '{hookName}'...");
+			if (!IsPatched(hookName)) Carbon.Logger.Debug($"Found '{hookName}'...", 2);
 
 			new HookInstallerThread { HookName = hookName, DoRequires = doRequires, Processor = this }.Start();
 		}
@@ -103,9 +103,9 @@ namespace Carbon.Core
 				{
 					foreach (var patch in instance.Patches)
 					{
-						if (string.IsNullOrEmpty(instance.Id)) continue;
+						if (string.IsNullOrEmpty(patch.Id)) continue;
 
-						patch.UnpatchAll(instance.Id);
+						patch.UnpatchAll(patch.Id);
 					}
 
 					instance.Patches.Clear();
@@ -147,7 +147,7 @@ namespace Carbon.Core
 		public class HookInstance
 		{
 			public string Id { get; set; }
-			public int Hooks { get; set; } = 0;
+			public int Hooks { get; set; } = 1;
 			public List<HarmonyInstance> Patches { get; } = new List<HarmonyInstance>();
 		}
 
@@ -167,7 +167,7 @@ namespace Carbon.Core
 						{
 							var parameters = type.GetCustomAttributes<Hook.Parameter>();
 							var hook = type.GetCustomAttribute<Hook>();
-							var args = string.Empty;
+							var args = $"[{type.Name}]_";
 
 							if (parameters != null)
 							{
@@ -181,7 +181,7 @@ namespace Carbon.Core
 
 							if (hook.Name == HookName)
 							{
-								var patchId = $"{hook.Name}.{args}";
+								var patchId = $"{hook.Name}{args}";
 								var patch = type.GetCustomAttribute<Hook.Patch>();
 								var hookInstance = (HookInstance)null;
 
@@ -229,8 +229,6 @@ namespace Carbon.Core
 								hookInstance.Patches.Add(instance);
 								hookInstance.Id = patchId;
 
-								Logger.Instance.Warn($" Patched {HookName}{args}...");
-
 								Pool.Free(ref matchedParameters);
 								Pool.Free(ref originalParametersResult);
 								Pool.FreeList(ref originalParameters);
@@ -238,7 +236,7 @@ namespace Carbon.Core
 						}
 						catch (Exception exception)
 						{
-							Logger.Instance.Error($"Couldn't patch hook '{HookName}' ({type.FullName})", exception);
+							Console.WriteLine($"Couldn't patch hook '{HookName}' ({type.FullName})\n{exception}");
 						}
 					}
 

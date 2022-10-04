@@ -17,7 +17,7 @@ public class OnServerShutdown
 	{
 		if (_call <= 0.5f) return;
 
-		Logger.Instance.Log($"Saving Carbon plugins & shutting down");
+		Logger.Log($"Saving Carbon plugins & shutting down");
 
 		Interface.Oxide.OnShutdown();
 

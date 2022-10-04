@@ -1,23 +1,47 @@
-﻿using System;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+///
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Carbon;
 using Carbon.Core;
+using Facepunch;
 
 public class Entities : IDisposable
 {
 	public static void Init()
 	{
-		CarbonCore.Instance.Entities?.Dispose();
-
-		foreach (var type in _findSubClassesOf<BaseEntity>())
+		try
 		{
-			Mapping.Add(type, new List<BaseEntity>(CarbonCore.Instance.Config.EntityMapBufferSize));
-		}
+			CarbonCore.Instance.Entities?.Dispose();
 
-		foreach (var entity in BaseNetworkable.serverEntities)
-		{
-			AddMap(entity as BaseEntity);
+			foreach (var type in _findSubClassesOf<BaseEntity>())
+			{
+				Mapping.Add(type, new List<BaseEntity>(CarbonCore.Instance.Config.EntityMapBufferSize));
+			}
+
+			Logger.Warn($"Mapping {BaseNetworkable.serverEntities.Count:n0} entities... This will take a while.");
+
+			using (TimeMeasure.New("Entity mapping"))
+			{
+				foreach (var type in Mapping)
+				{
+					var p1 = BaseNetworkable.serverEntities.Where(x => x.GetType() == type.Key);
+					var p2 = p1.Select(x => x as BaseEntity);
+
+					type.Value.AddRange(p2);
+
+					Pool.Free(ref p1);
+					Pool.Free(ref p2);
+				}
+			}
+
+			Logger.Warn($"Done mapping.");
 		}
+		catch (Exception ex) { Logger.Error($"Failed Entities.Init()", ex); }
 	}
 
 	public void Dispose()
@@ -40,18 +64,34 @@ public class Entities : IDisposable
 		return assembly.GetTypes().Where(t => t.IsSubclassOf(baseType));
 	}
 
-	public static Map<T> Get<T>() where T : BaseEntity
+	public static Map<T> Get<T>(bool inherited = false) where T : BaseEntity
 	{
 		var map = new Map<T>
 		{
 			Pool = Facepunch.Pool.GetList<T>()
 		};
 
-		if (Mapping.TryGetValue(typeof(T), out var mapping))
+		if (inherited)
 		{
-			foreach (var entity in mapping)
+			foreach (var entry in Mapping)
 			{
-				if (entity is T result) map.Pool.Add(result);
+				if (entry.Key.IsSubclassOf(typeof(T)))
+				{
+					foreach (var entity in entry.Value)
+					{
+						map.Pool.Add(entity as T);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (Mapping.TryGetValue(typeof(T), out var mapping))
+			{
+				foreach (var entity in mapping)
+				{
+					if (entity is T result) map.Pool.Add(result);
+				}
 			}
 		}
 
@@ -83,7 +123,7 @@ public class Entities : IDisposable
 
 		public void Dispose()
 		{
-			Carbon.Logger.Instance.Warn($"Cleaned {typeof(T).Name}");
+			Carbon.Logger.Warn($"Cleaned {typeof(T).Name}");
 			Facepunch.Pool.FreeList(ref Pool);
 		}
 	}

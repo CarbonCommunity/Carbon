@@ -145,7 +145,7 @@ namespace Oxide.Plugins
 		{
 			if (Destroyed)
 			{
-				Logger.Instance.Warn($"You cannot restart a timer that has been destroyed.");
+				Logger.Warn($"You cannot restart a timer that has been destroyed.");
 				return;
 			}
 

@@ -38,39 +38,17 @@ namespace Carbon.Core.Modules
 
 		public new virtual string Name => "Not set";
 
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'NOTICE'.
-		/// </summary>
-		/// <param name="message"></param>
-		[Obsolete("Puts is deprecated, use 'Carbon.Logger.Instance.Log' instead")]
-		protected void Puts(object message)
-			=> Logger.Instance.Log($"[{Name}] {message}");
+		[Obsolete("Puts is deprecated, use 'Carbon.Logger.Log' instead")]
+		protected void Puts(object message) => Logger.Log($"[{Name}] {message}");
 
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'ERROR'.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="ex"></param>
-		[Obsolete("PutsError is deprecated, use 'Carbon.Logger.Instance.Error' instead")]
-		protected void PutsError(object message, Exception ex = null)
-			=> Logger.Instance.Error($"[{Name}] {message}", ex);
+		[Obsolete("PutsError is deprecated, use 'Carbon.Logger.Error' instead")]
+		protected void PutsError(object message, Exception ex = null) => Logger.Error($"[{Name}] {message}", ex);
 
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'WARNING'.
-		/// </summary>
-		/// <param name="message"></param>
-		[Obsolete("PrintWarning is deprecated, use 'Carbon.Logger.Instance.Warn' instead")]
-		protected void PrintWarning(object message)
-			=> Logger.Instance.Warn($"[{Name}] {message}");
+		[Obsolete("PrintWarning is deprecated, use 'Carbon.Logger.Warn' instead")]
+		protected void PrintWarning(object message) => Logger.Warn($"[{Name}] {message}");
 
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'ERROR'.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="ex"></param>
-		[Obsolete("PrintError is deprecated, use 'Carbon.Logger.Instance.Error' instead")]
-		protected void PrintError(object message, Exception ex = null)
-			=> Logger.Instance.Error($"[{Name}] {message}", ex);
+		[Obsolete("PrintError is deprecated, use 'Carbon.Logger.Error' instead")]
+		protected void PrintError(object message, Exception ex = null) => Logger.Error($"[{Name}] {message}", ex);
 
 		public virtual void Dispose()
 		{
@@ -88,10 +66,10 @@ namespace Carbon.Core.Modules
 				CarbonCore.Instance.Addon.InstallHooks(method.Name);
 				CarbonCore.Instance.Addon.AppendHook(method.Name);
 			}
-			Carbon.Logger.Instance.Log($"{Name} Processed hooks");
+			Carbon.Logger.Log(Name, $"Processed hooks");
 
 			CarbonLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-			Carbon.Logger.Instance.Log($"{Name} Processed commands");
+			Carbon.Logger.Log(Name, $"Processed commands");
 
 			File = new DynamicConfigFile(Path.Combine(CarbonCore.GetModulesFolder(), Name, "config.json"));
 			Data = new DynamicConfigFile(Path.Combine(CarbonCore.GetModulesFolder(), Name, "data.json"));
@@ -101,7 +79,7 @@ namespace Carbon.Core.Modules
 		}
 		public virtual void InitEnd()
 		{
-			Carbon.Logger.Instance.Log($"Initialized.");
+			Carbon.Logger.Log($"Initialized.");
 		}
 		public virtual void Load()
 		{
@@ -116,7 +94,7 @@ namespace Carbon.Core.Modules
 			else
 			{
 				try { ConfigInstance = File.ReadObject<Configuration>(); }
-				catch (Exception exception) { Carbon.Logger.Instance.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
+				catch (Exception exception) { Carbon.Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 			}
 
 			if (!Data.Exists())
@@ -127,7 +105,7 @@ namespace Carbon.Core.Modules
 			else
 			{
 				try { DataInstance = Data.ReadObject<D>(); }
-				catch (Exception exception) { Carbon.Logger.Instance.Error($"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
+				catch (Exception exception) { Carbon.Logger.Error($"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 			}
 
 			if (shouldSave) Save();
@@ -173,7 +151,7 @@ namespace Carbon.Core.Modules
 			{
 				if (ConfigInstance.Enabled) OnEnabled(CarbonCore.IsServerFullyInitialized); else OnDisabled(CarbonCore.IsServerFullyInitialized);
 			}
-			catch (Exception ex) { Carbon.Logger.Instance.Error($"Failed {(ConfigInstance.Enabled ? "Enable" : "Disable")} initialization.", ex); }
+			catch (Exception ex) { Carbon.Logger.Error($"Failed {(ConfigInstance.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 		}
 
 		private void OnServerInitialized()

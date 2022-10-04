@@ -58,7 +58,7 @@ namespace Carbon.Core.Modules
 				item.stackable = Mathf.Clamp((int)(originalStack * multiplier * Config.GlobalMultiplier), 1, int.MaxValue);
 			}
 
-			Carbon.Logger.Instance.Log("Item stacks patched");
+			Carbon.Logger.Log("Item stacks patched");
 		}
 		public override void OnDisabled(bool initialized)
 		{
@@ -66,7 +66,7 @@ namespace Carbon.Core.Modules
 
 			if (!initialized) return;
 
-			Carbon.Logger.Instance.Log("Rolling back item manager");
+			Carbon.Logger.Log("Rolling back item manager");
 
 			foreach (var category in Config.Categories)
 			{

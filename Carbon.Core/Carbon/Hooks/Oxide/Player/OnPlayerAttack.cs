@@ -25,7 +25,7 @@ namespace Carbon.Extended
 
 	[OxideHook("OnPlayerAttack", typeof(object)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
-	[OxideHook.Parameter("hitInfo2", typeof(HitInfo))]
+	[OxideHook.Parameter("hitInfo", typeof(HitInfo))]
 	[OxideHook.Info("Useful for modifying an attack before it goes out.")]
 	[OxideHook.Info("hitInfo.HitEntity should be the entity that this attack would hit.")]
 	[OxideHook.Patch(typeof(BasePlayer), "OnProjectileAttack")]

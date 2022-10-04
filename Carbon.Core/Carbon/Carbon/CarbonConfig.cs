@@ -5,7 +5,7 @@ namespace Carbon.Core
 	[Serializable]
 	public class CarbonConfig
 	{
-		public int Debug { get; set; }
+		public int LogVerbosity { get; set; }
 
 		public bool CarbonTag { get; set; } = true;
 		public bool IsModded { get; set; } = true;

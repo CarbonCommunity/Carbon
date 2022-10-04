@@ -28,7 +28,7 @@ namespace Oxide.Core
 
 			if (ProtoStorage.Exists(name))
 			{
-				Carbon.Logger.Instance.WarnFormat($"Failed to import JSON file: {name} already exists.");
+				Carbon.Logger.WarnFormat($"Failed to import JSON file: {name} already exists.");
 				return;
 			}
 
@@ -43,13 +43,13 @@ namespace Oxide.Core
 			}
 			catch (Exception ex)
 			{
-				Carbon.Logger.Instance.Error("Failed to convert datafile to proto storage: " + name, ex);
+				Carbon.Logger.Error("Failed to convert datafile to proto storage: " + name, ex);
 			}
 		}
 
 		public static void PrintCallStack()
 		{
-			Carbon.Logger.Instance.Format("CallStack: {0}{1}", new StackTrace(1, true));
+			Carbon.Logger.Format("CallStack: {0}{1}", new StackTrace(1, true));
 		}
 
 		public static string FormatBytes(double bytes)

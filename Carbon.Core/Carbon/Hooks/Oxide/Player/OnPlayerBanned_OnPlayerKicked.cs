@@ -24,7 +24,7 @@ namespace Carbon.Extended
 
 			if (connection == null)
 			{
-				Logger.Instance.Error(
+				Logger.Error(
 					$"[EAC] Status update for invalid client: {clientHandle.ToString()}"
 				);
 			}
@@ -36,7 +36,7 @@ namespace Carbon.Extended
 				{
 					var actionReasonDetailsString = data.ActionReasonDetailsString;
 
-					Logger.Instance.Log(string.Format("[EAC] Kicking {0} / {1} ({2})", connection.userid, connection.username, actionReasonDetailsString));
+					Logger.Log(string.Format("[EAC] Kicking {0} / {1} ({2})", connection.userid, connection.username, actionReasonDetailsString));
 					connection.authStatus = "eac";
 					Network.Net.sv.Kick(connection, "EAC: " + actionReasonDetailsString, false);
 					Interface.CallHook("OnPlayerKicked", connection, actionReasonDetailsString.ToString());

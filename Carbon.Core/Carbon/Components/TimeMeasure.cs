@@ -37,8 +37,8 @@ namespace Carbon.Core
 
 			if (num >= _miliseconds)
 			{
-				Carbon.Logger.Instance.Format(
-					"{0} took {1:0}ms [abv {2}]{3}",
+				Carbon.Logger.WarnFormat(
+					" {0} took {1:0}ms [abv {2}]{3}",
 					_name, num, _miliseconds, string.IsNullOrEmpty(_warn) ? "" : (": " + _warn)
 				);
 			}

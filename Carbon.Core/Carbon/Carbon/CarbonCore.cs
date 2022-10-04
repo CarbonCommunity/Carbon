@@ -149,7 +149,7 @@ namespace Carbon.Core
 				ModuleProcessor = new ModuleProcessor();
 				Entities = new Entities();
 			}
-			Carbon.Logger.Instance.Log("Installed processors");
+			Carbon.Logger.Log("Installed processors");
 
 			_registerProcessors();
 		}
@@ -160,7 +160,7 @@ namespace Carbon.Core
 			if (HarmonyProcessor != null) HarmonyProcessor?.Start();
 
 			if (ScriptProcessor != null) ScriptProcessor.InvokeRepeating(() => { RefreshConsoleInfo(); }, 1f, 1f);
-			Carbon.Logger.Instance.Log("Registered processors");
+			Carbon.Logger.Log("Registered processors");
 		}
 		internal void _uninstallProcessors()
 		{
@@ -266,7 +266,7 @@ namespace Carbon.Core
 		{
 			if (player == null)
 			{
-				Carbon.Logger.Instance.Log(message);
+				Carbon.Logger.Log(message);
 				return;
 			}
 
@@ -341,9 +341,9 @@ namespace Carbon.Core
 			#endregion
 
 			LoadConfig();
-			Carbon.Logger.Instance.Log("Loaded config");
+			Carbon.Logger.Log("Loaded config");
 
-			Carbon.Logger.Instance.Format($"Loading...");
+			Carbon.Logger.Format($"Loading...");
 
 			GetRootFolder();
 			GetConfigsFolder();
@@ -353,7 +353,7 @@ namespace Carbon.Core
 			GetLogsFolder();
 			GetLangFolder();
 			OsEx.Folder.DeleteContents(GetTempFolder());
-			Carbon.Logger.Instance.Log("Loaded folders");
+			Carbon.Logger.Log("Loaded folders");
 
 			_installProcessors();
 
@@ -363,11 +363,11 @@ namespace Carbon.Core
 			_installDefaultCommands();
 
 			CarbonHookValidator.Refresh();
-			Carbon.Logger.Instance.Log("Fetched oxide hooks");
+			Carbon.Logger.Log("Fetched oxide hooks");
 
 			ReloadPlugins();
 
-			Carbon.Logger.Instance.Format($"Loaded.");
+			Carbon.Logger.Format($"Loaded.");
 
 			RefreshConsoleInfo();
 

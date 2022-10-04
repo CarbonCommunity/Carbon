@@ -91,73 +91,16 @@ namespace Oxide.Plugins
 			base.Dispose();
 		}
 
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'NOTICE'.
-		/// NOTE: Oxide compatibility layer.
-		/// </summary>
-		/// <param name="message"></param>
-		public void Puts(object message)
-			=> Carbon.Logger.Instance.Log($"[{Name}] {message}");
+		public void Puts(object message) => Carbon.Logger.Log(Name, message);
+		public void Puts(string format, params object[] args) => Carbon.Logger.Format($"[{Name}] {format}", args);
+		public void Log(string message) => Carbon.Logger.Log(Name, message);
 
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'NOTICE'.
-		/// NOTE: Oxide compatibility layer.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="args"></param>
-		public void Puts(string message, params object[] args)
-			=> Carbon.Logger.Instance.Format($"[{Name}] {message}", args);
+		public void LogWarning(string message) => Carbon.Logger.Warn(Name, message);
+		public void LogError(string message, Exception ex) => Carbon.Logger.Error(Name, message, ex);
 
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'NOTICE'.
-		/// NOTE: Oxide compatibility layer.
-		/// </summary>
-		/// <param name="message"></param>
-		public void Log(string message)
-			=> Carbon.Logger.Instance.Log($"[{Name}] {message}");
-
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'WARNING'.
-		/// NOTE: Oxide compatibility layer.
-		/// </summary>
-		/// <param name="message"></param>
-		public void LogWarning(string message)
-			=> Carbon.Logger.Instance.Warn($"[{Name}] {message}");
-
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'ERROR'.
-		/// NOTE: Oxide compatibility layer.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="ex"></param>
-		public void LogError(string message, Exception ex)
-			=> Carbon.Logger.Instance.Error($"[{Name}] {message}", ex);
-
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'ERROR'.
-		/// NOTE: Oxide compatibility layer.
-		/// </summary>
-		/// <param name="message"></param>
-		public void LogError(string message)
-			=> Carbon.Logger.Instance.Error($"[{Name}] {message}", null);
-
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'WARNING'.
-		/// NOTE: Oxide compatibility layer.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="args"></param>
-		public void PrintWarning(string format, params object[] args)
-			=> Carbon.Logger.Instance.WarnFormat($"[{Name}] {format}", args);
-
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'ERROR'.
-		/// NOTE: Oxide compatibility layer.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="args"></param>
-		public void PrintError(string format, params object[] args)
-			=> Carbon.Logger.Instance.ErrorFormat($"[{Name}] {format}", null, args);
+		public void LogError(string message) => Carbon.Logger.Error(Name, message);
+		public void PrintWarning(string format, params object[] args) => Carbon.Logger.WarnFormat($"[{Name}] {format}", args);
+		public void PrintError(string format, params object[] args) => Carbon.Logger.ErrorFormat($"[{Name}] {format}", null, args);
 
 		protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 		{
@@ -200,7 +143,7 @@ namespace Oxide.Plugins
 			}
 			catch (Exception ex)
 			{
-				Carbon.Logger.Instance.Error("Failed to load config file (is the config file corrupt?) (" + ex.Message + ")");
+				Carbon.Logger.Error("Failed to load config file (is the config file corrupt?) (" + ex.Message + ")");
 			}
 		}
 		protected virtual void LoadDefaultConfig()
@@ -219,7 +162,7 @@ namespace Oxide.Plugins
 			}
 			catch (Exception ex)
 			{
-				Carbon.Logger.Instance.Error("Failed to save config file (does the config have illegal objects in it?) (" + ex.Message + ")", ex);
+				Carbon.Logger.Error("Failed to save config file (does the config have illegal objects in it?) (" + ex.Message + ")", ex);
 			}
 		}
 

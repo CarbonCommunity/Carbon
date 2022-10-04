@@ -45,7 +45,7 @@ namespace Oxide.Core.Libraries
 			{
 				if (!string.IsNullOrEmpty(keyValuePair.Value.ParentGroup) && HasCircularParent(keyValuePair.Key, keyValuePair.Value.ParentGroup))
 				{
-					Logger.Instance.Warn("Detected circular parent group for '{keyValuePair.Key}'! Removing parent '{keyValuePair.Value.ParentGroup}'");
+					Logger.Warn("Detected circular parent group for '{keyValuePair.Key}'! Removing parent '{keyValuePair.Value.ParentGroup}'");
 					keyValuePair.Value.ParentGroup = null;
 				}
 			}
@@ -127,7 +127,7 @@ namespace Oxide.Core.Libraries
 			name = name.ToLower();
 			if (PermissionExists(name, null))
 			{
-				Logger.Instance.Warn("Duplicate permission registered '{name}' (by plugin '{owner.Name}')");
+				Logger.Warn("Duplicate permission registered '{name}' (by plugin '{owner.Name}')");
 				return;
 			}
 

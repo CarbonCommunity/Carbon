@@ -42,7 +42,7 @@ namespace Carbon.Core.Processors
 				}
 				catch (Exception ex)
 				{
-					Logger.Instance.Error($"Error disposing {File}", ex);
+					Logger.Error($"Error disposing {File}", ex);
 				}
 
 				_loader = null;
@@ -58,7 +58,7 @@ namespace Carbon.Core.Processors
 				}
 				catch (Exception ex)
 				{
-					Logger.Instance.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
+					Logger.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
 				}
 			}
 		}

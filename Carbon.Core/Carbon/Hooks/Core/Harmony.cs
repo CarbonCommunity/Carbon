@@ -27,14 +27,14 @@ public class Harmony_Load
 
 		if (oldMod == mod)
 		{
-			Carbon.Logger.Instance.Warn($"An instance of Carbon v{CarbonCore.Version} is already loaded.");
+			Carbon.Logger.Warn($"An instance of Carbon v{CarbonCore.Version} is already loaded.");
 			return false;
 		}
 		else
 		{
 			CarbonCore.Instance?.UnInit();
 			HarmonyLoader.TryUnloadMod(oldMod);
-			Carbon.Logger.Instance.WarnFormat($"Unloaded previous: {oldMod}");
+			Carbon.Logger.WarnFormat($"Unloaded previous: {oldMod}");
 			CarbonCore.Instance = null;
 		}
 

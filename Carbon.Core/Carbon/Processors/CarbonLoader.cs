@@ -79,7 +79,7 @@ namespace Carbon.Core
 			}
 			catch (Exception ex)
 			{
-				Logger.Instance.Error("Loading all DLLs failed.", ex);
+				Logger.Error("Loading all DLLs failed.", ex);
 			}
 			finally
 			{
@@ -160,7 +160,7 @@ namespace Carbon.Core
 				}
 				else
 				{
-					Logger.Instance.Warn($" Loaded addon '{mod.Name}'");
+					Logger.Warn($" Loaded addon '{mod.Name}'");
 					CarbonCore.Instance.Addon.Addons.Add(mod.Assembly);
 				}
 
@@ -229,7 +229,7 @@ namespace Carbon.Core
 		{
 			mod.IsAddon = CarbonCore.IsAddon(mod.Name);
 
-			Carbon.Logger.Instance.Warn($"Initializing mod '{mod.Name}'");
+			Carbon.Logger.Warn($"Initializing mod '{mod.Name}'");
 
 			if (mod.IsAddon)
 			{
@@ -252,15 +252,15 @@ namespace Carbon.Core
 						{
 							if (CarbonHookValidator.IsIncompatibleOxideHook(method.Name))
 							{
-								Logger.Instance.Warn($" Hook '{method.Name}' is not supported.");
+								Logger.Warn($" Hook '{method.Name}' is not supported.");
 								counter++;
 							}
 						}
 
 						if (counter > 0)
 						{
-							Logger.Instance.Warn($"Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
-							Logger.Instance.Warn("The plugin will not work as expected.");
+							Logger.Warn($"Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
+							Logger.Warn("The plugin will not work as expected.");
 						}
 					}
 
@@ -271,7 +271,7 @@ namespace Carbon.Core
 
 					if (info == null)
 					{
-						Logger.Instance.Warn($"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute.");
+						Logger.Warn($"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute.");
 						continue;
 					}
 					plugin.SetProcessor(CarbonCore.Instance.HarmonyProcessor);
@@ -290,9 +290,9 @@ namespace Carbon.Core
 					mod.Plugins.Add(plugin);
 					ProcessCommands(type, plugin);
 
-					Logger.Instance.Log($"Loaded plugin {plugin.ToString()}");
+					Logger.Log($"Loaded plugin {plugin.ToString()}");
 				}
-				catch (Exception ex) { Logger.Instance.Error($"Failed loading '{mod.Name}'", ex); }
+				catch (Exception ex) { Logger.Error($"Failed loading '{mod.Name}'", ex); }
 			}
 		}
 		public static void UninitializePlugins(CarbonMod mod)
@@ -306,9 +306,9 @@ namespace Carbon.Core
 					plugin.IUnload();
 					RemoveCommands(plugin);
 					plugin.Dispose();
-					Logger.Instance.Log($"Unloaded plugin {plugin.ToString()}");
+					Logger.Log($"Unloaded plugin {plugin.ToString()}");
 				}
-				catch (Exception ex) { Logger.Instance.Error($"Failed unloading '{mod.Name}'", ex); }
+				catch (Exception ex) { Logger.Error($"Failed unloading '{mod.Name}'", ex); }
 			}
 		}
 
@@ -540,15 +540,15 @@ namespace Carbon.Core
 		}
 		internal static void Log(string harmonyId, object message)
 		{
-			Logger.Instance.Format($"[{harmonyId}] {message}");
+			Logger.Format($"[{harmonyId}] {message}");
 		}
 		internal static void LogError(string harmonyId, object message)
 		{
-			Logger.Instance.ErrorFormat($"[{harmonyId}] {message}");
+			Logger.ErrorFormat($"[{harmonyId}] {message}");
 		}
 		internal static void LogError(object message)
 		{
-			Logger.Instance.Error(message);
+			Logger.Error(message);
 		}
 
 		internal static string _modPath;

@@ -39,7 +39,7 @@ public class RconCommand
 					}
 					catch (Exception ex)
 					{
-						Logger.Instance.Error("RconCommand_OnCommand", ex);
+						Logger.Error("RconCommand_OnCommand", ex);
 					}
 
 					break;

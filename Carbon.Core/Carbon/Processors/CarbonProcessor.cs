@@ -26,7 +26,7 @@ namespace Carbon.Core.Processors
 			}
 			catch (Exception exception)
 			{
-				Logger.Instance.Error($"Failed to execute OnFrame callback ({exception.Message})\n{exception.StackTrace}");
+				Logger.Error($"Failed to execute OnFrame callback ({exception.Message})\n{exception.StackTrace}");
 			}
 		}
 	}

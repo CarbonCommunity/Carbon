@@ -159,7 +159,7 @@ namespace Oxide.Core.Libraries
 						text += $" in '{Owner.Name} v{Owner.Version}' plugin";
 					}
 
-					Logger.Instance.Error(text, ex);
+					Logger.Error(text, ex);
 				}
 
 				Owner?.TrackEnd();

@@ -88,7 +88,7 @@ namespace Oxide.Core.Configuration
 			string fullPath = Path.GetFullPath(filename);
 			if (!fullPath.StartsWith(_chroot, StringComparison.Ordinal))
 			{
-				Logger.Instance.Log($"{filename} ||| {fullPath}");
+				Logger.Log($"{filename} ||| {fullPath}");
 				throw new Exception("Only access to Carbon directory!\nPath: " + fullPath);
 			}
 			return fullPath;

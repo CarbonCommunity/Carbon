@@ -63,7 +63,7 @@ namespace Oxide.Plugins
 			{
 				CarbonCore.Instance.Addon.UnappendHook(hook);
 			}
-			Carbon.Logger.Instance.Log($"{Name} Unprocessed hooks");
+			Carbon.Logger.Log(Name, $"Unprocessed hooks");
 		}
 
 		public virtual void IInit()
@@ -81,13 +81,13 @@ namespace Oxide.Plugins
 					else list.Add(method);
 				}
 			}
-			Carbon.Logger.Instance.Log($"{Name} Installed hook method attributes");
+			Carbon.Logger.Debug(Name, $"Installed hook method attributes");
 
 			using (TimeMeasure.New($"Processing PluginReferences on '{this}'"))
 			{
 				InternalApplyPluginReferences();
 			}
-			Carbon.Logger.Instance.Log($"{Name} Assigned plugin references");
+			Carbon.Logger.Debug(Name, $"Assigned plugin references");
 
 			using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 			{
@@ -97,7 +97,7 @@ namespace Oxide.Plugins
 					CarbonCore.Instance.Addon.AppendHook(hook);
 				}
 			}
-			Carbon.Logger.Instance.Log($"{Name} Processed hooks");
+			Carbon.Logger.Debug(Name, $"Processed hooks");
 
 			CallHook("Init");
 		}
@@ -148,7 +148,7 @@ namespace Oxide.Plugins
 					var info = field.FieldType.GetCustomAttribute<InfoAttribute>();
 					if (info == null)
 					{
-						Carbon.Logger.Instance.Warn($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
+						Carbon.Logger.Warn($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
 						continue;
 					}
 

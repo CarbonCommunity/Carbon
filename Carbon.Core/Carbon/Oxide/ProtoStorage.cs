@@ -49,7 +49,7 @@ namespace Oxide.Core
 			}
 			catch (Exception ex)
 			{
-				Logger.Instance.Error("Failed to load protobuf data from " + fileName, ex);
+				Logger.Error("Failed to load protobuf data from " + fileName, ex);
 			}
 
 			return default(T);
@@ -76,7 +76,7 @@ namespace Oxide.Core
 			}
 			catch (Exception ex)
 			{
-				Logger.Instance.Error("Failed to save protobuf data to " + fileName, ex);
+				Logger.Error("Failed to save protobuf data to " + fileName, ex);
 			}
 		}
 

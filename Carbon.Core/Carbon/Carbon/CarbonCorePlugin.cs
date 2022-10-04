@@ -81,7 +81,7 @@ namespace Carbon.Core
 				arg.Player().SendConsoleCommand($"echo {message}");
 				return;
 			}
-			Logger.Instance.Log(message);
+			Logger.Log(message);
 		}
 
 		[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
@@ -186,23 +186,23 @@ namespace Carbon.Core
 		}
 
 		[CommandVar("modding", "Mark this server as modded or not.", true)]
-		private bool Modding { get { return CarbonCore.Instance.Config.IsModded; } set { CarbonCore.Instance.Config.IsModded = value; } }
+		private bool Modding { get { return CarbonCore.Instance.Config.IsModded; } set { CarbonCore.Instance.Config.IsModded = value; CarbonCore.Instance.SaveConfig(); } }
 
 		[CommandVar("tag", "Displays this server in the browser list with the 'carbon' tag.", true)]
-		private bool CarbonTag { get { return CarbonCore.Instance.Config.CarbonTag; } set { CarbonCore.Instance.Config.CarbonTag = value; } }
+		private bool CarbonTag { get { return CarbonCore.Instance.Config.CarbonTag; } set { CarbonCore.Instance.Config.CarbonTag = value; CarbonCore.Instance.SaveConfig(); } }
 
 		// TODO: Make this work with the global logger
 		[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true)]
-		private int CarbonDebug { get { return CarbonCore.Instance.Config.Debug; } set { CarbonCore.Instance.Config.Debug = value; } }
+		private int CarbonDebug { get { return CarbonCore.Instance.Config.LogVerbosity; } set { CarbonCore.Instance.Config.LogVerbosity = value; CarbonCore.Instance.SaveConfig(); } }
 
 		[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true)]
-		private bool HookTimeTracker { get { return CarbonCore.Instance.Config.HookTimeTracker; } set { CarbonCore.Instance.Config.HookTimeTracker = value; } }
+		private bool HookTimeTracker { get { return CarbonCore.Instance.Config.HookTimeTracker; } set { CarbonCore.Instance.Config.HookTimeTracker = value; CarbonCore.Instance.SaveConfig(); } }
 
 		[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.", true)]
-		private bool HookValidation { get { return CarbonCore.Instance.Config.HookValidation; } set { CarbonCore.Instance.Config.HookValidation = value; } }
+		private bool HookValidation { get { return CarbonCore.Instance.Config.HookValidation; } set { CarbonCore.Instance.Config.HookValidation = value; CarbonCore.Instance.SaveConfig(); } }
 
 		[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
-		private int EntityMapBufferSize { get { return CarbonCore.Instance.Config.EntityMapBufferSize; } set { CarbonCore.Instance.Config.EntityMapBufferSize = value; } }
+		private int EntityMapBufferSize { get { return CarbonCore.Instance.Config.EntityMapBufferSize; } set { CarbonCore.Instance.Config.EntityMapBufferSize = value; CarbonCore.Instance.SaveConfig(); } }
 
 		#endregion
 
