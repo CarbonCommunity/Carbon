@@ -16,6 +16,9 @@ namespace Carbon.Patch
 			{ "%BASE%/Carbon.Core/Carbon/bin/%TARGET%/net48/Carbon.dll", "HarmonyMods/Carbon.dll" },
 			{ "%BASE%/Carbon.Core/Carbon.Doorstop/bin/%TARGET%/net48/Carbon.Doorstop.dll", "RustDedicated_Data/Managed/Carbon.Doorstop.dll" },
 
+			// harmony
+			{ "%BASE%/Tools/0Harmonyv2/Harmony/bin/%TARGET%/net48/0Harmonyv2.dll", "RustDedicated_Data/Managed/0Harmonyv2.dll" },
+
 			// tools
 			{ "%BASE%/Tools/Helpers/doorstop_config.ini", "doorstop_config.ini" },
 			{ "%BASE%/Tools/UnityDoorstop/windows/x64/doorstop.dll", "winhttp.dll" },
@@ -27,6 +30,9 @@ namespace Carbon.Patch
 			// carbon
 			{ "%BASE%/Tools/Helpers/linux_prepatch.sh", "carbon_prepatch.sh" },
 			{ "%BASE%/Carbon.Core/Carbon/bin/%TARGET%Unix/net48/Carbon.dll", "HarmonyMods/Carbon-Unix.dll" },
+
+			// harmony
+			{ "%BASE%/Tools/0Harmonyv2/Harmony/bin/%TARGET%/net48/0Harmonyv2.dll", "RustDedicated_Data/Managed/0Harmonyv2.dll" },
 
 			// tools
 			{ "%BASE%/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip.exe" },

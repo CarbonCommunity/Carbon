@@ -32,7 +32,8 @@ git clone "https://github.com/Carbon-Modding/Harmony.git" "${ROOT}/Tools/0Harmon
 dotnet restore "${ROOT}\Tools\0Harmonyv2" --nologo --force
 dotnet clean   "${ROOT}\Tools\0Harmonyv2" --configuration Release --nologo
 dotnet build   "${ROOT}\Tools\0Harmonyv2" --configuration Release --no-restore --no-incremental
-
+dotnet clean   "${ROOT}\Tools\0Harmonyv2" --configuration Debug --nologo
+dotnet build   "${ROOT}\Tools\0Harmonyv2" --configuration Debug --no-restore --no-incremental
 
 # Keeping Unity DoorStop out of the game for now due to the more
 # complex build process.
