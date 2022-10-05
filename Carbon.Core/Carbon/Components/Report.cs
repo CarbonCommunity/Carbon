@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Carbon.Core;
 using Epic.OnlineServices.Sessions;
 using Facepunch;
-using Harmony;
+using Harmonyv2;
 using Humanlights.Components;
 using Humanlights.Extensions;
 using Oxide.Plugins;
@@ -78,7 +78,7 @@ namespace Carbon
 					report += $"INCOMPATIBLE HOOK REPORT:\n{builder.ToStringMinimal()}\n\n";
 				}
 
-				var path = Path.Combine(CarbonCore.GetReportsFolder(), $"pluginreport_{DateTime.UtcNow:ddMMyyyyhhmmss}.txt");
+				var path = Path.Combine(CarbonDefines.GetReportsFolder(), $"pluginreport_{DateTime.UtcNow:ddMMyyyyhhmmss}.txt");
 				OsEx.File.Create(path, report.Trim());
 				Logger.Log($" Report generated with {Results.Count:n0} results at '{path}'");
 

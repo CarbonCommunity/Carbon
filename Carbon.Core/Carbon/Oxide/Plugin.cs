@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Carbon.Core;
 using Carbon.Core.Processors;
-using Harmony;
+using Harmonyv2;
 using Newtonsoft.Json;
 
 namespace Oxide.Plugins

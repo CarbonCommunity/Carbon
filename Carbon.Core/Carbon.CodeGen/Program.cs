@@ -231,7 +231,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 		public static string GetTemplate_NoReturn(string method, string parameters = null, string arguments = null)
 		{
 			return $@"using Carbon.Core;
-using Harmony;
+using Harmonyv2;
 
 namespace Carbon.Extended
 {{
@@ -248,7 +248,7 @@ namespace Carbon.Extended
 		public static string GetTemplate_Return(string method, string parameters = null, string returnType = "object", string arguments = null)
 		{
 			return $@"using Carbon.Core;
-using Harmony;
+using Harmonyv2;
 
 namespace Carbon.Extended
 {{

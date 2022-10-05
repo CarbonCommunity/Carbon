@@ -75,8 +75,8 @@ namespace Carbon.Core.Modules
 			CarbonLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 			Carbon.Logger.Log($"{Name} Processed commands");
 
-			File = new DynamicConfigFile(Path.Combine(CarbonCore.GetModulesFolder(), Name, "config.json"));
-			Data = new DynamicConfigFile(Path.Combine(CarbonCore.GetModulesFolder(), Name, "data.json"));
+			File = new DynamicConfigFile(Path.Combine(CarbonDefines.GetModulesFolder(), Name, "config.json"));
+			Data = new DynamicConfigFile(Path.Combine(CarbonDefines.GetModulesFolder(), Name, "data.json"));
 
 			Load();
 			if (ConfigInstance.Enabled) OnEnableStatus();

@@ -161,7 +161,7 @@ namespace Oxide.Plugins
 
 		protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 		{
-			var text2 = Path.Combine(CarbonCore.GetLogsFolder(), plugin.Name);
+			var text2 = Path.Combine(CarbonDefines.GetLogsFolder(), plugin.Name);
 
 			if (!Directory.Exists(text2))
 			{

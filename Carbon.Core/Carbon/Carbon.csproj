@@ -60,6 +60,9 @@
   </PropertyGroup>
 
   <ItemGroup>    <!-- System libs -->
+    <Reference Include="0Harmonyv2">
+      <HintPath>..\..\..\Carbon.Harmony\Harmony\bin\Release\net48\0Harmonyv2.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
     <Reference Include="System.Core" />

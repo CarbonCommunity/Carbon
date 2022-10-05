@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Harmony;
+using Harmonyv2;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Oxide.Plugins;
@@ -32,15 +32,15 @@ namespace Carbon.Core
 			try
 			{
 				HarmonyInstance.DEBUG = true;
-				var path = Path.Combine(CarbonCore.GetLogsFolder(), "..");
-				FileLog.logPath = Path.Combine(path, "carbon_log.txt");
+				var path = Path.Combine(CarbonDefines.GetLogsFolder(), "..");
+				// FileLog.LogPath	 = Path.Combine(path, "carbon_log.txt");
 				try
 				{
-					File.Delete(FileLog.logPath);
+					//	File.Delete(FileLog.logPath);
 				}
 				catch { }
 
-				_modPath = CarbonCore.GetPluginsFolder();
+				_modPath = CarbonDefines.GetPluginsFolder();
 				if (!Directory.Exists(_modPath))
 				{
 					try
@@ -62,7 +62,7 @@ namespace Carbon.Core
 
 					// This allows plugins to use Carbon.xxx
 					if (Regex.IsMatch(assemblyName.Name, @"^([Cc]arbon(-.+)?)$"))
-						assemblyPath = CarbonCore.DllPath;
+						assemblyPath = CarbonDefines.DllPath;
 
 					if (File.Exists(assemblyPath))
 						return LoadAssembly(assemblyPath);
@@ -146,22 +146,14 @@ namespace Carbon.Core
 
 				mod.Harmony = HarmonyInstance.Create(domain);
 
-				if (!CarbonCore.IsAddon(mod.Name))
+				try
 				{
-					try
-					{
-						mod.Harmony.PatchAll(assembly);
-					}
-					catch (Exception arg2)
-					{
-						LogError(mod.Name, string.Format("Failed to patch all hooks: {0}", arg2));
-						return false;
-					}
+					mod.Harmony.PatchAll(assembly);
 				}
-				else
+				catch (Exception arg2)
 				{
-					Carbon.Logger.Warn($" Loaded addon '{mod.Name}'");
-					CarbonCore.Instance.Addon.Addons.Add(mod.Assembly);
+					LogError(mod.Name, string.Format("Failed to patch all hooks: {0}", arg2));
+					return false;
 				}
 
 				foreach (var hook in mod.Hooks)
@@ -218,8 +210,6 @@ namespace Carbon.Core
 
 			UnloadMod(mod);
 			UninitializePlugins(mod);
-
-			if (mod.IsAddon) CarbonCore.Instance.Addon.Addons.Remove(mod.Assembly);
 			return true;
 		}
 
@@ -227,14 +217,7 @@ namespace Carbon.Core
 
 		public static void InitializePlugins(CarbonMod mod)
 		{
-			mod.IsAddon = CarbonCore.IsAddon(mod.Name);
-
 			Carbon.Logger.Warn($"Initializing mod '{mod.Name}'");
-
-			if (mod.IsAddon)
-			{
-				Log(mod.Name, "Initialized Carbon extension.");
-			}
 
 			foreach (var type in mod.AllTypes)
 			{
@@ -557,8 +540,6 @@ namespace Carbon.Core
 			public string File { get; set; } = string.Empty;
 			[JsonProperty]
 			public bool IsCoreMod { get; set; } = false;
-			[JsonProperty]
-			public bool IsAddon { get; set; } = false;
 			public HarmonyInstance Harmony { get; set; }
 			public Assembly Assembly { get; set; }
 			public Type[] AllTypes { get; set; }

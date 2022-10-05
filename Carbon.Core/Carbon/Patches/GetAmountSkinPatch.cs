@@ -4,7 +4,7 @@
 /// 
 
 using Carbon.Core.Modules;
-using Harmony;
+using Harmonyv2;
 
 [HarmonyPatch(typeof(ItemContainer), "GetAmount")]
 public class ItemContainer_GetAmount

@@ -20,5 +20,6 @@ namespace Carbon.Core
 		public bool ScriptWatchers { get; set; } = true;
 		public bool HarmonyWatchers { get; set; } = true;
 		public int EntityMapBufferSize { get; set; } = 100000;
+		public bool Usev2Harmony { get; set; } = true;
 	}
 }
