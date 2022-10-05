@@ -30,7 +30,7 @@ namespace Carbon
 			{
 				case Severity.Error:
 					Exception dex = ex?.Demystify() ?? ex;
-					if (dex != null) UnityEngine.Debug.LogError($"{message}{dex?.Message}\n{dex?.StackTrace}");
+					if (dex != null) UnityEngine.Debug.LogError($"{message} ({dex?.Message})\n{dex?.StackTrace}");
 					else UnityEngine.Debug.LogError($"{message}");
 					break;
 
@@ -126,8 +126,10 @@ namespace Carbon
 			[CallerFilePath] string path = null,
 			[CallerMemberName] string method = null)
 		{
-			message = $"{message}" + Environment.NewLine +
-					  $"(file: {GetFileNameEx(path)}, method: {method}, line: {line})" + Environment.NewLine;
+			if (CarbonCore.Instance.Config.LogVerbosity > 0)
+				message = $"{message}\n" +
+						  $" [file: {GetFileNameEx(path)}, method: {method}, line: {line}]";
+
 			Write(Logger.Severity.Error, message, ex);
 		}
 #else
