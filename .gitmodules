@@ -4,3 +4,7 @@
 [submodule "Tools/NStrip"]
 	path = Tools/NStrip
 	url = https://github.com/BepInEx/NStrip.git
+[submodule "Tools/Harmonyv2"]
+	path = Tools/Harmonyv2
+	url = https://github.com/Carbon-Modding/Harmony.git
+	branch = carbon
