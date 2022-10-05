@@ -81,13 +81,13 @@ namespace Oxide.Plugins
 					else list.Add(method);
 				}
 			}
-			Carbon.Logger.Info(Name, "Installed hook method attributes");
+			Carbon.Logger.Debug(Name, "Installed hook method attributes");
 
 			using (TimeMeasure.New($"Processing PluginReferences on '{this}'"))
 			{
 				InternalApplyPluginReferences();
 			}
-			Carbon.Logger.Info(Name, "Assigned plugin references");
+			Carbon.Logger.Debug(Name, "Assigned plugin references");
 
 			using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 			{
@@ -97,7 +97,7 @@ namespace Oxide.Plugins
 					CarbonCore.Instance.Addon.AppendHook(hook);
 				}
 			}
-			Carbon.Logger.Info(Name, "Processed hooks");
+			Carbon.Logger.Debug(Name, "Processed hooks");
 
 			CallHook("Init");
 		}

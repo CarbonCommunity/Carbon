@@ -7,7 +7,6 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Carbon.Core;
-using Carbon.Patterns;
 using Facepunch;
 
 namespace Carbon
@@ -16,17 +15,19 @@ namespace Carbon
 	{
 		public enum Severity
 		{
-			Critical, Error, Warning, Notice, Informational, Debug
+			Error, Warning, Notice, Debug
 		}
 
-		internal static void Write(Severity severity, object message, Exception ex = null)
+		internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1)
 		{
-			Severity threshold = CarbonCore.Instance?.Config.LogVerbosity ?? Severity.Notice;
-			if (severity > threshold) return; // ^ FIXME: logger is init before config
+			if (severity != Severity.Debug)
+			{
+				Severity minSeverity = CarbonCore.Instance?.Config.LogSeverity ?? Severity.Notice;
+				if (severity > minSeverity) return;
+			}
 
 			switch (severity)
 			{
-				case Severity.Critical:
 				case Severity.Error:
 					Exception dex = ex?.Demystify() ?? ex;
 					if (dex != null) UnityEngine.Debug.LogError($"{message}{dex?.Message}\n{dex?.StackTrace}");
@@ -38,8 +39,12 @@ namespace Carbon
 					break;
 
 				case Severity.Notice:
-				case Severity.Informational:
+					UnityEngine.Debug.Log($"{message}");
+					break;
+
 				case Severity.Debug:
+					int minVerbosity = CarbonCore.Instance?.Config.LogVerbosity ?? -1;
+					if (verbosity > minVerbosity) break;
 					UnityEngine.Debug.Log($"{message}");
 					break;
 
@@ -68,6 +73,23 @@ namespace Carbon
 		/// </summary>
 		/// <param name="header"></param>
 		/// <param name="message"></param>
+		/// <param name="verbosity"></param>
+		public static void Debug(object header, object message, int verbosity)
+			=> Write(Logger.Severity.Debug, $"[CRBN.{header}] {message}", null, verbosity);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'DEBUG'.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="verbosity"></param>
+		public static void Debug(object message, int verbosity)
+			=> Write(Logger.Severity.Debug, $"[CRBN] {message}", null, verbosity);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'DEBUG'.
+		/// </summary>
+		/// <param name="header"></param>
+		/// <param name="message"></param>
 		public static void Debug(object header, object message)
 			=> Write(Logger.Severity.Debug, $"[CRBN.{header}] {message}");
 
@@ -77,22 +99,6 @@ namespace Carbon
 		/// <param name="message"></param>
 		public static void Debug(object message)
 			=> Write(Logger.Severity.Debug, $"[CRBN] {message}");
-
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'INFO'.
-		/// </summary>
-		/// <param name="header"></param>
-		/// <param name="message"></param>
-		public static void Info(object header, object message)
-			=> Write(Logger.Severity.Informational, $"[CRBN.{header}] {message}");
-
-		/// <summary>
-		/// Outputs to the game's console a message with severity level 'INFO'.
-		/// </summary>
-		/// <param name="header"></param>
-		/// <param name="message"></param>
-		public static void Info(object message)
-			=> Write(Logger.Severity.Informational, $"[CRBN] {message}");
 
 		/// <summary>
 		/// Outputs to the game's console a message with severity level 'NOTICE'.
