@@ -5,14 +5,11 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine;
 
 namespace Carbon.Core.Modules
 {
-    public interface IHookableModule
-    {
-        Dictionary<string, List<MethodInfo>> HookCache { get; }
-
-        void OnWorldPrefabSpawned ( GameObject gameObject, string category );
-    }
+	public interface IHookableModule
+	{
+		Dictionary<string, List<MethodInfo>> HookCache { get; }
+	}
 }

@@ -7,8 +7,8 @@ using Oxide.Plugins;
 
 namespace Carbon.Plugins
 {
-    public class CarbonPlugin : RustPlugin
-    {
+	public class CarbonPlugin : RustPlugin
+	{
 
-    }
+	}
 }

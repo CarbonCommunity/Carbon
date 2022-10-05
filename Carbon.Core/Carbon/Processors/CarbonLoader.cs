@@ -53,24 +53,16 @@ namespace Carbon.Core
 
 				AppDomain.CurrentDomain.AssemblyResolve += delegate (object sender, ResolveEventArgs args)
 				{
-					Debug.Log($"Resolving assembly ref: {args.Name}");
+					if (!Regex.IsMatch(args.Name, @"^(Microsoft|System)\."))
+						Debug.Log($"Resolving assembly ref: {args.Name}");
 
 					AssemblyName assemblyName = new AssemblyName(args.Name);
 					string assemblyPath = Path.GetFullPath(
 						Path.Combine(_modPath, assemblyName.Name, ".dll"));
 
 					// This allows plugins to use Carbon.xxx
-					if (Regex.Match(assemblyName.Name, @"^([Cc]arbon(-.+)?)$").Success)
-					{
-						string[] carbonDLL = { "Carbon.dll", "Carbon-Unix.dll" };
-
-						foreach (string dll in carbonDLL)
-						{
-							assemblyPath = Path.GetFullPath(
-								Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods", dll));
-							if (File.Exists(assemblyPath)) break;
-						}
-					}
+					if (Regex.IsMatch(assemblyName.Name, @"^([Cc]arbon(-.+)?)$"))
+						assemblyPath = CarbonCore.DllPath;
 
 					if (File.Exists(assemblyPath))
 						return LoadAssembly(assemblyPath);
@@ -87,7 +79,7 @@ namespace Carbon.Core
 			}
 			catch (Exception ex)
 			{
-				CarbonCore.Error("Loading all DLLs failed.", ex);
+				Carbon.Logger.Error("Loading all DLLs failed.", ex);
 			}
 			finally
 			{
@@ -108,26 +100,17 @@ namespace Carbon.Core
 
 			Facepunch.Pool.FreeList(ref list);
 		}
-		public static bool LoadCarbonMod(string name, bool silent = false)
+		public static bool LoadCarbonMod(string fullPath, bool silent = false)
 		{
-			var fileName = Path.GetFileName(name);
+			var fileName = Path.GetFileName(fullPath);
 
 			if (fileName.EndsWith(".dll"))
 			{
 				fileName = fileName.Substring(0, fileName.Length - 4);
 			}
 
-			var temp = GetTempModPath(fileName);
-			fileName = Path.GetFileName(temp);
+			UnloadCarbonMod(fileName);
 
-			if (fileName.EndsWith(".dll"))
-			{
-				fileName = fileName.Substring(0, fileName.Length - 4);
-			}
-
-			UnloadCarbonMod(fileName, silent);
-
-			var fullPath = temp;
 			var domain = "com.rust.carbon." + fileName;
 
 			try
@@ -143,7 +126,7 @@ namespace Carbon.Core
 					Assembly = assembly,
 					AllTypes = assembly.GetTypes(),
 					Name = fileName,
-					File = temp
+					File = fullPath
 				};
 
 				foreach (var type in mod.AllTypes)
@@ -177,7 +160,7 @@ namespace Carbon.Core
 				}
 				else
 				{
-					CarbonCore.Warn($" Loaded addon '{mod.Name}'");
+					Carbon.Logger.Warn($" Loaded addon '{mod.Name}'");
 					CarbonCore.Instance.Addon.Addons.Add(mod.Assembly);
 				}
 
@@ -210,7 +193,7 @@ namespace Carbon.Core
 			}
 			return true;
 		}
-		public static bool UnloadCarbonMod(string name, bool silent = false)
+		public static bool UnloadCarbonMod(string name)
 		{
 			var mod = GetMod(name);
 			if (mod == null)
@@ -242,19 +225,11 @@ namespace Carbon.Core
 
 		#region Carbon
 
-		public static string GetTempModPath(string name)
-		{
-			var temp = Path.Combine(CarbonCore.GetTempFolder(), $"{name}_{Guid.NewGuid()}.dll");
-			OsEx.File.Copy(Path.Combine(CarbonCore.GetPluginsFolder(), $"{name}.dll"), temp, true);
-
-			return temp;
-		}
-
 		public static void InitializePlugins(CarbonMod mod)
 		{
 			mod.IsAddon = CarbonCore.IsAddon(mod.Name);
 
-			CarbonCore.Debug($"Initializing mod '{mod.Name}'", 1);
+			Carbon.Logger.Warn($"Initializing mod '{mod.Name}'");
 
 			if (mod.IsAddon)
 			{
@@ -277,14 +252,15 @@ namespace Carbon.Core
 						{
 							if (CarbonHookValidator.IsIncompatibleOxideHook(method.Name))
 							{
-								CarbonCore.Warn($" Hook '{method.Name}' is not supported.");
+								Carbon.Logger.Warn($" Hook '{method.Name}' is not supported.");
 								counter++;
 							}
 						}
 
 						if (counter > 0)
 						{
-							CarbonCore.Warn($" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.\n The plugin will not work as expected.");
+							Carbon.Logger.Warn($"Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
+							Carbon.Logger.Warn("The plugin will not work as expected.");
 						}
 					}
 
@@ -295,15 +271,15 @@ namespace Carbon.Core
 
 					if (info == null)
 					{
-						CarbonCore.Warn($"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute.");
+						Carbon.Logger.Warn($"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute.");
 						continue;
 					}
 					plugin.SetProcessor(CarbonCore.Instance.HarmonyProcessor);
 					plugin.CallHook("SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description);
 					HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
 					plugin.IInit();
-                    plugin.DoLoadConfig ();
-                    plugin.Load();
+					plugin.DoLoadConfig();
+					plugin.Load();
 
 					if (CarbonCore.IsServerFullyInitialized)
 					{
@@ -314,9 +290,9 @@ namespace Carbon.Core
 					mod.Plugins.Add(plugin);
 					ProcessCommands(type, plugin);
 
-					CarbonCore.Log($"Loaded plugin {plugin.ToString()}");
+					Carbon.Logger.Log($"Loaded plugin {plugin.ToString()}");
 				}
-				catch (Exception ex) { CarbonCore.Error($"Failed loading '{mod.Name}'", ex); }
+				catch (Exception ex) { Carbon.Logger.Error($"Failed loading '{mod.Name}'", ex); }
 			}
 		}
 		public static void UninitializePlugins(CarbonMod mod)
@@ -326,13 +302,13 @@ namespace Carbon.Core
 				try
 				{
 					HookExecutor.CallStaticHook("OnPluginUnloaded", plugin);
-                    plugin.CallHook ( "Unload" );
-                    plugin.IUnload();
+					plugin.CallHook("Unload");
+					plugin.IUnload();
 					RemoveCommands(plugin);
 					plugin.Dispose();
-					CarbonCore.Log($"Unloaded plugin {plugin.ToString()}");
+					Carbon.Logger.Log($"Unloaded plugin {plugin.ToString()}");
 				}
-				catch (Exception ex) { CarbonCore.Error($"Failed unloading '{mod.Name}'", ex); }
+				catch (Exception ex) { Carbon.Logger.Error($"Failed unloading '{mod.Name}'", ex); }
 			}
 		}
 
@@ -343,7 +319,7 @@ namespace Carbon.Core
 			return IsValidPlugin(type.BaseType);
 		}
 
-		public static void ProcessCommands(Type type, RustPlugin plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)
+		public static void ProcessCommands(Type type, BaseHookable plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)
 		{
 			var methods = type.GetMethods(flags);
 			var fields = type.GetFields(flags | BindingFlags.Public);
@@ -502,8 +478,6 @@ namespace Carbon.Core
 				Log(mod.Name, "Unpatching hooks...");
 				mod.Harmony.UnpatchAll(mod.Harmony.Id);
 				Log(mod.Name, "Unloaded mod");
-
-				OsEx.File.Delete(mod.File);
 			}
 
 			_loadedMods.Remove(mod);
@@ -519,21 +493,27 @@ namespace Carbon.Core
 		}
 		internal static Assembly LoadAssembly(string assemblyPath)
 		{
-			if (!File.Exists(assemblyPath))
+			try
 			{
-				return null;
+				if (!File.Exists(assemblyPath))
+				{
+					return null;
+				}
+
+				var rawAssembly = File.ReadAllBytes(assemblyPath);
+				var path = assemblyPath.Substring(0, assemblyPath.Length - 4) + ".pdb";
+
+				if (File.Exists(path))
+				{
+					var rawSymbolStore = File.ReadAllBytes(path);
+					return Assembly.Load(rawAssembly, rawSymbolStore);
+				}
+
+				return Assembly.Load(rawAssembly);
 			}
+			catch { }
 
-			var rawAssembly = File.ReadAllBytes(assemblyPath);
-			var path = assemblyPath.Substring(0, assemblyPath.Length - 4) + ".pdb";
-
-			if (File.Exists(path))
-			{
-				var rawSymbolStore = File.ReadAllBytes(path);
-				return Assembly.Load(rawAssembly, rawSymbolStore);
-			}
-
-			return Assembly.Load(rawAssembly);
+			return null;
 		}
 		internal static bool IsKnownDependency(string assemblyName)
 		{
@@ -559,17 +539,10 @@ namespace Carbon.Core
 			}
 		}
 		internal static void Log(string harmonyId, object message)
-		{
-			CarbonCore.Format($"[{harmonyId}] {message}");
-		}
+			=> Carbon.Logger.Log($"[{harmonyId}] {message}");
+
 		internal static void LogError(string harmonyId, object message)
-		{
-			CarbonCore.ErrorFormat($"[{harmonyId}] {message}");
-		}
-		internal static void LogError(object message)
-		{
-			CarbonCore.Error(message);
-		}
+			=> Carbon.Logger.Error($"[{harmonyId}] {message}");
 
 		internal static string _modPath;
 

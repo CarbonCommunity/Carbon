@@ -6,8 +6,8 @@
 
 namespace Oxide.Plugins
 {
-    public class CovalencePlugin : RustPlugin
-    {
+	public class CovalencePlugin : RustPlugin
+	{
 
-    }
+	}
 }

@@ -88,6 +88,7 @@ jobs:
     name: 🪟 Windows
     needs: bootstrap
     runs-on: windows-latest
+    continue-on-error: false
     
     steps:
     - name: 🔗 Checkout source code from github

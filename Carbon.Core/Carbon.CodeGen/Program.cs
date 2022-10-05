@@ -1,59 +1,60 @@
-﻿using Carbon.Extended;
-using Carbon.Oxide.Metadata;
-using Humanlights.Extensions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Oxide.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Carbon.Extended;
+using Carbon.Oxide.Metadata;
+using Humanlights.Extensions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Carbon.CodeGen
 {
-    internal class Program
-    {
-        static void Main ( string [] args )
-        {
-            DoExtendedDocs ();
+	internal class Program
+	{
+		static void Main(string[] args)
+		{
+			DoExtendedDocs();
 
-            Console.ReadLine ();
-        }
+			Console.ReadLine();
+		}
 
-        public static string GetExample ( Hook hook, Hook.Parameter [] parameters )
-        {
-            return $@"{{% code title=""Example"" %}}
+		public static string GetExample(Hook hook, Hook.Parameter[] parameters)
+		{
+			return $@"{{% code title=""Example"" %}}
 ```csharp
-{( hook.ReturnType  == typeof(void) ? "void" : "object")} {hook.Name} ( {parameters.Select ( x => $"{GetType ( x.Type )} {( x.Name == "this" ? GetParameterName(x.Type).Trim() : x.Name )}" ).ToArray ().ToString ( ", " )} )
+{(hook.ReturnType == typeof(void) ? "void" : "object")} {hook.Name} ( {parameters.Select(x => $"{GetType(x.Type)} {(x.Name == "this" ? GetParameterName(x.Type).Trim() : x.Name)}").ToArray().ToString(", ")} )
 {{
-    Puts ( ""{hook.Name} works!"" );" + ( hook.ReturnType == typeof ( void ) ? "" : $@"
-    return ({GetType ( hook.ReturnType )}) null;" ) + $@"
+    Puts ( ""{hook.Name} works!"" );" + (hook.ReturnType == typeof(void) ? "" : $@"
+    return ({GetType(hook.ReturnType)}) null;") + $@"
 }}
 ```
 {{% endcode %}}";
-        }
-        public static string GetType ( Type type )
-        {
-            if ( type == typeof ( void ) ) return "void";
-            else if ( type == typeof ( string ) ) return "string";
-            else if ( type == typeof ( uint ) ) return "uint";
-            else if ( type == typeof ( int ) ) return "int";
-            else if ( type == typeof ( ulong ) ) return "ulong";
-            else if ( type == typeof ( object ) ) return "object";
-            else if ( type == typeof ( bool ) ) return "bool";
+		}
+		public static string GetType(Type type)
+		{
+			if (type == null) return "null";
 
-            return type.FullName.Replace ( "+", "." );
-        }
-        public static string GetParameterName (Type type)
-        {
-            return $"{char.ToLower ( type.Name [ 0 ] )}{type.Name.Substring(1)}";
-        }
+			if (type == typeof(void)) return "void";
+			else if (type == typeof(string)) return "string";
+			else if (type == typeof(uint)) return "uint";
+			else if (type == typeof(int)) return "int";
+			else if (type == typeof(ulong)) return "ulong";
+			else if (type == typeof(object)) return "object";
+			else if (type == typeof(bool)) return "bool";
 
-        public static void DoExtendedDocs ()
-        {
-            var assembly = typeof ( Hammer_DoAttackShared ).Assembly;
-            var result = $@"---
+			return type.FullName.Replace("+", ".");
+		}
+		public static string GetParameterName(Type type)
+		{
+			return $"{char.ToLower(type.Name[0])}{type.Name.Substring(1)}";
+		}
+
+		public static void DoExtendedDocs()
+		{
+			var assembly = typeof(Hammer_DoAttackShared).Assembly;
+			var result = $@"---
 description: >-
   This is a solution to your hook problems. Carbon.Extended provides an
   extensive amount of hooks that work with most Oxide plugins, and more!
@@ -67,63 +68,67 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
 # Hooks
 ";
-            var categories = new Dictionary<Hook.Category.Enum, List<Type>> ();
+			var categories = new Dictionary<Hook.Category.Enum, List<Type>>();
 
-            foreach ( var type in assembly.GetTypes () )
-            {
-                var list = ( List<Type> )null;
-                var category = type.GetCustomAttribute<Hook.Category> ();
-                if ( category == null ) continue;
+			foreach (var type in assembly.GetTypes())
+			{
+				var list = (List<Type>)null;
+				var category = type.GetCustomAttribute<Hook.Category>();
+				if (category == null) continue;
 
-                if ( !categories.TryGetValue ( category.Value, out list ) )
-                {
-                    categories.Add ( category.Value, list = new List<Type> () );
-                }
+				if (!categories.TryGetValue(category.Value, out list))
+				{
+					categories.Add(category.Value, list = new List<Type>());
+				}
 
-                list.Add ( type );
-            }
+				list.Add(type);
+			}
 
-            foreach ( var category in categories )
-            {
-                result += $"## {category.Key}\n";
+			foreach (var category in categories)
+			{
+				result += $"## {category.Key}\n";
 
-                foreach ( var entry in category.Value )
-                {
-                    var hook = entry.GetCustomAttribute<Hook> ();
-                    var info = entry.GetCustomAttributes<Hook.Info> ();
-                    var parameters = entry.GetCustomAttributes<Hook.Parameter> ();
+				foreach (var entry in category.Value)
+				{
+					var hook = entry.GetCustomAttribute<Hook>();
+					var info = entry.GetCustomAttributes<Hook.Info>();
+					var parameters = entry.GetCustomAttributes<Hook.Parameter>();
+					var require = entry.GetCustomAttribute<Hook.Require>();
 
-                    var resultInfo = new List<string> ();
-                    foreach ( var e in info ) resultInfo.Add ( $"{e.Value}" );
-                    if ( !resultInfo.Any ( x => x.StartsWith ( "Return" ) ) )
-                    {
-                        if ( hook.ReturnType == typeof ( void ) ) resultInfo.Add ( $"No return behavior." );
-                        else resultInfo.Add ( $"Returning a non-null value cancels default behavior." );
-                    }
+					var resultInfo = new List<string>();
+					foreach (var e in info) resultInfo.Add($"{e.Value}");
+					if (!resultInfo.Any(x => x.StartsWith("Return")))
+					{
+						if (hook.ReturnType == typeof(void)) resultInfo.Add($"No return behavior.");
+						else resultInfo.Add($"Returning a non-null value cancels default behavior.");
+					}
 
-                    if ( hook is CarbonHook ) resultInfo.Add ( $"This is a Carbon-only compatible hook." );
-                    else resultInfo.Add ( $"This is a Carbon+Oxide-compatible hook." );
+					if (hook is CarbonHook) resultInfo.Add($"This is a <b>Carbon</b>-only compatible hook.");
+					else resultInfo.Add($"This hook is compatible within <b>Oxide</b> and <b>Carbon</b>.");
 
-                    result += $@"<details>
-<summary>{hook.Name}{( category.Value.Count ( x => x.GetCustomAttribute<Hook> ().Name == hook.Name ) > 1 ? $" ({GetType ( parameters.FirstOrDefault ( x => x.Name == "this" ).Type )})" : "" )}</summary>
-{resultInfo.ToArray ().ToString ( "\n\n" )}
+					Console.WriteLine($"{hook.Name} -> {GetType(hook.ReturnType)}");
 
-{GetExample ( hook, parameters.ToArray () )}
+					result += $@"<details>
+<summary>{hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")}</summary>
+{resultInfo.ToArray().ToString("\n\n")}
+
+{GetExample(hook, parameters.ToArray())}
+
+{(require == null ? "" : $"This hook requires <b>{require.Hook}</b>, which loads alongside <b>{hook.Name}</b>.")}
+
 </details>
 
 ";
+				}
+			}
 
-                    Console.WriteLine ( $"{hook.Name} -> {GetType ( hook.ReturnType )}" );
-                }
-            }
-
-            OsEx.File.Create ( "extended.md", result );
-        }
-        public static void DoHookDocs ()
-        {
-            var hooks = "..\\..\\..\\..\\Tools\\hooks.json";
-            var jobject = JsonConvert.DeserializeObject<JObject> ( OsEx.File.ReadText ( hooks ) );
-            var result = $@"---
+			OsEx.File.Create("extended.md", result);
+		}
+		public static void DoHookDocs()
+		{
+			var hooks = "..\\..\\..\\..\\Tools\\hooks.json";
+			var jobject = JsonConvert.DeserializeObject<JObject>(OsEx.File.ReadText(hooks));
+			var result = $@"---
 description: >-
   This is a solution to your hook problems. Carbon.Extended provides an
   extensive amount of hooks that work with most Oxide plugins, and more!
@@ -138,94 +143,94 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 # Hooks
 ";
 
-            var categories = new Dictionary<string, List<JObject>> ();
+			var categories = new Dictionary<string, List<JObject>>();
 
-            foreach ( var entry in jobject [ "data" ] )
-            {
-                var subcategory = entry [ "subcategory" ].ToString ();
-                var list = ( List<JObject> )null;
+			foreach (var entry in jobject["data"])
+			{
+				var subcategory = entry["subcategory"].ToString();
+				var list = (List<JObject>)null;
 
-                if ( !categories.TryGetValue ( subcategory, out list ) )
-                {
-                    categories.Add ( subcategory, list = new List<JObject> () );
-                }
+				if (!categories.TryGetValue(subcategory, out list))
+				{
+					categories.Add(subcategory, list = new List<JObject>());
+				}
 
-                list.Add ( entry.ToObject<JObject> () );
+				list.Add(entry.ToObject<JObject>());
 
-                Console.WriteLine ( $"{entry [ "example" ]}" );
-            }
+				Console.WriteLine($"{entry["example"]}");
+			}
 
-            foreach ( var category in categories )
-            {
-                result += $"## {category.Key}\n";
+			foreach (var category in categories)
+			{
+				result += $"## {category.Key}\n";
 
-                foreach ( var entry in category.Value )
-                {
-                    result += $@"<details>
-<summary>{entry [ "name" ]}</summary>
-{entry [ "description" ]}
+				foreach (var entry in category.Value)
+				{
+					result += $@"<details>
+<summary>{entry["name"]}</summary>
+{entry["description"]}
 
-{entry [ "example" ]}
+{entry["example"]}
 </details>
 
 ";
-                }
-            }
+				}
+			}
 
-            OsEx.File.Create ( "test.md", result );
-        }
-        public static void DoHooks ()
-        {
-            var hooks = JsonConvert.DeserializeObject<HookPackage> ( OsEx.File.ReadText ( "..\\..\\..\\..\\Tools\\Rust.opj" ) );
-            var hookFolder = "..\\..\\..\\Carbon.Extended\\Generated Hooks";
-            var rust = typeof ( Bootstrap ).Assembly;
+			OsEx.File.Create("test.md", result);
+		}
+		public static void DoHooks()
+		{
+			var hooks = JsonConvert.DeserializeObject<HookPackage>(OsEx.File.ReadText("..\\..\\..\\..\\Tools\\Rust.opj"));
+			var hookFolder = "..\\..\\..\\Carbon.Extended\\Generated Hooks";
+			var rust = typeof(Bootstrap).Assembly;
 
-            OsEx.Folder.Create ( hookFolder, true );
+			OsEx.Folder.Create(hookFolder, true);
 
-            foreach ( var manifest in hooks.Manifests )
-            {
-                foreach ( var hook in manifest.Hooks )
-                {
-                    try
-                    {
-                        var output = string.Empty;
-                        var hookName = ( string.IsNullOrEmpty ( hook.Hook.BaseHookName ) ? hook.Hook.HookName : hook.Hook.BaseHookName ).Split ( ' ' ) [ 0 ];
-                        if ( hookName.Contains ( "/" ) /*|| !WhitelistedHooks.Contains ( hookName )*/ ) continue;
+			foreach (var manifest in hooks.Manifests)
+			{
+				foreach (var hook in manifest.Hooks)
+				{
+					try
+					{
+						var output = string.Empty;
+						var hookName = (string.IsNullOrEmpty(hook.Hook.BaseHookName) ? hook.Hook.HookName : hook.Hook.BaseHookName).Split(' ')[0];
+						if (hookName.Contains("/") /*|| !WhitelistedHooks.Contains ( hookName )*/ ) continue;
 
-                        var typeName = hook.Hook.TypeName.Replace ( "/", "." ).Split ( new string [] { ".<" }, StringSplitOptions.RemoveEmptyEntries ) [ 0 ];
-                        var methodName = hook.Hook.Signature.Name.Contains ( "<Start" ) ? "Start" : hook.Hook.Signature.Name;
-                        var method = rust.GetType ( typeName ).GetMethod ( methodName );
-                        var parameters = method.GetParameters ().Select ( x => $"{x.ParameterType.FullName.Replace ( "+", "." )} {x.Name}" ).ToArray ();
-                        var arguments = hook.Hook.ArgumentString;
+						var typeName = hook.Hook.TypeName.Replace("/", ".").Split(new string[] { ".<" }, StringSplitOptions.RemoveEmptyEntries)[0];
+						var methodName = hook.Hook.Signature.Name.Contains("<Start") ? "Start" : hook.Hook.Signature.Name;
+						var method = rust.GetType(typeName).GetMethod(methodName);
+						var parameters = method.GetParameters().Select(x => $"{x.ParameterType.FullName.Replace("+", ".")} {x.Name}").ToArray();
+						var arguments = hook.Hook.ArgumentString;
 
-                        if ( hook.Hook.Instructions != null && hook.Hook.Instructions.Length > 0 )
-                        {
+						if (hook.Hook.Instructions != null && hook.Hook.Instructions.Length > 0)
+						{
 
-                        }
-                        else if ( hook.Hook.InjectionIndex > 0 && !hookName.StartsWith ( "Can" ) ) output = ( method.ReturnType == typeof ( void ) ?
-                                GetTemplate_NoReturn ( "Postfix", parameters.ToString ( ", " ), arguments ) :
-                                GetTemplate_Return ( "Postfix", parameters.ToString ( ", " ), method.ReturnType.FullName, arguments ) )
-                                .Replace ( "[TYPE]", typeName )
-                                .Replace ( "[METHOD]", methodName )
-                                .Replace ( "[HOOK]", hookName );
-                        else output = ( method.ReturnType == typeof ( void ) ?
-                                GetTemplate_NoReturn ( "Prefix", parameters.ToString ( ", " ), arguments ) :
-                                GetTemplate_Return ( "Prefix", parameters.ToString ( ", " ), method.ReturnType.FullName, arguments ) )
-                                .Replace ( "[TYPE]", typeName )
-                                .Replace ( "[METHOD]", methodName )
-                                .Replace ( "[HOOK]", hookName );
+						}
+						else if (hook.Hook.InjectionIndex > 0 && !hookName.StartsWith("Can")) output = (method.ReturnType == typeof(void) ?
+								GetTemplate_NoReturn("Postfix", parameters.ToString(", "), arguments) :
+								GetTemplate_Return("Postfix", parameters.ToString(", "), method.ReturnType.FullName, arguments))
+								.Replace("[TYPE]", typeName)
+								.Replace("[METHOD]", methodName)
+								.Replace("[HOOK]", hookName);
+						else output = (method.ReturnType == typeof(void) ?
+								GetTemplate_NoReturn("Prefix", parameters.ToString(", "), arguments) :
+								GetTemplate_Return("Prefix", parameters.ToString(", "), method.ReturnType.FullName, arguments))
+								.Replace("[TYPE]", typeName)
+								.Replace("[METHOD]", methodName)
+								.Replace("[HOOK]", hookName);
 
-                        Console.WriteLine ( $"{typeName}.{methodName} -> {hookName} {arguments}" );
+						Console.WriteLine($"{typeName}.{methodName} -> {hookName} {arguments}");
 
-                        if ( output.Length > 0 ) OsEx.File.Create ( Path.Combine ( hookFolder, $"{hookName}.cs" ), output );
-                    }
-                    catch { }
-                }
-            }
-        }
-        public static string GetTemplate_NoReturn ( string method, string parameters = null, string arguments = null )
-        {
-            return $@"using Carbon.Core;
+						if (output.Length > 0) OsEx.File.Create(Path.Combine(hookFolder, $"{hookName}.cs"), output);
+					}
+					catch { }
+				}
+			}
+		}
+		public static string GetTemplate_NoReturn(string method, string parameters = null, string arguments = null)
+		{
+			return $@"using Carbon.Core;
 using Harmony;
 
 namespace Carbon.Extended
@@ -233,16 +238,16 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( [TYPE] ), ""[METHOD]"" )]
     public class [HOOK]
     {{
-        public static {( method == "Prefix" ? "bool" : "void" )} {method} ( {( string.IsNullOrEmpty ( parameters ) ? "" : $"{parameters} " )}{( arguments != null && arguments.Contains ( "this" ) ? $", ref [TYPE] __instance " : "" )})
+        public static {(method == "Prefix" ? "bool" : "void")} {method} ( {(string.IsNullOrEmpty(parameters) ? "" : $"{parameters} ")}{(arguments != null && arguments.Contains("this") ? $", ref [TYPE] __instance " : "")})
         {{
-            {( method == "Prefix" ? $"return HookExecutor.CallStaticHook ( \"[HOOK]\"{( string.IsNullOrEmpty ( arguments ) ? "" : $", {arguments.Replace ( "this", "__instance" )}" )} ) == null;" : "HookExecutor.CallStaticHook ( \"[HOOK]\" );" )}
+            {(method == "Prefix" ? $"return HookExecutor.CallStaticHook ( \"[HOOK]\"{(string.IsNullOrEmpty(arguments) ? "" : $", {arguments.Replace("this", "__instance")}")} ) == null;" : "HookExecutor.CallStaticHook ( \"[HOOK]\" );")}
         }}
     }}
 }}";
-        }
-        public static string GetTemplate_Return ( string method, string parameters = null, string returnType = "object", string arguments = null )
-        {
-            return $@"using Carbon.Core;
+		}
+		public static string GetTemplate_Return(string method, string parameters = null, string returnType = "object", string arguments = null)
+		{
+			return $@"using Carbon.Core;
 using Harmony;
 
 namespace Carbon.Extended
@@ -250,11 +255,11 @@ namespace Carbon.Extended
     [HarmonyPatch ( typeof ( [TYPE] ), ""[METHOD]"" )]
     public class [HOOK]
     {{
-        public static bool {method} ( {( string.IsNullOrEmpty ( parameters ) ? "" : $"{parameters}, " )}ref {returnType} __result{( arguments != null && arguments.Contains ( "this" ) ? $", ref [TYPE] __instance" : "" )} )
+        public static bool {method} ( {(string.IsNullOrEmpty(parameters) ? "" : $"{parameters}, ")}ref {returnType} __result{(arguments != null && arguments.Contains("this") ? $", ref [TYPE] __instance" : "")} )
         {{
             CarbonCore.Log ( $""{method} [HOOK]"" );
 
-            var result = HookExecutor.CallStaticHook ( ""[HOOK]""{( string.IsNullOrEmpty ( arguments ) ? "" : $", {arguments.Replace ( "this", "__instance" )}" )} );
+            var result = HookExecutor.CallStaticHook ( ""[HOOK]""{(string.IsNullOrEmpty(arguments) ? "" : $", {arguments.Replace("this", "__instance")}")} );
             
             if ( result != null )
             {{
@@ -266,6 +271,6 @@ namespace Carbon.Extended
         }}
     }}
 }}";
-        }
-    }
+		}
+	}
 }

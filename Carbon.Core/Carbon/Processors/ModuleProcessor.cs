@@ -1,66 +1,62 @@
-﻿using Carbon.Core.Modules;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Configuration;
-using System.Text;
-using System.Threading.Tasks;
+using Carbon.Core.Modules;
 
 namespace Carbon.Core.Processors
 {
-    public class ModuleProcessor : IDisposable
-    {
-        public List<BaseHookable> Modules { get; set; } = new List<BaseHookable> ( 50 );
+	public class ModuleProcessor : IDisposable
+	{
+		public List<BaseHookable> Modules { get; set; } = new List<BaseHookable>(50);
 
-        public void Init ()
-        {
-            foreach ( var type in typeof ( ModuleProcessor ).Assembly.GetTypes () )
-            {
-                if ( type.BaseType == null || !type.BaseType.Name.Contains ( "BaseModule" ) ) continue;
+		public void Init()
+		{
+			foreach (var type in typeof(ModuleProcessor).Assembly.GetTypes())
+			{
+				if (type.BaseType == null || !type.BaseType.Name.Contains("CarbonModule")) continue;
 
-                Setup ( Activator.CreateInstance ( type ) as BaseHookable );
-            }
-        }
-        public void Setup ( BaseHookable module )
-        {
-            if ( module is IModule hookable )
-            {
-                hookable.Init ();
-                Modules.Add ( module );
-                hookable.InitEnd ();
-            }
-        }
+				Setup(Activator.CreateInstance(type) as BaseHookable);
+			}
+		}
+		public void Setup(BaseHookable module)
+		{
+			if (module is IModule hookable)
+			{
+				hookable.Init();
+				Modules.Add(module);
+				hookable.InitEnd();
+			}
+		}
 
-        public void Save ()
-        {
-            foreach ( var hookable in Modules )
-            {
-                var module = hookable.To<IModule> ();
+		public void Save()
+		{
+			foreach (var hookable in Modules)
+			{
+				var module = hookable.To<IModule>();
 
-                module.Save ();
-            }
-        }
-        public void Load ()
-        {
-            foreach ( var hookable in Modules )
-            {
-                var module = hookable.To<IModule> ();
+				module.Save();
+			}
+		}
+		public void Load()
+		{
+			foreach (var hookable in Modules)
+			{
+				var module = hookable.To<IModule>();
 
-                module.Load ();
-                module.OnEnableStatus ();
-            }
-        }
+				module.Load();
+				module.OnEnableStatus();
+			}
+		}
 
-        public void Dispose ()
-        {
-            foreach ( var hookable in Modules )
-            {
-                var module = hookable.To<IModule> ();
+		public void Dispose()
+		{
+			foreach (var hookable in Modules)
+			{
+				var module = hookable.To<IModule>();
 
-                module.Dispose ();
-            }
+				module.Dispose();
+			}
 
-            Modules.Clear ();
-        }
-    }
+			Modules.Clear();
+		}
+	}
 }
