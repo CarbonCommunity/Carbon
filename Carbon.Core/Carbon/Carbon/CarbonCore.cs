@@ -264,6 +264,13 @@ namespace Carbon.Core
 
 			return folder;
 		}
+		public static string GetReportsFolder()
+		{
+			var folder = Path.Combine($"{GetRootFolder()}", "reports");
+			Directory.CreateDirectory(folder);
+
+			return folder;
+		}
 
 		#endregion
 
@@ -360,6 +367,7 @@ namespace Carbon.Core
 			GetHarmonyFolder();
 			GetLogsFolder();
 			GetLangFolder();
+			GetReportsFolder();
 			OsEx.Folder.DeleteContents(GetTempFolder());
 			Carbon.Logger.Log("Loaded folders");
 

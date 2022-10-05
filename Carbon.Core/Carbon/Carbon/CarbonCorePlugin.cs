@@ -248,6 +248,18 @@ namespace Carbon.Core
 
 		#endregion
 
+		#region Report
+
+		[ConsoleCommand("report", "Reloads all current plugins, and returns a report based on them at the output path.")]
+		private void Report(ConsoleSystem.Arg arg)
+		{
+			if (!arg.IsPlayerCalledAndAdmin()) return;
+
+			new Report().Init();
+		}
+
+		#endregion
+
 		#region Modules
 
 		[ConsoleCommand("setmodule", "Enables or disables Carbon modules. Visit root/carbon/modules and use the config file names as IDs.")]

@@ -205,6 +205,8 @@ namespace Carbon.Core
 				yield break;
 			}
 
+			Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
+
 			var requiresResult = requires.ToArray();
 
 			AsyncLoader.Start();
@@ -286,6 +288,9 @@ namespace Carbon.Core
 					plugin.Instance.SetProcessor(CarbonCore.Instance.ScriptProcessor);
 					plugin.Instance.CompileTime = AsyncLoader.CompileTime;
 
+					plugin.Instance.FilePath = AsyncLoader.FilePath;
+					plugin.Instance.FileName = AsyncLoader.FileName;
+
 					plugin.Instance.CallHook("SetupMod", null, info.Title, info.Author, info.Version, plugin.Description);
 					HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
 					plugin.Instance.IInit();
@@ -306,6 +311,8 @@ namespace Carbon.Core
 					CarbonLoader.ProcessCommands(type, plugin.Instance);
 
 					Scripts.Add(plugin);
+
+					Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);
 				}
 				catch (Exception exception)
 				{
@@ -372,6 +379,8 @@ namespace Carbon.Core
 				}
 
 				if (counter > 1) Carbon.Logger.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
+
+				Report.OnProcessEnded?.Invoke();
 			}
 		}
 		public void Dispose()

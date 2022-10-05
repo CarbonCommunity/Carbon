@@ -31,6 +31,9 @@ namespace Oxide.Plugins
 		[JsonProperty]
 		public double CompileTime { get; internal set; }
 
+		public string FilePath { get; set; }
+		public string FileName { get; set; }
+
 		public override void TrackStart()
 		{
 			if (IsCorePlugin) return;
