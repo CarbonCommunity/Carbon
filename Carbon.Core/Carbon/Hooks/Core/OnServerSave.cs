@@ -17,7 +17,7 @@ public class OnServerSave
 	{
 		if (_call <= 0.5f) return;
 
-		Logger.Log($"Saving Carbon plugins");
+		Carbon.Logger.Log($"Saving Carbon plugins");
 		HookExecutor.CallStaticHook("OnServerSave");
 		Interface.Oxide.Permission.SaveData();
 		_call = 0;

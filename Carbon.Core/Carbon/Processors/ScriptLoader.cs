@@ -62,7 +62,7 @@ namespace Carbon.Core
 			}
 			catch (Exception exception)
 			{
-				Logger.Error($"Failed loading script;", exception);
+				Carbon.Logger.Error($"Failed loading script;", exception);
 			}
 		}
 
@@ -106,9 +106,9 @@ namespace Carbon.Core
 						plugin.Instance.IUnload();
 						CarbonLoader.RemoveCommands(plugin.Instance);
 						plugin.Instance.Dispose();
-						Logger.Log($"Unloaded plugin {plugin.Instance.ToString()}");
+						Carbon.Logger.Log($"Unloaded plugin {plugin.Instance.ToString()}");
 					}
-					catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
+					catch (Exception ex) { Carbon.Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
 				}
 
 				plugin.Dispose();
@@ -127,7 +127,7 @@ namespace Carbon.Core
 			{
 				if (!OsEx.File.Exists(file))
 				{
-					Logger.Warn($"Plugin \"{file}\" does not exist or the path is misspelled.");
+					Carbon.Logger.Warn($"Plugin \"{file}\" does not exist or the path is misspelled.");
 					continue;
 				}
 
@@ -141,7 +141,7 @@ namespace Carbon.Core
 			if (string.IsNullOrEmpty(Source))
 			{
 				HasFinished = true;
-				Logger.Warn("Attempted to compile an empty string of source code.");
+				Carbon.Logger.Warn("Attempted to compile an empty string of source code.");
 				yield break;
 			}
 
@@ -155,7 +155,7 @@ namespace Carbon.Core
 					{
 						var @ref = $"{reference.Replace("// Reference:", "").Replace("//Reference:", "")}".Trim();
 						resultReferences.Add(@ref);
-						Logger.Log($" Added reference: {@ref}");
+						Carbon.Logger.Log($" Added reference: {@ref}");
 					}
 				}
 				catch { }
@@ -171,7 +171,7 @@ namespace Carbon.Core
 
 						var @ref = $"{require.Replace("// Requires:", "").Replace("//Requires:", "")}".Trim();
 						resultRequires.Add(@ref);
-						Logger.Log($" Added required plugin: {@ref}");
+						Carbon.Logger.Log($" Added required plugin: {@ref}");
 					}
 				}
 				catch { }
@@ -192,7 +192,7 @@ namespace Carbon.Core
 				var plugin = CarbonCore.Instance.CorePlugin.plugins.Find(require);
 				if (plugin == null)
 				{
-					Logger.Warn($"Couldn't find required plugin '{require}' for '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}'");
+					Carbon.Logger.Warn($"Couldn't find required plugin '{require}' for '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}'");
 					noRequiresFound = true;
 				}
 				else requires.Add(plugin);
@@ -219,18 +219,18 @@ namespace Carbon.Core
 
 			if (AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0)
 			{
-				Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
+				Carbon.Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
 				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
 				{
 					var error = AsyncLoader.Exceptions[i];
-					Logger.Error($"  {i + 1:n0}. {error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})");
+					Carbon.Logger.Error($"  {i + 1:n0}. {error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})");
 				}
 
 				HasFinished = true;
 				yield break;
 			}
 
-			Logger.Warn($" Compiling '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
+			Carbon.Logger.Warn($" Compiling '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
 
 			CarbonLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
@@ -250,14 +250,14 @@ namespace Carbon.Core
 						var counter = 0;
 						foreach (var hook in AsyncLoader.UnsupportedHooks[type])
 						{
-							Logger.Warn($" Hook '{hook}' is not supported.");
+							Carbon.Logger.Warn($" Hook '{hook}' is not supported.");
 							counter++;
 						}
 
 						if (counter > 0)
 						{
-							Logger.Warn($" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
-							Logger.Warn("The plugin will not work as expected.");
+							Carbon.Logger.Warn($" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
+							Carbon.Logger.Warn("The plugin will not work as expected.");
 						}
 					}
 
@@ -298,7 +298,7 @@ namespace Carbon.Core
 
 					if (info != null)
 					{
-						Logger.Log(
+						Carbon.Logger.Log(
 							$"Loaded plugin {info.Title} v{info.Version} by {info.Author}"
 						);
 					}
@@ -310,7 +310,7 @@ namespace Carbon.Core
 				catch (Exception exception)
 				{
 					HasFinished = true;
-					Logger.Error($"Failed to compile: ", exception);
+					Carbon.Logger.Error($"Failed to compile: ", exception);
 				}
 
 				yield return _serverExhale;

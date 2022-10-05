@@ -82,7 +82,7 @@ namespace Carbon.Core
 
 				if (instance.Hooks <= 0)
 				{
-					Logger.Warn($" No plugin is using '{hookName}'. Unpatching.");
+					Carbon.Logger.Warn($" No plugin is using '{hookName}'. Unpatching.");
 					UninstallHooks(hookName);
 				}
 			}
@@ -91,7 +91,8 @@ namespace Carbon.Core
 		public void InstallHooks(string hookName, bool doRequires = true)
 		{
 			if (!DoesHookExist(hookName)) return;
-			if (!IsPatched(hookName)) Carbon.Logger.Debug($"Found '{hookName}'...", 2);
+			if (!IsPatched(hookName))
+				Carbon.Logger.Debug($"Found '{hookName}'...");
 
 			new HookInstallerThread { HookName = hookName, DoRequires = doRequires, Processor = this }.Start();
 		}

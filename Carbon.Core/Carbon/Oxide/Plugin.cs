@@ -63,7 +63,7 @@ namespace Oxide.Plugins
 			{
 				CarbonCore.Instance.Addon.UnappendHook(hook);
 			}
-			Carbon.Logger.Log(Name, $"Unprocessed hooks");
+			Carbon.Logger.Log($"{Name} Unprocessed hooks");
 		}
 
 		public virtual void IInit()
@@ -81,13 +81,13 @@ namespace Oxide.Plugins
 					else list.Add(method);
 				}
 			}
-			Carbon.Logger.Debug(Name, $"Installed hook method attributes");
+			Carbon.Logger.Info(Name, "Installed hook method attributes");
 
 			using (TimeMeasure.New($"Processing PluginReferences on '{this}'"))
 			{
 				InternalApplyPluginReferences();
 			}
-			Carbon.Logger.Debug(Name, $"Assigned plugin references");
+			Carbon.Logger.Info(Name, "Assigned plugin references");
 
 			using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 			{
@@ -97,7 +97,7 @@ namespace Oxide.Plugins
 					CarbonCore.Instance.Addon.AppendHook(hook);
 				}
 			}
-			Carbon.Logger.Debug(Name, $"Processed hooks");
+			Carbon.Logger.Info(Name, "Processed hooks");
 
 			CallHook("Init");
 		}
