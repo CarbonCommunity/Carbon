@@ -5,116 +5,134 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Carbon.Core;
 using Facepunch;
-using UnityEngine;
 
 namespace Carbon
 {
 	public class Logger
 	{
-		private Logger() { }
-
 		public enum Severity
 		{
-			Critical,
-			Error,
-			Warning,
-			Notice,
-			Informational,
-			Debug
+			Error, Warning, Notice, Debug
 		}
 
-		internal static Severity _consoleSeverityThreshold = Severity.Notice;
-		internal static void Write(Severity severity, object message, Exception ex = null)
+		internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1)
 		{
-			if (severity > _consoleSeverityThreshold) return;
+			if (severity != Severity.Debug)
+			{
+				Severity minSeverity = CarbonCore.Instance?.Config.LogSeverity ?? Severity.Notice;
+				if (severity > minSeverity) return;
+			}
 
 			switch (severity)
 			{
-				case Severity.Critical:
 				case Severity.Error:
-					var demystifiedException = ex?.Demystify() ?? ex;
-					if (demystifiedException != null) UnityEngine.Debug.LogError($"{message} ({demystifiedException?.Message})\n{demystifiedException?.StackTrace}");
-					else UnityEngine.Debug.LogError(message); break;
+					Exception dex = ex?.Demystify() ?? ex;
+					if (dex != null) UnityEngine.Debug.LogError($"{message}{dex?.Message}\n{dex?.StackTrace}");
+					else UnityEngine.Debug.LogError($"{message}");
+					break;
 
 				case Severity.Warning:
-					UnityEngine.Debug.LogWarning(message);
+					UnityEngine.Debug.LogWarning($"{message}");
 					break;
 
 				case Severity.Notice:
-				case Severity.Informational:
+					UnityEngine.Debug.Log($"{message}");
+					break;
+
 				case Severity.Debug:
-					UnityEngine.Debug.Log(message);
+					int minVerbosity = CarbonCore.Instance?.Config.LogVerbosity ?? -1;
+					if (verbosity > minVerbosity) break;
+					UnityEngine.Debug.Log($"{message}");
 					break;
 
 				default:
 					throw new Exception($"Severity {severity} not implemented.");
+
 			}
 		}
-
-		public static void Debug(object message, int verbosityLevel = 1, LogType log = LogType.Log) => Debug(null, message, verbosityLevel, log);
-		public static void Debug(object header, object message, int verbosityLevel = 1, LogType log = LogType.Log)
-		{
-			if (CarbonCore.Instance.Config.LogVerbosity <= -1 ||
-				CarbonCore.Instance.Config.LogVerbosity <= verbosityLevel) return;
-
-			if (header != null) header = $".{header}";
-
-			switch (log)
-			{
-				case LogType.Log:
-					Log($"[CRBN{header}] {message}");
-					break;
-
-				case LogType.Warning:
-					Warn($"[CRBN{header}] {message}");
-					break;
-
-				case LogType.Error:
-					Error($"[CRBN{header}] {message}");
-					break;
-			}
-		}
-
-		public static void Log(object message) => Carbon.Logger.Write(Logger.Severity.Notice, message);
-		public static void Log(object header, object message) => Log($"[{header}] {message}");
-		public static void Format(string format, params object[] args) => Log(string.Format(format, args));
 
 #if DEBUG
-		public static void Warn(object message,
-			[CallerLineNumber] int line = 0,
-			[CallerFilePath] string path = null,
-			[CallerMemberName] string method = null)
+		internal static string GetFileNameEx(string Input)
 		{
-			if (CarbonCore.Instance.Config.LogVerbosity > 0) message = $"{message}\n (file: {Path.GetFileName(path)}, method: {method}, line: {line}]\n";
-			Carbon.Logger.Write(Logger.Severity.Warning, message);
+			// For some reason Path.GetFileName() is not working with
+			// [CallerFilePath]. Trying to be OS agnostic..
+			string[] arr = Input.Split((Input.Contains("/") ? '/' : '\\'));
+			string ret = arr[arr.Length - 1];
+
+			Array.Clear(arr, 0, arr.Length);
+			Pool.Free(ref arr);
+			return ret;
 		}
-#else
-		public static void Warn(object message) => Carbon.Logger.Write(Logger.Severity.Warning, message);
 #endif
-		public static void Warn(object header, object message) => Warn($"[{header}] {message}");
 
-		public static void WarnFormat(string format, params object[] args) => Warn(string.Format(format, args));
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'DEBUG'.
+		/// </summary>
+		/// <param name="header"></param>
+		/// <param name="message"></param>
+		/// <param name="verbosity"></param>
+		public static void Debug(object header, object message, int verbosity)
+			=> Write(Logger.Severity.Debug, $"[CRBN.{header}] {message}", null, verbosity);
 
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'DEBUG'.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="verbosity"></param>
+		public static void Debug(object message, int verbosity)
+			=> Write(Logger.Severity.Debug, $"[CRBN] {message}", null, verbosity);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'DEBUG'.
+		/// </summary>
+		/// <param name="header"></param>
+		/// <param name="message"></param>
+		public static void Debug(object header, object message)
+			=> Write(Logger.Severity.Debug, $"[CRBN.{header}] {message}");
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'DEBUG'.
+		/// </summary>
+		/// <param name="message"></param>
+		public static void Debug(object message)
+			=> Write(Logger.Severity.Debug, $"[CRBN] {message}");
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'NOTICE'.
+		/// </summary>
+		/// <param name="message"></param>
+		public static void Log(object message)
+			=> Write(Logger.Severity.Notice, message);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'WARNING'.
+		/// DEBUG IS ENABLED FOR THIS METHOD.
+		/// </summary>
+		/// <param name="message"></param>
+		public static void Warn(object message)
+			=> Write(Logger.Severity.Warning, message);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'ERROR'.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="ex"></param>
 #if DEBUG
 		public static void Error(object message, Exception ex = null,
 			[CallerLineNumber] int line = 0,
 			[CallerFilePath] string path = null,
 			[CallerMemberName] string method = null)
 		{
-			if (CarbonCore.Instance.Config.LogVerbosity > 0) message = $"{message}\n (file: {Path.GetFileName(path)}, method: {method}, line: {line}]\n";
-			Carbon.Logger.Write(Logger.Severity.Error, message, ex);
+			message = $"{message}" + Environment.NewLine +
+					  $"(file: {GetFileNameEx(path)}, method: {method}, line: {line})" + Environment.NewLine;
+			Write(Logger.Severity.Error, message, ex);
 		}
 #else
-		public static void Error(object message, Exception ex = null) => Carbon.Logger.Write(Logger.Severity.Error, message, ex);
+		public static void Error(object message, Exception ex = null)
+			=> Write(Logger.Severity.Error, message, ex);
 #endif
-		public static void Error(object header, object message, Exception ex = null) => Error($"[{header}] {message}", ex);
-
-		public static void ErrorFormat(string format, Exception ex = null, params object[] args) => Error(string.Format(format, args), ex);
 	}
 }

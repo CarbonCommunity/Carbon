@@ -81,7 +81,7 @@ namespace Carbon.Core
 				arg.Player().SendConsoleCommand($"echo {message}");
 				return;
 			}
-			Logger.Log(message);
+			Carbon.Logger.Log(message);
 		}
 
 		[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]

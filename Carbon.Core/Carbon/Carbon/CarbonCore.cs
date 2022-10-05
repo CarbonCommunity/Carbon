@@ -350,7 +350,7 @@ namespace Carbon.Core
 			LoadConfig();
 			Carbon.Logger.Log("Loaded config");
 
-			Carbon.Logger.Format($"Loading...");
+			Carbon.Logger.Log($"Loading...");
 
 			GetRootFolder();
 			GetConfigsFolder();
@@ -375,7 +375,7 @@ namespace Carbon.Core
 
 			ReloadPlugins();
 
-			Carbon.Logger.Format($"Loaded.");
+			Carbon.Logger.Log($"Loaded.");
 
 			RefreshConsoleInfo();
 

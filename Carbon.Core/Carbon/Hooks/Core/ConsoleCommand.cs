@@ -36,7 +36,7 @@ public class ConsoleCommand
 					}
 					catch (Exception ex)
 					{
-						Logger.Error("ConsoleSystem_Run", ex);
+						Carbon.Logger.Error("ConsoleSystem_Run", ex);
 					}
 
 					return false;

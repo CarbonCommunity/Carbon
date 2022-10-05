@@ -32,7 +32,7 @@ public class Command
 				Help = help
 			});
 		}
-		else Logger.WarnFormat($"Chat command '{command}' already exists.");
+		else Carbon.Logger.Warn($"Chat command '{command}' already exists.");
 	}
 	public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
 	{
@@ -91,7 +91,7 @@ public class Command
 				Help = help
 			});
 		}
-		else Logger.WarnFormat($"Console command '{command}' already exists.");
+		else Carbon.Logger.Warn($"Console command '{command}' already exists.");
 	}
 	public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
 	{

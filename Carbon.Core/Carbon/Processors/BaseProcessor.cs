@@ -61,13 +61,13 @@ namespace Carbon.Core.Processors
 				Watcher.EnableRaisingEvents = true;
 			}
 
-			Logger.Log($" Initialized {IndexedType?.Name} processor...");
+			Carbon.Logger.Log($" Initialized {IndexedType?.Name} processor...");
 		}
 		public virtual void OnDestroy()
 		{
 			IsInitialized = false;
 
-			Logger.Log($"{IndexedType?.Name} processor has been unloaded.");
+			Carbon.Logger.Log($"{IndexedType?.Name} processor has been unloaded.");
 		}
 		public virtual void Dispose()
 		{
@@ -160,7 +160,7 @@ namespace Carbon.Core.Processors
 				{
 					item.Value?.Dispose();
 				}
-				catch (Exception ex) { Logger.Error($" Processor error: '{item.Key}'", ex); }
+				catch (Exception ex) { Carbon.Logger.Error($" Processor error: '{item.Key}'", ex); }
 			}
 
 			InstanceBuffer.Clear();

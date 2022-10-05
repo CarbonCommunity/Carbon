@@ -39,16 +39,20 @@ namespace Carbon.Core.Modules
 		public new virtual string Name => "Not set";
 
 		[Obsolete("Puts is deprecated, use 'Carbon.Logger.Log' instead")]
-		protected void Puts(object message) => Logger.Log($"[{Name}] {message}");
+		protected void Puts(object message)
+			=> Logger.Log($"[{Name}] {message}");
 
 		[Obsolete("PutsError is deprecated, use 'Carbon.Logger.Error' instead")]
-		protected void PutsError(object message, Exception ex = null) => Logger.Error($"[{Name}] {message}", ex);
+		protected void PutsError(object message, Exception ex = null)
+			=> Logger.Error($"[{Name}] {message}", ex);
 
 		[Obsolete("PrintWarning is deprecated, use 'Carbon.Logger.Warn' instead")]
-		protected void PrintWarning(object message) => Logger.Warn($"[{Name}] {message}");
+		protected void PrintWarning(object message)
+			=> Logger.Warn($"[{Name}] {message}");
 
 		[Obsolete("PrintError is deprecated, use 'Carbon.Logger.Error' instead")]
-		protected void PrintError(object message, Exception ex = null) => Logger.Error($"[{Name}] {message}", ex);
+		protected void PrintError(object message, Exception ex = null)
+			=> Logger.Error($"[{Name}] {message}", ex);
 
 		public virtual void Dispose()
 		{
@@ -66,10 +70,10 @@ namespace Carbon.Core.Modules
 				CarbonCore.Instance.Addon.InstallHooks(method.Name);
 				CarbonCore.Instance.Addon.AppendHook(method.Name);
 			}
-			Carbon.Logger.Log(Name, $"Processed hooks");
+			Carbon.Logger.Log($"{Name} Processed hooks");
 
 			CarbonLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-			Carbon.Logger.Log(Name, $"Processed commands");
+			Carbon.Logger.Log($"{Name} Processed commands");
 
 			File = new DynamicConfigFile(Path.Combine(CarbonCore.GetModulesFolder(), Name, "config.json"));
 			Data = new DynamicConfigFile(Path.Combine(CarbonCore.GetModulesFolder(), Name, "data.json"));

@@ -17,13 +17,13 @@ namespace Oxide.Core
 		public static void Initialize()
 		{
 			Oxide.Load();
-			Logger.Log($"  Instance Directory: {Oxide.InstanceDirectory}");
-			Logger.Log($"  Root Directory: {Oxide.RootDirectory}");
-			Logger.Log($"  Config Directory: {Oxide.ConfigDirectory}");
-			Logger.Log($"  Data Directory: {Oxide.DataDirectory}");
-			Logger.Log($"  Lang Directory: {Oxide.LangDirectory}");
-			Logger.Log($"  Log Directory: {Oxide.LogDirectory}");
-			Logger.Log($"  Plugin Directory: {Oxide.PluginDirectory}");
+			Carbon.Logger.Log($"  Instance Directory: {Oxide.InstanceDirectory}");
+			Carbon.Logger.Log($"  Root Directory: {Oxide.RootDirectory}");
+			Carbon.Logger.Log($"  Config Directory: {Oxide.ConfigDirectory}");
+			Carbon.Logger.Log($"  Data Directory: {Oxide.DataDirectory}");
+			Carbon.Logger.Log($"  Lang Directory: {Oxide.LangDirectory}");
+			Carbon.Logger.Log($"  Log Directory: {Oxide.LogDirectory}");
+			Carbon.Logger.Log($"  Plugin Directory: {Oxide.PluginDirectory}");
 		}
 
 		public static OxideMod GetMod() => Oxide;

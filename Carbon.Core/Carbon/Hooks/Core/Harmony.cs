@@ -34,7 +34,7 @@ public class Harmony_Load
 		{
 			CarbonCore.Instance?.UnInit();
 			HarmonyLoader.TryUnloadMod(oldMod);
-			Carbon.Logger.WarnFormat($"Unloaded previous: {oldMod}");
+			Carbon.Logger.Warn($"Unloaded previous: {oldMod}");
 			CarbonCore.Instance = null;
 		}
 
