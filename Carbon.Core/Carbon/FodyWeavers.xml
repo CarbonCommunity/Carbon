@@ -1,3 +1,35 @@
 ﻿<Weavers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="FodyWeavers.xsd">
-  <Costura IncludeDebugSymbols="false"/>
+	<Costura IncludeDebugSymbols="false">
+		<ExcludeAssemblies>
+			Assembly-CSharp
+			Assembly-CSharp-firstpass
+			Facepunch.Console
+			Facepunch.Network
+			Facepunch.Rcon
+			Facepunch.Sqlite
+			Facepunch.System
+			Facepunch.Unity
+			Facepunch.UnityEngine
+			Fleck
+			Rust.Data
+			Rust.Global
+			Rust.Localization
+			Rust.Platform.Common
+			Rust.Harmony
+			Newtonsoft.Json
+			UnityEngine
+			UnityEngine.AIModule
+			UnityEngine.CoreModule
+			UnityEngine.PhysicsModule
+			UnityEngine.TextRenderingModule
+			UnityEngine.UI
+			UnityEngine.SharedInternalsModule
+			UnityEngine.ImageConversionModule
+			UnityEngine.UnityWebRequestAssetBundleModule
+			UnityEngine.UnityWebRequestAudioModule
+			UnityEngine.UnityWebRequestModule
+			UnityEngine.UnityWebRequestTextureModule
+			UnityEngine.UnityWebRequestWWWModule
+		</ExcludeAssemblies>
+	</Costura>
 </Weavers>

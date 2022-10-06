@@ -95,7 +95,7 @@ namespace Carbon.Core.Processors
 					if (element.Value == null)
 					{
 						var instance = Activator.CreateInstance(IndexedType) as Instance;
-						instance.File = Path.Combine(CarbonCore.GetPluginsFolder(), $"{element.Key}{Extension}");
+						instance.File = Path.Combine(CarbonDefines.GetPluginsFolder(), $"{element.Key}{Extension}");
 						instance.Execute();
 
 						InstanceBuffer[element.Key] = instance;

@@ -25,7 +25,7 @@ namespace Carbon.Core
 		{
 			OrderedFiles.Clear();
 
-			foreach (var file in OsEx.Folder.GetFilesWithExtension(CarbonCore.GetPluginsFolder(), "cs"))
+			foreach (var file in OsEx.Folder.GetFilesWithExtension(CarbonDefines.GetPluginsFolder(), "cs"))
 			{
 				OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
 			}
@@ -122,7 +122,7 @@ namespace Carbon.Core
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", mod.IsAddon ? "Addon" : plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms", $"{plugin.CompileTime:0.0}s");
+							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms", $"{plugin.CompileTime:0.0}s");
 						}
 
 						count++;
@@ -191,7 +191,6 @@ namespace Carbon.Core
 		[CommandVar("tag", "Displays this server in the browser list with the 'carbon' tag.", true)]
 		private bool CarbonTag { get { return CarbonCore.Instance.Config.CarbonTag; } set { CarbonCore.Instance.Config.CarbonTag = value; CarbonCore.Instance.SaveConfig(); } }
 
-		// TODO: Make this work with the global logger
 		[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true)]
 		private int CarbonDebug { get { return CarbonCore.Instance.Config.LogVerbosity; } set { CarbonCore.Instance.Config.LogVerbosity = value; CarbonCore.Instance.SaveConfig(); } }
 
@@ -244,6 +243,18 @@ namespace Carbon.Core
 			}
 
 			Reply(body.ToNewLine(), arg);
+		}
+
+		#endregion
+
+		#region Report
+
+		[ConsoleCommand("report", "Reloads all current plugins, and returns a report based on them at the output path.")]
+		private void Report(ConsoleSystem.Arg arg)
+		{
+			if (!arg.IsPlayerCalledAndAdmin()) return;
+
+			new Report().Init();
 		}
 
 		#endregion

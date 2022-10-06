@@ -20,8 +20,7 @@ public class Harmony_Load
 			 !mod.Equals("carbon-unix", System.StringComparison.OrdinalIgnoreCase)) return true;
 
 		if (string.IsNullOrEmpty(mod) ||
-			!mod.StartsWith("carbon", System.StringComparison.OrdinalIgnoreCase)
-			|| CarbonCore.IsAddon(mod)) return true;
+			!mod.StartsWith("carbon", System.StringComparison.OrdinalIgnoreCase)) return true;
 
 		var oldMod = PlayerPrefs.GetString(CARBON_LOADED);
 
@@ -55,10 +54,9 @@ public class Harmony_Unload
 
 		if (mod.Equals("carbon", System.StringComparison.OrdinalIgnoreCase) ||
 			 mod.Equals("carbon-unix", System.StringComparison.OrdinalIgnoreCase))
-			mod = CarbonCore.Name;
+			mod = CarbonDefines.Name;
 
-		if (!mod.StartsWith("carbon", System.StringComparison.OrdinalIgnoreCase)
-			|| CarbonCore.IsAddon(mod)) return true;
+		if (!mod.StartsWith("carbon", System.StringComparison.OrdinalIgnoreCase)) return true;
 
 		PlayerPrefs.SetString(Harmony_Load.CARBON_LOADED, string.Empty);
 		CarbonCore.Instance?.UnInit();

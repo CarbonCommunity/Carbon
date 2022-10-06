@@ -1,10 +1,11 @@
-﻿
-using System;
-using Newtonsoft.Json;
-///
+﻿///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
-/// 
+///
+
+using System;
+using Newtonsoft.Json;
+
 namespace Carbon.Core.Modules
 {
 	public class RustOverridesModule : CarbonModule<RustOverridesConfig, RustOverridesData>

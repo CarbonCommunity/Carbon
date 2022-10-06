@@ -47,7 +47,7 @@ namespace Carbon.Core
 			Linux
 		}
 
-		public CarbonAddonProcessor Addon { get; set; }
+		public CarbonHookProcessor Addon { get; set; }
 		public CarbonConfig Config { get; set; }
 		public RustPlugin CorePlugin { get; set; }
 		public CarbonLoader.CarbonMod Plugins { get; set; }
@@ -56,36 +56,24 @@ namespace Carbon.Core
 
 		internal static List<string> _addons = new List<string> { "carbon." };
 
-		public static bool IsAddon(string input)
-		{
-			input = input.ToLower().Trim();
-
-			foreach (var addon in _addons)
-			{
-				if (input.Contains(addon)) return true;
-			}
-
-			return false;
-		}
-
 		#region Config
 
 		public void LoadConfig()
 		{
-			if (!OsEx.File.Exists(GetConfigFile()))
+			if (!OsEx.File.Exists(CarbonDefines.GetConfigFile()))
 			{
 				SaveConfig();
 				return;
 			}
 
-			Config = JsonConvert.DeserializeObject<CarbonConfig>(OsEx.File.ReadText(GetConfigFile()));
+			Config = JsonConvert.DeserializeObject<CarbonConfig>(OsEx.File.ReadText(CarbonDefines.GetConfigFile()));
 		}
 
 		public void SaveConfig()
 		{
 			if (Config == null) Config = new CarbonConfig();
 
-			OsEx.File.Create(GetConfigFile(), JsonConvert.SerializeObject(Config, Formatting.Indented));
+			OsEx.File.Create(CarbonDefines.GetConfigFile(), JsonConvert.SerializeObject(Config, Formatting.Indented));
 		}
 
 		#endregion
@@ -145,7 +133,7 @@ namespace Carbon.Core
 				WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 				HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor>();
 				CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-				Addon = new CarbonAddonProcessor();
+				Addon = new CarbonHookProcessor();
 				ModuleProcessor = new ModuleProcessor();
 				Entities = new Entities();
 			}
@@ -194,79 +182,6 @@ namespace Carbon.Core
 
 		#endregion
 
-		#region Paths
-
-		public static string GetConfigFile()
-		{
-			return Path.Combine(GetRootFolder(), "config.json");
-		}
-
-		public static string GetRootFolder()
-		{
-			var folder = Path.GetFullPath(Path.Combine($"{Application.dataPath}/..", "carbon"));
-			Directory.CreateDirectory(folder);
-
-			return folder;
-		}
-		public static string GetConfigsFolder()
-		{
-			var folder = Path.Combine($"{GetRootFolder()}", "configs");
-			Directory.CreateDirectory(folder);
-
-			return folder;
-		}
-		public static string GetModulesFolder()
-		{
-			var folder = Path.Combine($"{GetRootFolder()}", "modules");
-			Directory.CreateDirectory(folder);
-
-			return folder;
-		}
-		public static string GetDataFolder()
-		{
-			var folder = Path.Combine($"{GetRootFolder()}", "data");
-			Directory.CreateDirectory(folder);
-
-			return folder;
-		}
-		public static string GetPluginsFolder()
-		{
-			var folder = Path.Combine($"{GetRootFolder()}", "plugins");
-			Directory.CreateDirectory(folder);
-
-			return folder;
-		}
-		public static string GetHarmonyFolder()
-		{
-			var folder = Path.Combine($"{GetRootFolder()}", "harmony");
-			Directory.CreateDirectory(folder);
-
-			return folder;
-		}
-		public static string GetLogsFolder()
-		{
-			var folder = Path.Combine($"{GetRootFolder()}", "logs");
-			Directory.CreateDirectory(folder);
-
-			return folder;
-		}
-		public static string GetLangFolder()
-		{
-			var folder = Path.Combine($"{GetRootFolder()}", "lang");
-			Directory.CreateDirectory(folder);
-
-			return folder;
-		}
-		public static string GetTempFolder()
-		{
-			var folder = Path.Combine($"{GetRootFolder()}", "temp");
-			Directory.CreateDirectory(folder);
-
-			return folder;
-		}
-
-		#endregion
-
 		#region Logging
 
 		public static void LogCommand(object message, BasePlayer player = null)
@@ -279,30 +194,6 @@ namespace Carbon.Core
 
 			player.SendConsoleCommand($"echo {message}");
 		}
-
-		#endregion
-
-		#region Path
-
-		public const string Name =
-#if WIN
-			"Carbon";
-#elif UNIX
-			"Carbon-Unix";
-#endif
-		public const string DllName =
-#if WIN
-			"Carbon.dll";
-#elif UNIX
-			"Carbon-Unix.dll";
-#endif
-		public static string DllPath => Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods",
-#if WIN
-			"Carbon.dll"
-#elif UNIX
-			"Carbon-Unix.dll"
-#endif
-	));
 
 		#endregion
 
@@ -352,16 +243,7 @@ namespace Carbon.Core
 
 			Carbon.Logger.Log($"Loading...");
 
-			GetRootFolder();
-			GetConfigsFolder();
-			GetModulesFolder();
-			GetDataFolder();
-			GetPluginsFolder();
-			GetHarmonyFolder();
-			GetLogsFolder();
-			GetLangFolder();
-			OsEx.Folder.DeleteContents(GetTempFolder());
-			Carbon.Logger.Log("Loaded folders");
+			CarbonDefines.Initialize();
 
 			_installProcessors();
 

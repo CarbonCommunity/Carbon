@@ -63,6 +63,16 @@ namespace Carbon.Core.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] _1Harmony {
+            get {
+                object obj = ResourceManager.GetObject("1Harmony", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] Humanlights_System {
             get {
                 object obj = ResourceManager.GetObject("Humanlights.System", resourceCulture);
