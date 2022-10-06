@@ -14,7 +14,7 @@ on:
     - cron: '30 18 * * 4'
 
   workflow_run:
-    workflows: [ "branch-merge" ]
+    workflows: [ branch-merge ]
     types:
       - completed
     branches:
