@@ -172,9 +172,9 @@
 		</ItemGroup>
 
 		<Message Text="&gt;&gt; Cleaning output folder" Importance="high" />
-		<!--<Delete Files="@(FilesToDelete)">
+		<Delete Files="@(FilesToDelete)">
 			<Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />
-		</Delete>-->
+		</Delete>
 	</Target>
 
 	<PropertyGroup Condition="Exists('.gitag')">
