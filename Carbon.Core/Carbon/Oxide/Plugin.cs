@@ -53,7 +53,7 @@ namespace Oxide.Plugins
 
 		internal BaseProcessor _processor;
 
-		public HarmonyLib.Harmony Harmony;
+		public object Harmony;
 
 		public static implicit operator bool(Plugin other)
 		{
@@ -163,18 +163,24 @@ namespace Oxide.Plugins
 			}
 		}
 
+
 		public void PatchPlugin(Assembly assembly = null)
 		{
+			UnpatchPlugin();
+
 			if (assembly == null) assembly = Assembly.GetExecutingAssembly();
 
-			Harmony = null;
-			Harmony = new HarmonyLib.Harmony(Name + "Patches");
-			Harmony.PatchAll(assembly);
+			var patch = new HarmonyLib.Harmony(Name + "Patches");
+			patch.PatchAll(assembly);
+			Harmony = patch;
 		}
 		public void UnpatchPlugin()
 		{
-			Harmony?.UnpatchAll(Harmony.Id);
-			Harmony = null;
+			if (Harmony is HarmonyLib.Harmony patch)
+			{
+				patch?.UnpatchAll(patch.Id);
+				Harmony = null;
+			}
 		}
 
 		public void SetProcessor(BaseProcessor processor)
