@@ -203,6 +203,11 @@ namespace Oxide.Core.Libraries
 			return userdata.ContainsKey(id);
 		}
 
+		public bool UserExists(string id, out UserData data)
+		{
+			return userdata.TryGetValue(id, out data);
+		}
+
 		public UserData GetUserData(string id)
 		{
 			if (!userdata.TryGetValue(id, out var result))

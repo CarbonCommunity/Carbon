@@ -180,7 +180,7 @@ namespace Oxide.Plugins
 			writer.WriteLine(timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text);
 		}
 
-		public void DoLoadConfig()
+		public void ILoadConfig()
 		{
 			LoadConfig();
 		}

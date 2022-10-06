@@ -34,12 +34,29 @@ namespace Oxide.Core.Libraries
 
 		public string GetLanguage(string userId)
 		{
-			if (!string.IsNullOrEmpty(userId) && Interface.Oxide.Permission.UserExists(userId))
+			if (!string.IsNullOrEmpty(userId) && Interface.Oxide.Permission.UserExists(userId, out var data))
 			{
-				return Interface.Oxide.Permission.GetUserData(userId)?.Language;
+				return data.Language;
 			}
 
 			return CarbonCore.Instance.Config.Language;
+		}
+		public void SetLanguage(string lang, string userId)
+		{
+			if (string.IsNullOrEmpty(lang) || string.IsNullOrEmpty(userId)) return;
+
+			if (Interface.Oxide.Permission.UserExists(userId, out var data))
+			{
+				data.Language = lang;
+				Interface.Oxide.Permission.SaveData();
+			}
+		}
+		public void SetServerLanguage(string lang)
+		{
+			if (string.IsNullOrEmpty(lang) || lang == CarbonCore.Instance.Config.Language) return;
+
+			CarbonCore.Instance.Config.Language = lang;
+			CarbonCore.Instance.SaveConfig();
 		}
 		private Dictionary<string, string> GetMessageFile(string plugin, string lang = "en")
 		{

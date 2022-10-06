@@ -260,8 +260,8 @@ namespace Carbon.Core
 					plugin.SetProcessor(CarbonCore.Instance.HarmonyProcessor);
 					plugin.CallHook("SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description);
 					HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
+					plugin.ILoadConfig();
 					plugin.IInit();
-					plugin.DoLoadConfig();
 					plugin.Load();
 
 					if (CarbonCore.IsServerFullyInitialized)
