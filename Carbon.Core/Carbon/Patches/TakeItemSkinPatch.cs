@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using Carbon.Core.Modules;
 using Facepunch;
-using HarmonyLib;
+using Harmony;
 
 [HarmonyPatch(typeof(ItemContainer), "Take")]
 public class ItemContainer_Take
