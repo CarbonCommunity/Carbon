@@ -1,3 +1,7 @@
+::
+:: Copyright (c) 2022 Carbon Community 
+:: All rights reserved
+::
 @echo off
 
 echo   ______ _______ ______ ______ _______ _______ 
