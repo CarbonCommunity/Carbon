@@ -5,7 +5,7 @@
 
 using System;
 using Carbon.Core.Extensions;
-using Harmony;
+using HarmonyLib;
 
 namespace Carbon.Core.Oxide.Hooks
 {

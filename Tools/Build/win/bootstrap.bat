@@ -27,14 +27,6 @@ dotnet restore "%ROOT%\Tools\NStrip" --nologo --force
 dotnet clean   "%ROOT%\Tools\NStrip" --configuration Release --nologo
 dotnet build   "%ROOT%\Tools\NStrip" --configuration Release --no-restore --no-incremental
 
-rem Download and Build 0Harmony v2
-git clone "https://github.com/Carbon-Modding/Harmony.git" "%ROOT%/Tools/0Harmonyv2" -b carbon
-dotnet restore "%ROOT%\Tools\0Harmonyv2" --nologo --force
-dotnet clean   "%ROOT%\Tools\0Harmonyv2" --configuration Release --nologo
-dotnet build   "%ROOT%\Tools\0Harmonyv2" --configuration Release --no-restore --no-incremental
-dotnet clean   "%ROOT%\Tools\0Harmonyv2" --configuration Debug --nologo
-dotnet build   "%ROOT%\Tools\0Harmonyv2" --configuration Debug --no-restore --no-incremental
-
 rem Keeping Unity DoorStop out of the game for now due to the more complex
 rem build process.
 

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Carbon.Core;
 using Epic.OnlineServices.Sessions;
 using Facepunch;
-using Harmonyv2;
+using HarmonyLib;
 using Humanlights.Components;
 using Humanlights.Extensions;
 using Oxide.Plugins;

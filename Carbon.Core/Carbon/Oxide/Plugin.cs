@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Carbon.Core;
 using Carbon.Core.Processors;
-using Harmonyv2;
+using HarmonyLib;
 using Newtonsoft.Json;
 
 namespace Oxide.Plugins
@@ -53,7 +53,7 @@ namespace Oxide.Plugins
 
 		internal BaseProcessor _processor;
 
-		public HarmonyInstance Harmony;
+		public Harmony Harmony;
 
 		public static implicit operator bool(Plugin other)
 		{
@@ -168,7 +168,7 @@ namespace Oxide.Plugins
 			if (assembly == null) assembly = Assembly.GetExecutingAssembly();
 
 			Harmony = null;
-			Harmony = HarmonyInstance.Create(Name + "Patches");
+			Harmony = new Harmony(Name + "Patches");
 			Harmony.PatchAll(assembly);
 		}
 		public void UnpatchPlugin()
