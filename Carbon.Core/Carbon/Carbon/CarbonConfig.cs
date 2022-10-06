@@ -13,6 +13,7 @@ namespace Carbon.Core
 		public int LogVerbosity { get; set; } = 0;
 		public Logger.Severity LogSeverity { get; set; } = Logger.Severity.Notice;
 
+		public string Language { get; set; } = "en";
 		public bool CarbonTag { get; set; } = true;
 		public bool IsModded { get; set; } = true;
 		public bool HookTimeTracker { get; set; } = false;

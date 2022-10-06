@@ -203,6 +203,9 @@ namespace Carbon.Core
 		[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
 		private int EntityMapBufferSize { get { return CarbonCore.Instance.Config.EntityMapBufferSize; } set { CarbonCore.Instance.Config.EntityMapBufferSize = value; CarbonCore.Instance.SaveConfig(); } }
 
+		[CommandVar("language", "Server language used by the Language API.", true)]
+		private string Language { get { return CarbonCore.Instance.Config.Language; } set { CarbonCore.Instance.Config.Language = value; CarbonCore.Instance.SaveConfig(); } }
+
 		#endregion
 
 		#region Commands

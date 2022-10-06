@@ -12,6 +12,7 @@ namespace Oxide.Core.Libraries
 	public class UserData
 	{
 		public string LastSeenNickname { get; set; } = "Unnamed";
+		public string Language { get; set; } = "en";
 
 		public HashSet<string> Perms { get; set; } = new HashSet<string>();
 		public HashSet<string> Groups { get; set; } = new HashSet<string>();

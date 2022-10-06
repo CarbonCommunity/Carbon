@@ -57,7 +57,7 @@ namespace Oxide.Plugins
 			Manager = new PluginManager();
 			plugins = new Plugins();
 			timer = new Timers(this);
-			lang = new Language();
+			lang = new Language(this);
 			mod = new OxideMod();
 			rust = new Game.Rust.Libraries.Rust();
 			webrequest = new WebRequests();

@@ -229,6 +229,7 @@ namespace Oxide.Core.Libraries
 
 			var user = GetUserData(player.UserIDString);
 			user.LastSeenNickname = player.displayName;
+			user.Language = player.net.connection.info.GetString("global.language", "en");
 
 			AddUserGroup(player.UserIDString, "default");
 
