@@ -64,7 +64,7 @@ namespace Oxide.Plugins
 		{
 			foreach (var hook in Hooks)
 			{
-				CarbonCore.Instance.Addon.UnappendHook(hook);
+				CarbonCore.Instance.HookProcessor.UnappendHook(hook);
 			}
 			Carbon.Logger.Log($"{Name} Unprocessed hooks");
 		}
@@ -96,8 +96,8 @@ namespace Oxide.Plugins
 			{
 				foreach (var hook in Hooks)
 				{
-					CarbonCore.Instance.Addon.InstallHooks(hook);
-					CarbonCore.Instance.Addon.AppendHook(hook);
+					CarbonCore.Instance.HookProcessor.InstallHooks(hook);
+					CarbonCore.Instance.HookProcessor.AppendHook(hook);
 				}
 			}
 			Carbon.Logger.Debug(Name, "Processed hooks");
@@ -366,7 +366,6 @@ namespace Oxide.Plugins
 		}
 
 		public bool IsLoaded { get; set; }
-		public bool HasInitialized { get; set; }
 
 		public new string ToString()
 		{

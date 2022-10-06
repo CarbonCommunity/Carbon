@@ -60,8 +60,8 @@ namespace Carbon.Core.Modules
 
 			foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 			{
-				CarbonCore.Instance.Addon.InstallHooks(method.Name);
-				CarbonCore.Instance.Addon.AppendHook(method.Name);
+				CarbonCore.Instance.HookProcessor.InstallHooks(method.Name);
+				CarbonCore.Instance.HookProcessor.AppendHook(method.Name);
 			}
 			Puts($"Processed hooks");
 
@@ -94,6 +94,8 @@ namespace Carbon.Core.Modules
 				catch (Exception exception) { Carbon.Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 			}
 
+			Config = ConfigInstance.Config;
+
 			if (!Data.Exists())
 			{
 				DataInstance = Activator.CreateInstance<D>();
@@ -106,8 +108,6 @@ namespace Carbon.Core.Modules
 			}
 
 			if (shouldSave) Save();
-
-			Config = ConfigInstance.Config;
 		}
 		public virtual void Save()
 		{

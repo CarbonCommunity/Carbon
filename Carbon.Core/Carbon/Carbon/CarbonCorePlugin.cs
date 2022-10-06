@@ -141,9 +141,9 @@ namespace Carbon.Core
 			var body = new StringTable("#", "Hook", "Current Time", "Total Time", "Plugins Using");
 			var count = 1;
 
-			foreach (var mod in CarbonCore.Instance.Addon.Patches)
+			foreach (var mod in CarbonCore.Instance.HookProcessor.Patches)
 			{
-				if (!CarbonCore.Instance.Addon.Patches.TryGetValue(mod.Key, out var instance))
+				if (!CarbonCore.Instance.HookProcessor.Patches.TryGetValue(mod.Key, out var instance))
 				{
 					continue;
 				}

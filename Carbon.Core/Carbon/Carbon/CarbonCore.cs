@@ -47,7 +47,7 @@ namespace Carbon.Core
 			Linux
 		}
 
-		public CarbonHookProcessor Addon { get; set; }
+		public CarbonHookProcessor HookProcessor { get; set; }
 		public CarbonConfig Config { get; set; }
 		public RustPlugin CorePlugin { get; set; }
 		public CarbonLoader.CarbonMod Plugins { get; set; }
@@ -133,7 +133,7 @@ namespace Carbon.Core
 				WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 				HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor>();
 				CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-				Addon = new CarbonHookProcessor();
+				HookProcessor = new CarbonHookProcessor();
 				ModuleProcessor = new ModuleProcessor();
 				Entities = new Entities();
 			}

@@ -203,7 +203,7 @@ namespace Carbon.Core
 							unsupportedHooks.Add(method.Name);
 						}
 
-						if (CarbonCore.Instance.Addon.DoesHookExist(method.Name))
+						if (CarbonCore.Instance.HookProcessor.DoesHookExist(method.Name))
 						{
 							if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
 						}
