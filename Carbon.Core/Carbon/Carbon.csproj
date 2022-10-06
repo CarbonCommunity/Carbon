@@ -74,6 +74,7 @@
 		<Reference Include="System.Drawing.Design" />
 		<Reference Include="System.Drawing" />
 		<Reference Include="System.IO.Compression.FileSystem" />
+		<Reference Include="System.Memory" />
 		<Reference Include="System.Xml" />
 		<Reference Include="System" />
 	</ItemGroup>

@@ -4,3 +4,6 @@
 [submodule "Tools/NStrip"]
 	path = Tools/NStrip
 	url = https://github.com/BepInEx/NStrip.git
+[submodule "Tools/HarmonyLib"]
+	path = Tools/HarmonyLib
+	url = https://github.com/pardeike/Harmony.git
