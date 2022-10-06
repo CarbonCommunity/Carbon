@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
+
+###
+### Copyright (c) 2022 Carbon Community 
+### All rights reserved
+###
 set -e
-
-cat <<EOF
-  ______ _______ ______ ______ _______ _______ 
- |      |   _   |   __ \   __ \       |    |  |
- |   ---|       |      <   __ <   -   |       |
- |______|___|___|___|__|______/_______|__|____|
-                         discord.gg/eXPcNKK4yd
-
-EOF
 
 BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 ROOT="$(realpath "${BASE}/../../../")"
