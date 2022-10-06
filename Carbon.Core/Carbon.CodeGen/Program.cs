@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon.Extended;
+using Carbon.Extensions;
 using Carbon.Oxide.Metadata;
-using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

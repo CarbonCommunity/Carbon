@@ -1,10 +1,7 @@
-# 
-#   ______ _______ ______ ______ _______ _______ 
-#  |      |   _   |   __ \   __ \       |    |  |
-#  |   ---|       |      <   __ <   -   |       |
-#  |______|___|___|___|__|______/_______|__|____|
-#                         discord.gg/eXPcNKK4yd
-# 
+###
+### Copyright (c) 2022 Carbon Community 
+### All rights reserved
+###
 name: Branch Merge
 concurrency: merge-process-exec
 

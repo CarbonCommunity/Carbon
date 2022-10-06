@@ -38,21 +38,14 @@ namespace Carbon.Core.Modules
 
 		public new virtual string Name => "Not set";
 
-		[Obsolete("Puts is deprecated, use 'Carbon.Logger.Log' instead")]
 		protected void Puts(object message)
 			=> Logger.Log($"[{Name}] {message}");
 
-		[Obsolete("PutsError is deprecated, use 'Carbon.Logger.Error' instead")]
 		protected void PutsError(object message, Exception ex = null)
 			=> Logger.Error($"[{Name}] {message}", ex);
 
-		[Obsolete("PrintWarning is deprecated, use 'Carbon.Logger.Warn' instead")]
-		protected void PrintWarning(object message)
+		protected void PutsWarn(object message)
 			=> Logger.Warn($"[{Name}] {message}");
-
-		[Obsolete("PrintError is deprecated, use 'Carbon.Logger.Error' instead")]
-		protected void PrintError(object message, Exception ex = null)
-			=> Logger.Error($"[{Name}] {message}", ex);
 
 		public virtual void Dispose()
 		{
@@ -67,13 +60,13 @@ namespace Carbon.Core.Modules
 
 			foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 			{
-				CarbonCore.Instance.Addon.InstallHooks(method.Name);
-				CarbonCore.Instance.Addon.AppendHook(method.Name);
+				CarbonCore.Instance.HookProcessor.InstallHooks(method.Name);
+				CarbonCore.Instance.HookProcessor.AppendHook(method.Name);
 			}
-			Carbon.Logger.Log($"{Name} Processed hooks");
+			Puts($"Processed hooks");
 
 			CarbonLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-			Carbon.Logger.Log($"{Name} Processed commands");
+			Puts("Processed commands");
 
 			File = new DynamicConfigFile(Path.Combine(CarbonDefines.GetModulesFolder(), Name, "config.json"));
 			Data = new DynamicConfigFile(Path.Combine(CarbonDefines.GetModulesFolder(), Name, "data.json"));
@@ -83,7 +76,7 @@ namespace Carbon.Core.Modules
 		}
 		public virtual void InitEnd()
 		{
-			Carbon.Logger.Log($"Initialized.");
+			Puts($"Initialized.");
 		}
 		public virtual void Load()
 		{
@@ -101,6 +94,8 @@ namespace Carbon.Core.Modules
 				catch (Exception exception) { Carbon.Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 			}
 
+			Config = ConfigInstance.Config;
+
 			if (!Data.Exists())
 			{
 				DataInstance = Activator.CreateInstance<D>();
@@ -113,8 +108,6 @@ namespace Carbon.Core.Modules
 			}
 
 			if (shouldSave) Save();
-
-			Config = ConfigInstance.Config;
 		}
 		public virtual void Save()
 		{

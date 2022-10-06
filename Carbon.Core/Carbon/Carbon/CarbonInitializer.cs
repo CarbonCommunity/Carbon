@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using UnityEngine;
 
 namespace Carbon.Core
@@ -16,6 +17,16 @@ namespace Carbon.Core
 				Carbon.Logger.Warn($"Unloaded previous: {oldMod}");
 				CarbonCore.Instance = null;
 			}
+
+			Carbon.Logger.Log(
+				@"                                               " + Environment.NewLine +
+				@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
+				@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
+				@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
+				@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
+				@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
+				@"                                               " + Environment.NewLine
+			);
 
 			Carbon.Logger.Log("Initializing...");
 

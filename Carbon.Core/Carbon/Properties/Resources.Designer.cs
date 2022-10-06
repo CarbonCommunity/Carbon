@@ -73,26 +73,6 @@ namespace Carbon.Core.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] Humanlights_System {
-            get {
-                object obj = ResourceManager.GetObject("Humanlights.System", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] Humanlights_Unity {
-            get {
-                object obj = ResourceManager.GetObject("Humanlights.Unity", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
         internal static byte[] protobuf_net {
             get {
                 object obj = ResourceManager.GetObject("protobuf-net", resourceCulture);

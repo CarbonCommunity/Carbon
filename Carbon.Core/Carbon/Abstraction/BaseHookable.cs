@@ -31,6 +31,7 @@ namespace Carbon.Core
 		[JsonProperty]
 		public double TotalHookTime { get; internal set; }
 
+		public bool HasInitialized { get; set; }
 		public Type Type { get; set; }
 
 		#region Tracking

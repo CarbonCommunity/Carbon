@@ -11,7 +11,7 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Core.Processors;
 using Facepunch;
-using Humanlights.Extensions;
+using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
@@ -349,7 +349,23 @@ namespace Carbon.Core
 					}
 
 					plugin.HasInitialized = true;
+				}
 
+				foreach (var plugin in CarbonCore.Instance.ModuleProcessor.Modules)
+				{
+					if (plugin.HasInitialized) continue;
+
+					try
+					{
+						HookExecutor.CallHook(plugin, "OnServerInitialized");
+						HookExecutor.CallHook(plugin, "OnServerInitialized", CarbonCore.IsServerFullyInitialized);
+					}
+					catch (Exception initException)
+					{
+						Logger.Error($"[{plugin.Name}] Failed OnServerInitialized.", initException);
+					}
+
+					plugin.HasInitialized = true;
 				}
 
 				if (counter > 1) Carbon.Logger.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");

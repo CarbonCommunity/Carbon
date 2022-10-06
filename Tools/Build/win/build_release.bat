@@ -1,11 +1,8 @@
+::
+:: Copyright (c) 2022 Carbon Community 
+:: All rights reserved
+::
 @echo off
-
-echo   ______ _______ ______ ______ _______ _______ 
-echo  ^|      ^|   _   ^|   __ \   __ \       ^|    ^|  ^|
-echo  ^|   ---^|       ^|      ^<   __ ^<   -   ^|       ^|
-echo  ^|______^|___^|___^|___^|__^|______/_______^|__^|____^|
-echo                         discord.gg/eXPcNKK4yd
-echo.
 
 set BASE=%~dp0
 
