@@ -9,8 +9,9 @@ using System.IO;
 using System.Linq;
 using Carbon.Core;
 using Facepunch;
-using Humanlights.Components;
-using Humanlights.Extensions;
+using Carbon.Components;
+using Carbon.Extensions;
+
 using Oxide.Plugins;
 
 namespace Carbon

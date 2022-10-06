@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Carbon.Core;
-using Humanlights.Extensions;
+using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;

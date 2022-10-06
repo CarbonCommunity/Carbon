@@ -14,7 +14,7 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Core.Modules;
 using Carbon.Core.Processors;
-using Humanlights.Extensions;
+using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Plugins;

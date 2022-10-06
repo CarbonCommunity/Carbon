@@ -3,7 +3,6 @@
 /// All rights reserved
 /// 
 
-
 public static class ItemContainerEx
 {
 	public static int TakeSkinned(this ItemContainer container, int itemid, ulong skinId, bool onlyUsableAmounts)

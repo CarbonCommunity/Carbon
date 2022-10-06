@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Facepunch;
-using Humanlights.Extensions;
+using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Application = UnityEngine.Application;
@@ -41,7 +41,6 @@ namespace Carbon.Core
 			if (_hasInit) return;
 			_hasInit = true;
 
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.Humanlights_System)));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.protobuf_net)));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.protobuf_net_Core)));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources._1Harmony)));
@@ -228,7 +227,7 @@ namespace Carbon.Core
 
 				if (Exceptions.Count > 0) throw null;
 			}
-			catch { }
+			catch (Exception ex) { Console.WriteLine($"{ex}"); }
 		}
 	}
 }

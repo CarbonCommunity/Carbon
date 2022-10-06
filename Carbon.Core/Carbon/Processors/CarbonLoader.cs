@@ -9,7 +9,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using HarmonyLib;
-using Humanlights.Extensions;
+using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 using UnityEngine;
@@ -54,7 +54,7 @@ namespace Carbon.Core
 				AppDomain.CurrentDomain.AssemblyResolve += delegate (object sender, ResolveEventArgs args)
 				{
 					if (!Regex.IsMatch(args.Name, @"^(Microsoft|System)\."))
-						Debug.Log($"Resolving assembly ref: {args.Name}");
+						Logger.Log($"Resolving assembly ref: {args.Name}");
 
 					AssemblyName assemblyName = new AssemblyName(args.Name);
 					string assemblyPath = Path.GetFullPath(

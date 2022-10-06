@@ -11,7 +11,7 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Core.Processors;
 using Facepunch;
-using Humanlights.Extensions;
+using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
