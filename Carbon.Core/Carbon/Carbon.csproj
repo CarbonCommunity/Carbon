@@ -80,7 +80,7 @@
 
 	<ItemGroup>
 		<!-- External libs -->
-		<Reference Include="..\..\External\*.dll" />
+		<Reference Include="..\..\Carbon.Core\Carbon\Resources\*.dll" />
 	</ItemGroup>
 
 	<ItemGroup Condition="!$(Configuration.Contains('Unix'))">
@@ -99,7 +99,8 @@
 		</Reference>
 	</ItemGroup>
 
-	<ItemGroup>		<!-- Nuget packages -->
+	<ItemGroup>
+		<!-- Nuget packages -->
 		<PackageReference Include="Costura.Fody" Version="5.7.0">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
@@ -117,7 +118,8 @@
 		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
 	</ItemGroup>
 
-	<ItemGroup>		<!-- Included resources on the final assembly -->
+	<ItemGroup>
+		<!-- Included resources on the final assembly -->
 		<Compile Update="Properties\Resources.Designer.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>

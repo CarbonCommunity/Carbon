@@ -42,7 +42,6 @@ namespace Carbon.Core
 			_hasInit = true;
 
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.Humanlights_System)));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.Humanlights_Unity)));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.protobuf_net)));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.protobuf_net_Core)));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources._1Harmony)));

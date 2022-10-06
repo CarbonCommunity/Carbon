@@ -364,7 +364,7 @@ namespace Carbon.Core
 					var path = GetPluginPath(name);
 					if (string.IsNullOrEmpty(path))
 					{
-						DebugEx.Warning($" Couldn't find plugin or mod with name '{name}'");
+						Logger.Warn($" Couldn't find plugin or mod with name '{name}'");
 						return;
 					}
 					CarbonCore.Instance.HarmonyProcessor.Prepare(name, path);
@@ -419,7 +419,7 @@ namespace Carbon.Core
 					var path = GetPluginPath(name);
 					if (string.IsNullOrEmpty(path))
 					{
-						DebugEx.Warning($" Couldn't find plugin with name '{name}'");
+						Logger.Warn($" Couldn't find plugin with name '{name}'");
 						return;
 					}
 
@@ -501,7 +501,7 @@ namespace Carbon.Core
 					var path = GetPluginPath(name);
 					if (string.IsNullOrEmpty(path))
 					{
-						DebugEx.Warning($" Couldn't find plugin with name '{name}'");
+						Logger.Warn($" Couldn't find plugin with name '{name}'");
 						return;
 					}
 
