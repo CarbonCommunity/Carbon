@@ -99,20 +99,25 @@
 		</Reference>
 	</ItemGroup>
 
-	<ItemGroup>
-		<!-- Nuget packages -->
-		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
+	<ItemGroup>		<!-- Nuget packages -->
 		<PackageReference Include="Costura.Fody" Version="5.7.0">
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
+
+		<!-- Dependency of HarmonyLib -->
 		<PackageReference Include="MonoMod.Common" Version="22.6.3.1" />
-		<PackageReference Include="protobuf-net" Version="3.1.17" />
-		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
-		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
 		<PackageReference Include="MonoMod" Version="22.5.1.1" />
+
+		<!-- Required by Carbon's Logger -->
+		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
+
+		<!-- Required by Carbon's Compiler -->
+		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
+		<PackageReference Include="protobuf-net" Version="3.1.17" />
+		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup>		<!-- Included resources on the final assembly -->
 		<Compile Update="Properties\Resources.Designer.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
