@@ -15,6 +15,7 @@ using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Application = UnityEngine.Application;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Carbon.Core
 {
@@ -83,7 +84,11 @@ namespace Carbon.Core
 		{
 			if (!_referenceCache.TryGetValue(reference, out var metaReference))
 			{
-				_referenceCache.Add(reference, MetadataReference.CreateFromFile(Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed", $"{reference}.dll")));
+				var referencePath = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed", $"{reference}.dll");
+				var outReference = MetadataReference.CreateFromFile(referencePath);
+				if (outReference == null) return null;
+
+				_referenceCache.Add(reference, outReference);
 			}
 
 			return metaReference;
@@ -98,7 +103,7 @@ namespace Carbon.Core
 			{
 				if (string.IsNullOrEmpty(reference) || _metadataReferences.Any(x => x.Display.Contains(reference))) continue;
 
-				try { references.Add(_getReferenceFromCache(reference)); } catch { }
+				try { var outReference = _getReferenceFromCache(reference); if (outReference != null) references.Add(_getReferenceFromCache(reference)); } catch { }
 			}
 
 			return references;
