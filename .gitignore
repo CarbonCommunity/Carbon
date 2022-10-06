@@ -6,6 +6,9 @@
 .gitag
 .rndasm
 
+# Local HarmonyLib version
+**/[Cc]arbon/[Rr]esources/1Harmony.dll
+
 # Build results
 [Bb]in/
 [Oo]bj/

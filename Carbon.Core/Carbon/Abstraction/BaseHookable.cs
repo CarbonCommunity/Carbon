@@ -1,76 +1,101 @@
-﻿using Newtonsoft.Json;
-using Oxide.Core;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Oxide.Core;
 
 namespace Carbon.Core
 {
-    public class BaseHookable
-    {
-        public Dictionary<string, List<MethodInfo>> HookCache { get; internal set; } = new Dictionary<string, List<MethodInfo>> ();
-        public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; internal set; } = new Dictionary<string, List<MethodInfo>> ();
+	public class BaseHookable
+	{
+		public List<string> Hooks { get; internal set; }
+		public List<HookMethodAttribute> HookMethods { get; internal set; }
+		public List<PluginReferenceAttribute> PluginReferences { get; internal set; }
 
-        [JsonProperty]
-        public string Name { get; set; }
+		public Dictionary<string, List<MethodInfo>> HookCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
+		public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
+		public List<string> IgnoredHooks { get; internal set; } = new List<string>();
 
-        [JsonProperty]
-        public VersionNumber Version { get; set; }
+		[JsonProperty]
+		public string Name { get; set; }
 
-        [JsonProperty]
-        public double TotalHookTime { get; internal set; }
+		[JsonProperty]
+		public VersionNumber Version { get; set; }
 
-        public Type Type { get; set; }
+		[JsonProperty]
+		public double TotalHookTime { get; internal set; }
 
-        #region Tracking
+		public bool HasInitialized { get; set; }
+		public Type Type { get; set; }
 
-        internal Stopwatch _trackStopwatch = new Stopwatch ();
+		#region Tracking
 
-        public virtual void TrackStart ()
-        {
-            if ( !CarbonCore.IsServerFullyInitialized )
-            {
-                return;
-            }
+		internal Stopwatch _trackStopwatch = new Stopwatch();
 
-            var stopwatch = _trackStopwatch;
-            if ( stopwatch.IsRunning )
-            {
-                return;
-            }
-            stopwatch.Start ();
-        }
-        public virtual void TrackEnd ()
-        {
-            if ( !CarbonCore.IsServerFullyInitialized )
-            {
-                return;
-            }
+		public virtual void TrackStart()
+		{
+			if (!CarbonCore.IsServerFullyInitialized)
+			{
+				return;
+			}
 
-            var stopwatch = _trackStopwatch;
-            if ( !stopwatch.IsRunning )
-            {
-                return;
-            }
-            stopwatch.Stop ();
-            TotalHookTime += stopwatch.Elapsed.TotalSeconds;
-            stopwatch.Reset ();
-        }
+			var stopwatch = _trackStopwatch;
+			if (stopwatch.IsRunning)
+			{
+				return;
+			}
+			stopwatch.Start();
+		}
+		public virtual void TrackEnd()
+		{
+			if (!CarbonCore.IsServerFullyInitialized)
+			{
+				return;
+			}
 
-        #endregion
+			var stopwatch = _trackStopwatch;
+			if (!stopwatch.IsRunning)
+			{
+				return;
+			}
+			stopwatch.Stop();
+			TotalHookTime += stopwatch.Elapsed.TotalSeconds;
+			stopwatch.Reset();
+		}
 
-        public T To<T> ()
-        {
-            if ( this is T result )
-            {
-                return result;
-            }
+		#endregion
 
-            return default;
-        }
-    }
+		public void Unsubscribe(string hook)
+		{
+			if (IgnoredHooks.Contains(hook)) return;
+
+			IgnoredHooks.Add(hook);
+		}
+		public void Subscribe(string hook)
+		{
+			if (!IgnoredHooks.Contains(hook)) return;
+
+			IgnoredHooks.Remove(hook);
+		}
+		public bool IsHookIgnored(string hook)
+		{
+			return IgnoredHooks.Contains(hook);
+		}
+
+		public T To<T>()
+		{
+			if (this is T result)
+			{
+				return result;
+			}
+
+			return default;
+		}
+	}
 }

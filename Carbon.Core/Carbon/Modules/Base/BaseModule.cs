@@ -3,154 +3,163 @@
 /// All rights reserved
 /// 
 
-using Oxide.Core.Configuration;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using UnityEngine;
+using Oxide.Core.Configuration;
 
 namespace Carbon.Core.Modules
 {
-    public class BaseModule<C, D> : BaseHookable, IModule
-    {
-        public DynamicConfigFile File { get; private set; }
-        public DynamicConfigFile Data { get; private set; }
+	public class BaseModule : BaseHookable
+	{
+		public virtual bool EnabledByDefault => false;
 
-        public new virtual Type Type => default;
+		public static T GetModule<T>()
+		{
+			foreach (var module in CarbonCore.Instance.ModuleProcessor.Modules)
+			{
+				if (module.GetType() == typeof(T) && module is T result) return result;
+			}
 
-        public Configuration ConfigInstance { get; set; }
-        public D DataInstance { get; private set; }
+			return default;
+		}
+	}
+	public class CarbonModule<C, D> : BaseModule, IModule
+	{
+		public DynamicConfigFile File { get; private set; }
+		public DynamicConfigFile Data { get; private set; }
 
-        public C Config { get; private set; }
+		public new virtual Type Type => default;
 
-        public new virtual string Name => "Not set";
+		public Configuration ConfigInstance { get; set; }
+		public D DataInstance { get; private set; }
 
-        public void Puts ( object message )
-        {
-            CarbonCore.Log ( $" [{Name}] {message}" );
-        }
-        public void PutsError ( object message, Exception exception = null )
-        {
-            CarbonCore.Error ( $" [{Name}] {message}", exception );
-        }
+		public C Config { get; private set; }
 
-        public virtual void Dispose ()
-        {
-            File = null;
-            ConfigInstance = null;
-        }
+		public new virtual string Name => "Not set";
 
-        public virtual void Init ()
-        {
-            base.Name = Name;
-            base.Type = Type;
+		protected void Puts(object message)
+			=> Logger.Log($"[{Name}] {message}");
 
-            foreach ( var method in Type.GetMethods ( BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic ) )
-            {
-                CarbonCore.Instance.Addon.InstallHooks ( method.Name );
-                CarbonCore.Instance.Addon.AppendHook ( method.Name );
-            }
-            CarbonCore.Debug ( Name, "Processed hooks", 2 );
+		protected void PutsError(object message, Exception ex = null)
+			=> Logger.Error($"[{Name}] {message}", ex);
 
-            CarbonLoader.ProcessCommands ( Type, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance );
-            CarbonCore.Debug ( Name, "Processed commands", 2 );
+		protected void PutsWarn(object message)
+			=> Logger.Warn($"[{Name}] {message}");
 
-            File = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), Name, "config.json" ) );
-            Data = new DynamicConfigFile ( Path.Combine ( CarbonCore.GetModulesFolder (), Name, "data.json" ) );
+		public virtual void Dispose()
+		{
+			File = null;
+			ConfigInstance = null;
+		}
 
-            Load ();
-            if ( ConfigInstance.Enabled ) OnEnableStatus ();
-        }
-        public virtual void InitEnd ()
-        {
-            Puts ( $"Initialized." );
-        }
-        public virtual void Load ()
-        {
-            var shouldSave = false;
+		public virtual void Init()
+		{
+			base.Name = Name;
+			base.Type = Type;
 
-            if ( !File.Exists () )
-            {
-                ConfigInstance = new Configuration { Config = Activator.CreateInstance<C> () };
-                shouldSave = true;
-            }
-            else
-            {
-                try { ConfigInstance = File.ReadObject<Configuration> (); } catch ( Exception exception ) { PutsError ( $"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}" ); }
-            }
+			foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
+			{
+				CarbonCore.Instance.HookProcessor.InstallHooks(method.Name);
+				CarbonCore.Instance.HookProcessor.AppendHook(method.Name);
+			}
+			Puts($"Processed hooks");
 
-            if ( !Data.Exists () )
-            {
-                DataInstance = Activator.CreateInstance<D> ();
-                shouldSave = true;
-            }
-            else
-            {
-                try { DataInstance = Data.ReadObject<D> (); } catch ( Exception exception ) { PutsError ( $"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}" ); }
-            }
+			CarbonLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+			Puts("Processed commands");
 
-            if ( shouldSave ) Save ();
+			File = new DynamicConfigFile(Path.Combine(CarbonDefines.GetModulesFolder(), Name, "config.json"));
+			Data = new DynamicConfigFile(Path.Combine(CarbonDefines.GetModulesFolder(), Name, "data.json"));
 
-            Config = ConfigInstance.Config;
-        }
-        public virtual void Save ()
-        {
-            if ( ConfigInstance == null )
-            {
-                ConfigInstance = new Configuration { Config = Activator.CreateInstance<C> () };
-                Config = ConfigInstance.Config;
-            }
+			Load();
+			if (ConfigInstance.Enabled) OnEnableStatus();
+		}
+		public virtual void InitEnd()
+		{
+			Puts($"Initialized.");
+		}
+		public virtual void Load()
+		{
+			var shouldSave = false;
 
-            if ( DataInstance == null )
-            {
-                DataInstance = Activator.CreateInstance<D> ();
-            }
+			if (!File.Exists())
+			{
+				ConfigInstance = new Configuration { Config = Activator.CreateInstance<C>() };
+				if (EnabledByDefault) ConfigInstance.Enabled = true;
+				shouldSave = true;
+			}
+			else
+			{
+				try { ConfigInstance = File.ReadObject<Configuration>(); }
+				catch (Exception exception) { Carbon.Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
+			}
 
-            File.WriteObject ( ConfigInstance );
-            Data.WriteObject ( DataInstance );
-        }
+			Config = ConfigInstance.Config;
 
-        public void SetEnabled ( bool enable )
-        {
-            if ( ConfigInstance != null )
-            {
-                ConfigInstance.Enabled = enable;
-                OnEnableStatus ();
-            }
-        }
-        public bool GetEnabled ()
-        {
-            return ConfigInstance.Enabled;
-        }
+			if (!Data.Exists())
+			{
+				DataInstance = Activator.CreateInstance<D>();
+				shouldSave = true;
+			}
+			else
+			{
+				try { DataInstance = Data.ReadObject<D>(); }
+				catch (Exception exception) { Carbon.Logger.Error($"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
+			}
 
-        public virtual void OnDisabled ( bool initialized ) { }
-        public virtual void OnEnabled ( bool initialized ) { }
+			if (shouldSave) Save();
+		}
+		public virtual void Save()
+		{
+			if (ConfigInstance == null)
+			{
+				ConfigInstance = new Configuration { Config = Activator.CreateInstance<C>() };
+				Config = ConfigInstance.Config;
+			}
 
-        public void OnEnableStatus ()
-        {
-            try
-            {
-                if ( ConfigInstance.Enabled ) OnEnabled ( CarbonCore.IsServerFullyInitialized ); else OnDisabled ( CarbonCore.IsServerFullyInitialized );
-            }
-            catch ( Exception ex ) { PutsError ( $"Failed {( ConfigInstance.Enabled ? "Enable" : "Disable" )} initialization.", ex ); }
-        }
+			if (DataInstance == null)
+			{
+				DataInstance = Activator.CreateInstance<D>();
+			}
 
-        #region Hooks
+			File.WriteObject(ConfigInstance);
+			Data.WriteObject(DataInstance);
+		}
 
-        public virtual void OnWorldPrefabSpawned ( GameObject gameObject, string category ) { }
+		public void SetEnabled(bool enable)
+		{
+			if (ConfigInstance != null)
+			{
+				ConfigInstance.Enabled = enable;
+				OnEnableStatus();
+			}
+		}
+		public bool GetEnabled()
+		{
+			return ConfigInstance.Enabled;
+		}
 
-        #endregion
+		public virtual void OnDisabled(bool initialized) { }
+		public virtual void OnEnabled(bool initialized) { }
 
-        private void OnServerInitialized ()
-        {
-            if ( GetEnabled () ) OnEnableStatus ();
-        }
+		public void OnEnableStatus()
+		{
+			try
+			{
+				if (ConfigInstance.Enabled) OnEnabled(CarbonCore.IsServerFullyInitialized); else OnDisabled(CarbonCore.IsServerFullyInitialized);
+			}
+			catch (Exception ex) { Carbon.Logger.Error($"Failed {(ConfigInstance.Enabled ? "Enable" : "Disable")} initialization.", ex); }
+		}
 
-        public class Configuration : IModuleConfig
-        {
-            public bool Enabled { get; set; }
-            public C Config { get; set; }
-        }
-    }
+		private void OnServerInitialized()
+		{
+			if (GetEnabled()) OnEnableStatus();
+		}
+
+		public class Configuration : IModuleConfig
+		{
+			public bool Enabled { get; set; }
+			public C Config { get; set; }
+		}
+	}
 }

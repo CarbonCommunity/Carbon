@@ -1,30 +1,41 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using UnityEngine;
 
 namespace Carbon.Core
 {
-    public class CarbonInitializer : IHarmonyModHooks
-    {
-        public void OnLoaded ( OnHarmonyModLoadedArgs args )
-        {
-            var oldMod = PlayerPrefs.GetString ( Harmony_Load.CARBON_LOADED );
+	public class CarbonInitializer : IHarmonyModHooks
+	{
+		public void OnLoaded(OnHarmonyModLoadedArgs args)
+		{
+			var oldMod = PlayerPrefs.GetString(Harmony_Load.CARBON_LOADED);
 
-            if ( !Assembly.GetExecutingAssembly ().FullName.StartsWith ( oldMod ) )
-            {
-                CarbonCore.Instance?.UnInit ();
-                HarmonyLoader.TryUnloadMod ( oldMod );
-                CarbonCore.WarnFormat ( $"Unloaded previous: {oldMod}" );
-                CarbonCore.Instance = null;
-            }
+			if (!Assembly.GetExecutingAssembly().FullName.StartsWith(oldMod))
+			{
+				CarbonCore.Instance?.UnInit();
+				HarmonyLoader.TryUnloadMod(oldMod);
+				Carbon.Logger.Warn($"Unloaded previous: {oldMod}");
+				CarbonCore.Instance = null;
+			}
 
-            CarbonCore.Format ( "Initializing..." );
+			Carbon.Logger.Log(
+				@"                                               " + Environment.NewLine +
+				@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
+				@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
+				@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
+				@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
+				@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
+				@"                                               " + Environment.NewLine
+			);
 
-            if ( CarbonCore.Instance == null ) CarbonCore.Instance = new CarbonCore ();
-            else CarbonCore.Instance?.UnInit ();
+			Carbon.Logger.Log("Initializing...");
 
-            CarbonCore.Instance.Init ();
-        }
+			if (CarbonCore.Instance == null) CarbonCore.Instance = new CarbonCore();
+			else CarbonCore.Instance?.UnInit();
 
-        public void OnUnloaded ( OnHarmonyModUnloadedArgs args ) { }
-    }
+			CarbonCore.Instance.Init();
+		}
+
+		public void OnUnloaded(OnHarmonyModUnloadedArgs args) { }
+	}
 }

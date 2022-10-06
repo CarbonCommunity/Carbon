@@ -1,4 +1,4 @@
-namespace Carbon.Patch
+﻿namespace Carbon.Patch
 {
 	internal partial class Program
 	{

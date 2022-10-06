@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-set -e
 
-#  ______ _______ ______ ______ _______ _______ 
-# |      |   _   |   __ \   __ \       |    |  |
-# |   ---|       |      <   __ <   -   |       |
-# |______|___|___|___|__|______/_______|__|____|
-#         github.com/Carbon-Modding/Carbon.Core
+###
+### Copyright (c) 2022 Carbon Community 
+### All rights reserved
+###
+set -e
 
 BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 

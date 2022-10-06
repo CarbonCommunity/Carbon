@@ -1,10 +1,7 @@
-# 
-#   ______ _______ ______ ______ _______ _______ 
-#  |      |   _   |   __ \   __ \       |    |  |
-#  |   ---|       |      <   __ <   -   |       |
-#  |______|___|___|___|__|______/_______|__|____|
-#                         discord.gg/eXPcNKK4yd
-# 
+###
+### Copyright (c) 2022 Carbon Community 
+### All rights reserved
+### 
 name: Staging Build
 concurrency: build-2-staging
 
@@ -17,7 +14,7 @@ on:
     - cron: '0 5 * * 0'
 
   workflow_run:
-    workflows: [branch-merge]
+    workflows: [ "branch-merge" ]
     types:
       - completed
     branches:
@@ -148,7 +145,7 @@ jobs:
           
           ${{ needs.build-linux.outputs.build_info }}
 
-          Production: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
+          [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
           Release/Carbon.dll
           Release/Carbon.Patch.zip

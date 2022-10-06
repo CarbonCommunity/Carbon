@@ -3,68 +3,66 @@
 /// All rights reserved
 /// 
 
+using Carbon.Core;
 using Harmony;
 using UnityEngine;
-using Carbon.Core;
 
-[HarmonyPatch ( typeof ( ConVar.Harmony ), "Load" )]
+[HarmonyPatch(typeof(ConVar.Harmony), "Load")]
 public class Harmony_Load
 {
-    public const string CARBON_LOADED = nameof ( CARBON_LOADED );
+	public const string CARBON_LOADED = nameof(CARBON_LOADED);
 
-    public static bool Prefix ( ConsoleSystem.Arg args )
-    {
-        var mod = args.Args != null && args.Args.Length > 0 ? args.Args [ 0 ] : null;
+	public static bool Prefix(ConsoleSystem.Arg args)
+	{
+		var mod = args.Args != null && args.Args.Length > 0 ? args.Args[0] : null;
 
-        if ( !mod.Equals ( "carbon", System.StringComparison.OrdinalIgnoreCase ) &&
-             !mod.Equals ( "carbon-unix", System.StringComparison.OrdinalIgnoreCase ) ) return true;
+		if (!mod.Equals("carbon", System.StringComparison.OrdinalIgnoreCase) &&
+			 !mod.Equals("carbon-unix", System.StringComparison.OrdinalIgnoreCase)) return true;
 
-        if ( string.IsNullOrEmpty ( mod ) || 
-            !mod.StartsWith ( "carbon", System.StringComparison.OrdinalIgnoreCase ) 
-            || CarbonCore.IsAddon ( mod ) ) return true;
+		if (string.IsNullOrEmpty(mod) ||
+			!mod.StartsWith("carbon", System.StringComparison.OrdinalIgnoreCase)) return true;
 
-        var oldMod = PlayerPrefs.GetString ( CARBON_LOADED );
+		var oldMod = PlayerPrefs.GetString(CARBON_LOADED);
 
-        if ( oldMod == mod )
-        {
-            CarbonCore.Warn ( $"An instance of Carbon v{CarbonCore.Version} is already loaded." );
-            return false;
-        }
-        else
-        {
-            CarbonCore.Instance?.UnInit ();
-            HarmonyLoader.TryUnloadMod ( oldMod );
-            CarbonCore.WarnFormat ( $"Unloaded previous: {oldMod}" );
-            CarbonCore.Instance = null;
-        }
+		if (oldMod == mod)
+		{
+			Carbon.Logger.Warn($"An instance of Carbon v{CarbonCore.Version} is already loaded.");
+			return false;
+		}
+		else
+		{
+			CarbonCore.Instance?.UnInit();
+			HarmonyLoader.TryUnloadMod(oldMod);
+			Carbon.Logger.Warn($"Unloaded previous: {oldMod}");
+			CarbonCore.Instance = null;
+		}
 
-        PlayerPrefs.SetString ( CARBON_LOADED, mod );
+		PlayerPrefs.SetString(CARBON_LOADED, mod);
 
-        return true;
-    }
+		return true;
+	}
 }
 
-[HarmonyPatch ( typeof ( ConVar.Harmony ), "Unload" )]
+[HarmonyPatch(typeof(ConVar.Harmony), "Unload")]
 public class Harmony_Unload
 {
-    public static bool Prefix ( ConsoleSystem.Arg args )
-    {
-        var mod = args.Args != null && args.Args.Length > 0 ? args.Args [ 0 ] : null;
+	public static bool Prefix(ConsoleSystem.Arg args)
+	{
+		var mod = args.Args != null && args.Args.Length > 0 ? args.Args[0] : null;
 
-        if ( string.IsNullOrEmpty ( mod ) ) return true;
+		if (string.IsNullOrEmpty(mod)) return true;
 
-        if ( mod.Equals ( "carbon", System.StringComparison.OrdinalIgnoreCase ) ||
-             mod.Equals ( "carbon-unix", System.StringComparison.OrdinalIgnoreCase ) )
-            mod = CarbonCore.Name;
+		if (mod.Equals("carbon", System.StringComparison.OrdinalIgnoreCase) ||
+			 mod.Equals("carbon-unix", System.StringComparison.OrdinalIgnoreCase))
+			mod = CarbonDefines.Name;
 
-        if ( !mod.StartsWith ( "carbon", System.StringComparison.OrdinalIgnoreCase )
-            || CarbonCore.IsAddon ( mod ) ) return true;
+		if (!mod.StartsWith("carbon", System.StringComparison.OrdinalIgnoreCase)) return true;
 
-        PlayerPrefs.SetString ( Harmony_Load.CARBON_LOADED, string.Empty );
-        CarbonCore.Instance?.UnInit ();
-        CarbonCore.Instance = null;
+		PlayerPrefs.SetString(Harmony_Load.CARBON_LOADED, string.Empty);
+		CarbonCore.Instance?.UnInit();
+		CarbonCore.Instance = null;
 
-        HarmonyLoader.TryUnloadMod ( mod );
-        return false;
-    }
+		HarmonyLoader.TryUnloadMod(mod);
+		return false;
+	}
 }

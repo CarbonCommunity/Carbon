@@ -1,10 +1,7 @@
-# 
-#   ______ _______ ______ ______ _______ _______ 
-#  |      |   _   |   __ \   __ \       |    |  |
-#  |   ---|       |      <   __ <   -   |       |
-#  |______|___|___|___|__|______/_______|__|____|
-#                         discord.gg/eXPcNKK4yd
-# 
+###
+### Copyright (c) 2022 Carbon Community 
+### All rights reserved
+###
 name: Develop Build
 concurrency: build-3-develop
 
@@ -88,6 +85,7 @@ jobs:
     name: 🪟 Windows
     needs: bootstrap
     runs-on: windows-latest
+    continue-on-error: false
     
     steps:
     - name: 🔗 Checkout source code from github

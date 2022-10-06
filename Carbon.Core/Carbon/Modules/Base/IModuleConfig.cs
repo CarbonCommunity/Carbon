@@ -5,8 +5,8 @@
 
 namespace Carbon.Core.Modules
 {
-    public interface IModuleConfig
-    {
-        bool Enabled { get; set; }
-    }
+	public interface IModuleConfig
+	{
+		bool Enabled { get; set; }
+	}
 }
