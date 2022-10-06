@@ -81,7 +81,13 @@ namespace Carbon.Core
 			if (!IsPatched(hookName))
 				Carbon.Logger.Debug($"Found '{hookName}'...");
 
-			new HookInstallerThread { HookName = hookName, UseV2Harmony = CarbonCore.Instance.Config.Usev2Harmony, DoRequires = doRequires, Processor = this }.Start();
+			new HookInstallerThread
+			{
+				HookName = hookName,
+				UseV2Harmony = CarbonCore.Instance.Config.Usev2Harmony,
+				DoRequires = doRequires,
+				Processor = this
+			}.Start();
 		}
 		public void UninstallHooks(string hookName)
 		{
@@ -89,29 +95,16 @@ namespace Carbon.Core
 			{
 				if (Patches.TryGetValue(hookName, out var instance))
 				{
-					if (instance.v1_Patches != null)
+					if (instance.Patches != null)
 					{
-						foreach (var patch in instance.v1_Patches)
+						foreach (var patch in instance.Patches)
 						{
 							if (string.IsNullOrEmpty(patch.Id)) continue;
 
 							patch.UnpatchAll(patch.Id);
 						}
 
-						instance.v1_Patches.Clear();
-					}
-
-
-					if (instance.v2_Patches != null)
-					{
-						foreach (var patch in instance.v2_Patches)
-						{
-							if (string.IsNullOrEmpty(patch.Id)) continue;
-
-							patch.UnpatchAll(patch.Id);
-						}
-
-						instance.v2_Patches.Clear();
+						instance.Patches.Clear();
 					}
 				}
 			}
@@ -152,8 +145,7 @@ namespace Carbon.Core
 		{
 			public string Id { get; set; }
 			public int Hooks { get; set; } = 1;
-			public List<Harmony.HarmonyInstance> v1_Patches { get; internal set; } = new List<Harmony.HarmonyInstance>();
-			public List<Harmonyv2.HarmonyInstance> v2_Patches { get; internal set; } = new List<Harmonyv2.HarmonyInstance>();
+			public List<HarmonyLib.Harmony> Patches { get; internal set; } = new List<HarmonyLib.Harmony>();
 		}
 
 		public class HookInstallerThread : ThreadedJob
@@ -194,14 +186,7 @@ namespace Carbon.Core
 								Processor.Patches.Add(HookName, hookInstance = new HookInstance());
 							}
 
-							if (UseV2Harmony)
-							{
-								if (hookInstance.v2_Patches.Any(x => x != null && x.Id == patchId)) continue;
-							}
-							else
-							{
-								if (hookInstance.v1_Patches.Any(x => x != null && x.Id == patchId)) continue;
-							}
+							if (hookInstance.Patches.Any(x => x != null && x.Id == patchId)) continue;
 
 							if (DoRequires)
 							{
@@ -231,30 +216,15 @@ namespace Carbon.Core
 
 							var matchedParameters = patch.UseProvidedParameters ? originalParametersResult : Processor.GetMatchedParameters(patch.Type, patch.Method, (prefix ?? postfix ?? transplier).GetParameters());
 
-							if (UseV2Harmony)
-							{
-								var instance = Harmonyv2.HarmonyInstance.Create(patchId);
-								var originalMethod = patch.Type.GetMethod(patch.Method, matchedParameters);
+							var instance = new HarmonyLib.Harmony(patchId);
+							var originalMethod = patch.Type.GetMethod(patch.Method, matchedParameters);
 
-								instance.Patch(originalMethod,
-									prefix: prefix == null ? null : new Harmonyv2.HarmonyMethod(prefix),
-									postfix: postfix == null ? null : new Harmonyv2.HarmonyMethod(postfix),
-									transpiler: transplier == null ? null : new Harmonyv2.HarmonyMethod(transplier));
-								hookInstance.v2_Patches.Add(instance);
-								hookInstance.Id = patchId;
-							}
-							else
-							{
-								var instance = Harmony.HarmonyInstance.Create(patchId);
-								var originalMethod = patch.Type.GetMethod(patch.Method, matchedParameters);
-
-								instance.Patch(originalMethod,
-									prefix: prefix == null ? null : new Harmony.HarmonyMethod(prefix),
-									postfix: postfix == null ? null : new Harmony.HarmonyMethod(postfix),
-									transpiler: transplier == null ? null : new Harmony.HarmonyMethod(transplier));
-								hookInstance.v1_Patches.Add(instance);
-								hookInstance.Id = patchId;
-							}
+							instance.Patch(originalMethod,
+								prefix: prefix == null ? null : new HarmonyLib.HarmonyMethod(prefix),
+								postfix: postfix == null ? null : new HarmonyLib.HarmonyMethod(postfix),
+								transpiler: transplier == null ? null : new HarmonyLib.HarmonyMethod(transplier));
+							hookInstance.Patches.Add(instance);
+							hookInstance.Id = patchId;
 
 							if (CarbonCore.Instance.Config.LogVerbosity > 2) Console.WriteLine($" -> Patched '{hook.Name}' <- {patchId}");
 

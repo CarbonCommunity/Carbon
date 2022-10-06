@@ -9,7 +9,7 @@ using Carbon.Core;
 using Carbon.Core.Extensions;
 using ConVar;
 using Facepunch.Extend;
-using Harmony;
+using HarmonyLib;
 
 [HarmonyPatch(typeof(Chat), "sayAs")]
 public class Chat_SayAs

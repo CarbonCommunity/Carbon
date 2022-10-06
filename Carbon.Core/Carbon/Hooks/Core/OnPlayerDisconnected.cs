@@ -4,7 +4,7 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
+using HarmonyLib;
 
 [HarmonyPatch(typeof(ServerMgr), "OnDisconnected")]
 public class OnPlayerDisconnected

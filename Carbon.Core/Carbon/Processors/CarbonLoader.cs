@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Harmonyv2;
+using HarmonyLib;
 using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Oxide.Plugins;
@@ -31,7 +31,7 @@ namespace Carbon.Core
 		{
 			try
 			{
-				HarmonyInstance.DEBUG = true;
+				Harmony.DEBUG = true;
 				var path = Path.Combine(CarbonDefines.GetLogsFolder(), "..");
 				// FileLog.LogPath	 = Path.Combine(path, "carbon_log.txt");
 				try
@@ -144,7 +144,7 @@ namespace Carbon.Core
 					}
 				}
 
-				mod.Harmony = HarmonyInstance.Create(domain);
+				mod.Harmony = new HarmonyLib.Harmony(domain);
 
 				try
 				{
@@ -540,7 +540,7 @@ namespace Carbon.Core
 			public string File { get; set; } = string.Empty;
 			[JsonProperty]
 			public bool IsCoreMod { get; set; } = false;
-			public HarmonyInstance Harmony { get; set; }
+			public Harmony Harmony { get; set; }
 			public Assembly Assembly { get; set; }
 			public Type[] AllTypes { get; set; }
 			public List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks>();
