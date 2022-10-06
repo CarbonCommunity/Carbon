@@ -31,7 +31,7 @@ namespace Carbon.Core
 		{
 			try
 			{
-				Harmony.DEBUG = true;
+				HarmonyLib.Harmony.DEBUG = true;
 				var path = Path.Combine(CarbonDefines.GetLogsFolder(), "..");
 				// FileLog.LogPath	 = Path.Combine(path, "carbon_log.txt");
 				try
@@ -540,7 +540,7 @@ namespace Carbon.Core
 			public string File { get; set; } = string.Empty;
 			[JsonProperty]
 			public bool IsCoreMod { get; set; } = false;
-			public Harmony Harmony { get; set; }
+			public HarmonyLib.Harmony Harmony { get; set; }
 			public Assembly Assembly { get; set; }
 			public Type[] AllTypes { get; set; }
 			public List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks>();

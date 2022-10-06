@@ -9,7 +9,7 @@ using Carbon;
 using Carbon.Core;
 using Carbon.Core.Extensions;
 using Facepunch;
-using HarmonyLib;
+using Harmony;
 
 [HarmonyPatch(typeof(RCon), "OnCommand")]
 public class RconCommand

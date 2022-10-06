@@ -84,7 +84,6 @@ namespace Carbon.Core
 			new HookInstallerThread
 			{
 				HookName = hookName,
-				UseV2Harmony = CarbonCore.Instance.Config.Usev2Harmony,
 				DoRequires = doRequires,
 				Processor = this
 			}.Start();
@@ -152,7 +151,6 @@ namespace Carbon.Core
 		{
 			public string HookName;
 			public bool DoRequires = true;
-			public bool UseV2Harmony;
 			public CarbonHookProcessor Processor;
 
 			public override void ThreadFunction()

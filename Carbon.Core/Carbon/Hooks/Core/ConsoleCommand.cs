@@ -8,7 +8,7 @@ using Carbon;
 using Carbon.Core;
 using Carbon.Core.Extensions;
 using Facepunch.Extend;
-using HarmonyLib;
+using Harmony;
 
 [HarmonyPatch(typeof(ConsoleSystem), "Run")]
 public class ConsoleCommand

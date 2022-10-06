@@ -53,7 +53,7 @@ namespace Oxide.Plugins
 
 		internal BaseProcessor _processor;
 
-		public Harmony Harmony;
+		public HarmonyLib.Harmony Harmony;
 
 		public static implicit operator bool(Plugin other)
 		{
@@ -168,7 +168,7 @@ namespace Oxide.Plugins
 			if (assembly == null) assembly = Assembly.GetExecutingAssembly();
 
 			Harmony = null;
-			Harmony = new Harmony(Name + "Patches");
+			Harmony = new HarmonyLib.Harmony(Name + "Patches");
 			Harmony.PatchAll(assembly);
 		}
 		public void UnpatchPlugin()

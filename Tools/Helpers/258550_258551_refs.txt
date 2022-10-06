@@ -1,3 +1,4 @@
+regex:0Harmony.dll
 regex:Assembly-CSharp.dll
 regex:Assembly-CSharp-firstpass.dll
 regex:Facepunch.Console.dll

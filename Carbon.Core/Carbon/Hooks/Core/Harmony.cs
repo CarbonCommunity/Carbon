@@ -4,7 +4,7 @@
 /// 
 
 using Carbon.Core;
-using HarmonyLib;
+using Harmony;
 using UnityEngine;
 
 [HarmonyPatch(typeof(ConVar.Harmony), "Load")]

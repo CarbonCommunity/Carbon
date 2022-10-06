@@ -203,9 +203,6 @@ namespace Carbon.Core
 		[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
 		private int EntityMapBufferSize { get { return CarbonCore.Instance.Config.EntityMapBufferSize; } set { CarbonCore.Instance.Config.EntityMapBufferSize = value; CarbonCore.Instance.SaveConfig(); } }
 
-		[CommandVar("usev2harmony", "Enables or disables Harmony v2 from being used for patching dynamic hooks.", true)]
-		private bool UseV2Harmony { get { return CarbonCore.Instance.Config.Usev2Harmony; } set { CarbonCore.Instance.Config.Usev2Harmony = value; CarbonCore.ReloadPlugins(); } }
-
 		#endregion
 
 		#region Commands

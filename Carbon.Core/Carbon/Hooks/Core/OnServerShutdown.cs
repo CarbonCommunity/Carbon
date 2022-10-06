@@ -5,7 +5,7 @@
 
 using Carbon;
 using Carbon.Core;
-using HarmonyLib;
+using Harmony;
 using Oxide.Core;
 
 [HarmonyPatch(typeof(ServerMgr), "Shutdown")]

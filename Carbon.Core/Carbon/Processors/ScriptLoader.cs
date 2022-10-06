@@ -22,9 +22,7 @@ namespace Carbon.Core
 	{
 		public List<Script> Scripts { get; set; } = new List<Script>();
 
-		public List<string> Files { get; set; } = new List<string>();
-		public List<string> Sources { get; set; } = new List<string>();
-		public List<string> Namespaces { get; set; } = new List<string>();
+		public string File { get; set; }
 		public string Source { get; set; }
 		public bool IsCore { get; set; }
 
@@ -35,18 +33,11 @@ namespace Carbon.Core
 
 		internal WaitForSeconds _serverExhale = new WaitForSeconds(0.1f);
 
-		public void Load(bool customFiles = false, bool customSources = false, GameObject target = null)
+		public void Load()
 		{
 			try
 			{
-				if (!customFiles)
-				{
-					if (Files.Count == 0) return;
-				}
-
-				if (!customSources) GetSources();
-
-				if (Sources.Count > 0) Source = Sources[0];
+				if (!string.IsNullOrEmpty(File)) Source = OsEx.File.ReadText(File);
 
 				if (Parser != null)
 				{
@@ -119,22 +110,6 @@ namespace Carbon.Core
 				Scripts.RemoveAll(x => !x.IsCore);
 			}
 		}
-		protected void GetSources()
-		{
-			Sources.Clear();
-
-			foreach (var file in Files)
-			{
-				if (!OsEx.File.Exists(file))
-				{
-					Carbon.Logger.Warn($"Plugin \"{file}\" does not exist or the path is misspelled.");
-					continue;
-				}
-
-				var source = OsEx.File.ReadText(file);
-				Sources.Add(source);
-			}
-		}
 
 		public IEnumerator Compile()
 		{
@@ -178,7 +153,7 @@ namespace Carbon.Core
 			}
 
 			Pool.Free(ref lines);
-			if (Files.Count > 0) AsyncLoader.FilePath = Files[0];
+			AsyncLoader.FilePath = File;
 			AsyncLoader.Source = Source;
 			AsyncLoader.References = resultReferences?.ToArray();
 			AsyncLoader.Requires = resultRequires?.ToArray();
@@ -192,7 +167,7 @@ namespace Carbon.Core
 				var plugin = CarbonCore.Instance.CorePlugin.plugins.Find(require);
 				if (plugin == null)
 				{
-					Carbon.Logger.Warn($"Couldn't find required plugin '{require}' for '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}'");
+					Carbon.Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
 					noRequiresFound = true;
 				}
 				else requires.Add(plugin);
@@ -232,12 +207,11 @@ namespace Carbon.Core
 				yield break;
 			}
 
-			Carbon.Logger.Warn($" Compiling '{(Files.Count > 0 ? Path.GetFileNameWithoutExtension(Files[0]) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
+			Carbon.Logger.Warn($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
 
 			CarbonLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
 			var assembly = AsyncLoader.Assembly;
-			var pluginIndex = 0;
 
 			foreach (var type in assembly.GetTypes())
 			{
@@ -269,7 +243,7 @@ namespace Carbon.Core
 					if (requires.Any(x => x.Name == info.Title)) continue;
 
 					var description = type.GetCustomAttribute(typeof(DescriptionAttribute), true) as DescriptionAttribute;
-					var plugin = Script.Create(Sources[pluginIndex], assembly, type);
+					var plugin = Script.Create(Source, assembly, type);
 
 					plugin.Name = info.Title;
 					plugin.Author = info.Author;

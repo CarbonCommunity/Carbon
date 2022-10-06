@@ -4,7 +4,7 @@
 /// 
 
 using Carbon.Core;
-using HarmonyLib;
+using Harmony;
 
 [HarmonyPatch(typeof(BasePlayer), "PlayerInit")]
 public class OnPlayerConnected

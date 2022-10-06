@@ -39,8 +39,8 @@ namespace Carbon.Core.Processors
 					{
 						Carbon.Logger.Log($"Downloaded '{File}': {result.Length}");
 
-						_loader.Sources.Add(result);
-						_loader.Load(customFiles: true, customSources: true);
+						_loader.Source = result;
+						_loader.Load();
 					}, CarbonCore.Instance.CorePlugin);
 				}
 				catch (Exception ex)
