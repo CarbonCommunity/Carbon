@@ -173,6 +173,15 @@ namespace Carbon.Core.Processors
 		{
 			IgnoreList.RemoveAll(x => x == file);
 		}
+		public T Get<T>(string id) where T : Instance
+		{
+			if (InstanceBuffer.TryGetValue(id, out var instance))
+			{
+				return (T)instance;
+			}
+
+			return default;
+		}
 
 		public virtual void Clear(string id, Instance instance)
 		{

@@ -28,6 +28,18 @@ namespace Carbon.Core.Processors
 
 			return true;
 		}
+		public bool AllNonRequiresScriptsComplete()
+		{
+			foreach (var instance in InstanceBuffer)
+			{
+				if (instance.Value is Script script)
+				{
+					if (script._loader != null && !script._loader.HasRequires && !script._loader.HasFinished) return false;
+				}
+			}
+
+			return true;
+		}
 
 		public class Script : Instance
 		{

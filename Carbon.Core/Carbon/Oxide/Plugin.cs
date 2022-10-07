@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using Carbon.Core;
 using Carbon.Core.Processors;
+using Facepunch;
 using HarmonyLib;
 using Newtonsoft.Json;
+using Oxide.Core;
 
 namespace Oxide.Plugins
 {
@@ -135,6 +137,35 @@ namespace Oxide.Plugins
 				HookMethods = null;
 				PluginReferences = null;
 				HookMethodAttributeCache = null;
+			}
+
+			using (TimeMeasure.New($"IUnload.UnloadRequirees on '{this}'"))
+			{
+				var mods = Pool.GetList<CarbonLoader.CarbonMod>();
+				mods.AddRange(CarbonLoader._loadedMods);
+				var plugins = Pool.GetList<Plugin>();
+
+				foreach (var mod in CarbonLoader._loadedMods)
+				{
+					plugins.Clear();
+					plugins.AddRange(mod.Plugins);
+
+					foreach (var plugin in plugins)
+					{
+						if (plugin.Requires != null && plugin.Requires.Contains(this))
+						{
+							switch (plugin._processor)
+							{
+								case ScriptProcessor script:
+									plugin._processor.Get<ScriptProcessor.Script>(plugin.FileName).Dispose();
+									break;
+							}
+						}
+					}
+				}
+
+				Pool.FreeList(ref mods);
+				Pool.FreeList(ref plugins);
 			}
 		}
 		internal void InternalApplyPluginReferences()

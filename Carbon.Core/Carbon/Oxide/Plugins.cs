@@ -18,7 +18,7 @@ namespace Oxide.Plugins
 			{
 				foreach (var plugin in mod.Plugins)
 				{
-					if (plugin.Name.Replace(" ", "") == name) return plugin;
+					if (plugin.Name.Replace(" ", "").Replace(".", "") == name) return plugin;
 				}
 			}
 

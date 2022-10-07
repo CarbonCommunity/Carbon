@@ -27,6 +27,7 @@ namespace Carbon.Core
 		public bool IsCore { get; set; }
 
 		public bool HasFinished { get; set; }
+		public bool HasRequires { get; set; }
 
 		public BaseProcessor.Parser Parser { get; set; }
 		public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader();
@@ -154,6 +155,14 @@ namespace Carbon.Core
 			AsyncLoader.Requires = resultRequires?.ToArray();
 			Pool.FreeList(ref resultReferences);
 			Pool.FreeList(ref resultRequires);
+
+			HasRequires = AsyncLoader.Requires.Length > 0;
+
+			while (HasRequires && !CarbonCore.Instance.ScriptProcessor.AllNonRequiresScriptsComplete())
+			{
+				yield return _serverExhale;
+				yield return null;
+			}
 
 			var requires = Pool.GetList<Plugin>();
 			var noRequiresFound = false;
