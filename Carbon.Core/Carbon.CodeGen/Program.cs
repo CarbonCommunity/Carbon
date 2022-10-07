@@ -18,10 +18,8 @@ namespace Carbon.CodeGen
 	{
 		static void Main(string[] args)
 		{
-			DoExtendedDocs();
-			DoHookDocs();
-
-			Console.ReadLine();
+			GenerateCarbonHooks();
+			GenerateOxideHooks();
 		}
 
 		public static string GetExample(Hook hook, Hook.Parameter[] parameters)
@@ -55,22 +53,15 @@ namespace Carbon.CodeGen
 			return $"{char.ToLower(type.Name[0])}{type.Name.Substring(1)}";
 		}
 
-		public static void DoExtendedDocs()
+		public static void GenerateCarbonHooks()
 		{
 			var assembly = typeof(Hammer_DoAttackShared).Assembly;
 			var result = $@"---
 description: >-
-  This is a solution to your hook problems. Carbon.Extended provides an
-  extensive amount of hooks that work with most Oxide plugins, and more!
+  All currently available hooks that are found in Carbon. Most hooks would be
+  ones compatible with Oxide, although there are Carbon-only ones as well.
 ---
 
-# Carbon
-
-## Download
-
-Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-Modding/Carbon.Core/releases/latest/download/Carbon.Extended.dll)!
-
-# Hooks
 ";
 			var categories = new Dictionary<Hook.Category.Enum, List<Type>>();
 
@@ -114,17 +105,17 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 
 					resultInfo.Add($"<li>Patches <b>{GetType(patch.Type)}</b>.{patch.Method}.</li>");
 
-					if (hook is CarbonHook) images.Add($"<img src=\"https://i.imgur.com/IOMs1rM.png\" alt=\"Carbon\">");
+					if (hook is CarbonHook) images.Add($"<img src=\"https://i.imgur.com/pXExoZZ.png\" alt=\"Carbon\">");
 					else
 					{
-						images.Add($"<img src=\"https://i.imgur.com/IOMs1rM.png\" alt=\"Carbon\">");
-						images.Add($"<img src=\"https://i.imgur.com/Lk0Gc4f.png\" alt=\"Oxide\">");
+						images.Add($"<img src=\"https://i.imgur.com/pXExoZZ.png\" alt=\"Carbon\">");
+						images.Add($"<img src=\"https://i.imgur.com/Kqyzams.png\" alt=\"Oxide\">");
 					}
 
 					Console.WriteLine($"{hook.Name} -> {GetType(hook.ReturnType)}");
 
 					result += $@"
-### {hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")} {images.ToArray().ToString(" ")}
+### {hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")} {images.ToArray().ToString("")}
 {resultInfo.ToArray().ToString("\n\n")}
 
 {GetExample(hook, parameters.ToArray())}
@@ -135,9 +126,9 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 				}
 			}
 
-			OsEx.File.Create("Carbon Hooks.md", result);
+			OsEx.File.Create("carbon-hooks.md", result);
 		}
-		public static void DoHookDocs()
+		public static void GenerateOxideHooks()
 		{
 			new WebRequests().Enqueue("https://umod.org/documentation/hooks/rust.json", null, (error, data) =>
 			{
@@ -189,9 +180,10 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 					}
 				}
 
-				OsEx.File.Create("Oxide Hooks.md", result);
+				OsEx.File.Create("oxide-hooks.md", result);
 			}, null);
 		}
+
 		public static void DoHooks()
 		{
 			var hooks = JsonConvert.DeserializeObject<HookPackage>(OsEx.File.ReadText("..\\..\\..\\..\\Tools\\Rust.opj"));
