@@ -98,10 +98,11 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 					var info = entry.GetCustomAttributes<Hook.Info>();
 					var parameters = entry.GetCustomAttributes<Hook.Parameter>();
 					var require = entry.GetCustomAttribute<Hook.Require>();
+					var patch = entry.GetCustomAttribute<Hook.Patch>();
 
 					var resultInfo = new List<string>();
 					var images = new List<string>();
-					foreach (var e in info) resultInfo.Add($"<li>{e.Value}</li>");
+					foreach (var e in info) resultInfo.Add($"<li>{e.Value}{(e.Value.EndsWith(".") ? "" : ".")}</li>");
 					if (!resultInfo.Any(x => x.StartsWith("<li>Return")))
 					{
 						if (hook.ReturnType == typeof(void)) resultInfo.Add($"<li>No return behavior.</li>");
@@ -111,11 +112,13 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 					if (hook is CarbonHook) resultInfo.Add($"<li>This is a <b>Carbon</b>-only compatible hook.</li>");
 					else resultInfo.Add($"<li>This hook is compatible within <b>Oxide</b> and <b>Carbon</b>.</li>");
 
-					if (hook is CarbonHook) images.Add($"<img src=\"https://i.imgur.com/IOMs1rM.png\">");
+					resultInfo.Add($"<li>Patches <b>{GetType(patch.Type)}</b>.{patch.Method}.</li>");
+
+					if (hook is CarbonHook) images.Add($"<img src=\"https://i.imgur.com/IOMs1rM.png\" alt=\"Carbon\">");
 					else
 					{
-						images.Add($"<img src=\"https://i.imgur.com/IOMs1rM.png\">");
-						images.Add($"<img src=\"https://i.imgur.com/Lk0Gc4f.png\">");
+						images.Add($"<img src=\"https://i.imgur.com/IOMs1rM.png\" alt=\"Carbon\">");
+						images.Add($"<img src=\"https://i.imgur.com/Lk0Gc4f.png\" alt=\"Oxide\">");
 					}
 
 					Console.WriteLine($"{hook.Name} -> {GetType(hook.ReturnType)}");
