@@ -64,7 +64,7 @@ description: >-
   extensive amount of hooks that work with most Oxide plugins, and more!
 ---
 
-# Carbon.Extended
+# Carbon
 
 ## Download
 
@@ -88,11 +88,11 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 				list.Add(type);
 			}
 
-			foreach (var category in categories)
+			foreach (var category in categories.OrderBy(x => x.Key.ToString()))
 			{
 				result += $"## {category.Key}\n";
 
-				foreach (var entry in category.Value)
+				foreach (var entry in category.Value.OrderBy(x => x.Name))
 				{
 					var hook = entry.GetCustomAttribute<Hook>();
 					var info = entry.GetCustomAttributes<Hook.Info>();
