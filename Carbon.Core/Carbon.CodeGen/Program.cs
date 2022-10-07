@@ -100,6 +100,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 					var require = entry.GetCustomAttribute<Hook.Require>();
 
 					var resultInfo = new List<string>();
+					var images = new List<string>();
 					foreach (var e in info) resultInfo.Add($"<li>{e.Value}</li>");
 					if (!resultInfo.Any(x => x.StartsWith("<li>Return")))
 					{
@@ -110,10 +111,17 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 					if (hook is CarbonHook) resultInfo.Add($"<li>This is a <b>Carbon</b>-only compatible hook.</li>");
 					else resultInfo.Add($"<li>This hook is compatible within <b>Oxide</b> and <b>Carbon</b>.</li>");
 
+					if (hook is CarbonHook) images.Add($"<img src=\"https://i.imgur.com/IOMs1rM.png\">");
+					else
+					{
+						images.Add($"<img src=\"https://i.imgur.com/IOMs1rM.png\">");
+						images.Add($"<img src=\"https://i.imgur.com/Lk0Gc4f.png\">");
+					}
+
 					Console.WriteLine($"{hook.Name} -> {GetType(hook.ReturnType)}");
 
 					result += $@"
-### {hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")}
+### {hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")} {images.ToArray().ToString(" ")}
 {resultInfo.ToArray().ToString("\n\n")}
 
 {GetExample(hook, parameters.ToArray())}
