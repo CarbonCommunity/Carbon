@@ -122,7 +122,7 @@ namespace Carbon.Core
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms", $"{plugin.CompileTime:0.0}s");
+							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime * 1000f:0.0}ms", $"{plugin.CompileTime * 1000f:0.0}ms");
 						}
 
 						count++;

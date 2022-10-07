@@ -66,7 +66,7 @@ namespace Oxide.Plugins
 			{
 				CarbonCore.Instance.HookProcessor.UnappendHook(hook);
 			}
-			Carbon.Logger.Log($"{Name} Unprocessed hooks");
+			Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 		}
 
 		public virtual void IInit()
@@ -162,7 +162,6 @@ namespace Oxide.Plugins
 				if (plugin != null) field.SetValue(this, plugin);
 			}
 		}
-
 
 		public void PatchPlugin(Assembly assembly = null)
 		{

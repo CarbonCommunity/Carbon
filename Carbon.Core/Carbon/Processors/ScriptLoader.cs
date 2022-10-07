@@ -92,12 +92,7 @@ namespace Carbon.Core
 				{
 					try
 					{
-						HookExecutor.CallStaticHook("OnPluginUnloaded", plugin.Instance);
-						plugin.Instance.CallHook("Unload");
-						plugin.Instance.IUnload();
-						CarbonLoader.RemoveCommands(plugin.Instance);
-						plugin.Instance.Dispose();
-						Carbon.Logger.Log($"Unloaded plugin {plugin.Instance.ToString()}");
+						CarbonLoader.UninitializePlugin(plugin.Instance);
 					}
 					catch (Exception ex) { Carbon.Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
 				}
@@ -250,43 +245,29 @@ namespace Carbon.Core
 					plugin.Version = info.Version;
 					plugin.Description = description?.Description;
 
-					plugin.Instance = Activator.CreateInstance(type) as RustPlugin;
+					if (CarbonLoader.InitializePlugin(type, out RustPlugin rustPlugin, preInit: p =>
 					{
-						plugin.Instance.Hooks = AsyncLoader.Hooks[type];
-						plugin.Instance.HookMethods = AsyncLoader.HookMethods[type];
-						plugin.Instance.PluginReferences = AsyncLoader.PluginReferences[type];
+						p.Hooks = AsyncLoader.Hooks[type];
+						p.HookMethods = AsyncLoader.HookMethods[type];
+						p.PluginReferences = AsyncLoader.PluginReferences[type];
 
-					}
-					plugin.IsCore = IsCore;
-					plugin.Instance.Requires = requiresResult;
-					plugin.Instance.SetProcessor(CarbonCore.Instance.ScriptProcessor);
-					plugin.Instance.CompileTime = AsyncLoader.CompileTime;
+						p.Requires = requiresResult;
+						p.SetProcessor(CarbonCore.Instance.ScriptProcessor);
+						p.CompileTime = AsyncLoader.CompileTime;
 
-					plugin.Instance.FilePath = AsyncLoader.FilePath;
-					plugin.Instance.FileName = AsyncLoader.FileName;
-
-					plugin.Instance.CallHook("SetupMod", null, info.Title, info.Author, info.Version, plugin.Description);
-					HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
-					plugin.Instance.IInit();
-					try { plugin.Instance.ILoadConfig(); } catch (Exception loadException) { plugin.Instance.LogError($"Failed loading config.", loadException); }
-					plugin.Instance.Load();
-					plugin.Loader = this;
-
-					CarbonLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
-					CarbonCore.Instance.Plugins.Plugins.Add(plugin.Instance);
-
-					if (info != null)
+						p.FilePath = AsyncLoader.FilePath;
+						p.FileName = AsyncLoader.FileName;
+					}))
 					{
-						Carbon.Logger.Log(
-							$"Loaded plugin {info.Title} v{info.Version} by {info.Author}"
-						);
+						plugin.Instance = rustPlugin;
+						plugin.IsCore = IsCore;
+
+						CarbonLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
+						CarbonCore.Instance.Plugins.Plugins.Add(rustPlugin);
+						Scripts.Add(plugin);
+
+						Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);
 					}
-
-					CarbonLoader.ProcessCommands(type, plugin.Instance);
-
-					Scripts.Add(plugin);
-
-					Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);
 				}
 				catch (Exception exception)
 				{
@@ -321,58 +302,13 @@ namespace Carbon.Core
 
 			if (CarbonCore.Instance.ScriptProcessor.AllPendingScriptsComplete())
 			{
-				OnFinished();
+				CarbonLoader.OnPluginProcessFinished();
 			}
 
 			Pool.FreeList(ref requires);
 			yield return null;
 		}
 
-		public static void OnFinished()
-		{
-			if (CarbonCore.IsServerFullyInitialized)
-			{
-				var counter = 0;
-				foreach (var plugin in CarbonCore.Instance.Plugins.Plugins)
-				{
-					if (plugin.HasInitialized) continue;
-					counter++;
-
-					try
-					{
-						plugin.CallHook("OnServerInitialized");
-						plugin.CallHook("OnServerInitialized", CarbonCore.IsServerFullyInitialized);
-					}
-					catch (Exception initException)
-					{
-						plugin.LogError($"Failed OnServerInitialized.", initException);
-					}
-
-					plugin.HasInitialized = true;
-				}
-
-				foreach (var plugin in CarbonCore.Instance.ModuleProcessor.Modules)
-				{
-					if (plugin.HasInitialized) continue;
-
-					try
-					{
-						HookExecutor.CallHook(plugin, "OnServerInitialized");
-						HookExecutor.CallHook(plugin, "OnServerInitialized", CarbonCore.IsServerFullyInitialized);
-					}
-					catch (Exception initException)
-					{
-						Logger.Error($"[{plugin.Name}] Failed OnServerInitialized.", initException);
-					}
-
-					plugin.HasInitialized = true;
-				}
-
-				if (counter > 1) Carbon.Logger.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
-
-				Report.OnProcessEnded?.Invoke();
-			}
-		}
 		public void Dispose()
 		{
 

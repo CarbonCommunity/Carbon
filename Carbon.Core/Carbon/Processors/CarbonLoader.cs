@@ -247,33 +247,10 @@ namespace Carbon.Core
 						}
 					}
 
-					var instance = Activator.CreateInstance(type, false);
-					var plugin = instance as RustPlugin;
-					var info = type.GetCustomAttribute<InfoAttribute>();
-					var description = type.GetCustomAttribute<DescriptionAttribute>();
+					if (!InitializePlugin(type, out var plugin, mod)) continue;
+					plugin.HasInitialized = true;
 
-					if (info == null)
-					{
-						Carbon.Logger.Warn($"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute.");
-						continue;
-					}
-					plugin.SetProcessor(CarbonCore.Instance.HarmonyProcessor);
-					plugin.CallHook("SetupMod", mod, info.Title, info.Author, info.Version, description == null ? string.Empty : description.Description);
-					HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
-					plugin.ILoadConfig();
-					plugin.IInit();
-					plugin.Load();
-
-					if (CarbonCore.IsServerFullyInitialized)
-					{
-						plugin.CallHook("OnServerInitialized");
-						plugin.CallHook("OnServerInitialized", CarbonCore.IsServerFullyInitialized);
-					}
-
-					mod.Plugins.Add(plugin);
-					ProcessCommands(type, plugin);
-
-					Carbon.Logger.Log($"Loaded plugin {plugin.ToString()}");
+					OnPluginProcessFinished();
 				}
 				catch (Exception ex) { Carbon.Logger.Error($"Failed loading '{mod.Name}'", ex); }
 			}
@@ -284,15 +261,58 @@ namespace Carbon.Core
 			{
 				try
 				{
-					HookExecutor.CallStaticHook("OnPluginUnloaded", plugin);
-					plugin.CallHook("Unload");
-					plugin.IUnload();
-					RemoveCommands(plugin);
-					plugin.Dispose();
-					Carbon.Logger.Log($"Unloaded plugin {plugin.ToString()}");
+					UninitializePlugin(plugin);
 				}
 				catch (Exception ex) { Carbon.Logger.Error($"Failed unloading '{mod.Name}'", ex); }
 			}
+		}
+
+		public static bool InitializePlugin(Type type, out RustPlugin plugin, CarbonMod mod = null, Action<RustPlugin> preInit = null)
+		{
+			var instance = Activator.CreateInstance(type, false);
+			plugin = instance as RustPlugin;
+			var info = type.GetCustomAttribute<InfoAttribute>();
+			var desc = type.GetCustomAttribute<DescriptionAttribute>();
+
+			if (info == null)
+			{
+				Carbon.Logger.Warn($"Failed loading '{type.Name}'. The plugin doesn't have the Info attribute.");
+				return false;
+			}
+
+			var title = info.Title;
+			var author = info.Author;
+			var version = info.Version;
+			var description = desc == null ? string.Empty : desc.Description;
+
+			plugin.SetProcessor(CarbonCore.Instance.HarmonyProcessor);
+			plugin.SetupMod(mod, title, author, version, description);
+
+			preInit?.Invoke(plugin);
+
+			plugin.ILoadConfig();
+			plugin.IInit();
+			plugin.Load();
+			HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
+
+			if (mod != null) mod.Plugins.Add(plugin);
+			ProcessCommands(type, plugin);
+
+			Carbon.Logger.Log($"Loaded plugin {plugin.ToString()}");
+
+			return true;
+		}
+		public static bool UninitializePlugin(RustPlugin plugin)
+		{
+			plugin.CallHook("Unload");
+			plugin.IUnload();
+
+			RemoveCommands(plugin);
+			HookExecutor.CallStaticHook("OnPluginUnloaded", plugin);
+			plugin.Dispose();
+			Carbon.Logger.Log($"Unloaded plugin {plugin.ToString()}");
+
+			return true;
 		}
 
 		public static bool IsValidPlugin(Type type)
@@ -448,6 +468,56 @@ namespace Carbon.Core
 		{
 			CarbonCore.Instance.AllChatCommands.RemoveAll(x => x.Plugin == plugin);
 			CarbonCore.Instance.AllConsoleCommands.RemoveAll(x => x.Plugin == plugin);
+		}
+
+		public static void OnPluginProcessFinished()
+		{
+			if (CarbonCore.IsServerFullyInitialized)
+			{
+				var counter = 0;
+
+				foreach (var mod in _loadedMods)
+				{
+					foreach (var plugin in mod.Plugins)
+					{
+						if (plugin.HasInitialized) continue;
+						counter++;
+
+						try
+						{
+							plugin.CallHook("OnServerInitialized");
+							plugin.CallHook("OnServerInitialized", CarbonCore.IsServerFullyInitialized);
+						}
+						catch (Exception initException)
+						{
+							plugin.LogError($"Failed OnServerInitialized.", initException);
+						}
+
+						plugin.HasInitialized = true;
+					}
+				}
+
+				foreach (var plugin in CarbonCore.Instance.ModuleProcessor.Modules)
+				{
+					if (plugin.HasInitialized) continue;
+
+					try
+					{
+						HookExecutor.CallHook(plugin, "OnServerInitialized");
+						HookExecutor.CallHook(plugin, "OnServerInitialized", CarbonCore.IsServerFullyInitialized);
+					}
+					catch (Exception initException)
+					{
+						Logger.Error($"[{plugin.Name}] Failed OnServerInitialized.", initException);
+					}
+
+					plugin.HasInitialized = true;
+				}
+
+				if (counter > 1) Carbon.Logger.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
+
+				Report.OnProcessEnded?.Invoke();
+			}
 		}
 
 		#endregion
