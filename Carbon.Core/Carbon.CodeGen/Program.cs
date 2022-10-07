@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using Carbon.Core;
 using Carbon.Extended;
 using Carbon.Extensions;
 using Carbon.Oxide.Metadata;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Oxide.Core.Libraries;
 
 namespace Carbon.CodeGen
 {
@@ -16,6 +19,7 @@ namespace Carbon.CodeGen
 		static void Main(string[] args)
 		{
 			DoExtendedDocs();
+			DoHookDocs();
 
 			Console.ReadLine();
 		}
@@ -96,39 +100,39 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 					var require = entry.GetCustomAttribute<Hook.Require>();
 
 					var resultInfo = new List<string>();
-					foreach (var e in info) resultInfo.Add($"{e.Value}");
-					if (!resultInfo.Any(x => x.StartsWith("Return")))
+					foreach (var e in info) resultInfo.Add($"<li>{e.Value}</li>");
+					if (!resultInfo.Any(x => x.StartsWith("<li>Return")))
 					{
-						if (hook.ReturnType == typeof(void)) resultInfo.Add($"No return behavior.");
-						else resultInfo.Add($"Returning a non-null value cancels default behavior.");
+						if (hook.ReturnType == typeof(void)) resultInfo.Add($"<li>No return behavior.</li>");
+						else resultInfo.Add($"<li>Returning a non-null value cancels default behavior.</li>");
 					}
 
-					if (hook is CarbonHook) resultInfo.Add($"This is a <b>Carbon</b>-only compatible hook.");
-					else resultInfo.Add($"This hook is compatible within <b>Oxide</b> and <b>Carbon</b>.");
+					if (hook is CarbonHook) resultInfo.Add($"<li>This is a <b>Carbon</b>-only compatible hook.</li>");
+					else resultInfo.Add($"<li>This hook is compatible within <b>Oxide</b> and <b>Carbon</b>.</li>");
 
 					Console.WriteLine($"{hook.Name} -> {GetType(hook.ReturnType)}");
 
-					result += $@"<details>
-<summary>{hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")}</summary>
+					result += $@"
+### {hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")}
 {resultInfo.ToArray().ToString("\n\n")}
 
 {GetExample(hook, parameters.ToArray())}
 
 {(require == null ? "" : $"This hook requires <b>{require.Hook}</b>, which loads alongside <b>{hook.Name}</b>.")}
 
-</details>
-
 ";
 				}
 			}
 
-			OsEx.File.Create("extended.md", result);
+			OsEx.File.Create("Carbon Hooks.md", result);
 		}
 		public static void DoHookDocs()
 		{
-			var hooks = "..\\..\\..\\..\\Tools\\hooks.json";
-			var jobject = JsonConvert.DeserializeObject<JObject>(OsEx.File.ReadText(hooks));
-			var result = $@"---
+			new WebRequests().Enqueue("https://umod.org/documentation/hooks/rust.json", null, (error, data) =>
+			{
+				var jobject = JsonConvert.DeserializeObject<JObject>(data);
+
+				var result = $@"---
 description: >-
   This is a solution to your hook problems. Carbon.Extended provides an
   extensive amount of hooks that work with most Oxide plugins, and more!
@@ -143,41 +147,39 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 # Hooks
 ";
 
-			var categories = new Dictionary<string, List<JObject>>();
+				var categories = new Dictionary<string, List<JObject>>();
 
-			foreach (var entry in jobject["data"])
-			{
-				var subcategory = entry["subcategory"].ToString();
-				var list = (List<JObject>)null;
-
-				if (!categories.TryGetValue(subcategory, out list))
+				foreach (var entry in jobject["data"])
 				{
-					categories.Add(subcategory, list = new List<JObject>());
+					var subcategory = entry["subcategory"].ToString();
+					var list = (List<JObject>)null;
+
+					if (!categories.TryGetValue(subcategory, out list))
+					{
+						categories.Add(subcategory, list = new List<JObject>());
+					}
+
+					list.Add(entry.ToObject<JObject>());
 				}
 
-				list.Add(entry.ToObject<JObject>());
-
-				Console.WriteLine($"{entry["example"]}");
-			}
-
-			foreach (var category in categories)
-			{
-				result += $"## {category.Key}\n";
-
-				foreach (var entry in category.Value)
+				foreach (var category in categories)
 				{
-					result += $@"<details>
-<summary>{entry["name"]}</summary>
+					result += $"## {category.Key}\n";
+
+					foreach (var entry in category.Value)
+					{
+						result += $@"
+### {entry["name"]}
 {entry["description"]}
 
 {entry["example"]}
-</details>
 
 ";
+					}
 				}
-			}
 
-			OsEx.File.Create("test.md", result);
+				OsEx.File.Create("Oxide Hooks.md", result);
+			}, null);
 		}
 		public static void DoHooks()
 		{
