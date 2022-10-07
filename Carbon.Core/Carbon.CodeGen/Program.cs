@@ -105,11 +105,11 @@ description: >-
 
 					resultInfo.Add($"<li>Patches <b>{GetType(patch.Type)}</b>.{patch.Method}.</li>");
 
-					if (hook is CarbonHook) images.Add($"<img src=\"https://i.imgur.com/pXExoZZ.png\" alt=\"Carbon\">");
+					if (hook is CarbonHook) images.Add($"<img src=\"https://i.imgur.com/g69IVSg.png\" alt=\"Carbon\">");
 					else
 					{
-						images.Add($"<img src=\"https://i.imgur.com/pXExoZZ.png\" alt=\"Carbon\">");
-						images.Add($"<img src=\"https://i.imgur.com/Kqyzams.png\" alt=\"Oxide\">");
+						images.Add($"<img src=\"https://i.imgur.com/g69IVSg.png\" alt=\"Carbon\">");
+						images.Add($"<img src=\"https://i.imgur.com/dHr8c07.png\" alt=\"Oxide\">");
 					}
 
 					Console.WriteLine($"{hook.Name} -> {GetType(hook.ReturnType)}");
