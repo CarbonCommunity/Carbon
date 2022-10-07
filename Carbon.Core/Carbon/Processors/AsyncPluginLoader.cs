@@ -69,15 +69,17 @@ namespace Carbon.Core
 		}
 		internal static void _overridePlugin(string name, byte[] pluginAssembly)
 		{
+			if (pluginAssembly == null) return;
+
 			var plugin = _getPlugin(name);
 			if (plugin == null)
 			{
-				_compilationCache.Add(name, pluginAssembly);
+				try { _compilationCache.Add(name, pluginAssembly); } catch { }
 				return;
 			}
 
 			Array.Clear(plugin, 0, plugin.Length);
-			_compilationCache[name] = pluginAssembly;
+			try { _compilationCache[name] = pluginAssembly; } catch { }
 		}
 
 		internal static MetadataReference _getReferenceFromCache(string reference)
@@ -144,8 +146,8 @@ namespace Carbon.Core
 				TimeSinceCompile = 0;
 
 				var references = _addReferences();
-				var tree = Pool.GetList<SyntaxTree>();
-				tree.Add(CSharpSyntaxTree.ParseText(Source));
+				var trees = Pool.GetList<SyntaxTree>();
+				trees.Add(CSharpSyntaxTree.ParseText(Source));
 
 				foreach (var require in Requires)
 				{
@@ -158,7 +160,7 @@ namespace Carbon.Core
 				}
 
 				var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, warningLevel: 4);
-				var compilation = CSharpCompilation.Create($"{FileName}_{RandomEx.GetRandomInteger()}", tree, references, options);
+				var compilation = CSharpCompilation.Create($"{FileName}_{RandomEx.GetRandomInteger()}", trees, references, options);
 
 				using (var dllStream = new MemoryStream())
 				{
@@ -178,15 +180,23 @@ namespace Carbon.Core
 					if (emit.Success)
 					{
 						var assembly = dllStream.ToArray();
-						_overridePlugin(FileName, assembly);
-						Assembly = Assembly.Load(assembly);
+						if (assembly != null)
+						{
+							_overridePlugin(FileName, assembly);
+							Assembly = Assembly.Load(assembly);
+						}
 					}
+				}
+
+				if (Assembly == null)
+				{
+					throw null;
 				}
 
 				CompileTime = TimeSinceCompile;
 
 				Pool.FreeList(ref references);
-				Pool.FreeList(ref tree);
+				Pool.FreeList(ref trees);
 
 				foreach (var type in Assembly.GetTypes())
 				{
@@ -232,7 +242,7 @@ namespace Carbon.Core
 
 				if (Exceptions.Count > 0) throw null;
 			}
-			catch (Exception ex) { Console.WriteLine($"{ex}"); }
+			catch { }
 		}
 	}
 }
