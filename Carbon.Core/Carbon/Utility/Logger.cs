@@ -22,7 +22,7 @@ namespace Carbon
 		{
 			if (severity != Severity.Debug)
 			{
-				Severity minSeverity = CarbonCore.Instance?.Config.LogSeverity ?? Severity.Notice;
+				Severity minSeverity = CarbonCore.Instance?.Config?.LogSeverity ?? Severity.Notice;
 				if (severity > minSeverity) return;
 			}
 
@@ -126,7 +126,10 @@ namespace Carbon
 			[CallerFilePath] string path = null,
 			[CallerMemberName] string method = null)
 		{
-			if (CarbonCore.Instance.Config.LogVerbosity > 0)
+			// allows the usage of Error() before config has been init
+			int minVerbosity = CarbonCore.Instance?.Config?.LogVerbosity ?? -1;
+
+			if (minVerbosity > 0)
 				message = $"{message}\n" +
 						  $" [file: {GetFileNameEx(path)}, method: {method}, line: {line}]";
 
