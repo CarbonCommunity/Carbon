@@ -1,4 +1,9 @@
-﻿using System;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -26,6 +31,7 @@ namespace Carbon.Core
 		[JsonProperty]
 		public double TotalHookTime { get; internal set; }
 
+		public bool HasInitialized { get; set; }
 		public Type Type { get; set; }
 
 		#region Tracking

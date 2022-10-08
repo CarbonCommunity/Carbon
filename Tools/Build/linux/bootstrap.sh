@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+###
+### Copyright (c) 2022 Carbon Community 
+### All rights reserved
+###
 set -e
 
 cat <<EOF
@@ -17,18 +22,22 @@ ROOT="$(realpath "${BASE}/../../../")"
 git submodule init
 git submodule update
 
-# Build Steam Downloading Utility
-dotnet restore "${ROOT}/Tools/DepotDownloader" --nologo --force
-dotnet clean   "${ROOT}/Tools/DepotDownloader" --configuration Release --nologo
-dotnet build   "${ROOT}/Tools/DepotDownloader" --configuration Release --no-restore --no-incremental
+# Changes the assembly name for HamonyLib
+HARMONYDIR="${ROOT}/Tools/HarmonyLib/Harmony"
+sed -i 's/0Harmony/1Harmony/' "${HARMONYDIR}/Harmony.csproj"
 
-# Build .NET Assembly stripper, publicizer and general utility tool
-dotnet restore "${ROOT}/Tools/NStrip" --nologo --force
-dotnet clean   "${ROOT}/Tools/NStrip" --configuration Release --nologo
-dotnet build   "${ROOT}/Tools/NStrip" --configuration Release --no-restore --no-incremental
+for TOOL in DepotDownloader NStrip HarmonyLib; do
+  dotnet restore "${ROOT}/Tools/${TOOL}" --verbosity quiet --nologo --force
+  dotnet clean   "${ROOT}/Tools/${TOOL}" --verbosity quiet --configuration Release --nologo
+  dotnet build   "${ROOT}/Tools/${TOOL}" --verbosity quiet --configuration Release --no-restore --no-incremental
+done
 
 # Keeping Unity DoorStop out of the game for now due to the more
 # complex build process.
+
+# HarmonyLib post build
+(cd "${HARMONYDIR}" && git reset --hard HEAD > /dev/null)
+cp --force "${HARMONYDIR}/bin/Release/net48/1Harmony.dll" "${ROOT}/Carbon.Core/Carbon/Resources"
 
 # Download rust binary libs
 exec "${BASE}/update.sh" public

@@ -1,14 +1,14 @@
-# 
-#   ______ _______ ______ ______ _______ _______ 
-#  |      |   _   |   __ \   __ \       |    |  |
-#  |   ---|       |      <   __ <   -   |       |
-#  |______|___|___|___|__|______/_______|__|____|
-#                         discord.gg/eXPcNKK4yd
-# 
+###
+### Copyright (c) 2022 Carbon Community 
+### All rights reserved
+###
 name: Develop Build
 concurrency: build-3-develop
 
 on:
+  schedule:
+    - cron: '0 5 * * *'
+
   push:
     branches:
       - develop
@@ -16,9 +16,6 @@ on:
   pull_request:
     branches:
       - develop
-
-  schedule:
-    - cron: '0 5 * * *'
 
   workflow_dispatch:
 
@@ -34,6 +31,9 @@ jobs:
       ref:   ${{ steps.step1.outputs.ref }}
 
     steps:
+      - name: 🪵 Log environment
+        uses: crazy-max/ghaction-dump-context@v1
+        
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
         with:

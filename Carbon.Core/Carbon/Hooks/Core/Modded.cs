@@ -38,7 +38,7 @@ namespace Carbon.Core.Oxide.Hooks
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"Couldn't patch UpdateServerInformation.", ex);
+				Carbon.Logger.Error($"Couldn't patch UpdateServerInformation.", ex);
 			}
 		}
 	}

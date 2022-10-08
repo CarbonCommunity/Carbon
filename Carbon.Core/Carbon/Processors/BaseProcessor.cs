@@ -61,13 +61,13 @@ namespace Carbon.Core.Processors
 				Watcher.EnableRaisingEvents = true;
 			}
 
-			Logger.Log($" Initialized {IndexedType?.Name} processor...");
+			Carbon.Logger.Log($" Initialized {IndexedType?.Name} processor...");
 		}
 		public virtual void OnDestroy()
 		{
 			IsInitialized = false;
 
-			Logger.Log($"{IndexedType?.Name} processor has been unloaded.");
+			Carbon.Logger.Log($"{IndexedType?.Name} processor has been unloaded.");
 		}
 		public virtual void Dispose()
 		{
@@ -95,7 +95,7 @@ namespace Carbon.Core.Processors
 					if (element.Value == null)
 					{
 						var instance = Activator.CreateInstance(IndexedType) as Instance;
-						instance.File = Path.Combine(CarbonCore.GetPluginsFolder(), $"{element.Key}{Extension}");
+						instance.File = Path.Combine(CarbonDefines.GetPluginsFolder(), $"{element.Key}{Extension}");
 						instance.Execute();
 
 						InstanceBuffer[element.Key] = instance;
@@ -160,7 +160,7 @@ namespace Carbon.Core.Processors
 				{
 					item.Value?.Dispose();
 				}
-				catch (Exception ex) { Logger.Error($" Processor error: '{item.Key}'", ex); }
+				catch (Exception ex) { Carbon.Logger.Error($" Processor error: '{item.Key}'", ex); }
 			}
 
 			InstanceBuffer.Clear();
@@ -172,6 +172,15 @@ namespace Carbon.Core.Processors
 		public virtual void ClearIgnore(string file)
 		{
 			IgnoreList.RemoveAll(x => x == file);
+		}
+		public T Get<T>(string id) where T : Instance
+		{
+			if (InstanceBuffer.TryGetValue(id, out var instance))
+			{
+				return (T)instance;
+			}
+
+			return default;
 		}
 
 		public virtual void Clear(string id, Instance instance)

@@ -11,7 +11,7 @@ namespace Oxide.Core
 {
 	public class OxideMod
 	{
-		public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem(CarbonCore.GetDataFolder());
+		public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem(CarbonDefines.GetDataFolder());
 
 		public Permission Permission { get; private set; }
 
@@ -31,17 +31,17 @@ namespace Oxide.Core
 
 		public void Load()
 		{
-			InstanceDirectory = CarbonCore.GetRootFolder();
+			InstanceDirectory = CarbonDefines.GetRootFolder();
 			RootDirectory = Environment.CurrentDirectory;
 			if (RootDirectory.StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)))
 				RootDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-			ConfigDirectory = CarbonCore.GetConfigsFolder();
-			DataDirectory = CarbonCore.GetDataFolder();
-			LangDirectory = CarbonCore.GetLangFolder();
-			LogDirectory = CarbonCore.GetLogsFolder();
-			PluginDirectory = CarbonCore.GetPluginsFolder();
-			TempDirectory = CarbonCore.GetTempFolder();
+			ConfigDirectory = CarbonDefines.GetConfigsFolder();
+			DataDirectory = CarbonDefines.GetDataFolder();
+			LangDirectory = CarbonDefines.GetLangFolder();
+			LogDirectory = CarbonDefines.GetLogsFolder();
+			PluginDirectory = CarbonDefines.GetPluginsFolder();
+			TempDirectory = CarbonDefines.GetTempFolder();
 
 			DataFileSystem = new DataFileSystem(DataDirectory);
 

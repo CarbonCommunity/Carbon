@@ -28,7 +28,7 @@ namespace Oxide.Core
 
 			if (ProtoStorage.Exists(name))
 			{
-				Carbon.Logger.WarnFormat($"Failed to import JSON file: {name} already exists.");
+				Carbon.Logger.Warn($"Failed to import JSON file: {name} already exists.");
 				return;
 			}
 
@@ -48,9 +48,7 @@ namespace Oxide.Core
 		}
 
 		public static void PrintCallStack()
-		{
-			Carbon.Logger.Format("CallStack: {0}{1}", new StackTrace(1, true));
-		}
+			=> Carbon.Logger.Log(string.Format("CallStack: {0}{1}", new StackTrace(1, true)));
 
 		public static string FormatBytes(double bytes)
 		{

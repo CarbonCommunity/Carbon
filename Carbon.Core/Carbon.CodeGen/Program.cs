@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using Carbon.Core;
 using Carbon.Extended;
+using Carbon.Extensions;
 using Carbon.Oxide.Metadata;
-using Humanlights.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Oxide.Core.Libraries;
 
 namespace Carbon.CodeGen
 {
@@ -15,9 +18,8 @@ namespace Carbon.CodeGen
 	{
 		static void Main(string[] args)
 		{
-			DoExtendedDocs();
-
-			Console.ReadLine();
+			GenerateCarbonHooks();
+			GenerateOxideHooks();
 		}
 
 		public static string GetExample(Hook hook, Hook.Parameter[] parameters)
@@ -51,22 +53,15 @@ namespace Carbon.CodeGen
 			return $"{char.ToLower(type.Name[0])}{type.Name.Substring(1)}";
 		}
 
-		public static void DoExtendedDocs()
+		public static void GenerateCarbonHooks()
 		{
 			var assembly = typeof(Hammer_DoAttackShared).Assembly;
 			var result = $@"---
 description: >-
-  This is a solution to your hook problems. Carbon.Extended provides an
-  extensive amount of hooks that work with most Oxide plugins, and more!
+  All currently available hooks that are found in Carbon. Most hooks would be
+  ones compatible with Oxide, although there are Carbon-only ones as well.
 ---
 
-# Carbon.Extended
-
-## Download
-
-Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-Modding/Carbon.Core/releases/latest/download/Carbon.Extended.dll)!
-
-# Hooks
 ";
 			var categories = new Dictionary<Hook.Category.Enum, List<Type>>();
 
@@ -84,51 +79,62 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 				list.Add(type);
 			}
 
-			foreach (var category in categories)
+			foreach (var category in categories.OrderBy(x => x.Key.ToString()))
 			{
 				result += $"## {category.Key}\n";
 
-				foreach (var entry in category.Value)
+				foreach (var entry in category.Value.OrderBy(x => x.Name))
 				{
 					var hook = entry.GetCustomAttribute<Hook>();
 					var info = entry.GetCustomAttributes<Hook.Info>();
 					var parameters = entry.GetCustomAttributes<Hook.Parameter>();
 					var require = entry.GetCustomAttribute<Hook.Require>();
+					var patch = entry.GetCustomAttribute<Hook.Patch>();
 
 					var resultInfo = new List<string>();
-					foreach (var e in info) resultInfo.Add($"{e.Value}");
-					if (!resultInfo.Any(x => x.StartsWith("Return")))
+					var images = new List<string>();
+					foreach (var e in info) resultInfo.Add($"<li>{e.Value}{(e.Value.EndsWith(".") ? "" : ".")}</li>");
+					if (!resultInfo.Any(x => x.StartsWith("<li>Return")))
 					{
-						if (hook.ReturnType == typeof(void)) resultInfo.Add($"No return behavior.");
-						else resultInfo.Add($"Returning a non-null value cancels default behavior.");
+						if (hook.ReturnType == typeof(void)) resultInfo.Add($"<li>No return behavior.</li>");
+						else resultInfo.Add($"<li>Returning a non-null value cancels default behavior.</li>");
 					}
 
-					if (hook is CarbonHook) resultInfo.Add($"This is a <b>Carbon</b>-only compatible hook.");
-					else resultInfo.Add($"This hook is compatible within <b>Oxide</b> and <b>Carbon</b>.");
+					if (hook is CarbonHook) resultInfo.Add($"<li>This is a <b>Carbon</b>-only compatible hook.</li>");
+					else resultInfo.Add($"<li>This hook is compatible within <b>Oxide</b> and <b>Carbon</b>.</li>");
+
+					resultInfo.Add($"<li>Patches <b>{GetType(patch.Type)}</b>.{patch.Method}.</li>");
+
+					if (hook is CarbonHook) images.Add($"<img src=\"https://i.imgur.com/g69IVSg.png\" alt=\"Carbon\">");
+					else
+					{
+						images.Add($"<img src=\"https://i.imgur.com/g69IVSg.png\" alt=\"Carbon\">");
+						images.Add($"<img src=\"https://i.imgur.com/dHr8c07.png\" alt=\"Oxide\">");
+					}
 
 					Console.WriteLine($"{hook.Name} -> {GetType(hook.ReturnType)}");
 
-					result += $@"<details>
-<summary>{hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")}</summary>
+					result += $@"
+### {hook.Name}{(category.Value.Count(x => x.GetCustomAttribute<Hook>().Name == hook.Name) > 1 ? $" ({GetType(parameters.FirstOrDefault(x => x.Name == "this")?.Type)})" : "")} {images.ToArray().ToString("")}
 {resultInfo.ToArray().ToString("\n\n")}
 
 {GetExample(hook, parameters.ToArray())}
 
 {(require == null ? "" : $"This hook requires <b>{require.Hook}</b>, which loads alongside <b>{hook.Name}</b>.")}
 
-</details>
-
 ";
 				}
 			}
 
-			OsEx.File.Create("extended.md", result);
+			OsEx.File.Create("carbon-hooks.md", result);
 		}
-		public static void DoHookDocs()
+		public static void GenerateOxideHooks()
 		{
-			var hooks = "..\\..\\..\\..\\Tools\\hooks.json";
-			var jobject = JsonConvert.DeserializeObject<JObject>(OsEx.File.ReadText(hooks));
-			var result = $@"---
+			new WebRequests().Enqueue("https://umod.org/documentation/hooks/rust.json", null, (error, data) =>
+			{
+				var jobject = JsonConvert.DeserializeObject<JObject>(data);
+
+				var result = $@"---
 description: >-
   This is a solution to your hook problems. Carbon.Extended provides an
   extensive amount of hooks that work with most Oxide plugins, and more!
@@ -143,42 +149,41 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 # Hooks
 ";
 
-			var categories = new Dictionary<string, List<JObject>>();
+				var categories = new Dictionary<string, List<JObject>>();
 
-			foreach (var entry in jobject["data"])
-			{
-				var subcategory = entry["subcategory"].ToString();
-				var list = (List<JObject>)null;
-
-				if (!categories.TryGetValue(subcategory, out list))
+				foreach (var entry in jobject["data"])
 				{
-					categories.Add(subcategory, list = new List<JObject>());
+					var subcategory = entry["subcategory"].ToString();
+					var list = (List<JObject>)null;
+
+					if (!categories.TryGetValue(subcategory, out list))
+					{
+						categories.Add(subcategory, list = new List<JObject>());
+					}
+
+					list.Add(entry.ToObject<JObject>());
 				}
 
-				list.Add(entry.ToObject<JObject>());
-
-				Console.WriteLine($"{entry["example"]}");
-			}
-
-			foreach (var category in categories)
-			{
-				result += $"## {category.Key}\n";
-
-				foreach (var entry in category.Value)
+				foreach (var category in categories)
 				{
-					result += $@"<details>
-<summary>{entry["name"]}</summary>
+					result += $"## {category.Key}\n";
+
+					foreach (var entry in category.Value)
+					{
+						result += $@"
+### {entry["name"]}
 {entry["description"]}
 
 {entry["example"]}
-</details>
 
 ";
+					}
 				}
-			}
 
-			OsEx.File.Create("test.md", result);
+				OsEx.File.Create("oxide-hooks.md", result);
+			}, null);
 		}
+
 		public static void DoHooks()
 		{
 			var hooks = JsonConvert.DeserializeObject<HookPackage>(OsEx.File.ReadText("..\\..\\..\\..\\Tools\\Rust.opj"));
@@ -231,7 +236,7 @@ Get the latest version of Carbon.Extended [**here**](https://github.com/Carbon-M
 		public static string GetTemplate_NoReturn(string method, string parameters = null, string arguments = null)
 		{
 			return $@"using Carbon.Core;
-using Harmony;
+using HarmonyLib;
 
 namespace Carbon.Extended
 {{
@@ -248,7 +253,7 @@ namespace Carbon.Extended
 		public static string GetTemplate_Return(string method, string parameters = null, string returnType = "object", string arguments = null)
 		{
 			return $@"using Carbon.Core;
-using Harmony;
+using HarmonyLib;
 
 namespace Carbon.Extended
 {{

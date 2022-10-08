@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using UnityEngine;
 
 namespace Carbon.Core
@@ -13,11 +14,21 @@ namespace Carbon.Core
 			{
 				CarbonCore.Instance?.UnInit();
 				HarmonyLoader.TryUnloadMod(oldMod);
-				Logger.WarnFormat($"Unloaded previous: {oldMod}");
+				Carbon.Logger.Warn($"Unloaded previous: {oldMod}");
 				CarbonCore.Instance = null;
 			}
 
-			Logger.Format("Initializing...");
+			Carbon.Logger.Log(
+				@"                                               " + Environment.NewLine +
+				@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
+				@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
+				@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
+				@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
+				@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
+				@"                                               " + Environment.NewLine
+			);
+
+			Carbon.Logger.Log("Initializing...");
 
 			if (CarbonCore.Instance == null) CarbonCore.Instance = new CarbonCore();
 			else CarbonCore.Instance?.UnInit();

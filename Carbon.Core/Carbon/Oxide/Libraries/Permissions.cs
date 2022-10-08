@@ -45,7 +45,7 @@ namespace Oxide.Core.Libraries
 			{
 				if (!string.IsNullOrEmpty(keyValuePair.Value.ParentGroup) && HasCircularParent(keyValuePair.Key, keyValuePair.Value.ParentGroup))
 				{
-					Logger.Warn("Detected circular parent group for '{keyValuePair.Key}'! Removing parent '{keyValuePair.Value.ParentGroup}'");
+					Carbon.Logger.Warn("Detected circular parent group for '{keyValuePair.Key}'! Removing parent '{keyValuePair.Value.ParentGroup}'");
 					keyValuePair.Value.ParentGroup = null;
 				}
 			}
@@ -127,7 +127,7 @@ namespace Oxide.Core.Libraries
 			name = name.ToLower();
 			if (PermissionExists(name, null))
 			{
-				Logger.Warn("Duplicate permission registered '{name}' (by plugin '{owner.Name}')");
+				Carbon.Logger.Warn("Duplicate permission registered '{name}' (by plugin '{owner.Name}')");
 				return;
 			}
 
@@ -203,6 +203,11 @@ namespace Oxide.Core.Libraries
 			return userdata.ContainsKey(id);
 		}
 
+		public bool UserExists(string id, out UserData data)
+		{
+			return userdata.TryGetValue(id, out data);
+		}
+
 		public UserData GetUserData(string id)
 		{
 			if (!userdata.TryGetValue(id, out var result))
@@ -229,6 +234,7 @@ namespace Oxide.Core.Libraries
 
 			var user = GetUserData(player.UserIDString);
 			user.LastSeenNickname = player.displayName;
+			user.Language = player.net.connection.info.GetString("global.language", "en");
 
 			AddUserGroup(player.UserIDString, "default");
 
