@@ -9,7 +9,7 @@ using Facepunch;
 
 namespace Carbon.Extended
 {
-	[OxideHook("OnItemCraft"), OxideHook.Category(Hook.Category.Enum.Item)]
+	[OxideHook("OnItemCraft", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("task", typeof(ItemCraftTask))]
 	[OxideHook.Parameter("owner", typeof(BasePlayer))]
 	[OxideHook.Parameter("fromTempBlueprint", typeof(Item))]
@@ -25,8 +25,10 @@ namespace Carbon.Extended
 				return false;
 			}
 			++__instance.taskUID;
-			ItemCraftTask task = Facepunch.Pool.Get<ItemCraftTask>();
+
+			var task = Facepunch.Pool.Get<ItemCraftTask>();
 			task.blueprint = bp;
+
 			if (!free)
 				__instance.CollectIngredients(bp, task, amount, owner);
 			task.endTime = 0.0f;
@@ -43,7 +45,8 @@ namespace Carbon.Extended
 				task.takenItems.Add(fromTempBlueprint);
 				task.conditionScale = 0.5f;
 			}
-			object obj = HookExecutor.CallStaticHook("OnItemCraft", task, owner, fromTempBlueprint);
+
+			var obj = HookExecutor.CallStaticHook("OnItemCraft", task, owner, fromTempBlueprint);
 			if (obj is bool)
 			{
 				if (fromTempBlueprint != null && task.instanceData != null)
@@ -52,8 +55,8 @@ namespace Carbon.Extended
 				return false;
 			}
 			__instance.queue.AddLast(task);
-			if ((UnityEngine.Object)task.owner != (UnityEngine.Object)null)
-				task.owner.Command("note.craft_add", (object)task.taskUID, (object)task.blueprint.targetItem.itemid, (object)amount, (object)task.skinID);
+			if (task.owner != null)
+				task.owner.Command("note.craft_add", task.taskUID, task.blueprint.targetItem.itemid, amount, task.skinID);
 			__result = true;
 			return false;
 		}

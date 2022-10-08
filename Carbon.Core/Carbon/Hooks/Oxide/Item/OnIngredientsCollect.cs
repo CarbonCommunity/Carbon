@@ -7,7 +7,7 @@ using Carbon.Core;
 
 namespace Carbon.Extended
 {
-	[OxideHook("OnIngredientsCollect"), OxideHook.Category(Hook.Category.Enum.Item)]
+	[OxideHook("OnIngredientsCollect", typeof(object)), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("this", typeof(ItemCrafter))]
 	[OxideHook.Parameter("bp", typeof(ItemBlueprint))]
 	[OxideHook.Parameter("task", typeof(ItemCraftTask))]
@@ -19,7 +19,7 @@ namespace Carbon.Extended
 	{
 		public static bool Prefix(ItemBlueprint bp, ItemCraftTask task, int amount, BasePlayer player, ref ItemCrafter __instance)
 		{
-			return HookExecutor.CallStaticHook("OnIngredientsCollect", __instance, bp, task, amount, player) == null; 
+			return HookExecutor.CallStaticHook("OnIngredientsCollect", __instance, bp, task, amount, player) == null;
 		}
 	}
 }

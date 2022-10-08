@@ -17,8 +17,8 @@ namespace Carbon.Extended
 	{
 		public static void Prefix(ItemCraftTask task)
 		{
-			ulong skin = ItemDefinition.FindSkin(task.blueprint.targetItem.itemid, task.skinID);
-			Item byItemId = ItemManager.CreateByItemID(task.blueprint.targetItem.itemid, skin: skin);
+			var skin = ItemDefinition.FindSkin(task.blueprint.targetItem.itemid, task.skinID);
+			var byItemId = ItemManager.CreateByItemID(task.blueprint.targetItem.itemid, skin: skin);
 			byItemId.amount = task.blueprint.amountToCreate;
 			if (byItemId.hasCondition && (double)task.conditionScale != 1.0)
 			{
