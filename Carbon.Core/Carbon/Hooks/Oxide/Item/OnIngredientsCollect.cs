@@ -3,7 +3,7 @@
 /// All rights reserved
 /// 
 
-using Oxide.Core;
+using Carbon.Core;
 
 namespace Carbon.Extended
 {
@@ -19,7 +19,7 @@ namespace Carbon.Extended
 	{
 		public static bool Prefix(ItemBlueprint bp, ItemCraftTask task, int amount, BasePlayer player, ref ItemCrafter __instance)
 		{
-			return Interface.CallHook("OnIngredientsCollect", __instance, bp, task, amount, player) == null; 
+			return HookExecutor.CallStaticHook("OnIngredientsCollect", __instance, bp, task, amount, player) == null; 
 		}
 	}
 }
