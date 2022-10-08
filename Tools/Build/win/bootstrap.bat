@@ -23,7 +23,7 @@ git submodule update
 
 rem Changes the assembly name for HamonyLib [requires powershell]
 set HARMONYDIR=%ROOT%\Tools\HarmonyLib\Harmony
-pwsh -Command "(Get-Content -path '%HARMONYDIR%\Harmony.csproj') -replace '0Harmony', '1Harmony' | Out-File '%HARMONYDIR%\Harmony.csproj'"
+powershell -Command "(Get-Content -path '%HARMONYDIR%\Harmony.csproj') -replace '0Harmony', '1Harmony' | Out-File '%HARMONYDIR%\Harmony.csproj'"
 
 FOR %%O IN (DepotDownloader NStrip HarmonyLib) DO (
 	dotnet restore "%ROOT%\Tools\%%O" --verbosity quiet --nologo --force 

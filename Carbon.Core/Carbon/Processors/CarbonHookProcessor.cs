@@ -111,7 +111,7 @@ namespace Carbon.Core
 
 		internal Type[] GetMatchedParameters(Type type, string methodName, ParameterInfo[] parameters)
 		{
-			var list = Pool.GetList<Type>();
+			var list = new List<Type>();
 
 			foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static))
 			{
@@ -136,7 +136,8 @@ namespace Carbon.Core
 			}
 
 			var result = list.ToArray();
-			Pool.FreeList(ref list);
+			list.Clear();
+			list = null;
 			return result;
 		}
 
@@ -201,7 +202,7 @@ namespace Carbon.Core
 								}
 							}
 
-							var originalParameters = Pool.GetList<Type>();
+							var originalParameters = new List<Type>();
 							var prefix = type.GetMethod("Prefix");
 							var postfix = type.GetMethod("Postfix");
 							var transplier = type.GetMethod("Transplier");
@@ -228,7 +229,8 @@ namespace Carbon.Core
 
 							Pool.Free(ref matchedParameters);
 							Pool.Free(ref originalParametersResult);
-							Pool.FreeList(ref originalParameters);
+							originalParameters.Clear();
+							originalParameters = null;
 						}
 					}
 					catch (Exception exception)

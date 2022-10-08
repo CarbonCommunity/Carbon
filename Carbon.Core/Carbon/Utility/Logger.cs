@@ -43,7 +43,7 @@ namespace Carbon
 					break;
 
 				case Severity.Debug:
-					int minVerbosity = CarbonCore.Instance?.Config.LogVerbosity ?? -1;
+					int minVerbosity = CarbonCore.Instance?.Config?.LogVerbosity ?? -1;
 					if (verbosity > minVerbosity) break;
 					UnityEngine.Debug.Log($"{message}");
 					break;

@@ -17,6 +17,11 @@ namespace Carbon.Extended
 	{
 		public static bool Prefix(string category, Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
 		{
+			if (Interface.CallHook("OnWorldPrefabSpawn", prefab, position, rotation, scale) != null)
+			{
+				return false;
+			}
+
 			if (prefab == null || !prefab.Object)
 			{
 				return false;
