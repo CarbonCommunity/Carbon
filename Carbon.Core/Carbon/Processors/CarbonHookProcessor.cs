@@ -126,6 +126,8 @@ namespace Carbon.Core
 						var param = @params[i];
 						var otherParam = parameters[i];
 
+						if (otherParam.Name.StartsWith("__")) continue;
+
 						if (param.ParameterType.FullName.Replace("&", "") == otherParam.ParameterType.FullName.Replace("&", ""))
 						{
 							list.Add(param.ParameterType);
@@ -133,6 +135,8 @@ namespace Carbon.Core
 					}
 					catch { }
 				}
+
+				if (list.Count > 0) break;
 			}
 
 			var result = list.ToArray();
