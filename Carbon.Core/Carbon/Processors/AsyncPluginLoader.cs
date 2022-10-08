@@ -98,14 +98,19 @@ namespace Carbon.Core
 
 		internal List<MetadataReference> _addReferences()
 		{
-			var references = Pool.GetList<MetadataReference>();
+			var references = new List<MetadataReference>();
 			references.AddRange(_metadataReferences);
 
 			foreach (var reference in References)
 			{
 				if (string.IsNullOrEmpty(reference) || _metadataReferences.Any(x => x.Display.Contains(reference))) continue;
 
-				try { var outReference = _getReferenceFromCache(reference); if (outReference != null) references.Add(_getReferenceFromCache(reference)); } catch { }
+				try
+				{
+					var outReference = _getReferenceFromCache(reference);
+					if (outReference != null && !references.Contains(outReference)) references.Add(outReference);
+				}
+				catch { }
 			}
 
 			return references;
@@ -146,7 +151,7 @@ namespace Carbon.Core
 				TimeSinceCompile = 0;
 
 				var references = _addReferences();
-				var trees = Pool.GetList<SyntaxTree>();
+				var trees = new List<SyntaxTree>();
 				trees.Add(CSharpSyntaxTree.ParseText(Source));
 
 				foreach (var require in Requires)
@@ -195,8 +200,10 @@ namespace Carbon.Core
 
 				CompileTime = TimeSinceCompile;
 
-				Pool.FreeList(ref references);
-				Pool.FreeList(ref trees);
+				references.Clear();
+				references = null;
+				trees.Clear();
+				trees = null;
 
 				foreach (var type in Assembly.GetTypes())
 				{
