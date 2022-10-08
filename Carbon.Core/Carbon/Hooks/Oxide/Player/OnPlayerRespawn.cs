@@ -55,19 +55,11 @@ namespace Carbon.Extended
 				sleepingBag2 = (SleepingBag)obj;
 			}
 
-<<<<<<< HEAD
-            if ( sleepingBag2.IsOccupied ( player .userID) )
-            {
-                __result = false;
-                return false;
-            }
-=======
 			if (sleepingBag2.IsOccupied())
 			{
 				__result = false;
 				return false;
 			}
->>>>>>> develop
 
 			sleepingBag2.GetSpawnPos(out var position, out var rotation);
 			player.RespawnAt(position, rotation);
