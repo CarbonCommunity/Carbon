@@ -55,7 +55,7 @@ namespace Carbon.Extended
 				sleepingBag2 = (SleepingBag)obj;
 			}
 
-			if (sleepingBag2.IsOccupied())
+			if (sleepingBag2.IsOccupied(player.userID))
 			{
 				__result = false;
 				return false;
