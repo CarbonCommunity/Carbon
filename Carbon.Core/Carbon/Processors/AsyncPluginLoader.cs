@@ -242,7 +242,7 @@ namespace Carbon.Core
 
 				if (Exceptions.Count > 0) throw null;
 			}
-			catch { }
+			catch (Exception ex) { Console.WriteLine($"Threading compilation failed ({ex.Message})\n{ex.StackTrace}"); }
 		}
 	}
 }
