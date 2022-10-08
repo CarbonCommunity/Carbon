@@ -35,16 +35,29 @@ namespace Carbon.Core
 		public List<CompilerException> Exceptions = new List<CompilerException>();
 		internal RealTimeSince TimeSinceCompile;
 
-		internal static int _assemblyIndex = 0;
+		#region Fody
+
+		internal static Type _fodyAssemblyLoader { get; set; }
+		internal static FieldInfo _fodyAssemblyNames { get; set; }
+		internal static MethodInfo _fodyLoadStream { get; set; }
+
+		#endregion
+
 		internal static bool _hasInit { get; set; }
 		internal static void _doInit()
 		{
 			if (_hasInit) return;
 			_hasInit = true;
 
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.protobuf_net)));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.protobuf_net_Core)));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources._1Harmony)));
+			_fodyAssemblyLoader = CarbonDefines.Carbon.GetType("Costura.AssemblyLoader");
+			_fodyAssemblyNames = _fodyAssemblyLoader.GetField("assemblyNames", BindingFlags.NonPublic | BindingFlags.Static);
+			_fodyLoadStream = _fodyAssemblyLoader.GetMethod("LoadStream", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string) }, default);
+
+			var fodyNames = _fodyAssemblyNames.GetValue(null) as Dictionary<string, string>;
+
+			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net.core"] }) as Stream));
+			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net"] }) as Stream));
+			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["1harmony"] }) as Stream));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(CarbonDefines.DllPath))));
 
 			var managedFolder = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed");

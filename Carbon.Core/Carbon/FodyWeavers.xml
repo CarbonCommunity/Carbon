@@ -18,6 +18,7 @@
 			Rust.Harmony
 			Rust.Localization
 			Rust.Platform.Common
+			Rust.World
 			UnityEngine
 			UnityEngine.AIModule
 			UnityEngine.CoreModule

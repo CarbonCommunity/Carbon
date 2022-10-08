@@ -81,7 +81,7 @@
 
 	<ItemGroup>
 		<!-- External libs -->
-		<Reference Include="..\..\Carbon.Core\Carbon\Resources\*.dll" />
+		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
 	</ItemGroup>
 
 	<ItemGroup Condition="!$(Configuration.Contains('Unix'))">
@@ -117,22 +117,6 @@
 		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
 		<PackageReference Include="protobuf-net" Version="3.1.17" />
 		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<!-- Included resources on the final assembly -->
-		<Compile Update="Properties\Resources.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Resources.resx</DependentUpon>
-		</Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-		<EmbeddedResource Update="Properties\Resources.resx">
-			<Generator>ResXFileCodeGenerator</Generator>
-			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
 	</ItemGroup>
 
 
