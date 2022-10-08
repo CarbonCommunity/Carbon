@@ -47,6 +47,9 @@ namespace Carbon.Core
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources._1Harmony)));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(CarbonDefines.DllPath))));
 
+			var managedFolder = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed");
+			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Path.Combine(managedFolder, "System.Drawing.dll")))));
+
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
 			foreach (var assembly in assemblies)
