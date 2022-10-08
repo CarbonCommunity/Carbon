@@ -3,62 +3,82 @@
 /// All rights reserved
 /// 
 
+using System;
 using Carbon.Core;
 using Oxide.Core.Libraries;
-using System;
 
 namespace Oxide.Core
 {
-    public class OxideMod
-    {
-        public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem ( CarbonCore.GetDataFolder () );
+	public class OxideMod
+	{
+		public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem(CarbonDefines.GetDataFolder());
 
-        public Permission Permission { get; private set; }
+		public Permission Permission { get; private set; }
 
-        public string RootDirectory { get; private set; }
-        public string ExtensionDirectory { get; private set; }
-        public string InstanceDirectory { get; private set; }
-        public string PluginDirectory { get; private set; }
-        public string ConfigDirectory { get; private set; }
-        public string DataDirectory { get; private set; }
-        public string LangDirectory { get; private set; }
-        public string LogDirectory { get; private set; }
-        public string TempDirectory { get; private set; }
+		public string RootDirectory { get; private set; }
+		public string ExtensionDirectory { get; private set; }
+		public string InstanceDirectory { get; private set; }
+		public string PluginDirectory { get; private set; }
+		public string ConfigDirectory { get; private set; }
+		public string DataDirectory { get; private set; }
+		public string LangDirectory { get; private set; }
+		public string LogDirectory { get; private set; }
+		public string TempDirectory { get; private set; }
 
-        public float Now => UnityEngine.Time.realtimeSinceStartup;
+		public bool IsShuttingDown { get; private set; }
 
-        public void Load ()
-        {
-            InstanceDirectory = CarbonCore.GetRootFolder ();
-            RootDirectory = Environment.CurrentDirectory;
-            if ( RootDirectory.StartsWith ( Environment.GetFolderPath ( Environment.SpecialFolder.ApplicationData ) ) )
-                RootDirectory = AppDomain.CurrentDomain.BaseDirectory;
+		public float Now => UnityEngine.Time.realtimeSinceStartup;
 
-            ConfigDirectory = CarbonCore.GetConfigsFolder ();
-            DataDirectory = CarbonCore.GetDataFolder ();
-            LangDirectory = CarbonCore.GetLangFolder ();
-            LogDirectory = CarbonCore.GetLogsFolder ();
-            PluginDirectory = CarbonCore.GetPluginsFolder ();
-            TempDirectory = CarbonCore.GetTempFolder ();
+		public void Load()
+		{
+			InstanceDirectory = CarbonDefines.GetRootFolder();
+			RootDirectory = Environment.CurrentDirectory;
+			if (RootDirectory.StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)))
+				RootDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-            DataFileSystem = new DataFileSystem ( DataDirectory );
+			ConfigDirectory = CarbonDefines.GetConfigsFolder();
+			DataDirectory = CarbonDefines.GetDataFolder();
+			LangDirectory = CarbonDefines.GetLangFolder();
+			LogDirectory = CarbonDefines.GetLogsFolder();
+			PluginDirectory = CarbonDefines.GetPluginsFolder();
+			TempDirectory = CarbonDefines.GetTempFolder();
 
-            Permission = new Permission ();
-        }
+			DataFileSystem = new DataFileSystem(DataDirectory);
 
-        public void NextTick ( Action action )
-        {
+			Permission = new Permission();
+		}
 
-        }
+		public void NextTick(Action action)
+		{
 
-        public void UnloadPlugin ( string name )
-        {
+		}
 
-        }
+		public void UnloadPlugin(string name)
+		{
 
-        public void OnSave ()
-        {
+		}
 
-        }
-    }
+		public void OnSave()
+		{
+
+		}
+
+		public void OnShutdown()
+		{
+			if (!IsShuttingDown)
+			{
+				IsShuttingDown = true;
+			}
+		}
+
+		public object CallHook(string hookName, params object[] args)
+		{
+			return HookExecutor.CallStaticHook(hookName, args);
+		}
+
+		public object CallDeprecatedHook(string oldHook, string newHook, DateTime expireDate, params object[] args)
+		{
+			return HookExecutor.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
+		}
+	}
 }

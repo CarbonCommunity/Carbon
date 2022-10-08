@@ -3,48 +3,50 @@
 /// All rights reserved
 /// 
 
+using System;
+using Carbon;
 using Carbon.Core;
 using Carbon.Core.Extensions;
 using ConVar;
 using Facepunch.Extend;
 using Harmony;
-using System;
-using System.Linq;
 
-[HarmonyPatch ( typeof ( Chat ), "sayAs" )]
+[HarmonyPatch(typeof(Chat), "sayAs")]
 public class Chat_SayAs
 {
-    public static bool Prefix ( Chat.ChatChannel targetChannel, ulong userId, string username, string message, BasePlayer player = null )
-    {
-        if ( CarbonCore.Instance == null ) return true;
+	internal static string[] EmptyArgs = new string[0];
 
-        try
-        {
-            var fullString = message.Substring ( 1 );
-            var split = fullString.Split ( ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries );
-            var command = split [ 0 ].Trim ();
-            var args = split.Length > 1 ? fullString.Substring ( command.Length + 1 ).SplitQuotesStrings () : null;
-            Facepunch.Pool.Free ( ref split );
+	public static bool Prefix(Chat.ChatChannel targetChannel, ulong userId, string username, string message, BasePlayer player = null)
+	{
+		if (CarbonCore.Instance == null) return true;
 
-            foreach ( var cmd in CarbonCore.Instance?.AllChatCommands )
-            {
-                if ( cmd.Command == command )
-                {
-                    try
-                    {
-                        cmd.Callback?.Invoke ( player, command, args );
-                    }
-                    catch ( Exception ex )
-                    {
-                        CarbonCore.Error ( "ConsoleSystem_Run", ex );
-                    }
+		try
+		{
+			var fullString = message.Substring(1);
+			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
+			var command = split[0].Trim();
+			var args = split.Length > 1 ? fullString.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
+			Facepunch.Pool.Free(ref split);
 
-                    return false;
-                }
-            }
-        }
-        catch { }
+			foreach (var cmd in CarbonCore.Instance?.AllChatCommands)
+			{
+				if (cmd.Command == command)
+				{
+					try
+					{
+						cmd.Callback?.Invoke(player, command, args);
+					}
+					catch (Exception ex)
+					{
+						Carbon.Logger.Error("ConsoleSystem_Run", ex);
+					}
 
-        return true;
-    }
+					return false;
+				}
+			}
+		}
+		catch { }
+
+		return true;
+	}
 }

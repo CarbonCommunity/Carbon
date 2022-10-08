@@ -1,228 +1,195 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
-  <PropertyGroup>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <TargetFrameworks>net48</TargetFrameworks>
+	<PropertyGroup>
+		<!-- General build information -->
+		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
 
-    <Deterministic>true</Deterministic>
-    <FileAlignment>512</FileAlignment>
+		<Deterministic>true</Deterministic>
+		<FileAlignment>512</FileAlignment>
+		<OutputType>Library</OutputType>
+		<TargetFrameworks>net48</TargetFrameworks>
 
-    <ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
-    <Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
-  </PropertyGroup>
+		<!-- Removes the localized Microsoft.CodeAnalysis.*.resources.dll -->
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 
-  <PropertyGroup>
-    <Product>Carbon</Product>
-    <AssemblyName>Carbon</AssemblyName>
-    <Version>1.1.0.0</Version>
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+		<PlatformTarget>x64</PlatformTarget>
+		<Platforms>AnyCPU;x64</Platforms>
+	</PropertyGroup>
 
-    <Company>Raul-Sorin Sorban</Company>
-    <Copyright>Copyright © Carbon 2022</Copyright>
-    <PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
-    <Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
-  </PropertyGroup>
+	<PropertyGroup>
+		<!-- User defined properties -->
+		<Product>Carbon</Product>
+		<AssemblyName>Carbon</AssemblyName>
 
-  <PropertyGroup>
-    <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
-    <VersionSuffix>$(Configuration)</VersionSuffix>
+		<Company>Raul-Sorin Sorban</Company>
+		<Copyright>Copyright © Carbon 2022</Copyright>
+		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
+		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
+	</PropertyGroup>
 
-    <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
-    <AssemblyVersion>$(Version)</AssemblyVersion>
-    <FileVersion>$(VersionPrefix)</FileVersion>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
-    <Title>Carbon</Title>
-  </PropertyGroup>
+	<PropertyGroup>
+		<!-- Automatically generated properties -->
+		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+		<VersionSuffix>$(Configuration)</VersionSuffix>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(VersionPrefix)</FileVersion>
+		<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
+		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_")).Core</RootNamespace>
+		<Version>1.$([System.DateTime]::UtcNow.ToString('yy.ddMM')).10</Version>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;TRACE;WIN</DefineConstants>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DebugType>embedded</DebugType>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputPath>bin\$(Configuration)\</OutputPath>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'DebugUnix'">
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;TRACE;UNIX</DefineConstants>
-    <OutputPath>bin\DebugUnix\</OutputPath>
-    <DebugType>embedded</DebugType>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+	<PropertyGroup Condition="$(Configuration.Contains('Debug'))">
+		<DebugType>embedded</DebugType>
+		<DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>WIN</DefineConstants>
-    <OutputPath>bin\Release\</OutputPath>
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+	<PropertyGroup Condition="$(Configuration.Contains('Release'))">
+		<DebugType>none</DebugType>
+		<DefineConstants>$(DefineConstants)</DefineConstants>
+		<Optimize>true</Optimize>
+		<OutputPath>bin\$(Configuration)\</OutputPath>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseUnix'">
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>UNIX</DefineConstants>
-    <OutputPath>bin\ReleaseUnix\</OutputPath>
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+	<PropertyGroup Condition="!$(Configuration.Contains('Unix'))">
+		<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Drawing.Design" />
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
+	<PropertyGroup Condition="$(Configuration.Contains('Unix'))">
+		<DefineConstants>UNIX;$(DefineConstants)</DefineConstants>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Reference Include="Humanlights.MCS">
-      <HintPath>..\..\External\Humanlights.MCS.dll</HintPath>
-    </Reference>
-    <Reference Include="Humanlights.System">
-      <HintPath>..\..\External\Humanlights.System.dll</HintPath>
-    </Reference>
-    <Reference Include="Humanlights.Unity">
-      <HintPath>..\..\External\Humanlights.Unity.dll</HintPath>
-    </Reference>
-    <Reference Include="Humanlights.Unity.Compiler">
-      <HintPath>..\..\External\Humanlights.Unity.Compiler.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<ItemGroup>
+		<!-- System libs -->
+		<Reference Include="Microsoft.CSharp" />
+		<Reference Include="System.Core" />
+		<Reference Include="System.Core" />
+		<Reference Include="System.Data" />
+		<Reference Include="System.Drawing.Design" />
+		<Reference Include="System.Drawing" />
+		<Reference Include="System.IO.Compression.FileSystem" />
+		<Reference Include="System.Memory" />
+		<Reference Include="System.Xml" />
+		<Reference Include="System" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\0Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="EasyAntiCheat.Client">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="EasyAntiCheat.Server">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\EasyAntiCheat.Server.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Console">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Console.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Network">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Network.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Rcon">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Rcon.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Sqlite">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Sqlite.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Steamworks.Win64">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.System">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.System.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Unity">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.Unity.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.UnityEngine">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Facepunch.UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="Fleck">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Fleck.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Data">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Global">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Global.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Harmony">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Localization">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Localization.dll</HintPath>
-    </Reference>
-    <Reference Include="Rust.Platform.Common">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\Rust.Platform.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestTextureModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
-      <HintPath>..\..\Rust\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<ItemGroup>
+		<!-- External libs -->
+		<Reference Include="..\..\Carbon.Core\Carbon\Resources\*.dll" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Costura.Fody" Version="5.7.0">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="protobuf-net" Version="3.1.17" />
-    <PackageReference Include="protobuf-net.Core" Version="3.1.17" />
-  </ItemGroup>
+	<ItemGroup Condition="!$(Configuration.Contains('Unix'))">
+		<!-- Windows packages -->
+		<Reference Include="..\..\Rust\windows\RustDedicated_Data\Managed\*.dll">
+			<PrivateAssets>all</PrivateAssets>
+			<SpecificVersion>false</SpecificVersion>
+		</Reference>
+	</ItemGroup>
 
-  <Target Name="CleanOutput" AfterTargets="Clean">
-    <!-- <Message Text=">>> CleanOutput" Importance="high"/> -->
-    <Delete Files="$(OutputPath)Carbon.dll" />
-    <Delete Files="$(OutputPath)$(TargetName).dll" />
-  </Target>
+	<ItemGroup Condition="$(Configuration.Contains('Unix'))">
+		<!-- Linux packages -->
+		<Reference Include="..\..\Rust\linux\RustDedicated_Data\Managed\*.dll">
+			<PrivateAssets>all</PrivateAssets>
+			<SpecificVersion>false</SpecificVersion>
+		</Reference>
+	</ItemGroup>
 
-  <Target Name="MoveOutput" AfterTargets="AfterBuild">
-    <!-- <Message Text=">>> MoveOutput" Importance="high"/> -->
-    <Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll" />
+	<ItemGroup>
+		<!-- Nuget packages -->
+		<PackageReference Include="Costura.Fody" Version="5.7.0">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
 
-    <PropertyGroup>
-      <RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
-    </PropertyGroup>
+		<!-- Dependency of HarmonyLib -->
+		<PackageReference Include="MonoMod.Common" Version="22.6.3.1" />
+		<PackageReference Include="MonoMod" Version="22.5.1.1" />
 
-    <Message Text="RandomASM property set to $(RandomASM)" Importance="high" />
-    <WriteLinesToFile File="$(SolutionDir)Carbon/.rndasm" Overwrite="true" Lines="$(RandomASM)" />
-  </Target>
+		<!-- Required by Carbon's Logger -->
+		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
 
-  <PropertyGroup Condition="!Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
-    <AssemblyName>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</AssemblyName>
-  </PropertyGroup>
+		<!-- Required by Carbon's Compiler -->
+		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
+		<PackageReference Include="protobuf-net" Version="3.1.17" />
+		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
+	</ItemGroup>
 
-  <PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
-    <AssemblyName>$([System.Text.RegularExpressions.Regex]::Replace(
-		  $([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm')), '\r?\n?', ''))</AssemblyName>
-  </PropertyGroup>
+	<ItemGroup>
+		<!-- Included resources on the final assembly -->
+		<Compile Update="Properties\Resources.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Resources.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="Properties\Resources.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
+
+	<!-- ========================== -->
+	<!-- BUILD TASK SEQUENCER BELOW -->
+	<!-- ========================== -->
+	<Target Name="CleanOutput" AfterTargets="Clean">
+		<Delete Files="$(OutputPath)Carbon.dll" />
+		<Delete Files="$(OutputPath)$(TargetName).dll" />
+	</Target>
+
+	<Target Name="CustomPrepareForBuild" AfterTargets="_GenerateRestoreProjectSpec">
+		<PropertyGroup>
+			<RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
+		</PropertyGroup>
+
+		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+		</Exec>
+
+		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+		</Exec>
+
+		<PropertyGroup>
+			<Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
+		</PropertyGroup>
+
+		<WriteLinesToFile File="$(SolutionDir)Carbon\.gitag" Overwrite="true" Lines="$(Gitag)" />
+		<WriteLinesToFile File="$(SolutionDir)Carbon\.rndasm" Overwrite="true" Lines="$(RandomASM)" />
+	</Target>
+
+	<Target Name="CustomBeforeCompile" BeforeTargets="BeforeCompile">
+		<Message Text="&gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />
+		<Message Text="&gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
+		<Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
+		<Message Text="&gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
+	</Target>
+
+	<Target Name="CustomAfterBuild" AfterTargets="AfterBuild">
+		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll" />
+
+		<ItemGroup>
+			<FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)Carbon.dll;$(OutputPath)Carbon-*.dll" />
+		</ItemGroup>
+
+		<Message Text="&gt;&gt; Cleaning output folder" Importance="high" />
+		<Delete Files="@(FilesToDelete)">
+			<Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />
+		</Delete>
+	</Target>
+
+	<PropertyGroup Condition="Exists('.gitag')">
+		<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.gitag').Trim())</InformationalVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
+		<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm').Trim())</AssemblyName>
+	</PropertyGroup>
 </Project>

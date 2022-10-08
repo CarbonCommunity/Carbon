@@ -2,8 +2,12 @@
 [Rr]ust/
 [Rr]elease/
 
-# Random assembly names
+# msbuild cached stuff
+.gitag
 .rndasm
+
+# Local HarmonyLib version
+**/[Cc]arbon/[Rr]esources/1Harmony.dll
 
 # Build results
 [Bb]in/

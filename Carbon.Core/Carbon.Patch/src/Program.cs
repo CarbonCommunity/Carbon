@@ -10,7 +10,7 @@ namespace Carbon.Patch
 		public static void Main(string[] args)
 		{
 			// ASCii art
-			PrintBanner();
+			//PrintBanner();
 
 			CommandLine.Parser.Default.ParseArguments<Options>(args)
 				.WithNotParsed(x => Environment.Exit(1))

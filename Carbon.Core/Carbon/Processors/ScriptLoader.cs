@@ -3,378 +3,366 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core.Processors;
-using Facepunch;
-using Humanlights.Extensions;
-using Humanlights.Unity.Compiler;
-using Oxide.Core;
-using Oxide.Plugins;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Carbon.Core.Processors;
+using Facepunch;
+using Carbon.Extensions;
+using Oxide.Core;
+using Oxide.Plugins;
 using UnityEngine;
 
 namespace Carbon.Core
 {
-    public class ScriptLoader : IDisposable
-    {
-        public List<Script> Scripts { get; set; } = new List<Script> ();
+	public class ScriptLoader : IDisposable
+	{
+		public List<Script> Scripts { get; set; } = new List<Script>();
 
-        public List<string> Files { get; set; } = new List<string> ();
-        public List<string> Sources { get; set; } = new List<string> ();
-        public List<string> Namespaces { get; set; } = new List<string> ();
-        public string Source { get; set; }
-        public bool IsCore { get; set; }
+		public string File { get; set; }
+		public string Source { get; set; }
+		public bool IsCore { get; set; }
 
-        public BaseProcessor.Parser Parser { get; set; }
+		public bool HasFinished { get; set; }
+		public bool HasRequires { get; set; }
 
-        public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader ();
+		public BaseProcessor.Parser Parser { get; set; }
+		public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader();
 
-        public void Load ( bool customFiles = false, bool customSources = false, GameObject target = null )
-        {
-            try
-            {
-                if ( !customFiles )
-                {
-                    if ( Files.Count == 0 ) return;
-                }
+		internal WaitForSeconds _serverExhale = new WaitForSeconds(0.1f);
 
-                if ( !customSources ) GetSources ();
-                GetNamespaces ();
-                GetFullSource ();
+		public void Load()
+		{
+			try
+			{
+				if (!string.IsNullOrEmpty(File)) Source = OsEx.File.ReadText(File);
 
-                if ( Parser != null )
-                {
-                    Parser.Process ( Source, out var newSource );
+				if (Parser != null)
+				{
+					Parser.Process(Source, out var newSource);
 
-                    if ( !string.IsNullOrEmpty ( newSource ) )
-                    {
-                        Source = newSource;
-                    }
-                }
+					if (!string.IsNullOrEmpty(newSource))
+					{
+						Source = newSource;
+					}
+				}
 
-                CarbonCore.Instance.ScriptProcessor.StartCoroutine ( Compile ( target ) );
-            }
-            catch ( Exception exception )
-            {
-                CarbonCore.Error ( $"Failed loading script;", exception );
-            }
-        }
+				CarbonCore.Instance.ScriptProcessor.StartCoroutine(Compile());
+			}
+			catch (Exception exception)
+			{
+				Carbon.Logger.Error($"Failed loading script;", exception);
+			}
+		}
 
-        public static void LoadAll ()
-        {
-            var files = OsEx.Folder.GetFilesWithExtension ( CarbonCore.GetPluginsFolder (), "cs" );
+		public static void LoadAll()
+		{
+			var files = OsEx.Folder.GetFilesWithExtension(CarbonDefines.GetPluginsFolder(), "cs");
 
-            CarbonCore.Instance.ScriptProcessor.Clear ();
-            CarbonCore.Instance.ScriptProcessor.IgnoreList.Clear ();
+			CarbonCore.Instance.ScriptProcessor.Clear();
+			CarbonCore.Instance.ScriptProcessor.IgnoreList.Clear();
 
-            foreach ( var file in files )
-            {
-                var plugin = new ScriptProcessor.Script ();
-                plugin.File = file;
-                CarbonCore.Instance.ScriptProcessor.InstanceBuffer.Add ( Path.GetFileNameWithoutExtension ( file ), plugin );
-            }
+			foreach (var file in files)
+			{
+				var plugin = new ScriptProcessor.Script { File = file };
+				CarbonCore.Instance.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			}
 
-            foreach ( var plugin in CarbonCore.Instance.ScriptProcessor.InstanceBuffer )
-            {
-                plugin.Value.SetDirty ();
-            }
-        }
+			foreach (var plugin in CarbonCore.Instance.ScriptProcessor.InstanceBuffer)
+			{
+				plugin.Value.SetDirty();
+			}
+		}
 
-        public void Clear ()
-        {
-            AsyncLoader?.Abort ();
-            AsyncLoader = null;
+		public void Clear()
+		{
+			AsyncLoader?.Abort();
+			AsyncLoader = null;
 
-            for ( int i = 0; i < Scripts.Count; i++ )
-            {
-                var plugin = Scripts [ i ];
-                if ( plugin.IsCore ) continue;
+			for (int i = 0; i < Scripts.Count; i++)
+			{
+				var plugin = Scripts[i];
+				if (plugin.IsCore) continue;
 
-                CarbonCore.Instance.Plugins.Plugins.Remove ( plugin.Instance );
+				CarbonCore.Instance.Plugins.Plugins.Remove(plugin.Instance);
 
-                if ( plugin.Instance != null )
-                {
-                    try
-                    {
-                        HookExecutor.CallStaticHook ( "OnPluginUnloaded", plugin.Instance );
-                        plugin.Instance.IUnload ();
-                        CarbonLoader.RemoveCommands ( plugin.Instance );
-                        plugin.Instance.Dispose ();
-                        CarbonCore.Log ( $"Unloaded plugin {plugin.Instance}" );
-                    }
-                    catch ( Exception ex ) { CarbonCore.Error ( $"Failed unloading '{plugin.Instance}'", ex ); }
-                }
+				if (plugin.Instance != null)
+				{
+					try
+					{
+						CarbonLoader.UninitializePlugin(plugin.Instance);
+					}
+					catch (Exception ex) { Carbon.Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
+				}
 
-                plugin.Dispose ();
-            }
+				plugin.Dispose();
+			}
 
-            if ( Scripts.Count > 0 )
-            {
-                Scripts.RemoveAll ( x => !x.IsCore );
-            }
-        }
-        protected void GetSources ()
-        {
-            Sources.Clear ();
+			if (Scripts.Count > 0)
+			{
+				Scripts.RemoveAll(x => !x.IsCore);
+			}
+		}
 
-            foreach ( var file in Files )
-            {
-                if ( !OsEx.File.Exists ( file ) )
-                {
-                    CarbonCore.Warn ( $"Plugin \"{file}\" does not exist or the path is misspelled." );
-                    continue;
-                }
+		public IEnumerator Compile()
+		{
+			if (string.IsNullOrEmpty(Source))
+			{
+				HasFinished = true;
+				Carbon.Logger.Warn("Attempted to compile an empty string of source code.");
+				yield break;
+			}
 
-                var source = OsEx.File.ReadText ( file );
-                Sources.Add ( source.Trim () );
-            }
-        }
-        protected void GetNamespaces ()
-        {
-            Namespaces.Clear ();
+			var lines = Source.Split('\n');
+			var resultReferences = Pool.GetList<string>();
+			foreach (var reference in lines)
+			{
+				try
+				{
+					if (reference.StartsWith("// Reference:") || reference.StartsWith("//Reference:"))
+					{
+						var @ref = $"{reference.Replace("// Reference:", "").Replace("//Reference:", "")}".Trim();
+						resultReferences.Add(@ref);
+						Carbon.Logger.Log($" Added reference: {@ref}");
+					}
+				}
+				catch { }
+			}
 
-            foreach ( var source in Sources )
-            {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) );
+			var resultRequires = Pool.GetList<string>();
+			foreach (var require in lines)
+			{
+				try
+				{
+					if (require.StartsWith("// Requires:") || require.StartsWith("//Requires:"))
+					{
 
-                foreach ( var usingLine in usingLines )
-                {
-                    if ( Namespaces.Exists ( x => x == usingLine ) )
-                    {
-                        continue;
-                    }
+						var @ref = $"{require.Replace("// Requires:", "").Replace("//Requires:", "")}".Trim();
+						resultRequires.Add(@ref);
+						Carbon.Logger.Log($" Added required plugin: {@ref}");
+					}
+				}
+				catch { }
+			}
 
-                    Namespaces.Add ( usingLine );
-                }
-            }
+			Pool.Free(ref lines);
+			AsyncLoader.FilePath = File;
+			AsyncLoader.Source = Source;
+			AsyncLoader.References = resultReferences?.ToArray();
+			AsyncLoader.Requires = resultRequires?.ToArray();
+			Pool.FreeList(ref resultReferences);
+			Pool.FreeList(ref resultRequires);
 
-            Namespaces = Namespaces.OrderBy ( x => x ).ToList ();
-        }
-        protected void GetFullSource ()
-        {
-            Source = StringArrayEx.ToString ( Namespaces.ToArray (), "\n", "\n" ) + "\n\n";
+			HasRequires = AsyncLoader.Requires.Length > 0;
 
-            foreach ( var source in Sources )
-            {
-                var usingLines = source.Split ( '\n' ).Where ( x => x.Trim ().ToLower ().StartsWith ( "using" ) && x.Trim ().ToLower ().EndsWith ( ";" ) ).ToArray ();
-                var usingLinesString = usingLines.Length == 0 ? "" : StringArrayEx.ToString ( usingLines, "\n", "\n" );
+			while (HasRequires && !CarbonCore.Instance.ScriptProcessor.AllNonRequiresScriptsComplete())
+			{
+				yield return _serverExhale;
+				yield return null;
+			}
 
-                var fixedSource = string.IsNullOrEmpty ( usingLinesString ) ? source.Trim () : source.Replace ( usingLinesString, "" ).Trim ();
-                Source += fixedSource + "\n\n";
-            }
-        }
+			var requires = Pool.GetList<Plugin>();
+			var noRequiresFound = false;
+			foreach (var require in AsyncLoader.Requires)
+			{
+				var plugin = CarbonCore.Instance.CorePlugin.plugins.Find(require);
+				if (plugin == null)
+				{
+					Carbon.Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
+					noRequiresFound = true;
+				}
+				else requires.Add(plugin);
+			}
 
-        public IEnumerator Compile ( GameObject target = null )
-        {
-            if ( string.IsNullOrEmpty ( Source ) )
-            {
-                CarbonCore.Warn ( "Attempted to compile an empty string of source code." );
-                yield break;
-            }
+			if (noRequiresFound)
+			{
+				HasFinished = true;
+				Pool.FreeList(ref requires);
+				yield break;
+			}
 
-            var lines = Source.Split ( '\n' );
-            var resultReferences = Pool.GetList<string> ();
-            foreach ( var reference in lines )
-            {
-                try
-                {
-                    if ( reference.StartsWith ( "// Reference:" ) || reference.StartsWith ( "//Reference:" ) )
-                    {
+			Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
 
-                        var @ref = $"{reference.Replace ( "// Reference:", "" ).Replace ( "//Reference:", "" )}.dll".Trim ();
-                        resultReferences.Add ( @ref );
-                        CarbonCore.Log ( $" Added reference: {@ref}" );
-                    }
-                }
-                catch { }
-            }
+			var requiresResult = requires.ToArray();
 
-            var resultRequires = Pool.GetList<string> ();
-            foreach ( var require in lines )
-            {
-                try
-                {
-                    if ( require.StartsWith ( "// Requires:" ) || require.StartsWith ( "//Requires:" ) )
-                    {
+			AsyncLoader.Start();
 
-                        var @ref = $"{require.Replace ( "// Requires:", "" ).Replace ( "//Requires:", "" )}".Trim ();
-                        resultRequires.Add ( @ref );
-                        CarbonCore.Log ( $" Added required plugin: {@ref}" );
-                    }
-                }
-                catch { }
-            }
+			while (AsyncLoader != null && !AsyncLoader.IsDone) { yield return null; }
 
-            Pool.Free ( ref lines );
-            if ( Files.Count > 0 ) AsyncLoader.FilePath = Files [ 0 ];
-            AsyncLoader.Source = Source;
-            AsyncLoader.References = resultReferences?.ToArray ();
-            AsyncLoader.Requires = resultRequires?.ToArray ();
-            Pool.FreeList ( ref resultReferences );
-            Pool.FreeList ( ref resultRequires );
+			if (AsyncLoader == null)
+			{
+				HasFinished = true;
+				yield break;
+			}
 
-            var requires = Pool.GetList<Plugin> ();
-            var noRequiresFound = false;
-            foreach ( var require in AsyncLoader.Requires )
-            {
-                var plugin = CarbonCore.Instance.CorePlugin.plugins.Find ( require );
-                if ( plugin == null )
-                {
-                    CarbonCore.Warn ( $"Couldn't find required plugin '{require}' for '{( Files.Count > 0 ? Path.GetFileNameWithoutExtension ( Files [ 0 ] ) : "<unknown>" )}'" );
-                    noRequiresFound = true;
-                }
-                else requires.Add ( plugin );
-            }
+			if (AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0)
+			{
+				Carbon.Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
+				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
+				{
+					var error = AsyncLoader.Exceptions[i];
+					Carbon.Logger.Error($"  {i + 1:n0}. {error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})");
+				}
 
-            if ( noRequiresFound )
-            {
-                Pool.FreeList ( ref requires );
-                yield break;
-            }
+				HasFinished = true;
+				yield break;
+			}
 
-            AsyncLoader.Start ();
+			Carbon.Logger.Warn($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
 
-            while ( AsyncLoader != null && !AsyncLoader.IsDone ) { yield return null; }
+			CarbonLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
-            if ( AsyncLoader == null ) yield break;
+			var assembly = AsyncLoader.Assembly;
 
-            if ( AsyncLoader.Exceptions.Count != 0 )
-            {
-                CarbonCore.Error ( $"Failed compiling '{AsyncLoader.FilePath}' after {AsyncLoader.Retries} retries:" );
-                for ( int i = 0; i < AsyncLoader.Exceptions.Count; i++ )
-                {
-                    var error = AsyncLoader.Exceptions [ i ];
-                    CarbonCore.Error ( $"  {i + 1:n0}. {error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})" );
-                }
-                yield break;
-            }
+			foreach (var type in assembly.GetTypes())
+			{
+				try
+				{
+					if (string.IsNullOrEmpty(type.Namespace) ||
+						!(type.Namespace.Equals("Oxide.Plugins") ||
+						type.Namespace.Equals("Carbon.Plugins"))) continue;
 
-            CarbonCore.Warn ( $" Compiling '{( Files.Count > 0 ? Path.GetFileNameWithoutExtension ( Files [ 0 ] ) : "<unknown>" )}' took {AsyncLoader.CompileTime * 1000:0}ms..." );
+					if (CarbonCore.Instance.Config.HookValidation)
+					{
+						var counter = 0;
+						foreach (var hook in AsyncLoader.UnsupportedHooks[type])
+						{
+							Carbon.Logger.Warn($" Hook '{hook}' is not supported.");
+							counter++;
+						}
 
-            try
-            {
-                CarbonLoader.AssemblyCache.Add ( AsyncLoader.Assembly );
+						if (counter > 0)
+						{
+							Carbon.Logger.Warn($" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
+							Carbon.Logger.Warn("The plugin will not work as expected.");
+						}
+					}
 
-                var assembly = AsyncLoader.Assembly;
-                var pluginIndex = 0;
+					var info = type.GetCustomAttribute(typeof(InfoAttribute), true) as InfoAttribute;
+					if (info == null) continue;
 
-                foreach ( var type in assembly.GetTypes () )
-                {
-                    if ( !( type.Namespace.Equals ( "Oxide.Plugins" ) ||
-                        type.Namespace.Equals ( "Carbon.Plugins" ) ) ) continue;
+					if (requires.Any(x => x.Name == info.Title)) continue;
 
-                    var info = type.GetCustomAttribute ( typeof ( InfoAttribute ), true ) as InfoAttribute;
-                    var description = type.GetCustomAttribute ( typeof ( DescriptionAttribute ), true ) as DescriptionAttribute;
-                    var plugin = Script.Create ( Sources [ pluginIndex ], assembly, type );
+					var description = type.GetCustomAttribute(typeof(DescriptionAttribute), true) as DescriptionAttribute;
+					var plugin = Script.Create(Source, assembly, type);
 
-                    if ( info == null )
-                    {
-                        continue;
-                    }
+					plugin.Name = info.Title;
+					plugin.Author = info.Author;
+					plugin.Version = info.Version;
+					plugin.Description = description?.Description;
 
-                    plugin.Name = info.Title;
-                    plugin.Author = info.Author;
-                    plugin.Version = info.Version;
-                    plugin.Description = description?.Description;
+					if (CarbonLoader.InitializePlugin(type, out RustPlugin rustPlugin, preInit: p =>
+					{
+						p.Hooks = AsyncLoader.Hooks[type];
+						p.HookMethods = AsyncLoader.HookMethods[type];
+						p.PluginReferences = AsyncLoader.PluginReferences[type];
 
-                    plugin.Instance = Activator.CreateInstance ( type ) as RustPlugin;
-                    plugin.IsCore = IsCore;
-                    plugin.Instance.Requires = requires.ToArray ();
-                    plugin.Instance.SetProcessor ( CarbonCore.Instance.ScriptProcessor );
-                    plugin.Instance.CompileTime = AsyncLoader.CompileTime;
+						p.Requires = requiresResult;
+						p.SetProcessor(CarbonCore.Instance.ScriptProcessor);
+						p.CompileTime = AsyncLoader.CompileTime;
 
-                    plugin.Instance.CallHook ( "SetupMod", null, info.Title, info.Author, info.Version, plugin.Description );
-                    HookExecutor.CallStaticHook ( "OnPluginLoaded", plugin );
-                    plugin.Instance.IInit ();
-                    try { plugin.Instance.DoLoadConfig (); }
-                    catch ( Exception loadException )
-                    {
-                        plugin.Instance.LogError ( $"Failed loading config.", loadException );
-                    }
+						p.FilePath = AsyncLoader.FilePath;
+						p.FileName = AsyncLoader.FileName;
+					}))
+					{
+						plugin.Instance = rustPlugin;
+						plugin.IsCore = IsCore;
 
-                    if ( CarbonCore.IsServerFullyInitialized )
-                    {
-                        try { plugin.Instance.CallHook ( "OnServerInitialized" ); }
-                        catch ( Exception initException )
-                        {
-                            plugin.Instance.LogError ( $"Failed OnServerInitialized.", initException );
-                        }
-                    }
+						CarbonLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
+						CarbonCore.Instance.Plugins.Plugins.Add(rustPlugin);
+						Scripts.Add(plugin);
 
-                    plugin.Loader = this;
+						Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);
+					}
+				}
+				catch (Exception exception)
+				{
+					HasFinished = true;
+					Carbon.Logger.Error($"Failed to compile: ", exception);
+				}
 
-                    CarbonLoader.AppendAssembly ( plugin.Name, AsyncLoader.Assembly );
-                    CarbonCore.Instance.Plugins.Plugins.Add ( plugin.Instance );
+				yield return _serverExhale;
+			}
 
-                    if ( info != null )
-                    {
-                        DebugEx.Log ( $"Loaded plugin {info.Title} v{info.Version} by {info.Author}" );
-                    }
+			foreach (var uhList in AsyncLoader.UnsupportedHooks)
+			{
+				uhList.Value.Clear();
+			}
 
-                    CarbonLoader.ProcessCommands ( type, plugin.Instance );
+			foreach (var plugin in CarbonCore.Instance.Plugins.Plugins)
+			{
+				plugin.InternalApplyPluginReferences();
+			}
 
-                    Scripts.Add ( plugin );
-                }
-            }
-            catch ( Exception exception )
-            {
-                CarbonCore.Error ( $"Failed to compile: ", exception );
-            }
+			AsyncLoader.Hooks.Clear();
+			AsyncLoader.UnsupportedHooks.Clear();
+			AsyncLoader.HookMethods.Clear();
+			AsyncLoader.PluginReferences.Clear();
 
-            Pool.FreeList ( ref requires );
+			AsyncLoader.Hooks = null;
+			AsyncLoader.UnsupportedHooks = null;
+			AsyncLoader.HookMethods = null;
+			AsyncLoader.PluginReferences = null;
 
-            yield break;
-        }
+			HasFinished = true;
 
-        public void Dispose ()
-        {
+			if (CarbonCore.Instance.ScriptProcessor.AllPendingScriptsComplete())
+			{
+				CarbonLoader.OnPluginProcessFinished();
+			}
 
-        }
+			Pool.FreeList(ref requires);
+			yield return null;
+		}
 
-        [Serializable]
-        public class Script : IDisposable
-        {
-            public Assembly Assembly { get; set; }
-            public Type Type { get; set; }
+		public void Dispose()
+		{
 
-            public string Name;
-            public string Author;
-            public VersionNumber Version;
-            public string Description;
-            public string Source;
-            public ScriptLoader Loader;
-            public RustPlugin Instance;
-            public bool IsCore;
+		}
 
-            public static Script Create ( string source, Assembly assembly, Type type )
-            {
-                return new Script
-                {
-                    Source = source,
-                    Assembly = assembly,
-                    Type = type,
+		[Serializable]
+		public class Script : IDisposable
+		{
+			public Assembly Assembly { get; set; }
+			public Type Type { get; set; }
 
-                    Name = null,
-                    Author = null,
-                    Version = new VersionNumber ( 1, 0, 0 ),
-                    Description = null,
-                };
-            }
+			public string Name;
+			public string Author;
+			public VersionNumber Version;
+			public string Description;
+			public string Source;
+			public ScriptLoader Loader;
+			public RustPlugin Instance;
+			public bool IsCore;
 
-            public void Dispose ()
-            {
-                Assembly = null;
-                Type = null;
-            }
+			public static Script Create(string source, Assembly assembly, Type type)
+			{
+				return new Script
+				{
+					Source = source,
+					Assembly = assembly,
+					Type = type,
 
-            public override string ToString ()
-            {
-                return $"{Name} v{Version}";
-            }
-        }
-    }
+					Name = null,
+					Author = null,
+					Version = new VersionNumber(1, 0, 0),
+					Description = null,
+				};
+			}
+
+			public void Dispose()
+			{
+				Assembly = null;
+				Type = null;
+			}
+
+			public override string ToString()
+			{
+				return $"{Name} v{Version}";
+			}
+		}
+	}
 }
