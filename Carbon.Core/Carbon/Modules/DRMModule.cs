@@ -65,18 +65,6 @@ namespace Carbon.Core.Modules
 
 			#endregion
 
-			public void Initialize()
-			{
-				Validate();
-
-				Mod.Name = $"{Name} DRM";
-				CarbonLoader._loadedMods.Add(Mod);
-			}
-			public void Uninitialize()
-			{
-				CarbonLoader._loadedMods.Remove(Mod);
-			}
-
 			public void Validate()
 			{
 				if (string.IsNullOrEmpty(ValidationEndpoint))
@@ -101,6 +89,18 @@ namespace Carbon.Core.Modules
 				}, null);
 			}
 
+			public void Initialize()
+			{
+				Validate();
+
+				Mod.Name = $"{Name} DRM";
+				CarbonLoader._loadedMods.Add(Mod);
+			}
+			public void Uninitialize()
+			{
+				CarbonLoader._loadedMods.Remove(Mod);
+			}
+
 			public void Launch()
 			{
 				foreach (var entry in Entries)
@@ -111,13 +111,29 @@ namespace Carbon.Core.Modules
 
 						try
 						{
-							var bytes = Convert.FromBase64String(data);
-							var assembly = Assembly.Load(bytes);
+							var response = JsonConvert.DeserializeObject<DRMDownloadResponse>(data);
 
-							foreach (var type in assembly.GetTypes())
+							switch (response.FileType)
 							{
-								CarbonLoader.InitializePlugin(type, out var plugin, Mod);
+								case DRMDownloadResponse.FileTypes.Script:
+									var loader = new ScriptLoader
+									{
+										Source = DecodeBase64(response.Data)
+									};
+									loader.Load();
+									break;
+
+								case DRMDownloadResponse.FileTypes.DLL:
+									var source = Convert.FromBase64String(response.Data);
+									var assembly = Assembly.Load(source);
+
+									foreach (var type in assembly.GetTypes())
+									{
+										CarbonLoader.InitializePlugin(type, out var plugin, Mod);
+									}
+									break;
 							}
+
 						}
 						catch (Exception ex)
 						{
@@ -126,12 +142,34 @@ namespace Carbon.Core.Modules
 					}, null);
 				}
 			}
+
+			public static string EncodeBase64(string value)
+			{
+				return Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+			}
+
+			public static string DecodeBase64(string value)
+			{
+				return Encoding.UTF8.GetString(Convert.FromBase64String(value));
+			}
 		}
 
 		public class DRMEntry
 		{
 			public string Id { get; set; }
 			public string PrivateKey { get; set; }
+		}
+
+		public class DRMDownloadResponse
+		{
+			public FileTypes FileType { get; set; }
+			public string Data { get; set; }
+
+			public enum FileTypes
+			{
+				Script = 0,
+				DLL = 1
+			}
 		}
 	}
 
