@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using Carbon.Core;
 using Carbon.Core.Processors;
-using Harmony;
+using Facepunch;
+using HarmonyLib;
 using Newtonsoft.Json;
+using Oxide.Core;
 
 namespace Oxide.Plugins
 {
@@ -31,6 +33,9 @@ namespace Oxide.Plugins
 		[JsonProperty]
 		public double CompileTime { get; internal set; }
 
+		public string FilePath { get; set; }
+		public string FileName { get; set; }
+
 		public override void TrackStart()
 		{
 			if (IsCorePlugin) return;
@@ -50,7 +55,7 @@ namespace Oxide.Plugins
 
 		internal BaseProcessor _processor;
 
-		public HarmonyInstance Harmony;
+		public object Harmony;
 
 		public static implicit operator bool(Plugin other)
 		{
@@ -61,9 +66,9 @@ namespace Oxide.Plugins
 		{
 			foreach (var hook in Hooks)
 			{
-				CarbonCore.Instance.Addon.UnappendHook(hook);
+				CarbonCore.Instance.HookProcessor.UnappendHook(hook);
 			}
-			Carbon.Logger.Log(Name, $"Unprocessed hooks");
+			Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 		}
 
 		public virtual void IInit()
@@ -81,23 +86,23 @@ namespace Oxide.Plugins
 					else list.Add(method);
 				}
 			}
-			Carbon.Logger.Debug(Name, $"Installed hook method attributes");
+			Carbon.Logger.Debug(Name, "Installed hook method attributes");
 
 			using (TimeMeasure.New($"Processing PluginReferences on '{this}'"))
 			{
 				InternalApplyPluginReferences();
 			}
-			Carbon.Logger.Debug(Name, $"Assigned plugin references");
+			Carbon.Logger.Debug(Name, "Assigned plugin references");
 
 			using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 			{
 				foreach (var hook in Hooks)
 				{
-					CarbonCore.Instance.Addon.InstallHooks(hook);
-					CarbonCore.Instance.Addon.AppendHook(hook);
+					CarbonCore.Instance.HookProcessor.InstallHooks(hook);
+					CarbonCore.Instance.HookProcessor.AppendHook(hook);
 				}
 			}
-			Carbon.Logger.Debug(Name, $"Processed hooks");
+			Carbon.Logger.Debug(Name, "Processed hooks");
 
 			CallHook("Init");
 		}
@@ -133,6 +138,35 @@ namespace Oxide.Plugins
 				PluginReferences = null;
 				HookMethodAttributeCache = null;
 			}
+
+			using (TimeMeasure.New($"IUnload.UnloadRequirees on '{this}'"))
+			{
+				var mods = Pool.GetList<CarbonLoader.CarbonMod>();
+				mods.AddRange(CarbonLoader._loadedMods);
+				var plugins = Pool.GetList<Plugin>();
+
+				foreach (var mod in CarbonLoader._loadedMods)
+				{
+					plugins.Clear();
+					plugins.AddRange(mod.Plugins);
+
+					foreach (var plugin in plugins)
+					{
+						if (plugin.Requires != null && plugin.Requires.Contains(this))
+						{
+							switch (plugin._processor)
+							{
+								case ScriptProcessor script:
+									plugin._processor.Get<ScriptProcessor.Script>(plugin.FileName).Dispose();
+									break;
+							}
+						}
+					}
+				}
+
+				Pool.FreeList(ref mods);
+				Pool.FreeList(ref plugins);
+			}
 		}
 		internal void InternalApplyPluginReferences()
 		{
@@ -162,16 +196,21 @@ namespace Oxide.Plugins
 
 		public void PatchPlugin(Assembly assembly = null)
 		{
+			UnpatchPlugin();
+
 			if (assembly == null) assembly = Assembly.GetExecutingAssembly();
 
-			Harmony = null;
-			Harmony = HarmonyInstance.Create(Name + "Patches");
-			Harmony.PatchAll(assembly);
+			var patch = new HarmonyLib.Harmony(Name + "Patches");
+			patch.PatchAll(assembly);
+			Harmony = patch;
 		}
 		public void UnpatchPlugin()
 		{
-			Harmony?.UnpatchAll(Harmony.Id);
-			Harmony = null;
+			if (Harmony is HarmonyLib.Harmony patch)
+			{
+				patch?.UnpatchAll(patch.Id);
+				Harmony = null;
+			}
 		}
 
 		public void SetProcessor(BaseProcessor processor)
@@ -357,7 +396,6 @@ namespace Oxide.Plugins
 		}
 
 		public bool IsLoaded { get; set; }
-		public bool HasInitialized { get; set; }
 
 		public new string ToString()
 		{

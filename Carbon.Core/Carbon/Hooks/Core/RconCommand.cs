@@ -39,7 +39,7 @@ public class RconCommand
 					}
 					catch (Exception ex)
 					{
-						Logger.Error("RconCommand_OnCommand", ex);
+						Carbon.Logger.Error("RconCommand_OnCommand", ex);
 					}
 
 					break;

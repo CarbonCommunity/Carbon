@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Carbon.Core;
-using Humanlights.Extensions;
+using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
@@ -57,7 +57,7 @@ namespace Oxide.Plugins
 			Manager = new PluginManager();
 			plugins = new Plugins();
 			timer = new Timers(this);
-			lang = new Language();
+			lang = new Language(this);
 			mod = new OxideMod();
 			rust = new Game.Rust.Libraries.Rust();
 			webrequest = new WebRequests();
@@ -91,20 +91,77 @@ namespace Oxide.Plugins
 			base.Dispose();
 		}
 
-		public void Puts(object message) => Carbon.Logger.Log(Name, message);
-		public void Puts(string format, params object[] args) => Carbon.Logger.Format($"[{Name}] {format}", args);
-		public void Log(string message) => Carbon.Logger.Log(Name, message);
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'NOTICE'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		public void Puts(object message)
+			=> Carbon.Logger.Log($"[{Name}] {message}");
 
-		public void LogWarning(string message) => Carbon.Logger.Warn(Name, message);
-		public void LogError(string message, Exception ex) => Carbon.Logger.Error(Name, message, ex);
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'NOTICE'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="args"></param>
+		public void Puts(string message, params object[] args)
+			=> Carbon.Logger.Log($"[{Name}] {string.Format(message, args)}");
 
-		public void LogError(string message) => Carbon.Logger.Error(Name, message);
-		public void PrintWarning(string format, params object[] args) => Carbon.Logger.WarnFormat($"[{Name}] {format}", args);
-		public void PrintError(string format, params object[] args) => Carbon.Logger.ErrorFormat($"[{Name}] {format}", null, args);
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'NOTICE'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		public void Log(string message)
+			=> Carbon.Logger.Log($"[{Name}] {message}");
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'WARNING'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		public void LogWarning(string message)
+			=> Carbon.Logger.Warn($"[{Name}] {message}");
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'ERROR'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="ex"></param>
+		public void LogError(string message, Exception ex)
+			=> Carbon.Logger.Error($"[{Name}] {message}", ex);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'ERROR'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		public void LogError(string message)
+			=> Carbon.Logger.Error($"[{Name}] {message}", null);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'WARNING'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="args"></param>
+		public void PrintWarning(string format, params object[] args)
+			=> Carbon.Logger.Warn($"[{Name}] {string.Format(format, args)}");
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'ERROR'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="args"></param>
+		public void PrintError(string format, params object[] args)
+			=> Carbon.Logger.Error($"[{Name}] {string.Format(format, args)}");
 
 		protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 		{
-			var text2 = Path.Combine(CarbonCore.GetLogsFolder(), plugin.Name);
+			var text2 = Path.Combine(CarbonDefines.GetLogsFolder(), plugin.Name);
 
 			if (!Directory.Exists(text2))
 			{
@@ -123,7 +180,7 @@ namespace Oxide.Plugins
 			writer.WriteLine(timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text);
 		}
 
-		public void DoLoadConfig()
+		public void ILoadConfig()
 		{
 			LoadConfig();
 		}

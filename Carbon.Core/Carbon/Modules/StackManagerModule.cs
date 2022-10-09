@@ -14,21 +14,22 @@ namespace Carbon.Core.Modules
 		public override string Name => "StackManager";
 		public override Type Type => typeof(StackManagerModule);
 
-		public override void Init()
+		private void OnServerInitialized()
 		{
-			base.Init();
-
 			var hasChanged = false;
-			foreach (var item in ItemManager.itemDictionary)
+			foreach (var item in ItemManager.itemList)
 			{
-				if (DataInstance.ItemMapping.ContainsKey(item.Value.itemid)) continue;
+				if (DataInstance.ItemMapping.ContainsKey(item.itemid)) continue;
 
-				DataInstance.ItemMapping.Add(item.Value.itemid, item.Value.stackable);
+				DataInstance.ItemMapping.Add(item.itemid, item.stackable);
 				hasChanged = true;
 			}
 
 			if (hasChanged) Save();
+
+			OnEnableStatus();
 		}
+
 		public override void OnEnabled(bool initialized)
 		{
 			base.OnEnabled(initialized);

@@ -24,7 +24,7 @@ namespace Carbon.Core.Processors
 				}
 				catch (Exception ex)
 				{
-					Logger.Error($"Error disposing {File}", ex);
+					Carbon.Logger.Error($"Error disposing {File}", ex);
 				}
 
 				_loader = null;
@@ -37,15 +37,15 @@ namespace Carbon.Core.Processors
 
 					CarbonCore.Instance.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
 					{
-						Logger.Log($"Downloaded '{File}': {result.Length}");
+						Carbon.Logger.Log($"Downloaded '{File}': {result.Length}");
 
-						_loader.Sources.Add(result);
-						_loader.Load(customFiles: true, customSources: true);
+						_loader.Source = result;
+						_loader.Load();
 					}, CarbonCore.Instance.CorePlugin);
 				}
 				catch (Exception ex)
 				{
-					Logger.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
+					Carbon.Logger.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
 				}
 			}
 		}

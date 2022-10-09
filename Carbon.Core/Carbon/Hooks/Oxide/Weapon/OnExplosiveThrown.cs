@@ -45,7 +45,7 @@ namespace Carbon.Extended
 
 			baseEntity.creatorEntity = msg.player;
 			baseEntity.skinID = __instance.skinID;
-			baseEntity.SetVelocity(__instance.GetInheritedVelocity(msg.player) + normalized * __instance.maxThrowVelocity * d + msg.player.estimatedVelocity * 0.5f);
+			baseEntity.SetVelocity(__instance.GetInheritedVelocity(msg.player, normalized) + normalized * __instance.maxThrowVelocity * d + msg.player.estimatedVelocity * 0.5f);
 			if (__instance.tumbleVelocity > 0f)
 			{
 				baseEntity.SetAngularVelocity(new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f)) * __instance.tumbleVelocity);

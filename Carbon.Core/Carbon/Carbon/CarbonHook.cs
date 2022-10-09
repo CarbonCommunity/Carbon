@@ -104,7 +104,8 @@ public class Hook : Attribute
 			Server,
 			World,
 			Shop,
-			Elevator
+			Elevator,
+			Special
 		}
 
 		public Category(Enum @enum)

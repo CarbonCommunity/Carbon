@@ -1,27 +1,19 @@
-# 
-#   ______ _______ ______ ______ _______ _______ 
-#  |      |   _   |   __ \   __ \       |    |  |
-#  |   ---|       |      <   __ <   -   |       |
-#  |______|___|___|___|__|______/_______|__|____|
-#                         discord.gg/eXPcNKK4yd
-# 
+###
+### Copyright (c) 2022 Carbon Community 
+### All rights reserved
+### 
 name: Staging Build
 concurrency: build-2-staging
 
 on:
+  schedule:
+    - cron: '0 5 * * 0'
+
   push:
     branches:
       - staging
 
-  schedule:
-    - cron: '0 5 * * 0'
-
-  workflow_run:
-    workflows: [ "branch-merge" ]
-    types:
-      - completed
-    branches:
-      - staging
+  workflow_dispatch:
 
 jobs:
   bootstrap:
@@ -35,6 +27,9 @@ jobs:
       ref:   ${{ steps.step1.outputs.ref }}
 
     steps:
+      - name: 🪵 Log environment
+        uses: crazy-max/ghaction-dump-context@v1
+
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
         with:

@@ -5,13 +5,14 @@
 
 using System;
 using System.IO;
+using System.Linq;
 
 namespace Carbon.Core.Processors
 {
 	public class ScriptProcessor : BaseProcessor
 	{
 		public override bool EnableWatcher => CarbonCore.IsConfigReady ? CarbonCore.Instance.Config.ScriptWatchers : true;
-		public override string Folder => CarbonCore.GetPluginsFolder();
+		public override string Folder => CarbonDefines.GetPluginsFolder();
 		public override string Extension => ".cs";
 		public override Type IndexedType => typeof(Script);
 
@@ -22,6 +23,18 @@ namespace Carbon.Core.Processors
 				if (instance.Value is Script script)
 				{
 					if (script._loader != null && !script._loader.HasFinished) return false;
+				}
+			}
+
+			return true;
+		}
+		public bool AllNonRequiresScriptsComplete()
+		{
+			foreach (var instance in InstanceBuffer)
+			{
+				if (instance.Value is Script script)
+				{
+					if (script._loader != null && !script._loader.HasRequires && !script._loader.HasFinished) return false;
 				}
 			}
 
@@ -42,7 +55,7 @@ namespace Carbon.Core.Processors
 				}
 				catch (Exception ex)
 				{
-					Logger.Error($"Error disposing {File}", ex);
+					Carbon.Logger.Error($"Error disposing {File}", ex);
 				}
 
 				_loader = null;
@@ -53,12 +66,12 @@ namespace Carbon.Core.Processors
 				{
 					_loader = new ScriptLoader();
 					_loader.Parser = Parser;
-					_loader.Files.Add(File);
-					_loader.Load(true);
+					_loader.File = File;
+					_loader.Load();
 				}
 				catch (Exception ex)
 				{
-					Logger.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
+					Carbon.Logger.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
 				}
 			}
 		}
@@ -67,7 +80,10 @@ namespace Carbon.Core.Processors
 		{
 			public override void Process(string input, out string output)
 			{
-				output = input.Replace(".IPlayer", ".AsIPlayer()");
+				output = input
+					.Replace(".IPlayer", ".AsIPlayer()")
+					.Replace("using Harmony;", "using HarmonyLib;")
+					.Replace("new HarmonyInstance", "new Harmony");
 			}
 		}
 	}

@@ -20,13 +20,10 @@ namespace Carbon.Extended
 	{
 		public static bool Prefix(ref BasePlayer __instance)
 		{
-			var spawnPoint = ServerMgr.FindSpawnPoint(__instance);
+			var spawnPoint = (BasePlayer.SpawnPoint)null;
 			var obj = HookExecutor.CallStaticHook("OnPlayerRespawn", __instance, spawnPoint);
 
-			if (obj is BasePlayer.SpawnPoint)
-			{
-				spawnPoint = (BasePlayer.SpawnPoint)obj;
-			}
+			if (obj is BasePlayer.SpawnPoint point) spawnPoint = point; else spawnPoint = ServerMgr.FindSpawnPoint(__instance);
 
 			__instance.RespawnAt(spawnPoint.pos, spawnPoint.rot);
 			return false;

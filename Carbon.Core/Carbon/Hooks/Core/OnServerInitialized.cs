@@ -15,7 +15,7 @@ public class OnServerInitialized
 	{
 		if (_call <= 0.5f) return;
 
-		ScriptLoader.OnFinished();
+		CarbonLoader.OnPluginProcessFinished();
 		_call = 0;
 	}
 }

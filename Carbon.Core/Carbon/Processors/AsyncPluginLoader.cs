@@ -11,10 +11,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Facepunch;
-using Humanlights.Extensions;
+using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Application = UnityEngine.Application;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Carbon.Core
 {
@@ -34,18 +35,33 @@ namespace Carbon.Core
 		public List<CompilerException> Exceptions = new List<CompilerException>();
 		internal RealTimeSince TimeSinceCompile;
 
-		internal static int _assemblyIndex = 0;
+		#region Fody
+
+		internal static Type _fodyAssemblyLoader { get; set; }
+		internal static FieldInfo _fodyAssemblyNames { get; set; }
+		internal static MethodInfo _fodyLoadStream { get; set; }
+
+		#endregion
+
 		internal static bool _hasInit { get; set; }
 		internal static void _doInit()
 		{
 			if (_hasInit) return;
 			_hasInit = true;
 
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.Humanlights_System)));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.Humanlights_Unity)));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.protobuf_net)));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(Properties.Resources.protobuf_net_Core)));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(CarbonCore.DllPath))));
+			_fodyAssemblyLoader = CarbonDefines.Carbon.GetType("Costura.AssemblyLoader");
+			_fodyAssemblyNames = _fodyAssemblyLoader.GetField("assemblyNames", BindingFlags.NonPublic | BindingFlags.Static);
+			_fodyLoadStream = _fodyAssemblyLoader.GetMethod("LoadStream", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string) }, default);
+
+			var fodyNames = _fodyAssemblyNames.GetValue(null) as Dictionary<string, string>;
+
+			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net.core"] }) as Stream));
+			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net"] }) as Stream));
+			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["1harmony"] }) as Stream));
+			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(CarbonDefines.DllPath))));
+
+			var managedFolder = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed");
+			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Path.Combine(managedFolder, "System.Drawing.dll")))));
 
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
@@ -69,22 +85,28 @@ namespace Carbon.Core
 		}
 		internal static void _overridePlugin(string name, byte[] pluginAssembly)
 		{
+			if (pluginAssembly == null) return;
+
 			var plugin = _getPlugin(name);
 			if (plugin == null)
 			{
-				_compilationCache.Add(name, pluginAssembly);
+				try { _compilationCache.Add(name, pluginAssembly); } catch { }
 				return;
 			}
 
 			Array.Clear(plugin, 0, plugin.Length);
-			_compilationCache[name] = pluginAssembly;
+			try { _compilationCache[name] = pluginAssembly; } catch { }
 		}
 
 		internal static MetadataReference _getReferenceFromCache(string reference)
 		{
 			if (!_referenceCache.TryGetValue(reference, out var metaReference))
 			{
-				_referenceCache.Add(reference, MetadataReference.CreateFromFile(Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed", $"{reference}.dll")));
+				var referencePath = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed", $"{reference}.dll");
+				var outReference = MetadataReference.CreateFromFile(referencePath);
+				if (outReference == null) return null;
+
+				_referenceCache.Add(reference, outReference);
 			}
 
 			return metaReference;
@@ -92,14 +114,19 @@ namespace Carbon.Core
 
 		internal List<MetadataReference> _addReferences()
 		{
-			var references = Pool.GetList<MetadataReference>();
+			var references = new List<MetadataReference>();
 			references.AddRange(_metadataReferences);
 
 			foreach (var reference in References)
 			{
 				if (string.IsNullOrEmpty(reference) || _metadataReferences.Any(x => x.Display.Contains(reference))) continue;
 
-				try { references.Add(_getReferenceFromCache(reference)); } catch { }
+				try
+				{
+					var outReference = _getReferenceFromCache(reference);
+					if (outReference != null && !references.Contains(outReference)) references.Add(outReference);
+				}
+				catch { }
 			}
 
 			return references;
@@ -140,8 +167,8 @@ namespace Carbon.Core
 				TimeSinceCompile = 0;
 
 				var references = _addReferences();
-				var tree = Pool.GetList<SyntaxTree>();
-				tree.Add(CSharpSyntaxTree.ParseText(Source));
+				var trees = new List<SyntaxTree>();
+				trees.Add(CSharpSyntaxTree.ParseText(Source));
 
 				foreach (var require in Requires)
 				{
@@ -154,7 +181,7 @@ namespace Carbon.Core
 				}
 
 				var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, warningLevel: 4);
-				var compilation = CSharpCompilation.Create($"{FileName}_{RandomEx.GetRandomInteger()}", tree, references, options);
+				var compilation = CSharpCompilation.Create($"{FileName}_{RandomEx.GetRandomInteger()}", trees, references, options);
 
 				using (var dllStream = new MemoryStream())
 				{
@@ -174,15 +201,25 @@ namespace Carbon.Core
 					if (emit.Success)
 					{
 						var assembly = dllStream.ToArray();
-						_overridePlugin(FileName, assembly);
-						Assembly = Assembly.Load(assembly);
+						if (assembly != null)
+						{
+							_overridePlugin(FileName, assembly);
+							Assembly = Assembly.Load(assembly);
+						}
 					}
+				}
+
+				if (Assembly == null)
+				{
+					throw null;
 				}
 
 				CompileTime = TimeSinceCompile;
 
-				Pool.FreeList(ref references);
-				Pool.FreeList(ref tree);
+				references.Clear();
+				references = null;
+				trees.Clear();
+				trees = null;
 
 				foreach (var type in Assembly.GetTypes())
 				{
@@ -202,7 +239,7 @@ namespace Carbon.Core
 							unsupportedHooks.Add(method.Name);
 						}
 
-						if (CarbonCore.Instance.Addon.DoesHookExist(method.Name))
+						if (CarbonCore.Instance.HookProcessor.DoesHookExist(method.Name))
 						{
 							if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
 						}
@@ -228,7 +265,7 @@ namespace Carbon.Core
 
 				if (Exceptions.Count > 0) throw null;
 			}
-			catch { }
+			catch (Exception ex) { Console.WriteLine($"Threading compilation failed ({ex.Message})\n{ex.StackTrace}"); }
 		}
 	}
 }

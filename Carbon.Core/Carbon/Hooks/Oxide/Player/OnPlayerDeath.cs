@@ -42,7 +42,7 @@ namespace Carbon.Extended
 
 				return false;
 			}
-			catch (Exception ex) { Logger.Error($"Failed OnPlayerDeath", ex); }
+			catch (Exception ex) { Carbon.Logger.Error($"Failed OnPlayerDeath", ex); }
 
 			return false;
 		}

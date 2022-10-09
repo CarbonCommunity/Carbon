@@ -124,7 +124,7 @@ namespace Carbon.Core
 				catch (Exception ex)
 				{
 					var exception = ex.InnerException ?? ex;
-					Logger.Error(
+					Carbon.Logger.Error(
 						$"Failed to call hook '{hookName}' on plugin '{plugin.Name} v{plugin.Version}'",
 						exception
 					);
@@ -144,7 +144,7 @@ namespace Carbon.Core
 
 				if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
 				{
-					Logger.WarnFormat($" {plugin?.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
+					Carbon.Logger.Warn($" {plugin?.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
 				}
 
 				return result;
@@ -165,7 +165,7 @@ namespace Carbon.Core
 			{
 				_lastDeprecatedWarningAt[oldHook] = now;
 
-				Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
+				Carbon.Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 			}
 
 			return CallDeprecatedHook(plugin, oldHook, newHook, expireDate, flags, args);
@@ -183,7 +183,7 @@ namespace Carbon.Core
 				var result = module.CallHook(hookName, flags: flag, args: args);
 				if (result != null && objectOverride != null)
 				{
-					Logger.WarnFormat($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
+					Carbon.Logger.Warn($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
 					break;
 				}
 
@@ -200,7 +200,7 @@ namespace Carbon.Core
 						var result = plugin.CallHook(hookName, flags: flag, args: args);
 						if (result != null && objectOverride != null)
 						{
-							Logger.WarnFormat($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
+							Carbon.Logger.Warn($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
 							break;
 						}
 
@@ -226,7 +226,7 @@ namespace Carbon.Core
 			{
 				_lastDeprecatedWarningAt[oldHook] = now;
 
-				Logger.Warn($"A plugin is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
+				Carbon.Logger.Warn($"A plugin is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 			}
 
 			return CallStaticHook(oldHook, flag, args);

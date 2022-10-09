@@ -23,7 +23,7 @@ public class Entities : IDisposable
 				Mapping.Add(type, new List<BaseEntity>(CarbonCore.Instance.Config.EntityMapBufferSize));
 			}
 
-			Logger.Warn($"Mapping {BaseNetworkable.serverEntities.Count:n0} entities... This will take a while.");
+			Carbon.Logger.Warn($"Mapping {BaseNetworkable.serverEntities.Count:n0} entities... This will take a while.");
 
 			using (TimeMeasure.New("Entity mapping"))
 			{
@@ -39,9 +39,9 @@ public class Entities : IDisposable
 				}
 			}
 
-			Logger.Warn($"Done mapping.");
+			Carbon.Logger.Warn($"Done mapping.");
 		}
-		catch (Exception ex) { Logger.Error($"Failed Entities.Init()", ex); }
+		catch (Exception ex) { Carbon.Logger.Error($"Failed Entities.Init()", ex); }
 	}
 
 	public void Dispose()
@@ -105,7 +105,7 @@ public class Entities : IDisposable
 			// EntityMapping.Add(entity.GetType(), map = new List<BaseEntity> { entity });
 		}
 
-		if (!map.Contains(entity)) map.Add(entity);
+		map.Add(entity);
 	}
 	public static void RemoveMap(BaseEntity entity)
 	{
@@ -114,7 +114,7 @@ public class Entities : IDisposable
 			return;
 		}
 
-		if (map.Contains(entity)) map.Remove(entity);
+		map.Remove(entity);
 	}
 
 	public struct Map<T> : IDisposable where T : BaseEntity

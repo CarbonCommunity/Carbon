@@ -9,8 +9,8 @@ using System.Linq;
 using Carbon.Core.Extensions;
 using Carbon.Core.Modules;
 using Facepunch;
-using Humanlights.Components;
-using Humanlights.Extensions;
+using Carbon.Components;
+using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 using UnityEngine;
@@ -25,7 +25,7 @@ namespace Carbon.Core
 		{
 			OrderedFiles.Clear();
 
-			foreach (var file in OsEx.Folder.GetFilesWithExtension(CarbonCore.GetPluginsFolder(), "cs"))
+			foreach (var file in OsEx.Folder.GetFilesWithExtension(CarbonDefines.GetPluginsFolder(), "cs"))
 			{
 				OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
 			}
@@ -81,7 +81,7 @@ namespace Carbon.Core
 				arg.Player().SendConsoleCommand($"echo {message}");
 				return;
 			}
-			Logger.Log(message);
+			Carbon.Logger.Log(message);
 		}
 
 		[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
@@ -122,7 +122,7 @@ namespace Carbon.Core
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", mod.IsAddon ? "Addon" : plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}ms", $"{plugin.CompileTime:0.0}s");
+							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime * 1000f:0.0}ms", $"{plugin.CompileTime * 1000f:0.0}ms");
 						}
 
 						count++;
@@ -141,9 +141,9 @@ namespace Carbon.Core
 			var body = new StringTable("#", "Hook", "Current Time", "Total Time", "Plugins Using");
 			var count = 1;
 
-			foreach (var mod in CarbonCore.Instance.Addon.Patches)
+			foreach (var mod in CarbonCore.Instance.HookProcessor.Patches)
 			{
-				if (!CarbonCore.Instance.Addon.Patches.TryGetValue(mod.Key, out var instance))
+				if (!CarbonCore.Instance.HookProcessor.Patches.TryGetValue(mod.Key, out var instance))
 				{
 					continue;
 				}
@@ -191,7 +191,6 @@ namespace Carbon.Core
 		[CommandVar("tag", "Displays this server in the browser list with the 'carbon' tag.", true)]
 		private bool CarbonTag { get { return CarbonCore.Instance.Config.CarbonTag; } set { CarbonCore.Instance.Config.CarbonTag = value; CarbonCore.Instance.SaveConfig(); } }
 
-		// TODO: Make this work with the global logger
 		[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true)]
 		private int CarbonDebug { get { return CarbonCore.Instance.Config.LogVerbosity; } set { CarbonCore.Instance.Config.LogVerbosity = value; CarbonCore.Instance.SaveConfig(); } }
 
@@ -203,6 +202,9 @@ namespace Carbon.Core
 
 		[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
 		private int EntityMapBufferSize { get { return CarbonCore.Instance.Config.EntityMapBufferSize; } set { CarbonCore.Instance.Config.EntityMapBufferSize = value; CarbonCore.Instance.SaveConfig(); } }
+
+		[CommandVar("language", "Server language used by the Language API.", true)]
+		private string Language { get { return CarbonCore.Instance.Config.Language; } set { CarbonCore.Instance.Config.Language = value; CarbonCore.Instance.SaveConfig(); } }
 
 		#endregion
 
@@ -244,6 +246,18 @@ namespace Carbon.Core
 			}
 
 			Reply(body.ToNewLine(), arg);
+		}
+
+		#endregion
+
+		#region Report
+
+		[ConsoleCommand("report", "Reloads all current plugins, and returns a report based on them at the output path.")]
+		private void Report(ConsoleSystem.Arg arg)
+		{
+			if (!arg.IsPlayerCalledAndAdmin()) return;
+
+			new Report().Init();
 		}
 
 		#endregion
@@ -353,7 +367,7 @@ namespace Carbon.Core
 					var path = GetPluginPath(name);
 					if (string.IsNullOrEmpty(path))
 					{
-						DebugEx.Warning($" Couldn't find plugin or mod with name '{name}'");
+						Logger.Warn($" Couldn't find plugin or mod with name '{name}'");
 						return;
 					}
 					CarbonCore.Instance.HarmonyProcessor.Prepare(name, path);
@@ -408,7 +422,7 @@ namespace Carbon.Core
 					var path = GetPluginPath(name);
 					if (string.IsNullOrEmpty(path))
 					{
-						DebugEx.Warning($" Couldn't find plugin with name '{name}'");
+						Logger.Warn($" Couldn't find plugin with name '{name}'");
 						return;
 					}
 
@@ -490,7 +504,7 @@ namespace Carbon.Core
 					var path = GetPluginPath(name);
 					if (string.IsNullOrEmpty(path))
 					{
-						DebugEx.Warning($" Couldn't find plugin with name '{name}'");
+						Logger.Warn($" Couldn't find plugin with name '{name}'");
 						return;
 					}
 
