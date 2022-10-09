@@ -287,6 +287,11 @@ namespace Carbon.Core
 #endif
 
 			Entities.Dispose();
+
+			foreach (var hook in HookProcessor.Patches)
+			{
+				HookProcessor.UninstallHooks(hook.Key);
+			}
 		}
 	}
 }

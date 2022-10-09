@@ -14,7 +14,9 @@ public class Debug_LogWarning
 	{
 		try
 		{
-			if (message.ToString().Contains("failed to sample navmesh at position") || message.ToString().Contains("not close enough to the NavMesh"))
+			if (message.ToString().Contains("failed to sample navmesh at position") ||
+				message.ToString().Contains("not close enough to the NavMesh") ||
+				message.ToString().Contains("AIInformationZone performing complete refresh, please wait"))
 			{
 				return false;
 			}
