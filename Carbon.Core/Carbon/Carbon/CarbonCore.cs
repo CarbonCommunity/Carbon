@@ -199,6 +199,8 @@ namespace Carbon.Core
 
 		public static void ReloadPlugins()
 		{
+			CarbonLoader.ClearAllRequirees();
+
 			CarbonLoader.LoadCarbonMods();
 			ScriptLoader.LoadAll();
 		}

@@ -20,6 +20,45 @@ namespace Carbon.Core
 	{
 		public static List<Assembly> AssemblyCache { get; } = new List<Assembly>();
 		public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new Dictionary<string, Assembly>();
+		public static Dictionary<string, List<string>> PendingRequirees { get; } = new Dictionary<string, List<string>>();
+
+		public static List<string> GetRequirees(Plugin initial)
+		{
+			if (PendingRequirees.TryGetValue(initial.FilePath, out var requirees))
+			{
+				return requirees;
+			}
+
+			return null;
+		}
+		public static void AddPendingRequiree(Plugin initial, Plugin requiree)
+		{
+			if (!PendingRequirees.TryGetValue(initial.FilePath, out var requirees))
+			{
+				PendingRequirees.Add(initial.FilePath, requirees = new List<string>(20));
+			}
+
+			requirees.Add(requiree.FilePath);
+		}
+		public static void ClearPendingRequirees(Plugin initial)
+		{
+			if (PendingRequirees.TryGetValue(initial.FilePath, out var requirees))
+			{
+				requirees.Clear();
+				PendingRequirees[initial.FilePath] = null;
+				PendingRequirees.Remove(initial.FilePath);
+			}
+		}
+		public static void ClearAllRequirees()
+		{
+			foreach (var requiree in PendingRequirees)
+			{
+				requiree.Value.Clear();
+				PendingRequirees[requiree.Key] = null;
+			}
+
+			PendingRequirees.Clear();
+		}
 
 		public static void AppendAssembly(string key, Assembly assembly)
 		{
@@ -88,6 +127,8 @@ namespace Carbon.Core
 		}
 		public static void UnloadCarbonMods()
 		{
+			ClearAllRequirees();
+
 			var list = Facepunch.Pool.GetList<CarbonMod>();
 			list.AddRange(_loadedMods);
 

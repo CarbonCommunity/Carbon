@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using Carbon;
 using Carbon.Core;
 using Carbon.Core.Processors;
 using Facepunch;
@@ -114,6 +116,22 @@ namespace Oxide.Plugins
 				CallHook("OnLoaded");
 				CallHook("Loaded");
 			}
+
+			using (TimeMeasure.New($"Load.PendingRequirees on '{this}'"))
+			{
+				var requirees = CarbonLoader.GetRequirees(this);
+
+				if (requirees != null)
+				{
+					foreach (var requiree in requirees)
+					{
+						Logger.Warn($" [{Name}] Loading '{Path.GetFileNameWithoutExtension(requiree)}' to parent's request: '{ToString()}'");
+						CarbonCore.Instance.ScriptProcessor.Prepare(requiree);
+					}
+
+					CarbonLoader.ClearPendingRequirees(this);
+				}
+			}
 		}
 		public virtual void IUnload()
 		{
@@ -157,6 +175,8 @@ namespace Oxide.Plugins
 							switch (plugin._processor)
 							{
 								case ScriptProcessor script:
+									Logger.Warn($" [{Name}] Unloading '{plugin.ToString()}' because parent '{ToString()}' has been unloaded.");
+									CarbonLoader.AddPendingRequiree(this, plugin);
 									plugin._processor.Get<ScriptProcessor.Script>(plugin.FileName).Dispose();
 									break;
 							}
