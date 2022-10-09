@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Carbon.Extended
 {
-	[OxideHook("CanBradleyApcTarget"), OxideHook.Category(Hook.Category.Enum.Entity)]
+	[OxideHook("CanBradleyApcTarget", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("this", typeof(BradleyAPC))]
 	[OxideHook.Parameter("entity", typeof(BaseEntity))]
 	[OxideHook.Info("Called when an APC targets an entity.")]
@@ -52,7 +52,7 @@ namespace Carbon.Extended
 			var obj = Interface.CallHook("CanBradleyApcTarget", __instance, ent);
 			if (obj is bool)
 			{
-				return (bool)obj;
+				__result = (bool)obj;
 			}
 
 			return false;
