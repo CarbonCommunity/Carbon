@@ -29,6 +29,7 @@ namespace Carbon.Core
 		public bool HasFinished { get; set; }
 		public bool HasRequires { get; set; }
 
+		public CarbonLoader.CarbonMod Mod { get; set; }
 		public BaseProcessor.Parser Parser { get; set; }
 		public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader();
 
@@ -38,7 +39,7 @@ namespace Carbon.Core
 		{
 			try
 			{
-				if (!string.IsNullOrEmpty(File)) Source = OsEx.File.ReadText(File);
+				if (!string.IsNullOrEmpty(File) && OsEx.File.Exists(File)) Source = OsEx.File.ReadText(File);
 
 				if (Parser != null)
 				{
@@ -254,7 +255,7 @@ namespace Carbon.Core
 					plugin.Version = info.Version;
 					plugin.Description = description?.Description;
 
-					if (CarbonLoader.InitializePlugin(type, out RustPlugin rustPlugin, preInit: p =>
+					if (CarbonLoader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
 					{
 						p.Hooks = AsyncLoader.Hooks[type];
 						p.HookMethods = AsyncLoader.HookMethods[type];
