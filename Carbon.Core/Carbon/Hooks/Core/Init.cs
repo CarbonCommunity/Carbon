@@ -5,9 +5,9 @@
 
 using Carbon.Core;
 
-[Hook.AlwaysPatched, Hook.Hidden]
-[Hook("IInit"), Hook.Category(Hook.Category.Enum.Core)]
-[Hook.Patch(typeof(Bootstrap), "StartupShared")]
+[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+[CarbonHook("IInit"), CarbonHook.Category(Hook.Category.Enum.Core)]
+[CarbonHook.Patch(typeof(Bootstrap), "StartupShared")]
 public class Init
 {
 	public static void Prefix()

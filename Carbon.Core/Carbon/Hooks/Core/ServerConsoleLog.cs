@@ -5,9 +5,9 @@
 
 using UnityEngine;
 
-[Hook.AlwaysPatched, Hook.Hidden]
-[Hook("IServerConsoleLog"), Hook.Category(Hook.Category.Enum.Core)]
-[Hook.Patch(typeof(ServerConsole), "HandleLog")]
+[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+[CarbonHook("IServerConsoleLog"), CarbonHook.Category(Hook.Category.Enum.Core)]
+[CarbonHook.Patch(typeof(ServerConsole), "HandleLog")]
 public class ServerConsoleLog
 {
 	public static bool Prefix(string message, string stackTrace, LogType type)

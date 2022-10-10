@@ -6,9 +6,9 @@
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-[Hook.AlwaysPatched, Hook.Hidden]
-[Hook("IDebugLogWarning"), Hook.Category(Hook.Category.Enum.Core)]
-[Hook.Patch(typeof(Debug), "LogWarning", true, typeof(object), typeof(Object))]
+[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+[CarbonHook("IDebugLogWarning"), CarbonHook.Category(Hook.Category.Enum.Core)]
+[CarbonHook.Patch(typeof(Debug), "LogWarning", true, typeof(object), typeof(Object))]
 public class Debug_LogWarning
 {
 	public static bool Prefix(object message, Object context)
