@@ -9,12 +9,12 @@ using Carbon.Core.Extensions;
 using Facepunch.Extend;
 using Oxide.Core;
 
-[Hook.AlwaysPatched]
-[Hook("OnCarbonCommand"), Hook.Category(Hook.Category.Enum.Core)]
-[Hook.Parameter("player", typeof(BasePlayer))]
-[Hook.Parameter("message", typeof(string))]
-[Hook.Info("Called whenever a Carbon server command is called.")]
-[Hook.Patch(typeof(ConsoleSystem), "Run")]
+[CarbonHook.AlwaysPatched]
+[CarbonHook("OnCarbonCommand"), CarbonHook.Category(Hook.Category.Enum.Core)]
+[CarbonHook.Parameter("player", typeof(BasePlayer))]
+[CarbonHook.Parameter("message", typeof(string))]
+[CarbonHook.Info("Called whenever a Carbon server command is called.")]
+[CarbonHook.Patch(typeof(ConsoleSystem), "Run")]
 public class CarbonConsoleCommand
 {
 	internal static string[] EmptyArgs = new string[0];
