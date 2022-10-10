@@ -195,9 +195,9 @@ namespace Carbon.Core.Modules
 
 				if (alreadyProcessedInstance != null)
 				{
-					PutsWarn($"Unloading '{entry.Id}' entry");
-					alreadyProcessedInstance.Dispose();
+					try { alreadyProcessedInstance.Dispose(); } catch { }
 					ProcessorInstances.Remove(alreadyProcessedInstance);
+					PutsWarn($"Unloading '{entry.Id}' entry");
 				}
 			}
 
