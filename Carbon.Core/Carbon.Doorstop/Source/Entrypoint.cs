@@ -3,8 +3,8 @@
 /// All rights reserved
 /// 
 
-using System;
 using System.Diagnostics;
+using Carbon;
 using Carbon.Utility;
 
 namespace Carbon
@@ -13,15 +13,29 @@ namespace Carbon
 	{
 		public void OnLoaded(OnHarmonyModLoadedArgs args)
 		{
-			Console.WriteLine(">> Carbon.Loader is using the Harmony entrypoint");
+			Logger.Log(">> Carbon.Loader using Harmony entrypoint");
+			if (Patcher.IsPatched()) return;
 
-			if (!Patcher.IsPatched() && Patcher.DoPatch())
-			{
-				Patcher.SpawnWorker();
-				Process.GetCurrentProcess().Kill();
-			}
+			Patcher.DoPatch();
+			Patcher.SpawnWorker();
+			Process.GetCurrentProcess().Kill();
 		}
 
 		public void OnUnloaded(OnHarmonyModUnloadedArgs args) { }
+	}
+}
+
+namespace Doorstop
+{
+	public class Entrypoint
+	{
+		public static void Start()
+		{
+			Logger.Log(">> Carbon.Loader using UnityDoorstop entrypoint");
+			if (Patcher.IsPatched()) return;
+
+			Patcher.DoPatch();
+			Patcher.DoCopy();
+		}
 	}
 }

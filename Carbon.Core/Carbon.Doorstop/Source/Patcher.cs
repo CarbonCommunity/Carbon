@@ -47,15 +47,14 @@ namespace Carbon.Utility
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("ERROR! Cannot get the assembly type.");
-				Console.WriteLine(ex.Message);
+				Logger.Error("Coulnd't get reflection for 'ServerMgr'.", ex);
 				return false;
 			}
 		}
 
 		public static bool DoPatch()
 		{
-			Console.WriteLine(
+			Logger.None(
 				"  __.-._  " + Environment.NewLine +
 				"  '-._\"7'    Assembly-CSharp.dll not patched." + Environment.NewLine +
 				"   /'.-c     Execute the carbon publicizer you must." + Environment.NewLine +
@@ -66,10 +65,29 @@ namespace Carbon.Utility
 			return Publicizer.Publicize(Path.Combine(Managed, "Assembly-CSharp.dll"));
 		}
 
+		public static bool DoCopy()
+		{
+			try
+			{
+				string Publicized = Path.Combine(Managed, "__Assembly-CSharp.dll");
+				string Original = Path.Combine(Managed, "Assembly-CSharp.dll");
+				string Backup = Path.Combine(Managed, "Assembly-CSharp-backup.dll");
+
+				if (File.Exists(Backup)) File.Delete(Backup);
+				File.Move(Original, Backup);
+				File.Move(Publicized, Original);
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Logger.Error("Unable to replace 'Assembly-CSharp.dll'", ex);
+				return false;
+			}
+		}
+
 		public static void SpawnWorker()
 		{
-			Console.WriteLine($">> {Tools}");
-
 			Process Handler = new Process
 			{
 				EnableRaisingEvents = true,

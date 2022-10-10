@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using Mono.Cecil;
 
 namespace Carbon.Utility
@@ -26,12 +27,11 @@ namespace Carbon.Utility
 
 				string f = Path.Combine(WorkingPath, WorkingFile);
 				assembly = AssemblyDefinition.ReadAssembly(f);
-				Console.WriteLine($"Loaded '{f}'");
+				Logger.Log($"Loaded '{f}'");
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("Error reading assembly from file");
-				Console.WriteLine(ex.Message);
+				Logger.Error("Error reading assembly from file", ex);
 				return false;
 			}
 
@@ -39,17 +39,16 @@ namespace Carbon.Utility
 			{
 				/// DISCLAIMER
 				/// Some of the following code is based on BepInEx/NStrip
-				/// Copyright (c) 2021 BepInEx, release under MIT License
+				/// Copyright (c) 2021 BepInEx, released under MIT License
 				AssemblyNameReference scope = assembly.MainModule.AssemblyReferences.OrderByDescending(
 							a => a.Version).FirstOrDefault(a => a.Name == "mscorlib");
-
 				MethodReference nsAttributeCtor = null;
 				nsAttributeCtor = new MethodReference(".ctor", assembly.MainModule.TypeSystem.Void, new TypeReference(
 					"System", "NonSerializedAttribute", assembly.MainModule, scope))
 				{ HasThis = true };
 				/// EOD
 
-				Console.WriteLine("Publicize process will execute..");
+				Logger.Log("Publicize process will execute..");
 
 				foreach (TypeDefinition Type in assembly.MainModule.Types)
 				{
@@ -69,7 +68,7 @@ namespace Carbon.Utility
 					{
 						/// DISCLAIMER
 						/// Some of the following code is based on BepInEx/NStrip
-						/// Copyright (c) 2021 BepInEx, release under MIT License
+						/// Copyright (c) 2021 BepInEx, released under MIT License
 						if (nsAttributeCtor != null && !Field.IsPublic &&
 							!Field.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField"))
 						{
@@ -84,31 +83,31 @@ namespace Carbon.Utility
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("Publicize process aborted");
-				Console.WriteLine(ex.Message);
+				Logger.Error("Publicize process aborted", ex);
 				return false;
 			}
 
 			try
 			{
 				string f = Path.Combine(WorkingPath, $"__{WorkingFile}");
+				Logger.Log($"Writing changes to '{f}'..");
 				assembly.Write(f);
-				Console.WriteLine($"Writing changes to '{f}'..");
+				assembly.Dispose();
 
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("Error saving assembly to file");
-				Console.WriteLine(ex.Message);
+				Logger.Error("Error saving assembly to file", ex);
 				return false;
 			}
 
+			assembly = null;
 			return true;
 		}
 
 		/// DISCLAIMER
 		/// Some of the following code is based on BepInEx/NStrip
-		/// Copyright (c) 2021 BepInEx, release under MIT License
+		/// Copyright (c) 2021 BepInEx, released under MIT License
 		private static IEnumerable<object> GetAllTypeDefinitions(AssemblyDefinition assembly)
 		{
 			Queue<TypeDefinition> typeQueue = new Queue<TypeDefinition>(assembly.MainModule.Types);
