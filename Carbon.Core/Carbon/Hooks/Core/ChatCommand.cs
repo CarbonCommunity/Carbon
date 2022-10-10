@@ -4,20 +4,25 @@
 /// 
 
 using System;
-using Carbon;
 using Carbon.Core;
 using Carbon.Core.Extensions;
 using ConVar;
 using Facepunch.Extend;
-using Harmony;
+using Oxide.Core;
 
-[HarmonyPatch(typeof(Chat), "sayAs")]
+[Hook.AlwaysPatched]
+[Hook("OnPlayerCommand"), Hook.Category(Hook.Category.Enum.Core)]
+[Hook.Parameter("player", typeof(BasePlayer))]
+[Hook.Parameter("message", typeof(string))]
+[Hook.Info("Useful for intercepting players' commands before their handling.")]
+[Hook.Patch(typeof(Chat), "sayAs")]
 public class Chat_SayAs
 {
 	internal static string[] EmptyArgs = new string[0];
 
 	public static bool Prefix(Chat.ChatChannel targetChannel, ulong userId, string username, string message, BasePlayer player = null)
 	{
+
 		if (CarbonCore.Instance == null) return true;
 
 		try
@@ -27,6 +32,11 @@ public class Chat_SayAs
 			var command = split[0].Trim();
 			var args = split.Length > 1 ? fullString.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 			Facepunch.Pool.Free(ref split);
+
+			if (Interface.CallHook("OnServerCommand", BasePlayer.FindByID(userId), command, args) != null)
+			{
+				return false;
+			}
 
 			foreach (var cmd in CarbonCore.Instance?.AllChatCommands)
 			{

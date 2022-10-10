@@ -75,12 +75,14 @@ public class Hook : Attribute
 	{
 		public string Name { get; set; }
 		public Type Type { get; set; }
+		public bool Optional { get; set; }
 
 		public Parameter() { }
-		public Parameter(string name, Type type = null)
+		public Parameter(string name, Type type = null, bool optional = false)
 		{
 			Name = name;
 			Type = type ?? typeof(object);
+			Optional = optional;
 		}
 	}
 
@@ -92,6 +94,7 @@ public class Hook : Attribute
 		public enum Enum
 		{
 			General,
+			Core,
 			Entity,
 			Firework,
 			Item,
@@ -112,6 +115,18 @@ public class Hook : Attribute
 		{
 			Value = @enum;
 		}
+	}
+
+	[AttributeUsage(AttributeTargets.Class)]
+	public class AlwaysPatched : Attribute
+	{
+
+	}
+
+	[AttributeUsage(AttributeTargets.Class)]
+	public class Hidden : Attribute
+	{
+
 	}
 }
 

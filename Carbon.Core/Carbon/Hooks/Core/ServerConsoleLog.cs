@@ -3,10 +3,11 @@
 /// All rights reserved
 /// 
 
-using Harmony;
 using UnityEngine;
 
-[HarmonyPatch(typeof(ServerConsole), "HandleLog")]
+[Hook.AlwaysPatched, Hook.Hidden]
+[Hook("IServerConsoleLog"), Hook.Category(Hook.Category.Enum.Core)]
+[Hook.Patch(typeof(ServerConsole), "HandleLog")]
 public class ServerConsoleLog
 {
 	public static bool Prefix(string message, string stackTrace, LogType type)

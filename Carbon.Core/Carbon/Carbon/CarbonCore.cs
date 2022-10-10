@@ -267,6 +267,8 @@ namespace Carbon.Core
 			IsInitialized = true;
 
 			Entities.Init();
+
+			HookProcessor.InstallAlwaysPatchedHooks();
 		}
 		public void UnInit()
 		{
@@ -295,7 +297,7 @@ namespace Carbon.Core
 
 				foreach (var hook in HookProcessor.Patches)
 				{
-					HookProcessor.UninstallHooks(hook.Key);
+					HookProcessor.UninstallHooks(hook.Key, shutdown: true);
 				}
 			}
 			catch (Exception ex)

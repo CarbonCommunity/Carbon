@@ -247,7 +247,6 @@ namespace Oxide.Core.Libraries
 				RemoveUserGroup(player.UserIDString, "admin");
 			}
 		}
-
 		public void UpdateNickname(string id, string nickname)
 		{
 			if (UserExists(id))
@@ -264,17 +263,14 @@ namespace Oxide.Core.Libraries
 		{
 			return UserExists(id) && GetUserData(id).Groups.Count > 0;
 		}
-
 		public bool GroupsHavePermission(HashSet<string> groups, string perm)
 		{
 			return groups.Any((string group) => GroupHasPermission(group, perm));
 		}
-
 		public bool GroupHasPermission(string name, string perm)
 		{
 			return GroupExists(name) && !string.IsNullOrEmpty(perm) && groupdata.TryGetValue(name.ToLower(), out var groupData) && (groupData.Perms.Contains(perm.ToLower()) || GroupHasPermission(groupData.ParentGroup, perm));
 		}
-
 		public bool UserHasPermission(string id, string perm)
 		{
 			if (string.IsNullOrEmpty(perm)) return false;
@@ -289,7 +285,6 @@ namespace Oxide.Core.Libraries
 		{
 			return GetUserData(id).Groups.ToArray();
 		}
-
 		public string[] GetUserPermissions(string id)
 		{
 			var userData = GetUserData(id);
@@ -300,7 +295,6 @@ namespace Oxide.Core.Libraries
 			}
 			return new HashSet<string>(list).ToArray();
 		}
-
 		public string[] GetGroupPermissions(string name, bool parents = false)
 		{
 			if (!GroupExists(name))
@@ -382,12 +376,10 @@ namespace Oxide.Core.Libraries
 				return;
 			}
 		}
-
 		public bool UserHasGroup(string id, string name)
 		{
 			return GroupExists(name) && GetUserData(id).Groups.Contains(name.ToLower());
 		}
-
 		public bool GroupExists(string group)
 		{
 			return !string.IsNullOrEmpty(group) && (group.Equals("*") || groupdata.ContainsKey(group.ToLower()));
@@ -397,7 +389,6 @@ namespace Oxide.Core.Libraries
 		{
 			return groupdata.Keys.ToArray();
 		}
-
 		public string[] GetUsersInGroup(string group)
 		{
 			if (!GroupExists(group)) return EmptyStringArray;
@@ -418,7 +409,6 @@ namespace Oxide.Core.Libraries
 			}
 			return groupData.Title;
 		}
-
 		public int GetGroupRank(string group)
 		{
 			if (!GroupExists(group)) return 0;

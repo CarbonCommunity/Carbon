@@ -132,6 +132,10 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Hooks\Carbon\Core\" />
+	</ItemGroup>
+
 
 	<!-- ========================== -->
 	<!-- BUILD TASK SEQUENCER BELOW -->

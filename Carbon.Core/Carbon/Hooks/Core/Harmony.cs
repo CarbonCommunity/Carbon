@@ -4,10 +4,11 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 using UnityEngine;
 
-[HarmonyPatch(typeof(ConVar.Harmony), "Load")]
+[Hook.AlwaysPatched, Hook.Hidden]
+[Hook("IOnHarmonyLoad"), Hook.Category(Hook.Category.Enum.Core)]
+[Hook.Patch(typeof(ConVar.Harmony), "Load")]
 public class Harmony_Load
 {
 	public const string CARBON_LOADED = nameof(CARBON_LOADED);
@@ -43,7 +44,9 @@ public class Harmony_Load
 	}
 }
 
-[HarmonyPatch(typeof(ConVar.Harmony), "Unload")]
+[Hook.AlwaysPatched, Hook.Hidden]
+[Hook("IOnHarmonyUnload"), Hook.Category(Hook.Category.Enum.Core)]
+[Hook.Patch(typeof(ConVar.Harmony), "Unload")]
 public class Harmony_Unload
 {
 	public static bool Prefix(ConsoleSystem.Arg args)

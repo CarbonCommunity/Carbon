@@ -67,6 +67,8 @@ namespace Carbon.Core.Processors
 					_loader = new ScriptLoader();
 					_loader.Parser = Parser;
 					_loader.File = File;
+					_loader.Mod = CarbonCore.Instance.Plugins;
+					_loader.Instance = this;
 					_loader.Load();
 				}
 				catch (Exception ex)

@@ -14,13 +14,13 @@ namespace Carbon.Extended
 	[OxideHook.Patch(typeof(SaveRestore), "Load")]
 	public class SaveRestore_Load
 	{
-		public static void Prefix (string strFilename = "", bool allowOutOfDateSaves = false)
+		public static void Prefix(string strFilename = "", bool allowOutOfDateSaves = false)
 		{
 			if (strFilename == "")
 			{
 				strFilename = World.SaveFolderName + "/" + World.SaveFileName;
 			}
-			
+
 			if (!File.Exists(strFilename))
 			{
 				HookExecutor.CallStaticHook("OnNewSave", strFilename);

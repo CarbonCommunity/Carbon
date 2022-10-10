@@ -29,6 +29,7 @@ namespace Carbon.Core
 		public bool HasFinished { get; set; }
 		public bool HasRequires { get; set; }
 
+		public BaseProcessor.Instance Instance { get; set; }
 		public CarbonLoader.CarbonMod Mod { get; set; }
 		public BaseProcessor.Parser Parser { get; set; }
 		public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader();
@@ -99,7 +100,7 @@ namespace Carbon.Core
 					catch (Exception ex) { Carbon.Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
 				}
 
-				plugin.Dispose();
+				plugin?.Dispose();
 			}
 
 			if (Scripts.Count > 0)
@@ -257,6 +258,8 @@ namespace Carbon.Core
 
 					if (CarbonLoader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
 					{
+						p._processor_instance = Instance;
+
 						p.Hooks = AsyncLoader.Hooks[type];
 						p.HookMethods = AsyncLoader.HookMethods[type];
 						p.PluginReferences = AsyncLoader.PluginReferences[type];
@@ -273,7 +276,6 @@ namespace Carbon.Core
 						plugin.IsCore = IsCore;
 
 						CarbonLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
-						CarbonCore.Instance.Plugins.Plugins.Add(rustPlugin);
 						Scripts.Add(plugin);
 
 						Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);

@@ -4,9 +4,10 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
-[HarmonyPatch(typeof(Bootstrap), "StartupShared")]
+[Hook.AlwaysPatched, Hook.Hidden]
+[Hook("IInit"), Hook.Category(Hook.Category.Enum.Core)]
+[Hook.Patch(typeof(Bootstrap), "StartupShared")]
 public class Init
 {
 	public static void Prefix()

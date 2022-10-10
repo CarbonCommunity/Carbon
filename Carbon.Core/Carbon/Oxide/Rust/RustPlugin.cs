@@ -17,9 +17,10 @@ namespace Oxide.Plugins
 {
 	public class RustPlugin : Plugin
 	{
+		public PluginManager Manager { get; set; }
+
 		public Permission permission { get; set; }
 		public Language lang { get; set; }
-		public PluginManager Manager { get; set; }
 		public Command cmd { get; set; }
 		public Plugins plugins { get; set; }
 		public Timers timer { get; set; }
@@ -42,7 +43,7 @@ namespace Oxide.Plugins
 
 		public void SetupMod(CarbonLoader.CarbonMod mod, string name, string author, VersionNumber version, string description)
 		{
-			carbon = mod;
+			_carbon = mod;
 			Setup(name, author, version, description);
 		}
 		public void Setup(string name, string author, VersionNumber version, string description)

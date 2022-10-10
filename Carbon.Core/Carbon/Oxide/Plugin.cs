@@ -51,11 +51,11 @@ namespace Oxide.Plugins
 			base.TrackEnd();
 		}
 
-		public CarbonLoader.CarbonMod carbon { get; set; }
-
 		public Plugin[] Requires { get; internal set; }
 
+		internal CarbonLoader.CarbonMod _carbon;
 		internal BaseProcessor _processor;
+		internal BaseProcessor.Instance _processor_instance;
 
 		public object Harmony;
 

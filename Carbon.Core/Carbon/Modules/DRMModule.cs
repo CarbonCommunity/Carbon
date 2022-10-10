@@ -5,9 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Carbon.Core.Extensions;
+using Carbon.Core.Processors;
 using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Core.Libraries;
@@ -47,6 +49,19 @@ namespace Carbon.Core.Modules
 			CarbonCorePlugin.Reply($"{JsonConvert.SerializeObject(new DownloadResponse().WithFileType(DownloadResponse.FileTypes.Script).WithDataFile(args.Args[0]), Formatting.Indented)}", args);
 		}
 
+
+		[ConsoleCommand("drmreboot")]
+		private void Reboot(ConsoleSystem.Arg args)
+		{
+			if (!args.IsPlayerCalledAndAdmin()) return;
+
+			foreach (var processor in Config.DRMs)
+			{
+				processor.Uninitialize();
+				processor.Initialize();
+			}
+		}
+
 		public class Processor
 		{
 			public string Name { get; set; }
@@ -63,6 +78,9 @@ namespace Carbon.Core.Modules
 
 			[JsonIgnore]
 			public CarbonLoader.CarbonMod Mod { get; } = new CarbonLoader.CarbonMod();
+
+			[JsonIgnore]
+			public List<BaseProcessor.Instance> ProcessorInstances { get; } = new List<BaseProcessor.Instance>();
 
 			#region Logging
 
@@ -108,6 +126,13 @@ namespace Carbon.Core.Modules
 			}
 			public void Uninitialize()
 			{
+				foreach (var entry in Entries)
+				{
+					DisposeEntry(entry);
+				}
+
+				ProcessorInstances.Clear();
+
 				CarbonLoader._loadedMods.Remove(Mod);
 			}
 
@@ -115,40 +140,64 @@ namespace Carbon.Core.Modules
 			{
 				foreach (var entry in Entries)
 				{
-					Web.Enqueue(string.Format(DownloadEndpoint, PublicKey, entry.Id, entry.PrivateKey), null, (code, data) =>
+					RequestEntry(entry);
+				}
+			}
+
+			public void RequestEntry(Entry entry)
+			{
+				DisposeEntry(entry);
+
+				PutsWarn($"Loading '{entry.Id}' entry...");
+				Web.Enqueue(string.Format(DownloadEndpoint, PublicKey, entry.Id, entry.PrivateKey), null, (code, data) =>
+				{
+					Logger.Debug($"{entry.Id} DRM", $"Got response code '{code}' with {ByteEx.Format(data.Length).ToUpper()} of data");
+					if (code != 200) return;
+
+					try
 					{
-						if (code != 200) return;
+						var response = JsonConvert.DeserializeObject<DownloadResponse>(data);
+						Logger.Debug($"{entry.Id} DRM", $"Deserialized response type '{response.FileType}'. Processing...");
 
-						try
+						switch (response.FileType)
 						{
-							var response = JsonConvert.DeserializeObject<DownloadResponse>(data);
+							case DownloadResponse.FileTypes.Script:
+								var instance = new ScriptInstance
+								{
+									File = entry.Id,
+									_mod = Mod,
+									_source = DecodeBase64(response.Data)
+								};
+								ProcessorInstances.Add(instance);
+								instance.Execute();
+								break;
 
-							switch (response.FileType)
-							{
-								case DownloadResponse.FileTypes.Script:
-									var loader = new ScriptLoader
-									{
-										Source = DecodeBase64(response.Data)
-									};
-									loader.Load();
-									break;
+							case DownloadResponse.FileTypes.DLL:
+								var source = Convert.FromBase64String(response.Data);
+								var assembly = Assembly.Load(source);
 
-								case DownloadResponse.FileTypes.DLL:
-									var source = Convert.FromBase64String(response.Data);
-									var assembly = Assembly.Load(source);
-
-									foreach (var type in assembly.GetTypes())
-									{
-										CarbonLoader.InitializePlugin(type, out var plugin, Mod);
-									}
-									break;
-							}
+								foreach (var type in assembly.GetTypes())
+								{
+									CarbonLoader.InitializePlugin(type, out var plugin, Mod);
+								}
+								break;
 						}
-						catch (Exception ex)
-						{
-							PutsError($"Failed loading '{entry.Id}'", ex);
-						}
-					}, null);
+					}
+					catch (Exception ex)
+					{
+						PutsError($"Failed loading '{entry.Id}'", ex);
+					}
+				}, null);
+			}
+			public void DisposeEntry(Entry entry)
+			{
+				var alreadyProcessedInstance = ProcessorInstances.FirstOrDefault(x => x.File == entry.Id);
+
+				if (alreadyProcessedInstance != null)
+				{
+					PutsWarn($"Unloading '{entry.Id}' entry");
+					alreadyProcessedInstance.Dispose();
+					ProcessorInstances.Remove(alreadyProcessedInstance);
 				}
 			}
 
@@ -159,6 +208,40 @@ namespace Carbon.Core.Modules
 			public static string DecodeBase64(string value)
 			{
 				return Encoding.UTF8.GetString(Convert.FromBase64String(value));
+			}
+
+			public class ScriptInstance : ScriptProcessor.Script
+			{
+				internal CarbonLoader.CarbonMod _mod;
+				internal string _source;
+
+				public override void Dispose()
+				{
+					foreach (var plugin in _loader.Scripts)
+					{
+						plugin.Dispose();
+						_mod.Plugins.Remove(plugin.Instance);
+					}
+
+					base.Dispose();
+				}
+				public override void Execute()
+				{
+					try
+					{
+						_loader = new ScriptLoader();
+						_loader.Parser = Parser;
+						_loader.File = File;
+						_loader.Source = _source;
+						_loader.Mod = _mod;
+						_loader.Instance = this;
+						_loader.Load();
+					}
+					catch (Exception ex)
+					{
+						Carbon.Logger.Warn($"Failed processing {File}:\n{ex}");
+					}
+				}
 			}
 		}
 		public class Entry

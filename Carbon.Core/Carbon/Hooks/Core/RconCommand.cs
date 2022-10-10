@@ -5,13 +5,19 @@
 
 using System;
 using System.Linq;
-using Carbon;
+using System.Net;
 using Carbon.Core;
 using Carbon.Core.Extensions;
 using Facepunch;
-using Harmony;
+using Oxide.Core;
 
-[HarmonyPatch(typeof(RCon), "OnCommand")]
+[Hook.AlwaysPatched]
+[Hook("OnPlayerConnected"), Hook.Category(Hook.Category.Enum.Player)]
+[Hook.Parameter("address", typeof(IPAddress))]
+[Hook.Parameter("command", typeof(string))]
+[Hook.Parameter("args", typeof(string[]))]
+[Hook.Info("Called when an RCON command is run.")]
+[Hook.Patch(typeof(RCon), "OnCommand")]
 public class RconCommand
 {
 	public static bool Prefix(RCon.Command cmd)
@@ -27,6 +33,11 @@ public class RconCommand
 			foreach (var arg in split.Skip(1)) arguments.Add(arg.Trim());
 			var args2 = arguments.ToArray();
 			Pool.FreeList(ref arguments);
+
+			if (Interface.CallHook("OnRconCommand", cmd.Ip, command, args2) != null)
+			{
+				return false;
+			}
 
 			foreach (var carbonCommand in CarbonCore.Instance.AllConsoleCommands)
 			{

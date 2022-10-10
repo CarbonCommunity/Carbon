@@ -4,18 +4,14 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
-[HarmonyPatch(typeof(ServerMgr), "OpenConnection")]
+[Hook.AlwaysPatched, Hook.Hidden]
+[Hook("IOnServerInit"), Hook.Category(Hook.Category.Enum.Core)]
+[Hook.Patch(typeof(ServerMgr), "OpenConnection")]
 public class OnServerInitialized
 {
-	internal static TimeSince _call;
-
 	public static void Postfix()
 	{
-		if (_call <= 0.5f) return;
-
 		CarbonLoader.OnPluginProcessFinished();
-		_call = 0;
 	}
 }

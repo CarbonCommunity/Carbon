@@ -3,23 +3,19 @@
 /// All rights reserved
 /// 
 
-using Carbon;
 using Carbon.Core;
-using Harmony;
 using Oxide.Core;
 
-[HarmonyPatch(typeof(SaveRestore), "DoAutomatedSave")]
+[Hook.AlwaysPatched]
+[Hook("OnServerSave"), Hook.Category(Hook.Category.Enum.Server)]
+[Hook.Info("Called before the server saves.")]
+[Hook.Patch(typeof(SaveRestore), "DoAutomatedSave")]
 public class OnServerSave
 {
-	internal static TimeSince _call;
-
-	public static void Prefix()
+	public static void Prefix(bool AndWait = false)
 	{
-		if (_call <= 0.5f) return;
-
 		Carbon.Logger.Log($"Saving Carbon plugins");
 		HookExecutor.CallStaticHook("OnServerSave");
 		Interface.Oxide.Permission.SaveData();
-		_call = 0;
 	}
 }
