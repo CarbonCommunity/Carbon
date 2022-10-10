@@ -8,9 +8,9 @@ using Carbon.Core.Extensions;
 
 namespace Carbon.Core.Oxide.Hooks
 {
-	[Hook.AlwaysPatched, Hook.Hidden]
-	[Hook("IServerInfoUpdate"), Hook.Category(Hook.Category.Enum.Core)]
-	[Hook.Patch(typeof(ServerMgr), "UpdateServerInformation")]
+	[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+	[CarbonHook("IServerInfoUpdate"), CarbonHook.Category(Hook.Category.Enum.Core)]
+	[CarbonHook.Patch(typeof(ServerMgr), "UpdateServerInformation")]
 	public class ServerMgr_UpdateServerInformation
 	{
 		public static void Postfix()
