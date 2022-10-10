@@ -6,9 +6,11 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Carbon;
 using Carbon.Core;
+using Oxide.Core;
 using Oxide.Plugins;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
@@ -127,7 +129,11 @@ public class Command
 					}
 
 					result = arguments.ToArray();
-					methodInfo?.Invoke(plugin, result);
+
+					if (Interface.CallHook("OnCarbonCommand", arg) == null)
+					{
+						methodInfo?.Invoke(plugin, result);
+					}
 				}
 				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
 			}
@@ -159,7 +165,10 @@ public class Command
 				arguments.Add(arg);
 				result = arguments.ToArray();
 
-				callback.Invoke(arg);
+				if (Interface.CallHook("OnCarbonCommand", arg) == null)
+				{
+					callback.Invoke(arg);
+				}
 			}
 			catch (TargetParameterCountException) { }
 			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }

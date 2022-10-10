@@ -75,7 +75,7 @@ namespace Carbon.Core
 			}
 		}
 
-		public void InstallHooks(string hookName, bool doRequires = true)
+		public void InstallHooks(string hookName, bool doRequires = true, bool onlyAlwaysPatchedHooks = false)
 		{
 			if (!DoesHookExist(hookName)) return;
 			if (!IsPatched(hookName))
@@ -85,10 +85,11 @@ namespace Carbon.Core
 			{
 				HookName = hookName,
 				DoRequires = doRequires,
-				Processor = this
+				Processor = this,
+				OnlyAlwaysPatchedHooks = onlyAlwaysPatchedHooks
 			}.Start();
 		}
-		public void UninstallHooks(string hookName)
+		public void UninstallHooks(string hookName, bool shutdown = false)
 		{
 			try
 			{
@@ -96,6 +97,8 @@ namespace Carbon.Core
 				{
 					if (Patches.TryGetValue(hookName, out var instance))
 					{
+						if (instance.AlwaysPatched && !shutdown) return;
+
 						if (instance.Patches != null)
 						{
 							var list = Pool.GetList<HarmonyLib.Harmony>();
@@ -117,6 +120,17 @@ namespace Carbon.Core
 			catch (Exception ex)
 			{
 				Logger.Error($"Failed hook '{hookName}' uninstallation.", ex);
+			}
+		}
+
+		public void InstallAlwaysPatchedHooks()
+		{
+			foreach (var type in CarbonDefines.Carbon.GetTypes())
+			{
+				var hook = type.GetCustomAttribute<Hook>();
+				if (hook == null || type.GetCustomAttribute<Hook.AlwaysPatched>() == null) continue;
+
+				InstallHooks(hook.Name, true, true);
 			}
 		}
 
@@ -160,6 +174,7 @@ namespace Carbon.Core
 		{
 			public string Id { get; set; }
 			public int Hooks { get; set; } = 1;
+			public bool AlwaysPatched { get; set; } = false;
 			public List<HarmonyLib.Harmony> Patches { get; internal set; } = new List<HarmonyLib.Harmony>();
 		}
 
@@ -167,6 +182,7 @@ namespace Carbon.Core
 		{
 			public string HookName;
 			public bool DoRequires = true;
+			public bool OnlyAlwaysPatchedHooks = false;
 			public CarbonHookProcessor Processor;
 
 			public override void ThreadFunction()
@@ -197,8 +213,13 @@ namespace Carbon.Core
 
 							if (!Processor.Patches.TryGetValue(HookName, out hookInstance))
 							{
-								Processor.Patches.Add(HookName, hookInstance = new HookInstance());
+								Processor.Patches.Add(HookName, hookInstance = new HookInstance
+								{
+									AlwaysPatched = type.GetCustomAttribute<Hook.AlwaysPatched>() != null
+								});
 							}
+
+							if (hookInstance.AlwaysPatched && !OnlyAlwaysPatchedHooks) continue;
 
 							if (hookInstance.Patches.Any(x => x != null && x.Id == patchId)) continue;
 
@@ -231,7 +252,7 @@ namespace Carbon.Core
 							var matchedParameters = patch.UseProvidedParameters ? originalParametersResult : Processor.GetMatchedParameters(patch.Type, patch.Method, (prefix ?? postfix ?? transplier).GetParameters());
 
 							var instance = new HarmonyLib.Harmony(patchId);
-							var originalMethod = patch.Type.GetMethod(patch.Method, matchedParameters);
+							var originalMethod = patch.Type.GetMethod(patch.Method, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static, null, matchedParameters, default);
 
 							instance.Patch(originalMethod,
 								prefix: prefix == null ? null : new HarmonyLib.HarmonyMethod(prefix),

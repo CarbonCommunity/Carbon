@@ -4,14 +4,20 @@
 /// 
 
 using System;
-using Carbon;
 using Carbon.Core;
 using Carbon.Core.Extensions;
 using Facepunch.Extend;
-using Harmony;
+using Oxide.Core;
+using static ConsoleSystem;
 
-[HarmonyPatch(typeof(ConsoleSystem), "Run")]
-public class ConsoleCommand
+[Hook.AlwaysPatched]
+[Hook("OnCarbonCommand"), Hook.Category(Hook.Category.Enum.Core)]
+[Hook.Parameter("player", typeof(BasePlayer))]
+[Hook.Parameter("message", typeof(string))]
+[Hook.Parameter("isConsole", typeof(bool))]
+[Hook.Info("Useful for intercepting commands before they get to their intended target.")]
+[Hook.Patch(typeof(ConsoleSystem), "Run")]
+public class CarbonConsoleCommand
 {
 	internal static string[] EmptyArgs = new string[0];
 
@@ -46,5 +52,22 @@ public class ConsoleCommand
 		catch { }
 
 		return true;
+	}
+}
+
+[Hook("OnServerCommand"), Hook.Category(Hook.Category.Enum.Server)]
+[Hook.Parameter("arg", typeof(ConsoleSystem.Arg))]
+[Hook.Info("Useful for intercepting commands before they get to their intended target.")]
+[Hook.Patch(typeof(ConsoleSystem), "Internal", true)]
+public class ServerConsoleCommand
+{
+	public static bool Prefix(ConsoleSystem.Arg arg)
+	{
+		if (arg.Invalid)
+		{
+			return false;
+		}
+
+		return Interface.CallHook("OnServerCommand", arg) == null;
 	}
 }

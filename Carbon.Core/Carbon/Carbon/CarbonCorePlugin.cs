@@ -365,13 +365,31 @@ namespace Carbon.Core
 
 				default:
 					var path = GetPluginPath(name);
-					if (string.IsNullOrEmpty(path))
+
+					if (!string.IsNullOrEmpty(path))
 					{
-						Logger.Warn($" Couldn't find plugin or mod with name '{name}'");
+						CarbonCore.Instance.HarmonyProcessor.Prepare(name, path);
+						CarbonCore.Instance.ScriptProcessor.Prepare(name, path);
 						return;
 					}
-					CarbonCore.Instance.HarmonyProcessor.Prepare(name, path);
-					CarbonCore.Instance.ScriptProcessor.Prepare(name, path);
+
+					foreach (var mod in CarbonLoader._loadedMods)
+					{
+						var plugins = Pool.GetList<RustPlugin>();
+						plugins.AddRange(mod.Plugins);
+
+						foreach (var plugin in plugins)
+						{
+							if (plugin.Name == name)
+							{
+								plugin._processor_instance.Dispose();
+								plugin._processor_instance.Execute();
+								mod.Plugins.Remove(plugin);
+							}
+						}
+
+						Pool.FreeList(ref plugins);
+					}
 					break;
 			}
 		}
@@ -420,27 +438,25 @@ namespace Carbon.Core
 
 				default:
 					var path = GetPluginPath(name);
-					if (string.IsNullOrEmpty(path))
+					if (!string.IsNullOrEmpty(path))
 					{
-						Logger.Warn($" Couldn't find plugin with name '{name}'");
+						CarbonCore.Instance.HarmonyProcessor.ClearIgnore(path);
+						CarbonCore.Instance.ScriptProcessor.ClearIgnore(path);
+
+						CarbonCore.Instance.HarmonyProcessor.Prepare(path);
+						CarbonCore.Instance.ScriptProcessor.Prepare(path);
 						return;
 					}
 
-					//
-					// Mods
-					//
+					var module = BaseModule.GetModule<DRMModule>();
+					foreach (var drm in module.Config.DRMs)
 					{
-						CarbonCore.Instance.HarmonyProcessor.ClearIgnore(path);
-						CarbonCore.Instance.HarmonyProcessor.Prepare(path);
+						foreach (var entry in drm.Entries)
+						{
+							if (entry.Id == name) drm.RequestEntry(entry);
+						}
 					}
 
-					//
-					// Scripts
-					//
-					{
-						CarbonCore.Instance.ScriptProcessor.ClearIgnore(path);
-						CarbonCore.Instance.ScriptProcessor.Prepare(path);
-					}
 					break;
 			}
 		}
@@ -502,43 +518,28 @@ namespace Carbon.Core
 
 				default:
 					var path = GetPluginPath(name);
-					if (string.IsNullOrEmpty(path))
+					if (!string.IsNullOrEmpty(path))
 					{
-						Logger.Warn($" Couldn't find plugin with name '{name}'");
-						return;
+						CarbonCore.Instance.HarmonyProcessor.Ignore(path);
+						CarbonCore.Instance.ScriptProcessor.Ignore(path);
+						CarbonCore.Instance.WebScriptProcessor.Ignore(path);
 					}
 
-					//
-					// Mods
-					//
+					foreach (var mod in CarbonLoader._loadedMods)
 					{
-						if (CarbonCore.Instance.HarmonyProcessor.InstanceBuffer.TryGetValue(name, out var value))
-						{
-							CarbonCore.Instance.HarmonyProcessor.Ignore(path);
-							value.Dispose();
-						}
-					}
+						var plugins = Pool.GetList<RustPlugin>();
+						plugins.AddRange(mod.Plugins);
 
-					//
-					// Scripts
-					//
-					{
-						if (CarbonCore.Instance.ScriptProcessor.InstanceBuffer.TryGetValue(name, out var value))
+						foreach (var plugin in plugins)
 						{
-							CarbonCore.Instance.ScriptProcessor.Ignore(path);
-							value.Dispose();
+							if (plugin.Name == name)
+							{
+								plugin._processor_instance.Dispose();
+								mod.Plugins.Remove(plugin);
+							}
 						}
-					}
 
-					//
-					// Web-Scripts
-					//
-					{
-						if (CarbonCore.Instance.WebScriptProcessor.InstanceBuffer.TryGetValue(name, out var value))
-						{
-							CarbonCore.Instance.WebScriptProcessor.Ignore(path);
-							value.Dispose();
-						}
+						Pool.FreeList(ref plugins);
 					}
 					break;
 			}

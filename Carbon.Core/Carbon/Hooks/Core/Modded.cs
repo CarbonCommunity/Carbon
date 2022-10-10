@@ -5,11 +5,12 @@
 
 using System;
 using Carbon.Core.Extensions;
-using Harmony;
 
 namespace Carbon.Core.Oxide.Hooks
 {
-	[HarmonyPatch(typeof(ServerMgr), "UpdateServerInformation")]
+	[Hook.AlwaysPatched, Hook.Hidden]
+	[Hook("IServerInfoUpdate"), Hook.Category(Hook.Category.Enum.Core)]
+	[Hook.Patch(typeof(ServerMgr), "UpdateServerInformation")]
 	public class ServerMgr_UpdateServerInformation
 	{
 		public static void Postfix()

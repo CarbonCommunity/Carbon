@@ -4,9 +4,12 @@
 /// 
 
 using Carbon.Core;
-using Harmony;
 
-[HarmonyPatch(typeof(BasePlayer), "PlayerInit")]
+[Hook.AlwaysPatched]
+[Hook("OnPlayerConnected"), Hook.Category(Hook.Category.Enum.Player)]
+[Hook.Parameter("this", typeof(BasePlayer))]
+[Hook.Info("Called after the player object is created, but before the player has spawned.")]
+[Hook.Patch(typeof(BasePlayer), "PlayerInit")]
 public class OnPlayerConnected
 {
 	public static void Postfix(Network.Connection c)
