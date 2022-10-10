@@ -12,7 +12,7 @@ using Facepunch;
 using Oxide.Core;
 
 [Hook.AlwaysPatched]
-[Hook("OnPlayerConnected"), Hook.Category(Hook.Category.Enum.Player)]
+[Hook("OnRconCommand"), Hook.Category(Hook.Category.Enum.Server)]
 [Hook.Parameter("address", typeof(IPAddress))]
 [Hook.Parameter("command", typeof(string))]
 [Hook.Parameter("args", typeof(string[]))]

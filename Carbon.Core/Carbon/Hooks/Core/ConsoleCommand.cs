@@ -8,14 +8,12 @@ using Carbon.Core;
 using Carbon.Core.Extensions;
 using Facepunch.Extend;
 using Oxide.Core;
-using static ConsoleSystem;
 
 [Hook.AlwaysPatched]
 [Hook("OnCarbonCommand"), Hook.Category(Hook.Category.Enum.Core)]
 [Hook.Parameter("player", typeof(BasePlayer))]
 [Hook.Parameter("message", typeof(string))]
-[Hook.Parameter("isConsole", typeof(bool))]
-[Hook.Info("Useful for intercepting commands before they get to their intended target.")]
+[Hook.Info("Called whenever a Carbon server command is called.")]
 [Hook.Patch(typeof(ConsoleSystem), "Run")]
 public class CarbonConsoleCommand
 {
