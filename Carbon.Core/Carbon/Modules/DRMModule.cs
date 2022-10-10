@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using Carbon.Core.Extensions;
+using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Core.Libraries;
 
@@ -37,13 +39,21 @@ namespace Carbon.Core.Modules
 			base.Dispose();
 		}
 
-		public class DRMProcessor
+		[ConsoleCommand("drmtest")]
+		private void GenerateTest(ConsoleSystem.Arg args)
+		{
+			if (!args.IsPlayerCalledAndAdmin() || !args.HasArgs(1)) return;
+
+			CarbonCorePlugin.Reply($"{JsonConvert.SerializeObject(new DownloadResponse().WithFileType(DownloadResponse.FileTypes.Script).WithDataFile(args.Args[0]), Formatting.Indented)}", args);
+		}
+
+		public class Processor
 		{
 			public string Name { get; set; }
 			public string ValidationEndpoint { get; set; }
 			public string DownloadEndpoint { get; set; }
 			public string PublicKey { get; set; }
-			public List<DRMEntry> Entries { get; set; } = new List<DRMEntry>();
+			public List<Entry> Entries { get; set; } = new List<Entry>();
 
 			[JsonIgnore]
 			public bool IsOnline { get; internal set; }
@@ -111,11 +121,11 @@ namespace Carbon.Core.Modules
 
 						try
 						{
-							var response = JsonConvert.DeserializeObject<DRMDownloadResponse>(data);
+							var response = JsonConvert.DeserializeObject<DownloadResponse>(data);
 
 							switch (response.FileType)
 							{
-								case DRMDownloadResponse.FileTypes.Script:
+								case DownloadResponse.FileTypes.Script:
 									var loader = new ScriptLoader
 									{
 										Source = DecodeBase64(response.Data)
@@ -123,7 +133,7 @@ namespace Carbon.Core.Modules
 									loader.Load();
 									break;
 
-								case DRMDownloadResponse.FileTypes.DLL:
+								case DownloadResponse.FileTypes.DLL:
 									var source = Convert.FromBase64String(response.Data);
 									var assembly = Assembly.Load(source);
 
@@ -133,7 +143,6 @@ namespace Carbon.Core.Modules
 									}
 									break;
 							}
-
 						}
 						catch (Exception ex)
 						{
@@ -147,35 +156,47 @@ namespace Carbon.Core.Modules
 			{
 				return Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
 			}
-
 			public static string DecodeBase64(string value)
 			{
 				return Encoding.UTF8.GetString(Convert.FromBase64String(value));
 			}
 		}
-
-		public class DRMEntry
+		public class Entry
 		{
 			public string Id { get; set; }
 			public string PrivateKey { get; set; }
 		}
-
-		public class DRMDownloadResponse
+		public class DownloadResponse
 		{
 			public FileTypes FileType { get; set; }
 			public string Data { get; set; }
 
+			public DownloadResponse WithFileType(FileTypes type)
+			{
+				FileType = type;
+				return this;
+			}
+			public DownloadResponse WithData(string source)
+			{
+				Data = Processor.EncodeBase64(source);
+				return this;
+			}
+			public DownloadResponse WithDataFile(string file)
+			{
+				return WithData(OsEx.File.ReadText(file));
+			}
+
 			public enum FileTypes
 			{
-				Script = 0,
-				DLL = 1
+				Script = 512,
+				DLL = 1024
 			}
 		}
 	}
 
 	public class DRMConfig
 	{
-		public List<DRMModule.DRMProcessor> DRMs { get; set; } = new List<DRMModule.DRMProcessor>();
+		public List<DRMModule.Processor> DRMs { get; set; } = new List<DRMModule.Processor>();
 	}
 	public class DRMData
 	{

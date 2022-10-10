@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
+using static Carbon.Core.CarbonHookProcessor;
 
 namespace Carbon.Core
 {
@@ -269,30 +270,37 @@ namespace Carbon.Core
 		}
 		public void UnInit()
 		{
-			_uninstallProcessors();
-			_clearCommands(all: true);
-
-			ClearPlugins();
-			CarbonLoader._loadedMods.Clear();
-			UnityEngine.Debug.Log($"Unloaded Carbon.");
-
-#if WIN
 			try
 			{
-				if (ServerConsole.Instance != null && ServerConsole.Instance.input != null)
+				_uninstallProcessors();
+				_clearCommands(all: true);
+
+				ClearPlugins();
+				CarbonLoader._loadedMods.Clear();
+				UnityEngine.Debug.Log($"Unloaded Carbon.");
+
+#if WIN
+				try
 				{
-					ServerConsole.Instance.input.statusText[3] = "";
-					ServerConsole.Instance.input.statusText = new string[3];
+					if (ServerConsole.Instance != null && ServerConsole.Instance.input != null)
+					{
+						ServerConsole.Instance.input.statusText[3] = "";
+						ServerConsole.Instance.input.statusText = new string[3];
+					}
 				}
-			}
-			catch { }
+				catch { }
 #endif
 
-			Entities.Dispose();
+				Entities.Dispose();
 
-			foreach (var hook in HookProcessor.Patches)
+				foreach (var hook in HookProcessor.Patches)
+				{
+					HookProcessor.UninstallHooks(hook.Key);
+				}
+			}
+			catch (Exception ex)
 			{
-				HookProcessor.UninstallHooks(hook.Key);
+				Logger.Error($"Failed Carbon uninitialization.", ex);
 			}
 		}
 	}

@@ -51,13 +51,18 @@ namespace Carbon.Core
 		}
 		public static void ClearAllRequirees()
 		{
-			foreach (var requiree in PendingRequirees)
+			var requirees = new Dictionary<string, List<string>>();
+			foreach (var requiree in PendingRequirees) requirees.Add(requiree.Key, requiree.Value);
+
+			foreach (var requiree in requirees)
 			{
 				requiree.Value.Clear();
 				PendingRequirees[requiree.Key] = null;
 			}
 
 			PendingRequirees.Clear();
+			requirees.Clear();
+			requirees = null;
 		}
 
 		public static void AppendAssembly(string key, Assembly assembly)

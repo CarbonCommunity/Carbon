@@ -90,22 +90,33 @@ namespace Carbon.Core
 		}
 		public void UninstallHooks(string hookName)
 		{
-			using (TimeMeasure.New($"UninstallHooks: {hookName}"))
+			try
 			{
-				if (Patches.TryGetValue(hookName, out var instance))
+				using (TimeMeasure.New($"UninstallHooks: {hookName}"))
 				{
-					if (instance.Patches != null)
+					if (Patches.TryGetValue(hookName, out var instance))
 					{
-						foreach (var patch in instance.Patches)
+						if (instance.Patches != null)
 						{
-							if (string.IsNullOrEmpty(patch.Id)) continue;
+							var list = Pool.GetList<HarmonyLib.Harmony>();
+							list.AddRange(instance.Patches);
 
-							patch.UnpatchAll(patch.Id);
+							foreach (var patch in list)
+							{
+								if (string.IsNullOrEmpty(patch.Id)) continue;
+
+								patch.UnpatchAll(patch.Id);
+							}
+
+							instance.Patches.Clear();
+							Pool.FreeList(ref list);
 						}
-
-						instance.Patches.Clear();
 					}
 				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed hook '{hookName}' uninstallation.", ex);
 			}
 		}
 
