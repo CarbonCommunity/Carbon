@@ -127,7 +127,7 @@ namespace Oxide.Core.Libraries
 			name = name.ToLower();
 			if (PermissionExists(name, null))
 			{
-				Carbon.Logger.Warn("Duplicate permission registered '{name}' (by plugin '{owner.Name}')");
+				Carbon.Logger.Warn($"Duplicate permission registered '{name}' (by plugin '{owner.Name}')");
 				return;
 			}
 
