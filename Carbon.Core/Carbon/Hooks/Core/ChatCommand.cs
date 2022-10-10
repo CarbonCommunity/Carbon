@@ -11,7 +11,7 @@ using Facepunch.Extend;
 using Oxide.Core;
 
 [Hook.AlwaysPatched]
-[Hook("OnPlayerCommand"), Hook.Category(Hook.Category.Enum.Core)]
+[Hook("OnPlayerCommand"), Hook.Category(Hook.Category.Enum.Player)]
 [Hook.Parameter("player", typeof(BasePlayer))]
 [Hook.Parameter("message", typeof(string))]
 [Hook.Info("Useful for intercepting players' commands before their handling.")]
