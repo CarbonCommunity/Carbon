@@ -9,6 +9,7 @@ using System.Net;
 using Carbon;
 using Carbon.Core;
 using Oxide.Plugins;
+using UnityEngine.UI;
 
 namespace Oxide.Core.Libraries
 {
@@ -61,8 +62,8 @@ namespace Oxide.Core.Libraries
 
 		public class WebRequest : IDisposable
 		{
-			public Action<int, string> SuccessCallback { get; }
-			public Action<int, string, Exception> ErrorCallback { get; }
+			public Action<int, string> SuccessCallback { get; set; }
+			public Action<int, string, Exception> ErrorCallback { get; set; }
 
 			public float Timeout { get; set; }
 			public string Method { get; set; }
@@ -77,7 +78,7 @@ namespace Oxide.Core.Libraries
 			public Dictionary<string, string> RequestHeaders { get; set; }
 
 			internal Uri _uri;
-			internal WebClient _client;
+			internal Client _client;
 
 			public WebRequest(string url, Action<int, string> callback, Plugin owner)
 			{
@@ -89,53 +90,53 @@ namespace Oxide.Core.Libraries
 
 			public WebRequest Start()
 			{
-				_client = new WebClient();
-				_client.Headers.Add("User-Agent", $"Carbon Mod (v{CarbonCore.Version}; https://github.com/Carbon-Modding/Carbon.Core");
-				_client.Credentials = CredentialCache.DefaultCredentials;
-				_client.Proxy = null;
-
-				switch (Method)
+				using (_client = new Client())
 				{
-					case "GET":
-						_client.DownloadStringCompleted += (object sender, DownloadStringCompletedEventArgs e) =>
-						{
-							ResponseText = e.Result;
-							ResponseError = e.Error;
+					_client.Headers.Add("User-Agent", $"Carbon Mod (v{CarbonCore.Version}); https://github.com/Carbon-Modding/Carbon.Core");
+					_client.Credentials = CredentialCache.DefaultCredentials;
+					_client.Proxy = null;
 
-							if (e.Error != null)
+					switch (Method)
+					{
+						case "GET":
+							_client.DownloadStringCompleted += (object sender, DownloadStringCompletedEventArgs e) =>
 							{
-								ResponseCode = 400;
+								if (e.Error != null)
+								{
+									if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
+									ResponseError = e.Error;
+									OnComplete(true);
+									return;
+								}
 
-								OnComplete(true);
-								return;
-							}
+								ResponseText = e.Result;
 
-							OnComplete(false);
-						};
+								OnComplete(false);
+							};
 
-						_client.DownloadStringAsync(_uri);
-						break;
+							_client.DownloadStringAsync(_uri);
+							break;
 
-					case "PUT":
-					case "POST":
-						_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
-						{
-							ResponseText = e.Result;
-							ResponseError = e.Error;
-
-							if (e.Error != null)
+						case "PUT":
+						case "POST":
+							_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
 							{
-								ResponseCode = 400;
+								if (e.Error != null)
+								{
+									if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
+									ResponseError = e.Error;
+									OnComplete(true);
+									return;
+								}
 
-								OnComplete(true);
-								return;
-							}
+								ResponseText = e.Result;
 
-							OnComplete(false);
-						};
+								OnComplete(false);
+							};
 
-						_client.UploadStringAsync(_uri, Body);
-						break;
+							_client.UploadStringAsync(_uri, Body);
+							break;
+					}
 				}
 
 				return this;
@@ -173,6 +174,14 @@ namespace Oxide.Core.Libraries
 
 				_client?.Dispose();
 				_client = null;
+			}
+
+			public class Client : WebClient
+			{
+				public new void Dispose()
+				{
+					base.Dispose();
+				}
 			}
 		}
 	}

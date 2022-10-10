@@ -13,6 +13,7 @@ using Carbon.Core.Processors;
 using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Core.Libraries;
+using Oxide.Plugins;
 
 namespace Carbon.Core.Modules
 {
@@ -49,7 +50,6 @@ namespace Carbon.Core.Modules
 			CarbonCorePlugin.Reply($"{JsonConvert.SerializeObject(new DownloadResponse().WithFileType(DownloadResponse.FileTypes.Script).WithDataFile(args.Args[0]), Formatting.Indented)}", args);
 		}
 
-
 		[ConsoleCommand("drmreboot")]
 		private void Reboot(ConsoleSystem.Arg args)
 		{
@@ -74,9 +74,6 @@ namespace Carbon.Core.Modules
 			public bool IsOnline { get; internal set; }
 
 			[JsonIgnore]
-			public WebRequests Web { get; } = new WebRequests();
-
-			[JsonIgnore]
 			public CarbonLoader.CarbonMod Mod { get; } = new CarbonLoader.CarbonMod();
 
 			[JsonIgnore]
@@ -93,6 +90,19 @@ namespace Carbon.Core.Modules
 
 			#endregion
 
+			public WebRequests.WebRequest Enqueue(string url, string body, Action<int, string> callback, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, string, Exception> onException = null)
+			{
+				return new WebRequests.WebRequest(url, callback, null)
+				{
+					Method = method.ToString(),
+					RequestHeaders = headers,
+					Timeout = timeout,
+					Body = body,
+					ErrorCallback = onException
+
+				}.Start();
+			}
+
 			public void Validate()
 			{
 				if (string.IsNullOrEmpty(ValidationEndpoint))
@@ -103,7 +113,7 @@ namespace Carbon.Core.Modules
 
 				Puts($"Validating...");
 
-				Web.Enqueue(string.Format(ValidationEndpoint, PublicKey), null, (code, data) =>
+				Enqueue(string.Format(ValidationEndpoint, PublicKey), null, (code, data) =>
 				{
 					IsOnline = code == 200;
 
@@ -114,7 +124,10 @@ namespace Carbon.Core.Modules
 						Launch();
 					}
 					else PutsError($"Failed to validate.");
-				}, null);
+				}, onException: (code, data, exception) =>
+				{
+					PutsError($"Failed with '{code}' code.");
+				});
 			}
 
 			public void Initialize()
@@ -149,7 +162,7 @@ namespace Carbon.Core.Modules
 				DisposeEntry(entry);
 
 				PutsWarn($"Loading '{entry.Id}' entry...");
-				Web.Enqueue(string.Format(DownloadEndpoint, PublicKey, entry.Id, entry.PrivateKey), null, (code, data) =>
+				Enqueue(string.Format(DownloadEndpoint, PublicKey, entry.Id, entry.PrivateKey), null, (code, data) =>
 				{
 					Logger.Debug($"{entry.Id} DRM", $"Got response code '{code}' with {ByteEx.Format(data.Length).ToUpper()} of data");
 					if (code != 200) return;
@@ -187,7 +200,7 @@ namespace Carbon.Core.Modules
 					{
 						PutsError($"Failed loading '{entry.Id}'", ex);
 					}
-				}, null);
+				});
 			}
 			public void DisposeEntry(Entry entry)
 			{
