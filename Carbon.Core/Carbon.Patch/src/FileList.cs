@@ -25,7 +25,7 @@ namespace Carbon.Patch
 		private static Dictionary<string, string> unixList = new Dictionary<string, string>
 		{
 			// carbon
-			{ "%BASE%/Tools/Helpers/linux_prepatch.sh", "carbon_prepatch.sh" },
+			{ "%BASE%/Tools/Helpers/prepatch.sh", "carbon/tools/prepatch.sh" },
 			{ "%BASE%/Carbon.Core/Carbon/bin/%TARGET%Unix/net48/Carbon.dll", "HarmonyMods/Carbon-Unix.dll" },
 
 			// tools
