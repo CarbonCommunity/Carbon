@@ -82,10 +82,14 @@ namespace Carbon
 		{
 			if (CarbonCore.IsConfigReady && CarbonCore.Instance.Config.LogFileMode == 0) return;
 
-			_buffer.Add(message);
+			_buffer.Add($"[{_getDate()}] {message}");
 			if (CarbonCore.IsConfigReady && CarbonCore.Instance.Config.LogFileMode == 2) _flush();
 		}
 
+		internal static string _getDate()
+		{
+			return DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
+		}
 		internal static void _write(Severity severity, object message, Exception ex = null, int verbosity = 1)
 		{
 			_init();
