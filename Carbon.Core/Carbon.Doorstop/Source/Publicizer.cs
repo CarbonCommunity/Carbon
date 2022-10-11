@@ -91,6 +91,16 @@ namespace Carbon.Utility
 			{
 				string f = Path.Combine(WorkingPath, $"__{WorkingFile}");
 				Logger.Log($"Writing changes to '{f}'..");
+
+				/*
+				var tempStream = new MemoryStream();
+				assembly.Write(tempStream);
+
+				tempStream.Position = 0;
+				var outputStream = File.Open(f, FileMode.Create);
+				tempStream.CopyTo(outputStream);
+				*/
+
 				assembly.Write(f);
 				assembly.Dispose();
 
@@ -101,7 +111,7 @@ namespace Carbon.Utility
 				return false;
 			}
 
-			assembly = null;
+			assembly.Dispose();
 			return true;
 		}
 

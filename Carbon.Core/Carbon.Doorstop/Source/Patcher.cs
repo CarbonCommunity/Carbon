@@ -69,9 +69,9 @@ namespace Carbon.Utility
 		{
 			try
 			{
-				string Publicized = Path.Combine(Managed, "__Assembly-CSharp.dll");
-				string Original = Path.Combine(Managed, "Assembly-CSharp.dll");
 				string Backup = Path.Combine(Managed, "Assembly-CSharp-backup.dll");
+				string Original = Path.Combine(Managed, "Assembly-CSharp.dll");
+				string Publicized = Path.Combine(Managed, "__Assembly-CSharp.dll");
 
 				if (File.Exists(Backup)) File.Delete(Backup);
 				File.Move(Original, Backup);
@@ -86,14 +86,18 @@ namespace Carbon.Utility
 			}
 		}
 
-		public static void SpawnWorker()
+		public static void DoSpawnStub()
 		{
 			Process Handler = new Process
 			{
 				EnableRaisingEvents = true,
 				StartInfo = new ProcessStartInfo
 				{
+#if UNIX
 					FileName = Path.Combine(Tools, "publicizer.sh"),
+#else
+					FileName = Path.Combine(Tools, "publicizer.bat"),
+#endif
 					Arguments = $"{Process.GetCurrentProcess().Id}",
 					CreateNoWindow = true,
 					UseShellExecute = true,

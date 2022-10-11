@@ -17,7 +17,7 @@ namespace Carbon
 			if (Patcher.IsPatched()) return;
 
 			Patcher.DoPatch();
-			Patcher.SpawnWorker();
+			Patcher.DoSpawnStub();
 			Process.GetCurrentProcess().Kill();
 		}
 
