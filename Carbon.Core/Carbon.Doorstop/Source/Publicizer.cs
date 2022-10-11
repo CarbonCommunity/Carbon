@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using Mono.Cecil;
 
 namespace Carbon.Utility
@@ -40,10 +39,11 @@ namespace Carbon.Utility
 				/// DISCLAIMER
 				/// Some of the following code is based on BepInEx/NStrip
 				/// Copyright (c) 2021 BepInEx, released under MIT License
-				AssemblyNameReference scope = assembly.MainModule.AssemblyReferences.OrderByDescending(
-							a => a.Version).FirstOrDefault(a => a.Name == "mscorlib");
-				MethodReference nsAttributeCtor = null;
-				nsAttributeCtor = new MethodReference(".ctor", assembly.MainModule.TypeSystem.Void, new TypeReference(
+				AssemblyNameReference scope = assembly.MainModule.AssemblyReferences.
+					OrderByDescending(a => a.Version).FirstOrDefault(a => a.Name == "mscorlib");
+
+				MethodReference nsAttributeCtor = new MethodReference(".ctor",
+					assembly.MainModule.TypeSystem.Void, new TypeReference(
 					"System", "NonSerializedAttribute", assembly.MainModule, scope))
 				{ HasThis = true };
 				/// EOD
@@ -52,6 +52,12 @@ namespace Carbon.Utility
 
 				foreach (TypeDefinition Type in assembly.MainModule.Types)
 				{
+					if (Blacklist.IsBlacklisted(Type.Name))
+					{
+						Logger.Warn($"Excluded '{Type.Name}' due to blacklisting");
+						continue;
+					}
+
 					if (Type.IsNested)
 					{
 						Type.IsNestedPublic = true;
@@ -62,10 +68,23 @@ namespace Carbon.Utility
 					}
 
 					foreach (MethodDefinition Method in Type.Methods)
+					{
+						if (Blacklist.IsBlacklisted($"{Type.Name}.{Method.Name}"))
+						{
+							Logger.Warn($"Excluded '{Type.Name}.{Method.Name}' due to blacklisting");
+							continue;
+						}
 						Method.IsPublic = true;
+					}
 
 					foreach (FieldDefinition Field in Type.Fields)
 					{
+						if (Blacklist.IsBlacklisted($"{Type.Name}.{Field.Name}"))
+						{
+							Logger.Warn($"Excluded '{Type.Name}.{Field.Name}' due to blacklisting");
+							continue;
+						}
+
 						/// DISCLAIMER
 						/// Some of the following code is based on BepInEx/NStrip
 						/// Copyright (c) 2021 BepInEx, released under MIT License
