@@ -1,4 +1,9 @@
-﻿using System;
+﻿///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
+
+using System;
 using System.Reflection;
 using UnityEngine;
 
@@ -51,5 +56,11 @@ namespace Carbon.Core
 		}
 
 		public void OnUnloaded(OnHarmonyModUnloadedArgs args) { }
+	}
+
+	[Harmony.HarmonyPatch(typeof(Bootstrap), "StartupShared")]
+	public class Init
+	{
+		public static void Prefix() { }
 	}
 }

@@ -14,6 +14,7 @@ using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 using UnityEngine;
+using System.Reflection;
 
 namespace Carbon.Core
 {
@@ -49,6 +50,13 @@ namespace Carbon.Core
 			}
 
 			CarbonCore.Instance.ModuleProcessor.Init();
+
+			timer.Every(5f, () =>
+			{
+				if (!Logger._hasInit || Logger._buffer.Count == 0 || CarbonCore.Instance.Config.LogFileMode != 1) return;
+
+				Logger._flush();
+			});
 		}
 
 		private void OnPluginLoaded(Plugin plugin)
@@ -194,6 +202,9 @@ namespace Carbon.Core
 		[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true)]
 		private int CarbonDebug { get { return CarbonCore.Instance.Config.LogVerbosity; } set { CarbonCore.Instance.Config.LogVerbosity = value; CarbonCore.Instance.SaveConfig(); } }
 
+		[CommandVar("logfiletype", "The mode for writing the log to file. (0=disabled, 1=saves updates every 5 seconds, 2=saves immediately)", true)]
+		private int LogFileType { get { return CarbonCore.Instance.Config.LogFileMode; } set { CarbonCore.Instance.Config.LogFileMode = value; CarbonCore.Instance.SaveConfig(); } }
+
 		[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true)]
 		private bool HookTimeTracker { get { return CarbonCore.Instance.Config.HookTimeTracker; } set { CarbonCore.Instance.Config.HookTimeTracker = value; CarbonCore.Instance.SaveConfig(); } }
 
@@ -223,7 +234,15 @@ namespace Carbon.Core
 			{
 				if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
 
-				body.Add($" {command.Command}(   )  {command.Help}");
+				var reference = " ";
+
+				if (command.Reference != null)
+				{
+					if (command.Reference is FieldInfo field) reference = field.GetValue(command.Plugin)?.ToString();
+					else if (command.Reference is PropertyInfo property) reference = property.GetValue(command.Plugin)?.ToString();
+				}
+
+				body.Add($" {command.Command}( {reference} )  {command.Help}");
 			}
 
 			Reply(body.ToNewLine(), arg);

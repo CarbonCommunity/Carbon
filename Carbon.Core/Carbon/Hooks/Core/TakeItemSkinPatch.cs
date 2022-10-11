@@ -6,9 +6,10 @@
 using System.Collections.Generic;
 using Carbon.Core.Modules;
 using Facepunch;
-using Harmony;
 
-[HarmonyPatch(typeof(ItemContainer), "Take")]
+[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+[CarbonHook("IItemContainerTakePatch"), CarbonHook.Category(Hook.Category.Enum.Core)]
+[CarbonHook.Patch(typeof(ItemContainer), "Take")]
 public class ItemContainer_Take
 {
 	public static bool Prefix(List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)

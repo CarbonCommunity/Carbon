@@ -51,7 +51,7 @@ namespace Oxide.Plugins
 					action?.Invoke();
 					timer.TimesTriggered++;
 				}
-				catch (Exception ex) { Plugin.LogError($" Timer {time}s has failed:", ex); }
+				catch (Exception ex) { Plugin.LogError($"Timer {time}s has failed:", ex); }
 
 				timer.Destroy();
 				Pool.Free(ref timer);
@@ -79,7 +79,7 @@ namespace Oxide.Plugins
 				}
 				catch (Exception ex)
 				{
-					Plugin.LogError($" Timer {time}s has failed:", ex);
+					Plugin.LogError($"Timer {time}s has failed:", ex);
 
 					timer.Destroy();
 					Pool.Free(ref timer);
@@ -110,7 +110,7 @@ namespace Oxide.Plugins
 				}
 				catch (Exception ex)
 				{
-					Plugin.LogError($" Timer {time}s has failed:", ex);
+					Plugin.LogError($"Timer {time}s has failed:", ex);
 
 					timer.Destroy();
 					Pool.Free(ref timer);
@@ -166,7 +166,7 @@ namespace Oxide.Plugins
 						Activity?.Invoke();
 						TimesTriggered++;
 					}
-					catch (Exception ex) { Plugin.LogError($" Timer {delay}s has failed:", ex); }
+					catch (Exception ex) { Plugin.LogError($"Timer {delay}s has failed:", ex); }
 
 					Destroy();
 				});
@@ -189,7 +189,7 @@ namespace Oxide.Plugins
 					}
 					catch (Exception ex)
 					{
-						Plugin.LogError($" Timer {delay}s has failed:", ex);
+						Plugin.LogError($"Timer {delay}s has failed:", ex);
 
 						Destroy();
 					}
