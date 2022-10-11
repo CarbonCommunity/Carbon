@@ -203,7 +203,7 @@ namespace Carbon.Core
 		private int CarbonDebug { get { return CarbonCore.Instance.Config.LogVerbosity; } set { CarbonCore.Instance.Config.LogVerbosity = value; CarbonCore.Instance.SaveConfig(); } }
 
 		[CommandVar("logfiletype", "The mode for writing the log to file. (0=disabled, 1=saves updates every 5 seconds, 2=saves immediately)", true)]
-		private int LogFileType { get { return CarbonCore.Instance.Config.LogFileMode; } set { CarbonCore.Instance.Config.LogFileMode = value; CarbonCore.Instance.SaveConfig(); } }
+		private int LogFileType { get { return CarbonCore.Instance.Config.LogFileMode; } set { CarbonCore.Instance.Config.LogFileMode = Mathf.Clamp(value, 0, 2); CarbonCore.Instance.SaveConfig(); } }
 
 		[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true)]
 		private bool HookTimeTracker { get { return CarbonCore.Instance.Config.HookTimeTracker; } set { CarbonCore.Instance.Config.HookTimeTracker = value; CarbonCore.Instance.SaveConfig(); } }
