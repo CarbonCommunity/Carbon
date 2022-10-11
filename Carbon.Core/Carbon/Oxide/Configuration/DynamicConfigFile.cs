@@ -61,17 +61,20 @@ namespace Oxide.Core.Configuration
 
 		public void WriteObject<T>(T config, bool sync = false, string filename = null)
 		{
+			if (config == null) config = Activator.CreateInstance<T>();
+
 			filename = CheckPath(filename ?? Filename);
-			string directoryName = Utility.GetDirectoryName(filename);
+			var directoryName = Utility.GetDirectoryName(filename);
 			if (directoryName != null && !Directory.Exists(directoryName))
 			{
 				Directory.CreateDirectory(directoryName);
 			}
-			string text = JsonConvert.SerializeObject(config, Formatting.Indented, Settings);
-			File.WriteAllText(filename, text);
+
+			var data = JsonConvert.SerializeObject(config, Formatting.Indented, Settings);
+			File.WriteAllText(filename, data);
 			if (sync)
 			{
-				_keyvalues = JsonConvert.DeserializeObject<Dictionary<string, object>>(text, _settings);
+				_keyvalues = JsonConvert.DeserializeObject<Dictionary<string, object>>(data, _settings);
 			}
 		}
 

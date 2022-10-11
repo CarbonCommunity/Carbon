@@ -4,8 +4,11 @@
 /// 
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Facepunch;
 
 namespace Carbon.Core
 {
@@ -187,9 +190,14 @@ namespace Carbon.Core
 					break;
 				}
 
-				if (result != null) objectOverride = result;
-				hookableOverride = module;
+				if (result != null)
+				{
+					objectOverride = result;
+					hookableOverride = module;
+				}
 			}
+
+			var array = args == null || args.Length == 0 ? null : args.ToArray();
 
 			foreach (var mod in CarbonLoader._loadedMods)
 			{
@@ -197,19 +205,24 @@ namespace Carbon.Core
 				{
 					try
 					{
-						var result = plugin.CallHook(hookName, flags: flag, args: args);
+						var result = plugin.CallHook(hookName, flags: flag, args: array);
 						if (result != null && objectOverride != null)
 						{
 							Carbon.Logger.Warn($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
 							break;
 						}
 
-						if (result != null) objectOverride = result;
-						hookableOverride = plugin;
+						if (result != null)
+						{
+							objectOverride = result;
+							hookableOverride = plugin;
+						}
 					}
-					catch { }
+					catch (Exception ex) { Logger.Error("Fuck:", ex); }
 				}
 			}
+
+			if (array != null) Pool.Free(ref array);
 
 			return objectOverride;
 		}
