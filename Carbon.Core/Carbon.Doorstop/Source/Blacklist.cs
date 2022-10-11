@@ -11,7 +11,7 @@ namespace Carbon.Utility
 	{
 		private readonly static string[] Items =
 		{
-			@"^Item.OnDirty$",
+			// example: @"^Item.OnDirty$",
 		};
 
 		internal static bool IsBlacklisted(string Name)
