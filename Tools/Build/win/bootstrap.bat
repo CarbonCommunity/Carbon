@@ -36,7 +36,6 @@ rem complex build process.
 
 rem HarmonyLib post build
 call cd "%HARMONYDIR%" && git reset --hard HEAD > NUL
-copy /Y "%HARMONYDIR%\bin\Release\net48\1Harmony.dll" "%ROOT%\Carbon.Core\Carbon\Resources"
 
 rem Download rust binary libs
 call "%BASE%\update.bat" public 

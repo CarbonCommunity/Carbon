@@ -104,7 +104,7 @@
 
 	<ItemGroup>
 		<!-- External resources -->
-		<Reference Include="Resources\1Harmony.dll">
+		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll">
 			<PrivateAssets>all</PrivateAssets>
 		</Reference>
 	</ItemGroup>

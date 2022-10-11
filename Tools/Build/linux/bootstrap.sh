@@ -37,7 +37,6 @@ done
 
 # HarmonyLib post build
 (cd "${HARMONYDIR}" && git reset --hard HEAD > /dev/null)
-cp --force "${HARMONYDIR}/bin/Release/net48/1Harmony.dll" "${ROOT}/Carbon.Core/Carbon/Resources"
 
 # Download rust binary libs
 exec "${BASE}/update.sh" public
