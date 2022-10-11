@@ -10,7 +10,7 @@ namespace Doorstop
 			=> Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "carbon", "tools", "NStrip.exe");
 
 		private static string NStripOpts
-			= "--public --include-compiler-generated --keep-resources --no-strip --overwrite --unity-non-serialized";
+			= "--public --include-compiler-generated --keep-resources --no-strip --overwrite --unity-non-serialized -cg --cg-exclude-events";
 
 		private static string AssemblyCSharp
 			=> Path.GetFullPath(Path.Combine(
