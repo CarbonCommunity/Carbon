@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
 		<!-- General build information -->
-		<ProjectGuid>{98CC722E-7AED-4749-90DD-C92C917A11AF}</ProjectGuid>
+		<ProjectGuid>{6872448A-98BF-45B3-88D8-AF80F8E562CA        }</ProjectGuid>
 
 		<Deterministic>true</Deterministic>
 		<FileAlignment>512</FileAlignment>
@@ -79,15 +79,12 @@
 			<PropertyGroup>
 				<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
 			</PropertyGroup>
-
-			<ItemGroup>
-				<!-- Facepunch game files for Windows -->
-				<Reference Include="..\..\Rust\windows\RustDedicated_Data\Managed\Rust.Harmony.dll">
-					<PrivateAssets>all</PrivateAssets>
-				</Reference>
-			</ItemGroup>
 		</Otherwise>
 	</Choose>
+
+	<ItemGroup>		<!-- System libs -->
+		<Reference Include="System" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<!-- Nuget packages -->

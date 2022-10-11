@@ -5,12 +5,14 @@
 
 using System;
 using System.IO;
+using Carbon.Utility;
 
 namespace Carbon
 {
-	public class Logger
+	internal class Logger
 	{
-		private const string logFile = "__doorstop.log";
+		private static string logFile
+			= Path.Combine(Context.Base, "__doorstop.log");
 
 		internal enum Severity
 		{
@@ -20,6 +22,7 @@ namespace Carbon
 		internal static void Write(Severity severity, object message, Exception ex = null)
 		{
 			string formatted = null;
+			string timestamp = $"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] ";
 
 			switch (severity)
 			{
@@ -39,6 +42,7 @@ namespace Carbon
 					break;
 
 				case Severity.None:
+					timestamp = null;
 					formatted = $"{message}";
 					break;
 
@@ -47,19 +51,19 @@ namespace Carbon
 			}
 
 			Console.WriteLine(formatted);
-			File.AppendAllText(logFile, formatted + Environment.NewLine);
+			File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
 		}
 
-		public static void None(object message)
+		internal static void None(object message)
 			=> Write(Logger.Severity.None, message);
 
-		public static void Log(object message)
+		internal static void Log(object message)
 			=> Write(Logger.Severity.Notice, message);
 
-		public static void Warn(object message)
+		internal static void Warn(object message)
 			=> Write(Logger.Severity.Warning, message);
 
-		public static void Error(object message, Exception ex = null)
+		internal static void Error(object message, Exception ex = null)
 			=> Write(Logger.Severity.Error, message, ex);
 	}
 }

@@ -11,8 +11,7 @@ namespace Carbon.Utility
 	{
 		private readonly static string[] Items =
 		{
-			@"^ServerConsole$",
-			@"^ServerPerformance.WriteLine$",
+			@"^Item.OnDirty$",
 		};
 
 		internal static bool IsBlacklisted(string Name)
