@@ -4,9 +4,10 @@
 /// 
 
 using Carbon.Core.Modules;
-using Harmony;
 
-[HarmonyPatch(typeof(ItemContainer), "GetAmount")]
+[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+[CarbonHook("IItemContainerAmountPatch"), CarbonHook.Category(Hook.Category.Enum.Core)]
+[CarbonHook.Patch(typeof(ItemContainer), "GetAmount")]
 public class ItemContainer_GetAmount
 {
 	public static bool Prefix(int itemid, bool onlyUsableAmounts, out int __result, ref ItemContainer __instance)

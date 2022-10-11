@@ -8,11 +8,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using HarmonyLib;
 using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Plugins;
-using UnityEngine;
 
 namespace Carbon.Core
 {
@@ -76,13 +74,12 @@ namespace Carbon.Core
 			try
 			{
 				HarmonyLib.Harmony.DEBUG = true;
-				var path = Path.Combine(CarbonDefines.GetLogsFolder(), "..");
-				// FileLog.LogPath	 = Path.Combine(path, "carbon_log.txt");
-				try
-				{
-					//	File.Delete(FileLog.logPath);
-				}
-				catch { }
+				var path = Path.Combine(CarbonDefines.GetLogsFolder(), "harmony_v2_log.txt");
+				Harmony.FileLog.logPath = Path.Combine(CarbonDefines.GetLogsFolder(), "harmony_v1_log.txt");
+
+				Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", path);
+
+				typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
 
 				_modPath = CarbonDefines.GetPluginsFolder();
 				if (!Directory.Exists(_modPath))
@@ -127,7 +124,8 @@ namespace Carbon.Core
 			}
 			finally
 			{
-				FileLog.FlushBuffer();
+				Harmony.FileLog.FlushBuffer();
+				HarmonyLib.FileLog.FlushBuffer();
 			}
 		}
 		public static void UnloadCarbonMods()
@@ -384,19 +382,19 @@ namespace Carbon.Core
 				{
 					foreach (var commandName in command.Names)
 					{
-						CarbonCore.Instance.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help);
-						CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help);
+						CarbonCore.Instance.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help, reference: method);
+						CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help, reference: method);
 					}
 				}
 
 				if (chatCommand != null)
 				{
-					CarbonCore.Instance.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", plugin, method.Name, help: chatCommand.Help);
+					CarbonCore.Instance.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", plugin, method.Name, help: chatCommand.Help, reference: method);
 				}
 
 				if (consoleCommand != null)
 				{
-					CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", plugin, method.Name, help: consoleCommand.Help);
+					CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", plugin, method.Name, help: consoleCommand.Help, reference: method);
 				}
 			}
 
@@ -449,7 +447,7 @@ namespace Carbon.Core
 						}
 
 						CarbonCore.LogCommand($"{command}: \"{value}\"", player);
-					}, help: var.Help);
+					}, help: var.Help, reference: field);
 				}
 			}
 
@@ -502,7 +500,7 @@ namespace Carbon.Core
 						}
 
 						CarbonCore.LogCommand($"{command}: \"{value}\"", player);
-					}, help: var.Help);
+					}, help: var.Help, reference: property);
 				}
 			}
 
@@ -574,9 +572,17 @@ namespace Carbon.Core
 
 			if (mod.Harmony != null)
 			{
-				Log(mod.Name, "Unpatching hooks...");
-				mod.Harmony.UnpatchAll(mod.Harmony.Id);
-				Log(mod.Name, "Unloaded mod");
+				Log(mod.Name, $"Unpatching hooks for '{mod.Name}'...");
+
+				try
+				{
+					mod.Harmony.UnpatchAll(mod.Harmony.Id);
+					Log(mod.Name, "Unloaded mod");
+				}
+				catch (InvalidCastException ex)
+				{
+					Logger.Error($"Failed unpatching all.", ex);
+				}
 			}
 
 			_loadedMods.Remove(mod);

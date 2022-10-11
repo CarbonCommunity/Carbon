@@ -242,6 +242,9 @@ namespace Carbon.Core
 			#endregion
 
 			LoadConfig();
+
+			Carbon.Logger._init();
+
 			Carbon.Logger.Log("Loaded config");
 
 			Carbon.Logger.Log($"Loading...");
@@ -299,6 +302,8 @@ namespace Carbon.Core
 				{
 					HookProcessor.UninstallHooks(hook.Key, shutdown: true);
 				}
+
+				Carbon.Logger._dispose();
 			}
 			catch (Exception ex)
 			{

@@ -69,8 +69,10 @@ namespace Carbon.Core
 
 				if (instance.Hooks <= 0)
 				{
-					Carbon.Logger.Warn($" No plugin is using '{hookName}'. Unpatching.");
-					UninstallHooks(hookName);
+					if (UninstallHooks(hookName))
+					{
+						Carbon.Logger.Warn($" No plugin is using '{hookName}'. Unpatched.");
+					}
 				}
 			}
 		}
@@ -89,7 +91,7 @@ namespace Carbon.Core
 				OnlyAlwaysPatchedHooks = onlyAlwaysPatchedHooks
 			}.Start();
 		}
-		public void UninstallHooks(string hookName, bool shutdown = false)
+		public bool UninstallHooks(string hookName, bool shutdown = false)
 		{
 			try
 			{
@@ -97,7 +99,7 @@ namespace Carbon.Core
 				{
 					if (Patches.TryGetValue(hookName, out var instance))
 					{
-						if (instance.AlwaysPatched && !shutdown) return;
+						if (!shutdown && instance.AlwaysPatched) return false;
 
 						if (instance.Patches != null)
 						{
@@ -113,6 +115,7 @@ namespace Carbon.Core
 
 							instance.Patches.Clear();
 							Pool.FreeList(ref list);
+							return true;
 						}
 					}
 				}
@@ -121,6 +124,8 @@ namespace Carbon.Core
 			{
 				Logger.Error($"Failed hook '{hookName}' uninstallation.", ex);
 			}
+
+			return false;
 		}
 
 		public void InstallAlwaysPatchedHooks()

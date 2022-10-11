@@ -33,7 +33,7 @@ public class Chat_SayAs
 			var args = split.Length > 1 ? fullString.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 			Facepunch.Pool.Free(ref split);
 
-			if (Interface.CallHook("OnServerCommand", BasePlayer.FindByID(userId), command, args) != null)
+			if (Interface.CallHook("OnPlayerCommand", BasePlayer.FindByID(userId), command, args) != null)
 			{
 				return false;
 			}

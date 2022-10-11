@@ -4,6 +4,7 @@
 /// 
 
 using System;
+using Carbon;
 using Carbon.Core;
 using Carbon.Core.Extensions;
 using Facepunch.Extend;
@@ -47,12 +48,13 @@ public class CarbonConsoleCommand
 				}
 			}
 		}
-		catch { }
+		catch (Exception ex) { Logger.Error("OnCarbonCommand", ex); }
 
 		return true;
 	}
 }
 
+[CarbonHook.AlwaysPatched]
 [Hook("OnServerCommand"), Hook.Category(Hook.Category.Enum.Server)]
 [Hook.Parameter("arg", typeof(ConsoleSystem.Arg))]
 [Hook.Info("Useful for intercepting commands before they get to their intended target.")]

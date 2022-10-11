@@ -4,9 +4,13 @@
 /// 
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using Carbon.Core;
+using Carbon.Extensions;
 using Facepunch;
 
 namespace Carbon
@@ -18,8 +22,74 @@ namespace Carbon
 			Error, Warning, Notice, Debug
 		}
 
-		internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1)
+		internal static bool _hasInit;
+		internal static List<string> _buffer = new List<string>();
+		internal static StreamWriter _file;
+		internal static TimeSince _timeSinceFlush;
+		internal static int _splitSize = (int)(2.5f * 1000000f);
+
+		internal static void _init(bool archive = false)
 		{
+			if (_hasInit) return;
+
+			try
+			{
+				File.Delete(Harmony.FileLog.logPath);
+				File.Delete(HarmonyLib.FileLog.LogPath);
+			}
+			catch { }
+
+			_hasInit = true;
+
+			var path = Path.Combine(CarbonDefines.GetLogsFolder(), "carbon_log.txt");
+
+			if (archive)
+			{
+				if (OsEx.File.Exists(path))
+				{
+					OsEx.File.Move(path, Path.Combine(CarbonDefines.GetLogsFolder(), "archive", $"carbon_log_{DateTime.Now:yyyy.MM.dd.HHmmss}.txt"));
+				}
+			}
+
+			_file = new StreamWriter(path, append: true);
+		}
+		internal static void _dispose()
+		{
+			_file.Flush();
+			_file.Close();
+			_file.Dispose();
+
+			_hasInit = false;
+		}
+		internal static void _flush()
+		{
+			foreach (var line in _buffer)
+			{
+				_file?.WriteLine(line);
+			}
+
+			_file.Flush();
+			_buffer.Clear();
+			_timeSinceFlush = 0;
+
+			if (_file.BaseStream.Length > _splitSize)
+			{
+				_dispose();
+				_init(archive: true);
+			}
+		}
+		internal static void _queueLog(string message)
+		{
+			if (CarbonCore.IsConfigReady && CarbonCore.Instance.Config.LogFileMode == 0) return;
+
+			_buffer.Add(message);
+			if (CarbonCore.IsConfigReady && CarbonCore.Instance.Config.LogFileMode == 2) _flush();
+		}
+
+		internal static void _write(Severity severity, object message, Exception ex = null, int verbosity = 1)
+		{
+			_init();
+
 			if (severity != Severity.Debug)
 			{
 				Severity minSeverity = CarbonCore.Instance?.Config?.LogSeverity ?? Severity.Notice;
@@ -29,37 +99,48 @@ namespace Carbon
 			switch (severity)
 			{
 				case Severity.Error:
-					Exception dex = ex?.Demystify() ?? ex;
-					if (dex != null) UnityEngine.Debug.LogError($"{message} ({dex?.Message})\n{dex?.StackTrace}");
-					else UnityEngine.Debug.LogError($"{message}");
+					var dex = ex?.Demystify() ?? ex;
+
+					if (dex != null)
+					{
+						UnityEngine.Debug.LogError($"{message} ({dex?.Message})\n{dex?.StackTrace}");
+						_queueLog($"[ERRO] {message} ({dex?.Message})\n{dex?.StackTrace}");
+					}
+					else
+					{
+						UnityEngine.Debug.LogError(message);
+						_queueLog($"[ERRO] {message}");
+					}
 					break;
 
 				case Severity.Warning:
 					UnityEngine.Debug.LogWarning($"{message}");
+					_queueLog($"[WARN] {message}");
 					break;
 
 				case Severity.Notice:
 					UnityEngine.Debug.Log($"{message}");
+					_queueLog($"[INFO] {message}");
 					break;
 
 				case Severity.Debug:
 					int minVerbosity = CarbonCore.Instance?.Config?.LogVerbosity ?? -1;
 					if (verbosity > minVerbosity) break;
 					UnityEngine.Debug.Log($"{message}");
+					_queueLog($"[INFO] {message}");
 					break;
 
 				default:
 					throw new Exception($"Severity {severity} not implemented.");
-
 			}
 		}
 
 #if DEBUG
-		internal static string GetFileNameEx(string Input)
+		internal static string _getFileNameEx(string input)
 		{
 			// For some reason Path.GetFileName() is not working with
 			// [CallerFilePath]. Trying to be OS agnostic..
-			string[] arr = Input.Split((Input.Contains("/") ? '/' : '\\'));
+			string[] arr = input.Split((input.Contains("/") ? '/' : '\\'));
 			string ret = arr[arr.Length - 1];
 
 			Array.Clear(arr, 0, arr.Length);
@@ -75,7 +156,7 @@ namespace Carbon
 		/// <param name="message"></param>
 		/// <param name="verbosity"></param>
 		public static void Debug(object header, object message, int verbosity)
-			=> Write(Logger.Severity.Debug, $"[CRBN.{header}] {message}", null, verbosity);
+			=> _write(Logger.Severity.Debug, $"[CRBN.{header}] {message}", null, verbosity);
 
 		/// <summary>
 		/// Outputs to the game's console a message with severity level 'DEBUG'.
@@ -83,7 +164,7 @@ namespace Carbon
 		/// <param name="message"></param>
 		/// <param name="verbosity"></param>
 		public static void Debug(object message, int verbosity)
-			=> Write(Logger.Severity.Debug, $"[CRBN] {message}", null, verbosity);
+			=> _write(Logger.Severity.Debug, $"[CRBN] {message}", null, verbosity);
 
 		/// <summary>
 		/// Outputs to the game's console a message with severity level 'DEBUG'.
@@ -91,21 +172,21 @@ namespace Carbon
 		/// <param name="header"></param>
 		/// <param name="message"></param>
 		public static void Debug(object header, object message)
-			=> Write(Logger.Severity.Debug, $"[CRBN.{header}] {message}");
+			=> _write(Logger.Severity.Debug, $"[CRBN.{header}] {message}");
 
 		/// <summary>
 		/// Outputs to the game's console a message with severity level 'DEBUG'.
 		/// </summary>
 		/// <param name="message"></param>
 		public static void Debug(object message)
-			=> Write(Logger.Severity.Debug, $"[CRBN] {message}");
+			=> _write(Logger.Severity.Debug, $"[CRBN] {message}");
 
 		/// <summary>
 		/// Outputs to the game's console a message with severity level 'NOTICE'.
 		/// </summary>
 		/// <param name="message"></param>
 		public static void Log(object message)
-			=> Write(Logger.Severity.Notice, message);
+			=> _write(Logger.Severity.Notice, message);
 
 		/// <summary>
 		/// Outputs to the game's console a message with severity level 'WARNING'.
@@ -113,7 +194,7 @@ namespace Carbon
 		/// </summary>
 		/// <param name="message"></param>
 		public static void Warn(object message)
-			=> Write(Logger.Severity.Warning, message);
+			=> _write(Logger.Severity.Warning, message);
 
 		/// <summary>
 		/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -131,9 +212,9 @@ namespace Carbon
 
 			if (minVerbosity > 0)
 				message = $"{message}\n" +
-						  $" [file: {GetFileNameEx(path)}, method: {method}, line: {line}]";
+						  $" [file: {_getFileNameEx(path)}, method: {method}, line: {line}]";
 
-			Write(Logger.Severity.Error, message, ex);
+			_write(Logger.Severity.Error, message, ex);
 		}
 #else
 		public static void Error(object message, Exception ex = null)

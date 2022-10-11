@@ -17,7 +17,7 @@ using Pool = Facepunch.Pool;
 
 public class Command
 {
-	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null)
+	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
 	{
 		if (CarbonCore.Instance.AllChatCommands.Count(x => x.Command == command) == 0)
 		{
@@ -31,12 +31,13 @@ public class Command
 					try { callback.Invoke(player, cmd, args); }
 					catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
 				},
-				Help = help
+				Help = help,
+				Reference = reference
 			});
 		}
 		else Carbon.Logger.Warn($"Chat command '{command}' already exists.");
 	}
-	public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
+	public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null)
 	{
 		AddChatCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -78,9 +79,9 @@ public class Command
 
 			if (argData != null) Pool.FreeList(ref argData);
 			if (result != null) Pool.Free(ref result);
-		}, skipOriginal, help);
+		}, skipOriginal, help, reference);
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
 	{
 		if (CarbonCore.Instance.AllConsoleCommands.Count(x => x.Command == command) == 0)
 		{
@@ -90,12 +91,13 @@ public class Command
 				Plugin = plugin,
 				SkipOriginal = skipOriginal,
 				Callback = callback,
-				Help = help
+				Help = help,
+				Reference = reference
 			});
 		}
 		else Carbon.Logger.Warn($"Console command '{command}' already exists.");
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null)
 	{
 		AddConsoleCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -142,9 +144,9 @@ public class Command
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);
-		}, skipOriginal, help);
+		}, skipOriginal, help, reference);
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null, object reference = null)
 	{
 		AddConsoleCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -175,16 +177,16 @@ public class Command
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);
-		}, skipOriginal, help);
+		}, skipOriginal, help, reference);
 	}
-	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null)
 	{
-		AddChatCommand(command, plugin, method, skipOriginal, help);
-		AddConsoleCommand(command, plugin, method, skipOriginal, help);
+		AddChatCommand(command, plugin, method, skipOriginal, help, reference);
+		AddConsoleCommand(command, plugin, method, skipOriginal, help, reference);
 	}
-	public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
 	{
-		AddChatCommand(command, plugin, callback, skipOriginal, help);
-		AddConsoleCommand(command, plugin, callback, skipOriginal, help);
+		AddChatCommand(command, plugin, callback, skipOriginal, help, reference);
+		AddConsoleCommand(command, plugin, callback, skipOriginal, help, reference);
 	}
 }
