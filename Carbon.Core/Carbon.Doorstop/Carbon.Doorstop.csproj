@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
 		<!-- General build information -->
-		<ProjectGuid>{6872448A-98BF-45B3-88D8-AF80F8E562CA        }</ProjectGuid>
+		<ProjectGuid>{6872448A-98BF-45B3-88D8-AF80F8E562CA}</ProjectGuid>
 
 		<Deterministic>true</Deterministic>
 		<FileAlignment>512</FileAlignment>
