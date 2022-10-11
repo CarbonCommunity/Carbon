@@ -1,60 +1,137 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Clean;Build">
-  <PropertyGroup>
-    <ProjectGuid>{6872448A-98BF-45B3-88D8-AF80F8E562CA}</ProjectGuid>
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<!-- General build information -->
+		<ProjectGuid>{6872448A-98BF-45B3-88D8-AF80F8E562CA        }</ProjectGuid>
 
-    <Deterministic>true</Deterministic>
-    <FileAlignment>512</FileAlignment>
-    <OutputType>Library</OutputType>
-    <TargetFrameworks>net48</TargetFrameworks>
+		<Deterministic>true</Deterministic>
+		<FileAlignment>512</FileAlignment>
+		<OutputType>Library</OutputType>
+		<TargetFrameworks>net48</TargetFrameworks>
 
-    <Configurations>Debug;Release</Configurations>
-    <PlatformTarget>x64</PlatformTarget>
-    <Platforms>AnyCPU;x64</Platforms>
-  </PropertyGroup>
+		<!-- Removes the localized Microsoft.CodeAnalysis.*.resources.dll -->
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 
-  <PropertyGroup>    <!-- User defined properties -->
-    <Product>Carbon</Product>
-    <AssemblyName>Carbon.Doorstop</AssemblyName>
-    <Version>1.1.0.0</Version>
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+		<PlatformTarget>x64</PlatformTarget>
+		<Platforms>AnyCPU;x64</Platforms>
+	</PropertyGroup>
 
-    <Company>Raul-Sorin Sorban</Company>
-    <Copyright>Copyright © Carbon 2022</Copyright>
-    <PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
-    <Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
-  </PropertyGroup>
+	<PropertyGroup>
+		<!-- User defined properties -->
+		<Product>Carbon.Doorstop</Product>
+		<AssemblyName>Carbon.Doorstop</AssemblyName>
 
-  <PropertyGroup>    <!-- Automatically generated properties -->
-    <AssemblyVersion>$(Version)</AssemblyVersion>
-    <FileVersion>$(VersionPrefix)</FileVersion>
-    <InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
-    <VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
-    <VersionSuffix>$(Configuration)</VersionSuffix>
-  </PropertyGroup>
+		<Company>Carbon Community</Company>
+		<Copyright>Copyright © 2022 Carbon Community</Copyright>
+		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
+		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DebugType>embedded</DebugType>
-  </PropertyGroup>
+	<PropertyGroup>
+		<!-- Automatically generated properties -->
+		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+		<VersionSuffix>$(Configuration)</VersionSuffix>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(VersionPrefix)</FileVersion>
+		<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
+		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_")).Core</RootNamespace>
+		<Version>1.$([System.DateTime]::UtcNow.ToString('yy.ddMM')).10</Version>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DefineConstants>$(DefineConstants)</DefineConstants>
-    <OutputPath>bin\Release\</OutputPath>
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputPath>bin\$(Configuration)\</OutputPath>
+	</PropertyGroup>
 
-  <ItemGroup>    <!-- System libs -->
-    <Reference Include="System" />
-  </ItemGroup>
+	<Choose>
+		<When Condition="$(Configuration.Contains('Release'))">
+			<PropertyGroup>
+				<DebugType>none</DebugType>
+				<DefineConstants>$(DefineConstants)</DefineConstants>
+				<Optimize>true</Optimize>
+				<OutputPath>bin\$(Configuration)\</OutputPath>
+				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<DebugType>embedded</DebugType>
+				<DefineConstants>DEBUG;UNITY_ASSERTIONS;$(DefineConstants)</DefineConstants>
+				<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
 
-  <Target Name="CustomBeforeCompile" BeforeTargets="BeforeCompile">
-    <Message Text="&gt;&gt; Product: $(Product)" Importance="high" />
-    <Message Text="&gt;&gt; Build ID: $(VersionPrefix)-$(VersionSuffix)" Importance="high" />
-    <Message Text="&gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
-    <Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
-  </Target>
+	<Choose>
+		<When Condition="$(Configuration.Contains('Unix'))">
+			<PropertyGroup>
+				<DefineConstants>UNIX;$(DefineConstants)</DefineConstants>
+			</PropertyGroup>
+
+			<ItemGroup>
+				<!-- Facepunch game files for Linux -->
+				<Reference Include="..\..\Rust\linux\RustDedicated_Data\Managed\Rust.Harmony.dll">
+					<PrivateAssets>all</PrivateAssets>
+				</Reference>
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
+	<ItemGroup>		<!-- System libs -->
+		<Reference Include="System" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Nuget packages -->
+		<PackageReference Include="Costura.Fody" Version="5.7.0">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+
+		<PackageReference Include="Mono.Cecil" Version="0.11.4">
+		</PackageReference>
+	</ItemGroup>
+
+	<!-- ========================== -->
+	<!-- BUILD TASK SEQUENCER BELOW -->
+	<!-- ========================== -->
+	<Target Name="CleanOutput" AfterTargets="Clean">
+		<Delete Files="$(OutputPath)Carbon.Doorstop.dll" />
+		<Delete Files="$(OutputPath)$(TargetName).dll" />
+	</Target>
+
+	<Target Name="CustomPrepareForBuild" AfterTargets="_GenerateRestoreProjectSpec">
+		<PropertyGroup>
+			<RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
+		</PropertyGroup>
+		<WriteLinesToFile File="$(SolutionDir)Carbon.Doorstop\.rndasm" Overwrite="true" Lines="$(RandomASM)" />
+	</Target>
+
+	<Target Name="CustomBeforeCompile" BeforeTargets="BeforeCompile">
+		<Message Text="&gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />
+		<Message Text="&gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
+		<Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
+		<Message Text="&gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
+	</Target>
+
+	<Target Name="CustomAfterBuild" AfterTargets="AfterBuild">
+		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.Doorstop.dll" />
+
+		<ItemGroup>
+			<FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)Carbon.Doorstop.dll;$(OutputPath)Carbon.Doorstop-*.dll" />
+		</ItemGroup>
+
+		<Message Text="&gt;&gt; Cleaning output folder" Importance="high" />
+		<Delete Files="@(FilesToDelete)">
+			<Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />
+		</Delete>
+	</Target>
+
+	<PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
+		<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)Carbon.Doorstop\.rndasm').Trim())</AssemblyName>
+	</PropertyGroup>
 </Project>

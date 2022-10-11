@@ -18,18 +18,14 @@ namespace Carbon.Patch
 
 			// tools
 			{ "%BASE%/Tools/Helpers/doorstop_config.ini", "doorstop_config.ini" },
-			{ "%BASE%/Tools/UnityDoorstop/windows/x64/doorstop.dll", "winhttp.dll" },
-			{ "%BASE%/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip.exe" },
+			{ "%BASE%/Tools/UnityDoorstop/windows/x64/doorstop.dll", "winhttp.dll" }
 		};
 
 		private static Dictionary<string, string> unixList = new Dictionary<string, string>
 		{
 			// carbon
-			{ "%BASE%/Tools/Helpers/linux_prepatch.sh", "carbon_prepatch.sh" },
+			{ "%BASE%/Tools/Helpers/publicizer.sh", "carbon/tools/publicizer.sh" },
 			{ "%BASE%/Carbon.Core/Carbon/bin/%TARGET%Unix/net48/Carbon.dll", "HarmonyMods/Carbon-Unix.dll" },
-
-			// tools
-			{ "%BASE%/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe", "carbon/tools/NStrip.exe" },
 		};
 	}
 }

@@ -23,6 +23,20 @@ namespace Carbon.Core
 				CarbonCore.Instance = null;
 			}
 
+#if UNIX
+			try
+			{
+				Type t = Type.GetType("ServerMgr, Assembly-CSharp");
+				MethodInfo m = t.GetMethod("Shutdown", BindingFlags.Public | BindingFlags.Instance) ?? null;
+				if (m == null || !m.IsPublic) return;
+			}
+			catch (Exception ex)
+			{
+				Carbon.Logger.Error("Unable to assert assembly status.", ex);
+				return;
+			}
+#endif
+
 			Carbon.Logger.Log(
 				@"                                               " + Environment.NewLine +
 				@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
