@@ -6,7 +6,7 @@
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Core.Hooks.Oxide.Item
+namespace Carbon.Hooks
 {
 	[OxideHook("OnItemDeployed"), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("this", typeof(Deployer))]

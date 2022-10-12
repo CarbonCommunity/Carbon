@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnWeaponFired"), OxideHook.Category(Hook.Category.Enum.Weapon)]
 	[OxideHook.Parameter("projectile", typeof(BaseProjectile))]

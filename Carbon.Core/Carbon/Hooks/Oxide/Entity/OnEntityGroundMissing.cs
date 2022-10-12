@@ -6,7 +6,7 @@
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnEntityGroundMissing", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("entity", typeof(BaseEntity))]

@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanDesignFirework", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Firework)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

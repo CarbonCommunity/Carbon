@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanTakeCutting", typeof(object)), OxideHook.Category(Hook.Category.Enum.Resources)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

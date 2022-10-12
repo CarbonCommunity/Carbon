@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnStructureRepair", typeof(object)), OxideHook.Category(Hook.Category.Enum.Structure)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

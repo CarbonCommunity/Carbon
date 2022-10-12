@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnShopAcceptClick", typeof(object)), OxideHook.Category(Hook.Category.Enum.Shop)]
 	[OxideHook.Parameter("this", typeof(ShopFront))]

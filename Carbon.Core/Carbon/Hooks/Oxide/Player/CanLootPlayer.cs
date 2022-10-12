@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanLootPlayer"), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("looter", typeof(BasePlayer))]

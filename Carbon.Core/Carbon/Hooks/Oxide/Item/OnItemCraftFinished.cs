@@ -6,7 +6,7 @@
 using Carbon.Core;
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnItemCraftFinished"), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("task", typeof(ItemCraftTask))]

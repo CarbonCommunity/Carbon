@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnTeamDisband", typeof(object)), OxideHook.Category(Hook.Category.Enum.Team)]
 	[OxideHook.Parameter("team", typeof(RelationshipManager.PlayerTeam))]

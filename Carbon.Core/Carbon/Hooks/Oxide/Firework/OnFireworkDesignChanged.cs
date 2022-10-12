@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnFireworkDesignChanged"), OxideHook.Category(Hook.Category.Enum.Firework)]
 	[OxideHook.Parameter("this", typeof(PatternFirework))]

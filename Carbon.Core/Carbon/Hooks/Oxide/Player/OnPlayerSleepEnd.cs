@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnPlayerSleepEnded", typeof(object)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("this", typeof(BasePlayer))]

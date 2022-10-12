@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Hooks.Oxide.Entity
+namespace Carbon.Hooks
 {
 	[OxideHook("OnExcavatorResourceSet", typeof(object)), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("arm", typeof(ExcavatorArm))]

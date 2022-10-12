@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanUseWires", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

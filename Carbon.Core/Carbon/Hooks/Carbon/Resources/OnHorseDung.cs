@@ -7,7 +7,7 @@ using Oxide.Core;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[CarbonHook("OnHorseDung", typeof(Item)), Hook.Category(Hook.Category.Enum.Entity)]
 	[Hook.Parameter("horse", typeof(BaseRidableAnimal))]

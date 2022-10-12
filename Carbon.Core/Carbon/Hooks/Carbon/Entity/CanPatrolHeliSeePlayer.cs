@@ -7,7 +7,7 @@ using Carbon.Core;
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Core.Hooks.Carbon.Entity
+namespace Carbon.Hooks
 {
 	[CarbonHook("CanPatrolHeliSeePlayer", typeof(bool)), CarbonHook.Category(Hook.Category.Enum.Entity)]
 	[CarbonHook.Parameter("this", typeof(PatrolHelicopterAI))]

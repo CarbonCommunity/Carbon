@@ -7,7 +7,7 @@ using Oxide.Core;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnCorpsePopulate", typeof(BaseCorpse)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("this", typeof(ScarecrowNPC))]

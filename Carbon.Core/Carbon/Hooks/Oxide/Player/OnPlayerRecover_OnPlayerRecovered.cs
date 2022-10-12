@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[Hook("OnPlayerRecover", typeof(object)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("this", typeof(BasePlayer))]

@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[CarbonHook("OnGrowableUpdate"), CarbonHook.Category(CarbonHook.Category.Enum.Resources)]
 	[CarbonHook.Parameter("this", typeof(GrowableEntity))]

@@ -6,7 +6,7 @@
 using Carbon.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnPlayerRespawned"), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("this", typeof(BasePlayer))]

@@ -6,7 +6,7 @@
 using System.IO;
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnNewSave"), OxideHook.Category(Hook.Category.Enum.Server)]
 	[OxideHook.Info("Called when a new savefile is created (usually when map has wiped)")]

@@ -6,7 +6,7 @@
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[Hook("OnTeamInvite", typeof(object)), OxideHook.Category(Hook.Category.Enum.Team)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

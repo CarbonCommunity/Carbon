@@ -7,7 +7,7 @@ using Carbon.Core;
 using ProtoBuf;
 using Facepunch;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnItemCraft", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("task", typeof(ItemCraftTask))]

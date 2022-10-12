@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnTurretTarget"), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("this", typeof(AutoTurret))]

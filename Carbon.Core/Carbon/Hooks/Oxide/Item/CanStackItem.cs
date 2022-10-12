@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanStackItem", typeof(object)), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("item", typeof(Item))]

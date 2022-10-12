@@ -4,9 +4,10 @@
 /// 
 
 using System;
+using Carbon.Core;
 using Carbon.Core.Extensions;
 
-namespace Carbon.Core.Oxide.Hooks
+namespace Carbon.Hooks
 {
 	[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
 	[CarbonHook("IServerInfoUpdate"), CarbonHook.Category(Hook.Category.Enum.Core)]

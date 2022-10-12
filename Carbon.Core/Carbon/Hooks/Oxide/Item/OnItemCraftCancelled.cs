@@ -8,7 +8,7 @@ using System;
 using Carbon.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnItemCraftCancelled"), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("itemCraftTask", typeof(ItemCraftTask))]

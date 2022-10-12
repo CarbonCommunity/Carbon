@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[CarbonHook("OnJackieChan"), CarbonHook.Category(Hook.Category.Enum.Special)]
 	[CarbonHook.Parameter("this", typeof(BasePlayer))]

@@ -8,7 +8,7 @@ using Oxide.Core;
 using UnityEngine;
 using static BaseCombatEntity;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnPlayerDeath", typeof(object)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

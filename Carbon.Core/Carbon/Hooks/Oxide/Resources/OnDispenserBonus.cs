@@ -9,7 +9,7 @@ using ProtoBuf;
 using UnityEngine;
 using static Construction;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnDispenserBonus", typeof(Item)), OxideHook.Category(Hook.Category.Enum.Resources)]
 	[OxideHook.Parameter("this", typeof(ResourceDispenser))]

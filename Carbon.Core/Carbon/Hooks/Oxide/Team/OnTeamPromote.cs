@@ -6,7 +6,7 @@
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnTeamPromote", typeof(object)), OxideHook.Category(Hook.Category.Enum.Team)]
 	[OxideHook.Parameter("team", typeof(RelationshipManager.PlayerTeam))]

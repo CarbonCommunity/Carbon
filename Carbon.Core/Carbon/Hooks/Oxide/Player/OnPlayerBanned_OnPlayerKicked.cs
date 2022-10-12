@@ -7,7 +7,7 @@ using Epic.OnlineServices.AntiCheatCommon;
 using Epic.OnlineServices.AntiCheatServer;
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnPlayerBanned"), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("connection", typeof(Network.Connection))]

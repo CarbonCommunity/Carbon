@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanAffordUpgrade", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

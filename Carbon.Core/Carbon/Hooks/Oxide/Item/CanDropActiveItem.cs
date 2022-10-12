@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanDropActiveItem", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("this", typeof(BasePlayer))]

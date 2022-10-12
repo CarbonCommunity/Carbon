@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[CarbonHook("OnEntitySpawn"), CarbonHook.Category(Hook.Category.Enum.Entity)]
 	[CarbonHook.Parameter("entity", typeof(BaseNetworkable))]

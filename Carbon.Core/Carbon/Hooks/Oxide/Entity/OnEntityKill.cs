@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnEntityKill", typeof(object)), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("this", typeof(BaseNetworkable))]

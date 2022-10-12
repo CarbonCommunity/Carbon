@@ -7,7 +7,7 @@ using Carbon.Core;
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanBradleyApcTarget", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("this", typeof(BradleyAPC))]

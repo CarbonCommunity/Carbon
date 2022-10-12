@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanCraft", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("this", typeof(ItemCrafter))]

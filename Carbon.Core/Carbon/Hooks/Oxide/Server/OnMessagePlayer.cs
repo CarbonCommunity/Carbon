@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnMessagePlayer", typeof(object)), OxideHook.Category(Hook.Category.Enum.Server)]
 	[OxideHook.Info("Useful for intercepting server messages before they get to their intended target.")]

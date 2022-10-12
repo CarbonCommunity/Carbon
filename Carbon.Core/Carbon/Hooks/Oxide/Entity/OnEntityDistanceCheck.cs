@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnEntityDistanceCheck", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Network)]
 	[OxideHook.Parameter("entity", typeof(BaseEntity))]

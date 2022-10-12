@@ -6,7 +6,7 @@
 using System.Linq;
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[CarbonHook("OnChickenScared"), CarbonHook.Category(Hook.Category.Enum.Entity)]
 	[CarbonHook.Parameter("this", typeof(Chicken))]

@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnServerMessage", typeof(object)), OxideHook.Category(Hook.Category.Enum.Server)]
 	[OxideHook.Info("Called before a server message is sent to all connected players.")]

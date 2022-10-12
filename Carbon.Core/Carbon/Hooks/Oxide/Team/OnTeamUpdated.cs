@@ -7,7 +7,7 @@ using Oxide.Core;
 using ProtoBuf;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnTeamUpdated", typeof(object)), OxideHook.Category(Hook.Category.Enum.Team)]
 	[OxideHook.Parameter("currentTeam", typeof(ulong))]

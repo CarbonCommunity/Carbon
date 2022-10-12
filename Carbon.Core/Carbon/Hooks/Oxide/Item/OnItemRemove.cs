@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnItemRemove", typeof(object)), OxideHook.Category(Hook.Category.Enum.Item)]
 	[OxideHook.Parameter("this", typeof(Item))]

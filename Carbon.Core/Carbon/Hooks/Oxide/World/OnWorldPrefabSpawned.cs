@@ -6,7 +6,7 @@
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnWorldPrefabSpawned"), OxideHook.Category(Hook.Category.Enum.World)]
 	[OxideHook.Parameter("gameObject", typeof(GameObject))]

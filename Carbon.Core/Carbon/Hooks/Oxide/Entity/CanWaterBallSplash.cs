@@ -6,7 +6,7 @@
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanWaterBallSplash", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("liquidDef", typeof(ItemDefinition))]

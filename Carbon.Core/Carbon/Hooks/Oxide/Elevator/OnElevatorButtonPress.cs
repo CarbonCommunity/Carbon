@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnElevatorButtonPress", typeof(object)), OxideHook.Category(Hook.Category.Enum.Elevator)]
 	[OxideHook.Parameter("this", typeof(ElevatorLift))]

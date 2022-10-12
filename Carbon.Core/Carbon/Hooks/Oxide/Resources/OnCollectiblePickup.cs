@@ -5,7 +5,7 @@
 
 using Carbon.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnCollectiblePickup", typeof(object)), OxideHook.Category(Hook.Category.Enum.Resources)]
 	[OxideHook.Parameter("this", typeof(CollectibleEntity))]

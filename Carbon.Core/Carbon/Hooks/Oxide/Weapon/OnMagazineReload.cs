@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnMagazineReload", typeof(object)), OxideHook.Category(Hook.Category.Enum.Weapon)]
 	[OxideHook.Parameter("weapon", typeof(BaseProjectile))]

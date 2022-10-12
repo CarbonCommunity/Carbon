@@ -4,7 +4,7 @@
 /// 
 
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnTeamCreated"), OxideHook.Category(Hook.Category.Enum.Team)]
 	[OxideHook.Require("OnTeamCreate")]

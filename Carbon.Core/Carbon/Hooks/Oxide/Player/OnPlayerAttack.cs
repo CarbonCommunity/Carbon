@@ -7,7 +7,7 @@ using Oxide.Core;
 using ProtoBuf;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnPlayerAttack", typeof(object)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("this", typeof(BasePlayer))]

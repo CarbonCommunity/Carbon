@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnTeamUpdate", typeof(object)), OxideHook.Category(Hook.Category.Enum.Team)]
 	[OxideHook.Parameter("currentTeam", typeof(ulong))]

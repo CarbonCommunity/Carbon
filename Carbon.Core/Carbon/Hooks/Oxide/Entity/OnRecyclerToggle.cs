@@ -5,7 +5,7 @@
 
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnRecyclerToggle", typeof(object)), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("entity", typeof(Recycler))]

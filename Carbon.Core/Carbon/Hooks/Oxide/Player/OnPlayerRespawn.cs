@@ -7,7 +7,7 @@ using System.Linq;
 using Carbon.Core;
 using Oxide.Core;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnPlayerRespawn", typeof(BasePlayer.SpawnPoint)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

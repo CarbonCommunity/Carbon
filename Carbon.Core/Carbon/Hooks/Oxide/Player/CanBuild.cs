@@ -6,7 +6,7 @@
 using Oxide.Core;
 using ProtoBuf;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("CanBuild", typeof(object)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("this", typeof(Planner))]

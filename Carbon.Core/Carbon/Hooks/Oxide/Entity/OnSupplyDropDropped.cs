@@ -6,7 +6,7 @@
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Hooks.Oxide.Entity
+namespace Carbon.Hooks
 {
 	[OxideHook("OnSupplyDropDropped", typeof(object)), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("supplyDrop", typeof(SupplyDrop))]

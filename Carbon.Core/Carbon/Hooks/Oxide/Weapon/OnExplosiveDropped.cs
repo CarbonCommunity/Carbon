@@ -6,7 +6,7 @@
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnExplosiveDropped"), OxideHook.Category(Hook.Category.Enum.Weapon)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

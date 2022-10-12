@@ -7,7 +7,7 @@ using Oxide.Core;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnExplosiveThrown"), OxideHook.Category(Hook.Category.Enum.Weapon)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]

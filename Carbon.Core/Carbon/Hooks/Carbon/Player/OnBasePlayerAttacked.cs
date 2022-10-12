@@ -1,9 +1,10 @@
-﻿///
+﻿
+using Carbon.Core;
+///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
-
-namespace Carbon.Core.Hooks.Carbon.Player
+namespace Carbon.Hooks
 {
 	[OxideHook("OnBasePlayerAttacked", typeof(object)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("this", typeof(BasePlayer))]

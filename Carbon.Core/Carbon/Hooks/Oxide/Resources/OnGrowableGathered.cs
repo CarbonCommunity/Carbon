@@ -6,7 +6,7 @@
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Extended
+namespace Carbon.Hooks
 {
 	[OxideHook("OnGrowableGathered"), OxideHook.Category(Hook.Category.Enum.Resources)]
 	[OxideHook.Parameter("this", typeof(GrowableEntity))]
