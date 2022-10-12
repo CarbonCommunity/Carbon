@@ -18,7 +18,7 @@ if "%1" EQU "" (
 )
 
 rem Cleans the exiting files 
-call git clean -fx "%ROOT%\Rust"
+rem git clean -fx "%ROOT%\Rust"
 
 FOR %%O IN (windows linux) DO (
 	rem Download rust binary libs
@@ -28,8 +28,9 @@ FOR %%O IN (windows linux) DO (
 
 	rem Show me all you've got baby
 	"%ROOT%\Tools\NStrip\NStrip\bin\Release\net452\NStrip.exe" ^
-		--public --include-compiler-generated --cg-exclude-events --keep-resources --no-strip ^
-		--unity-non-serialized --overwrite "%ROOT%\Rust\%%O\RustDedicated_Data\Managed\Assembly-CSharp.dll" ^
+		--public --include-compiler-generated --keep-resources --no-strip --overwrite ^
+		--unity-non-serialized "%ROOT%\Rust\%%O\RustDedicated_Data\Managed\Assembly-CSharp.dll" ^
+		-cg --cg-exclude-events
 )
 
 dotnet restore "%ROOT%\Carbon.Core" --nologo

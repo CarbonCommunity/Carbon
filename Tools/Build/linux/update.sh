@@ -13,7 +13,7 @@ ROOT="$(realpath "${BASE}/../../../")"
 TARGET=${1:-public}
 
 # Cleans the exiting files
-git clean -fx "${ROOT}/Rust"
+# git clean -fx "${ROOT}/Rust"
 
 for OS in windows linux; do
 	# Download rust binary libs
