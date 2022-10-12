@@ -28,9 +28,8 @@ FOR %%O IN (windows linux) DO (
 
 	rem Show me all you've got baby
 	"%ROOT%\Tools\NStrip\NStrip\bin\Release\net452\NStrip.exe" ^
-		--public --include-compiler-generated --keep-resources --no-strip --overwrite ^
-		--unity-non-serialized "%ROOT%\Rust\%%O\RustDedicated_Data\Managed\Assembly-CSharp.dll" ^
-		-cg --cg-exclude-events
+		--public --include-compiler-generated --cg-exclude-events --keep-resources --no-strip ^
+		--unity-non-serialized --overwrite "%ROOT%\Rust\%%O\RustDedicated_Data\Managed\Assembly-CSharp.dll" ^
 )
 
 dotnet restore "%ROOT%\Carbon.Core" --nologo

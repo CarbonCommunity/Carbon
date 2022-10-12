@@ -43,32 +43,55 @@
 		<OutputPath>bin\$(Configuration)\</OutputPath>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="$(Configuration.Contains('Debug'))">
-		<DebugType>embedded</DebugType>
-		<DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
-		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-	</PropertyGroup>
+	<Choose>
+		<When Condition="$(Configuration.Contains('Release'))">
+			<PropertyGroup>
+				<DebugType>none</DebugType>
+				<DefineConstants>$(DefineConstants)</DefineConstants>
+				<Optimize>true</Optimize>
+				<OutputPath>bin\$(Configuration)\</OutputPath>
+				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<DebugType>embedded</DebugType>
+				<DefineConstants>DEBUG;UNITY_ASSERTIONS;$(DefineConstants)</DefineConstants>
+				<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
 
-	<PropertyGroup Condition="$(Configuration.Contains('Release'))">
-		<DebugType>none</DebugType>
-		<DefineConstants>$(DefineConstants)</DefineConstants>
-		<Optimize>true</Optimize>
-		<OutputPath>bin\$(Configuration)\</OutputPath>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	</PropertyGroup>
+	<Choose>
+		<When Condition="$(Configuration.Contains('Unix'))">
+			<PropertyGroup>
+				<DefineConstants>UNIX;$(DefineConstants)</DefineConstants>
+			</PropertyGroup>
 
-	<PropertyGroup Condition="!$(Configuration.Contains('Unix'))">
-		<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
-	</PropertyGroup>
+			<ItemGroup>
+				<!-- Facepunch game files for Linux -->
+				<Reference Include="..\..\Rust\linux\RustDedicated_Data\Managed\*.dll">
+					<PrivateAssets>all</PrivateAssets>
+				</Reference>
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
+			</PropertyGroup>
 
-	<PropertyGroup Condition="$(Configuration.Contains('Unix'))">
-		<DefineConstants>UNIX;$(DefineConstants)</DefineConstants>
-	</PropertyGroup>
+			<ItemGroup>
+				<!-- Facepunch game files for Windows -->
+				<Reference Include="..\..\Rust\windows\RustDedicated_Data\Managed\*.dll">
+					<PrivateAssets>all</PrivateAssets>
+				</Reference>
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
 
 	<ItemGroup>
 		<!-- System libs -->
 		<Reference Include="Microsoft.CSharp" />
-		<Reference Include="System.Core" />
 		<Reference Include="System.Core" />
 		<Reference Include="System.Data" />
 		<Reference Include="System.Drawing.Design" />
@@ -80,23 +103,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- External libs -->
-		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
-	</ItemGroup>
-
-	<ItemGroup Condition="!$(Configuration.Contains('Unix'))">
-		<!-- Windows packages -->
-		<Reference Include="..\..\Rust\windows\RustDedicated_Data\Managed\*.dll">
+		<!-- External resources -->
+		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll">
 			<PrivateAssets>all</PrivateAssets>
-			<SpecificVersion>false</SpecificVersion>
-		</Reference>
-	</ItemGroup>
-
-	<ItemGroup Condition="$(Configuration.Contains('Unix'))">
-		<!-- Linux packages -->
-		<Reference Include="..\..\Rust\linux\RustDedicated_Data\Managed\*.dll">
-			<PrivateAssets>all</PrivateAssets>
-			<SpecificVersion>false</SpecificVersion>
 		</Reference>
 	</ItemGroup>
 
@@ -106,17 +115,21 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 
-		<!-- Dependency of HarmonyLib -->
-		<PackageReference Include="MonoMod.Common" Version="22.6.3.1" />
-		<PackageReference Include="MonoMod" Version="22.5.1.1" />
-
 		<!-- Required by Carbon's Logger -->
-		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
+		<PackageReference Include="Ben.Demystifier" Version="0.4.1">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
 
 		<!-- Required by Carbon's Compiler -->
-		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
-		<PackageReference Include="protobuf-net" Version="3.1.17" />
-		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
+		<PackageReference Include="protobuf-net.Core" Version="3.1.17">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="protobuf-net" Version="3.1.17">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Roslynator.CSharp" Version="4.1.1">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
 	</ItemGroup>
 
 
@@ -174,6 +187,6 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
-		<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm').Trim())</AssemblyName>
+		<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)Carbon\.rndasm').Trim())</AssemblyName>
 	</PropertyGroup>
 </Project>
