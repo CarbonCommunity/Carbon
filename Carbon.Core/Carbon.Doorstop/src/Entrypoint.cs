@@ -4,10 +4,12 @@
 /// 
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using Carbon;
 using Carbon.Utility;
+#if UNIX
+using System.Diagnostics;
+#endif
 
 namespace Doorstop
 {
@@ -15,28 +17,38 @@ namespace Doorstop
 	{
 		public static void Start()
 		{
-			Logger.Log(">> Carbon.Loader using UnityDoorstop entrypoint");
+			Logger.Log(">> Carbon.Doorstop using UnityDoorstop entrypoint");
 
-			Publicizer.Read(
-				Path.Combine(Context.Managed, "Assembly-CSharp.dll")
-			);
-
-			if (!Publicizer.IsPublic("ServerMgr", "Shutdown"))
+			try
 			{
-				Logger.None(
-					"  __.-._  " + Environment.NewLine +
-					"  '-._\"7'    Assembly-CSharp.dll not patched." + Environment.NewLine +
-					"   /'.-c     Execute the carbon publicizer you must." + Environment.NewLine +
-					"   |  /T     Process will now start. Hmm." + Environment.NewLine +
-					"  _)_/LI  " + Environment.NewLine
-				);
-
-				Publicizer.Publicize();
-
-				Publicizer.Write(
+				Publicizer.Read(
 					Path.Combine(Context.Managed, "Assembly-CSharp.dll")
 				);
+
+				if (!Publicizer.IsPublic("ServerMgr", "Shutdown"))
+				{
+					Logger.Warn("Assembly is not publicized");
+
+					Logger.None(
+						"  __.-._  " + Environment.NewLine +
+						"  '-._\"7'    Assembly-CSharp.dll not patched." + Environment.NewLine +
+						"   /'.-c     Execute the carbon publicizer you must." + Environment.NewLine +
+						"   |  /T     Process will now start. Hmm." + Environment.NewLine +
+						"  _)_/LI  " + Environment.NewLine
+					);
+
+					Publicizer.Publicize();
+
+					Publicizer.Write(
+						Path.Combine(Context.Managed, "Assembly-CSharp.dll")
+					);
+				}
+				else
+				{
+					Logger.Log("All validation checks passed" + Environment.NewLine);
+				}
 			}
+			catch { /* exit */}
 		}
 	}
 }
@@ -48,30 +60,42 @@ namespace Carbon
 	{
 		public void OnLoaded(OnHarmonyModLoadedArgs args)
 		{
-			Logger.Log(">> Carbon.Loader using Harmony entrypoint");
+			Logger.Log(">> Carbon.Doorstop using Harmony entrypoint");
 
-			Publicizer.Read(
-				Path.Combine(Context.Managed, "Assembly-CSharp.dll")
-			);
-
-			if (!Publicizer.IsPublic("ServerMgr", "Shutdown"))
+			try
 			{
-				Logger.None(
-					"  __.-._  " + Environment.NewLine +
-					"  '-._\"7'    Assembly-CSharp.dll not patched." + Environment.NewLine +
-					"   /'.-c     Execute the carbon publicizer you must." + Environment.NewLine +
-					"   |  /T     Process will now start. Hmm." + Environment.NewLine +
-					"  _)_/LI  " + Environment.NewLine
-				);
-
-				Publicizer.Publicize();
-
-				Publicizer.Write(
+				Publicizer.Read(
 					Path.Combine(Context.Managed, "Assembly-CSharp.dll")
 				);
 
-				Process.GetCurrentProcess().Kill();
+				if (!Publicizer.IsPublic("ServerMgr", "Shutdown"))
+				{
+					Logger.Warn("Assembly is not publicized");
+
+					Logger.None(
+						"  __.-._  " + Environment.NewLine +
+						"  '-._\"7'    Assembly-CSharp.dll not patched." + Environment.NewLine +
+						"   /'.-c     Execute the carbon publicizer you must." + Environment.NewLine +
+						"   |  /T     Process will now start. Hmm." + Environment.NewLine +
+						"  _)_/LI  " + Environment.NewLine
+					);
+
+					Publicizer.Publicize();
+
+					Publicizer.Write(
+						Path.Combine(Context.Managed, "Assembly-CSharp.dll")
+					);
+
+					Logger.Warn("Application will now exit"
+						+ Environment.NewLine);
+					Process.GetCurrentProcess().Kill();
+				}
+				else
+				{
+					Logger.Log("All validation checks passed" + Environment.NewLine);
+				}
 			}
+			catch { /* exit */}
 		}
 
 		public void OnUnloaded(OnHarmonyModUnloadedArgs args) { }

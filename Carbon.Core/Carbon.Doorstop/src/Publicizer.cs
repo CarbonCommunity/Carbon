@@ -15,7 +15,7 @@ namespace Carbon.Utility
 	{
 		private static MemoryStream memoryStream = null;
 
-		internal static bool Read(string Source)
+		internal static void Read(string Source)
 		{
 			try
 			{
@@ -23,13 +23,12 @@ namespace Carbon.Utility
 					throw new Exception($"Assembly file '{Source}' was not found");
 
 				memoryStream = new MemoryStream(File.ReadAllBytes(Source));
-				Logger.Log($"Loaded '{Path.GetFileName(Source)}' into memory");
-				return true;
+				Logger.Log($"Loaded '{Path.GetFileName(Source)}' to memory");
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("Error reading assembly from '{input}", ex);
-				return false;
+				Logger.Error($"Error while reading '{Source}'", ex);
+				throw (ex);
 			}
 		}
 
@@ -43,10 +42,10 @@ namespace Carbon.Utility
 				AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(memoryStream);
 				if (assembly == null) throw new Exception();
 
-				TypeDefinition t = assembly.MainModule.Types.Where(x => x.Name == "ServerMgr").FirstOrDefault();
+				TypeDefinition t = assembly.MainModule.Types.First(x => x.Name == "ServerMgr");
 				if (t == null) throw new Exception();
 
-				MethodDefinition m = t.Methods.Where(x => x.Name == "Shutdown").FirstOrDefault();
+				MethodDefinition m = t.Methods.First(x => x.Name == "Shutdown");
 				if (m == null) throw new Exception();
 
 				assembly.Dispose();
@@ -56,12 +55,12 @@ namespace Carbon.Utility
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"Unable to extract '{Type}.{Method}", ex);
-				return false;
+				Logger.Error($"Assembly '{Type}.{Method}' was not found", ex);
+				throw ex;
 			}
 		}
 
-		internal static bool Publicize()
+		internal static void Publicize()
 		{
 			AssemblyDefinition assembly = null;
 
@@ -72,12 +71,12 @@ namespace Carbon.Utility
 
 				assembly = AssemblyDefinition.ReadAssembly(memoryStream);
 				if (assembly == null) throw new Exception();
-				Logger.Log($"Assembly read from memory");
+				Logger.Log($"Reading assembly from memory");
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("Error reading assembly from memory", ex);
-				return false;
+				Logger.Error("Error while reading from memory", ex);
+				throw ex;
 			}
 
 			try
@@ -93,7 +92,7 @@ namespace Carbon.Utility
 				{ HasThis = true };
 				/// EOD
 
-				Logger.Log("Executing the publicize process, please wait..");
+				Logger.Log("Starting the publicize process");
 
 				foreach (TypeDefinition Type in assembly.MainModule.Types)
 				{
@@ -152,24 +151,22 @@ namespace Carbon.Utility
 			catch (Exception ex)
 			{
 				Logger.Error("Publicize process aborted", ex);
-				return false;
+				throw ex;
 			}
 
 			try
 			{
-				Logger.Log($"Caching new assembly to memory");
+				Logger.Log($"Validating the modified assembly");
 				memoryStream = new MemoryStream();
 				assembly.Write(memoryStream);
 
 				assembly.Dispose();
 				assembly = null;
-
-				return true;
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("Error caching assembly to memory", ex);
-				return false;
+				Logger.Error("Assembly failed the memory validation", ex);
+				throw (ex);
 			}
 		}
 
@@ -183,7 +180,6 @@ namespace Carbon.Utility
 			while (typeQueue.Count > 0)
 			{
 				TypeDefinition type = typeQueue.Dequeue();
-
 				yield return type;
 
 				foreach (TypeDefinition nestedType in type.NestedTypes)
@@ -192,26 +188,25 @@ namespace Carbon.Utility
 		}
 		/// EOD
 
-		internal static bool Write(string Target)
+		internal static void Write(string Target)
 		{
-			if (memoryStream == null) return false;
+			if (memoryStream == null)
+				throw new InvalidOperationException("No assembly was found in memory");
 			memoryStream.Position = 0;
 
 			try
 			{
 				FileStream outputStream = File.Open(Target, FileMode.Create);
-				Logger.Log($"Writing assembly to disk..");
+				Logger.Log($"Writing to '{Path.GetFileName(Target)}' from memory");
 				memoryStream.CopyTo(outputStream);
 
 				outputStream.Dispose();
 				outputStream = null;
-
-				return true;
 			}
 			catch (Exception ex)
 			{
-				Logger.Error("Error writing assembly to file", ex);
-				return false;
+				Logger.Error($"Error while writing to '{Path.GetFileName(Target)}'", ex);
+				throw (ex);
 			}
 		}
 	}

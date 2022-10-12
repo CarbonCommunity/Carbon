@@ -42,9 +42,8 @@ namespace Carbon
 					break;
 
 				case Severity.None:
-					timestamp = null;
-					formatted = $"{message}";
-					break;
+					Console.WriteLine(message);
+					return;
 
 				default:
 					throw new Exception($"Severity {severity} not implemented.");
