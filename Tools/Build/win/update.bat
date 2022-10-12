@@ -18,7 +18,7 @@ if "%1" EQU "" (
 )
 
 rem Cleans the exiting files 
-git clean -fx "%ROOT%\Rust"
+call git clean -fx "%ROOT%\Rust"
 
 FOR %%O IN (windows linux) DO (
 	rem Download rust binary libs
