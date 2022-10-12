@@ -222,7 +222,7 @@ namespace Carbon
 		}
 #else
 		public static void Error(object message, Exception ex = null)
-			=> Write(Logger.Severity.Error, message, ex);
+			=> _write(Logger.Severity.Error, message, ex);
 #endif
 	}
 }
