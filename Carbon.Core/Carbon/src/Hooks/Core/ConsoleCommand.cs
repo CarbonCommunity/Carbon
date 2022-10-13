@@ -48,7 +48,7 @@ public class CarbonConsoleCommand
 				}
 			}
 		}
-		catch (Exception ex) { Logger.Error("OnCarbonCommand", ex); }
+		catch { }
 
 		return true;
 	}

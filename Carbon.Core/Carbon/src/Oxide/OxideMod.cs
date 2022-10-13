@@ -48,9 +48,14 @@ namespace Oxide.Core
 			Permission = new Permission();
 		}
 
-		public void NextTick(Action action)
+		public void NextTick(Action callback)
 		{
+			CarbonCore.Instance.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+		}
 
+		public void NextFrame(Action callback)
+		{
+			CarbonCore.Instance.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 		}
 
 		public void UnloadPlugin(string name)
@@ -79,6 +84,11 @@ namespace Oxide.Core
 		public object CallDeprecatedHook(string oldHook, string newHook, DateTime expireDate, params object[] args)
 		{
 			return HookExecutor.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
+		}
+
+		public T GetLibrary<T>() where T : Library
+		{
+			return Activator.CreateInstance<T>();
 		}
 	}
 }

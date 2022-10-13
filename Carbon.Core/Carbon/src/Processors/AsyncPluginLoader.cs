@@ -58,6 +58,9 @@ namespace Carbon.Core
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net.core"] }) as Stream));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net"] }) as Stream));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["1harmony"] }) as Stream));
+			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["mysql.data"] }) as Stream));
+			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["system.data.sqlite"] }) as Stream));
+
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(CarbonDefines.DllPath))));
 
 			var managedFolder = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed");

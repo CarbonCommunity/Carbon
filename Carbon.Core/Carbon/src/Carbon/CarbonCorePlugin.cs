@@ -226,26 +226,25 @@ namespace Carbon.Core
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			var body = new StringBody();
+			var body = new StringTable("Command", "Value", "Help");
 			var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
-			body.Add($"Console Commands:");
 
 			foreach (var command in CarbonCore.Instance.AllConsoleCommands)
 			{
 				if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
 
-				var reference = " ";
+				var value = " ";
 
 				if (command.Reference != null)
 				{
-					if (command.Reference is FieldInfo field) reference = field.GetValue(command.Plugin)?.ToString();
-					else if (command.Reference is PropertyInfo property) reference = property.GetValue(command.Plugin)?.ToString();
+					if (command.Reference is FieldInfo field) value = field.GetValue(command.Plugin)?.ToString();
+					else if (command.Reference is PropertyInfo property) value = property.GetValue(command.Plugin)?.ToString();
 				}
 
-				body.Add($" {command.Command}( {reference} )  {command.Help}");
+				body.AddRow(command.Command, value, command.Help);
 			}
 
-			Reply(body.ToNewLine(), arg);
+			Reply($"Console Commands:\n{body.ToStringMinimal()}", arg);
 		}
 
 		[ConsoleCommand("findchat", "Searches through Carbon-processed chat commands.")]
@@ -253,18 +252,17 @@ namespace Carbon.Core
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			var body = new StringBody();
+			var body = new StringTable("Command", "Help");
 			var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
-			body.Add($"Chat Commands:");
 
 			foreach (var command in CarbonCore.Instance.AllChatCommands)
 			{
 				if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
 
-				body.Add($" {command.Command}(   )  {command.Help}");
+				body.AddRow(command.Command, command.Help);
 			}
 
-			Reply(body.ToNewLine(), arg);
+			Reply($"Chat Commands:\n{body.ToStringMinimal()}", arg);
 		}
 
 		#endregion
