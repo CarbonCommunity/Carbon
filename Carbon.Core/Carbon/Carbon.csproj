@@ -214,8 +214,8 @@
 		<Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
 		<Message Text="&gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
 
-		<Error Text="Configuration is undefined" Condition="'$(Configuration)' == ''"/>
-		<Error Text="Platform is undefined" Condition="'$(Platform)' == '' OR '$(Platform)' == 'AnyCPU'"/>
+		<Error Text="Configuration is undefined" Condition="'$(Configuration)' == ''" />
+		<Error Text="Platform is undefined" Condition="'$(Platform)' == '' OR '$(Platform)' == 'AnyCPU'" />
 	</Target>
 
 	<!-- ================================ -->

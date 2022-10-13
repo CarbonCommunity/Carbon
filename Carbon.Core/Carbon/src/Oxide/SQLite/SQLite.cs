@@ -28,14 +28,14 @@ namespace Oxide.Core.SQLite.Libraries
 		{
 			while (_running || _queue.Count > 0)
 			{
-				var mySqlQuery = (SQLiteQuery)null;
+				var sqlQuery = (SQLiteQuery)null;
 				var syncroot = _syncroot;
 
 				lock (syncroot)
 				{
 					if (_queue.Count > 0)
 					{
-						mySqlQuery = _queue.Dequeue();
+						sqlQuery = _queue.Dequeue();
 					}
 					else
 					{
@@ -51,12 +51,12 @@ namespace Oxide.Core.SQLite.Libraries
 					}
 				}
 
-				if (mySqlQuery != null)
+				if (sqlQuery != null)
 				{
-					mySqlQuery.Handle();
-					if (mySqlQuery.Connection != null)
+					sqlQuery.Handle();
+					if (sqlQuery.Connection != null)
 					{
-						_runningConnections.Add(mySqlQuery.Connection);
+						_runningConnections.Add(sqlQuery.Connection);
 					}
 				}
 				else if (_running)
@@ -79,8 +79,8 @@ namespace Oxide.Core.SQLite.Libraries
 
 			if (dictionary.TryGetValue(conStr, out var connection))
 			{
-				OxideMod oxide = Interface.Oxide;
-				DbConnection con = connection.Con;
+				var oxide = Interface.Oxide;
+				var con = (DbConnection)connection.Con;
 				Logger.Warn($"Already open connection ({((con != null) ? con.ConnectionString : null)}), using existing instead...");
 			}
 			else
@@ -114,7 +114,7 @@ namespace Oxide.Core.SQLite.Libraries
 				}
 			}
 
-			if (db.Con != null) db.Con.Close();
+			if (db.Con != null) ((DbConnection)db.Con).Close();
 			db.Plugin = null;
 		}
 
@@ -187,8 +187,17 @@ namespace Oxide.Core.SQLite.Libraries
 
 		public class SQLiteQuery
 		{
-			internal SQLiteCommand _cmd;
-			internal SQLiteConnection _connection;
+			internal object _cmdSource;
+			internal object _connectionSource;
+
+			internal SQLiteCommand _cmd()
+			{
+				return _cmdSource as SQLiteCommand;
+			}
+			internal SQLiteConnection _connection()
+			{
+				return _connectionSource as SQLiteConnection;
+			}
 
 			public Action<List<Dictionary<string, object>>> Callback { get; internal set; }
 
@@ -199,12 +208,12 @@ namespace Oxide.Core.SQLite.Libraries
 
 			private void Cleanup()
 			{
-				if (_cmd != null)
+				if (_cmd() != null)
 				{
-					_cmd.Dispose();
-					_cmd = null;
+					_cmd().Dispose();
+					_cmdSource = null;
 				}
-				_connection = null;
+				_connectionSource = null;
 			}
 			public void Handle()
 			{
@@ -219,21 +228,21 @@ namespace Oxide.Core.SQLite.Libraries
 						throw new Exception("Connection is null");
 					}
 
-					_connection = Connection.Con;
-					if (_connection.State == ConnectionState.Closed)
+					_connectionSource = (SQLiteConnection)Connection.Con;
+					if (_connection().State == ConnectionState.Closed)
 					{
-						_connection.Open();
+						_connection().Open();
 					}
-					_cmd = _connection.CreateCommand();
-					_cmd.CommandText = Sql.SQL;
-					Sql.AddParams(_cmd, Sql.Arguments, "@");
+					_cmdSource = _connection().CreateCommand();
+					_cmd().CommandText = Sql.SQL;
+					Sql.AddParams(_cmd(), Sql.Arguments, "@");
 					if (NonQuery)
 					{
-						nonQueryResult = _cmd.ExecuteNonQuery();
+						nonQueryResult = _cmd().ExecuteNonQuery();
 					}
 					else
 					{
-						using (var sqliteDataReader = _cmd.ExecuteReader())
+						using (var sqliteDataReader = _cmd().ExecuteReader())
 						{
 							list = new List<Dictionary<string, object>>();
 							while (sqliteDataReader.Read())
@@ -247,7 +256,7 @@ namespace Oxide.Core.SQLite.Libraries
 							}
 						}
 					}
-					lastInsertRowId = _connection.LastInsertRowId;
+					lastInsertRowId = _connection().LastInsertRowId;
 					Cleanup();
 				}
 				catch (Exception ex)

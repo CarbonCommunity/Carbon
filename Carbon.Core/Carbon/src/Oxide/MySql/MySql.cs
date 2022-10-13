@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.Threading;
 using Carbon;
 using MySql.Data.MySqlClient;
@@ -188,9 +189,18 @@ namespace Oxide.Core.MySql.Libraries
 
 		public class MySqlQuery
 		{
-			internal MySqlCommand _cmd;
-			internal MySqlConnection _connection;
+			internal object _cmdSource;
+			internal object _connectionSource;
 			internal IAsyncResult _result;
+
+			internal MySqlCommand _cmd()
+			{
+				return _cmdSource as MySqlCommand;
+			}
+			internal MySqlConnection _connection()
+			{
+				return _connectionSource as MySqlConnection;
+			}
 
 			public Action<List<Dictionary<string, object>>> Callback { get; internal set; }
 
@@ -201,12 +211,12 @@ namespace Oxide.Core.MySql.Libraries
 
 			private void Cleanup()
 			{
-				if (_cmd != null)
+				if (_cmd() != null)
 				{
-					_cmd.Dispose();
-					_cmd = null;
+					_cmd().Dispose();
+					_cmdSource = null;
 				}
-				_connection = null;
+				_connectionSource = null;
 			}
 			public bool Handle()
 			{
@@ -221,24 +231,24 @@ namespace Oxide.Core.MySql.Libraries
 						throw new Exception("Connection is null");
 					}
 
-					_connection = (MySqlConnection)Connection.Con;
-					if (_connection.State == ConnectionState.Closed)
+					_connectionSource = (MySqlConnection)Connection.Con;
+					if (_connection().State == ConnectionState.Closed)
 					{
-						_connection.Open();
+						_connection().Open();
 					}
-					_cmd = _connection.CreateCommand();
-					_cmd.CommandTimeout = 120;
-					_cmd.CommandText = Sql.SQL;
-					Sql.AddParams(_cmd, Sql.Arguments, "@");
-					_result = (NonQuery ? _cmd.BeginExecuteNonQuery() : _cmd.BeginExecuteReader());
+					_cmdSource = _connection().CreateCommand();
+					_cmd().CommandTimeout = 120;
+					_cmd().CommandText = Sql.SQL;
+					Sql.AddParams(_cmd(), Sql.Arguments, "@");
+					_result = (NonQuery ? _cmd().BeginExecuteNonQuery() : _cmd().BeginExecuteReader());
 					_result.AsyncWaitHandle.WaitOne();
 					if (NonQuery)
 					{
-						nonQueryResult = _cmd.EndExecuteNonQuery(_result);
+						nonQueryResult = _cmd().EndExecuteNonQuery(_result);
 					}
 					else
 					{
-						using (var mySqlDataReader = _cmd.EndExecuteReader(_result))
+						using (var mySqlDataReader = _cmd().EndExecuteReader(_result))
 						{
 							list = new List<Dictionary<string, object>>();
 							while (mySqlDataReader.Read() && (!Connection.ConnectionPersistent || (Connection.Con.State != ConnectionState.Closed && Connection.Con.State != ConnectionState.Broken)))
@@ -252,7 +262,7 @@ namespace Oxide.Core.MySql.Libraries
 							}
 						}
 					}
-					lastInsertRowId = _cmd.LastInsertedId;
+					lastInsertRowId = _cmd().LastInsertedId;
 					Cleanup();
 				}
 				catch (Exception ex)
@@ -286,7 +296,7 @@ namespace Oxide.Core.MySql.Libraries
 						}
 						else
 						{
-							Action<int> callbackNonQuery = CallbackNonQuery;
+							var callbackNonQuery = CallbackNonQuery;
 							if (callbackNonQuery != null)
 							{
 								callbackNonQuery(nonQueryResult);
@@ -295,7 +305,7 @@ namespace Oxide.Core.MySql.Libraries
 					}
 					catch (Exception ex2)
 					{
-						string text2 = "MySql command callback raised an exception";
+						var text2 = "MySql command callback raised an exception";
 						if (((Connection != null) ? Connection.Plugin : null) != null)
 						{
 							text2 += $" in '{Connection.Plugin.Name} v{Connection.Plugin.Version}' plugin";

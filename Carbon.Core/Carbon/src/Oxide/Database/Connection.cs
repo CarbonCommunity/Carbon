@@ -10,13 +10,13 @@ using Oxide.Plugins;
 
 namespace Oxide.Core.Database
 {
-	public sealed class Connection
+	public class Connection
 	{
-		public string ConnectionString { get; set; }
-		public bool ConnectionPersistent { get; set; }
-		public DbConnection Con { get; set; }
-		public Plugin Plugin { get; set; }
-		public long LastInsertRowId { get; set; }
+		public string ConnectionString;
+		public bool ConnectionPersistent;
+		public DbConnection Con;
+		public Plugin Plugin;
+		public long LastInsertRowId;
 
 		public Connection(string connection, bool persistent)
 		{

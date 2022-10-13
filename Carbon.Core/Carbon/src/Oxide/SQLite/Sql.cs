@@ -129,15 +129,15 @@ namespace Oxide.Ext.SQLite
 			return Append(new Sql("GROUP BY " + string.Join(", ", (from x in columns
 																   select x.ToString()).ToArray<string>()), Array.Empty<object>()));
 		}
-		private Sql.SqlJoinClause Join(string joinType, string table)
+		private SqlJoinClause Join(string joinType, string table)
 		{
 			return new Sql.SqlJoinClause(Append(new Sql(joinType + table, Array.Empty<object>())));
 		}
-		public Sql.SqlJoinClause InnerJoin(string table)
+		public SqlJoinClause InnerJoin(string table)
 		{
 			return Join("INNER JOIN ", table);
 		}
-		public Sql.SqlJoinClause LeftJoin(string table)
+		public SqlJoinClause LeftJoin(string table)
 		{
 			return Join("LEFT JOIN ", table);
 		}

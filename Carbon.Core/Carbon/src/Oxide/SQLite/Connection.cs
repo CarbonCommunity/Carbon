@@ -9,13 +9,13 @@ using Oxide.Plugins;
 
 namespace Oxide.Ext.SQLite
 {
-	public sealed class Connection
+	public class Connection
 	{
-		internal string ConnectionString { get; set; }
-		internal bool ConnectionPersistent { get; set; }
-		internal SQLiteConnection Con { get; set; }
-		internal Plugin Plugin { get; set; }
-		public long LastInsertRowId { get; set; }
+		internal string ConnectionString;
+		internal bool ConnectionPersistent;
+		internal object Con;
+		internal Plugin Plugin;
+		public long LastInsertRowId;
 
 		public Connection(string connection, bool persistent)
 		{

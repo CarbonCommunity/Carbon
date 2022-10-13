@@ -60,8 +60,6 @@ namespace Carbon.Core
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["1harmony"] }) as Stream));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["mysql.data"] }) as Stream));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["system.data.sqlite"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["system.data.sqlite.ef6"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["system.data.sqlite.linq"] }) as Stream));
 
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(CarbonDefines.DllPath))));
 
