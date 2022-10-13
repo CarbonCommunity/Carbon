@@ -19,10 +19,10 @@
 	<PropertyGroup>
 		<!-- User defined properties -->
 		<Product>Carbon</Product>
-		<AssemblyName>Carbon</AssemblyName>
+		<AssemblyName>$(Product)</AssemblyName>
 
 		<Company>Raul-Sorin Sorban</Company>
-		<Copyright>Copyright © Carbon 2022</Copyright>
+		<Copyright>Copyright © 2022 Carbon Community</Copyright>
 		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
 		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
@@ -42,7 +42,7 @@
 	<Choose>
 		<When Condition="Exists('.gitag')">
 			<PropertyGroup>
-				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.gitag').Trim())</InformationalVersion>
+				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(SolutionDir)$(Product)\.gitag').Trim())</InformationalVersion>
 			</PropertyGroup>
 		</When>
 		<Otherwise>
@@ -55,7 +55,7 @@
 	<Choose>
 		<When Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
 			<PropertyGroup>
-				<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)Carbon\.rndasm').Trim())</AssemblyName>
+				<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)$(Product)\.rndasm').Trim())</AssemblyName>
 			</PropertyGroup>
 		</When>
 		<Otherwise>
@@ -138,9 +138,6 @@
 		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll">
 			<PrivateAssets>all</PrivateAssets>
 		</Reference>
-		<Reference Include="Resources\*.dll">
-			<PrivateAssets>all</PrivateAssets>
-		</Reference>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -216,6 +213,9 @@
 		<Message Text="&gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
 		<Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
 		<Message Text="&gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
+
+		<Error Text="Configuration is undefined" Condition="'$(Configuration)' == ''"/>
+		<Error Text="Platform is undefined" Condition="'$(Platform)' == '' OR '$(Platform)' == 'AnyCPU'"/>
 	</Target>
 
 	<!-- ================================ -->
@@ -234,7 +234,7 @@
 		<Message Text="&gt;&gt; Cleaning output folder" Importance="high" />
 
 		<ItemGroup>
-			<FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)Carbon.dll;$(OutputPath)Carbon-*.dll" />
+			<FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(Product).dll" />
 			<FilesToDelete Include="$(OutputPath)0Harmony.dll" />
 			<FilesToDelete Include="$(OutputPath)Assembly-*.dll" />
 			<FilesToDelete Include="$(OutputPath)Facepunch.*.dll" />
@@ -246,4 +246,4 @@
 
 		<Delete Files="@(FilesToDelete)" />
 	</Target>
-</Project>                                 
+</Project>
