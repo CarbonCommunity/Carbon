@@ -138,16 +138,12 @@
 
 	<ItemGroup>
 		<!-- External resources -->
-		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll">
-			<IncludeAssets>compile</IncludeAssets>
-		</Reference>
+		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll"/>
 	</ItemGroup>
 
 	<ItemGroup>
 		<!-- Assembly weaver -->
-		<PackageReference Include="Costura.Fody" Version="5.7.0">
-			<IncludeAssets>compile</IncludeAssets>
-		</PackageReference>
+		<PackageReference Include="Costura.Fody" Version="5.7.0"/>
 	</ItemGroup>
 
 
