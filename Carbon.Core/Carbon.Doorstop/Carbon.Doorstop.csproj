@@ -131,7 +131,9 @@
 
 	<ItemGroup>
 		<!-- Assembly weaver -->
-		<PackageReference Include="Costura.Fody" Version="5.7.0"/>
+		<PackageReference Include="Costura.Fody" Version="5.7.0">
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
 
 		<!-- Assembly editor -->
 		<PackageReference Include="Mono.Cecil" Version="0.11.4"/>
@@ -186,7 +188,7 @@
 	<!-- ================================ -->
 	<!--  RENAME THE BUILD ARTIFACT TASK  -->
 	<!-- ================================ -->
-	<Target Name="RenameBuildOutput" AfterTargets="PostBuildEvent">
+	<Target Name="RenameBuildOutput" AfterTargets="PostBuildEvent" Condition="$(Configuration.Contains('Debug'))">
 		<Message Text="&gt;&gt; Rename the build artifact from '$(OutputPath)$(TargetName).dll' to '$(OutputPath)$(Product).dll'" Importance="high" />
 		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)$(Product).dll" />
 		<Delete Files="$(OutputPath)$(TargetName).dll" />

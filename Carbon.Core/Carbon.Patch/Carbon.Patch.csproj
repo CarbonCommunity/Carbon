@@ -162,7 +162,7 @@
   <!-- ================================ -->
   <!--  RENAME THE BUILD ARTIFACT TASK  -->
   <!-- ================================ -->
-  <Target Name="RenameBuildOutput" AfterTargets="PostBuildEvent">
+  <Target Name="RenameBuildOutput" AfterTargets="PostBuildEvent" Condition="$(Configuration.Contains('Debug'))">
     <Message Text="&gt;&gt; Rename the build artifact from '$(OutputPath)$(TargetName).exe' to '$(OutputPath)$(Product).exe'" Importance="high" />
     <Copy SourceFiles="$(OutputPath)$(TargetName).exe" DestinationFiles="$(OutputPath)$(Product).exe" />
     <Delete Files="$(OutputPath)$(TargetName).exe" />
