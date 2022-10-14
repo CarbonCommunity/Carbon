@@ -1,19 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
 		<!-- General build information -->
-		<ProjectGuid>{3ACED109-8348-4608-9AF4-DC9B30421A8A}</ProjectGuid>
-
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Deterministic>true</Deterministic>
 		<FileAlignment>512</FileAlignment>
 		<OutputType>Library</OutputType>
+		<Platforms>x64</Platforms>
+		<PlatformTarget>x64</PlatformTarget>
+		<ProjectGuid>{3ACED109-8348-4608-9AF4-DC9B30421A8A}</ProjectGuid>
 		<TargetFrameworks>net48</TargetFrameworks>
 
-		<!-- Removes the localized Microsoft.CodeAnalysis.*.resources.dll -->
+		<AllowedReferenceRelatedFileExtensions>.pdb</AllowedReferenceRelatedFileExtensions>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-
-		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
-		<PlatformTarget>x64</PlatformTarget>
-		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -30,13 +31,15 @@
 
 	<PropertyGroup>
 		<!-- Automatically generated properties -->
-		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
-		<VersionSuffix>$(Configuration)</VersionSuffix>
 		<AssemblyVersion>$(Version)</AssemblyVersion>
 		<FileVersion>$(VersionPrefix)</FileVersion>
-
 		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_")).Core</RootNamespace>
 		<Version>1.$([System.DateTime]::UtcNow.ToString('yy.ddMM')).10</Version>
+		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+		<VersionSuffix>$(Configuration)</VersionSuffix>
+
+		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+		<Platform Condition="'$(Platform)' == ''">x64</Platform>
 	</PropertyGroup>
 
 	<Choose>
@@ -94,7 +97,7 @@
 			<ItemGroup>
 				<!-- Facepunch game files for Linux -->
 				<Reference Include="..\..\Rust\linux\RustDedicated_Data\Managed\*.dll">
-					<PrivateAssets>all</PrivateAssets>
+					<Private>false</Private>
 				</Reference>
 			</ItemGroup>
 		</When>
@@ -106,7 +109,7 @@
 			<ItemGroup>
 				<!-- Facepunch game files for Windows -->
 				<Reference Include="..\..\Rust\windows\RustDedicated_Data\Managed\*.dll">
-					<PrivateAssets>all</PrivateAssets>
+					<Private>false</Private>
 				</Reference>
 			</ItemGroup>
 		</Otherwise>
@@ -136,14 +139,14 @@
 	<ItemGroup>
 		<!-- External resources -->
 		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll">
-			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>compile</IncludeAssets>
 		</Reference>
 	</ItemGroup>
 
 	<ItemGroup>
 		<!-- Assembly weaver -->
 		<PackageReference Include="Costura.Fody" Version="5.7.0">
-			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>compile</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
 
@@ -191,9 +194,6 @@
 		<Message Text="&gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
 		<Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
 		<Message Text="&gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
-
-		<Error Text="Configuration is undefined" Condition="'$(Configuration)' == ''"/>
-		<Error Text="Platform is undefined" Condition="'$(Platform)' == '' OR '$(Platform)' == 'AnyCPU'"/>
 	</Target>
 
 	<!-- ================================ -->
@@ -212,7 +212,7 @@
 		<Message Text="&gt;&gt; Cleaning output folder" Importance="high" />
 
 		<ItemGroup>
-			<FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(Product).dll" />
+			<!-- <FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(Product).dll" /> -->
 			<FilesToDelete Include="$(OutputPath)0Harmony.dll" />
 			<FilesToDelete Include="$(OutputPath)Assembly-*.dll" />
 			<FilesToDelete Include="$(OutputPath)Facepunch.*.dll" />
