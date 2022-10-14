@@ -31,7 +31,7 @@ namespace Carbon.Hooks
 				return false;
 			}
 			msg.read.Position = oldPosition;
-			return HookExecutor.CallStaticHook("CanMoveItem", item, __instance, num2, num3, num4) == null;
+			return HookCaller.CallStaticHook("CanMoveItem", item, __instance, num2, num3, num4) == null;
 		}
 	}
 }

@@ -21,7 +21,7 @@ namespace Carbon.Hooks
 		public static bool Prefix(ref BasePlayer __instance)
 		{
 			var spawnPoint = (BasePlayer.SpawnPoint)null;
-			var obj = HookExecutor.CallStaticHook("OnPlayerRespawn", __instance, spawnPoint);
+			var obj = HookCaller.CallStaticHook("OnPlayerRespawn", __instance, spawnPoint);
 
 			if (obj is BasePlayer.SpawnPoint point) spawnPoint = point; else spawnPoint = ServerMgr.FindSpawnPoint(__instance);
 

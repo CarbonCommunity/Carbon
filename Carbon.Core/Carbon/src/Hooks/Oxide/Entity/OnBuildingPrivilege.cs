@@ -19,7 +19,7 @@ namespace Carbon.Hooks
 		{
 			try
 			{
-				var obj = HookExecutor.CallStaticHook("OnBuildingPrivilege", __instance, obb);
+				var obj = HookCaller.CallStaticHook("OnBuildingPrivilege", __instance, obb);
 
 				if (obj is BuildingPrivlidge)
 				{

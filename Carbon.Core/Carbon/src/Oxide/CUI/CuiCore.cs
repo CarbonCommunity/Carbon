@@ -112,6 +112,8 @@ namespace Oxide.Game.Rust.Cui
 	}
 	public class CuiElementContainer : List<CuiElement>
 	{
+		public string Name { get; set; }
+
 		public string Add(CuiButton button, string parent = "Hud", string name = null)
 		{
 			if (string.IsNullOrEmpty(name))

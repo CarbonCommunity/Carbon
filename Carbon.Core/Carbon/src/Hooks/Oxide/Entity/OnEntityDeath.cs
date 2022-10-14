@@ -17,7 +17,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(HitInfo info, ref BaseCombatEntity __instance)
 		{
-			HookExecutor.CallStaticHook("OnEntityDeath", __instance, info);
+			HookCaller.CallStaticHook("OnEntityDeath", __instance, info);
 		}
 	}
 
@@ -31,7 +31,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(HitInfo info, ref ResourceEntity __instance)
 		{
-			HookExecutor.CallStaticHook("OnEntityDeath", __instance, info);
+			HookCaller.CallStaticHook("OnEntityDeath", __instance, info);
 		}
 	}
 }

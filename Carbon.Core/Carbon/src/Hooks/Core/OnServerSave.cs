@@ -18,7 +18,7 @@ namespace Carbon.Hooks
 		public static void Prefix(bool AndWait = false)
 		{
 			Carbon.Logger.Log($"Saving Carbon plugins");
-			HookExecutor.CallStaticHook("OnServerSave");
+			HookCaller.CallStaticHook("OnServerSave");
 			Interface.Oxide.Permission.SaveData();
 		}
 	}

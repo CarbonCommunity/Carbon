@@ -18,8 +18,8 @@ namespace Carbon.Hooks
 	{
 		public static void Postfix(string strReason, Network.Connection connection)
 		{
-			HookExecutor.CallStaticHook("OnPlayerDisconnected", connection.player as BasePlayer);
-			HookExecutor.CallStaticHook("OnPlayerDisconnected", connection.player as BasePlayer, strReason);
+			HookCaller.CallStaticHook("OnPlayerDisconnected", connection.player as BasePlayer);
+			HookCaller.CallStaticHook("OnPlayerDisconnected", connection.player as BasePlayer, strReason);
 		}
 	}
 }

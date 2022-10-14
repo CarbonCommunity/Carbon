@@ -16,7 +16,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(BasePlayer player, ref bool __result, ref BaseCombatEntity __instance)
 		{
-			var result = HookExecutor.CallStaticHook("CanPickupEntity", player, __instance);
+			var result = HookCaller.CallStaticHook("CanPickupEntity", player, __instance);
 
 			if (result is bool value)
 			{

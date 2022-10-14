@@ -157,7 +157,7 @@ namespace Carbon.Core
 					continue;
 				}
 
-				body.AddRow($"{count:n0}", mod.Key, $"{HookExecutor.GetHookTime(mod.Key)}ms", $"{HookExecutor.GetHookTotalTime(mod.Key)}ms", $"{instance.Hooks}");
+				body.AddRow($"{count:n0}", mod.Key, $"{HookCaller.GetHookTime(mod.Key)}ms", $"{HookCaller.GetHookTotalTime(mod.Key)}ms", $"{instance.Hooks}");
 				count++;
 			}
 

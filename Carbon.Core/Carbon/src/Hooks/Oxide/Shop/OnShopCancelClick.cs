@@ -21,7 +21,7 @@ namespace Carbon.Hooks
 				return false;
 			}
 
-			return HookExecutor.CallStaticHook("OnShopCancelClick", __instance, msg.player) == null;
+			return HookCaller.CallStaticHook("OnShopCancelClick", __instance, msg.player) == null;
 		}
 	}
 }

@@ -20,7 +20,7 @@ namespace Carbon.Hooks
 				var player = c.player as BasePlayer;
 
 				if (player.displayName == "Jackie Chan")
-					HookExecutor.CallStaticHook("OnJackieChan", player);
+					HookCaller.CallStaticHook("OnJackieChan", player);
 			}
 			catch { }
 		}

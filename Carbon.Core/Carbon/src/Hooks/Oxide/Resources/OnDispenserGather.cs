@@ -48,7 +48,7 @@ namespace Carbon.Hooks
 			int gatherBonus = __instance.CalculateGatherBonus(entity, itemAmt, num3);
 			int iAmount = Mathf.FloorToInt(num3) + gatherBonus;
 			Item byItemId = ItemManager.CreateByItemID(itemAmt.itemid, iAmount);
-			if (HookExecutor.CallStaticHook("OnDispenserGather", (object)__instance, (object)entity, (object)byItemId) != null || byItemId == null)
+			if (HookCaller.CallStaticHook("OnDispenserGather", (object)__instance, (object)entity, (object)byItemId) != null || byItemId == null)
 				return false;
 			__instance.OverrideOwnership(byItemId, attackWeapon);
 			entity.GiveItem(byItemId, BaseEntity.GiveItemReason.ResourceHarvested);

@@ -20,7 +20,7 @@ namespace Carbon.Hooks
 			if (amountToConsume <= 0)
 				return;
 
-			var obj = HookExecutor.CallStaticHook("OnItemUse", __instance, amountToConsume);
+			var obj = HookCaller.CallStaticHook("OnItemUse", __instance, amountToConsume);
 
 			if (obj is int)
 			{

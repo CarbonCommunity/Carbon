@@ -22,7 +22,7 @@ namespace Carbon.Hooks
 				return false;
 			}
 
-			return HookExecutor.CallStaticHook("OnLiftUse", __instance, rpc.player) == null;
+			return HookCaller.CallStaticHook("OnLiftUse", __instance, rpc.player) == null;
 		}
 	}
 
@@ -41,7 +41,7 @@ namespace Carbon.Hooks
 				return false;
 			}
 
-			return HookExecutor.CallStaticHook("OnLiftUse", __instance, rpc.player) == null;
+			return HookCaller.CallStaticHook("OnLiftUse", __instance, rpc.player) == null;
 		}
 	}
 }

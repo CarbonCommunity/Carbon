@@ -28,7 +28,7 @@ namespace Carbon.Hooks
 
 			bool flag = msg.read.Bit();
 
-			return HookExecutor.CallStaticHook("OnElevatorButtonPress", __instance, msg.player, direction, flag) == null;
+			return HookCaller.CallStaticHook("OnElevatorButtonPress", __instance, msg.player, direction, flag) == null;
 		}
 	}
 }

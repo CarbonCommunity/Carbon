@@ -15,7 +15,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(ref BaseNetworkable __instance)
 		{
-			HookExecutor.CallStaticHook("OnEntitySpawn", __instance);
+			HookCaller.CallStaticHook("OnEntitySpawn", __instance);
 		}
 	}
 }

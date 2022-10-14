@@ -20,7 +20,7 @@ namespace Carbon.Hooks
 				return true;
 			}
 
-			return HookExecutor.CallStaticHook("OnEntityKill", __instance) == null;
+			return HookCaller.CallStaticHook("OnEntityKill", __instance) == null;
 		}
 	}
 }

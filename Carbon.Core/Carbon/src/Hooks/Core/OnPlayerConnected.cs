@@ -17,7 +17,7 @@ namespace Carbon.Hooks
 	{
 		public static void Postfix(Network.Connection c)
 		{
-			HookExecutor.CallStaticHook("OnPlayerConnected", c.player as BasePlayer);
+			HookCaller.CallStaticHook("OnPlayerConnected", c.player as BasePlayer);
 		}
 	}
 }

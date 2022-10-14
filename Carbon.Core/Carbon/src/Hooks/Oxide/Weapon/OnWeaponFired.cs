@@ -18,7 +18,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(BaseEntity.RPCMessage msg, ref BaseProjectile __instance)
 		{
-			HookExecutor.CallStaticHook("OnWeaponFired", __instance, msg.player, __instance.PrimaryMagazineAmmo.GetComponent<ItemModProjectile>(), null);
+			HookCaller.CallStaticHook("OnWeaponFired", __instance, msg.player, __instance.PrimaryMagazineAmmo.GetComponent<ItemModProjectile>(), null);
 		}
 	}
 }

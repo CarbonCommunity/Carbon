@@ -79,12 +79,12 @@ namespace Oxide.Core
 
 		public object CallHook(string hookName, params object[] args)
 		{
-			return HookExecutor.CallStaticHook(hookName, args);
+			return HookCaller.CallStaticHook(hookName, args);
 		}
 
 		public object CallDeprecatedHook(string oldHook, string newHook, DateTime expireDate, params object[] args)
 		{
-			return HookExecutor.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
+			return HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
 		}
 
 		public T GetLibrary<T>() where T : Library

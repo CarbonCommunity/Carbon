@@ -31,7 +31,7 @@ namespace Carbon.Hooks
 				return true;
 			}
 
-			return HookExecutor.CallStaticHook("CanLock", player, __instance) == null;
+			return HookCaller.CallStaticHook("CanLock", player, __instance) == null;
 		}
 	}
 
@@ -57,7 +57,7 @@ namespace Carbon.Hooks
 				return true;
 			}
 
-			return HookExecutor.CallStaticHook("CanLock", rpc.player, __instance) == null;
+			return HookCaller.CallStaticHook("CanLock", rpc.player, __instance) == null;
 		}
 	}
 }

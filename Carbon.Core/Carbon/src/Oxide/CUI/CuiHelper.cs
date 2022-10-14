@@ -14,12 +14,14 @@ namespace Oxide.Game.Rust.Cui
 {
 	public static class CuiHelper
 	{
+		internal static JsonSerializerSettings _cuiSettings = new JsonSerializerSettings
+		{
+			DefaultValueHandling = DefaultValueHandling.Ignore
+		};
+
 		public static string ToJson(List<CuiElement> elements, bool format = false)
 		{
-			return JsonConvert.SerializeObject(elements, format ? Formatting.Indented : Formatting.None, new JsonSerializerSettings
-			{
-				DefaultValueHandling = DefaultValueHandling.Ignore
-			}).Replace("\\n", "\n");
+			return JsonConvert.SerializeObject(elements, format ? Formatting.Indented : Formatting.None, _cuiSettings).Replace("\\n", "\n");
 		}
 
 		public static List<CuiElement> FromJson(string json) => JsonConvert.DeserializeObject<List<CuiElement>>(json);
@@ -39,12 +41,12 @@ namespace Oxide.Game.Rust.Cui
 			return false;
 		}
 
-		public static bool DestroyUi(BasePlayer player, string elem)
+		public static bool DestroyUi(BasePlayer player, string name)
 		{
 			if (player?.net != null)
 			{
-				Interface.CallHook("OnDestroyUI", player, elem);
-				CommunityEntity.ServerInstance.ClientRPCEx(new Network.SendInfo { connection = player.net.connection }, null, "DestroyUI", elem);
+				Interface.CallHook("OnDestroyUI", player, name);
+				CommunityEntity.ServerInstance.ClientRPCEx(new Network.SendInfo { connection = player.net.connection }, null, "DestroyUI", name);
 				return true;
 			}
 

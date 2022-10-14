@@ -14,7 +14,7 @@ using Facepunch;
 
 namespace Carbon
 {
-	public static class HookExecutor
+	public static class HookCaller
 	{
 		internal static Dictionary<int, object[]> _argumentBuffer { get; } = new Dictionary<int, object[]>();
 		internal static Dictionary<string, int> _hookTimeBuffer { get; } = new Dictionary<string, int>();

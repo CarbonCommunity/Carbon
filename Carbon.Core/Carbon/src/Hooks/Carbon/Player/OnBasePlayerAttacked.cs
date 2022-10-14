@@ -15,7 +15,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(HitInfo info, ref BasePlayer __instance)
 		{
-			return HookExecutor.CallStaticHook("OnPlayerSleep", __instance, info) == null;
+			return HookCaller.CallStaticHook("OnPlayerSleep", __instance, info) == null;
 		}
 	}
 }

@@ -338,7 +338,7 @@ namespace Carbon.Core
 			plugin.ILoadConfig();
 			plugin.IInit();
 			plugin.Load();
-			HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
+			HookCaller.CallStaticHook("OnPluginLoaded", plugin);
 
 			if (mod != null) mod.Plugins.Add(plugin);
 			ProcessCommands(type, plugin);
@@ -353,7 +353,7 @@ namespace Carbon.Core
 			plugin.IUnload();
 
 			RemoveCommands(plugin);
-			HookExecutor.CallStaticHook("OnPluginUnloaded", plugin);
+			HookCaller.CallStaticHook("OnPluginUnloaded", plugin);
 			plugin.Dispose();
 			Carbon.Logger.Log($"Unloaded plugin {plugin.ToString()}");
 
@@ -548,8 +548,8 @@ namespace Carbon.Core
 
 					try
 					{
-						HookExecutor.CallHook(plugin, "OnServerInitialized");
-						HookExecutor.CallHook(plugin, "OnServerInitialized", Community.IsServerFullyInitialized);
+						HookCaller.CallHook(plugin, "OnServerInitialized");
+						HookCaller.CallHook(plugin, "OnServerInitialized", Community.IsServerFullyInitialized);
 					}
 					catch (Exception initException)
 					{

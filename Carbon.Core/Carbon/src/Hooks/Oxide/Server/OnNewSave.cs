@@ -23,7 +23,7 @@ namespace Carbon.Hooks
 
 			if (!File.Exists(strFilename))
 			{
-				HookExecutor.CallStaticHook("OnNewSave", strFilename);
+				HookCaller.CallStaticHook("OnNewSave", strFilename);
 			}
 		}
 	}

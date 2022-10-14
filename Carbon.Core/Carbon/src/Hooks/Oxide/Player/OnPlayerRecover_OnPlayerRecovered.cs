@@ -15,7 +15,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(ref BasePlayer __instance)
 		{
-			return HookExecutor.CallStaticHook("OnPlayerRecover", __instance) == null;
+			return HookCaller.CallStaticHook("OnPlayerRecover", __instance) == null;
 		}
 	}
 
@@ -27,7 +27,7 @@ namespace Carbon.Hooks
 	{
 		public static void Postfix(ref BasePlayer __instance)
 		{
-			HookExecutor.CallStaticHook("OnPlayerRecovered", __instance);
+			HookCaller.CallStaticHook("OnPlayerRecovered", __instance);
 		}
 	}
 }

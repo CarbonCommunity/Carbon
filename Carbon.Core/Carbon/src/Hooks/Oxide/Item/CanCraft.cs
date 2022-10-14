@@ -18,7 +18,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(ItemBlueprint bp, int amount, bool free, out bool __result, ref ItemCrafter __instance)
 		{
-			if (HookExecutor.CallStaticHook("CanCraft", __instance, bp, amount, free) is bool flag)
+			if (HookCaller.CallStaticHook("CanCraft", __instance, bp, amount, free) is bool flag)
 			{
 				__result = flag;
 				return false;

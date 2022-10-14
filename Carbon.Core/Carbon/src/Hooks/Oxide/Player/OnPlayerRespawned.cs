@@ -18,7 +18,7 @@ namespace Carbon.Hooks
 	{
 		public static void Postfix(Vector3 position, Quaternion rotation, ref BasePlayer __instance)
 		{
-			HookExecutor.CallStaticHook("OnPlayerRespawned", __instance);
+			HookCaller.CallStaticHook("OnPlayerRespawned", __instance);
 		}
 	}
 }

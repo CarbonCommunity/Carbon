@@ -27,7 +27,7 @@ namespace Carbon.Hooks
 			}
 			byItemId.OnVirginSpawn();
 
-			HookExecutor.CallStaticHook("OnItemCraftFinished", task, byItemId);
+			HookCaller.CallStaticHook("OnItemCraftFinished", task, byItemId);
 		}
 	}
 }

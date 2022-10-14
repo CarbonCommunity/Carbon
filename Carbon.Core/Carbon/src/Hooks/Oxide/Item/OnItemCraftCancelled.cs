@@ -35,7 +35,7 @@ namespace Carbon.Hooks
 				__result = true;
 				return false;
 			}
-			HookExecutor.CallStaticHook("OnItemCraftCancelled", itemCraftTask);
+			HookCaller.CallStaticHook("OnItemCraftCancelled", itemCraftTask);
 			itemCraftTask.owner.Command("note.craft_done", itemCraftTask.taskUID, 0);
 			if (((itemCraftTask.takenItems == null ? 0 : (itemCraftTask.takenItems.Count > 0 ? 1 : 0)) & (ReturnItems ? 1 : 0)) != 0)
 			{

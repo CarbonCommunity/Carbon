@@ -25,7 +25,7 @@ namespace Carbon.Hooks
 				return false;
 			}
 
-			return HookExecutor.CallStaticHook("CanTakeCutting", player, __instance) == null;
+			return HookCaller.CallStaticHook("CanTakeCutting", player, __instance) == null;
 		}
 	}
 }

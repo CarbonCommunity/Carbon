@@ -15,7 +15,7 @@ namespace Carbon.Hooks
 	{
 		public static void Postfix(ref Sprinkler __instance)
 		{
-			HookExecutor.CallStaticHook("OnSprinklerSplashed", __instance);
+			HookCaller.CallStaticHook("OnSprinklerSplashed", __instance);
 		}
 	}
 }

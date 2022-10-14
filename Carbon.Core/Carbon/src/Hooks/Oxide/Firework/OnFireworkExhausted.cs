@@ -15,7 +15,7 @@ namespace Carbon.Hooks
 	{
 		public static void Postfix(ref BaseFirework __instance)
 		{
-			HookExecutor.CallStaticHook("OnFireworkExhausted", __instance);
+			HookCaller.CallStaticHook("OnFireworkExhausted", __instance);
 		}
 	}
 }

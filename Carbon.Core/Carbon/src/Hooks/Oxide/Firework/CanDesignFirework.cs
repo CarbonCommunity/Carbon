@@ -23,7 +23,7 @@ namespace Carbon.Hooks
 				return false;
 			}
 
-			object returnvar = HookExecutor.CallStaticHook("CanDesignFirework", player, __instance);
+			object returnvar = HookCaller.CallStaticHook("CanDesignFirework", player, __instance);
 
 			if (returnvar is bool value)
 			{

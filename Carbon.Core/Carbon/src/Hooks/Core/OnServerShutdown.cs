@@ -21,8 +21,8 @@ namespace Carbon.Hooks
 
 			Interface.Oxide.OnShutdown();
 
-			HookExecutor.CallStaticHook("OnServerSave");
-			HookExecutor.CallStaticHook("OnServerShutdown");
+			HookCaller.CallStaticHook("OnServerSave");
+			HookCaller.CallStaticHook("OnServerShutdown");
 
 			Community.Runtime.HarmonyProcessor.Clear();
 			Community.Runtime.ScriptProcessor.Clear();
