@@ -3,6 +3,7 @@
 /// All rights reserved
 /// 
 
+
 using Carbon.Core;
 using Facepunch;
 
@@ -14,7 +15,7 @@ namespace Oxide.Plugins
 		{
 			name = name.Replace(" ", "");
 
-			foreach (var mod in CarbonLoader._loadedMods)
+			foreach (var mod in Loader._loadedMods)
 			{
 				foreach (var plugin in mod.Plugins)
 				{
@@ -28,7 +29,7 @@ namespace Oxide.Plugins
 		public Plugin[] GetAll()
 		{
 			var list = Pool.GetList<Plugin>();
-			foreach (var mod in CarbonLoader._loadedMods)
+			foreach (var mod in Loader._loadedMods)
 			{
 				list.AddRange(mod.Plugins);
 			}

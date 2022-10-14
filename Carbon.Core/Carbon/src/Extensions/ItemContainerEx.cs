@@ -3,20 +3,23 @@
 /// All rights reserved
 /// 
 
-public static class ItemContainerEx
+namespace Carbon.Extensions
 {
-	public static int TakeSkinned(this ItemContainer container, int itemid, ulong skinId, bool onlyUsableAmounts)
+	public static class ItemContainerEx
 	{
-		var num = 0;
-
-		foreach (var item in container.itemList)
+		public static int TakeSkinned(this ItemContainer container, int itemid, ulong skinId, bool onlyUsableAmounts)
 		{
-			if (item.info.itemid == itemid && item.skin == skinId && (!onlyUsableAmounts || !item.IsBusy()))
-			{
-				num += item.amount;
-			}
-		}
+			var num = 0;
 
-		return num;
+			foreach (var item in container.itemList)
+			{
+				if (item.info.itemid == itemid && item.skin == skinId && (!onlyUsableAmounts || !item.IsBusy()))
+				{
+					num += item.amount;
+				}
+			}
+
+			return num;
+		}
 	}
 }

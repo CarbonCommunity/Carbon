@@ -7,10 +7,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Carbon.Core;
 using Facepunch;
 using UnityEngine;
 
-namespace Carbon.Core.Processors
+namespace Carbon.Base
 {
 	public class BaseProcessor : FacepunchBehaviour, IDisposable
 	{

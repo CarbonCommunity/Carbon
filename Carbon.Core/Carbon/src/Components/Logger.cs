@@ -80,10 +80,10 @@ namespace Carbon
 		}
 		internal static void _queueLog(string message)
 		{
-			if (CarbonCore.IsConfigReady && CarbonCore.Instance.Config.LogFileMode == 0) return;
+			if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 0) return;
 
 			_buffer.Add($"[{_getDate()}] {message}");
-			if (CarbonCore.IsConfigReady && CarbonCore.Instance.Config.LogFileMode == 2) _flush();
+			if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 2) _flush();
 		}
 
 		internal static string _getDate()
@@ -96,7 +96,7 @@ namespace Carbon
 
 			if (severity != Severity.Debug)
 			{
-				Severity minSeverity = CarbonCore.Instance?.Config?.LogSeverity ?? Severity.Notice;
+				Severity minSeverity = Community.Runtime?.Config?.LogSeverity ?? Severity.Notice;
 				if (severity > minSeverity) return;
 			}
 
@@ -128,7 +128,7 @@ namespace Carbon
 					break;
 
 				case Severity.Debug:
-					int minVerbosity = CarbonCore.Instance?.Config?.LogVerbosity ?? -1;
+					int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 					if (verbosity > minVerbosity) break;
 					UnityEngine.Debug.Log($"{message}");
 					_queueLog($"[INFO] {message}");
@@ -212,7 +212,7 @@ namespace Carbon
 			[CallerMemberName] string method = null)
 		{
 			// allows the usage of Error() before config has been init
-			int minVerbosity = CarbonCore.Instance?.Config?.LogVerbosity ?? -1;
+			int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 
 			if (minVerbosity > 0)
 				message = $"{message}\n" +

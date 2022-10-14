@@ -5,12 +5,14 @@
 
 using System;
 using System.IO;
+using Carbon.Base;
+using Carbon.Core;
 
-namespace Carbon.Core.Processors
+namespace Carbon.Processors
 {
 	public class HarmonyProcessor : BaseProcessor
 	{
-		public override bool EnableWatcher => CarbonCore.IsConfigReady ? CarbonCore.Instance.Config.HarmonyWatchers : true;
+		public override bool EnableWatcher => Community.IsConfigReady ? Community.Runtime.Config.HarmonyWatchers : true;
 		public override string Folder => CarbonDefines.GetHarmonyFolder();
 		public override string Extension => ".dll";
 		public override Type IndexedType => typeof(Harmony);
@@ -19,13 +21,13 @@ namespace Carbon.Core.Processors
 		{
 			public override void Dispose()
 			{
-				CarbonLoader.UnloadCarbonMod(Path.GetFileNameWithoutExtension(File));
+				Loader.UnloadCarbonMod(Path.GetFileNameWithoutExtension(File));
 			}
 			public override void Execute()
 			{
 				try
 				{
-					CarbonLoader.LoadCarbonMod(File, true);
+					Loader.LoadCarbonMod(File, true);
 				}
 				catch (Exception ex)
 				{

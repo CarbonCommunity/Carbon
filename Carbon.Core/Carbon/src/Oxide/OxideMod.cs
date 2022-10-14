@@ -4,6 +4,7 @@
 /// 
 
 using System;
+using Carbon;
 using Carbon.Core;
 using Oxide.Core.Libraries;
 
@@ -50,12 +51,12 @@ namespace Oxide.Core
 
 		public void NextTick(Action callback)
 		{
-			CarbonCore.Instance.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+			Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 		}
 
 		public void NextFrame(Action callback)
 		{
-			CarbonCore.Instance.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+			Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 		}
 
 		public void UnloadPlugin(string name)

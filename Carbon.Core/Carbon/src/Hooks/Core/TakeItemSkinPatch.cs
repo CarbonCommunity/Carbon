@@ -4,78 +4,82 @@
 /// 
 
 using System.Collections.Generic;
-using Carbon.Core.Modules;
+using Carbon.Base;
+using Carbon.Modules;
 using Facepunch;
 
-[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
-[CarbonHook("IItemContainerTakePatch"), CarbonHook.Category(Hook.Category.Enum.Core)]
-[CarbonHook.Patch(typeof(ItemContainer), "Take")]
-public class ItemContainer_Take
+namespace Carbon.Hooks
 {
-	public static bool Prefix(List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)
+	[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+	[CarbonHook("IItemContainerTakePatch"), CarbonHook.Category(Hook.Category.Enum.Core)]
+	[CarbonHook.Patch(typeof(ItemContainer), "Take")]
+	public class ItemContainer_Take
 	{
-		var overrides = BaseModule.GetModule<RustOverridesModule>();
-		if (!overrides.ConfigInstance.Enabled || !overrides.Config.DisallowSkinnedItemsFromBeingCraftable)
+		public static bool Prefix(List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)
 		{
-			__result = default;
-			return true;
-		}
-
-		var num = 0;
-		if (iAmount == 0)
-		{
-			__result = num;
-		}
-
-		var list = Pool.GetList<Item>();
-		foreach (var item in __instance.itemList)
-		{
-			if (item.info.itemid != itemid || item.skin != 0) continue;
-
-			int num2 = iAmount - num;
-			if (num2 > 0)
+			var overrides = BaseModule.GetModule<RustOverridesModule>();
+			if (!overrides.ConfigInstance.Enabled || !overrides.Config.DisallowSkinnedItemsFromBeingCraftable)
 			{
-				if (item.amount > num2)
+				__result = default;
+				return true;
+			}
+
+			var num = 0;
+			if (iAmount == 0)
+			{
+				__result = num;
+			}
+
+			var list = Pool.GetList<Item>();
+			foreach (var item in __instance.itemList)
+			{
+				if (item.info.itemid != itemid || item.skin != 0) continue;
+
+				int num2 = iAmount - num;
+				if (num2 > 0)
 				{
-					item.MarkDirty();
-					item.amount -= num2;
-					num += num2;
-
-					var item2 = ItemManager.CreateByItemID(itemid, 1, 0UL);
-					item2.amount = num2;
-					item2.CollectedForCrafting(__instance.playerOwner);
-
-					if (collect != null)
+					if (item.amount > num2)
 					{
-						collect.Add(item2);
+						item.MarkDirty();
+						item.amount -= num2;
+						num += num2;
+
+						var item2 = ItemManager.CreateByItemID(itemid, 1, 0UL);
+						item2.amount = num2;
+						item2.CollectedForCrafting(__instance.playerOwner);
+
+						if (collect != null)
+						{
+							collect.Add(item2);
+							break;
+						}
 						break;
 					}
-					break;
-				}
-				else
-				{
-					if (item.amount <= num2)
+					else
 					{
-						num += item.amount;
-						list.Add(item);
-						collect?.Add(item);
-					}
+						if (item.amount <= num2)
+						{
+							num += item.amount;
+							list.Add(item);
+							collect?.Add(item);
+						}
 
-					if (num == iAmount)
-					{
-						break;
+						if (num == iAmount)
+						{
+							break;
+						}
 					}
 				}
 			}
-		}
 
-		foreach (var item3 in list)
-		{
-			item3.RemoveFromContainer();
-		}
+			foreach (var item3 in list)
+			{
+				item3.RemoveFromContainer();
+			}
 
-		Pool.FreeList(ref list);
-		__result = num;
-		return false;
+			Pool.FreeList(ref list);
+			__result = num;
+			return false;
+		}
 	}
 }

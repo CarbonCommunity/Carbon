@@ -6,10 +6,9 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Carbon;
-using Carbon.Core;
+using Carbon.Base;
 using Oxide.Core;
 using Oxide.Plugins;
 using static ConsoleSystem;
@@ -19,9 +18,9 @@ public class Command
 {
 	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
 	{
-		if (CarbonCore.Instance.AllChatCommands.Count(x => x.Command == command) == 0)
+		if (Community.Runtime.AllChatCommands.Count(x => x.Command == command) == 0)
 		{
-			CarbonCore.Instance.AllChatCommands.Add(new OxideCommand
+			Community.Runtime.AllChatCommands.Add(new OxideCommand
 			{
 				Command = command,
 				Plugin = plugin,
@@ -83,9 +82,9 @@ public class Command
 	}
 	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
 	{
-		if (CarbonCore.Instance.AllConsoleCommands.Count(x => x.Command == command) == 0)
+		if (Community.Runtime.AllConsoleCommands.Count(x => x.Command == command) == 0)
 		{
-			CarbonCore.Instance.AllConsoleCommands.Add(new OxideCommand
+			Community.Runtime.AllConsoleCommands.Add(new OxideCommand
 			{
 				Command = command,
 				Plugin = plugin,

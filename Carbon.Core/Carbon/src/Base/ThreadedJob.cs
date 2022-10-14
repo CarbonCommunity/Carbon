@@ -8,13 +8,14 @@ using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Carbon.Core
+namespace Carbon.Base
 {
-	public class ThreadedJob : IDisposable
+	public class BaseThreadedJob : IDisposable
 	{
 		internal bool _isDone = false;
 		internal object _handle = new object();
 		internal Task _task = null;
+
 		private CancellationTokenSource cancellationToken;
 
 		public bool IsDone

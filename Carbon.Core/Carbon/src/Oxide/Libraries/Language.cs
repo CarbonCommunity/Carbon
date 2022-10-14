@@ -39,7 +39,7 @@ namespace Oxide.Core.Libraries
 				return data.Language;
 			}
 
-			return CarbonCore.Instance.Config.Language;
+			return Community.Runtime.Config.Language;
 		}
 		public void SetLanguage(string lang, string userId)
 		{
@@ -53,10 +53,10 @@ namespace Oxide.Core.Libraries
 		}
 		public void SetServerLanguage(string lang)
 		{
-			if (string.IsNullOrEmpty(lang) || lang == CarbonCore.Instance.Config.Language) return;
+			if (string.IsNullOrEmpty(lang) || lang == Community.Runtime.Config.Language) return;
 
-			CarbonCore.Instance.Config.Language = lang;
-			CarbonCore.Instance.SaveConfig();
+			Community.Runtime.Config.Language = lang;
+			Community.Runtime.SaveConfig();
 		}
 		private Dictionary<string, string> GetMessageFile(string plugin, string lang = "en")
 		{

@@ -10,16 +10,16 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Facepunch;
+using Carbon.Base;
+using Carbon.Core;
 using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Application = UnityEngine.Application;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Carbon.Core
+namespace Carbon.Jobs
 {
-	public class AsyncPluginLoader : ThreadedJob
+	public class ScriptCompilationThread : BaseThreadedJob
 	{
 		public string FilePath;
 		public string FileName;
@@ -70,7 +70,7 @@ namespace Carbon.Core
 
 			foreach (var assembly in assemblies)
 			{
-				if (assembly.IsDynamic || !OsEx.File.Exists(assembly.Location) || CarbonLoader.AssemblyCache.Contains(assembly)) continue;
+				if (assembly.IsDynamic || !OsEx.File.Exists(assembly.Location) || Loader.AssemblyCache.Contains(assembly)) continue;
 
 				_metadataReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
 			}
@@ -237,12 +237,12 @@ namespace Carbon.Core
 
 					foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 					{
-						if (CarbonHookValidator.IsIncompatibleOxideHook(method.Name))
+						if (HookValidator.IsIncompatibleOxideHook(method.Name))
 						{
 							unsupportedHooks.Add(method.Name);
 						}
 
-						if (CarbonCore.Instance.HookProcessor.DoesHookExist(method.Name))
+						if (Community.Runtime.HookProcessor.DoesHookExist(method.Name))
 						{
 							if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
 						}

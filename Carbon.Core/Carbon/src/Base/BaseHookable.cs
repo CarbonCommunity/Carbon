@@ -10,7 +10,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Oxide.Core;
 
-namespace Carbon.Core
+namespace Carbon.Base
 {
 	public class BaseHookable
 	{
@@ -40,7 +40,7 @@ namespace Carbon.Core
 
 		public virtual void TrackStart()
 		{
-			if (!CarbonCore.IsServerFullyInitialized)
+			if (!Community.IsServerFullyInitialized)
 			{
 				return;
 			}
@@ -54,7 +54,7 @@ namespace Carbon.Core
 		}
 		public virtual void TrackEnd()
 		{
-			if (!CarbonCore.IsServerFullyInitialized)
+			if (!Community.IsServerFullyInitialized)
 			{
 				return;
 			}

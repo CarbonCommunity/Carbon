@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Carbon.Core.Modules
+namespace Carbon.Base.Interfaces
 {
 	public interface IHookableModule
 	{

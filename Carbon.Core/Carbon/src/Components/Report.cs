@@ -82,7 +82,7 @@ namespace Carbon
 				Dispose();
 			};
 
-			CarbonCore.ReloadPlugins();
+			Community.ReloadPlugins();
 		}
 		public void Dispose()
 		{

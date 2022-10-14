@@ -3,32 +3,37 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core.Modules;
+using Carbon.Base;
+using Carbon.Core;
+using Carbon.Modules;
 
-[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
-[CarbonHook("IItemContainerAmountPatch"), CarbonHook.Category(Hook.Category.Enum.Core)]
-[CarbonHook.Patch(typeof(ItemContainer), "GetAmount")]
-public class ItemContainer_GetAmount
+namespace Carbon.Hooks
 {
-	public static bool Prefix(int itemid, bool onlyUsableAmounts, out int __result, ref ItemContainer __instance)
+	[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+	[CarbonHook("IItemContainerAmountPatch"), CarbonHook.Category(Hook.Category.Enum.Core)]
+	[CarbonHook.Patch(typeof(ItemContainer), "GetAmount")]
+	public class ItemContainer_GetAmount
 	{
-		var overrides = BaseModule.GetModule<RustOverridesModule>();
-		if (!overrides.ConfigInstance.Enabled || !overrides.Config.DisallowSkinnedItemsFromBeingCraftable)
+		public static bool Prefix(int itemid, bool onlyUsableAmounts, out int __result, ref ItemContainer __instance)
 		{
-			__result = default;
-			return true;
-		}
-
-		var num = 0;
-		foreach (var item in __instance.itemList)
-		{
-			if (item.info.itemid == itemid && item.skin == 0 && (!onlyUsableAmounts || !item.IsBusy()))
+			var overrides = BaseModule.GetModule<RustOverridesModule>();
+			if (!overrides.ConfigInstance.Enabled || !overrides.Config.DisallowSkinnedItemsFromBeingCraftable)
 			{
-				num += item.amount;
+				__result = default;
+				return true;
 			}
-		}
 
-		__result = num;
-		return false;
+			var num = 0;
+			foreach (var item in __instance.itemList)
+			{
+				if (item.info.itemid == itemid && item.skin == 0 && (!onlyUsableAmounts || !item.IsBusy()))
+				{
+					num += item.amount;
+				}
+			}
+
+			__result = num;
+			return false;
+		}
 	}
 }

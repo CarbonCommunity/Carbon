@@ -3,7 +3,7 @@
 /// All rights reserved
 /// 
 
-namespace Carbon.Core.Modules
+namespace Carbon.Base.Interfaces
 {
 	public interface IModuleConfig
 	{

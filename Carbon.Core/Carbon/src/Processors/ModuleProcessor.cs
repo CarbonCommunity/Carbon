@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Carbon.Core.Modules;
+using Carbon.Base;
+using Carbon.Base.Interfaces;
+using Carbon.Modules;
 
-namespace Carbon.Core.Processors
+namespace Carbon.Processors
 {
 	public class ModuleProcessor : IDisposable
 	{

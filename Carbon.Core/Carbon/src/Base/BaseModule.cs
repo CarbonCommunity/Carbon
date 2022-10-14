@@ -6,9 +6,11 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Carbon.Base.Interfaces;
+using Carbon.Core;
 using Oxide.Core.Configuration;
 
-namespace Carbon.Core.Modules
+namespace Carbon.Base
 {
 	public class BaseModule : BaseHookable
 	{
@@ -16,7 +18,7 @@ namespace Carbon.Core.Modules
 
 		public static T GetModule<T>()
 		{
-			foreach (var module in CarbonCore.Instance.ModuleProcessor.Modules)
+			foreach (var module in Community.Runtime.ModuleProcessor.Modules)
 			{
 				if (module.GetType() == typeof(T) && module is T result) return result;
 			}
@@ -60,12 +62,12 @@ namespace Carbon.Core.Modules
 
 			foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 			{
-				CarbonCore.Instance.HookProcessor.InstallHooks(method.Name);
-				CarbonCore.Instance.HookProcessor.AppendHook(method.Name);
+				Community.Runtime.HookProcessor.InstallHooks(method.Name);
+				Community.Runtime.HookProcessor.AppendHook(method.Name);
 			}
 			Puts($"Processed hooks");
 
-			CarbonLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+			Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 			Puts("Processed commands");
 
 			File = new DynamicConfigFile(Path.Combine(CarbonDefines.GetModulesFolder(), Name, "config.json"));
@@ -146,7 +148,7 @@ namespace Carbon.Core.Modules
 		{
 			try
 			{
-				if (ConfigInstance.Enabled) OnEnabled(CarbonCore.IsServerFullyInitialized); else OnDisabled(CarbonCore.IsServerFullyInitialized);
+				if (ConfigInstance.Enabled) OnEnabled(Community.IsServerFullyInitialized); else OnDisabled(Community.IsServerFullyInitialized);
 			}
 			catch (Exception ex) { Carbon.Logger.Error($"Failed {(ConfigInstance.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 		}

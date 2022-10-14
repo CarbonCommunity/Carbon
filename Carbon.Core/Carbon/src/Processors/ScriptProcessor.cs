@@ -6,12 +6,14 @@
 using System;
 using System.IO;
 using System.Linq;
+using Carbon.Base;
+using Carbon.Core;
 
-namespace Carbon.Core.Processors
+namespace Carbon.Processors
 {
 	public class ScriptProcessor : BaseProcessor
 	{
-		public override bool EnableWatcher => CarbonCore.IsConfigReady ? CarbonCore.Instance.Config.ScriptWatchers : true;
+		public override bool EnableWatcher => Community.IsConfigReady ? Community.Runtime.Config.ScriptWatchers : true;
 		public override string Folder => CarbonDefines.GetPluginsFolder();
 		public override string Extension => ".cs";
 		public override Type IndexedType => typeof(Script);
@@ -67,7 +69,7 @@ namespace Carbon.Core.Processors
 					_loader = new ScriptLoader();
 					_loader.Parser = Parser;
 					_loader.File = File;
-					_loader.Mod = CarbonCore.Instance.Plugins;
+					_loader.Mod = Community.Runtime.Plugins;
 					_loader.Instance = this;
 					_loader.Load();
 				}

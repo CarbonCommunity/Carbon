@@ -6,15 +6,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Carbon.Core.Extensions;
-using Carbon.Core.Modules;
+using Carbon.Extensions;
+using Carbon.Modules;
 using Facepunch;
 using Carbon.Components;
-using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 using UnityEngine;
 using System.Reflection;
+using Carbon.Base.Interfaces;
+using Carbon.Base;
 
 namespace Carbon.Core
 {
@@ -49,11 +50,11 @@ namespace Carbon.Core
 				permission.RefreshUser(player);
 			}
 
-			CarbonCore.Instance.ModuleProcessor.Init();
+			Community.Runtime.ModuleProcessor.Init();
 
 			timer.Every(5f, () =>
 			{
-				if (!Logger._hasInit || Logger._buffer.Count == 0 || CarbonCore.Instance.Config.LogFileMode != 1) return;
+				if (!Logger._hasInit || Logger._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
 
 				Logger._flush();
 			});
@@ -95,13 +96,13 @@ namespace Carbon.Core
 		[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
 		private void GetVersion(ConsoleSystem.Arg arg)
 		{
-			Reply($"Carbon v{CarbonCore.Version}", arg);
+			Reply($"Carbon v{Community.Version}", arg);
 		}
 
 		[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
 		private void GetBuild(ConsoleSystem.Arg arg)
 		{
-			Reply($"{CarbonCore.InformationalVersion}", arg);
+			Reply($"{Community.InformationalVersion}", arg);
 		}
 
 		[ConsoleCommand("plugins", "Prints the list of mods and their loaded plugins.")]
@@ -117,14 +118,14 @@ namespace Carbon.Core
 				case "--j":
 				case "-json":
 				case "--json":
-					Reply(JsonConvert.SerializeObject(CarbonLoader._loadedMods, Formatting.Indented), arg);
+					Reply(JsonConvert.SerializeObject(Loader._loadedMods, Formatting.Indented), arg);
 					break;
 
 				default:
 					var body = new StringTable("#", "Mod", "Author", "Version", "Core", "Hook Time", "Compile Time");
 					var count = 1;
 
-					foreach (var mod in CarbonLoader._loadedMods)
+					foreach (var mod in Loader._loadedMods)
 					{
 						body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", mod.IsCoreMod ? "Yes" : "No", "", "");
 
@@ -149,9 +150,9 @@ namespace Carbon.Core
 			var body = new StringTable("#", "Hook", "Current Time", "Total Time", "Plugins Using");
 			var count = 1;
 
-			foreach (var mod in CarbonCore.Instance.HookProcessor.Patches)
+			foreach (var mod in Community.Runtime.HookProcessor.Patches)
 			{
-				if (!CarbonCore.Instance.HookProcessor.Patches.TryGetValue(mod.Key, out var instance))
+				if (!Community.Runtime.HookProcessor.Patches.TryGetValue(mod.Key, out var instance))
 				{
 					continue;
 				}
@@ -168,7 +169,7 @@ namespace Carbon.Core
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-			CarbonCore.Instance.WebScriptProcessor.Prepare(arg.Args[0]);
+			Community.Runtime.WebScriptProcessor.Prepare(arg.Args[0]);
 		}
 
 		#region Config
@@ -176,9 +177,9 @@ namespace Carbon.Core
 		[ConsoleCommand("loadconfig", "Loads Carbon config from file.")]
 		private void CarbonLoadConfig(ConsoleSystem.Arg arg)
 		{
-			if (!arg.IsPlayerCalledAndAdmin() || CarbonCore.Instance == null) return;
+			if (!arg.IsPlayerCalledAndAdmin() || Community.Runtime == null) return;
 
-			CarbonCore.Instance.LoadConfig();
+			Community.Runtime.LoadConfig();
 
 			Reply("Loaded Carbon config.", arg);
 		}
@@ -186,36 +187,36 @@ namespace Carbon.Core
 		[ConsoleCommand("saveconfig", "Saves Carbon config to file.")]
 		private void CarbonSaveConfig(ConsoleSystem.Arg arg)
 		{
-			if (!arg.IsPlayerCalledAndAdmin() || CarbonCore.Instance == null) return;
+			if (!arg.IsPlayerCalledAndAdmin() || Community.Runtime == null) return;
 
-			CarbonCore.Instance.SaveConfig();
+			Community.Runtime.SaveConfig();
 
 			Reply("Saved Carbon config.", arg);
 		}
 
 		[CommandVar("modding", "Mark this server as modded or not.", true)]
-		private bool Modding { get { return CarbonCore.Instance.Config.IsModded; } set { CarbonCore.Instance.Config.IsModded = value; CarbonCore.Instance.SaveConfig(); } }
+		private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
 
 		[CommandVar("tag", "Displays this server in the browser list with the 'carbon' tag.", true)]
-		private bool CarbonTag { get { return CarbonCore.Instance.Config.CarbonTag; } set { CarbonCore.Instance.Config.CarbonTag = value; CarbonCore.Instance.SaveConfig(); } }
+		private bool CarbonTag { get { return Community.Runtime.Config.CarbonTag; } set { Community.Runtime.Config.CarbonTag = value; Community.Runtime.SaveConfig(); } }
 
 		[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true)]
-		private int CarbonDebug { get { return CarbonCore.Instance.Config.LogVerbosity; } set { CarbonCore.Instance.Config.LogVerbosity = value; CarbonCore.Instance.SaveConfig(); } }
+		private int CarbonDebug { get { return Community.Runtime.Config.LogVerbosity; } set { Community.Runtime.Config.LogVerbosity = value; Community.Runtime.SaveConfig(); } }
 
 		[CommandVar("logfiletype", "The mode for writing the log to file. (0=disabled, 1=saves updates every 5 seconds, 2=saves immediately)", true)]
-		private int LogFileType { get { return CarbonCore.Instance.Config.LogFileMode; } set { CarbonCore.Instance.Config.LogFileMode = Mathf.Clamp(value, 0, 2); CarbonCore.Instance.SaveConfig(); } }
+		private int LogFileType { get { return Community.Runtime.Config.LogFileMode; } set { Community.Runtime.Config.LogFileMode = Mathf.Clamp(value, 0, 2); Community.Runtime.SaveConfig(); } }
 
 		[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true)]
-		private bool HookTimeTracker { get { return CarbonCore.Instance.Config.HookTimeTracker; } set { CarbonCore.Instance.Config.HookTimeTracker = value; CarbonCore.Instance.SaveConfig(); } }
+		private bool HookTimeTracker { get { return Community.Runtime.Config.HookTimeTracker; } set { Community.Runtime.Config.HookTimeTracker = value; Community.Runtime.SaveConfig(); } }
 
 		[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.", true)]
-		private bool HookValidation { get { return CarbonCore.Instance.Config.HookValidation; } set { CarbonCore.Instance.Config.HookValidation = value; CarbonCore.Instance.SaveConfig(); } }
+		private bool HookValidation { get { return Community.Runtime.Config.HookValidation; } set { Community.Runtime.Config.HookValidation = value; Community.Runtime.SaveConfig(); } }
 
 		[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
-		private int EntityMapBufferSize { get { return CarbonCore.Instance.Config.EntityMapBufferSize; } set { CarbonCore.Instance.Config.EntityMapBufferSize = value; CarbonCore.Instance.SaveConfig(); } }
+		private int EntityMapBufferSize { get { return Community.Runtime.Config.EntityMapBufferSize; } set { Community.Runtime.Config.EntityMapBufferSize = value; Community.Runtime.SaveConfig(); } }
 
 		[CommandVar("language", "Server language used by the Language API.", true)]
-		private string Language { get { return CarbonCore.Instance.Config.Language; } set { CarbonCore.Instance.Config.Language = value; CarbonCore.Instance.SaveConfig(); } }
+		private string Language { get { return Community.Runtime.Config.Language; } set { Community.Runtime.Config.Language = value; Community.Runtime.SaveConfig(); } }
 
 		#endregion
 
@@ -229,7 +230,7 @@ namespace Carbon.Core
 			var body = new StringTable("Command", "Value", "Help");
 			var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
-			foreach (var command in CarbonCore.Instance.AllConsoleCommands)
+			foreach (var command in Community.Runtime.AllConsoleCommands)
 			{
 				if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
 
@@ -255,7 +256,7 @@ namespace Carbon.Core
 			var body = new StringTable("Command", "Help");
 			var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
-			foreach (var command in CarbonCore.Instance.AllChatCommands)
+			foreach (var command in Community.Runtime.AllChatCommands)
 			{
 				if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
 
@@ -286,7 +287,7 @@ namespace Carbon.Core
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(2)) return;
 
-			var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+			var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
 			var module = hookable.To<IModule>();
 
 			if (module == null)
@@ -312,13 +313,13 @@ namespace Carbon.Core
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			foreach (var hookable in CarbonCore.Instance.ModuleProcessor.Modules)
+			foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
 			{
 				var module = hookable.To<IModule>();
 				module.Save();
 			}
 
-			Reply($"Saved {CarbonCore.Instance.ModuleProcessor.Modules.Count:n0} module configs and data files.", arg);
+			Reply($"Saved {Community.Runtime.ModuleProcessor.Modules.Count:n0} module configs and data files.", arg);
 		}
 
 		[ConsoleCommand("savemoduleconfig", "Saves Carbon module config & data file.")]
@@ -326,7 +327,7 @@ namespace Carbon.Core
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-			var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+			var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
 			var module = hookable.To<IModule>();
 
 			if (module == null)
@@ -345,7 +346,7 @@ namespace Carbon.Core
 		{
 			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-			var hookable = CarbonCore.Instance.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+			var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
 			var module = hookable.To<IModule>();
 
 			if (module == null)
@@ -376,8 +377,8 @@ namespace Carbon.Core
 			switch (name)
 			{
 				case "*":
-					CarbonCore.ClearPlugins();
-					CarbonCore.ReloadPlugins();
+					Community.ClearPlugins();
+					Community.ReloadPlugins();
 					break;
 
 				default:
@@ -385,12 +386,12 @@ namespace Carbon.Core
 
 					if (!string.IsNullOrEmpty(path))
 					{
-						CarbonCore.Instance.HarmonyProcessor.Prepare(name, path);
-						CarbonCore.Instance.ScriptProcessor.Prepare(name, path);
+						Community.Runtime.HarmonyProcessor.Prepare(name, path);
+						Community.Runtime.ScriptProcessor.Prepare(name, path);
 						return;
 					}
 
-					foreach (var mod in CarbonLoader._loadedMods)
+					foreach (var mod in Loader._loadedMods)
 					{
 						var plugins = Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
@@ -427,12 +428,12 @@ namespace Carbon.Core
 					//
 					{
 						var tempList = Pool.GetList<string>();
-						tempList.AddRange(CarbonCore.Instance.HarmonyProcessor.IgnoreList);
-						CarbonCore.Instance.HarmonyProcessor.IgnoreList.Clear();
+						tempList.AddRange(Community.Runtime.HarmonyProcessor.IgnoreList);
+						Community.Runtime.HarmonyProcessor.IgnoreList.Clear();
 
 						foreach (var plugin in tempList)
 						{
-							CarbonCore.Instance.HarmonyProcessor.Prepare(plugin, plugin);
+							Community.Runtime.HarmonyProcessor.Prepare(plugin, plugin);
 						}
 						Pool.FreeList(ref tempList);
 					}
@@ -442,12 +443,12 @@ namespace Carbon.Core
 					//
 					{
 						var tempList = Pool.GetList<string>();
-						tempList.AddRange(CarbonCore.Instance.ScriptProcessor.IgnoreList);
-						CarbonCore.Instance.ScriptProcessor.IgnoreList.Clear();
+						tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
+						Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
 						foreach (var plugin in tempList)
 						{
-							CarbonCore.Instance.ScriptProcessor.Prepare(plugin, plugin);
+							Community.Runtime.ScriptProcessor.Prepare(plugin, plugin);
 						}
 						Pool.FreeList(ref tempList);
 					}
@@ -457,11 +458,11 @@ namespace Carbon.Core
 					var path = GetPluginPath(name);
 					if (!string.IsNullOrEmpty(path))
 					{
-						CarbonCore.Instance.HarmonyProcessor.ClearIgnore(path);
-						CarbonCore.Instance.ScriptProcessor.ClearIgnore(path);
+						Community.Runtime.HarmonyProcessor.ClearIgnore(path);
+						Community.Runtime.ScriptProcessor.ClearIgnore(path);
 
-						CarbonCore.Instance.HarmonyProcessor.Prepare(path);
-						CarbonCore.Instance.ScriptProcessor.Prepare(path);
+						Community.Runtime.HarmonyProcessor.Prepare(path);
+						Community.Runtime.ScriptProcessor.Prepare(path);
 						return;
 					}
 
@@ -493,11 +494,11 @@ namespace Carbon.Core
 					// Mods
 					//
 					{
-						foreach (var plugin in CarbonCore.Instance.HarmonyProcessor.InstanceBuffer)
+						foreach (var plugin in Community.Runtime.HarmonyProcessor.InstanceBuffer)
 						{
-							CarbonCore.Instance.HarmonyProcessor.Ignore(plugin.Value.File);
+							Community.Runtime.HarmonyProcessor.Ignore(plugin.Value.File);
 						}
-						CarbonCore.Instance.HarmonyProcessor.Clear();
+						Community.Runtime.HarmonyProcessor.Clear();
 					}
 
 					//
@@ -505,13 +506,13 @@ namespace Carbon.Core
 					//
 					{
 						var tempList = Pool.GetList<string>();
-						tempList.AddRange(CarbonCore.Instance.ScriptProcessor.IgnoreList);
-						CarbonCore.Instance.ScriptProcessor.IgnoreList.Clear();
-						CarbonCore.Instance.ScriptProcessor.Clear();
+						tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
+						Community.Runtime.ScriptProcessor.IgnoreList.Clear();
+						Community.Runtime.ScriptProcessor.Clear();
 
 						foreach (var plugin in tempList)
 						{
-							CarbonCore.Instance.ScriptProcessor.Ignore(plugin);
+							Community.Runtime.ScriptProcessor.Ignore(plugin);
 						}
 						Pool.FreeList(ref tempList);
 					}
@@ -521,13 +522,13 @@ namespace Carbon.Core
 					//
 					{
 						var tempList = Pool.GetList<string>();
-						tempList.AddRange(CarbonCore.Instance.WebScriptProcessor.IgnoreList);
-						CarbonCore.Instance.WebScriptProcessor.IgnoreList.Clear();
-						CarbonCore.Instance.WebScriptProcessor.Clear();
+						tempList.AddRange(Community.Runtime.WebScriptProcessor.IgnoreList);
+						Community.Runtime.WebScriptProcessor.IgnoreList.Clear();
+						Community.Runtime.WebScriptProcessor.Clear();
 
 						foreach (var plugin in tempList)
 						{
-							CarbonCore.Instance.WebScriptProcessor.Ignore(plugin);
+							Community.Runtime.WebScriptProcessor.Ignore(plugin);
 						}
 						Pool.FreeList(ref tempList);
 					}
@@ -537,12 +538,12 @@ namespace Carbon.Core
 					var path = GetPluginPath(name);
 					if (!string.IsNullOrEmpty(path))
 					{
-						CarbonCore.Instance.HarmonyProcessor.Ignore(path);
-						CarbonCore.Instance.ScriptProcessor.Ignore(path);
-						CarbonCore.Instance.WebScriptProcessor.Ignore(path);
+						Community.Runtime.HarmonyProcessor.Ignore(path);
+						Community.Runtime.ScriptProcessor.Ignore(path);
+						Community.Runtime.WebScriptProcessor.Ignore(path);
 					}
 
-					foreach (var mod in CarbonLoader._loadedMods)
+					foreach (var mod in Loader._loadedMods)
 					{
 						var plugins = Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);

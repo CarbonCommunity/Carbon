@@ -4,8 +4,9 @@
 ///
 
 using System;
+using Carbon.Base;
 
-namespace Carbon.Core.Modules
+namespace Carbon.Modules
 {
 	public class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	{

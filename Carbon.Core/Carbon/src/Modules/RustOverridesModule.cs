@@ -4,9 +4,10 @@
 ///
 
 using System;
+using Carbon.Base;
 using Newtonsoft.Json;
 
-namespace Carbon.Core.Modules
+namespace Carbon.Modules
 {
 	public class RustOverridesModule : CarbonModule<RustOverridesConfig, RustOverridesData>
 	{

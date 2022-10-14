@@ -9,29 +9,29 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using Carbon.Core.Modules;
-using Carbon.Core.Processors;
+using Carbon;
+using Carbon.Base.Interfaces;
+using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.Processors;
 using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
-using static Carbon.Core.CarbonHookProcessor;
 
-namespace Carbon.Core
+namespace Carbon
 {
-	public class CarbonCore
+	public class Community
 	{
 		public static string Version { get; set; } = "Unknown";
 		public static string InformationalVersion { get; set; } = "Unknown";
 
 		public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
-		public static CarbonCore Instance { get; set; }
+		public static Community Runtime { get; set; }
 
-		public static bool IsConfigReady => Instance != null && Instance.Config != null;
+		public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
 
 		public const OS OperatingSystem =
 #if WIN
@@ -48,10 +48,10 @@ namespace Carbon.Core
 			Linux
 		}
 
-		public CarbonHookProcessor HookProcessor { get; set; }
+		public HookProcessor HookProcessor { get; set; }
 		public CarbonConfig Config { get; set; }
 		public RustPlugin CorePlugin { get; set; }
-		public CarbonLoader.CarbonMod Plugins { get; set; }
+		public Loader.CarbonMod Plugins { get; set; }
 		public Entities Entities { get; set; }
 		public bool IsInitialized { get; set; }
 
@@ -100,13 +100,13 @@ namespace Carbon.Core
 		internal void _installDefaultCommands()
 		{
 			CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
-			Plugins = new CarbonLoader.CarbonMod { Name = "Scripts", IsCoreMod = true };
+			Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = true };
 			CorePlugin.IInit();
 
-			CarbonLoader._loadedMods.Add(new CarbonLoader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
-			CarbonLoader._loadedMods.Add(Plugins);
+			Loader._loadedMods.Add(new Loader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
+			Loader._loadedMods.Add(Plugins);
 
-			CarbonLoader.ProcessCommands(typeof(CarbonCorePlugin), CorePlugin, prefix: "c");
+			Loader.ProcessCommands(typeof(CarbonCorePlugin), CorePlugin, prefix: "c");
 		}
 
 		#endregion
@@ -134,7 +134,7 @@ namespace Carbon.Core
 				WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 				HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor>();
 				CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-				HookProcessor = new CarbonHookProcessor();
+				HookProcessor = new HookProcessor();
 				ModuleProcessor = new ModuleProcessor();
 				Entities = new Entities();
 			}
@@ -200,15 +200,15 @@ namespace Carbon.Core
 
 		public static void ReloadPlugins()
 		{
-			CarbonLoader.ClearAllRequirees();
+			Loader.ClearAllRequirees();
 
-			CarbonLoader.LoadCarbonMods();
+			Loader.LoadCarbonMods();
 			ScriptLoader.LoadAll();
 		}
 		public static void ClearPlugins()
 		{
-			Instance?._clearCommands();
-			CarbonLoader.UnloadCarbonMods();
+			Runtime?._clearCommands();
+			Loader.UnloadCarbonMods();
 		}
 
 		public void RefreshConsoleInfo()
@@ -219,22 +219,22 @@ namespace Carbon.Core
 
 			var version =
 #if DEBUG
-				InformationalVersion;
+			InformationalVersion;
 #else
-				Version;
+					Version;
 #endif
 
-			ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {CarbonLoader._loadedMods.Count:n0} mods, {CarbonLoader._loadedMods.Sum(x => x.Plugins.Count):n0} plgs";
+			ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader._loadedMods.Count:n0} mods, {Loader._loadedMods.Sum(x => x.Plugins.Count):n0} plgs";
 #endif
 		}
 
-		public void Init()
+		public void Initialize()
 		{
 			if (IsInitialized) return;
 
 			#region Handle Versions
 
-			var assembly = typeof(CarbonCore).Assembly;
+			var assembly = typeof(Community).Assembly;
 
 			try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion; } catch { }
 			try { Version = assembly.GetName().Version.ToString(); } catch { }
@@ -258,7 +258,7 @@ namespace Carbon.Core
 			_clearCommands();
 			_installDefaultCommands();
 
-			CarbonHookValidator.Refresh();
+			HookValidator.Refresh();
 			Carbon.Logger.Log("Fetched oxide hooks");
 
 			ReloadPlugins();
@@ -273,7 +273,7 @@ namespace Carbon.Core
 
 			HookProcessor.InstallAlwaysPatchedHooks();
 		}
-		public void UnInit()
+		public void Uninitalize()
 		{
 			try
 			{
@@ -281,7 +281,7 @@ namespace Carbon.Core
 				_clearCommands(all: true);
 
 				ClearPlugins();
-				CarbonLoader._loadedMods.Clear();
+				Loader._loadedMods.Clear();
 				UnityEngine.Debug.Log($"Unloaded Carbon.");
 
 #if WIN
@@ -307,7 +307,7 @@ namespace Carbon.Core
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"Failed Carbon uninitialization.", ex);
+				Carbon.Logger.Error($"Failed Carbon uninitialization.", ex);
 			}
 		}
 	}

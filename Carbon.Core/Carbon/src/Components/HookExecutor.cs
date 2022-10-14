@@ -8,9 +8,11 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Carbon.Base;
+using Carbon.Core;
 using Facepunch;
 
-namespace Carbon.Core
+namespace Carbon
 {
 	public static class HookExecutor
 	{
@@ -21,7 +23,7 @@ namespace Carbon.Core
 
 		internal static void _appendHookTime(string hook, int time)
 		{
-			if (!CarbonCore.Instance.Config.HookTimeTracker) return;
+			if (!Community.Runtime.Config.HookTimeTracker) return;
 
 			if (!_hookTimeBuffer.TryGetValue(hook, out var total))
 			{
@@ -38,7 +40,7 @@ namespace Carbon.Core
 		}
 		internal static void _clearHookTime(string hook)
 		{
-			if (!CarbonCore.Instance.Config.HookTimeTracker) return;
+			if (!Community.Runtime.Config.HookTimeTracker) return;
 
 			if (!_hookTimeBuffer.ContainsKey(hook))
 			{
@@ -181,7 +183,7 @@ namespace Carbon.Core
 
 			_clearHookTime(hookName);
 
-			foreach (var module in CarbonCore.Instance.ModuleProcessor.Modules)
+			foreach (var module in Community.Runtime.ModuleProcessor.Modules)
 			{
 				var result = module.CallHook(hookName, flags: flag, args: args);
 				if (result != null && objectOverride != null)
@@ -199,7 +201,7 @@ namespace Carbon.Core
 
 			var array = args == null || args.Length == 0 ? null : args.ToArray();
 
-			foreach (var mod in CarbonLoader._loadedMods)
+			foreach (var mod in Loader._loadedMods)
 			{
 				foreach (var plugin in mod.Plugins)
 				{

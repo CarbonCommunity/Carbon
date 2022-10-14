@@ -5,12 +5,13 @@
 
 using System.Collections.Generic;
 using System.Reflection;
+using Carbon.Hooks;
 using Carbon.Oxide.Metadata;
 using Newtonsoft.Json;
 
 namespace Carbon.Core
 {
-	public class CarbonHookValidator
+	public class HookValidator
 	{
 		public static List<string> CarbonHooks { get; private set; } = new List<string>(500);
 		public static HookPackage OxideHooks { get; private set; }
@@ -19,14 +20,14 @@ namespace Carbon.Core
 		{
 			CarbonHooks.Clear();
 
-			foreach (var entry in typeof(CarbonHookValidator).Assembly.GetTypes())
+			foreach (var entry in typeof(HookValidator).Assembly.GetTypes())
 			{
 				var hook = entry.GetCustomAttribute<Hook>();
 				if (hook == null) continue;
 				CarbonHooks.Add(hook.Name);
 			}
 
-			CarbonCore.Instance.CorePlugin.webrequest.Enqueue("https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj", null, (error, data) =>
+			Community.Runtime.CorePlugin.webrequest.Enqueue("https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj", null, (error, data) =>
 			{
 				OxideHooks = JsonConvert.DeserializeObject<HookPackage>(data);
 			}, null);
