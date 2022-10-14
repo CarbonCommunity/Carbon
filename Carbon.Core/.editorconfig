@@ -12,10 +12,12 @@ trim_trailing_whitespace = true
 # XML project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
 indent_size = 2
+indent_style = tab
 
 # XML config files
 [*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
 indent_size = 2
+indent_style = tab
 
 # Code files
 [*.{cs,csx,vb,vbx}]

@@ -20,4 +20,4 @@ dotnet   build "${ROOT}/Carbon.Core" --configuration ${TARGET} --no-restore --no
 dotnet   build "${ROOT}/Carbon.Core" --configuration ${TARGET}Unix --no-restore --no-incremental
 
 # Create the patch file(s)
-mono "${ROOT}/Carbon.Core/Carbon.Patch/bin/${TARGET}/net48/Carbon.Patch.exe" --path "${ROOT}" --configuration ${TARGET}
+mono "${ROOT}/Carbon.Core/Carbon.Patch/bin/${TARGET}/Carbon.Patch.exe" --path "${ROOT}" --configuration ${TARGET}
