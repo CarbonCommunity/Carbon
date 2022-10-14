@@ -70,8 +70,8 @@ namespace Carbon.Base
 			Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 			Puts("Processed commands");
 
-			File = new DynamicConfigFile(Path.Combine(CarbonDefines.GetModulesFolder(), Name, "config.json"));
-			Data = new DynamicConfigFile(Path.Combine(CarbonDefines.GetModulesFolder(), Name, "data.json"));
+			File = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
+			Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 			Load();
 			if (ConfigInstance.Enabled) OnEnableStatus();

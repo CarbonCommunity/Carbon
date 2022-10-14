@@ -21,7 +21,7 @@ namespace Carbon.Processors
 		{
 			using (TimeMeasure.New($"DoesHookExist: {hookName}"))
 			{
-				foreach (var hook in CarbonDefines.Hooks)
+				foreach (var hook in Defines.Hooks)
 				{
 					if (hook.Name == hookName) return true;
 				}
@@ -132,7 +132,7 @@ namespace Carbon.Processors
 
 		public void InstallAlwaysPatchedHooks()
 		{
-			foreach (var type in CarbonDefines.Carbon.GetTypes())
+			foreach (var type in Defines.Carbon.GetTypes())
 			{
 				var hook = type.GetCustomAttribute<Hook>();
 				if (hook == null || type.GetCustomAttribute<Hook.AlwaysPatched>() == null) continue;

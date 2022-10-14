@@ -19,7 +19,7 @@ namespace Oxide.Core.Libraries
 
 		public Language(Plugin plugin)
 		{
-			foreach (var directory in Directory.EnumerateDirectories(CarbonDefines.GetLangFolder()))
+			foreach (var directory in Directory.EnumerateDirectories(Defines.GetLangFolder()))
 			{
 				var lang = Path.GetFileName(directory);
 				var messages = GetMessageFile(plugin.Name, lang);
@@ -82,7 +82,7 @@ namespace Oxide.Core.Libraries
 		{
 			if (Phrases.TryGetValue(lang, out var messages))
 			{
-				var folder = Path.Combine(CarbonDefines.GetLangFolder(), lang);
+				var folder = Path.Combine(Defines.GetLangFolder(), lang);
 				OsEx.Folder.Create(folder);
 
 				OsEx.File.Create(Path.Combine(folder, $"{plugin}.json"), JsonConvert.SerializeObject(messages, Formatting.Indented)); ;

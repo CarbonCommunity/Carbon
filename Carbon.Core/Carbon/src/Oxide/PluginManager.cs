@@ -7,5 +7,5 @@ using Carbon.Core;
 
 public class PluginManager
 {
-	public string ConfigPath => CarbonDefines.GetConfigsFolder();
+	public string ConfigPath => Defines.GetConfigsFolder();
 }

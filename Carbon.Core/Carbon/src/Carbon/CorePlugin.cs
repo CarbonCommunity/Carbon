@@ -19,7 +19,7 @@ using Carbon.Base;
 
 namespace Carbon.Core
 {
-	public class CarbonCorePlugin : RustPlugin
+	public class CorePlugin : RustPlugin
 	{
 		public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
@@ -27,7 +27,7 @@ namespace Carbon.Core
 		{
 			OrderedFiles.Clear();
 
-			foreach (var file in OsEx.Folder.GetFilesWithExtension(CarbonDefines.GetPluginsFolder(), "cs"))
+			foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetPluginsFolder(), "cs"))
 			{
 				OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
 			}

@@ -75,7 +75,7 @@ namespace Carbon
 					report += $"INCOMPATIBLE HOOK REPORT:\n{builder.ToStringMinimal()}\n\n";
 				}
 
-				var path = Path.Combine(CarbonDefines.GetReportsFolder(), $"pluginreport_{DateTime.UtcNow:ddMMyyyyhhmmss}.txt");
+				var path = Path.Combine(Defines.GetReportsFolder(), $"pluginreport_{DateTime.UtcNow:ddMMyyyyhhmmss}.txt");
 				OsEx.File.Create(path, report.Trim());
 				Logger.Log($" Report generated with {Results.Count:n0} results at '{path}'");
 

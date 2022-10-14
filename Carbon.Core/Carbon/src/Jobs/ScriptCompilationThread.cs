@@ -49,7 +49,7 @@ namespace Carbon.Jobs
 			if (_hasInit) return;
 			_hasInit = true;
 
-			_fodyAssemblyLoader = CarbonDefines.Carbon.GetType("Costura.AssemblyLoader");
+			_fodyAssemblyLoader = Defines.Carbon.GetType("Costura.AssemblyLoader");
 			_fodyAssemblyNames = _fodyAssemblyLoader.GetField("assemblyNames", BindingFlags.NonPublic | BindingFlags.Static);
 			_fodyLoadStream = _fodyAssemblyLoader.GetMethod("LoadStream", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string) }, default);
 
@@ -61,7 +61,7 @@ namespace Carbon.Jobs
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["mysql.data"] }) as Stream));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["system.data.sqlite"] }) as Stream));
 
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(CarbonDefines.DllPath))));
+			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Defines.DllPath))));
 
 			var managedFolder = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed");
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Path.Combine(managedFolder, "System.Drawing.dll")))));

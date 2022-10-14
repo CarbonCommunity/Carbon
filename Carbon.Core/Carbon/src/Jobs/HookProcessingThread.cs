@@ -24,7 +24,7 @@ namespace Carbon.Jobs
 
 		public override void ThreadFunction()
 		{
-			foreach (var type in CarbonDefines.Carbon.GetTypes())
+			foreach (var type in Defines.Carbon.GetTypes())
 			{
 				try
 				{

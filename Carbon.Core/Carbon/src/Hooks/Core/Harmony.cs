@@ -59,7 +59,7 @@ namespace Carbon.Hooks
 
 			if (mod.Equals("carbon", System.StringComparison.OrdinalIgnoreCase) ||
 				 mod.Equals("carbon-unix", System.StringComparison.OrdinalIgnoreCase))
-				mod = CarbonDefines.Name;
+				mod = Defines.Name;
 
 			if (!mod.StartsWith("carbon", System.StringComparison.OrdinalIgnoreCase)) return true;
 

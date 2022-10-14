@@ -64,7 +64,7 @@ namespace Carbon.Processors
 
 		public static void LoadAll()
 		{
-			var files = OsEx.Folder.GetFilesWithExtension(CarbonDefines.GetPluginsFolder(), "cs");
+			var files = OsEx.Folder.GetFilesWithExtension(Defines.GetPluginsFolder(), "cs");
 
 			Community.Runtime.ScriptProcessor.Clear();
 			Community.Runtime.ScriptProcessor.IgnoreList.Clear();

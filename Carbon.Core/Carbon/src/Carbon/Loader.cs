@@ -75,14 +75,14 @@ namespace Carbon.Core
 			try
 			{
 				HarmonyLib.Harmony.DEBUG = true;
-				var path = Path.Combine(CarbonDefines.GetLogsFolder(), "harmony_v2_log.txt");
-				Harmony.FileLog.logPath = Path.Combine(CarbonDefines.GetLogsFolder(), "harmony_v1_log.txt");
+				var path = Path.Combine(Defines.GetLogsFolder(), "harmony_v2_log.txt");
+				Harmony.FileLog.logPath = Path.Combine(Defines.GetLogsFolder(), "harmony_v1_log.txt");
 
 				Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", path);
 
 				typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
 
-				_modPath = CarbonDefines.GetPluginsFolder();
+				_modPath = Defines.GetPluginsFolder();
 				if (!Directory.Exists(_modPath))
 				{
 					try
@@ -104,7 +104,7 @@ namespace Carbon.Core
 
 					// This allows plugins to use Carbon.xxx
 					if (Regex.IsMatch(assemblyName.Name, @"^([Cc]arbon(-.+)?)$"))
-						assemblyPath = CarbonDefines.DllPath;
+						assemblyPath = Defines.DllPath;
 
 					if (File.Exists(assemblyPath))
 						return LoadAssembly(assemblyPath);

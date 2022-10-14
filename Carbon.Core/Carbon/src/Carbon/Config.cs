@@ -8,7 +8,7 @@ using System;
 namespace Carbon.Core
 {
 	[Serializable]
-	public class CarbonConfig
+	public class Config
 	{
 		public int LogVerbosity { get; set; } = 0;
 		public Logger.Severity LogSeverity { get; set; } = Logger.Severity.Notice;

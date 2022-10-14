@@ -49,7 +49,7 @@ namespace Carbon
 		}
 
 		public HookProcessor HookProcessor { get; set; }
-		public CarbonConfig Config { get; set; }
+		public Config Config { get; set; }
 		public RustPlugin CorePlugin { get; set; }
 		public Loader.CarbonMod Plugins { get; set; }
 		public Entities Entities { get; set; }
@@ -61,20 +61,20 @@ namespace Carbon
 
 		public void LoadConfig()
 		{
-			if (!OsEx.File.Exists(CarbonDefines.GetConfigFile()))
+			if (!OsEx.File.Exists(Defines.GetConfigFile()))
 			{
 				SaveConfig();
 				return;
 			}
 
-			Config = JsonConvert.DeserializeObject<CarbonConfig>(OsEx.File.ReadText(CarbonDefines.GetConfigFile()));
+			Config = JsonConvert.DeserializeObject<Config>(OsEx.File.ReadText(Defines.GetConfigFile()));
 		}
 
 		public void SaveConfig()
 		{
-			if (Config == null) Config = new CarbonConfig();
+			if (Config == null) Config = new Config();
 
-			OsEx.File.Create(CarbonDefines.GetConfigFile(), JsonConvert.SerializeObject(Config, Formatting.Indented));
+			OsEx.File.Create(Defines.GetConfigFile(), JsonConvert.SerializeObject(Config, Formatting.Indented));
 		}
 
 		#endregion
@@ -99,14 +99,14 @@ namespace Carbon
 		}
 		internal void _installDefaultCommands()
 		{
-			CorePlugin = new CarbonCorePlugin { Name = "Core", IsCorePlugin = true };
+			CorePlugin = new CorePlugin { Name = "Core", IsCorePlugin = true };
 			Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = true };
 			CorePlugin.IInit();
 
 			Loader._loadedMods.Add(new Loader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
 			Loader._loadedMods.Add(Plugins);
 
-			Loader.ProcessCommands(typeof(CarbonCorePlugin), CorePlugin, prefix: "c");
+			Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
 		}
 
 		#endregion
@@ -249,7 +249,7 @@ namespace Carbon
 
 			Carbon.Logger.Log($"Loading...");
 
-			CarbonDefines.Initialize();
+			Defines.Initialize();
 
 			_installProcessors();
 

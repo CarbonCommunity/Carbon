@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Carbon.Core
 {
 	[Serializable]
-	public class CarbonDefines
+	public class Defines
 	{
 		public static Assembly Carbon { get; internal set; }
 
