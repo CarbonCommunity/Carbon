@@ -2,34 +2,22 @@
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
+using Carbon;
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using Carbon.Utility;
-using Harmony;
-
-namespace Carbon.Loader
+internal sealed class Entrypoint : IHarmonyModHooks
 {
-	public class Entrypoint : IHarmonyModHooks
+	public void OnLoaded(OnHarmonyModLoadedArgs args)
 	{
-		/// The entrypoint for our loader based on Rust's Harmony loader hooks.
-		/// Our main objective here is to inject an entrypoint later on the 
-		/// game's bootstrap process. We can't do the cleanup right now because
-		/// it's undefined if all the Harmony scripts were already loaded at
-		/// the time of execution of this event.
-		public void OnLoaded(OnHarmonyModLoadedArgs args)
-		{
-			Logger.None(
-				Environment.NewLine +
-				"CARBON LOADER STARTING" + Environment.NewLine +
-				Environment.NewLine
-			);
+		/// The entrypoint for our loader is based on Facepunch's Harmony loader
+		/// events. The only goal at this stage is create a second entrypoint
+		/// later on the game bootstrap process.
+		/// At this point in time we can't know in which position of the loading
+		/// queue we are at thus executing the purge right now would result in 
+		/// an undefined result.
+	}
 
-			Program.GetInstance().DoSomething();
-		}
-
-		public void OnUnloaded(OnHarmonyModUnloadedArgs args) { }
+	public void OnUnloaded(OnHarmonyModUnloadedArgs args)
+	{
+		Loader.GetInstance().Dispose();
 	}
 }

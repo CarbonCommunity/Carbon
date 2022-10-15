@@ -3,38 +3,38 @@
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
-
 using System;
 using System.IO;
 
-namespace Carbon.Utility
-{
-	internal static class Context
-	{
-		public static readonly string Base, Tools, Managed;
+namespace Carbon.Utility;
 
-		private static readonly string[] Needles = {
+internal sealed class Context
+{
+	private static readonly string[] Needles = {
 			".", "..", "../.."
 		};
 
-		static Context()
+	public static readonly string GameDirectory, CarbonToolsDirectory, GameManagedDirectory;
+
+	static Context()
+	{
+		foreach (string Needle in Needles)
 		{
-			foreach (string Needle in Needles)
-			{
-				string t = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Needle));
-				if (!Directory.Exists(Path.Combine(t, "RustDedicated_Data"))) continue;
-				Base = t;
-				break;
-			}
+			string t = Path.GetFullPath(Path.Combine(
+				AppDomain.CurrentDomain.BaseDirectory, Needle));
 
-			if (Base == null)
-				throw new System.Exception("Unable to find root folder");
-
-			Tools = Path.GetFullPath(Path.Combine(
-				Base, "carbon", "tools"));
-
-			Managed = Path.GetFullPath(Path.Combine(
-				Base, "RustDedicated_Data", "Managed"));
+			if (!Directory.Exists(Path.Combine(t, "RustDedicated_Data"))) continue;
+			GameDirectory = t;
+			break;
 		}
+
+		if (GameDirectory == null)
+			throw new System.Exception("Unable to find root folder");
+
+		CarbonToolsDirectory = Path.GetFullPath(
+			Path.Combine(GameDirectory, "carbon", "tools"));
+
+		GameManagedDirectory = Path.GetFullPath(
+			Path.Combine(GameDirectory, "RustDedicated_Data", "Managed"));
 	}
 }

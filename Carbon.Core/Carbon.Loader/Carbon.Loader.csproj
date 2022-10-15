@@ -10,6 +10,7 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<ProjectGuid>{3ACED109-8348-4608-9AF4-DC9B30421A8A}</ProjectGuid>
 		<TargetFrameworks>net48</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
 
 		<AllowedReferenceRelatedFileExtensions>.pdb</AllowedReferenceRelatedFileExtensions>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>

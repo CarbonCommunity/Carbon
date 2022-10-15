@@ -2,30 +2,33 @@
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
+using HarmonyLib;
 
-using System;
+namespace Carbon.Patches;
 
-namespace Carbon.Loader.Patches
+internal static class __HarmonyLoader
 {
-	public static partial class HarmonyLoader
+	[HarmonyPatch(typeof(HarmonyLoader), methodName: "LoadHarmonyMods")]
+	internal static class __LoadHarmonyMods
 	{
-		// HarmonyLoader
-		private static bool Prefix_LoadHarmonyMods()
-		{
-			Console.WriteLine("Prefix_LoadHarmonyMods");
-			return true;
-		}
+		[HarmonyPriority(int.MaxValue)]
+		private static bool Prefix()
+			=> false;
+	}
 
-		private static bool Prefix_TryLoadMod()
-		{
-			Console.WriteLine("Prefix_TryLoadMod");
-			return true;
-		}
+	[HarmonyPatch(typeof(HarmonyLoader), methodName: "TryLoadMod")]
+	internal static class __TryLoadMod
+	{
+		[HarmonyPriority(int.MaxValue)]
+		private static bool Prefix()
+			=> false;
+	}
 
-		private static bool Prefix_TryUnloadMod()
-		{
-			Console.WriteLine("Prefix_TryUnloadMod");
-			return true;
-		}
+	[HarmonyPatch(typeof(HarmonyLoader), methodName: "TryUnloadMod")]
+	internal static class __TryUnloadMod
+	{
+		[HarmonyPriority(int.MaxValue)]
+		private static bool Prefix()
+			=> false;
 	}
 }
