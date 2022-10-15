@@ -7,11 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Carbon.Core;
-using Facepunch;
 using Carbon.Components;
+using Carbon.Core;
 using Carbon.Extensions;
-
+using Facepunch;
 using Oxide.Plugins;
 
 namespace Carbon

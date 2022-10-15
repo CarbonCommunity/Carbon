@@ -8,12 +8,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Carbon.Extensions;
-using Newtonsoft.Json;
-using Oxide.Core.Libraries;
 using Carbon.Base;
 using Carbon.Core;
+using Carbon.Extensions;
 using Carbon.Processors;
+using Newtonsoft.Json;
+using Oxide.Core.Libraries;
 
 namespace Carbon.Modules
 {

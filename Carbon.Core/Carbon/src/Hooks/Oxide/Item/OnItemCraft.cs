@@ -4,8 +4,8 @@
 /// 
 
 using Carbon.Core;
-using ProtoBuf;
 using Facepunch;
+using ProtoBuf;
 
 namespace Carbon.Hooks
 {
