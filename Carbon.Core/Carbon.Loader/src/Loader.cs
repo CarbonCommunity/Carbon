@@ -12,9 +12,9 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 {
 	static Loader() { }
 
-	private readonly string Identifier = Guid.NewGuid().ToString();
-
 	internal HarmonyLib.Harmony Harmony;
+
+	private readonly string Identifier = Guid.NewGuid().ToString();
 
 	internal Loader()
 	{

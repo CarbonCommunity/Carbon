@@ -4,6 +4,8 @@
 /// 
 using System;
 using System.Collections;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Carbon.Utility;
@@ -16,8 +18,12 @@ internal static class __Bootstrap
 	[HarmonyPatch(typeof(Bootstrap), "StartupShared")]
 	internal static class __StartupShared
 	{
+		private static string CarbonRegexPattern
+			= @"(?i)^carbon([\.-](doorstop|loader|unix))?(.dll)?$";
+
 		public static bool Prefix()
 		{
+			bool needRestart = false;
 			Type HarmonyLoader = AccessTools.TypeByName("HarmonyLoader") ?? null;
 			FieldInfo field = HarmonyLoader?.GetField("loadedMods", BindingFlags.NonPublic | BindingFlags.Static) ?? null;
 			Type HarmonyMod = HarmonyLoader?.GetNestedType("HarmonyMod", BindingFlags.NonPublic | BindingFlags.Static) ?? null;
@@ -29,17 +35,12 @@ internal static class __Bootstrap
 					string Name = HarmonyMod.GetProperty("Name").GetValue(mod) as string;
 
 					// TODO: better validation
-					if (Regex.IsMatch(Name, @"(?i)^(carbon.loader)$"))
-						continue;
+					if (Regex.IsMatch(Name, CarbonRegexPattern)) continue;
 
-					Logger.Log($"Found loaded plugin '{Name}'");
-
-					HarmonyInstance Instance = HarmonyMod.GetProperty("Harmony").GetValue(mod) as HarmonyInstance;
-					Logger.Log($"  - Got harmony instance {Instance.Id}");
-
-					Instance.UnpatchAll(Name);
+					needRestart = true;
+					Logger.Warn($"Found loaded plugin '{Name}'");
+					((HarmonyInstance)HarmonyMod.GetProperty("Harmony").GetValue(mod)).UnpatchAll(Name);
 					HarmonyMod.GetProperty("Harmony").SetValue(mod, default);
-					Logger.Log($"  - Removed all active assembly patches");
 				}
 
 				Logger.Log("Patching Facepunch's harmony loader");
@@ -48,7 +49,37 @@ internal static class __Bootstrap
 			}
 			catch (Exception e)
 			{
-				Logger.Error("Error while dealing with the loaded plugins", e);
+				Logger.Error("Error unloading plugins", e);
+			}
+
+			try
+			{
+				string sourcePath = Path.Combine(Context.GameDirectory, "HarmonyMods");
+				if (!Directory.Exists(sourcePath)) throw new Exception("Unable to find the HarmonyMods folder");
+
+				string targetPath = Path.Combine(Context.CarbonDirectory, "harmony");
+				if (!Directory.Exists(targetPath)) Directory.CreateDirectory(targetPath);
+
+				foreach (string file in Directory.EnumerateFiles(sourcePath, "*.*"))
+				{
+					string fileName = Path.GetFileName(file);
+					if (string.IsNullOrEmpty(file) || Regex.IsMatch(fileName, CarbonRegexPattern)) continue;
+					File.Copy(file, Path.Combine(targetPath, fileName), true);
+					File.Delete(file);
+
+					needRestart = true;
+					Logger.Warn($"Moved '{fileName}'");
+				}
+			}
+			catch (Exception e)
+			{
+				Logger.Error("Error while moving files", e);
+			}
+
+			if (needRestart)
+			{
+				Logger.Warn("Application will now exit");
+				Process.GetCurrentProcess().Kill();
 			}
 
 			return true;

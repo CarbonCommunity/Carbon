@@ -14,10 +14,13 @@ internal sealed class Context
 			".", "..", "../.."
 		};
 
-	public static readonly string GameDirectory, CarbonToolsDirectory, GameManagedDirectory;
+	public static readonly string
+		GameDirectory, GameManagedDirectory, CarbonDirectory;
 
 	static Context()
 	{
+		GameDirectory = null;
+
 		foreach (string Needle in Needles)
 		{
 			string t = Path.GetFullPath(Path.Combine(
@@ -31,10 +34,10 @@ internal sealed class Context
 		if (GameDirectory == null)
 			throw new System.Exception("Unable to find root folder");
 
-		CarbonToolsDirectory = Path.GetFullPath(
-			Path.Combine(GameDirectory, "carbon", "tools"));
-
 		GameManagedDirectory = Path.GetFullPath(
 			Path.Combine(GameDirectory, "RustDedicated_Data", "Managed"));
+
+		CarbonDirectory = Path.GetFullPath(
+			Path.Combine(GameDirectory, "carbon"));
 	}
 }
