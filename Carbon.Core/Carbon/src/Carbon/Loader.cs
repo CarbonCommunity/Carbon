@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Extensions;
+using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 
@@ -189,15 +190,26 @@ namespace Carbon.Core
 					}
 				}
 
-				mod.Harmony = new HarmonyLib.Harmony(domain);
+				mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
+				mod.Harmonyv2 = new HarmonyLib.Harmony(domain);
 
 				try
 				{
-					mod.Harmony.PatchAll(assembly);
+					mod.Harmonyv1.PatchAll(assembly);
 				}
 				catch (Exception arg2)
 				{
-					LogError(mod.Name, string.Format("Failed to patch all hooks: {0}", arg2));
+					LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", arg2));
+					return false;
+				}
+
+				try
+				{
+					mod.Harmonyv2.PatchAll(assembly);
+				}
+				catch (Exception arg2)
+				{
+					LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", arg2));
 					return false;
 				}
 
@@ -571,19 +583,38 @@ namespace Carbon.Core
 		{
 			if (mod.IsCoreMod) return;
 
-			if (mod.Harmony != null)
+			if (mod.Harmonyv1 != null)
 			{
-				Log(mod.Name, $"Unpatching hooks for '{mod.Name}'...");
+				Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v1...");
 
 				try
 				{
-					mod.Harmony.UnpatchAll(mod.Harmony.Id);
-					Log(mod.Name, "Unloaded mod");
+					mod.Harmonyv1.UnpatchAll(mod.Harmonyv1.Id);
+					Log(mod.Name, "Unloaded v1 mod");
 				}
 				catch (InvalidCastException ex)
 				{
-					Logger.Error($"Failed unpatching all.", ex);
+					Logger.Error($"Failed unpatching all v1 patches.", ex);
 				}
+
+				mod.Harmonyv1 = null;
+			}
+
+			if (mod.Harmonyv2 != null)
+			{
+				Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v2...");
+
+				try
+				{
+					mod.Harmonyv2.UnpatchAll(mod.Harmonyv2.Id);
+					Log(mod.Name, "Unloaded v2 mod");
+				}
+				catch (InvalidCastException ex)
+				{
+					Logger.Error($"Failed unpatching all v2 patches.", ex);
+				}
+
+				mod.Harmonyv2 = null;
 			}
 
 			_loadedMods.Remove(mod);
@@ -663,7 +694,8 @@ namespace Carbon.Core
 			public string File { get; set; } = string.Empty;
 			[JsonProperty]
 			public bool IsCoreMod { get; set; } = false;
-			public HarmonyLib.Harmony Harmony { get; set; }
+			public Harmony.HarmonyInstance Harmonyv1 { get; set; }
+			public HarmonyLib.Harmony Harmonyv2 { get; set; }
 			public Assembly Assembly { get; set; }
 			public Type[] AllTypes { get; set; }
 			public List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks>();
