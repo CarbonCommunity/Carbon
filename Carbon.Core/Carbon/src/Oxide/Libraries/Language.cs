@@ -10,6 +10,7 @@ using Oxide.Plugins;
 using Carbon.Extensions;
 using Carbon.Core;
 using Carbon;
+using JetBrains.Annotations;
 
 namespace Oxide.Core.Libraries
 {
@@ -40,6 +41,22 @@ namespace Oxide.Core.Libraries
 			}
 
 			return Community.Runtime.Config.Language;
+		}
+		public string[] GetLanguages(Plugin plugin = null)
+		{
+			var list = Facepunch.Pool.GetList<string>();
+
+			foreach (string text in Directory.GetDirectories(Interface.Oxide.LangDirectory))
+			{
+				if (Directory.GetFiles(text).Length != 0 && (plugin == null || (plugin != null && OsEx.File.Exists(Path.Combine(text, plugin.Name + ".json")))))
+				{
+					list.Add(text.Substring(Interface.Oxide.LangDirectory.Length + 1));
+				}
+			}
+
+			var result = list.ToArray();
+			Facepunch.Pool.FreeList(ref list);
+			return result;
 		}
 		public void SetLanguage(string lang, string userId)
 		{

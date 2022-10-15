@@ -105,14 +105,17 @@ namespace Carbon.Processors
 
 						if (instance.Patches != null)
 						{
-							var list = Pool.GetList<HarmonyLib.Harmony>();
+							var list = Pool.GetList<object>();
 							list.AddRange(instance.Patches);
 
 							foreach (var patch in list)
 							{
-								if (string.IsNullOrEmpty(patch.Id)) continue;
+								if (patch is HarmonyLib.Harmony harmony)
+								{
+									if (string.IsNullOrEmpty(harmony.Id)) continue;
 
-								patch.UnpatchAll(patch.Id);
+									harmony.UnpatchAll(harmony.Id);
+								}
 							}
 
 							instance.Patches.Clear();
@@ -182,7 +185,7 @@ namespace Carbon.Processors
 			public string Id { get; set; }
 			public int Hooks { get; set; } = 1;
 			public bool AlwaysPatched { get; set; } = false;
-			public List<HarmonyLib.Harmony> Patches { get; internal set; } = new List<HarmonyLib.Harmony>();
+			public List<object> Patches { get; internal set; } = new List<object>();
 		}
 	}
 }

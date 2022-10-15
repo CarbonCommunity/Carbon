@@ -76,8 +76,8 @@ namespace Carbon.Jobs
 			}
 		}
 
-		internal static List<MetadataReference> _metadataReferences = new List<MetadataReference>();
-		internal static Dictionary<string, MetadataReference> _referenceCache = new Dictionary<string, MetadataReference>();
+		internal static List<object> _metadataReferences = new List<object>();
+		internal static Dictionary<string, object> _referenceCache = new Dictionary<string, object>();
 		internal static Dictionary<string, byte[]> _compilationCache = new Dictionary<string, byte[]>();
 
 		internal static byte[] _getPlugin(string name)
@@ -112,17 +112,17 @@ namespace Carbon.Jobs
 				_referenceCache.Add(reference, outReference);
 			}
 
-			return metaReference;
+			return metaReference as MetadataReference;
 		}
 
 		internal List<MetadataReference> _addReferences()
 		{
 			var references = new List<MetadataReference>();
-			references.AddRange(_metadataReferences);
+			foreach (var reference in _metadataReferences) references.Add(reference as MetadataReference);
 
 			foreach (var reference in References)
 			{
-				if (string.IsNullOrEmpty(reference) || _metadataReferences.Any(x => x.Display.Contains(reference))) continue;
+				if (string.IsNullOrEmpty(reference) || _metadataReferences.Any(x => x is MetadataReference metadata && metadata.Display.Contains(reference))) continue;
 
 				try
 				{

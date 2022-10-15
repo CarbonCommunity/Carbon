@@ -58,7 +58,7 @@ namespace Carbon.Jobs
 
 						if (hookInstance.AlwaysPatched && !OnlyAlwaysPatchedHooks) continue;
 
-						if (hookInstance.Patches.Any(x => x != null && x.Id == patchId)) continue;
+						if (hookInstance.Patches.Any(x => x != null && x is HarmonyLib.Harmony harmony && harmony.Id == patchId)) continue;
 
 						if (DoRequires)
 						{
