@@ -83,7 +83,7 @@ namespace Carbon.Core
 
 				typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
 
-				_modPath = Defines.GetPluginsFolder();
+				_modPath = Defines.GetHarmonyFolder();
 				if (!Directory.Exists(_modPath))
 				{
 					try
