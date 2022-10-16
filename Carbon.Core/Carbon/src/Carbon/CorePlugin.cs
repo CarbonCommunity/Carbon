@@ -54,9 +54,9 @@ namespace Carbon.Core
 
 			timer.Every(5f, () =>
 			{
-				if (!Logger._hasInit || Logger._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
+				if (!FileLogger._hasInit || FileLogger._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
 
-				Logger._flush();
+				FileLogger._flush();
 			});
 		}
 
