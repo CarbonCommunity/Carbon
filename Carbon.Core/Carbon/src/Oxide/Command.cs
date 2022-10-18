@@ -28,7 +28,7 @@ public class Command
 				Callback = (player, cmd, args) =>
 				{
 					try { callback.Invoke(player, cmd, args); }
-					catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+					catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 				},
 				Help = help,
 				Reference = reference
@@ -74,7 +74,7 @@ public class Command
 
 				m?.Invoke(plugin, result);
 			}
-			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 			if (argData != null) Pool.FreeList(ref argData);
 			if (result != null) Pool.Free(ref result);
@@ -136,10 +136,10 @@ public class Command
 						methodInfo?.Invoke(plugin, result);
 					}
 				}
-				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 			}
 			catch (TargetParameterCountException) { }
-			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);
@@ -172,7 +172,7 @@ public class Command
 				}
 			}
 			catch (TargetParameterCountException) { }
-			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);

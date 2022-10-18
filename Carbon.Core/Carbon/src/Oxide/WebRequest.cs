@@ -114,7 +114,7 @@ namespace Oxide.Core.Libraries
 								OnComplete(false);
 							};
 
-							_client.DownloadStringAsync(_uri);
+							try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 							break;
 
 						case "PUT":
@@ -134,7 +134,7 @@ namespace Oxide.Core.Libraries
 								OnComplete(false);
 							};
 
-							_client.UploadStringAsync(_uri, Body);
+							try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 							break;
 					}
 				}
