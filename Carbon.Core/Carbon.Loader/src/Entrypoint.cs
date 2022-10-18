@@ -3,6 +3,8 @@
 /// All rights reserved
 /// 
 using Carbon;
+using Carbon.Patterns;
+using UnityEngine;
 
 internal sealed class Entrypoint : IHarmonyModHooks
 {

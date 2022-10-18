@@ -190,26 +190,47 @@ namespace Carbon.Core
 					}
 				}
 
-				mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
-				mod.Harmonyv2 = new HarmonyLib.Harmony(domain);
+
+				foreach (var x in assembly.GetReferencedAssemblies())
+				{
+					Carbon.Logger.Warn($">> {x.FullName}");
+					if (x.Name.Contains("0Harmony"))
+					{
+						Carbon.Logger.Warn($">>>> {x.Version}");
+
+						switch (x.Version.Major)
+						{
+							case 1:
+								Carbon.Logger.Warn("Harmony v1");
+								mod.Harmony = Harmony.HarmonyInstance.Create(domain);
+								((Harmony.HarmonyInstance)mod.Harmony).PatchAll(assembly);
+								break;
+
+							case 2:
+								Carbon.Logger.Warn("Harmony v2");
+								mod.Harmony = new HarmonyLib.Harmony(domain);
+								((HarmonyLib.Harmony)mod.Harmony).PatchAll(assembly);
+								break;
+
+							default:
+								Carbon.Logger.Error($">>> {x.Version.Major}");
+								throw new ArgumentOutOfRangeException("HarmonyLib version");
+						}
+					}
+				}
+
+				Carbon.Logger.Warn("AAAAA 3");
+
+
 
 				try
 				{
-					mod.Harmonyv1.PatchAll(assembly);
-				}
-				catch (Exception arg2)
-				{
-					LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", arg2));
-					return false;
-				}
+					//mod.Harmony.PatchAll(assembly);
 
-				try
-				{
-					mod.Harmonyv2.PatchAll(assembly);
 				}
 				catch (Exception arg2)
 				{
-					LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", arg2));
+					LogError(mod.Name, string.Format("Failed to patch all hooks: {0}", arg2));
 					return false;
 				}
 
@@ -583,13 +604,13 @@ namespace Carbon.Core
 		{
 			if (mod.IsCoreMod) return;
 
-			if (mod.Harmonyv1 != null)
+			if (mod.Harmony != null)
 			{
-				Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v1...");
+				Log(mod.Name, $"Unpatching hooks for '{mod.Name}'...");
 
 				try
 				{
-					mod.Harmonyv1.UnpatchAll(mod.Harmonyv1.Id);
+					mod.Harmony.UnpatchAll(mod.Harmony.Id);
 					Log(mod.Name, "Unloaded v1 mod");
 				}
 				catch (InvalidCastException ex)
@@ -597,24 +618,7 @@ namespace Carbon.Core
 					Logger.Error($"Failed unpatching all v1 patches.", ex);
 				}
 
-				mod.Harmonyv1 = null;
-			}
-
-			if (mod.Harmonyv2 != null)
-			{
-				Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v2...");
-
-				try
-				{
-					mod.Harmonyv2.UnpatchAll(mod.Harmonyv2.Id);
-					Log(mod.Name, "Unloaded v2 mod");
-				}
-				catch (InvalidCastException ex)
-				{
-					Logger.Error($"Failed unpatching all v2 patches.", ex);
-				}
-
-				mod.Harmonyv2 = null;
+				mod.Harmony = null;
 			}
 
 			_loadedMods.Remove(mod);
@@ -694,8 +698,7 @@ namespace Carbon.Core
 			public string File { get; set; } = string.Empty;
 			[JsonProperty]
 			public bool IsCoreMod { get; set; } = false;
-			public Harmony.HarmonyInstance Harmonyv1 { get; set; }
-			public HarmonyLib.Harmony Harmonyv2 { get; set; }
+			public dynamic Harmony { get; set; }
 			public Assembly Assembly { get; set; }
 			public Type[] AllTypes { get; set; }
 			public List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks>();

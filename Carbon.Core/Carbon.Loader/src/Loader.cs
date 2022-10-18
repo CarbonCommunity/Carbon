@@ -3,23 +3,35 @@
 /// All rights reserved
 /// 
 using System;
+using Carbon.Interfaces;
 using Carbon.Patterns;
 using Carbon.Utility;
 
 namespace Carbon;
 
-internal sealed class Loader : Singleton<Loader>, IDisposable
+internal sealed class Loader : Singleton<Loader>, IBase, IDisposable
 {
 	static Loader() { }
 
 	internal HarmonyLib.Harmony Harmony;
 
+	private UnityEngine.GameObject gameObject;
+
 	private readonly string Identifier = Guid.NewGuid().ToString();
 
 	internal Loader()
 	{
-		Logger.Warn($"Using '{Identifier}' as the Harmony namespace");
-		Harmony = new HarmonyLib.Harmony($"{Identifier}");
+		Logger.Warn($"Using '{Identifier}' as runtime namespace");
+
+		Harmony = new HarmonyLib.Harmony(Identifier);
+
+		gameObject = new UnityEngine.GameObject(Identifier);
+		UnityEngine.Object.DontDestroyOnLoad(gameObject);
+	}
+
+	public void Initialize()
+	{
+		var s = gameObject.AddComponent<HarmonyWatcher>();
 	}
 
 	private bool IsDisposed = false;
