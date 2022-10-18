@@ -158,7 +158,7 @@ namespace Carbon
 		}
 #else
 		public static void Error(object message, Exception ex = null)
-			=> _write(Logger.Severity.Error, message, ex);
+			=> Write(Logger.Severity.Error, message, ex);
 #endif
 	}
 }
