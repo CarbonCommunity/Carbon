@@ -5,11 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Carbon.Interfaces;
 
-namespace Carbon.Patterns;
+namespace Carbon.Common;
 
-internal abstract class FileWatcherBehaviour : CarbonBehaviour, IBase, IDisposable
+internal abstract class FileWatcherBehaviour : CarbonBehaviour, IDisposable
 {
 	internal string directory;
 	internal string extension;
@@ -27,11 +26,7 @@ internal abstract class FileWatcherBehaviour : CarbonBehaviour, IBase, IDisposab
 		extension = string.Empty;
 		includeSubdirectories = false;
 		Blacklist = new List<string>();
-
-		Initialize();
 	}
-
-	public abstract void Initialize();
 
 	internal void OnEnable()
 	{
@@ -51,10 +46,9 @@ internal abstract class FileWatcherBehaviour : CarbonBehaviour, IBase, IDisposab
 					extension,
 
 				NotifyFilter =
-					NotifyFilters.LastWrite |
 					NotifyFilters.FileName |
-					NotifyFilters.LastAccess |
-					NotifyFilters.FileName
+					NotifyFilters.LastWrite |
+					NotifyFilters.LastAccess
 			};
 
 			Handler.Changed += OnFileChangedEvent;
@@ -84,11 +78,12 @@ internal abstract class FileWatcherBehaviour : CarbonBehaviour, IBase, IDisposab
 	internal virtual void OnDestroy()
 	{
 		Carbon.Utility.Logger.Log("FileWatcherBehaviour:OnDestroy()");
-
-		Handler?.Dispose();
-		Handler = default;
 		Dispose();
 	}
 
-	public abstract void Dispose();
+	public virtual void Dispose()
+	{
+		Handler?.Dispose();
+		Handler = default;
+	}
 }

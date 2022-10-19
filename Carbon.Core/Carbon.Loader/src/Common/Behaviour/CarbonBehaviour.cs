@@ -3,10 +3,9 @@
 /// All rights reserved
 ///
 using System;
-using Carbon.Interfaces;
 using UnityEngine;
 
-namespace Carbon.Patterns;
+namespace Carbon.Common;
 
 internal abstract class CarbonBehaviour : MonoBehaviour
 {

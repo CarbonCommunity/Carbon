@@ -10,7 +10,7 @@ namespace Carbon.Patches;
 
 internal static class __Bootstrap
 {
-	[HarmonyPatch(typeof(Bootstrap), "StartupShared")]
+	[HarmonyPatch(typeof(Bootstrap), methodName: "StartupShared")]
 	internal static class __StartupShared
 	{
 		public static void Prefix()
@@ -22,6 +22,13 @@ internal static class __Bootstrap
 				Logger.Warn("Application will now exit");
 				Process.GetCurrentProcess().Kill();
 			}
+
+			Hijacker.DoHijack();
+#if WIN
+			Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
+#elif UNIX
+			Components.HarmonyLoader.GetInstance().Load("Carbon-Unix.dll");
+#endif
 		}
 	}
 }

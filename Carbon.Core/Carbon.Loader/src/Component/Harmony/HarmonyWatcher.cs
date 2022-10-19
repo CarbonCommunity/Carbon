@@ -3,33 +3,41 @@
 /// All rights reserved
 ///
 using System.IO;
+using Carbon.Common;
 using Carbon.Utility;
 
-namespace Carbon.Patterns;
+namespace Carbon.Components;
 
-internal class HarmonyWatcher : FileWatcherBehaviour
+internal sealed class HarmonyWatcher : FileWatcherBehaviour
 {
-	public override void Initialize()
+	internal override void Awake()
 	{
+		base.Awake();
 		Carbon.Utility.Logger.Log("HarmonyWatcher:Initialize()");
 
-		directory = Path.Combine(Context.CarbonDirectory, "harmony");
+		directory = Path.Combine(Context.Directory.Carbon, "harmony");
+		includeSubdirectories = true;
 		extension = "*.dll";
 	}
 
-	public override void Dispose()
+	internal void Start()
 	{
-		Carbon.Utility.Logger.Log("HarmonyWatcher:Dispose()");
+		Carbon.Utility.Logger.Log("HarmonyWatcher:Start()");
+
+		foreach (string f in Directory.EnumerateFiles(directory, extension, SearchOption.AllDirectories))
+			HarmonyLoader.GetInstance().Load(f);
 	}
 
 	internal override void OnFileChangedEvent(object sender, FileSystemEventArgs e)
 	{
 		Carbon.Utility.Logger.Log("HarmonyWatcher:OnFileChangedEvent()");
+		HarmonyLoader.GetInstance().Load(e.FullPath);
 	}
 
 	internal override void OnFileCreatedEvent(object sender, FileSystemEventArgs e)
 	{
 		Carbon.Utility.Logger.Log("HarmonyWatcher:OnFileCreatedEvent()");
+		HarmonyLoader.GetInstance().Load(e.FullPath);
 	}
 
 	internal override void OnFileDeletedEvent(object sender, FileSystemEventArgs e)

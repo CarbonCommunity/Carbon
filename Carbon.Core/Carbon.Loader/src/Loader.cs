@@ -3,35 +3,67 @@
 /// All rights reserved
 /// 
 using System;
-using Carbon.Interfaces;
-using Carbon.Patterns;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using Carbon.Common;
 using Carbon.Utility;
 
 namespace Carbon;
 
-internal sealed class Loader : Singleton<Loader>, IBase, IDisposable
+internal sealed class Loader : Singleton<Loader>, IDisposable
 {
 	static Loader() { }
+
+	private readonly string Identifier;
 
 	internal HarmonyLib.Harmony Harmony;
 
 	private UnityEngine.GameObject gameObject;
 
-	private readonly string Identifier = Guid.NewGuid().ToString();
+	private static Dictionary<string, Assembly> loadedAssembly;
 
 	internal Loader()
 	{
+		Identifier = Guid.NewGuid().ToString();
 		Logger.Warn($"Using '{Identifier}' as runtime namespace");
-
-		Harmony = new HarmonyLib.Harmony(Identifier);
 
 		gameObject = new UnityEngine.GameObject(Identifier);
 		UnityEngine.Object.DontDestroyOnLoad(gameObject);
+
+		Harmony = new HarmonyLib.Harmony(Identifier);
+		loadedAssembly = new Dictionary<string, Assembly>();
 	}
 
 	public void Initialize()
 	{
-		var s = gameObject.AddComponent<HarmonyWatcher>();
+		AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyResolveEventHandler);
+		//gameObject.AddComponent<HarmonyWatcher>();
+	}
+
+	internal static Assembly AssemblyResolveEventHandler(object sender, ResolveEventArgs args)
+	{
+		var asmName = new AssemblyName(args.Name);
+		var asmPath = Path.Combine(Context.Directory.CarbonLib, $"{asmName.Name}.dll");
+
+		if (loadedAssembly.TryGetValue(asmName.Name, out Assembly cached))
+		{
+			Logger.Log($"Resolved: {asmName.Name} [{args.RequestingAssembly.GetName().Name}] from cache");
+			return cached;
+		}
+		else if (File.Exists(asmPath))
+		{
+			byte[] raw = File.ReadAllBytes(asmPath);
+			Assembly asm = Assembly.Load(raw);
+
+			Logger.Log($"Resolved: {asmName.Name} [{args.RequestingAssembly.GetName().Name}] from disk");
+			loadedAssembly.Add(asmName.Name, asm);
+			return asm;
+		}
+
+		Logger.Warn($"Unable to resolve ref: {asmName.Name} [{args.RequestingAssembly.GetName().Name}]");
+		return null;
 	}
 
 	private bool IsDisposed = false;

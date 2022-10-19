@@ -117,7 +117,6 @@
 
 	<ItemGroup>
 		<!-- System libs -->
-		<Reference Include="Microsoft.CSharp" />
 		<Reference Include="System.Core" />
 		<Reference Include="System.Data" />
 		<Reference Include="System.Drawing.Design" />

@@ -4,7 +4,7 @@
 /// 
 using System;
 
-namespace Carbon.Patterns;
+namespace Carbon.Common;
 
 internal abstract class Singleton<T> where T : class
 {

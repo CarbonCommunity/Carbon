@@ -3,11 +3,10 @@
 /// All rights reserved
 ///
 using System;
-using Carbon.Interfaces;
 
-namespace Carbon.Patterns;
+namespace Carbon.Common;
 
-internal abstract class RepeatingBehaviour : CarbonBehaviour, IBase, IDisposable
+internal abstract class RepeatingBehaviour : CarbonBehaviour, IDisposable
 {
 	internal float tickRate = 10f;
 

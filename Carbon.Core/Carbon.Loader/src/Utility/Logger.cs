@@ -10,7 +10,7 @@ namespace Carbon.Utility;
 internal sealed class Logger
 {
 	private static string logFile
-		= Path.Combine(Context.GameDirectory, "__loader.log");
+		= Path.Combine(Context.Directory.Game, "__loader.log");
 
 	internal enum Severity
 	{

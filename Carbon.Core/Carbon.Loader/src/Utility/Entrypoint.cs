@@ -3,8 +3,6 @@
 /// All rights reserved
 /// 
 using Carbon;
-using Carbon.Patterns;
-using UnityEngine;
 
 internal sealed class Entrypoint : IHarmonyModHooks
 {
@@ -19,7 +17,5 @@ internal sealed class Entrypoint : IHarmonyModHooks
 	}
 
 	public void OnUnloaded(OnHarmonyModUnloadedArgs args)
-	{
-		Loader.GetInstance().Dispose();
-	}
+		=> Loader.GetInstance().Dispose();
 }
