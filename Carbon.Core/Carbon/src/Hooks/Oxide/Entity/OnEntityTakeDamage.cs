@@ -3,15 +3,12 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-
 namespace Carbon.Hooks
 {
-	[OxideHook("OnEntityTakeDamage", typeof(object)), OxideHook.Category(Hook.Category.Enum.Entity)]
+	[OxideHook("OnEntityTakeDamage", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("this", typeof(ResourceEntity))]
 	[OxideHook.Parameter("info", typeof(HitInfo))]
 	[OxideHook.Info("Alternatively, modify the HitInfo object to change the damage.")]
-	[OxideHook.Info("Return a false value overrides default behavior.")]
 	[OxideHook.Patch(typeof(ResourceEntity), "OnAttacked")]
 	public class ResourceEntity_OnAttacked
 	{
