@@ -8,7 +8,7 @@ using Oxide.Core;
 
 namespace Carbon.Hooks
 {
-	[OxideHook("OnAnalysisComplete", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
+	[OxideHook("OnAnalysisComplete"), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("crater", typeof(SurveyCrater))]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
 	[OxideHook.Info("Called right after a player completes a survey crater analysis.")]
