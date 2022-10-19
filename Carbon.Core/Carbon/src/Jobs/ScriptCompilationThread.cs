@@ -175,12 +175,16 @@ namespace Carbon.Jobs
 
 				foreach (var require in Requires)
 				{
-					var requiredPlugin = _getPlugin(require);
-
-					using (var dllStream = new MemoryStream(requiredPlugin))
+					try
 					{
-						references.Add(MetadataReference.CreateFromStream(dllStream));
+						var requiredPlugin = _getPlugin(require);
+
+						using (var dllStream = new MemoryStream(requiredPlugin))
+						{
+							references.Add(MetadataReference.CreateFromStream(dllStream));
+						}
 					}
+					catch { }
 				}
 
 				var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, warningLevel: 4);
