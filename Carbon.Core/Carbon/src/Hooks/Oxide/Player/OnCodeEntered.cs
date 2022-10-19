@@ -9,8 +9,9 @@ using Oxide.Core;
 namespace Carbon.Hooks
 {
 	[OxideHook("OnCodeEntered", typeof(object)), OxideHook.Category(Hook.Category.Enum.Player)]
+	[OxideHook.Parameter("lock", typeof(CodeLock))]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
-	[OxideHook.Parameter("this", typeof(BaseCombatEntity))]
+	[OxideHook.Parameter("code", typeof(string))]
 	[OxideHook.Info("Called when the player has entered a code in a codelock.")]
 	[OxideHook.Patch(typeof(CodeLock), "UnlockWithCode")]
 	public class CodeLock_UnlockWithCode
