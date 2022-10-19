@@ -9,7 +9,7 @@ namespace Carbon.Hooks
 {
 	[OxideHook("CanUseLockedEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(SurveyCrater))]
-	[OxideHook.Parameter("entity", typeof(KeyLock))]
+	[OxideHook.Parameter("this", typeof(KeyLock))]
 	[OxideHook.Info("Called when the player tries to use an entity that is locked.")]
 	[OxideHook.Patch(typeof(KeyLock), "OnTryToClose")]
 	public class KeyLock_OnTryToClose
@@ -32,7 +32,7 @@ namespace Carbon.Hooks
 
 	[OxideHook("CanUseLockedEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(SurveyCrater))]
-	[OxideHook.Parameter("entity", typeof(CodeLock))]
+	[OxideHook.Parameter("this", typeof(CodeLock))]
 	[OxideHook.Info("Called when the player tries to use an entity that is locked.")]
 	[OxideHook.Patch(typeof(CodeLock), "OnTryToClose")]
 	public class CodeLock_OnTryToClose
@@ -55,7 +55,7 @@ namespace Carbon.Hooks
 
 	[OxideHook("CanUseLockedEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(SurveyCrater))]
-	[OxideHook.Parameter("entity", typeof(KeyLock))]
+	[OxideHook.Parameter("this", typeof(KeyLock))]
 	[OxideHook.Info("Called when the player tries to use an entity that is locked.")]
 	[OxideHook.Patch(typeof(KeyLock), "OnTryToOpen")]
 	public class KeyLock_OnTryToOpen
@@ -78,7 +78,7 @@ namespace Carbon.Hooks
 
 	[OxideHook("CanUseLockedEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(SurveyCrater))]
-	[OxideHook.Parameter("entity", typeof(CodeLock))]
+	[OxideHook.Parameter("this", typeof(CodeLock))]
 	[OxideHook.Info("Called when the player tries to use an entity that is locked.")]
 	[OxideHook.Patch(typeof(CodeLock), "OnTryToOpen")]
 	public class CodeLock_OnTryToOpen
