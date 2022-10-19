@@ -99,6 +99,13 @@ namespace Carbon
 
 			return map;
 		}
+		public static T GetOne<T>(bool inherited = false) where T : BaseEntity
+		{
+			using (var map = Get<T>(inherited))
+			{
+				return map.Pool.FirstOrDefault();
+			}
+		}
 		public static void AddMap(BaseEntity entity)
 		{
 			if (!Mapping.TryGetValue(entity.GetType(), out var map))
