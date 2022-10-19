@@ -56,7 +56,7 @@ namespace Carbon.Hooks
 
 	[OxideHook("CanLootEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
-	[OxideHook.Parameter("this", typeof(ContainerIOEntity))]
+	[OxideHook.Parameter("this", typeof(LootableCorpse))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
 	[OxideHook.Patch(typeof(LootableCorpse), "RPC_LootCorpse")]
 	public class LootableCorpse_RPC_LootCorpse
