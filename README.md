@@ -10,12 +10,13 @@
 A concept that's becoming reality.
 **Carbon** is a platform in the form of a DLL which gets added under your Rust server, in the *HarmonyMods* folder. 
 
-**Follow the development roadmap [here](https://github.com/orgs/CarbonCommunity/projects/1).**
-**Join our official [Discord server](https://discord.gg/eXPcNKK4yd) for discussions.**
+**Join our official [Discord server](https://discord.gg/eXPcNKK4yd) for more frequent development info, discussions and future plans.**
 
 ## Documentation
 
-**For server-owner related or development questions, check [here](https://carboncommunity.gitbook.io/docs).**
+**For more in-depth Carbon documentation, from builds and deployment, check [here](https://carboncommunity.gitbook.io/docs).**
+
+Find all currently available hooks **[here](https://carboncommunity.gitbook.io/docs/core/hooks/carbon-hooks)**.
 
 ## Features
 * Extremely lightweight, stripped out of additional, unrelated-to-Rust processes
