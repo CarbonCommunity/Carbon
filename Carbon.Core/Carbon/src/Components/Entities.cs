@@ -130,6 +130,36 @@ namespace Carbon
 		{
 			public List<T> Pool;
 
+			public Map<T> Each(Action<T> callback, Func<T, bool> condition)
+			{
+				foreach (var drop in Pool)
+				{
+					if (!condition(drop)) continue;
+
+					callback.Invoke(drop);
+				}
+
+				Facepunch.Pool.Free(ref callback);
+				Facepunch.Pool.Free(ref condition);
+				return this;
+			}
+			public T Pick(int index)
+			{
+				if (Pool.Count == 0)
+				{
+					Logger.Warn($"[Entities.Map.Pick] Pool is empty. Index {index} is unreachable.");
+					return default;
+				}
+
+				if (Pool.Count - 1 > index)
+				{
+					Logger.Warn($"[Entities.Map.Pick] Index {index} is higher than the pool count {Pool.Count - 1}");
+					return default;
+				}
+
+				return Pool[index];
+			}
+
 			public void Dispose()
 			{
 				Carbon.Logger.Warn($"Cleaned {typeof(T).Name}");
