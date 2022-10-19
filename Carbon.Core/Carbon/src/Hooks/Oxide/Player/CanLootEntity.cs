@@ -10,7 +10,7 @@ namespace Carbon.Hooks
 {
 	[OxideHook("CanLootEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
-	[OxideHook.Parameter("container", typeof(StorageContainer))]
+	[OxideHook.Parameter("this", typeof(StorageContainer))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
 	[OxideHook.Patch(typeof(StorageContainer), "PlayerOpenLoot")]
 	public class StorageContainer_PlayerOpenLoot
@@ -33,7 +33,7 @@ namespace Carbon.Hooks
 
 	[OxideHook("CanLootEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
-	[OxideHook.Parameter("container", typeof(ContainerIOEntity))]
+	[OxideHook.Parameter("this", typeof(ContainerIOEntity))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
 	[OxideHook.Patch(typeof(ContainerIOEntity), "PlayerOpenLoot")]
 	public class ContainerIOEntity_PlayerOpenLoot
@@ -56,7 +56,7 @@ namespace Carbon.Hooks
 
 	[OxideHook("CanLootEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
-	[OxideHook.Parameter("container", typeof(ContainerIOEntity))]
+	[OxideHook.Parameter("this", typeof(ContainerIOEntity))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
 	[OxideHook.Patch(typeof(LootableCorpse), "RPC_LootCorpse")]
 	public class LootableCorpse_RPC_LootCorpse
@@ -82,7 +82,7 @@ namespace Carbon.Hooks
 
 	[OxideHook("CanLootEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
-	[OxideHook.Parameter("container", typeof(DroppedItemContainer))]
+	[OxideHook.Parameter("this", typeof(DroppedItemContainer))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
 	[OxideHook.Patch(typeof(DroppedItemContainer), "RPC_LootCorpse")]
 	public class DroppedItemContainer_RPC_LootCorpse
@@ -104,7 +104,7 @@ namespace Carbon.Hooks
 
 	[OxideHook("CanLootEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
-	[OxideHook.Parameter("container", typeof(BaseRidableAnimal))]
+	[OxideHook.Parameter("this", typeof(BaseRidableAnimal))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
 	[OxideHook.Patch(typeof(BaseRidableAnimal), "RPC_LootCorpse")]
 	public class BaseRidableAnimal_RPC_LootCorpse
@@ -134,7 +134,7 @@ namespace Carbon.Hooks
 
 	[OxideHook("CanLootEntity", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
-	[OxideHook.Parameter("container", typeof(ResourceContainer))]
+	[OxideHook.Parameter("this", typeof(ResourceContainer))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
 	[OxideHook.Patch(typeof(ResourceContainer), "RPC_LootCorpse")]
 	public class ResourceContainer_RPC_LootCorpse
