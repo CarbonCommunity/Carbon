@@ -105,7 +105,7 @@ public class Command
 
 			try
 			{
-				var fullString = args == null || args.Length == 0 ? cmd : $"{cmd} {string.Join(" ", args)}";
+				var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
@@ -153,7 +153,7 @@ public class Command
 
 			try
 			{
-				var fullString = args == null || args.Length == 0 ? cmd : $"{cmd} {string.Join(" ", args)}";
+				var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
