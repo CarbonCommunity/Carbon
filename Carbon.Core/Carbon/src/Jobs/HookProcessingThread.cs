@@ -15,7 +15,7 @@ using Facepunch;
 
 namespace Carbon.Jobs
 {
-	public class HookInstallerThread : BaseThreadedJob
+	public class HookProcessingThread : BaseThreadedJob
 	{
 		public string HookName;
 		public bool DoRequires = true;
@@ -24,6 +24,8 @@ namespace Carbon.Jobs
 
 		public override void ThreadFunction()
 		{
+			if (string.IsNullOrEmpty(HookName)) return;
+
 			foreach (var type in Defines.Carbon.GetTypes())
 			{
 				try

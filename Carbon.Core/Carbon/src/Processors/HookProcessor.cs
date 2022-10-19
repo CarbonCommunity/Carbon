@@ -85,7 +85,7 @@ namespace Carbon.Processors
 			if (!IsPatched(hookName))
 				Carbon.Logger.Debug($"Found '{hookName}'...");
 
-			new HookInstallerThread
+			new HookProcessingThread
 			{
 				HookName = hookName,
 				DoRequires = doRequires,

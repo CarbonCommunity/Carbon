@@ -84,8 +84,8 @@ namespace Carbon.Hooks
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
 	[OxideHook.Parameter("this", typeof(DroppedItemContainer))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
-	[OxideHook.Patch(typeof(DroppedItemContainer), "RPC_LootCorpse")]
-	public class DroppedItemContainer_RPC_LootCorpse
+	[OxideHook.Patch(typeof(DroppedItemContainer), "RPC_OpenLoot")]
+	public class DroppedItemContainer_RPC_OpenLoot
 	{
 		public static bool Prefix(BaseEntity.RPCMessage rpc, ref DroppedItemContainer __instance)
 		{
@@ -106,8 +106,8 @@ namespace Carbon.Hooks
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
 	[OxideHook.Parameter("this", typeof(BaseRidableAnimal))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
-	[OxideHook.Patch(typeof(BaseRidableAnimal), "RPC_LootCorpse")]
-	public class BaseRidableAnimal_RPC_LootCorpse
+	[OxideHook.Patch(typeof(BaseRidableAnimal), "RPC_OpenLoot")]
+	public class BaseRidableAnimal_RPC_OpenLoot
 	{
 		public static bool Prefix(BaseEntity.RPCMessage rpc, ref BaseRidableAnimal __instance)
 		{
@@ -136,12 +136,12 @@ namespace Carbon.Hooks
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
 	[OxideHook.Parameter("this", typeof(ResourceContainer))]
 	[OxideHook.Info("Called when the player starts looting a DroppedItemContainer, LootableCorpse, ResourceContainer, BaseRidableAnimal, or StorageContainer entity.")]
-	[OxideHook.Patch(typeof(ResourceContainer), "RPC_LootCorpse")]
-	public class ResourceContainer_RPC_LootCorpse
+	[OxideHook.Patch(typeof(ResourceContainer), "StartLootingContainer")]
+	public class ResourceContainer_StartLootingContainer
 	{
-		public static bool Prefix(BaseEntity.RPCMessage rpc, ref ResourceContainer __instance)
+		public static bool Prefix(BaseEntity.RPCMessage msg, ref ResourceContainer __instance)
 		{
-			if (!rpc.player || !rpc.player.CanInteract())
+			if (!msg.player || !msg.player.CanInteract())
 			{
 				return false;
 			}
@@ -150,7 +150,7 @@ namespace Carbon.Hooks
 				return false;
 			}
 
-			return Interface.CallHook("CanLootEntity", rpc.player, __instance) == null;
+			return Interface.CallHook("CanLootEntity", msg.player, __instance) == null;
 		}
 	}
 }
