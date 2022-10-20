@@ -113,9 +113,13 @@ internal sealed class Hijacker
 			foreach (Delegate evh in eventDelegate?.GetInvocationList())
 			{
 				nfo = evh.GetMethodInfo();
-				if (nfo.Name == nameof(Loader.AssemblyResolveEventHandler)) continue;
-				eventInfo.RemoveEventHandler(AppDomain.CurrentDomain, evh);
-				Logger.Warn($" - Removed {nfo.Name} [{nfo.Module}]");
+
+				// TODO: stop be lazy and do this in a proper way
+				if (nfo.Module.Name.Contains("Rust.Harmony.dll"))
+				{
+					eventInfo.RemoveEventHandler(AppDomain.CurrentDomain, evh);
+					Logger.Warn($" - Removed {nfo.Name} [{nfo.Module}]");
+				}
 			}
 		}
 		catch (System.Exception e)

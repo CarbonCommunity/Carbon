@@ -30,6 +30,7 @@ internal sealed class Directory
 			Game = t;
 			break;
 		}
+
 		if (Game == null) throw new System.Exception("Unable to find root folder");
 
 		GameManaged = Path.GetFullPath(Path.Combine(Game, "RustDedicated_Data", "Managed"));
