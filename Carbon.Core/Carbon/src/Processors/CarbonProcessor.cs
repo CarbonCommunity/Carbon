@@ -5,8 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using Carbon.Base;
 
-namespace Carbon.Core.Processors
+namespace Carbon.Processors
 {
 	public class CarbonProcessor : BaseProcessor
 	{

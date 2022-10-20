@@ -6,10 +6,9 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Carbon;
-using Carbon.Core;
+using Carbon.Base;
 using Oxide.Core;
 using Oxide.Plugins;
 using static ConsoleSystem;
@@ -19,9 +18,9 @@ public class Command
 {
 	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
 	{
-		if (CarbonCore.Instance.AllChatCommands.Count(x => x.Command == command) == 0)
+		if (Community.Runtime.AllChatCommands.Count(x => x.Command == command) == 0)
 		{
-			CarbonCore.Instance.AllChatCommands.Add(new OxideCommand
+			Community.Runtime.AllChatCommands.Add(new OxideCommand
 			{
 				Command = command,
 				Plugin = plugin,
@@ -29,7 +28,7 @@ public class Command
 				Callback = (player, cmd, args) =>
 				{
 					try { callback.Invoke(player, cmd, args); }
-					catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+					catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 				},
 				Help = help,
 				Reference = reference
@@ -75,7 +74,7 @@ public class Command
 
 				m?.Invoke(plugin, result);
 			}
-			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 			if (argData != null) Pool.FreeList(ref argData);
 			if (result != null) Pool.Free(ref result);
@@ -83,9 +82,9 @@ public class Command
 	}
 	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
 	{
-		if (CarbonCore.Instance.AllConsoleCommands.Count(x => x.Command == command) == 0)
+		if (Community.Runtime.AllConsoleCommands.Count(x => x.Command == command) == 0)
 		{
-			CarbonCore.Instance.AllConsoleCommands.Add(new OxideCommand
+			Community.Runtime.AllConsoleCommands.Add(new OxideCommand
 			{
 				Command = command,
 				Plugin = plugin,
@@ -106,8 +105,7 @@ public class Command
 
 			try
 			{
-				var fullString = args == null || args.Length == 0 ? cmd : $"{cmd} {string.Join(" ", args)}";
-				var value = new object[] { fullString };
+				var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
@@ -137,10 +135,10 @@ public class Command
 						methodInfo?.Invoke(plugin, result);
 					}
 				}
-				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 			}
 			catch (TargetParameterCountException) { }
-			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);
@@ -155,8 +153,7 @@ public class Command
 
 			try
 			{
-				var fullString = args == null || args.Length == 0 ? cmd : $"{cmd} {string.Join(" ", args)}";
-				var value = new object[] { fullString };
+				var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
@@ -173,7 +170,7 @@ public class Command
 				}
 			}
 			catch (TargetParameterCountException) { }
-			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+			catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);

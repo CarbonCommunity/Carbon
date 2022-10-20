@@ -5,13 +5,16 @@
 
 using Carbon.Core;
 
-[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
-[CarbonHook("IInit"), CarbonHook.Category(Hook.Category.Enum.Core)]
-[CarbonHook.Patch(typeof(Bootstrap), "StartupShared")]
-public class Init
+namespace Carbon.Hooks
 {
-	public static void Prefix()
+	[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+	[CarbonHook("IInit"), CarbonHook.Category(Hook.Category.Enum.Core)]
+	[CarbonHook.Patch(typeof(Bootstrap), "StartupShared")]
+	public class Init
 	{
-		CarbonCore.Instance.Init();
+		public static void Prefix()
+		{
+			Community.Runtime.Initialize();
+		}
 	}
 }

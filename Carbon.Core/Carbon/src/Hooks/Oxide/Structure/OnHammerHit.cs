@@ -16,7 +16,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(HitInfo info, ref Hammer __instance)
 		{
-			return HookExecutor.CallStaticHook("OnHammerHit", __instance.GetOwnerPlayer(), info) == null;
+			return HookCaller.CallStaticHook("OnHammerHit", __instance.GetOwnerPlayer(), info) == null;
 		}
 	}
 }

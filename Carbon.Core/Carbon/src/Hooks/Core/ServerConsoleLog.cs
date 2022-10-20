@@ -3,17 +3,21 @@
 /// All rights reserved
 /// 
 
+using Carbon.Core;
 using UnityEngine;
 
-[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
-[CarbonHook("IServerConsoleLog"), CarbonHook.Category(Hook.Category.Enum.Core)]
-[CarbonHook.Patch(typeof(ServerConsole), "HandleLog")]
-public class ServerConsoleLog
+namespace Carbon.Hooks
 {
-	public static bool Prefix(string message, string stackTrace, LogType type)
+	[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+	[CarbonHook("IServerConsoleLog"), CarbonHook.Category(Hook.Category.Enum.Core)]
+	[CarbonHook.Patch(typeof(ServerConsole), "HandleLog")]
+	public class ServerConsoleLog
 	{
-		if (message.StartsWith("Trying to load assembly: DynamicAssembly")) return false;
+		public static bool Prefix(string message, string stackTrace, LogType type)
+		{
+			if (message.StartsWith("Trying to load assembly: DynamicAssembly")) return false;
 
-		return true;
+			return true;
+		}
 	}
 }

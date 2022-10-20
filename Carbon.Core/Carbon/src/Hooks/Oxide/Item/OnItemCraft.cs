@@ -4,8 +4,8 @@
 /// 
 
 using Carbon.Core;
-using ProtoBuf;
 using Facepunch;
+using ProtoBuf;
 
 namespace Carbon.Hooks
 {
@@ -46,7 +46,7 @@ namespace Carbon.Hooks
 				task.conditionScale = 0.5f;
 			}
 
-			var obj = HookExecutor.CallStaticHook("OnItemCraft", task, owner, fromTempBlueprint);
+			var obj = HookCaller.CallStaticHook("OnItemCraft", task, owner, fromTempBlueprint);
 			if (obj is bool)
 			{
 				if (fromTempBlueprint != null && task.instanceData != null)

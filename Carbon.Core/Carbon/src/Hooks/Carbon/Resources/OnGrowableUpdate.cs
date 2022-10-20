@@ -15,7 +15,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(ref GrowableEntity __instance)
 		{
-			HookExecutor.CallStaticHook("OnGrowableUpdate", __instance);
+			HookCaller.CallStaticHook("OnGrowableUpdate", __instance);
 		}
 	}
 }

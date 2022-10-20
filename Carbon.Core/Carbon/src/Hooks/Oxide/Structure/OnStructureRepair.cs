@@ -18,7 +18,7 @@ namespace Carbon.Hooks
 		{
 			if (!__instance.repair.enabled) return false;
 
-			return HookExecutor.CallStaticHook("OnHammerHit", __instance, player) == null;
+			return HookCaller.CallStaticHook("OnHammerHit", __instance, player) == null;
 		}
 	}
 }

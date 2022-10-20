@@ -20,7 +20,7 @@ namespace Carbon.Hooks
 				return true;
 			}
 
-			return HookExecutor.CallStaticHook("OnPlayerSleep", __instance) == null;
+			return HookCaller.CallStaticHook("OnPlayerSleep", __instance) == null;
 		}
 	}
 }

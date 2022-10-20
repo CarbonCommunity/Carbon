@@ -16,7 +16,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(BasePlayer player, ref LootableCorpse __instance)
 		{
-			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
+			HookCaller.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}
 	}
 
@@ -29,7 +29,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(BasePlayer player, ref StorageContainer __instance)
 		{
-			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
+			HookCaller.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}
 	}
 
@@ -42,7 +42,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(BasePlayer player, ref ItemBasedFlowRestrictor __instance)
 		{
-			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
+			HookCaller.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}
 	}
 
@@ -55,7 +55,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(BasePlayer player, ref DroppedItemContainer __instance)
 		{
-			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
+			HookCaller.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}
 	}
 
@@ -68,7 +68,7 @@ namespace Carbon.Hooks
 	{
 		public static void Prefix(BasePlayer player, ref ContainerIOEntity __instance)
 		{
-			HookExecutor.CallStaticHook("OnLootEntityEnd", player, __instance);
+			HookCaller.CallStaticHook("OnLootEntityEnd", player, __instance);
 		}
 	}
 }

@@ -3,17 +3,21 @@
 /// All rights reserved
 /// 
 
+using Carbon;
 using Carbon.Core;
 
-[Hook.AlwaysPatched]
-[Hook("OnPlayerConnected"), Hook.Category(Hook.Category.Enum.Player)]
-[Hook.Parameter("this", typeof(BasePlayer))]
-[Hook.Info("Called after the player object is created, but before the player has spawned.")]
-[Hook.Patch(typeof(BasePlayer), "PlayerInit")]
-public class OnPlayerConnected
+namespace Carbon.Hooks
 {
-	public static void Postfix(Network.Connection c)
+	[Hook.AlwaysPatched]
+	[Hook("OnPlayerConnected"), Hook.Category(Hook.Category.Enum.Player)]
+	[Hook.Parameter("this", typeof(BasePlayer))]
+	[Hook.Info("Called after the player object is created, but before the player has spawned.")]
+	[Hook.Patch(typeof(BasePlayer), "PlayerInit")]
+	public class OnPlayerConnected
 	{
-		HookExecutor.CallStaticHook("OnPlayerConnected", c.player as BasePlayer);
+		public static void Postfix(Network.Connection c)
+		{
+			HookCaller.CallStaticHook("OnPlayerConnected", c.player as BasePlayer);
+		}
 	}
 }

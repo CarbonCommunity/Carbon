@@ -8,12 +8,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Carbon.Extensions;
+using Carbon.Hooks;
 using UnityEngine;
 
 namespace Carbon.Core
 {
 	[Serializable]
-	public class CarbonDefines
+	public class Defines
 	{
 		public static Assembly Carbon { get; internal set; }
 
@@ -24,7 +25,7 @@ namespace Carbon.Core
 			Hooks?.Clear();
 			Hooks = new List<Hook>();
 
-			Carbon = typeof(CarbonCore).Assembly;
+			Carbon = typeof(Community).Assembly;
 
 			foreach (var type in Carbon.GetTypes())
 			{

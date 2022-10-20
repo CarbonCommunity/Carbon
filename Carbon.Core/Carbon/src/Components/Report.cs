@@ -7,11 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Carbon.Core;
-using Facepunch;
 using Carbon.Components;
+using Carbon.Core;
 using Carbon.Extensions;
-
+using Facepunch;
 using Oxide.Plugins;
 
 namespace Carbon
@@ -75,14 +74,14 @@ namespace Carbon
 					report += $"INCOMPATIBLE HOOK REPORT:\n{builder.ToStringMinimal()}\n\n";
 				}
 
-				var path = Path.Combine(CarbonDefines.GetReportsFolder(), $"pluginreport_{DateTime.UtcNow:ddMMyyyyhhmmss}.txt");
+				var path = Path.Combine(Defines.GetReportsFolder(), $"pluginreport_{DateTime.UtcNow:ddMMyyyyhhmmss}.txt");
 				OsEx.File.Create(path, report.Trim());
 				Logger.Log($" Report generated with {Results.Count:n0} results at '{path}'");
 
 				Dispose();
 			};
 
-			CarbonCore.ReloadPlugins();
+			Community.ReloadPlugins();
 		}
 		public void Dispose()
 		{

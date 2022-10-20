@@ -17,7 +17,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(BuildingGrade.Enum iGrade, BasePlayer player, ref BuildingBlock __instance, ref bool __result)
 		{
-			var result = HookExecutor.CallStaticHook("CanAffordUpgrade", player, __instance, iGrade);
+			var result = HookCaller.CallStaticHook("CanAffordUpgrade", player, __instance, iGrade);
 
 			if (result != null)
 			{

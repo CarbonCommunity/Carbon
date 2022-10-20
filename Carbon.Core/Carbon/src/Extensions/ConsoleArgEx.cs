@@ -5,7 +5,7 @@
 
 using UnityEngine;
 
-namespace Carbon.Core.Extensions
+namespace Carbon.Extensions
 {
 	public static class ConsoleArgEx
 	{

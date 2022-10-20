@@ -6,7 +6,7 @@
 using System.Reflection;
 using HarmonyLib;
 
-namespace Carbon.Core.Extensions
+namespace Carbon.Extensions
 {
 	public static class ServerTagEx
 	{

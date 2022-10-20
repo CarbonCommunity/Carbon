@@ -16,7 +16,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(ref ElevatorLift __instance, ref bool __result)
 		{
-			object returnvar = HookExecutor.CallStaticHook("CanElevatorLiftMove", __instance);
+			object returnvar = HookCaller.CallStaticHook("CanElevatorLiftMove", __instance);
 
 			if (returnvar is bool value)
 			{

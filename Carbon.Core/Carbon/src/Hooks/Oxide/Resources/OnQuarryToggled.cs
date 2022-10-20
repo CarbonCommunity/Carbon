@@ -21,7 +21,7 @@ namespace Carbon.Hooks
 			if (miningQuarry != null)
 			{
 				miningQuarry.EngineSwitch(true);
-				return HookExecutor.CallStaticHook("OnQuarryToggled", miningQuarry, msg.player) == null;
+				return HookCaller.CallStaticHook("OnQuarryToggled", miningQuarry, msg.player) == null;
 			}
 
 			return false;
@@ -42,7 +42,7 @@ namespace Carbon.Hooks
 			if (miningQuarry != null)
 			{
 				miningQuarry.EngineSwitch(false);
-				return HookExecutor.CallStaticHook("OnQuarryToggled", miningQuarry, msg.player) == null;
+				return HookCaller.CallStaticHook("OnQuarryToggled", miningQuarry, msg.player) == null;
 			}
 
 			return false;

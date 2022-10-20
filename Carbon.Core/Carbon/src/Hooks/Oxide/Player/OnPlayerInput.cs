@@ -16,8 +16,8 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(PlayerTick msg, bool wasPlayerStalled, ref BasePlayer __instance)
 		{
-			var onTick = HookExecutor.CallStaticHook("OnPlayerTick", __instance, msg, wasPlayerStalled);
-			var onInput = HookExecutor.CallStaticHook("OnPlayerInput", __instance, __instance.serverInput);
+			var onTick = HookCaller.CallStaticHook("OnPlayerTick", __instance, msg, wasPlayerStalled);
+			var onInput = HookCaller.CallStaticHook("OnPlayerInput", __instance, __instance.serverInput);
 
 			return onTick == null && onInput == null;
 		}

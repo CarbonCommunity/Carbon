@@ -10,16 +10,16 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Facepunch;
+using Carbon.Base;
+using Carbon.Core;
 using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Application = UnityEngine.Application;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Carbon.Core
+namespace Carbon.Jobs
 {
-	public class AsyncPluginLoader : ThreadedJob
+	public class ScriptCompilationThread : BaseThreadedJob
 	{
 		public string FilePath;
 		public string FileName;
@@ -49,7 +49,7 @@ namespace Carbon.Core
 			if (_hasInit) return;
 			_hasInit = true;
 
-			_fodyAssemblyLoader = CarbonDefines.Carbon.GetType("Costura.AssemblyLoader");
+			_fodyAssemblyLoader = Defines.Carbon.GetType("Costura.AssemblyLoader");
 			_fodyAssemblyNames = _fodyAssemblyLoader.GetField("assemblyNames", BindingFlags.NonPublic | BindingFlags.Static);
 			_fodyLoadStream = _fodyAssemblyLoader.GetMethod("LoadStream", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string) }, default);
 
@@ -61,7 +61,7 @@ namespace Carbon.Core
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["mysql.data"] }) as Stream));
 			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["system.data.sqlite"] }) as Stream));
 
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(CarbonDefines.DllPath))));
+			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Defines.DllPath))));
 
 			var managedFolder = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed");
 			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Path.Combine(managedFolder, "System.Drawing.dll")))));
@@ -70,14 +70,14 @@ namespace Carbon.Core
 
 			foreach (var assembly in assemblies)
 			{
-				if (assembly.IsDynamic || !OsEx.File.Exists(assembly.Location) || CarbonLoader.AssemblyCache.Contains(assembly)) continue;
+				if (assembly.IsDynamic || !OsEx.File.Exists(assembly.Location) || Loader.AssemblyCache.Contains(assembly)) continue;
 
 				_metadataReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
 			}
 		}
 
-		internal static List<MetadataReference> _metadataReferences = new List<MetadataReference>();
-		internal static Dictionary<string, MetadataReference> _referenceCache = new Dictionary<string, MetadataReference>();
+		internal static List<object> _metadataReferences = new List<object>();
+		internal static Dictionary<string, object> _referenceCache = new Dictionary<string, object>();
 		internal static Dictionary<string, byte[]> _compilationCache = new Dictionary<string, byte[]>();
 
 		internal static byte[] _getPlugin(string name)
@@ -112,17 +112,17 @@ namespace Carbon.Core
 				_referenceCache.Add(reference, outReference);
 			}
 
-			return metaReference;
+			return metaReference as MetadataReference;
 		}
 
 		internal List<MetadataReference> _addReferences()
 		{
 			var references = new List<MetadataReference>();
-			references.AddRange(_metadataReferences);
+			foreach (var reference in _metadataReferences) references.Add(reference as MetadataReference);
 
 			foreach (var reference in References)
 			{
-				if (string.IsNullOrEmpty(reference) || _metadataReferences.Any(x => x.Display.Contains(reference))) continue;
+				if (string.IsNullOrEmpty(reference) || _metadataReferences.Any(x => x is MetadataReference metadata && metadata.Display.Contains(reference))) continue;
 
 				try
 				{
@@ -175,12 +175,16 @@ namespace Carbon.Core
 
 				foreach (var require in Requires)
 				{
-					var requiredPlugin = _getPlugin(require);
-
-					using (var dllStream = new MemoryStream(requiredPlugin))
+					try
 					{
-						references.Add(MetadataReference.CreateFromStream(dllStream));
+						var requiredPlugin = _getPlugin(require);
+
+						using (var dllStream = new MemoryStream(requiredPlugin))
+						{
+							references.Add(MetadataReference.CreateFromStream(dllStream));
+						}
 					}
+					catch { }
 				}
 
 				var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, warningLevel: 4);
@@ -237,12 +241,12 @@ namespace Carbon.Core
 
 					foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 					{
-						if (CarbonHookValidator.IsIncompatibleOxideHook(method.Name))
+						if (HookValidator.IsIncompatibleOxideHook(method.Name))
 						{
 							unsupportedHooks.Add(method.Name);
 						}
 
-						if (CarbonCore.Instance.HookProcessor.DoesHookExist(method.Name))
+						if (Community.Runtime.HookProcessor.DoesHookExist(method.Name))
 						{
 							if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
 						}

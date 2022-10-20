@@ -21,7 +21,7 @@ namespace Carbon.Hooks
 			{
 				if (brain != null && brain.baseEntity is Chicken chicken)
 				{
-					HookExecutor.CallStaticHook("OnChickenScared", chicken, brain.Events.Memory.Entity.Get(brain.Events.CurrentInputMemorySlot));
+					HookCaller.CallStaticHook("OnChickenScared", chicken, brain.Events.Memory.Entity.Get(brain.Events.CurrentInputMemorySlot));
 				}
 			}
 			catch { }

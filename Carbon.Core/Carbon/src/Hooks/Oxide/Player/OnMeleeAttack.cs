@@ -38,7 +38,7 @@ namespace Carbon.Hooks
 						hitInfo.WeaponPrefab = __instance;
 						hitInfo.Predicted = msg.connection;
 						hitInfo.damageProperties = __instance.damageProperties;
-						result = HookExecutor.CallStaticHook("OnMeleeAttack", player, hitInfo) == null;
+						result = HookCaller.CallStaticHook("OnMeleeAttack", player, hitInfo) == null;
 						Facepunch.Pool.Free(ref hitInfo);
 					}
 				}

@@ -6,68 +6,71 @@
 using System;
 using Carbon;
 using Carbon.Core;
-using Carbon.Core.Extensions;
+using Carbon.Extensions;
 using Facepunch.Extend;
 using Oxide.Core;
 
-[CarbonHook.AlwaysPatched]
-[CarbonHook("OnCarbonCommand"), CarbonHook.Category(Hook.Category.Enum.Core)]
-[CarbonHook.Parameter("player", typeof(BasePlayer))]
-[CarbonHook.Parameter("message", typeof(string))]
-[CarbonHook.Info("Called whenever a Carbon server command is called.")]
-[CarbonHook.Patch(typeof(ConsoleSystem), "Run")]
-public class CarbonConsoleCommand
+namespace Carbon.Hooks
 {
-	internal static string[] EmptyArgs = new string[0];
-
-	public static bool Prefix(ConsoleSystem.Option options, string strCommand, object[] args)
+	[CarbonHook.AlwaysPatched]
+	[CarbonHook("OnCarbonCommand"), CarbonHook.Category(Hook.Category.Enum.Core)]
+	[CarbonHook.Parameter("player", typeof(BasePlayer))]
+	[CarbonHook.Parameter("message", typeof(string))]
+	[CarbonHook.Info("Called whenever a Carbon server command is called.")]
+	[CarbonHook.Patch(typeof(ConsoleSystem), "Run")]
+	public class CarbonConsoleCommand
 	{
-		if (CarbonCore.Instance == null) return true;
+		internal static string[] EmptyArgs = new string[0];
 
-		try
+		public static bool Prefix(ConsoleSystem.Option options, string strCommand, object[] args)
 		{
-			var split = strCommand.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
-			var command = split[0].Trim();
-			var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
-			Facepunch.Pool.Free(ref split);
+			if (Community.Runtime == null) return true;
 
-			foreach (var cmd in CarbonCore.Instance.AllConsoleCommands)
+			try
 			{
-				if (cmd.Command == command)
-				{
-					try
-					{
-						cmd.Callback?.Invoke(options.Connection?.player as BasePlayer, command, args2);
-					}
-					catch (Exception ex)
-					{
-						Carbon.Logger.Error("ConsoleSystem_Run", ex);
-					}
+				var split = strCommand.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
+				var command = split[0].Trim();
+				var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
+				Facepunch.Pool.Free(ref split);
 
-					return false;
+				foreach (var cmd in Community.Runtime.AllConsoleCommands)
+				{
+					if (cmd.Command == command)
+					{
+						try
+						{
+							cmd.Callback?.Invoke(options.Connection?.player as BasePlayer, command, args2);
+						}
+						catch (Exception ex)
+						{
+							Carbon.Logger.Error("ConsoleSystem_Run", ex);
+						}
+
+						return false;
+					}
 				}
 			}
-		}
-		catch { }
+			catch { }
 
-		return true;
+			return true;
+		}
 	}
-}
 
-[CarbonHook.AlwaysPatched]
-[Hook("OnServerCommand"), Hook.Category(Hook.Category.Enum.Server)]
-[Hook.Parameter("arg", typeof(ConsoleSystem.Arg))]
-[Hook.Info("Useful for intercepting commands before they get to their intended target.")]
-[Hook.Patch(typeof(ConsoleSystem), "Internal", true)]
-public class ServerConsoleCommand
-{
-	public static bool Prefix(ConsoleSystem.Arg arg)
+	[CarbonHook.AlwaysPatched]
+	[Hook("OnServerCommand"), Hook.Category(Hook.Category.Enum.Server)]
+	[Hook.Parameter("arg", typeof(ConsoleSystem.Arg))]
+	[Hook.Info("Useful for intercepting commands before they get to their intended target.")]
+	[Hook.Patch(typeof(ConsoleSystem), "Internal", true)]
+	public class ServerConsoleCommand
 	{
-		if (arg.Invalid)
+		public static bool Prefix(ConsoleSystem.Arg arg)
 		{
-			return false;
-		}
+			if (arg.Invalid)
+			{
+				return false;
+			}
 
-		return Interface.CallHook("OnServerCommand", arg) == null;
+			return Interface.CallHook("OnServerCommand", arg) == null;
+		}
 	}
 }

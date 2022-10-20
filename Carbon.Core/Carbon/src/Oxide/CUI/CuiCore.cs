@@ -112,6 +112,8 @@ namespace Oxide.Game.Rust.Cui
 	}
 	public class CuiElementContainer : List<CuiElement>
 	{
+		public string Name { get; set; }
+
 		public string Add(CuiButton button, string parent = "Hud", string name = null)
 		{
 			if (string.IsNullOrEmpty(name))
@@ -265,6 +267,15 @@ namespace Oxide.Game.Rust.Cui
 		[DefaultValue(false)]
 		[JsonProperty("password")]
 		public bool IsPassword { get; set; }
+
+		[DefaultValue(false)]
+		[JsonProperty("needsCursor")]
+		public bool NeedsCursor { get; set; }
+
+		[DefaultValue(false)]
+		[JsonProperty("needsKeyboard")]
+		public bool NeedsKeyboard { get; set; }
+
 	}
 	public class CuiNeedsCursorComponent : ICuiComponent
 	{

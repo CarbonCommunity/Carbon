@@ -34,7 +34,7 @@ namespace Carbon.Hooks
 			var num = msg.read.UInt32();
 			msg.read.Position = oldPosition;
 
-			return HookExecutor.CallStaticHook("CanDeployItem", msg.player, __instance, num) == null;
+			return HookCaller.CallStaticHook("CanDeployItem", msg.player, __instance, num) == null;
 		}
 	}
 }

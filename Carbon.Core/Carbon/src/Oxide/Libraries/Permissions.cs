@@ -354,7 +354,7 @@ namespace Oxide.Core.Libraries
 			if (!GroupExists(name)) return;
 			if (!GetUserData(id).Groups.Add(name.ToLower())) return;
 
-			HookExecutor.CallStaticHook("OnUserGroupAdded", id, name);
+			HookCaller.CallStaticHook("OnUserGroupAdded", id, name);
 		}
 		public void RemoveUserGroup(string id, string name)
 		{
@@ -372,7 +372,7 @@ namespace Oxide.Core.Libraries
 			{
 				if (!userData.Groups.Remove(name.ToLower())) return;
 
-				HookExecutor.CallStaticHook("OnUserGroupRemoved", id, name);
+				HookCaller.CallStaticHook("OnUserGroupRemoved", id, name);
 				return;
 			}
 		}
@@ -449,7 +449,7 @@ namespace Oxide.Core.Libraries
 			{
 				if (!data.Perms.Add(perm)) return false;
 
-				HookExecutor.CallStaticHook("OnUserPermissionGranted", id, perm);
+				HookCaller.CallStaticHook("OnUserPermissionGranted", id, perm);
 				return true;
 			}
 		}
@@ -475,7 +475,7 @@ namespace Oxide.Core.Libraries
 			{
 				if (!userData.Perms.Remove(perm)) return false;
 
-				HookExecutor.CallStaticHook("OnUserPermissionRevoked", id, perm);
+				HookCaller.CallStaticHook("OnUserPermissionRevoked", id, perm);
 				return true;
 			}
 		}
@@ -512,7 +512,7 @@ namespace Oxide.Core.Libraries
 			{
 				if (!data.Perms.Add(perm)) return false;
 
-				HookExecutor.CallStaticHook("OnGroupPermissionGranted", name, perm);
+				HookCaller.CallStaticHook("OnGroupPermissionGranted", name, perm);
 				return true;
 			}
 		}
@@ -537,7 +537,7 @@ namespace Oxide.Core.Libraries
 			{
 				if (!groupData.Perms.Remove(perm)) return false;
 
-				HookExecutor.CallStaticHook("OnGroupPermissionRevoked", name, perm);
+				HookCaller.CallStaticHook("OnGroupPermissionRevoked", name, perm);
 				return true;
 			}
 		}

@@ -21,7 +21,7 @@ namespace Carbon.Hooks
 				return false;
 			}
 
-			return HookExecutor.CallStaticHook("OnCollectiblePickup", __instance, reciever) == null;
+			return HookCaller.CallStaticHook("OnCollectiblePickup", __instance, reciever) == null;
 		}
 	}
 }

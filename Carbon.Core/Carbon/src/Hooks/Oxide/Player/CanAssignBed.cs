@@ -36,7 +36,7 @@ namespace Carbon.Hooks
 				return true;
 			}
 
-			return HookExecutor.CallStaticHook("CanAssignBed", msg.player, __instance, userId) == null;
+			return HookCaller.CallStaticHook("CanAssignBed", msg.player, __instance, userId) == null;
 		}
 	}
 }

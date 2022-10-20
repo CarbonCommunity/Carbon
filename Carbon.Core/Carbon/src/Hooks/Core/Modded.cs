@@ -5,7 +5,7 @@
 
 using System;
 using Carbon.Core;
-using Carbon.Core.Extensions;
+using Carbon.Extensions;
 
 namespace Carbon.Hooks
 {
@@ -16,11 +16,11 @@ namespace Carbon.Hooks
 	{
 		public static void Postfix()
 		{
-			if (CarbonCore.Instance == null || CarbonCore.Instance.Config == null) return;
+			if (Community.Runtime == null || Community.Runtime.Config == null) return;
 
 			try
 			{
-				if (CarbonCore.Instance.Config.CarbonTag)
+				if (Community.Runtime.Config.CarbonTag)
 				{
 					ServerTagEx.SetRequiredTag("carbon");
 				}
@@ -29,7 +29,7 @@ namespace Carbon.Hooks
 					ServerTagEx.UnsetRequiredTag("carbon");
 				}
 
-				if (CarbonCore.Instance.Config.IsModded)
+				if (Community.Runtime.Config.IsModded)
 				{
 					ServerTagEx.SetRequiredTag("modded");
 				}

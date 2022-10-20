@@ -4,12 +4,13 @@
 /// 
 
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using System.IO;
-using Oxide.Plugins;
-using Carbon.Extensions;
-using Carbon.Core;
 using Carbon;
+using Carbon.Core;
+using Carbon.Extensions;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
+using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries
 {
@@ -19,7 +20,7 @@ namespace Oxide.Core.Libraries
 
 		public Language(Plugin plugin)
 		{
-			foreach (var directory in Directory.EnumerateDirectories(CarbonDefines.GetLangFolder()))
+			foreach (var directory in Directory.EnumerateDirectories(Defines.GetLangFolder()))
 			{
 				var lang = Path.GetFileName(directory);
 				var messages = GetMessageFile(plugin.Name, lang);
@@ -39,7 +40,23 @@ namespace Oxide.Core.Libraries
 				return data.Language;
 			}
 
-			return CarbonCore.Instance.Config.Language;
+			return Community.Runtime.Config.Language;
+		}
+		public string[] GetLanguages(Plugin plugin = null)
+		{
+			var list = Facepunch.Pool.GetList<string>();
+
+			foreach (string text in Directory.GetDirectories(Interface.Oxide.LangDirectory))
+			{
+				if (Directory.GetFiles(text).Length != 0 && (plugin == null || (plugin != null && OsEx.File.Exists(Path.Combine(text, plugin.Name + ".json")))))
+				{
+					list.Add(text.Substring(Interface.Oxide.LangDirectory.Length + 1));
+				}
+			}
+
+			var result = list.ToArray();
+			Facepunch.Pool.FreeList(ref list);
+			return result;
 		}
 		public void SetLanguage(string lang, string userId)
 		{
@@ -53,10 +70,10 @@ namespace Oxide.Core.Libraries
 		}
 		public void SetServerLanguage(string lang)
 		{
-			if (string.IsNullOrEmpty(lang) || lang == CarbonCore.Instance.Config.Language) return;
+			if (string.IsNullOrEmpty(lang) || lang == Community.Runtime.Config.Language) return;
 
-			CarbonCore.Instance.Config.Language = lang;
-			CarbonCore.Instance.SaveConfig();
+			Community.Runtime.Config.Language = lang;
+			Community.Runtime.SaveConfig();
 		}
 		private Dictionary<string, string> GetMessageFile(string plugin, string lang = "en")
 		{
@@ -82,7 +99,7 @@ namespace Oxide.Core.Libraries
 		{
 			if (Phrases.TryGetValue(lang, out var messages))
 			{
-				var folder = Path.Combine(CarbonDefines.GetLangFolder(), lang);
+				var folder = Path.Combine(Defines.GetLangFolder(), lang);
 				OsEx.Folder.Create(folder);
 
 				OsEx.File.Create(Path.Combine(folder, $"{plugin}.json"), JsonConvert.SerializeObject(messages, Formatting.Indented)); ;

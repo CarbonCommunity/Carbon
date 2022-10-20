@@ -6,25 +6,28 @@
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
-[CarbonHook("IDebugLogWarning"), CarbonHook.Category(Hook.Category.Enum.Core)]
-[CarbonHook.Patch(typeof(Debug), "LogWarning", true, typeof(object), typeof(Object))]
-public class Debug_LogWarning
+namespace Carbon.Hooks
 {
-	public static bool Prefix(object message, Object context)
+	[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
+	[CarbonHook("IDebugLogWarning"), CarbonHook.Category(Hook.Category.Enum.Core)]
+	[CarbonHook.Patch(typeof(Debug), "LogWarning", true, typeof(object), typeof(Object))]
+	public class Debug_LogWarning
 	{
-		try
+		public static bool Prefix(object message, Object context)
 		{
-			var log = message.ToString();
-
-			if (log.Contains("failed to sample navmesh at position") ||
-				log.Contains("not close enough to the NavMesh"))
+			try
 			{
-				return false;
-			}
-		}
-		catch { }
+				var log = message.ToString();
 
-		return true;
+				if (log.Contains("failed to sample navmesh at position") ||
+					log.Contains("not close enough to the NavMesh"))
+				{
+					return false;
+				}
+			}
+			catch { }
+
+			return true;
+		}
 	}
 }

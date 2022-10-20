@@ -15,7 +15,7 @@ namespace Carbon.Hooks
 	{
 		public static void Postfix(ref BaseNetworkable __instance)
 		{
-			HookExecutor.CallStaticHook("OnEntitySpawned", __instance);
+			HookCaller.CallStaticHook("OnEntitySpawned", __instance);
 		}
 	}
 }

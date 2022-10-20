@@ -28,7 +28,7 @@ namespace Carbon.Hooks
 				return false;
 			}
 
-			if (HookExecutor.CallStaticHook("OnTeamCreate", basePlayer) != null)
+			if (HookCaller.CallStaticHook("OnTeamCreate", basePlayer) != null)
 			{
 				return false;
 			}
@@ -37,7 +37,7 @@ namespace Carbon.Hooks
 			var playerTeam2 = playerTeam;
 			playerTeam2.teamLeader = basePlayer.userID;
 			playerTeam2.AddPlayer(basePlayer);
-			HookExecutor.CallStaticHook("OnTeamCreated", basePlayer, playerTeam);
+			HookCaller.CallStaticHook("OnTeamCreated", basePlayer, playerTeam);
 
 			return false;
 		}

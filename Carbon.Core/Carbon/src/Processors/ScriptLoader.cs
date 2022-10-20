@@ -9,14 +9,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Carbon.Core.Processors;
-using Facepunch;
+using Carbon.Base;
+using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.Jobs;
+using Facepunch;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
 
-namespace Carbon.Core
+namespace Carbon.Processors
 {
 	public class ScriptLoader : IDisposable
 	{
@@ -30,9 +32,9 @@ namespace Carbon.Core
 		public bool HasRequires { get; set; }
 
 		public BaseProcessor.Instance Instance { get; set; }
-		public CarbonLoader.CarbonMod Mod { get; set; }
+		public Loader.CarbonMod Mod { get; set; }
 		public BaseProcessor.Parser Parser { get; set; }
-		public AsyncPluginLoader AsyncLoader { get; set; } = new AsyncPluginLoader();
+		public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
 
 		internal WaitForSeconds _serverExhale = new WaitForSeconds(0.1f);
 
@@ -52,7 +54,7 @@ namespace Carbon.Core
 					}
 				}
 
-				CarbonCore.Instance.ScriptProcessor.StartCoroutine(Compile());
+				Community.Runtime.ScriptProcessor.StartCoroutine(Compile());
 			}
 			catch (Exception exception)
 			{
@@ -62,18 +64,18 @@ namespace Carbon.Core
 
 		public static void LoadAll()
 		{
-			var files = OsEx.Folder.GetFilesWithExtension(CarbonDefines.GetPluginsFolder(), "cs");
+			var files = OsEx.Folder.GetFilesWithExtension(Defines.GetPluginsFolder(), "cs");
 
-			CarbonCore.Instance.ScriptProcessor.Clear();
-			CarbonCore.Instance.ScriptProcessor.IgnoreList.Clear();
+			Community.Runtime.ScriptProcessor.Clear();
+			Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
 			foreach (var file in files)
 			{
 				var plugin = new ScriptProcessor.Script { File = file };
-				CarbonCore.Instance.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+				Community.Runtime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
 			}
 
-			foreach (var plugin in CarbonCore.Instance.ScriptProcessor.InstanceBuffer)
+			foreach (var plugin in Community.Runtime.ScriptProcessor.InstanceBuffer)
 			{
 				plugin.Value.SetDirty();
 			}
@@ -89,13 +91,13 @@ namespace Carbon.Core
 				var plugin = Scripts[i];
 				if (plugin.IsCore) continue;
 
-				CarbonCore.Instance.Plugins.Plugins.Remove(plugin.Instance);
+				Community.Runtime.Plugins.Plugins.Remove(plugin.Instance);
 
 				if (plugin.Instance != null)
 				{
 					try
 					{
-						CarbonLoader.UninitializePlugin(plugin.Instance);
+						Loader.UninitializePlugin(plugin.Instance);
 					}
 					catch (Exception ex) { Carbon.Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
 				}
@@ -160,7 +162,7 @@ namespace Carbon.Core
 
 			HasRequires = AsyncLoader.Requires.Length > 0;
 
-			while (HasRequires && !CarbonCore.Instance.ScriptProcessor.AllNonRequiresScriptsComplete())
+			while (HasRequires && !Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete())
 			{
 				yield return _serverExhale;
 				yield return null;
@@ -170,7 +172,7 @@ namespace Carbon.Core
 			var noRequiresFound = false;
 			foreach (var require in AsyncLoader.Requires)
 			{
-				var plugin = CarbonCore.Instance.CorePlugin.plugins.Find(require);
+				var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
 				if (plugin == null)
 				{
 					Carbon.Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
@@ -215,7 +217,7 @@ namespace Carbon.Core
 
 			Carbon.Logger.Warn($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
 
-			CarbonLoader.AssemblyCache.Add(AsyncLoader.Assembly);
+			Loader.AssemblyCache.Add(AsyncLoader.Assembly);
 
 			var assembly = AsyncLoader.Assembly;
 
@@ -227,7 +229,7 @@ namespace Carbon.Core
 						!(type.Namespace.Equals("Oxide.Plugins") ||
 						type.Namespace.Equals("Carbon.Plugins"))) continue;
 
-					if (CarbonCore.Instance.Config.HookValidation)
+					if (Community.Runtime.Config.HookValidation)
 					{
 						var counter = 0;
 						foreach (var hook in AsyncLoader.UnsupportedHooks[type])
@@ -256,7 +258,7 @@ namespace Carbon.Core
 					plugin.Version = info.Version;
 					plugin.Description = description?.Description;
 
-					if (CarbonLoader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
+					if (Loader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
 					{
 						p._processor_instance = Instance;
 
@@ -265,7 +267,7 @@ namespace Carbon.Core
 						p.PluginReferences = AsyncLoader.PluginReferences[type];
 
 						p.Requires = requiresResult;
-						p.SetProcessor(CarbonCore.Instance.ScriptProcessor);
+						p.SetProcessor(Community.Runtime.ScriptProcessor);
 						p.CompileTime = AsyncLoader.CompileTime;
 
 						p.FilePath = AsyncLoader.FilePath;
@@ -275,7 +277,7 @@ namespace Carbon.Core
 						plugin.Instance = rustPlugin;
 						plugin.IsCore = IsCore;
 
-						CarbonLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
+						Loader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
 						Scripts.Add(plugin);
 
 						Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);
@@ -295,7 +297,7 @@ namespace Carbon.Core
 				uhList.Value.Clear();
 			}
 
-			foreach (var plugin in CarbonCore.Instance.Plugins.Plugins)
+			foreach (var plugin in Community.Runtime.Plugins.Plugins)
 			{
 				plugin.InternalApplyPluginReferences();
 			}
@@ -312,9 +314,9 @@ namespace Carbon.Core
 
 			HasFinished = true;
 
-			if (CarbonCore.Instance.ScriptProcessor.AllPendingScriptsComplete())
+			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
 			{
-				CarbonLoader.OnPluginProcessFinished();
+				Loader.OnPluginProcessFinished();
 			}
 
 			Pool.FreeList(ref requires);

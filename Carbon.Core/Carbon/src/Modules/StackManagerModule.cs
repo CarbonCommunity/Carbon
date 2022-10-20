@@ -5,9 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using Carbon.Base;
 using UnityEngine;
 
-namespace Carbon.Core.Modules
+namespace Carbon.Modules
 {
 	public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerData>
 	{

@@ -8,14 +8,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Carbon.Core.Extensions;
-using Carbon.Core.Processors;
+using Carbon.Base;
+using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.Processors;
 using Newtonsoft.Json;
 using Oxide.Core.Libraries;
-using Oxide.Plugins;
 
-namespace Carbon.Core.Modules
+namespace Carbon.Modules
 {
 	public class DRMModule : CarbonModule<DRMConfig, DRMData>
 	{
@@ -47,7 +47,7 @@ namespace Carbon.Core.Modules
 		{
 			if (!args.IsPlayerCalledAndAdmin() || !args.HasArgs(1)) return;
 
-			CarbonCorePlugin.Reply($"{JsonConvert.SerializeObject(new DownloadResponse().WithFileType(DownloadResponse.FileTypes.Script).WithDataFile(args.Args[0]), Formatting.Indented)}", args);
+			CorePlugin.Reply($"{JsonConvert.SerializeObject(new DownloadResponse().WithFileType(DownloadResponse.FileTypes.Script).WithDataFile(args.Args[0]), Formatting.Indented)}", args);
 		}
 
 		[ConsoleCommand("drmreboot")]
@@ -74,7 +74,7 @@ namespace Carbon.Core.Modules
 			public bool IsOnline { get; internal set; }
 
 			[JsonIgnore]
-			public CarbonLoader.CarbonMod Mod { get; } = new CarbonLoader.CarbonMod();
+			public Loader.CarbonMod Mod { get; } = new Loader.CarbonMod();
 
 			[JsonIgnore]
 			public List<BaseProcessor.Instance> ProcessorInstances { get; } = new List<BaseProcessor.Instance>();
@@ -135,7 +135,7 @@ namespace Carbon.Core.Modules
 				Validate();
 
 				Mod.Name = $"{Name} DRM";
-				CarbonLoader._loadedMods.Add(Mod);
+				Loader._loadedMods.Add(Mod);
 			}
 			public void Uninitialize()
 			{
@@ -146,7 +146,7 @@ namespace Carbon.Core.Modules
 
 				ProcessorInstances.Clear();
 
-				CarbonLoader._loadedMods.Remove(Mod);
+				Loader._loadedMods.Remove(Mod);
 			}
 
 			public void Launch()
@@ -191,7 +191,7 @@ namespace Carbon.Core.Modules
 
 								foreach (var type in assembly.GetTypes())
 								{
-									CarbonLoader.InitializePlugin(type, out var plugin, Mod);
+									Loader.InitializePlugin(type, out var plugin, Mod);
 								}
 								break;
 						}
@@ -225,7 +225,7 @@ namespace Carbon.Core.Modules
 
 			public class ScriptInstance : ScriptProcessor.Script
 			{
-				internal CarbonLoader.CarbonMod _mod;
+				internal Loader.CarbonMod _mod;
 				internal string _source;
 
 				public override void Dispose()

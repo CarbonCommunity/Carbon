@@ -19,7 +19,7 @@ namespace Carbon.Hooks
 		{
 			timeToTravel = 0f;
 
-			if (HookExecutor.CallStaticHook("OnElevatorMove", __instance, targetFloor) != null)
+			if (HookCaller.CallStaticHook("OnElevatorMove", __instance, targetFloor) != null)
 			{
 				__result = false;
 

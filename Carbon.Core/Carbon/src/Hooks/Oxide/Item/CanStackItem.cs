@@ -16,7 +16,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(Item item, ref Item __instance)
 		{
-			return HookExecutor.CallStaticHook("CanStackItem", __instance, item) == null;
+			return HookCaller.CallStaticHook("CanStackItem", __instance, item) == null;
 		}
 	}
 }

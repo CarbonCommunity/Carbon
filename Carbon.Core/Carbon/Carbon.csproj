@@ -1,19 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
 		<!-- General build information -->
-		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
-
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Deterministic>true</Deterministic>
 		<FileAlignment>512</FileAlignment>
 		<OutputType>Library</OutputType>
+		<Platforms>x64</Platforms>
+		<PlatformTarget>x64</PlatformTarget>
+		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
 		<TargetFrameworks>net48</TargetFrameworks>
 
-		<!-- Removes the localized Microsoft.CodeAnalysis.*.resources.dll -->
+		<AllowedReferenceRelatedFileExtensions>.pdb</AllowedReferenceRelatedFileExtensions>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-
-		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
-		<PlatformTarget>x64</PlatformTarget>
-		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -30,13 +31,15 @@
 
 	<PropertyGroup>
 		<!-- Automatically generated properties -->
-		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
-		<VersionSuffix>$(Configuration)</VersionSuffix>
 		<AssemblyVersion>$(Version)</AssemblyVersion>
 		<FileVersion>$(VersionPrefix)</FileVersion>
-
 		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_")).Core</RootNamespace>
 		<Version>1.$([System.DateTime]::UtcNow.ToString('yy.ddMM')).10</Version>
+		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+		<VersionSuffix>$(Configuration)</VersionSuffix>
+
+		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+		<Platform Condition="'$(Platform)' == ''">x64</Platform>
 	</PropertyGroup>
 
 	<Choose>
@@ -94,7 +97,7 @@
 			<ItemGroup>
 				<!-- Facepunch game files for Linux -->
 				<Reference Include="..\..\Rust\linux\RustDedicated_Data\Managed\*.dll">
-					<PrivateAssets>all</PrivateAssets>
+					<Private>false</Private>
 				</Reference>
 			</ItemGroup>
 		</When>
@@ -106,7 +109,7 @@
 			<ItemGroup>
 				<!-- Facepunch game files for Windows -->
 				<Reference Include="..\..\Rust\windows\RustDedicated_Data\Managed\*.dll">
-					<PrivateAssets>all</PrivateAssets>
+					<Private>false</Private>
 				</Reference>
 			</ItemGroup>
 		</Otherwise>
@@ -114,30 +117,18 @@
 
 	<ItemGroup>
 		<!-- System libs -->
-		<Reference Include="Microsoft.CSharp" />
-		<Reference Include="System.Buffers" />
-		<Reference Include="System.Collections.Immutable" />
 		<Reference Include="System.Core" />
-		<Reference Include="System.Data.SQLite" />
 		<Reference Include="System.Data" />
 		<Reference Include="System.Drawing.Design" />
 		<Reference Include="System.Drawing" />
 		<Reference Include="System.IO.Compression.FileSystem" />
-		<Reference Include="System.Memory" />
-		<Reference Include="System.Numerics.Vectors" />
-		<Reference Include="System.Reflection.Metadata" />
-		<Reference Include="System.Runtime.CompilerServices.Unsafe" />
-		<Reference Include="System.Text.Encoding.CodePages" />
-		<Reference Include="System.Threading.Tasks.Extensions" />
 		<Reference Include="System.Xml" />
 		<Reference Include="System" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<!-- External resources -->
-		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll">
-			<PrivateAssets>all</PrivateAssets>
-		</Reference>
+		<Reference Include="..\..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll"/>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -147,22 +138,12 @@
 		</PackageReference>
 
 		<!-- Required by Carbon's Logger -->
-		<PackageReference Include="Ben.Demystifier" Version="0.4.1">
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
+		<PackageReference Include="Ben.Demystifier" Version="0.4.1"/>
 
 		<!-- Required by Carbon's Compiler -->
-		<PackageReference Include="protobuf-net.Core" Version="3.1.17">
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-
-		<PackageReference Include="protobuf-net" Version="3.1.17">
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-
-		<PackageReference Include="Roslynator.CSharp" Version="4.1.1">
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
+		<PackageReference Include="protobuf-net.Core" Version="3.1.17"/>
+		<PackageReference Include="protobuf-net" Version="3.1.17"/>
+		<PackageReference Include="Roslynator.CSharp" Version="4.1.1"/>
 
 		<!-- Required by Carbon's Database support -->
 		<PackageReference Include="MySql.Data" Version="8.0.31" />
@@ -213,15 +194,12 @@
 		<Message Text="&gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
 		<Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
 		<Message Text="&gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
-
-		<Error Text="Configuration is undefined" Condition="'$(Configuration)' == ''" />
-		<Error Text="Platform is undefined" Condition="'$(Platform)' == '' OR '$(Platform)' == 'AnyCPU'" />
 	</Target>
 
 	<!-- ================================ -->
 	<!--  RENAME THE BUILD ARTIFACT TASK  -->
 	<!-- ================================ -->
-	<Target Name="RenameBuildOutput" AfterTargets="PostBuildEvent">
+	<Target Name="RenameBuildOutput" AfterTargets="PostBuildEvent" Condition="$(Configuration.Contains('Debug'))">
 		<Message Text="&gt;&gt; Rename the build artifact from '$(OutputPath)$(TargetName).dll' to '$(OutputPath)$(Product).dll'" Importance="high" />
 		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)$(Product).dll" />
 		<Delete Files="$(OutputPath)$(TargetName).dll" />
@@ -234,7 +212,7 @@
 		<Message Text="&gt;&gt; Cleaning output folder" Importance="high" />
 
 		<ItemGroup>
-			<FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(Product).dll" />
+			<!--<FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(Product).dll" />-->
 			<FilesToDelete Include="$(OutputPath)0Harmony.dll" />
 			<FilesToDelete Include="$(OutputPath)Assembly-*.dll" />
 			<FilesToDelete Include="$(OutputPath)Facepunch.*.dll" />

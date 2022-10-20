@@ -7,10 +7,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Carbon.Core;
 using Facepunch;
 using UnityEngine;
 
-namespace Carbon.Core.Processors
+namespace Carbon.Base
 {
 	public class BaseProcessor : FacepunchBehaviour, IDisposable
 	{
@@ -95,7 +96,7 @@ namespace Carbon.Core.Processors
 					if (element.Value == null)
 					{
 						var instance = Activator.CreateInstance(IndexedType) as Instance;
-						instance.File = Path.Combine(CarbonDefines.GetPluginsFolder(), $"{element.Key}{Extension}");
+						instance.File = Path.Combine(Defines.GetPluginsFolder(), $"{element.Key}{Extension}");
 						instance.Execute();
 
 						InstanceBuffer[element.Key] = instance;

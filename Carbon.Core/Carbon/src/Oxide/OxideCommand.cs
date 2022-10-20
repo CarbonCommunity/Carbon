@@ -4,7 +4,8 @@
 /// 
 
 using System;
-using Carbon.Core;
+using Carbon;
+using Carbon.Base;
 
 public class OxideCommand
 {
@@ -19,7 +20,7 @@ public class OxideCommand
 	public OxideCommand(string command, Action<BasePlayer, string, string[]> callback, bool skipOriginal)
 	{
 		Command = command;
-		Plugin = CarbonCore.Instance.CorePlugin;
+		Plugin = Community.Runtime.CorePlugin;
 		Callback = callback;
 		SkipOriginal = skipOriginal;
 	}

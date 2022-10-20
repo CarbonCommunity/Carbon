@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using Carbon.Base;
 using Facepunch;
 using ProtoBuf;
 using Rust;
@@ -15,7 +16,7 @@ using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using static BasePlayer;
 
-namespace Carbon.Core.Modules
+namespace Carbon.Modules
 {
 	public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{

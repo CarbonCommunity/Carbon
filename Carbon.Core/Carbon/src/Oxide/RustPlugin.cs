@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Carbon.Core;
+
 using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Core.Configuration;
@@ -41,7 +42,7 @@ namespace Oxide.Plugins
 			Setup($"Core Plugin {RandomEx.GetRandomString(5)}", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
 		}
 
-		public void SetupMod(CarbonLoader.CarbonMod mod, string name, string author, VersionNumber version, string description)
+		public void SetupMod(Loader.CarbonMod mod, string name, string author, VersionNumber version, string description)
 		{
 			_carbon = mod;
 			Setup(name, author, version, description);
@@ -162,7 +163,7 @@ namespace Oxide.Plugins
 
 		protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 		{
-			var text2 = Path.Combine(CarbonDefines.GetLogsFolder(), plugin.Name);
+			var text2 = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
 
 			if (!Directory.Exists(text2))
 			{

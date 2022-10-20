@@ -5,8 +5,9 @@
 
 using System;
 using System.IO;
+using Carbon.Base;
 
-namespace Carbon.Core.Processors
+namespace Carbon.Processors
 {
 	public class WebScriptProcessor : BaseProcessor
 	{
@@ -35,13 +36,13 @@ namespace Carbon.Core.Processors
 				{
 					_loader = new ScriptLoader();
 
-					CarbonCore.Instance.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
+					Community.Runtime.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
 					{
 						Carbon.Logger.Log($"Downloaded '{File}': {result.Length}");
 
 						_loader.Source = result;
 						_loader.Load();
-					}, CarbonCore.Instance.CorePlugin);
+					}, Community.Runtime.CorePlugin);
 				}
 				catch (Exception ex)
 				{

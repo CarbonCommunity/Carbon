@@ -92,7 +92,7 @@ namespace Oxide.Core.Libraries
 			{
 				using (_client = new Client())
 				{
-					_client.Headers.Add("User-Agent", $"Carbon Mod (v{CarbonCore.Version}); https://github.com/Carbon-Modding/Carbon.Core");
+					_client.Headers.Add("User-Agent", $"Carbon Mod (v{Community.Version}); https://github.com/Carbon-Modding/Carbon.Core");
 					_client.Credentials = CredentialCache.DefaultCredentials;
 					_client.Proxy = null;
 
@@ -114,7 +114,7 @@ namespace Oxide.Core.Libraries
 								OnComplete(false);
 							};
 
-							_client.DownloadStringAsync(_uri);
+							try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 							break;
 
 						case "PUT":
@@ -134,7 +134,7 @@ namespace Oxide.Core.Libraries
 								OnComplete(false);
 							};
 
-							_client.UploadStringAsync(_uri, Body);
+							try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 							break;
 					}
 				}

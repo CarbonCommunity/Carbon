@@ -19,7 +19,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(string message, string username = "SERVER", string color = "#eee", ulong userid = 0uL)
 		{
-			return HookExecutor.CallStaticHook("OnServerMessage", message, username, color, userid) == null;
+			return HookCaller.CallStaticHook("OnServerMessage", message, username, color, userid) == null;
 		}
 	}
 }

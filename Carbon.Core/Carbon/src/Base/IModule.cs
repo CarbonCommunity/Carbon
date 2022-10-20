@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Carbon.Core.Modules
+namespace Carbon.Base.Interfaces
 {
 	public interface IModule : IHookableModule, IDisposable
 	{

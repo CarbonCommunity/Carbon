@@ -1,7 +1,6 @@
 ![Carbon](https://i.imgur.com/sG6X07A.jpg)
 
 <p align="center">
-  <a href="https://github.com/Carbon-Modding/Carbon.Core/blob/develop/.github/workflows/branch-merge.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/branch-merge.yml/badge.svg"></a>
   <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg"></a>
   <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml/badge.svg"></a>
   <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml/badge.svg?branch=production"></a>
@@ -11,18 +10,29 @@
 A concept that's becoming reality.
 **Carbon** is a platform in the form of a DLL which gets added under your Rust server, in the *HarmonyMods* folder. 
 
-**Follow the development roadmap [here](https://github.com/orgs/Carbon-Modding/projects/1).**
-**Join our official [Discord server](https://discord.gg/eXPcNKK4yd) for discussions.**
+**Join our official [Discord server](https://discord.gg/eXPcNKK4yd) for more frequent development info, discussions and future plans.**
 
 ## Documentation
 
-**For server-owner related or development questions, check [here](https://carbon-modding.gitbook.io/docs).**
+**For more in-depth Carbon documentation, from builds and deployment, check [here](https://carboncommunity.gitbook.io/docs).**
+
+Find all currently available hooks **[here](https://carboncommunity.gitbook.io/docs/core/hooks/carbon-hooks)**.
 
 ## Features
 * Extremely lightweight, stripped out of additional, unrelated-to-Rust processes
-* Familiar folder and plugin-making structure, with the intention to have the system run almost any kind of Oxide plugin
+* Seamless transition from Oxide to Carbon
 * Permissions system
-* Light Hook system
+* Hook system
+* MySQL & SQLite support
+* DRM support
+* Chat, Console and Covalence support
+* Built in Carbon Modules (internal plugins) that help your server for the better
+* Carbon-only methods that speed up and better the performance of your plugins
+* Integrated RustEdit extensions (Module)
+* Integrated Stack manager (Module)
+* Integrated Gather manager (Module)
+* Embedded error/exception Demystifier which shows accurate error outputs
+* Very fast & helpful error handling for plugin compilation
 
 ## Installation
 

@@ -19,7 +19,7 @@ namespace Carbon.Hooks
 		{
 			ProtoBuf.PatternFirework.Design design = ProtoBuf.PatternFirework.Design.Deserialize(rpc.read);
 
-			HookExecutor.CallStaticHook("OnFireworkDesignChanged", __instance, design, rpc.player);
+			HookCaller.CallStaticHook("OnFireworkDesignChanged", __instance, design, rpc.player);
 		}
 	}
 }

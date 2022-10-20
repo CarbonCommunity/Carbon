@@ -5,11 +5,12 @@
 
 using System;
 using System.Reflection;
+using Carbon.Hooks;
 using UnityEngine;
 
 namespace Carbon.Core
 {
-	public class CarbonInitializer : IHarmonyModHooks
+	public class Initializer : IHarmonyModHooks
 	{
 		public void OnLoaded(OnHarmonyModLoadedArgs args)
 		{
@@ -17,10 +18,10 @@ namespace Carbon.Core
 
 			if (!Assembly.GetExecutingAssembly().FullName.StartsWith(oldMod))
 			{
-				CarbonCore.Instance?.UnInit();
+				Community.Runtime?.Uninitalize();
 				HarmonyLoader.TryUnloadMod(oldMod);
 				Carbon.Logger.Warn($"Unloaded previous: {oldMod}");
-				CarbonCore.Instance = null;
+				Community.Runtime = null;
 			}
 
 #if UNIX
@@ -49,10 +50,10 @@ namespace Carbon.Core
 
 			Carbon.Logger.Log("Initializing...");
 
-			if (CarbonCore.Instance == null) CarbonCore.Instance = new CarbonCore();
-			else CarbonCore.Instance?.UnInit();
+			if (Community.Runtime == null) Community.Runtime = new Community();
+			else Community.Runtime?.Uninitalize();
 
-			CarbonCore.Instance.Init();
+			Community.Runtime.Initialize();
 		}
 
 		public void OnUnloaded(OnHarmonyModUnloadedArgs args) { }

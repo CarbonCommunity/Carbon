@@ -3,25 +3,29 @@
 /// All rights reserved
 /// 
 
+using Carbon;
 using Carbon.Core;
 using Oxide.Core;
 
-[Hook.AlwaysPatched]
-[Hook("OnServerShutdown"), Hook.Category(Hook.Category.Enum.Server)]
-[Hook.Info("Useful for saving something / etc on server shutdown.")]
-[Hook.Patch(typeof(ServerMgr), "Shutdown")]
-public class OnServerShutdown
+namespace Carbon.Hooks
 {
-	public static void Prefix()
+	[Hook.AlwaysPatched]
+	[Hook("OnServerShutdown"), Hook.Category(Hook.Category.Enum.Server)]
+	[Hook.Info("Useful for saving something / etc on server shutdown.")]
+	[Hook.Patch(typeof(ServerMgr), "Shutdown")]
+	public class OnServerShutdown
 	{
-		Carbon.Logger.Log($"Saving Carbon plugins & shutting down");
+		public static void Prefix()
+		{
+			Carbon.Logger.Log($"Saving Carbon plugins & shutting down");
 
-		Interface.Oxide.OnShutdown();
+			Interface.Oxide.OnShutdown();
 
-		HookExecutor.CallStaticHook("OnServerSave");
-		HookExecutor.CallStaticHook("OnServerShutdown");
+			HookCaller.CallStaticHook("OnServerSave");
+			HookCaller.CallStaticHook("OnServerShutdown");
 
-		CarbonCore.Instance.HarmonyProcessor.Clear();
-		CarbonCore.Instance.ScriptProcessor.Clear();
+			Community.Runtime.HarmonyProcessor.Clear();
+			Community.Runtime.ScriptProcessor.Clear();
+		}
 	}
 }

@@ -33,7 +33,7 @@ namespace Carbon.Hooks
 				Item obj1 = ItemManager.Create(finishBonu.itemDef, amountToGive + gatherBonus);
 				if (obj1 != null)
 				{
-					object obj2 = HookExecutor.CallStaticHook("OnDispenserBonus", (object)__instance, (object)player, (object)obj1);
+					object obj2 = HookCaller.CallStaticHook("OnDispenserBonus", (object)__instance, (object)player, (object)obj1);
 					if (obj2 is bool)
 						if (!(bool)obj2)
 							continue;

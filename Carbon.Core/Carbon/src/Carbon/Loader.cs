@@ -8,13 +8,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Carbon.Base;
 using Carbon.Extensions;
+using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 
 namespace Carbon.Core
 {
-	public static class CarbonLoader
+	public static class Loader
 	{
 		public static List<Assembly> AssemblyCache { get; } = new List<Assembly>();
 		public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new Dictionary<string, Assembly>();
@@ -74,14 +76,14 @@ namespace Carbon.Core
 			try
 			{
 				HarmonyLib.Harmony.DEBUG = true;
-				var path = Path.Combine(CarbonDefines.GetLogsFolder(), "harmony_v2_log.txt");
-				Harmony.FileLog.logPath = Path.Combine(CarbonDefines.GetLogsFolder(), "harmony_v1_log.txt");
+				var path = Path.Combine(Defines.GetLogsFolder(), "harmony_v2_log.txt");
+				Harmony.FileLog.logPath = Path.Combine(Defines.GetLogsFolder(), "harmony_v1_log.txt");
 
 				Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", path);
 
 				typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
 
-				_modPath = CarbonDefines.GetPluginsFolder();
+				_modPath = Defines.GetHarmonyFolder();
 				if (!Directory.Exists(_modPath))
 				{
 					try
@@ -97,24 +99,24 @@ namespace Carbon.Core
 					if (!Regex.IsMatch(args.Name, @"^(Microsoft|System)\."))
 						Logger.Log($"Resolving assembly ref: {args.Name}");
 
-					AssemblyName assemblyName = new AssemblyName(args.Name);
-					string assemblyPath = Path.GetFullPath(
+					var assemblyName = new AssemblyName(args.Name);
+					var assemblyPath = Path.GetFullPath(
 						Path.Combine(_modPath, assemblyName.Name, ".dll"));
 
 					// This allows plugins to use Carbon.xxx
 					if (Regex.IsMatch(assemblyName.Name, @"^([Cc]arbon(-.+)?)$"))
-						assemblyPath = CarbonDefines.DllPath;
+						assemblyPath = Defines.DllPath;
 
 					if (File.Exists(assemblyPath))
 						return LoadAssembly(assemblyPath);
 					return null;
 				};
 
-				foreach (string text in Directory.EnumerateFiles(_modPath, "*.dll"))
+				foreach (var text in Directory.EnumerateFiles(_modPath, "*.dll"))
 				{
 					if (!string.IsNullOrEmpty(text) && !IsKnownDependency(Path.GetFileNameWithoutExtension(text)))
 					{
-						CarbonCore.Instance.HarmonyProcessor.Prepare(text);
+						Community.Runtime.HarmonyProcessor.Prepare(text);
 					}
 				}
 			}
@@ -159,7 +161,7 @@ namespace Carbon.Core
 
 			try
 			{
-				Assembly assembly = LoadAssembly(fullPath);
+				var assembly = LoadAssembly(fullPath);
 				if (assembly == null)
 				{
 					LogError(domain, $"Failed to load harmony mod '{fileName}.dll' from '{_modPath}'");
@@ -188,15 +190,26 @@ namespace Carbon.Core
 					}
 				}
 
-				mod.Harmony = new HarmonyLib.Harmony(domain);
+				mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
+				mod.Harmonyv2 = new HarmonyLib.Harmony(domain);
 
 				try
 				{
-					mod.Harmony.PatchAll(assembly);
+					mod.Harmonyv1.PatchAll(assembly);
 				}
 				catch (Exception arg2)
 				{
-					LogError(mod.Name, string.Format("Failed to patch all hooks: {0}", arg2));
+					LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", arg2));
+					return false;
+				}
+
+				try
+				{
+					mod.Harmonyv2.PatchAll(assembly);
+				}
+				catch (Exception arg2)
+				{
+					LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", arg2));
 					return false;
 				}
 
@@ -272,12 +285,12 @@ namespace Carbon.Core
 
 					if (!IsValidPlugin(type)) continue;
 
-					if (CarbonCore.Instance.Config.HookValidation)
+					if (Community.Runtime.Config.HookValidation)
 					{
 						var counter = 0;
 						foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
 						{
-							if (CarbonHookValidator.IsIncompatibleOxideHook(method.Name))
+							if (HookValidator.IsIncompatibleOxideHook(method.Name))
 							{
 								Carbon.Logger.Warn($" Hook '{method.Name}' is not supported.");
 								counter++;
@@ -329,7 +342,7 @@ namespace Carbon.Core
 			var version = info.Version;
 			var description = desc == null ? string.Empty : desc.Description;
 
-			plugin.SetProcessor(CarbonCore.Instance.HarmonyProcessor);
+			plugin.SetProcessor(Community.Runtime.HarmonyProcessor);
 			plugin.SetupMod(mod, title, author, version, description);
 
 			preInit?.Invoke(plugin);
@@ -337,7 +350,7 @@ namespace Carbon.Core
 			plugin.ILoadConfig();
 			plugin.IInit();
 			plugin.Load();
-			HookExecutor.CallStaticHook("OnPluginLoaded", plugin);
+			HookCaller.CallStaticHook("OnPluginLoaded", plugin);
 
 			if (mod != null) mod.Plugins.Add(plugin);
 			ProcessCommands(type, plugin);
@@ -352,7 +365,7 @@ namespace Carbon.Core
 			plugin.IUnload();
 
 			RemoveCommands(plugin);
-			HookExecutor.CallStaticHook("OnPluginUnloaded", plugin);
+			HookCaller.CallStaticHook("OnPluginUnloaded", plugin);
 			plugin.Dispose();
 			Carbon.Logger.Log($"Unloaded plugin {plugin.ToString()}");
 
@@ -366,7 +379,7 @@ namespace Carbon.Core
 			return IsValidPlugin(type.BaseType);
 		}
 
-		public static void ProcessCommands(Type type, BaseHookable plugin = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)
+		public static void ProcessCommands(Type type, BaseHookable hookable = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)
 		{
 			var methods = type.GetMethods(flags);
 			var fields = type.GetFields(flags | BindingFlags.Public);
@@ -382,19 +395,19 @@ namespace Carbon.Core
 				{
 					foreach (var commandName in command.Names)
 					{
-						CarbonCore.Instance.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help, reference: method);
-						CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", plugin, method.Name, help: command.Help, reference: method);
+						Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method);
+						Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method);
 					}
 				}
 
 				if (chatCommand != null)
 				{
-					CarbonCore.Instance.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", plugin, method.Name, help: chatCommand.Help, reference: method);
+					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method.Name, help: chatCommand.Help, reference: method);
 				}
 
 				if (consoleCommand != null)
 				{
-					CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", plugin, method.Name, help: consoleCommand.Help, reference: method);
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method);
 				}
 			}
 
@@ -404,15 +417,15 @@ namespace Carbon.Core
 
 				if (var != null)
 				{
-					CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", plugin, (player, command, args) =>
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
 					{
 						if (player != null && var.AdminOnly && !player.IsAdmin)
 						{
-							CarbonCore.LogCommand($"You don't have permission to set this value", player);
+							Community.LogCommand($"You don't have permission to set this value", player);
 							return;
 						}
 
-						var value = field.GetValue(plugin);
+						var value = field.GetValue(hookable);
 
 						if (args != null && args.Length > 0)
 						{
@@ -441,12 +454,12 @@ namespace Carbon.Core
 									value = rawString.ToBool();
 								}
 
-								field.SetValue(plugin, value);
+								field.SetValue(hookable, value);
 							}
 							catch { }
 						}
 
-						CarbonCore.LogCommand($"{command}: \"{value}\"", player);
+						Community.LogCommand($"{command}: \"{value}\"", player);
 					}, help: var.Help, reference: field);
 				}
 			}
@@ -457,15 +470,15 @@ namespace Carbon.Core
 
 				if (var != null)
 				{
-					CarbonCore.Instance.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", plugin, (player, command, args) =>
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
 					{
 						if (player != null && var.AdminOnly && !player.IsAdmin)
 						{
-							CarbonCore.LogCommand($"You don't have permission to set this value", player);
+							Community.LogCommand($"You don't have permission to set this value", player);
 							return;
 						}
 
-						var value = property.GetValue(plugin);
+						var value = property.GetValue(hookable);
 
 						if (args != null && args.Length > 0)
 						{
@@ -494,12 +507,12 @@ namespace Carbon.Core
 									value = rawString.ToBool();
 								}
 
-								property.SetValue(plugin, value);
+								property.SetValue(hookable, value);
 							}
 							catch { }
 						}
 
-						CarbonCore.LogCommand($"{command}: \"{value}\"", player);
+						Community.LogCommand($"{command}: \"{value}\"", player);
 					}, help: var.Help, reference: property);
 				}
 			}
@@ -510,13 +523,13 @@ namespace Carbon.Core
 		}
 		public static void RemoveCommands(RustPlugin plugin)
 		{
-			CarbonCore.Instance.AllChatCommands.RemoveAll(x => x.Plugin == plugin);
-			CarbonCore.Instance.AllConsoleCommands.RemoveAll(x => x.Plugin == plugin);
+			Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == plugin);
+			Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == plugin);
 		}
 
 		public static void OnPluginProcessFinished()
 		{
-			if (CarbonCore.IsServerFullyInitialized)
+			if (Community.IsServerFullyInitialized)
 			{
 				var counter = 0;
 
@@ -530,7 +543,7 @@ namespace Carbon.Core
 						try
 						{
 							plugin.CallHook("OnServerInitialized");
-							plugin.CallHook("OnServerInitialized", CarbonCore.IsServerFullyInitialized);
+							plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
 						}
 						catch (Exception initException)
 						{
@@ -541,14 +554,14 @@ namespace Carbon.Core
 					}
 				}
 
-				foreach (var plugin in CarbonCore.Instance.ModuleProcessor.Modules)
+				foreach (var plugin in Community.Runtime.ModuleProcessor.Modules)
 				{
 					if (plugin.HasInitialized) continue;
 
 					try
 					{
-						HookExecutor.CallHook(plugin, "OnServerInitialized");
-						HookExecutor.CallHook(plugin, "OnServerInitialized", CarbonCore.IsServerFullyInitialized);
+						HookCaller.CallHook(plugin, "OnServerInitialized");
+						HookCaller.CallHook(plugin, "OnServerInitialized", Community.IsServerFullyInitialized);
 					}
 					catch (Exception initException)
 					{
@@ -570,19 +583,38 @@ namespace Carbon.Core
 		{
 			if (mod.IsCoreMod) return;
 
-			if (mod.Harmony != null)
+			if (mod.Harmonyv1 != null)
 			{
-				Log(mod.Name, $"Unpatching hooks for '{mod.Name}'...");
+				Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v1...");
 
 				try
 				{
-					mod.Harmony.UnpatchAll(mod.Harmony.Id);
-					Log(mod.Name, "Unloaded mod");
+					mod.Harmonyv1.UnpatchAll(mod.Harmonyv1.Id);
+					Log(mod.Name, "Unloaded v1 mod");
 				}
 				catch (InvalidCastException ex)
 				{
-					Logger.Error($"Failed unpatching all.", ex);
+					Logger.Error($"Failed unpatching all v1 patches.", ex);
 				}
+
+				mod.Harmonyv1 = null;
+			}
+
+			if (mod.Harmonyv2 != null)
+			{
+				Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v2...");
+
+				try
+				{
+					mod.Harmonyv2.UnpatchAll(mod.Harmonyv2.Id);
+					Log(mod.Name, "Unloaded v2 mod");
+				}
+				catch (InvalidCastException ex)
+				{
+					Logger.Error($"Failed unpatching all v2 patches.", ex);
+				}
+
+				mod.Harmonyv2 = null;
 			}
 
 			_loadedMods.Remove(mod);
@@ -629,10 +661,10 @@ namespace Carbon.Core
 		{
 			LogError(harmonyId, e);
 			ReflectionTypeLoadException ex;
-			if ((ex = (e as ReflectionTypeLoadException)) != null)
+			if ((ex = e as ReflectionTypeLoadException) != null)
 			{
 				LogError(harmonyId, string.Format("Has {0} LoaderExceptions:", ex.LoaderExceptions));
-				foreach (Exception e2 in ex.LoaderExceptions)
+				foreach (var e2 in ex.LoaderExceptions)
 				{
 					ReportException(harmonyId, e2);
 				}
@@ -662,7 +694,8 @@ namespace Carbon.Core
 			public string File { get; set; } = string.Empty;
 			[JsonProperty]
 			public bool IsCoreMod { get; set; } = false;
-			public HarmonyLib.Harmony Harmony { get; set; }
+			public Harmony.HarmonyInstance Harmonyv1 { get; set; }
+			public HarmonyLib.Harmony Harmonyv2 { get; set; }
 			public Assembly Assembly { get; set; }
 			public Type[] AllTypes { get; set; }
 			public List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks>();
