@@ -13,7 +13,7 @@ ROOT="$(realpath "${BASE}/../../../")"
 TARGET=${1:-public}
 
 # Cleans the exiting files
-git clean -fx "${ROOT}/Rust"
+# git clean -fx "${ROOT}/Rust"
 
 for OS in windows linux; do
 	# Download rust binary libs
@@ -23,8 +23,8 @@ for OS in windows linux; do
 
 	# Show me all you've got baby
 	mono "${ROOT}/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe" \
-		--public --include-compiler-generated --keep-resources --no-strip --overwrite \
-		--unity-non-serialized "${ROOT}/Rust/${OS}/RustDedicated_Data/Managed/Assembly-CSharp.dll"
+		--public --include-compiler-generated --cg-exclude-events --keep-resources --no-strip \
+		--unity-non-serialized --overwrite "${ROOT}/Rust/${OS}/RustDedicated_Data/Managed/Assembly-CSharp.dll"
 done
 
 dotnet restore "${ROOT}/Carbon.Core" --nologo
