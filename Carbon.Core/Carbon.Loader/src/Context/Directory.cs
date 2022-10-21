@@ -16,7 +16,7 @@ internal sealed class Directory
 	internal static readonly string
 		Game, GameManaged, GameHarmony,
 
-		Carbon, CarbonManaged, CarbonHarmony, CarbonLib;
+		Carbon, CarbonManaged, CarbonHarmony, CarbonLib, CarbonLogs;
 
 	static Directory()
 	{
@@ -37,6 +37,7 @@ internal sealed class Directory
 		GameHarmony = Path.GetFullPath(Path.Combine(Game, "HarmonyMods"));
 
 		Carbon = Path.GetFullPath(Path.Combine(Game, "carbon"));
+		CarbonLogs = Path.GetFullPath(Path.Combine(Carbon, "logs"));
 		CarbonHarmony = Path.GetFullPath(Path.Combine(Carbon, "harmony"));
 		CarbonManaged = Path.GetFullPath(Path.Combine(Carbon, "managed"));
 		CarbonLib = Path.GetFullPath(Path.Combine(CarbonManaged, "lib"));

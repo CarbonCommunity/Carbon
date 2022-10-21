@@ -96,7 +96,7 @@
 
 			<ItemGroup>
 				<!-- Facepunch game files for Linux -->
-				<Reference Include="..\..\Rust\linux\RustDedicated_Data\Managed\Rust.Harmony.dll">
+				<Reference Include="$(SolutionDir)..\Rust\linux\RustDedicated_Data\Managed\Rust.Harmony.dll">
 					<Private>false</Private>
 				</Reference>
 			</ItemGroup>
@@ -127,7 +127,7 @@
 		</PackageReference>
 
 		<!-- Assembly editor -->
-		<PackageReference Include="Mono.Cecil" Version="0.11.4"/>
+		<PackageReference Include="Mono.Cecil" Version="0.11.4" />
 	</ItemGroup>
 
 
@@ -168,6 +168,7 @@
 	<!--  PRINT BUILD CONTEXT TASK  -->
 	<!-- ========================== -->
 	<Target Name="CustomBeforeCompile" BeforeTargets="BeforeCompile">
+		<Message Text="--" Importance="high" />
 		<Message Text="&gt;&gt; Product: $(Product)" Importance="high" />
 		<Message Text="&gt;&gt; Runtime: $(MSBuildRuntimeType)" Importance="high" />
 		<Message Text="&gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />
@@ -185,23 +186,27 @@
 		<Delete Files="$(OutputPath)$(TargetName).dll" />
 	</Target>
 
-	<!-- ========================== -->
-	<!--  CLEAN OUTPUT FOLDER TASK  -->
-	<!-- ========================== -->
-	<Target Name="CleanOutputFolder" AfterTargets="RenameBuildOutput">
-		<Message Text="&gt;&gt; Cleaning output folder" Importance="high" />
+	<!-- ============================= -->
+	<!--  PREPARE THE RELEASE PACKAGE  -->
+	<!-- ============================= -->
+	<Target Name="PrepareRelease" AfterTargets="RenameBuildOutput">
+		<PropertyGroup>
+			<CarbonBaseDir>$(SolutionDir)..\Release\.tmp\$(Configuration)</CarbonBaseDir>
+			<c_harmony>$(CarbonBaseDir)\HarmonyMods</c_harmony>
+			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
+			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
+			<c_tools>$(CarbonBaseDir)\carbon\tools</c_tools>
+		</PropertyGroup>
 
 		<ItemGroup>
-			<FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(Product).dll" />
-			<FilesToDelete Include="$(OutputPath)0Harmony.dll" />
-			<FilesToDelete Include="$(OutputPath)Assembly-*.dll" />
-			<FilesToDelete Include="$(OutputPath)Facepunch.*.dll" />
-			<FilesToDelete Include="$(OutputPath)Fleck.dll" />
-			<FilesToDelete Include="$(OutputPath)Facepunch.*.dll" />
-			<FilesToDelete Include="$(OutputPath)Rust.*.dll" />
-			<FilesToDelete Include="$(OutputPath)UnityEngine*.dll" />
+			<FilesToCopy Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(Product).dll;$(OutputPath)0Harmony.dll;$(OutputPath)Assembly-*.dll;$(OutputPath)Facepunch.*.dll;$(OutputPath)Fleck.dll;$(OutputPath)Facepunch.*.dll;$(OutputPath)Rust.*.dll;$(OutputPath)UnityEngine*.dll" />
 		</ItemGroup>
 
-		<Delete Files="@(FilesToDelete)" />
+		<Message Text="&gt;&gt; Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
+		<MakeDir Directories="$(CarbonBaseDir);$(c_harmony);$(c_lib);$(c_managed);$(c_tools)" />
+
+		<Message Text="&gt;&gt; Copy files to release folder" Importance="high" />
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
 	</Target>
 </Project>

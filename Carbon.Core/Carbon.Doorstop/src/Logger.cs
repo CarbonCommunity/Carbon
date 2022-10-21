@@ -12,11 +12,17 @@ namespace Carbon
 	internal class Logger
 	{
 		private static string logFile
-			= Path.Combine(Context.Base, "__doorstop.log");
+			= Path.Combine(Context.Base, "carbon", "logs", "Carbon.Doorstop.log");
 
 		internal enum Severity
 		{
 			Error, Warning, Notice, None
+		}
+
+		static Logger()
+		{
+			if (!Directory.Exists(Path.Combine(Context.Base, "carbon", "logs")))
+				Directory.CreateDirectory(Path.Combine(Context.Base, "carbon", "logs"));
 		}
 
 		internal static void Write(Severity severity, object message, Exception ex = null)

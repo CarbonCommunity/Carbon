@@ -23,16 +23,24 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	{
 		Identifier = Guid.NewGuid().ToString();
 		Logger.Warn($"Using '{Identifier}' as runtime namespace");
+		AssemblyResolver.GetInstance().RegisterDomain(AppDomain.CurrentDomain);
 
 		Harmony = new HarmonyLib.Harmony(Identifier);
 		gameObject = new UnityEngine.GameObject(Identifier);
 		UnityEngine.Object.DontDestroyOnLoad(gameObject);
-		AssemblyResolver.GetInstance().RegisterDomain(AppDomain.CurrentDomain);
 	}
 
 	public void Initialize()
 	{
-
+		Logger.None(
+			@"                                               " + Environment.NewLine +
+			@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
+			@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
+			@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
+			@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
+			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
+			@"                                               " + Environment.NewLine
+		);
 	}
 
 	public void Dispose()

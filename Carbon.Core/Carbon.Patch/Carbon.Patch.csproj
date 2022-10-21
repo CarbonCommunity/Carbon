@@ -110,7 +110,7 @@
 
   <ItemGroup>
     <!-- Nuget packages -->
-    <PackageReference Include="CommandLineParser" Version="2.9.1"/>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
   </ItemGroup>
 
 
@@ -151,6 +151,7 @@
   <!--  PRINT BUILD CONTEXT TASK  -->
   <!-- ========================== -->
   <Target Name="CustomBeforeCompile" BeforeTargets="BeforeCompile">
+    <Message Text="--" Importance="high" />
     <Message Text="&gt;&gt; Product: $(Product)" Importance="high" />
     <Message Text="&gt;&gt; Runtime: $(MSBuildRuntimeType)" Importance="high" />
     <Message Text="&gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />

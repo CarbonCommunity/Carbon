@@ -160,7 +160,7 @@ namespace Oxide.Core.Libraries
 						text += $" in '{Owner.Name} v{Owner.Version}' plugin";
 					}
 
-					try { Carbon.Logger.Error(text, ex); } catch { Console.WriteLine($"{text}\n{ex}"); }
+					try { Carbon.Logger.Error(text, ex); } catch { Logger.Error($"{text}", ex); }
 				}
 
 				Owner?.TrackEnd();

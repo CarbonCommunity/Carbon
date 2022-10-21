@@ -49,29 +49,9 @@ namespace Carbon.Jobs
 			if (_hasInit) return;
 			_hasInit = true;
 
-			_fodyAssemblyLoader = Defines.Carbon.GetType("Costura.AssemblyLoader");
-			_fodyAssemblyNames = _fodyAssemblyLoader.GetField("assemblyNames", BindingFlags.NonPublic | BindingFlags.Static);
-			_fodyLoadStream = _fodyAssemblyLoader.GetMethod("LoadStream", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string) }, default);
-
-			var fodyNames = _fodyAssemblyNames.GetValue(null) as Dictionary<string, string>;
-
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net.core"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["1harmony"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["mysql.data"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["system.data.sqlite"] }) as Stream));
-
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Defines.DllPath))));
-
-			var managedFolder = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed");
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Path.Combine(managedFolder, "System.Drawing.dll")))));
-
-			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-			foreach (var assembly in assemblies)
+			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
 			{
-				if (assembly.IsDynamic || !OsEx.File.Exists(assembly.Location) || Loader.AssemblyCache.Contains(assembly)) continue;
-
+				if (assembly.IsDynamic || string.IsNullOrEmpty(assembly.Location)) continue;
 				_metadataReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
 			}
 		}
@@ -156,7 +136,7 @@ namespace Carbon.Jobs
 
 				_doInit();
 			}
-			catch (Exception ex) { Console.WriteLine($"Couldn't compile '{FileName}'\n{ex}"); }
+			catch (Exception ex) { Logger.Error($"Couldn't compile '{FileName}'", ex); }
 
 			base.Start();
 		}
@@ -187,8 +167,14 @@ namespace Carbon.Jobs
 					catch { }
 				}
 
-				var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, warningLevel: 4);
-				var compilation = CSharpCompilation.Create($"{FileName}_{RandomEx.GetRandomInteger()}", trees, references, options);
+				var options = new CSharpCompilationOptions(
+					OutputKind.DynamicallyLinkedLibrary,
+					optimizationLevel: OptimizationLevel.Release,
+					warningLevel: 4
+				);
+
+				var compilation = CSharpCompilation.Create(
+					$"{FileName}_{RandomEx.GetRandomInteger()}", trees, references, options);
 
 				using (var dllStream = new MemoryStream())
 				{
@@ -272,7 +258,7 @@ namespace Carbon.Jobs
 
 				if (Exceptions.Count > 0) throw null;
 			}
-			catch (Exception ex) { Console.WriteLine($"Threading compilation failed ({ex.Message})\n{ex.StackTrace}"); }
+			catch (Exception ex) { Logger.Error($"Threading compilation failed ({ex.Message})", ex); }
 		}
 	}
 }

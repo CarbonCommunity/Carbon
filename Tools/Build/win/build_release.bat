@@ -15,10 +15,20 @@ rem Set the build target config
 set TARGET=Release
 
 rem Build the solution
-dotnet restore "%ROOT%\Carbon.Core" --nologo
-dotnet   clean "%ROOT%\Carbon.Core" --configuration %TARGET% --nologo
-dotnet   build "%ROOT%\Carbon.Core" --configuration %TARGET% --no-restore --no-incremental
-dotnet   build "%ROOT%\Carbon.Core" --configuration %TARGET%Unix --no-restore --no-incremental
+dotnet restore "%ROOT%\Carbon.Core" --nologo || exit /b
+dotnet   clean "%ROOT%\Carbon.Core" --configuration %TARGET% --nologo || exit /b
+dotnet   clean "%ROOT%\Carbon.Core" --configuration %TARGET%Unix --nologo || exit /b
+dotnet   build "%ROOT%\Carbon.Core" --configuration %TARGET% --no-restore --no-incremental || exit /b
+dotnet   build "%ROOT%\Carbon.Core" --configuration %TARGET%Unix --no-restore --no-incremental || exit /b
 
-rem Create the patch file(s)
-"%ROOT%\Carbon.Core\Carbon.Patch\bin\%TARGET%\Carbon.Patch.exe" --path "%ROOT%" --configuration %TARGET%
+rem Copy doorstop helper files
+copy "%ROOT%\Tools\Helpers\doorstop_config.ini" "%ROOT%\Release\.tmp\%TARGET%" /y
+copy "%ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" "%ROOT%\Release\.tmp\%TARGET%\winhttp.dll" /y
+
+rem Copy doorstop helper files (unix)
+copy "%ROOT%\Tools\Helpers\publicizer.sh" "%ROOT%\Release\.tmp\%TARGET%Unix\carbon\tools\" /y
+
+rem Create the release archive file
+del /q "%ROOT%\Release\*.zip"
+powershell -Command "Compress-Archive -Update -Path '%ROOT%\Release\.tmp\%TARGET%\*' -DestinationPath '%ROOT%\Release\Carbon.%TARGET%.zip'"
+powershell -Command "Compress-Archive -Update -Path '%ROOT%\Release\.tmp\%TARGET%Unix\*' -DestinationPath '%ROOT%\Release\Carbon.%TARGET%Unix.zip'"

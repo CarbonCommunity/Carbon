@@ -94,24 +94,6 @@ namespace Carbon.Core
 					catch { return; }
 				}
 
-				AppDomain.CurrentDomain.AssemblyResolve += delegate (object sender, ResolveEventArgs args)
-				{
-					if (!Regex.IsMatch(args.Name, @"^(Microsoft|System)\."))
-						Logger.Log($"Resolving assembly ref: {args.Name}");
-
-					var assemblyName = new AssemblyName(args.Name);
-					var assemblyPath = Path.GetFullPath(
-						Path.Combine(_modPath, assemblyName.Name, ".dll"));
-
-					// This allows plugins to use Carbon.xxx
-					if (Regex.IsMatch(assemblyName.Name, @"^([Cc]arbon(-.+)?)$"))
-						assemblyPath = Defines.DllPath;
-
-					if (File.Exists(assemblyPath))
-						return LoadAssembly(assemblyPath);
-					return null;
-				};
-
 				foreach (var text in Directory.EnumerateFiles(_modPath, "*.dll"))
 				{
 					if (!string.IsNullOrEmpty(text) && !IsKnownDependency(Path.GetFileNameWithoutExtension(text)))

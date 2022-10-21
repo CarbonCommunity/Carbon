@@ -100,7 +100,7 @@ namespace Carbon.Jobs
 						hookInstance.Patches.Add(instance);
 						hookInstance.Id = patchId;
 
-						if (Community.Runtime.Config.LogVerbosity > 2) Console.WriteLine($" -> Patched '{hook.Name}' <- {patchId}");
+						Logger.Debug($" -> Patched '{hook.Name}' <- {patchId}", 2);
 
 						Pool.Free(ref matchedParameters);
 						Pool.Free(ref originalParametersResult);
@@ -110,7 +110,7 @@ namespace Carbon.Jobs
 				}
 				catch (Exception exception)
 				{
-					Console.WriteLine($" Couldn't patch hook '{HookName}' ({type.FullName})\n{exception}");
+					Logger.Error($" Couldn't patch hook '{HookName}' ({type.FullName})", exception);
 				}
 			}
 		}

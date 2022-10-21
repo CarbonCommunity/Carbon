@@ -15,7 +15,6 @@ internal static class __Bootstrap
 	{
 		public static void Prefix()
 		{
-			Loader.GetInstance().Initialize();
 
 			if (Hijacker.DoUnload() || Hijacker.DoMove())
 			{
@@ -27,6 +26,7 @@ internal static class __Bootstrap
 #if WIN
 			Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
 #elif UNIX
+			Components.HarmonyLoader.GetInstance().Load("Carbon.Doorstop.dll");
 			Components.HarmonyLoader.GetInstance().Load("Carbon-Unix.dll");
 #endif
 		}

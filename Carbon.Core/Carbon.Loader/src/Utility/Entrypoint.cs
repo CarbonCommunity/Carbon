@@ -14,6 +14,7 @@ internal sealed class Entrypoint : IHarmonyModHooks
 		/// At this point in time we can't know in which position of the loading
 		/// queue we are at thus executing the purge right now would result in 
 		/// an undefined result.
+		Loader.GetInstance().Initialize();
 	}
 
 	public void OnUnloaded(OnHarmonyModUnloadedArgs args)

@@ -10,11 +10,17 @@ namespace Carbon.Utility;
 internal sealed class Logger
 {
 	private static string logFile
-		= Path.Combine(Context.Directory.Game, "__loader.log");
+		= Path.Combine(Context.Directory.CarbonLogs, "Carbon.Loader.log");
 
 	internal enum Severity
 	{
 		Error, Warning, Notice, None
+	}
+
+	static Logger()
+	{
+		if (!Directory.Exists(Context.Directory.CarbonLogs))
+			Directory.CreateDirectory(Context.Directory.CarbonLogs);
 	}
 
 	internal static void Write(Severity severity, object message, Exception ex = null)
