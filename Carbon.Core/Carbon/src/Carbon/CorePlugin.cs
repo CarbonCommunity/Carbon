@@ -142,6 +142,44 @@ namespace Carbon.Core
 			}
 		}
 
+		[ConsoleCommand("pluginsfailed", "Prints the list of plugins that failed to load (most likely due to compilation issues).")]
+		private void PluginsFailed(ConsoleSystem.Arg arg)
+		{
+			if (!arg.IsPlayerCalledAndAdmin()) return;
+
+			var mode = arg.HasArgs(1) ? arg.Args[0] : null;
+
+			switch (mode)
+			{
+				case "-j":
+				case "--j":
+				case "-json":
+				case "--json":
+					Reply(JsonConvert.SerializeObject(Loader._failedMods, Formatting.Indented), arg);
+					break;
+
+				default:
+					var result = string.Empty;
+					var count = 1;
+
+					foreach (var mod in Loader._failedMods)
+					{
+						result += $"{count:n0}. {mod.File}\n";
+
+						foreach (var error in mod.Errors)
+						{
+							result += $" {error}\n";
+						}
+
+						result += "\n";
+						count++;
+					}
+
+					Reply(result, arg);
+					break;
+			}
+		}
+
 		[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
 		private void HookInfo(ConsoleSystem.Arg arg)
 		{

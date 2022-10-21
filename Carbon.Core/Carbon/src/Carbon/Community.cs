@@ -200,6 +200,7 @@ namespace Carbon
 
 		public static void ReloadPlugins()
 		{
+			Loader.ClearAllErrored();
 			Loader.ClearAllRequirees();
 
 			Loader.LoadCarbonMods();

@@ -64,6 +64,15 @@ namespace Carbon.Core
 			requirees.Clear();
 			requirees = null;
 		}
+		public static void ClearAllErrored()
+		{
+			foreach (var mod in _failedMods)
+			{
+				Array.Clear(mod.Errors, 0, mod.Errors.Length);
+			}
+
+			_failedMods.Clear();
+		}
 
 		public static void AppendAssembly(string key, Assembly assembly)
 		{
@@ -684,6 +693,7 @@ namespace Carbon.Core
 		internal static string _modPath;
 
 		internal static List<CarbonMod> _loadedMods = new List<CarbonMod>();
+		internal static List<FailedMod> _failedMods = new List<FailedMod>();
 
 		[JsonObject(MemberSerialization.OptIn)]
 		public class CarbonMod
@@ -702,6 +712,16 @@ namespace Carbon.Core
 
 			[JsonProperty]
 			public List<RustPlugin> Plugins { get; set; } = new List<RustPlugin>();
+		}
+
+		[JsonObject(MemberSerialization.OptIn)]
+		public class FailedMod
+		{
+			[JsonProperty]
+			public string File { get; set; } = string.Empty;
+
+			[JsonProperty]
+			public string[] Errors { get; set; }
 		}
 	}
 }

@@ -29,8 +29,10 @@ namespace Carbon
 
 			Results = new Dictionary<string, Result>(200);
 
-			OnPluginCompiled += (plugin, incompatibleHooks) =>
+			OnPluginCompiled = (plugin, incompatibleHooks) =>
 			{
+				if (Results.ContainsKey(plugin.FilePath)) return;
+
 				Results.Add(plugin.FilePath, new Result
 				{
 					FilePath = plugin.FilePath,
@@ -39,7 +41,7 @@ namespace Carbon
 					IncompatibleHooks = incompatibleHooks.ToArray()
 				});
 			};
-			OnProcessEnded += () =>
+			OnProcessEnded = () =>
 			{
 				var report = string.Empty;
 
@@ -72,6 +74,27 @@ namespace Carbon
 					Pool.FreeList(ref hooks);
 
 					report += $"INCOMPATIBLE HOOK REPORT:\n{builder.ToStringMinimal()}\n\n";
+				}
+
+				// Failed plugins
+				{
+					var result = "";
+					var count = 1;
+
+					foreach (var mod in Loader._failedMods)
+					{
+						result += $"{count:n0}. {mod.File}\n";
+
+						foreach (var error in mod.Errors)
+						{
+							result += $" {error}\n";
+						}
+
+						result += "\n";
+						count++;
+					}
+
+					report += $"COMPILATION FAILED PLUGINS:\n{result}\n\n";
 				}
 
 				var path = Path.Combine(Defines.GetReportsFolder(), $"pluginreport_{DateTime.UtcNow:ddMMyyyyhhmmss}.txt");
