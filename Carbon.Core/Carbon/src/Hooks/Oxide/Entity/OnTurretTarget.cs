@@ -16,7 +16,7 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(BaseCombatEntity targ, ref AutoTurret __instance)
 		{
-			return Interface.CallHook("CanBradleyApcTarget", __instance, targ) == null;
+			return Interface.CallHook("OnTurretTarget", __instance, targ) == null;
 		}
 	}
 }
