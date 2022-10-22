@@ -32,6 +32,7 @@ namespace Carbon.Core
 				var hook = type.GetCustomAttribute<Hook>();
 				if (hook == null) continue;
 
+				hook.Type = type;
 				Hooks.Add(hook);
 			}
 
