@@ -37,7 +37,7 @@ namespace Carbon.Hooks
 		}
 	}
 
-	[OxideHook("OnHotAirBalloonToggled", typeof(object)), OxideHook.Category(Hook.Category.Enum.Entity)]
+	[OxideHook("OnHotAirBalloonToggled"), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Require("OnHotAirBalloonToggle")]
 	[OxideHook.Parameter("balloon", typeof(HotAirBalloon))]
 	[OxideHook.Parameter("player", typeof(BasePlayer))]
