@@ -110,6 +110,7 @@ namespace Carbon.Hooks
 				World,
 				Shop,
 				Elevator,
+				Vending,
 				Special
 			}
 

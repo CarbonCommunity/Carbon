@@ -5,7 +5,7 @@
 
 namespace Carbon.Hooks
 {
-	[OxideHook("OnPlayerLootEnd", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Player)]
+	[OxideHook("OnPlayerLootEnd", typeof(object)), OxideHook.Category(Hook.Category.Enum.Player)]
 	[OxideHook.Parameter("loot", typeof(PlayerLoot))]
 	[OxideHook.Info("Called when the player stops looting.")]
 	[OxideHook.Patch(typeof(PlayerLoot), "Clear")]

@@ -3,12 +3,13 @@
 /// All rights reserved
 /// 
 
+using Carbon.Hooks;
 using Oxide.Core;
 using UnityEngine;
 
-namespace Carbon.Hooks
+namespace Carbon.Core.src.Hooks.Oxide.Weapon
 {
-	[OxideHook("OnFlameExplosion", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Entity)]
+	[OxideHook("OnFlameExplosion"), OxideHook.Category(Hook.Category.Enum.Weapon)]
 	[OxideHook.Parameter("explosive", typeof(FlameExplosive))]
 	[OxideHook.Parameter("flame", typeof(BaseEntity))]
 	[OxideHook.Info("Called when a flame explodes.")]
@@ -25,12 +26,12 @@ namespace Carbon.Hooks
 			var num = 0;
 			while (num < __instance.numToCreate)
 			{
-				var baseEntity = GameManager.server.CreateEntity(__instance.createOnExplode.resourcePath, __instance.transform.position, default(Quaternion), true);
+				var baseEntity = GameManager.server.CreateEntity(__instance.createOnExplode.resourcePath, __instance.transform.position, default, true);
 				if (baseEntity)
 				{
 					var modifiedAimConeDirection = AimConeUtil.GetModifiedAimConeDirection(__instance.spreadAngle, surfaceNormal, true);
 					baseEntity.transform.SetPositionAndRotation(__instance.transform.position, Quaternion.LookRotation(modifiedAimConeDirection));
-					baseEntity.creatorEntity = ((__instance.creatorEntity == null) ? baseEntity : __instance.creatorEntity);
+					baseEntity.creatorEntity = __instance.creatorEntity == null ? baseEntity : __instance.creatorEntity;
 
 					Interface.CallHook("OnFlameExplosion", __instance, baseEntity);
 

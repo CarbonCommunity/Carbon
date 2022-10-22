@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Carbon.Hooks
 {
-	[OxideHook("OnEntityBuilt", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Entity)]
+	[OxideHook("OnEntityBuilt"), OxideHook.Category(Hook.Category.Enum.Entity)]
 	[OxideHook.Parameter("planner", typeof(Planner))]
 	[OxideHook.Parameter("gameObject", typeof(GameObject))]
 	[OxideHook.Info("Called when any structure is built (walls, ceilings, stairs, etc.).")]
