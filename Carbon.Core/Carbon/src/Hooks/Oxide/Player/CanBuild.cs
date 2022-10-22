@@ -14,7 +14,7 @@ namespace Carbon.Hooks
 	[OxideHook.Parameter("target", typeof(Construction.Target))]
 	[OxideHook.Info("Called when the player tries to build something.")]
 	[OxideHook.Patch(typeof(Planner), "DoBuild")]
-	public class Planner_DoBuild
+	public class Planner_DoBuild_CanBuild
 	{
 		public static bool Prefix(CreateBuilding msg, ref Planner __instance)
 		{
