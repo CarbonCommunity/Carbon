@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Carbon.Common;
 
-internal class CarbonReference
+public class CarbonReference
 {
 	public string name, fullName, fullPath;
 	public Version version;

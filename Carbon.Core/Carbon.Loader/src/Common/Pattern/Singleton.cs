@@ -6,7 +6,7 @@ using System;
 
 namespace Carbon.Common;
 
-internal abstract class Singleton<T> where T : class
+public abstract class Singleton<T> where T : class
 {
 	private static readonly Lazy<T> Instance
 		= new Lazy<T>(() => NewInstanceOfT());
