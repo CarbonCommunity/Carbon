@@ -129,6 +129,8 @@ jobs:
       with:
         delete_release: true
         tag_name: staging_build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🏷️ Update release tag
       uses: softprops/action-gh-release@v1
