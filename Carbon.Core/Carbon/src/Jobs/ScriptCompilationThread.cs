@@ -35,14 +35,6 @@ namespace Carbon.Jobs
 		public List<CompilerException> Exceptions = new List<CompilerException>();
 		internal RealTimeSince TimeSinceCompile;
 
-		#region Fody
-
-		internal static Type _fodyAssemblyLoader { get; set; }
-		internal static FieldInfo _fodyAssemblyNames { get; set; }
-		internal static MethodInfo _fodyLoadStream { get; set; }
-
-		#endregion
-
 		internal static bool _hasInit { get; set; }
 		internal static void _doInit()
 		{
@@ -53,6 +45,7 @@ namespace Carbon.Jobs
 			{
 				if (assembly.IsDynamic || string.IsNullOrEmpty(assembly.Location)) continue;
 				_metadataReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
+				Console.WriteLine($"{assembly.GetName().Name}");
 			}
 		}
 

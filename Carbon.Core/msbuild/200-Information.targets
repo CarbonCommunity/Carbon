@@ -4,7 +4,6 @@
 	<!--  PRINT BUILD CONTEXT TASK  -->
 	<!-- ========================== -->
 	<Target Name="CarbonPreBuildEvent" BeforeTargets="PreBuildEvent">
-		<Message Text="--" Importance="high" />
 		<Message Text="[$(AssemblyName)] &gt;&gt; Product: $(Product) ($(OperatingSystem))" Importance="high" />
 		<Message Text="[$(AssemblyName)] &gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
 		<Message Text="[$(AssemblyName)] &gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />

@@ -7,7 +7,9 @@
 
 set -e
 
-BASEDIR="$(cd -- "$(dirname "${0}")" >/dev/null 2>&1; pwd -P)"
+# Get the directory of the executable
+SCRIPT=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+BASEDIR="${SCRIPT}/../../"
 
 # Prepare the environment
 export TERM=xterm

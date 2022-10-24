@@ -151,7 +151,6 @@
   <!--  PRINT BUILD CONTEXT TASK  -->
   <!-- ========================== -->
   <Target Name="CustomBeforeCompile" BeforeTargets="BeforeCompile">
-    <Message Text="--" Importance="high" />
     <Message Text="&gt;&gt; Product: $(Product)" Importance="high" />
     <Message Text="&gt;&gt; Runtime: $(MSBuildRuntimeType)" Importance="high" />
     <Message Text="&gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />

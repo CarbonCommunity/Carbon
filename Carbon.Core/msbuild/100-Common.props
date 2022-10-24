@@ -11,7 +11,7 @@
 		<Platforms>x64</Platforms>
 		<PlatformTarget></PlatformTarget>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-		<TargetFrameworks>net48</TargetFrameworks>
+		<TargetFramework>net48</TargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup>

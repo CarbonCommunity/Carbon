@@ -23,6 +23,12 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 	private static List<CarbonReference> cachedReferences
 		= new List<CarbonReference>();
 
+	internal static float LastCacheUpdate
+	{
+		get;
+		private set;
+	}
+
 	internal void RegisterDomain(AppDomain domain)
 	{
 		domain.AssemblyResolve += ResolveAssembly;
@@ -54,6 +60,7 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 			if (File.Exists(p) && ncr.LoadFromFile(p) != null)
 			{
 				Logger.Log($"Resolved: {ncr.FileName} from disk");
+				LastCacheUpdate = UnityEngine.Time.realtimeSinceStartup;
 				cachedReferences.Add(ncr);
 				return ncr.assembly;
 			}
