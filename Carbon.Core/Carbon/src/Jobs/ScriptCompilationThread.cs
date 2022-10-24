@@ -8,14 +8,14 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Carbon.Base;
+using Carbon.Common;
+using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Application = UnityEngine.Application;
 
 namespace Carbon.Jobs
 {
@@ -40,17 +40,8 @@ namespace Carbon.Jobs
 		{
 			if (_hasInit) return;
 			_hasInit = true;
-
-			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-			{
-				if (assembly.IsDynamic || string.IsNullOrEmpty(assembly.Location)) continue;
-				_metadataReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
-				Console.WriteLine($"{assembly.GetName().Name}");
-			}
 		}
 
-		internal static List<object> _metadataReferences = new List<object>();
-		internal static Dictionary<string, object> _referenceCache = new Dictionary<string, object>();
 		internal static Dictionary<string, byte[]> _compilationCache = new Dictionary<string, byte[]>();
 
 		internal static byte[] _getPlugin(string name)
@@ -74,38 +65,46 @@ namespace Carbon.Jobs
 			try { _compilationCache[name] = pluginAssembly; } catch { }
 		}
 
-		internal static MetadataReference _getReferenceFromCache(string reference)
+		private float lastReferenceUpdate;
+		private static HashSet<MetadataReference> cachedReferences = new HashSet<MetadataReference>();
+
+		internal HashSet<MetadataReference> _addReferences()
 		{
-			if (!_referenceCache.TryGetValue(reference, out var metaReference))
+			if (AssemblyResolver.LastCacheUpdate > lastReferenceUpdate)
 			{
-				var referencePath = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed", $"{reference}.dll");
-				var outReference = MetadataReference.CreateFromFile(referencePath);
-				if (outReference == null) return null;
+				lastReferenceUpdate = AssemblyResolver.LastCacheUpdate;
+				cachedReferences.Clear();
 
-				_referenceCache.Add(reference, outReference);
-			}
-
-			return metaReference as MetadataReference;
-		}
-
-		internal List<MetadataReference> _addReferences()
-		{
-			var references = new List<MetadataReference>();
-			foreach (var reference in _metadataReferences) references.Add(reference as MetadataReference);
-
-			foreach (var reference in References)
-			{
-				if (string.IsNullOrEmpty(reference) || _metadataReferences.Any(x => x is MetadataReference metadata && metadata.Display.Contains(reference))) continue;
-
-				try
+				foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
 				{
-					var outReference = _getReferenceFromCache(reference);
-					if (outReference != null && !references.Contains(outReference)) references.Add(outReference);
+					try
+					{
+						if (!AssemblyResolver.IsReferenceAllowed(assembly) || assembly.IsDynamic) continue;
+						CarbonReference asm = AssemblyResolver.GetAssembly(assembly.GetName().Name);
+						if (asm == null || asm.assembly.IsDynamic) continue;
+
+						using (MemoryStream mem = new MemoryStream(asm.raw))
+							cachedReferences.Add(MetadataReference.CreateFromStream(mem));
+					}
+					catch { }
 				}
-				catch { }
+
+				foreach (string item in References)
+				{
+					try
+					{
+						if (string.IsNullOrEmpty(item) || !AssemblyResolver.IsReferenceAllowed(item)) continue;
+						CarbonReference asm = AssemblyResolver.GetAssembly(item);
+						if (asm == null || asm.assembly.IsDynamic) continue;
+
+						using (MemoryStream mem = new MemoryStream(asm.raw))
+							cachedReferences.Add(MetadataReference.CreateFromStream(mem));
+					}
+					catch { }
+				}
 			}
 
-			return references;
+			return cachedReferences;
 		}
 
 		public class CompilerException : Exception

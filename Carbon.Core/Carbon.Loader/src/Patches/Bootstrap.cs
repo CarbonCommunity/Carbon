@@ -23,11 +23,7 @@ internal static class __Bootstrap
 			}
 
 			Hijacker.DoHijack();
-#if WIN
 			Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
-#elif UNIX
-			Components.HarmonyLoader.GetInstance().Load("Carbon-Unix.dll");
-#endif
 		}
 	}
 }

@@ -9,6 +9,8 @@
 	<Import Project="$(SolutionDir)msbuild\100-AssemblyName.props" />
 
 	<ItemGroup>
+		<ProjectReference Include="$(SolutionDir)Carbon.Loader\Carbon.Loader.csproj" PrivateAssets="all" />
+
 		<!-- Required by Carbon's Logger -->
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
 
@@ -28,7 +30,6 @@
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
-		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" Condition="!$(Configuration.Contains('Unix'))" />
-		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFiles="$(c_managed)\$(Product)-Unix.dll" Condition="$(Configuration.Contains('Unix'))" />
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
 </Project>

@@ -22,5 +22,12 @@
 
 		<Message Text="[$(AssemblyName)] &gt;&gt; Copy files to release folder" Importance="high" />
 		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
+
+		<ItemGroup>
+			<FilesToClean Include="$(c_lib)\Carbon*.dll" />
+		</ItemGroup>
+
+		<Message Text="[$(AssemblyName)] &gt;&gt; Cleanup carbon stuff from lib folder" Importance="high" />
+		<Delete Files="@(FilesToClean)" />
 	</Target>
 </Project>
