@@ -7,23 +7,25 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Carbon.Common;
 using Carbon.Utility;
 
 namespace Carbon.Components;
 
-internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
+public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 {
 	private static string[] lookup =
 	{
+		Context.Directory.GameManaged,
 		Context.Directory.CarbonLib,
-		Context.Directory.GameManaged
+		Context.Directory.CarbonManaged,
 	};
 
 	private static List<CarbonReference> cachedReferences
 		= new List<CarbonReference>();
 
-	internal static float LastCacheUpdate
+	public static float LastCacheUpdate
 	{
 		get;
 		private set;
@@ -38,10 +40,36 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 	}
 
 	private static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
+		=> GetAssembly(args.Name).assembly ?? null;
+
+#if DEBUG
+	private static void LoadAssembly(object sender, AssemblyLoadEventArgs args)
 	{
+		Utility.Logger.Log($"Load: {args.LoadedAssembly.GetName().Name}");
+	}
+#endif
+
+	public static bool IsReferenceAllowed(string name)
+	{
+		foreach (string expr in Context.Regex.refWhitelist)
+			if (Regex.IsMatch(name, expr))
+				return true;
+		Logger.Warn($"name:{name} is not allowed");
+		return false;
+	}
+
+	public static bool IsReferenceAllowed(Assembly assembly)
+		=> IsReferenceAllowed(assembly.GetName().Name);
+
+	public static CarbonReference GetAssembly(string name)
+	{
+		// special case: carbon random asm name
+		if (Regex.IsMatch(name, @"^Carbon(-\d+)?$"))
+			name = "Carbon";
+
 		// new carbon ref (ncr)
 		CarbonReference ncr = new CarbonReference();
-		ncr.LoadMetadata(info: new AssemblyName(args.Name));
+		ncr.LoadMetadata(info: new AssemblyName(name));
 
 		// cached carbon ref (ccr)
 		CarbonReference ccr = cachedReferences.FirstOrDefault(
@@ -51,7 +79,7 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		if (ccr != null)
 		{
 			Logger.Log($"Resolved: {ccr.FileName} from cache");
-			return ccr.assembly;
+			return ccr;
 		}
 
 		foreach (string bp in lookup)
@@ -62,20 +90,14 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 				Logger.Log($"Resolved: {ncr.FileName} from disk");
 				LastCacheUpdate = UnityEngine.Time.realtimeSinceStartup;
 				cachedReferences.Add(ncr);
-				return ncr.assembly;
+				return ncr;
 			}
 		}
 
 		Logger.Warn($"Unresolved: {ncr.fullName}");
+		ncr = default;
 		return null;
 	}
-
-#if DEBUG
-	private static void LoadAssembly(object sender, AssemblyLoadEventArgs args)
-	{
-		Utility.Logger.Log($"Load: {args.LoadedAssembly.GetName().Name}");
-	}
-#endif
 
 	public void Dispose()
 	{
