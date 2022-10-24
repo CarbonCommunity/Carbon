@@ -123,6 +123,12 @@ jobs:
       with:
         name: ${{ needs.build-linux.outputs.artifact }}
         path: Release/
+        
+    - name: 🗑️ Delete existing release tag
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        delete_release: true
+        tag_name: staging_build
 
     - name: 🏷️ Update release tag
       uses: softprops/action-gh-release@v1
