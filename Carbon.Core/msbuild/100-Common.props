@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Deterministic>true</Deterministic>
+		<FileAlignment>512</FileAlignment>
+		<LangVersion>latest</LangVersion>
+		<Platforms>x64</Platforms>
+		<PlatformTarget></PlatformTarget>
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+		<TargetFrameworks>net48</TargetFrameworks>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(VersionPrefix)</FileVersion>
+		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_")).Core</RootNamespace>
+		<Version>1.$([System.DateTime]::UtcNow.ToString('yy.ddMM')).10</Version>
+		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+		<VersionSuffix>$(Configuration)</VersionSuffix>
+
+		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+		<Platform Condition="'$(Platform)' == ''">x64</Platform>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Company>Carbon Community</Company>
+		<Copyright>Copyright © 2022 Carbon Community</Copyright>
+		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
+		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
+	</PropertyGroup>
+
+	<Import Project="$(SolutionDir)msbuild\100-Configurations.props" />
+	<Import Project="$(SolutionDir)msbuild\200-Clean.targets" />
+	<Import Project="$(SolutionDir)msbuild\200-Information.targets" />
+	<Import Project="$(SolutionDir)msbuild\200-Release.targets" />
+</Project>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<OutputPath>bin\$(Configuration)\</OutputPath>
+
+	</PropertyGroup>
+	<Choose>
+		<When Condition="$(Configuration.Contains('Release'))">
+			<PropertyGroup>
+				<DebugType>none</DebugType>
+				<DefineConstants>$(DefineConstants)</DefineConstants>
+				<Optimize>true</Optimize>
+				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<DebugType>embedded</DebugType>
+				<DefineConstants>DEBUG;UNITY_ASSERTIONS;$(DefineConstants)</DefineConstants>
+				<Optimize>false</Optimize>
+				<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
+	<Choose>
+		<When Condition="$(Configuration.Contains('Unix'))">
+			<PropertyGroup>
+				<DefineConstants>UNIX;$(DefineConstants)</DefineConstants>
+				<OperatingSystem>linux</OperatingSystem>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
+				<OperatingSystem>windows</OperatingSystem>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
+	<ItemGroup>
+		<!-- System libs -->
+		<Reference Include="System.Core" />
+		<Reference Include="System.Data" />
+		<Reference Include="System.Drawing.Design" />
+		<Reference Include="System.Drawing" />
+		<Reference Include="System.IO.Compression.FileSystem" />
+		<Reference Include="System.Xml" />
+		<Reference Include="System" />
+
+		<!-- Facepunch game files -->
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" Private="true" />
+	</ItemGroup>
+</Project>

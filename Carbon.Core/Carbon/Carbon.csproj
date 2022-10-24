@@ -5,7 +5,8 @@
 		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
 	</PropertyGroup>
 
-	<Import Project="$(SolutionDir)msbuild\Common.props" />
+	<Import Project="$(SolutionDir)msbuild\100-Common.props" />
+	<Import Project="$(SolutionDir)msbuild\100-AssemblyName.props" />
 
 	<ItemGroup>
 		<!-- Required by Carbon's Logger -->
@@ -25,4 +26,9 @@
 
 		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
 	</ItemGroup>
+
+	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" Condition="!$(Configuration.Contains('Unix'))" />
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFiles="$(c_managed)\$(Product)-Unix.dll" Condition="$(Configuration.Contains('Unix'))" />
+	</Target>
 </Project>

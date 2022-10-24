@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Choose>
+		<When Condition="Exists('$(SolutionDir)$(Product)\bin\.gitag')">
+			<PropertyGroup>
+				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(SolutionDir)$(Product)\bin\.gitag').Trim())</InformationalVersion>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
+	<Choose>
+		<When Condition="Exists('$(SolutionDir)$(Product)\bin\.rndasm') AND $(Configuration.Contains('Debug'))">
+			<PropertyGroup>
+				<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)$(Product)\bin\.rndasm').Trim())</AssemblyName>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<AssemblyName>$(Product)</AssemblyName>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
+	<Import Project="$(SolutionDir)msbuild\200-AssemblyName.targets" />
+</Project>

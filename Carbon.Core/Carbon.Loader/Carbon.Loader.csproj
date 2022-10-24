@@ -1,191 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
-		<!-- General build information -->
-		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
-		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<Deterministic>true</Deterministic>
-		<FileAlignment>512</FileAlignment>
-		<OutputType>Library</OutputType>
-		<Platforms>x64</Platforms>
-		<PlatformTarget>x64</PlatformTarget>
-		<ProjectGuid>{3ACED109-8348-4608-9AF4-DC9B30421A8A}</ProjectGuid>
-		<TargetFrameworks>net48</TargetFrameworks>
-		<LangVersion>latest</LangVersion>
-
-		<AllowedReferenceRelatedFileExtensions>.pdb</AllowedReferenceRelatedFileExtensions>
-		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-
-		<!-- Forces the execution of our own repack process-->
-		<DoILRepack>false</DoILRepack>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<!-- User defined properties -->
 		<Product>Carbon.Loader</Product>
-		<AssemblyName>$(Product)</AssemblyName>
-
-		<Company>Carbon Community</Company>
-		<Copyright>Copyright © 2022 Carbon Community</Copyright>
-		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
-		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{3ACED109-8348-4608-9AF4-DC9B30421A8A}</ProjectGuid>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<!-- Automatically generated properties -->
-		<AssemblyVersion>$(Version)</AssemblyVersion>
-		<FileVersion>$(VersionPrefix)</FileVersion>
-		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_")).Core</RootNamespace>
-		<Version>1.$([System.DateTime]::UtcNow.ToString('yy.ddMM')).10</Version>
-		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
-		<VersionSuffix>$(Configuration)</VersionSuffix>
-
-		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-		<Platform Condition="'$(Platform)' == ''">x64</Platform>
-	</PropertyGroup>
-
-	<Choose>
-		<When Condition="Exists('.gitag')">
-			<PropertyGroup>
-				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(SolutionDir)$(Product)\.gitag').Trim())</InformationalVersion>
-			</PropertyGroup>
-		</When>
-		<Otherwise>
-			<PropertyGroup>
-				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
-			</PropertyGroup>
-		</Otherwise>
-	</Choose>
-
-	<Choose>
-		<When Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
-			<PropertyGroup>
-				<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)$(Product)\.rndasm').Trim())</AssemblyName>
-			</PropertyGroup>
-		</When>
-		<Otherwise>
-			<PropertyGroup>
-				<AssemblyName>$(Product)</AssemblyName>
-			</PropertyGroup>
-		</Otherwise>
-	</Choose>
-
-	<Choose>
-		<When Condition="$(Configuration.Contains('Release'))">
-			<PropertyGroup>
-				<DebugType>none</DebugType>
-				<DefineConstants>$(DefineConstants)</DefineConstants>
-				<Optimize>true</Optimize>
-				<OutputPath>bin\$(Configuration)\</OutputPath>
-				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-			</PropertyGroup>
-		</When>
-		<Otherwise>
-			<PropertyGroup>
-				<DebugType>embedded</DebugType>
-				<DefineConstants>DEBUG;UNITY_ASSERTIONS;$(DefineConstants)</DefineConstants>
-				<OutputPath>bin\$(Configuration)\</OutputPath>
-				<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-			</PropertyGroup>
-		</Otherwise>
-	</Choose>
-
-	<Choose>
-		<When Condition="$(Configuration.Contains('Unix'))">
-			<PropertyGroup>
-				<DefineConstants>UNIX;$(DefineConstants)</DefineConstants>
-				<FullNameOS>linux</FullNameOS>
-			</PropertyGroup>
-		</When>
-		<Otherwise>
-			<PropertyGroup>
-				<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
-				<FullNameOS>windows</FullNameOS>
-			</PropertyGroup>
-		</Otherwise>
-	</Choose>
+	<Import Project="$(SolutionDir)msbuild\100-Common.props" />
+	<Import Project="$(SolutionDir)msbuild\100-AssemblyName.props" />
 
 	<ItemGroup>
-		<!-- System libs -->
-		<Reference Include="Microsoft.CSharp" />
-		<Reference Include="System.Core" />
-		<Reference Include="System.Data" />
-		<Reference Include="System.Drawing.Design" />
-		<Reference Include="System.Drawing" />
-		<Reference Include="System.IO.Compression.FileSystem" />
-		<Reference Include="System.Xml" />
-		<Reference Include="System" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<!-- Facepunch game files for Linux -->
-		<Reference Include="$(SolutionDir)..\Rust\$(FullNameOS)\RustDedicated_Data\Managed\*.dll" Private="false" />
-
-		<!-- HarmonyLib v2 -->
-		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
-
-		<!-- IL repacker -->
-		<PackageReference Include="ILRepack.Lib.MSBuild" Version="2.1.14" PrivateAssets="all" />
-
-		<!-- Assembly weaver -->
+		<!-- <PackageReference Include="ILRepack.Lib.MSBuild" Version="2.1.14" PrivateAssets="all" /> -->
 		<PackageReference Include="Costura.Fody" Version="5.7.0" PrivateAssets="all" />
+
+		<!-- Extra packages -->
+		<!-- <PackageReference Include="Lib.Harmony" Version="2.2.2" /> -->
+
+		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
 	</ItemGroup>
 
-	<!-- ============================ -->
-	<!--  CLEAN ADDITONAL FILES TASK  -->
-	<!-- ============================ -->
-	<Target Name="CleanOutputPath" AfterTargets="Clean">
-		<Message Text="&gt;&gt; Removing files from $(OutputPath)" Importance="high" />
-		<Delete Files="$(OutputPath)$(Product).dll" />
-		<Delete Files="$(OutputPath)$(Product)-*.dll" />
-	</Target>
-
-	<!-- =============================== -->
-	<!--  GENERATE RANDOM ASM NAME TASK  -->
-	<!-- =============================== -->
-	<Target Name="RandomASMNameGenerator" AfterTargets="_GenerateRestoreProjectSpec">
-		<PropertyGroup>
-			<RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
-		</PropertyGroup>
-
-		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
-		</Exec>
-
-		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
-		</Exec>
-
-		<PropertyGroup>
-			<Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
-		</PropertyGroup>
-
-		<WriteLinesToFile File="$(SolutionDir)$(Product)\.gitag" Overwrite="true" Lines="$(Gitag)" />
-		<WriteLinesToFile File="$(SolutionDir)$(Product)\.rndasm" Overwrite="true" Lines="$(RandomASM)" />
-	</Target>
-
-	<!-- ========================== -->
-	<!--  PRINT BUILD CONTEXT TASK  -->
-	<!-- ========================== -->
-	<Target Name="CustomBeforeCompile" BeforeTargets="BeforeCompile">
-		<Message Text="--" Importance="high" />
-		<Message Text="&gt;&gt; Product: $(Product)" Importance="high" />
-		<Message Text="&gt;&gt; Runtime: $(MSBuildRuntimeType)" Importance="high" />
-		<Message Text="&gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />
-		<Message Text="&gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
-		<Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
-		<Message Text="&gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
-	</Target>
-
-	<!-- ================================ -->
-	<!--  RENAME THE BUILD ARTIFACT TASK  -->
-	<!-- ================================ -->
-	<Target Name="RenameBuildOutput" AfterTargets="PostBuildEvent" Condition="$(Configuration.Contains('Debug'))">
-		<Message Text="&gt;&gt; Rename the build artifact from '$(OutputPath)$(TargetName).dll' to '$(OutputPath)$(Product).dll'" Importance="high" />
-		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)$(Product).dll" />
-		<Delete Files="$(OutputPath)$(TargetName).dll" />
+	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_harmony)" />
+		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
 	</Target>
 
 	<!-- ================ -->
@@ -199,29 +34,5 @@
 		</ItemGroup>
 
 		<ILRepack Parallel="true" Internalize="true" DebugInfo="true" AllowDuplicateResources="false" InputAssemblies="@(ILRepackInputAssemblies)" LibraryPath="@(ILRepackAllLibPath)" TargetKind="SameAsPrimaryAssembly" OutputFile="$(OutputPath)$(Product)$(TargetExt)" />
-	</Target>
-
-	<!-- ============================= -->
-	<!--  PREPARE THE RELEASE PACKAGE  -->
-	<!-- ============================= -->
-	<Target Name="PrepareRelease" AfterTargets="RunILRepack">
-		<PropertyGroup>
-			<CarbonBaseDir>$(SolutionDir)..\Release\.tmp\$(Configuration)</CarbonBaseDir>
-			<c_harmony>$(CarbonBaseDir)\HarmonyMods</c_harmony>
-			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
-			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
-			<c_tools>$(CarbonBaseDir)\carbon\tools</c_tools>
-		</PropertyGroup>
-
-		<ItemGroup>
-			<FilesToCopy Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(Product).dll;$(OutputPath)0Harmony.dll;$(OutputPath)Assembly-*.dll;$(OutputPath)Facepunch.*.dll;$(OutputPath)Fleck.dll;$(OutputPath)Facepunch.*.dll;$(OutputPath)Rust.*.dll;$(OutputPath)UnityEngine*.dll" />
-		</ItemGroup>
-
-		<Message Text="&gt;&gt; Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
-		<MakeDir Directories="$(CarbonBaseDir);$(c_harmony);$(c_lib);$(c_managed);$(c_tools)" />
-
-		<Message Text="&gt;&gt; Copy files to release folder" Importance="high" />
-		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_harmony)" />
-		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
 	</Target>
 </Project>

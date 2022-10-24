@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<!-- ================================ -->
+	<!--  DEEP CLEAN THE BIN FOLDER TASK  -->
+	<!-- ================================ -->
+	<Target Name="CarbonCustomClean" AfterTargets="Clean">
+		<Message Text="[$(AssemblyName)] &gt;&gt; Removing directory '$(OutputPath)'" Importance="high" />
+		<RemoveDir Directories="$(OutputPath)" />
+	</Target>
+
+	<!-- ================================ -->
+	<!--  RENAME THE BUILD ARTIFACT TASK  -->
+	<!-- ================================ -->
+	<Target Name="CarbonPostBuildEvent1" AfterTargets="PostBuildEvent" Condition="'$(TargetName).dll' != '$(Product).dll'">
+		<Message Text="[$(AssemblyName)] &gt;&gt; Rename the build artifact from '$(OutputPath)$(TargetName).dll' to '$(OutputPath)$(Product).dll'" Importance="high" />
+		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)$(Product).dll" />
+		<Delete Files="$(OutputPath)$(TargetName).dll" />
+	</Target>
+
+	<Target Name="CarbonPostBuildEvent2" AfterTargets="PostBuildEvent">
+		<ItemGroup>
+			<RustManaged Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" />
+		</ItemGroup>
+
+		<Message Text="[$(AssemblyName)] &gt;&gt; Removing rust managed libs" Importance="high" />
+		<Delete Files="$(OutputPath)%(RustManaged.Filename).dll" />
+	</Target>
+</Project>

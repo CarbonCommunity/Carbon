@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<!-- ================================================== -->
+	<!--  GENERATE RANDOM ASM NAME TASK AND GIT BUILD INFO  -->
+	<!-- ================================================== -->
+	<Target Name="RandomASMNameGenerator" AfterTargets="_GenerateRestoreProjectSpec">
+		<Message Text="[$(AssemblyName)] &gt;&gt; Generating random assembly name" Importance="high" />
+
+		<PropertyGroup>
+			<RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
+		</PropertyGroup>
+
+		<Message Text="[$(AssemblyName)] &gt;&gt; Caching git build info" Importance="high" />
+
+		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+		</Exec>
+
+		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+		</Exec>
+
+		<PropertyGroup>
+			<Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
+		</PropertyGroup>
+
+		<Message Text="[$(AssemblyName)] &gt;&gt; Saving metadata to disk" Importance="high" />
+		<WriteLinesToFile File="$(SolutionDir)$(Product)\bin\.gitag" Overwrite="true" Lines="$(Gitag)" />
+		<WriteLinesToFile File="$(SolutionDir)$(Product)\bin\.rndasm" Overwrite="true" Lines="$(RandomASM)" />
+	</Target>
+</Project>
