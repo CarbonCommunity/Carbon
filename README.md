@@ -50,7 +50,9 @@ In general most people is advised to get the latest stable version which is the 
 2. Unzip the archive to the root of your Rust Dedicated Server.
 3. Restart the server and enjoy 🎉.
 
-⚠️ If you are installing on a 🐧 Linux host you will need to execute the `carbon_prepatch.sh` script manually before restarting your server.
+⚠️ If you are installing on a 🐧 Linux host you will need to execute the `carbon/tools/environment.sh` script before starting your server.
+This script will prepare the `LD_LIBRARY_PATH` and `LD_PRELOAD` env to execute Unity Doorstop automatically.
+Update your scripts to always source `. carbon/tools/environment.sh` before starting the game server.
 
 ### Folder structure
 This is the example of a default Carbon installation, the full folder structure will get created when starting the rust dedicated server for the first time after the installation.
@@ -62,12 +64,29 @@ This is the example of a default Carbon installation, the full folder structure 
 ├── data
 │   ├── oxide.groups.data
 │   └── oxide.users.data
+├── harmony
 ├── lang
 ├── logs
+│   ├── Carbon.Doorstop.log
+│   ├── Carbon.Loader.log
+│   └── (...)
+├── managed
+│   ├── Carbon.Doorstop.dll
+│   ├── Carbon-Unix.dll
+│   └── lib
+│       ├── 1Harmony.dll
+│       ├── Ben.Demystifier.dll
+│       └── (...)
+├── modules
+│   ├── RustEdit.Ext
+│   │   ├── config.json
+│   │   └── data.json
+│   └── (...)
 ├── plugins
+├── reports
 ├── temp
 └── tools
-    └── NStrip.exe
+    └── publicizer.sh
 ```
 
 ## Compilation

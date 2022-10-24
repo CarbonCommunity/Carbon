@@ -26,7 +26,6 @@ internal static class __Bootstrap
 #if WIN
 			Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
 #elif UNIX
-			Components.HarmonyLoader.GetInstance().Load("Carbon.Doorstop.dll");
 			Components.HarmonyLoader.GetInstance().Load("Carbon-Unix.dll");
 #endif
 		}

@@ -37,6 +37,7 @@ copy "%ROOT%\Tools\Helpers\doorstop_config.ini" "%ROOT%\Release\.tmp\%TARGET%" /
 copy "%ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" "%ROOT%\Release\.tmp\%TARGET%\winhttp.dll" /y  > NUL
 
 rem Copy doorstop helper files (unix)
+copy "%ROOT%\Tools\Helpers\environment.sh" "%ROOT%\Release\.tmp\%TARGET%Unix\carbon\tools\" /y > NUL
 copy "%ROOT%\Tools\Helpers\publicizer.sh" "%ROOT%\Release\.tmp\%TARGET%Unix\carbon\tools\" /y > NUL
 
 rem Create the zip archive release files
