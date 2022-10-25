@@ -162,7 +162,7 @@ namespace Carbon.Jobs
 				var options = new CSharpCompilationOptions(
 					OutputKind.DynamicallyLinkedLibrary,
 					optimizationLevel: OptimizationLevel.Release,
-					warningLevel: 4
+					warningLevel: 4, deterministic: true
 				);
 
 				var compilation = CSharpCompilation.Create(
