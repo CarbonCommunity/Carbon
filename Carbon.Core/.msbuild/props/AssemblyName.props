@@ -13,5 +13,5 @@
 		</Otherwise>
 	</Choose>
 
-	<Import Project="..\targets\AssemblyName.targets" />
+	<Import Project="$(SolutionDir).msbuild\targets\AssemblyName.targets" />
 </Project>

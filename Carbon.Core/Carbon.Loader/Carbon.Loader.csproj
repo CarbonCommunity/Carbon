@@ -5,7 +5,7 @@
 		<ProjectGuid>{3ACED109-8348-4608-9AF4-DC9B30421A8A}</ProjectGuid>
 	</PropertyGroup>
 
-	<Import Project="..\.msbuild\props\Common.props" />
+	<Import Project="$(SolutionDir).msbuild\props\Common.props" />
 
 	<ItemGroup>
 		<!-- Extra packages -->
