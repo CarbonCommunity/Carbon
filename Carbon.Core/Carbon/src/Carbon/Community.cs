@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Carbon;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;

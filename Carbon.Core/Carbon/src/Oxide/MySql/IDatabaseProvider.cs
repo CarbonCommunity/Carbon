@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using Oxide.Ext.MySql;
 using Oxide.Plugins;
 
 namespace Oxide.Core.Database

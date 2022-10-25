@@ -7,9 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using Carbon;
-using Carbon.Core;
 using Oxide.Plugins;
-using UnityEngine.UI;
 
 namespace Oxide.Core.Libraries
 {

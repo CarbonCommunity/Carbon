@@ -3,8 +3,6 @@
 /// All rights reserved
 /// 
 
-using System.Linq;
-using Carbon.Core;
 
 namespace Carbon.Hooks
 {

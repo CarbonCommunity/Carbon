@@ -7,10 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Extensions;
-using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 

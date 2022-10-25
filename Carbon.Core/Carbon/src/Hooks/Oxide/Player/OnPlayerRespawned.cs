@@ -3,7 +3,6 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
 using UnityEngine;
 
 namespace Carbon.Hooks

@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using Carbon;
 using Facepunch;
 using static Oxide.Plugins.RustPlugin;
 

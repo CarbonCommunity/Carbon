@@ -5,7 +5,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using Carbon.Base;
 using Carbon.Core;
 

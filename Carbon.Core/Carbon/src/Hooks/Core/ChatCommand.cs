@@ -4,8 +4,6 @@
 /// 
 
 using System;
-using Carbon;
-using Carbon.Core;
 using Carbon.Extensions;
 using ConVar;
 using Facepunch.Extend;
