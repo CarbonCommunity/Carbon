@@ -130,6 +130,7 @@ namespace Oxide.Plugins
 		public Action Activity { get; set; }
 		public Action Callback { get; set; }
 		public Persistence Persistence { get; set; }
+		public int Repetitions { get; set; }
 		public int TimesTriggered { get; set; }
 		public bool Destroyed { get; set; }
 
@@ -143,6 +144,8 @@ namespace Oxide.Plugins
 
 		public void Reset(float delay = -1f, int repetitions = 1)
 		{
+			Repetitions = repetitions;
+
 			if (Destroyed)
 			{
 				Carbon.Logger.Warn($"You cannot restart a timer that has been destroyed.");
@@ -157,7 +160,7 @@ namespace Oxide.Plugins
 
 			TimesTriggered = 0;
 
-			if (repetitions == 1)
+			if (Repetitions == 1)
 			{
 				Callback = new Action(() =>
 				{
@@ -182,7 +185,7 @@ namespace Oxide.Plugins
 						Activity?.Invoke();
 						TimesTriggered++;
 
-						if (TimesTriggered >= repetitions)
+						if (TimesTriggered >= Repetitions)
 						{
 							Dispose();
 						}
