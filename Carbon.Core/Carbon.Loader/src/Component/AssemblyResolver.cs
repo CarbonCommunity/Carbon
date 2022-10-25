@@ -54,7 +54,9 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		foreach (string expr in Context.Regex.refWhitelist)
 			if (Regex.IsMatch(name, expr))
 				return true;
-		Logger.Warn($"name:{name} is not allowed");
+#if DEBUG
+		Logger.Warn($"Reference: {name} is not allowed");
+#endif
 		return false;
 	}
 
@@ -78,7 +80,9 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 		if (ccr != null)
 		{
+#if DEBUG
 			Logger.Log($"Resolved: {ccr.FileName} from cache");
+#endif
 			return ccr;
 		}
 

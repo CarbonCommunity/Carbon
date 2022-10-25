@@ -9,6 +9,7 @@
 	<Import Project="$(SolutionDir)msbuild\100-AssemblyName.props" />
 
 	<ItemGroup>
+		<!-- Carbon platform -->
 		<ProjectReference Include="$(SolutionDir)Carbon.Loader\Carbon.Loader.csproj" PrivateAssets="all" />
 
 		<!-- Required by Carbon's Logger -->
