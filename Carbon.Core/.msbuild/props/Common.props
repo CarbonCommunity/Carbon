@@ -6,6 +6,7 @@
 		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Deterministic>true</Deterministic>
+		<DoILRepack>false</DoILRepack>
 		<FileAlignment>512</FileAlignment>
 		<LangVersion>latest</LangVersion>
 		<Platforms>x64</Platforms>
@@ -34,8 +35,9 @@
 		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
 	</PropertyGroup>
 
-	<Import Project="$(SolutionDir)msbuild\100-Configurations.props" />
-	<Import Project="$(SolutionDir)msbuild\200-Clean.targets" />
-	<Import Project="$(SolutionDir)msbuild\200-Information.targets" />
-	<Import Project="$(SolutionDir)msbuild\200-Release.targets" />
+	<Import Project="Configurations.props" />
+	<Import Project="Metadata.props" />
+	<Import Project="..\targets\Clean.targets" />
+	<Import Project="..\targets\Metadata.targets" />
+	<Import Project="..\targets\Release.targets" />
 </Project>

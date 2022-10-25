@@ -5,17 +5,14 @@
 		<ProjectGuid>{3ACED109-8348-4608-9AF4-DC9B30421A8A}</ProjectGuid>
 	</PropertyGroup>
 
-	<Import Project="$(SolutionDir)msbuild\100-Common.props" />
-	<Import Project="$(SolutionDir)msbuild\100-AssemblyName.props" />
+	<Import Project="..\.msbuild\props\Common.props" />
 
 	<ItemGroup>
-		<!-- <PackageReference Include="ILRepack.Lib.MSBuild" Version="2.1.14" PrivateAssets="all" /> -->
-		<PackageReference Include="Costura.Fody" Version="5.7.0" PrivateAssets="all" />
+		<!-- HarmonyLib using a custom name -->
+		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" />
 
 		<!-- Extra packages -->
-		<!-- <PackageReference Include="Lib.Harmony" Version="2.2.2" /> -->
-
-		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
+		<PackageReference Include="ILRepack.Lib.MSBuild" Version="2.1.14" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
@@ -26,13 +23,13 @@
 	<!-- ================ -->
 	<!--  IL REPACK TASK  -->
 	<!-- ================ -->
-	<Target Name="RunILRepack" AfterTargets="RenameBuildOutput" Condition="false">
+	<Target Name="RunILRepack" BeforeTargets="CarbonPrepareRelease">
 		<ItemGroup>
-			<ILRepackInputAssemblies Include="$(OutputPath)*.dll" />
-			<ILRepackAllLibPath Include="$(OutputPath)" />
-			<ILRepackAllLibPath Include="$(SolutionDir)..\Rust\$(FullNameOS)\RustDedicated_Data\Managed" />
+			<ILRepackInput Include="$(OutputPath)Carbon.Loader.dll" />
+			<ILRepackInput Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
+			<ILRepackLib Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed" />
 		</ItemGroup>
 
-		<ILRepack Parallel="true" Internalize="true" DebugInfo="true" AllowDuplicateResources="false" InputAssemblies="@(ILRepackInputAssemblies)" LibraryPath="@(ILRepackAllLibPath)" TargetKind="SameAsPrimaryAssembly" OutputFile="$(OutputPath)$(Product)$(TargetExt)" />
+		<ILRepack Parallel="true" Internalize="false" AllowDuplicateResources="false" InputAssemblies="@(ILRepackInput)" LibraryPath="@(ILRepackLib)" TargetKind="SameAsPrimaryAssembly" OutputFile="$(OutputPath)$(Product)$(TargetExt)" />
 	</Target>
 </Project>

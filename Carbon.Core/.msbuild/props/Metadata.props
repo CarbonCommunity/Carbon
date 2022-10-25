@@ -12,19 +12,4 @@
 			</PropertyGroup>
 		</Otherwise>
 	</Choose>
-
-	<Choose>
-		<When Condition="Exists('$(SolutionDir)$(Product)\bin\.rndasm') AND $(Configuration.Contains('Debug'))">
-			<PropertyGroup>
-				<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)$(Product)\bin\.rndasm').Trim())</AssemblyName>
-			</PropertyGroup>
-		</When>
-		<Otherwise>
-			<PropertyGroup>
-				<AssemblyName>$(Product)</AssemblyName>
-			</PropertyGroup>
-		</Otherwise>
-	</Choose>
-
-	<Import Project="$(SolutionDir)msbuild\200-AssemblyName.targets" />
 </Project>
