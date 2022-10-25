@@ -8,28 +8,15 @@
 	<Import Project="..\.msbuild\props\Common.props" />
 
 	<ItemGroup>
-		<!-- HarmonyLib using a custom name -->
-		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" />
-
 		<!-- Extra packages -->
-		<PackageReference Include="ILRepack.Lib.MSBuild" Version="2.1.14" />
+		<PackageReference Include="Costura.Fody" Version="5.7.0" PrivateAssets="all" />
+
+		<!-- HarmonyLib using a custom name -->
+		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_harmony)" />
 		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
-	</Target>
-
-	<!-- ================ -->
-	<!--  IL REPACK TASK  -->
-	<!-- ================ -->
-	<Target Name="RunILRepack" BeforeTargets="CarbonPrepareRelease">
-		<ItemGroup>
-			<ILRepackInput Include="$(OutputPath)Carbon.Loader.dll" />
-			<ILRepackInput Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
-			<ILRepackLib Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed" />
-		</ItemGroup>
-
-		<ILRepack Parallel="true" Internalize="false" AllowDuplicateResources="false" InputAssemblies="@(ILRepackInput)" LibraryPath="@(ILRepackLib)" TargetKind="SameAsPrimaryAssembly" OutputFile="$(OutputPath)$(Product)$(TargetExt)" />
 	</Target>
 </Project>

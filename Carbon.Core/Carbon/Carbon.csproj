@@ -13,7 +13,7 @@
 		<ProjectReference Include="..\Carbon.Loader\Carbon.Loader.csproj" />
 
 		<!-- HarmonyLib using a custom name -->
-		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" Aliases="DummyHarmony" />
+		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
 
 		<!-- Required by Carbon's Logger -->
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
@@ -30,5 +30,12 @@
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+	</Target>
+
+	<Target Name="AfterResolveReferences">
+		<!-- Redefine referencepath to add dependencies-->
+		<ItemGroup>
+			<ReferencePath Include="@(ReferenceDependencyPaths)"></ReferencePath>
+		</ItemGroup>
 	</Target>
 </Project>
