@@ -50,7 +50,7 @@ namespace Carbon.Hooks
 
 					var unregisterClientOptions = new UnregisterClientOptions { ClientHandle = clientHandle };
 					EACServer.Interface.UnregisterClient(ref unregisterClientOptions);
-					EACServer.client2connection.Remove(clientHandle);
+					EACServer.client2connection.Remove((uint)(int)clientHandle);
 					EACServer.connection2client.Remove(connection);
 					EACServer.connection2status.Remove(connection);
 				}
