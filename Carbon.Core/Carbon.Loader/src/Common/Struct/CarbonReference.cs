@@ -15,8 +15,6 @@ public class CarbonReference
 
 	public byte[] raw;
 	public Assembly assembly;
-	public Type[] types;
-	public AssemblyName[] references;
 
 
 	public string FileName
@@ -49,12 +47,8 @@ public class CarbonReference
 		try
 		{
 			if (!File.Exists(path)) throw new FileNotFoundException();
-
 			assembly = Assembly.LoadFrom(path);
 			raw = File.ReadAllBytes(path);
-
-			types = assembly.GetTypes();
-			references = assembly.GetReferencedAssemblies();
 
 			fullPath = path;
 			return assembly;

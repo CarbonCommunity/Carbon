@@ -12,7 +12,7 @@
 		<PackageReference Include="Costura.Fody" Version="5.7.0" PrivateAssets="all" />
 
 		<!-- HarmonyLib using a custom name -->
-		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
+		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="true" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">

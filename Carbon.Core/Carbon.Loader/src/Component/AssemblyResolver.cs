@@ -34,29 +34,23 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 	internal void RegisterDomain(AppDomain domain)
 	{
 		domain.AssemblyResolve += ResolveAssembly;
-#if DEBUG
 		domain.AssemblyLoad += LoadAssembly;
-#endif
 	}
 
 	private static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
 		=> GetAssembly(args.Name).assembly ?? null;
 
-#if DEBUG
 	private static void LoadAssembly(object sender, AssemblyLoadEventArgs args)
 	{
-		Utility.Logger.Log($"Load: {args.LoadedAssembly.GetName().Name}");
+		Utility.Logger.File($"Load: {args.LoadedAssembly.GetName().Name}");
 	}
-#endif
 
 	public static bool IsReferenceAllowed(string name)
 	{
 		foreach (string expr in Context.Regex.refWhitelist)
 			if (Regex.IsMatch(name, expr))
 				return true;
-#if DEBUG
-		Logger.Warn($"Reference: {name} is not allowed");
-#endif
+		Logger.File($"Reference: {name} is not white listed");
 		return false;
 	}
 
@@ -80,9 +74,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 		if (ccr != null)
 		{
-#if DEBUG
-			Logger.Log($"Resolved: {ccr.FileName} from cache");
-#endif
+			Logger.File($"Resolved: {ccr.FileName} from cache");
 			return ccr;
 		}
 
@@ -91,7 +83,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 			string p = Path.Combine(bp, $"{ncr.name}.dll");
 			if (File.Exists(p) && ncr.LoadFromFile(p) != null)
 			{
-				Logger.Log($"Resolved: {ncr.FileName} from disk");
+				Logger.File($"Resolved: {ncr.FileName} from disk");
 				LastCacheUpdate = UnityEngine.Time.realtimeSinceStartup;
 				cachedReferences.Add(ncr);
 				return ncr;

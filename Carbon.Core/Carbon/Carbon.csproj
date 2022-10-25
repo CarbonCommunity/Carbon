@@ -10,10 +10,10 @@
 
 	<ItemGroup>
 		<!-- Carbon platform -->
-		<ProjectReference Include="..\Carbon.Loader\Carbon.Loader.csproj" />
+		<ProjectReference Include="..\Carbon.Loader\Carbon.Loader.csproj" Private="false" />
 
 		<!-- HarmonyLib using a custom name -->
-		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" />
+		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" />
 
 		<!-- Required by Carbon's Logger -->
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
@@ -24,8 +24,8 @@
 		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
 
 		<!-- Required by Carbon's Database support -->
-		<PackageReference Include="MySql.Data" Version="8.0.31" />
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" />
+		<PackageReference Include="MySql.Data" Version="8.0.31" PrivateAssets="all" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" PrivateAssets="all" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
