@@ -66,6 +66,8 @@ namespace Carbon.Processors
 			{
 				try
 				{
+					Loader._failedMods.RemoveAll(x => x.File == File);
+
 					_loader = new ScriptLoader();
 					_loader.Parser = Parser;
 					_loader.File = File;

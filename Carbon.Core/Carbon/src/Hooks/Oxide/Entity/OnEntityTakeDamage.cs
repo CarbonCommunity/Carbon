@@ -6,7 +6,7 @@
 namespace Carbon.Hooks
 {
 	[OxideHook("OnEntityTakeDamage", typeof(bool)), OxideHook.Category(Hook.Category.Enum.Entity)]
-	[OxideHook.Parameter("this", typeof(ResourceEntity))]
+	[OxideHook.Parameter("entity", typeof(ResourceEntity))]
 	[OxideHook.Parameter("info", typeof(HitInfo))]
 	[OxideHook.Info("Alternatively, modify the HitInfo object to change the damage.")]
 	[OxideHook.Patch(typeof(ResourceEntity), "OnAttacked")]

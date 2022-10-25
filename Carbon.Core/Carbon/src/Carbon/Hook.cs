@@ -10,6 +10,7 @@ namespace Carbon.Hooks
 	[AttributeUsage(AttributeTargets.Class)]
 	public class Hook : Attribute
 	{
+		public Type Type { get; set; }
 		public string Name { get; set; }
 		public Type ReturnType { get; set; }
 
@@ -110,6 +111,7 @@ namespace Carbon.Hooks
 				World,
 				Shop,
 				Elevator,
+				Vending,
 				Special
 			}
 

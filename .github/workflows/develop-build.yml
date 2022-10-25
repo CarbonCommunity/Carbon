@@ -31,8 +31,8 @@ jobs:
       ref:   ${{ steps.step1.outputs.ref }}
 
     steps:
-      - name: 🪵 Log environment
-        uses: crazy-max/ghaction-dump-context@v1
+      #- name: 🪵 Log environment
+      #  uses: crazy-max/ghaction-dump-context@v1
         
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
@@ -42,10 +42,10 @@ jobs:
       - name: 📅 Prepare the environment
         id: step1
         run: |
-          echo "::set-output name=date::$(date +'%Y-%m-%d')"
-          echo "::set-output name=clock::$(date +'%H:%M:%S')"
-          echo "::set-output name=tag::$(date +'%Yd%j')"
-          echo "::set-output name=ref::$(git rev-parse --short HEAD)"
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
+          echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
   build-linux:
     name: 🐧 Linux
@@ -131,6 +131,14 @@ jobs:
       with:
         name: ${{ needs.build-linux.outputs.artifact }}
         path: Release/
+        
+    - name: 🗑️ Delete existing release tag
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        delete_release: true
+        tag_name: develop_build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🏷️ Update release tag
       uses: softprops/action-gh-release@v1

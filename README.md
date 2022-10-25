@@ -16,7 +16,7 @@ A concept that's becoming reality.
 
 **For more in-depth Carbon documentation, from builds and deployment, check [here](https://carboncommunity.gitbook.io/docs).**
 
-Find all currently available hooks **[here](https://carboncommunity.gitbook.io/docs/core/hooks/carbon-hooks)**.
+Find all currently available hooks **[here](https://carboncommunity.gitbook.io/docs/core/hooks/carbon-hooks)**. We're open for your support to add any missing hooks that you want **[here](https://carboncommunity.gitbook.io/docs/core/hooks/incompatible-hooks)**.
 
 ## Features
 * Extremely lightweight, stripped out of additional, unrelated-to-Rust processes
