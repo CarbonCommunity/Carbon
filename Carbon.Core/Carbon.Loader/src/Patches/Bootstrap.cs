@@ -15,15 +15,19 @@ internal static class __Bootstrap
 	{
 		public static void Prefix()
 		{
+			bool r1 = Hijacker.DoUnload();
+			bool r2 = Hijacker.DoMove();
 
-			if (Hijacker.DoUnload() || Hijacker.DoMove())
+			if (r1 || r2)
 			{
 				Logger.Warn("Application will now exit");
 				Process.GetCurrentProcess().Kill();
 			}
-
-			Hijacker.DoHijack();
-			Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
+			else
+			{
+				Hijacker.DoHijack();
+				Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
+			}
 		}
 	}
 }
