@@ -62,7 +62,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		{
 			if (!Regex.IsMatch(name, kvp.Key)) continue;
 			string result = Regex.Replace(name, kvp.Key, kvp.Value);
-			Logger.Debug($"Translation match:'{kvp.Key}' input:{name} result:{result}");
+			Logger.Debug($"Translated: input:{name} match:'{kvp.Key}' result:{result}");
 			name = result;
 			break;
 		}

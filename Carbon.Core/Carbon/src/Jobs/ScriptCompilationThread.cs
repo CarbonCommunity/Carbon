@@ -17,7 +17,6 @@ using Carbon.Core;
 using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Application = UnityEngine.Application;
 
 namespace Carbon.Jobs
 {

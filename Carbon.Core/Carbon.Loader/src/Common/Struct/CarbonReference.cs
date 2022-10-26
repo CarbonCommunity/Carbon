@@ -10,7 +10,7 @@ namespace Carbon.Common;
 
 public class CarbonReference
 {
-	public string name, fullName, fullPath;
+	public string name, fullName, location;
 	public Version version;
 
 	public byte[] raw;
@@ -18,16 +18,16 @@ public class CarbonReference
 
 
 	public string FileName
-	{ get => Path.GetFileName(fullPath); }
+	{ get => Path.GetFileName(location); }
 
 	public string FileNameWithoutExtension
-	{ get => Path.GetFileNameWithoutExtension(fullPath); }
+	{ get => Path.GetFileNameWithoutExtension(location); }
 
 	public string Extension
-	{ get => Path.GetExtension(fullPath); }
+	{ get => Path.GetExtension(location); }
 
 	public string DirectoryName
-	{ get => Path.GetDirectoryName(fullPath); }
+	{ get => Path.GetDirectoryName(location); }
 
 
 	public override string ToString()
@@ -47,10 +47,9 @@ public class CarbonReference
 		try
 		{
 			if (!File.Exists(path)) throw new FileNotFoundException();
-			assembly = Assembly.LoadFrom(path);
 			raw = File.ReadAllBytes(path);
-
-			fullPath = path;
+			assembly = Assembly.Load(raw);
+			location = path;
 			return assembly;
 		}
 		catch (System.Exception e)

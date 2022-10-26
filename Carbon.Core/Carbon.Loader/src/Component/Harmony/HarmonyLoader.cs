@@ -30,7 +30,7 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 		{
 			name = Path.GetFileNameWithoutExtension(assemblyPath),
 			identifier = Guid.NewGuid().ToString(),
-			fullPath = assemblyPath,
+			location = assemblyPath,
 		};
 
 		switch (mod.Extension)
