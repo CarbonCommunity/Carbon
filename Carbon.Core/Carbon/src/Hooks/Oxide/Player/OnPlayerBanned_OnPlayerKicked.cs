@@ -49,10 +49,8 @@ namespace Carbon.Hooks
 						Interface.CallHook("OnPlayerBanned", connection, actionReasonDetailsString.ToString());
 					}
 
-					UnregisterClientOptions unregisterClientOptions = default(UnregisterClientOptions);
-					unregisterClientOptions.ClientHandle = clientHandle;
-					UnregisterClientOptions options = unregisterClientOptions;
-					EACServer.Interface.UnregisterClient(ref options);
+					var unregisterClientOptions = new UnregisterClientOptions { ClientHandle = clientHandle };
+					EACServer.Interface.UnregisterClient(ref unregisterClientOptions);
 					EACServer.client2connection.Remove((uint)(int)clientHandle);
 					EACServer.connection2client.Remove(connection);
 					EACServer.connection2status.Remove(connection);
