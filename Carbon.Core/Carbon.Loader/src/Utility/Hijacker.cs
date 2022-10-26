@@ -32,7 +32,7 @@ internal sealed class Hijacker
 			string Name = HarmonyMod.GetProperty("Name").GetValue(mod) as string;
 
 			// TODO: better validation
-			if (Regex.IsMatch(Name, Context.Regex.CarbonNameValidator)) continue;
+			if (Regex.IsMatch(Name, Context.Patterns.CarbonNameValidator)) continue;
 			Logger.Warn($"Found loaded plugin '{Name}'");
 
 			try
@@ -68,7 +68,7 @@ internal sealed class Hijacker
 			foreach (string file in Directory.EnumerateFiles(source, "*.dll"))
 			{
 				string name = Path.GetFileName(file);
-				if (string.IsNullOrEmpty(file) || Regex.IsMatch(name, Context.Regex.CarbonNameValidator)) continue;
+				if (string.IsNullOrEmpty(file) || Regex.IsMatch(name, Context.Patterns.CarbonNameValidator)) continue;
 				File.Copy(file, Path.Combine(target, name), true);
 				File.Delete(file);
 

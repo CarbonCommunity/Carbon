@@ -22,12 +22,6 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		Context.Directory.CarbonManaged,
 	};
 
-	private readonly static Dictionary<string, string> translation = new Dictionary<string, string>
-	{
-		{ @"^Carbon(-\d+)?$", "Carbon" }, // special case: carbon random asm name
-		{ @"^0Harmony$", "1Harmony" }
-	};
-
 	private List<CarbonReference> cachedReferences
 		= new List<CarbonReference>();
 
@@ -52,7 +46,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 	public bool IsReferenceAllowed(string name)
 	{
 		return true;
-		foreach (string expr in Context.Regex.refWhitelist)
+		foreach (string expr in Context.Patterns.refWhitelist)
 			if (Regex.IsMatch(name, expr))
 				return true;
 		Logger.Debug($"Reference: {name} is not white listed");
@@ -64,7 +58,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	private CarbonReference ResolveAssembly(string name)
 	{
-		foreach (KeyValuePair<string, string> kvp in translation)
+		foreach (KeyValuePair<string, string> kvp in Context.Patterns.refTranslator)
 		{
 			if (!Regex.IsMatch(name, kvp.Key)) continue;
 			string result = Regex.Replace(name, kvp.Key, kvp.Value);
