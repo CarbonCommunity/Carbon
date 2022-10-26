@@ -37,5 +37,10 @@ echo "%TARGET%" | findstr /C:"Unix" >NUL && (
 	copy /y "%ROOT%\Tools\Helpers\publicizer.sh" "%ROOT%\Release\.tmp\%TARGET%\carbon\tools\" > NUL
 )
 
+rem Create the standalone files
+copy /y "%ROOT%\Release\.tmp\%TARGET%\HarmonyMods\Carbon.Loader.dll" "%ROOT%\Release"
+copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.dll" "%ROOT%\Release"
+copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Doorstop.dll" "%ROOT%\Release"
+
 rem Create the zip archive release files
 powershell -Command "Compress-Archive -Update -Path '%ROOT%\Release\.tmp\%TARGET%\*' -DestinationPath '%ROOT%\Release\Carbon.%TARGET%.zip'"
