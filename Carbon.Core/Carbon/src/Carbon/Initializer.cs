@@ -15,20 +15,10 @@ namespace Carbon.Core
 	{
 		public void OnLoaded(OnHarmonyModLoadedArgs args)
 		{
-			var oldMod = PlayerPrefs.GetString(Harmony_Load.CARBON_LOADED);
-
-			if (!Assembly.GetExecutingAssembly().FullName.StartsWith(oldMod))
-			{
-				Community.Runtime?.Uninitalize();
-				HarmonyLoader.TryUnloadMod(oldMod);
-				Carbon.Logger.Warn($"Unloaded previous: {oldMod}");
-				Community.Runtime = null;
-			}
-
 			try
 			{
-				Type t = Type.GetType("ServerMgr, Assembly-CSharp");
-				MethodInfo m = t.GetMethod("Shutdown", BindingFlags.Public | BindingFlags.Instance) ?? null;
+				var t = Type.GetType("ServerMgr, Assembly-CSharp");
+				var m = t.GetMethod("Shutdown", BindingFlags.Public | BindingFlags.Instance) ?? null;
 				if (m == null || !m.IsPublic)
 				{
 					Carbon.Logger.Log(Environment.NewLine +
