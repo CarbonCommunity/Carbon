@@ -6,7 +6,7 @@
 using System;
 using System.IO;
 
-namespace Carbon.Context;
+namespace Carbon.LoaderEx.Context;
 
 internal sealed class Directory
 {

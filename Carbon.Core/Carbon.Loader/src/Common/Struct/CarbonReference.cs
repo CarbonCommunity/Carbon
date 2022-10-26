@@ -6,9 +6,9 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace Carbon.Common;
+namespace Carbon.LoaderEx.Common;
 
-public class CarbonReference
+public class CarbonReference : IDisposable
 {
 	public string name, fullName, location;
 	public Version version;
@@ -57,6 +57,12 @@ public class CarbonReference
 			Utility.Logger.Error($"Unable to load assembly from file '{path}'", e);
 			return null;
 		}
+	}
+
+	public virtual void Dispose()
+	{
+		assembly = default;
+		raw = null;
 	}
 
 

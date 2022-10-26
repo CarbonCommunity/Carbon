@@ -3,15 +3,15 @@
 /// All rights reserved
 /// 
 using System;
-using Carbon.Common;
-using Carbon.Components;
-using Carbon.Utility;
+using Carbon.LoaderEx.Common;
+using Carbon.LoaderEx.Components;
+using Carbon.LoaderEx.Utility;
 
-namespace Carbon;
+namespace Carbon.LoaderEx;
 
-internal sealed class Loader : Singleton<Loader>, IDisposable
+public sealed class Program : Singleton<Program>, IDisposable
 {
-	static Loader() { }
+	static Program() { }
 
 	private readonly string Identifier;
 
@@ -19,7 +19,7 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 
 	private UnityEngine.GameObject gameObject;
 
-	internal Loader()
+	internal Program()
 	{
 		Identifier = Guid.NewGuid().ToString();
 		Logger.Warn($"Using '{Identifier}' as runtime namespace");
@@ -30,7 +30,7 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 		UnityEngine.Object.DontDestroyOnLoad(gameObject);
 	}
 
-	public void Initialize()
+	internal void Initialize()
 	{
 		Logger.None(
 			@"                                               " + Environment.NewLine +
@@ -41,6 +41,14 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
 			@"                                               " + Environment.NewLine
 		);
+	}
+
+	// TODO I'd like to keep the loader class internal
+	// maybe this need to go to a "more public" type
+	public void Restart()
+	{
+		Components.HarmonyLoader.GetInstance().Unload("Carbon.dll");
+		Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
 	}
 
 	public void Dispose()

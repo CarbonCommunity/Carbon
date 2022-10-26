@@ -11,10 +11,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon.Base;
-using Carbon.Common;
-using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.LoaderEx.Common;
+using Carbon.LoaderEx.Components;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 

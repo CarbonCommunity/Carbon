@@ -2,7 +2,7 @@
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
-using Carbon;
+using Carbon.LoaderEx;
 
 internal sealed class Entrypoint : IHarmonyModHooks
 {
@@ -14,9 +14,9 @@ internal sealed class Entrypoint : IHarmonyModHooks
 		/// At this point in time we can't know in which position of the loading
 		/// queue we are at thus executing the purge right now would result in 
 		/// an undefined result.
-		Loader.GetInstance().Initialize();
+		Program.GetInstance().Initialize();
 	}
 
 	public void OnUnloaded(OnHarmonyModUnloadedArgs args)
-		=> Loader.GetInstance().Dispose();
+		=> Program.GetInstance().Dispose();
 }

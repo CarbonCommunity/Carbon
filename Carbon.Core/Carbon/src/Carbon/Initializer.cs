@@ -6,8 +6,6 @@
 using System;
 using System.Reflection;
 using System.Threading;
-using Carbon.Hooks;
-using UnityEngine;
 
 namespace Carbon.Core
 {
@@ -65,12 +63,11 @@ namespace Carbon.Core
 			}
 		}
 
-		public void OnUnloaded(OnHarmonyModUnloadedArgs args) { }
-	}
-
-	[Harmony.HarmonyPatch(typeof(Bootstrap), "StartupShared")]
-	public class Init
-	{
-		public static void Prefix() { }
+		public void OnUnloaded(OnHarmonyModUnloadedArgs args)
+		{
+			Carbon.Logger.Log("Uninitalizing...");
+			Community.Runtime?.Uninitalize();
+			Community.Runtime = null;
+		}
 	}
 }

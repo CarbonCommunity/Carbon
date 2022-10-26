@@ -93,10 +93,10 @@ namespace Carbon.Core
 			Carbon.Logger.Log(message);
 		}
 
-		[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
-		private void Exit(ConsoleSystem.Arg arg)
+		[ConsoleCommand("restart", "Completely unloads Carbon from the game and then loads it again.")]
+		private void Restart(ConsoleSystem.Arg arg)
 		{
-
+			Carbon.LoaderEx.Program.GetInstance().Restart();
 		}
 
 		[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]

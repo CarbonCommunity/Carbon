@@ -3,10 +3,10 @@
 /// All rights reserved
 /// 
 using System.Diagnostics;
-using Carbon.Utility;
+using Carbon.LoaderEx.Utility;
 using Harmony;
 
-namespace Carbon.Patches;
+namespace Carbon.LoaderEx.Patches;
 
 internal static class __Bootstrap
 {

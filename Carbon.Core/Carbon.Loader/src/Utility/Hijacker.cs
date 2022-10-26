@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Harmony;
 
-namespace Carbon.Utility;
+namespace Carbon.LoaderEx.Utility;
 
 internal sealed class Hijacker
 {
@@ -89,7 +89,7 @@ internal sealed class Hijacker
 		try
 		{
 			Logger.Log("Patching Facepunch's harmony loader");
-			Loader.GetInstance().Harmony.PatchAll();
+			Program.GetInstance().Harmony.PatchAll();
 		}
 		catch (System.Exception e)
 		{

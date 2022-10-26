@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 
-namespace Carbon.Utility;
+namespace Carbon.LoaderEx.Utility;
 
 internal sealed class Logger
 {

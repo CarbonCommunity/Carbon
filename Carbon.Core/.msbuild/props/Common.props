@@ -6,7 +6,9 @@
 		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Deterministic>true</Deterministic>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<FileAlignment>512</FileAlignment>
+		<ImplicitUsings>disable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 		<Platforms>x64</Platforms>
 		<PlatformTarget></PlatformTarget>

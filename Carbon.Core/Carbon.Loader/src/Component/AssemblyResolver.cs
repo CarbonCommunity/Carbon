@@ -8,10 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Carbon.Common;
-using Carbon.Utility;
+using Carbon.LoaderEx.Common;
+using Carbon.LoaderEx.Utility;
 
-namespace Carbon.Components;
+namespace Carbon.LoaderEx.Components;
 
 public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 {

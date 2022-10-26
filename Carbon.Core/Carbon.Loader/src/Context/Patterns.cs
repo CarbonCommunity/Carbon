@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
-namespace Carbon.Context;
+namespace Carbon.LoaderEx.Context;
 
 internal sealed class Patterns
 {

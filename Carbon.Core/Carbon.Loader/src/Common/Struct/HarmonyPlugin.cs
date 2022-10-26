@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Carbon.Common;
+namespace Carbon.LoaderEx.Common;
 
 internal class HarmonyPlugin : CarbonReference
 {
@@ -23,4 +23,10 @@ internal class HarmonyPlugin : CarbonReference
 	}
 
 	public HarmonyLib.Harmony harmonyInstance;
+
+	public override void Dispose()
+	{
+		base.Dispose();
+		hooks = default;
+	}
 }

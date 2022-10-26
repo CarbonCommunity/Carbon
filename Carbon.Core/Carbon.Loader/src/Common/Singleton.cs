@@ -4,7 +4,7 @@
 /// 
 using System;
 
-namespace Carbon.Common;
+namespace Carbon.LoaderEx.Common;
 
 public abstract class Singleton<T> where T : class
 {
