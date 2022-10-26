@@ -32,9 +32,9 @@ if [[ "${TARGET}" == *"Unix"* ]]; then
 fi
 
 # Create the standalone files
-cp /y "${ROOT}/Release/.tmp/${TARGET}/HarmonyMods/Carbon.Loader.dll" "${ROOT}/Release"
-cp /y "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll" "${ROOT}/Release"
-cp /y "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.Doorstop.dll" "${ROOT}/Release"
+cp "${ROOT}/Release/.tmp/${TARGET}/HarmonyMods/Carbon.Loader.dll" "${ROOT}/Release"
+cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll" "${ROOT}/Release"
+cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.Doorstop.dll" "${ROOT}/Release"
 
 # Create the zip archive release files
 cd "${ROOT}/Release/.tmp/${TARGET}" && zip -r "${ROOT}/Release/Carbon.${TARGET}.zip" .
