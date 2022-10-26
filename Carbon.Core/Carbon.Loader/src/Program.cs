@@ -9,7 +9,7 @@ using Carbon.LoaderEx.Utility;
 
 namespace Carbon.LoaderEx;
 
-public sealed class Program : Singleton<Program>, IDisposable
+internal sealed class Program : Singleton<Program>, IDisposable
 {
 	static Program() { }
 
@@ -41,14 +41,6 @@ public sealed class Program : Singleton<Program>, IDisposable
 			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
 			@"                                               " + Environment.NewLine
 		);
-	}
-
-	// TODO I'd like to keep the loader class internal
-	// maybe this need to go to a "more public" type
-	public void Restart()
-	{
-		Components.HarmonyLoader.GetInstance().Unload("Carbon.dll");
-		Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
 	}
 
 	public void Dispose()
