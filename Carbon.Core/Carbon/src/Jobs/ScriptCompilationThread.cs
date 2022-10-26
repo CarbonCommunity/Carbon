@@ -158,7 +158,7 @@ namespace Carbon.Jobs
 
 				var references = _addReferences();
 				var trees = new List<SyntaxTree>();
-				trees.Add(CSharpSyntaxTree.ParseText(Source));
+				trees.Add(CSharpSyntaxTree.ParseText(Source, new CSharpParseOptions(LanguageVersion.Latest)));
 
 				foreach (var require in Requires)
 				{
@@ -177,11 +177,11 @@ namespace Carbon.Jobs
 				var options = new CSharpCompilationOptions(
 					OutputKind.DynamicallyLinkedLibrary,
 					optimizationLevel: OptimizationLevel.Release,
-					warningLevel: 4
+					deterministic: true, warningLevel: 4
 				);
 
 				var compilation = CSharpCompilation.Create(
-					$"{FileName}_{RandomEx.GetRandomInteger()}", trees, references, options);
+					$"Script.{FileName}.{RandomEx.GetRandomInteger()}", trees, references, options);
 
 				using (var dllStream = new MemoryStream())
 				{
