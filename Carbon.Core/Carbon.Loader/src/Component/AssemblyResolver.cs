@@ -45,12 +45,14 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	public bool IsReferenceAllowed(string name)
 	{
+		// let's keep this disabled for now
 		return true;
-		foreach (string expr in Context.Patterns.refWhitelist)
-			if (Regex.IsMatch(name, expr))
-				return true;
-		Logger.Debug($"Reference: {name} is not white listed");
-		return false;
+
+		// foreach (string expr in Context.Patterns.refWhitelist)
+		// 	if (Regex.IsMatch(name, expr))
+		// 		return true;
+		// Logger.Debug($"Reference: {name} is not white listed");
+		// return false;
 	}
 
 	private Assembly ResolveAssembly(object sender, ResolveEventArgs args)
