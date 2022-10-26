@@ -27,8 +27,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Company>Carbon Community</Company>
-		<Copyright>Copyright © 2022 Carbon Community</Copyright>
+		<Authors>Carbon Community</Authors>
+		<Copyright>Copyright © $([System.DateTime]::Now.Year) $(Authors)</Copyright>
 		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
 		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
