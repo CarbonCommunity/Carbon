@@ -31,7 +31,7 @@ namespace Carbon.Core
 				MethodInfo m = t.GetMethod("Shutdown", BindingFlags.Public | BindingFlags.Instance) ?? null;
 				if (m == null || !m.IsPublic)
 				{
-					Carbon.Logger.Log(
+					Carbon.Logger.Log(Environment.NewLine +
 						@"                                                          " + Environment.NewLine +
 						@"  ________ _______ ______ _______ _______ _______ _______ " + Environment.NewLine +
 						@" |  |  |  |   _   |   __ \    |  |_     _|    |  |     __|" + Environment.NewLine +
@@ -50,7 +50,7 @@ namespace Carbon.Core
 				}
 				else
 				{
-					Carbon.Logger.Log(
+					Carbon.Logger.Log(Environment.NewLine +
 						@"                                               " + Environment.NewLine +
 						@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
 						@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +

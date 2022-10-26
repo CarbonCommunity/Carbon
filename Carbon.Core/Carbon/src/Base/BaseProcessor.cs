@@ -136,7 +136,7 @@ namespace Carbon.Base
 		{
 			if (IgnoreList.Contains(file)) return;
 
-			Carbon.Logger.Warn($" Loading plugin '{id}'...");
+			Carbon.Logger.Log($" Loading plugin '{id}'...");
 
 			Remove(id);
 
