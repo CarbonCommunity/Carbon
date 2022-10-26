@@ -337,6 +337,7 @@ namespace Carbon.Core
 			preInit?.Invoke(plugin);
 
 			plugin.ILoadConfig();
+			plugin.ILoadDefaultMessages();
 			plugin.IInit();
 			plugin.Load();
 			HookCaller.CallStaticHook("OnPluginLoaded", plugin);
