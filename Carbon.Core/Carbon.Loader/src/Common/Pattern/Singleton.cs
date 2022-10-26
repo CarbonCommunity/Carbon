@@ -11,9 +11,9 @@ public abstract class Singleton<T> where T : class
 	private static readonly Lazy<T> Instance
 		= new Lazy<T>(() => NewInstanceOfT());
 
-	internal static T GetInstance()
+	public static T GetInstance()
 		=> Instance.Value;
 
-	internal static T NewInstanceOfT()
+	private static T NewInstanceOfT()
 		=> Activator.CreateInstance(typeof(T), true) as T;
 }

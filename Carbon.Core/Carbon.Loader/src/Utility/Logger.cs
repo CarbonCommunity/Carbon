@@ -14,7 +14,7 @@ internal sealed class Logger
 
 	internal enum Severity
 	{
-		Error, Warning, Notice, File, None
+		Error, Warning, Notice, Debug, None
 	}
 
 	static Logger()
@@ -45,9 +45,10 @@ internal sealed class Logger
 				formatted = $"[i] {message}";
 				break;
 
-			case Severity.File:
-				System.IO.File.AppendAllText(logFile, $"{timestamp}{message}" + Environment.NewLine);
-				break;
+			case Severity.Debug:
+				formatted = $"[d] {message}";
+				System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
+				return;
 
 			case Severity.None:
 				Console.WriteLine(message);
@@ -57,18 +58,15 @@ internal sealed class Logger
 				throw new Exception($"Severity {severity} not implemented.");
 		}
 
-		if (formatted != null)
-		{
-			Console.WriteLine(formatted);
-			System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
-		}
+		Console.WriteLine(formatted);
+		System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
 	}
 
 	internal static void None(object message)
 		=> Write(Logger.Severity.None, message);
 
-	internal static void File(object message)
-		=> Write(Logger.Severity.File, message);
+	internal static void Debug(object message)
+		=> Write(Logger.Severity.Debug, message);
 
 	internal static void Log(object message)
 		=> Write(Logger.Severity.Notice, message);

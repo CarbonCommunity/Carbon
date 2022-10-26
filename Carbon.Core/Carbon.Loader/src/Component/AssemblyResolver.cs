@@ -15,53 +15,63 @@ namespace Carbon.Components;
 
 public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 {
-	private static string[] lookup =
+	private readonly static string[] lookup =
 	{
 		Context.Directory.GameManaged,
 		Context.Directory.CarbonLib,
 		Context.Directory.CarbonManaged,
 	};
 
-	private static List<CarbonReference> cachedReferences
+	private readonly static Dictionary<string, string> translation = new Dictionary<string, string>
+	{
+		{ @"^Carbon(-\d+)?$", "Carbon" }, // special case: carbon random asm name
+		{ @"^0Harmony$", "1Harmony" }
+	};
+
+	private List<CarbonReference> cachedReferences
 		= new List<CarbonReference>();
 
-	public static float LastCacheUpdate
+	internal AssemblyResolver()
 	{
-		get;
-		private set;
+		string bp = Context.Directory.CarbonManaged;
+		Utility.Logger.Log($"Warming up assemblies from '{bp}'..");
+
+		foreach (string file in Directory.EnumerateFiles(bp, "*.dll"))
+			ResolveAssembly(Path.GetFileNameWithoutExtension(file));
 	}
 
 	internal void RegisterDomain(AppDomain domain)
 	{
 		domain.AssemblyResolve += ResolveAssembly;
-		domain.AssemblyLoad += LoadAssembly;
+		//domain.AssemblyLoad += LoadAssembly;
 	}
 
-	private static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
-		=> GetAssembly(args.Name).assembly ?? null;
+	public bool IsReferenceAllowed(Assembly assembly)
+		=> IsReferenceAllowed(assembly.GetName().Name);
 
-	private static void LoadAssembly(object sender, AssemblyLoadEventArgs args)
+	public bool IsReferenceAllowed(string name)
 	{
-		Utility.Logger.File($"Load: {args.LoadedAssembly.GetName().Name}");
-	}
-
-	public static bool IsReferenceAllowed(string name)
-	{
+		return true;
 		foreach (string expr in Context.Regex.refWhitelist)
 			if (Regex.IsMatch(name, expr))
 				return true;
-		Logger.File($"Reference: {name} is not white listed");
+		Logger.Debug($"Reference: {name} is not white listed");
 		return false;
 	}
 
-	public static bool IsReferenceAllowed(Assembly assembly)
-		=> IsReferenceAllowed(assembly.GetName().Name);
+	private Assembly ResolveAssembly(object sender, ResolveEventArgs args)
+		=> ResolveAssembly(args.Name).assembly ?? null;
 
-	public static CarbonReference GetAssembly(string name)
+	private CarbonReference ResolveAssembly(string name)
 	{
-		// special case: carbon random asm name
-		if (Regex.IsMatch(name, @"^Carbon(-\d+)?$"))
-			name = "Carbon";
+		foreach (KeyValuePair<string, string> kvp in translation)
+		{
+			if (!Regex.IsMatch(name, kvp.Key)) continue;
+			string result = Regex.Replace(name, kvp.Key, kvp.Value);
+			Logger.Debug($"Translation match:'{kvp.Key}' input:{name} result:{result}");
+			name = result;
+			break;
+		}
 
 		// new carbon ref (ncr)
 		CarbonReference ncr = new CarbonReference();
@@ -74,7 +84,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 		if (ccr != null)
 		{
-			Logger.File($"Resolved: {ccr.FileName} from cache");
+			Logger.Debug($"Resolved: {ccr.FileName} from cache");
 			return ccr;
 		}
 
@@ -83,8 +93,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 			string p = Path.Combine(bp, $"{ncr.name}.dll");
 			if (File.Exists(p) && ncr.LoadFromFile(p) != null)
 			{
-				Logger.File($"Resolved: {ncr.FileName} from disk");
-				LastCacheUpdate = UnityEngine.Time.realtimeSinceStartup;
+				Logger.Debug($"Resolved: {ncr.FileName} from disk");
 				cachedReferences.Add(ncr);
 				return ncr;
 			}
@@ -93,6 +102,14 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		Logger.Warn($"Unresolved: {ncr.fullName}");
 		ncr = default;
 		return null;
+	}
+
+	public CarbonReference GetAssembly(string name)
+	{
+		if (!IsReferenceAllowed(name)) return null;
+		CarbonReference asm = ResolveAssembly(name);
+		if (asm == null || asm.assembly.IsDynamic) return null;
+		return asm;
 	}
 
 	public void Dispose()
