@@ -180,7 +180,7 @@ namespace Carbon.Jobs
 				);
 
 				var compilation = CSharpCompilation.Create(
-					$"Script.{FileName}.{RandomEx.GetRandomInteger()}", trees, references, options);
+					$"Script.{FileName}.{Guid.NewGuid()}", trees, references, options);
 
 				using (var dllStream = new MemoryStream())
 				{

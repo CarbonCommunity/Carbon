@@ -102,7 +102,8 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	public CarbonReference GetAssembly(string name)
 	{
-		if (!IsReferenceAllowed(name)) return null;
+		// the second check should be removed when whitelisting is in place
+		if (!IsReferenceAllowed(name) || Regex.IsMatch(name, @"(?i)^(script\.)(.+)(\.[-\w]+)")) return null;
 		CarbonReference asm = ResolveAssembly(name);
 		if (asm == null || asm.assembly.IsDynamic) return null;
 		return asm;
