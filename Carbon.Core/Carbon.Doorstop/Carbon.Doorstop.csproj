@@ -5,7 +5,7 @@
 		<ProjectGuid>{6872448A-98BF-45B3-88D8-AF80F8E562CA}</ProjectGuid>
 	</PropertyGroup>
 
-	<Import Project="$(SolutionDir).msbuild\props\Common.props" />
+	<Import Project="..\.msbuild\Common.props" />
 
 	<ItemGroup>
 		<!-- Assembly weaver -->

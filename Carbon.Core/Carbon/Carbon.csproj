@@ -5,8 +5,8 @@
 		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
 	</PropertyGroup>
 
-	<Import Project="$(SolutionDir).msbuild\props\Common.props" />
-	<Import Project="$(SolutionDir).msbuild\props\AssemblyName.props" />
+	<Import Project="..\.msbuild\Common.props" />
+	<Import Project="..\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
 		<!-- Carbon platform -->

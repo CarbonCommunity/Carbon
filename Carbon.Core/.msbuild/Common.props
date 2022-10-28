@@ -36,9 +36,10 @@
 		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
 	</PropertyGroup>
 
-	<Import Project="$(SolutionDir).msbuild\props\Configurations.props" />
-	<Import Project="$(SolutionDir).msbuild\props\Metadata.props" />
-	<Import Project="$(SolutionDir).msbuild\targets\Clean.targets" />
-	<Import Project="$(SolutionDir).msbuild\targets\Metadata.targets" />
-	<Import Project="$(SolutionDir).msbuild\targets\Release.targets" />
+	<Import Project="Configurations.props" />
+	<Import Project="Metadata.props" />
+
+	<Import Project="Clean.targets" />
+	<Import Project="Metadata.targets" />
+	<Import Project="Release.targets" />
 </Project>
