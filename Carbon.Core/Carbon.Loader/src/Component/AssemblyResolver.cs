@@ -15,6 +15,8 @@ namespace Carbon.LoaderEx.Components;
 
 public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 {
+	static AssemblyResolver() { }
+
 	private readonly static string[] lookup =
 	{
 		Context.Directory.GameManaged,
@@ -27,11 +29,13 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	internal AssemblyResolver()
 	{
-		string bp = Context.Directory.CarbonManaged;
-		Utility.Logger.Log($"Warming up assemblies from '{bp}'..");
+		foreach (string fp in lookup)
+		{
+			Utility.Logger.Log($"Warming up assemblies from '{fp}'..");
 
-		foreach (string file in Directory.EnumerateFiles(bp, "*.dll"))
-			ResolveAssembly(Path.GetFileNameWithoutExtension(file));
+			foreach (string file in Directory.EnumerateFiles(fp, "*.dll"))
+				ResolveAssembly(Path.GetFileNameWithoutExtension(file));
+		}
 	}
 
 	internal void RegisterDomain(AppDomain domain)
@@ -56,54 +60,62 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 	}
 
 	private Assembly ResolveAssembly(object sender, ResolveEventArgs args)
-		=> ResolveAssembly(args.Name).assembly ?? null;
+		=> ResolveAssembly(args.Name).assembly;
 
 	private CarbonReference ResolveAssembly(string name)
 	{
-		foreach (KeyValuePair<string, string> kvp in Context.Patterns.refTranslator)
+		try
 		{
-			if (!Regex.IsMatch(name, kvp.Key)) continue;
-			string result = Regex.Replace(name, kvp.Key, kvp.Value);
-			Logger.Debug($"Translated: input:{name} match:'{kvp.Key}' result:{result}");
-			name = result;
-			break;
-		}
-
-		// new carbon ref (ncr)
-		CarbonReference ncr = new CarbonReference();
-		ncr.LoadMetadata(info: new AssemblyName(name));
-
-		// cached carbon ref (ccr)
-		CarbonReference ccr = cachedReferences.FirstOrDefault(
-			item => item.name == ncr.name
-		);
-
-		if (ccr != null)
-		{
-			Logger.Debug($"Resolved: {ccr.FileName} from cache");
-			return ccr;
-		}
-
-		foreach (string bp in lookup)
-		{
-			string p = Path.Combine(bp, $"{ncr.name}.dll");
-			if (File.Exists(p) && ncr.LoadFromFile(p) != null)
+			foreach (KeyValuePair<string, string> kvp in Context.Patterns.refTranslator)
 			{
-				Logger.Debug($"Resolved: {ncr.FileName} from disk");
-				cachedReferences.Add(ncr);
-				return ncr;
+				if (!Regex.IsMatch(name, kvp.Key)) continue;
+				string result = Regex.Replace(name, kvp.Key, kvp.Value);
+				Logger.Debug($"Translated: input:{name} match:'{kvp.Key}' result:{result}");
+				name = result;
+				break;
 			}
-		}
 
-		Logger.Warn($"Unresolved: {ncr.fullName}");
-		ncr = default;
-		return null;
+			// new carbon ref (ncr)
+			CarbonReference ncr = new CarbonReference();
+			ncr.LoadMetadata(info: new AssemblyName(name));
+
+			// cached carbon ref (ccr)
+			CarbonReference ccr = cachedReferences.FirstOrDefault(
+				item => item.name == ncr.name
+			);
+
+			if (ccr != null)
+			{
+				Logger.Debug($"Resolved: {ccr.FileName} from cache");
+				return ccr;
+			}
+
+			foreach (string fp in lookup)
+			{
+				string p = Path.Combine(fp, $"{ncr.name}.dll");
+				if (File.Exists(p) && ncr.LoadFromFile(p) != null)
+				{
+					Logger.Debug($"Resolved: {ncr.FileName} from disk");
+					cachedReferences.Add(ncr);
+					return ncr;
+				}
+			}
+
+			Logger.Warn($"Unresolved: {ncr.fullName}");
+			ncr = default;
+			return null;
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error($"ResolveAssembly Exception for '{name}'", e);
+			return null;
+		}
 	}
 
 	public CarbonReference GetAssembly(string name)
 	{
 		// the second check should be removed when whitelisting is in place
-		if (!IsReferenceAllowed(name) || Regex.IsMatch(name, @"(?i)^(script\.)(.+)(\.[-\w]+)")) return null;
+		//if (!IsReferenceAllowed(name) || Regex.IsMatch(name, @"(?i)^(script\.)(.+)(\.[-\w]+)")) return null;
 		CarbonReference asm = ResolveAssembly(name);
 		if (asm == null || asm.assembly.IsDynamic) return null;
 		return asm;

@@ -12,7 +12,6 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
-using Carbon.Extensions;
 using Carbon.LoaderEx.Common;
 using Carbon.LoaderEx.Components;
 using Microsoft.CodeAnalysis;
@@ -49,13 +48,15 @@ namespace Carbon.Jobs
 				try
 				{
 					CarbonReference asm = AssemblyResolver.GetInstance().GetAssembly(assembly.GetName().Name);
-					if (asm == null) throw new ArgumentException();
+					if (asm == null || asm.raw == null) throw new ArgumentException();
 
 					using (MemoryStream mem = new MemoryStream(asm.raw))
 						cachedReferences.Add(MetadataReference.CreateFromStream(mem));
 				}
 				catch { }
 			}
+
+			Logger.Debug($"ScriptCompilationThread cached {cachedReferences.Count} assemblies", 2);
 		}
 
 		internal static Dictionary<string, object> _referenceCache = new Dictionary<string, object>();

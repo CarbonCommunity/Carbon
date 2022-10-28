@@ -28,7 +28,7 @@ namespace Oxide.Core
 
 		public bool IsShuttingDown { get; private set; }
 
-		public float Now => UnityEngine.Time.realtimeSinceStartup;
+		//public float Now => UnityEngine.Time.realtimeSinceStartup;
 
 		public void Load()
 		{

@@ -22,6 +22,7 @@
 
 		<ItemGroup>
 			<FilesToClean Include="$(c_lib)\Carbon*.dll" />
+			<FilesToClean Include="$(c_lib)\*.pdb" />
 		</ItemGroup>
 
 		<Message Text="[$(AssemblyName)] &gt;&gt; Cleanup carbon stuff from lib folder" Importance="high" />

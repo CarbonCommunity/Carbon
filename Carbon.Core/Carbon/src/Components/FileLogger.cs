@@ -27,13 +27,13 @@ namespace Carbon
 
 			_hasInit = true;
 
-			var path = Path.Combine(Defines.GetLogsFolder(), "carbon_log.txt");
+			var path = Path.Combine(Defines.GetLogsFolder(), "Carbon.Core.log");
 
 			if (archive)
 			{
 				if (OsEx.File.Exists(path))
 				{
-					OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"carbon_log_{DateTime.Now:yyyy.MM.dd.HHmmss}.txt"));
+					OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"Carbon.Core.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
 				}
 			}
 

@@ -1,3 +1,5 @@
+#define USE_ASM_LOADFROMFILE
+
 ///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
@@ -49,16 +51,21 @@ public class CarbonReference : IDisposable
 			if (!File.Exists(path)) throw new FileNotFoundException();
 			location = path; // to have access to FileNameWithoutExtension
 			raw = File.ReadAllBytes(location);
-#if DEBUG
+
 			path = Path.Combine(DirectoryName, $"{FileNameWithoutExtension}.pdb");
 			if (File.Exists(path))
 			{
 				pdb = File.ReadAllBytes(path);
 				Utility.Logger.Debug($" Loaded debug symbols for '{FileName}'");
 			}
-			assembly = Assembly.Load(raw, pdb);
+#if USE_ASM_LOADFROMFILE
+			// this helps the debugger known where on disk the
+			// assembly files are located.
+			assembly = Assembly.LoadFile(location);
 #else
-			assembly = Assembly.Load(raw);
+			// when loading from memory the location of the assembly
+			// is a memory address and not a pointer to a disk file.
+			assembly = Assembly.Load(raw, pdb);
 #endif
 			return assembly;
 		}

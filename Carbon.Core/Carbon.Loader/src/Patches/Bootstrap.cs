@@ -26,7 +26,6 @@ internal static class __Bootstrap
 			else
 			{
 				Hijacker.DoHijack();
-				Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
 			}
 		}
 
@@ -45,5 +44,12 @@ internal static class __Bootstrap
 			Debugger.Break();
 		}
 #endif
+	}
+
+	[HarmonyPatch(typeof(Bootstrap), methodName: "StartupShared")]
+	internal static class __StartupShared
+	{
+		public static void Prefix()
+			=> Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
 	}
 }
