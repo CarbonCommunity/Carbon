@@ -11,7 +11,7 @@ namespace Carbon.Utility;
 
 internal static class Context
 {
-	public static readonly string Base, Tools, Managed;
+	public static readonly string Base, Carbon, Managed;
 
 	private static readonly string[] Needles = {
 		".", "..", "../.."
@@ -30,8 +30,8 @@ internal static class Context
 		if (Base == null)
 			throw new System.Exception("Unable to find root folder");
 
-		Tools = Path.GetFullPath(Path.Combine(
-			Base, "carbon", "tools"));
+		Carbon = Path.GetFullPath(Path.Combine(
+			Base, "carbon"));
 
 		Managed = Path.GetFullPath(Path.Combine(
 			Base, "RustDedicated_Data", "Managed"));

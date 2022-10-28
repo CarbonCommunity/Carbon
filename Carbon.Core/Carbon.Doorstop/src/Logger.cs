@@ -11,7 +11,7 @@ namespace Carbon.Utility;
 internal class Logger
 {
 	private static string logFile
-		= Path.Combine(Context.Base, "carbon", "logs", "Carbon.Doorstop.log");
+		= Path.Combine(Context.Carbon, "logs", "Carbon.Doorstop.log");
 
 	internal enum Severity
 	{
@@ -20,8 +20,8 @@ internal class Logger
 
 	static Logger()
 	{
-		if (!Directory.Exists(Path.Combine(Context.Base, "carbon", "logs")))
-			Directory.CreateDirectory(Path.Combine(Context.Base, "carbon", "logs"));
+		if (!Directory.Exists(Path.GetDirectoryName(logFile)))
+			Directory.CreateDirectory(Path.GetDirectoryName(logFile));
 	}
 
 	internal static void Write(Severity severity, object message, Exception ex = null)

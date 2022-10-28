@@ -41,7 +41,7 @@ public class Entrypoint
 			}
 			else
 			{
-				Logger.Log("All validation checks passed" + Environment.NewLine);
+				Logger.Log("All validation checks passed");
 			}
 		}
 		catch { /* exit */}

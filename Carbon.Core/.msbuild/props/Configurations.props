@@ -8,6 +8,7 @@
 		<When Condition="$(Configuration.Contains('Release'))">
 			<PropertyGroup>
 				<DebugType>none</DebugType>
+				<DebugSymbols>false</DebugSymbols>
 				<DefineConstants>$(DefineConstants)</DefineConstants>
 				<Optimize>true</Optimize>
 				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -15,7 +16,8 @@
 		</When>
 		<Otherwise>
 			<PropertyGroup>
-				<DebugType>embedded</DebugType>
+				<DebugType>pdbonly</DebugType>
+				<DebugSymbols>true</DebugSymbols>
 				<DefineConstants>DEBUG;UNITY_ASSERTIONS;$(DefineConstants)</DefineConstants>
 				<Optimize>false</Optimize>
 				<TreatWarningsAsErrors>false</TreatWarningsAsErrors>

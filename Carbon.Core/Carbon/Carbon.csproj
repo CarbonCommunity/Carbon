@@ -29,6 +29,7 @@
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).pdb" DestinationFolder="$(c_managed)" Condition="$(Configuration.Contains('Debug'))" />
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
 

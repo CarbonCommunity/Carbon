@@ -13,7 +13,7 @@ public class CarbonReference : IDisposable
 	public string name, fullName, location;
 	public Version version;
 
-	public byte[] raw;
+	public byte[] raw, pdb;
 	public Assembly assembly;
 
 
@@ -47,9 +47,19 @@ public class CarbonReference : IDisposable
 		try
 		{
 			if (!File.Exists(path)) throw new FileNotFoundException();
-			raw = File.ReadAllBytes(path);
+			location = path; // to have access to FileNameWithoutExtension
+			raw = File.ReadAllBytes(location);
+#if DEBUG
+			path = Path.Combine(DirectoryName, $"{FileNameWithoutExtension}.pdb");
+			if (File.Exists(path))
+			{
+				pdb = File.ReadAllBytes(path);
+				Utility.Logger.Debug($" Loaded debug symbols for '{FileName}'");
+			}
+			assembly = Assembly.Load(raw, pdb);
+#else
 			assembly = Assembly.Load(raw);
-			location = path;
+#endif
 			return assembly;
 		}
 		catch (System.Exception e)
