@@ -4,6 +4,7 @@
 /// 
 
 using System;
+using System.Xml.Linq;
 using Carbon;
 using Carbon.Core;
 using Oxide.Core.Libraries;
@@ -91,5 +92,60 @@ namespace Oxide.Core
 		{
 			return Activator.CreateInstance<T>();
 		}
+
+		#region Logging
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'NOTICE'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		public void LogInfo(string message)
+			=> Carbon.Logger.Log(message);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'WARNING'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		public void LogWarning(string message)
+			=> Carbon.Logger.Warn(message);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'ERROR'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="ex"></param>
+		public void LogError(string message, Exception ex)
+			=> Carbon.Logger.Error(message, ex);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'ERROR'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		public void LogError(string message)
+			=> Carbon.Logger.Error(message, null);
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'WARNING'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="args"></param>
+		public void PrintWarning(string format, params object[] args)
+			=> Carbon.Logger.Warn(string.Format(format, args));
+
+		/// <summary>
+		/// Outputs to the game's console a message with severity level 'ERROR'.
+		/// NOTE: Oxide compatibility layer.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <param name="args"></param>
+		public void PrintError(string format, params object[] args)
+			=> Carbon.Logger.Error(string.Format(format, args));
+
+		#endregion
 	}
 }
