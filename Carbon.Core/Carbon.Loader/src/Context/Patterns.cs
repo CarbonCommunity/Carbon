@@ -17,14 +17,20 @@ internal sealed class Patterns
 		// Facepunch managed refs
 		@"^Assembly-CSharp(-firstpass)?$",
 		@"^Facepunch(.\w+(.\w+)+)?$",
+		@"^Newtonsoft(.\w+)?$",
 		@"^Rust(.\w+(.\w+)+)?$",
-		@"^System(.\w+(.\w+)+)?$",
 		@"^Unity(.\w+(.\w+)+)?$",
 		@"^UnityEngine(.\w+)?$",
-		@"^mscorlib$",
 
 		// Carbon managed refs
-		@"^Carbon(-\d+)?$"
+		@"^Carbon(-\d+)?$",
+
+		// System stuff
+		@"^mscorlib$",
+		@"^System.Drawing(.\w+)?$",
+		@"^System.Core$",
+		@"^System.Xml(.\w+)?$",
+		@"^System$",
 	};
 
 	internal static readonly Dictionary<string, string> refTranslator = new Dictionary<string, string>

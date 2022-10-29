@@ -49,9 +49,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	public bool IsReferenceAllowed(string name)
 	{
-		// let's keep this disabled for now
 		return true;
-
 		// foreach (string expr in Context.Patterns.refWhitelist)
 		// 	if (Regex.IsMatch(name, expr))
 		// 		return true;
@@ -115,7 +113,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 	public CarbonReference GetAssembly(string name)
 	{
 		// the second check should be removed when whitelisting is in place
-		//if (!IsReferenceAllowed(name) || Regex.IsMatch(name, @"(?i)^(script\.)(.+)(\.[-\w]+)")) return null;
+		if (!IsReferenceAllowed(name) || Regex.IsMatch(name, @"(?i)^(script\.)(.+)(\.[-\w]+)")) return null;
 		CarbonReference asm = ResolveAssembly(name);
 		if (asm == null || asm.assembly.IsDynamic) return null;
 		return asm;

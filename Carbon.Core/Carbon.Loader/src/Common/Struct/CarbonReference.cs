@@ -1,5 +1,3 @@
-#define USE_ASM_LOADFROMFILE
-
 ///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
@@ -58,7 +56,7 @@ public class CarbonReference : IDisposable
 				pdb = File.ReadAllBytes(path);
 				Utility.Logger.Debug($" Loaded debug symbols for '{FileName}'");
 			}
-#if USE_ASM_LOADFROMFILE
+#if USE_ASMLOADFILE
 			// this helps the debugger known where on disk the
 			// assembly files are located.
 			assembly = Assembly.LoadFile(location);

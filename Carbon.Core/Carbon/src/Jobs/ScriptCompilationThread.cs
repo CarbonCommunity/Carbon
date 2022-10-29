@@ -33,7 +33,9 @@ namespace Carbon.Jobs
 		public float CompileTime;
 		public Assembly Assembly;
 		public List<CompilerException> Exceptions = new List<CompilerException>();
-		internal RealTimeSince TimeSinceCompile;
+
+		// FIXME: get_realtimeSinceStartup can only be called from the main thread.
+		//internal RealTimeSince TimeSinceCompile;
 
 		private static HashSet<MetadataReference> cachedReferences = new HashSet<MetadataReference>();
 		internal static bool _hasInit { get; set; }
@@ -154,7 +156,8 @@ namespace Carbon.Jobs
 			{
 				Exceptions.Clear();
 
-				TimeSinceCompile = 0;
+				// FIXME: get_realtimeSinceStartup can only be called from the main thread.
+				//TimeSinceCompile = 0;
 
 				var references = _addReferences();
 				var trees = new List<SyntaxTree>();
@@ -192,8 +195,19 @@ namespace Carbon.Jobs
 						var span = error.Location.GetMappedLineSpan().Span;
 						switch (error.Severity)
 						{
+#if DEBUG
+							case DiagnosticSeverity.Warning:
+								Logger.Warn($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
+									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
+								break;
+#endif
 							case DiagnosticSeverity.Error:
-								Exceptions.Add(new CompilerException(FilePath, new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+#if DEBUG
+								Logger.Error($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
+									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
+#endif
+								Exceptions.Add(new CompilerException(FilePath,
+									new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 								break;
 						}
 					}
@@ -214,7 +228,8 @@ namespace Carbon.Jobs
 					throw null;
 				}
 
-				CompileTime = TimeSinceCompile;
+				// FIXME: get_realtimeSinceStartup can only be called from the main thread.
+				//CompileTime = TimeSinceCompile;
 
 				references.Clear();
 				references = null;

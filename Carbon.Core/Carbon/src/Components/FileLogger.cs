@@ -11,7 +11,8 @@ namespace Carbon
 		internal static bool _hasInit;
 		internal static List<string> _buffer = new List<string>();
 		internal static StreamWriter _file;
-		internal static TimeSince _timeSinceFlush;
+		// FIXME: get_time can only be called from the main thread.
+		//internal static TimeSince _timeSinceFlush;
 		internal static int _splitSize = (int)(2.5f * 1000000f);
 
 		internal static void _init(bool archive = false)
@@ -56,7 +57,8 @@ namespace Carbon
 
 			_file.Flush();
 			_buffer.Clear();
-			_timeSinceFlush = 0;
+			// FIXME: get_time can only be called from the main thread.
+			//_timeSinceFlush = 0;
 
 			if (_file.BaseStream.Length > _splitSize)
 			{
