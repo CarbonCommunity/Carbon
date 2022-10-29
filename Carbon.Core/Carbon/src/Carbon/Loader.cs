@@ -532,7 +532,6 @@ namespace Carbon.Core
 
 						try
 						{
-							plugin.CallHook("OnServerInitialized");
 							plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
 						}
 						catch (Exception initException)
@@ -550,7 +549,6 @@ namespace Carbon.Core
 
 					try
 					{
-						HookCaller.CallHook(plugin, "OnServerInitialized");
 						HookCaller.CallHook(plugin, "OnServerInitialized", Community.IsServerFullyInitialized);
 					}
 					catch (Exception initException)
