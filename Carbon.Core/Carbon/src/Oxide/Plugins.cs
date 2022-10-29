@@ -6,7 +6,6 @@
 
 using Carbon.Core;
 using Facepunch;
-using Oxide.Core.Plugins;
 
 namespace Oxide.Plugins
 {

@@ -14,7 +14,6 @@ using Carbon.Extensions;
 using Carbon.Modules;
 using Facepunch;
 using Newtonsoft.Json;
-using Oxide.Core.Plugins;
 using Oxide.Plugins;
 using UnityEngine;
 

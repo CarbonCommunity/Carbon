@@ -3,7 +3,6 @@
 /// All rights reserved
 /// 
 
-using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Oxide.Ext.SQLite

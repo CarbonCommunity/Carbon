@@ -11,7 +11,6 @@ using System.Data.SQLite;
 using System.Threading;
 using Carbon;
 using Oxide.Core.Libraries;
-using Oxide.Core.Plugins;
 using Oxide.Ext.SQLite;
 using Oxide.Plugins;
 
