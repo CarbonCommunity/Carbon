@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using Carbon;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries
@@ -29,7 +30,7 @@ namespace Oxide.Core.Libraries
 			ServicePointManager.DefaultConnectionLimit = 200;
 		}
 
-		public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+		public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugins.Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
 		{
 			return new WebRequest(url, callback, owner)
 			{

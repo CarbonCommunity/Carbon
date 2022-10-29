@@ -12,6 +12,7 @@ using Carbon;
 using MySql.Data.MySqlClient;
 using Oxide.Core.Database;
 using Oxide.Core.Libraries;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Oxide.Core.MySql.Libraries

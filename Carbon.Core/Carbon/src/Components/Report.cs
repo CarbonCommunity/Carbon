@@ -11,6 +11,7 @@ using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Carbon

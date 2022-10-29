@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Carbon;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries

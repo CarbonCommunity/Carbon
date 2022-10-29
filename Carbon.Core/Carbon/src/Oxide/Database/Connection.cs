@@ -4,6 +4,7 @@
 /// 
 
 using System.Data.Common;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Oxide.Core.Database

@@ -9,6 +9,7 @@ using Carbon;
 using Carbon.Core;
 using Carbon.Extensions;
 using Newtonsoft.Json;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries

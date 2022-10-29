@@ -10,6 +10,7 @@ using System.Reflection;
 using Carbon.Base;
 using Carbon.Extensions;
 using Newtonsoft.Json;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Carbon.Core

@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Oxide.Core.Database
