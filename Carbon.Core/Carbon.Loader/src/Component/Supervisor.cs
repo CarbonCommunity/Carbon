@@ -7,12 +7,18 @@ namespace Carbon.LoaderEx.Components.Supervisor;
 
 public static class Core
 {
+	public static void Start()
+		=> HarmonyLoader.GetInstance().Load("Carbon.dll");
+
 	public static void Exit()
 		=> HarmonyLoader.GetInstance().Unload("Carbon.dll");
 
 	public static void Restart()
 	{
-		HarmonyLoader.GetInstance().Unload("Carbon.dll");
-		HarmonyLoader.GetInstance().Load("Carbon.dll");
+		Exit();
+		Start();
 	}
+
+	public static bool IsStarted
+		=> HarmonyLoader.GetInstance().IsLoaded("Carbon.dll");
 }

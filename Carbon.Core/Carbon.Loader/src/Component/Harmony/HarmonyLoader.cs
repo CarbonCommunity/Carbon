@@ -78,6 +78,9 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 		}
 	}
 
+	internal bool IsLoaded(string assemblyFile)
+		=> ((loadedAssembly.FirstOrDefault(x => x.FileName == assemblyFile) ?? null) != null);
+
 	private void PrepareHooks(ref HarmonyPlugin mod)
 	{
 		Utility.Logger.Debug($" Preparing '{mod}' hooks");

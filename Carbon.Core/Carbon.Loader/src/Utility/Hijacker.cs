@@ -114,7 +114,7 @@ internal sealed class Hijacker
 			{
 				nfo = evh.GetMethodInfo();
 
-				// TODO: stop be lazy and do this in a proper way
+				// TODO: stop being lazy and do this in a proper way
 				if (nfo.Module.Name.Contains("Rust.Harmony.dll"))
 				{
 					eventInfo.RemoveEventHandler(AppDomain.CurrentDomain, evh);
