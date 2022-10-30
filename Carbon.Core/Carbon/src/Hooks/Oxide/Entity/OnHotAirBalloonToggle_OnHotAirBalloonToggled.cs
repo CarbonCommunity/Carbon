@@ -3,7 +3,6 @@
 /// All rights reserved
 /// 
 
-using System;
 using Oxide.Core;
 
 namespace Carbon.Hooks

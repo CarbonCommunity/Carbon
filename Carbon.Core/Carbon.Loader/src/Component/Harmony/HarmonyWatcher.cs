@@ -3,17 +3,16 @@
 /// All rights reserved
 ///
 using System.IO;
-using Carbon.Common;
-using Carbon.Utility;
+using Carbon.LoaderEx.Common;
 
-namespace Carbon.Components;
+namespace Carbon.LoaderEx.Components;
 
 internal sealed class HarmonyWatcher : FileWatcherBehaviour
 {
 	internal override void Awake()
 	{
 		base.Awake();
-		Carbon.Utility.Logger.Log("HarmonyWatcher:Initialize()");
+		Carbon.LoaderEx.Utility.Logger.Log("HarmonyWatcher:Initialize()");
 
 		directory = Path.Combine(Context.Directory.Carbon, "harmony");
 		includeSubdirectories = true;
@@ -22,7 +21,7 @@ internal sealed class HarmonyWatcher : FileWatcherBehaviour
 
 	internal void Start()
 	{
-		Carbon.Utility.Logger.Log("HarmonyWatcher:Start()");
+		Carbon.LoaderEx.Utility.Logger.Log("HarmonyWatcher:Start()");
 
 		foreach (string f in Directory.EnumerateFiles(directory, extension, SearchOption.AllDirectories))
 			HarmonyLoader.GetInstance().Load(f);
@@ -30,23 +29,23 @@ internal sealed class HarmonyWatcher : FileWatcherBehaviour
 
 	internal override void OnFileChangedEvent(object sender, FileSystemEventArgs e)
 	{
-		Carbon.Utility.Logger.Log("HarmonyWatcher:OnFileChangedEvent()");
+		Carbon.LoaderEx.Utility.Logger.Log("HarmonyWatcher:OnFileChangedEvent()");
 		HarmonyLoader.GetInstance().Load(e.FullPath);
 	}
 
 	internal override void OnFileCreatedEvent(object sender, FileSystemEventArgs e)
 	{
-		Carbon.Utility.Logger.Log("HarmonyWatcher:OnFileCreatedEvent()");
+		Carbon.LoaderEx.Utility.Logger.Log("HarmonyWatcher:OnFileCreatedEvent()");
 		HarmonyLoader.GetInstance().Load(e.FullPath);
 	}
 
 	internal override void OnFileDeletedEvent(object sender, FileSystemEventArgs e)
 	{
-		Carbon.Utility.Logger.Log("HarmonyWatcher:OnFileDeletedEvent()");
+		Carbon.LoaderEx.Utility.Logger.Log("HarmonyWatcher:OnFileDeletedEvent()");
 	}
 
 	internal override void OnFileRenamedEvent(object sender, RenamedEventArgs e)
 	{
-		Carbon.Utility.Logger.Log("HarmonyWatcher:OnFileRenamedEvent()");
+		Carbon.LoaderEx.Utility.Logger.Log("HarmonyWatcher:OnFileRenamedEvent()");
 	}
 }

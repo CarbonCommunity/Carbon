@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="RandomASMNameGenerator" AfterTargets="_GenerateRestoreProjectSpec">
+		<PropertyGroup>
+			<RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
+		</PropertyGroup>
+
+		<Message Text="[$(AssemblyName)] &gt;&gt; Generated random assembly name: $(RandomASM)" Importance="high" />
+		<WriteLinesToFile File="$(SolutionDir)$(Product)\bin\.rndasm" Overwrite="true" Lines="$(RandomASM)" />
+	</Target>
+</Project>

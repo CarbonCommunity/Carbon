@@ -51,25 +51,10 @@ namespace Carbon.Core
 
 		#region Paths
 
-		public const string Name =
-#if WIN
-			"Carbon";
-#elif UNIX
-	"Carbon-Unix";
-#endif
-		public const string DllName =
-#if WIN
-			"Carbon.dll";
-#elif UNIX
-			"Carbon-Unix.dll";
-#endif
-		public static string DllPath => Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods",
-#if WIN
-			"Carbon.dll"
-#elif UNIX
-			"Carbon-Unix.dll"
-#endif
-	));
+		public const string Name = "Carbon";
+		public const string DllName = "Carbon.dll";
+		public static string DllPath => Path.GetFullPath(
+			Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods", "Carbon.dll"));
 
 		public static string GetConfigFile()
 		{

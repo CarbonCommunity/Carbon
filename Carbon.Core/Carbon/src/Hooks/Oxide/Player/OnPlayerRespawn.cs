@@ -4,7 +4,6 @@
 /// 
 
 using System.Linq;
-using Carbon.Core;
 using Oxide.Core;
 
 namespace Carbon.Hooks

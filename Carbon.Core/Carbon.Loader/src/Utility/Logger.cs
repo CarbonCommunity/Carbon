@@ -5,16 +5,22 @@
 using System;
 using System.IO;
 
-namespace Carbon.Utility;
+namespace Carbon.LoaderEx.Utility;
 
 internal sealed class Logger
 {
 	private static string logFile
-		= Path.Combine(Context.Directory.Game, "__loader.log");
+		= Path.Combine(Context.Directory.CarbonLogs, "Carbon.Loader.log");
 
 	internal enum Severity
 	{
-		Error, Warning, Notice, None
+		Error, Warning, Notice, Debug, None
+	}
+
+	static Logger()
+	{
+		if (!Directory.Exists(Context.Directory.CarbonLogs))
+			Directory.CreateDirectory(Context.Directory.CarbonLogs);
 	}
 
 	internal static void Write(Severity severity, object message, Exception ex = null)
@@ -39,6 +45,11 @@ internal sealed class Logger
 				formatted = $"[i] {message}";
 				break;
 
+			case Severity.Debug:
+				formatted = $"[d] {message}";
+				System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
+				return;
+
 			case Severity.None:
 				Console.WriteLine(message);
 				return;
@@ -48,11 +59,14 @@ internal sealed class Logger
 		}
 
 		Console.WriteLine(formatted);
-		File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
+		System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
 	}
 
 	internal static void None(object message)
 		=> Write(Logger.Severity.None, message);
+
+	internal static void Debug(object message)
+		=> Write(Logger.Severity.Debug, message);
 
 	internal static void Log(object message)
 		=> Write(Logger.Severity.Notice, message);

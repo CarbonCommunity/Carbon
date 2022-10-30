@@ -12,10 +12,10 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
-using Carbon.Extensions;
+using Carbon.LoaderEx.Common;
+using Carbon.LoaderEx.Components;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Application = UnityEngine.Application;
 
 namespace Carbon.Jobs
 {
@@ -33,50 +33,34 @@ namespace Carbon.Jobs
 		public float CompileTime;
 		public Assembly Assembly;
 		public List<CompilerException> Exceptions = new List<CompilerException>();
-		internal RealTimeSince TimeSinceCompile;
 
-		#region Fody
+		// FIXME: get_realtimeSinceStartup can only be called from the main thread.
+		//internal RealTimeSince TimeSinceCompile;
 
-		internal static Type _fodyAssemblyLoader { get; set; }
-		internal static FieldInfo _fodyAssemblyNames { get; set; }
-		internal static MethodInfo _fodyLoadStream { get; set; }
-
-		#endregion
-
+		private static HashSet<MetadataReference> cachedReferences = new HashSet<MetadataReference>();
 		internal static bool _hasInit { get; set; }
 		internal static void _doInit()
 		{
 			if (_hasInit) return;
 			_hasInit = true;
 
-			_fodyAssemblyLoader = Defines.Carbon.GetType("Costura.AssemblyLoader");
-			_fodyAssemblyNames = _fodyAssemblyLoader.GetField("assemblyNames", BindingFlags.NonPublic | BindingFlags.Static);
-			_fodyLoadStream = _fodyAssemblyLoader.GetMethod("LoadStream", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string) }, default);
-
-			var fodyNames = _fodyAssemblyNames.GetValue(null) as Dictionary<string, string>;
-
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net.core"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["protobuf-net"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["1harmony"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["mysql.data"] }) as Stream));
-			_metadataReferences.Add(MetadataReference.CreateFromStream(_fodyLoadStream.Invoke(null, new object[] { fodyNames["system.data.sqlite"] }) as Stream));
-
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Defines.DllPath))));
-
-			var managedFolder = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed");
-			_metadataReferences.Add(MetadataReference.CreateFromStream(new MemoryStream(OsEx.File.ReadBytes(Path.Combine(managedFolder, "System.Drawing.dll")))));
-
-			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-			foreach (var assembly in assemblies)
+			AssemblyResolver resolver = AssemblyResolver.GetInstance();
+			foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
 			{
-				if (assembly.IsDynamic || !OsEx.File.Exists(assembly.Location) || Loader.AssemblyCache.Contains(assembly)) continue;
+				try
+				{
+					CarbonReference asm = AssemblyResolver.GetInstance().GetAssembly(assembly.GetName().Name);
+					if (asm == null || asm.raw == null) throw new ArgumentException();
 
-				_metadataReferences.Add(MetadataReference.CreateFromFile(assembly.Location));
+					using (MemoryStream mem = new MemoryStream(asm.raw))
+						cachedReferences.Add(MetadataReference.CreateFromStream(mem));
+				}
+				catch { }
 			}
+
+			Logger.Debug($"ScriptCompilationThread cached {cachedReferences.Count} assemblies", 2);
 		}
 
-		internal static List<object> _metadataReferences = new List<object>();
 		internal static Dictionary<string, object> _referenceCache = new Dictionary<string, object>();
 		internal static Dictionary<string, byte[]> _compilationCache = new Dictionary<string, byte[]>();
 
@@ -103,26 +87,31 @@ namespace Carbon.Jobs
 
 		internal static MetadataReference _getReferenceFromCache(string reference)
 		{
-			if (!_referenceCache.TryGetValue(reference, out var metaReference))
+			try
 			{
-				var referencePath = Path.Combine(Application.dataPath, "..", "RustDedicated_Data", "Managed", $"{reference}.dll");
-				var outReference = MetadataReference.CreateFromFile(referencePath);
-				if (outReference == null) return null;
+				CarbonReference asm = AssemblyResolver.GetInstance().GetAssembly(reference);
+				if (asm == null) throw new ArgumentException();
 
-				_referenceCache.Add(reference, outReference);
+				MetadataReference ret = null;
+				using (MemoryStream mem = new MemoryStream(asm.raw))
+					ret = MetadataReference.CreateFromStream(mem);
+				return ret;
 			}
-
-			return metaReference as MetadataReference;
+			catch
+			{
+				Logger.Error($"_getReferenceFromCache('{reference}') failed");
+				return null;
+			}
 		}
 
 		internal List<MetadataReference> _addReferences()
 		{
 			var references = new List<MetadataReference>();
-			foreach (var reference in _metadataReferences) references.Add(reference as MetadataReference);
+			foreach (var reference in cachedReferences) references.Add(reference as MetadataReference);
 
 			foreach (var reference in References)
 			{
-				if (string.IsNullOrEmpty(reference) || _metadataReferences.Any(x => x is MetadataReference metadata && metadata.Display.Contains(reference))) continue;
+				if (string.IsNullOrEmpty(reference) || cachedReferences.Any(x => x is MetadataReference metadata && metadata.Display.Contains(reference))) continue;
 
 				try
 				{
@@ -151,12 +140,10 @@ namespace Carbon.Jobs
 		{
 			try
 			{
-
 				FileName = Path.GetFileNameWithoutExtension(FilePath);
-
 				_doInit();
 			}
-			catch (Exception ex) { Console.WriteLine($"Couldn't compile '{FileName}'\n{ex}"); }
+			catch (Exception ex) { Logger.Error($"Couldn't compile '{FileName}'", ex); }
 
 			base.Start();
 		}
@@ -167,13 +154,14 @@ namespace Carbon.Jobs
 			{
 				Exceptions.Clear();
 
-				TimeSinceCompile = 0;
+				// FIXME: get_realtimeSinceStartup can only be called from the main thread.
+				//TimeSinceCompile = 0;
 
 				var references = _addReferences();
 				var trees = new List<SyntaxTree>();
-				trees.Add(CSharpSyntaxTree.ParseText(Source));
+				trees.Add(CSharpSyntaxTree.ParseText(Source, new CSharpParseOptions(LanguageVersion.Latest)));
 
-				foreach (var require in Requires)
+				foreach (string require in Requires)
 				{
 					try
 					{
@@ -184,11 +172,17 @@ namespace Carbon.Jobs
 							references.Add(MetadataReference.CreateFromStream(dllStream));
 						}
 					}
-					catch { }
+					catch { /* do nothing */ }
 				}
 
-				var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, warningLevel: 4);
-				var compilation = CSharpCompilation.Create($"{FileName}_{RandomEx.GetRandomInteger()}", trees, references, options);
+				var options = new CSharpCompilationOptions(
+					OutputKind.DynamicallyLinkedLibrary,
+					optimizationLevel: OptimizationLevel.Release,
+					deterministic: true, warningLevel: 4
+				);
+
+				var compilation = CSharpCompilation.Create(
+					$"Script.{FileName}.{Guid.NewGuid()}", trees, references, options);
 
 				using (var dllStream = new MemoryStream())
 				{
@@ -199,8 +193,19 @@ namespace Carbon.Jobs
 						var span = error.Location.GetMappedLineSpan().Span;
 						switch (error.Severity)
 						{
+#if VERBOSE_LVL2
+							case DiagnosticSeverity.Warning:
+								Logger.Warn($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
+									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
+								break;
+#endif
 							case DiagnosticSeverity.Error:
-								Exceptions.Add(new CompilerException(FilePath, new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+#if VERBOSE_LVL1
+								Logger.Error($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
+									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
+#endif
+								Exceptions.Add(new CompilerException(FilePath,
+									new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 								break;
 						}
 					}
@@ -221,7 +226,8 @@ namespace Carbon.Jobs
 					throw null;
 				}
 
-				CompileTime = TimeSinceCompile;
+				// FIXME: get_realtimeSinceStartup can only be called from the main thread.
+				//CompileTime = TimeSinceCompile;
 
 				references.Clear();
 				references = null;
@@ -272,7 +278,7 @@ namespace Carbon.Jobs
 
 				if (Exceptions.Count > 0) throw null;
 			}
-			catch (Exception ex) { Console.WriteLine($"Threading compilation failed ({ex.Message})\n{ex.StackTrace}"); }
+			catch (Exception ex) { Logger.Error($"Threading compilation failed for '{FileName}'", ex); }
 		}
 	}
 }

@@ -7,10 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Extensions;
-using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 
@@ -102,24 +100,6 @@ namespace Carbon.Core
 					}
 					catch { return; }
 				}
-
-				AppDomain.CurrentDomain.AssemblyResolve += delegate (object sender, ResolveEventArgs args)
-				{
-					if (!Regex.IsMatch(args.Name, @"^(Microsoft|System)\."))
-						Logger.Log($"Resolving assembly ref: {args.Name}");
-
-					var assemblyName = new AssemblyName(args.Name);
-					var assemblyPath = Path.GetFullPath(
-						Path.Combine(_modPath, assemblyName.Name, ".dll"));
-
-					// This allows plugins to use Carbon.xxx
-					if (Regex.IsMatch(assemblyName.Name, @"^([Cc]arbon(-.+)?)$"))
-						assemblyPath = Defines.DllPath;
-
-					if (File.Exists(assemblyPath))
-						return LoadAssembly(assemblyPath);
-					return null;
-				};
 
 				foreach (var text in Directory.EnumerateFiles(_modPath, "*.dll"))
 				{
@@ -357,6 +337,7 @@ namespace Carbon.Core
 			preInit?.Invoke(plugin);
 
 			plugin.ILoadConfig();
+			plugin.ILoadDefaultMessages();
 			plugin.IInit();
 			plugin.Load();
 			HookCaller.CallStaticHook("OnPluginLoaded", plugin);
@@ -551,7 +532,6 @@ namespace Carbon.Core
 
 						try
 						{
-							plugin.CallHook("OnServerInitialized");
 							plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
 						}
 						catch (Exception initException)
@@ -569,7 +549,6 @@ namespace Carbon.Core
 
 					try
 					{
-						HookCaller.CallHook(plugin, "OnServerInitialized");
 						HookCaller.CallHook(plugin, "OnServerInitialized", Community.IsServerFullyInitialized);
 					}
 					catch (Exception initException)

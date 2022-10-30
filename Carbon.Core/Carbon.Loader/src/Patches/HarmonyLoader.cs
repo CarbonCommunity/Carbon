@@ -4,7 +4,7 @@
 /// 
 using HarmonyLib;
 
-namespace Carbon.Patches;
+namespace Carbon.LoaderEx.Patches;
 
 internal static class __HarmonyLoader
 {

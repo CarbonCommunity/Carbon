@@ -4,7 +4,6 @@
 /// 
 
 using Carbon.Base;
-using Carbon.Core;
 using Carbon.Modules;
 
 namespace Carbon.Hooks

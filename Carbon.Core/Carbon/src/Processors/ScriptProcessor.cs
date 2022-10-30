@@ -5,7 +5,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using Carbon.Base;
 using Carbon.Core;
 
@@ -89,7 +88,8 @@ namespace Carbon.Processors
 				output = input
 					.Replace(".IPlayer", ".AsIPlayer()")
 					.Replace("using Harmony;", "using HarmonyLib;")
-					.Replace("new HarmonyInstance", "new Harmony");
+					.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
+					.Replace("HarmonyInstance", "HarmonyLib.Harmony");
 			}
 		}
 	}

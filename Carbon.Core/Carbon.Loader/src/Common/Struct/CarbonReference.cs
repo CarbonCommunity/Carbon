@@ -6,30 +6,28 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace Carbon.Common;
+namespace Carbon.LoaderEx.Common;
 
-internal class CarbonReference
+public class CarbonReference : IDisposable
 {
-	public string name, fullName, fullPath;
+	public string name, fullName, location;
 	public Version version;
 
-	public byte[] raw;
+	public byte[] raw, pdb;
 	public Assembly assembly;
-	public Type[] types;
-	public AssemblyName[] references;
 
 
 	public string FileName
-	{ get => Path.GetFileName(fullPath); }
+	{ get => Path.GetFileName(location); }
 
 	public string FileNameWithoutExtension
-	{ get => Path.GetFileNameWithoutExtension(fullPath); }
+	{ get => Path.GetFileNameWithoutExtension(location); }
 
 	public string Extension
-	{ get => Path.GetExtension(fullPath); }
+	{ get => Path.GetExtension(location); }
 
 	public string DirectoryName
-	{ get => Path.GetDirectoryName(fullPath); }
+	{ get => Path.GetDirectoryName(location); }
 
 
 	public override string ToString()
@@ -49,14 +47,24 @@ internal class CarbonReference
 		try
 		{
 			if (!File.Exists(path)) throw new FileNotFoundException();
+			location = path; // to have access to FileNameWithoutExtension
+			raw = File.ReadAllBytes(location);
 
-			assembly = Assembly.LoadFrom(path);
-			raw = File.ReadAllBytes(path);
-
-			types = assembly.GetTypes();
-			references = assembly.GetReferencedAssemblies();
-
-			fullPath = path;
+			path = Path.Combine(DirectoryName, $"{FileNameWithoutExtension}.pdb");
+			if (File.Exists(path))
+			{
+				pdb = File.ReadAllBytes(path);
+				Utility.Logger.Debug($" Loaded debug symbols for '{FileName}'");
+			}
+#if USE_ASMLOADFILE
+			// this helps the debugger known where on disk the
+			// assembly files are located.
+			assembly = Assembly.LoadFile(location);
+#else
+			// when loading from memory the location of the assembly
+			// is a memory address and not a pointer to a disk file.
+			assembly = Assembly.Load(raw, pdb);
+#endif
 			return assembly;
 		}
 		catch (System.Exception e)
@@ -66,9 +74,14 @@ internal class CarbonReference
 		}
 	}
 
+	public virtual void Dispose()
+	{
+		assembly = default;
+		raw = null;
+	}
+
 
 	// TODO: for testing the domain sandboxing
-
 	//public AppDomain domain;
 
 	// try

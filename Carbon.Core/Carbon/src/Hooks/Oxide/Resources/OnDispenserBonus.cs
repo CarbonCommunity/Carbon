@@ -3,11 +3,7 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using Oxide.Core;
-using ProtoBuf;
 using UnityEngine;
-using static Construction;
 
 namespace Carbon.Hooks
 {

@@ -6,8 +6,6 @@
 using System;
 using System.Linq;
 using System.Net;
-using Carbon;
-using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
 using Oxide.Core;

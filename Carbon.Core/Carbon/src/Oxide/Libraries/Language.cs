@@ -8,7 +8,6 @@ using System.IO;
 using Carbon;
 using Carbon.Core;
 using Carbon.Extensions;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 

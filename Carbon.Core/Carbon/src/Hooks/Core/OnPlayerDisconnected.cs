@@ -3,8 +3,6 @@
 /// All rights reserved
 /// 
 
-using Carbon;
-using Carbon.Core;
 
 namespace Carbon.Hooks
 {
@@ -18,7 +16,6 @@ namespace Carbon.Hooks
 	{
 		public static void Postfix(string strReason, Network.Connection connection)
 		{
-			HookCaller.CallStaticHook("OnPlayerDisconnected", connection.player as BasePlayer);
 			HookCaller.CallStaticHook("OnPlayerDisconnected", connection.player as BasePlayer, strReason);
 		}
 	}

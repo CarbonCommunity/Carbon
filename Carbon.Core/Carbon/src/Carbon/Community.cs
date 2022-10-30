@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Carbon;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -222,7 +221,7 @@ namespace Carbon
 #if DEBUG
 			InformationalVersion;
 #else
-					Version;
+			Version;
 #endif
 
 			ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader._loadedMods.Count:n0} mods, {Loader._loadedMods.Sum(x => x.Plugins.Count):n0} plgs";
@@ -290,7 +289,6 @@ namespace Carbon
 				{
 					if (ServerConsole.Instance != null && ServerConsole.Instance.input != null)
 					{
-						ServerConsole.Instance.input.statusText[3] = "";
 						ServerConsole.Instance.input.statusText = new string[3];
 					}
 				}

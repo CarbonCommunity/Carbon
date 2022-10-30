@@ -5,20 +5,19 @@
 
 using System.Text.RegularExpressions;
 
-namespace Carbon.Utility
-{
-	internal static class Blacklist
-	{
-		private readonly static string[] Items =
-		{
-			// example: @"^Item.OnDirty$",
-		};
+namespace Carbon.Utility;
 
-		internal static bool IsBlacklisted(string Name)
-		{
-			foreach (string Item in Items)
-				if (Regex.IsMatch(Name, Item)) return true;
-			return false;
-		}
+internal static class Blacklist
+{
+	private readonly static string[] Items =
+	{
+		// example: @"^Item.OnDirty$",
+	};
+
+	internal static bool IsBlacklisted(string Name)
+	{
+		foreach (string Item in Items)
+			if (Regex.IsMatch(Name, Item)) return true;
+		return false;
 	}
 }

@@ -4,7 +4,7 @@
 ///
 using System;
 
-namespace Carbon.Common;
+namespace Carbon.LoaderEx.Common;
 
 internal abstract class RepeatingBehaviour : CarbonBehaviour, IDisposable
 {

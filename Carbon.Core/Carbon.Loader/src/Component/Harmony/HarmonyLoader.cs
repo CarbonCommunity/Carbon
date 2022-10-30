@@ -3,13 +3,18 @@
 /// All rights reserved
 ///
 using System;
+using System.Collections.Generic;
 using System.IO;
-using Carbon.Common;
+using System.Linq;
+using Carbon.LoaderEx.Common;
 
-namespace Carbon.Components;
+namespace Carbon.LoaderEx.Components;
 
 internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 {
+	private HashSet<HarmonyPlugin> loadedAssembly
+		= new HashSet<HarmonyPlugin>();
+
 	static HarmonyLoader() { }
 
 	/// <summary>
@@ -18,28 +23,28 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 	/// and use the appropriate loading method to deal with it.
 	/// </summary>
 	///
-	/// <param name="assemblyPath">Full path to the assembly file</param>
-	internal void Load(string assemblyPath)
+	/// <param name="assemblyFile">Full path to the assembly file</param>
+	internal void Load(string assemblyFile)
 	{
-		Carbon.Utility.Logger.Log($"HarmonyLoader:Load('{assemblyPath})");
+		Carbon.LoaderEx.Utility.Logger.Log($"Loading '{assemblyFile}'..");
 
-		if (assemblyPath == Path.GetFileName(assemblyPath))
-			assemblyPath = Path.Combine(Context.Directory.Carbon, "managed", assemblyPath);
+		if (assemblyFile == Path.GetFileName(assemblyFile))
+			assemblyFile = Path.Combine(Context.Directory.Carbon, "managed", assemblyFile);
 
 		HarmonyPlugin mod = new HarmonyPlugin()
 		{
-			name = Path.GetFileNameWithoutExtension(assemblyPath),
+			name = Path.GetFileNameWithoutExtension(assemblyFile),
 			identifier = Guid.NewGuid().ToString(),
-			fullPath = assemblyPath,
+			location = assemblyFile,
 		};
 
 		switch (mod.Extension)
 		{
 			case ".dll":
-				mod.LoadFromFile(assemblyPath);
+				mod.LoadFromFile(assemblyFile);
 				PrepareHooks(ref mod);
-				ApplyHarmonyPatches(ref mod);
-				TriggerHooks(ref mod);
+				ApplyPatches(ref mod);
+				OnLoaded(ref mod);
 				break;
 
 			// case ".drm"
@@ -49,11 +54,36 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 			default:
 				throw new ArgumentOutOfRangeException("File extension not supported");
 		}
+
+		loadedAssembly.Add(mod);
 	}
+
+	internal void Unload(string assemblyFile)
+	{
+		Carbon.LoaderEx.Utility.Logger.Log($"Unloading '{assemblyFile}'..");
+		string name = Path.GetFileNameWithoutExtension(assemblyFile);
+
+		try
+		{
+			HarmonyPlugin mod = loadedAssembly.FirstOrDefault(x => x.name == name);
+			if (mod.name == null) throw new Exception($"Assembly '{mod}' not found");
+			loadedAssembly.Remove(mod);
+			OnUnloaded(ref mod);
+			mod.Dispose();
+		}
+		catch (System.Exception e)
+		{
+			Utility.Logger.Error("Failed unload '{mod}'", e);
+			throw;
+		}
+	}
+
+	internal bool IsLoaded(string assemblyFile)
+		=> ((loadedAssembly.FirstOrDefault(x => x.FileName == assemblyFile) ?? null) != null);
 
 	private void PrepareHooks(ref HarmonyPlugin mod)
 	{
-		Utility.Logger.Log($"HarmonyLoader:PrepareHooks('{mod}')");
+		Utility.Logger.Debug($" Preparing '{mod}' hooks");
 
 		foreach (Type type in mod.types)
 		{
@@ -74,9 +104,9 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 		}
 	}
 
-	private void ApplyHarmonyPatches(ref HarmonyPlugin mod)
+	private void ApplyPatches(ref HarmonyPlugin mod)
 	{
-		Utility.Logger.Log($"HarmonyLoader:ApplyHarmonyPatches('{mod}')");
+		Utility.Logger.Debug($" Apply '{mod}' harmony patches");
 
 		try
 		{
@@ -94,20 +124,36 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 		// 		$"{string.Join(",", HarmonyLib.Harmony.GetPatchInfo(method).Owners)}");
 	}
 
-	private void TriggerHooks(ref HarmonyPlugin mod)
+	private void OnLoaded(ref HarmonyPlugin mod)
 	{
-		Utility.Logger.Log($"HarmonyLoader:TriggerHooks('{mod}')");
+		Utility.Logger.Log($" Trigger '{mod}' OnLoaded hook");
 
 		foreach (IHarmonyModHooks hook in mod.hooks)
 		{
 			try
 			{
-				Utility.Logger.Log($"Trigger '{hook}' event");
 				hook.OnLoaded(args: new OnHarmonyModLoadedArgs());
 			}
 			catch (System.Exception e)
 			{
 				Utility.Logger.Error($"Failed to trigger 'OnLoaded' hook for '{mod}'", e);
+			}
+		}
+	}
+
+	private void OnUnloaded(ref HarmonyPlugin mod)
+	{
+		Utility.Logger.Log($" Trigger '{mod}' OnUnloaded hook");
+
+		foreach (IHarmonyModHooks hook in mod.hooks)
+		{
+			try
+			{
+				hook.OnUnloaded(args: new OnHarmonyModUnloadedArgs());
+			}
+			catch (System.Exception e)
+			{
+				Utility.Logger.Error($"Failed to trigger 'OnUnloaded' hook for '{mod}'", e);
 			}
 		}
 	}
