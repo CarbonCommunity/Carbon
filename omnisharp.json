@@ -1,0 +1,7 @@
+{
+	"script": {
+		"enabled": true,
+		"defaultTargetFramework": "net48",
+		"enableScriptNuGetReferences": true
+	}
+}

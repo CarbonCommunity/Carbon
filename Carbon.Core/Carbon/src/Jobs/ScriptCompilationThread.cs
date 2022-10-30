@@ -140,9 +140,7 @@ namespace Carbon.Jobs
 		{
 			try
 			{
-
 				FileName = Path.GetFileNameWithoutExtension(FilePath);
-
 				_doInit();
 			}
 			catch (Exception ex) { Logger.Error($"Couldn't compile '{FileName}'", ex); }
@@ -163,7 +161,7 @@ namespace Carbon.Jobs
 				var trees = new List<SyntaxTree>();
 				trees.Add(CSharpSyntaxTree.ParseText(Source, new CSharpParseOptions(LanguageVersion.Latest)));
 
-				foreach (var require in Requires)
+				foreach (string require in Requires)
 				{
 					try
 					{
@@ -174,7 +172,7 @@ namespace Carbon.Jobs
 							references.Add(MetadataReference.CreateFromStream(dllStream));
 						}
 					}
-					catch { }
+					catch { /* do nothing */ }
 				}
 
 				var options = new CSharpCompilationOptions(
@@ -195,14 +193,14 @@ namespace Carbon.Jobs
 						var span = error.Location.GetMappedLineSpan().Span;
 						switch (error.Severity)
 						{
-#if USE_VERB_COMPILER
+#if VERBOSE_LVL2
 							case DiagnosticSeverity.Warning:
 								Logger.Warn($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
 									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
 								break;
 #endif
 							case DiagnosticSeverity.Error:
-#if USE_VERB_COMPILER
+#if VERBOSE_LVL1
 								Logger.Error($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
 									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
 #endif
@@ -280,7 +278,7 @@ namespace Carbon.Jobs
 
 				if (Exceptions.Count > 0) throw null;
 			}
-			catch (Exception ex) { Logger.Error($"Threading compilation failed ({ex.Message})", ex); }
+			catch (Exception ex) { Logger.Error($"Threading compilation failed for '{FileName}'", ex); }
 		}
 	}
 }

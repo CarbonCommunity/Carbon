@@ -77,25 +77,53 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 			CarbonReference ncr = new CarbonReference();
 			ncr.LoadMetadata(info: new AssemblyName(name));
 
-			// cached carbon ref (ccr)
-			CarbonReference ccr = cachedReferences.FirstOrDefault(
-				item => item.name == ncr.name
-			);
-
-			if (ccr != null)
+			// carbon asm files are a edge case
+			if (Regex.IsMatch(name, Context.Patterns.carbonNamePattern))
 			{
-				Logger.Debug($"Resolved: {ccr.FileName} from cache");
-				return ccr;
-			}
+				string fp = null;
 
-			foreach (string fp in lookup)
-			{
+				switch (name)
+				{
+					case "Carbon":
+					case "Carbon.Doorstop":
+						fp = Context.Directory.CarbonManaged;
+						break;
+
+					case "Carbon.Loader":
+						fp = Context.Directory.GameHarmony;
+						break;
+				}
+
 				string p = Path.Combine(fp, $"{ncr.name}.dll");
 				if (File.Exists(p) && ncr.LoadFromFile(p) != null)
 				{
-					Logger.Debug($"Resolved: {ncr.FileName} from disk");
+					Logger.Debug($"Resolved: {ncr.FileName} from disk (forced)");
 					cachedReferences.Add(ncr);
 					return ncr;
+				}
+			}
+			else
+			{
+				// cached carbon ref (ccr)
+				CarbonReference ccr = cachedReferences.FirstOrDefault(
+					item => item.name == ncr.name
+				);
+
+				if (ccr != null)
+				{
+					Logger.Debug($"Resolved: {ccr.FileName} from cache");
+					return ccr;
+				}
+
+				foreach (string fp in lookup)
+				{
+					string p = Path.Combine(fp, $"{ncr.name}.dll");
+					if (File.Exists(p) && ncr.LoadFromFile(p) != null)
+					{
+						Logger.Debug($"Resolved: {ncr.FileName} from disk");
+						cachedReferences.Add(ncr);
+						return ncr;
+					}
 				}
 			}
 
@@ -113,7 +141,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 	public CarbonReference GetAssembly(string name)
 	{
 		// the second check should be removed when whitelisting is in place
-		if (!IsReferenceAllowed(name) || Regex.IsMatch(name, @"(?i)^(script\.)(.+)(\.[-\w]+)")) return null;
+		if (!IsReferenceAllowed(name) || Regex.IsMatch(name, Context.Patterns.oxideCompiledAssembly)) return null;
 		CarbonReference asm = ResolveAssembly(name);
 		if (asm == null || asm.assembly.IsDynamic) return null;
 		return asm;

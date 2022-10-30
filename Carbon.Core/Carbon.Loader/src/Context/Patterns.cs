@@ -9,8 +9,14 @@ namespace Carbon.LoaderEx.Context;
 
 internal sealed class Patterns
 {
-	internal static readonly string CarbonNameValidator =
-		@"(?i)^carbon([\.-](doorstop|loader|unix))?(.dll)?$";
+	internal static readonly string carbonNamePattern =
+		@"(?i)^carbon([\.-](doorstop|loader))?$";
+
+	internal static readonly string carbonFileNamePattern =
+		@"(?i)^carbon([\.-](doorstop|loader))?(.dll)$";
+
+	internal static readonly string oxideCompiledAssembly =
+		@"(?i)^(script\.)(.+)(\.[-\w]+)";
 
 	internal static readonly List<string> refWhitelist = new List<string>
 	{
@@ -39,6 +45,5 @@ internal sealed class Patterns
 		{ @"^Carbon(-\d+)?$", "Carbon" },
 		{ @"^0Harmony$", "1Harmony" }
 	};
-
 }
 
