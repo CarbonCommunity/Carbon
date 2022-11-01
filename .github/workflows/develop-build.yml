@@ -141,13 +141,13 @@ jobs:
         tag_name: develop_build
         name: 'Carbon Build (develop)'
         body: |
-          This is a build of Carbon based on the `develop` branch.
+          This is a development build of Carbon based on the `develop` branch.
           
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.
 
           ### How to install
-          1. Download the `Carbon.Patch.zip` archive from the attachments below.
+          1. Download the `Carbon.Release[Unix].zip` archive from the attachments below.
           2. Unzip the archive to the root of your Rust Dedicated Server.
           3. Restart the server and enjoy.
           
