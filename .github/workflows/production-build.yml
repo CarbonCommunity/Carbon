@@ -82,7 +82,7 @@ jobs:
       with:
         name: build-production-linux
         path: |
-          Release/Carbon-ReleaseUnix.tar.gz
+          Release/Carbon.ReleaseUnix.tar.gz
 
   build-windows:
     name: 🪟 Windows
@@ -157,4 +157,4 @@ jobs:
           ${{ needs.build-linux.outputs.build_info }}
         files: |
           Release/build-production-windows/Carbon.Release.zip
-          Release/build-production-linux/Carbon-ReleaseUnix.tar.gz
+          Release/build-production-linux/Carbon.ReleaseUnix.tar.gz

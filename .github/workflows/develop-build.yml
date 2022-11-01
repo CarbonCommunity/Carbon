@@ -74,16 +74,12 @@ jobs:
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix
 
-    - name: Display structure of release files
-      run: ls -R
-      working-directory: Release
-        
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
         name: build-develop-linux
         path: |
-          Release/Carbon-DebugUnix.tar.gz
+          Release/Carbon.DebugUnix.tar.gz
 
   build-windows:
     name: 🪟 Windows
@@ -109,10 +105,6 @@ jobs:
       shell: cmd
       run: |
         %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
-
-    - name: Display structure of release files
-      run: ls -R
-      working-directory: Release
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -169,4 +161,4 @@ jobs:
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
           Release/build-develop-windows/Carbon.Debug.zip
-          Release/build-develop-linux/Carbon-DebugUnix.tar.gz
+          Release/build-develop-linux/Carbon.DebugUnix.tar.gz
