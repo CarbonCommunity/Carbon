@@ -19,7 +19,6 @@
 	<PropertyGroup>
 		<AssemblyVersion>$(Version)</AssemblyVersion>
 		<FileVersion>$(VersionPrefix)</FileVersion>
-		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_")).Core</RootNamespace>
 		<Version>1.$([System.DateTime]::UtcNow.ToString('yy.ddMM')).10</Version>
 		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
 		<VersionSuffix>$(Configuration)</VersionSuffix>

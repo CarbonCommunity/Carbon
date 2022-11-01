@@ -75,7 +75,7 @@ jobs:
     - name: 🐧 Built Carbon on Linux
       shell: bash
       run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build_release.sh
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix
         
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -108,7 +108,7 @@ jobs:
     - name: 🪟 Built Carbon on Windows
       shell: cmd
       run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\build_release.bat
+        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -124,11 +124,17 @@ jobs:
     if: ${{ (github.event_name == 'push') || (github.event_name == 'workflow_dispatch') || (github.event_name == 'schedule' && needs.build-linux.outputs.wipe == 'true') }}
 
     steps:
-    - name: ⬇️ Download artifacts
+    - name: ⬇️ Download artifacts from the linux build
       uses: actions/download-artifact@v3
       with:
         name: ${{ needs.build-linux.outputs.artifact }}
-        path: Release/
+        path: Release/linux/
+
+    - name: ⬇️ Download artifacts from the windows build
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ needs.build-windows.outputs.artifact }}
+        path: Release/windows/
         
     - name: 🗑️ Delete existing release tag
       uses: dev-drprasad/delete-tag-and-release@v0.2.0
@@ -155,5 +161,5 @@ jobs:
           
           ${{ needs.build-linux.outputs.build_info }}
         files: |
-          Release/Carbon.Release.zip
-          Release/Carbon-ReleaseUnix.dll
+          Release/windows/Carbon.Release.zip
+          Release/linux/Carbon-ReleaseUnix.tar.gz

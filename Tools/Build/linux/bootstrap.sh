@@ -39,4 +39,4 @@ done
 (cd "${HARMONYDIR}" && git reset --hard HEAD > /dev/null)
 
 # Download rust binary libs
-exec "${BASE}/update.sh" public
+"${BASE}/update.sh" public
