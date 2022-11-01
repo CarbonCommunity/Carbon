@@ -153,7 +153,5 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/Carbon.dll
-          Release/Carbon.Patch.zip
-          Release/Carbon-Unix.dll
-          Release/Carbon.Patch-Unix.zip
+          Release/Carbon.Debug.zip
+          Release/Carbon-DebugUnix.dll
