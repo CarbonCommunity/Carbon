@@ -7,13 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SQLite;
 using System.Threading;
 using Carbon;
 using MySql.Data.MySqlClient;
 using Oxide.Core.Database;
 using Oxide.Core.Libraries;
-using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Oxide.Core.MySql.Libraries

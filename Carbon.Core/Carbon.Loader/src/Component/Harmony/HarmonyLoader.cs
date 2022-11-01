@@ -5,13 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using Carbon.Common;
+using System.Linq;
+using Carbon.LoaderEx.Common;
 
-namespace Carbon.Components;
+namespace Carbon.LoaderEx.Components;
 
-internal sealed class HarmonyLoader : Singleton<HarmonyLoader>, IDisposable
+internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 {
+	private HashSet<HarmonyPlugin> loadedAssembly
+		= new HashSet<HarmonyPlugin>();
+
 	static HarmonyLoader() { }
 
 	/// <summary>
@@ -20,35 +23,28 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>, IDisposable
 	/// and use the appropriate loading method to deal with it.
 	/// </summary>
 	///
-	/// <param name="assemblyPath">Full path to the assembly file</param>
-	internal void Load(string assemblyPath)
+	/// <param name="assemblyFile">Full path to the assembly file</param>
+	internal void Load(string assemblyFile)
 	{
-		Carbon.Utility.Logger.Log($"HarmonyLoader:Load('{assemblyPath})");
+		Carbon.LoaderEx.Utility.Logger.Log($"Loading '{assemblyFile}'..");
 
-		if (assemblyPath == Path.GetFileName(assemblyPath))
-			assemblyPath = Path.Combine(Context.Directory.Carbon, "managed", assemblyPath);
+		if (assemblyFile == Path.GetFileName(assemblyFile))
+			assemblyFile = Path.Combine(Context.Directory.Carbon, "managed", assemblyFile);
 
-		Plugin mod = new Plugin()
+		HarmonyPlugin mod = new HarmonyPlugin()
 		{
-			fileExt = Path.GetExtension(assemblyPath),
-			fileName = Path.GetFileNameWithoutExtension(assemblyPath),
-			filePath = Path.GetDirectoryName(assemblyPath)
+			name = Path.GetFileNameWithoutExtension(assemblyFile),
+			identifier = Guid.NewGuid().ToString(),
+			location = assemblyFile,
 		};
 
-		try
-		{
-			mod.domain = AppDomain.CreateDomain(mod.Identifier);
-			Carbon.Utility.Logger.Log($"New domain created '{mod.domain.FriendlyName}'");
-		}
-		catch (Exception e)
-		{
-			Carbon.Utility.Logger.Error("wtf", e);
-		}
-
-		switch (mod.fileExt)
+		switch (mod.Extension)
 		{
 			case ".dll":
-				LoadAssemblyFromFile(ref mod);
+				mod.LoadFromFile(assemblyFile);
+				PrepareHooks(ref mod);
+				ApplyPatches(ref mod);
+				OnLoaded(ref mod);
 				break;
 
 			// case ".drm"
@@ -59,81 +55,62 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>, IDisposable
 				throw new ArgumentOutOfRangeException("File extension not supported");
 		}
 
-		if (mod.IsLoaded)
-		{
-			Activate(ref mod);
-
-			// Logger.Log("Applied harmony patches:");
-			// foreach (var method in HarmonyLib.Harmony.GetAllPatchedMethods())
-			// 	Logger.Log($" - {method.Name} at {method.Module} by " +
-			// 		$"{string.Join(",", HarmonyLib.Harmony.GetPatchInfo(method).Owners)}");
-		}
+		loadedAssembly.Add(mod);
 	}
 
-	private void LoadAssemblyFromFile(ref Plugin mod)
+	internal void Unload(string assemblyFile)
 	{
-		Carbon.Utility.Logger.Log($"HarmonyLoader:LoadAssemblyFromFile('{mod}')");
-
-		byte[] raw;
+		Carbon.LoaderEx.Utility.Logger.Log($"Unloading '{assemblyFile}'..");
+		string name = Path.GetFileNameWithoutExtension(assemblyFile);
 
 		try
 		{
-			string dll = Path.Combine(mod.filePath, $"{mod.fileName}{mod.fileExt}");
-			if (!File.Exists(dll)) throw new FileNotFoundException();
-			raw = File.ReadAllBytes(dll);
+			HarmonyPlugin mod = loadedAssembly.FirstOrDefault(x => x.name == name);
+			if (mod.name == null) throw new Exception($"Assembly '{mod}' not found");
+			loadedAssembly.Remove(mod);
+			OnUnloaded(ref mod);
+			mod.Dispose();
 		}
-		catch (Exception e)
+		catch (System.Exception e)
 		{
-			Utility.Logger.Error($"Error loading assembly from '{mod}'", e);
-			return;
+			Utility.Logger.Error("Failed unload '{mod}'", e);
+			throw;
 		}
-
-		byte[] sym;
-
-		try
-		{
-			string pdb = Path.Combine(mod.filePath, mod.fileName, ".pdb");
-			sym = File.ReadAllBytes(pdb);
-		}
-		catch
-		{
-			Utility.Logger.Warn($"No symbol information found for '{mod}'");
-			sym = null;
-		}
-
-		mod.assembly = Assembly.Load(raw, sym);
-
-		// collect metadata
-		mod.types = mod.assembly.GetTypes();
-		mod.references = mod.assembly.GetReferencedAssemblies();
 	}
 
-	internal void Activate(ref Plugin mod)
+	internal bool IsLoaded(string assemblyFile)
+		=> ((loadedAssembly.FirstOrDefault(x => x.FileName == assemblyFile) ?? null) != null);
+
+	private void PrepareHooks(ref HarmonyPlugin mod)
 	{
-		Utility.Logger.Log($"HarmonyLoader:Activate('{mod}')");
+		Utility.Logger.Debug($" Preparing '{mod}' hooks");
 
 		foreach (Type type in mod.types)
 		{
-			if (typeof(IHarmonyModHooks).IsAssignableFrom(type))
+			if (!typeof(IHarmonyModHooks).IsAssignableFrom(type)) continue;
+
+			try
 			{
-				try
-				{
-					IHarmonyModHooks hook = Activator.CreateInstance(type) as IHarmonyModHooks;
-					if (hook != null) mod.hooks.Add(hook);
-					else throw new NullReferenceException();
-					Utility.Logger.Log($"Instance of '{hook}' created");
-				}
-				catch (System.Exception e)
-				{
-					Utility.Logger.Error("Failed to instantiate hook (null)", e);
-					throw;
-				}
+				IHarmonyModHooks hook = Activator.CreateInstance(type) as IHarmonyModHooks;
+				if (hook != null) mod.hooks.Add(hook);
+				else throw new NullReferenceException();
+				Utility.Logger.Log($"Instance of '{hook}' created");
+			}
+			catch (System.Exception e)
+			{
+				Utility.Logger.Error("Failed to instantiate hook (null)", e);
+				throw;
 			}
 		}
+	}
+
+	private void ApplyPatches(ref HarmonyPlugin mod)
+	{
+		Utility.Logger.Debug($" Apply '{mod}' harmony patches");
 
 		try
 		{
-			mod.harmonyInstance = new HarmonyLib.Harmony(mod.Identifier);
+			mod.harmonyInstance = new HarmonyLib.Harmony(mod.identifier);
 			mod.harmonyInstance.PatchAll(mod.assembly);
 		}
 		catch (System.Exception e)
@@ -142,11 +119,19 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>, IDisposable
 			throw;
 		}
 
+		// foreach (var method in HarmonyLib.Harmony.GetAllPatchedMethods())
+		// 	Logger.Log($" > {method.Name} at {method.Module} by " +
+		// 		$"{string.Join(",", HarmonyLib.Harmony.GetPatchInfo(method).Owners)}");
+	}
+
+	private void OnLoaded(ref HarmonyPlugin mod)
+	{
+		Utility.Logger.Log($" Trigger '{mod}' OnLoaded hook");
+
 		foreach (IHarmonyModHooks hook in mod.hooks)
 		{
 			try
 			{
-				Utility.Logger.Log($"Trigger '{hook}' event");
 				hook.OnLoaded(args: new OnHarmonyModLoadedArgs());
 			}
 			catch (System.Exception e)
@@ -156,8 +141,20 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>, IDisposable
 		}
 	}
 
-	public void Dispose()
+	private void OnUnloaded(ref HarmonyPlugin mod)
 	{
+		Utility.Logger.Log($" Trigger '{mod}' OnUnloaded hook");
 
+		foreach (IHarmonyModHooks hook in mod.hooks)
+		{
+			try
+			{
+				hook.OnUnloaded(args: new OnHarmonyModUnloadedArgs());
+			}
+			catch (System.Exception e)
+			{
+				Utility.Logger.Error($"Failed to trigger 'OnUnloaded' hook for '{mod}'", e);
+			}
+		}
 	}
 }

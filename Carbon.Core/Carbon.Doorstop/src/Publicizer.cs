@@ -3,211 +3,207 @@
 /// All rights reserved
 /// 
 
+/// DISCLAIMER
+/// This file contains code based on BepInEx/NStrip
+/// Copyright (c) 2021 BepInEx, released under MIT License
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
 
-namespace Carbon.Utility
+namespace Carbon.Utility;
+
+internal static class Publicizer
 {
-	internal static class Publicizer
+	private static MemoryStream memoryStream = null;
+
+	internal static void Read(string Source)
 	{
-		private static MemoryStream memoryStream = null;
-
-		internal static void Read(string Source)
+		try
 		{
-			try
-			{
-				if (!File.Exists(Source))
-					throw new Exception($"Assembly file '{Source}' was not found");
+			if (!File.Exists(Source))
+				throw new Exception($"Assembly file '{Source}' was not found");
 
-				memoryStream = new MemoryStream(File.ReadAllBytes(Source));
-				Logger.Log($"Loaded '{Path.GetFileName(Source)}' to memory");
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"Error while reading '{Source}'", ex);
-				throw (ex);
-			}
+			memoryStream = new MemoryStream(File.ReadAllBytes(Source));
+			Logger.Log($"Loaded '{Path.GetFileName(Source)}' to memory");
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Error while reading '{Source}'", ex);
+			throw (ex);
+		}
+	}
+
+	internal static bool IsPublic(string Type, string Method)
+	{
+		try
+		{
+			if (memoryStream == null) throw new Exception();
+			memoryStream.Position = 0;
+
+			AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(memoryStream);
+			if (assembly == null) throw new Exception();
+
+			TypeDefinition t = assembly.MainModule.Types.First(x => x.Name == "ServerMgr");
+			if (t == null) throw new Exception();
+
+			MethodDefinition m = t.Methods.First(x => x.Name == "Shutdown");
+			if (m == null) throw new Exception();
+
+			assembly.Dispose();
+			assembly = null;
+
+			return m.IsPublic;
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Assembly '{Type}.{Method}' was not found", ex);
+			throw ex;
+		}
+	}
+
+	internal static void Publicize()
+	{
+		AssemblyDefinition assembly = null;
+
+		try
+		{
+			if (memoryStream == null) throw new Exception();
+			memoryStream.Position = 0;
+
+			assembly = AssemblyDefinition.ReadAssembly(memoryStream);
+			if (assembly == null) throw new Exception();
+			Logger.Log($"Reading assembly from memory");
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Error while reading from memory", ex);
+			throw ex;
 		}
 
-		internal static bool IsPublic(string Type, string Method)
+		try
 		{
-			try
+			AssemblyNameReference scope
+				= assembly.MainModule.AssemblyReferences
+					.OrderByDescending(a => a.Version)
+					.FirstOrDefault(a => a.Name == "mscorlib");
+
+			MethodReference nsAttributeCtor = new MethodReference(
+				".ctor", assembly.MainModule.TypeSystem.Void,
+				declaringType: new TypeReference("System", "NonSerializedAttribute", assembly.MainModule, scope))
 			{
-				if (memoryStream == null) throw new Exception();
-				memoryStream.Position = 0;
+				HasThis = true
+			};
 
-				AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(memoryStream);
-				if (assembly == null) throw new Exception();
+			Logger.Log("Starting the publicize process");
 
-				TypeDefinition t = assembly.MainModule.Types.First(x => x.Name == "ServerMgr");
-				if (t == null) throw new Exception();
-
-				MethodDefinition m = t.Methods.First(x => x.Name == "Shutdown");
-				if (m == null) throw new Exception();
-
-				assembly.Dispose();
-				assembly = null;
-
-				return m.IsPublic;
-			}
-			catch (Exception ex)
+			foreach (TypeDefinition Type in assembly.MainModule.Types)
 			{
-				Logger.Error($"Assembly '{Type}.{Method}' was not found", ex);
-				throw ex;
-			}
-		}
-
-		internal static void Publicize()
-		{
-			AssemblyDefinition assembly = null;
-
-			try
-			{
-				if (memoryStream == null) throw new Exception();
-				memoryStream.Position = 0;
-
-				assembly = AssemblyDefinition.ReadAssembly(memoryStream);
-				if (assembly == null) throw new Exception();
-				Logger.Log($"Reading assembly from memory");
-			}
-			catch (Exception ex)
-			{
-				Logger.Error("Error while reading from memory", ex);
-				throw ex;
-			}
-
-			try
-			{
-				/// DISCLAIMER
-				/// Some of the following code is based on BepInEx/NStrip
-				/// Copyright (c) 2021 BepInEx, released under MIT License
-				AssemblyNameReference scope = assembly.MainModule.AssemblyReferences.
-					OrderByDescending(a => a.Version).FirstOrDefault(a => a.Name == "mscorlib");
-
-				MethodReference nsAttributeCtor = new MethodReference(".ctor", assembly.MainModule.TypeSystem.Void,
-					new TypeReference("System", "NonSerializedAttribute", assembly.MainModule, scope))
-				{ HasThis = true };
-				/// EOD
-
-				Logger.Log("Starting the publicize process");
-
-				foreach (TypeDefinition Type in assembly.MainModule.Types)
+				if (Blacklist.IsBlacklisted(Type.Name))
 				{
-					if (Blacklist.IsBlacklisted(Type.Name))
+					Logger.Warn($"Excluded '{Type.Name}' due to blacklisting");
+					continue;
+				}
+
+				if (Type.IsNested)
+				{
+					Type.IsNestedPublic = true;
+				}
+				else
+				{
+					Type.IsPublic = true;
+				}
+
+				foreach (MethodDefinition Method in Type.Methods)
+				{
+					if (Blacklist.IsBlacklisted($"{Type.Name}.{Method.Name}"))
 					{
-						Logger.Warn($"Excluded '{Type.Name}' due to blacklisting");
+						Logger.Warn($"Excluded '{Type.Name}.{Method.Name}' due to blacklisting");
 						continue;
 					}
 
-					if (Type.IsNested)
-					{
-						Type.IsNestedPublic = true;
-					}
-					else
-					{
-						Type.IsPublic = true;
-					}
+					Method.IsPublic = true;
+				}
 
-					foreach (MethodDefinition Method in Type.Methods)
+				foreach (FieldDefinition Field in Type.Fields)
+				{
+					if (Blacklist.IsBlacklisted($"{Type.Name}.{Field.Name}"))
 					{
-						if (Blacklist.IsBlacklisted($"{Type.Name}.{Method.Name}"))
-						{
-							Logger.Warn($"Excluded '{Type.Name}.{Method.Name}' due to blacklisting");
-							continue;
-						}
-
-						Method.IsPublic = true;
+						Logger.Warn($"Excluded '{Type.Name}.{Field.Name}' due to blacklisting");
+						continue;
 					}
 
-					foreach (FieldDefinition Field in Type.Fields)
+					// Prevent publicize auto-generated fields
+					if (Type.Events.Any(x => x.Name == Field.Name)) continue;
+
+					if (nsAttributeCtor != null && !Field.IsPublic
+						&& !Field.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField"))
 					{
-						if (Blacklist.IsBlacklisted($"{Type.Name}.{Field.Name}"))
-						{
-							Logger.Warn($"Excluded '{Type.Name}.{Field.Name}' due to blacklisting");
-							continue;
-						}
-
-						// Prevent publicize auto-generated fields
-						if (Type.Events.Any(x => x.Name == Field.Name)) continue;
-
-						/// DISCLAIMER
-						/// Some of the following code is based on BepInEx/NStrip
-						/// Copyright (c) 2021 BepInEx, released under MIT License
-						if (nsAttributeCtor != null && !Field.IsPublic &&
-							!Field.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField"))
-						{
-							Field.IsNotSerialized = true;
-							Field.CustomAttributes.Add(new CustomAttribute(nsAttributeCtor));
-						}
-						/// EOD
-
-						Field.IsPublic = true;
+						Field.IsNotSerialized = true;
+						Field.CustomAttributes.Add(item: new CustomAttribute(nsAttributeCtor));
 					}
+
+					Field.IsPublic = true;
 				}
 			}
-			catch (Exception ex)
-			{
-				Logger.Error("Publicize process aborted", ex);
-				throw ex;
-			}
-
-			try
-			{
-				Logger.Log($"Validating the modified assembly");
-				memoryStream = new MemoryStream();
-				assembly.Write(memoryStream);
-
-				assembly.Dispose();
-				assembly = null;
-			}
-			catch (Exception ex)
-			{
-				Logger.Error("Assembly failed the memory validation", ex);
-				throw (ex);
-			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Publicize process aborted", ex);
+			throw ex;
 		}
 
-		/// DISCLAIMER
-		/// Some of the following code is based on BepInEx/NStrip
-		/// Copyright (c) 2021 BepInEx, released under MIT License
-		private static IEnumerable<object> GetAllTypeDefinitions(AssemblyDefinition assembly)
+		try
 		{
-			Queue<TypeDefinition> typeQueue = new Queue<TypeDefinition>(assembly.MainModule.Types);
+			Logger.Log($"Validating the modified assembly");
+			memoryStream = new MemoryStream();
+			assembly.Write(memoryStream);
 
-			while (typeQueue.Count > 0)
-			{
-				TypeDefinition type = typeQueue.Dequeue();
-				yield return type;
-
-				foreach (TypeDefinition nestedType in type.NestedTypes)
-					typeQueue.Enqueue(nestedType);
-			}
+			assembly.Dispose();
+			assembly = null;
 		}
-		/// EOD
-
-		internal static void Write(string Target)
+		catch (Exception ex)
 		{
-			if (memoryStream == null)
-				throw new InvalidOperationException("No assembly was found in memory");
-			memoryStream.Position = 0;
+			Logger.Error("Assembly failed the memory validation", ex);
+			throw (ex);
+		}
+	}
 
-			try
-			{
-				FileStream outputStream = File.Open(Target, FileMode.Create);
-				Logger.Log($"Writing to '{Path.GetFileName(Target)}' from memory");
-				memoryStream.CopyTo(outputStream);
+	private static IEnumerable<object> GetAllTypeDefinitions(AssemblyDefinition assembly)
+	{
+		Queue<TypeDefinition> typeQueue = new Queue<TypeDefinition>(assembly.MainModule.Types);
 
-				outputStream.Dispose();
-				outputStream = null;
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"Error while writing to '{Path.GetFileName(Target)}'", ex);
-				throw (ex);
-			}
+		while (typeQueue.Count > 0)
+		{
+			TypeDefinition type = typeQueue.Dequeue();
+			yield return type;
+
+			foreach (TypeDefinition nestedType in type.NestedTypes)
+				typeQueue.Enqueue(nestedType);
+		}
+	}
+
+	internal static void Write(string Target)
+	{
+		if (memoryStream == null)
+			throw new InvalidOperationException("No assembly was found in memory");
+		memoryStream.Position = 0;
+
+		try
+		{
+			FileStream outputStream = File.Open(Target, FileMode.Create);
+			Logger.Log($"Writing to '{Path.GetFileName(Target)}' from memory");
+			memoryStream.CopyTo(outputStream);
+
+			outputStream.Dispose();
+			outputStream = null;
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Error while writing to '{Path.GetFileName(Target)}'", ex);
+			throw (ex);
 		}
 	}
 }

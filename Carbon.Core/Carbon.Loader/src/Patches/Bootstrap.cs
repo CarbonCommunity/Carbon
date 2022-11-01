@@ -3,32 +3,53 @@
 /// All rights reserved
 /// 
 using System.Diagnostics;
-using Carbon.Utility;
+using Carbon.LoaderEx.Utility;
 using Harmony;
 
-namespace Carbon.Patches;
+namespace Carbon.LoaderEx.Patches;
 
 internal static class __Bootstrap
 {
-	[HarmonyPatch(typeof(Bootstrap), methodName: "StartupShared")]
-	internal static class __StartupShared
+	[HarmonyPatch(typeof(Bootstrap), methodName: "Init_Tier0")]
+	internal static class __Init_Tier0
 	{
 		public static void Prefix()
 		{
-			Loader.GetInstance().Initialize();
+			bool r1 = Hijacker.DoUnload();
+			bool r2 = Hijacker.DoMove();
 
-			if (Hijacker.DoUnload() || Hijacker.DoMove())
+			if (r1 || r2)
 			{
 				Logger.Warn("Application will now exit");
 				Process.GetCurrentProcess().Kill();
 			}
-
-			Hijacker.DoHijack();
-#if WIN
-			Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
-#elif UNIX
-			Components.HarmonyLoader.GetInstance().Load("Carbon-Unix.dll");
-#endif
+			else
+			{
+				Hijacker.DoHijack();
+			}
 		}
+
+#if WAIT_FOR_DEBUGGER
+		public static void Postfix()
+		{
+			Logger.Warn("Waiting for a debugger connection..");
+			var t = Task.Run(async delegate
+			{
+				while (!Debugger.IsAttached)
+					await Task.Delay(1000);
+				return;
+			});
+
+			t.Wait();
+			Debugger.Break();
+		}
+#endif
+	}
+
+	[HarmonyPatch(typeof(Bootstrap), methodName: "StartupShared")]
+	internal static class __StartupShared
+	{
+		public static void Prefix()
+			=> Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
 	}
 }

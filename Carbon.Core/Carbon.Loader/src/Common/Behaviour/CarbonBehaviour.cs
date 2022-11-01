@@ -5,7 +5,7 @@
 using System;
 using UnityEngine;
 
-namespace Carbon.Common;
+namespace Carbon.LoaderEx.Common;
 
 internal abstract class CarbonBehaviour : MonoBehaviour
 {

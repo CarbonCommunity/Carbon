@@ -6,7 +6,7 @@
 using System;
 using System.IO;
 
-namespace Carbon.Context;
+namespace Carbon.LoaderEx.Context;
 
 internal sealed class Directory
 {
@@ -16,7 +16,7 @@ internal sealed class Directory
 	internal static readonly string
 		Game, GameManaged, GameHarmony,
 
-		Carbon, CarbonManaged, CarbonHarmony, CarbonLib;
+		Carbon, CarbonManaged, CarbonHarmony, CarbonLib, CarbonLogs;
 
 	static Directory()
 	{
@@ -30,12 +30,14 @@ internal sealed class Directory
 			Game = t;
 			break;
 		}
+
 		if (Game == null) throw new System.Exception("Unable to find root folder");
 
 		GameManaged = Path.GetFullPath(Path.Combine(Game, "RustDedicated_Data", "Managed"));
 		GameHarmony = Path.GetFullPath(Path.Combine(Game, "HarmonyMods"));
 
 		Carbon = Path.GetFullPath(Path.Combine(Game, "carbon"));
+		CarbonLogs = Path.GetFullPath(Path.Combine(Carbon, "logs"));
 		CarbonHarmony = Path.GetFullPath(Path.Combine(Carbon, "harmony"));
 		CarbonManaged = Path.GetFullPath(Path.Combine(Carbon, "managed"));
 		CarbonLib = Path.GetFullPath(Path.Combine(CarbonManaged, "lib"));

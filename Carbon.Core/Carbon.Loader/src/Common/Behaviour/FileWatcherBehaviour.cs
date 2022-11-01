@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Carbon.Common;
+namespace Carbon.LoaderEx.Common;
 
 internal abstract class FileWatcherBehaviour : CarbonBehaviour, IDisposable
 {
@@ -20,7 +20,7 @@ internal abstract class FileWatcherBehaviour : CarbonBehaviour, IDisposable
 
 	internal virtual void Awake()
 	{
-		Carbon.Utility.Logger.Log("FileWatcherBehaviour:Awake()");
+		Carbon.LoaderEx.Utility.Logger.Log("FileWatcherBehaviour:Awake()");
 
 		directory = string.Empty;
 		extension = string.Empty;
@@ -30,7 +30,7 @@ internal abstract class FileWatcherBehaviour : CarbonBehaviour, IDisposable
 
 	internal void OnEnable()
 	{
-		Carbon.Utility.Logger.Log("FileWatcherBehaviour:OnEnable()");
+		Carbon.LoaderEx.Utility.Logger.Log("FileWatcherBehaviour:OnEnable()");
 
 		if (string.IsNullOrEmpty(extension))
 			throw new ArgumentException("No file extension defined");
@@ -69,7 +69,7 @@ internal abstract class FileWatcherBehaviour : CarbonBehaviour, IDisposable
 
 	internal void OnDisable()
 	{
-		Carbon.Utility.Logger.Log("FileWatcherBehaviour:OnDisable()");
+		Carbon.LoaderEx.Utility.Logger.Log("FileWatcherBehaviour:OnDisable()");
 
 		if (Handler == null) return;
 		Handler.EnableRaisingEvents = false;
@@ -77,7 +77,7 @@ internal abstract class FileWatcherBehaviour : CarbonBehaviour, IDisposable
 
 	internal virtual void OnDestroy()
 	{
-		Carbon.Utility.Logger.Log("FileWatcherBehaviour:OnDestroy()");
+		Carbon.LoaderEx.Utility.Logger.Log("FileWatcherBehaviour:OnDestroy()");
 		Dispose();
 	}
 

@@ -186,6 +186,10 @@ namespace Oxide.Plugins
 		{
 			LoadConfig();
 		}
+		public void ILoadDefaultMessages()
+		{
+			LoadDefaultMessages();
+		}
 
 		protected virtual void LoadConfig()
 		{

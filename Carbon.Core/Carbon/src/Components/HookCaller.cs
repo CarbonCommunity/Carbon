@@ -80,6 +80,24 @@ namespace Carbon
 
 			return buffer;
 		}
+		internal static object[] _rescaleBuffer(object[] oldBuffer, int newScale)
+		{
+			if (oldBuffer.Length == newScale)
+			{
+				return oldBuffer;
+			}
+
+			var newBuffer = _allocateBuffer(newScale);
+
+			for (int i = 0; i < newScale; i++)
+			{
+				if (i > oldBuffer.Length - 1) break;
+
+				newBuffer[i] = oldBuffer[i];
+			}
+
+			return newBuffer;
+		}
 		internal static void _clearBuffer(object[] buffer)
 		{
 			for (int i = 0; i < buffer.Length; i++)
@@ -138,6 +156,17 @@ namespace Carbon
 
 			object DoCall(MethodInfo method)
 			{
+				if (method == null) return null;
+
+				if (args != null)
+				{
+					var actualLength = method.GetParameters().Length;
+					if (actualLength != args.Length)
+					{
+						args = _rescaleBuffer(args, actualLength);
+					}
+				}
+
 				var beforeTicks = Environment.TickCount;
 				plugin.TrackStart();
 				result = method?.Invoke(plugin, args);

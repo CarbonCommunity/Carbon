@@ -3,7 +3,6 @@
 /// All rights reserved
 ///
 
-using Carbon.Core;
 
 namespace Carbon.Hooks
 {

@@ -7,10 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Extensions;
-using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 
@@ -64,6 +62,15 @@ namespace Carbon.Core
 			requirees.Clear();
 			requirees = null;
 		}
+		public static void ClearAllErrored()
+		{
+			foreach (var mod in _failedMods)
+			{
+				Array.Clear(mod.Errors, 0, mod.Errors.Length);
+			}
+
+			_failedMods.Clear();
+		}
 
 		public static void AppendAssembly(string key, Assembly assembly)
 		{
@@ -93,24 +100,6 @@ namespace Carbon.Core
 					}
 					catch { return; }
 				}
-
-				AppDomain.CurrentDomain.AssemblyResolve += delegate (object sender, ResolveEventArgs args)
-				{
-					if (!Regex.IsMatch(args.Name, @"^(Microsoft|System)\."))
-						Logger.Log($"Resolving assembly ref: {args.Name}");
-
-					var assemblyName = new AssemblyName(args.Name);
-					var assemblyPath = Path.GetFullPath(
-						Path.Combine(_modPath, assemblyName.Name, ".dll"));
-
-					// This allows plugins to use Carbon.xxx
-					if (Regex.IsMatch(assemblyName.Name, @"^([Cc]arbon(-.+)?)$"))
-						assemblyPath = Defines.DllPath;
-
-					if (File.Exists(assemblyPath))
-						return LoadAssembly(assemblyPath);
-					return null;
-				};
 
 				foreach (var text in Directory.EnumerateFiles(_modPath, "*.dll"))
 				{
@@ -348,6 +337,7 @@ namespace Carbon.Core
 			preInit?.Invoke(plugin);
 
 			plugin.ILoadConfig();
+			plugin.ILoadDefaultMessages();
 			plugin.IInit();
 			plugin.Load();
 			HookCaller.CallStaticHook("OnPluginLoaded", plugin);
@@ -542,7 +532,6 @@ namespace Carbon.Core
 
 						try
 						{
-							plugin.CallHook("OnServerInitialized");
 							plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
 						}
 						catch (Exception initException)
@@ -560,7 +549,6 @@ namespace Carbon.Core
 
 					try
 					{
-						HookCaller.CallHook(plugin, "OnServerInitialized");
 						HookCaller.CallHook(plugin, "OnServerInitialized", Community.IsServerFullyInitialized);
 					}
 					catch (Exception initException)
@@ -684,6 +672,7 @@ namespace Carbon.Core
 		internal static string _modPath;
 
 		internal static List<CarbonMod> _loadedMods = new List<CarbonMod>();
+		internal static List<FailedMod> _failedMods = new List<FailedMod>();
 
 		[JsonObject(MemberSerialization.OptIn)]
 		public class CarbonMod
@@ -702,6 +691,16 @@ namespace Carbon.Core
 
 			[JsonProperty]
 			public List<RustPlugin> Plugins { get; set; } = new List<RustPlugin>();
+		}
+
+		[JsonObject(MemberSerialization.OptIn)]
+		public class FailedMod
+		{
+			[JsonProperty]
+			public string File { get; set; } = string.Empty;
+
+			[JsonProperty]
+			public string[] Errors { get; set; }
 		}
 	}
 }

@@ -5,7 +5,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using Carbon.Base;
 using Carbon.Core;
 
@@ -66,6 +65,8 @@ namespace Carbon.Processors
 			{
 				try
 				{
+					Loader._failedMods.RemoveAll(x => x.File == File);
+
 					_loader = new ScriptLoader();
 					_loader.Parser = Parser;
 					_loader.File = File;
@@ -87,7 +88,8 @@ namespace Carbon.Processors
 				output = input
 					.Replace(".IPlayer", ".AsIPlayer()")
 					.Replace("using Harmony;", "using HarmonyLib;")
-					.Replace("new HarmonyInstance", "new Harmony");
+					.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
+					.Replace("HarmonyInstance", "HarmonyLib.Harmony");
 			}
 		}
 	}

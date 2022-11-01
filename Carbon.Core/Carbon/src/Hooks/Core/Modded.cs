@@ -4,7 +4,6 @@
 /// 
 
 using System;
-using Carbon.Core;
 using Carbon.Extensions;
 
 namespace Carbon.Hooks

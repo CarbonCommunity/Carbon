@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
-using Carbon.Modules;
 
 namespace Carbon.Processors
 {

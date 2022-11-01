@@ -1,10 +1,12 @@
-﻿///
+﻿using System;
+///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
 
 using Epic.OnlineServices.AntiCheatCommon;
 using Epic.OnlineServices.AntiCheatServer;
+using Network;
 using Oxide.Core;
 
 namespace Carbon.Hooks
@@ -19,8 +21,8 @@ namespace Carbon.Hooks
 	{
 		public static bool Prefix(ref OnClientActionRequiredCallbackInfo data)
 		{
-			var clientHandle = data.ClientHandle;
-			var connection = EACServer.GetConnection(clientHandle);
+			IntPtr clientHandle = data.ClientHandle;
+			Connection connection = EACServer.GetConnection(clientHandle);
 
 			if (connection == null)
 			{
@@ -34,8 +36,7 @@ namespace Carbon.Hooks
 
 				if (clientAction == AntiCheatCommonClientAction.RemovePlayer)
 				{
-					var actionReasonDetailsString = data.ActionReasonDetailsString;
-
+					Epic.OnlineServices.Utf8String actionReasonDetailsString = data.ActionReasonDetailsString;
 					Carbon.Logger.Log(string.Format("[EAC] Kicking {0} / {1} ({2})", connection.userid, connection.username, actionReasonDetailsString));
 					connection.authStatus = "eac";
 					Network.Net.sv.Kick(connection, "EAC: " + actionReasonDetailsString, false);
@@ -50,7 +51,7 @@ namespace Carbon.Hooks
 
 					var unregisterClientOptions = new UnregisterClientOptions { ClientHandle = clientHandle };
 					EACServer.Interface.UnregisterClient(ref unregisterClientOptions);
-					EACServer.client2connection.Remove(clientHandle);
+					EACServer.client2connection.Remove((uint)(int)clientHandle);
 					EACServer.connection2client.Remove(connection);
 					EACServer.connection2status.Remove(connection);
 				}

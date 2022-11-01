@@ -3,8 +3,6 @@
 /// All rights reserved
 /// 
 
-using System.Data.Common;
-using System.Data.SQLite;
 using Oxide.Plugins;
 
 namespace Oxide.Ext.SQLite

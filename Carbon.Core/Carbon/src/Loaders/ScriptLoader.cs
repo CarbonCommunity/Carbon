@@ -204,13 +204,21 @@ namespace Carbon.Processors
 
 			if (AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0)
 			{
+				var errors = Pool.GetList<string>();
 				Carbon.Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
 				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
 				{
 					var error = AsyncLoader.Exceptions[i];
-					Carbon.Logger.Error($"  {i + 1:n0}. {error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})");
+					var print = $"{error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
+					Carbon.Logger.Error($"  {i + 1:n0}. {print}");
+					errors.Add(print);
 				}
 
+				Loader._failedMods.Add(new Loader.FailedMod { File = File, Errors = errors.ToArray() });
+
+				Pool.FreeList(ref errors);
+				AsyncLoader.Exceptions.Clear();
+				AsyncLoader.Exceptions = null;
 				HasFinished = true;
 				yield break;
 			}

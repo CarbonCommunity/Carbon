@@ -5,7 +5,6 @@
 
 using System;
 using Carbon;
-using Carbon.Core;
 
 namespace Oxide.Core
 {

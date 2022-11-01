@@ -8,7 +8,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using Carbon;
 using Newtonsoft.Json;
 
 namespace Oxide.Core.Configuration

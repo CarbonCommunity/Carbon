@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Carbon.Core;
 using Carbon.Extensions;
-using static Carbon.Logger;
+using Facepunch;
 
 namespace Carbon
 {
@@ -16,7 +12,6 @@ namespace Carbon
 		internal static bool _hasInit;
 		internal static List<string> _buffer = new List<string>();
 		internal static StreamWriter _file;
-		internal static TimeSince _timeSinceFlush;
 		internal static int _splitSize = (int)(2.5f * 1000000f);
 
 		internal static void _init(bool archive = false)
@@ -32,13 +27,13 @@ namespace Carbon
 
 			_hasInit = true;
 
-			var path = Path.Combine(Defines.GetLogsFolder(), "carbon_log.txt");
+			var path = Path.Combine(Defines.GetLogsFolder(), "Carbon.Core.log");
 
 			if (archive)
 			{
 				if (OsEx.File.Exists(path))
 				{
-					OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"carbon_log_{DateTime.Now:yyyy.MM.dd.HHmmss}.txt"));
+					OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"Carbon.Core.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
 				}
 			}
 
@@ -54,14 +49,17 @@ namespace Carbon
 		}
 		internal static void _flush()
 		{
-			foreach (var line in _buffer)
+			var buffer = Pool.GetList<string>();
+			buffer.AddRange(_buffer);
+
+			foreach (var line in buffer)
 			{
 				_file?.WriteLine(line);
 			}
 
 			_file.Flush();
 			_buffer.Clear();
-			_timeSinceFlush = 0;
+			Pool.FreeList(ref buffer);
 
 			if (_file.BaseStream.Length > _splitSize)
 			{

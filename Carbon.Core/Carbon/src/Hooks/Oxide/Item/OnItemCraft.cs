@@ -3,9 +3,6 @@
 /// All rights reserved
 /// 
 
-using Carbon.Core;
-using Facepunch;
-using ProtoBuf;
 
 namespace Carbon.Hooks
 {
