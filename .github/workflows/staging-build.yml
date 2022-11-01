@@ -77,8 +77,9 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-staging-${{ needs.bootstrap.outputs.ref }}-linux
-        path: Release
+        name: build-staging-linux
+        path: |
+          Release/Carbon-DebugUnix.tar.gz
 
   build-windows:
     name: 🪟 Windows
@@ -109,8 +110,9 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-staging-${{ needs.bootstrap.outputs.ref }}-windows
-        path: Release
+        name: build-staging-windows
+        path: |
+          Release/Carbon.Debug.zip
 
   release:
     name: 💾 Release
@@ -118,17 +120,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: ⬇️ Download artifacts from the linux build
+    - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: ${{ needs.build-linux.outputs.artifact }}
-        path: Release/linux/
-
-    - name: ⬇️ Download artifacts from the windows build
-      uses: actions/download-artifact@v3
-      with:
-        name: ${{ needs.build-windows.outputs.artifact }}
-        path: Release/windows/
+        path: Release/
         
     - name: 🗑️ Delete existing release tag
       uses: dev-drprasad/delete-tag-and-release@v0.2.0
@@ -159,5 +154,5 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/windows/Carbon.Debug.zip
-          Release/linux/Carbon-DebugUnix.tar.gz
+          Release/build-staging-windows/Carbon.Debug.zip
+          Release/build-staging-linux/Carbon-DebugUnix.tar.gz

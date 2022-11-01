@@ -37,5 +37,5 @@ cp "${ROOT}/Release/.tmp/${TARGET}/HarmonyMods/Carbon.Loader.dll" "${ROOT}/Relea
 cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll" "${ROOT}/Release"
 cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.Doorstop.dll" "${ROOT}/Release"
 
-echo "** Create the zip archive release files"
+echo "** Create the compressed archive"
 tar -zcvf "${ROOT}/Release/Carbon.${TARGET}.tar.gz" -C "${ROOT}/Release/.tmp/${TARGET}" $(ls -A ${ROOT}/Release/.tmp/${TARGET})

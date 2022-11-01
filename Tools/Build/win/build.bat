@@ -43,5 +43,5 @@ copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.dll"          "%ROOT
 copy /y "%ROOT%\Release\.tmp\%TARGET%\HarmonyMods\Carbon.Loader.dll"      "%ROOT%\Release"
 copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Doorstop.dll" "%ROOT%\Release"
 
-echo ** Create the zip archive release files
+echo ** Create the compressed archive
 powershell -Command "Compress-Archive -Update -Path '%ROOT%\Release\.tmp\%TARGET%\*' -DestinationPath '%ROOT%\Release\Carbon.%TARGET%.zip'"

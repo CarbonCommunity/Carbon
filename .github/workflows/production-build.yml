@@ -80,8 +80,9 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-production-${{ needs.bootstrap.outputs.ref }}-linux
-        path: Release
+        name: build-production-linux
+        path: |
+          Release/Carbon-ReleaseUnix.tar.gz
 
   build-windows:
     name: 🪟 Windows
@@ -113,8 +114,9 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-production-${{ needs.bootstrap.outputs.ref }}-windows
-        path: Release
+        name: build-production-windows
+        path: |
+          Release/Carbon.Release.zip
 
   release:
     name: 💾 Release
@@ -124,17 +126,10 @@ jobs:
     if: ${{ (github.event_name == 'push') || (github.event_name == 'workflow_dispatch') || (github.event_name == 'schedule' && needs.build-linux.outputs.wipe == 'true') }}
 
     steps:
-    - name: ⬇️ Download artifacts from the linux build
+    - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: ${{ needs.build-linux.outputs.artifact }}
-        path: Release/linux/
-
-    - name: ⬇️ Download artifacts from the windows build
-      uses: actions/download-artifact@v3
-      with:
-        name: ${{ needs.build-windows.outputs.artifact }}
-        path: Release/windows/
+        path: Release/
         
     - name: 🗑️ Delete existing release tag
       uses: dev-drprasad/delete-tag-and-release@v0.2.0
@@ -161,5 +156,5 @@ jobs:
           
           ${{ needs.build-linux.outputs.build_info }}
         files: |
-          Release/windows/Carbon.Release.zip
-          Release/linux/Carbon-ReleaseUnix.tar.gz
+          Release/build-production-windows/Carbon.Release.zip
+          Release/build-production-linux/Carbon-ReleaseUnix.tar.gz

@@ -73,12 +73,17 @@ jobs:
       shell: bash
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix
+
+    - name: Display structure of release files
+      run: ls -R
+      working-directory: Release
         
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
-        path: Release
+        name: build-develop-linux
+        path: |
+          Release/Carbon-DebugUnix.tar.gz
 
   build-windows:
     name: 🪟 Windows
@@ -105,11 +110,16 @@ jobs:
       run: |
         %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
 
+    - name: Display structure of release files
+      run: ls -R
+      working-directory: Release
+
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-develop-${{ needs.bootstrap.outputs.ref }}-windows
-        path: Release
+        name: build-develop-windows
+        path: |
+          Release/Carbon.Debug.zip
 
   release:
     name: 💾 Release
@@ -120,17 +130,14 @@ jobs:
     # or if manually triggered by a developer
 
     steps:
-    - name: ⬇️ Download artifacts from the linux build
+    - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: ${{ needs.build-linux.outputs.artifact }}
-        path: Release/linux/
+        path: Release
 
-    - name: ⬇️ Download artifacts from the windows build
-      uses: actions/download-artifact@v3
-      with:
-        name: ${{ needs.build-windows.outputs.artifact }}
-        path: Release/windows/
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: Release
         
     - name: 🗑️ Delete existing release tag
       uses: dev-drprasad/delete-tag-and-release@v0.2.0
@@ -161,5 +168,5 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/windows/Carbon.Debug.zip
-          Release/linux/Carbon-DebugUnix.tar.gz
+          Release/build-develop-windows/Carbon.Debug.zip
+          Release/build-develop-linux/Carbon-DebugUnix.tar.gz
