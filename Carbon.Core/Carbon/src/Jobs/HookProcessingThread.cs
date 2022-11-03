@@ -88,7 +88,7 @@ namespace Carbon.Jobs
 						}
 						var originalParametersResult = originalParameters.ToArray();
 
-						var matchedParameters = patch.UseProvidedParameters ? originalParametersResult : Processor.GetMatchedParameters(patch.Type, patch.Method, (prefix ?? postfix ?? transpiler).GetParameters());
+						var matchedParameters = transpiler != null ? patch.Parameters : patch.UseProvidedParameters ? originalParametersResult : Processor.GetMatchedParameters(patch.Type, patch.Method, (prefix ?? postfix ?? transpiler).GetParameters());
 
 						var instance = new HarmonyLib.Harmony(patchId);
 						var originalMethod = patch.Type.GetMethod(patch.Method, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static, null, matchedParameters, default);
