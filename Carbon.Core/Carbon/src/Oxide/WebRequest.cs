@@ -183,9 +183,9 @@ namespace Oxide.Core.Libraries
 						return base.GetWebRequest(address);
 					}
 
-					var request = (System.Net.WebRequest)base.GetWebRequest(address);
+					var request = base.GetWebRequest(address) as HttpWebRequest;
 
-					((HttpWebRequest)request).ServicePoint.BindIPEndPointDelegate = (servicePoint, remoteEndPoint, retryCount) =>
+					request.ServicePoint.BindIPEndPointDelegate = (servicePoint, remoteEndPoint, retryCount) =>
 					{
 						return new IPEndPoint(IPAddress.Parse(Community.Runtime.Config.WebRequestIp), 0);
 					};
