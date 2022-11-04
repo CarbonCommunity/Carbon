@@ -268,6 +268,30 @@ namespace Carbon.Core
 		[CommandVar("language", "Server language used by the Language API.", true)]
 		private string Language { get { return Community.Runtime.Config.Language; } set { Community.Runtime.Config.Language = value; Community.Runtime.SaveConfig(); } }
 
+#if WIN
+		[CommandVar("consoleinfo", "Show the Windows-only Carbon information at the bottom of the console.", true)]
+		private bool ConsoleInfo
+		{
+			get { return Community.Runtime.Config.ShowConsoleInfo; }
+			set
+			{
+				Community.Runtime.Config.ShowConsoleInfo = value;
+
+				if (value)
+				{
+					Community.Runtime.RefreshConsoleInfo();
+				}
+				else
+				{
+					if (ServerConsole.Instance != null && ServerConsole.Instance.input != null)
+					{
+						ServerConsole.Instance.input.statusText = new string[3];
+					}
+				}
+			}
+		}
+#endif
+
 		#endregion
 
 		#region Commands

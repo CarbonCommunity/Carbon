@@ -14,6 +14,9 @@ namespace Carbon.Core
 		public Logger.Severity LogSeverity { get; set; } = Logger.Severity.Notice;
 		public int LogFileMode { get; set; } = 2;
 		public string WebRequestIp { get; set; }
+#if WIN
+		public bool ShowConsoleInfo { get; set; } = true;
+#endif
 
 		public string Language { get; set; } = "en";
 		public bool CarbonTag { get; set; } = true;
