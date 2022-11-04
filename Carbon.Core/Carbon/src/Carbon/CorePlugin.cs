@@ -99,10 +99,10 @@ namespace Carbon.Core
 			Carbon.LoaderEx.Components.Supervisor.Core.Exit();
 		}
 
-		[ConsoleCommand("restart", "Unloads Carbon from the game and then loads it back again.")]
-		private void Restart(ConsoleSystem.Arg arg)
+		[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
+		private void Reboot(ConsoleSystem.Arg arg)
 		{
-			Carbon.LoaderEx.Components.Supervisor.Core.Restart();
+			Carbon.LoaderEx.Components.Supervisor.Core.Reboot();
 		}
 
 		[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]

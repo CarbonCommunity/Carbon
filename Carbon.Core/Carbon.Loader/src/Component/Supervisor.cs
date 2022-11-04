@@ -13,7 +13,7 @@ public static class Core
 	public static void Exit()
 		=> HarmonyLoader.GetInstance().Unload("Carbon.dll");
 
-	public static void Restart()
+	public static void Reboot()
 	{
 		Exit();
 		Start();
