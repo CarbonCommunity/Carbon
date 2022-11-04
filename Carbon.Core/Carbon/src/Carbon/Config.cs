@@ -13,6 +13,7 @@ namespace Carbon.Core
 		public int LogVerbosity { get; set; } = 0;
 		public Logger.Severity LogSeverity { get; set; } = Logger.Severity.Notice;
 		public int LogFileMode { get; set; } = 2;
+		public string WebRequestIp { get; set; }
 
 		public string Language { get; set; } = "en";
 		public bool CarbonTag { get; set; } = true;
@@ -22,6 +23,5 @@ namespace Carbon.Core
 		public bool ScriptWatchers { get; set; } = true;
 		public bool HarmonyWatchers { get; set; } = true;
 		public int EntityMapBufferSize { get; set; } = 100000;
-		public bool Usev2Harmony { get; set; } = true;
 	}
 }

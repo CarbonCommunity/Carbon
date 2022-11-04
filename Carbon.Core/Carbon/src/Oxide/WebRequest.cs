@@ -176,6 +176,23 @@ namespace Oxide.Core.Libraries
 
 			public class Client : WebClient
 			{
+				protected override System.Net.WebRequest GetWebRequest(Uri address)
+				{
+					if (!Community.IsConfigReady || string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))
+					{
+						return base.GetWebRequest(address);
+					}
+
+					var request = (System.Net.WebRequest)base.GetWebRequest(address);
+
+					((HttpWebRequest)request).ServicePoint.BindIPEndPointDelegate = (servicePoint, remoteEndPoint, retryCount) =>
+					{
+						return new IPEndPoint(IPAddress.Parse(Community.Runtime.Config.WebRequestIp), 0);
+					};
+
+					return request;
+				}
+
 				public new void Dispose()
 				{
 					base.Dispose();
