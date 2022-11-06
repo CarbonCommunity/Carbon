@@ -9,7 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Oxide.Core.Libraries.Covalence;
+using Carbon.Oxide;
 
 namespace Oxide.Core
 {

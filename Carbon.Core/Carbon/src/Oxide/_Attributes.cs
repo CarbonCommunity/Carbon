@@ -57,10 +57,13 @@ public class DescriptionAttribute : Attribute
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field)]
 public class PluginReferenceAttribute : Attribute
 {
+	public string Name { get; set; }
+
 	public FieldInfo Field { get; set; }
 
-	public PluginReferenceAttribute()
+	public PluginReferenceAttribute(string name = null)
 	{
+		Name = name;
 	}
 }
 

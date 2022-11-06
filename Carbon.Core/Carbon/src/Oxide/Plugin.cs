@@ -197,19 +197,21 @@ namespace Oxide.Plugins
 				var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
 				if (attribute == null) continue;
 
+				var name = string.IsNullOrEmpty(attribute.Name) ? field.Name : attribute.Name;
+
 				var plugin = (Plugin)null;
 				if (field.FieldType.Name != nameof(Plugin) && field.FieldType.Name != nameof(RustPlugin))
 				{
 					var info = field.FieldType.GetCustomAttribute<InfoAttribute>();
 					if (info == null)
 					{
-						Carbon.Logger.Warn($"You're trying to reference a non-plugin instance: {field.Name}[{field.FieldType.Name}]");
+						Carbon.Logger.Warn($"You're trying to reference a non-plugin instance: {name}[{field.FieldType.Name}]");
 						continue;
 					}
 
 					plugin = Community.Runtime.CorePlugin.plugins.Find(info.Title);
 				}
-				else plugin = Community.Runtime.CorePlugin.plugins.Find(field.Name);
+				else plugin = Community.Runtime.CorePlugin.plugins.Find(name);
 
 				if (plugin != null) field.SetValue(this, plugin);
 			}

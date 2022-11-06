@@ -47,7 +47,7 @@ namespace Oxide.Core.Libraries.Covalence
 		void RemoveFromGroup(string group);
 	}
 
-	public struct Player : IPlayer
+	public struct RustPlayer : IPlayer
 	{
 		public object Object { get; set; }
 
