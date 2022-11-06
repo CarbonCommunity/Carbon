@@ -1,114 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
-		<!-- General build information -->
-		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
-
-		<Deterministic>true</Deterministic>
-		<FileAlignment>512</FileAlignment>
-		<OutputType>Library</OutputType>
-		<TargetFrameworks>net48</TargetFrameworks>
-
-		<!-- Removes the localized Microsoft.CodeAnalysis.*.resources.dll -->
-		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-
-		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
-		<PlatformTarget>x64</PlatformTarget>
-		<Platforms>AnyCPU;x64</Platforms>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<!-- User defined properties -->
 		<Product>Carbon</Product>
-		<AssemblyName>Carbon</AssemblyName>
-
-		<Company>Raul-Sorin Sorban</Company>
-		<Copyright>Copyright © Carbon 2022</Copyright>
-		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
-		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<!-- Automatically generated properties -->
-		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
-		<VersionSuffix>$(Configuration)</VersionSuffix>
-		<AssemblyVersion>$(Version)</AssemblyVersion>
-		<FileVersion>$(VersionPrefix)</FileVersion>
-		<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
-		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_")).Core</RootNamespace>
-		<Version>1.$([System.DateTime]::UtcNow.ToString('yy.ddMM')).10</Version>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<OutputPath>bin\$(Configuration)\</OutputPath>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="$(Configuration.Contains('Debug'))">
-		<DebugType>embedded</DebugType>
-		<DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
-		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="$(Configuration.Contains('Release'))">
-		<DebugType>none</DebugType>
-		<DefineConstants>$(DefineConstants)</DefineConstants>
-		<Optimize>true</Optimize>
-		<OutputPath>bin\$(Configuration)\</OutputPath>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="!$(Configuration.Contains('Unix'))">
-		<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="$(Configuration.Contains('Unix'))">
-		<DefineConstants>UNIX;$(DefineConstants)</DefineConstants>
-	</PropertyGroup>
+	<Import Project="..\.msbuild\Common.props" />
+	<Import Project="..\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
-		<!-- System libs -->
-		<Reference Include="Microsoft.CSharp" />
-		<Reference Include="System.Core" />
-		<Reference Include="System.Core" />
-		<Reference Include="System.Data" />
-		<Reference Include="System.Drawing.Design" />
-		<Reference Include="System.Drawing" />
-		<Reference Include="System.IO.Compression.FileSystem" />
-		<Reference Include="System.Memory" />
-		<Reference Include="System.Xml" />
-		<Reference Include="System" />
-	</ItemGroup>
+		<!-- Carbon platform -->
+		<ProjectReference Include="..\Carbon.Loader\Carbon.Loader.csproj" Private="false" />
 
-	<ItemGroup>
-		<!-- External libs -->
-		<Reference Include="..\..\Carbon.Core\Carbon\Resources\*.dll" />
-	</ItemGroup>
-
-	<ItemGroup Condition="!$(Configuration.Contains('Unix'))">
-		<!-- Windows packages -->
-		<Reference Include="..\..\Rust\windows\RustDedicated_Data\Managed\*.dll">
-			<PrivateAssets>all</PrivateAssets>
-			<SpecificVersion>false</SpecificVersion>
-		</Reference>
-	</ItemGroup>
-
-	<ItemGroup Condition="$(Configuration.Contains('Unix'))">
-		<!-- Linux packages -->
-		<Reference Include="..\..\Rust\linux\RustDedicated_Data\Managed\*.dll">
-			<PrivateAssets>all</PrivateAssets>
-			<SpecificVersion>false</SpecificVersion>
-		</Reference>
-	</ItemGroup>
-
-	<ItemGroup>
-		<!-- Nuget packages -->
-		<PackageReference Include="Costura.Fody" Version="5.7.0">
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-
-		<!-- Dependency of HarmonyLib -->
-		<PackageReference Include="MonoMod.Common" Version="22.6.3.1" />
-		<PackageReference Include="MonoMod" Version="22.5.1.1" />
+		<!-- HarmonyLib using a custom name -->
+		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" />
 
 		<!-- Required by Carbon's Logger -->
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
@@ -117,79 +22,21 @@
 		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
 		<PackageReference Include="protobuf-net" Version="3.1.17" />
 		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
+
+		<!-- Required by Carbon's Database support -->
+		<PackageReference Include="MySql.Data" Version="8.0.31" PrivateAssets="all" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" PrivateAssets="all" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<!-- Included resources on the final assembly -->
-		<Compile Update="Properties\Resources.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Resources.resx</DependentUpon>
-		</Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-		<EmbeddedResource Update="Properties\Resources.resx">
-			<Generator>ResXFileCodeGenerator</Generator>
-			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
-	</ItemGroup>
-
-
-	<!-- ========================== -->
-	<!-- BUILD TASK SEQUENCER BELOW -->
-	<!-- ========================== -->
-	<Target Name="CleanOutput" AfterTargets="Clean">
-		<Delete Files="$(OutputPath)Carbon.dll" />
-		<Delete Files="$(OutputPath)$(TargetName).dll" />
+	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).pdb" DestinationFolder="$(c_managed)" Condition="$(Configuration.Contains('Debug'))" />
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
 
-	<Target Name="CustomPrepareForBuild" AfterTargets="_GenerateRestoreProjectSpec">
-		<PropertyGroup>
-			<RandomASM>$(Product)-$([System.DateTime]::UtcNow.ToString('HHmmfff'))</RandomASM>
-		</PropertyGroup>
-
-		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
-		</Exec>
-
-		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
-		</Exec>
-
-		<PropertyGroup>
-			<Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
-		</PropertyGroup>
-
-		<WriteLinesToFile File="$(SolutionDir)Carbon\.gitag" Overwrite="true" Lines="$(Gitag)" />
-		<WriteLinesToFile File="$(SolutionDir)Carbon\.rndasm" Overwrite="true" Lines="$(RandomASM)" />
-	</Target>
-
-	<Target Name="CustomBeforeCompile" BeforeTargets="BeforeCompile">
-		<Message Text="&gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />
-		<Message Text="&gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
-		<Message Text="&gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
-		<Message Text="&gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
-	</Target>
-
-	<Target Name="CustomAfterBuild" AfterTargets="AfterBuild">
-		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)Carbon.dll" />
-
+	<Target Name="AfterResolveReferences">
+		<!-- Redefine referencepath to add dependencies-->
 		<ItemGroup>
-			<FilesToDelete Include="$(OutputPath)*.dll" Exclude="$(OutputPath)Carbon.dll;$(OutputPath)Carbon-*.dll" />
+			<ReferencePath Include="@(ReferenceDependencyPaths)"></ReferencePath>
 		</ItemGroup>
-
-		<Message Text="&gt;&gt; Cleaning output folder" Importance="high" />
-		<Delete Files="@(FilesToDelete)">
-			<Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />
-		</Delete>
 	</Target>
-
-	<PropertyGroup Condition="Exists('.gitag')">
-		<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.gitag').Trim())</InformationalVersion>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="Exists('.rndasm') AND $(Configuration.Contains('Debug'))">
-		<AssemblyName>$([System.IO.File]::ReadAllText('$(SolutionDir)\Carbon\.rndasm').Trim())</AssemblyName>
-	</PropertyGroup>
 </Project>

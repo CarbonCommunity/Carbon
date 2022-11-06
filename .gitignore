@@ -16,6 +16,9 @@
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# User specific project options
+*.csproj.user
+
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 
