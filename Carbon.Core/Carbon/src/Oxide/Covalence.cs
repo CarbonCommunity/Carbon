@@ -7,26 +7,73 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Oxide.Core.Libraries.Covalence;
 
-namespace Oxide.Core.Libraries.Covalence
+namespace Carbon.Oxide
 {
+	public interface IPlayerManager
+	{
+		IEnumerable<IPlayer> All { get; }
+		IEnumerable<IPlayer> Connected { get; }
+
+		IPlayer FindPlayerById(string id);
+		IPlayer FindPlayerByObj(object obj);
+		IPlayer FindPlayer(string partialNameOrId);
+		IEnumerable<IPlayer> FindPlayers(string partialNameOrId);
+	}
+
+	public interface ICovalence
+	{
+		IPlayerManager Players { get; }
+		IServer Server { get; }
+	}
+
+	public interface IServer
+	{
+		string Name { get; set; }
+		System.Net.IPAddress Address { get; }
+		System.Net.IPAddress LocalAddress { get; }
+
+		ushort Port { get; }
+		string Version { get; }
+		string Protocol { get; }
+
+		System.Globalization.CultureInfo Language { get; }
+
+		int Players { get; }
+		int MaxPlayers { get; set; }
+
+		DateTime Time { get; set; }
+
+		void Ban(string id, string reason, TimeSpan duration = default(TimeSpan));
+		TimeSpan BanTimeRemaining(string id);
+		bool IsBanned(string id);
+		void Unban(string id);
+
+		void Save();
+
+		void Broadcast(string message, string prefix, params object[] args);
+		void Broadcast(string message);
+		void Command(string command, params object[] args);
+	}
+
 	public class Formatter
 	{
 		private static List<Element> Parse(List<Token> tokens)
 		{
-			int i = 0;
-			Stack<Entry> s = new Stack<Entry>();
+			var i = 0;
+			var s = new Stack<Entry>();
 			s.Push(new Entry(null, Element.Tag(ElementType.String)));
 			while (i < tokens.Count)
 			{
-				Token t = tokens[i++];
+				var t = tokens[i++];
 				Action<Element> action = delegate (Element el)
 				{
 					s.Push(new Entry(t.Pattern, el));
 				};
-				Element element = s.Peek().Element;
-				TokenType type = t.Type;
-				TokenType? tokenType = closeTags[element.Type];
+				var element = s.Peek().Element;
+				var type = t.Type;
+				var tokenType = closeTags[element.Type];
 				if (type == tokenType.GetValueOrDefault() & tokenType != null)
 				{
 					s.Pop();
@@ -59,8 +106,8 @@ namespace Oxide.Core.Libraries.Covalence
 			}
 			while (s.Count > 1)
 			{
-				Entry entry = s.Pop();
-				List<Element> body = s.Peek().Element.Body;
+				var entry = s.Pop();
+				var body = s.Peek().Element.Body;
 				body.Add(Element.String(entry.Pattern));
 				body.AddRange(entry.Element.Body);
 			}
@@ -84,8 +131,8 @@ namespace Oxide.Core.Libraries.Covalence
 
 		private static string ToTreeFormat(List<Element> tree, Dictionary<ElementType, Func<object, Tag>> translations)
 		{
-			StringBuilder stringBuilder = new StringBuilder();
-			foreach (Element element in tree)
+			var stringBuilder = new StringBuilder();
+			foreach (var element in tree)
 			{
 				if (element.Type == ElementType.String)
 				{
@@ -93,7 +140,7 @@ namespace Oxide.Core.Libraries.Covalence
 				}
 				else
 				{
-					Tag tag = Translation(element, translations);
+					var tag = Translation(element, translations);
 					stringBuilder.Append(tag.Open);
 					stringBuilder.Append(ToTreeFormat(element.Body, translations));
 					stringBuilder.Append(tag.Close);
@@ -119,38 +166,38 @@ namespace Oxide.Core.Libraries.Covalence
 
 		public static string ToUnity(string text)
 		{
-			Dictionary<ElementType, Func<object, Tag>> dictionary = new Dictionary<ElementType, Func<object, Tag>>();
-			dictionary[ElementType.Bold] = ((object _) => new Tag("<b>", "</b>"));
-			dictionary[ElementType.Italic] = ((object _) => new Tag("<i>", "</i>"));
-			dictionary[ElementType.Color] = ((object c) => new Tag(string.Format("<color=#{0}>", c), "</color>"));
-			dictionary[ElementType.Size] = ((object s) => new Tag(string.Format("<size={0}>", s), "</size>"));
+			var dictionary = new Dictionary<ElementType, Func<object, Tag>>();
+			dictionary[ElementType.Bold] = (_) => new Tag("<b>", "</b>");
+			dictionary[ElementType.Italic] = (_) => new Tag("<i>", "</i>");
+			dictionary[ElementType.Color] = (c) => new Tag(string.Format("<color=#{0}>", c), "</color>");
+			dictionary[ElementType.Size] = (s) => new Tag(string.Format("<size={0}>", s), "</size>");
 			return ToTreeFormat(text, dictionary);
 		}
 
 		public static string ToRustLegacy(string text)
 		{
-			Dictionary<ElementType, Func<object, Tag>> dictionary = new Dictionary<ElementType, Func<object, Tag>>();
-			dictionary[ElementType.Color] = ((object c) => new Tag("[color #" + RGBAtoRGB(c) + "]", "[color #ffffff]"));
+			var dictionary = new Dictionary<ElementType, Func<object, Tag>>();
+			dictionary[ElementType.Color] = (c) => new Tag("[color #" + RGBAtoRGB(c) + "]", "[color #ffffff]");
 			return ToTreeFormat(text, dictionary);
 		}
 
 		public static string ToRoKAnd7DTD(string text)
 		{
-			Dictionary<ElementType, Func<object, Tag>> dictionary = new Dictionary<ElementType, Func<object, Tag>>();
-			dictionary[ElementType.Color] = ((object c) => new Tag("[" + RGBAtoRGB(c) + "]", "[e7e7e7]"));
+			var dictionary = new Dictionary<ElementType, Func<object, Tag>>();
+			dictionary[ElementType.Color] = (c) => new Tag("[" + RGBAtoRGB(c) + "]", "[e7e7e7]");
 			return ToTreeFormat(text, dictionary);
 		}
 
 		public static string ToTerraria(string text)
 		{
-			Dictionary<ElementType, Func<object, Tag>> dictionary = new Dictionary<ElementType, Func<object, Tag>>();
-			dictionary[ElementType.Color] = ((object c) => new Tag("[c/" + RGBAtoRGB(c) + ":", "]"));
+			var dictionary = new Dictionary<ElementType, Func<object, Tag>>();
+			dictionary[ElementType.Color] = (c) => new Tag("[c/" + RGBAtoRGB(c) + ":", "]");
 			return ToTreeFormat(text, dictionary);
 		}
 
 		static Formatter()
 		{
-			Dictionary<string, string> dictionary = new Dictionary<string, string>();
+			var dictionary = new Dictionary<string, string>();
 			dictionary["aqua"] = "00ffff";
 			dictionary["black"] = "000000";
 			dictionary["blue"] = "0000ff";
@@ -174,7 +221,7 @@ namespace Oxide.Core.Libraries.Covalence
 			dictionary["white"] = "ffffff";
 			dictionary["yellow"] = "ffff00";
 			colorNames = dictionary;
-			Dictionary<ElementType, TokenType?> dictionary2 = new Dictionary<ElementType, TokenType?>();
+			var dictionary2 = new Dictionary<ElementType, TokenType?>();
 			dictionary2[ElementType.String] = null;
 			dictionary2[ElementType.Bold] = new Formatter.TokenType?(TokenType.CloseBold);
 			dictionary2[ElementType.Italic] = new Formatter.TokenType?(TokenType.CloseItalic);
@@ -242,7 +289,7 @@ namespace Oxide.Core.Libraries.Covalence
 
 			private void Add(TokenType type, object val = null)
 			{
-				Token item = new Token
+				var item = new Token
 				{
 					Type = type,
 					Val = val,
@@ -257,7 +304,7 @@ namespace Oxide.Core.Libraries.Covalence
 				{
 					return;
 				}
-				int num = tokenStart;
+				var num = tokenStart;
 				tokenStart = patternStart;
 				Add(TokenType.String, Token());
 				tokenStart = num;
@@ -267,7 +314,7 @@ namespace Oxide.Core.Libraries.Covalence
 			{
 				if (val.Length == 6 || val.Length == 8)
 				{
-					return val.All((char c) => (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'));
+					return val.All((c) => c >= '0' && c <= '9' || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F');
 				}
 				return false;
 			}
@@ -279,7 +326,7 @@ namespace Oxide.Core.Libraries.Covalence
 				{
 					return null;
 				}
-				text = (text ?? val);
+				text = text ?? val;
 				if (text.Length == 6)
 				{
 					text += "ff";
@@ -326,7 +373,7 @@ namespace Oxide.Core.Libraries.Covalence
 						Next();
 						return s;
 					}
-					object obj = parse(Token());
+					var obj = parse(Token());
 					if (obj == null)
 					{
 						Reset();
@@ -342,7 +389,7 @@ namespace Oxide.Core.Libraries.Covalence
 
 			private State CloseTag()
 			{
-				char c = Current();
+				var c = Current();
 				if (c <= '+')
 				{
 					if (c == '#')
@@ -371,7 +418,7 @@ namespace Oxide.Core.Libraries.Covalence
 
 			private State Tag()
 			{
-				char c = Current();
+				var c = Current();
 				if (c <= '+')
 				{
 					if (c == '#')
@@ -418,11 +465,11 @@ namespace Oxide.Core.Libraries.Covalence
 
 			public static List<Token> Lex(string text)
 			{
-				Lexer lexer = new Lexer
+				var lexer = new Lexer
 				{
 					text = text
 				};
-				State state = new State(lexer.Str);
+				var state = new State(lexer.Str);
 				while (lexer.position < lexer.text.Length)
 				{
 					state = state();

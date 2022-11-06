@@ -268,6 +268,9 @@ namespace Oxide.Game.Rust.Cui
 		[JsonProperty("password")]
 		public bool IsPassword { get; set; }
 
+		[JsonProperty("readOnly")]
+		public bool ReadOnly { get; set; }
+
 		[DefaultValue(false)]
 		[JsonProperty("needsCursor")]
 		public bool NeedsCursor { get; set; }
@@ -275,6 +278,10 @@ namespace Oxide.Game.Rust.Cui
 		[DefaultValue(false)]
 		[JsonProperty("needsKeyboard")]
 		public bool NeedsKeyboard { get; set; }
+
+		[JsonConverter(typeof(StringEnumConverter))]
+		[JsonProperty("lineType")]
+		public InputField.LineType LineType { get; set; }
 
 	}
 	public class CuiNeedsCursorComponent : ICuiComponent

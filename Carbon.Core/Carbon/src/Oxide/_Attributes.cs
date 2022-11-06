@@ -57,10 +57,13 @@ public class DescriptionAttribute : Attribute
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field)]
 public class PluginReferenceAttribute : Attribute
 {
+	public string Name { get; set; }
+
 	public FieldInfo Field { get; set; }
 
-	public PluginReferenceAttribute()
+	public PluginReferenceAttribute(string name = null)
 	{
+		Name = name;
 	}
 }
 
@@ -143,5 +146,27 @@ public class HookMethodAttribute : Attribute
 	public HookMethodAttribute(string name)
 	{
 		Name = name;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class PermissionAttribute : Attribute
+{
+	public string Name { get; }
+
+	public PermissionAttribute(string permission)
+	{
+		Name = permission;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class GroupAttribute : Attribute
+{
+	public string Name { get; }
+
+	public GroupAttribute(string group)
+	{
+		Name = group;
 	}
 }

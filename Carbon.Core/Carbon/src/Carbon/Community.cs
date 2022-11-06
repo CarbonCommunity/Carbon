@@ -214,6 +214,8 @@ namespace Carbon
 		public void RefreshConsoleInfo()
 		{
 #if WIN
+			if (!IsConfigReady || !Config.ShowConsoleInfo) return;
+
 			if (!IsServerFullyInitialized) return;
 			if (ServerConsole.Instance.input.statusText.Length != 4) ServerConsole.Instance.input.statusText = new string[4];
 
@@ -287,7 +289,7 @@ namespace Carbon
 #if WIN
 				try
 				{
-					if (ServerConsole.Instance != null && ServerConsole.Instance.input != null)
+					if (IsConfigReady && Config.ShowConsoleInfo && ServerConsole.Instance != null && ServerConsole.Instance.input != null)
 					{
 						ServerConsole.Instance.input.statusText = new string[3];
 					}

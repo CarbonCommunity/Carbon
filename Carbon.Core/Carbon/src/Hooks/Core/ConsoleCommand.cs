@@ -7,6 +7,7 @@ using System;
 using Carbon.Extensions;
 using Facepunch.Extend;
 using Oxide.Core;
+using Oxide.Plugins;
 
 namespace Carbon.Hooks
 {
@@ -31,13 +32,53 @@ namespace Carbon.Hooks
 				var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 				Facepunch.Pool.Free(ref split);
 
+				var player = options.Connection?.player as BasePlayer;
+
 				foreach (var cmd in Community.Runtime.AllConsoleCommands)
 				{
 					if (cmd.Command == command)
 					{
+						if (cmd.Permissions != null && player != null)
+						{
+							var hasPerm = false;
+							foreach (var permission in cmd.Permissions)
+							{
+								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
+								{
+									hasPerm = true;
+									break;
+								}
+							}
+
+							if (!hasPerm)
+							{
+								player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
+								continue;
+							}
+						}
+
+						if (cmd.Groups != null && player != null)
+						{
+							var hasGroup = false;
+							foreach (var group in cmd.Groups)
+							{
+								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
+								{
+									hasGroup = true;
+									break;
+								}
+							}
+
+							if (!hasGroup)
+							{
+								player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
+								continue;
+							}
+						}
+
 						try
 						{
-							cmd.Callback?.Invoke(options.Connection?.player as BasePlayer, command, args2);
+							cmd.Callback?.Invoke(player, command, args2);
 						}
 						catch (Exception ex)
 						{

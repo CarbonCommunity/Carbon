@@ -80,15 +80,15 @@ namespace Carbon.Jobs
 						var originalParameters = new List<Type>();
 						var prefix = type.GetMethod("Prefix");
 						var postfix = type.GetMethod("Postfix");
-						var transplier = type.GetMethod("Transplier");
+						var transpiler = type.GetMethod("Transpiler");
 
-						foreach (var param in (prefix ?? postfix ?? transplier).GetParameters())
+						foreach (var param in (prefix ?? postfix ?? transpiler).GetParameters())
 						{
 							originalParameters.Add(param.ParameterType);
 						}
 						var originalParametersResult = originalParameters.ToArray();
 
-						var matchedParameters = patch.UseProvidedParameters ? originalParametersResult : Processor.GetMatchedParameters(patch.Type, patch.Method, (prefix ?? postfix ?? transplier).GetParameters());
+						var matchedParameters = transpiler != null ? patch.Parameters : patch.UseProvidedParameters ? originalParametersResult : Processor.GetMatchedParameters(patch.Type, patch.Method, (prefix ?? postfix ?? transpiler).GetParameters());
 
 						var instance = new HarmonyLib.Harmony(patchId);
 						var originalMethod = patch.Type.GetMethod(patch.Method, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static, null, matchedParameters, default);
@@ -96,7 +96,7 @@ namespace Carbon.Jobs
 						instance.Patch(originalMethod,
 							prefix: prefix == null ? null : new HarmonyLib.HarmonyMethod(prefix),
 							postfix: postfix == null ? null : new HarmonyLib.HarmonyMethod(postfix),
-							transpiler: transplier == null ? null : new HarmonyLib.HarmonyMethod(transplier));
+							transpiler: transpiler == null ? null : new HarmonyLib.HarmonyMethod(transpiler));
 						hookInstance.Patches.Add(instance);
 						hookInstance.Id = patchId;
 

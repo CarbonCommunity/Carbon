@@ -12,6 +12,7 @@ using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
+using Oxide.Game.Rust.Libraries;
 using UnityEngine;
 
 namespace Oxide.Plugins
@@ -23,17 +24,19 @@ namespace Oxide.Plugins
 		public Permission permission { get; set; }
 		public Language lang { get; set; }
 		public Command cmd { get; set; }
+		public Server server { get; set; }
 		public Plugins plugins { get; set; }
 		public Timers timer { get; set; }
 		public OxideMod mod { get; set; }
 		public WebRequests webrequest { get; set; }
 		public Oxide.Game.Rust.Libraries.Rust rust { get; set; }
 		public Persistence persistence { get; set; }
+		public CovalencePlugin.Covalence covalence { get; set; }
 
 		public DynamicConfigFile Config { get; private set; }
 
-		public Oxide.Game.Rust.Libraries.Player Player { get { return rust.Player; } private set { } }
-		public Oxide.Game.Rust.Libraries.Server Server { get { return rust.Server; } private set { } }
+		public Player Player { get { return rust.Player; } private set { } }
+		public Server Server { get { return rust.Server; } private set { } }
 
 		internal Dictionary<string, StreamWriter> _logWriters = new Dictionary<string, StreamWriter>();
 
@@ -56,6 +59,7 @@ namespace Oxide.Plugins
 
 			permission = Interface.Oxide.Permission;
 			cmd = new Command();
+			server = new Server();
 			Manager = new PluginManager();
 			plugins = new Plugins();
 			timer = new Timers(this);
@@ -65,6 +69,7 @@ namespace Oxide.Plugins
 			webrequest = new WebRequests();
 			persistence = new GameObject($"Script_{name}").AddComponent<Persistence>();
 			UnityEngine.Object.DontDestroyOnLoad(persistence.gameObject);
+			covalence = new CovalencePlugin.Covalence();
 
 			Type = GetType();
 
@@ -327,6 +332,41 @@ namespace Oxide.Plugins
 
 			player.SendNetworkUpdate(BasePlayer.NetworkQueue.UpdateDistance);
 		}
+
+		#region Covalence
+
+		protected void AddCovalenceCommand(string command, string callback, string[] perms = null)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+
+			if (perms != null)
+			{
+				foreach (var permission in perms)
+				{
+					if (!this.permission.PermissionExists(permission))
+					{
+						this.permission.RegisterPermission(permission, this);
+					}
+				}
+			}
+		}
+		protected void AddUniversalCommand(string command, string callback, string[] perms = null)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+
+			if (perms != null)
+			{
+				foreach (var permission in perms)
+				{
+					if (!this.permission.PermissionExists(permission))
+					{
+						this.permission.RegisterPermission(permission, this);
+					}
+				}
+			}
+		}
+
+		#endregion
 
 		public class Persistence : FacepunchBehaviour { }
 	}

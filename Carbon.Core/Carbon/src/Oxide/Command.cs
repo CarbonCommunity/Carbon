@@ -10,13 +10,14 @@ using System.Runtime.Serialization;
 using Carbon;
 using Carbon.Base;
 using Oxide.Core;
+using Oxide.Core.Libraries.Covalence;
 using Oxide.Plugins;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
 
 public class Command
 {
-	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
+	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
 	{
 		if (Community.Runtime.AllChatCommands.Count(x => x.Command == command) == 0)
 		{
@@ -31,12 +32,14 @@ public class Command
 					catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 				},
 				Help = help,
-				Reference = reference
+				Reference = reference,
+				Permissions = permissions,
+				Groups = groups
 			});
 		}
 		else Carbon.Logger.Warn($"Chat command '{command}' already exists.");
 	}
-	public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null)
+	public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
 	{
 		AddChatCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -45,18 +48,19 @@ public class Command
 			try
 			{
 				var m = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-				switch (m.GetParameters().Length)
+				var ps = m.GetParameters();
+				switch (ps.Length)
 				{
 					case 1:
 						{
-							argData.Add(player);
+							if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
 							result = argData.ToArray();
 							break;
 						}
 
 					case 2:
 						{
-							argData.Add(player);
+							if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
 							argData.Add(cmd);
 							result = argData.ToArray();
 							break;
@@ -64,7 +68,7 @@ public class Command
 
 					case 3:
 						{
-							argData.Add(player);
+							if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
 							argData.Add(cmd);
 							argData.Add(args);
 							result = argData.ToArray();
@@ -78,9 +82,9 @@ public class Command
 
 			if (argData != null) Pool.FreeList(ref argData);
 			if (result != null) Pool.Free(ref result);
-		}, skipOriginal, help, reference);
+		}, skipOriginal, help, reference, permissions, groups);
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
 	{
 		if (Community.Runtime.AllConsoleCommands.Count(x => x.Command == command) == 0)
 		{
@@ -91,12 +95,14 @@ public class Command
 				SkipOriginal = skipOriginal,
 				Callback = callback,
 				Help = help,
-				Reference = reference
+				Reference = reference,
+				Permissions = permissions,
+				Groups = groups
 			});
 		}
 		else Carbon.Logger.Warn($"Console command '{command}' already exists.");
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
 	{
 		AddConsoleCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -142,9 +148,9 @@ public class Command
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);
-		}, skipOriginal, help, reference);
+		}, skipOriginal, help, reference, permissions, groups);
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null, object reference = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
 	{
 		AddConsoleCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -174,16 +180,16 @@ public class Command
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);
-		}, skipOriginal, help, reference);
+		}, skipOriginal, help, reference, permissions, groups);
 	}
-	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
 	{
-		AddChatCommand(command, plugin, method, skipOriginal, help, reference);
-		AddConsoleCommand(command, plugin, method, skipOriginal, help, reference);
+		AddChatCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups);
+		AddConsoleCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups);
 	}
-	public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
 	{
-		AddChatCommand(command, plugin, callback, skipOriginal, help, reference);
-		AddConsoleCommand(command, plugin, callback, skipOriginal, help, reference);
+		AddChatCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups);
+		AddConsoleCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups);
 	}
 }

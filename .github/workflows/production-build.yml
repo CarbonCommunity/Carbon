@@ -34,7 +34,7 @@ jobs:
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
         with:
-          ref: develop
+          ref: production
 
       - name: 📅 Prepare the environment
         id: step1

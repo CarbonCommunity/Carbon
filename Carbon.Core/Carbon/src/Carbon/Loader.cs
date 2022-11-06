@@ -6,11 +6,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Management;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Extensions;
 using Newtonsoft.Json;
+using Oxide.Core.Libraries;
 using Oxide.Plugins;
+using static Generated.AnimatorController.PlayerMenuAnimation;
 
 namespace Carbon.Core
 {
@@ -380,30 +384,38 @@ namespace Carbon.Core
 				var chatCommand = method.GetCustomAttribute<ChatCommandAttribute>();
 				var consoleCommand = method.GetCustomAttribute<ConsoleCommandAttribute>();
 				var command = method.GetCustomAttribute<CommandAttribute>();
+				var permissions = method.GetCustomAttributes<PermissionAttribute>();
+				var groups = method.GetCustomAttributes<GroupAttribute>();
+				var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
+				var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 
 				if (command != null)
 				{
 					foreach (var commandName in command.Names)
 					{
-						Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method);
-						Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method);
+						Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs);
+						Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs);
 					}
 				}
 
 				if (chatCommand != null)
 				{
-					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method.Name, help: chatCommand.Help, reference: method);
+					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method.Name, help: chatCommand.Help, reference: method, permissions: ps, groups: gs);
 				}
 
 				if (consoleCommand != null)
 				{
-					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method);
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs);
 				}
 			}
 
 			foreach (var field in fields)
 			{
 				var var = field.GetCustomAttribute<CommandVarAttribute>();
+				var permissions = field.GetCustomAttributes<PermissionAttribute>();
+				var groups = field.GetCustomAttributes<GroupAttribute>();
+				var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
+				var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 
 				if (var != null)
 				{
@@ -450,13 +462,17 @@ namespace Carbon.Core
 						}
 
 						Community.LogCommand($"{command}: \"{value}\"", player);
-					}, help: var.Help, reference: field);
+					}, help: var.Help, reference: field, permissions: ps, groups: gs);
 				}
 			}
 
 			foreach (var property in properties)
 			{
 				var var = property.GetCustomAttribute<CommandVarAttribute>();
+				var permissions = property.GetCustomAttributes<PermissionAttribute>();
+				var groups = property.GetCustomAttributes<GroupAttribute>();
+				var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
+				var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 
 				if (var != null)
 				{
@@ -503,7 +519,7 @@ namespace Carbon.Core
 						}
 
 						Community.LogCommand($"{command}: \"{value}\"", player);
-					}, help: var.Help, reference: property);
+					}, help: var.Help, reference: property, permissions: ps, groups: gs);
 				}
 			}
 
