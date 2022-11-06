@@ -89,7 +89,8 @@ namespace Carbon.Processors
 					.Replace(".IPlayer", ".AsIPlayer()")
 					.Replace("using Harmony;", "using HarmonyLib;")
 					.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
-					.Replace("HarmonyInstance", "HarmonyLib.Harmony");
+					.Replace("HarmonyInstance", "HarmonyLib.Harmony")
+					.Replace("PluginTimers", "Timers");
 			}
 		}
 	}
