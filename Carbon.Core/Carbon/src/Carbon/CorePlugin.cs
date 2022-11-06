@@ -222,6 +222,14 @@ namespace Carbon.Core
 			Community.Runtime.WebScriptProcessor.Prepare(arg.Args[0]);
 		}
 
+		[ConsoleCommand("update")]
+		private void Update(ConsoleSystem.Arg arg)
+		{
+			if (!arg.IsPlayerCalledAndAdmin()) return;
+
+			GitHubRelases.Update(Community.OS.Win, GitHubRelases.ReleaseTypes.Develop);
+		}
+
 		#region Config
 
 		[ConsoleCommand("loadconfig", "Loads Carbon config from file.")]
