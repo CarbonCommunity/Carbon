@@ -328,6 +328,41 @@ namespace Oxide.Plugins
 			player.SendNetworkUpdate(BasePlayer.NetworkQueue.UpdateDistance);
 		}
 
+		#region Covalence
+
+		protected void AddCovalenceCommand(string command, string callback, string[] perms = null)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+
+			if (perms != null)
+			{
+				foreach (var permission in perms)
+				{
+					if (!this.permission.PermissionExists(permission))
+					{
+						this.permission.RegisterPermission(permission, this);
+					}
+				}
+			}
+		}
+		protected void AddUniversalCommand(string command, string callback, string[] perms = null)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+
+			if (perms != null)
+			{
+				foreach (var permission in perms)
+				{
+					if (!this.permission.PermissionExists(permission))
+					{
+						this.permission.RegisterPermission(permission, this);
+					}
+				}
+			}
+		}
+
+		#endregion
+
 		public class Persistence : FacepunchBehaviour { }
 	}
 }

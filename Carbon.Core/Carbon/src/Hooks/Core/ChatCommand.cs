@@ -8,6 +8,7 @@ using Carbon.Extensions;
 using ConVar;
 using Facepunch.Extend;
 using Oxide.Core;
+using Oxide.Plugins;
 
 namespace Carbon.Hooks
 {
@@ -42,6 +43,44 @@ namespace Carbon.Hooks
 				{
 					if (cmd.Command == command)
 					{
+						if (cmd.Permissions != null && player != null)
+						{
+							var hasPerm = false;
+							foreach (var permission in cmd.Permissions)
+							{
+								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
+								{
+									hasPerm = true;
+									break;
+								}
+							}
+
+							if (!hasPerm)
+							{
+								player?.ChatMessage($"You don't have any of the required permissions to run this command.");
+								continue;
+							}
+						}
+
+						if (cmd.Groups != null && player != null)
+						{
+							var hasGroup = false;
+							foreach (var group in cmd.Groups)
+							{
+								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
+								{
+									hasGroup = true;
+									break;
+								}
+							}
+
+							if (!hasGroup)
+							{
+								player?.ChatMessage($"You aren't in any of the required groups to run this command.");
+								continue;
+							}
+						}
+
 						try
 						{
 							cmd.Callback?.Invoke(player, command, args);

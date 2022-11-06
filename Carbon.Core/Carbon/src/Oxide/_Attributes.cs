@@ -145,3 +145,25 @@ public class HookMethodAttribute : Attribute
 		Name = name;
 	}
 }
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class PermissionAttribute : Attribute
+{
+	public string Name { get; }
+
+	public PermissionAttribute(string permission)
+	{
+		Name = permission;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class GroupAttribute : Attribute
+{
+	public string Name { get; }
+
+	public GroupAttribute(string group)
+	{
+		Name = group;
+	}
+}
