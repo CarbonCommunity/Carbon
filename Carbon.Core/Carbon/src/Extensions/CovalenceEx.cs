@@ -7,8 +7,11 @@ using Oxide.Core.Libraries.Covalence;
 
 public static class CovalenceEx
 {
-	public static IPlayer AsIPlayer(this BasePlayer player)
+	public static Player AsIPlayer(this BasePlayer player)
 	{
-		return default;
+		var iplayer = default(Player);
+		iplayer.Object = player;
+
+		return iplayer;
 	}
 }

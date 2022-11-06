@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Carbon;
+using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
 using Newtonsoft.Json;
@@ -141,6 +142,10 @@ namespace Oxide.Core.Libraries
 			}
 
 			return name;
+		}
+		public Dictionary<string, string> GetMessages(string lang, RustPlugin plugin)
+		{
+			return GetMessageFile(plugin.Name, lang);
 		}
 	}
 }

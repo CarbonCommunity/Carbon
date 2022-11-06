@@ -10,6 +10,7 @@ using System.Runtime.Serialization;
 using Carbon;
 using Carbon.Base;
 using Oxide.Core;
+using Oxide.Core.Libraries.Covalence;
 using Oxide.Plugins;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
@@ -47,18 +48,19 @@ public class Command
 			try
 			{
 				var m = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-				switch (m.GetParameters().Length)
+				var ps = m.GetParameters();
+				switch (ps.Length)
 				{
 					case 1:
 						{
-							argData.Add(player);
+							if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
 							result = argData.ToArray();
 							break;
 						}
 
 					case 2:
 						{
-							argData.Add(player);
+							if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
 							argData.Add(cmd);
 							result = argData.ToArray();
 							break;
@@ -66,7 +68,7 @@ public class Command
 
 					case 3:
 						{
-							argData.Add(player);
+							if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
 							argData.Add(cmd);
 							argData.Add(args);
 							result = argData.ToArray();
