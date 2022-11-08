@@ -1,15 +1,15 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Carbon.Core;
 using Carbon.Hooks;
 using Carbon.Jobs;
 using Facepunch;
+
+///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+/// 
 
 namespace Carbon.Processors
 {
@@ -84,7 +84,15 @@ namespace Carbon.Processors
 			if (!DoesHookExist(hookName)) return;
 			if (!IsPatched(hookName))
 				Carbon.Logger.Debug($"Found '{hookName}'...");
-
+#if NO_THREADING
+			new HookProcessingThread
+			{
+				HookName = hookName,
+				DoRequires = doRequires,
+				Processor = this,
+				OnlyAlwaysPatchedHooks = onlyAlwaysPatchedHooks
+			}.ThreadFunction();
+#else
 			new HookProcessingThread
 			{
 				HookName = hookName,
@@ -92,6 +100,7 @@ namespace Carbon.Processors
 				Processor = this,
 				OnlyAlwaysPatchedHooks = onlyAlwaysPatchedHooks
 			}.Start();
+#endif
 		}
 		public bool UninstallHooks(string hookName, bool shutdown = false)
 		{
