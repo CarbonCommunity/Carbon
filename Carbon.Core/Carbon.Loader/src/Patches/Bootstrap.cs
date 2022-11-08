@@ -29,7 +29,7 @@ internal static class __Bootstrap
 			}
 		}
 
-#if WAIT_FOR_DEBUGGER
+#if USE_DEBUGGER
 		public static void Postfix()
 		{
 			Logger.Warn("Waiting for a debugger connection..");

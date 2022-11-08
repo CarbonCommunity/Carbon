@@ -191,14 +191,14 @@ namespace Carbon.Jobs
 						var span = error.Location.GetMappedLineSpan().Span;
 						switch (error.Severity)
 						{
-#if VERBOSE_LVL2
+#if DEBUG_VERBOSE
 							case DiagnosticSeverity.Warning:
 								Logger.Warn($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
 									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
 								break;
 #endif
 							case DiagnosticSeverity.Error:
-#if VERBOSE_LVL1
+#if DEBUG_VERBOSE
 								Logger.Error($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
 									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
 #endif

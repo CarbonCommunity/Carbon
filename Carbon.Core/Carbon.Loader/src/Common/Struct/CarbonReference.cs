@@ -56,7 +56,7 @@ public class CarbonReference : IDisposable
 				pdb = File.ReadAllBytes(path);
 				Utility.Logger.Debug($" Loaded debug symbols for '{FileName}'");
 			}
-#if USE_ASMLOADFILE
+#if USE_DEBUGGER
 			// this helps the debugger known where on disk the
 			// assembly files are located.
 			assembly = Assembly.LoadFile(location);

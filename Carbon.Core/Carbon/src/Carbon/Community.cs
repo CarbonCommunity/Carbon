@@ -37,8 +37,6 @@ namespace Carbon
 			 OS.Win;
 #elif UNIX
 			 OS.Linux;
-#else
-#error Target architecture not defined
 #endif
 
 		public enum OS
