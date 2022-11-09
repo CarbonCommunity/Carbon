@@ -67,9 +67,14 @@ public class CarbonReference : IDisposable
 #endif
 			return assembly;
 		}
+#if DEBUG_VERBOSE
 		catch (System.Exception e)
 		{
 			Utility.Logger.Error($"{e.GetType()}: Unable to load assembly from file '{location}'", e);
+#else
+		catch (System.Exception)
+		{
+#endif
 			return null;
 		}
 	}
