@@ -143,7 +143,7 @@ namespace Carbon.Core
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime * 1000f:0.0}ms", $"{plugin.CompileTime * 1000f:0.0}ms");
+							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}s", $"{plugin.CompileTime:0.0}ms");
 						}
 
 						count++;
@@ -214,12 +214,56 @@ namespace Carbon.Core
 			Reply(body.ToStringMinimal(), arg);
 		}
 
-		[ConsoleCommand("webload")]
-		private void WebLoad(ConsoleSystem.Arg arg)
+		[ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
+		private void Update(ConsoleSystem.Arg arg)
 		{
-			if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
+			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			Community.Runtime.WebScriptProcessor.Prepare(arg.Args[0]);
+			var os =
+#if WIN
+				Community.OS.Win;
+#elif UNIX
+				Community.OS.Linux;
+#endif
+			var type = GitHubRelases.ReleaseTypes.Develop;
+
+			if (arg.HasArgs(2))
+			{
+				switch (arg.Args[0])
+				{
+					case "win":
+						os = Community.OS.Win;
+						break;
+
+					case "linux":
+					case "unix":
+						os = Community.OS.Linux;
+						break;
+				}
+
+				switch (arg.Args[1])
+				{
+					case "develop":
+					case "dev":
+					case "d":
+						type = GitHubRelases.ReleaseTypes.Develop;
+						break;
+
+					case "staging":
+					case "stage":
+					case "s":
+						type = GitHubRelases.ReleaseTypes.Staging;
+						break;
+
+					case "production":
+					case "prod":
+					case "p":
+						type = GitHubRelases.ReleaseTypes.Production;
+						break;
+				}
+			}
+
+			GitHubRelases.Update(os, type);
 		}
 
 		#region Config

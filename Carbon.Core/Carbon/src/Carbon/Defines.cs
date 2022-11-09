@@ -53,8 +53,10 @@ namespace Carbon.Core
 
 		public const string Name = "Carbon";
 		public const string DllName = "Carbon.dll";
-		public static string DllPath => Path.GetFullPath(
-			Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods", "Carbon.dll"));
+
+		public static string DllLoaderPath => Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods", "Carbon.Loader.dll"));
+		public static string DllManagedPath => Path.GetFullPath(Path.Combine(GetManagedFolder(), "Carbon.dll"));
+		public static string DllManagedPdbPath => Path.GetFullPath(Path.Combine(GetManagedFolder(), "Carbon.pdb"));
 
 		public static string GetConfigFile()
 		{
@@ -99,6 +101,13 @@ namespace Carbon.Core
 		public static string GetHarmonyFolder()
 		{
 			var folder = Path.Combine($"{GetRootFolder()}", "harmony");
+			Directory.CreateDirectory(folder);
+
+			return folder;
+		}
+		public static string GetManagedFolder()
+		{
+			var folder = Path.Combine($"{GetRootFolder()}", "managed");
 			Directory.CreateDirectory(folder);
 
 			return folder;

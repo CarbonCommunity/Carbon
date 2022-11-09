@@ -7,11 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Hooks;
 using Carbon.Processors;
 using Facepunch;
+using HarmonyLib;
 
 namespace Carbon.Jobs
 {
@@ -108,9 +110,24 @@ namespace Carbon.Jobs
 						originalParameters = null;
 					}
 				}
-				catch (Exception exception)
+#if DEBUG
+				catch (HarmonyException e)
 				{
-					Logger.Error($" Couldn't patch hook '{HookName}' ({type.FullName})", exception);
+					StringBuilder sb = new StringBuilder();
+					sb.AppendLine($" Couldn't patch hook '{HookName}' ({e.GetType()}: {type.FullName})");
+					sb.AppendLine($">> hook:{HookName} index:{e.GetErrorIndex()} offset:{e.GetErrorOffset()}");
+					sb.AppendLine($">> IL instructions:");
+
+					foreach (var q in e.GetInstructionsWithOffsets())
+						sb.AppendLine($"\t{q.Key.ToString("X4")}: {q.Value}");
+
+					Logger.Error(sb.ToString(), e);
+					sb = default;
+				}
+#endif
+				catch (System.Exception e)
+				{
+					Logger.Error($" Couldn't patch hook '{HookName}' ({e.GetType()}: {type.FullName})", e);
 				}
 			}
 		}
