@@ -56,7 +56,7 @@ public class CarbonReference : IDisposable
 				pdb = File.ReadAllBytes(path);
 				Utility.Logger.Debug($" Loaded debug symbols for '{FileName}'");
 			}
-#if USE_ASMLOADFILE
+#if USE_DEBUGGER
 			// this helps the debugger known where on disk the
 			// assembly files are located.
 			assembly = Assembly.LoadFile(location);
@@ -67,9 +67,14 @@ public class CarbonReference : IDisposable
 #endif
 			return assembly;
 		}
+#if DEBUG_VERBOSE
 		catch (System.Exception e)
 		{
-			Utility.Logger.Error($"Unable to load assembly from file '{path}'", e);
+			Utility.Logger.Error($"{e.GetType()}: Unable to load assembly from file '{location}'", e);
+#else
+		catch (System.Exception)
+		{
+#endif
 			return null;
 		}
 	}

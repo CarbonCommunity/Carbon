@@ -52,7 +52,7 @@ namespace Carbon
 					{
 						var result = value.Value;
 
-						builder.AddRow($"{counter:n0}", result.Plugin.Name, result.Plugin.Author, result.Plugin.Version, result.FileName, $"{result.Plugin.CompileTime * 1000:0}ms", $"{result.Plugin.Hooks.ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.HookMethods.Select(x => $"{x.Name}").ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.PluginReferences.Select(x => $"{x.Field.FieldType.Name} {x.Field.Name}").ToArray().ToString(", ", " and ").Trim()}", $"{result.IncompatibleHooks.ToString(", ", " and ").Trim()}");
+						builder.AddRow($"{counter:n0}", result.Plugin.Name, result.Plugin.Author, result.Plugin.Version, result.FileName, $"{result.Plugin.CompileTime:0}ms", $"{result.Plugin.Hooks.ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.HookMethods.Select(x => $"{x.Name}").ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.PluginReferences.Select(x => $"{x.Field.FieldType.Name} {x.Field.Name}").ToArray().ToString(", ", " and ").Trim()}", $"{result.IncompatibleHooks.ToString(", ", " and ").Trim()}");
 						counter++;
 					}
 

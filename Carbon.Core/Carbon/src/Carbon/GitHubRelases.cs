@@ -63,7 +63,7 @@ namespace Carbon.Core
 			var url = GetDownload(os, type);
 			var client = new WebClient();
 
-			Logger.Warn($" Updating Carbon {os} with {type} branch...");
+			Logger.Warn($" Updating Carbon {os} with {type} branch from '{url}'...");
 
 			client.DownloadDataCompleted += (object sender, DownloadDataCompletedEventArgs e) =>
 			{

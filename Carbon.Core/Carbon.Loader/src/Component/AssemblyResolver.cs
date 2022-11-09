@@ -19,9 +19,9 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	private readonly static string[] lookup =
 	{
-		Context.Directory.GameManaged,
 		Context.Directory.CarbonLib,
 		Context.Directory.CarbonManaged,
+		Context.Directory.GameManaged,
 	};
 
 	private List<CarbonReference> cachedReferences
@@ -29,6 +29,10 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	internal AssemblyResolver()
 	{
+		// Fix for Facepunch's new harmony loader method which uses Cecil and a
+		// random assembly name. Thanks @Jake-Rich ! :-D
+		ResolveAssembly("Carbon.Loader");
+
 		foreach (string fp in lookup)
 		{
 			Utility.Logger.Log($"Warming up assemblies from '{fp}'..");

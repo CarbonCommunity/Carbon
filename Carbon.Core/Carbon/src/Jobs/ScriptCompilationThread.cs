@@ -34,8 +34,7 @@ namespace Carbon.Jobs
 		public Assembly Assembly;
 		public List<CompilerException> Exceptions = new List<CompilerException>();
 
-		// FIXME: get_realtimeSinceStartup can only be called from the main thread.
-		//internal RealTimeSince TimeSinceCompile;
+		internal DateTime TimeSinceCompile;
 
 		private static HashSet<MetadataReference> cachedReferences = new HashSet<MetadataReference>();
 		internal static bool _hasInit { get; set; }
@@ -154,8 +153,7 @@ namespace Carbon.Jobs
 			{
 				Exceptions.Clear();
 
-				// FIXME: get_realtimeSinceStartup can only be called from the main thread.
-				//TimeSinceCompile = 0;
+				TimeSinceCompile = DateTime.Now;
 
 				var references = _addReferences();
 				var trees = new List<SyntaxTree>();
@@ -193,14 +191,14 @@ namespace Carbon.Jobs
 						var span = error.Location.GetMappedLineSpan().Span;
 						switch (error.Severity)
 						{
-#if VERBOSE_LVL2
+#if DEBUG_VERBOSE
 							case DiagnosticSeverity.Warning:
 								Logger.Warn($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
 									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
 								break;
 #endif
 							case DiagnosticSeverity.Error:
-#if VERBOSE_LVL1
+#if DEBUG_VERBOSE
 								Logger.Error($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
 									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
 #endif
@@ -226,8 +224,7 @@ namespace Carbon.Jobs
 					throw null;
 				}
 
-				// FIXME: get_realtimeSinceStartup can only be called from the main thread.
-				//CompileTime = TimeSinceCompile;
+				CompileTime = (float)(DateTime.Now - TimeSinceCompile).Milliseconds;
 
 				references.Clear();
 				references = null;
