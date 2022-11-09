@@ -69,7 +69,7 @@ public class CarbonReference : IDisposable
 		}
 		catch (System.Exception e)
 		{
-			Utility.Logger.Error($"Unable to load assembly from file '{path}'", e);
+			Utility.Logger.Error($"{e.GetType()}: Unable to load assembly from file '{location}'", e);
 			return null;
 		}
 	}
