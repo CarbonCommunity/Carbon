@@ -121,7 +121,7 @@ namespace Carbon.Jobs
 					foreach (var q in e.GetInstructionsWithOffsets())
 						sb.AppendLine($"\t{q.Key.ToString("X4")}: {q.Value}");
 
-					Logger.Error(sb.ToString());
+					Logger.Error(sb.ToString(), e);
 					sb = default;
 				}
 #endif
