@@ -38,7 +38,6 @@ internal sealed class MonoAssemblyResolver : BaseAssemblyResolver
 			AssemblyName assemblyName = new AssemblyName(name.Name);
 
 			string fileName = $"{assemblyName.Name}.dll";
-			Utility.Logger.Log($">> MonoAssemblyResolver {fileName}");
 
 			AssemblyDefinition cached = cachedAssemblies.FirstOrDefault(
 					item => item.FullName == assemblyName.FullName);
@@ -50,7 +49,11 @@ internal sealed class MonoAssemblyResolver : BaseAssemblyResolver
 			location = Path.Combine(Context.Managed, Path.GetFileName(fileName));
 			if (File.Exists(location)) assembly = AssemblyDefinition.ReadAssembly(location);
 
-			if (assembly != null) cachedAssemblies.Add(assembly);
+			if (assembly != null)
+			{
+				if (cachedAssemblies.Add(assembly))
+					Utility.Logger.Log($">> MonoAssemblyResolver {fileName}");
+			}
 			return assembly;
 		}
 	}
