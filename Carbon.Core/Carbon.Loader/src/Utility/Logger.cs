@@ -21,6 +21,7 @@ internal sealed class Logger
 	{
 		if (!Directory.Exists(Context.Directory.CarbonLogs))
 			Directory.CreateDirectory(Context.Directory.CarbonLogs);
+		if (File.Exists(logFile)) File.Delete(logFile);
 	}
 
 	internal static void Write(Severity severity, object message, Exception ex = null)

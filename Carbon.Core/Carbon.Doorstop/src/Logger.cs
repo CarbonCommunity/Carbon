@@ -22,6 +22,7 @@ internal class Logger
 	{
 		if (!Directory.Exists(Path.GetDirectoryName(logFile)))
 			Directory.CreateDirectory(Path.GetDirectoryName(logFile));
+		if (File.Exists(logFile)) File.Delete(logFile);
 	}
 
 	internal static void Write(Severity severity, object message, Exception ex = null)
