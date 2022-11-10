@@ -73,7 +73,7 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 		}
 		catch (System.Exception e)
 		{
-			Utility.Logger.Error("Failed unload '{mod}'", e);
+			Utility.Logger.Error($"Failed unload '{assemblyFile}'", e);
 			throw;
 		}
 	}
