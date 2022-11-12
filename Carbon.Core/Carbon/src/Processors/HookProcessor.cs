@@ -192,7 +192,7 @@ namespace Carbon.Processors
 		public class HookInstance
 		{
 			public string Id { get; set; }
-			public int Hooks { get; set; } = 0;
+			public int Hooks { get; set; } = 1;
 			public bool AlwaysPatched { get; set; } = false;
 			public List<object> Patches { get; internal set; } = new List<object>();
 		}
