@@ -83,6 +83,11 @@ namespace Carbon.Processors
 
 		public class ScriptParser : Parser
 		{
+			public bool IsLineValid(string line)
+			{
+				return !line.Contains(".splashThreshold");
+			}
+
 			public override void Process(string input, out string output)
 			{
 				output = input
@@ -90,7 +95,23 @@ namespace Carbon.Processors
 					.Replace("using Harmony;", "using HarmonyLib;")
 					.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
 					.Replace("HarmonyInstance", "HarmonyLib.Harmony")
-					.Replace("PluginTimers", "Timers");
+					.Replace("PluginTimers", "Timers")
+					.Replace("protected override void PostSpawnProcess", "public override void PostSpawnProcess")
+					.Replace("protected override bool IsClipping", "public override bool IsClipping");
+
+				var newOutput = string.Empty;
+				var split = output.Split('\n');
+
+				foreach (var line in split)
+				{
+					if (!IsLineValid(line)) continue;
+
+					newOutput += line + "\n";
+				}
+
+				output = newOutput;
+				Array.Clear(split, 0, split.Length);
+				split = null;
 			}
 		}
 	}
