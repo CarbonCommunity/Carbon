@@ -78,6 +78,7 @@ namespace Carbon.Hooks
 
 						try
 						{
+							Command._fromRcon = false;
 							cmd.Callback?.Invoke(player, command, args2);
 						}
 						catch (Exception ex)

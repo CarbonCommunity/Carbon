@@ -17,6 +17,8 @@ using Pool = Facepunch.Pool;
 
 public class Command
 {
+	internal static bool _fromRcon { get; set; }
+
 	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
 	{
 		if (Community.Runtime.AllChatCommands.Count(x => x.Command == command) == 0)
@@ -115,6 +117,7 @@ public class Command
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
+				client.FromRcon = _fromRcon;
 				arg.Option = client;
 				arg.FullString = fullString;
 				arg.Args = args;
@@ -163,6 +166,7 @@ public class Command
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
+				client.FromRcon = _fromRcon;
 				arg.Option = client;
 				arg.FullString = fullString;
 				arg.Args = args;

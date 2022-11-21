@@ -46,6 +46,7 @@ namespace Carbon.Hooks
 					{
 						try
 						{
+							Command._fromRcon = true;
 							carbonCommand.Callback?.Invoke(null, command, args2);
 							return !carbonCommand.SkipOriginal;
 						}
