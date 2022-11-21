@@ -113,7 +113,7 @@ namespace Oxide.Plugins
 		/// <param name="message"></param>
 		/// <param name="args"></param>
 		public void Puts(string message, params object[] args)
-			=> Carbon.Logger.Log($"[{Name}] {string.Format(message, args)}");
+			=> Carbon.Logger.Log($"[{Name}] {(args == null ? message : string.Format(message, args))}");
 
 		/// <summary>
 		/// Outputs to the game's console a message with severity level 'NOTICE'.
@@ -155,7 +155,7 @@ namespace Oxide.Plugins
 		/// <param name="message"></param>
 		/// <param name="args"></param>
 		public void PrintWarning(string format, params object[] args)
-			=> Carbon.Logger.Warn($"[{Name}] {string.Format(format, args)}");
+			=> Carbon.Logger.Warn($"[{Name}] {(args == null ? format : string.Format(format, args))}");
 
 		/// <summary>
 		/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -164,7 +164,7 @@ namespace Oxide.Plugins
 		/// <param name="message"></param>
 		/// <param name="args"></param>
 		public void PrintError(string format, params object[] args)
-			=> Carbon.Logger.Error($"[{Name}] {string.Format(format, args)}");
+			=> Carbon.Logger.Error($"[{Name}] {(args == null ? format : string.Format(format, args))}");
 
 		protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 		{
@@ -277,7 +277,7 @@ namespace Oxide.Plugins
 		{
 			var connection = arg.Connection;
 			var basePlayer = connection?.player as BasePlayer;
-			var text = (args.Length != 0) ? string.Format(format, args) : format;
+			var text = (args != null && args.Length != 0) ? string.Format(format, args) : format;
 
 			if (((basePlayer != null) ? basePlayer.net : null) != null)
 			{
@@ -295,7 +295,7 @@ namespace Oxide.Plugins
 		{
 			var connection = arg.Connection;
 			var basePlayer = connection?.player as BasePlayer;
-			var text = (args.Length != 0) ? string.Format(format, args) : format;
+			var text = (args != null && args.Length != 0) ? string.Format(format, args) : format;
 
 			if (((basePlayer != null) ? basePlayer.net : null) != null)
 			{
@@ -309,7 +309,7 @@ namespace Oxide.Plugins
 		{
 			var connection = arg.Connection;
 			var basePlayer = connection?.player as BasePlayer;
-			var text = (args.Length != 0) ? string.Format(format, args) : format;
+			var text = (args != null && args.Length != 0) ? string.Format(format, args) : format;
 
 			if (((basePlayer != null) ? basePlayer.net : null) != null)
 			{
