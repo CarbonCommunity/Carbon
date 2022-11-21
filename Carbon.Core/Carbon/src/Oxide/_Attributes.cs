@@ -9,6 +9,7 @@ using System.Reflection;
 using Carbon.Extensions;
 using Oxide.Core;
 using UnityEngine;
+using static ServerUsers;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class InfoAttribute : Attribute
@@ -193,5 +194,21 @@ public class GroupAttribute : Attribute
 	public GroupAttribute(string group)
 	{
 		Name = group;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class AuthLevelAttribute : Attribute
+{
+	public UserGroup Group { get; } = UserGroup.None;
+
+	public AuthLevelAttribute(UserGroup group)
+	{
+		Group = group;
+	}
+
+	public AuthLevelAttribute(int group)
+	{
+		Group = (UserGroup)group;
 	}
 }

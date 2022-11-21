@@ -14,6 +14,7 @@ public class OxideCommand
 	public Action<BasePlayer, string, string[]> Callback { get; set; }
 	public string[] Permissions { get; set; }
 	public string[] Groups { get; set; }
+	public int AuthLevel { get; set; } = 0;
 	public bool SkipOriginal { get; set; }
 	public string Help { get; set; }
 	public object Reference { get; set; }
