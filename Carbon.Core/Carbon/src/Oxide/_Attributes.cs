@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Carbon.Extensions;
 using Oxide.Core;
 using UnityEngine;
 
@@ -110,6 +111,30 @@ public class ConsoleCommandAttribute : Attribute
 	}
 
 	public ConsoleCommandAttribute(string name, string help)
+	{
+		Name = name;
+		Help = help;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class UiCommandAttribute : Attribute
+{
+	public string Name { get; }
+	public string Help { get; }
+
+	public static string Uniquify(string name)
+	{
+		var id = RelationshipManager.ServerInstance.net.ID;
+		return RandomEx.GetRandomString(16, name + id.ToString(), name.Length + (int)id);
+	}
+
+	public UiCommandAttribute(string name)
+	{
+		Name = name;
+	}
+
+	public UiCommandAttribute(string name, string help)
 	{
 		Name = name;
 		Help = help;

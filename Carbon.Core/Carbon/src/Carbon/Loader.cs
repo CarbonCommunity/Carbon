@@ -383,6 +383,7 @@ namespace Carbon.Core
 			{
 				var chatCommand = method.GetCustomAttribute<ChatCommandAttribute>();
 				var consoleCommand = method.GetCustomAttribute<ConsoleCommandAttribute>();
+				var uiCommand = method.GetCustomAttribute<UiCommandAttribute>();
 				var command = method.GetCustomAttribute<CommandAttribute>();
 				var permissions = method.GetCustomAttributes<PermissionAttribute>();
 				var groups = method.GetCustomAttributes<GroupAttribute>();
@@ -406,6 +407,11 @@ namespace Carbon.Core
 				if (consoleCommand != null)
 				{
 					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs);
+				}
+
+				if (uiCommand != null)
+				{
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs);
 				}
 			}
 
