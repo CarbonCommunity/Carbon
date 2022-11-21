@@ -197,8 +197,20 @@ namespace Carbon.Core
 		{
 			if (!arg.IsPlayerCalledAndAdmin()) return;
 
-			var body = new StringTable("#", "Hook", "Current Time", "Total Time", "Plugins Using");
-			var count = 1;
+			StringTable body = new StringTable("#", "Hook", "Success", "Current Time", "Total Time", "Plugins Using");
+			string mode = arg.HasArgs(1) ? arg.Args[0] : null;
+			int count = 0, success = 0;
+			bool onlyFailed = false;
+
+			switch (mode)
+			{
+				case "--failed":
+					onlyFailed = true;
+					break;
+
+				default:
+					break;
+			}
 
 			foreach (var mod in Community.Runtime.HookProcessor.Patches)
 			{
@@ -207,11 +219,15 @@ namespace Carbon.Core
 					continue;
 				}
 
-				body.AddRow($"{count:n0}", mod.Key, $"{HookCaller.GetHookTime(mod.Key)}ms", $"{HookCaller.GetHookTotalTime(mod.Key)}ms", $"{instance.Hooks}");
+				if (!onlyFailed || (onlyFailed && !instance.success))
+					body.AddRow($"{count:n0}", mod.Key, instance.success, $"{HookCaller.GetHookTime(mod.Key)}ms", $"{HookCaller.GetHookTotalTime(mod.Key)}ms", $"{instance.Hooks}");
+
+				if (instance.success) success++;
 				count++;
 			}
 
 			Reply(body.ToStringMinimal(), arg);
+			Reply($"total:{count} success:{success} failed:{count - success}", arg);
 		}
 
 		[ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
