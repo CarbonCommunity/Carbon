@@ -38,8 +38,6 @@ namespace Oxide.Plugins
 		public Player Player { get { return rust.Player; } private set { } }
 		public Server Server { get { return rust.Server; } private set { } }
 
-		internal Dictionary<string, StreamWriter> _logWriters = new Dictionary<string, StreamWriter>();
-
 		public RustPlugin()
 		{
 			Setup($"Core Plugin {RandomEx.GetRandomString(5)}", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
@@ -86,13 +84,6 @@ namespace Oxide.Plugins
 				var go = persistence.gameObject;
 				UnityEngine.Object.DestroyImmediate(persistence);
 				UnityEngine.Object.Destroy(go);
-			}
-
-			foreach (var writer in _logWriters)
-			{
-				writer.Value.Flush();
-				writer.Value.Close();
-				writer.Value.Dispose();
 			}
 
 			base.Dispose();
@@ -168,23 +159,16 @@ namespace Oxide.Plugins
 
 		protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 		{
-			var text2 = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
+			var logFolder = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
 
-			if (!Directory.Exists(text2))
+			if (!Directory.Exists(logFolder))
 			{
-				Directory.CreateDirectory(text2);
+				Directory.CreateDirectory(logFolder);
 			}
 
 			filename = plugin.Name.ToLower() + "_" + filename.ToLower() + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
 
-			var path = Path.Combine(text2, Utility.CleanPath(filename));
-
-			if (!_logWriters.TryGetValue(path, out var writer))
-			{
-				_logWriters.Add(path, new StreamWriter(path, append: true));
-			}
-
-			writer.WriteLine(timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text);
+			File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
 		}
 
 		public void ILoadConfig()
