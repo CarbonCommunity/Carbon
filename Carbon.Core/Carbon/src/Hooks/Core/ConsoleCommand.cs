@@ -38,46 +38,61 @@ namespace Carbon.Hooks
 				{
 					if (cmd.Command == command)
 					{
-						if (cmd.Permissions != null && player != null)
+						if (player != null)
 						{
-							var hasPerm = false;
-							foreach (var permission in cmd.Permissions)
+							if (cmd.Permissions != null)
 							{
-								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
+								var hasPerm = false;
+								foreach (var permission in cmd.Permissions)
 								{
-									hasPerm = true;
-									break;
+									if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
+									{
+										hasPerm = true;
+										break;
+									}
+								}
+
+								if (!hasPerm)
+								{
+									player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
+									continue;
 								}
 							}
 
-							if (!hasPerm)
+							if (cmd.Groups != null)
 							{
-								player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
-								continue;
-							}
-						}
-
-						if (cmd.Groups != null && player != null)
-						{
-							var hasGroup = false;
-							foreach (var group in cmd.Groups)
-							{
-								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
+								var hasGroup = false;
+								foreach (var group in cmd.Groups)
 								{
-									hasGroup = true;
-									break;
+									if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
+									{
+										hasGroup = true;
+										break;
+									}
+								}
+
+								if (!hasGroup)
+								{
+									player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
+									continue;
 								}
 							}
 
-							if (!hasGroup)
+							if (cmd.AuthLevel != -1)
 							{
-								player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
-								continue;
+								var hasAuth = !ServerUsers.users.ContainsKey(player.userID) ? player.Connection.authLevel >= cmd.AuthLevel : (int)ServerUsers.Get(player.userID).group >= cmd.AuthLevel;
+
+								if (!hasAuth)
+								{
+									player?.ConsoleMessage($"You don't have the minimum auth level required to execute this command.");
+									continue;
+								}
 							}
 						}
 
 						try
 						{
+							Command._fromRcon = false;
 							cmd.Callback?.Invoke(player, command, args2);
 						}
 						catch (Exception ex)

@@ -29,24 +29,19 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	internal AssemblyResolver()
 	{
-		// Fix for Facepunch's new harmony loader method which uses Cecil and a
-		// random assembly name. Thanks @Jake-Rich ! :-D
-		ResolveAssembly("Carbon.Loader");
-
 		foreach (string fp in lookup)
 		{
 			Utility.Logger.Log($"Warming up assemblies from '{fp}'..");
-
 			foreach (string file in Directory.EnumerateFiles(fp, "*.dll"))
 				ResolveAssembly(Path.GetFileNameWithoutExtension(file));
 		}
 	}
 
 	internal void RegisterDomain(AppDomain domain)
-	{
-		domain.AssemblyResolve += ResolveAssembly;
-		//domain.AssemblyLoad += LoadAssembly;
-	}
+		=> domain.AssemblyResolve += ResolveAssembly;
+
+	private Assembly ResolveAssembly(object sender, ResolveEventArgs args)
+		=> ResolveAssembly(args.Name).assembly;
 
 	public bool IsReferenceAllowed(Assembly assembly)
 		=> IsReferenceAllowed(assembly.GetName().Name);
@@ -61,13 +56,11 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		// return false;
 	}
 
-	private Assembly ResolveAssembly(object sender, ResolveEventArgs args)
-		=> ResolveAssembly(args.Name).assembly;
-
 	private CarbonReference ResolveAssembly(string name)
 	{
 		try
 		{
+			// static translator
 			foreach (KeyValuePair<string, string> kvp in Context.Patterns.refTranslator)
 			{
 				if (!Regex.IsMatch(name, kvp.Key)) continue;
@@ -81,53 +74,57 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 			CarbonReference ncr = new CarbonReference();
 			ncr.LoadMetadata(info: new AssemblyName(name));
 
-			// carbon asm files are a edge case
-			if (Regex.IsMatch(name, Context.Patterns.carbonNamePattern))
+			// carbon asm files are an edge case
+			Match match = Regex.Match(ncr.name, Context.Patterns.carbonNamePattern);
+			if (match.Success)
 			{
-				string fp = null;
-
-				switch (name)
+				switch (match.Groups[1].Value)
 				{
 					case "Carbon":
 					case "Carbon.Doorstop":
-						fp = Context.Directory.CarbonManaged;
+						string p = Path.Combine(Context.Directory.CarbonManaged, $"{ncr.name}.dll");
+						if (File.Exists(p) && ncr.LoadFromFile(p) != null)
+						{
+							Logger.Debug($"Resolved: {ncr.FileName} from disk (forced)");
+							cachedReferences.Add(ncr);
+							return ncr;
+						}
 						break;
 
 					case "Carbon.Loader":
-						fp = Context.Directory.GameHarmony;
+						// this is the only asm that will get it's name manipulated by Facepunch's
+						// harmony loader, all this shit just to deal with it.. Thanks @Jake-Rich !
+						if (ncr.LoadFromAppDomain(Program.assemblyName) != null)
+						{
+							Logger.Debug($"Resolved: Carbon.Loader from app domain (forced)");
+							return ncr;
+						}
 						break;
 				}
 
+				Logger.Error("The asm name matched carbonNamePattern but it was not handled, this is a bug.");
+				return null;
+			}
+
+			// cached carbon ref (ccr)
+			CarbonReference ccr = cachedReferences.FirstOrDefault(
+				item => item.name == ncr.name
+			);
+
+			if (ccr != null)
+			{
+				Logger.Debug($"Resolved: {ccr.FileName} from cache");
+				return ccr;
+			}
+
+			foreach (string fp in lookup)
+			{
 				string p = Path.Combine(fp, $"{ncr.name}.dll");
 				if (File.Exists(p) && ncr.LoadFromFile(p) != null)
 				{
-					Logger.Debug($"Resolved: {ncr.FileName} from disk (forced)");
+					Logger.Debug($"Resolved: {ncr.FileName} from disk");
 					cachedReferences.Add(ncr);
 					return ncr;
-				}
-			}
-			else
-			{
-				// cached carbon ref (ccr)
-				CarbonReference ccr = cachedReferences.FirstOrDefault(
-					item => item.name == ncr.name
-				);
-
-				if (ccr != null)
-				{
-					Logger.Debug($"Resolved: {ccr.FileName} from cache");
-					return ccr;
-				}
-
-				foreach (string fp in lookup)
-				{
-					string p = Path.Combine(fp, $"{ncr.name}.dll");
-					if (File.Exists(p) && ncr.LoadFromFile(p) != null)
-					{
-						Logger.Debug($"Resolved: {ncr.FileName} from disk");
-						cachedReferences.Add(ncr);
-						return ncr;
-					}
 				}
 			}
 

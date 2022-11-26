@@ -3,6 +3,7 @@
 /// All rights reserved
 /// 
 using System;
+using System.Reflection;
 using Carbon.LoaderEx.Common;
 using Carbon.LoaderEx.Components;
 using Carbon.LoaderEx.Utility;
@@ -11,22 +12,26 @@ namespace Carbon.LoaderEx;
 
 internal sealed class Program : Singleton<Program>, IDisposable
 {
-	static Program() { }
-
-	private readonly string Identifier;
+	internal static readonly string identifier;
+	internal static readonly string assemblyName;
 
 	internal HarmonyLib.Harmony Harmony;
 
 	private UnityEngine.GameObject gameObject;
 
+	static Program()
+	{
+		identifier = Guid.NewGuid().ToString();
+		Logger.Warn($"Using '{identifier}' as runtime namespace");
+		assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+		Logger.Warn($"Facepunch baptized us as '{assemblyName}', látom.");
+		AssemblyResolver.GetInstance().RegisterDomain(AppDomain.CurrentDomain);
+	}
+
 	internal Program()
 	{
-		Identifier = Guid.NewGuid().ToString();
-		Logger.Warn($"Using '{Identifier}' as runtime namespace");
-		AssemblyResolver.GetInstance().RegisterDomain(AppDomain.CurrentDomain);
-
-		Harmony = new HarmonyLib.Harmony(Identifier);
-		gameObject = new UnityEngine.GameObject(Identifier);
+		Harmony = new HarmonyLib.Harmony(identifier);
+		gameObject = new UnityEngine.GameObject(identifier);
 		UnityEngine.Object.DontDestroyOnLoad(gameObject);
 	}
 
@@ -47,7 +52,7 @@ internal sealed class Program : Singleton<Program>, IDisposable
 	{
 		try
 		{
-			Harmony.UnpatchAll(Identifier);
+			Harmony.UnpatchAll(identifier);
 			Logger.Log("Removed all Harmony patches");
 		}
 		catch (Exception e)

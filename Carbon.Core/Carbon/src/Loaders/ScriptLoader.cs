@@ -223,7 +223,7 @@ namespace Carbon.Processors
 				yield break;
 			}
 
-			Carbon.Logger.Warn($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime * 1000:0}ms...");
+			Carbon.Logger.Warn($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...");
 
 			Loader.AssemblyCache.Add(AsyncLoader.Assembly);
 

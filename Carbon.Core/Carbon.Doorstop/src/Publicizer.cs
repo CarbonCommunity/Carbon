@@ -73,8 +73,11 @@ internal static class Publicizer
 			if (memoryStream == null) throw new Exception();
 			memoryStream.Position = 0;
 
-			ReaderParameters parameters = new ReaderParameters() { AssemblyResolver = new MonoAssemblyResolver() };
-			assembly = AssemblyDefinition.ReadAssembly(memoryStream, parameters);
+			DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
+			resolver.AddSearchDirectory(Context.Managed);
+
+			assembly = AssemblyDefinition.ReadAssembly(
+				memoryStream, parameters: new ReaderParameters { AssemblyResolver = resolver });
 
 			if (assembly == null) throw new Exception();
 			Logger.Log($"Reading assembly from memory");

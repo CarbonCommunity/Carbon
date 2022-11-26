@@ -18,16 +18,17 @@ namespace Carbon
 		{
 			if (_hasInit) return;
 
+			var path = Path.Combine(Defines.GetLogsFolder(), "Carbon.Core.log");
+
 			try
 			{
+				File.Delete(path);
 				File.Delete(Harmony.FileLog.logPath);
 				File.Delete(HarmonyLib.FileLog.LogPath);
 			}
 			catch { }
 
 			_hasInit = true;
-
-			var path = Path.Combine(Defines.GetLogsFolder(), "Carbon.Core.log");
 
 			if (archive)
 			{

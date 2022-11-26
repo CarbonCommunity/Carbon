@@ -66,14 +66,14 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 		try
 		{
 			HarmonyPlugin mod = loadedAssembly.FirstOrDefault(x => x.name == name);
-			if (mod.name == null) throw new Exception($"Assembly '{mod}' not found");
+			if (mod?.name == null) throw new Exception($"Assembly '{name}' not loaded");
 			loadedAssembly.Remove(mod);
 			OnUnloaded(ref mod);
 			mod.Dispose();
 		}
 		catch (System.Exception e)
 		{
-			Utility.Logger.Error("Failed unload '{mod}'", e);
+			Utility.Logger.Error($"Failed unload '{assemblyFile}'", e);
 			throw;
 		}
 	}

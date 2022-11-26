@@ -15,7 +15,7 @@ internal sealed class Hijacker
 {
 	internal static bool DoUnload()
 	{
-		BindingFlags bindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
+		BindingFlags bindingFlags = (BindingFlags)62;
 
 		Type HarmonyLoader
 			= AccessTools.TypeByName("HarmonyLoader") ?? null;

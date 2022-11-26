@@ -4,7 +4,10 @@
 ///
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
+using Carbon.LoaderEx.Utility;
 
 namespace Carbon.LoaderEx.Common;
 
@@ -75,6 +78,20 @@ public class CarbonReference : IDisposable
 		catch (System.Exception)
 		{
 #endif
+			return null;
+		}
+	}
+
+	internal Assembly LoadFromAppDomain(string name)
+	{
+		try
+		{
+			assembly = AppDomain.CurrentDomain.GetAssemblies()
+				.SingleOrDefault(loaded => loaded.GetName().Name == name);
+			return assembly;
+		}
+		catch (System.Exception)
+		{
 			return null;
 		}
 	}
