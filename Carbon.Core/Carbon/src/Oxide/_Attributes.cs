@@ -6,8 +6,10 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Carbon.Extensions;
 using Oxide.Core;
 using UnityEngine;
+using static ServerUsers;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class InfoAttribute : Attribute
@@ -116,6 +118,30 @@ public class ConsoleCommandAttribute : Attribute
 	}
 }
 
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class UiCommandAttribute : Attribute
+{
+	public string Name { get; }
+	public string Help { get; }
+
+	public static string Uniquify(string name)
+	{
+		var id = RelationshipManager.ServerInstance.net.ID;
+		return RandomEx.GetRandomString(16, name + id.ToString(), name.Length + (int)id);
+	}
+
+	public UiCommandAttribute(string name)
+	{
+		Name = name;
+	}
+
+	public UiCommandAttribute(string name, string help)
+	{
+		Name = name;
+		Help = help;
+	}
+}
+
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class CommandVarAttribute : Attribute
 {
@@ -168,5 +194,21 @@ public class GroupAttribute : Attribute
 	public GroupAttribute(string group)
 	{
 		Name = group;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class AuthLevelAttribute : Attribute
+{
+	public UserGroup Group { get; } = UserGroup.None;
+
+	public AuthLevelAttribute(UserGroup group)
+	{
+		Group = group;
+	}
+
+	public AuthLevelAttribute(int group)
+	{
+		Group = (UserGroup)group;
 	}
 }

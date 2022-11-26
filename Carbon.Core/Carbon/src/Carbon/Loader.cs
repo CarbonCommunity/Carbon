@@ -383,9 +383,12 @@ namespace Carbon.Core
 			{
 				var chatCommand = method.GetCustomAttribute<ChatCommandAttribute>();
 				var consoleCommand = method.GetCustomAttribute<ConsoleCommandAttribute>();
+				var uiCommand = method.GetCustomAttribute<UiCommandAttribute>();
 				var command = method.GetCustomAttribute<CommandAttribute>();
 				var permissions = method.GetCustomAttributes<PermissionAttribute>();
 				var groups = method.GetCustomAttributes<GroupAttribute>();
+				var authLevelAttribute = method.GetCustomAttribute<AuthLevelAttribute>();
+				var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
 				var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 				var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 
@@ -393,19 +396,24 @@ namespace Carbon.Core
 				{
 					foreach (var commandName in command.Names)
 					{
-						Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs);
-						Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs);
+						Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
+						Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
 					}
 				}
 
 				if (chatCommand != null)
 				{
-					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method.Name, help: chatCommand.Help, reference: method, permissions: ps, groups: gs);
+					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method.Name, help: chatCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
 				}
 
 				if (consoleCommand != null)
 				{
-					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs);
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
+				}
+
+				if (uiCommand != null)
+				{
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
 				}
 			}
 
@@ -414,6 +422,8 @@ namespace Carbon.Core
 				var var = field.GetCustomAttribute<CommandVarAttribute>();
 				var permissions = field.GetCustomAttributes<PermissionAttribute>();
 				var groups = field.GetCustomAttributes<GroupAttribute>();
+				var authLevelAttribute = field.GetCustomAttribute<AuthLevelAttribute>();
+				var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
 				var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 				var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 
@@ -462,7 +472,7 @@ namespace Carbon.Core
 						}
 
 						Community.LogCommand($"{command}: \"{value}\"", player);
-					}, help: var.Help, reference: field, permissions: ps, groups: gs);
+					}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel);
 				}
 			}
 

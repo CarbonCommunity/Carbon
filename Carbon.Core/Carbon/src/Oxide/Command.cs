@@ -17,7 +17,9 @@ using Pool = Facepunch.Pool;
 
 public class Command
 {
-	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
+	internal static bool _fromRcon { get; set; }
+
+	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1)
 	{
 		if (Community.Runtime.AllChatCommands.Count(x => x.Command == command) == 0)
 		{
@@ -34,12 +36,13 @@ public class Command
 				Help = help,
 				Reference = reference,
 				Permissions = permissions,
-				Groups = groups
+				Groups = groups,
+				AuthLevel = authLevel
 			});
 		}
 		else Carbon.Logger.Warn($"Chat command '{command}' already exists.");
 	}
-	public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
+	public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1)
 	{
 		AddChatCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -82,9 +85,9 @@ public class Command
 
 			if (argData != null) Pool.FreeList(ref argData);
 			if (result != null) Pool.Free(ref result);
-		}, skipOriginal, help, reference, permissions, groups);
+		}, skipOriginal, help, reference, permissions, groups, authLevel);
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1)
 	{
 		if (Community.Runtime.AllConsoleCommands.Count(x => x.Command == command) == 0)
 		{
@@ -97,12 +100,13 @@ public class Command
 				Help = help,
 				Reference = reference,
 				Permissions = permissions,
-				Groups = groups
+				Groups = groups,
+				AuthLevel = authLevel
 			});
 		}
 		else Carbon.Logger.Warn($"Console command '{command}' already exists.");
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1)
 	{
 		AddConsoleCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -115,6 +119,7 @@ public class Command
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
+				client.FromRcon = _fromRcon;
 				arg.Option = client;
 				arg.FullString = fullString;
 				arg.Args = args;
@@ -148,9 +153,9 @@ public class Command
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);
-		}, skipOriginal, help, reference, permissions, groups);
+		}, skipOriginal, help, reference, permissions, groups, authLevel);
 	}
-	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
+	public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1)
 	{
 		AddConsoleCommand(command, plugin, (player, cmd, args) =>
 		{
@@ -163,6 +168,7 @@ public class Command
 				var client = player == null ? Option.Unrestricted : Option.Client;
 				var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 				if (player != null) client = client.FromConnection(player.net.connection);
+				client.FromRcon = _fromRcon;
 				arg.Option = client;
 				arg.FullString = fullString;
 				arg.Args = args;
@@ -180,16 +186,16 @@ public class Command
 
 			Pool.FreeList(ref arguments);
 			if (result != null) Pool.Free(ref result);
-		}, skipOriginal, help, reference, permissions, groups);
+		}, skipOriginal, help, reference, permissions, groups, authLevel);
 	}
-	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1)
 	{
-		AddChatCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups);
-		AddConsoleCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups);
+		AddChatCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups, authLevel);
+		AddConsoleCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups, authLevel);
 	}
-	public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null)
+	public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1)
 	{
-		AddChatCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups);
-		AddConsoleCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups);
+		AddChatCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups, authLevel);
+		AddConsoleCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups, authLevel);
 	}
 }

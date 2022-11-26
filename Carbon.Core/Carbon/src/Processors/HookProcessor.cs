@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define NO_THREADING
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Carbon.Core;
@@ -195,6 +197,8 @@ namespace Carbon.Processors
 			public int Hooks { get; set; } = 1;
 			public bool AlwaysPatched { get; set; } = false;
 			public List<object> Patches { get; internal set; } = new List<object>();
+
+			public bool success = false;
 		}
 	}
 }

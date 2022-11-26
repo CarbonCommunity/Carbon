@@ -101,6 +101,7 @@ namespace Carbon.Jobs
 							transpiler: transpiler == null ? null : new HarmonyLib.HarmonyMethod(transpiler));
 						hookInstance.Patches.Add(instance);
 						hookInstance.Id = patchId;
+						hookInstance.success = true;
 
 						Logger.Debug($" -> Patched '{hook.Name}' <- {patchId}", 2);
 

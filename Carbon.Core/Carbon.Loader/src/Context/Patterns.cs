@@ -10,7 +10,7 @@ namespace Carbon.LoaderEx.Context;
 internal sealed class Patterns
 {
 	internal static readonly string carbonNamePattern =
-		@"(?i)^carbon([\.-](doorstop|loader))?$";
+		@"(?i)^(carbon(?:\.(?:doorstop|loader))?)(_\w+)?$";
 
 	internal static readonly string carbonFileNamePattern =
 		@"(?i)^carbon([\.-](doorstop|loader))?(.dll)$";

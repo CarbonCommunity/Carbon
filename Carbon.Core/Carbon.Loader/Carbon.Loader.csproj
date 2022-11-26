@@ -8,6 +8,9 @@
 	<Import Project="..\.msbuild\Common.props" />
 
 	<ItemGroup>
+		<!-- Assembly editor -->
+		<PackageReference Include="Mono.Cecil" Version="0.11.4" />
+
 		<!-- Extra packages -->
 		<PackageReference Include="Costura.Fody" Version="5.7.0" PrivateAssets="all" />
 
