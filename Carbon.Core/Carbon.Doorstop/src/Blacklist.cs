@@ -9,7 +9,7 @@ namespace Carbon.Utility;
 
 internal static class Blacklist
 {
-	private readonly static string[] Items =
+	private static readonly string[] Items =
 	{
 		// example: @"^Item.OnDirty$",
 	};

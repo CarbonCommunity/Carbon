@@ -4,7 +4,6 @@
 /// 
 
 using System;
-using System.Xml.Linq;
 using Carbon;
 using Carbon.Core;
 using Oxide.Core.Libraries;
@@ -18,7 +17,6 @@ namespace Oxide.Core
 		public Permission Permission { get; private set; }
 
 		public string RootDirectory { get; private set; }
-		public string ExtensionDirectory { get; private set; }
 		public string InstanceDirectory { get; private set; }
 		public string PluginDirectory { get; private set; }
 		public string ConfigDirectory { get; private set; }

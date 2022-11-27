@@ -15,8 +15,8 @@ namespace Carbon.Core
 		{
 			try
 			{
-				var t = Type.GetType("ServerMgr, Assembly-CSharp");
-				var m = t.GetMethod("Shutdown", BindingFlags.Public | BindingFlags.Instance) ?? null;
+				Type t = Type.GetType("ServerMgr, Assembly-CSharp");
+				MethodInfo m = t.GetMethod("Shutdown", (BindingFlags)62) ?? null;
 				if (m == null || !m.IsPublic)
 				{
 					Carbon.Logger.Log(Environment.NewLine +

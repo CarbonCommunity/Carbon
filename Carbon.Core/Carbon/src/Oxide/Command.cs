@@ -17,7 +17,7 @@ using Pool = Facepunch.Pool;
 
 public class Command
 {
-	internal static bool _fromRcon { get; set; }
+	public static bool _fromRcon { get; set; }
 
 	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1)
 	{
