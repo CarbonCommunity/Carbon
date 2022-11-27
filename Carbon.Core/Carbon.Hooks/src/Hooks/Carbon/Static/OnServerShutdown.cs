@@ -9,9 +9,9 @@
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_ServerMgr
+	public partial class Static_ServerMgr
 	{
 		/*
 		[Hook.AlwaysPatched]
@@ -20,13 +20,14 @@ public partial class Category_Core
 		[Hook.Patch(typeof(ServerMgr), "Shutdown")]
 		*/
 
-		public class Core_ServerMgr_Shutdown_8a0574c7d2d9420580a5ee90a37de357
+		public class Static_ServerMgr_Shutdown_8a0574c7d2d9420580a5ee90a37de357
 		{
 			public static Metadata metadata = new Metadata("OnServerShutdown",
 				typeof(ServerMgr), "Shutdown", new System.Type[] { });
 
-			static Core_ServerMgr_Shutdown_8a0574c7d2d9420580a5ee90a37de357()
+			static Static_ServerMgr_Shutdown_8a0574c7d2d9420580a5ee90a37de357()
 			{
+				metadata.SetIdentifier("8a0574c7d2d9420580a5ee90a37de357");
 				metadata.SetAlwaysPatch(true);
 			}
 

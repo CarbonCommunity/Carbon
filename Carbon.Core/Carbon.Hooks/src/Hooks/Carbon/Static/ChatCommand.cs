@@ -14,9 +14,9 @@ using Oxide.Plugins;
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_Chat
+	public partial class Static_Chat
 	{
 		/*
 		[Hook.AlwaysPatched]
@@ -27,13 +27,14 @@ public partial class Category_Core
 		[Hook.Patch(typeof(Chat), "sayAs")]
 		*/
 
-		public class Core_Chat_SayAs_fbe2fbe2debc47448ce1c319d441203e
+		public class Static_Chat_SayAs_fbe2fbe2debc47448ce1c319d441203e
 		{
 			public static Metadata metadata = new Metadata("OnPlayerCommand",
 				typeof(Chat), "sayAs", new System.Type[] { typeof(ConVar.Chat.ChatChannel), typeof(ulong), typeof(string), typeof(string), typeof(BasePlayer) });
 
-			static Core_Chat_SayAs_fbe2fbe2debc47448ce1c319d441203e()
+			static Static_Chat_SayAs_fbe2fbe2debc47448ce1c319d441203e()
 			{
+				metadata.SetIdentifier("fbe2fbe2debc47448ce1c319d441203e");
 				metadata.SetAlwaysPatch(true);
 			}
 

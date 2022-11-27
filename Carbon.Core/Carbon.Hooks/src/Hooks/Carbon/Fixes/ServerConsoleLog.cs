@@ -25,6 +25,7 @@ public partial class Category_Fixes
 
 			static Fixes_ServerConsole_HandleLog_e540e379423c44b9b5855cff2506d5d1()
 			{
+				metadata.SetIdentifier("e540e379423c44b9b5855cff2506d5d1");
 				metadata.SetAlwaysPatch(true);
 				metadata.SetHidden(true);
 			}

@@ -13,9 +13,9 @@ using Oxide.Core;
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_RCon
+	public partial class Static_RCon
 	{
 		/*
 		[Hook.AlwaysPatched]
@@ -27,13 +27,14 @@ public partial class Category_Core
 		[Hook.Patch(typeof(RCon), "OnCommand")]
 		*/
 
-		public class Core_RCon_OnCommand_ccce0832a0eb4c28bc2372f5e0812c7e
+		public class Static_RCon_OnCommand_ccce0832a0eb4c28bc2372f5e0812c7e
 		{
 			public static Metadata metadata = new Metadata("OnRconCommand",
 				typeof(RCon), "OnCommand", new System.Type[] { typeof(Facepunch.RCon.Command) });
 
-			static Core_RCon_OnCommand_ccce0832a0eb4c28bc2372f5e0812c7e()
+			static Static_RCon_OnCommand_ccce0832a0eb4c28bc2372f5e0812c7e()
 			{
+				metadata.SetIdentifier("ccce0832a0eb4c28bc2372f5e0812c7e");
 				metadata.SetAlwaysPatch(true);
 			}
 

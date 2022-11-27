@@ -13,9 +13,9 @@ using Oxide.Plugins;
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_ConsoleSystem
+	public partial class Static_ConsoleSystem
 	{
 		/*
 		[CarbonHook.AlwaysPatched]
@@ -26,13 +26,14 @@ public partial class Category_Core
 		[CarbonHook.Patch(typeof(ConsoleSystem), "Run")]
 		*/
 
-		public class Core_ConsoleSystem_Run_4be71c5d077949cdb88438ec6dabac24
+		public class Static_ConsoleSystem_Run_4be71c5d077949cdb88438ec6dabac24
 		{
 			public static Metadata metadata = new Metadata("OnCarbonCommand",
 				typeof(ConsoleSystem), "Run", new System.Type[] { typeof(ConsoleSystem.Option), typeof(string), typeof(object[]) });
 
-			static Core_ConsoleSystem_Run_4be71c5d077949cdb88438ec6dabac24()
+			static Static_ConsoleSystem_Run_4be71c5d077949cdb88438ec6dabac24()
 			{
+				metadata.SetIdentifier("4be71c5d077949cdb88438ec6dabac24");
 				metadata.SetAlwaysPatch(true);
 			}
 
@@ -135,12 +136,12 @@ public partial class Category_Core
 		[Hook.Patch(typeof(ConsoleSystem), "Internal", true)]
 		*/
 
-		public class Core_ConsoleSystem_ServerConsoleCommand
+		public class Static_ConsoleSystem_ServerConsoleCommand
 		{
 			public static Metadata metadata = new Metadata("OnServerCommand",
 				typeof(ConsoleSystem), "Internal", new System.Type[] { typeof(ConsoleSystem.Arg) });
 
-			static Core_ConsoleSystem_ServerConsoleCommand()
+			static Static_ConsoleSystem_ServerConsoleCommand()
 			{
 				metadata.SetAlwaysPatch(true);
 			}

@@ -9,9 +9,9 @@
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_SaveRestore
+	public partial class Static_SaveRestore
 	{
 		/*
 		[Hook.AlwaysPatched]
@@ -20,13 +20,14 @@ public partial class Category_Core
 		[Hook.Patch(typeof(SaveRestore), "DoAutomatedSave")]
 		*/
 
-		public class Core_SaveRestore_DoAutomatedSave_eb9f4139698447f594d20fb698c1eb15
+		public class Static_SaveRestore_DoAutomatedSave_eb9f4139698447f594d20fb698c1eb15
 		{
 			public static Metadata metadata = new Metadata("OnServerSave",
 				typeof(SaveRestore), "DoAutomatedSave", new System.Type[] { typeof(bool) });
 
-			static Core_SaveRestore_DoAutomatedSave_eb9f4139698447f594d20fb698c1eb15()
+			static Static_SaveRestore_DoAutomatedSave_eb9f4139698447f594d20fb698c1eb15()
 			{
+				metadata.SetIdentifier("eb9f4139698447f594d20fb698c1eb15");
 				metadata.SetAlwaysPatch(true);
 			}
 

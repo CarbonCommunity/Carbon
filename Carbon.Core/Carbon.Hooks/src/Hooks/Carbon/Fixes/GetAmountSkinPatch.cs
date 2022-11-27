@@ -27,6 +27,7 @@ public partial class Category_Fixes
 
 			static Fixes_ItemContainer_GetAmount_14c9a1716b4248d4b707fbced49641fd()
 			{
+				metadata.SetIdentifier("14c9a1716b4248d4b707fbced49641fd");
 				metadata.SetAlwaysPatch(true);
 				metadata.SetHidden(true);
 			}

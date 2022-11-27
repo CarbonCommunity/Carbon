@@ -7,9 +7,9 @@
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_BasePlayer
+	public partial class Static_BasePlayer
 	{
 		/*
 		[Hook.AlwaysPatched]
@@ -19,13 +19,14 @@ public partial class Category_Core
 		[Hook.Patch(typeof(BasePlayer), "PlayerInit")]
 		*/
 
-		public class Core_BasePlayer_PlayerInit_9e1a7b5738f441d698700fcbf25ca8b1
+		public class Static_BasePlayer_PlayerInit_9e1a7b5738f441d698700fcbf25ca8b1
 		{
 			public static Metadata metadata = new Metadata("OnPlayerConnected",
 				typeof(BasePlayer), "PlayerInit", new System.Type[] { typeof(Network.Connection) });
 
-			static Core_BasePlayer_PlayerInit_9e1a7b5738f441d698700fcbf25ca8b1()
+			static Static_BasePlayer_PlayerInit_9e1a7b5738f441d698700fcbf25ca8b1()
 			{
+				metadata.SetIdentifier("9e1a7b5738f441d698700fcbf25ca8b1");
 				metadata.SetAlwaysPatch(true);
 			}
 

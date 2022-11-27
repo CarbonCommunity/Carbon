@@ -26,6 +26,7 @@ public partial class Category_Fixes
 
 			static Fixes_Debug_LogWarning_e75bcb98e64645bd96afc60742d1171b()
 			{
+				metadata.SetIdentifier("e75bcb98e64645bd96afc60742d1171b");
 				metadata.SetAlwaysPatch(true);
 				metadata.SetHidden(true);
 			}

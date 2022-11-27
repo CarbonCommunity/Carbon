@@ -10,9 +10,9 @@ using Carbon.Extensions;
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_ServerMgr
+	public partial class Static_ServerMgr
 	{
 		/*
 		[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
@@ -20,13 +20,14 @@ public partial class Category_Core
 		[CarbonHook.Patch(typeof(ServerMgr), "UpdateServerInformation")]
 		*/
 
-		public class Core_ServerMgr_UpdateServerInformation_aaa38191cc9f4f6f911df9742d552a99
+		public class Static_ServerMgr_UpdateServerInformation_aaa38191cc9f4f6f911df9742d552a99
 		{
 			public static Metadata metadata = new Metadata("IServerInfoUpdate",
 				typeof(ServerMgr), "UpdateServerInformation", new System.Type[] { });
 
-			static Core_ServerMgr_UpdateServerInformation_aaa38191cc9f4f6f911df9742d552a99()
+			static Static_ServerMgr_UpdateServerInformation_aaa38191cc9f4f6f911df9742d552a99()
 			{
+				metadata.SetIdentifier("aaa38191cc9f4f6f911df9742d552a99");
 				metadata.SetAlwaysPatch(true);
 				metadata.SetHidden(true);
 			}

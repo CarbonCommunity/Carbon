@@ -29,6 +29,7 @@ public partial class Category_Fixes
 
 			static Fixes_ItemContainer_Take_c44b4b824a274a5a96b9154a612d747a()
 			{
+				metadata.SetIdentifier("c44b4b824a274a5a96b9154a612d747a");
 				metadata.SetAlwaysPatch(true);
 				metadata.SetHidden(true);
 			}

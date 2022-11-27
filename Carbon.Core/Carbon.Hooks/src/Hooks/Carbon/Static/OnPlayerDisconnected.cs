@@ -7,9 +7,9 @@
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_ServerMgr
+	public partial class Static_ServerMgr
 	{
 		/*
 		[Hook.AlwaysPatched]
@@ -20,13 +20,14 @@ public partial class Category_Core
 		[Hook.Patch(typeof(ServerMgr), "OnDisconnected")]
 		*/
 
-		public class Core_ServerMgr_OnDisconnected_4d9dcdaf8fbd4923a96eef18a7da7488
+		public class Static_ServerMgr_OnDisconnected_4d9dcdaf8fbd4923a96eef18a7da7488
 		{
 			public static Metadata metadata = new Metadata("OnPlayerDisconnected",
 				typeof(ServerMgr), "OnDisconnected", new System.Type[] { typeof(string), typeof(Network.Connection) });
 
-			static Core_ServerMgr_OnDisconnected_4d9dcdaf8fbd4923a96eef18a7da7488()
+			static Static_ServerMgr_OnDisconnected_4d9dcdaf8fbd4923a96eef18a7da7488()
 			{
+				metadata.SetIdentifier("4d9dcdaf8fbd4923a96eef18a7da7488");
 				metadata.SetAlwaysPatch(true);
 			}
 

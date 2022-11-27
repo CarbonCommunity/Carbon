@@ -22,6 +22,9 @@ public class Metadata
 	}
 
 
+	public void SetIdentifier(string identifier)
+		=> Identifier = identifier;
+
 	public void SetChecksum(string checksum)
 		=> Checksum = checksum;
 

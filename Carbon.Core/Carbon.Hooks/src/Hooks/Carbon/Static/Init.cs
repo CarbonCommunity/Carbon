@@ -7,9 +7,9 @@
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_Bootstrap
+	public partial class Static_Bootstrap
 	{
 		/*
 		[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
@@ -17,13 +17,14 @@ public partial class Category_Core
 		[CarbonHook.Patch(typeof(Bootstrap), "StartupShared")]
 		*/
 
-		public class Core_Bootstrap_StartupShared_e3acad59160c4885bf724620db14c7e3
+		public class Static_Bootstrap_StartupShared_e3acad59160c4885bf724620db14c7e3
 		{
 			public static Metadata metadata = new Metadata("IInit",
 				typeof(Bootstrap), "StartupShared", new System.Type[] { });
 
-			static Core_Bootstrap_StartupShared_e3acad59160c4885bf724620db14c7e3()
+			static Static_Bootstrap_StartupShared_e3acad59160c4885bf724620db14c7e3()
 			{
+				metadata.SetIdentifier("e3acad59160c4885bf724620db14c7e3");
 				metadata.SetAlwaysPatch(true);
 			}
 

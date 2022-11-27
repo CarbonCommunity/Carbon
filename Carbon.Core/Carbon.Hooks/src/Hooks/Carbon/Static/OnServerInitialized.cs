@@ -9,9 +9,9 @@
 
 namespace Carbon.Hooks;
 
-public partial class Category_Core
+public partial class Category_Static
 {
-	public partial class Core_ServerMgr
+	public partial class Static_ServerMgr
 	{
 		/*
 		[Hook.AlwaysPatched]
@@ -23,13 +23,14 @@ public partial class Category_Core
 		[Hook.Patch(typeof(ServerMgr), "OpenConnection")]
 		*/
 
-		public class Core_ServerMgr_OpenConnection_b91c13017e4a43fcb2d81244efd8e5b6
+		public class Static_ServerMgr_OpenConnection_b91c13017e4a43fcb2d81244efd8e5b6
 		{
 			public static Metadata metadata = new Metadata("OnServerInitialized",
 					typeof(ServerMgr), "OpenConnection", new System.Type[] { });
 
-			static Core_ServerMgr_OpenConnection_b91c13017e4a43fcb2d81244efd8e5b6()
+			static Static_ServerMgr_OpenConnection_b91c13017e4a43fcb2d81244efd8e5b6()
 			{
+				metadata.SetIdentifier("b91c13017e4a43fcb2d81244efd8e5b6");
 				metadata.SetAlwaysPatch(true);
 			}
 
