@@ -18,23 +18,9 @@ namespace Carbon.Core
 	{
 		public static Assembly Carbon { get; internal set; }
 
-		public static List<Hook> Hooks { get; internal set; }
-
 		public static void Initialize()
 		{
-			Hooks?.Clear();
-			Hooks = new List<Hook>();
-
 			Carbon = typeof(Community).Assembly;
-
-			foreach (var type in Carbon.GetTypes())
-			{
-				var hook = type.GetCustomAttribute<Hook>();
-				if (hook == null) continue;
-
-				hook.Type = type;
-				Hooks.Add(hook);
-			}
 
 			GetRootFolder();
 			GetConfigsFolder();

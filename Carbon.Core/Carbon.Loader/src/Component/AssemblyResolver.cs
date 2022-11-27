@@ -1,4 +1,4 @@
-///
+﻿///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 ///
@@ -17,7 +17,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 {
 	static AssemblyResolver() { }
 
-	private readonly static string[] lookup =
+	private static readonly string[] lookup =
 	{
 		Context.Directory.CarbonLib,
 		Context.Directory.CarbonManaged,
@@ -81,6 +81,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 				switch (match.Groups[1].Value)
 				{
 					case "Carbon":
+					case "Carbon.Hooks":
 					case "Carbon.Doorstop":
 						string p = Path.Combine(Context.Directory.CarbonManaged, $"{ncr.name}.dll");
 						if (File.Exists(p) && ncr.LoadFromFile(p) != null)

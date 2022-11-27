@@ -69,7 +69,8 @@ namespace Oxide.Plugins
 		{
 			foreach (var hook in Hooks)
 			{
-				Community.Runtime.HookProcessor.UnappendHook(hook);
+				//Community.Runtime.HookProcessor.UnappendHook(hook);
+				Community.Runtime.HookProcessorEx.Unsubscribe(hook, Name);
 			}
 			Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 		}
@@ -101,8 +102,9 @@ namespace Oxide.Plugins
 			{
 				foreach (var hook in Hooks)
 				{
-					Community.Runtime.HookProcessor.InstallHooks(hook);
-					Community.Runtime.HookProcessor.AppendHook(hook);
+					//Community.Runtime.HookProcessor.InstallHooks(hook);
+					//Community.Runtime.HookProcessor.AppendHook(hook);
+					Community.Runtime.HookProcessorEx.Subscribe(hook, FileName);
 				}
 			}
 			Carbon.Logger.Debug(Name, "Processed hooks");

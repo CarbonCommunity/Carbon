@@ -249,7 +249,7 @@ namespace Carbon.Processors
 						if (counter > 0)
 						{
 							Carbon.Logger.Warn($" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
-							Carbon.Logger.Warn("The plugin will not work as expected.");
+							Carbon.Logger.Warn($" Plugin '{type.Name}' will not work as expected.");
 						}
 					}
 

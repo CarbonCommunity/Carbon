@@ -1,13 +1,12 @@
-///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-///
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
-using Carbon.LoaderEx.Utility;
+
+///
+/// Copyright (c) 2022 Carbon Community 
+/// All rights reserved
+///
 
 namespace Carbon.LoaderEx.Common;
 

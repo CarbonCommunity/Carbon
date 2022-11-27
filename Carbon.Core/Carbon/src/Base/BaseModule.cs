@@ -62,8 +62,11 @@ namespace Carbon.Base
 
 			foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 			{
-				Community.Runtime.HookProcessor.InstallHooks(method.Name);
-				Community.Runtime.HookProcessor.AppendHook(method.Name);
+				//Community.Runtime.HookProcessor.InstallHooks(method.Name);
+				//Community.Runtime.HookProcessor.AppendHook(method.Name);
+
+				if (Community.Runtime.HookProcessorEx.IsExisting(method.Name))
+					Community.Runtime.HookProcessorEx.Subscribe(method.Name, Name);
 			}
 			Puts($"Processed hooks");
 

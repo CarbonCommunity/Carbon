@@ -4,6 +4,7 @@
 ///
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Carbon.Hooks;
 using Carbon.Oxide.Metadata;
@@ -19,17 +20,14 @@ namespace Carbon.Core
 		public static void Refresh()
 		{
 			CarbonHooks.Clear();
-
-			foreach (var entry in typeof(HookValidator).Assembly.GetTypes())
-			{
-				var hook = entry.GetCustomAttribute<Hook>();
-				if (hook == null) continue;
-				CarbonHooks.Add(hook.Name);
-			}
+			CarbonHooks = Community.Runtime.HookProcessorEx.LoadedStaticHooksName
+				.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooksName).ToList();
+			Logger.Debug($"Refreshed {CarbonHooks.Count} loaded hooks.");
 
 			Community.Runtime.CorePlugin.webrequest.Enqueue("https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj", null, (error, data) =>
 			{
 				OxideHooks = JsonConvert.DeserializeObject<HookPackage>(data);
+				Logger.Debug($"Refreshed {OxideHooksCount} oxide hooks.");
 			}, null);
 		}
 
@@ -43,15 +41,28 @@ namespace Carbon.Core
 				{
 					foreach (var entry in manifest.Hooks)
 					{
-						var hookName = (string.IsNullOrEmpty(entry.Hook.BaseHookName) ? entry.Hook.HookName : entry.Hook.BaseHookName).Split(' ')[0];
-						if (hookName.Contains("/")) continue;
-
-						if (hookName == hook) return true;
+						var hookName = entry.Hook.HookName.Split(' ')[0];
+						if (hookName.Contains("/") || hookName != hook) continue;
+						return true;
 					}
 				}
 			}
 
 			return false;
+		}
+
+		private static int OxideHooksCount
+		{
+			get
+			{
+				if (OxideHooks == null) return 0;
+
+				int count = 0;
+				foreach (var manifest in OxideHooks.Manifests)
+					foreach (var entry in manifest.Hooks)
+						count++;
+				return count;
+			}
 		}
 	}
 }

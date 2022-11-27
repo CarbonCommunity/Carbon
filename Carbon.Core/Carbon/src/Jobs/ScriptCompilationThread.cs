@@ -249,7 +249,7 @@ namespace Carbon.Jobs
 							unsupportedHooks.Add(method.Name);
 						}
 
-						if (Community.Runtime.HookProcessor.DoesHookExist(method.Name))
+						if (Community.Runtime.HookProcessorEx.IsExisting(method.Name))
 						{
 							if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
 						}

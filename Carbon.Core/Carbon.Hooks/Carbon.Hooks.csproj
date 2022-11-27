@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon.Hooks</Product>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{D59DCF01-9F04-4FD9-8BE8-DA6E2EFC1211}</ProjectGuid>
+	</PropertyGroup>
+
+	<Import Project="..\.msbuild\Common.props" />
+	<Import Project="..\.msbuild\AssemblyName.props" />
+
+	<ItemGroup>
+		<!-- Carbon platform -->
+		<ProjectReference Include="..\Carbon\Carbon.csproj" Private="false" />
+
+		<!-- HarmonyLib using a custom name -->
+		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" />
+	</ItemGroup>
+
+	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<!-- Changed due to FP_73186 changeset -->
+		<!-- <Copy SourceFiles="$(OutputPath)$(Product).pdb" DestinationFolder="$(c_managed)" Condition="$(Configuration.Contains('Debug'))" /> -->
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+	</Target>
+
+	<Target Name="AfterResolveReferences">
+		<!-- Redefine referencepath to add dependencies-->
+		<ItemGroup>
+			<ReferencePath Include="@(ReferenceDependencyPaths)"></ReferencePath>
+		</ItemGroup>
+	</Target>
+</Project>

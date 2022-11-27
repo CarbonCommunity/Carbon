@@ -45,7 +45,6 @@ namespace Carbon
 			Linux
 		}
 
-		public HookProcessor HookProcessor { get; set; }
 		public Config Config { get; set; }
 		public RustPlugin CorePlugin { get; set; }
 		public Loader.CarbonMod Plugins { get; set; }
@@ -116,8 +115,12 @@ namespace Carbon
 		public HarmonyProcessor HarmonyProcessor { get; set; }
 		public ModuleProcessor ModuleProcessor { get; set; }
 
+		internal HookManager HookProcessorEx { get; set; }
+
 		internal void _installProcessors()
 		{
+			Carbon.Logger.Log("Installed processors");
+
 			if (ScriptProcessor == null ||
 				WebScriptProcessor == null ||
 				HarmonyProcessor == null ||
@@ -131,11 +134,11 @@ namespace Carbon
 				WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 				HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor>();
 				CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-				HookProcessor = new HookProcessor();
+				HookProcessorEx = gameObject.AddComponent<HookManager>();
 				ModuleProcessor = new ModuleProcessor();
 				Entities = new Entities();
+
 			}
-			Carbon.Logger.Log("Installed processors");
 
 			_registerProcessors();
 		}
@@ -259,7 +262,6 @@ namespace Carbon
 			_installDefaultCommands();
 
 			HookValidator.Refresh();
-			Carbon.Logger.Log("Fetched oxide hooks");
 
 			ReloadPlugins();
 
@@ -270,8 +272,6 @@ namespace Carbon
 			IsInitialized = true;
 
 			Entities.Init();
-
-			HookProcessor.InstallAlwaysPatchedHooks();
 		}
 		public void Uninitalize()
 		{
@@ -279,6 +279,8 @@ namespace Carbon
 			{
 				_uninstallProcessors();
 				_clearCommands(all: true);
+
+				HookProcessorEx.enabled = false;
 
 				ClearPlugins();
 				Loader._loadedMods.Clear();
@@ -296,11 +298,6 @@ namespace Carbon
 #endif
 
 				Entities.Dispose();
-
-				foreach (var hook in HookProcessor.Patches)
-				{
-					HookProcessor.UninstallHooks(hook.Key, shutdown: true);
-				}
 
 				Carbon.FileLogger._dispose();
 			}
