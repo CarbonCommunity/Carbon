@@ -69,30 +69,44 @@ namespace Carbon.Core
 			{
 				Logger.Warn($" Downloaded patch. Processing in memory...");
 
-				using (var file = new MemoryStream(e.Result))
-				using (var zip = new ZipArchive(file, ZipArchiveMode.Read))
+				try
 				{
+					using var file = new MemoryStream(e.Result);
+					using var zip = new ZipArchive(file, ZipArchiveMode.Read);
+
 					foreach (var entry in zip.Entries)
 					{
-						if (entry.FullName == "carbon\\managed\\Carbon.dll")
+						try
 						{
-							using var stream = entry.Open();
-							using var ms = new MemoryStream();
-							stream.CopyTo(ms);
-							ms.Position = 0;
+							if (entry.FullName == "carbon\\managed\\Carbon.dll")
+							{
+								using var stream = entry.Open();
+								using var ms = new MemoryStream();
+								stream.CopyTo(ms);
+								ms.Position = 0;
 
-							OsEx.File.Create(Defines.DllManagedPath, ms.ToArray());
+								OsEx.File.Create(Defines.DllManagedPath, ms.ToArray());
+							}
+							else if (entry.FullName == "carbon\\managed\\Carbon.pdb")
+							{
+								using var stream = entry.Open();
+								using var ms = new MemoryStream();
+								stream.CopyTo(ms);
+								ms.Position = 0;
+
+								OsEx.File.Create(Defines.DllManagedPdbPath, ms.ToArray());
+							}
 						}
-						else if (entry.FullName == "carbon\\managed\\Carbon.pdb")
+						catch (Exception ex)
 						{
-							using var stream = entry.Open();
-							using var ms = new MemoryStream();
-							stream.CopyTo(ms);
-							ms.Position = 0;
-
-							OsEx.File.Create(Defines.DllManagedPdbPath, ms.ToArray());
+							Logger.Error($"  Failed processing '{entry.FullName}'...", ex);
 						}
 					}
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed updating Carbon to latest {os} OS version from the {type} branch. More info:", ex);
+					return;
 				}
 
 				Logger.Warn($" Completed.");
