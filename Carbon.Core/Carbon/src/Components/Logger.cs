@@ -12,6 +12,8 @@ namespace Carbon
 {
 	public class Logger
 	{
+		public static FileLogger _file { get; set; } = new FileLogger("Carbon.Core");
+
 		public enum Severity
 		{
 			Error, Warning, Notice, Debug
@@ -23,7 +25,7 @@ namespace Carbon
 		}
 		internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1)
 		{
-			FileLogger._init();
+			_file.Init();
 
 			if (severity != Severity.Debug)
 			{
@@ -39,35 +41,40 @@ namespace Carbon
 					if (dex != null)
 					{
 						UnityEngine.Debug.LogError($"{message} ({dex?.Message})\n{dex?.StackTrace}");
-						FileLogger._queueLog($"[ERRO] {message} ({dex?.Message})\n{dex?.StackTrace}");
+						_file._queueLog($"[ERRO] {message} ({dex?.Message})\n{dex?.StackTrace}");
 					}
 					else
 					{
 						UnityEngine.Debug.LogError(message);
-						FileLogger._queueLog($"[ERRO] {message}");
+						_file._queueLog($"[ERRO] {message}");
 					}
 					break;
 
 				case Severity.Warning:
 					UnityEngine.Debug.LogWarning($"{message}");
-					FileLogger._queueLog($"[WARN] {message}");
+					_file._queueLog($"[WARN] {message}");
 					break;
 
 				case Severity.Notice:
 					UnityEngine.Debug.Log($"{message}");
-					FileLogger._queueLog($"[INFO] {message}");
+					_file._queueLog($"[INFO] {message}");
 					break;
 
 				case Severity.Debug:
 					int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 					if (verbosity > minVerbosity) break;
 					UnityEngine.Debug.Log($"{message}");
-					FileLogger._queueLog($"[INFO] {message}");
+					_file._queueLog($"[INFO] {message}");
 					break;
 
 				default:
 					throw new Exception($"Severity {severity} not implemented.");
 			}
+		}
+
+		internal static void _dispose()
+		{
+			_file.Dispose();
 		}
 
 #if DEBUG

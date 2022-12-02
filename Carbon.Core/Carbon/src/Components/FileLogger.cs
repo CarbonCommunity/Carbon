@@ -7,18 +7,30 @@ using Facepunch;
 
 namespace Carbon
 {
-	internal class FileLogger
+	public class FileLogger : IDisposable
 	{
-		internal static bool _hasInit;
-		internal static List<string> _buffer = new List<string>();
-		internal static StreamWriter _file;
-		internal static int _splitSize = (int)(2.5f * 1000000f);
+		public string Name { get; set; } = "default";
 
-		internal static void _init(bool archive = false)
+		/// <summary>
+		/// By default, each log file gets split when it reaches exactly 2.5MB in file size and sent in the archive folder.
+		/// </summary>
+		public int SplitSize { get; set; } = (int)(2.5f * 1000000f);
+
+		internal bool _hasInit;
+		internal List<string> _buffer = new();
+		internal StreamWriter _file;
+
+		public FileLogger() { }
+		public FileLogger(string name)
+		{
+			Name = name;
+		}
+
+		public virtual void Init(bool archive = false)
 		{
 			if (_hasInit) return;
 
-			var path = Path.Combine(Defines.GetLogsFolder(), "Carbon.Core.log");
+			var path = Path.Combine(Defines.GetLogsFolder(), $"{Name}.log");
 
 			try
 			{
@@ -34,13 +46,13 @@ namespace Carbon
 			{
 				if (OsEx.File.Exists(path))
 				{
-					OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"Carbon.Core.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
+					OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"{Name}.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
 				}
 			}
 
 			_file = new StreamWriter(path, append: true);
 		}
-		internal static void _dispose()
+		public virtual void Dispose()
 		{
 			_file.Flush();
 			_file.Close();
@@ -48,7 +60,7 @@ namespace Carbon
 
 			_hasInit = false;
 		}
-		internal static void _flush()
+		public virtual void _flush()
 		{
 			var buffer = Pool.GetList<string>();
 			buffer.AddRange(_buffer);
@@ -62,13 +74,13 @@ namespace Carbon
 			_buffer.Clear();
 			Pool.FreeList(ref buffer);
 
-			if (_file.BaseStream.Length > _splitSize)
+			if (_file.BaseStream.Length > SplitSize)
 			{
-				_dispose();
-				_init(archive: true);
+				Dispose();
+				Init(archive: true);
 			}
 		}
-		internal static void _queueLog(string message)
+		internal void _queueLog(string message)
 		{
 			if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 0) return;
 

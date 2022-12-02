@@ -243,8 +243,6 @@ namespace Carbon
 
 			LoadConfig();
 
-			Carbon.FileLogger._init();
-
 			Carbon.Logger.Log("Loaded config");
 
 			Carbon.Logger.Log($"Loading...");
@@ -302,7 +300,7 @@ namespace Carbon
 					HookProcessor.UninstallHooks(hook.Key, shutdown: true);
 				}
 
-				Carbon.FileLogger._dispose();
+				Carbon.Logger._dispose();
 			}
 			catch (Exception ex)
 			{
