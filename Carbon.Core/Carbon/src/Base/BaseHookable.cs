@@ -85,7 +85,7 @@ namespace Carbon.Base
 		}
 		public bool IsHookIgnored(string hook)
 		{
-			return IgnoredHooks.Contains(hook);
+			return IgnoredHooks == null || IgnoredHooks.Contains(hook);
 		}
 
 		public T To<T>()
