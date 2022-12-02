@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 ///
 /// Copyright (c) 2022 Carbon Community 
@@ -53,4 +53,3 @@ internal sealed class Patterns
 		{ @"^0Harmony$", "1Harmony" }
 	};
 }
-

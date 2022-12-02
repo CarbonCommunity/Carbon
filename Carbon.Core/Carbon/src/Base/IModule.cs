@@ -5,22 +5,21 @@
 
 using System;
 
-namespace Carbon.Base.Interfaces
+namespace Carbon.Base.Interfaces;
+
+public interface IModule : IHookableModule, IDisposable
 {
-	public interface IModule : IHookableModule, IDisposable
-	{
-		string Name { get; }
+	string Name { get; }
 
-		void Init();
-		void InitEnd();
-		void Save();
-		void Load();
+	void Init();
+	void InitEnd();
+	void Save();
+	void Load();
 
-		void SetEnabled(bool enabled);
-		bool GetEnabled();
-		void OnEnableStatus();
+	void SetEnabled(bool enabled);
+	bool GetEnabled();
+	void OnEnableStatus();
 
-		void OnEnabled(bool initialized);
-		void OnDisabled(bool initialized);
-	}
+	void OnEnabled(bool initialized);
+	void OnDisabled(bool initialized);
 }

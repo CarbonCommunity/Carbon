@@ -3,10 +3,9 @@
 /// All rights reserved
 /// 
 
-namespace Carbon.Base.Interfaces
+namespace Carbon.Base.Interfaces;
+
+public interface IModuleConfig
 {
-	public interface IModuleConfig
-	{
-		bool Enabled { get; set; }
-	}
+	bool Enabled { get; set; }
 }

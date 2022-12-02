@@ -4,11 +4,10 @@
 /// 
 
 
-namespace Oxide.Core.Libraries.Covalence
+namespace Oxide.Core.Libraries.Covalence;
+
+public enum CommandType
 {
-	public enum CommandType
-	{
-		Chat,
-		Console
-	}
+	Chat,
+	Console
 }

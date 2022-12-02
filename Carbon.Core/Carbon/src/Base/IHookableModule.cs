@@ -6,10 +6,9 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Carbon.Base.Interfaces
+namespace Carbon.Base.Interfaces;
+
+public interface IHookableModule
 {
-	public interface IHookableModule
-	{
-		Dictionary<string, List<MethodInfo>> HookCache { get; }
-	}
+	Dictionary<string, List<MethodInfo>> HookCache { get; }
 }

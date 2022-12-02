@@ -7,47 +7,46 @@ using System;
 using System.IO;
 using Carbon.Base;
 
-namespace Carbon.Processors
+namespace Carbon.Processors;
+
+public class WebScriptProcessor : BaseProcessor
 {
-	public class WebScriptProcessor : BaseProcessor
+	public override Type IndexedType => typeof(WebScript);
+
+	public class WebScript : Instance
 	{
-		public override Type IndexedType => typeof(WebScript);
+		internal ScriptLoader _loader;
 
-		public class WebScript : Instance
+		public override void Dispose()
 		{
-			internal ScriptLoader _loader;
-
-			public override void Dispose()
+			try
 			{
-				try
-				{
-					_loader?.Clear();
-				}
-				catch (Exception ex)
-				{
-					Carbon.Logger.Error($"Error disposing {File}", ex);
-				}
-
-				_loader = null;
+				_loader?.Clear();
 			}
-			public override void Execute()
+			catch (Exception ex)
 			{
-				try
-				{
-					_loader = new ScriptLoader();
+				Carbon.Logger.Error($"Error disposing {File}", ex);
+			}
 
-					Community.Runtime.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
-					{
-						Carbon.Logger.Log($"Downloaded '{File}': {result.Length}");
+			_loader = null;
+		}
+		public override void Execute()
+		{
+			try
+			{
+				_loader = new ScriptLoader();
 
-						_loader.Source = result;
-						_loader.Load();
-					}, Community.Runtime.CorePlugin);
-				}
-				catch (Exception ex)
+				Community.Runtime.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
 				{
-					Carbon.Logger.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
-				}
+					Carbon.Logger.Log($"Downloaded '{File}': {result.Length}");
+
+					_loader.Source = result;
+					_loader.Load();
+				}, Community.Runtime.CorePlugin);
+			}
+			catch (Exception ex)
+			{
+				Carbon.Logger.Warn($"Failed processing {Path.GetFileNameWithoutExtension(File)}:\n{ex}");
 			}
 		}
 	}

@@ -3,21 +3,20 @@
 /// All rights reserved
 /// 
 
-namespace Oxide.Core.Plugins
+namespace Oxide.Core.Plugins;
+
+public static class Extensions
 {
-	public static class Extensions
+	public static void Clear(this ItemContainer cont)
 	{
-		public static void Clear(this ItemContainer cont)
+		var items = Facepunch.Pool.GetList<Item>();
+		items.AddRange(cont.itemList);
+
+		foreach (var item in items)
 		{
-			var items = Facepunch.Pool.GetList<Item>();
-			items.AddRange(cont.itemList);
-
-			foreach (var item in items)
-			{
-				item.Remove(.1f);
-			}
-
-			ItemManager.DoRemoves();
+			item.Remove(.1f);
 		}
+
+		ItemManager.DoRemoves();
 	}
 }

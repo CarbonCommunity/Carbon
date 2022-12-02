@@ -5,10 +5,9 @@
 
 using System;
 
-namespace Oxide.Core.Libraries
+namespace Oxide.Core.Libraries;
+
+public abstract class Library : IDisposable
 {
-	public abstract class Library : IDisposable
-	{
-		public virtual void Dispose() { }
-	}
+	public virtual void Dispose() { }
 }

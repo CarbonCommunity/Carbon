@@ -3,9 +3,8 @@
 /// All rights reserved
 /// 
 
-namespace Carbon.Core.Tools
+namespace Carbon.Core.Tools;
+
+public class Profiler
 {
-	public class Profiler
-	{
-	}
 }

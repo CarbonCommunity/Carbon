@@ -5,10 +5,9 @@
 
 using Oxide.Plugins;
 
-namespace Carbon.Plugins
-{
-	public class CarbonPlugin : RustPlugin
-	{
+namespace Carbon.Plugins;
 
-	}
+public class CarbonPlugin : RustPlugin
+{
+
 }

@@ -5,20 +5,19 @@
 
 using Oxide.Plugins;
 
-namespace Oxide.Ext.SQLite
-{
-	public class Connection
-	{
-		internal string ConnectionString;
-		internal bool ConnectionPersistent;
-		internal object Con;
-		internal Plugin Plugin;
-		public long LastInsertRowId;
+namespace Oxide.Ext.SQLite;
 
-		public Connection(string connection, bool persistent)
-		{
-			ConnectionString = connection;
-			ConnectionPersistent = persistent;
-		}
+public class Connection
+{
+	internal string ConnectionString;
+	internal bool ConnectionPersistent;
+	internal object Con;
+	internal Plugin Plugin;
+	public long LastInsertRowId;
+
+	public Connection(string connection, bool persistent)
+	{
+		ConnectionString = connection;
+		ConnectionPersistent = persistent;
 	}
 }

@@ -5,32 +5,31 @@
 
 using System.Linq;
 
-namespace Carbon.Extensions
+namespace Carbon.Extensions;
+
+public static class ArrayEx
 {
-	public static class ArrayEx
+	public static T[] Randomize<T>(this T[] list)
 	{
-		public static T[] Randomize<T>(this T[] list)
+		var listCopy = list.MakeCopy();
+		var count = listCopy.Length;
+
+		while (count > 1)
 		{
-			var listCopy = list.MakeCopy();
-			var count = listCopy.Length;
+			count--;
 
-			while (count > 1)
-			{
-				count--;
+			var randomIndex = RandomEx.GetRandomInteger(0, count);
+			var value = listCopy[randomIndex];
 
-				var randomIndex = RandomEx.GetRandomInteger(0, count);
-				var value = listCopy[randomIndex];
-
-				listCopy[randomIndex] = listCopy[count];
-				listCopy[count] = value;
-			}
-
-			return listCopy;
+			listCopy[randomIndex] = listCopy[count];
+			listCopy[count] = value;
 		}
 
-		public static bool IsSame<T>(this T[] source, T[] target)
-		{
-			return !source.Except(target).Any();
-		}
+		return listCopy;
+	}
+
+	public static bool IsSame<T>(this T[] source, T[] target)
+	{
+		return !source.Except(target).Any();
 	}
 }

@@ -144,7 +144,7 @@ internal static class Publicizer
 					if (Type.Events.Any(x => x.Name == Field.Name)) continue;
 
 					if (nsAttributeCtor != null && !Field.IsPublic
-						&& !Field.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField"))
+					                            && !Field.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField"))
 					{
 						Field.IsNotSerialized = true;
 						Field.CustomAttributes.Add(item: new CustomAttribute(nsAttributeCtor));
