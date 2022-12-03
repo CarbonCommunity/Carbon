@@ -1,7 +1,6 @@
 ﻿using System;
 using Carbon.Extensions;
 using Facepunch.Extend;
-using Oxide.Core;
 using Oxide.Plugins;
 
 /*
@@ -17,26 +16,12 @@ public partial class Category_Static
 {
 	public partial class Static_ConsoleSystem
 	{
-		/*
-		[CarbonHook.AlwaysPatched]
-		[CarbonHook("OnCarbonCommand"), CarbonHook.Category(Hook.Category.Enum.Core)]
-		[CarbonHook.Parameter("player", typeof(BasePlayer))]
-		[CarbonHook.Parameter("message", typeof(string))]
-		[CarbonHook.Info("Called whenever a Carbon server command is called.")]
-		[CarbonHook.Patch(typeof(ConsoleSystem), "Run")]
-		*/
+		[HookAttribute.Patch("OnCarbonCommand", typeof(ConsoleSystem), "Run", new System.Type[] { typeof(ConsoleSystem.Option), typeof(string), typeof(object[]) })]
+		[HookAttribute.Identifier("4be71c5d077949cdb88438ec6dabac24")]
+		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
 		public class Static_ConsoleSystem_Run_4be71c5d077949cdb88438ec6dabac24
 		{
-			public static Metadata metadata = new Metadata("OnCarbonCommand",
-				typeof(ConsoleSystem), "Run", new System.Type[] { typeof(ConsoleSystem.Option), typeof(string), typeof(object[]) });
-
-			static Static_ConsoleSystem_Run_4be71c5d077949cdb88438ec6dabac24()
-			{
-				metadata.SetIdentifier("4be71c5d077949cdb88438ec6dabac24");
-				metadata.SetAlwaysPatch(true);
-			}
-
 			internal static string[] EmptyArgs = new string[0];
 
 			public static bool Prefix(ConsoleSystem.Option options, string strCommand, object[] args)
@@ -125,35 +110,6 @@ public partial class Category_Static
 				catch { }
 
 				return true;
-			}
-		}
-
-		/*
-		[CarbonHook.AlwaysPatched]
-		[Hook("OnServerCommand"), Hook.Category(Hook.Category.Enum.Server)]
-		[Hook.Parameter("arg", typeof(ConsoleSystem.Arg))]
-		[Hook.Info("Useful for intercepting commands before they get to their intended target.")]
-		[Hook.Patch(typeof(ConsoleSystem), "Internal", true)]
-		*/
-
-		public class Static_ConsoleSystem_ServerConsoleCommand
-		{
-			public static Metadata metadata = new Metadata("OnServerCommand",
-				typeof(ConsoleSystem), "Internal", new System.Type[] { typeof(ConsoleSystem.Arg) });
-
-			static Static_ConsoleSystem_ServerConsoleCommand()
-			{
-				metadata.SetAlwaysPatch(true);
-			}
-
-			public static bool Prefix(ConsoleSystem.Arg arg)
-			{
-				if (arg.Invalid)
-				{
-					return false;
-				}
-
-				return Interface.CallHook("OnServerCommand", arg) == null;
 			}
 		}
 	}

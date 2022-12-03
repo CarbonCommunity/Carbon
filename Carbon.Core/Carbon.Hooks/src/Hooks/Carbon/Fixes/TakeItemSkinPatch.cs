@@ -16,24 +16,12 @@ public partial class Category_Fixes
 {
 	public partial class Fixes_ItemContainer
 	{
-		/*
-		[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
-		[CarbonHook("IItemContainerTakePatch"), CarbonHook.Category(Hook.Category.Enum.Core)]
-		[CarbonHook.Patch(typeof(ItemContainer), "Take")]
-		*/
+		[HookAttribute.Patch("IItemContainerTakePatch", typeof(ItemContainer), "Take", new System.Type[] { typeof(List<Item>), typeof(int), typeof(int) })]
+		[HookAttribute.Identifier("c44b4b824a274a5a96b9154a612d747a")]
+		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden)]
 
 		public class Fixes_ItemContainer_Take_c44b4b824a274a5a96b9154a612d747a
 		{
-			public static Metadata metadata = new Metadata("IItemContainerTakePatch",
-				typeof(ItemContainer), "Take", new System.Type[] { typeof(List<Item>), typeof(int), typeof(int) });
-
-			static Fixes_ItemContainer_Take_c44b4b824a274a5a96b9154a612d747a()
-			{
-				metadata.SetIdentifier("c44b4b824a274a5a96b9154a612d747a");
-				metadata.SetAlwaysPatch(true);
-				metadata.SetHidden(true);
-			}
-
 			public static bool Prefix(List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)
 			{
 				var overrides = BaseModule.GetModule<RustOverridesModule>();

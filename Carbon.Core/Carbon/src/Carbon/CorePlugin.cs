@@ -3,7 +3,6 @@
 /// All rights reserved
 /// 
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -134,7 +133,7 @@ public class CorePlugin : RustPlugin
 				break;
 
 			default:
-				var body = new StringTable("#", "Mod", "Author", "Version", "Core", "Hook Time", "Compile Time");
+				var body = new StringTable("#", "Mod", "Author", "Version", "Core", "HookAttribute Time", "Compile Time");
 				var count = 1;
 
 				foreach (var mod in Loader._loadedMods)
@@ -197,7 +196,7 @@ public class CorePlugin : RustPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		StringTable body = new StringTable("#", "Hook", "Identifier", "Status", "Current Time", "Total Time", "Subscribers");
+		StringTable body = new StringTable("#", "HookAttribute", "Identifier", "Static", "Status", "Current", "Total", "Subscribers");
 		int count = 0, success = 0, warning = 0, failure = 0;
 
 		string option1 = arg.GetString(0, null);
@@ -220,109 +219,109 @@ public class CorePlugin : RustPlugin
 				break;
 
 			case "loaded":
-			{
-				IEnumerable<CarbonHookEx> hooks;
-
-				switch (option2)
 				{
-					case "--static":
-						hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks.Where(x => !x.IsHidden);
-						break;
+					IEnumerable<HookEx> hooks;
 
-					case "--dynamic":
-						hooks = Community.Runtime.HookProcessorEx.LoadedDynamicHooks.Where(x => !x.IsHidden);
-						break;
+					switch (option2)
+					{
+						case "--static":
+							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks.Where(x => !x.IsHidden);
+							break;
 
-					case "--failed":
-						hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Failure);
-						hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Failure));
-						break;
+						case "--dynamic":
+							hooks = Community.Runtime.HookProcessorEx.LoadedDynamicHooks.Where(x => !x.IsHidden);
+							break;
 
-					case "--warning":
-						hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Warning);
-						hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Warning));
-						break;
+						case "--failed":
+							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Failure);
+							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Failure));
+							break;
 
-					case "--success":
-						hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Success);
-						hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Success));
-						break;
+						case "--warning":
+							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
+							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
+							break;
 
-					default:
-						hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks.Where(x => !x.IsHidden);
-						hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks.Where(x => !x.IsHidden));
-						break;
+						case "--success":
+							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Success);
+							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Success));
+							break;
+
+						default:
+							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks.Where(x => !x.IsHidden));
+							break;
+					}
+
+					foreach (var mod in hooks.OrderBy(x => x.HookName))
+					{
+						if (mod.Status == HookState.Failure) failure++;
+						if (mod.Status == HookState.Success) success++;
+						if (mod.Status == HookState.Warning) warning++;
+
+						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier, mod.IsStaticHook, mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookProcessorEx.GetHookSubscriberCount(mod.HookName)}");
+					}
+
+					Reply(body.ToStringMinimal(), arg);
+					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
+					break;
 				}
-
-				foreach (var mod in hooks.OrderBy(x => x.HookName))
-				{
-					if (mod.Status == CarbonHookEx.State.Failure) failure++;
-					if (mod.Status == CarbonHookEx.State.Success) success++;
-					if (mod.Status == CarbonHookEx.State.Warning) warning++;
-
-					body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier, mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
-						$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{mod.SubscribersCount}");
-				}
-
-				Reply(body.ToStringMinimal(), arg);
-				Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
-				break;
-			}
 
 			default: // list installed
-			{
-				IEnumerable<CarbonHookEx> hooks;
-
-				switch (option1)
 				{
-					case "--static":
-						hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks.Where(x => !x.IsHidden);
-						break;
+					IEnumerable<HookEx> hooks;
 
-					case "--dynamic":
-						hooks = Community.Runtime.HookProcessorEx.InstalledDynamicHooks.Where(x => !x.IsHidden);
-						break;
+					switch (option1)
+					{
+						case "--static":
+							hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks.Where(x => !x.IsHidden);
+							break;
 
-					case "--warning":
-						hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Warning);
-						hooks = hooks.Concat(Community.Runtime.HookProcessorEx.InstalledDynamicHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Warning));
-						break;
+						case "--dynamic":
+							hooks = Community.Runtime.HookProcessorEx.InstalledDynamicHooks.Where(x => !x.IsHidden);
+							break;
 
-					case "--success":
-						hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Success);
-						hooks = hooks.Concat(Community.Runtime.HookProcessorEx.InstalledDynamicHooks
-							.Where(x => !x.IsHidden && x.Status == CarbonHookEx.State.Success));
-						break;
+						case "--warning":
+							hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
+							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.InstalledDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
+							break;
 
-					default:
-						hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks.Where(x => !x.IsHidden);
-						hooks = hooks.Concat(Community.Runtime.HookProcessorEx.InstalledDynamicHooks.Where(x => !x.IsHidden));
-						break;
+						case "--success":
+							hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Success);
+							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.InstalledDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Success));
+							break;
+
+						default:
+							hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.InstalledDynamicHooks.Where(x => !x.IsHidden));
+							break;
+					}
+
+					foreach (var mod in hooks.OrderBy(x => x.HookName))
+					{
+						if (mod.Status == HookState.Failure) failure++;
+						if (mod.Status == HookState.Success) success++;
+						if (mod.Status == HookState.Warning) warning++;
+
+						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier, mod.IsStaticHook, mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookProcessorEx.GetHookSubscriberCount(mod.HookName)}");
+					}
+
+					Reply(body.ToStringMinimal(), arg);
+					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
+					break;
 				}
-
-				foreach (var mod in hooks.OrderBy(x => x.HookName))
-				{
-					if (mod.Status == CarbonHookEx.State.Failure) failure++;
-					if (mod.Status == CarbonHookEx.State.Success) success++;
-					if (mod.Status == CarbonHookEx.State.Warning) warning++;
-
-					body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier, mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
-						$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{mod.SubscribersCount}");
-				}
-
-				Reply(body.ToStringMinimal(), arg);
-				Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
-				break;
-			}
 		}
 	}
 
@@ -656,32 +655,32 @@ public class CorePlugin : RustPlugin
 				//
 				// Mods
 				//
-			{
-				var tempList = Pool.GetList<string>();
-				tempList.AddRange(Community.Runtime.HarmonyProcessor.IgnoreList);
-				Community.Runtime.HarmonyProcessor.IgnoreList.Clear();
-
-				foreach (var plugin in tempList)
 				{
-					Community.Runtime.HarmonyProcessor.Prepare(plugin, plugin);
+					var tempList = Pool.GetList<string>();
+					tempList.AddRange(Community.Runtime.HarmonyProcessor.IgnoreList);
+					Community.Runtime.HarmonyProcessor.IgnoreList.Clear();
+
+					foreach (var plugin in tempList)
+					{
+						Community.Runtime.HarmonyProcessor.Prepare(plugin, plugin);
+					}
+					Pool.FreeList(ref tempList);
 				}
-				Pool.FreeList(ref tempList);
-			}
 
 				//
 				// Scripts
 				//
-			{
-				var tempList = Pool.GetList<string>();
-				tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
-				Community.Runtime.ScriptProcessor.IgnoreList.Clear();
-
-				foreach (var plugin in tempList)
 				{
-					Community.Runtime.ScriptProcessor.Prepare(plugin, plugin);
+					var tempList = Pool.GetList<string>();
+					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
+					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
+
+					foreach (var plugin in tempList)
+					{
+						Community.Runtime.ScriptProcessor.Prepare(plugin, plugin);
+					}
+					Pool.FreeList(ref tempList);
 				}
-				Pool.FreeList(ref tempList);
-			}
 				break;
 
 			default:
@@ -723,45 +722,45 @@ public class CorePlugin : RustPlugin
 				//
 				// Mods
 				//
-			{
-				foreach (var plugin in Community.Runtime.HarmonyProcessor.InstanceBuffer)
 				{
-					Community.Runtime.HarmonyProcessor.Ignore(plugin.Value.File);
+					foreach (var plugin in Community.Runtime.HarmonyProcessor.InstanceBuffer)
+					{
+						Community.Runtime.HarmonyProcessor.Ignore(plugin.Value.File);
+					}
+					Community.Runtime.HarmonyProcessor.Clear();
 				}
-				Community.Runtime.HarmonyProcessor.Clear();
-			}
 
 				//
 				// Scripts
 				//
-			{
-				var tempList = Pool.GetList<string>();
-				tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
-				Community.Runtime.ScriptProcessor.IgnoreList.Clear();
-				Community.Runtime.ScriptProcessor.Clear();
-
-				foreach (var plugin in tempList)
 				{
-					Community.Runtime.ScriptProcessor.Ignore(plugin);
+					var tempList = Pool.GetList<string>();
+					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
+					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
+					Community.Runtime.ScriptProcessor.Clear();
+
+					foreach (var plugin in tempList)
+					{
+						Community.Runtime.ScriptProcessor.Ignore(plugin);
+					}
+					Pool.FreeList(ref tempList);
 				}
-				Pool.FreeList(ref tempList);
-			}
 
 				//
 				// Web-Scripts
 				//
-			{
-				var tempList = Pool.GetList<string>();
-				tempList.AddRange(Community.Runtime.WebScriptProcessor.IgnoreList);
-				Community.Runtime.WebScriptProcessor.IgnoreList.Clear();
-				Community.Runtime.WebScriptProcessor.Clear();
-
-				foreach (var plugin in tempList)
 				{
-					Community.Runtime.WebScriptProcessor.Ignore(plugin);
+					var tempList = Pool.GetList<string>();
+					tempList.AddRange(Community.Runtime.WebScriptProcessor.IgnoreList);
+					Community.Runtime.WebScriptProcessor.IgnoreList.Clear();
+					Community.Runtime.WebScriptProcessor.Clear();
+
+					foreach (var plugin in tempList)
+					{
+						Community.Runtime.WebScriptProcessor.Ignore(plugin);
+					}
+					Pool.FreeList(ref tempList);
 				}
-				Pool.FreeList(ref tempList);
-			}
 				break;
 
 			default:
@@ -1019,51 +1018,51 @@ public class CorePlugin : RustPlugin
 		switch (action)
 		{
 			case "add":
-			{
-				if (!arg.HasArgs(2)) { PrintWarn(); return; }
-
-				var group = arg.Args[1];
-
-				if (permission.GroupExists(group))
 				{
-					Reply($"Group '{group}' already exists. To set any values for this group, use 'c.group set'.", arg);
-					return;
-				}
+					if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-				if (permission.CreateGroup(group, arg.HasArgs(3) ? arg.Args[2] : group, arg.HasArgs(4) ? arg.Args[3].ToInt() : 0))
-				{
-					Reply($"Created '{group}' group.", arg);
+					var group = arg.Args[1];
+
+					if (permission.GroupExists(group))
+					{
+						Reply($"Group '{group}' already exists. To set any values for this group, use 'c.group set'.", arg);
+						return;
+					}
+
+					if (permission.CreateGroup(group, arg.HasArgs(3) ? arg.Args[2] : group, arg.HasArgs(4) ? arg.Args[3].ToInt() : 0))
+					{
+						Reply($"Created '{group}' group.", arg);
+					}
 				}
-			}
 				break;
 
 			case "set":
-			{
-				if (!arg.HasArgs(2)) { PrintWarn(); return; }
-
-				var group = arg.Args[1];
-
-				if (!permission.GroupExists(group))
 				{
-					Reply($"Group '{group}' does not exists.", arg);
-					return;
+					if (!arg.HasArgs(2)) { PrintWarn(); return; }
+
+					var group = arg.Args[1];
+
+					if (!permission.GroupExists(group))
+					{
+						Reply($"Group '{group}' does not exists.", arg);
+						return;
+					}
+
+					if (arg.HasArgs(3)) permission.SetGroupTitle(group, arg.Args[2]);
+					if (arg.HasArgs(4)) permission.SetGroupTitle(group, arg.Args[3]);
+
+					Reply($"Set '{group}' group.", arg);
 				}
-
-				if (arg.HasArgs(3)) permission.SetGroupTitle(group, arg.Args[2]);
-				if (arg.HasArgs(4)) permission.SetGroupTitle(group, arg.Args[3]);
-
-				Reply($"Set '{group}' group.", arg);
-			}
 				break;
 			case "remove":
-			{
-				if (!arg.HasArgs(2)) { PrintWarn(); return; }
+				{
+					if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-				var group = arg.Args[1];
+					var group = arg.Args[1];
 
-				if (permission.RemoveGroup(group)) Reply($"Removed '{group}' group.", arg);
-				else Reply($"Couldn't remove '{group}' group.", arg);
-			}
+					if (permission.RemoveGroup(group)) Reply($"Removed '{group}' group.", arg);
+					else Reply($"Couldn't remove '{group}' group.", arg);
+				}
 				break;
 
 			default:

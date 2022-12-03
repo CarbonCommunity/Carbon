@@ -18,26 +18,12 @@ public partial class Category_Static
 {
 	public partial class Static_Chat
 	{
-		/*
-		[Hook.AlwaysPatched]
-		[Hook("OnPlayerCommand"), Hook.Category(Hook.Category.Enum.Player)]
-		[Hook.Parameter("player", typeof(BasePlayer))]
-		[Hook.Parameter("message", typeof(string))]
-		[Hook.Info("Useful for intercepting players' commands before their handling.")]
-		[Hook.Patch(typeof(Chat), "sayAs")]
-		*/
+		[HookAttribute.Patch("OnPlayerCommand", typeof(Chat), "sayAs", new System.Type[] { typeof(ConVar.Chat.ChatChannel), typeof(ulong), typeof(string), typeof(string), typeof(BasePlayer) })]
+		[HookAttribute.Identifier("fbe2fbe2debc47448ce1c319d441203e")]
+		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
 		public class Static_Chat_SayAs_fbe2fbe2debc47448ce1c319d441203e
 		{
-			public static Metadata metadata = new Metadata("OnPlayerCommand",
-				typeof(Chat), "sayAs", new System.Type[] { typeof(ConVar.Chat.ChatChannel), typeof(ulong), typeof(string), typeof(string), typeof(BasePlayer) });
-
-			static Static_Chat_SayAs_fbe2fbe2debc47448ce1c319d441203e()
-			{
-				metadata.SetIdentifier("fbe2fbe2debc47448ce1c319d441203e");
-				metadata.SetAlwaysPatch(true);
-			}
-
 			internal static string[] EmptyArgs = new string[0];
 
 			public static bool Prefix(Chat.ChatChannel targetChannel, ulong userId, string username, string message, BasePlayer player = null)

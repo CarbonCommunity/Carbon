@@ -17,27 +17,12 @@ public partial class Category_Static
 {
 	public partial class Static_RCon
 	{
-		/*
-		[Hook.AlwaysPatched]
-		[Hook("OnRconCommand"), Hook.Category(Hook.Category.Enum.Server)]
-		[Hook.Parameter("address", typeof(IPAddress))]
-		[Hook.Parameter("command", typeof(string))]
-		[Hook.Parameter("args", typeof(string[]))]
-		[Hook.Info("Called when an RCON command is run.")]
-		[Hook.Patch(typeof(RCon), "OnCommand")]
-		*/
+		[HookAttribute.Patch("OnRconCommand", typeof(RCon), "OnCommand", new System.Type[] { typeof(Facepunch.RCon.Command) })]
+		[HookAttribute.Identifier("ccce0832a0eb4c28bc2372f5e0812c7e")]
+		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
 		public class Static_RCon_OnCommand_ccce0832a0eb4c28bc2372f5e0812c7e
 		{
-			public static Metadata metadata = new Metadata("OnRconCommand",
-				typeof(RCon), "OnCommand", new System.Type[] { typeof(Facepunch.RCon.Command) });
-
-			static Static_RCon_OnCommand_ccce0832a0eb4c28bc2372f5e0812c7e()
-			{
-				metadata.SetIdentifier("ccce0832a0eb4c28bc2372f5e0812c7e");
-				metadata.SetAlwaysPatch(true);
-			}
-
 			public static bool Prefix(RCon.Command cmd)
 			{
 				if (Community.Runtime == null) return true;

@@ -15,24 +15,11 @@ public partial class Category_Resources
 {
 	public partial class Resources_BaseRidableAnimal
 	{
-		/*
-		[CarbonHook("OnHorseDung", typeof(Item)), Hook.Category(Hook.Category.Enum.Entity)]
-		[Hook.Parameter("horse", typeof(BaseRidableAnimal))]
-		[Hook.Info("Called when a dung is spawned at the backside of the horse.")]
-		[Hook.Info("Override the return with an item to replace the Dung with any other item that's being dropped.")]
-		[Hook.Patch(typeof(BaseRidableAnimal), "DoDung")]
-		*/
+		[HookAttribute.Patch("OnHorseDung", typeof(BaseRidableAnimal), "DoDung", new System.Type[] { })]
+		[HookAttribute.Identifier("e5beabfdc524496dbf5657149585bdac")]
 
 		public class Resources_BaseRidableAnimal_DoDung_e5beabfdc524496dbf5657149585bdac
 		{
-			public static Metadata metadata = new Metadata("OnHorseDung",
-				typeof(BaseRidableAnimal), "DoDung", new System.Type[] { });
-
-			static Resources_BaseRidableAnimal_DoDung_e5beabfdc524496dbf5657149585bdac()
-			{
-				metadata.SetIdentifier("e5beabfdc524496dbf5657149585bdac");
-			}
-
 			public static bool Prefix(ref BaseRidableAnimal __instance)
 			{
 				var result = Interface.CallHook("OnHorseDung", __instance);

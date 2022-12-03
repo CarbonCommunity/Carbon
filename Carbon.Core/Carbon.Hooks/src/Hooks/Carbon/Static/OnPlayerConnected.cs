@@ -11,25 +11,12 @@ public partial class Category_Static
 {
 	public partial class Static_BasePlayer
 	{
-		/*
-		[Hook.AlwaysPatched]
-		[Hook("OnPlayerConnected"), Hook.Category(Hook.Category.Enum.Player)]
-		[Hook.Parameter("this", typeof(BasePlayer))]
-		[Hook.Info("Called after the player object is created, but before the player has spawned.")]
-		[Hook.Patch(typeof(BasePlayer), "PlayerInit")]
-		*/
+		[HookAttribute.Patch("OnPlayerConnected", typeof(BasePlayer), "PlayerInit", new System.Type[] { typeof(Network.Connection) })]
+		[HookAttribute.Identifier("9e1a7b5738f441d698700fcbf25ca8b1")]
+		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
 		public class Static_BasePlayer_PlayerInit_9e1a7b5738f441d698700fcbf25ca8b1
 		{
-			public static Metadata metadata = new Metadata("OnPlayerConnected",
-				typeof(BasePlayer), "PlayerInit", new System.Type[] { typeof(Network.Connection) });
-
-			static Static_BasePlayer_PlayerInit_9e1a7b5738f441d698700fcbf25ca8b1()
-			{
-				metadata.SetIdentifier("9e1a7b5738f441d698700fcbf25ca8b1");
-				metadata.SetAlwaysPatch(true);
-			}
-
 			public static void Postfix(Network.Connection c)
 			{
 				HookCaller.CallStaticHook("OnPlayerConnected", c.player as BasePlayer);

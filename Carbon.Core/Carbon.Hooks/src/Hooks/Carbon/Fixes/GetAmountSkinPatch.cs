@@ -14,24 +14,12 @@ public partial class Category_Fixes
 {
 	public partial class Fixes_ItemContainer
 	{
-		/*
-		[CarbonHook.AlwaysPatched, CarbonHook.Hidden]
-		[CarbonHook("IItemContainerAmountPatch"), CarbonHook.Category(Hook.Category.Enum.Core)]
-		[CarbonHook.Patch(typeof(ItemContainer), "GetAmount")]
-		*/
+		[HookAttribute.Patch("IItemContainerAmountPatch", typeof(ItemContainer), "GetAmount", new System.Type[] { typeof(int), typeof(bool) })]
+		[HookAttribute.Identifier("14c9a1716b4248d4b707fbced49641fd")]
+		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden)]
 
 		public class Fixes_ItemContainer_GetAmount_14c9a1716b4248d4b707fbced49641fd
 		{
-			public static Metadata metadata = new Metadata("IItemContainerAmountPatch",
-				typeof(ItemContainer), "GetAmount", new System.Type[] { typeof(int), typeof(bool) });
-
-			static Fixes_ItemContainer_GetAmount_14c9a1716b4248d4b707fbced49641fd()
-			{
-				metadata.SetIdentifier("14c9a1716b4248d4b707fbced49641fd");
-				metadata.SetAlwaysPatch(true);
-				metadata.SetHidden(true);
-			}
-
 			public static bool Prefix(int itemid, bool onlyUsableAmounts, out int __result, ref ItemContainer __instance)
 			{
 				var overrides = BaseModule.GetModule<RustOverridesModule>();
