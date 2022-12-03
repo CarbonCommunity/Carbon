@@ -17,6 +17,8 @@ public partial class Category_Static
 		[HookAttribute.Identifier("c12426936931457aa7f9cdf6db1a1127")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
+		// Useful for intercepting commands before they get to their intended target.
+
 		public class Static_ConsoleSystem_ServerConsoleCommand_c12426936931457aa7f9cdf6db1a1127
 		{
 			public static bool Prefix(ConsoleSystem.Arg arg)

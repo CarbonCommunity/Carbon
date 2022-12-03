@@ -14,6 +14,8 @@ public partial class Category_Entity
 		[HookAttribute.Patch("OnEntitySpawn", typeof(BaseNetworkable), "Spawn", new System.Type[] { })]
 		[HookAttribute.Identifier("c7d1643393324307bdaa4c11df129a66")]
 
+		// Called before any networked entity has spawned (including trees).
+
 		public class Entity_BaseNetworkable_Spawn_c7d1643393324307bdaa4c11df129a66
 		{
 			public static void Prefix(ref BaseNetworkable __instance)

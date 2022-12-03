@@ -16,6 +16,8 @@ public partial class Category_Entity
 		[HookAttribute.Patch("CanPatrolHeliSeePlayer", typeof(PatrolHelicopterAI), "PlayerVisible", new System.Type[] { typeof(BasePlayer) })]
 		[HookAttribute.Identifier("d3849557c0c84c4c9248b5252f4c7db2")]
 
+		// Can the Patrol Helicopter see the player.
+
 		public class Entity_PatrolHelicopterAI_PlayerVisible_d3849557c0c84c4c9248b5252f4c7db2
 		{
 			public static bool Prefix(BasePlayer ply, ref PatrolHelicopterAI __instance, out bool __result)

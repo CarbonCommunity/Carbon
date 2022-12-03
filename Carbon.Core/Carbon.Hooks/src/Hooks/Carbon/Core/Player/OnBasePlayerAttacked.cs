@@ -14,6 +14,8 @@ public partial class Category_Player
 		[HookAttribute.Patch("OnBasePlayerAttacked", typeof(BasePlayer), "OnAttacked", new System.Type[] { typeof(HitInfo) })]
 		[HookAttribute.Identifier("4f2d81e4b06f477cb773e7a1cceea710")]
 
+		// Called before the player is being attacked.
+
 		public class Entity_BasePlayer_OnAttacked_4f2d81e4b06f477cb773e7a1cceea710
 		{
 			public static bool Prefix(HitInfo info, ref BasePlayer __instance)

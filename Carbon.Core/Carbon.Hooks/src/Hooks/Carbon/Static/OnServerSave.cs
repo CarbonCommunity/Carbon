@@ -17,6 +17,8 @@ public partial class Category_Static
 		[HookAttribute.Identifier("eb9f4139698447f594d20fb698c1eb15")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
+		// Called before the server saves.
+
 		public class Static_SaveRestore_DoAutomatedSave_eb9f4139698447f594d20fb698c1eb15
 		{
 			public static void Prefix(bool AndWait = false)

@@ -15,6 +15,8 @@ public partial class Category_Fun
 		[HookAttribute.Patch("OnChickenScared", typeof(AnimalBrain.FleeState), "StateEnter", new System.Type[] { typeof(BaseAIBrain), typeof(BaseEntity) })]
 		[HookAttribute.Identifier("4af63eb71cfc44f7a66cb1c16974a5c7")]
 
+		// Gets triggered when a chicken gets scared by something.
+
 		public class Fun_AnimalBrain_FleeState_StateEnter_4af63eb71cfc44f7a66cb1c16974a5c7
 		{
 			public static void Postfix(BaseAIBrain brain, BaseEntity entity)

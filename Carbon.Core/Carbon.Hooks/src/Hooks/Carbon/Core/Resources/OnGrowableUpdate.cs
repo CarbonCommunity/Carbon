@@ -15,6 +15,8 @@ public partial class Category_Resources
 		[HookAttribute.Patch("OnGrowableUpdate", typeof(GrowableEntity), "RunUpdate", new System.Type[] { })]
 		[HookAttribute.Identifier("0122c151c6dd4865a324d79d05155a57")]
 
+		// Called before growable entity will be updated.
+
 		public class Resources_GrowableEntity_RunUpdate_0122c151c6dd4865a324d79d05155a57
 		{
 			public static void Prefix(ref GrowableEntity __instance)

@@ -15,6 +15,8 @@ public partial class Category_Static
 		[HookAttribute.Identifier("4d9dcdaf8fbd4923a96eef18a7da7488")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
+		// Called after the player has disconnected from the server.
+
 		public class Static_ServerMgr_OnDisconnected_4d9dcdaf8fbd4923a96eef18a7da7488
 		{
 			public static void Postfix(string strReason, Network.Connection connection)

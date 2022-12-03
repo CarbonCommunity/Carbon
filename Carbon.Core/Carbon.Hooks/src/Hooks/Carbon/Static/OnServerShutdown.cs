@@ -17,6 +17,8 @@ public partial class Category_Static
 		[HookAttribute.Identifier("8a0574c7d2d9420580a5ee90a37de357")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
+		// Useful for saving something on server shutdown.
+
 		public class Static_ServerMgr_Shutdown_8a0574c7d2d9420580a5ee90a37de357
 		{
 			public static void Prefix()

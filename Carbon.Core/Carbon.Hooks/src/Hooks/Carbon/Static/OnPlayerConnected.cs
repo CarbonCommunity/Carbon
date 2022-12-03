@@ -15,6 +15,8 @@ public partial class Category_Static
 		[HookAttribute.Identifier("9e1a7b5738f441d698700fcbf25ca8b1")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
+		// Called after the player object is created, but before the player has spawned.
+
 		public class Static_BasePlayer_PlayerInit_9e1a7b5738f441d698700fcbf25ca8b1
 		{
 			public static void Postfix(Network.Connection c)

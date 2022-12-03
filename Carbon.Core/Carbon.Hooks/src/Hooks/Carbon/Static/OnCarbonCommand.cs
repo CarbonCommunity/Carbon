@@ -20,6 +20,8 @@ public partial class Category_Static
 		[HookAttribute.Identifier("4be71c5d077949cdb88438ec6dabac24")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
+		// Called whenever a Carbon server command is called.
+
 		public class Static_ConsoleSystem_Run_4be71c5d077949cdb88438ec6dabac24
 		{
 			internal static string[] EmptyArgs = new string[0];

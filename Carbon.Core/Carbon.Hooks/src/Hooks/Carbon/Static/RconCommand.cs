@@ -21,6 +21,8 @@ public partial class Category_Static
 		[HookAttribute.Identifier("ccce0832a0eb4c28bc2372f5e0812c7e")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
+		// Called when an RCON command is run.
+
 		public class Static_RCon_OnCommand_ccce0832a0eb4c28bc2372f5e0812c7e
 		{
 			public static bool Prefix(RCon.Command cmd)

@@ -22,6 +22,8 @@ public partial class Category_Static
 		[HookAttribute.Identifier("fbe2fbe2debc47448ce1c319d441203e")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
+		// Called before a world prefab is spawned.
+
 		public class Static_Chat_SayAs_fbe2fbe2debc47448ce1c319d441203e
 		{
 			internal static string[] EmptyArgs = new string[0];

@@ -18,6 +18,9 @@ public partial class Category_Resources
 		[HookAttribute.Patch("OnHorseDung", typeof(BaseRidableAnimal), "DoDung", new System.Type[] { })]
 		[HookAttribute.Identifier("e5beabfdc524496dbf5657149585bdac")]
 
+		// Called when a dung is spawned at the backside of the horse.
+		// Override the return with an item to replace the Dung with any other item that's being dropped.
+
 		public class Resources_BaseRidableAnimal_DoDung_e5beabfdc524496dbf5657149585bdac
 		{
 			public static bool Prefix(ref BaseRidableAnimal __instance)
