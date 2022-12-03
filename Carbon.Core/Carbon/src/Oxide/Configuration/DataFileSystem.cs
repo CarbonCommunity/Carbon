@@ -83,9 +83,9 @@ public class DataFileSystem
 	{
 		string folder = DynamicConfigFile.SanitizeName(name);
 		foreach (DynamicConfigFile dynamicConfigFile in from d in _datafiles
-		         where d.Key.StartsWith(folder)
-		         select d into a
-		         select a.Value)
+														where d.Key.StartsWith(folder)
+														select d into a
+														select a.Value)
 		{
 			if (callback != null)
 			{

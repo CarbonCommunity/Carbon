@@ -56,17 +56,17 @@ public class KeyValuesConverter : JsonConverter
 						dictionary[key] = serializer.Deserialize<List<object>>(reader);
 						continue;
 					case JsonToken.Integer:
-					{
-						string text = reader.Value.ToString();
-						int num;
-						if (int.TryParse(text, out num))
 						{
-							dictionary[key] = num;
+							string text = reader.Value.ToString();
+							int num;
+							if (int.TryParse(text, out num))
+							{
+								dictionary[key] = num;
+								continue;
+							}
+							dictionary[key] = text;
 							continue;
 						}
-						dictionary[key] = text;
-						continue;
-					}
 					case JsonToken.Float:
 					case JsonToken.String:
 					case JsonToken.Boolean:
@@ -98,17 +98,17 @@ public class KeyValuesConverter : JsonConverter
 							list.Add(serializer.Deserialize<List<object>>(reader));
 							continue;
 						case JsonToken.Integer:
-						{
-							string text2 = reader.Value.ToString();
-							int num2;
-							if (int.TryParse(text2, out num2))
 							{
-								list.Add(num2);
+								string text2 = reader.Value.ToString();
+								int num2;
+								if (int.TryParse(text2, out num2))
+								{
+									list.Add(num2);
+									continue;
+								}
+								list.Add(text2);
 								continue;
 							}
-							list.Add(text2);
-							continue;
-						}
 						case JsonToken.Float:
 						case JsonToken.String:
 						case JsonToken.Boolean:
@@ -134,8 +134,8 @@ public class KeyValuesConverter : JsonConverter
 			var source = (Dictionary<string, object>)value;
 			writer.WriteStartObject();
 			foreach (KeyValuePair<string, object> keyValuePair in from i in source
-			         orderby i.Key
-			         select i)
+																  orderby i.Key
+																  select i)
 			{
 				writer.WritePropertyName(keyValuePair.Key, true);
 				serializer.Serialize(writer, keyValuePair.Value);

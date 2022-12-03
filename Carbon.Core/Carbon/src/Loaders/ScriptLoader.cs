@@ -234,8 +234,7 @@ public class ScriptLoader : IDisposable
 			try
 			{
 				if (string.IsNullOrEmpty(type.Namespace) ||
-				    !(type.Namespace.Equals("Oxide.Plugins") ||
-				      type.Namespace.Equals("Carbon.Plugins"))) continue;
+					!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) continue;
 
 				if (Community.Runtime.Config.HookValidation)
 				{
@@ -267,20 +266,20 @@ public class ScriptLoader : IDisposable
 				plugin.Description = description?.Description;
 
 				if (Loader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
-				    {
-					    p._processor_instance = Instance;
+					{
+						p._processor_instance = Instance;
 
-					    p.Hooks = AsyncLoader.Hooks[type];
-					    p.HookMethods = AsyncLoader.HookMethods[type];
-					    p.PluginReferences = AsyncLoader.PluginReferences[type];
+						p.Hooks = AsyncLoader.Hooks[type];
+						p.HookMethods = AsyncLoader.HookMethods[type];
+						p.PluginReferences = AsyncLoader.PluginReferences[type];
 
-					    p.Requires = requiresResult;
-					    p.SetProcessor(Community.Runtime.ScriptProcessor);
-					    p.CompileTime = AsyncLoader.CompileTime;
+						p.Requires = requiresResult;
+						p.SetProcessor(Community.Runtime.ScriptProcessor);
+						p.CompileTime = AsyncLoader.CompileTime;
 
-					    p.FilePath = AsyncLoader.FilePath;
-					    p.FileName = AsyncLoader.FileName;
-				    }))
+						p.FilePath = AsyncLoader.FilePath;
+						p.FileName = AsyncLoader.FileName;
+					}))
 				{
 					plugin.Instance = rustPlugin;
 					plugin.IsCore = IsCore;

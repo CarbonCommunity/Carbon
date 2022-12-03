@@ -5,8 +5,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Carbon.Hooks;
 using Carbon.Oxide.Metadata;
 using Newtonsoft.Json;
 
@@ -59,8 +57,8 @@ public class HookValidator
 
 			int count = 0;
 			foreach (var manifest in OxideHooks.Manifests)
-			foreach (var entry in manifest.Hooks)
-				count++;
+				foreach (var entry in manifest.Hooks)
+					count++;
 			return count;
 		}
 	}

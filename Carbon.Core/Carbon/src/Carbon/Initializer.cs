@@ -20,17 +20,17 @@ public class Initializer : IHarmonyModHooks
 			if (m == null || !m.IsPublic)
 			{
 				Carbon.Logger.Log(Environment.NewLine +
-				                  @"                                                          " + Environment.NewLine +
-				                  @"  ________ _______ ______ _______ _______ _______ _______ " + Environment.NewLine +
-				                  @" |  |  |  |   _   |   __ \    |  |_     _|    |  |     __|" + Environment.NewLine +
-				                  @" |  |  |  |       |      <       |_|   |_|       |    |  |" + Environment.NewLine +
-				                  @" |________|___|___|___|__|__|____|_______|__|____|_______|" + Environment.NewLine +
-				                  @"                                                          " + Environment.NewLine +
-				                  @"   THE ASSEMBLER CODE IS NOT PUBLICIZED, CARBON WILL NOT  " + Environment.NewLine +
-				                  @"   WORK AS EXPECTED.  PLEASE MAKE SURE UNITY DOORSTOP IS  " + Environment.NewLine +
-				                  @"   BEING EXECUTED.  IF THE PROBLEM PRESIST PLEASE OPEN A  " + Environment.NewLine +
-				                  @"   NEW ISSUE AT GITHUB OR ASK FOR SUPPORT ON OUR DISCORD  " + Environment.NewLine +
-				                  @"                                                          " + Environment.NewLine
+					@"                                                          " + Environment.NewLine +
+					@"  ________ _______ ______ _______ _______ _______ _______ " + Environment.NewLine +
+					@" |  |  |  |   _   |   __ \    |  |_     _|    |  |     __|" + Environment.NewLine +
+					@" |  |  |  |       |      <       |_|   |_|       |    |  |" + Environment.NewLine +
+					@" |________|___|___|___|__|__|____|_______|__|____|_______|" + Environment.NewLine +
+					@"                                                          " + Environment.NewLine +
+					@"   THE ASSEMBLER CODE IS NOT PUBLICIZED, CARBON WILL NOT  " + Environment.NewLine +
+					@"   WORK AS EXPECTED.  PLEASE MAKE SURE UNITY DOORSTOP IS  " + Environment.NewLine +
+					@"   BEING EXECUTED.  IF THE PROBLEM PRESIST PLEASE OPEN A  " + Environment.NewLine +
+					@"   NEW ISSUE AT GITHUB OR ASK FOR SUPPORT ON OUR DISCORD  " + Environment.NewLine +
+					@"                                                          " + Environment.NewLine
 				);
 
 				Thread.Sleep(15000);
@@ -39,13 +39,13 @@ public class Initializer : IHarmonyModHooks
 			else
 			{
 				Carbon.Logger.Log(Environment.NewLine +
-				                  @"                                               " + Environment.NewLine +
-				                  @"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
-				                  @" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
-				                  @" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
-				                  @" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
-				                  @"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
-				                  @"                                               " + Environment.NewLine
+					@"                                               " + Environment.NewLine +
+					@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
+					@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
+					@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
+					@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
+					@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
+					@"                                               " + Environment.NewLine
 				);
 
 				Carbon.Logger.Log("Initializing...");

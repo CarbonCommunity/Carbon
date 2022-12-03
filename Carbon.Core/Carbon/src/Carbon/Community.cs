@@ -14,6 +14,7 @@ using System.Reflection;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.Hooks;
 using Carbon.Processors;
 using Newtonsoft.Json;
 using Oxide.Core;
@@ -122,10 +123,10 @@ public class Community
 		Carbon.Logger.Log("Installed processors");
 
 		if (ScriptProcessor == null ||
-		    WebScriptProcessor == null ||
-		    HarmonyProcessor == null ||
-		    ModuleProcessor == null ||
-		    CarbonProcessor)
+			WebScriptProcessor == null ||
+			HarmonyProcessor == null ||
+			ModuleProcessor == null ||
+			CarbonProcessor)
 		{
 			_uninstallProcessors();
 

@@ -270,8 +270,7 @@ public static class Loader
 		{
 			try
 			{
-				if (!(type.Namespace.Equals("Oxide.Plugins") ||
-				      type.Namespace.Equals("Carbon.Plugins"))) return;
+				if (!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) return;
 
 				if (!IsValidPlugin(type)) continue;
 
