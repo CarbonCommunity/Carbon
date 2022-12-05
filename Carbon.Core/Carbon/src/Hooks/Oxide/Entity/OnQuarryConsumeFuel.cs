@@ -3,13 +3,13 @@
 /// All rights reserved
 /// 
 
-using System;
 using Oxide.Core;
 
 namespace Carbon.Hooks
 {
 	[OxideHook("OnQuarryConsumeFuel", typeof(Item)), OxideHook.Category(Hook.Category.Enum.Entity)]
-	[OxideHook.Parameter("entity", typeof(BaseNetworkable))]
+	[OxideHook.Parameter("quarry", typeof(MiningQuarry))]
+	[OxideHook.Parameter("item", typeof(Item))]
 	[OxideHook.Info("Used to override the fuel needed for any Quarries & Pumpjacks that are running on a server.")]
 	[OxideHook.Patch(typeof(MiningQuarry), "FuelCheck")]
 	public class MiningQuarry_FuelCheck
