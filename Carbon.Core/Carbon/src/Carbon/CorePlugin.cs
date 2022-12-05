@@ -11,6 +11,7 @@ using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Hooks;
+using Carbon.LoaderEx.Common;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
@@ -95,13 +96,13 @@ public class CorePlugin : RustPlugin
 	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
 	private void Exit(ConsoleSystem.Arg arg)
 	{
-		Carbon.LoaderEx.Components.Supervisor.Core.Exit();
+		Carbon.LoaderEx.Supervisor.Core.Exit();
 	}
 
 	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
 	private void Reboot(ConsoleSystem.Arg arg)
 	{
-		Carbon.LoaderEx.Components.Supervisor.Core.Reboot();
+		Carbon.LoaderEx.Supervisor.Core.Reboot();
 	}
 
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
@@ -133,7 +134,7 @@ public class CorePlugin : RustPlugin
 				break;
 
 			default:
-				var body = new StringTable("#", "Mod", "Author", "Version", "Core", "HookAttribute Time", "Compile Time");
+				var body = new StringTable("#", "Mod", "Author", "Version", "Core", "Hook Time", "Compile Time");
 				var count = 1;
 
 				foreach (var mod in Loader._loadedMods)
@@ -196,7 +197,7 @@ public class CorePlugin : RustPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		StringTable body = new StringTable("#", "HookAttribute", "Identifier", "Static", "Status", "Current", "Total", "Subscribers");
+		StringTable body = new StringTable("#", "Hook", "Identifier", "Type", "Status", "Current", "Total", "Subscribers");
 		int count = 0, success = 0, warning = 0, failure = 0;
 
 		string option1 = arg.GetString(0, null);
@@ -265,7 +266,7 @@ public class CorePlugin : RustPlugin
 						if (mod.Status == HookState.Success) success++;
 						if (mod.Status == HookState.Warning) warning++;
 
-						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier, mod.IsStaticHook, mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier, mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookProcessorEx.GetHookSubscriberCount(mod.HookName)}");
 					}
 
@@ -314,7 +315,7 @@ public class CorePlugin : RustPlugin
 						if (mod.Status == HookState.Success) success++;
 						if (mod.Status == HookState.Warning) warning++;
 
-						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier, mod.IsStaticHook, mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier, mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookProcessorEx.GetHookSubscriberCount(mod.HookName)}");
 					}
 
@@ -330,20 +331,15 @@ public class CorePlugin : RustPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		var os =
-#if WIN
-			Community.OS.Win;
-#elif UNIX
-				Community.OS.Linux;
-#endif
-		var type = GitHubRelases.ReleaseTypes.Develop;
+		var os = Community.OperatingSystem;
+		var release = Community.ReleaseType;
 
 		if (arg.HasArgs(2))
 		{
 			switch (arg.Args[0])
 			{
 				case "win":
-					os = Community.OS.Win;
+					os = Community.OS.Windows;
 					break;
 
 				case "linux":
@@ -357,24 +353,29 @@ public class CorePlugin : RustPlugin
 				case "develop":
 				case "dev":
 				case "d":
-					type = GitHubRelases.ReleaseTypes.Develop;
+					release = Community.Release.Develop;
 					break;
 
 				case "staging":
 				case "stage":
 				case "s":
-					type = GitHubRelases.ReleaseTypes.Staging;
+					release = Community.Release.Staging;
 					break;
 
 				case "production":
 				case "prod":
 				case "p":
-					type = GitHubRelases.ReleaseTypes.Production;
+					release = Community.Release.Production;
 					break;
 			}
 		}
 
-		GitHubRelases.Update(os, type);
+		Carbon.LoaderEx.Supervisor.Core.Update(os, release, (bool result) =>
+		{
+			if (!result) return;
+			HookCaller.CallStaticHook("OnServerSave");
+			Carbon.LoaderEx.Supervisor.Core.Reboot();
+		});
 	}
 
 	#region Config

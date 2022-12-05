@@ -1,8 +1,11 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-using Carbon.LoaderEx;
+﻿using Carbon.LoaderEx;
+
+/*
+ *
+ * Copyright (c) 2022 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 internal sealed class Entrypoint : IHarmonyModHooks
 {

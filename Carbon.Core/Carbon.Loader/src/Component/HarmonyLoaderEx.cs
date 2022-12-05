@@ -1,21 +1,24 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-///
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Carbon.LoaderEx.Common;
 
-namespace Carbon.LoaderEx.Components;
+/*
+ *
+ * Copyright (c) 2022 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
-internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
+namespace Carbon.LoaderEx;
+
+internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 {
 	private HashSet<HarmonyPlugin> loadedAssembly
 		= new HashSet<HarmonyPlugin>();
 
-	static HarmonyLoader() { }
+	static HarmonyLoaderEx() { }
 
 	/// <summary>
 	/// Loads assembly into AppDomain.<br/>
@@ -29,33 +32,43 @@ internal sealed class HarmonyLoader : Singleton<HarmonyLoader>
 		Carbon.LoaderEx.Utility.Logger.Log($"Loading '{assemblyFile}'..");
 
 		if (assemblyFile == Path.GetFileName(assemblyFile))
-			assemblyFile = Path.Combine(Context.Directory.Carbon, "managed", assemblyFile);
+			assemblyFile = Path.Combine(Context.Directories.Carbon, "managed", assemblyFile);
 
 		HarmonyPlugin mod = new HarmonyPlugin()
 		{
 			name = Path.GetFileNameWithoutExtension(assemblyFile),
-			identifier = Guid.NewGuid().ToString(),
+			identifier = $"{Guid.NewGuid():N}",
 			location = assemblyFile,
 		};
 
-		switch (mod.Extension)
+		try
 		{
-			case ".dll":
-				mod.LoadFromFile(assemblyFile);
-				PrepareHooks(ref mod);
-				ApplyPatches(ref mod);
-				OnLoaded(ref mod);
-				break;
+			switch (mod.Extension)
+			{
+				case ".dll":
+					if (mod.LoadFromFile(assemblyFile) == null)
+						throw new Exception("Assembly is null");
 
-			// case ".drm"
-			// 	LoadFromDRM();
-			// 	break;
+					PrepareHooks(ref mod);
+					ApplyPatches(ref mod);
+					OnLoaded(ref mod);
 
-			default:
-				throw new ArgumentOutOfRangeException("File extension not supported");
+					loadedAssembly.Add(mod);
+					break;
+
+				// case ".drm"
+				// 	LoadFromDRM();
+				// 	break;
+
+				default:
+					throw new ArgumentOutOfRangeException("File extension not supported");
+			}
 		}
-
-		loadedAssembly.Add(mod);
+		catch (System.Exception e)
+		{
+			Utility.Logger.Error($"Failed loading '{assemblyFile}'", e);
+			throw;
+		}
 	}
 
 	internal void Unload(string assemblyFile)

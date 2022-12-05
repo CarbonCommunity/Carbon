@@ -60,7 +60,7 @@ internal class HookEx : IDisposable
 
 
 	internal bool HasDependencies()
-		=> Dependencies is {Length: > 0};
+		=> Dependencies is { Length: > 0 };
 
 
 	internal string PatchMethodName
@@ -153,7 +153,7 @@ internal class HookEx : IDisposable
 				_runtime.Status = HookState.Warning;
 			}
 
-			Logger.Debug($"HookAttribute '{HookName}[{Identifier}]' patched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{HookName}[{Identifier}]' patched '{TargetType.Name}.{TargetMethod}'", 2);
 		}
 		catch (System.Exception e)
 		{
@@ -191,7 +191,7 @@ internal class HookEx : IDisposable
 			if (!IsInstalled) return true;
 			_runtime.HarmonyHandler.UnpatchAll(Identifier);
 
-			Logger.Debug($"HookAttribute '{HookName}[{Identifier}]' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{HookName}[{Identifier}]' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
 			_runtime.Status = HookState.Inactive;
 			return true;
 		}

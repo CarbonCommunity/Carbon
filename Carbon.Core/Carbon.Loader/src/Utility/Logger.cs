@@ -1,16 +1,19 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-using System;
+﻿using System;
 using System.IO;
+
+/*
+ *
+ * Copyright (c) 2022 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.LoaderEx.Utility;
 
 internal sealed class Logger
 {
 	private static string logFile
-		= Path.Combine(Context.Directory.CarbonLogs, "Carbon.Loader.log");
+		= Path.Combine(Context.Directories.CarbonLogs, "Carbon.Loader.log");
 
 	internal enum Severity
 	{
@@ -19,8 +22,8 @@ internal sealed class Logger
 
 	static Logger()
 	{
-		if (!Directory.Exists(Context.Directory.CarbonLogs))
-			Directory.CreateDirectory(Context.Directory.CarbonLogs);
+		if (!Directory.Exists(Context.Directories.CarbonLogs))
+			Directory.CreateDirectory(Context.Directories.CarbonLogs);
 		if (File.Exists(logFile)) File.Delete(logFile);
 	}
 

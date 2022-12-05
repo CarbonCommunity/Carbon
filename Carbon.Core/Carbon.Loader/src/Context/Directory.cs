@@ -1,14 +1,16 @@
-﻿
-///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-using System;
+﻿using System;
 using System.IO;
+
+/*
+ *
+ * Copyright (c) 2022 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.LoaderEx.Context;
 
-internal sealed class Directory
+internal sealed class Directories
 {
 	private static readonly string[]
 		Needles = { ".", "..", "../.." };
@@ -18,7 +20,7 @@ internal sealed class Directory
 
 		Carbon, CarbonManaged, CarbonHarmony, CarbonLib, CarbonLogs;
 
-	static Directory()
+	static Directories()
 	{
 		Game = null;
 		foreach (string Needle in Needles)

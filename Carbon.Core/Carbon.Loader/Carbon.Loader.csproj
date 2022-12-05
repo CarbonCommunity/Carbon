@@ -11,7 +11,10 @@
 		<!-- Assembly editor -->
 		<PackageReference Include="Mono.Cecil" Version="0.11.4" />
 
-		<!-- Extra packages -->
+		<!-- Compression -->
+		<PackageReference Include="SharpCompress" Version="0.32.2" PrivateAssets="all" />
+
+		<!-- IL Weaver -->
 		<PackageReference Include="Costura.Fody" Version="5.7.0" PrivateAssets="all" />
 
 		<!-- HarmonyLib using a custom name -->

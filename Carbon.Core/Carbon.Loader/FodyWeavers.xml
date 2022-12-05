@@ -2,6 +2,7 @@
 	<Costura IncludeDebugSymbols="false" DisableCleanup="true" LoadAtModuleInit="true">
 		<IncludeAssemblies>
 			1Harmony
+			SharpCompress
 		</IncludeAssemblies>
 	</Costura>
 </Weavers>

@@ -1,13 +1,16 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-using System;
+﻿using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Harmony;
+
+/*
+ *
+ * Copyright (c) 2022 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.LoaderEx.Utility;
 
@@ -58,10 +61,10 @@ internal sealed class Hijacker
 	{
 		try
 		{
-			string source = Context.Directory.GameHarmony;
+			string source = Context.Directories.GameHarmony;
 			if (!Directory.Exists(source)) throw new Exception("Unable to find the HarmonyMods folder");
 
-			string target = Context.Directory.CarbonHarmony;
+			string target = Context.Directories.CarbonHarmony;
 			if (!Directory.Exists(target)) Directory.CreateDirectory(target);
 
 			int count = 0;

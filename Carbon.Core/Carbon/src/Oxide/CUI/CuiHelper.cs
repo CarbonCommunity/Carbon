@@ -26,7 +26,7 @@ public static class CuiHelper
 
 	public static List<CuiElement> FromJson(string json) => JsonConvert.DeserializeObject<List<CuiElement>>(json);
 
-	public static string GetGuid() => Guid.NewGuid().ToString().Replace("-", string.Empty);
+	public static string GetGuid() => $"{Guid.NewGuid():N}";
 
 	public static bool AddUi(BasePlayer player, List<CuiElement> elements) => AddUi(player, ToJson(elements));
 

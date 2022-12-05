@@ -1,24 +1,32 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-///
+﻿/*
+ *
+ * Copyright (c) 2022 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
-namespace Carbon.LoaderEx.Components.Supervisor;
+using System;
+using Carbon.LoaderEx.Common;
+
+namespace Carbon.LoaderEx.Supervisor;
 
 public static class Core
 {
+	public static bool IsStarted
+	{ get => HarmonyLoaderEx.GetInstance().IsLoaded("Carbon.dll"); }
+
 	public static void Start()
-		=> HarmonyLoader.GetInstance().Load("Carbon.dll");
+		=> HarmonyLoaderEx.GetInstance().Load("Carbon.dll");
 
 	public static void Exit()
-		=> HarmonyLoader.GetInstance().Unload("Carbon.dll");
+		=> HarmonyLoaderEx.GetInstance().Unload("Carbon.dll");
+
+	public static void Update(object os, object release, Action<bool> callback = null)
+		=> Updater.UpdateCarbon(os, release, callback);
 
 	public static void Reboot()
 	{
 		Exit();
 		Start();
 	}
-
-	public static bool IsStarted
-		=> HarmonyLoader.GetInstance().IsLoaded("Carbon.dll");
 }

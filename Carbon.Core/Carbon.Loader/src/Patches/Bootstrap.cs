@@ -1,10 +1,13 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Carbon.LoaderEx.Utility;
 using Harmony;
+
+/*
+ *
+ * Copyright (c) 2022 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.LoaderEx.Patches;
 
@@ -50,6 +53,6 @@ internal static class __Bootstrap
 	internal static class __StartupShared
 	{
 		public static void Prefix()
-			=> Components.HarmonyLoader.GetInstance().Load("Carbon.dll");
+			=> HarmonyLoaderEx.GetInstance().Load("Carbon.dll");
 	}
 }

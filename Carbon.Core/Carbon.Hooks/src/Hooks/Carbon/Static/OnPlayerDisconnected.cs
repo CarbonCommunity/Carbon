@@ -11,7 +11,7 @@ public partial class Category_Static
 {
 	public partial class Static_ServerMgr
 	{
-		[HookAttribute.Patch("OnPlayerConnected", typeof(ServerMgr), "OnDisconnected", new System.Type[] { typeof(string), typeof(Network.Connection) })]
+		[HookAttribute.Patch("OnPlayerDisconnected", typeof(ServerMgr), "OnDisconnected", new System.Type[] { typeof(string), typeof(Network.Connection) })]
 		[HookAttribute.Identifier("4d9dcdaf8fbd4923a96eef18a7da7488")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 

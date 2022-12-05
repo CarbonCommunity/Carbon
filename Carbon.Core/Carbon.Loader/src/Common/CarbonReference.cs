@@ -3,10 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-///
+/*
+ *
+ * Copyright (c) 2022 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.LoaderEx.Common;
 

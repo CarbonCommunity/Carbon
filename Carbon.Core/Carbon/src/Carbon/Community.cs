@@ -15,6 +15,7 @@ using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Hooks;
+using Carbon.LoaderEx.Common;
 using Carbon.Processors;
 using Newtonsoft.Json;
 using Oxide.Core;
@@ -35,24 +36,25 @@ public class Community
 
 	public const OS OperatingSystem =
 #if WIN
-		OS.Win;
-#elif UNIX
-			 OS.Linux;
+		OS.Windows;
+#else
+		OS.Linux;
+#endif
+	public const Release ReleaseType =
+#if DEBUG
+		Release.Staging;
+#else
+		Release.Production;
 #endif
 
-	public enum OS
-	{
-		Win,
-		Linux
-	}
+	public enum OS { Windows, Linux }
+	public enum Release { Develop, Staging, Production }
 
 	public Config Config { get; set; }
 	public RustPlugin CorePlugin { get; set; }
 	public Loader.CarbonMod Plugins { get; set; }
 	public Entities Entities { get; set; }
 	public bool IsInitialized { get; set; }
-
-	internal static List<string> _addons = new List<string> { "carbon." };
 
 	#region Config
 

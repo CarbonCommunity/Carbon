@@ -1,8 +1,4 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-///
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +7,14 @@ using System.Text.RegularExpressions;
 using Carbon.LoaderEx.Common;
 using Carbon.LoaderEx.Utility;
 
-namespace Carbon.LoaderEx.Components;
+/*
+ *
+ * Copyright (c) 2022 Carbon Community 
+ * All rights reserved.
+ *
+ */
+
+namespace Carbon.LoaderEx;
 
 public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 {
@@ -19,9 +22,9 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	private static readonly string[] lookup =
 	{
-		Context.Directory.CarbonLib,
-		Context.Directory.CarbonManaged,
-		Context.Directory.GameManaged,
+		Context.Directories.CarbonLib,
+		Context.Directories.CarbonManaged,
+		Context.Directories.GameManaged,
 	};
 
 	private List<CarbonReference> cachedReferences
@@ -29,12 +32,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	internal AssemblyResolver()
 	{
-		foreach (string fp in lookup)
-		{
-			Utility.Logger.Log($"Warming up assemblies from '{fp}'..");
-			foreach (string file in Directory.EnumerateFiles(fp, "*.dll"))
-				ResolveAssembly(Path.GetFileNameWithoutExtension(file));
-		}
+		// nothing
 	}
 
 	internal void RegisterDomain(AppDomain domain)
@@ -54,6 +52,16 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		// 		return true;
 		// Logger.Debug($"Reference: {name} is not white listed");
 		// return false;
+	}
+
+	internal void WarmupAssemblies()
+	{
+		foreach (string fp in lookup)
+		{
+			Utility.Logger.Log($"Warming up assemblies from '{fp}'..");
+			foreach (string file in Directory.EnumerateFiles(fp, "*.dll"))
+				ResolveAssembly(Path.GetFileNameWithoutExtension(file));
+		}
 	}
 
 	private CarbonReference ResolveAssembly(string name)
@@ -83,7 +91,7 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 					case "Carbon":
 					case "Carbon.Hooks":
 					case "Carbon.Doorstop":
-						string p = Path.Combine(Context.Directory.CarbonManaged, $"{ncr.name}.dll");
+						string p = Path.Combine(Context.Directories.CarbonManaged, $"{ncr.name}.dll");
 						if (File.Exists(p) && ncr.LoadFromFile(p) != null)
 						{
 							Logger.Debug($"Resolved: {ncr.FileName} from disk (forced)");
@@ -114,7 +122,9 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 			if (ccr != null)
 			{
+#if DEBUG_VERBOSE
 				Logger.Debug($"Resolved: {ccr.FileName} from cache");
+#endif
 				return ccr;
 			}
 
@@ -123,7 +133,9 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 				string p = Path.Combine(fp, $"{ncr.name}.dll");
 				if (File.Exists(p) && ncr.LoadFromFile(p) != null)
 				{
+#if DEBUG_VERBOSE
 					Logger.Debug($"Resolved: {ncr.FileName} from disk");
+#endif
 					cachedReferences.Add(ncr);
 					return ncr;
 				}
@@ -148,6 +160,15 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		if (asm == null || asm.assembly.IsDynamic) return null;
 		return asm;
 	}
+
+	/*public Assembly GetAssembly(string name)
+	{
+		// the second check should be removed when whitelisting is in place
+		if (!IsReferenceAllowed(name) || Regex.IsMatch(name, Context.Patterns.oxideCompiledAssembly)) return null;
+		CarbonReference asm = ResolveAssembly(name);
+		if (asm == null || asm.assembly.IsDynamic) return null;
+		return asm.assembly;
+	}*/
 
 	public void Dispose()
 	{

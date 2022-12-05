@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Carbon.LoaderEx;
 using Carbon.LoaderEx.Common;
-using Carbon.LoaderEx.Components;
 
 /*
  *
@@ -43,7 +43,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	internal void Awake()
 	{
-		Logger.Log(" Initialized HookAttribute processor...");
+		Logger.Log(" Initialized hook processor...");
 
 		_workQueue = new Queue<Payload>();
 		_staticHooks = new List<HookEx>();
@@ -93,7 +93,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	internal void OnDisable()
 	{
-		Logger.Log(" Stopping HookAttribute processor...");
+		Logger.Log(" Stopping hook processor...");
 
 		Logger.Log($" - Uninstalling dynamic hooks");
 		// the disable event will make sure the patches are removed but the
@@ -108,7 +108,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 		if (!_doReload) return;
 
-		Logger.Log(" Reloading HookAttribute processor...");
+		Logger.Log(" Reloading hook processor...");
 		_doReload = false;
 		enabled = true;
 	}
@@ -132,7 +132,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			foreach (HookEx hook in hooks)
 			{
 				int subscribers = GetHookSubscriberCount(hook.HookName);
-				Logger.Debug($"HookAttribute '{hook.HookName}[{hook.Identifier}]' has {subscribers} subscriber(s)");
+				Logger.Debug($"Hook '{hook.HookName}[{hook.Identifier}]' has {subscribers} subscriber(s)");
 
 				// static hooks are a special case
 				if (hook.IsStaticHook) return;
@@ -187,7 +187,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 				HookEx hook = new HookEx(type);
 
 				if (hook is null)
-					throw new Exception($"HookAttribute is null, this is a bug");
+					throw new Exception($"Hook is null, this is a bug");
 
 				if (IsHookLoaded(hook))
 					throw new Exception($"Found duplicated hook '{hook.HookName}'");
@@ -220,7 +220,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		try
 		{
 			List<HookEx> hooks = GetHookByName(hookName).ToList();
-			if (hooks.Count == 0) throw new Exception($"HookAttribute fileName not found");
+			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
 
 			foreach (HookEx hook in hooks.Where(hook => !HookIsSubscribedBy(hook.HookName, requester)))
 			{
@@ -241,7 +241,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		try
 		{
 			List<HookEx> hooks = GetHookByName(hookName).ToList();
-			if (hooks.Count == 0) throw new Exception($"HookAttribute fileName not found");
+			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
 
 			foreach (HookEx hook in hooks.Where(hook => HookIsSubscribedBy(hook.HookName, requester)))
 			{
@@ -284,7 +284,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			}
 
 			if (!hook.ApplyPatch())
-				throw new Exception($"HookAttribute '{hook.HookName}[{hook.Identifier}]' installation failed");
+				throw new Exception($"Hook '{hook.HookName}[{hook.Identifier}]' installation failed");
 			Logger.Log($"Installed hook '{hook.HookName}'[{hook.Identifier}]");
 		}
 		catch (System.Exception e)
@@ -300,7 +300,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		try
 		{
 			if (!hook.RemovePatch())
-				throw new Exception($"HookAttribute '{hook.HookName}[{hook.Identifier}]' uninstallation failed");
+				throw new Exception($"Hook '{hook.HookName}[{hook.Identifier}]' uninstallation failed");
 			Logger.Log($"Uninstalled hook '{hook.HookName}[{hook.Identifier}]'");
 
 			if (!hook.HasDependencies()) return;

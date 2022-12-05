@@ -12,8 +12,8 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
+using Carbon.LoaderEx;
 using Carbon.LoaderEx.Common;
-using Carbon.LoaderEx.Components;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -180,7 +180,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			);
 
 			var compilation = CSharpCompilation.Create(
-				$"Script.{FileName}.{Guid.NewGuid()}", trees, references, options);
+				$"Script.{FileName}.{Guid.NewGuid():N}", trees, references, options);
 
 			using (var dllStream = new MemoryStream())
 			{
