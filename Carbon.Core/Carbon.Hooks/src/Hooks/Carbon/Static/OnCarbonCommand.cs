@@ -1,6 +1,7 @@
 ﻿using System;
 using Carbon.Extensions;
 using Facepunch.Extend;
+using Oxide.Game.Rust.Libraries;
 using Oxide.Plugins;
 
 /*
@@ -97,7 +98,7 @@ public partial class Category_Static
 
 							try
 							{
-								global::Command._fromRcon = false;
+								Command.FromRcon = false;
 								cmd.Callback?.Invoke(player, command, args2);
 							}
 							catch (Exception ex)

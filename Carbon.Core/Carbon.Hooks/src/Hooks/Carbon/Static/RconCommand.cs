@@ -3,6 +3,7 @@ using System.Linq;
 using Carbon.Extensions;
 using Facepunch;
 using Oxide.Core;
+using Oxide.Game.Rust.Libraries;
 
 /*
  *
@@ -50,7 +51,7 @@ public partial class Category_Static
 						{
 							try
 							{
-								global::Command._fromRcon = true; // FIXME : Had to change protection from internal to public
+								Command.FromRcon = true;
 								carbonCommand.Callback?.Invoke(null, command, args2);
 								return !carbonCommand.SkipOriginal;
 							}
