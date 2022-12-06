@@ -3,6 +3,7 @@
 /// All rights reserved
 /// 
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +12,6 @@ using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Hooks;
-using Carbon.LoaderEx.Common;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
@@ -96,13 +96,13 @@ public class CorePlugin : RustPlugin
 	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
 	private void Exit(ConsoleSystem.Arg arg)
 	{
-		Carbon.LoaderEx.Supervisor.Core.Exit();
+		Carbon.Supervisor.Loader.Unload("Carbon.dll");
 	}
 
 	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
 	private void Reboot(ConsoleSystem.Arg arg)
 	{
-		Carbon.LoaderEx.Supervisor.Core.Reboot();
+		Carbon.Supervisor.Loader.Unload("Carbon.dll", true);
 	}
 
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
@@ -370,11 +370,16 @@ public class CorePlugin : RustPlugin
 			}
 		}
 
-		Carbon.LoaderEx.Supervisor.Core.Update(os, release, (bool result) =>
+		Carbon.Supervisor.Loader.Update(os, release, (bool result) =>
 		{
-			if (!result) return;
+			if (!result)
+			{
+				Logger.Error($"Unknown error while updating Carbon");
+				return;
+			}
+			Logger.Log("Update complete, reloading..");
 			HookCaller.CallStaticHook("OnServerSave");
-			Carbon.LoaderEx.Supervisor.Core.Reboot();
+			Carbon.Supervisor.Loader.Unload("Carbon.dll", true);
 		});
 	}
 

@@ -12,8 +12,6 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
-using Carbon.LoaderEx;
-using Carbon.LoaderEx.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -43,20 +41,18 @@ public class ScriptCompilationThread : BaseThreadedJob
 		if (_hasInit) return;
 		_hasInit = true;
 
-		AssemblyResolver resolver = AssemblyResolver.GetInstance();
 		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
 		{
 			try
 			{
-				CarbonReference asm = AssemblyResolver.GetInstance().GetAssembly(assembly.GetName().Name);
-				if (asm == null || asm.raw == null) throw new ArgumentException();
+				byte[] raw = Supervisor.Resolver.GetAssemblyBytes(assembly.GetName().Name);
+				if (raw == null || raw.Length == 0) throw new ArgumentException();
 
-				using (MemoryStream mem = new MemoryStream(asm.raw))
+				using (MemoryStream mem = new MemoryStream(raw))
 					cachedReferences.Add(MetadataReference.CreateFromStream(mem));
 			}
 			catch { }
 		}
-
 		Logger.Debug($"ScriptCompilationThread cached {cachedReferences.Count} assemblies", 2);
 	}
 
@@ -88,38 +84,48 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		try
 		{
-			CarbonReference asm = AssemblyResolver.GetInstance().GetAssembly(reference);
-			if (asm == null) throw new ArgumentException();
+			byte[] raw = Supervisor.Resolver.GetAssemblyBytes(reference);
+			if (raw == null || raw.Length == 0) throw new ArgumentException();
 
-			MetadataReference ret = null;
-			using (MemoryStream mem = new MemoryStream(asm.raw))
-				ret = MetadataReference.CreateFromStream(mem);
-			return ret;
+			using (MemoryStream mem = new MemoryStream(raw))
+				return MetadataReference.CreateFromStream(mem);
 		}
-		catch
+		catch (System.Exception e)
 		{
-			Logger.Error($"_getReferenceFromCache('{reference}') failed");
+			Logger.Error($"_getReferenceFromCache('{reference}') failed", e);
 			return null;
 		}
 	}
 
 	internal List<MetadataReference> _addReferences()
 	{
+		// gives some info about the cache state
+		Logger.Debug($"ScriptCompilationThread using {cachedReferences.Count} cached assemblies", 2);
+
+		// add all cached references to the output list
 		var references = new List<MetadataReference>();
 		foreach (var reference in cachedReferences) references.Add(reference as MetadataReference);
 
+		// goes through the requested references by the plugin
 		foreach (var reference in References)
 		{
-			if (string.IsNullOrEmpty(reference) || cachedReferences.Any(x => x is MetadataReference metadata && metadata.Display.Contains(reference))) continue;
+			// checks if they are already cached
+			if (string.IsNullOrEmpty(reference) ||
+				cachedReferences.Any(x => x is MetadataReference metadata && metadata.Display.Contains(reference))) continue;
 
 			try
 			{
+				// actually the method name is inducing error, it must load the asm
+				// from disk as it was already marked as a cache miss
 				var outReference = _getReferenceFromCache(reference);
+
+				// redudant check for references.contains() ?
 				if (outReference != null && !references.Contains(outReference)) references.Add(outReference);
 			}
 			catch { }
 		}
 
+		Logger.Log($"_addReferences total:{references.Count}");
 		return references;
 	}
 

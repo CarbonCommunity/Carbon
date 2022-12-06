@@ -16,10 +16,8 @@ using Carbon.LoaderEx.Utility;
 
 namespace Carbon.LoaderEx;
 
-public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
+internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 {
-	static AssemblyResolver() { }
-
 	private static readonly string[] lookup =
 	{
 		Context.Directories.CarbonLib,
@@ -30,10 +28,8 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 	private List<CarbonReference> cachedReferences
 		= new List<CarbonReference>();
 
-	internal AssemblyResolver()
-	{
-		// nothing
-	}
+	static AssemblyResolver() { }
+	internal AssemblyResolver() { }
 
 	internal void RegisterDomain(AppDomain domain)
 		=> domain.AssemblyResolve += ResolveAssembly;
@@ -152,23 +148,26 @@ public class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		}
 	}
 
-	public CarbonReference GetAssembly(string name)
+	public CarbonReference GetCarbonReference(string assemblyName)
 	{
 		// the second check should be removed when whitelisting is in place
-		if (!IsReferenceAllowed(name) || Regex.IsMatch(name, Context.Patterns.oxideCompiledAssembly)) return null;
-		CarbonReference asm = ResolveAssembly(name);
+		if (!IsReferenceAllowed(assemblyName) || Regex.IsMatch(assemblyName, Context.Patterns.oxideCompiledAssembly)) return null;
+		CarbonReference asm = ResolveAssembly(assemblyName);
 		if (asm == null || asm.assembly.IsDynamic) return null;
 		return asm;
 	}
 
-	/*public Assembly GetAssembly(string name)
+	public Assembly GetAssembly(string assemblyName)
 	{
-		// the second check should be removed when whitelisting is in place
-		if (!IsReferenceAllowed(name) || Regex.IsMatch(name, Context.Patterns.oxideCompiledAssembly)) return null;
-		CarbonReference asm = ResolveAssembly(name);
-		if (asm == null || asm.assembly.IsDynamic) return null;
+		CarbonReference asm = GetCarbonReference(assemblyName);
 		return asm.assembly;
-	}*/
+	}
+
+	public byte[] GetAssemblyBytes(string assemblyName)
+	{
+		CarbonReference asm = GetCarbonReference(assemblyName);
+		return asm.raw;
+	}
 
 	public void Dispose()
 	{

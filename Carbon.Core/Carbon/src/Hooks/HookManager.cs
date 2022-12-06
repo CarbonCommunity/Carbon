@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Carbon.LoaderEx;
-using Carbon.LoaderEx.Common;
 
 /*
  *
@@ -161,14 +159,14 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	private void LoadHooksFromAssemblyFile(string fileName)
 	{
-		CarbonReference hooks;
+		Assembly hooks;
 
 		try
 		{
 			// delegates asm loading to Carbon.Loader 
-			hooks = AssemblyResolver.GetInstance().GetAssembly(fileName);
-			if (hooks == null || hooks.assembly == null)
-				throw new Exception($" - External hooks module '{fileName}' not found");
+			hooks = Carbon.Supervisor.Resolver.GetAssembly(fileName);
+			if (hooks == null)
+				throw new Exception($"External hooks module '{fileName}' not found");
 		}
 		catch (System.Exception e)
 		{
@@ -176,7 +174,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			return;
 		}
 
-		IEnumerable<TypeInfo> types = hooks.assembly.DefinedTypes
+		IEnumerable<TypeInfo> types = hooks.DefinedTypes
 			.Where(x => Attribute.IsDefined(x, typeof(HookAttribute.Patch), false)).ToList();
 
 		int x = 0, y = 0;

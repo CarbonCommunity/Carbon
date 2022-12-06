@@ -21,7 +21,8 @@ internal static class __RCon
 			switch (cmd.Name)
 			{
 				case "c.boot":
-					if (!Supervisor.Core.IsStarted) Supervisor.Core.Start();
+					if (!HarmonyLoaderEx.GetInstance().IsLoaded("Carbon.dll"))
+						HarmonyLoaderEx.GetInstance().Load("Carbon.dll");
 					return false;
 
 				default:

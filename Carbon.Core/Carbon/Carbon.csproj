@@ -9,9 +9,6 @@
 	<Import Project="..\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
-		<!-- Carbon platform -->
-		<ProjectReference Include="..\Carbon.Loader\Carbon.Loader.csproj" Private="false" />
-
 		<!-- HarmonyLib using a custom name -->
 		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" />
 

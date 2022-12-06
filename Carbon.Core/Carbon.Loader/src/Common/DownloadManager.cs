@@ -26,6 +26,8 @@ internal sealed class DownloadManager : CarbonBehaviour
 	private Queue<Download> _donwloadQueue;
 	private int _currentDownloads;
 
+	internal DownloadManager() { }
+
 	private void Awake()
 	{
 		_donwloadQueue = new Queue<Download>();

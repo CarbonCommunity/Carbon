@@ -15,7 +15,6 @@ using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Hooks;
-using Carbon.LoaderEx.Common;
 using Carbon.Processors;
 using Newtonsoft.Json;
 using Oxide.Core;

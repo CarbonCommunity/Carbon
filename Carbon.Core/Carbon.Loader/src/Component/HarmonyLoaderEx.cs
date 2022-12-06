@@ -19,6 +19,7 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 		= new HashSet<HarmonyPlugin>();
 
 	static HarmonyLoaderEx() { }
+	internal HarmonyLoaderEx() { }
 
 	/// <summary>
 	/// Loads assembly into AppDomain.<br/>
@@ -26,19 +27,19 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 	/// and use the appropriate loading method to deal with it.
 	/// </summary>
 	///
-	/// <param name="assemblyFile">Full path to the assembly file</param>
-	internal void Load(string assemblyFile)
+	/// <param name="fileNameWithExtension">Full path to the assembly file</param>
+	internal void Load(string fileNameWithExtension)
 	{
-		Carbon.LoaderEx.Utility.Logger.Log($"Loading '{assemblyFile}'..");
+		Carbon.LoaderEx.Utility.Logger.Log($"Loading '{fileNameWithExtension}'..");
 
-		if (assemblyFile == Path.GetFileName(assemblyFile))
-			assemblyFile = Path.Combine(Context.Directories.Carbon, "managed", assemblyFile);
+		if (fileNameWithExtension == Path.GetFileName(fileNameWithExtension))
+			fileNameWithExtension = Path.Combine(Context.Directories.Carbon, "managed", fileNameWithExtension);
 
 		HarmonyPlugin mod = new HarmonyPlugin()
 		{
-			name = Path.GetFileNameWithoutExtension(assemblyFile),
+			name = Path.GetFileNameWithoutExtension(fileNameWithExtension),
 			identifier = $"{Guid.NewGuid():N}",
-			location = assemblyFile,
+			location = fileNameWithExtension,
 		};
 
 		try
@@ -46,7 +47,7 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 			switch (mod.Extension)
 			{
 				case ".dll":
-					if (mod.LoadFromFile(assemblyFile) == null)
+					if (mod.LoadFromFile(fileNameWithExtension) == null)
 						throw new Exception("Assembly is null");
 
 					PrepareHooks(ref mod);
@@ -66,12 +67,12 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 		}
 		catch (System.Exception e)
 		{
-			Utility.Logger.Error($"Failed loading '{assemblyFile}'", e);
+			Utility.Logger.Error($"Failed loading '{fileNameWithExtension}'", e);
 			throw;
 		}
 	}
 
-	internal void Unload(string assemblyFile)
+	internal void Unload(string assemblyFile, bool reload = false)
 	{
 		Carbon.LoaderEx.Utility.Logger.Log($"Unloading '{assemblyFile}'..");
 		string name = Path.GetFileNameWithoutExtension(assemblyFile);
@@ -89,6 +90,8 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 			Utility.Logger.Error($"Failed unload '{assemblyFile}'", e);
 			throw;
 		}
+
+		if (reload) Load(assemblyFile);
 	}
 
 	internal bool IsLoaded(string assemblyFile)
