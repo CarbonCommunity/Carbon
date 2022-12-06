@@ -59,12 +59,10 @@ internal static class Loader
 			Type type = AccessTools.TypeByName("Carbon.LoaderEx.Common.Updater") ?? null;
 			MethodInfo method = type.GetMethod("UpdateCarbon", BindingFlags.NonPublic | BindingFlags.Static) ?? null;
 			method.Invoke(null, new object[] { os, release, callback });
-			Logger.Log("Updating Carbon..");
 		}
 		catch (System.Exception e)
 		{
 			Logger.Error($"Error while updating Carbon", e);
 		}
-
 	}
 }

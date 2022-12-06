@@ -57,8 +57,7 @@ internal sealed class Program : Singleton<Program>, IDisposable
 			@"                                               " + Environment.NewLine
 		);
 
-		// keeping it disabled for now
-		//AssemblyResolver.GetInstance().WarmupAssemblies();
+		AssemblyResolver.GetInstance().WarmupAssemblies();
 	}
 
 	public void Dispose()

@@ -99,9 +99,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal List<MetadataReference> _addReferences()
 	{
-		// gives some info about the cache state
-		Logger.Debug($"ScriptCompilationThread using {cachedReferences.Count} cached assemblies", 2);
-
 		// add all cached references to the output list
 		var references = new List<MetadataReference>();
 		foreach (var reference in cachedReferences) references.Add(reference as MetadataReference);
@@ -125,7 +122,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			catch { }
 		}
 
-		Logger.Log($"_addReferences total:{references.Count}");
+		Logger.Debug($"ScriptCompilationThread using {references.Count} assembly references", 2);
 		return references;
 	}
 

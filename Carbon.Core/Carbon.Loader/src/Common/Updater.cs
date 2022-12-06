@@ -19,8 +19,9 @@ public static class Updater
 {
 	public enum OS { Windows, Linux }
 	public enum Release { Develop, Staging, Production }
+	public enum Component { Core, Hooks, Extension, Miscellaneous }
 
-	private static string GetDownloadURL(string repository, OS os, Release release)
+	private static string GenerateDownloadURL(string repository, OS os, Release release)
 	{
 		string tag = string.Empty;
 		string file = string.Empty;
@@ -58,17 +59,13 @@ public static class Updater
 		return $"https://github.com/{repository}/releases/download/{tag}/{file}";
 	}
 
-	internal static void UpdateCarbon(object os, object release, Action<bool> callback = null)
+	internal static void UpdateFromGithub(Component component,
+		string repository, object os, object release, IReadOnlyList<string> files, Action<bool> callback = null)
 	{
 		bool retval = false;
-		List<string> files = new List<string>(){
-			@"carbon/managed/Carbon.Doorstop.dll",
-			@"carbon/managed/Carbon.dll",
-			@"harmonymods/Carbon.Loader.dll"
-		};
 
-		string url = GetDownloadURL("CarbonCommunity/Carbon.Core", (OS)os, (Release)release);
-		Logger.Warn($"Updating Carbon {os} using the {release} branch");
+		string url = GenerateDownloadURL(repository, (OS)os, (Release)release);
+		Logger.Warn($"Updating Carbon component '{component} [{os}]' from the '{release}' branch");
 
 		Program.GetInstance().Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
 		{
@@ -82,7 +79,6 @@ public static class Updater
 					{
 						while (reader.MoveToNextEntry())
 						{
-							//if (!files.Contains(reader.Entry.Key)) continue;
 							if (reader.Entry.IsDirectory || !files.Contains(reader.Entry.Key, StringComparer.OrdinalIgnoreCase)) continue;
 							string destination = Path.GetFullPath(Path.Combine(Context.Directories.Game, reader.Entry.Key));
 
@@ -102,7 +98,7 @@ public static class Updater
 			}
 			catch (System.Exception e)
 			{
-				Logger.Error($"Error while updating Carbon", e);
+				Logger.Error($"Error while updating {component}", e);
 				retval = false;
 			}
 			finally
@@ -110,5 +106,27 @@ public static class Updater
 				if (callback != null) callback(retval);
 			}
 		});
+	}
+
+	internal static void UpdateCarbon(object os, object release, Action<bool> callback = null)
+	{
+		IReadOnlyList<string> files = new List<string>(){
+			@"carbon/managed/Carbon.Doorstop.dll",
+			@"carbon/managed/Carbon.dll",
+			@"harmonymods/Carbon.Loader.dll"
+		};
+
+		UpdateFromGithub(Component.Core,
+			"CarbonCommunity/Carbon.Core", os, release, files, callback);
+	}
+
+	internal static void UpdateHooks(object os, object release, Action<bool> callback = null)
+	{
+		IReadOnlyList<string> files = new List<string>(){
+			@"harmonymods/Carbon.Hooks.dll"
+		};
+
+		UpdateFromGithub(Component.Hooks,
+			"CarbonCommunity/Carbon.Core", os, release, files, callback);
 	}
 }

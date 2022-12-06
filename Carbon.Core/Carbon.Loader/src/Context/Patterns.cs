@@ -23,7 +23,7 @@ internal sealed class Patterns
 	internal static readonly string oxideCompiledAssembly =
 		@"(?i)^(script\.)(.+)(\.[-\w]+)";
 
-	internal static readonly List<string> refWhitelist = new List<string>
+	internal static readonly IReadOnlyList<string> refWhitelist = new List<string>
 	{
 		// Facepunch managed refs
 		@"^Assembly-CSharp(-firstpass)?$",
@@ -45,7 +45,7 @@ internal sealed class Patterns
 	};
 
 	// used for resolving assembly names with random bits to a common name
-	internal static readonly Dictionary<string, string> refTranslator = new Dictionary<string, string>
+	internal static readonly IReadOnlyDictionary<string, string> refTranslator = new Dictionary<string, string>
 	{
 		// special case: carbon random asm name
 		{ @"^Carbon(-\d+)?$", "Carbon" },

@@ -17,7 +17,7 @@ internal sealed class Logger
 
 	internal enum Severity
 	{
-		Error, Warning, Notice, Debug, None
+		Error, Warning, Notice, Debug, RCon, None
 	}
 
 	static Logger()
@@ -54,6 +54,11 @@ internal sealed class Logger
 				System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
 				return;
 
+			case Severity.RCon:
+				UnityEngine.Debug.Log($"[CRBN] {message}");
+				System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
+				return;
+
 			case Severity.None:
 				Console.WriteLine(message);
 				return;
@@ -68,6 +73,9 @@ internal sealed class Logger
 
 	internal static void None(object message)
 		=> Write(Logger.Severity.None, message);
+
+	internal static void RCon(object message)
+		=> Write(Logger.Severity.RCon, message);
 
 	internal static void Debug(object message)
 		=> Write(Logger.Severity.Debug, message);

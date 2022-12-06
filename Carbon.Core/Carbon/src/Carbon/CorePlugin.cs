@@ -13,6 +13,7 @@ using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Hooks;
 using Facepunch;
+using HarmonyLib;
 using Newtonsoft.Json;
 using Oxide.Plugins;
 using UnityEngine;
@@ -219,6 +220,27 @@ public class CorePlugin : RustPlugin
 				Community.Runtime.HookProcessorEx.Reload();
 				break;
 
+			case "update":
+				try
+				{
+					Type type = AccessTools.TypeByName("Carbon.LoaderEx.Common.Updater") ?? null;
+					MethodInfo method = type.GetMethod("UpdateHooks", BindingFlags.NonPublic | BindingFlags.Static) ?? null;
+					method.Invoke(null, new object[] { Community.OperatingSystem, Community.ReleaseType, (bool result) =>
+					{
+						if (!result)
+						{
+							Logger.Error($"Unknown error while updating Carbon");
+							return;
+						}
+						Community.Runtime.HookProcessorEx.Reload();
+					} });
+				}
+				catch (System.Exception e)
+				{
+					Logger.Error($"Error while updating Carbon", e);
+				}
+				break;
+
 			case "loaded":
 				{
 					IEnumerable<HookEx> hooks;
@@ -377,7 +399,6 @@ public class CorePlugin : RustPlugin
 				Logger.Error($"Unknown error while updating Carbon");
 				return;
 			}
-			Logger.Log("Update complete, reloading..");
 			HookCaller.CallStaticHook("OnServerSave");
 			Carbon.Supervisor.Loader.Unload("Carbon.dll", true);
 		});
