@@ -9,80 +9,82 @@ namespace Carbon;
 
 public class FileLogger : IDisposable
 {
-    /// <summary>
-    /// By default, each log file gets split when it reaches exactly 2.5MB in file size and sent in the archive folder.
-    /// </summary>
-    public int SplitSize { get; set; } = (int)(2.5f * 1000000f);
+	public string Name { get; set; } = "default";
 
-    internal bool _hasInit;
-    internal List<string> _buffer = new();
-    internal StreamWriter _file;
+	/// <summary>
+	/// By default, each log file gets split when it reaches exactly 2.5MB in file size and sent in the archive folder.
+	/// </summary>
+	public int SplitSize { get; set; } = (int)(2.5f * 1000000f);
 
-    public FileLogger() { }
-    public FileLogger(string name)
-    {
-        Name = name;
-    }
+	internal bool _hasInit;
+	internal List<string> _buffer = new();
+	internal StreamWriter _file;
 
-    public virtual void Init(bool archive = false)
-    {
-        if (_hasInit) return;
+	public FileLogger() { }
+	public FileLogger(string name)
+	{
+		Name = name;
+	}
 
-        var path = Path.Combine(Defines.GetLogsFolder(), $"{Name}.log");
+	public virtual void Init(bool archive = false)
+	{
+		if (_hasInit) return;
 
-        try
-        {
-            File.Delete(path);
-            File.Delete(Harmony.FileLog.logPath);
-            File.Delete(HarmonyLib.FileLog.LogPath);
-        }
-        catch { }
+		var path = Path.Combine(Defines.GetLogsFolder(), $"{Name}.log");
 
-        _hasInit = true;
+		try
+		{
+			File.Delete(path);
+			File.Delete(Harmony.FileLog.logPath);
+			File.Delete(HarmonyLib.FileLog.LogPath);
+		}
+		catch { }
 
-        if (archive)
-        {
-            if (OsEx.File.Exists(path))
-            {
-                OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"{Name}.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
-            }
-        }
+		_hasInit = true;
 
-        _file = new StreamWriter(path, append: true);
-    }
-    public virtual void Dispose()
-    {
-        _file.Flush();
-        _file.Close();
-        _file.Dispose();
+		if (archive)
+		{
+			if (OsEx.File.Exists(path))
+			{
+				OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"{Name}.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
+			}
+		}
 
-        _hasInit = false;
-    }
-    public virtual void _flush()
-    {
-        var buffer = Pool.GetList<string>();
-        buffer.AddRange(_buffer);
+		_file = new StreamWriter(path, append: true);
+	}
+	public virtual void Dispose()
+	{
+		_file.Flush();
+		_file.Close();
+		_file.Dispose();
 
-        foreach (var line in buffer)
-        {
-            _file?.WriteLine(line);
-        }
+		_hasInit = false;
+	}
+	public virtual void _flush()
+	{
+		var buffer = Pool.GetList<string>();
+		buffer.AddRange(_buffer);
 
-        _file.Flush();
-        _buffer.Clear();
-        Pool.FreeList(ref buffer);
+		foreach (var line in buffer)
+		{
+			_file?.WriteLine(line);
+		}
 
-        if (_file.BaseStream.Length > SplitSize)
-        {
-            Dispose();
-            Init(archive: true);
-        }
-    }
-    internal void _queueLog(string message)
-    {
-        if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 0) return;
+		_file.Flush();
+		_buffer.Clear();
+		Pool.FreeList(ref buffer);
 
-        _buffer.Add($"[{Logger.GetDate()}] {message}");
-        if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 2) _flush();
-    }
+		if (_file.BaseStream.Length > SplitSize)
+		{
+			Dispose();
+			Init(archive: true);
+		}
+	}
+	internal void _queueLog(string message)
+	{
+		if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 0) return;
+
+		_buffer.Add($"[{Logger.GetDate()}] {message}");
+		if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 2) _flush();
+	}
 }
