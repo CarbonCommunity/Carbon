@@ -1,4 +1,4 @@
-﻿///
+///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
@@ -14,87 +14,87 @@ namespace Carbon.Base;
 
 public class BaseHookable
 {
-	public List<string> Hooks { get; internal set; }
-	public List<HookMethodAttribute> HookMethods { get; internal set; }
-	public List<PluginReferenceAttribute> PluginReferences { get; internal set; }
+    public List<string> Hooks { get; internal set; }
+    public List<HookMethodAttribute> HookMethods { get; internal set; }
+    public List<PluginReferenceAttribute> PluginReferences { get; internal set; }
 
-	public Dictionary<string, List<MethodInfo>> HookCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
-	public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
-	public List<string> IgnoredHooks { get; internal set; } = new List<string>();
+    public Dictionary<string, List<MethodInfo>> HookCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
+    public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
+    public List<string> IgnoredHooks { get; internal set; } = new List<string>();
 
-	[JsonProperty]
-	public string Name { get; set; }
+    [JsonProperty]
+    public string Name { get; set; }
 
-	[JsonProperty]
-	public VersionNumber Version { get; set; }
+    [JsonProperty]
+    public VersionNumber Version { get; set; }
 
-	[JsonProperty]
-	public double TotalHookTime { get; internal set; }
+    [JsonProperty]
+    public double TotalHookTime { get; internal set; }
 
-	public bool HasInitialized { get; set; }
-	public Type Type { get; set; }
+    public bool HasInitialized { get; set; }
+    public Type Type { get; set; }
 
-	#region Tracking
+    #region Tracking
 
-	internal Stopwatch _trackStopwatch = new Stopwatch();
+    internal Stopwatch _trackStopwatch = new Stopwatch();
 
-	public virtual void TrackStart()
-	{
-		if (!Community.IsServerFullyInitialized)
-		{
-			return;
-		}
+    public virtual void TrackStart()
+    {
+        if (!Community.IsServerFullyInitialized)
+        {
+            return;
+        }
 
-		var stopwatch = _trackStopwatch;
-		if (stopwatch.IsRunning)
-		{
-			return;
-		}
-		stopwatch.Start();
-	}
-	public virtual void TrackEnd()
-	{
-		if (!Community.IsServerFullyInitialized)
-		{
-			return;
-		}
+        var stopwatch = _trackStopwatch;
+        if (stopwatch.IsRunning)
+        {
+            return;
+        }
+        stopwatch.Start();
+    }
+    public virtual void TrackEnd()
+    {
+        if (!Community.IsServerFullyInitialized)
+        {
+            return;
+        }
 
-		var stopwatch = _trackStopwatch;
-		if (!stopwatch.IsRunning)
-		{
-			return;
-		}
-		stopwatch.Stop();
-		TotalHookTime += stopwatch.Elapsed.TotalSeconds;
-		stopwatch.Reset();
-	}
+        var stopwatch = _trackStopwatch;
+        if (!stopwatch.IsRunning)
+        {
+            return;
+        }
+        stopwatch.Stop();
+        TotalHookTime += stopwatch.Elapsed.TotalSeconds;
+        stopwatch.Reset();
+    }
 
-	#endregion
+    #endregion
 
-	public void Unsubscribe(string hook)
-	{
-		if (IgnoredHooks.Contains(hook)) return;
+    public void Unsubscribe(string hook)
+    {
+        if (IgnoredHooks.Contains(hook)) return;
 
-		IgnoredHooks.Add(hook);
-	}
-	public void Subscribe(string hook)
-	{
-		if (!IgnoredHooks.Contains(hook)) return;
+        IgnoredHooks.Add(hook);
+    }
+    public void Subscribe(string hook)
+    {
+        if (!IgnoredHooks.Contains(hook)) return;
 
-		IgnoredHooks.Remove(hook);
-	}
-	public bool IsHookIgnored(string hook)
-	{
-		return IgnoredHooks.Contains(hook);
-	}
+        IgnoredHooks.Remove(hook);
+    }
+    public bool IsHookIgnored(string hook)
+    {
+        return IgnoredHooks == null || IgnoredHooks.Contains(hook);
+    }
 
-	public T To<T>()
-	{
-		if (this is T result)
-		{
-			return result;
-		}
+    public T To<T>()
+    {
+        if (this is T result)
+        {
+            return result;
+        }
 
-		return default;
-	}
+        return default;
+    }
 }
