@@ -64,28 +64,24 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		foreach (HookEx hook in _dynamicHooks.Where(x => HookHasSubscribers(x.HookName)))
 			_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
 
-		// the code block bellow is ugly and needs to be refactored..
-		// the idea is to update the oxide hook list and reload the running
-		// plugins when HookManager "restarts". rn due to instantiation or some
-		// other random shit both calls will fail when bootstrapping Carbon, but
-		// they will work just fine during runtime.
-
 		try
 		{
+			if (_subscribers.Count == 0) return;
+
+			// the code block bellow is ugly but the idea is to update the oxide
+			// hook list and reload the running plugins when HookManager "restarts".
+
 			Carbon.Core.HookValidator.Refresh();
+
+			foreach (Subscription item in _subscribers.ToList())
+			{
+				_subscribers.Remove(item);
+				Subscribe(item.HookName, item.Subscriber);
+			}
 		}
 		catch (System.Exception e)
 		{
 			Logger.Error("Couldn't refresh HookValidator", e);
-		}
-
-		try
-		{
-			Carbon.Community.ReloadPlugins();
-		}
-		catch (System.Exception e)
-		{
-			Logger.Error("Couldn't reload plugins", e);
 		}
 	}
 

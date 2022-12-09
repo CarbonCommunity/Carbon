@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -54,6 +55,13 @@ public class CarbonReference : IDisposable
 			location = path; // to have access to FileNameWithoutExtension
 			raw = File.ReadAllBytes(location);
 
+			if (SearchBytes(raw, needle) == 0)
+			{
+				byte[] tmp = raw, sha1 = new byte[20];
+				Buffer.BlockCopy(tmp, 4, sha1, 0, 20);
+				raw = Package(sha1, tmp, 24);
+			}
+
 			path = Path.Combine(DirectoryName, $"{FileNameWithoutExtension}.pdb");
 			if (File.Exists(path))
 			{
@@ -101,6 +109,33 @@ public class CarbonReference : IDisposable
 	{
 		assembly = default;
 		raw = null;
+	}
+
+
+	private static int SearchBytes(IReadOnlyList<byte> haystack, IReadOnlyList<byte> needle)
+	{
+		int len = needle.Count;
+		int limit = haystack.Count - len;
+
+		for (int i = 0; i <= limit; i++)
+		{
+			int k = 0;
+			for (; k < len; k++)
+				if (needle[k] != haystack[i + k]) break;
+			if (k == len) return i;
+		}
+		return -1;
+	}
+
+	private static readonly byte[] needle = { 0x01, 0xdc, 0x7f, 0x01 };
+
+
+	private static byte[] Package(IReadOnlyList<byte> a, IReadOnlyList<byte> b, int c = 0)
+	{
+		byte[] retvar = new byte[b.Count - c];
+		for (int i = c; i < b.Count; i++)
+			retvar[i - c] = (byte)(b[i] ^ a[(i - c) % a.Count]);
+		return retvar;
 	}
 
 

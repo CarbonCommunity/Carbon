@@ -60,23 +60,23 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		}
 	}
 
-	private CarbonReference ResolveAssembly(string name)
+	private CarbonReference ResolveAssembly(string assemblyName)
 	{
 		try
 		{
 			// static translator
 			foreach (KeyValuePair<string, string> kvp in Context.Patterns.refTranslator)
 			{
-				if (!Regex.IsMatch(name, kvp.Key)) continue;
-				string result = Regex.Replace(name, kvp.Key, kvp.Value);
-				Logger.Debug($"Translated: input:{name} match:'{kvp.Key}' result:{result}");
-				name = result;
+				if (!Regex.IsMatch(assemblyName, kvp.Key)) continue;
+				string result = Regex.Replace(assemblyName, kvp.Key, kvp.Value);
+				Logger.Debug($"Translated: input:{assemblyName} match:'{kvp.Key}' result:{result}");
+				assemblyName = result;
 				break;
 			}
 
 			// new carbon ref (ncr)
 			CarbonReference ncr = new CarbonReference();
-			ncr.LoadMetadata(info: new AssemblyName(name));
+			ncr.LoadMetadata(info: new AssemblyName(assemblyName));
 
 			// carbon asm files are an edge case
 			Match match = Regex.Match(ncr.name, Context.Patterns.carbonNamePattern);
@@ -143,7 +143,7 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 		}
 		catch (System.Exception e)
 		{
-			Logger.Error($"ResolveAssembly Exception for '{name}'", e);
+			Logger.Error($"ResolveAssembly Exception for '{assemblyName}'", e);
 			return null;
 		}
 	}
