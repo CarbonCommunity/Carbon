@@ -47,13 +47,16 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		_staticHooks = new List<HookEx>();
 		_dynamicHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
-
-		foreach (string file in Files)
-			LoadHooksFromAssemblyFile(file);
 	}
 
 	internal void OnEnable()
 	{
+		_staticHooks.Clear();
+		_dynamicHooks.Clear();
+
+		foreach (string file in Files)
+			LoadHooksFromAssemblyFile(file);
+
 		Logger.Log($" - Installing static hooks");
 		// this is based on the assumption that a static hook will never have
 		// a dependency on another hook thus it will be always applied first

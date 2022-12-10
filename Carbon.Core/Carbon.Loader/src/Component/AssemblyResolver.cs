@@ -62,6 +62,9 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 
 	private CarbonReference ResolveAssembly(string assemblyName)
 	{
+		Logger.Debug($"Call ResolveAssembly: {assemblyName}");
+		assemblyName = assemblyName.Split(',')[0];
+
 		try
 		{
 			// static translator
@@ -86,7 +89,6 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 				{
 					case "Carbon":
 					case "Carbon.Hooks":
-					case "Carbon.Doorstop":
 						string p = Path.Combine(Context.Directories.CarbonManaged, $"{ncr.name}.dll");
 						if (File.Exists(p) && ncr.LoadFromFile(p) != null)
 						{
@@ -97,6 +99,7 @@ internal class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
 						break;
 
 					case "Carbon.Loader":
+					case "Carbon.Doorstop":
 						// this is the only asm that will get it's name manipulated by Facepunch's
 						// harmony loader, all this shit just to deal with it.. Thanks @Jake-Rich !
 						if (ncr.LoadFromAppDomain(Program.assemblyName) != null)
