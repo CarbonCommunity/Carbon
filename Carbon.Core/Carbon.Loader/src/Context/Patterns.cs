@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 /*
  *
@@ -11,47 +12,18 @@ namespace Carbon.LoaderEx.Context;
 
 internal sealed class Patterns
 {
-	// used mainly to skip any disk caches and for rudimentary validation of allowed assemblies
-	internal static readonly string carbonNamePattern =
-		@"(?i)^(carbon(?:\.(?:doorstop|hooks|loader))?)(_\w+)?$";
+	internal static readonly StringComparison IgnoreCase
+		= StringComparison.InvariantCultureIgnoreCase;
 
-	// used mainly for not moving any carbon related files to the shared folders
-	internal static readonly string carbonFileNamePattern =
-		@"(?i)^carbon([\.-](doorstop|hooks|loader))?(.dll)$";
+	internal static readonly string RenamedAssembly
+		= @"(?i)^((?:\w+)(?:\.(?:\w+))?)_([0-9a-f]+)$";
 
-	// used to match assemblies compiled by carbon i.e. plugins
-	internal static readonly string oxideCompiledAssembly =
-		@"(?i)^(script\.)(.+)(\.[-\w]+)";
+	// used to rudimentary identify assembly/files that are part of carbon
+	internal static readonly string CarbonManagedFile =
+		@"(?i)^(carbon(?:\.(?:doorstop|hooks|loader))?)((_\w+)?(.dll)?)?$";
 
-	internal static readonly IReadOnlyList<string> refWhitelist = new List<string>
-	{
-		// Facepunch managed refs
-		@"^Assembly-CSharp(-firstpass)?$",
-		@"^Facepunch(.\w+(.\w+)+)?$",
-		@"^Newtonsoft(.\w+)?$",
-		@"^Rust(.\w+(.\w+)+)?$",
-		@"^Unity(.\w+(.\w+)+)?$",
-		@"^UnityEngine(.\w+)?$",
-
-		// Carbon managed refs
-		@"^Carbon(-\d+)?$",
-
-		// System stuff
-		@"^mscorlib$",
-		@"^System.Drawing(.\w+)?$",
-		@"^System.Core$",
-		@"^System.Xml(.\w+)?$",
-		@"^System$",
-	};
-
-	// used for resolving assembly names with random bits to a common name
 	internal static readonly IReadOnlyDictionary<string, string> refTranslator = new Dictionary<string, string>
 	{
-		// special case: carbon random asm name
-		{ @"^Carbon(-\d+)?$", "Carbon" },
-		{ @"^Carbon.Hooks(-\d+)?$", "Carbon.Hooks" },
-
-		// HarmonyLib v2
 		{ @"^0Harmony$", "1Harmony" }
 	};
 }

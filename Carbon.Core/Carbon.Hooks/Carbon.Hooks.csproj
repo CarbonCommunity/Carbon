@@ -6,7 +6,7 @@
 	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />
-	<Import Project="..\.msbuild\AssemblyName.props" />
+	<!-- <Import Project="..\.msbuild\AssemblyName.props" /> -->
 
 	<ItemGroup>
 		<!-- Carbon platform -->
@@ -17,8 +17,6 @@
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
-		<!-- Changed due to FP_73186 changeset -->
-		<!-- <Copy SourceFiles="$(OutputPath)$(Product).pdb" DestinationFolder="$(c_managed)" Condition="$(Configuration.Contains('Debug'))" /> -->
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
 

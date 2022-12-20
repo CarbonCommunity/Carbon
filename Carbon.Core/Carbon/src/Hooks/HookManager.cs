@@ -21,7 +21,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	private List<HookEx> _dynamicHooks;
 	private List<Subscription> _subscribers;
 
-	private static readonly string[] Files = { "Carbon.Hooks" };
+	private static readonly string[] Files = { "Carbon.Hooks.dll" };
 
 	public void Reload()
 	{
@@ -57,15 +57,21 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		foreach (string file in Files)
 			LoadHooksFromAssemblyFile(file);
 
-		Logger.Log($" - Installing static hooks");
-		// this is based on the assumption that a static hook will never have
-		// a dependency on another hook thus it will be always applied first
-		foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
-			hook.ApplyPatch();
+		if (_staticHooks.Count > 0)
+		{
+			Logger.Log($" - Installing static hooks");
+			// this is based on the assumption that a static hook will never have
+			// a dependency on another hook thus it will be always applied first
+			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
+				hook.ApplyPatch();
+		}
 
-		Logger.Log($" - Installing dynamic hooks");
-		foreach (HookEx hook in _dynamicHooks.Where(x => HookHasSubscribers(x.HookName)))
-			_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
+		if (_dynamicHooks.Count > 0)
+		{
+			Logger.Log($" - Installing dynamic hooks");
+			foreach (HookEx hook in _dynamicHooks.Where(x => HookHasSubscribers(x.HookName)))
+				_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
+		}
 
 		try
 		{
@@ -92,16 +98,22 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	{
 		Logger.Log(" Stopping hook processor...");
 
-		Logger.Log($" - Uninstalling dynamic hooks");
-		// the disable event will make sure the patches are removed but the
-		// subscriber list is kept unchanged. this will be used on hot reloads.
-		foreach (HookEx hook in _dynamicHooks.Where(x => x.IsInstalled))
-			hook.RemovePatch();
+		if (_dynamicHooks.Count > 0)
+		{
+			Logger.Log($" - Uninstalling dynamic hooks");
+			// the disable event will make sure the patches are removed but the
+			// subscriber list is kept unchanged. this will be used on hot reloads.
+			foreach (HookEx hook in _dynamicHooks.Where(x => x.IsInstalled))
+				hook.RemovePatch();
+		}
 
-		Logger.Log($" - Uninstalling static hooks");
-		// reverse order, dynamics get removed first, then statics.
-		foreach (HookEx hook in _staticHooks.Where(x => x.IsInstalled))
-			hook.RemovePatch();
+		if (_staticHooks.Count > 0)
+		{
+			Logger.Log($" - Uninstalling static hooks");
+			// reverse order, dynamics get removed first, then statics.
+			foreach (HookEx hook in _staticHooks.Where(x => x.IsInstalled))
+				hook.RemovePatch();
+		}
 
 		if (!_doReload) return;
 
@@ -163,7 +175,8 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		try
 		{
 			// delegates asm loading to Carbon.Loader 
-			hooks = Carbon.Supervisor.Resolver.GetAssembly(fileName);
+			hooks = Supervisor.ASM.LoadModule(fileName);
+
 			if (hooks == null)
 				throw new Exception($"External hooks module '{fileName}' not found");
 		}
@@ -174,7 +187,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		}
 
 		IEnumerable<TypeInfo> types = hooks.DefinedTypes
-			.Where(x => Attribute.IsDefined(x, typeof(HookAttribute.Patch), false)).ToList();
+			.Where(x => Attribute.IsDefined(x, typeof(HookAttribute.Patch))).ToList();
 
 		int x = 0, y = 0;
 		foreach (TypeInfo type in types)
@@ -209,7 +222,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			}
 		}
 
-		Logger.Log($" - Successfully loaded static:{y} dynamic:{x} ({types.Count()}) hooks from assembly '{fileName}.dll'");
+		Logger.Log($" - Successfully loaded static:{y} dynamic:{x} ({types.Count()}) hooks from assembly '{fileName}'");
 	}
 
 	internal void Subscribe(string hookName, string requester)

@@ -1,4 +1,6 @@
-﻿///
+﻿#define DISABLE_ASYNC_LOADING
+
+///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
@@ -192,7 +194,12 @@ public class ScriptLoader : IDisposable
 
 		var requiresResult = requires.ToArray();
 
+#if DISABLE_ASYNC_LOADING
+		AsyncLoader.ThreadFunction();
+		AsyncLoader.IsDone = true;
+#else
 		AsyncLoader.Start();
+#endif
 
 		while (AsyncLoader != null && !AsyncLoader.IsDone) { yield return null; }
 

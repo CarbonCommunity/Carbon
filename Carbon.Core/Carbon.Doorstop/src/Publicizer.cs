@@ -67,13 +67,13 @@ internal static class Publicizer
 	internal static void Publicize()
 	{
 		AssemblyDefinition assembly = null;
+		DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
 
 		try
 		{
 			if (memoryStream == null) throw new Exception();
 			memoryStream.Position = 0;
 
-			DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
 			resolver.AddSearchDirectory(Context.Managed);
 
 			assembly = AssemblyDefinition.ReadAssembly(
@@ -172,6 +172,17 @@ internal static class Publicizer
 		catch (Exception ex)
 		{
 			Logger.Error("Assembly failed the memory validation", ex);
+			throw (ex);
+		}
+
+		try
+		{
+			resolver.Dispose();
+			resolver = default;
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Unhandled error", ex);
 			throw (ex);
 		}
 	}

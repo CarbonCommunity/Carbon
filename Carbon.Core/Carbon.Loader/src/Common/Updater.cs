@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Carbon.LoaderEx.ASM;
 using Carbon.LoaderEx.Utility;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -94,7 +95,7 @@ public static class Updater
 					}
 				}
 				retval = true;
-				AssemblyResolver.GetInstance().WarmupAssemblies();
+				//AssemblyResolver.GetInstance().WarmupAssemblies();
 			}
 			catch (System.Exception e)
 			{

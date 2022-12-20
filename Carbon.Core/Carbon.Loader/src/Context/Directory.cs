@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using Carbon.LoaderEx.Utility;
+using Facepunch;
 
 /*
  *
@@ -18,7 +20,7 @@ internal sealed class Directories
 	internal static readonly string
 		Game, GameManaged, GameHarmony,
 
-		Carbon, CarbonManaged, CarbonHarmony, CarbonLib, CarbonLogs;
+		Carbon, CarbonManaged, CarbonHarmony, CarbonLib, CarbonModules, CarbonLogs;
 
 	static Directories()
 	{
@@ -33,15 +35,37 @@ internal sealed class Directories
 			break;
 		}
 
-		if (Game == null) throw new System.Exception("Unable to find root folder");
+		try
+		{
+			if (Game == null) throw new System.Exception("Unable to find root folder");
 
-		GameManaged = Path.GetFullPath(Path.Combine(Game, "RustDedicated_Data", "Managed"));
-		GameHarmony = Path.GetFullPath(Path.Combine(Game, "HarmonyMods"));
+			GameManaged = Path.GetFullPath(Path.Combine(Game, "RustDedicated_Data", "Managed"));
+			GameHarmony = Path.GetFullPath(Path.Combine(Game, "HarmonyMods"));
 
-		Carbon = Path.GetFullPath(Path.Combine(Game, "carbon"));
-		CarbonLogs = Path.GetFullPath(Path.Combine(Carbon, "logs"));
-		CarbonHarmony = Path.GetFullPath(Path.Combine(Carbon, "harmony"));
-		CarbonManaged = Path.GetFullPath(Path.Combine(Carbon, "managed"));
-		CarbonLib = Path.GetFullPath(Path.Combine(CarbonManaged, "lib"));
+			Carbon = Path.GetFullPath(Path.Combine(Game, "carbon"));
+			if (Carbon == null) throw new System.Exception("Unable to find Carbon folder");
+
+			CarbonLogs = Path.GetFullPath(Path.Combine(Carbon, "logs"));
+			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonLogs));
+
+			CarbonHarmony = Path.GetFullPath(Path.Combine(Carbon, "harmony"));
+			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonHarmony));
+
+			CarbonManaged = Path.GetFullPath(Path.Combine(Carbon, "managed"));
+			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonManaged));
+
+			CarbonLib = Path.GetFullPath(Path.Combine(CarbonManaged, "lib"));
+			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonLib));
+
+			CarbonModules = Path.GetFullPath(Path.Combine(CarbonManaged, "ext"));
+			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonModules));
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error("Critical error while loading Carbon", e);
+			Rust.Application.Quit();
+			throw;
+		}
+
 	}
 }

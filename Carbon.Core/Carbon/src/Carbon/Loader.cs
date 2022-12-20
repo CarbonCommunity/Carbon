@@ -664,7 +664,10 @@ public static class Loader
 	}
 	internal static bool IsKnownDependency(string assemblyName)
 	{
-		return assemblyName.StartsWith("System.", StringComparison.InvariantCultureIgnoreCase) || assemblyName.StartsWith("Microsoft.", StringComparison.InvariantCultureIgnoreCase) || assemblyName.StartsWith("Newtonsoft.", StringComparison.InvariantCultureIgnoreCase) || assemblyName.StartsWith("UnityEngine.", StringComparison.InvariantCultureIgnoreCase);
+		return assemblyName.StartsWith("System.", StringComparison.InvariantCultureIgnoreCase)
+			|| assemblyName.StartsWith("Microsoft.", StringComparison.InvariantCultureIgnoreCase)
+			|| assemblyName.StartsWith("Newtonsoft.", StringComparison.InvariantCultureIgnoreCase)
+			|| assemblyName.StartsWith("UnityEngine.", StringComparison.InvariantCultureIgnoreCase);
 	}
 
 	internal static void ReportException(string harmonyId, Exception e)

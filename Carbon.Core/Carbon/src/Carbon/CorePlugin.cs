@@ -96,13 +96,13 @@ public class CorePlugin : RustPlugin
 	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
 	private void Exit(ConsoleSystem.Arg arg)
 	{
-		Carbon.Supervisor.Loader.Unload("Carbon.dll");
+		Supervisor.ASM.UnloadModule("Carbon.dll", false);
 	}
 
 	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
 	private void Reboot(ConsoleSystem.Arg arg)
 	{
-		Carbon.Supervisor.Loader.Unload("Carbon.dll", true);
+		Supervisor.ASM.UnloadModule("Carbon.dll", true);
 	}
 
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
@@ -191,6 +191,20 @@ public class CorePlugin : RustPlugin
 				break;
 		}
 	}
+
+#if DEBUG
+	[ConsoleCommand("assembly", "Debug stuff.")]
+	private void AssemblyInfo(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		int count = 0;
+		StringTable body = new StringTable("#", "Assembly", "Version", "Dynamic", "Location");
+		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			body.AddRow($"{count++:n0}", assembly.GetName().Name, assembly.GetName().Version, assembly.IsDynamic, (assembly.IsDynamic) ? string.Empty : assembly.Location);
+		Reply(body.ToStringMinimal(), arg);
+	}
+#endif
 
 	[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
 	private void HookInfo(ConsoleSystem.Arg arg)
@@ -391,7 +405,7 @@ public class CorePlugin : RustPlugin
 			}
 		}
 
-		Carbon.Supervisor.Loader.Update(os, release, (bool result) =>
+		Supervisor.ASM.Update(os, release, (bool result) =>
 		{
 			if (!result)
 			{
@@ -399,7 +413,7 @@ public class CorePlugin : RustPlugin
 				return;
 			}
 			HookCaller.CallStaticHook("OnServerSave");
-			Carbon.Supervisor.Loader.Unload("Carbon.dll", true);
+			Supervisor.ASM.UnloadModule("Carbon.dll", true);
 		});
 	}
 

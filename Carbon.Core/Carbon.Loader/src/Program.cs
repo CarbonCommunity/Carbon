@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Reflection;
-using System.Threading.Tasks;
+using Carbon.LoaderEx.ASM;
 using Carbon.LoaderEx.Common;
 using Carbon.LoaderEx.Utility;
 
@@ -15,12 +15,15 @@ namespace Carbon.LoaderEx;
 
 internal sealed class Program : Singleton<Program>, IDisposable
 {
-	internal static readonly string identifier;
-	internal static readonly string assemblyName;
+	private static readonly string identifier;
+	private static readonly string assemblyName;
 
-	internal HarmonyLib.Harmony _harmonyInstance;
+	private HarmonyLib.Harmony _harmonyInstance;
 	private UnityEngine.GameObject _gameObject;
 
+
+	internal string Name
+	{ get => assemblyName; }
 
 	internal HarmonyLib.Harmony Harmony
 	{ get => _harmonyInstance; }
@@ -56,8 +59,6 @@ internal sealed class Program : Singleton<Program>, IDisposable
 			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
 			@"                                               " + Environment.NewLine
 		);
-
-		AssemblyResolver.GetInstance().WarmupAssemblies();
 	}
 
 	public void Dispose()

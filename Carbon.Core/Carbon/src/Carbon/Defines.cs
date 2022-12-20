@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Carbon.Extensions;
-using Carbon.Hooks;
 using UnityEngine;
 
 namespace Carbon.Core;
@@ -128,4 +127,49 @@ public class Defines
 	}
 
 	#endregion
+
+	internal static readonly IReadOnlyList<string> ReferenceList = new List<string>
+	{
+		"mscorlib",
+		"netstandard",
+
+		"System.Core",
+		"System",
+		"System.Runtime",
+
+		"Carbon",
+
+		"1Harmony",
+		"Assembly-CSharp-firstpass",
+		"Assembly-CSharp",
+		"Facepunch.Console",
+		"Facepunch.Network",
+		"Facepunch.Rcon",
+		"Facepunch.Sqlite",
+		"Facepunch.System",
+		"Facepunch.Unity",
+		"Facepunch.UnityEngine",
+		"Fleck",
+		"Newtonsoft.Json",
+		"Rust.Data",
+		"Rust.Global",
+		"Rust.Harmony",
+		"Rust.Localization",
+		"Rust.Platform.Common",
+		"Rust.World",
+		"UnityEngine.AIModule",
+		"UnityEngine.CoreModule",
+		"UnityEngine",
+		"UnityEngine.ImageConversionModule",
+		"UnityEngine.PhysicsModule",
+		"UnityEngine.SharedInternalsModule",
+		"UnityEngine.TerrainModule",
+		"UnityEngine.TextRenderingModule",
+		"UnityEngine.UI",
+		"UnityEngine.UnityWebRequestAssetBundleModule",
+		"UnityEngine.UnityWebRequestAudioModule",
+		"UnityEngine.UnityWebRequestModule",
+		"UnityEngine.UnityWebRequestTextureModule",
+		"UnityEngine.UnityWebRequestWWWModule",
+	};
 }

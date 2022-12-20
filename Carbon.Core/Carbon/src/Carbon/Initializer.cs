@@ -16,9 +16,9 @@ public class Initializer : IHarmonyModHooks
 		try
 		{
 			Type t = Type.GetType("ServerMgr, Assembly-CSharp");
-			MethodInfo m = t.GetMethod("Shutdown", (BindingFlags)62) ?? null;
+			MethodInfo method = t.GetMethod("Shutdown", (BindingFlags)62) ?? null;
 
-			if (m == null || !m.IsPublic)
+			if (method == null || !method.IsPublic)
 			{
 				Carbon.Logger.Log(Environment.NewLine +
 					@"                                                          " + Environment.NewLine +
@@ -37,29 +37,35 @@ public class Initializer : IHarmonyModHooks
 				Thread.Sleep(15000);
 				return;
 			}
-			else
-			{
-				Carbon.Logger.Log(Environment.NewLine +
-					@"                                               " + Environment.NewLine +
-					@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
-					@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
-					@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
-					@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
-					@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
-					@"                                               " + Environment.NewLine
-				);
-
-				Carbon.Logger.Log("Initializing...");
-
-				if (Community.Runtime == null) Community.Runtime = new Community();
-				else Community.Runtime?.Uninitalize();
-
-				Community.Runtime.Initialize();
-			}
 		}
-		catch (Exception ex)
+		catch (Exception e)
 		{
-			Carbon.Logger.Error("Unable to assert assembly status.", ex);
+			Carbon.Logger.Error("Unable to assert assembly status.", e);
+			return;
+		}
+
+		Carbon.Logger.Log(Environment.NewLine +
+			@"                                               " + Environment.NewLine +
+			@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
+			@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
+			@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
+			@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
+			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
+			@"                                               " + Environment.NewLine
+		);
+
+		try
+		{
+			Carbon.Logger.Log("Initializing...");
+
+			if (Community.Runtime == null) Community.Runtime = new Community();
+			else Community.Runtime?.Uninitalize();
+
+			Community.Runtime.Initialize();
+		}
+		catch (System.Exception e)
+		{
+			Carbon.Logger.Error("Unable to initialize.", e);
 			return;
 		}
 	}

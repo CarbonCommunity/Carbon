@@ -35,7 +35,7 @@ internal sealed class Hijacker
 			string Name = HarmonyMod.GetProperty("Name").GetValue(mod) as string;
 
 			// TODO: better validation
-			if (Regex.IsMatch(Name, Context.Patterns.carbonNamePattern)) continue;
+			if (Regex.IsMatch(Name, Context.Patterns.CarbonManagedFile)) continue;
 			Logger.Warn($"Found loaded plugin '{Name}'");
 
 			try
@@ -71,7 +71,7 @@ internal sealed class Hijacker
 			foreach (string file in Directory.EnumerateFiles(source, "*.dll"))
 			{
 				string name = Path.GetFileName(file);
-				if (string.IsNullOrEmpty(file) || Regex.IsMatch(name, Context.Patterns.carbonFileNamePattern)) continue;
+				if (string.IsNullOrEmpty(file) || Regex.IsMatch(name, Context.Patterns.CarbonManagedFile)) continue;
 				File.Copy(file, Path.Combine(target, name), true);
 				File.Delete(file);
 
@@ -118,7 +118,7 @@ internal sealed class Hijacker
 				nfo = evh.GetMethodInfo();
 
 				// TODO: stop being lazy and do this in a proper way
-				if (nfo.Module.Name.Contains("Rust.Harmony.dll"))
+				if (nfo.Module.Name.Contains("Carbon.Doorstop.dll") || nfo.Module.Name.Contains("Rust.Harmony.dll"))
 				{
 					eventInfo.RemoveEventHandler(AppDomain.CurrentDomain, evh);
 					Logger.Warn($" - Removed {nfo.Name} [{nfo.Module}]");

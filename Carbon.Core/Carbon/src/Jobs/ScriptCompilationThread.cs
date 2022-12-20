@@ -8,12 +8,12 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Carbon.Jobs;
 
@@ -24,6 +24,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string Source;
 	public string[] References;
 	public string[] Requires;
+	public List<string> Usings = new List<string>();
 	public Dictionary<Type, List<string>> Hooks = new Dictionary<Type, List<string>>();
 	public Dictionary<Type, List<string>> UnsupportedHooks = new Dictionary<Type, List<string>>();
 	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new Dictionary<Type, List<HookMethodAttribute>>();
@@ -31,32 +32,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public float CompileTime;
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new List<CompilerException>();
-
 	internal DateTime TimeSinceCompile;
-
-	private static HashSet<MetadataReference> cachedReferences = new HashSet<MetadataReference>();
-	internal static bool _hasInit { get; set; }
-	internal static void _doInit()
-	{
-		if (_hasInit) return;
-		_hasInit = true;
-
-		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-		{
-			try
-			{
-				byte[] raw = Supervisor.Resolver.GetAssemblyBytes(assembly.GetName().Name);
-				if (raw == null || raw.Length == 0) throw new ArgumentException();
-
-				using (MemoryStream mem = new MemoryStream(raw))
-					cachedReferences.Add(MetadataReference.CreateFromStream(mem));
-			}
-			catch { }
-		}
-		Logger.Debug($"ScriptCompilationThread cached {cachedReferences.Count} assemblies", 2);
-	}
-
-	internal static Dictionary<string, object> _referenceCache = new Dictionary<string, object>();
 	internal static Dictionary<string, byte[]> _compilationCache = new Dictionary<string, byte[]>();
 
 	internal static byte[] _getPlugin(string name)
@@ -84,7 +60,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		try
 		{
-			byte[] raw = Supervisor.Resolver.GetAssemblyBytes(reference);
+			byte[] raw = Supervisor.ASM.ReadAssembly(reference);
 			if (raw == null || raw.Length == 0) throw new ArgumentException();
 
 			using (MemoryStream mem = new MemoryStream(raw))
@@ -99,30 +75,55 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal List<MetadataReference> _addReferences()
 	{
-		// add all cached references to the output list
 		var references = new List<MetadataReference>();
-		foreach (var reference in cachedReferences) references.Add(reference as MetadataReference);
+		string id = Path.GetFileNameWithoutExtension(FilePath);
 
-		// goes through the requested references by the plugin
-		foreach (var reference in References)
+		foreach (string item in Defines.ReferenceList)
 		{
-			// checks if they are already cached
-			if (string.IsNullOrEmpty(reference) ||
-				cachedReferences.Any(x => x is MetadataReference metadata && metadata.Display.Contains(reference))) continue;
-
 			try
 			{
-				// actually the method name is inducing error, it must load the asm
-				// from disk as it was already marked as a cache miss
-				var outReference = _getReferenceFromCache(reference);
-
-				// redudant check for references.contains() ?
-				if (outReference != null && !references.Contains(outReference)) references.Add(outReference);
+				Logger.Debug(id, $"Added {item} [1]", 3);
+				byte[] raw = Supervisor.ASM.ReadAssembly(item);
+				using (MemoryStream mem = new MemoryStream(raw))
+					references.Add(MetadataReference.CreateFromStream(mem));
 			}
-			catch { }
+			catch (System.Exception)
+			{
+				Logger.Debug(id, $"Error loading {item} [1]", 3);
+			}
 		}
 
-		Logger.Debug($"ScriptCompilationThread using {references.Count} assembly references", 2);
+		// goes through the requested use list by the plugin
+		foreach (string element in Usings)
+		{
+			try
+			{
+				Logger.Debug(id, $"Added {element} [2]", 3);
+				var outReference = MetadataReference.CreateFromFile(Type.GetType(element).Assembly.Location);
+				if (outReference != null && !references.Contains(outReference)) references.Add(outReference);
+			}
+			catch (System.Exception)
+			{
+				Logger.Debug(id, $"Error loading {element} [2]", 3);
+			}
+		}
+
+		// goes through the requested references by the plugin
+		foreach (string reference in References)
+		{
+			try
+			{
+				Logger.Debug(id, $"Added {reference} [3]", 3);
+				MetadataReference outReference = _getReferenceFromCache(reference);
+				if (outReference != null && !references.Contains(outReference)) references.Add(outReference);
+			}
+			catch (System.Exception)
+			{
+				Logger.Debug(id, $"Error loading {reference} [3]", 3);
+			}
+		}
+
+		Logger.Debug($"{id} using {references.Count} assembly references", 3);
 		return references;
 	}
 
@@ -140,13 +141,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	public override void Start()
 	{
-		try
-		{
-			FileName = Path.GetFileNameWithoutExtension(FilePath);
-			_doInit();
-		}
-		catch (Exception ex) { Logger.Error($"Couldn't compile '{FileName}'", ex); }
-
 		base.Start();
 	}
 
@@ -155,12 +149,20 @@ public class ScriptCompilationThread : BaseThreadedJob
 		try
 		{
 			Exceptions.Clear();
-
 			TimeSinceCompile = DateTime.Now;
+			FileName = Path.GetFileNameWithoutExtension(FilePath);
+
+			var trees = new List<SyntaxTree>();
+
+			SyntaxTree tree = CSharpSyntaxTree.ParseText(
+				Source, options: new CSharpParseOptions(LanguageVersion.Latest));
+			trees.Add(tree);
+
+			CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+			foreach (UsingDirectiveSyntax element in root.Usings)
+				Usings.Add($"{element.Name}");
 
 			var references = _addReferences();
-			var trees = new List<SyntaxTree>();
-			trees.Add(CSharpSyntaxTree.ParseText(Source, new CSharpParseOptions(LanguageVersion.Latest)));
 
 			foreach (string require in Requires)
 			{
