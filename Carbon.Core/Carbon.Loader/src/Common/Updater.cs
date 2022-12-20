@@ -95,7 +95,6 @@ public static class Updater
 					}
 				}
 				retval = true;
-				//AssemblyResolver.GetInstance().WarmupAssemblies();
 			}
 			catch (System.Exception e)
 			{

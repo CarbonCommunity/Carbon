@@ -134,10 +134,13 @@ public class Defines
 		"netstandard",
 
 		"System.Core",
-		"System",
+		"System.Data",
+		"System.Drawing",
 		"System.Runtime",
+		"System",
 
 		"Carbon",
+		"protobuf-net",
 
 		"1Harmony",
 		"Assembly-CSharp-firstpass",
