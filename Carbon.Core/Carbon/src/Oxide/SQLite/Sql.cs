@@ -112,22 +112,22 @@ public class Sql
 	public Sql OrderBy(params object[] columns)
 	{
 		return Append(new Sql("ORDER BY " + string.Join(", ", (from x in columns
-			select x.ToString()).ToArray<string>()), Array.Empty<object>()));
+															   select x.ToString()).ToArray<string>()), Array.Empty<object>()));
 	}
 	public Sql Select(params object[] columns)
 	{
 		return Append(new Sql("SELECT " + string.Join(", ", (from x in columns
-			select x.ToString()).ToArray<string>()), Array.Empty<object>()));
+															 select x.ToString()).ToArray<string>()), Array.Empty<object>()));
 	}
 	public Sql From(params object[] tables)
 	{
 		return Append(new Sql("FROM " + string.Join(", ", (from x in tables
-			select x.ToString()).ToArray<string>()), Array.Empty<object>()));
+														   select x.ToString()).ToArray<string>()), Array.Empty<object>()));
 	}
 	public Sql GroupBy(params object[] columns)
 	{
 		return Append(new Sql("GROUP BY " + string.Join(", ", (from x in columns
-			select x.ToString()).ToArray<string>()), Array.Empty<object>()));
+															   select x.ToString()).ToArray<string>()), Array.Empty<object>()));
 	}
 	private SqlJoinClause Join(string joinType, string table)
 	{

@@ -1,4 +1,4 @@
-///
+﻿///
 /// Copyright (c) 2022 Carbon Community 
 /// All rights reserved
 /// 
@@ -25,285 +25,285 @@ namespace Carbon;
 
 public class Community
 {
-    public static string Version { get; set; } = "Unknown";
-    public static string InformationalVersion { get; set; } = "Unknown";
+	public static string Version { get; set; } = "Unknown";
+	public static string InformationalVersion { get; set; } = "Unknown";
 
-    public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
-    public static Community Runtime { get; set; }
+	public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
+	public static Community Runtime { get; set; }
 
-    public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
+	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
 
-    public const OS OperatingSystem =
+	public const OS OperatingSystem =
 #if WIN
-        OS.Windows;
+		OS.Windows;
 #else
         OS.Linux;
 #endif
-    public const Release ReleaseType =
+	public const Release ReleaseType =
 #if DEBUG
-        Release.Staging;
+		Release.Staging;
 #else
         Release.Production;
 #endif
 
-    public enum OS { Windows, Linux }
-    public enum Release { Develop, Staging, Production }
+	public enum OS { Windows, Linux }
+	public enum Release { Develop, Staging, Production }
 
-    public Config Config { get; set; }
-    public RustPlugin CorePlugin { get; set; }
-    public Loader.CarbonMod Plugins { get; set; }
-    public Entities Entities { get; set; }
-    public bool IsInitialized { get; set; }
+	public Config Config { get; set; }
+	public RustPlugin CorePlugin { get; set; }
+	public Loader.CarbonMod Plugins { get; set; }
+	public Entities Entities { get; set; }
+	public bool IsInitialized { get; set; }
 
-    #region Config
+	#region Config
 
-    public void LoadConfig()
-    {
-        if (!OsEx.File.Exists(Defines.GetConfigFile()))
-        {
-            SaveConfig();
-            return;
-        }
+	public void LoadConfig()
+	{
+		if (!OsEx.File.Exists(Defines.GetConfigFile()))
+		{
+			SaveConfig();
+			return;
+		}
 
-        Config = JsonConvert.DeserializeObject<Config>(OsEx.File.ReadText(Defines.GetConfigFile()));
-    }
+		Config = JsonConvert.DeserializeObject<Config>(OsEx.File.ReadText(Defines.GetConfigFile()));
+	}
 
-    public void SaveConfig()
-    {
-        if (Config == null) Config = new Config();
+	public void SaveConfig()
+	{
+		if (Config == null) Config = new Config();
 
-        OsEx.File.Create(Defines.GetConfigFile(), JsonConvert.SerializeObject(Config, Formatting.Indented));
-    }
+		OsEx.File.Create(Defines.GetConfigFile(), JsonConvert.SerializeObject(Config, Formatting.Indented));
+	}
 
-    #endregion
+	#endregion
 
-    #region Commands
+	#region Commands
 
-    public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand>();
-    public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand>();
+	public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand>();
+	public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand>();
 
-    internal void _clearCommands(bool all = false)
-    {
-        if (all)
-        {
-            AllChatCommands.Clear();
-            AllConsoleCommands.Clear();
-        }
-        else
-        {
-            AllChatCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
-            AllConsoleCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
-        }
-    }
-    internal void _installDefaultCommands()
-    {
-        CorePlugin = new CorePlugin { Name = "Core", IsCorePlugin = true };
-        Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = true };
-        CorePlugin.IInit();
+	internal void _clearCommands(bool all = false)
+	{
+		if (all)
+		{
+			AllChatCommands.Clear();
+			AllConsoleCommands.Clear();
+		}
+		else
+		{
+			AllChatCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
+			AllConsoleCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
+		}
+	}
+	internal void _installDefaultCommands()
+	{
+		CorePlugin = new CorePlugin { Name = "Core", IsCorePlugin = true };
+		Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = true };
+		CorePlugin.IInit();
 
-        Loader._loadedMods.Add(new Loader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
-        Loader._loadedMods.Add(Plugins);
+		Loader._loadedMods.Add(new Loader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
+		Loader._loadedMods.Add(Plugins);
 
-        Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
-    }
+		Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
+	}
 
-    #endregion
+	#endregion
 
-    #region Processors
+	#region Processors
 
-    public CarbonProcessor CarbonProcessor { get; set; }
-    public ScriptProcessor ScriptProcessor { get; set; }
-    public WebScriptProcessor WebScriptProcessor { get; set; }
-    public HarmonyProcessor HarmonyProcessor { get; set; }
-    public ModuleProcessor ModuleProcessor { get; set; }
+	public CarbonProcessor CarbonProcessor { get; set; }
+	public ScriptProcessor ScriptProcessor { get; set; }
+	public WebScriptProcessor WebScriptProcessor { get; set; }
+	public HarmonyProcessor HarmonyProcessor { get; set; }
+	public ModuleProcessor ModuleProcessor { get; set; }
 
-    internal HookManager HookProcessorEx { get; set; }
+	internal HookManager HookProcessorEx { get; set; }
 
-    internal void _installProcessors()
-    {
-        Carbon.Logger.Log("Installed processors");
+	internal void _installProcessors()
+	{
+		Carbon.Logger.Log("Installed processors");
 
-        if (ScriptProcessor == null ||
-            WebScriptProcessor == null ||
-            HarmonyProcessor == null ||
-            ModuleProcessor == null ||
-            CarbonProcessor)
-        {
-            _uninstallProcessors();
+		if (ScriptProcessor == null ||
+			WebScriptProcessor == null ||
+			HarmonyProcessor == null ||
+			ModuleProcessor == null ||
+			CarbonProcessor)
+		{
+			_uninstallProcessors();
 
-            var gameObject = new GameObject("Processors");
-            ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
-            WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
-            HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor>();
-            CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-            HookProcessorEx = gameObject.AddComponent<HookManager>();
-            ModuleProcessor = new ModuleProcessor();
-            Entities = new Entities();
+			var gameObject = new GameObject("Processors");
+			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
+			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
+			HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor>();
+			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
+			HookProcessorEx = gameObject.AddComponent<HookManager>();
+			ModuleProcessor = new ModuleProcessor();
+			Entities = new Entities();
 
-        }
+		}
 
-        _registerProcessors();
-    }
-    internal void _registerProcessors()
-    {
-        if (ScriptProcessor != null) ScriptProcessor?.Start();
-        if (WebScriptProcessor != null) WebScriptProcessor?.Start();
-        if (HarmonyProcessor != null) HarmonyProcessor?.Start();
+		_registerProcessors();
+	}
+	internal void _registerProcessors()
+	{
+		if (ScriptProcessor != null) ScriptProcessor?.Start();
+		if (WebScriptProcessor != null) WebScriptProcessor?.Start();
+		if (HarmonyProcessor != null) HarmonyProcessor?.Start();
 
-        if (ScriptProcessor != null) ScriptProcessor.InvokeRepeating(() => { RefreshConsoleInfo(); }, 1f, 1f);
-        Carbon.Logger.Log("Registered processors");
-    }
-    internal void _uninstallProcessors()
-    {
-        var obj = ScriptProcessor == null ? null : ScriptProcessor.gameObject;
+		if (ScriptProcessor != null) ScriptProcessor.InvokeRepeating(() => { RefreshConsoleInfo(); }, 1f, 1f);
+		Carbon.Logger.Log("Registered processors");
+	}
+	internal void _uninstallProcessors()
+	{
+		var obj = ScriptProcessor == null ? null : ScriptProcessor.gameObject;
 
-        try
-        {
-            if (ScriptProcessor != null) ScriptProcessor?.Dispose();
-            if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
-            if (HarmonyProcessor != null) HarmonyProcessor?.Dispose();
-            if (ModuleProcessor != null) ModuleProcessor?.Dispose();
-            if (CarbonProcessor != null) CarbonProcessor?.Dispose();
-        }
-        catch { }
+		try
+		{
+			if (ScriptProcessor != null) ScriptProcessor?.Dispose();
+			if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
+			if (HarmonyProcessor != null) HarmonyProcessor?.Dispose();
+			if (ModuleProcessor != null) ModuleProcessor?.Dispose();
+			if (CarbonProcessor != null) CarbonProcessor?.Dispose();
+		}
+		catch { }
 
-        try
-        {
-            if (ScriptProcessor != null) UnityEngine.Object.DestroyImmediate(ScriptProcessor);
-            if (WebScriptProcessor != null) UnityEngine.Object.DestroyImmediate(WebScriptProcessor);
-            if (HarmonyProcessor != null) UnityEngine.Object.DestroyImmediate(HarmonyProcessor);
-            if (CarbonProcessor != null) UnityEngine.Object.DestroyImmediate(CarbonProcessor);
-        }
-        catch { }
+		try
+		{
+			if (ScriptProcessor != null) UnityEngine.Object.DestroyImmediate(ScriptProcessor);
+			if (WebScriptProcessor != null) UnityEngine.Object.DestroyImmediate(WebScriptProcessor);
+			if (HarmonyProcessor != null) UnityEngine.Object.DestroyImmediate(HarmonyProcessor);
+			if (CarbonProcessor != null) UnityEngine.Object.DestroyImmediate(CarbonProcessor);
+		}
+		catch { }
 
-        try
-        {
-            if (obj != null) UnityEngine.Object.Destroy(obj);
-        }
-        catch { }
-    }
+		try
+		{
+			if (obj != null) UnityEngine.Object.Destroy(obj);
+		}
+		catch { }
+	}
 
-    #endregion
+	#endregion
 
-    #region Logging
+	#region Logging
 
-    public static void LogCommand(object message, BasePlayer player = null)
-    {
-        if (player == null)
-        {
-            Carbon.Logger.Log(message);
-            return;
-        }
+	public static void LogCommand(object message, BasePlayer player = null)
+	{
+		if (player == null)
+		{
+			Carbon.Logger.Log(message);
+			return;
+		}
 
-        player.SendConsoleCommand($"echo {message}");
-    }
+		player.SendConsoleCommand($"echo {message}");
+	}
 
-    #endregion
+	#endregion
 
-    public static void ReloadPlugins()
-    {
-        Loader.ClearAllErrored();
-        Loader.ClearAllRequirees();
+	public static void ReloadPlugins()
+	{
+		Loader.ClearAllErrored();
+		Loader.ClearAllRequirees();
 
-        Loader.LoadCarbonMods();
-        ScriptLoader.LoadAll();
-    }
-    public static void ClearPlugins()
-    {
-        Runtime?._clearCommands();
-        Loader.UnloadCarbonMods();
-    }
+		Loader.LoadCarbonMods();
+		ScriptLoader.LoadAll();
+	}
+	public static void ClearPlugins()
+	{
+		Runtime?._clearCommands();
+		Loader.UnloadCarbonMods();
+	}
 
-    public void RefreshConsoleInfo()
-    {
+	public void RefreshConsoleInfo()
+	{
 #if WIN
-        if (!IsConfigReady || !Config.ShowConsoleInfo) return;
+		if (!IsConfigReady || !Config.ShowConsoleInfo) return;
 
-        if (!IsServerFullyInitialized) return;
-        if (ServerConsole.Instance.input.statusText.Length != 4) ServerConsole.Instance.input.statusText = new string[4];
+		if (!IsServerFullyInitialized) return;
+		if (ServerConsole.Instance.input.statusText.Length != 4) ServerConsole.Instance.input.statusText = new string[4];
 
-        var version =
+		var version =
 #if DEBUG
-            InformationalVersion;
+			InformationalVersion;
 #else
             Version;
 #endif
 
-        ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader._loadedMods.Count:n0} mods, {Loader._loadedMods.Sum(x => x.Plugins.Count):n0} plgs";
+		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader._loadedMods.Count:n0} mods, {Loader._loadedMods.Sum(x => x.Plugins.Count):n0} plgs";
 #endif
-    }
+	}
 
-    public void Initialize()
-    {
-        if (IsInitialized) return;
+	public void Initialize()
+	{
+		if (IsInitialized) return;
 
-        #region Handle Versions
+		#region Handle Versions
 
-        var assembly = typeof(Community).Assembly;
+		var assembly = typeof(Community).Assembly;
 
-        try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion; } catch { }
-        try { Version = assembly.GetName().Version.ToString(); } catch { }
+		try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion; } catch { }
+		try { Version = assembly.GetName().Version.ToString(); } catch { }
 
-        #endregion
+		#endregion
 
-        LoadConfig();
+		LoadConfig();
 
-        Carbon.Logger.Log("Loaded config");
+		Carbon.Logger.Log("Loaded config");
 
-        Carbon.Logger.Log($"Loading...");
+		Carbon.Logger.Log($"Loading...");
 
-        Defines.Initialize();
+		Defines.Initialize();
 
-        _installProcessors();
+		_installProcessors();
 
-        Interface.Initialize();
+		Interface.Initialize();
 
-        _clearCommands();
-        _installDefaultCommands();
+		_clearCommands();
+		_installDefaultCommands();
 
-        HookValidator.Refresh();
+		HookValidator.Refresh();
 
-        ReloadPlugins();
+		ReloadPlugins();
 
-        Carbon.Logger.Log($"Loaded.");
+		Carbon.Logger.Log($"Loaded.");
 
-        RefreshConsoleInfo();
+		RefreshConsoleInfo();
 
-        IsInitialized = true;
+		IsInitialized = true;
 
-        Entities.Init();
-    }
-    public void Uninitalize()
-    {
-        try
-        {
-            _uninstallProcessors();
-            _clearCommands(all: true);
+		Entities.Init();
+	}
+	public void Uninitalize()
+	{
+		try
+		{
+			_uninstallProcessors();
+			_clearCommands(all: true);
 
-            HookProcessorEx.enabled = false;
+			HookProcessorEx.enabled = false;
 
-            ClearPlugins();
-            Loader._loadedMods.Clear();
-            UnityEngine.Debug.Log($"Unloaded Carbon.");
+			ClearPlugins();
+			Loader._loadedMods.Clear();
+			UnityEngine.Debug.Log($"Unloaded Carbon.");
 
 #if WIN
-            try
-            {
-                if (IsConfigReady && Config.ShowConsoleInfo && ServerConsole.Instance != null && ServerConsole.Instance.input != null)
-                {
-                    ServerConsole.Instance.input.statusText = new string[3];
-                }
-            }
-            catch { }
+			try
+			{
+				if (IsConfigReady && Config.ShowConsoleInfo && ServerConsole.Instance != null && ServerConsole.Instance.input != null)
+				{
+					ServerConsole.Instance.input.statusText = new string[3];
+				}
+			}
+			catch { }
 #endif
 
-            Entities.Dispose();
+			Entities.Dispose();
 
-            Carbon.Logger._dispose();
-        }
-        catch (Exception ex)
-        {
-            Carbon.Logger.Error($"Failed Carbon uninitialization.", ex);
-        }
-    }
+			Carbon.Logger._dispose();
+		}
+		catch (Exception ex)
+		{
+			Carbon.Logger.Error($"Failed Carbon uninitialization.", ex);
+		}
+	}
 }

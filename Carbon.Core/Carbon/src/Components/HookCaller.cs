@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
-using Epic.OnlineServices.Lobby;
 using Facepunch;
 
 namespace Carbon

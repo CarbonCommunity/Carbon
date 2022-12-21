@@ -87,8 +87,8 @@ public class Permission
 		if (!IsLoaded || validate == null) return;
 
 		var array = (from k in userdata.Keys
-			where !validate(k)
-			select k).ToArray();
+					 where !validate(k)
+					 select k).ToArray();
 
 		if (array.Length == 0) return;
 
@@ -394,8 +394,8 @@ public class Permission
 
 		group = group.ToLower();
 		return (from u in userdata
-			where u.Value.Groups.Contains(@group)
-			select u.Key + " (" + u.Value.LastSeenNickname + ")").ToArray();
+				where u.Value.Groups.Contains(@group)
+				select u.Key + " (" + u.Value.LastSeenNickname + ")").ToArray();
 	}
 
 	public string GetGroupTitle(string group)
@@ -440,8 +440,8 @@ public class Permission
 			}
 			perm = perm.TrimEnd(Star);
 			(from s in source
-				where s.StartsWith(perm)
-				select s).Aggregate(false, (bool c, string s) => c | data.Perms.Add(s));
+			 where s.StartsWith(perm)
+			 select s).Aggregate(false, (bool c, string s) => c | data.Perms.Add(s));
 			return true;
 		}
 		else
@@ -503,8 +503,8 @@ public class Permission
 			}
 			perm = perm.TrimEnd(Star).ToLower();
 			(from s in source
-				where s.StartsWith(perm)
-				select s).Aggregate(false, (bool c, string s) => c | data.Perms.Add(s));
+			 where s.StartsWith(perm)
+			 select s).Aggregate(false, (bool c, string s) => c | data.Perms.Add(s));
 			return true;
 		}
 		else

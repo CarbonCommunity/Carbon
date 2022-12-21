@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Carbon.LoaderEx.ASM;
 using Carbon.LoaderEx.Utility;
 using SharpCompress.Common;
 using SharpCompress.Readers;

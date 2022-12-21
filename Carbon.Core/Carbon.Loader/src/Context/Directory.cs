@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Carbon.LoaderEx.Utility;
-using Facepunch;
 
 /*
  *

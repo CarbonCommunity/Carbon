@@ -87,9 +87,9 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 	}
 
 	private Assembly ResolveAssembly(object sender, ResolveEventArgs args)
-		=> ResolveAssembly(sender, args, false);
+		=> ResolveAssembly(sender, args, false, true);
 
-	private Assembly ResolveAssembly(object sender, ResolveEventArgs args, bool forced)
+	private Assembly ResolveAssembly(object sender, ResolveEventArgs args, bool forced, bool silent)
 	{
 		Assembly assembly;
 		AssemblyName request = NormalizeModuleName(args.Name);
@@ -124,14 +124,14 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 
 			// loads a dynamic assembly for the first time, we respect the cache
 			// version of it.
-			byte[] raw = ReadCache(request);
+			byte[] raw = ReadCache(request, true);
 
 			if (raw == null || forced)
 			{
 				string location = FindFile(request);
 				if (location == null) throw new Exception("File not found");
 
-				raw = ReadFile(location);
+				raw = ReadFile(location, true);
 				if (raw == null) throw new Exception("Unable to read file");
 
 				string nickname = $"{request.Name}_{Guid.NewGuid():N}";
@@ -185,7 +185,7 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 		}
 	}
 
-	private byte[] ReadCache(AssemblyName assemblyName)
+	private byte[] ReadCache(AssemblyName assemblyName, bool verbose = false)
 	{
 		try
 		{
@@ -193,7 +193,7 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 			//if (_aliases.TryGetValue(assemblyName.Name, out string nickname)) needle = nickname;
 
 			byte[] raw = _cache.SingleOrDefault(x => x.Key.Equals(needle)).Value ?? null;
-			Logger.Debug($" - ReadCache request:{assemblyName} needle:{needle} result:{(raw == null ? false : true)}");
+			if (verbose) Logger.Debug($" - ReadCache request:{assemblyName} needle:{needle} result:{(raw == null ? false : true)}");
 			return raw;
 		}
 		catch (System.Exception e)
@@ -203,10 +203,8 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 		}
 	}
 
-	private byte[] ReadFile(string file)
+	private byte[] ReadFile(string file, bool verbose = false)
 	{
-		Logger.Debug($" - ReadFile {file}");
-
 		try
 		{
 			if (!File.Exists(file)) throw new FileNotFoundException();
@@ -219,16 +217,7 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 				raw = Package(sha1, tmp, 24);
 			}
 
-			/*
-						// special case asm files we expect to be reloaded during runtime
-						if (dynamicAssemblies.Contains(Path.GetFileNameWithoutExtension(file)))
-						{
-							raw = RenameAssembly(raw, // update carbon.dll on disk with new asm name
-								(Path.GetFileName(file).Equals("Carbon.dll")) ? file : null);
-						}
-			*/
-
-			Logger.Debug($" - Loading file '{Path.GetFileName(file)}', read {raw.Length} bytes from disk");
+			if (verbose) Logger.Debug($" - Loading file '{Path.GetFileName(file)}', read {raw.Length} bytes from disk");
 			return raw;
 		}
 		catch (System.Exception e)
@@ -346,5 +335,5 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 	/// <param name="file">The full file path to the assembly file on disk</param>
 	/// <param name="forced">Forces the file to be re-read and re-loaded into the App Domain</param>
 	internal Assembly LoadAssembly(string file, bool forced = false)
-		=> ResolveAssembly(this, args: new ResolveEventArgs(file, Assembly.GetExecutingAssembly()), forced);
+		=> ResolveAssembly(this, args: new ResolveEventArgs(file, Assembly.GetExecutingAssembly()), forced, false);
 }
