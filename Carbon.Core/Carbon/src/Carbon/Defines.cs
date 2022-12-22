@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using Carbon.Extensions;
 using UnityEngine;
 
@@ -15,12 +14,8 @@ namespace Carbon.Core;
 [Serializable]
 public class Defines
 {
-	public static Assembly Carbon { get; internal set; }
-
 	public static void Initialize()
 	{
-		Carbon = typeof(Community).Assembly;
-
 		GetRootFolder();
 		GetConfigsFolder();
 		GetModulesFolder();
@@ -35,13 +30,6 @@ public class Defines
 	}
 
 	#region Paths
-
-	public const string Name = "Carbon";
-	public const string DllName = "Carbon.dll";
-
-	public static string DllLoaderPath => Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HarmonyMods", "Carbon.Loader.dll"));
-	public static string DllManagedPath => Path.GetFullPath(Path.Combine(GetManagedFolder(), "Carbon.dll"));
-	public static string DllManagedPdbPath => Path.GetFullPath(Path.Combine(GetManagedFolder(), "Carbon.pdb"));
 
 	public static string GetConfigFile()
 	{

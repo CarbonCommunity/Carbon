@@ -16,7 +16,24 @@ internal static class ASM
 	private static Type _assemblyResolver, _harmonyLoader;
 
 	private static Func<object> GetResolverInstance, GetLoaderInstance;
+
+
+	/// <summary>
+	/// Gets the array of bytes of a loaded type from AppDomain.<br/>
+	/// If the assembly is not found at the registered App Domain, an exception
+	/// will be thrown.
+	/// </summary>
+	///
+	/// <param name="name">Assembly name, short of full name</param>
 	internal static Func<string, byte[]> ReadAssembly;
+
+	/// <summary>
+	/// Returns true if the assembly name of the provided file matches the one
+	/// we have stored in cache, false if not found on cache or not matching.
+	/// </summary>
+	///
+	/// <param name="file">The full file path to the assembly file on disk</param>
+	internal static Func<string, bool> CheckAssembly;
 
 	/// <summary>
 	/// Loads assembly into AppDomain by always reading it back from disk.<br/>
@@ -59,6 +76,9 @@ internal static class ASM
 
 			ReadAssembly = (Func<string, byte[]>)Delegate
 				.CreateDelegate(typeof(Func<string, byte[]>), GetResolverInstance(), "ReadAssembly");
+
+			CheckAssembly = (Func<string, bool>)Delegate
+				.CreateDelegate(typeof(Func<string, bool>), GetResolverInstance(), "CheckAssemblyNameCache");
 
 			LoadModule = (Func<string, Assembly>)Delegate
 				.CreateDelegate(typeof(Func<string, Assembly>), GetLoaderInstance(), "Load");

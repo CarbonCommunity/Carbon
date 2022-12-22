@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Carbon.LoaderEx.ASM;
 
 /*
@@ -14,7 +15,7 @@ namespace Carbon.LoaderEx.Harmony;
 
 internal class HarmonyPlugin : IDisposable
 {
-	private System.Reflection.Assembly _assembly;
+	private Assembly _assembly;
 	private bool _enabled;
 	private HarmonyLib.Harmony _handler;
 	private List<IHarmonyModHooks> _hooks;
@@ -61,9 +62,14 @@ internal class HarmonyPlugin : IDisposable
 		_handler = new HarmonyLib.Harmony(_identifier);
 	}
 
-	internal HarmonyPlugin(System.Reflection.Assembly assembly) : this()
+	internal HarmonyPlugin(Assembly assembly) : this()
 	{
 		_assembly = assembly;
+	}
+
+	internal HarmonyPlugin(byte[] raw) : this()
+	{
+		_assembly = Assembly.Load(raw);
 	}
 
 	internal HarmonyPlugin(string file, string location) : this()

@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Carbon.LoaderEx.ASM;
 using Carbon.LoaderEx.Common;
+using Carbon.LoaderEx.Utility;
 
 /*
  *
@@ -56,6 +58,10 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 					mod.Awake();
 					mod.OnLoaded();
 					_loadedPlugins.Add(mod);
+
+					foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetName().Name.StartsWith("Carbon")))
+						Logger.Debug($"---> {assembly.GetName().Name} {assembly.GetName().Version}");
+
 					return mod.Assembly;
 
 				// case ".drm"
@@ -72,6 +78,8 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 			throw;
 		}
 	}
+
+
 
 	/// <summary>
 	/// Calls the assembly OnUnloaded() and Dispose() methods to "unload".<br/>
@@ -102,7 +110,10 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 			throw;
 		}
 
-		if (reload) Load(fileName);
+		if (reload)
+		{
+			Load(fileName);
+		}
 	}
 
 	internal bool IsLoaded(string fileName)

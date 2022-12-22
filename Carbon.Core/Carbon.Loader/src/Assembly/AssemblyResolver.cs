@@ -25,8 +25,9 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 	private AppDomain _domain;
 	private DefaultAssemblyResolver _resolver;
 	private Dictionary<string, byte[]> _cache;
+	private Dictionary<string, Tuple<string, Version>> _aliases;
 
-	private static readonly string[] lookupLocations =
+	private static readonly string[] LookupLocations =
 	{
 		Context.Directories.CarbonManaged,
 		Context.Directories.CarbonModules,
@@ -34,7 +35,7 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 		Context.Directories.GameManaged,
 	};
 
-	private static readonly string[] dynamicAssemblies =
+	private static readonly string[] DynamicAssemblies =
 	{
 		"Carbon", "Carbon.Hooks"
 	};
@@ -44,8 +45,10 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 	internal AssemblyResolver()
 	{
 		_cache = new Dictionary<string, byte[]>();
+		_aliases = new Dictionary<string, Tuple<string, Version>>();
+
 		_resolver = new DefaultAssemblyResolver();
-		foreach (string item in lookupLocations) _resolver.AddSearchDirectory(item);
+		foreach (string item in LookupLocations) _resolver.AddSearchDirectory(item);
 	}
 
 	public void Dispose()
@@ -57,13 +60,16 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 
 		_cache.Clear();
 		_cache = default;
+
+		_aliases.Clear();
+		_aliases = default;
 	}
 
 	internal bool IsPath(string file)
 		=> file.Contains(Path.DirectorySeparatorChar);
 
 	internal bool IsDynamicModule(AssemblyName assemblyName)
-		=> (dynamicAssemblies.Contains(assemblyName.Name));
+		=> (DynamicAssemblies.Contains(assemblyName.Name));
 
 	internal AssemblyName NormalizeModuleName(string name)
 	{
@@ -91,12 +97,13 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 
 	private Assembly ResolveAssembly(object sender, ResolveEventArgs args, bool forced, bool silent)
 	{
-		Assembly assembly;
 		AssemblyName request = NormalizeModuleName(args.Name);
 		AssemblyName requester = NormalizeModuleName(args.RequestingAssembly.FullName);
 
 		try
 		{
+			Assembly assembly;
+
 			// the assembly is not expected to be re-loaded during runtime, thus
 			// we can use the LoadFile() method that will lock the file on disk.
 			if (!IsDynamicModule(request))
@@ -122,20 +129,22 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 				return assembly;
 			}
 
-			// loads a dynamic assembly for the first time, we respect the cache
-			// version of it.
-			byte[] raw = ReadCache(request, true);
+			// tries to get the cached version of the assembly, unless we are
+			// forcing it be re-read from disk
+			byte[] raw = (forced) ? null : ReadCache(request, true);
 
-			if (raw == null || forced)
+			if (raw == null)
 			{
 				string location = FindFile(request);
 				if (location == null) throw new Exception("File not found");
 
+				// edge case for carbon.dll which needs to be saved back to disk
+				if (Path.GetFileName(location).Equals("Carbon.dll", Context.Patterns.IgnoreCase))
+					SetRandomAssemblyName(location);
+
 				raw = ReadFile(location, true);
 				if (raw == null) throw new Exception("Unable to read file");
-
-				string nickname = $"{request.Name}_{Guid.NewGuid():N}";
-				SetAssemblyName(ref raw, nickname, Path.GetFileName(location).Equals("Carbon.dll") ? location : null);
+				SetRandomAssemblyName(ref raw);
 			}
 
 			_cache[request.Name] = raw;
@@ -169,7 +178,7 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 				locations = new string[] { Context.Directories.CarbonManaged };
 
 			else if (locations == null)
-				locations = lookupLocations;
+				locations = LookupLocations;
 
 			foreach (string location in locations)
 			{
@@ -189,21 +198,18 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 	{
 		try
 		{
-			string needle = assemblyName.Name;
-			//if (_aliases.TryGetValue(assemblyName.Name, out string nickname)) needle = nickname;
-
-			byte[] raw = _cache.SingleOrDefault(x => x.Key.Equals(needle)).Value ?? null;
-			if (verbose) Logger.Debug($" - ReadCache request:{assemblyName} needle:{needle} result:{(raw == null ? false : true)}");
+			byte[] raw = _cache.SingleOrDefault(x => x.Key.Equals(assemblyName.Name)).Value ?? null;
+			if (verbose) Logger.Debug($" - ReadCache request:{assemblyName.Name} result:{(raw != null)}");
 			return raw;
 		}
 		catch (System.Exception e)
 		{
-			Logger.Error($"Unable to read from in-memory cache '{assemblyName}'", e);
+			Logger.Error($"Unable to read from in-memory cache '{assemblyName.Name}'", e);
 			return default;
 		}
 	}
 
-	private byte[] ReadFile(string file, bool verbose = false)
+	private static byte[] ReadFile(string file, bool verbose = false)
 	{
 		try
 		{
@@ -250,49 +256,70 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 		return -1;
 	}
 
-	private AssemblyName GetAssemblyName(string file)
+	private void SetRandomAssemblyName(string file)
 	{
-		if (!File.Exists(file)) throw new Exception("File not found");
-		byte[] raw = ReadFile(file);
-
-		using MemoryStream input = new MemoryStream(raw);
-		AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(
-			input, parameters: new ReaderParameters { AssemblyResolver = _resolver });
-
-		return new AssemblyName(assemblyDefinition.FullName);
-	}
-
-	private AssemblyName GetAssemblyName(byte[] raw)
-	{
-		using MemoryStream input = new MemoryStream(raw);
-		AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(
-			input, parameters: new ReaderParameters { AssemblyResolver = _resolver });
-
-		return new AssemblyName(assemblyDefinition.FullName);
-	}
-
-	private void SetAssemblyName(ref byte[] raw, string nickname, string file = null)
-	{
-		using MemoryStream input = new MemoryStream(raw);
-		AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(
-			input, parameters: new ReaderParameters { AssemblyResolver = _resolver });
-
-		if (!Regex.Match(assemblyDefinition.Name.Name, Patterns.RenamedAssembly).Success)
+		try
 		{
-			Logger.Debug($" - Assembly name is '{assemblyDefinition.Name.Name}', rename to '{nickname}'");
-			assemblyDefinition.Name = new AssemblyNameDefinition(nickname, assemblyDefinition.Name.Version);
-		}
+			// try to get the full path to the assembly file
+			if (Path.GetFileName(file).Equals(file)) file = FindFile(NormalizeModuleName(file));
+			if (file == null) throw new Exception("Unable to find file");
 
-		if (file != null && File.Exists(file))
-		{
-			Logger.Debug($" - Saved assembly to disk'");
+			byte[] raw = File.ReadAllBytes(file);
+			if (raw == null) throw new Exception("Unable to read file");
+
+			SetRandomAssemblyName(ref raw);
+
 			using FileStream disk = new FileStream(file, FileMode.Truncate);
-			assemblyDefinition.Write(disk);
+			Logger.Debug($" - Saved assembly to disk");
+			disk.Write(raw, 0, raw.Length);
+			return;
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error("[SetRandomAssemblyName] Error", e);
+		}
+	}
+
+	private void SetRandomAssemblyName(ref byte[] raw)
+	{
+		using MemoryStream input = new MemoryStream(raw);
+		AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(
+			input, parameters: new ReaderParameters { AssemblyResolver = _resolver, InMemory = true });
+
+		AssemblyName assemblyName = NormalizeModuleName(assemblyDefinition.Name.Name);
+		string nickname = $"{assemblyName.Name}_{Guid.NewGuid():N}";
+
+		Logger.Debug($" - Assembly name is '{assemblyDefinition.Name.Name}' " +
+			$"normalized:'{assemblyName.Name}' version:'{assemblyDefinition.Name.Version}'");
+
+		// checks if this assembly was already renamed in the past
+		if (_aliases.TryGetValue(assemblyName.Name, out Tuple<string, Version> meta))
+		{
+			if (assemblyDefinition.Name.Name == meta.Item1) return;
+
+			if (assemblyDefinition.Name.Version == meta.Item2)
+			{
+				Logger.Debug($" - Rename to cached name '{meta.Item1}'");
+				assemblyDefinition.Name = new AssemblyNameDefinition(meta.Item1, assemblyDefinition.Name.Version);
+			}
+			else
+			{
+				Logger.Debug($" - Rename to new '{nickname}' [missmatch version]");
+				_aliases[assemblyName.Name] = new Tuple<string, Version>(nickname, assemblyDefinition.Name.Version);
+				assemblyDefinition.Name = new AssemblyNameDefinition(nickname, assemblyDefinition.Name.Version);
+			}
+		}
+		else
+		{
+			Logger.Debug($" - Rename to new '{nickname}'");
+			_aliases[assemblyName.Name] = new Tuple<string, Version>(nickname, assemblyDefinition.Name.Version);
+			assemblyDefinition.Name = new AssemblyNameDefinition(nickname, assemblyDefinition.Name.Version);
 		}
 
 		using MemoryStream output = new MemoryStream();
 		assemblyDefinition.Write(output);
 		raw = output.ToArray();
+		return;
 	}
 
 	/// <summary>
@@ -336,4 +363,39 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 	/// <param name="forced">Forces the file to be re-read and re-loaded into the App Domain</param>
 	internal Assembly LoadAssembly(string file, bool forced = false)
 		=> ResolveAssembly(this, args: new ResolveEventArgs(file, Assembly.GetExecutingAssembly()), forced, false);
+
+	/// <summary>
+	/// Returns true if the assembly name of the provided file matches the one
+	/// we have stored in cache, false if not found on cache or not matching.
+	/// </summary>
+	///
+	/// <param name="file">The full file path to the assembly file on disk</param>
+	internal bool CheckAssemblyNameCache(string file)
+	{
+		AssemblyName assemblyName = NormalizeModuleName(file);
+		if (!_aliases.TryGetValue(assemblyName.Name, out Tuple<string, Version> meta)) return false;
+
+		try
+		{
+			// try to get the full path to the assembly file
+			if (Path.GetFileName(file).Equals(file)) file = FindFile(NormalizeModuleName(file));
+			if (file == null) throw new Exception("Unable to find file");
+
+			byte[] raw = File.ReadAllBytes(file);
+			if (raw == null) throw new Exception("Unable to read file");
+
+			using MemoryStream input = new MemoryStream(raw);
+			AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(
+				input, parameters: new ReaderParameters { AssemblyResolver = _resolver, InMemory = true });
+
+			Logger.Debug($" - {assemblyDefinition.Name.Name}[{assemblyDefinition.Name.Version}] vs {meta.Item1}[{meta.Item2}]");
+
+			return (assemblyDefinition.Name.Name.Equals(meta.Item1) && assemblyDefinition.Name.Version.Equals(meta.Item2));
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error("Error while processing", e);
+			return false;
+		}
+	}
 }
