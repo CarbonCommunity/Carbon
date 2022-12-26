@@ -42,22 +42,22 @@ internal sealed class Directories
 			GameHarmony = Path.GetFullPath(Path.Combine(Game, "HarmonyMods"));
 
 			Carbon = Path.GetFullPath(Path.Combine(Game, "carbon"));
-			if (Carbon == null) throw new System.Exception("Unable to find Carbon folder");
+			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(Carbon), "Carbon folder is missing");
 
-			CarbonLogs = Path.GetFullPath(Path.Combine(Carbon, "logs"));
-			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonLogs));
+			CarbonLogs = Path.Combine(Carbon, "logs");
+			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonLogs);
 
-			CarbonHarmony = Path.GetFullPath(Path.Combine(Carbon, "harmony"));
-			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonHarmony));
+			CarbonHarmony = Path.Combine(Carbon, "harmony");
+			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonHarmony);
 
-			CarbonManaged = Path.GetFullPath(Path.Combine(Carbon, "managed"));
-			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonManaged));
+			CarbonManaged = Path.Combine(Carbon, "managed");
+			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonManaged);
 
-			CarbonLib = Path.GetFullPath(Path.Combine(CarbonManaged, "lib"));
-			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonLib));
+			CarbonLib = Path.Combine(CarbonManaged, "lib");
+			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonLib);
 
-			CarbonModules = Path.GetFullPath(Path.Combine(CarbonManaged, "ext"));
-			UnityEngine.Assertions.Assert.IsTrue(Directory.Exists(CarbonModules));
+			CarbonModules = Path.Combine(CarbonManaged, "ext");
+			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonModules);
 		}
 		catch (System.Exception e)
 		{

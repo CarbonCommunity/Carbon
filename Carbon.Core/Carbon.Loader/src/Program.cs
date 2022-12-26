@@ -36,8 +36,8 @@ internal sealed class Program : Singleton<Program>, IDisposable
 		identifier = $"{Guid.NewGuid():N}";
 		Logger.Warn($"Using '{identifier}' as runtime namespace");
 		assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
-		Logger.Warn($"Facepunch baptized us as '{assemblyName}', látom.");
-		AssemblyResolver.GetInstance().RegisterDomain(AppDomain.CurrentDomain);
+		Logger.Warn($"Runtime baptized us as '{assemblyName}', látom.");
+		AssemblyResolver.GetInstance().Register(AppDomain.CurrentDomain);
 	}
 
 	internal Program()
@@ -59,6 +59,17 @@ internal sealed class Program : Singleton<Program>, IDisposable
 			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
 			@"                                               " + Environment.NewLine
 		);
+
+		try
+		{
+			Logger.Log("Patching Facepunch's harmony loader");
+			Harmony.PatchAll(Assembly.GetExecutingAssembly());
+		}
+		catch (Exception e)
+		{
+			Logger.Error("Unable to apply all Harmony patches", e);
+		}
+
 	}
 
 	public void Dispose()

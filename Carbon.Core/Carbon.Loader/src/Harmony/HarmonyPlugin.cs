@@ -15,11 +15,12 @@ namespace Carbon.LoaderEx.Harmony;
 
 internal class HarmonyPlugin : IDisposable
 {
-	private Assembly _assembly;
-	private bool _enabled;
+	private string _identifier;
 	private HarmonyLib.Harmony _handler;
 	private List<IHarmonyModHooks> _hooks;
-	private string _identifier;
+
+
+	private Assembly _assembly;
 
 	private Type[] types
 	{ get => _assembly.GetTypes() ?? null; }
@@ -32,6 +33,9 @@ internal class HarmonyPlugin : IDisposable
 
 	internal string FileName
 	{ get; private set; }
+
+
+	private bool _enabled;
 
 	internal bool Enabled
 	{

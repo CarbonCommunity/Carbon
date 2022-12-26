@@ -1,7 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using Carbon.LoaderEx.ASM;
+using Carbon.LoaderEx.Context;
 using Carbon.LoaderEx.Harmony;
 using Carbon.LoaderEx.Utility;
-using Harmony;
+using HarmonyLib;
 
 /*
  *
@@ -19,18 +22,17 @@ internal static class __Bootstrap
 	{
 		public static void Prefix()
 		{
-			bool r1 = Hijacker.DoUnload();
-			bool r2 = Hijacker.DoMove();
+			using (Sandbox<Renamer> isolated = new Sandbox<Renamer>())
+			{
+				Logger.Debug(">>>> " + Directories.CarbonManaged);
+				isolated.Do.SetAssemblyName("Carbon.dll",
+					Directories.CarbonManaged, "foobar");
 
-			if (r1 || r2)
-			{
-				Logger.Warn("Application will now exit");
-				Process.GetCurrentProcess().Kill();
+
+				Console.WriteLine($">>> new name is {isolated.Do.GetAssemblyName("Carbon.dll", Directories.CarbonManaged)}");
 			}
-			else
-			{
-				Hijacker.DoHijack();
-			}
+
+			Process.GetCurrentProcess().Kill();
 		}
 
 #if USE_DEBUGGER

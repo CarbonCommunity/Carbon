@@ -14,15 +14,12 @@
 		<!-- Compression -->
 		<PackageReference Include="SharpCompress" Version="0.32.2" PrivateAssets="all" />
 
-		<!-- IL Weaver -->
-		<PackageReference Include="Costura.Fody" Version="5.7.0" PrivateAssets="all" />
-
 		<!-- HarmonyLib using a custom name -->
 		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="true" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
-		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_harmony)" />
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
 	</Target>
 </Project>
