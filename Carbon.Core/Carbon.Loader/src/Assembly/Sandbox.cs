@@ -25,12 +25,11 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 	public Sandbox()
 	{
 		_identifier = $"sandbox_{Guid.NewGuid():N}";
-
-		// this is still not perfect but it let's run with it for now
-		// ideally the sandbox should be able to resolve their load requestes
-		// using the domain event handler
-
 		AppDomainSetup domaininfo = new AppDomainSetup();
+
+		// this is still not perfect but it let's run with it for now.. ideally
+		// the sandbox should be able to resolve their load requests using the 
+		// domain assembly resolver event
 		domaininfo.ApplicationBase = Path.Combine(
 			System.Environment.CurrentDirectory, "carbon", "managed");
 

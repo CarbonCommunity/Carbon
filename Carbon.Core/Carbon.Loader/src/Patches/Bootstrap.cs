@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using Carbon.LoaderEx.ASM;
-using Carbon.LoaderEx.Context;
+﻿using System.Diagnostics;
 using Carbon.LoaderEx.Harmony;
 using Carbon.LoaderEx.Utility;
 using HarmonyLib;
@@ -17,25 +14,10 @@ namespace Carbon.LoaderEx.Patches;
 
 internal static class __Bootstrap
 {
+#if USE_DEBUGGER
 	[HarmonyPatch(typeof(Bootstrap), methodName: "Init_Tier0")]
 	internal static class __Init_Tier0
 	{
-		public static void Prefix()
-		{
-			using (Sandbox<Renamer> isolated = new Sandbox<Renamer>())
-			{
-				Logger.Debug(">>>> " + Directories.CarbonManaged);
-				isolated.Do.SetAssemblyName("Carbon.dll",
-					Directories.CarbonManaged, "foobar");
-
-
-				Console.WriteLine($">>> new name is {isolated.Do.GetAssemblyName("Carbon.dll", Directories.CarbonManaged)}");
-			}
-
-			Process.GetCurrentProcess().Kill();
-		}
-
-#if USE_DEBUGGER
 		public static void Postfix()
 		{
 			Logger.Warn("Waiting for a debugger connection..");
@@ -49,8 +31,8 @@ internal static class __Bootstrap
 			t.Wait();
 			Debugger.Break();
 		}
-#endif
 	}
+#endif
 
 	[HarmonyPatch(typeof(Bootstrap), methodName: "StartupShared")]
 	internal static class __StartupShared

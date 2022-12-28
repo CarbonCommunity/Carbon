@@ -51,27 +51,11 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	internal void OnEnable()
 	{
+		_staticHooks.Clear();
+		_dynamicHooks.Clear();
 
-		// this is a dirty way to get around a unchangable behaviour with cecil (?)
-		// when a lib uses carbon as a ref, when loading it using cecil for setting
-		// the random assembly name, it will just get loaded into memory bypassing
-		// both the App Domain resolver and cecil resolver. it's impossible to hijack
-		// the request and return the current running carbon byte[]. the edge case
-		// here is to make sure carbon.dll always has a random name assigned when
-		// the hooks are loaded,
-
-		if (!Supervisor.ASM.CheckAssembly("Carbon.dll"))
-		{
-			Logger.Error("Found a missmatching Carbon version, please update and reload carbon");
-		}
-		else
-		{
-			_staticHooks.Clear();
-			_dynamicHooks.Clear();
-
-			foreach (string file in Files)
-				LoadHooksFromAssemblyFile(file);
-		}
+		foreach (string file in Files)
+			LoadHooksFromAssemblyFile(file);
 
 		if (_staticHooks.Count > 0)
 		{

@@ -80,7 +80,7 @@ internal class HarmonyPlugin : IDisposable
 	{
 		FileName = file;
 		_assembly = AssemblyResolver.GetInstance()
-			.LoadAssembly(Path.Combine(location, file), true);
+			.LoadAssembly(Path.Combine(location, file));
 	}
 
 	internal void Awake()

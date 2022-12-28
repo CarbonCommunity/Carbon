@@ -34,20 +34,29 @@ public sealed class Renamer : MarshalByRefObject
 			byte[] raw = File.ReadAllBytes(Path.Combine(location, file));
 			if (raw == null) throw new Exception("Unable to read file");
 
+			raw = SetAssemblyName(raw, name);
+
+			using FileStream disk = new FileStream(Path.Combine(location, file), FileMode.Truncate);
+			disk.Write(raw, 0, raw.Length);
+		}
+		catch (System.Exception) { throw; }
+	}
+
+	public byte[] SetAssemblyName(byte[] raw, string name)
+	{
+		try
+		{
 			using MemoryStream input = new MemoryStream(raw);
 			AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(
 				input, parameters: new ReaderParameters { AssemblyResolver = _resolver, InMemory = true });
 
 			string assemblyName = assemblyDefinition.Name.Name;
-			if (assemblyName.Equals(name, Patterns.IgnoreCase)) return;
+			if (assemblyName.Equals(name, Patterns.IgnoreCase)) return raw;
 			assemblyDefinition.Name = new AssemblyNameDefinition(name, assemblyDefinition.Name.Version);
 
 			using MemoryStream output = new MemoryStream();
 			assemblyDefinition.Write(output);
-			raw = output.ToArray();
-
-			using FileStream disk = new FileStream(Path.Combine(location, file), FileMode.Truncate);
-			disk.Write(raw, 0, raw.Length);
+			return output.ToArray();
 		}
 		catch (System.Exception) { throw; }
 	}

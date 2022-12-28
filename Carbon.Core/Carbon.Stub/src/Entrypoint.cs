@@ -23,7 +23,7 @@ internal sealed class Entrypoint : IHarmonyModHooks
 	public void OnLoaded(OnHarmonyModLoadedArgs args)
 	{
 		MoveHarmonyPlugins();
-		ResolverCleanup();
+		DisableResolver();
 		DisableHarmony();
 		InitLoader();
 	}
@@ -75,7 +75,7 @@ internal sealed class Entrypoint : IHarmonyModHooks
 		}
 	}
 
-	private void ResolverCleanup()
+	private void DisableResolver()
 	{
 		try
 		{
@@ -84,10 +84,10 @@ internal sealed class Entrypoint : IHarmonyModHooks
 			Type appdomain = typeof(AppDomain);
 
 			EventInfo eventInfo = appdomain.GetEvent("AssemblyResolve",
-				BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+				BindingFlags.Public | BindingFlags.Instance);
 
 			FieldInfo fieldInfo = appdomain.GetField(eventInfo.Name,
-				BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+				BindingFlags.NonPublic | BindingFlags.Instance);
 
 			Delegate eventDelegate = (Delegate)fieldInfo.GetValue(AppDomain.CurrentDomain) ?? null;
 
@@ -115,7 +115,7 @@ internal sealed class Entrypoint : IHarmonyModHooks
 
 	private void DisableHarmony()
 	{
-
+		// this is patched by Carbon.Loader for now
 	}
 
 	private void InitLoader()

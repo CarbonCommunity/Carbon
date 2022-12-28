@@ -23,20 +23,30 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 		_resolver = new ResolverEx();
 	}
 
-	internal void Register(AppDomain domain)
-	{
-		_resolver.RegisterDomain(AppDomain.CurrentDomain);
-	}
-
 	public void Dispose()
 	{
 		_resolver.Dispose();
 		_resolver = default;
 	}
 
-	internal Assembly LoadAssembly(string file, bool forced = false)
+	internal void Register(AppDomain domain)
 	{
-		Logger.Debug($"LoadAssembly >>> {file}");
-		return _resolver.ResolveAssembly(this, new ResolveEventArgs("Carbon"));
+		_resolver.RegisterDomain(AppDomain.CurrentDomain);
+	}
+
+	internal Assembly LoadAssembly(string file)
+	{
+#if DEBUG
+		Logger.Debug($"LoadAssembly: {file}");
+#endif
+		return _resolver.ResolveAssembly(this, args: new ResolveEventArgs(file));
+	}
+
+	internal byte[] ReadAssembly(string file)
+	{
+#if DEBUG
+		Logger.Debug($"ReadAssembly: {file}");
+#endif
+		return _resolver.ResolveAssembly(file, "internal").Bytes;
 	}
 }

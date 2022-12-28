@@ -28,14 +28,6 @@ internal static class ASM
 	internal static Func<string, byte[]> ReadAssembly;
 
 	/// <summary>
-	/// Returns true if the assembly name of the provided file matches the one
-	/// we have stored in cache, false if not found on cache or not matching.
-	/// </summary>
-	///
-	/// <param name="file">The full file path to the assembly file on disk</param>
-	internal static Func<string, bool> CheckAssembly;
-
-	/// <summary>
 	/// Loads assembly into AppDomain by always reading it back from disk.<br/>
 	/// The process will automatically detect the type of file being loaded
 	/// and use the appropriate loading method to deal with it.
@@ -76,9 +68,6 @@ internal static class ASM
 
 			ReadAssembly = (Func<string, byte[]>)Delegate
 				.CreateDelegate(typeof(Func<string, byte[]>), GetResolverInstance(), "ReadAssembly");
-
-			CheckAssembly = (Func<string, bool>)Delegate
-				.CreateDelegate(typeof(Func<string, bool>), GetResolverInstance(), "CheckAssemblyNameCache");
 
 			LoadModule = (Func<string, Assembly>)Delegate
 				.CreateDelegate(typeof(Func<string, Assembly>), GetLoaderInstance(), "Load");
