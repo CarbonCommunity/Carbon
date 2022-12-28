@@ -124,11 +124,14 @@ public class Defines
 		"System.Core",
 		"System.Data",
 		"System.Drawing",
+		"System.Memory",
 		"System.Runtime",
+		"System.Xml",
 		"System",
 
 		"Carbon",
 		"protobuf-net",
+		"protobuf-net.Core",
 
 		"1Harmony",
 		"Assembly-CSharp-firstpass",
