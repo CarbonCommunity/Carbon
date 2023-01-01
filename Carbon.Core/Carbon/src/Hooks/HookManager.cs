@@ -47,6 +47,27 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		_staticHooks = new List<HookEx>();
 		_dynamicHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
+
+		try
+		{
+			Logger.Log(" Updating hooks...");
+			enabled = false;
+
+			Carbon.Hooks.Updater.DoUpdate((bool result) =>
+			{
+				if (!result)
+				{
+					Logger.Error($"Unknown error while updating hooks");
+					return;
+				}
+
+				enabled = true;
+			});
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error($"Error while updating hooks", e);
+		}
 	}
 
 	internal void OnEnable()
@@ -55,7 +76,10 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		_dynamicHooks.Clear();
 
 		foreach (string file in Files)
-			LoadHooksFromAssemblyFile(file);
+		{
+			Supervisor.ASM.UnloadModule(file, false);
+			LoadHooksFromFile(file);
+		}
 
 		if (_staticHooks.Count > 0)
 		{
@@ -168,7 +192,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		}
 	}
 
-	private void LoadHooksFromAssemblyFile(string fileName)
+	private void LoadHooksFromFile(string fileName)
 	{
 		Assembly hooks;
 

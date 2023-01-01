@@ -12,13 +12,13 @@ using Carbon.LoaderEx.Utility;
 
 namespace Carbon.LoaderEx.ASM;
 
-internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposable
+internal sealed class AssemblyManager : Singleton<AssemblyManager>, IDisposable
 {
 	private ResolverEx _resolver;
 
-	static AssemblyResolver() { }
+	static AssemblyManager() { }
 
-	internal AssemblyResolver()
+	internal AssemblyManager()
 	{
 		_resolver = new ResolverEx();
 	}
@@ -47,6 +47,14 @@ internal sealed class AssemblyResolver : Singleton<AssemblyResolver>, IDisposabl
 #if DEBUG
 		Logger.Debug($"ReadAssembly: {file}");
 #endif
-		return _resolver.ResolveAssembly(file, "internal").Bytes;
+		return _resolver.ResolveAssembly(file, "AssemblyManager").Bytes;
+	}
+
+	internal bool RemoveCache(string file)
+	{
+#if DEBUG
+		Logger.Debug($"RemoveCache: {file}");
+#endif
+		return _resolver.RemoveCache(file);
 	}
 }

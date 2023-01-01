@@ -14,7 +14,7 @@ using Carbon.LoaderEx.Utility;
 
 namespace Carbon.LoaderEx.ASM;
 
-internal sealed class Item
+internal sealed class Item : IDisposable
 {
 	private List<string> _aliases;
 
@@ -26,6 +26,13 @@ internal sealed class Item
 
 	internal AssemblyName Name
 	{ get; private set; }
+
+	public void Dispose()
+	{
+		_aliases.Clear();
+		_aliases = default;
+		Bytes = null;
+	}
 
 	internal Item()
 	{
@@ -64,11 +71,6 @@ internal sealed class Item
 			Logger.Debug($" - Removed alias '{name}' for '{Name.Name}");
 #endif
 		}
-	}
-
-	public void Invalidate()
-	{
-		Bytes = null;
 	}
 
 	public bool IsMatch(string needle)

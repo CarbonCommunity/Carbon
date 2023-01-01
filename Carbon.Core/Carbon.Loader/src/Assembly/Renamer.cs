@@ -51,7 +51,7 @@ public sealed class Renamer : MarshalByRefObject
 				input, parameters: new ReaderParameters { AssemblyResolver = _resolver, InMemory = true });
 
 			string assemblyName = assemblyDefinition.Name.Name;
-			if (assemblyName.Equals(name, Patterns.IgnoreCase)) return raw;
+			if (assemblyName.Equals(name, StringComparison.InvariantCultureIgnoreCase)) return raw;
 			assemblyDefinition.Name = new AssemblyNameDefinition(name, assemblyDefinition.Name.Version);
 
 			using MemoryStream output = new MemoryStream();

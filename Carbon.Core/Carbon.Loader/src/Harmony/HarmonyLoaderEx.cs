@@ -43,7 +43,8 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 		string name = Path.GetFileNameWithoutExtension(fileName);
 		string extension = Path.GetExtension(fileName);
 
-		Match match = Regex.Match(name, Context.Patterns.CarbonManagedFile);
+		const string pattern = @"(?i)^(carbon(?:\.(?:doorstop|hooks|loader))?)((_\w+)?(.dll)?)?$";
+		Match match = Regex.Match(name, pattern);
 
 		string location = (match.Success)
 			? Context.Directories.CarbonManaged
@@ -79,8 +80,6 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 		}
 	}
 
-
-
 	/// <summary>
 	/// Calls the assembly OnUnloaded() and Dispose() methods to "unload".<br/>
 	/// Due to the limitations of using only one AppDomain, the assembly will
@@ -97,17 +96,20 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 		try
 		{
 			HarmonyPlugin mod = _loadedPlugins.SingleOrDefault(x => x.FileName == fileName);
-			if (mod?.Assembly == null) throw new Exception($"Assembly '{name}' not loaded");
-			_loadedPlugins.Remove(mod);
 
+			if (mod?.Assembly == null)
+				throw new Exception($"Assembly '{name}' not loaded");
+
+			AssemblyManager.GetInstance().RemoveCache(mod.Name);
+			_loadedPlugins.Remove(mod);
+			mod.Enabled = false;
 			mod.OnUnloaded();
 			mod.Dispose();
 			mod = default;
 		}
 		catch (System.Exception e)
 		{
-			Utility.Logger.Error($"Failed to unload '{fileName}'", e);
-			throw;
+			Utility.Logger.Warn($"Failed to unload '{fileName}' ({e.Message})");
 		}
 
 		if (reload)

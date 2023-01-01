@@ -33,22 +33,6 @@ public class Community
 
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
 
-	public const OS OperatingSystem =
-#if WIN
-		OS.Windows;
-#else
-        OS.Linux;
-#endif
-	public const Release ReleaseType =
-#if DEBUG
-		Release.Staging;
-#else
-        Release.Production;
-#endif
-
-	public enum OS { Windows, Linux }
-	public enum Release { Develop, Staging, Production }
-
 	public Config Config { get; set; }
 	public RustPlugin CorePlugin { get; set; }
 	public Loader.CarbonMod Plugins { get; set; }

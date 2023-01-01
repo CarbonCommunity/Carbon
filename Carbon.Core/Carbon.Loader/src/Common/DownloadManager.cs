@@ -68,7 +68,7 @@ internal sealed class DownloadManager : CarbonBehaviour
 		catch (System.Exception ex)
 		{
 			Utility.Logger.Error($"Download job '{job.Identifier}' failed", ex);
-			throw;
+			job.Callback(job.Identifier, null);
 		}
 		finally
 		{

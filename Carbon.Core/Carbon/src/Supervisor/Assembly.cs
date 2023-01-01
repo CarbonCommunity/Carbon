@@ -13,9 +13,9 @@ namespace Carbon.Supervisor;
 
 internal static class ASM
 {
-	private static Type _assemblyResolver, _harmonyLoader;
+	private static Type _loader, _assemblyManager, _harmonyLoader;
 
-	private static Func<object> GetResolverInstance, GetLoaderInstance;
+	private static Func<object> _loaderInstance, _assemblyManagerInstance, _harmonyLoaderInstance;
 
 
 	/// <summary>
@@ -51,29 +51,29 @@ internal static class ASM
 	{
 		try
 		{
+			_loader = AccessTools.TypeByName("Carbon.LoaderEx.Program") ?? null;
+			if (_loader == null) throw new Exception("LoaderEx.Program is null");
+
 			_harmonyLoader = AccessTools.TypeByName("Carbon.LoaderEx.Harmony.HarmonyLoaderEx") ?? null;
 			if (_harmonyLoader == null) throw new Exception("HarmonyLoaderEx is null");
 
-			_assemblyResolver = AccessTools.TypeByName("Carbon.LoaderEx.ASM.AssemblyResolver") ?? null;
-			if (_assemblyResolver == null) throw new Exception("AssemblyResolver is null");
+			_assemblyManager = AccessTools.TypeByName("Carbon.LoaderEx.ASM.AssemblyManager") ?? null;
+			if (_assemblyManager == null) throw new Exception("AssemblyManager is null");
 
 
-			GetResolverInstance = (Func<object>)Delegate.CreateDelegate(typeof(Func<object>),
-				_assemblyResolver.GetMethod("GetInstance", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy));
+			_loaderInstance = (Func<object>)Delegate.CreateDelegate(typeof(Func<object>),
+				_loader.GetMethod("GetInstance", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy));
 
-			GetLoaderInstance = (Func<object>)Delegate.CreateDelegate(typeof(Func<object>),
+			_assemblyManagerInstance = (Func<object>)Delegate.CreateDelegate(typeof(Func<object>),
+				_assemblyManager.GetMethod("GetInstance", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy));
+
+			_harmonyLoaderInstance = (Func<object>)Delegate.CreateDelegate(typeof(Func<object>),
 				_harmonyLoader.GetMethod("GetInstance", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy));
 
 
-
-			ReadAssembly = (Func<string, byte[]>)Delegate
-				.CreateDelegate(typeof(Func<string, byte[]>), GetResolverInstance(), "ReadAssembly");
-
-			LoadModule = (Func<string, Assembly>)Delegate
-				.CreateDelegate(typeof(Func<string, Assembly>), GetLoaderInstance(), "Load");
-
-			UnloadModule = (Action<string, bool>)Delegate
-				.CreateDelegate(typeof(Action<string, bool>), GetLoaderInstance(), "Unload");
+			LoadModule = (Func<string, Assembly>)Delegate.CreateDelegate(typeof(Func<string, Assembly>), _harmonyLoaderInstance(), "Load");
+			UnloadModule = (Action<string, bool>)Delegate.CreateDelegate(typeof(Action<string, bool>), _harmonyLoaderInstance(), "Unload");
+			ReadAssembly = (Func<string, byte[]>)Delegate.CreateDelegate(typeof(Func<string, byte[]>), _assemblyManagerInstance(), "ReadAssembly");
 		}
 		catch (System.Exception e)
 		{
@@ -81,6 +81,22 @@ internal static class ASM
 		}
 	}
 
-	internal static void Update(object os, object release, Action<bool> callback = null)
-		=> throw new NotImplementedException();
+	internal static void Download(string URL, Action<string, byte[]> callback = null)
+	{
+		// Program.GetInstance()
+		Type t1 = AccessTools.TypeByName("Carbon.LoaderEx.Program");
+		Type t2 = AccessTools.TypeByName("Carbon.LoaderEx.DownloadManager");
+
+		// Carbon.LoaderEx.DownloadManager.GetInstance()
+		object instance = t1.GetMethod("GetInstance",
+			BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy).Invoke(null, null);
+
+		// Carbon.LoaderEx.DownloadManager.GetInstance().Downloader
+		object downloader = t1.GetProperty("Downloader",
+			BindingFlags.NonPublic | BindingFlags.Instance).GetValue(instance);
+
+		// Carbon.LoaderEx.DownloadManager.GetInstance().Downloader.DownloadAsync(string, Action<string, byte[]>)
+		t2.GetMethod("DownloadAsync", BindingFlags.Public | BindingFlags.Instance)
+			.Invoke(downloader, new object[] { URL, callback });
+	}
 }

@@ -79,7 +79,7 @@ internal class HarmonyPlugin : IDisposable
 	internal HarmonyPlugin(string file, string location) : this()
 	{
 		FileName = file;
-		_assembly = AssemblyResolver.GetInstance()
+		_assembly = AssemblyManager.GetInstance()
 			.LoadAssembly(Path.Combine(location, file));
 	}
 

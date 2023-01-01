@@ -236,21 +236,20 @@ public class CorePlugin : RustPlugin
 			case "update":
 				try
 				{
-					Type type = AccessTools.TypeByName("Carbon.LoaderEx.Common.Updater") ?? null;
-					MethodInfo method = type.GetMethod("UpdateHooks", BindingFlags.NonPublic | BindingFlags.Static) ?? null;
-					method.Invoke(null, new object[] { Community.OperatingSystem, Community.ReleaseType, (bool result) =>
+					Carbon.Hooks.Updater.DoUpdate((bool result) =>
 					{
 						if (!result)
 						{
-							Logger.Error($"Unknown error while updating Carbon");
+							Logger.Error($"Unknown error while updating hooks");
 							return;
 						}
+						HookCaller.CallStaticHook("OnServerSave");
 						Community.Runtime.HookProcessorEx.Reload();
-					} });
+					});
 				}
 				catch (System.Exception e)
 				{
-					Logger.Error($"Error while updating Carbon", e);
+					Logger.Error($"Error while updating hooks", e);
 				}
 				break;
 
@@ -366,46 +365,7 @@ public class CorePlugin : RustPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		var os = Community.OperatingSystem;
-		var release = Community.ReleaseType;
-
-		if (arg.HasArgs(2))
-		{
-			switch (arg.Args[0])
-			{
-				case "win":
-					os = Community.OS.Windows;
-					break;
-
-				case "linux":
-				case "unix":
-					os = Community.OS.Linux;
-					break;
-			}
-
-			switch (arg.Args[1])
-			{
-				case "develop":
-				case "dev":
-				case "d":
-					release = Community.Release.Develop;
-					break;
-
-				case "staging":
-				case "stage":
-				case "s":
-					release = Community.Release.Staging;
-					break;
-
-				case "production":
-				case "prod":
-				case "p":
-					release = Community.Release.Production;
-					break;
-			}
-		}
-
-		Supervisor.ASM.Update(os, release, (bool result) =>
+		Carbon.Core.Updater.DoUpdate((bool result) =>
 		{
 			if (!result)
 			{

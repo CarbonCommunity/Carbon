@@ -22,8 +22,12 @@ internal sealed class ResolverEx : IDisposable
 
 	public void Dispose()
 	{
+		foreach (Item item in _cache)
+			item.Dispose();
+
 		_cache.Clear();
 		_cache = default;
+
 		_domain.AssemblyResolve -= ResolveAssembly;
 	}
 
@@ -79,6 +83,32 @@ internal sealed class ResolverEx : IDisposable
 			Logger.Debug($"Resolved: {retvar.Name.FullName}");
 			return retvar;
 		}
+	}
+
+	internal bool RemoveCache(string name)
+	{
+#if DEBUG
+		Logger.Debug($"Remove from cache '{name}'");
+#endif
+
+		Item retvar = null;
+		AssemblyName assemblyName = Normalize(name);
+
+		if (_cache.Count > 0)
+		{
+#if DEBUG
+			Logger.Debug($" - Searching {_cache.Count} cached items");
+#endif
+			retvar = _cache.SingleOrDefault<Item>(x => x.IsMatch(assemblyName.Name)) ?? null;
+		}
+
+		if (retvar != null)
+		{
+			Logger.Debug($" - Cache hit");
+			return _cache.Remove(retvar);
+		}
+
+		return false;
 	}
 
 	private AssemblyName Normalize(string name)

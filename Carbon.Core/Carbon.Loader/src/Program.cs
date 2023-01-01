@@ -37,7 +37,7 @@ internal sealed class Program : Singleton<Program>, IDisposable
 		Logger.Warn($"Using '{identifier}' as runtime namespace");
 		assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
 		Logger.Warn($"Runtime baptized us as '{assemblyName}', látom.");
-		AssemblyResolver.GetInstance().Register(AppDomain.CurrentDomain);
+		AssemblyManager.GetInstance().Register(AppDomain.CurrentDomain);
 	}
 
 	internal Program()
