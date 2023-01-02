@@ -137,7 +137,7 @@ internal sealed class Item : IDisposable
 			string name = $"Carbon_{Guid.NewGuid():N}";
 			AddAlias(name);
 
-			using (Sandbox<Renamer> isolated = new Sandbox<Renamer>())
+			using (Sandbox<Editor> isolated = new Sandbox<Editor>())
 				isolated.Do.SetAssemblyName(Path.GetFileName(file), Path.GetDirectoryName(file), name);
 		}
 
@@ -169,7 +169,7 @@ internal sealed class Item : IDisposable
 			string name = $"Carbon.Hooks_{Guid.NewGuid():N}";
 			AddAlias(name);
 
-			using (Sandbox<Renamer> isolated = new Sandbox<Renamer>())
+			using (Sandbox<Editor> isolated = new Sandbox<Editor>())
 				raw = isolated.Do.SetAssemblyName(raw, name);
 		}
 

@@ -14,11 +14,11 @@ using MonoCecilStandalone::Mono.Cecil;
 
 namespace Carbon.LoaderEx.ASM;
 
-public sealed class Renamer : MarshalByRefObject
+public sealed class Editor : MarshalByRefObject
 {
 	private DefaultAssemblyResolver _resolver;
 
-	public Renamer()
+	public Editor()
 	{
 		_resolver = new DefaultAssemblyResolver();
 		_resolver.AddSearchDirectory(Context.Directories.CarbonLib);
@@ -67,12 +67,44 @@ public sealed class Renamer : MarshalByRefObject
 		{
 			byte[] raw = File.ReadAllBytes(Path.Combine(location, file));
 			if (raw == null) throw new Exception("Unable to read file");
+			return GetAssemblyName(raw);
+		}
+		catch (System.Exception) { throw; }
+	}
 
+	public string GetAssemblyName(byte[] raw)
+	{
+		try
+		{
 			using MemoryStream input = new MemoryStream(raw);
 			AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(
 				input, parameters: new ReaderParameters { AssemblyResolver = _resolver, InMemory = true });
 
 			return assemblyDefinition.Name.Name;
+		}
+		catch (System.Exception) { throw; }
+	}
+
+	public Version GetAssemblyVersion(string file, string location)
+	{
+		try
+		{
+			byte[] raw = File.ReadAllBytes(Path.Combine(location, file));
+			if (raw == null) throw new Exception("Unable to read file");
+			return GetAssemblyVersion(raw);
+		}
+		catch (System.Exception) { throw; }
+	}
+
+	public Version GetAssemblyVersion(byte[] raw)
+	{
+		try
+		{
+			using MemoryStream input = new MemoryStream(raw);
+			AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(
+				input, parameters: new ReaderParameters { AssemblyResolver = _resolver, InMemory = true });
+
+			return assemblyDefinition.Name.Version;
 		}
 		catch (System.Exception) { throw; }
 	}
