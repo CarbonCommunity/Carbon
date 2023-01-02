@@ -68,7 +68,7 @@ internal sealed class ResolverEx : IDisposable
 		if (retvar == null)
 		{
 			Logger.Debug($" - Cache miss");
-			retvar = new Item(assemblyName.Name);
+			retvar = new Item(assemblyName.Name, Path.GetDirectoryName(name));
 			if (retvar.Bytes != null) _cache.Add(retvar);
 		}
 		else Logger.Debug($" - Cache hit");

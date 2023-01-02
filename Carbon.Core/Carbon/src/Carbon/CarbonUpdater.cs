@@ -1,4 +1,4 @@
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,19 +18,19 @@ namespace Carbon.Core;
 
 internal sealed class Updater
 {
-	private readonly static OSType Platform;
-	private readonly static ReleaseType Release;
-	private readonly static string Repository;
+	private static readonly OsType Platform;
+	private static readonly ReleaseType Release;
+	private static readonly string Repository;
 
-	public enum OSType { Windows, Linux }
+	public enum OsType { Windows, Linux }
 	public enum ReleaseType { Develop, Staging, Production }
 
 	static Updater()
 	{
 		Platform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) switch
 		{
-			true => OSType.Windows,
-			false => OSType.Linux
+			true => OsType.Windows,
+			false => OsType.Linux
 		};
 
 		Repository = @"CarbonCommunity/Carbon.Core";
@@ -43,7 +43,7 @@ internal sealed class Updater
 #endif
 	}
 
-	private static string GithubReleaseURL()
+	private static string GithubReleaseUrl()
 	{
 		string tag = string.Empty;
 		string file = string.Empty;
@@ -69,11 +69,11 @@ internal sealed class Updater
 
 		switch (Platform)
 		{
-			case OSType.Windows:
+			case OsType.Windows:
 				file = $"Carbon.{target}.zip";
 				break;
 
-			case OSType.Linux:
+			case OsType.Linux:
 				file = $"Carbon.{target}Unix.tar.gz";
 				break;
 		}
@@ -83,10 +83,6 @@ internal sealed class Updater
 
 	internal static void DoUpdate(Action<bool> callback = null)
 	{
-		bool retval = false;
-		string url = GithubReleaseURL();
-		Logger.Warn($"Updating component 'Carbon.Core [{Platform}]' using the '{Release}' branch");
-
 		IReadOnlyList<string> files = new List<string>(){
 			@"carbon/managed/Carbon.dll",
 			@"carbon/managed/Carbon.Doorstop.dll",
@@ -94,44 +90,44 @@ internal sealed class Updater
 			@"harmonymods/Carbon.Stub.dll"
 		};
 
+		bool retval = false;
+
+		string url = GithubReleaseUrl();
+		Logger.Warn($"Updating component 'Carbon' using the '{Release} [{Platform}]' branch");
+
 		Carbon.Supervisor.ASM.Download(url, (string identifier, byte[] buffer) =>
 		{
-			Logger.Warn($"Patch downloaded [{Path.GetExtension(url)}], processing {buffer.Length} bytes from memory");
-			string root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory);
-
-			try
+			if (buffer is {Length: > 0})
 			{
-				using MemoryStream archive = new MemoryStream(buffer);
+				Logger.Warn($"Patch downloaded [{Path.GetExtension(url)}], processing {buffer.Length} bytes from memory");
+				string root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory);
+
+				try
 				{
-					using (IReader reader = ReaderFactory.Open(archive))
+					using MemoryStream archive = new MemoryStream(buffer);
 					{
+						using IReader reader = ReaderFactory.Open(archive);
 						while (reader.MoveToNextEntry())
 						{
 							if (reader.Entry.IsDirectory || !files.Contains(reader.Entry.Key, StringComparer.OrdinalIgnoreCase)) continue;
 							string destination = Path.GetFullPath(Path.Combine(root, reader.Entry.Key));
 
-							using (EntryStream entry = reader.OpenEntryStream())
-							{
-								using (var fs = new FileStream(destination, FileMode.OpenOrCreate))
-								{
-									Logger.Debug($" - Updated {destination}");
-									entry.CopyTo(fs);
-								}
-							}
+							using EntryStream entry = reader.OpenEntryStream();
+							using var fs = new FileStream(destination, FileMode.OpenOrCreate);
+							Logger.Debug($" - Updated {destination}");
+							entry.CopyTo(fs);
 						}
 					}
+					retval = true;
 				}
-				retval = true;
+				catch (System.Exception e)
+				{
+					Logger.Error($"Error while updating 'Carbon.Core [{Platform}]'", e);
+					retval = false;
+				}
 			}
-			catch (System.Exception e)
-			{
-				Logger.Error($"Error while updating 'Carbon.Core [{Platform}]'", e);
-				retval = false;
-			}
-			finally
-			{
-				if (callback != null) callback(retval);
-			}
+
+			callback?.Invoke(retval);
 		});
 	}
 }

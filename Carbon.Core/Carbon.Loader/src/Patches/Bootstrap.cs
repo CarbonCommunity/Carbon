@@ -38,6 +38,6 @@ internal static class __Bootstrap
 	internal static class __StartupShared
 	{
 		public static void Prefix()
-			=> HarmonyLoaderEx.GetInstance().Load("Carbon.dll");
+			=> HarmonyLoaderEx.GetInstance().Load(Context.Directories.CarbonManaged + "/Carbon.dll");
 	}
 }

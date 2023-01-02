@@ -34,25 +34,24 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 	/// and use the appropriate loading method to deal with it.
 	/// </summary>
 	///
-	/// <param name="fileName">Assembly name with extension i.e. the file name</param>
-	/// <param name="forced">Forces the assembly to be re-read from disk</param>
+	/// <param name="fileName">Just the assembly name with extension or full file name</param>
 	internal Assembly Load(string fileName)
 	{
 		Utility.Logger.Log($"Loading harmony plug-in '{fileName}'..");
 
-		string name = Path.GetFileNameWithoutExtension(fileName);
-		string extension = Path.GetExtension(fileName);
+		string location = Path.GetDirectoryName(fileName);
 
-		const string pattern = @"(?i)^(carbon(?:\.(?:doorstop|hooks|loader))?)((_\w+)?(.dll)?)?$";
-		Match match = Regex.Match(name, pattern);
+		// by default load harmony plugins
+		if (string.IsNullOrEmpty(location))
+			location = Context.Directories.CarbonHarmony;
 
-		string location = (match.Success)
-			? Context.Directories.CarbonManaged
-			: Context.Directories.CarbonHarmony;
+		// validate boundaries
+		if (!location.StartsWith(Context.Directories.Carbon))
+			throw new FileNotFoundException("Out of boundaries");
 
 		try
 		{
-			switch (extension)
+			switch (Path.GetExtension(fileName))
 			{
 				case ".dll":
 					HarmonyPlugin mod = new HarmonyPlugin(fileName, location);
@@ -60,8 +59,8 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 					mod.OnLoaded();
 					_loadedPlugins.Add(mod);
 
-					foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetName().Name.StartsWith("Carbon")))
-						Logger.Debug($"---> {assembly.GetName().Name} {assembly.GetName().Version}");
+					// foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetName().Name.StartsWith("Carbon")))
+					// 	Logger.Debug($"---> {assembly.GetName().Name} {assembly.GetName().Version}");
 
 					return mod.Assembly;
 

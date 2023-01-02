@@ -1,4 +1,4 @@
-extern alias MonoCecilStandalone;
+﻿extern alias MonoCecilStandalone;
 
 using System;
 using System.IO;
@@ -16,7 +16,7 @@ namespace Carbon.LoaderEx.ASM;
 
 public sealed class Editor : MarshalByRefObject
 {
-	private DefaultAssemblyResolver _resolver;
+	private readonly DefaultAssemblyResolver _resolver;
 
 	public Editor()
 	{

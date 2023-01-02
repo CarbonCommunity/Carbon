@@ -19,7 +19,7 @@ internal sealed class Directories
 	internal static readonly string
 		Game, GameManaged, GameHarmony,
 
-		Carbon, CarbonManaged, CarbonHarmony, CarbonLib, CarbonModules, CarbonLogs;
+		Carbon, CarbonManaged, CarbonHarmony, CarbonLib, CarbonHooks, CarbonModules, CarbonLogs;
 
 	static Directories()
 	{
@@ -48,16 +48,19 @@ internal sealed class Directories
 			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonLogs);
 
 			CarbonHarmony = Path.Combine(Carbon, "harmony");
-			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonHarmony);
+			if (!Directory.Exists(CarbonHarmony)) Directory.CreateDirectory(CarbonHarmony);
 
 			CarbonManaged = Path.Combine(Carbon, "managed");
-			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonManaged);
+			if (!Directory.Exists(CarbonManaged)) Directory.CreateDirectory(CarbonManaged);
 
 			CarbonLib = Path.Combine(CarbonManaged, "lib");
-			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonLib);
+			if (!Directory.Exists(CarbonLib)) Directory.CreateDirectory(CarbonLib);
 
-			CarbonModules = Path.Combine(CarbonManaged, "ext");
-			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonModules);
+			CarbonHooks = Path.Combine(CarbonManaged, "hooks");
+			if (!Directory.Exists(CarbonHooks)) Directory.CreateDirectory(CarbonModules);
+
+			CarbonModules = Path.Combine(CarbonManaged, "modules");
+			if (!Directory.Exists(CarbonModules)) Directory.CreateDirectory(CarbonModules);
 		}
 		catch (System.Exception e)
 		{

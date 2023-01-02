@@ -1,8 +1,10 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using Carbon.Core;
 
 /*
  *
@@ -21,7 +23,11 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	private List<HookEx> _dynamicHooks;
 	private List<Subscription> _subscribers;
 
-	private static readonly string[] Files = { "Carbon.Hooks.dll" };
+	private static readonly string[] Files =
+	{
+		Path.Combine(Defines.GetManagedFolder(), "hooks", "Carbon.Hooks.Base.dll"),
+		Path.Combine(Defines.GetManagedFolder(), "hooks", "Carbon.Hooks.Extended.dll"),
+	};
 
 	public void Reload()
 	{
@@ -48,26 +54,16 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		_dynamicHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 
-		try
-		{
-			Logger.Log(" Updating hooks...");
-			enabled = false;
+		Logger.Log(" Updating hooks...");
+		enabled = false;
 
-			Carbon.Hooks.Updater.DoUpdate((bool result) =>
-			{
-				if (!result)
-				{
-					Logger.Error($"Unknown error while updating hooks");
-					return;
-				}
-
-				enabled = true;
-			});
-		}
-		catch (System.Exception e)
+		Carbon.Hooks.Updater.DoUpdate((bool result) =>
 		{
-			Logger.Error($"Error while updating hooks", e);
-		}
+			if (!result)
+				Logger.Error($" Unable to update the hooks at this time, please try again later");
+
+			enabled = true;
+		});
 	}
 
 	internal void OnEnable()

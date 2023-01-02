@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -39,11 +39,19 @@ internal sealed class Item : IDisposable
 		_aliases = new List<string>(1);
 	}
 
-	internal Item(string name) : this()
+	internal Item(string name, string location = null) : this()
 	{
 		Name = new AssemblyName(name);
-		Location = (name.EndsWith(".dll"))
-			? FindFile($"{Name.Name}") : FindFile($"{Name.Name}.dll");
+		if (string.IsNullOrEmpty(location))
+		{
+			Location = (name.EndsWith(".dll"))
+				? FindFile($"{Name.Name}") : FindFile($"{Name.Name}.dll");
+		}
+		else
+		{
+			Location = (name.EndsWith(".dll"))
+				? Path.Combine(location, $"{Name.Name}") : Path.Combine(location, $"{Name.Name}.dll");
+		}
 		Bytes = ReadFile(Location);
 
 #if DEBUG
@@ -53,24 +61,28 @@ internal sealed class Item : IDisposable
 
 	public void AddAlias(string name)
 	{
-		if (!_aliases.Contains(name))
+		if (_aliases.Contains(name))
 		{
-			_aliases.Add(name);
-#if DEBUG
-			Logger.Debug($" - Added new alias '{name}' for '{Name.Name}");
-#endif
+			return;
 		}
+
+		_aliases.Add(name);
+#if DEBUG
+		Logger.Debug($" - Added new alias '{name}' for '{Name.Name}");
+#endif
 	}
 
 	public void RemoveAlias(string name)
 	{
-		if (_aliases.Contains(name))
+		if (!_aliases.Contains(name))
 		{
-			_aliases.Remove(name);
-#if DEBUG
-			Logger.Debug($" - Removed alias '{name}' for '{Name.Name}");
-#endif
+			return;
 		}
+
+		_aliases.Remove(name);
+#if DEBUG
+		Logger.Debug($" - Removed alias '{name}' for '{Name.Name}");
+#endif
 	}
 
 	public bool IsMatch(string needle)
@@ -93,9 +105,12 @@ internal sealed class Item : IDisposable
 		string location = file switch
 		{
 			"Carbon.dll" => Directories.CarbonManaged,
-			"Carbon.Hooks.dll" => Directories.CarbonManaged,
 			"Carbon.Loader.dll" => Directories.CarbonManaged,
 			"Carbon.Doorstop.dll" => Directories.CarbonManaged,
+
+			"Carbon.Hooks.Base.dll" => Directories.CarbonHooks,
+			"Carbon.Hooks.Extended.dll" => Directories.CarbonHooks,
+
 			_ => null
 		};
 
@@ -137,8 +152,8 @@ internal sealed class Item : IDisposable
 			string name = $"Carbon_{Guid.NewGuid():N}";
 			AddAlias(name);
 
-			using (Sandbox<Editor> isolated = new Sandbox<Editor>())
-				isolated.Do.SetAssemblyName(Path.GetFileName(file), Path.GetDirectoryName(file), name);
+			using Sandbox<Editor> isolated = new Sandbox<Editor>();
+			isolated.Do.SetAssemblyName(Path.GetFileName(file), Path.GetDirectoryName(file), name);
 		}
 
 		try
@@ -164,13 +179,13 @@ internal sealed class Item : IDisposable
 #endif
 		}
 
-		if (file.EndsWith("Carbon.Hooks.dll"))
+		if (file.Contains("Carbon.Hooks."))
 		{
 			string name = $"Carbon.Hooks_{Guid.NewGuid():N}";
 			AddAlias(name);
 
-			using (Sandbox<Editor> isolated = new Sandbox<Editor>())
-				raw = isolated.Do.SetAssemblyName(raw, name);
+			using Sandbox<Editor> isolated = new Sandbox<Editor>();
+			raw = isolated.Do.SetAssemblyName(raw, name);
 		}
 
 		return raw;

@@ -34,6 +34,9 @@ internal class HarmonyPlugin : IDisposable
 	internal string FileName
 	{ get; private set; }
 
+	internal string Location
+	{ get; private set; }
+
 
 	private bool _enabled;
 
@@ -79,6 +82,8 @@ internal class HarmonyPlugin : IDisposable
 	internal HarmonyPlugin(string file, string location) : this()
 	{
 		FileName = file;
+		Location = location;
+
 		_assembly = AssemblyManager.GetInstance()
 			.LoadAssembly(Path.Combine(location, file));
 	}
