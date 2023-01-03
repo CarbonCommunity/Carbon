@@ -39,7 +39,7 @@ cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll"          "${ROOT}/
 cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.Doorstop.dll" "${ROOT}/Release"
 cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.Loader.dll"   "${ROOT}/Release"
 
-cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/hooks/Carbon.Hooks.Basic.dll"    "${ROOT}/Release"
+cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/hooks/Carbon.Hooks.Base.dll"     "${ROOT}/Release"
 cp "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/hooks/Carbon.Hooks.Extended.dll" "${ROOT}/Release"
 
 

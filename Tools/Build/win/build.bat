@@ -45,7 +45,7 @@ copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.dll"          "%ROOT
 copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Doorstop.dll" "%ROOT%\Release"
 copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Loader.dll"   "%ROOT%\Release"
 
-copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\hooks\Carbon.Hooks.Basic.dll"    "%ROOT%\Release"
+copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\hooks\Carbon.Hooks.Base.dll"     "%ROOT%\Release"
 copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\hooks\Carbon.Hooks.Extended.dll" "%ROOT%\Release"
 
 
