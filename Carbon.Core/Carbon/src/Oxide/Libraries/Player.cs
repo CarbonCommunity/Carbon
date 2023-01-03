@@ -1,12 +1,14 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using Carbon.Oxide;
 using Network;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Oxide.Game.Rust.Libraries;
 

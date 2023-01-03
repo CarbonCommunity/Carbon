@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
 
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
+
 namespace Carbon.Processors;
 
 public class ModuleProcessor : IDisposable

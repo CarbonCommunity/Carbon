@@ -1,18 +1,19 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-
-using System;
+﻿using System;
 using System.IO;
 using Carbon.Core;
-
 using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Libraries;
 using UnityEngine;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Oxide.Plugins;
 

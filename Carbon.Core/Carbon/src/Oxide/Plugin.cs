@@ -1,20 +1,21 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Carbon;
 using Carbon.Base;
 using Carbon.Core;
-
 using Carbon.Processors;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Core;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Oxide.Plugins
 {

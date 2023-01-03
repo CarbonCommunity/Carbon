@@ -1,9 +1,4 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -14,6 +9,13 @@ using Oxide.Core.Libraries.Covalence;
 using Oxide.Plugins;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Oxide.Game.Rust.Libraries
 {

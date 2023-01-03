@@ -1,9 +1,11 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
+﻿namespace Oxide.Core;
 
-namespace Oxide.Core;
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 public static class Random
 {

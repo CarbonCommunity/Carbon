@@ -1,9 +1,4 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -13,6 +8,13 @@ using MySql.Data.MySqlClient;
 using Oxide.Core.Database;
 using Oxide.Core.Libraries;
 using Oxide.Plugins;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Oxide.Core.MySql.Libraries;
 

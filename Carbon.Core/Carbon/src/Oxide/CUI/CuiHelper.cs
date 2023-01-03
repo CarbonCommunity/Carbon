@@ -1,14 +1,16 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Oxide.Core;
 using UnityEngine;
 using Formatting = Newtonsoft.Json.Formatting;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Oxide.Game.Rust.Cui;
 

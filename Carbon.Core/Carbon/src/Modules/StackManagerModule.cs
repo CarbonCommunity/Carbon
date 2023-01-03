@@ -1,12 +1,15 @@
-﻿///
-/// Copyright (c) 2022 kasvoton
-/// All rights reserved
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Carbon.Base;
 using UnityEngine;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022 kasvoton
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.Modules;
 

@@ -1,9 +1,4 @@
-﻿///
-/// Copyright (c) 2022 bmgjet
-/// All rights reserved
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
@@ -15,6 +10,14 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using static BasePlayer;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022 bmgjet
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.Modules;
 

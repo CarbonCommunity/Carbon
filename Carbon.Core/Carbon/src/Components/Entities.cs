@@ -1,13 +1,15 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-///
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Carbon.Core;
 using Facepunch;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon;
 

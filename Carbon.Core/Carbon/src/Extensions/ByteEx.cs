@@ -1,11 +1,13 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-///
-
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.Extensions;
 

@@ -1,9 +1,11 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-///
+﻿using Carbon.Oxide;
 
-using Carbon.Oxide;
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Oxide.Game.Rust.Libraries;
 

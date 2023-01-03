@@ -1,13 +1,4 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-
-#if !(WIN || UNIX)
-#error Target architecture not defined
-#endif
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -21,7 +12,18 @@ using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
 
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
+
 namespace Carbon;
+
+#if !(WIN || UNIX)
+#error Target architecture not defined
+#endif
 
 public class Community
 {
