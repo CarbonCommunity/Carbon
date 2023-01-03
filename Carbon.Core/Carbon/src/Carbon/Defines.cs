@@ -143,6 +143,11 @@ public class Defines
 		"Facepunch.System",
 		"Facepunch.Unity",
 		"Facepunch.UnityEngine",
+#if WIN
+		"Facepunch.Steamworks.Win64",
+#elif UNIX
+		"Facepunch.Steamworks.Posix",
+#endif
 		"Fleck",
 		"Newtonsoft.Json",
 		"Rust.Data",
