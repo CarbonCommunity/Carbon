@@ -165,6 +165,7 @@ public class Defines
 		"UnityEngine.PhysicsModule",
 		"UnityEngine.SharedInternalsModule",
 		"UnityEngine.TerrainModule",
+		"UnityEngine.TerrainPhysicsModule",
 		"UnityEngine.TextRenderingModule",
 		"UnityEngine.UI",
 		"UnityEngine.UnityWebRequestAssetBundleModule",
