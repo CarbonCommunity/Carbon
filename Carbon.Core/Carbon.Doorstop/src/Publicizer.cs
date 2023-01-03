@@ -1,19 +1,16 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * All rights reserved.
- *
- */
-
-/// DISCLAIMER
-/// This file contains code based on BepInEx/NStrip
-/// Copyright (c) 2021 BepInEx, released under MIT License
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2021 BepInEx, released under MIT License
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.Utility;
 
