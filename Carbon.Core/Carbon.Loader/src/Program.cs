@@ -69,7 +69,6 @@ internal sealed class Program : Singleton<Program>, IDisposable
 		{
 			Logger.Error("Unable to apply all Harmony patches", e);
 		}
-
 	}
 
 	public void Dispose()

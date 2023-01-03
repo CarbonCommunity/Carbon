@@ -44,7 +44,7 @@ internal sealed class DownloadManager : CarbonBehaviour
 		job.Start = DateTime.UtcNow;
 		_currentDownloads++;
 
-		Utility.Logger.RCon($"Download job '{job.Identifier}' started");
+		Utility.Logger.Log($"Download job '{job.Identifier}' started");
 		webClient.DownloadDataAsync(address: new Uri(job.URL), job);
 	}
 
@@ -60,7 +60,7 @@ internal sealed class DownloadManager : CarbonBehaviour
 			if (e.Cancelled) throw new Exception("Job was cancelled");
 
 			TimeSpan ts = DateTime.UtcNow - ((Download)e.UserState).Start;
-			Utility.Logger.RCon($"Download job '{job.Identifier}' finished [{FormatBytes(e.Result.LongLength / ts.TotalSeconds):0}/sec]");
+			Utility.Logger.Log($"Download job '{job.Identifier}' finished [{FormatBytes(e.Result.LongLength / ts.TotalSeconds):0}/sec]");
 
 			if (job.Callback == null) throw new Exception("Callback is null, this is a bug");
 			job.Callback(job.Identifier, e.Result);
@@ -88,7 +88,7 @@ internal sealed class DownloadManager : CarbonBehaviour
 			Identifier = $"{Guid.NewGuid():N}",
 		};
 
-		Utility.Logger.RCon($"New download request with token '{job.Identifier}': {job.URL}");
+		Utility.Logger.Log($"New download request with token '{job.Identifier}': {job.URL}");
 		_donwloadQueue.Enqueue(job);
 	}
 

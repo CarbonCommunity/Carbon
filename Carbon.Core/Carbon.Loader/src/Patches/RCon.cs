@@ -23,7 +23,7 @@ internal static class __RCon
 			{
 				case "c.boot":
 					if (!HarmonyLoaderEx.GetInstance().IsLoaded("Carbon.dll"))
-						HarmonyLoaderEx.GetInstance().Load(Context.Directories.CarbonManaged + "/Carbon.dll");
+						HarmonyLoaderEx.GetInstance().Load("Carbon.dll");
 					return false;
 
 				default:

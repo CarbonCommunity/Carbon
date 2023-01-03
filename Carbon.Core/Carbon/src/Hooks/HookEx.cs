@@ -149,7 +149,7 @@ internal class HookEx : IDisposable
 			}
 			else
 			{
-				Logger.Warn($"Checksum validation failed for '{TargetType.Name}.{TargetMethod}''");
+				Logger.Warn($"Checksum validation failed for '{TargetType.Name}.{TargetMethod}'");
 				_runtime.Status = HookState.Warning;
 			}
 

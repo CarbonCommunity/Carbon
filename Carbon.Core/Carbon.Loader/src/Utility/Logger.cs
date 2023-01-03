@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 /*
@@ -17,8 +18,10 @@ internal sealed class Logger
 
 	internal enum Severity
 	{
-		Error, Warning, Notice, Debug, RCon, None
+		Error, Warning, Notice, Debug, None
 	}
+
+	public static List<int> Lock = new List<int>();
 
 	static Logger()
 	{
@@ -29,53 +32,48 @@ internal sealed class Logger
 
 	internal static void Write(Severity severity, object message, Exception ex = null)
 	{
-		string formatted = null;
-		string timestamp = $"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] ";
-
-		switch (severity)
+		lock (Lock)
 		{
-			case Severity.Error:
-				if (ex != null)
-					formatted = $"[e] {message} ({ex?.Message})\n{ex?.StackTrace}";
-				else
-					formatted = $"[e] {message}";
-				break;
+			string formatted = null;
+			string timestamp = $"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] ";
 
-			case Severity.Warning:
-				formatted = $"[w] {message}";
-				break;
+			switch (severity)
+			{
+				case Severity.Error:
+					if (ex != null)
+						formatted = $"[e] {message} ({ex?.Message})\n{ex?.StackTrace}";
+					else
+						formatted = $"[e] {message}";
+					break;
 
-			case Severity.Notice:
-				formatted = $"[i] {message}";
-				break;
+				case Severity.Warning:
+					formatted = $"[w] {message}";
+					break;
 
-			case Severity.Debug:
-				formatted = $"[d] {message}";
-				System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
-				return;
+				case Severity.Notice:
+					formatted = $"[i] {message}";
+					break;
 
-			case Severity.RCon:
-				UnityEngine.Debug.Log($"[CRBN] {message}");
-				System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
-				return;
+				case Severity.Debug:
+					formatted = $"[d] {message}";
+					System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
+					return;
 
-			case Severity.None:
-				Console.WriteLine(message);
-				return;
+				case Severity.None:
+					Console.WriteLine(message);
+					return;
 
-			default:
-				throw new Exception($"Severity {severity} not implemented.");
+				default:
+					throw new Exception($"Severity {severity} not implemented.");
+			}
+
+			Console.WriteLine(formatted);
+			System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
 		}
-
-		Console.WriteLine(formatted);
-		System.IO.File.AppendAllText(logFile, $"{timestamp}{formatted}" + Environment.NewLine);
 	}
 
 	internal static void None(object message)
 		=> Write(Logger.Severity.None, message);
-
-	internal static void RCon(object message)
-		=> Write(Logger.Severity.RCon, message);
 
 	internal static void Debug(object message)
 		=> Write(Logger.Severity.Debug, message);

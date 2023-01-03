@@ -47,6 +47,8 @@ internal static class ASM
 	/// <param name="reload">Loads back the assembly</param>
 	internal static Action<string, bool> UnloadModule;
 
+	internal static Func<string, bool> IsLoaded;
+
 	static ASM()
 	{
 		try
@@ -71,6 +73,7 @@ internal static class ASM
 				_harmonyLoader.GetMethod("GetInstance", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy));
 
 
+			IsLoaded = (Func<string, bool>)Delegate.CreateDelegate(typeof(Func<string, bool>), _harmonyLoaderInstance(), "IsLoaded");
 			LoadModule = (Func<string, Assembly>)Delegate.CreateDelegate(typeof(Func<string, Assembly>), _harmonyLoaderInstance(), "Load");
 			UnloadModule = (Action<string, bool>)Delegate.CreateDelegate(typeof(Action<string, bool>), _harmonyLoaderInstance(), "Unload");
 			ReadAssembly = (Func<string, byte[]>)Delegate.CreateDelegate(typeof(Func<string, byte[]>), _assemblyManagerInstance(), "ReadAssembly");

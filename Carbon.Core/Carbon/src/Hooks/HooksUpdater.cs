@@ -95,7 +95,7 @@ internal sealed class Updater
 			{
 				if (buffer is { Length: > 0 })
 				{
-					Logger.Warn($"Patch downloaded [{Path.GetExtension(url)}], processing {buffer.Length} bytes from memory");
+					Logger.Warn($"Patch downloaded [{Path.GetFileName(url)}], processing {buffer.Length} bytes from memory");
 					string root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory);
 
 					try

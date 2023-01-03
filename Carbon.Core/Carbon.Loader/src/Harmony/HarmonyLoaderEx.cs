@@ -34,34 +34,32 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 	/// and use the appropriate loading method to deal with it.
 	/// </summary>
 	///
-	/// <param name="fileName">Just the assembly name with extension or full file name</param>
-	internal Assembly Load(string fileName)
+	/// <param name="path">Assembly name, dll filename or dll full path</param>
+	internal Assembly Load(string path)
 	{
-		Utility.Logger.Log($"Loading harmony plug-in '{fileName}'..");
+		string file = Path.GetFileName(path);
+		string location = Path.GetDirectoryName(path);
 
-		string location = Path.GetDirectoryName(fileName);
+		Utility.Logger.Log($"Loading harmony plug-in '{file}' [{location}]..");
 
 		// by default load harmony plugins
-		if (string.IsNullOrEmpty(location))
-			location = Context.Directories.CarbonHarmony;
+		// if (string.IsNullOrEmpty(location))
+		// 	location = Context.Directories.CarbonHarmony;
 
 		// validate boundaries
-		if (!location.StartsWith(Context.Directories.Carbon))
-			throw new FileNotFoundException("Out of boundaries");
+		// if (!location.StartsWith(Context.Directories.Carbon))
+		// 	throw new FileNotFoundException("Out of boundaries");
 
 		try
 		{
-			switch (Path.GetExtension(fileName))
+			switch (Path.GetExtension(file))
 			{
 				case ".dll":
-					HarmonyPlugin mod = new HarmonyPlugin(fileName, location);
+					HarmonyPlugin mod = new HarmonyPlugin(file, location);
 					mod.Awake();
 					mod.OnLoaded();
+
 					_loadedPlugins.Add(mod);
-
-					// foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetName().Name.StartsWith("Carbon")))
-					// 	Logger.Debug($"---> {assembly.GetName().Name} {assembly.GetName().Version}");
-
 					return mod.Assembly;
 
 				// case ".drm"
@@ -74,7 +72,7 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 		}
 		catch (System.Exception e)
 		{
-			Utility.Logger.Error($"Failed loading '{fileName}'", e);
+			Utility.Logger.Error($"Failed loading '{path}'", e);
 			throw;
 		}
 	}
@@ -85,16 +83,19 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 	/// still be present on the loaded modules.
 	/// </summary>
 	///
-	/// <param name="fileName">Assembly name with extension i.e. the file name</param>
+	/// <param name="path">Assembly name, dll filename or dll full path</param>
 	/// <param name="reload">Loads back the assembly</param>
-	internal void Unload(string fileName, bool reload = false)
+	internal void Unload(string path, bool reload = false)
 	{
-		Utility.Logger.Log($"Unloading harmony plug-in '{fileName}'..");
-		string name = Path.GetFileNameWithoutExtension(fileName);
+		string file = Path.GetFileName(path);
+		string location = Path.GetDirectoryName(path);
+		string name = Path.GetFileNameWithoutExtension(path);
+
+		Utility.Logger.Log($"Unloading harmony plug-in '{file}' [{location}]..");
 
 		try
 		{
-			HarmonyPlugin mod = _loadedPlugins.SingleOrDefault(x => x.FileName == fileName);
+			HarmonyPlugin mod = _loadedPlugins.SingleOrDefault(x => x.FileName == file);
 
 			if (mod?.Assembly == null)
 				throw new Exception($"Assembly '{name}' not loaded");
@@ -108,12 +109,12 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 		}
 		catch (System.Exception e)
 		{
-			Utility.Logger.Warn($"Failed to unload '{fileName}' ({e.Message})");
+			Utility.Logger.Warn($"Failed to unload '{file}' ({e.Message})");
 		}
 
 		if (reload)
 		{
-			Load(fileName);
+			Load(path);
 		}
 	}
 

@@ -62,21 +62,11 @@ internal class HarmonyPlugin : IDisposable
 	public override string ToString()
 		=> $"{Name}[{_identifier.Substring(0, 6)}]";
 
-	internal HarmonyPlugin()
+	private HarmonyPlugin()
 	{
 		_identifier = $"{Guid.NewGuid():N}";
 		_hooks = new List<IHarmonyModHooks>();
 		_handler = new HarmonyLib.Harmony(_identifier);
-	}
-
-	internal HarmonyPlugin(Assembly assembly) : this()
-	{
-		_assembly = assembly;
-	}
-
-	internal HarmonyPlugin(byte[] raw) : this()
-	{
-		_assembly = Assembly.Load(raw);
 	}
 
 	internal HarmonyPlugin(string file, string location) : this()

@@ -42,16 +42,8 @@ internal sealed class Item : IDisposable
 	internal Item(string name, string location = null) : this()
 	{
 		Name = new AssemblyName(name);
-		if (string.IsNullOrEmpty(location))
-		{
-			Location = (name.EndsWith(".dll"))
-				? FindFile($"{Name.Name}") : FindFile($"{Name.Name}.dll");
-		}
-		else
-		{
-			Location = (name.EndsWith(".dll"))
-				? Path.Combine(location, $"{Name.Name}") : Path.Combine(location, $"{Name.Name}.dll");
-		}
+		string file = (name.EndsWith(".dll")) ? $"{Name.Name}" : $"{Name.Name}.dll";
+		Location = (string.IsNullOrEmpty(location)) ? FindFile(file) : Path.Combine(location, file);
 		Bytes = ReadFile(Location);
 
 #if DEBUG

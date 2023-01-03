@@ -73,7 +73,8 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 		foreach (string file in Files)
 		{
-			Supervisor.ASM.UnloadModule(file, false);
+			if (Supervisor.ASM.IsLoaded(Path.GetFileName(file)))
+				Supervisor.ASM.UnloadModule(file, false);
 			LoadHooksFromFile(file);
 		}
 
@@ -206,8 +207,11 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			return;
 		}
 
+		Type t = hooks.GetType("Carbon.Hooks.HookAttribute.Patch")
+			?? typeof(HookAttribute.Patch);
+
 		IEnumerable<TypeInfo> types = hooks.DefinedTypes
-			.Where(x => Attribute.IsDefined(x, typeof(HookAttribute.Patch))).ToList();
+			.Where(x => Attribute.IsDefined(x, t)).ToList();
 
 		int x = 0, y = 0;
 		foreach (TypeInfo type in types)
