@@ -8,6 +8,7 @@ regex:Facepunch.Sqlite.dll
 regex:Facepunch.System.dll
 regex:Facepunch.Unity.dll
 regex:Facepunch.UnityEngine.dll
+regex:Facepunch.Steamworks
 regex:Fleck.dll
 regex:Newtonsoft.Json.dll
 regex:Rust.Data.dll
