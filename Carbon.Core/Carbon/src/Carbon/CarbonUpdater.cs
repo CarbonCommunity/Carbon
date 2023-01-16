@@ -38,7 +38,7 @@ internal sealed class Updater
 #if DEBUG
 		ReleaseType.Develop;
 #else
-		Release.Production;
+		ReleaseType.Production;
 #endif
 	}
 
