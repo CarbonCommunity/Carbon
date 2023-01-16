@@ -66,13 +66,6 @@ namespace Oxide.Plugins
 			return other != null;
 		}
 
-		internal void _unprocessHooks()
-		{
-			foreach (var hook in Hooks)
-				Community.Runtime.HookProcessorEx.Unsubscribe(hook, Name);
-			Carbon.Logger.Debug(Name, $"Unprocessed hooks");
-		}
-
 		public virtual void IInit()
 		{
 			using (TimeMeasure.New($"Processing HookMethods on '{this}'"))
@@ -134,7 +127,9 @@ namespace Oxide.Plugins
 		{
 			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 			{
-				_unprocessHooks();
+				foreach (var hook in Hooks)
+					Community.Runtime.HookProcessorEx.Unsubscribe(hook, FileName);
+				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 			}
 
 			using (TimeMeasure.New($"IUnload.Disposal on '{this}'"))
