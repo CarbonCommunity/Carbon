@@ -242,6 +242,7 @@ public class CorePlugin : RustPlugin
 		if (!Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
 		{
 			Community.Runtime.Config.ConditionalCompilationSymbols.Add(value);
+			Community.Runtime.SaveConfig();
 			Reply($"Added conditional '{value}'.", arg);
 		}
 		else
@@ -260,12 +261,21 @@ public class CorePlugin : RustPlugin
 		if (Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
 		{
 			Community.Runtime.Config.ConditionalCompilationSymbols.Remove(value);
+			Community.Runtime.SaveConfig()
 			Reply($"Removed conditional '{value}'.", arg);
 		}
 		else
 		{
 			Reply($"Conditional '{value}' does not exist.", arg);
 		}
+	}
+
+	[ConsoleCommand("conditionals", "Prints a list of all conditional compilation symbols used by the compiler.")]
+	private void Conditionals(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		Reply($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}", arg);
 	}
 
 	#endregion
