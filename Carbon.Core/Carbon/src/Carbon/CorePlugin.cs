@@ -261,7 +261,7 @@ public class CorePlugin : RustPlugin
 		if (Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
 		{
 			Community.Runtime.Config.ConditionalCompilationSymbols.Remove(value);
-			Community.Runtime.SaveConfig()
+			Community.Runtime.SaveConfig();
 			Reply($"Removed conditional '{value}'.", arg);
 		}
 		else
