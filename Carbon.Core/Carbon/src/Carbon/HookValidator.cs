@@ -20,8 +20,9 @@ public class HookValidator
 	public static void Refresh()
 	{
 		CarbonHooks.Clear();
-		CarbonHooks = Community.Runtime.HookProcessorEx.LoadedStaticHooksName
-			.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooksName).ToList();
+		CarbonHooks.AddRange(Community.Runtime.HookProcessorEx.LoadedStaticHooksName
+			.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooksName));
+
 		Logger.Debug($"Refreshed {CarbonHooks.Count} loaded hooks.");
 
 		Community.Runtime.CorePlugin.webrequest.Enqueue("https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj", null, (error, data) =>

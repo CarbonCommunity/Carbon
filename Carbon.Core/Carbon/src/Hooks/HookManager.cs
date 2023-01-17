@@ -1,12 +1,12 @@
 ﻿//#define UPDATE_HOOKS_ONBOOT
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon.Core;
+using Facepunch;
 
 /*
  *
@@ -39,7 +39,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	public void Dispose()
 	{
-		List<HookEx> hooks = _staticHooks.Concat(_dynamicHooks).ToList();
+		var hooks = _staticHooks.Concat(_dynamicHooks);
 		foreach (HookEx hook in hooks) hook.Dispose();
 
 		_workQueue = default;
@@ -107,13 +107,13 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 			Carbon.Core.HookValidator.Refresh();
 
-			foreach (Subscription item in _subscribers.ToList())
+			foreach (var item in _subscribers)
 			{
 				_subscribers.Remove(item);
 				Subscribe(item.HookName, item.Subscriber);
 			}
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			Logger.Error("Couldn't refresh HookValidator", e);
 		}
@@ -157,22 +157,23 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 		try
 		{
-			Payload payload = _workQueue.Dequeue();
-			List<HookEx> hooks = GetHookByName(payload.HookName).ToList();
+			var payload = _workQueue.Dequeue();
+			var hooks = Pool.GetList<HookEx>();
+			hooks.AddRange(GetHookByName(payload.HookName));
 
 			if (payload.Identifier != null)
 				hooks.RemoveAll(x => x.Identifier != payload.Identifier);
 
 			foreach (HookEx hook in hooks)
 			{
-				int subscribers = GetHookSubscriberCount(hook.HookName);
+				var subscribers = GetHookSubscriberCount(hook.HookName);
 				Logger.Debug($"Hook '{hook.HookName}[{hook.Identifier}]' has {subscribers} subscriber(s)");
 
-				// static hooks are a special case
+				// Static hooks are a special case
 				if (hook.IsStaticHook) return;
 
-				bool hasSubscribers = HookHasSubscribers(hook.HookName);
-				bool isInstalled = hook.IsInstalled;
+				var hasSubscribers = HookHasSubscribers(hook.HookName);
+				var isInstalled = hook.IsInstalled;
 
 				switch (hasSubscribers)
 				{
@@ -187,7 +188,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 				}
 			}
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			Logger.Error("HookManager.Update() failed", e);
 		}
@@ -205,24 +206,25 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			if (hooks == null)
 				throw new Exception($"External hooks module '{fileName}' not found");
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			Logger.Error(e.Message, e);
 			return;
 		}
 
-		Type t = hooks.GetType("Carbon.Hooks.HookAttribute.Patch")
+		var t = hooks.GetType("Carbon.Hooks.HookAttribute.Patch")
 			?? typeof(HookAttribute.Patch);
 
-		IEnumerable<TypeInfo> types = hooks.DefinedTypes
-			.Where(x => Attribute.IsDefined(x, t)).ToList();
+		var types = hooks.DefinedTypes;
 
 		int x = 0, y = 0;
-		foreach (TypeInfo type in types)
+		foreach (var type in types)
 		{
+			if (!Attribute.IsDefined(type, t)) continue;
+
 			try
 			{
-				HookEx hook = new HookEx(type);
+				var hook = new HookEx(type);
 
 				if (hook is null)
 					throw new Exception($"Hook is null, this is a bug");
@@ -243,7 +245,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 					Logger.Debug($"Loaded dynamic hook '{hook.HookName}[{hook.Identifier}]'", 3);
 				}
 			}
-			catch (System.Exception e)
+			catch (Exception e)
 			{
 				Logger.Error($"Error while parsing '{type.Name}'", e);
 				continue;
@@ -257,17 +259,24 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	{
 		try
 		{
-			List<HookEx> hooks = GetHookByName(hookName).ToList();
-			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
+			var hooks = GetHookByName(hookName, out int count);
 
-			foreach (HookEx hook in hooks.Where(hook => !HookIsSubscribedBy(hook.HookName, requester)).ToList())
+			if (count == 0)
 			{
+				Logger.Warn($"Could not subscribe to hook {hookName} since it does not exist.");
+				return;
+			}
+
+			foreach (var hook in hooks)
+			{
+				if (HookIsSubscribedBy(hook.HookName, requester)) continue;
+
 				AddSubscriber(hook.HookName, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
 				Logger.Debug($"Subscribe to '{hook.HookName}[{hook.Identifier}]' by '{requester}'");
 			}
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			Logger.Error($"Error while subscribing hook '{hookName}'", e);
 			return;
@@ -278,17 +287,24 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	{
 		try
 		{
-			List<HookEx> hooks = GetHookByName(hookName).ToList();
-			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
+			var hooks = GetHookByName(hookName, out int count);
 
-			foreach (HookEx hook in hooks.Where(hook => HookIsSubscribedBy(hook.HookName, requester)).ToList())
+			if (count == 0)
 			{
+				Logger.Warn($"Could not unsubscribe to hook {hookName} since it does not exist.");
+				return;
+			}
+
+			foreach (var hook in hooks)
+			{
+				if (!HookIsSubscribedBy(hook.HookName, requester)) continue;
+
 				RemoveSubscriber(hook.HookName, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
 				Logger.Debug($"Unsubscribe from '{hook.HookName}[{hook.Identifier}]' by '{requester}'");
 			}
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			Logger.Error($"Error while unsubscribing hook '{hookName}'", e);
 			return;
@@ -303,7 +319,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			{
 				foreach (string item in hook.Dependencies)
 				{
-					List<HookEx> dependencies = GetHookByName(item).ToList();
+					var dependencies = GetHookByName(item);
 
 					foreach (HookEx dependency in dependencies)
 					{
@@ -325,7 +341,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 				throw new Exception($"Hook '{hook.HookName}[{hook.Identifier}]' installation failed");
 			Logger.Log($"Installed hook '{hook.HookName}'[{hook.Identifier}]");
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			hook.LastError = e;
 			hook.Status = HookState.Failure;
@@ -345,7 +361,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 			foreach (string item in hook.Dependencies)
 			{
-				List<HookEx> dependencies = GetHookByName(item).ToList();
+				var dependencies = GetHookByName(item);
 
 				foreach (HookEx dependency in dependencies)
 				{
@@ -362,7 +378,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 				}
 			}
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			hook.LastError = e;
 			hook.Status = HookState.Failure;
@@ -373,6 +389,13 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	private IEnumerable<HookEx> GetHookByName(string name)
 		=> _dynamicHooks.Where(x => x.HookName == name) ?? null;
 
+	private IEnumerable<HookEx> GetHookByName(string name, out int count)
+	{
+		var result = GetHookByName(name);
+		count = result.Count();
+		return result;
+	}
+
 	private HookEx GetHookById(string identifier)
 		=> _dynamicHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
 
@@ -381,8 +404,8 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	internal bool IsHookLoaded(string hookName)
 	{
-		List<HookEx> hooks = GetHookByName(hookName).ToList();
-		return hooks.Count != 0 && hooks.Any(IsHookLoaded);
+		var hooks = GetHookByName(hookName, out int count);
+		return count != 0 && hooks.Any(IsHookLoaded);
 	}
 
 	internal IEnumerable<string> LoadedStaticHooksName
