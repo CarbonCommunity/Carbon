@@ -94,6 +94,10 @@ public class CorePlugin : RustPlugin
 		Carbon.Logger.Log(message);
 	}
 
+	#region Commands
+
+	#region App
+
 	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
 	private void Exit(ConsoleSystem.Arg arg)
 	{
@@ -193,6 +197,25 @@ public class CorePlugin : RustPlugin
 		}
 	}
 
+	[ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
+	private void Update(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		Carbon.Core.Updater.DoUpdate((bool result) =>
+		{
+			if (!result)
+			{
+				Logger.Error($"Unknown error while updating Carbon");
+				return;
+			}
+			HookCaller.CallStaticHook("OnServerSave");
+			Supervisor.ASM.UnloadModule("Carbon.dll", true);
+		});
+	}
+
+	#endregion
+
 #if DEBUG
 	[ConsoleCommand("assembly", "Debug stuff.")]
 	private void AssemblyInfo(ConsoleSystem.Arg arg)
@@ -206,6 +229,48 @@ public class CorePlugin : RustPlugin
 		Reply(body.ToStringMinimal(), arg);
 	}
 #endif
+
+	#region Conditionals
+
+	[ConsoleCommand("addconditional", "Adds a new conditional compilation symbol to the compiler.")]
+	private void AddConditional(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		var value = arg.Args[0];
+
+		if (!Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
+		{
+			Community.Runtime.Config.ConditionalCompilationSymbols.Add(value);
+			Reply($"Added conditional '{value}'.", arg);
+		}
+		else
+		{
+			Reply($"Conditional '{value}' already exists.", arg);
+		}
+	}
+
+	[ConsoleCommand("remconditional", "Removes an existent conditional compilation symbol from the compiler.")]
+	private void RemoveConditional(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		var value = arg.Args[0];
+
+		if (Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
+		{
+			Community.Runtime.Config.ConditionalCompilationSymbols.Remove(value);
+			Reply($"Removed conditional '{value}'.", arg);
+		}
+		else
+		{
+			Reply($"Conditional '{value}' does not exist.", arg);
+		}
+	}
+
+	#endregion
+
+	#region Hooks
 
 	[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
 	private void HookInfo(ConsoleSystem.Arg arg)
@@ -361,22 +426,7 @@ public class CorePlugin : RustPlugin
 		}
 	}
 
-	[ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
-	private void Update(ConsoleSystem.Arg arg)
-	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
-		Carbon.Core.Updater.DoUpdate((bool result) =>
-		{
-			if (!result)
-			{
-				Logger.Error($"Unknown error while updating Carbon");
-				return;
-			}
-			HookCaller.CallStaticHook("OnServerSave");
-			Supervisor.ASM.UnloadModule("Carbon.dll", true);
-		});
-	}
+	#endregion
 
 	#region Config
 
@@ -1071,6 +1121,8 @@ public class CorePlugin : RustPlugin
 				break;
 		}
 	}
+
+	#endregion
 
 	#endregion
 }

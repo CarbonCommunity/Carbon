@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 /*
  *
@@ -28,4 +29,6 @@ public class Config
 	public bool ScriptWatchers { get; set; } = true;
 	public bool HarmonyWatchers { get; set; } = true;
 	public int EntityMapBufferSize { get; set; } = 100000;
+
+	public List<string> ConditionalCompilationSymbols { get; set; } = new List<string>() { "CARBON" };
 }

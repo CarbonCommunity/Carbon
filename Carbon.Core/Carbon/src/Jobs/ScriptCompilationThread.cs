@@ -157,18 +157,20 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			var trees = new List<SyntaxTree>();
 
-			SyntaxTree tree = CSharpSyntaxTree.ParseText(
-				Source, options: new CSharpParseOptions(LanguageVersion.Latest));
+			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
+				.WithPreprocessorSymbols(Community.Runtime.Config.ConditionalCompilationSymbols);
+			var tree = CSharpSyntaxTree.ParseText(
+				Source, options: parseOptions);
 			trees.Add(tree);
 
-			CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+			var root = tree.GetCompilationUnitRoot();
 
-			foreach (UsingDirectiveSyntax element in root.Usings)
+			foreach (var element in root.Usings)
 				Usings.Add($"{element.Name}");
 
 			var references = _addReferences();
 
-			foreach (string require in Requires)
+			foreach (var require in Requires)
 			{
 				try
 				{
