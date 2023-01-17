@@ -1,5 +1,7 @@
-﻿
+﻿//#define UPDATE_HOOKS_ONBOOT
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -54,6 +56,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		_dynamicHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 
+#if UPDATE_HOOKS_ONBOOT
 		Logger.Log(" Updating hooks...");
 		enabled = false;
 
@@ -64,6 +67,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 			enabled = true;
 		});
+#endif
 	}
 
 	internal void OnEnable()
@@ -224,19 +228,19 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 					throw new Exception($"Hook is null, this is a bug");
 
 				if (IsHookLoaded(hook))
-					throw new Exception($"Found duplicated hook '{hook.HookName}'");
+					throw new Exception($"Found duplicated hook '{hook.HookName}[{hook.Identifier}]'");
 
 				if (hook.IsStaticHook)
 				{
 					y++;
 					_staticHooks.Add(hook);
-					Logger.Debug($"Loaded static hook '{hook.HookName}'", 3);
+					Logger.Debug($"Loaded static hook '{hook.HookName}[{hook.Identifier}]'", 3);
 				}
 				else
 				{
 					x++;
 					_dynamicHooks.Add(hook);
-					Logger.Debug($"Loaded dynamic hook '{hook.HookName}'", 3);
+					Logger.Debug($"Loaded dynamic hook '{hook.HookName}[{hook.Identifier}]'", 3);
 				}
 			}
 			catch (System.Exception e)
@@ -256,7 +260,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			List<HookEx> hooks = GetHookByName(hookName).ToList();
 			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
 
-			foreach (HookEx hook in hooks.Where(hook => !HookIsSubscribedBy(hook.HookName, requester)))
+			foreach (HookEx hook in hooks.Where(hook => !HookIsSubscribedBy(hook.HookName, requester)).ToList())
 			{
 				AddSubscriber(hook.HookName, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
@@ -277,7 +281,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			List<HookEx> hooks = GetHookByName(hookName).ToList();
 			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
 
-			foreach (HookEx hook in hooks.Where(hook => HookIsSubscribedBy(hook.HookName, requester)))
+			foreach (HookEx hook in hooks.Where(hook => HookIsSubscribedBy(hook.HookName, requester)).ToList())
 			{
 				RemoveSubscriber(hook.HookName, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
@@ -412,7 +416,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 
 	internal void AddSubscriber(string hookName, string subscriber)
-		=> _subscribers.Add(new Subscription { HookName = hookName, Subscriber = subscriber });
+		=> _subscribers.Add(item: new Subscription { HookName = hookName, Subscriber = subscriber });
 
 	internal void RemoveSubscriber(string hookName, string subscriber)
 		=> _subscribers.RemoveAll(x => x.HookName == hookName && x.Subscriber == subscriber);

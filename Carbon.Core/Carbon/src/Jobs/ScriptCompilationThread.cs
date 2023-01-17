@@ -85,14 +85,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				Logger.Debug(id, $"Added common reference '{item}'", 3);
+				Logger.Debug(id, $"Added common reference '{item}'", 4);
 				byte[] raw = Supervisor.ASM.ReadAssembly(item);
 				using (MemoryStream mem = new MemoryStream(raw))
 					references.Add(MetadataReference.CreateFromStream(mem));
 			}
 			catch (System.Exception)
 			{
-				Logger.Debug(id, $"Error loading common reference '{item}'", 3);
+				Logger.Debug(id, $"Error loading common reference '{item}'", 4);
 			}
 		}
 
@@ -101,13 +101,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				Logger.Debug(id, $"Added using reference '{element}'", 2);
+				Logger.Debug(id, $"Added using reference '{element}'", 4);
 				var outReference = MetadataReference.CreateFromFile(Type.GetType(element).Assembly.Location);
 				if (outReference != null && !references.Any(x => x.Display == outReference.Display)) references.Add(outReference);
 			}
 			catch (System.Exception)
 			{
-				Logger.Debug(id, $"Error loading using reference '{element}'", 2);
+				Logger.Debug(id, $"Error loading using reference '{element}'", 4);
 			}
 		}
 
