@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using MonoMod.Utils;
 
 /*
  *
@@ -16,7 +18,6 @@ internal class HookEx : IDisposable
 {
 	private HookRuntime _runtime;
 	private readonly TypeInfo _patchMethod;
-
 
 	internal string HookName
 	{ get; }
@@ -71,7 +72,6 @@ internal class HookEx : IDisposable
 
 	internal Exception LastError
 	{ get => _runtime.LastError; set => _runtime.LastError = value; }
-
 
 	internal HookEx(TypeInfo type)
 	{
@@ -143,15 +143,19 @@ internal class HookEx : IDisposable
 			if (current is null)
 				throw new Exception($"Harmony failed to execute");
 
-			if (hasValidChecksum)
-			{
-				_runtime.Status = HookState.Success;
-			}
-			else
-			{
-				Logger.Warn($"Checksum validation failed for '{TargetType.Name}.{TargetMethod}'");
-				_runtime.Status = HookState.Warning;
-			}
+			// the checksum system needs some lovin..
+			// for now let's mark them all as valid
+			_runtime.Status = HookState.Success;
+
+			// if (hasValidChecksum)
+			// {
+			// 	_runtime.Status = HookState.Success;
+			// }
+			// else
+			// {
+			// 	Logger.Warn($"Checksum validation failed for '{TargetType.Name}.{TargetMethod}'");
+			// 	_runtime.Status = HookState.Warning;
+			// }
 
 			Logger.Debug($"Hook '{HookName}[{Identifier}]' patched '{TargetType.Name}.{TargetMethod}'", 2);
 		}

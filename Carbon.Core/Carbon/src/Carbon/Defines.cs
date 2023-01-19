@@ -157,6 +157,7 @@ public class Defines
 		"Rust.Harmony",
 		"Rust.Localization",
 		"Rust.Platform.Common",
+		"Rust.Workshop",
 		"Rust.World",
 		"UnityEngine.AIModule",
 		"UnityEngine.CoreModule",

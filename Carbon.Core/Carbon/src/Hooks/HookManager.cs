@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon.Core;
-using Facepunch;
 
 /*
  *
@@ -27,8 +26,8 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	private static readonly string[] Files =
 	{
-		Path.Combine(Defines.GetManagedFolder(), "hooks", "Carbon.Hooks.Base.dll"),
-		Path.Combine(Defines.GetManagedFolder(), "hooks", "Carbon.Hooks.Extended.dll"),
+		Path.Combine("hooks", "Carbon.Hooks.Base.dll"),
+		Path.Combine("hooks", "Carbon.Hooks.Extended.dll"),
 	};
 
 	public void Reload()
@@ -39,9 +38,10 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	public void Dispose()
 	{
-		var hooks = _staticHooks.Concat(_dynamicHooks);
+		List<HookEx> hooks = _staticHooks.Concat(_dynamicHooks).ToList();
 		foreach (HookEx hook in hooks) hook.Dispose();
 
+		hooks = default;
 		_workQueue = default;
 		_subscribers = default;
 		_staticHooks = _dynamicHooks = default;
@@ -77,9 +77,10 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 		foreach (string file in Files)
 		{
-			if (Supervisor.ASM.IsLoaded(Path.GetFileName(file)))
-				Supervisor.ASM.UnloadModule(file, false);
-			LoadHooksFromFile(file);
+			string path = Path.Combine(Defines.GetManagedFolder(), file);
+			if (Supervisor.ASM.IsLoaded(Path.GetFileName(path)))
+				Supervisor.ASM.UnloadModule(path, false);
+			LoadHooksFromFile(path);
 		}
 
 		if (_staticHooks.Count > 0)
@@ -107,13 +108,13 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 			Carbon.Core.HookValidator.Refresh();
 
-			foreach (var item in _subscribers)
+			foreach (Subscription item in _subscribers.ToList())
 			{
 				_subscribers.Remove(item);
 				Subscribe(item.HookName, item.Subscriber);
 			}
 		}
-		catch (Exception e)
+		catch (System.Exception e)
 		{
 			Logger.Error("Couldn't refresh HookValidator", e);
 		}
@@ -157,23 +158,22 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 		try
 		{
-			var payload = _workQueue.Dequeue();
-			var hooks = Pool.GetList<HookEx>();
-			hooks.AddRange(GetHookByName(payload.HookName));
+			Payload payload = _workQueue.Dequeue();
+			List<HookEx> hooks = GetHookByName(payload.HookName).ToList();
 
 			if (payload.Identifier != null)
 				hooks.RemoveAll(x => x.Identifier != payload.Identifier);
 
 			foreach (HookEx hook in hooks)
 			{
-				var subscribers = GetHookSubscriberCount(hook.HookName);
-				Logger.Debug($"Hook '{hook.HookName}[{hook.Identifier}]' has {subscribers} subscriber(s)");
+				// int subscribers = GetHookSubscriberCount(hook.HookName);
+				// Logger.Debug($"Hook '{hook.HookName}[{hook.Identifier}]' has {subscribers} subscriber(s)");
 
-				// Static hooks are a special case
+				// static hooks are a special case
 				if (hook.IsStaticHook) return;
 
-				var hasSubscribers = HookHasSubscribers(hook.HookName);
-				var isInstalled = hook.IsInstalled;
+				bool hasSubscribers = HookHasSubscribers(hook.HookName);
+				bool isInstalled = hook.IsInstalled;
 
 				switch (hasSubscribers)
 				{
@@ -187,8 +187,9 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 						break;
 				}
 			}
+			hooks = default;
 		}
-		catch (Exception e)
+		catch (System.Exception e)
 		{
 			Logger.Error("HookManager.Update() failed", e);
 		}
@@ -206,25 +207,24 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			if (hooks == null)
 				throw new Exception($"External hooks module '{fileName}' not found");
 		}
-		catch (Exception e)
+		catch (System.Exception e)
 		{
 			Logger.Error(e.Message, e);
 			return;
 		}
 
-		var t = hooks.GetType("Carbon.Hooks.HookAttribute.Patch")
+		Type t = hooks.GetType("Carbon.Hooks.HookAttribute.Patch")
 			?? typeof(HookAttribute.Patch);
 
-		var types = hooks.DefinedTypes;
+		IEnumerable<TypeInfo> types = hooks.DefinedTypes
+			.Where(x => Attribute.IsDefined(x, t)).ToList();
 
 		int x = 0, y = 0;
-		foreach (var type in types)
+		foreach (TypeInfo type in types)
 		{
-			if (!Attribute.IsDefined(type, t)) continue;
-
 			try
 			{
-				var hook = new HookEx(type);
+				HookEx hook = new HookEx(type);
 
 				if (hook is null)
 					throw new Exception($"Hook is null, this is a bug");
@@ -245,38 +245,34 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 					Logger.Debug($"Loaded dynamic hook '{hook.HookName}[{hook.Identifier}]'", 3);
 				}
 			}
-			catch (Exception e)
+			catch (System.Exception e)
 			{
 				Logger.Error($"Error while parsing '{type.Name}'", e);
 				continue;
 			}
 		}
 
-		Logger.Log($" - Successfully loaded static:{y} dynamic:{x} ({types.Count()}) hooks from assembly '{fileName}'");
+		Logger.Log($" - Successfully loaded static:{y} dynamic:{x} ({types.Count()}) hooks from assembly '{Path.GetFileName(fileName)}'");
+		types = default;
 	}
 
 	internal void Subscribe(string hookName, string requester)
 	{
 		try
 		{
-			var hooks = GetHookByName(hookName, out int count);
+			List<HookEx> hooks = GetHookByName(hookName).ToList();
+			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
 
-			if (count == 0)
+			foreach (HookEx hook in hooks.Where(hook => !HookIsSubscribedBy(hook.HookName, requester)).ToList())
 			{
-				Logger.Warn($"Could not subscribe to hook {hookName} since it does not exist.");
-				return;
-			}
-
-			foreach (var hook in hooks)
-			{
-				if (HookIsSubscribedBy(hook.HookName, requester)) continue;
-
 				AddSubscriber(hook.HookName, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
 				Logger.Debug($"Subscribe to '{hook.HookName}[{hook.Identifier}]' by '{requester}'");
 			}
+
+			hooks = default;
 		}
-		catch (Exception e)
+		catch (System.Exception e)
 		{
 			Logger.Error($"Error while subscribing hook '{hookName}'", e);
 			return;
@@ -287,24 +283,19 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	{
 		try
 		{
-			var hooks = GetHookByName(hookName, out int count);
+			List<HookEx> hooks = GetHookByName(hookName).ToList();
+			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
 
-			if (count == 0)
+			foreach (HookEx hook in hooks.Where(hook => HookIsSubscribedBy(hook.HookName, requester)).ToList())
 			{
-				Logger.Warn($"Could not unsubscribe to hook {hookName} since it does not exist.");
-				return;
-			}
-
-			foreach (var hook in hooks)
-			{
-				if (!HookIsSubscribedBy(hook.HookName, requester)) continue;
-
 				RemoveSubscriber(hook.HookName, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
 				Logger.Debug($"Unsubscribe from '{hook.HookName}[{hook.Identifier}]' by '{requester}'");
 			}
+
+			hooks = default;
 		}
-		catch (Exception e)
+		catch (System.Exception e)
 		{
 			Logger.Error($"Error while unsubscribing hook '{hookName}'", e);
 			return;
@@ -317,9 +308,11 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		{
 			if (hook.HasDependencies())
 			{
+				List<HookEx> dependencies;
+
 				foreach (string item in hook.Dependencies)
 				{
-					var dependencies = GetHookByName(item);
+					dependencies = GetHookByName(item).ToList();
 
 					foreach (HookEx dependency in dependencies)
 					{
@@ -335,13 +328,15 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 						Logger.Log($"Installed dependency '{dependency.HookName}[{dependency.Identifier}]'");
 					}
 				}
+
+				dependencies = default;
 			}
 
 			if (!hook.ApplyPatch())
 				throw new Exception($"Hook '{hook.HookName}[{hook.Identifier}]' installation failed");
 			Logger.Log($"Installed hook '{hook.HookName}'[{hook.Identifier}]");
 		}
-		catch (Exception e)
+		catch (System.Exception e)
 		{
 			hook.LastError = e;
 			hook.Status = HookState.Failure;
@@ -359,9 +354,11 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 			if (!hook.HasDependencies()) return;
 
+			List<HookEx> dependencies;
+
 			foreach (string item in hook.Dependencies)
 			{
-				var dependencies = GetHookByName(item);
+				dependencies = GetHookByName(item).ToList();
 
 				foreach (HookEx dependency in dependencies)
 				{
@@ -377,8 +374,10 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 					Logger.Log($"Uninstalled dependency '{dependency.HookName}[{dependency.Identifier}]'");
 				}
 			}
+
+			dependencies = default;
 		}
-		catch (Exception e)
+		catch (System.Exception e)
 		{
 			hook.LastError = e;
 			hook.Status = HookState.Failure;
@@ -389,13 +388,6 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	private IEnumerable<HookEx> GetHookByName(string name)
 		=> _dynamicHooks.Where(x => x.HookName == name) ?? null;
 
-	private IEnumerable<HookEx> GetHookByName(string name, out int count)
-	{
-		var result = GetHookByName(name);
-		count = result.Count();
-		return result;
-	}
-
 	private HookEx GetHookById(string identifier)
 		=> _dynamicHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
 
@@ -404,8 +396,8 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	internal bool IsHookLoaded(string hookName)
 	{
-		var hooks = GetHookByName(hookName, out int count);
-		return count != 0 && hooks.Any(IsHookLoaded);
+		List<HookEx> hooks = GetHookByName(hookName).ToList();
+		return hooks.Count != 0 && hooks.Any(IsHookLoaded);
 	}
 
 	internal IEnumerable<string> LoadedStaticHooksName
