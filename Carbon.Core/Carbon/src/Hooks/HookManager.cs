@@ -1,6 +1,4 @@
-﻿//#define UPDATE_HOOKS_ONBOOT
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -56,18 +54,19 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		_dynamicHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 
-#if UPDATE_HOOKS_ONBOOT
-		Logger.Log(" Updating hooks...");
-		enabled = false;
-
-		Carbon.Hooks.Updater.DoUpdate((bool result) =>
+		if (Community.Runtime.Config.AutoUpdate)
 		{
-			if (!result)
-				Logger.Error($" Unable to update the hooks at this time, please try again later");
+			Logger.Log(" Updating hooks...");
+			enabled = false;
 
-			enabled = true;
-		});
-#endif
+			Carbon.Hooks.Updater.DoUpdate((bool result) =>
+			{
+				if (!result)
+					Logger.Error($" Unable to update the hooks at this time, please try again later");
+
+				enabled = true;
+			});
+		}
 	}
 
 	internal void OnEnable()
@@ -314,6 +313,9 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 				{
 					dependencies = GetHookByName(item).ToList();
 
+					if (dependencies.Count < 1)
+						throw new Exception($"Dependency '{item}' not found, this is a bug");
+
 					foreach (HookEx dependency in dependencies)
 					{
 						if (dependency is null)
@@ -333,7 +335,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			}
 
 			if (!hook.ApplyPatch())
-				throw new Exception($"Hook '{hook.HookName}[{hook.Identifier}]' installation failed");
+				throw new Exception($"Unable to apply patch");
 			Logger.Log($"Installed hook '{hook.HookName}'[{hook.Identifier}]");
 		}
 		catch (System.Exception e)
@@ -349,7 +351,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		try
 		{
 			if (!hook.RemovePatch())
-				throw new Exception($"Hook '{hook.HookName}[{hook.Identifier}]' uninstallation failed");
+				throw new Exception($"Unable to remove patch");
 			Logger.Log($"Uninstalled hook '{hook.HookName}[{hook.Identifier}]'");
 
 			if (!hook.HasDependencies()) return;
@@ -359,6 +361,9 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			foreach (string item in hook.Dependencies)
 			{
 				dependencies = GetHookByName(item).ToList();
+
+				if (dependencies.Count < 1)
+					throw new Exception($"Dependency '{item}' not found, this is a bug");
 
 				foreach (HookEx dependency in dependencies)
 				{
@@ -381,7 +386,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		{
 			hook.LastError = e;
 			hook.Status = HookState.Failure;
-			Logger.Error($"Install hook '{hook.HookName}[{hook.Identifier}]' failed", e);
+			Logger.Error($"Uninstall hook '{hook.HookName}[{hook.Identifier}]' failed", e);
 		}
 	}
 

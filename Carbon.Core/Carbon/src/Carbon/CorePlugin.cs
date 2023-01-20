@@ -460,6 +460,9 @@ public class CorePlugin : RustPlugin
 		Reply("Saved Carbon config.", arg);
 	}
 
+	[CommandVar("autoupdate", "Updates carbon hooks on boot.", true)]
+	private bool AutoUpdate { get { return Community.Runtime.Config.AutoUpdate; } set { Community.Runtime.Config.AutoUpdate = value; Community.Runtime.SaveConfig(); } }
+
 	[CommandVar("modding", "Mark this server as modded or not.", true)]
 	private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
 
