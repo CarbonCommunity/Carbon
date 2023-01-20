@@ -16,10 +16,11 @@ namespace Carbon.Hooks;
 
 internal sealed class HookManager : FacepunchBehaviour, IDisposable
 {
+	public List<HookEx> StaticHooks;
+	public List<HookEx> DynamicHooks;
+
 	private bool _doReload;
 	private Queue<Payload> _workQueue;
-	private List<HookEx> _staticHooks;
-	private List<HookEx> _dynamicHooks;
 	private List<Subscription> _subscribers;
 
 	private static readonly string[] Files =
@@ -36,13 +37,13 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	public void Dispose()
 	{
-		List<HookEx> hooks = _staticHooks.Concat(_dynamicHooks).ToList();
+		List<HookEx> hooks = StaticHooks.Concat(DynamicHooks).ToList();
 		foreach (HookEx hook in hooks) hook.Dispose();
 
 		hooks = default;
 		_workQueue = default;
 		_subscribers = default;
-		_staticHooks = _dynamicHooks = default;
+		StaticHooks = DynamicHooks = default;
 	}
 
 	internal void Awake()
@@ -50,8 +51,8 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		Logger.Log(" Initialized hook processor...");
 
 		_workQueue = new Queue<Payload>();
-		_staticHooks = new List<HookEx>();
-		_dynamicHooks = new List<HookEx>();
+		StaticHooks = new List<HookEx>();
+		DynamicHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 
 		if (Community.Runtime.Config.AutoUpdate)
@@ -71,8 +72,8 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 	internal void OnEnable()
 	{
-		_staticHooks.Clear();
-		_dynamicHooks.Clear();
+		StaticHooks.Clear();
+		DynamicHooks.Clear();
 
 		foreach (string file in Files)
 		{
@@ -82,19 +83,19 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			LoadHooksFromFile(path);
 		}
 
-		if (_staticHooks.Count > 0)
+		if (StaticHooks.Count > 0)
 		{
 			Logger.Log($" - Installing static hooks");
 			// this is based on the assumption that a static hook will never have
 			// a dependency on another hook thus it will be always applied first
-			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
+			foreach (HookEx hook in StaticHooks.Where(x => !x.IsInstalled))
 				hook.ApplyPatch();
 		}
 
-		if (_dynamicHooks.Count > 0)
+		if (DynamicHooks.Count > 0)
 		{
 			Logger.Log($" - Installing dynamic hooks");
-			foreach (HookEx hook in _dynamicHooks.Where(x => HookHasSubscribers(x.HookName)))
+			foreach (HookEx hook in DynamicHooks.Where(x => HookHasSubscribers(x.HookName)))
 				_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
 		}
 
@@ -123,20 +124,20 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	{
 		Logger.Log(" Stopping hook processor...");
 
-		if (_dynamicHooks.Count > 0)
+		if (DynamicHooks.Count > 0)
 		{
 			Logger.Log($" - Uninstalling dynamic hooks");
 			// the disable event will make sure the patches are removed but the
 			// subscriber list is kept unchanged. this will be used on hot reloads.
-			foreach (HookEx hook in _dynamicHooks.Where(x => x.IsInstalled))
+			foreach (HookEx hook in DynamicHooks.Where(x => x.IsInstalled))
 				hook.RemovePatch();
 		}
 
-		if (_staticHooks.Count > 0)
+		if (StaticHooks.Count > 0)
 		{
 			Logger.Log($" - Uninstalling static hooks");
 			// reverse order, dynamics get removed first, then statics.
-			foreach (HookEx hook in _staticHooks.Where(x => x.IsInstalled))
+			foreach (HookEx hook in StaticHooks.Where(x => x.IsInstalled))
 				hook.RemovePatch();
 		}
 
@@ -234,13 +235,13 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 				if (hook.IsStaticHook)
 				{
 					y++;
-					_staticHooks.Add(hook);
+					StaticHooks.Add(hook);
 					Logger.Debug($"Loaded static hook '{hook}'", 3);
 				}
 				else
 				{
 					x++;
-					_dynamicHooks.Add(hook);
+					DynamicHooks.Add(hook);
 					Logger.Debug($"Loaded dynamic hook '{hook}'", 3);
 				}
 			}
@@ -389,13 +390,13 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	}
 
 	private IEnumerable<HookEx> GetHookByName(string name)
-		=> _dynamicHooks.Where(x => x.HookName == name) ?? null;
+		=> DynamicHooks.Where(x => x.HookName == name) ?? null;
 
 	private HookEx GetHookById(string identifier)
-		=> _dynamicHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
+		=> DynamicHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
 
 	private bool IsHookLoaded(HookEx hook)
-		=> _dynamicHooks.Any(x => x.PatchMethodName == hook.PatchMethodName);
+		=> DynamicHooks.Any(x => x.PatchMethodName == hook.PatchMethodName);
 
 	internal bool IsHookLoaded(string hookName)
 	{
@@ -404,23 +405,23 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 	}
 
 	internal IEnumerable<string> LoadedStaticHooksName
-	{ get => _staticHooks.Where(x => x.IsLoaded).Select(x => x.HookName); }
+	{ get => StaticHooks.Where(x => x.IsLoaded).Select(x => x.HookName); }
 
 	internal IEnumerable<string> LoadedDynamicHooksName
-	{ get => _dynamicHooks.Where(x => x.IsLoaded).Select(x => x.HookName); }
+	{ get => DynamicHooks.Where(x => x.IsLoaded).Select(x => x.HookName); }
 
 
 	internal IEnumerable<HookEx> LoadedStaticHooks
-	{ get => _staticHooks.Where(x => x.IsLoaded); }
+	{ get => StaticHooks.Where(x => x.IsLoaded); }
 
 	internal IEnumerable<HookEx> LoadedDynamicHooks
-	{ get => _dynamicHooks.Where(x => x.IsLoaded); }
+	{ get => DynamicHooks.Where(x => x.IsLoaded); }
 
 	internal IEnumerable<HookEx> InstalledStaticHooks
-	{ get => _staticHooks.Where(x => x.IsInstalled); }
+	{ get => StaticHooks.Where(x => x.IsInstalled); }
 
 	internal IEnumerable<HookEx> InstalledDynamicHooks
-	{ get => _dynamicHooks.Where(x => x.IsInstalled); }
+	{ get => DynamicHooks.Where(x => x.IsInstalled); }
 
 
 	internal bool HookIsSubscribedBy(string hookName, string subscriber)
