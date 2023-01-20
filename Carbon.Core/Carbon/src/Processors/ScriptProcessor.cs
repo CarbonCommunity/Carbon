@@ -94,10 +94,13 @@ public class ScriptProcessor : BaseProcessor
 		{
 			output = input
 				.Replace(".IPlayer", ".AsIPlayer()")
+
 				.Replace("using Harmony;", "using HarmonyLib;")
 				.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
 				.Replace("HarmonyInstance", "HarmonyLib.Harmony")
+
 				.Replace("PluginTimers", "Timers")
+
 				.Replace("protected override void PostSpawnProcess", "public override void PostSpawnProcess")
 				.Replace("protected override bool IsClipping", "public override bool IsClipping");
 

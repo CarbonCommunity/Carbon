@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
-using MonoMod.Utils;
 
 /*
  *
@@ -37,6 +35,9 @@ internal class HookEx : IDisposable
 	internal string Identifier
 	{ get; }
 
+	internal string ShortIdentifier
+	{ get => Identifier.Substring(0, 6); }
+
 	internal string Checksum
 	{ get; }
 
@@ -54,11 +55,14 @@ internal class HookEx : IDisposable
 	{ get => Options.HasFlag(HookFlags.IgnoreChecksum); }
 
 	internal bool IsLoaded
-	{ get => _runtime.Status != HookState.Failure; }
+	{ get => _runtime.Status != HookState.Inactive; }
 
 	internal bool IsInstalled
 	{ get => _runtime.Status is HookState.Success or HookState.Warning; }
 
+
+	public override string ToString()
+		=> $"{HookName}[{ShortIdentifier}]";
 
 	internal bool HasDependencies()
 		=> Dependencies is { Length: > 0 };
@@ -214,6 +218,12 @@ internal class HookEx : IDisposable
 		byte[] bytes = sha1.ComputeHash(original.GetMethodBody()?.GetILAsByteArray() ?? Array.Empty<byte>());
 		string hash = string.Concat(bytes.Select(b => b.ToString("x2")));
 		return hash.Equals(checksum, StringComparison.InvariantCultureIgnoreCase);
+	}
+
+	internal void SetStatus(HookState Status, Exception e = null)
+	{
+		_runtime.Status = Status;
+		_runtime.LastError = e;
 	}
 
 	public void Dispose()

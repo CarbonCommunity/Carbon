@@ -229,19 +229,19 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 					throw new Exception($"Hook is null, this is a bug");
 
 				if (IsHookLoaded(hook))
-					throw new Exception($"Found duplicated hook '{hook.HookName}[{hook.Identifier}]'");
+					throw new Exception($"Found duplicated hook '{hook}'");
 
 				if (hook.IsStaticHook)
 				{
 					y++;
 					_staticHooks.Add(hook);
-					Logger.Debug($"Loaded static hook '{hook.HookName}[{hook.Identifier}]'", 3);
+					Logger.Debug($"Loaded static hook '{hook}'", 3);
 				}
 				else
 				{
 					x++;
 					_dynamicHooks.Add(hook);
-					Logger.Debug($"Loaded dynamic hook '{hook.HookName}[{hook.Identifier}]'", 3);
+					Logger.Debug($"Loaded dynamic hook '{hook}'", 3);
 				}
 			}
 			catch (System.Exception e)
@@ -266,7 +266,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			{
 				AddSubscriber(hook.HookName, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
-				Logger.Debug($"Subscribe to '{hook.HookName}[{hook.Identifier}]' by '{requester}'");
+				Logger.Debug($"Subscribe to '{hook}' by '{requester}'");
 			}
 
 			hooks = default;
@@ -289,7 +289,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 			{
 				RemoveSubscriber(hook.HookName, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
-				Logger.Debug($"Unsubscribe from '{hook.HookName}[{hook.Identifier}]' by '{requester}'");
+				Logger.Debug($"Unsubscribe from '{hook}' by '{requester}'");
 			}
 
 			hooks = default;
@@ -324,10 +324,10 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 						if (dependency.IsInstalled) continue;
 
 						if (!dependency.ApplyPatch())
-							throw new Exception($"Dependency '{dependency.HookName}[{dependency.Identifier}]' installation failed");
+							throw new Exception($"Dependency '{dependency}' installation failed");
 
 						AddSubscriber(dependency.HookName, requester);
-						Logger.Log($"Installed dependency '{dependency.HookName}[{dependency.Identifier}]'");
+						Logger.Log($"Installed dependency '{dependency}'");
 					}
 				}
 
@@ -336,13 +336,12 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 			if (!hook.ApplyPatch())
 				throw new Exception($"Unable to apply patch");
-			Logger.Log($"Installed hook '{hook.HookName}'[{hook.Identifier}]");
+			Logger.Log($"Installed hook '{hook}");
 		}
 		catch (System.Exception e)
 		{
-			hook.LastError = e;
-			hook.Status = HookState.Failure;
-			Logger.Error($"Install hook '{hook.HookName}[{hook.Identifier}]' failed", e);
+			GetHookById(hook.Identifier).SetStatus(HookState.Failure, e);
+			Logger.Error($"Install hook '{hook}' failed", e);
 		}
 	}
 
@@ -352,7 +351,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		{
 			if (!hook.RemovePatch())
 				throw new Exception($"Unable to remove patch");
-			Logger.Log($"Uninstalled hook '{hook.HookName}[{hook.Identifier}]'");
+			Logger.Log($"Uninstalled hook '{hook}'");
 
 			if (!hook.HasDependencies()) return;
 
@@ -373,10 +372,10 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 					if (dependency.IsInstalled) continue;
 
 					if (!dependency.RemovePatch())
-						throw new Exception($"Dependency '{dependency.HookName}[{dependency.Identifier}]' uninstallation failed");
+						throw new Exception($"Dependency '{dependency}' uninstallation failed");
 
 					RemoveSubscriber(dependency.HookName, requester);
-					Logger.Log($"Uninstalled dependency '{dependency.HookName}[{dependency.Identifier}]'");
+					Logger.Log($"Uninstalled dependency '{dependency}'");
 				}
 			}
 
@@ -384,9 +383,8 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		}
 		catch (System.Exception e)
 		{
-			hook.LastError = e;
-			hook.Status = HookState.Failure;
-			Logger.Error($"Uninstall hook '{hook.HookName}[{hook.Identifier}]' failed", e);
+			GetHookById(hook.Identifier).SetStatus(HookState.Failure, e);
+			Logger.Error($"Uninstall hook '{hook}' failed", e);
 		}
 	}
 
