@@ -140,6 +140,8 @@ public static class Loader
 	}
 	public static bool LoadCarbonMod(string fullPath, bool silent = false)
 	{
+		if (OsEx.File.Exists(fullPath)) return false;
+
 		var fileName = Path.GetFileName(fullPath);
 
 		if (fileName.EndsWith(".dll"))
@@ -191,7 +193,7 @@ public static class Loader
 			}
 			catch (Exception arg2)
 			{
-				LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", arg2));
+				if (!silent) LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", arg2));
 				return false;
 			}
 
@@ -201,7 +203,7 @@ public static class Loader
 			}
 			catch (Exception arg2)
 			{
-				LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", arg2));
+				if (!silent) LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", arg2));
 				return false;
 			}
 
@@ -216,7 +218,7 @@ public static class Loader
 				}
 				catch (Exception arg3)
 				{
-					LogError(mod.Name, string.Format("Failed to call hook 'OnLoaded' {0}", arg3));
+					if (!silent) LogError(mod.Name, string.Format("Failed to call hook 'OnLoaded' {0}", arg3));
 				}
 			}
 
@@ -228,7 +230,7 @@ public static class Loader
 		}
 		catch (Exception e)
 		{
-			LogError(domain, "Failed to load: " + fullPath);
+			if (!silent) LogError(domain, "Failed to load: " + fullPath);
 			ReportException(domain, e);
 			return false;
 		}
