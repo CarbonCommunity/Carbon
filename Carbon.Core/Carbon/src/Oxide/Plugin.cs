@@ -33,6 +33,7 @@ namespace Oxide.Plugins
 		public int ResourceId { get; set; }
 		public bool HasConfig { get; set; }
 		public bool HasMessages { get; set; }
+		public bool HasConditionals { get; set; }
 
 		[JsonProperty]
 		public double CompileTime { get; internal set; }

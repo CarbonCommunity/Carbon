@@ -290,6 +290,8 @@ public class ScriptLoader : IDisposable
 						p.FileName = AsyncLoader.FileName;
 					}))
 				{
+					rustPlugin.HasConditionals = Source.Contains("#if ");
+
 					plugin.Instance = rustPlugin;
 					plugin.IsCore = IsCore;
 

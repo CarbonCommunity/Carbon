@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Hooks;
+using Carbon.Plugins;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
@@ -21,7 +23,7 @@ using UnityEngine;
 
 namespace Carbon.Core;
 
-public class CorePlugin : RustPlugin
+public class CorePlugin : CarbonPlugin
 {
 	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
@@ -249,6 +251,24 @@ public class CorePlugin : RustPlugin
 		{
 			Reply($"Conditional '{value}' already exists.", arg);
 		}
+
+		foreach (var mod in Loader._loadedMods)
+		{
+			var plugins = Pool.GetList<RustPlugin>();
+			plugins.AddRange(mod.Plugins);
+
+			foreach (var plugin in plugins)
+			{
+				if (plugin.HasConditionals)
+				{
+					plugin._processor_instance.Dispose();
+					plugin._processor_instance.Execute();
+					mod.Plugins.Remove(plugin);
+				}
+			}
+
+			Pool.FreeList(ref plugins);
+		}
 	}
 
 	[ConsoleCommand("remconditional", "Removes an existent conditional compilation symbol from the compiler.")]
@@ -267,6 +287,24 @@ public class CorePlugin : RustPlugin
 		else
 		{
 			Reply($"Conditional '{value}' does not exist.", arg);
+		}
+
+		foreach (var mod in Loader._loadedMods)
+		{
+			var plugins = Pool.GetList<RustPlugin>();
+			plugins.AddRange(mod.Plugins);
+
+			foreach (var plugin in plugins)
+			{
+				if (plugin.HasConditionals)
+				{
+					plugin._processor_instance.Dispose();
+					plugin._processor_instance.Execute();
+					mod.Plugins.Remove(plugin);
+				}
+			}
+
+			Pool.FreeList(ref plugins);
 		}
 	}
 
