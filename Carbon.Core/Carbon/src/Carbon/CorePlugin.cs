@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Hooks;
+using Carbon.Plugins;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
@@ -21,7 +23,7 @@ using UnityEngine;
 
 namespace Carbon.Core;
 
-public class CorePlugin : RustPlugin
+public class CorePlugin : CarbonPlugin
 {
 	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
@@ -93,6 +95,10 @@ public class CorePlugin : RustPlugin
 		}
 		Carbon.Logger.Log(message);
 	}
+
+	#region Commands
+
+	#region App
 
 	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
 	private void Exit(ConsoleSystem.Arg arg)
@@ -193,6 +199,25 @@ public class CorePlugin : RustPlugin
 		}
 	}
 
+	[ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
+	private void Update(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		Carbon.Core.Updater.DoUpdate((bool result) =>
+		{
+			if (!result)
+			{
+				Logger.Error($"Unknown error while updating Carbon");
+				return;
+			}
+			HookCaller.CallStaticHook("OnServerSave");
+			Supervisor.ASM.UnloadModule("Carbon.dll", true);
+		});
+	}
+
+	#endregion
+
 #if DEBUG
 	[ConsoleCommand("assembly", "Debug stuff.")]
 	private void AssemblyInfo(ConsoleSystem.Arg arg)
@@ -206,6 +231,94 @@ public class CorePlugin : RustPlugin
 		Reply(body.ToStringMinimal(), arg);
 	}
 #endif
+
+	#region Conditionals
+
+	[ConsoleCommand("addconditional", "Adds a new conditional compilation symbol to the compiler.")]
+	private void AddConditional(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		var value = arg.Args[0];
+
+		if (!Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
+		{
+			Community.Runtime.Config.ConditionalCompilationSymbols.Add(value);
+			Community.Runtime.SaveConfig();
+			Reply($"Added conditional '{value}'.", arg);
+		}
+		else
+		{
+			Reply($"Conditional '{value}' already exists.", arg);
+		}
+
+		foreach (var mod in Loader._loadedMods)
+		{
+			var plugins = Pool.GetList<RustPlugin>();
+			plugins.AddRange(mod.Plugins);
+
+			foreach (var plugin in plugins)
+			{
+				if (plugin.HasConditionals)
+				{
+					plugin._processor_instance.Dispose();
+					plugin._processor_instance.Execute();
+					mod.Plugins.Remove(plugin);
+				}
+			}
+
+			Pool.FreeList(ref plugins);
+		}
+	}
+
+	[ConsoleCommand("remconditional", "Removes an existent conditional compilation symbol from the compiler.")]
+	private void RemoveConditional(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		var value = arg.Args[0];
+
+		if (Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
+		{
+			Community.Runtime.Config.ConditionalCompilationSymbols.Remove(value);
+			Community.Runtime.SaveConfig();
+			Reply($"Removed conditional '{value}'.", arg);
+		}
+		else
+		{
+			Reply($"Conditional '{value}' does not exist.", arg);
+		}
+
+		foreach (var mod in Loader._loadedMods)
+		{
+			var plugins = Pool.GetList<RustPlugin>();
+			plugins.AddRange(mod.Plugins);
+
+			foreach (var plugin in plugins)
+			{
+				if (plugin.HasConditionals)
+				{
+					plugin._processor_instance.Dispose();
+					plugin._processor_instance.Execute();
+					mod.Plugins.Remove(plugin);
+				}
+			}
+
+			Pool.FreeList(ref plugins);
+		}
+	}
+
+	[ConsoleCommand("conditionals", "Prints a list of all conditional compilation symbols used by the compiler.")]
+	private void Conditionals(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		Reply($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}", arg);
+	}
+
+	#endregion
+
+	#region Hooks
 
 	[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
 	private void HookInfo(ConsoleSystem.Arg arg)
@@ -361,22 +474,7 @@ public class CorePlugin : RustPlugin
 		}
 	}
 
-	[ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
-	private void Update(ConsoleSystem.Arg arg)
-	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
-		Carbon.Core.Updater.DoUpdate((bool result) =>
-		{
-			if (!result)
-			{
-				Logger.Error($"Unknown error while updating Carbon");
-				return;
-			}
-			HookCaller.CallStaticHook("OnServerSave");
-			Supervisor.ASM.UnloadModule("Carbon.dll", true);
-		});
-	}
+	#endregion
 
 	#region Config
 
@@ -399,6 +497,9 @@ public class CorePlugin : RustPlugin
 
 		Reply("Saved Carbon config.", arg);
 	}
+
+	[CommandVar("autoupdate", "Updates carbon hooks on boot.", true)]
+	private bool AutoUpdate { get { return Community.Runtime.Config.AutoUpdate; } set { Community.Runtime.Config.AutoUpdate = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("modding", "Mark this server as modded or not.", true)]
 	private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
@@ -1071,6 +1172,8 @@ public class CorePlugin : RustPlugin
 				break;
 		}
 	}
+
+	#endregion
 
 	#endregion
 }

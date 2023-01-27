@@ -67,7 +67,7 @@ public class Initializer : IHarmonyModHooks
 		}
 		catch (System.Exception e)
 		{
-			Carbon.Logger.Error("Unable to initialize.", e);
+			Carbon.Logger.Error("Unable to initialize.", e.InnerException ?? e);
 			return;
 		}
 	}
