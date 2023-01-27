@@ -34,7 +34,7 @@ jobs:
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
         with:
-          ref: develop
+          ref: production
 
       - name: 📅 Prepare the environment
         id: step1
@@ -75,13 +75,14 @@ jobs:
     - name: 🐧 Built Carbon on Linux
       shell: bash
       run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build_release.sh
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix
         
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-production-${{ needs.bootstrap.outputs.ref }}-linux
-        path: Release
+        name: build-production-linux
+        path: |
+          Release/Carbon.ReleaseUnix.tar.gz
 
   build-windows:
     name: 🪟 Windows
@@ -108,13 +109,14 @@ jobs:
     - name: 🪟 Built Carbon on Windows
       shell: cmd
       run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\build_release.bat
+        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-production-${{ needs.bootstrap.outputs.ref }}-windows
-        path: Release
+        name: build-production-windows
+        path: |
+          Release/Carbon.Release.zip
 
   release:
     name: 💾 Release
@@ -127,7 +129,6 @@ jobs:
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: ${{ needs.build-linux.outputs.artifact }}
         path: Release/
         
     - name: 🗑️ Delete existing release tag
@@ -145,17 +146,15 @@ jobs:
         tag_name: production_build
         name: 'Carbon Build (production)'
         body: |
-          This is a build of Carbon based on the `production` branch.
+          This is a release build of Carbon based on the `production` branch.
           This build is targeted at the general public.
 
           ### How to install
-          1. Download the `Carbon.Patch.zip` archive from the attachments below.
+          1. Download the `Carbon.Release[Unix].zip` archive from the attachments below.
           2. Unzip the archive to the root of your Rust Dedicated Server.
           3. Restart the server and enjoy.
           
           ${{ needs.build-linux.outputs.build_info }}
         files: |
-          Release/Carbon.dll
-          Release/Carbon.Patch.zip
-          Release/Carbon-Unix.dll
-          Release/Carbon.Patch-Unix.zip
+          Release/build-production-windows/Carbon.Release.zip
+          Release/build-production-linux/Carbon.ReleaseUnix.tar.gz

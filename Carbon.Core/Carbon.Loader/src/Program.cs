@@ -1,33 +1,51 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
-using System;
+﻿using System;
+using System.Reflection;
+using Carbon.LoaderEx.ASM;
 using Carbon.LoaderEx.Common;
-using Carbon.LoaderEx.Components;
 using Carbon.LoaderEx.Utility;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.LoaderEx;
 
 internal sealed class Program : Singleton<Program>, IDisposable
 {
-	static Program() { }
+	private static readonly string identifier;
+	private static readonly string assemblyName;
 
-	private readonly string Identifier;
+	private HarmonyLib.Harmony _harmonyInstance;
+	private UnityEngine.GameObject _gameObject;
 
-	internal HarmonyLib.Harmony Harmony;
 
-	private UnityEngine.GameObject gameObject;
+	internal string Name
+	{ get => assemblyName; }
+
+	internal HarmonyLib.Harmony Harmony
+	{ get => _harmonyInstance; }
+
+	internal DownloadManager Downloader
+	{ get => _gameObject.GetComponent<DownloadManager>(); }
+
+	static Program()
+	{
+		identifier = $"{Guid.NewGuid():N}";
+		Logger.Warn($"Using '{identifier}' as runtime namespace");
+		assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+		Logger.Warn($"Runtime baptized us as '{assemblyName}', látom.");
+		AssemblyManager.GetInstance().Register(AppDomain.CurrentDomain);
+	}
 
 	internal Program()
 	{
-		Identifier = Guid.NewGuid().ToString();
-		Logger.Warn($"Using '{Identifier}' as runtime namespace");
-		AssemblyResolver.GetInstance().RegisterDomain(AppDomain.CurrentDomain);
-
-		Harmony = new HarmonyLib.Harmony(Identifier);
-		gameObject = new UnityEngine.GameObject(Identifier);
-		UnityEngine.Object.DontDestroyOnLoad(gameObject);
+		_harmonyInstance = new HarmonyLib.Harmony(identifier);
+		_gameObject = new UnityEngine.GameObject(identifier);
+		_gameObject.AddComponent<DownloadManager>();
+		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
 	}
 
 	internal void Initialize()
@@ -41,13 +59,23 @@ internal sealed class Program : Singleton<Program>, IDisposable
 			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
 			@"                                               " + Environment.NewLine
 		);
+
+		try
+		{
+			Logger.Log("Patching Facepunch's harmony loader");
+			Harmony.PatchAll(Assembly.GetExecutingAssembly());
+		}
+		catch (Exception e)
+		{
+			Logger.Error("Unable to apply all Harmony patches", e);
+		}
 	}
 
 	public void Dispose()
 	{
 		try
 		{
-			Harmony.UnpatchAll(Identifier);
+			Harmony.UnpatchAll(identifier);
 			Logger.Log("Removed all Harmony patches");
 		}
 		catch (Exception e)
@@ -55,7 +83,7 @@ internal sealed class Program : Singleton<Program>, IDisposable
 			Logger.Error("Unable to remove all Harmony patches", e);
 		}
 
-		Harmony = default;
-		gameObject = default;
+		_harmonyInstance = default;
+		_gameObject = default;
 	}
 }

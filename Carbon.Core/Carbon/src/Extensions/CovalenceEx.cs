@@ -1,14 +1,19 @@
-﻿///
-/// Copyright (c) 2022 Carbon Community 
-/// All rights reserved
-/// 
+﻿using Oxide.Core.Libraries.Covalence;
 
-using Oxide.Core.Libraries.Covalence;
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 public static class CovalenceEx
 {
-	public static IPlayer AsIPlayer(this BasePlayer player)
+	public static RustPlayer AsIPlayer(this BasePlayer player)
 	{
-		return default;
+		var iplayer = default(RustPlayer);
+		iplayer.Object = player;
+
+		return iplayer;
 	}
 }
