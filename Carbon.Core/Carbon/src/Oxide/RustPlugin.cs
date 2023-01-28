@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Carbon;
 using Carbon.Core;
 using Carbon.Extensions;
 using Oxide.Core;
@@ -38,6 +39,8 @@ public class RustPlugin : Plugin
 	public Player Player { get { return rust.Player; } private set { } }
 	public Server Server { get { return rust.Server; } private set { } }
 
+	public CUI.Handler CuiHandler { get; set; }
+
 	public RustPlugin()
 	{
 		Setup($"Core Plugin {RandomEx.GetRandomString(5)}", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
@@ -68,6 +71,7 @@ public class RustPlugin : Plugin
 		persistence = new GameObject($"Script_{name}").AddComponent<Persistence>();
 		UnityEngine.Object.DontDestroyOnLoad(persistence.gameObject);
 		covalence = new CovalencePlugin.Covalence();
+		CuiHandler = new CUI.Handler();
 
 		Type = GetType();
 
@@ -88,6 +92,8 @@ public class RustPlugin : Plugin
 
 		base.Dispose();
 	}
+
+	#region Logging
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
@@ -171,6 +177,8 @@ public class RustPlugin : Plugin
 		File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
 	}
 
+	#endregion
+
 	public void ILoadConfig()
 	{
 		LoadConfig();
@@ -227,6 +235,8 @@ public class RustPlugin : Plugin
 	{
 		return $"{Name} v{Version} by {Author}";
 	}
+
+	#region Printing
 
 	protected void PrintToConsole(BasePlayer player, string format, params object[] args)
 	{
@@ -303,6 +313,17 @@ public class RustPlugin : Plugin
 
 		Debug.LogError(text);
 	}
+
+	#endregion
+
+	#region CUI
+
+	public CUI CreateCUI()
+	{
+		return new CUI(CuiHandler);
+	}
+
+	#endregion
 
 	protected void ForcePlayerPosition(BasePlayer player, Vector3 destination)
 	{
