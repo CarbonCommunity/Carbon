@@ -52,13 +52,13 @@ public struct CUI : IDisposable
 	{
 		return CUIStatics.Label(Manager, container, panel, text, size, xMin, yMin, xMax, yMax, align, font);
 	}
-	public CuiElementContainer CreateButton(CuiElementContainer container, string panel, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, bool @protected = false)
+	public CuiElementContainer CreateButton(CuiElementContainer container, string panel, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.Button(Manager, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align, @protected);
+		return CUIStatics.Button(Manager, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align, false);
 	}
 	public CuiElementContainer CreateProtectedButton(CuiElementContainer container, string panel, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.ProtectedButton(Manager, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align);
+		return CUIStatics.Button(Manager, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
 	}
 	public CuiElementContainer CreateImage(CuiElementContainer container, string panel, string png, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f)
 	{
@@ -112,6 +112,7 @@ public struct CUI : IDisposable
 		internal List<ICuiComponent> _rawImages = new();
 		internal List<ICuiComponent> _texts = new();
 		internal List<ICuiComponent> _buttons = new();
+		internal List<ICuiComponent> _inputFields = new();
 		internal List<ICuiComponent> _rects = new();
 		internal List<ICuiComponent> _needsCursors = new();
 		internal List<ICuiComponent> _needsKeyboards = new();
@@ -126,6 +127,7 @@ public struct CUI : IDisposable
 		internal CuiRectTransformComponent _defaultRectTransform = new CuiRectTransformComponent();
 		internal CuiTextComponent _defaultText = new CuiTextComponent();
 		internal CuiButtonComponent _defaultButton = new CuiButtonComponent();
+		internal CuiInputFieldComponent _defaultInputField = new CuiInputFieldComponent();
 
 		#endregion
 
@@ -224,12 +226,15 @@ public struct CUI : IDisposable
 			else
 			{
 				element = _images[0] as CuiImageComponent;
-				element.SkinId = _defaultImage.SkinId;
-				element.Png = _defaultImage.Png;
-				element.ItemId = _defaultImage.ItemId;
-				element.FadeIn = _defaultImage.FadeIn;
 				element.Sprite = _defaultImage.Sprite;
+				element.Material = _defaultImage.Material;
 				element.Color = _defaultImage.Color;
+				element.SkinId = _defaultImage.SkinId;
+				element.ImageType = _defaultImage.ImageType;
+				element.Png = _defaultImage.Png;
+				element.FadeIn = _defaultImage.FadeIn;
+				element.ItemId = _defaultImage.ItemId;
+				element.SkinId = _defaultImage.SkinId;
 				_images.RemoveAt(0);
 			}
 
@@ -247,11 +252,12 @@ public struct CUI : IDisposable
 			else
 			{
 				element = _rawImages[0] as CuiRawImageComponent;
+				element.Sprite = _defaultRawImage.Sprite;
+				element.Color = _defaultRawImage.Color;
+				element.Material = _defaultRawImage.Material;
 				element.Url = _defaultRawImage.Url;
 				element.Png = _defaultRawImage.Png;
 				element.FadeIn = _defaultRawImage.FadeIn;
-				element.Sprite = _defaultRawImage.Sprite;
-				element.Color = _defaultRawImage.Color;
 				_rawImages.RemoveAt(0);
 			}
 
@@ -290,9 +296,12 @@ public struct CUI : IDisposable
 			else
 			{
 				element = _texts[0] as CuiTextComponent;
-				element.Color = _defaultText.Color;
+				element.Text = _defaultText.Text;
 				element.FontSize = _defaultText.FontSize;
 				element.Font = _defaultText.Font;
+				element.Align = _defaultText.Align;
+				element.Color = _defaultText.Color;
+				element.FadeIn = _defaultText.FadeIn;
 				_texts.RemoveAt(0);
 			}
 
@@ -310,10 +319,43 @@ public struct CUI : IDisposable
 			else
 			{
 				element = _buttons[0] as CuiButtonComponent;
-				element.Color = _defaultButton.Color;
-				element.Material = _defaultButton.Material;
+				element.Command = _defaultButton.Command;
+				element.Close = _defaultButton.Close;
 				element.Sprite = _defaultButton.Sprite;
+				element.Material = _defaultButton.Material;
+				element.Color = _defaultButton.Color;
+				element.ImageType = _defaultButton.ImageType;
+				element.FadeIn = _defaultButton.FadeIn;
 				_buttons.RemoveAt(0);
+			}
+
+			_queue.Add(element);
+			return element;
+		}
+		internal CuiInputFieldComponent TakeFromPoolInputField()
+		{
+			var element = (CuiInputFieldComponent)null;
+
+			if (_inputFields.Count == 0)
+			{
+				element = new CuiInputFieldComponent();
+			}
+			else
+			{
+				element = _inputFields[0] as CuiInputFieldComponent;
+				element.Text = _defaultInputField.Text;
+				element.FontSize = _defaultInputField.FontSize;
+				element.Font = _defaultInputField.Font;
+				element.Align = _defaultInputField.Align;
+				element.Color = _defaultInputField.Color;
+				element.CharsLimit = _defaultInputField.CharsLimit;
+				element.Command = _defaultInputField.Command;
+				element.IsPassword = _defaultInputField.IsPassword;
+				element.ReadOnly = _defaultInputField.ReadOnly;
+				element.NeedsCursor = _defaultInputField.NeedsCursor;
+				element.NeedsKeyboard = _defaultInputField.NeedsKeyboard;
+				element.LineType = _defaultInputField.LineType;
+				_inputFields.RemoveAt(0);
 			}
 
 			_queue.Add(element);
@@ -474,9 +516,26 @@ public static class CUIStatics
 
 		return container;
 	}
-	public static CuiElementContainer ProtectedButton(this CUI.Handler cui, CuiElementContainer container, string panel, string color, string text, int size, float xMin, float yMin, float xMax, float yMax, string command, TextAnchor align)
+	public static CuiElementContainer InputField(this CUI.Handler cui, CuiElementContainer container, string panel, string color, string text, int size, float xMin, float yMin, float xMax, float yMax, string command, TextAnchor align, bool @protected)
 	{
-		return Button(cui, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
+		var inputFieldElement = cui.TakeFromPool(cui.AppendId(), panel);
+
+		var inputField = cui.TakeFromPoolInputField();
+		inputField.Color = color;
+		inputField.Text = text;
+		inputField.FontSize = size;
+		inputField.Align = align;
+		inputField.Command = @protected ? UiCommandAttribute.Uniquify(command) : command;
+		inputFieldElement.Components.Add(inputField);
+
+		var rect = cui.TakeFromPoolRect();
+		rect.AnchorMin = $"{xMin} {yMin}";
+		rect.AnchorMax = $"{xMax} {yMax}";
+		inputFieldElement.Components.Add(rect);
+
+		container.Add(inputFieldElement);
+
+		return container;
 	}
 	public static CuiElementContainer Image(this CUI.Handler cui, CuiElementContainer container, string panel, string png, float xMin, float yMin, float xMax, float yMax)
 	{
