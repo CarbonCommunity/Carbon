@@ -39,19 +39,17 @@ public class RustPlugin : Plugin
 	public Player Player { get { return rust.Player; } private set { } }
 	public Server Server { get { return rust.Server; } private set { } }
 
-	public CUI.Handler CuiHandler { get; set; }
-
 	public RustPlugin()
 	{
 		Setup($"Core Plugin {RandomEx.GetRandomString(5)}", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
 	}
 
-	public void SetupMod(Loader.CarbonMod mod, string name, string author, VersionNumber version, string description)
+	public virtual void SetupMod(Loader.CarbonMod mod, string name, string author, VersionNumber version, string description)
 	{
 		_carbon = mod;
 		Setup(name, author, version, description);
 	}
-	public void Setup(string name, string author, VersionNumber version, string description)
+	public virtual void Setup(string name, string author, VersionNumber version, string description)
 	{
 		Name = name;
 		Version = version;
@@ -71,7 +69,6 @@ public class RustPlugin : Plugin
 		persistence = new GameObject($"Script_{name}").AddComponent<Persistence>();
 		UnityEngine.Object.DontDestroyOnLoad(persistence.gameObject);
 		covalence = new CovalencePlugin.Covalence();
-		CuiHandler = new CUI.Handler();
 
 		Type = GetType();
 
@@ -312,15 +309,6 @@ public class RustPlugin : Plugin
 		}
 
 		Debug.LogError(text);
-	}
-
-	#endregion
-
-	#region CUI
-
-	public CUI CreateCUI()
-	{
-		return new CUI(CuiHandler);
 	}
 
 	#endregion

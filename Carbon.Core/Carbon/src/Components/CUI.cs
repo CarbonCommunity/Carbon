@@ -22,9 +22,59 @@ public struct CUI : IDisposable
 		Manager = manager;
 	}
 
+	public CuiElementContainer Container(string panel, string color, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f, bool useCursor = false, string parent = "Overlay")
+	{
+		var container = Manager.TakeFromPoolContainer();
+		container.Name = panel;
+
+		var element = Manager.TakeFromPool(panel, parent);
+
+		var image = Manager.TakeFromPoolImage();
+		image.Color = color;
+		element.Components.Add(image);
+
+		var rect = Manager.TakeFromPoolRect();
+		rect.AnchorMin = $"{xMin} {yMin}";
+		rect.AnchorMax = $"{xMax} {yMax}";
+		element.Components.Add(rect);
+
+		if (useCursor) element.Components.Add(Manager.TakeFromPoolNeedsCursor());
+
+		container.Add(element);
+		container.Add(Manager.TakeFromPool(Manager.AppendId(), parent));
+		return container;
+	}
+
+	public CuiElementContainer Panel(CuiElementContainer container, string panel, string color, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f, bool cursor = false)
+	{
+		return CUIStatics.Panel(Manager, container, panel, color, xMin, yMin, xMax, yMax, cursor);
+	}
+	public CuiElementContainer Label(CuiElementContainer container, string panel, string text, int size, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
+	{
+		return CUIStatics.Label(Manager, container, panel, text, size, xMin, yMin, xMax, yMax, align, font);
+	}
+	public CuiElementContainer Button(CuiElementContainer container, string panel, string color, string text, int size, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, bool @protected = false)
+	{
+		return CUIStatics.Button(Manager, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align, @protected);
+	}
+	public CuiElementContainer Image(CuiElementContainer container, string panel, string png, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f)
+	{
+		return CUIStatics.Image(Manager, container, panel, png, xMin, yMin, xMax, yMax);
+	}
+	public CuiElementContainer ItemImage(CuiElementContainer container, string panel, int itemID, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f)
+	{
+		return CUIStatics.ItemImage(Manager, container, panel, itemID, xMin, yMin, xMax, yMax);
+	}
+
 	public string Color(string hexColor, float alpha)
 	{
-		return Manager.Color(hexColor, alpha);
+		if (hexColor.StartsWith("#")) hexColor = hexColor.Substring(1);
+
+		var red = int.Parse(hexColor.Substring(0, 2), NumberStyles.AllowHexSpecifier);
+		var green = int.Parse(hexColor.Substring(2, 2), NumberStyles.AllowHexSpecifier);
+		var blue = int.Parse(hexColor.Substring(4, 2), NumberStyles.AllowHexSpecifier);
+
+		return $"{(double)red / 255} {(double)green / 255} {(double)blue / 255} {alpha}";
 	}
 
 	public void Send(CuiElementContainer container, BasePlayer player)
@@ -47,10 +97,6 @@ public struct CUI : IDisposable
 
 	public class Handler
 	{
-		public static Handler GlobalPool { get; } = new Handler();
-
-		public Handler() { }
-
 		#region Properties
 
 		internal int _currentId { get; set; }
@@ -303,65 +349,6 @@ public struct CUI : IDisposable
 
 			_queue.Add(element);
 			return element;
-		}
-
-		#endregion
-
-		#region Public Elements
-
-		public CuiElementContainer Container(string panel, string color, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f, bool useCursor = false, string parent = "Overlay")
-		{
-			var container = TakeFromPoolContainer();
-			container.Name = panel;
-
-			var element = TakeFromPool(panel, parent);
-
-			var image = TakeFromPoolImage();
-			image.Color = color;
-			element.Components.Add(image);
-
-			var rect = TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			element.Components.Add(rect);
-
-			if (useCursor) element.Components.Add(TakeFromPoolNeedsCursor());
-
-			container.Add(element);
-			container.Add(TakeFromPool(AppendId(), parent));
-			return container;
-		}
-
-		public CuiElementContainer Panel(CuiElementContainer container, string panel, string color, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f, bool cursor = false)
-		{
-			return CUIStatics.Panel(this, container, panel, color, xMin, yMin, xMax, yMax, cursor);
-		}
-		public CuiElementContainer Label(CuiElementContainer container, string panel, string text, int size, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
-		{
-			return CUIStatics.Label(this, container, panel, text, size, xMin, yMin, xMax, yMax, align, font);
-		}
-		public CuiElementContainer Button(CuiElementContainer container, string panel, string color, string text, int size, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, bool @protected = false)
-		{
-			return CUIStatics.Button(this, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align, @protected);
-		}
-		public CuiElementContainer Image(CuiElementContainer container, string panel, string png, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f)
-		{
-			return CUIStatics.Image(this, container, panel, png, xMin, yMin, xMax, yMax);
-		}
-		public CuiElementContainer ItemImage(CuiElementContainer container, string panel, int itemID, float xMin = 0f, float yMin = 1f, float xMax = 0f, float yMax = 1f)
-		{
-			return CUIStatics.ItemImage(this, container, panel, itemID, xMin, yMin, xMax, yMax);
-		}
-
-		public string Color(string hexColor, float alpha)
-		{
-			if (hexColor.StartsWith("#")) hexColor = hexColor.Substring(1);
-
-			var red = int.Parse(hexColor.Substring(0, 2), NumberStyles.AllowHexSpecifier);
-			var green = int.Parse(hexColor.Substring(2, 2), NumberStyles.AllowHexSpecifier);
-			var blue = int.Parse(hexColor.Substring(4, 2), NumberStyles.AllowHexSpecifier);
-
-			return $"{(double)red / 255} {(double)green / 255} {(double)blue / 255} {alpha}";
 		}
 
 		#endregion
