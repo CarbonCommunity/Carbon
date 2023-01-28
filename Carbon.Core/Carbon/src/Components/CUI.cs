@@ -60,6 +60,14 @@ public struct CUI : IDisposable
 	{
 		return CUIStatics.Button(Manager, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
 	}
+	public CuiElementContainer CreateInputField(CuiElementContainer container, string panel, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	{
+		return CUIStatics.InputField(Manager, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align, false);
+	}
+	public CuiElementContainer CreateProtectedInputField(CuiElementContainer container, string panel, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	{
+		return CUIStatics.InputField(Manager, container, panel, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
+	}
 	public CuiElementContainer CreateImage(CuiElementContainer container, string panel, string png, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f)
 	{
 		return CUIStatics.Image(Manager, container, panel, png, xMin, yMin, xMax, yMax);
@@ -121,13 +129,13 @@ public struct CUI : IDisposable
 
 		#region Default Instances
 
-		internal CuiRectPosition _defaultPosition = new CuiRectPosition(0f, 0f, 1f, 1f);
-		internal CuiImageComponent _defaultImage = new CuiImageComponent();
-		internal CuiRawImageComponent _defaultRawImage = new CuiRawImageComponent();
-		internal CuiRectTransformComponent _defaultRectTransform = new CuiRectTransformComponent();
-		internal CuiTextComponent _defaultText = new CuiTextComponent();
-		internal CuiButtonComponent _defaultButton = new CuiButtonComponent();
-		internal CuiInputFieldComponent _defaultInputField = new CuiInputFieldComponent();
+		internal CuiRectPosition _defaultPosition = new(0f, 0f, 1f, 1f);
+		internal CuiImageComponent _defaultImage = new();
+		internal CuiRawImageComponent _defaultRawImage = new();
+		internal CuiRectTransformComponent _defaultRectTransform = new();
+		internal CuiTextComponent _defaultText = new();
+		internal CuiButtonComponent _defaultButton = new();
+		internal CuiInputFieldComponent _defaultInputField = new();
 
 		#endregion
 
