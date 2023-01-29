@@ -48,17 +48,17 @@ public struct CUI : IDisposable
 	{
 		return CUIStatics.Panel(Manager, container, parent, id, color, xMin, xMax, yMin, yMax, blur, cursor);
 	}
-	public CuiElementContainer CreateLabel(CuiElementContainer container, string parent, string id, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
+	public CuiElementContainer CreateText(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
 	{
-		return CUIStatics.Label(Manager, container, parent, id, text, size, xMin, xMax, yMin, yMax, align, font);
+		return CUIStatics.Text(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, align, font);
 	}
-	public CuiElementContainer CreateButton(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.Button(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, false);
+		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, command, align, false);
 	}
-	public CuiElementContainer CreateProtectedButton(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateProtectedButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.Button(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, true);
+		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, command, align, true);
 	}
 	public CuiElementContainer CreateInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
@@ -472,7 +472,7 @@ public static class CUIStatics
 
 		return container;
 	}
-	public static CuiElementContainer Label(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string text, int size, float xMin, float xMax, float yMin, float yMax, TextAnchor align, string font)
+	public static CuiElementContainer Text(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, TextAnchor align, string font)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
@@ -482,6 +482,7 @@ public static class CUIStatics
 		label.FontSize = size;
 		label.Align = align;
 		label.Font = font;
+		label.Color = color;
 		element.Components.Add(label);
 
 		var rect = cui.TakeFromPoolRect();
@@ -492,7 +493,7 @@ public static class CUIStatics
 		container.Add(element);
 		return container;
 	}
-	public static CuiElementContainer Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, bool @protected)
+	public static CuiElementContainer Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, bool @protected)
 	{
 		if (id == null) id = cui.AppendId();
 		var buttonElement = cui.TakeFromPool(id, parent);
@@ -517,7 +518,7 @@ public static class CUIStatics
 			ptext.Text = text;
 			ptext.FontSize = size;
 			ptext.Align = align;
-			ptext.Color = "1 1 1 1";
+			ptext.Color = textColor;
 			textElement.Components.Add(ptext);
 
 			var prect = cui.TakeFromPoolRect();
