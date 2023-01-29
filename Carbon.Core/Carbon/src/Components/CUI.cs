@@ -129,7 +129,7 @@ public struct CUI : IDisposable
 
 		#region Default Instances
 
-		internal CuiRectPosition _defaultPosition = new(0f, 0f, 1f, 1f);
+		internal CuiRectPosition _defaultPosition = new(0f, 1f, 0f, 1f);
 		internal CuiImageComponent _defaultImage = new();
 		internal CuiRawImageComponent _defaultRawImage = new();
 		internal CuiRectTransformComponent _defaultRectTransform = new();
