@@ -128,8 +128,20 @@ public class UiCommandAttribute : Attribute
 
 	public static string Uniquify(string name)
 	{
+		if (string.IsNullOrEmpty(name)) return string.Empty;
+
+		var split = name.Split(' ');
+		var command = split[0];
+		var args = split.Skip(1).ToArray();
+		var arguments = args.ToString(" ");
+
+		Array.Clear(split, 0, split.Length);
+		Array.Clear(args, 0, args.Length);
+		args = null;
+		split = null;
+
 		var id = RelationshipManager.ServerInstance.net.ID;
-		return RandomEx.GetRandomString(16, name + id.ToString(), name.Length + (int)id);
+		return $"{RandomEx.GetRandomString(16, command + id.ToString(), command.Length + (int)id)} {arguments}".TrimEnd();
 	}
 
 	public UiCommandAttribute(string name)
