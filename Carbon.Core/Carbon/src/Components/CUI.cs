@@ -44,37 +44,37 @@ public struct CUI : IDisposable
 		container.Add(Manager.TakeFromPool(Manager.AppendId(), parent));
 		return container;
 	}
-	public CuiElementContainer CreatePanel(CuiElementContainer container, string panel, string id, string color, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, bool cursor = false)
+	public CuiElementContainer CreatePanel(CuiElementContainer container, string parent, string id, string color, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, bool cursor = false)
 	{
-		return CUIStatics.Panel(Manager, container, panel, id, color, xMin, yMin, xMax, yMax, cursor);
+		return CUIStatics.Panel(Manager, container, parent, id, color, xMin, yMin, xMax, yMax, cursor);
 	}
-	public CuiElementContainer CreateLabel(CuiElementContainer container, string panel, string id, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
+	public CuiElementContainer CreateLabel(CuiElementContainer container, string parent, string id, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
 	{
-		return CUIStatics.Label(Manager, container, panel, id, text, size, xMin, yMin, xMax, yMax, align, font);
+		return CUIStatics.Label(Manager, container, parent, id, text, size, xMin, yMin, xMax, yMax, align, font);
 	}
-	public CuiElementContainer CreateButton(CuiElementContainer container, string panel, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateButton(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.Button(Manager, container, panel, id, color, text, size, xMin, yMin, xMax, yMax, command, align, false);
+		return CUIStatics.Button(Manager, container, parent, id, color, text, size, xMin, yMin, xMax, yMax, command, align, false);
 	}
-	public CuiElementContainer CreateProtectedButton(CuiElementContainer container, string panel, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateProtectedButton(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.Button(Manager, container, panel, id, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
+		return CUIStatics.Button(Manager, container, parent, id, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
 	}
-	public CuiElementContainer CreateInputField(CuiElementContainer container, string panel, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.InputField(Manager, container, panel, id, color, text, size, xMin, yMin, xMax, yMax, command, align, false);
+		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, yMin, xMax, yMax, command, align, false);
 	}
-	public CuiElementContainer CreateProtectedInputField(CuiElementContainer container, string panel, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateProtectedInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.InputField(Manager, container, panel, id, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
+		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
 	}
-	public CuiElementContainer CreateImage(CuiElementContainer container, string panel, string id, string png, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f)
+	public CuiElementContainer CreateImage(CuiElementContainer container, string parent, string id, string png, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f)
 	{
-		return CUIStatics.Image(Manager, container, panel, id, png, xMin, yMin, xMax, yMax);
+		return CUIStatics.Image(Manager, container, parent, id, png, xMin, yMin, xMax, yMax);
 	}
-	public CuiElementContainer CreateItemImage(CuiElementContainer container, string panel, string id, int itemID, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f)
+	public CuiElementContainer CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f)
 	{
-		return CUIStatics.ItemImage(Manager, container, panel, id, itemID, xMin, yMin, xMax, yMax);
+		return CUIStatics.ItemImage(Manager, container, parent, id, itemID, xMin, yMin, xMax, yMax);
 	}
 
 	public string Color(string hexColor, float alpha)
