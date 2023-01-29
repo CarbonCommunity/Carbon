@@ -22,7 +22,7 @@ public struct CUI : IDisposable
 		Manager = manager;
 	}
 
-	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, bool useCursor = false, string parent = "Overlay")
+	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, bool useCursor = false, string parent = "Overlay")
 	{
 		var container = Manager.TakeFromPoolContainer();
 		container.Name = panel;
@@ -44,37 +44,37 @@ public struct CUI : IDisposable
 		container.Add(Manager.TakeFromPool(Manager.AppendId(), parent));
 		return container;
 	}
-	public CuiElementContainer CreatePanel(CuiElementContainer container, string parent, string id, string color, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, bool blur = false, bool cursor = false)
+	public CuiElementContainer CreatePanel(CuiElementContainer container, string parent, string id, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, bool blur = false, bool cursor = false)
 	{
-		return CUIStatics.Panel(Manager, container, parent, id, color, xMin, yMin, xMax, yMax, blur, cursor);
+		return CUIStatics.Panel(Manager, container, parent, id, color, xMin, xMax, yMin, yMax, blur, cursor);
 	}
-	public CuiElementContainer CreateLabel(CuiElementContainer container, string parent, string id, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
+	public CuiElementContainer CreateLabel(CuiElementContainer container, string parent, string id, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
 	{
-		return CUIStatics.Label(Manager, container, parent, id, text, size, xMin, yMin, xMax, yMax, align, font);
+		return CUIStatics.Label(Manager, container, parent, id, text, size, xMin, xMax, yMin, yMax, align, font);
 	}
-	public CuiElementContainer CreateButton(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateButton(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.Button(Manager, container, parent, id, color, text, size, xMin, yMin, xMax, yMax, command, align, false);
+		return CUIStatics.Button(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, false);
 	}
-	public CuiElementContainer CreateProtectedButton(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateProtectedButton(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.Button(Manager, container, parent, id, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
+		return CUIStatics.Button(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, true);
 	}
-	public CuiElementContainer CreateInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, yMin, xMax, yMax, command, align, false);
+		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, false);
 	}
-	public CuiElementContainer CreateProtectedInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateProtectedInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, yMin, xMax, yMax, command, align, true);
+		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, true);
 	}
-	public CuiElementContainer CreateImage(CuiElementContainer container, string parent, string id, string png, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f)
+	public CuiElementContainer CreateImage(CuiElementContainer container, string parent, string id, string png, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f)
 	{
-		return CUIStatics.Image(Manager, container, parent, id, png, xMin, yMin, xMax, yMax);
+		return CUIStatics.Image(Manager, container, parent, id, png, xMin, xMax, yMin, yMax);
 	}
-	public CuiElementContainer CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f)
+	public CuiElementContainer CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f)
 	{
-		return CUIStatics.ItemImage(Manager, container, parent, id, itemID, xMin, yMin, xMax, yMax);
+		return CUIStatics.ItemImage(Manager, container, parent, id, itemID, xMin, xMax, yMin, yMax);
 	}
 
 	public string Color(string hexColor, float alpha)
@@ -415,7 +415,7 @@ public struct CUI : IDisposable
 			public float xMax { get; set; }
 			public float yMax { get; set; }
 
-			public CuiRectPosition(float xMin, float yMin, float xMax, float yMax)
+			public CuiRectPosition(float xMin, float xMax, float yMin, float yMax)
 			{
 				this.xMin = xMin;
 				this.yMin = yMin;
@@ -450,7 +450,7 @@ public struct CUI : IDisposable
 
 public static class CUIStatics
 {
-	public static CuiElementContainer Panel(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, float xMin, float yMin, float xMax, float yMax, bool blur = false, bool cursor = false)
+	public static CuiElementContainer Panel(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, float xMin, float xMax, float yMin, float yMax, bool blur = false, bool cursor = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
@@ -472,7 +472,7 @@ public static class CUIStatics
 
 		return container;
 	}
-	public static CuiElementContainer Label(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string text, int size, float xMin, float yMin, float xMax, float yMax, TextAnchor align, string font)
+	public static CuiElementContainer Label(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string text, int size, float xMin, float xMax, float yMin, float yMax, TextAnchor align, string font)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
@@ -492,7 +492,7 @@ public static class CUIStatics
 		container.Add(element);
 		return container;
 	}
-	public static CuiElementContainer Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float yMin, float xMax, float yMax, string command, TextAnchor align, bool @protected)
+	public static CuiElementContainer Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, bool @protected)
 	{
 		if (id == null) id = cui.AppendId();
 		var buttonElement = cui.TakeFromPool(id, parent);
@@ -528,7 +528,7 @@ public static class CUIStatics
 
 		return container;
 	}
-	public static CuiElementContainer InputField(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float yMin, float xMax, float yMax, string command, TextAnchor align, bool @protected)
+	public static CuiElementContainer InputField(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, bool @protected)
 	{
 		if (id == null) id = cui.AppendId();
 		var inputFieldElement = cui.TakeFromPool(id, parent);
@@ -550,7 +550,7 @@ public static class CUIStatics
 
 		return container;
 	}
-	public static CuiElementContainer Image(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string png, float xMin, float yMin, float xMax, float yMax)
+	public static CuiElementContainer Image(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string png, float xMin, float xMax, float yMin, float yMax)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
@@ -568,7 +568,7 @@ public static class CUIStatics
 		container.Add(element);
 		return container;
 	}
-	public static CuiElementContainer ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, float xMin, float yMin, float xMax, float yMax)
+	public static CuiElementContainer ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, float xMin, float xMax, float yMin, float yMax)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
