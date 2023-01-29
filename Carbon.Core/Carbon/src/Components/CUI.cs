@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Oxide.Game.Rust.Cui;
 using UnityEngine;
+using static Carbon.CUI.Handler;
 
 /*
  *
@@ -48,25 +49,25 @@ public struct CUI : IDisposable
 	{
 		return CUIStatics.Panel(Manager, container, parent, id, color, xMin, xMax, yMin, yMax, blur, cursor);
 	}
-	public CuiElementContainer CreateText(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
+	public CuiElementContainer CreateText(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular)
 	{
 		return CUIStatics.Text(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, align, font);
 	}
-	public CuiElementContainer CreateButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular)
 	{
-		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, command, align, false);
+		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, command, align, font, false);
 	}
-	public CuiElementContainer CreateProtectedButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateProtectedButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular)
 	{
-		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, command, align, true);
+		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, command, align, font, true);
 	}
-	public CuiElementContainer CreateInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular)
 	{
-		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, false);
+		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, font, false);
 	}
-	public CuiElementContainer CreateProtectedInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter)
+	public CuiElementContainer CreateProtectedInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular)
 	{
-		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, true);
+		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, command, align, font, true);
 	}
 	public CuiElementContainer CreateImage(CuiElementContainer container, string parent, string id, string png, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f)
 	{
@@ -427,6 +428,32 @@ public struct CUI : IDisposable
 			public string GetMax() => $"{xMax} {yMax}";
 		}
 
+		public enum FontTypes
+		{
+			RobotoCondensedBold, RobotoCondensedRegular,
+			Daubmark, DroidSansMono
+		}
+
+		public string GetFont(FontTypes type)
+		{
+			switch (type)
+			{
+				case FontTypes.RobotoCondensedBold:
+					return "robotocondensed-bold.ttf";
+
+				case FontTypes.RobotoCondensedRegular:
+					return "robotocondensed-regular.ttf";
+
+				case FontTypes.Daubmark:
+					return "daubmark.ttf";
+
+				case FontTypes.DroidSansMono:
+					return "droidsansmono.ttf";
+			}
+
+			return "robotocondensed-regular.ttf";
+		}
+
 		#endregion
 
 		#region Networking
@@ -472,7 +499,7 @@ public static class CUIStatics
 
 		return container;
 	}
-	public static CuiElementContainer Text(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, TextAnchor align, string font)
+	public static CuiElementContainer Text(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, TextAnchor align, FontTypes font)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
@@ -481,7 +508,7 @@ public static class CUIStatics
 		label.Text = text;
 		label.FontSize = size;
 		label.Align = align;
-		label.Font = font;
+		label.Font = cui.GetFont(font);
 		label.Color = color;
 		element.Components.Add(label);
 
@@ -493,7 +520,7 @@ public static class CUIStatics
 		container.Add(element);
 		return container;
 	}
-	public static CuiElementContainer Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, bool @protected)
+	public static CuiElementContainer Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, FontTypes font, bool @protected)
 	{
 		if (id == null) id = cui.AppendId();
 		var buttonElement = cui.TakeFromPool(id, parent);
@@ -519,6 +546,7 @@ public static class CUIStatics
 			ptext.FontSize = size;
 			ptext.Align = align;
 			ptext.Color = textColor;
+			ptext.Font = cui.GetFont(font);
 			textElement.Components.Add(ptext);
 
 			var prect = cui.TakeFromPoolRect();
@@ -529,7 +557,7 @@ public static class CUIStatics
 
 		return container;
 	}
-	public static CuiElementContainer InputField(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, bool @protected)
+	public static CuiElementContainer InputField(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, FontTypes font, bool @protected)
 	{
 		if (id == null) id = cui.AppendId();
 		var inputFieldElement = cui.TakeFromPool(id, parent);
@@ -538,6 +566,7 @@ public static class CUIStatics
 		inputField.Color = color;
 		inputField.Text = text;
 		inputField.FontSize = size;
+		inputField.Font = cui.GetFont(font);
 		inputField.Align = align;
 		inputField.Command = @protected ? UiCommandAttribute.Uniquify(command) : command;
 		inputFieldElement.Components.Add(inputField);
