@@ -44,9 +44,9 @@ public struct CUI : IDisposable
 		container.Add(Manager.TakeFromPool(Manager.AppendId(), parent));
 		return container;
 	}
-	public CuiElementContainer CreatePanel(CuiElementContainer container, string parent, string id, string color, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, bool cursor = false)
+	public CuiElementContainer CreatePanel(CuiElementContainer container, string parent, string id, string color, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, bool blur = false, bool cursor = false)
 	{
-		return CUIStatics.Panel(Manager, container, parent, id, color, xMin, yMin, xMax, yMax, cursor);
+		return CUIStatics.Panel(Manager, container, parent, id, color, xMin, yMin, xMax, yMax, blur, cursor);
 	}
 	public CuiElementContainer CreateLabel(CuiElementContainer container, string parent, string id, string text, int size, float xMin = 0f, float yMin = 0f, float xMax = 1f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, string font = "robotocondensed-bold.ttf")
 	{
@@ -450,13 +450,14 @@ public struct CUI : IDisposable
 
 public static class CUIStatics
 {
-	public static CuiElementContainer Panel(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, float xMin, float yMin, float xMax, float yMax, bool cursor = false)
+	public static CuiElementContainer Panel(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, float xMin, float yMin, float xMax, float yMax, bool blur = false, bool cursor = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
 
 		var image = cui.TakeFromPoolImage();
 		image.Color = color;
+		if (blur) image.Material = "assets/content/ui/uibackgroundblur.mat";
 		image.FadeIn = 0.1f;
 		element.Components.Add(image);
 
