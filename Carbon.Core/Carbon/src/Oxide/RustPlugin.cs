@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Carbon;
 using Carbon.Core;
 using Carbon.Extensions;
 using Oxide.Core;
@@ -43,12 +44,12 @@ public class RustPlugin : Plugin
 		Setup($"Core Plugin {RandomEx.GetRandomString(5)}", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
 	}
 
-	public void SetupMod(Loader.CarbonMod mod, string name, string author, VersionNumber version, string description)
+	public virtual void SetupMod(Loader.CarbonMod mod, string name, string author, VersionNumber version, string description)
 	{
 		_carbon = mod;
 		Setup(name, author, version, description);
 	}
-	public void Setup(string name, string author, VersionNumber version, string description)
+	public virtual void Setup(string name, string author, VersionNumber version, string description)
 	{
 		Name = name;
 		Version = version;
@@ -88,6 +89,8 @@ public class RustPlugin : Plugin
 
 		base.Dispose();
 	}
+
+	#region Logging
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
@@ -171,6 +174,8 @@ public class RustPlugin : Plugin
 		File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
 	}
 
+	#endregion
+
 	public void ILoadConfig()
 	{
 		LoadConfig();
@@ -227,6 +232,8 @@ public class RustPlugin : Plugin
 	{
 		return $"{Name} v{Version} by {Author}";
 	}
+
+	#region Printing
 
 	protected void PrintToConsole(BasePlayer player, string format, params object[] args)
 	{
@@ -303,6 +310,8 @@ public class RustPlugin : Plugin
 
 		Debug.LogError(text);
 	}
+
+	#endregion
 
 	protected void ForcePlayerPosition(BasePlayer player, Vector3 destination)
 	{
