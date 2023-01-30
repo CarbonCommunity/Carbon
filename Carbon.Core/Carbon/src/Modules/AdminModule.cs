@@ -4,8 +4,6 @@ using System.Linq;
 using Carbon.Base;
 using Carbon.Extensions;
 using Facepunch;
-using Newtonsoft.Json;
-using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
@@ -508,9 +506,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (insert != null) Tabs.Insert(insert.Value, tab);
 			else Tabs.Add(tab);
 		}
+
+		AdminPlayers.Clear();
 	}
 	public void UnregisterTab(string id)
 	{
+		AdminPlayers.Clear();
+
 		var tab = Tabs.FirstOrDefault(x => x.Id == id);
 
 		if (tab != null)
