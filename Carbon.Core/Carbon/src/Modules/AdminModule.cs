@@ -340,16 +340,16 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				useCursor: true);
 
-			cui.CreatePanel(container, parent: PanelId, id: PanelId + ".color",
+			cui.CreatePanel(container, parent: PanelId, id: "color",
 				color: "0 0 0 0.6",
 				xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f);
-			cui.CreatePanel(container, PanelId + ".color", PanelId + ".main",
+			cui.CreatePanel(container, "color", "main",
 				color: "0 0 0 0.5",
 				blur: true);
 
 			#region Title
 
-			cui.CreateText(container, parent: PanelId + ".main", id: null,
+			cui.CreateText(container, parent: "main", id: null,
 				color: "1 1 1 0.8",
 				text: "<b>Admin Settings</b>", 18,
 				xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.98f,
@@ -366,7 +366,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			#region Exit
 
-			cui.CreateProtectedButton(container, parent: PanelId + ".main", id: null,
+			cui.CreateProtectedButton(container, parent: "main", id: null,
 				color: "0.6 0.2 0.2 0.9",
 				textColor: "1 0.5 0.5 1",
 				text: "X", 13,
@@ -378,12 +378,12 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			#region Tabs
 
-			cui.CreatePanel(container, parent: PanelId + ".main", id: PanelId + ".tab_buttons",
+			cui.CreatePanel(container, parent: "main", id: "tab_buttons",
 				color: "0 0 0 0.6",
 				xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
 
-			TabButton(cui, container, PanelId + ".tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
-			TabButton(cui, container, PanelId + ".tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
+			TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
+			TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
 
 			var tabIndex = 0.03f;
 			var amount = Tabs.Count;
@@ -392,7 +392,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			for (int i = instance.TabSkip; i < amount; i++)
 			{
 				var _tab = Tabs[instance.TabSkip + i];
-				TabButton(cui, container, PanelId + ".tab_buttons", $"{_tab.Name}", PanelId + $".changetab {i}", tabWidth, tabIndex, instance.TabIndex == i);
+				TabButton(cui, container, "tab_buttons", $"{_tab.Name}", PanelId + $".changetab {i}", tabWidth, tabIndex, instance.TabIndex == i);
 				tabIndex += tabWidth;
 			}
 
@@ -400,7 +400,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			#region Panels
 
-			cui.CreatePanel(container, PanelId + ".main", PanelId + ".panels",
+			cui.CreatePanel(container, "main", "panels",
 				color: "0 0 0 0",
 				xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
 
@@ -408,7 +408,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				#region Override
 
-				tab.Override?.Invoke(tab, container, PanelId + ".panels");
+				tab.Override?.Invoke(tab, container, "panels");
 
 				#endregion
 
@@ -420,10 +420,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				for (int i = 0; i < tab.Columns.Count; i++)
 				{
-					var panel = PanelId + $".sub{i}";
+					var panel = $"sub{i}";
 					var rows = tab.Columns[i];
 
-					cui.CreatePanel(container, PanelId + ".panels", panel,
+					cui.CreatePanel(container, "panels", panel,
 						color: "0 0 0 0.5",
 						xMin: panelIndex, xMax: panelIndex + panelWidth - spacing, yMin: 0, yMax: 1);
 
