@@ -28,7 +28,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override bool EnabledByDefault => true;
 
 	internal List<Tab> Tabs = new();
-	internal Dictionary<BasePlayer, AdminPlayer> Instances = new();
+	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
 	internal CUI.Handler Handler { get; } = new();
 
 	const string PanelId = "carbonmodularui";
@@ -270,7 +270,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	private void ChangeTab(Arg args)
 	{
 		var player = args.Player();
-		var instance = GetOrCreateInstance(player);
+		var instance = GetOrCreateAdminPlayer(player);
 		var previous = instance.TabIndex;
 
 		var tab = GetTab(player);
@@ -306,7 +306,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	private void ChangeColumnPage(Arg args)
 	{
 		var player = args.Player();
-		var instance = GetOrCreateInstance(player);
+		var instance = GetOrCreateAdminPlayer(player);
 		var page = instance.GetOrCreatePage(args.Args[0].ToInt());
 		var back = args.Args[1].ToBool();
 
@@ -328,7 +328,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	public void Draw(BasePlayer player)
 	{
-		var instance = GetOrCreateInstance(player);
+		var instance = GetOrCreateAdminPlayer(player);
 		var tab = GetTab(player);
 
 		using (var cui = new CUI(Handler))
@@ -492,7 +492,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 	}
 
-	public void RegisterTab(Tab tab)
+	public void RegisterTab(Tab tab, int? insert = null)
 	{
 		var existentTab = Tabs.FirstOrDefault(x => x.Name == tab.Name);
 		if (existentTab != null)
@@ -501,46 +501,58 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Tabs.RemoveAt(index);
 			Pool.Free(ref existentTab);
 
-			Tabs.Insert(index, tab);
+			Tabs.Insert(insert ?? index, tab);
 		}
 		else
 		{
-			Tabs.Add(tab);
+			if (insert != null) Tabs.Insert(insert.Value, tab);
+			else Tabs.Add(tab);
 		}
 	}
-	public AdminPlayer GetOrCreateInstance(BasePlayer player)
+	public void UnregisterTab(string id)
 	{
-		if (Instances.TryGetValue(player, out AdminPlayer instance)) return instance;
+		var tab = Tabs.FirstOrDefault(x => x.Id == id);
 
-		instance = new AdminPlayer(player);
-		Instances.Add(player, instance);
-		return instance;
+		if (tab != null)
+		{
+			tab.Dispose();
+			Tabs.Remove(tab);
+		}
+	}
+
+	public AdminPlayer GetOrCreateAdminPlayer(BasePlayer player)
+	{
+		if (AdminPlayers.TryGetValue(player, out AdminPlayer adminPlayer)) return adminPlayer;
+
+		adminPlayer = new AdminPlayer(player);
+		AdminPlayers.Add(player, adminPlayer);
+		return adminPlayer;
 	}
 	public Tab GetTab(BasePlayer player)
 	{
 		if (Tabs.Count == 0) return null;
 
-		var instance = GetOrCreateInstance(player);
-		if (instance.TabIndex > Tabs.Count - 1 || instance.TabIndex < 0) return null;
+		var adminPlayer = GetOrCreateAdminPlayer(player);
+		if (adminPlayer.TabIndex > Tabs.Count - 1 || adminPlayer.TabIndex < 0) return null;
 
-		return Tabs[instance.TabIndex];
+		return Tabs[adminPlayer.TabIndex];
 	}
 	public void CallColumnRow(BasePlayer player, int column, int row, string[] args)
 	{
-		var instance = GetOrCreateInstance(player);
+		var adminPlayer = GetOrCreateAdminPlayer(player);
 		var tab = GetTab(player);
 
-		instance.LastPressedColumn = column;
-		instance.LastPressedRow = row;
+		adminPlayer.LastPressedColumn = column;
+		adminPlayer.LastPressedRow = row;
 
 		switch (tab.Columns[column][row])
 		{
 			case Tab.OptionButton button:
-				button.Callback?.Invoke(instance);
+				button.Callback?.Invoke(adminPlayer);
 				break;
 
 			case Tab.OptionInput input:
-				input.Callback?.Invoke(instance, args);
+				input.Callback?.Invoke(adminPlayer, args);
 				break;
 
 			case Tab.OptionEnum @enum:
@@ -629,13 +641,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public class Tab : IDisposable
 	{
+		public string Id;
 		public string Name;
 		public RustPlugin Plugin;
 		public Action<Tab, CuiElementContainer, string> Override;
 		public Dictionary<int, List<Option>> Columns = new Dictionary<int, List<Option>>();
 		public Action<AdminPlayer, Tab> OnChange;
 
-		public Tab(string name, Action<AdminPlayer, Tab> onChange = null)
+		public Tab(string id, string name, Action<AdminPlayer, Tab> onChange = null)
 		{
 			Name = name;
 			OnChange = onChange;
@@ -787,7 +800,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		public static Tab Get(Permission permission)
 		{
-			var perms = new Tab("Permissions", (instance, tab) =>
+			var perms = new Tab("permissions", "Permissions", (instance, tab) =>
 			{
 				tab.ClearColumn(1);
 				tab.ClearColumn(2);
