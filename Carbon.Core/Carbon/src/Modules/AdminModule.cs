@@ -494,7 +494,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	public void RegisterTab(Tab tab, int? insert = null)
 	{
-		var existentTab = Tabs.FirstOrDefault(x => x.Name == tab.Name);
+		var existentTab = Tabs.FirstOrDefault(x => x.Id == tab.Id);
 		if (existentTab != null)
 		{
 			var index = Tabs.IndexOf(existentTab);
@@ -516,8 +516,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (tab != null)
 		{
 			tab.Dispose();
-			Tabs.Remove(tab);
 		}
+
+		Tabs.RemoveAll(x => x.Id == id);
 	}
 
 	public AdminPlayer GetOrCreateAdminPlayer(BasePlayer player)
