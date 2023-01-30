@@ -727,7 +727,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			foreach (var column in Columns)
 			{
 				column.Value.Clear();
-				Columns[column.Key] = null;
 			}
 
 			Columns.Clear();
