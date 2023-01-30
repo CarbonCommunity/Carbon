@@ -651,6 +651,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public Tab(string id, string name, Action<AdminPlayer, Tab> onChange = null)
 		{
+			Id = id;
 			Name = name;
 			OnChange = onChange;
 		}
