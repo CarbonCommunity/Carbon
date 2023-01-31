@@ -126,10 +126,23 @@ public class UiCommandAttribute : Attribute
 	public string Name { get; }
 	public string Help { get; }
 
+	internal static int Tick = DateTime.UtcNow.Year + DateTime.UtcNow.Month + DateTime.UtcNow.Day + DateTime.UtcNow.Hour + DateTime.UtcNow.Minute + DateTime.UtcNow.Second + DateTime.UtcNow.Month;
+
 	public static string Uniquify(string name)
 	{
-		var id = RelationshipManager.ServerInstance.net.ID;
-		return RandomEx.GetRandomString(16, name + id.ToString(), name.Length + (int)id);
+		if (string.IsNullOrEmpty(name)) return string.Empty;
+
+		var split = name.Split(' ');
+		var command = split[0];
+		var args = split.Skip(1).ToArray();
+		var arguments = args.ToString(" ");
+
+		Array.Clear(split, 0, split.Length);
+		Array.Clear(args, 0, args.Length);
+		args = null;
+		split = null;
+
+		return $"{RandomEx.GetRandomString(16, command + Tick.ToString(), command.Length + Tick)} {arguments}".TrimEnd();
 	}
 
 	public UiCommandAttribute(string name)
