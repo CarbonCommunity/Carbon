@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Extensions;
@@ -47,6 +48,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		});
 
 		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
+		RegisterTab(PlayersTab.Get());
 	}
 
 	#region Option Elements
@@ -95,7 +97,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		#region Left
 
 		cui.CreateProtectedButton(container, parent: id, id: null,
-			color: page.CurrentPage > 0 ? "0.4 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
+			color: page.CurrentPage > 0 ? "0.8 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
 			textColor: "1 1 1 0.5",
 			text: "<<", 8,
 			xMin: 0, xMax: 0.1f, yMin: 0f, yMax: 1f,
@@ -115,7 +117,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		#region Right
 
 		cui.CreateProtectedButton(container, parent: id, id: null,
-			color: page.CurrentPage < page.TotalPages ? "0.4 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
+			color: page.CurrentPage < page.TotalPages ? "0.8 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
 			textColor: "1 1 1 0.5",
 			text: ">>", 8,
 			xMin: 0.9f, xMax: 1f, yMin: 0f, yMax: 1f,
@@ -311,27 +313,27 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	private void ChangeTab(Arg args)
 	{
 		var player = args.Player();
-		var instance = GetOrCreateAdminPlayer(player);
-		var previous = instance.TabIndex;
+		var ap = GetOrCreateAdminPlayer(player);
+		var previous = ap.TabIndex;
 
 		var tab = GetTab(player);
-		tab?.OnChange?.Invoke(instance, tab);
+		tab?.OnChange?.Invoke(ap, tab);
 
-		instance.Clear();
+		ap.Clear();
 
 		if (int.TryParse(args.Args[0], out int index))
 		{
-			instance.TabIndex = index;
+			ap.TabIndex = index;
 		}
 		else
 		{
-			instance.TabIndex += args.Args[0] == "up" ? 1 : -1;
+			ap.TabIndex += args.Args[0] == "up" ? 1 : -1;
 
-			if (instance.TabIndex > Tabs.Count - 1) instance.TabIndex = 0;
-			else if (instance.TabIndex < 0) instance.TabIndex = Tabs.Count - 1;
+			if (ap.TabIndex > Tabs.Count - 1) ap.TabIndex = 0;
+			else if (ap.TabIndex < 0) ap.TabIndex = Tabs.Count - 1;
 		}
 
-		if (instance.TabIndex != previous) Draw(player);
+		if (ap.TabIndex != previous) Draw(player);
 	}
 
 	[UiCommand(PanelId + ".callaction")]
@@ -602,6 +604,20 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		AdminPlayers.Add(player, adminPlayer);
 		return adminPlayer;
 	}
+	public void SetTab(BasePlayer player, string id)
+	{
+		var ap = GetOrCreateAdminPlayer(player);
+		var previous = ap.TabIndex;
+
+		var tab = Tabs.FirstOrDefault(x => x.Id == id);
+		if (tab != null)
+		{
+			ap.TabIndex = Tabs.IndexOf(tab);
+			tab?.OnChange?.Invoke(ap, tab);
+		}
+
+		if (ap.TabIndex != previous) Draw(player);
+	}
 	public Tab GetTab(BasePlayer player)
 	{
 		if (Tabs.Count == 0) return null;
@@ -610,6 +626,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (adminPlayer.TabIndex > Tabs.Count - 1 || adminPlayer.TabIndex < 0) return null;
 
 		return Tabs[adminPlayer.TabIndex];
+	}
+	public Tab FindTab(string id)
+	{
+		return Tabs.FirstOrDefault(x => x.Id == id);
 	}
 	public void CallColumnRow(BasePlayer player, int column, int row, string[] args)
 	{
@@ -917,8 +937,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 							perms.AddRow(1, new Tab.OptionButton($"{group}", instance2 =>
 							{
 								instance.SetStorage("group", group);
-								instance.SetStorage("groupr", instance2.LastPressedRow);
-								instance.SetStorage("groupc", instance2.LastPressedColumn);
 
 								instance.ClearStorage("plugin");
 
@@ -932,8 +950,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 										perms.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
 										{
 											instance.SetStorage("plugin", plugin);
-											instance.SetStorage("pluginr", instance3.LastPressedRow);
-											instance.SetStorage("pluginc", instance3.LastPressedColumn);
 
 											perms.ClearColumn(3);
 
@@ -965,6 +981,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static void GeneratePlayers(Tab perms, Permission permission, AdminPlayer instance)
 		{
+			perms.ClearColumn(1);
 			perms.AddName(1, "Players", TextAnchor.MiddleLeft);
 			{
 				foreach (var player in BasePlayer.allPlayerList)
@@ -972,56 +989,162 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					perms.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
 					{
 						instance.SetStorage("player", player);
-						instance.SetStorage("playerr", instance2.LastPressedRow);
-						instance.SetStorage("playerc", instance2.LastPressedColumn);
 
 						instance.ClearStorage("plugin");
 
-						perms.ClearColumn(2);
 						perms.ClearColumn(3);
 
-						perms.AddName(2, "Plugins", TextAnchor.MiddleLeft);
-						{
-							foreach (var plugin in Community.Runtime.Plugins.Plugins.Where(x => x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()))))
-							{
-								perms.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
-								{
-									instance.SetStorage("plugin", plugin);
-									instance.SetStorage("pluginr", instance3.LastPressedRow);
-									instance.SetStorage("pluginc", instance3.LastPressedColumn);
-
-									perms.ClearColumn(3);
-
-									perms.AddName(3, "Permissions", TextAnchor.MiddleLeft);
-									foreach (var perm in permission.GetPermissions().Where(x => x.StartsWith(plugin.Name.ToLower())))
-									{
-										var isInherited = false;
-										var list = "";
-
-										foreach (var group in permission.GetUserGroups(player.UserIDString))
-											if (permission.GroupHasPermission(group, perm))
-											{
-												isInherited = true;
-												list += $"<b>{group}</b>, ";
-											}
-
-										perms.AddRow(3, new Tab.OptionButton($"{perm}", instance5 =>
-										{
-											if (permission.UserHasPermission(player.UserIDString, perm))
-												permission.RevokeUserPermission(player.UserIDString, perm);
-											else permission.GrantUserPermission(player.UserIDString, perm, plugin);
-										}, type: (_instance) => isInherited ? Tab.OptionButton.Types.Important : permission.UserHasPermission(player.UserIDString, perm) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
-
-										if (isInherited)
-										{
-											perms.AddText(3, $"Inherited by the following groups: {list.TrimEnd(',', ' ')}", 8, "1 1 1 0.6", TextAnchor.UpperLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
-										}
-									}
-								}, type: (_instance) => instance.GetStorage("plugin") == plugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
-							}
-						}
+						GeneratePlugins(perms, instance, permission, player);
 					}, type: (_instance) => instance.GetStorage<BasePlayer>("player") == player ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 				}
+			}
+		}
+
+		public static void GeneratePlugins(Tab perms, AdminPlayer instance, Permission permission, BasePlayer player)
+		{
+			perms.ClearColumn(2);
+			perms.AddName(2, "Plugins", TextAnchor.MiddleLeft);
+			{
+				foreach (var plugin in Community.Runtime.Plugins.Plugins.Where(x => x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()))))
+				{
+					perms.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
+					{
+						instance.SetStorage("plugin", plugin);
+						instance.SetStorage("pluginr", instance3.LastPressedRow);
+						instance.SetStorage("pluginc", instance3.LastPressedColumn);
+
+						GeneratePermissions(perms, permission, plugin, player);
+					}, type: (_instance) => instance.GetStorage("plugin") == plugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+				}
+			}
+		}
+
+		public static void GeneratePermissions(Tab perms, Permission permission, RustPlugin plugin, BasePlayer player)
+		{
+			perms.ClearColumn(3);
+			perms.AddName(3, "Permissions", TextAnchor.MiddleLeft);
+			foreach (var perm in permission.GetPermissions().Where(x => x.StartsWith(plugin.Name.ToLower())))
+			{
+				var isInherited = false;
+				var list = "";
+
+				foreach (var group in permission.GetUserGroups(player.UserIDString))
+					if (permission.GroupHasPermission(group, perm))
+					{
+						isInherited = true;
+						list += $"<b>{group}</b>, ";
+					}
+
+				perms.AddRow(3, new Tab.OptionButton($"{perm}", instance5 =>
+				{
+					if (permission.UserHasPermission(player.UserIDString, perm))
+						permission.RevokeUserPermission(player.UserIDString, perm);
+					else permission.GrantUserPermission(player.UserIDString, perm, plugin);
+				}, type: (_instance) => isInherited ? Tab.OptionButton.Types.Important : permission.UserHasPermission(player.UserIDString, perm) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+
+				if (isInherited)
+				{
+					perms.AddText(3, $"Inherited by the following groups: {list.TrimEnd(',', ' ')}", 8, "1 1 1 0.6", TextAnchor.UpperLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
+				}
+			}
+
+		}
+	}
+	public class PlayersTab
+	{
+		internal static AdminModule Admin => BaseModule.GetModule<AdminModule>();
+		const int InfoSize = 12;
+
+		public static Tab Get()
+		{
+			var players = new Tab("players", "Players", (instance, tab) =>
+			{
+				tab.ClearColumn(1);
+				RefreshPlayers(tab, instance);
+			});
+			{
+				AddInitial(players, null);
+				RefreshPlayers(players, null);
+			}
+			players.AddColumn(1);
+
+			return players;
+		}
+
+		public static void AddInitial(Tab tab, AdminPlayer ap)
+		{
+			tab.AddInput(0, "Search", ap?.GetStorage<string>("playerfilter"), (ap2, args) => { ap2.SetStorage("playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
+			tab.AddName(0, "Player List", TextAnchor.MiddleLeft);
+		}
+		public static void RefreshPlayers(Tab tab, AdminPlayer ap)
+		{
+			tab.ClearColumn(0);
+
+			AddInitial(tab, ap);
+
+			foreach (var player in BasePlayer.allPlayerList)
+			{
+				AddPlayer(tab, ap, player);
+			}
+			foreach (var player in BasePlayer.bots.Where(x => x.IsValid()))
+			{
+				AddPlayer(tab, ap, player);
+			}
+		}
+		public static void AddPlayer(Tab tab, AdminPlayer ap, BasePlayer player)
+		{
+			if (ap != null)
+			{
+				var filter = ap.GetStorage<string>("playerfilter");
+
+				if (!string.IsNullOrEmpty(filter) && !(player.displayName.ToLower().Contains(filter.ToLower()) || player.UserIDString.Contains(filter))) return;
+			}
+
+			tab.AddRow(0, new Tab.OptionButton($"{player.displayName}", aap =>
+			{
+				ap.SetStorage("playerfilterpl", player);
+				ShowInfo(tab, ap, player);
+			}, aap => aap == null || !(ap.GetStorage<BasePlayer>("playerfilterpl") == player) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Selected));
+		}
+		public static void ShowInfo(Tab tab, AdminPlayer aap, BasePlayer player)
+		{
+			tab.ClearColumn(1);
+
+			tab.AddName(1, $"Player Information", TextAnchor.MiddleLeft);
+			tab.AddText(1, $"Name: <b>{player.displayName}</b>", InfoSize, "1 1 1 1", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
+			tab.AddText(1, $"Steam Id: <b>{player.UserIDString}</b>", InfoSize, "1 1 1 1", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
+			tab.AddText(1, $"Net Id: <b>{player.net?.ID}</b>", InfoSize, "1 1 1 1", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
+			try
+			{
+				var position = player.transform.position;
+				tab.AddText(1, $"Position: <b>{position.x:0.0}x {position.y:0.0}y {position.z:0.0}z</b>", InfoSize, "1 1 1 1", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
+			}
+			catch { }
+
+			tab.AddName(1, $"Permissions", TextAnchor.MiddleLeft);
+			{
+				tab.AddRow(1, new Tab.OptionButton("View Permissions", ap =>
+				{
+					var perms = Admin.FindTab("permissions");
+					var permission = Community.Runtime.CorePlugin.permission;
+					Admin.SetTab(ap.Player, "permissions");
+
+					ap.SetStorage("player", player);
+					PermissionsTab.GeneratePlayers(perms, permission, ap);
+					PermissionsTab.GeneratePlugins(perms, ap, permission, ap.Player);
+				}, (ap) => Tab.OptionButton.Types.Important));
+			}
+
+			if (aap == null || aap.Player != player)
+			{
+				tab.AddName(1, $"Actions", TextAnchor.MiddleLeft);
+
+				tab.AddRow(1, new Tab.OptionButton("Teleport", ap => { ap.Player.Teleport(player); }, (ap) => Tab.OptionButton.Types.Warned));
+				tab.AddRow(1, new Tab.OptionButton("Teleport to me", ap => { player.Teleport(ap.Player); }, (ap) => Tab.OptionButton.Types.Warned));
+			}
+			else
+			{
+				tab.AddText(1, "This is you.", 8, "1 1 1 0.5", TextAnchor.MiddleCenter, CUI.Handler.FontTypes.RobotoCondensedBold);
 			}
 		}
 	}
