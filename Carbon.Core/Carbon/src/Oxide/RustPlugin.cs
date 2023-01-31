@@ -160,6 +160,14 @@ public class RustPlugin : Plugin
 	public void PrintError(string format, params object[] args)
 		=> Carbon.Logger.Error($"[{Name}] {(args == null ? format : string.Format(format, args))}");
 
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'ERROR'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	public void RaiseError(string message)
+		=> Carbon.Logger.Error($"[{Name}] {message}", null);
+
 	protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 	{
 		var logFolder = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
