@@ -1107,13 +1107,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.ClearColumn(1);
 
 			tab.AddName(1, $"Player Information", TextAnchor.MiddleLeft);
-			tab.AddText(1, $"Name: <b>{player.displayName}</b>", InfoSize, "1 1 1 1", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
-			tab.AddText(1, $"Steam Id: <b>{player.UserIDString}</b>", InfoSize, "1 1 1 1", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
-			tab.AddText(1, $"Net Id: <b>{player.net?.ID}</b>", InfoSize, "1 1 1 1", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
+			tab.AddInput(1, "Name", player.displayName, null);
+			tab.AddInput(1, "Steam Id>", player.UserIDString, null);
+			tab.AddInput(1, "Net Id", $"{player.net?.ID}", null);
 			try
 			{
 				var position = player.transform.position;
-				tab.AddText(1, $"Position: <b>{position.x:0.0}x {position.y:0.0}y {position.z:0.0}z</b>", InfoSize, "1 1 1 1", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
+				tab.AddInput(1, "Position", $"{position.x:0.0}x {position.y:0.0}y {position.z:0.0}z", null);
 			}
 			catch { }
 
