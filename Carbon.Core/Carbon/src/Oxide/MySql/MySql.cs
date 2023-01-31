@@ -18,7 +18,7 @@ using Oxide.Plugins;
 
 namespace Oxide.Core.MySql.Libraries;
 
-public class MySql : Library
+public class MySql : Library, IDatabaseProvider
 {
 	public MySql()
 	{

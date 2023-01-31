@@ -5,8 +5,8 @@ using System.Data.Common;
 using System.Data.SQLite;
 using System.Threading;
 using Carbon;
+using Oxide.Core.Database;
 using Oxide.Core.Libraries;
-using Oxide.Ext.SQLite;
 using Oxide.Plugins;
 
 /*
@@ -18,7 +18,7 @@ using Oxide.Plugins;
 
 namespace Oxide.Core.SQLite.Libraries;
 
-public class SQLite : Library
+public class SQLite : Library, IDatabaseProvider
 {
 	public SQLite()
 	{
