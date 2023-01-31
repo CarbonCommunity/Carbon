@@ -336,7 +336,7 @@ public class RustPlugin : Plugin
 
 	#region Covalence
 
-	protected void AddCovalenceCommand(string command, string callback, string[] perms = null)
+	protected void AddCovalenceCommand(string command, string callback, params string[] perms)
 	{
 		cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
 
@@ -351,9 +351,46 @@ public class RustPlugin : Plugin
 			}
 		}
 	}
-	protected void AddUniversalCommand(string command, string callback, string[] perms = null)
+	protected void AddCovalenceCommand(string[] commands, string callback, params string[] perms)
+	{
+		foreach (var command in commands)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+		}
+
+		if (perms != null)
+		{
+			foreach (var permission in perms)
+			{
+				if (!this.permission.PermissionExists(permission))
+				{
+					this.permission.RegisterPermission(permission, this);
+				}
+			}
+		}
+	}
+
+	protected void AddUniversalCommand(string command, string callback, params string[] perms)
 	{
 		cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+
+		if (perms != null)
+		{
+			foreach (var permission in perms)
+			{
+				if (!this.permission.PermissionExists(permission))
+				{
+					this.permission.RegisterPermission(permission, this);
+				}
+			}
+		}
+	}
+	protected void AddUniversalCommand(string[] commands, string callback, params string[] perms)
+	{
+		foreach (var command in commands)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+		}
 
 		if (perms != null)
 		{
