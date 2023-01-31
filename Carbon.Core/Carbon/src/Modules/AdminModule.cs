@@ -1086,10 +1086,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				AddPlayer(tab, ap, player);
 			}
-			foreach (var player in BasePlayer.bots.Where(x => x.IsValid()))
-			{
-				AddPlayer(tab, ap, player);
-			}
 		}
 		public static void AddPlayer(Tab tab, AdminPlayer ap, BasePlayer player)
 		{
@@ -1104,7 +1100,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				ap.SetStorage("playerfilterpl", player);
 				ShowInfo(tab, ap, player);
-			}, aap => aap == null || !(ap.GetStorage<BasePlayer>("playerfilterpl") == player) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Selected));
+			}, aap => aap == null || !(aap.GetStorage<BasePlayer>("playerfilterpl") == player) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Selected));
 		}
 		public static void ShowInfo(Tab tab, AdminPlayer aap, BasePlayer player)
 		{
