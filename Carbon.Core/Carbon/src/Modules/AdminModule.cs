@@ -33,7 +33,18 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private void OnServerInitialized()
 	{
-		Community.Runtime.CorePlugin.cmd.AddChatCommand(Config.OpenCommand, this, (player, cmd, args) => { Draw(player); });
+		Community.Runtime.CorePlugin.cmd.AddChatCommand(Config.OpenCommand, this, (player, cmd, args) =>
+		{
+			var ap = GetOrCreateAdminPlayer(player);
+			ap.TabIndex = 0;
+
+			var tab = GetTab(player);
+			tab?.OnChange?.Invoke(ap, tab);
+
+			ap.Clear();
+
+			Draw(player);
+		});
 
 		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
 	}
@@ -64,30 +75,62 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreatePanel(container, parent, id,
 			color: "0.3 0.3 0.3 0.3",
-			xMin: 0.025f, xMax: 0.98f, yMin: offset, yMax: offset + height);
+			xMin: 0.02f, xMax: 0.98f, yMin: offset, yMax: offset + height);
 
 		cui.CreateText(container, parent: id, id: null,
 			color: "1 1 1 0.5",
-			text: $"{page.CurrentPage + 1:n0} / {page.TotalPages + 1:n0}", 9,
-			xMin: 0, xMax: 1f, yMin: 0, yMax: 1,
-			align: TextAnchor.MiddleCenter,
+			text: $" / {page.TotalPages + 1:n0}", 9,
+			xMin: 0.5f, xMax: 1f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		cui.CreateProtectedInputField(container, parent: id, id: null,
+			color: "1 1 1 1",
+			text: $"{page.CurrentPage + 1}", 9,
+			xMin: 0f, xMax: 0.495f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleRight,
+			command: PanelId + $".changecolumnpage {column} 4 ",
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		#region Left
 
 		cui.CreateProtectedButton(container, parent: id, id: null,
 			color: page.CurrentPage > 0 ? "0.4 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
 			textColor: "1 1 1 0.5",
-			text: "<", 8,
+			text: "<<", 8,
 			xMin: 0, xMax: 0.1f, yMin: 0f, yMax: 1f,
-			command: page.CurrentPage > 0 ? PanelId + $".changecolumnpage {column} true" : "",
+			command: page.CurrentPage > 0 ? PanelId + $".changecolumnpage {column} 2" : "",
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		cui.CreateProtectedButton(container, parent: id, id: null,
+			color: "0.4 0.7 0.2 0.7",
+			textColor: "1 1 1 0.5",
+			text: "<", 8,
+			xMin: 0.1f, xMax: 0.2f, yMin: 0f, yMax: 1f,
+			command: PanelId + $".changecolumnpage {column} 0",
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		#endregion
+
+		#region Right
 
 		cui.CreateProtectedButton(container, parent: id, id: null,
 			color: page.CurrentPage < page.TotalPages ? "0.4 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
 			textColor: "1 1 1 0.5",
-			text: ">", 8,
+			text: ">>", 8,
 			xMin: 0.9f, xMax: 1f, yMin: 0f, yMax: 1f,
-			command: page.CurrentPage < page.TotalPages ? PanelId + $".changecolumnpage {column} false" : "",
+			command: page.CurrentPage < page.TotalPages ? PanelId + $".changecolumnpage {column} 3" : "",
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		cui.CreateProtectedButton(container, parent: id, id: null,
+			color: "0.4 0.7 0.2 0.7",
+			textColor: "1 1 1 0.5",
+			text: ">", 8,
+			xMin: 0.8f, xMax: 0.9f, yMin: 0f, yMax: 1f,
+			command: PanelId + $".changecolumnpage {column} 1",
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		#endregion
 	}
 	public void TabPanelName(CUI cui, CuiElementContainer container, string parent, string text, float height, float offset, TextAnchor align)
 	{
@@ -306,10 +349,32 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var player = args.Player();
 		var instance = GetOrCreateAdminPlayer(player);
 		var page = instance.GetOrCreatePage(args.Args[0].ToInt());
-		var back = args.Args[1].ToBool();
+		var type = args.Args[1].ToInt();
 
-		if (back) page.CurrentPage--;
-		else page.CurrentPage++;
+		switch (type)
+		{
+			case 0:
+				page.CurrentPage--;
+				if (page.CurrentPage < 0) page.CurrentPage = page.TotalPages;
+				break;
+
+			case 1:
+				page.CurrentPage++;
+				if (page.CurrentPage > page.TotalPages) page.CurrentPage = 0;
+				break;
+
+			case 2:
+				page.CurrentPage = 0;
+				break;
+
+			case 3:
+				page.CurrentPage = page.TotalPages;
+				break;
+
+			case 4:
+				page.CurrentPage = (args.Args[2].ToInt() - 1).Clamp(0, page.TotalPages);
+				break;
+		}
 
 		Draw(player);
 	}
@@ -326,11 +391,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	public void Draw(BasePlayer player)
 	{
-		var instance = GetOrCreateAdminPlayer(player);
-		var tab = GetTab(player);
-
-		using (var cui = new CUI(Handler))
+		try
 		{
+			var instance = GetOrCreateAdminPlayer(player);
+			var tab = GetTab(player);
+
+			using var cui = new CUI(Handler);
+
 			cui.Destroy(PanelId, player);
 
 			var container = cui.CreateContainer(PanelId,
@@ -487,6 +554,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			#endregion
 
 			cui.Send(container, player);
+		}
+		catch (Exception ex)
+		{
+			PutsError($"Draw(player) failed.", ex);
 		}
 	}
 
