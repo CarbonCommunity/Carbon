@@ -9,6 +9,7 @@ using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using UnityEngine;
+using UnityEngine.UI;
 using static ConsoleSystem;
 
 /*
@@ -224,7 +225,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
-			text: text, 12,
+			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
@@ -232,6 +233,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: color,
 			xMin: Config.OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
+
+		cui.CreatePanel(container, $"{parent}panel", null,
+			color: color,
+			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
 
 		cui.CreateProtectedInputField(container, parent: $"{parent}inppanel", id: null,
 			color: "1 1 1 1",
@@ -341,8 +346,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		var player = args.Player();
 
-		CallColumnRow(player, args.Args[0].ToInt(), args.Args[1].ToInt(), args.Args.Skip(2).ToArray());
-		Draw(player);
+		if (CallColumnRow(player, args.Args[0].ToInt(), args.Args[1].ToInt(), args.Args.Skip(2).ToArray()))
+			Draw(player);
 	}
 
 	[UiCommand(PanelId + ".changecolumnpage")]
@@ -631,7 +636,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		return Tabs.FirstOrDefault(x => x.Id == id);
 	}
-	public void CallColumnRow(BasePlayer player, int column, int row, string[] args)
+	public bool CallColumnRow(BasePlayer player, int column, int row, string[] args)
 	{
 		var adminPlayer = GetOrCreateAdminPlayer(player);
 		var tab = GetTab(player);
@@ -643,16 +648,18 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			case Tab.OptionButton button:
 				button.Callback?.Invoke(adminPlayer);
-				break;
+				return button.Callback != null;
 
 			case Tab.OptionInput input:
 				input.Callback?.Invoke(adminPlayer, args);
-				break;
+				return input.Callback != null;
 
 			case Tab.OptionEnum @enum:
 				@enum.Callback?.Invoke(args[0].ToBool());
-				break;
+				return @enum.Callback != null;
 		}
+
+		return false;
 	}
 
 	#endregion
@@ -1108,8 +1115,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(1, $"Player Information", TextAnchor.MiddleLeft);
 			tab.AddInput(1, "Name", player.displayName, null);
-			tab.AddInput(1, "Steam Id>", player.UserIDString, null);
-			tab.AddInput(1, "Net Id", $"{player.net?.ID}", null);
+			tab.AddInput(1, "Steam ID", player.UserIDString, null);
+			tab.AddInput(1, "Net ID", $"{player.net?.ID}", null);
 			try
 			{
 				var position = player.transform.position;
