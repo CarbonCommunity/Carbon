@@ -260,7 +260,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 						unsupportedHooks.Add(method.Name);
 					}
 
-					if (Community.Runtime.HookProcessorEx.IsHookLoaded(method.Name))
+					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 					{
 						if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
 					}

@@ -27,8 +27,8 @@ public class HookValidator
 
 	public static bool IsIncompatibleOxideHook(string hook)
 	{
-		if (Community.Runtime.HookProcessorEx.StaticHooks.Any(x => x.HookName == hook) ||
-			Community.Runtime.HookProcessorEx.DynamicHooks.Any(x => x.HookName == hook)) return false;
+		if (Community.Runtime.HookManager.StaticHooks.Any(x => x.HookName == hook) ||
+			Community.Runtime.HookManager.DynamicHooks.Any(x => x.HookName == hook)) return false;
 
 		if (OxideHooks != null)
 		{

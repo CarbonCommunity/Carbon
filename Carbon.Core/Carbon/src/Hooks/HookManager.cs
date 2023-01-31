@@ -14,7 +14,7 @@ using Carbon.Core;
 
 namespace Carbon.Hooks;
 
-internal sealed class HookManager : FacepunchBehaviour, IDisposable
+public class HookManager : FacepunchBehaviour, IDisposable
 {
 	public List<HookEx> StaticHooks;
 	public List<HookEx> DynamicHooks;

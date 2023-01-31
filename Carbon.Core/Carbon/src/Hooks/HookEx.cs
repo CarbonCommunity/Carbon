@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 
 namespace Carbon.Hooks;
 
-internal class HookEx : IDisposable
+public class HookEx : IDisposable
 {
 	private HookRuntime _runtime;
 	private readonly TypeInfo _patchMethod;
