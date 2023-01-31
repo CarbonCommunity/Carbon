@@ -21,7 +21,6 @@ public struct TimeMeasure : IDisposable
 
 	public static TimeMeasure New(string name, int miliseconds = 75, string warn = null)
 	{
-		// FIXME: get_realtimeSinceStartup can only be called from the main thread.
 #if DEBUG
 		var result = default(TimeMeasure);
 		result._name = name;
@@ -36,7 +35,6 @@ public struct TimeMeasure : IDisposable
 
 	public void Dispose()
 	{
-		// FIXME: get_realtimeSinceStartup can only be called from the main thread.
 #if DEBUG
 		var num = Environment.TickCount;
 
