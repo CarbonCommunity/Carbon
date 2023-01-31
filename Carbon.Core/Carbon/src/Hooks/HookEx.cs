@@ -17,67 +17,66 @@ public class HookEx : IDisposable
 	private HookRuntime _runtime;
 	private readonly TypeInfo _patchMethod;
 
-	internal string HookName
+	public string HookName
 	{ get; }
 
-	internal HookFlags Options
+	public HookFlags Options
 	{ get; }
 
-	internal Type TargetType
+	public Type TargetType
 	{ get; }
 
-	internal string TargetMethod
+	public string TargetMethod
 	{ get; }
 
-	internal Type[] TargetMethodArgs
+	public Type[] TargetMethodArgs
 	{ get; }
 
-	internal string Identifier
+	public string Identifier
 	{ get; }
 
-	internal string ShortIdentifier
+	public string ShortIdentifier
 	{ get => Identifier.Substring(0, 6); }
 
-	internal string Checksum
+	public string Checksum
 	{ get; }
 
-	internal string[] Dependencies
+	public string[] Dependencies
 	{ get; }
 
 
-	internal bool IsStaticHook
+	public bool IsStaticHook
 	{ get => Options.HasFlag(HookFlags.Static); }
 
-	internal bool IsHidden
+	public bool IsHidden
 	{ get => Options.HasFlag(HookFlags.Hidden); }
 
-	internal bool IsChecksumIgnored
+	public bool IsChecksumIgnored
 	{ get => Options.HasFlag(HookFlags.IgnoreChecksum); }
 
-	internal bool IsLoaded
+	public bool IsLoaded
 	{ get => _runtime.Status != HookState.Inactive; }
 
-	internal bool IsInstalled
+	public bool IsInstalled
 	{ get => _runtime.Status is HookState.Success or HookState.Warning; }
 
 
 	public override string ToString()
 		=> $"{HookName}[{ShortIdentifier}]";
 
-	internal bool HasDependencies()
+	public bool HasDependencies()
 		=> Dependencies is { Length: > 0 };
 
-
-	internal string PatchMethodName
+	public string PatchMethodName
 	{ get => _patchMethod.Name; }
 
-	internal HookState Status
+	public HookState Status
 	{ get => _runtime.Status; set => _runtime.Status = value; }
 
-	internal Exception LastError
+	public Exception LastError
 	{ get => _runtime.LastError; set => _runtime.LastError = value; }
 
-	internal HookEx(TypeInfo type)
+	public HookEx(TypeInfo type)
 	{
 		try
 		{
@@ -124,7 +123,7 @@ public class HookEx : IDisposable
 		}
 	}
 
-	internal bool ApplyPatch()
+	public bool ApplyPatch()
 	{
 		try
 		{
@@ -192,7 +191,7 @@ public class HookEx : IDisposable
 */
 	}
 
-	internal bool RemovePatch()
+	public bool RemovePatch()
 	{
 		try
 		{
@@ -220,7 +219,7 @@ public class HookEx : IDisposable
 		return hash.Equals(checksum, StringComparison.InvariantCultureIgnoreCase);
 	}
 
-	internal void SetStatus(HookState Status, Exception e = null)
+	public void SetStatus(HookState Status, Exception e = null)
 	{
 		_runtime.Status = Status;
 		_runtime.LastError = e;

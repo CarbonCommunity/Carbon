@@ -8,6 +8,7 @@ using Facepunch;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
+using Steamworks.Data;
 using UnityEngine;
 using UnityEngine.UI;
 using static ConsoleSystem;
@@ -37,6 +38,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		Community.Runtime.CorePlugin.cmd.AddChatCommand(Config.OpenCommand, this, (player, cmd, args) =>
 		{
+			if (!CanAccess(player)) return;
+
 			var ap = GetOrCreateAdminPlayer(player);
 			ap.TabIndex = 0;
 
@@ -50,6 +53,25 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
 		RegisterTab(PlayersTab.Get());
+	}
+
+	private bool CanAccess(BasePlayer player)
+	{
+		var level = Config.MinimumAuthLevel;
+
+		switch (level)
+		{
+			case 0:
+				return true;
+
+			case 1:
+				return ServerUsers.Is(player.userID, ServerUsers.UserGroup.Moderator);
+
+			case 2:
+				return ServerUsers.Is(player.userID, ServerUsers.UserGroup.Owner);
+		}
+
+		return false;
 	}
 
 	#region Option Elements
@@ -187,14 +209,40 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0.015f, xMax: 0.985f, yMin: offset, yMax: offset + height,
 			command: command,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+	}
+	public void TabPanelToggle(CUI cui, CuiElementContainer container, string parent, string text, string command, float height, float offset, bool isOn)
+	{
+		var toggleButtonScale = 0.93f;
 
-		// Death hates this
-		// if (type != Tab.RowButton.Types.None)
-		// {
-		// 	cui.CreatePanel(container, $"{parent}btn", null,
-		// 		color: "1 1 1 0.4",
-		// 		xMin: 0, xMax: 1f, yMin: 0f, yMax: 0.03f);
-		// }
+		cui.CreatePanel(container, parent, $"{parent}panel",
+			color: "0.2 0.2 0.2 0",
+			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+
+		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+			color: "1 1 1 0.7",
+			text: $"{text}:", 12,
+			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleLeft,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		cui.CreatePanel(container, $"{parent}panel", null,
+			color: "0.2 0.2 0.2 0.5",
+			xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
+
+		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
+			color: "0.2 0.2 0.2 0.5",
+			textColor: "1 1 1 0.5",
+			text: string.Empty, 11,
+			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
+			command: command,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		if (isOn)
+		{
+			cui.CreatePanel(container, $"{parent}btn", null,
+				color: "0.4 0.7 0.2 0.7",
+				xMin: 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
+		}
 	}
 	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
 	{
@@ -400,7 +448,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		try
 		{
-			var instance = GetOrCreateAdminPlayer(player);
+			var ap = GetOrCreateAdminPlayer(player);
 			var tab = GetTab(player);
 
 			using var cui = new CUI(Handler);
@@ -461,10 +509,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var amount = Tabs.Count;
 			var tabWidth = amount == 0 ? 0f : 0.94f / amount;
 
-			for (int i = instance.TabSkip; i < amount; i++)
+			for (int i = ap.TabSkip; i < amount; i++)
 			{
-				var _tab = Tabs[instance.TabSkip + i];
-				TabButton(cui, container, "tab_buttons", $"{_tab.Name}", PanelId + $".changetab {i}", tabWidth, tabIndex, instance.TabIndex == i);
+				var _tab = Tabs[ap.TabSkip + i];
+				TabButton(cui, container, "tab_buttons", $"{(ap.TabIndex == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}</size>", PanelId + $".changetab {i}", tabWidth, tabIndex, ap.TabIndex == i);
 				tabIndex += tabWidth;
 			}
 
@@ -501,7 +549,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					#region Rows
 
-					var columnPage = instance.GetOrCreatePage(i);
+					var columnPage = ap.GetOrCreatePage(i);
 					var contentsPerPage = 19;
 					var rowSpacing = 0.01f;
 					var rowHeight = 0.04f;
@@ -522,7 +570,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								break;
 
 							case Tab.OptionButton button:
-								TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(instance));
+								TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap));
 								break;
 
 							case Tab.OptionText text:
@@ -535,6 +583,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 							case Tab.OptionEnum @enum:
 								TabPanelEnum(cui, container, panel, @enum.Name, @enum.Text?.Invoke(), PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+								break;
+
+							case Tab.OptionToggle toggle:
+								TabPanelToggle(cui, container, panel, toggle.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, toggle.IsOn != null ? toggle.IsOn.Invoke(ap) : false);
 								break;
 
 							default:
@@ -638,25 +690,29 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public bool CallColumnRow(BasePlayer player, int column, int row, string[] args)
 	{
-		var adminPlayer = GetOrCreateAdminPlayer(player);
+		var ap = GetOrCreateAdminPlayer(player);
 		var tab = GetTab(player);
 
-		adminPlayer.LastPressedColumn = column;
-		adminPlayer.LastPressedRow = row;
+		ap.LastPressedColumn = column;
+		ap.LastPressedRow = row;
 
 		switch (tab.Columns[column][row])
 		{
 			case Tab.OptionButton button:
-				button.Callback?.Invoke(adminPlayer);
+				button.Callback?.Invoke(ap);
 				return button.Callback != null;
 
 			case Tab.OptionInput input:
-				input.Callback?.Invoke(adminPlayer, args);
+				input.Callback?.Invoke(ap, args);
 				return input.Callback != null;
 
 			case Tab.OptionEnum @enum:
 				@enum.Callback?.Invoke(args[0].ToBool());
 				return @enum.Callback != null;
+
+			case Tab.OptionToggle toggle:
+				toggle.Callback?.Invoke(ap);
+				return toggle.Callback != null;
 		}
 
 		return false;
@@ -749,10 +805,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public Dictionary<int, List<Option>> Columns = new Dictionary<int, List<Option>>();
 		public Action<AdminPlayer, Tab> OnChange;
 
-		public Tab(string id, string name, Action<AdminPlayer, Tab> onChange = null)
+		public Tab(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null)
 		{
 			Id = id;
 			Name = name;
+			Plugin = plugin;
 			OnChange = onChange;
 		}
 
@@ -804,6 +861,16 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public Tab AddName(int column, string name, TextAnchor align)
 		{
 			AddRow(column, new OptionName(name, align));
+			return this;
+		}
+		public Tab AddButton(int column, string name, TextAnchor align, Action<AdminPlayer> callback, Func<AdminPlayer, OptionButton.Types> type = null)
+		{
+			AddRow(column, new OptionButton(name, align, callback, type));
+			return this;
+		}
+		public Tab AddToggle(int column, string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null)
+		{
+			AddRow(column, new OptionToggle(name, callback, isOn));
 			return this;
 		}
 		public Tab AddText(int column, string name, int size, string color, TextAnchor align, CUI.Handler.FontTypes font)
@@ -868,6 +935,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			public Func<AdminPlayer, Types> Type;
 			public Action<AdminPlayer> Callback;
+			public TextAnchor Align = TextAnchor.MiddleCenter;
 
 			public enum Types
 			{
@@ -877,7 +945,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Important
 			}
 
+			public OptionButton(string name, TextAnchor align, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null) : base(name) { Align = align; Callback = callback; Type = type; }
 			public OptionButton(string name, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null) : base(name) { Callback = callback; Type = type; }
+		}
+		public class OptionToggle : Option
+		{
+			public Func<AdminPlayer, bool> IsOn;
+			public Action<AdminPlayer> Callback;
+
+			public OptionToggle(string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null) : base(name) { Callback = callback; IsOn = isOn; }
 		}
 		public class OptionEnum : Option
 		{
@@ -901,7 +977,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		public static Tab Get(Permission permission)
 		{
-			var perms = new Tab("permissions", "Permissions", (instance, tab) =>
+			var perms = new Tab("permissions", "Permissions", Community.Runtime.CorePlugin, (instance, tab) =>
 			{
 				tab.ClearColumn(1);
 				tab.ClearColumn(2);
@@ -1060,11 +1136,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public class PlayersTab
 	{
 		internal static AdminModule Admin => BaseModule.GetModule<AdminModule>();
-		const int InfoSize = 12;
 
 		public static Tab Get()
 		{
-			var players = new Tab("players", "Players", (instance, tab) =>
+			var players = new Tab("players", "Players", Community.Runtime.CorePlugin, (instance, tab) =>
 			{
 				tab.ClearColumn(1);
 				RefreshPlayers(tab, instance);
@@ -1158,6 +1233,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 public class AdminConfig
 {
 	public string OpenCommand = "cadmin";
+	public int MinimumAuthLevel = 2;
 	public float OptionWidth = 0.55f;
 }
 public class AdminData
