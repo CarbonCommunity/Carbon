@@ -258,7 +258,7 @@ public class ScriptLoader : IDisposable
 
 					if (counter > 0)
 					{
-						Carbon.Logger.Warn($"Plugin '{type.Name}' uses {counter:n0} hooks that are not supported: {unsupportedHooksString} and will not work as expected.");
+						Carbon.Logger.Warn($"Plugin '{type.Name}' uses {counter:n0} hooks that are not supported: {unsupportedHooksString}and will not work as expected.");
 					}
 
 					unsupportedHooksString.Clear();
