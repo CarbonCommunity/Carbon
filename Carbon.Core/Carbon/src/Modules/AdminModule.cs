@@ -179,7 +179,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			align: align,
 			font: font);
 	}
-	public void TabPanelButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
+	public void TabPanelButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None, TextAnchor align = TextAnchor.MiddleCenter)
 	{
 		var color = "0 0 0 0";
 
@@ -208,6 +208,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: text, 11,
 			xMin: 0.015f, xMax: 0.985f, yMin: offset, yMax: offset + height,
 			command: command,
+			align: align,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 	}
 	public void TabPanelToggle(CUI cui, CuiElementContainer container, string parent, string text, string command, float height, float offset, bool isOn)
