@@ -158,7 +158,7 @@ public struct CUI : IDisposable
 				case CuiRawImageComponent: _rawImages.Add(element); break;
 				case CuiTextComponent: _texts.Add(element); break;
 				case CuiButtonComponent: _buttons.Add(element); break;
-				case CuiRectTransformComponent: _buttons.Add(element); break;
+				case CuiRectTransformComponent: _rects.Add(element); break;
 				case CuiInputFieldComponent: _inputFields.Add(element); break;
 				case CuiNeedsCursorComponent: _needsCursors.Add(element); break;
 				case CuiNeedsKeyboardComponent: _needsKeyboards.Add(element); break;
