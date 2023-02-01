@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -247,18 +248,21 @@ public class ScriptLoader : IDisposable
 
 				if (Community.Runtime.Config.HookValidation)
 				{
+					var unsupportedHooksString = new StringBuilder();
 					var counter = 0;
 					foreach (var hook in AsyncLoader.UnsupportedHooks[type])
 					{
-						Carbon.Logger.Warn($" Hook '{hook}' is not supported.");
+						unsupportedHooksString.Append($"{hook}, ");
 						counter++;
 					}
 
 					if (counter > 0)
 					{
-						Carbon.Logger.Warn($" Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
-						Carbon.Logger.Warn($" Plugin '{type.Name}' will not work as expected.");
+						Carbon.Logger.Warn($"Plugin '{type.Name}' uses {counter:n0} hooks that are not supported: {unsupportedHooksString} and will not work as expected.");
 					}
+
+					unsupportedHooksString.Clear();
+					unsupportedHooksString = null;
 				}
 
 				var info = type.GetCustomAttribute(typeof(InfoAttribute), true) as InfoAttribute;
