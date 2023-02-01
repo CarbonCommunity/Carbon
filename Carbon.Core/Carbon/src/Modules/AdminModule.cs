@@ -115,6 +115,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0f, xMax: 0.495f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleRight,
 			command: PanelId + $".changecolumnpage {column} 4 ",
+			characterLimit: 0,
+			readOnly: false,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
 		#region Left
@@ -245,7 +247,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
 		}
 	}
-	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
+	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, int characterLimit, bool readOnly, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
 	{
 		var color = "0 0 0 0";
 
@@ -293,6 +295,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0.03f, xMax: 1, yMin: 0, yMax: 1,
 			command: command,
 			align: TextAnchor.MiddleLeft,
+			characterLimit: characterLimit,
+			readOnly: readOnly,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 	}
 	public void TabPanelEnum(CUI cui, CuiElementContainer container, string parent, string text, string value, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
@@ -580,7 +584,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								break;
 
 							case Tab.OptionInput input:
-								TabPanelInput(cui, container, panel, input.Name, input.Placeholder, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+								TabPanelInput(cui, container, panel, input.Name, input.Placeholder, PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
 								break;
 
 							case Tab.OptionEnum @enum:
@@ -880,10 +884,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			AddRow(column, new OptionText(name, size, color, align, font));
 			return this;
 		}
+		public Tab AddInput(int column, string name, string placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback)
+		{
+			AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback));
+			return this;
+		}
 		public Tab AddInput(int column, string name, string placeholder, Action<AdminPlayer, string[]> callback)
 		{
-			AddRow(column, new OptionInput(name, placeholder, callback));
-			return this;
+			return AddInput(column, name, placeholder, 0, false, callback);
 		}
 		public Tab AddEnum(int column, string name, Action<bool> callback, Func<string> text)
 		{
@@ -929,9 +937,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public class OptionInput : Option
 		{
 			public string Placeholder;
+			public int CharacterLimit;
+			public bool ReadOnly;
 			public Action<AdminPlayer, string[]> Callback;
 
-			public OptionInput(string name, string placeholder, Action<AdminPlayer, string[]> args) : base(name) { Placeholder = placeholder; Callback = args; }
+			public OptionInput(string name, string placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> args) : base(name)
+			{
+				Placeholder = placeholder;
+				Callback = args;
+				CharacterLimit = characterLimit;
+				ReadOnly = readOnly;
+			}
 		}
 		public class OptionButton : Option
 		{
