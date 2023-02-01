@@ -23,15 +23,17 @@ public struct CUI : IDisposable
 		Manager = manager;
 	}
 
-	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, bool needsCursor = false, bool needsKeyboard = false, string parent = "Overlay")
+	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string parent = "Overlay")
 	{
 		var container = Manager.TakeFromPoolContainer();
 		container.Name = panel;
 
 		var element = Manager.TakeFromPool(panel, parent);
+		element.FadeOut = fadeOut;
 
 		var image = Manager.TakeFromPoolImage();
 		image.Color = color;
+		image.FadeIn = fadeIn;
 		element.Components.Add(image);
 
 		var rect = Manager.TakeFromPoolRect();
@@ -180,7 +182,7 @@ public struct CUI : IDisposable
 
 			element.Name = name;
 			element.Parent = parent;
-			element.FadeOut = 0.1f;
+			element.FadeOut = 0f;
 			element.Components.Clear();
 
 			_queue.Add(element);
