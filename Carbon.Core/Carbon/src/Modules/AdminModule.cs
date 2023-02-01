@@ -297,6 +297,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			align: TextAnchor.MiddleLeft,
 			characterLimit: characterLimit,
 			readOnly: readOnly,
+			needsKeyboard: true,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 	}
 	public void TabPanelEnum(CUI cui, CuiElementContainer container, string parent, string text, string value, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
@@ -361,6 +362,40 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			command: $"{command} false",
 			align: TextAnchor.MiddleCenter,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+	}
+	public void TabPanelRadio(CUI cui, CuiElementContainer container, string parent, string text, bool isOn, string command, float height, float offset)
+	{
+		var toggleButtonScale = 0.93f;
+
+		cui.CreatePanel(container, parent, $"{parent}panel",
+			color: "0.2 0.2 0.2 0",
+			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+
+		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+			color: "1 1 1 0.7",
+			text: $"{text}:", 12,
+			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleLeft,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		cui.CreatePanel(container, $"{parent}panel", null,
+			color: "0.2 0.2 0.2 0.5",
+			xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
+
+		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
+			color: "0.2 0.2 0.2 0.5",
+			textColor: "1 1 1 0.5",
+			text: string.Empty, 11,
+			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
+			command: command,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		if (isOn)
+		{
+			cui.CreatePanel(container, $"{parent}btn", null,
+				color: "0.4 0.7 0.2 0.7",
+				xMin: 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
+		}
 	}
 
 	#endregion
@@ -463,8 +498,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var container = cui.CreateContainer(PanelId,
 				color: "0 0 0 0.75",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
-				needsCursor: true,
-				needsKeyboard: true);
+				needsCursor: true);
 
 			cui.CreatePanel(container, parent: PanelId, id: "color",
 				color: "0 0 0 0.6",
@@ -595,6 +629,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								TabPanelToggle(cui, container, panel, toggle.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, toggle.IsOn != null ? toggle.IsOn.Invoke(ap) : false);
 								break;
 
+							case Tab.OptionRadio radio:
+								TabPanelRadio(cui, container, panel, radio.Name, radio.Index == tab.Radios[radio.Id].Selected, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+								break;
+
 							default:
 								break;
 						}
@@ -719,6 +757,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			case Tab.OptionToggle toggle:
 				toggle.Callback?.Invoke(ap);
 				return toggle.Callback != null;
+
+			case Tab.OptionRadio radio:
+				if(radio.Radio.Selected != radio.Index)
+				{
+					radio.Radio.Change(radio.Index, ap);
+					radio.Callback?.Invoke(true, ap);
+					return true;
+				}
+				break;
 		}
 
 		return false;
@@ -808,8 +855,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public string Name;
 		public RustPlugin Plugin;
 		public Action<Tab, CuiElementContainer, string> Override;
-		public Dictionary<int, List<Option>> Columns = new Dictionary<int, List<Option>>();
+		public Dictionary<int, List<Option>> Columns = new();
 		public Action<AdminPlayer, Tab> OnChange;
+		public Dictionary<string, Radio> Radios = new();
 
 		public Tab(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null)
 		{
@@ -847,7 +895,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 
 			return this;
-
 		}
 		public Tab AddRow(int column, Option row)
 		{
@@ -866,28 +913,23 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public Tab AddName(int column, string name, TextAnchor align)
 		{
-			AddRow(column, new OptionName(name, align));
-			return this;
+			return AddRow(column, new OptionName(name, align));
 		}
 		public Tab AddButton(int column, string name, TextAnchor align, Action<AdminPlayer> callback, Func<AdminPlayer, OptionButton.Types> type = null)
 		{
-			AddRow(column, new OptionButton(name, align, callback, type));
-			return this;
+			return AddRow(column, new OptionButton(name, align, callback, type));
 		}
 		public Tab AddToggle(int column, string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null)
 		{
-			AddRow(column, new OptionToggle(name, callback, isOn));
-			return this;
+			return AddRow(column, new OptionToggle(name, callback, isOn));
 		}
 		public Tab AddText(int column, string name, int size, string color, TextAnchor align, CUI.Handler.FontTypes font)
 		{
-			AddRow(column, new OptionText(name, size, color, align, font));
-			return this;
+			return AddRow(column, new OptionText(name, size, color, align, font));
 		}
 		public Tab AddInput(int column, string name, string placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback)
 		{
-			AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback));
-			return this;
+			return AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback));
 		}
 		public Tab AddInput(int column, string name, string placeholder, Action<AdminPlayer, string[]> callback)
 		{
@@ -897,6 +939,22 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			AddRow(column, new OptionEnum(name, callback, text));
 			return this;
+		}
+		public Tab AddRadio(int column, string name, string id, bool wantsOn, Action<bool, AdminPlayer> callback)
+		{
+			if (!Radios.TryGetValue(id, out var radio))
+			{
+				Radios[id] = radio = new();
+			}
+
+			radio.TemporaryIndex++;
+			if (wantsOn) radio.Selected = radio.TemporaryIndex;
+
+			var index = radio.TemporaryIndex;
+			var option = new OptionRadio(name, id, index, wantsOn, callback, radio);
+			radio.Options.Add(option);
+
+			return AddRow(column, option);
 		}
 
 		public void Dispose()
@@ -908,6 +966,28 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			Columns.Clear();
 			Columns = null;
+		}
+
+		public class Radio : IDisposable
+		{
+			public int Selected;
+
+			public int TemporaryIndex = -1;
+
+			public List<OptionRadio> Options = new();
+
+			public void Change(int index, AdminPlayer ap)
+			{
+				Options[Selected]?.Callback?.Invoke(false, ap);
+
+				Selected = index;
+			}
+
+			public void Dispose()
+			{
+				Options.Clear();
+				Options = null;
+			}
 		}
 
 		public class Option
@@ -986,6 +1066,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public Action<float> Callback;
 
 			public OptionRange(string name, float value, Action<float> callback, Func<float> text) : base(name) { Callback = callback; Value = value; }
+		}
+		public class OptionRadio : Option
+		{
+			public string Id;
+			public int Index;
+			public bool WantsOn;
+			public Action<bool, AdminPlayer> Callback;
+
+			public Radio Radio;
+
+			public OptionRadio(string name, string id, int index, bool on, Action<bool, AdminPlayer> callback, Radio radio) : base(name) { Id = id; Callback = callback; WantsOn = on;Index = index; Radio = radio; }
 		}
 	}
 
