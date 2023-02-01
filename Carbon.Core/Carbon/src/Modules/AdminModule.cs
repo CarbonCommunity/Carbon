@@ -499,7 +499,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				color: "0 0 0 0.75",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				fadeIn: 0.005f,
-				fadeOut: 0.005f,
 				needsCursor: true);
 
 			cui.CreatePanel(container, parent: PanelId, id: "color",
