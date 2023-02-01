@@ -498,6 +498,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var container = cui.CreateContainer(PanelId,
 				color: "0 0 0 0.75",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
+				fadeIn: 0.01f,
 				needsCursor: true);
 
 			cui.CreatePanel(container, parent: PanelId, id: "color",
@@ -759,7 +760,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				return toggle.Callback != null;
 
 			case Tab.OptionRadio radio:
-				if(radio.Radio.Selected != radio.Index)
+				if (radio.Radio.Selected != radio.Index)
 				{
 					radio.Radio.Change(radio.Index, ap);
 					radio.Callback?.Invoke(true, ap);
@@ -1076,7 +1077,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			public Radio Radio;
 
-			public OptionRadio(string name, string id, int index, bool on, Action<bool, AdminPlayer> callback, Radio radio) : base(name) { Id = id; Callback = callback; WantsOn = on;Index = index; Radio = radio; }
+			public OptionRadio(string name, string id, int index, bool on, Action<bool, AdminPlayer> callback, Radio radio) : base(name) { Id = id; Callback = callback; WantsOn = on; Index = index; Radio = radio; }
 		}
 	}
 
