@@ -139,7 +139,17 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 	{
 		if (IgnoreList.Contains(file)) return;
 
-		if (OsEx.File.Exists(file)) Carbon.Logger.Log($" Loading plugin '{id}'...");
+		if (!string.IsNullOrEmpty(file))
+		{
+			var extension = Path.GetExtension(file);
+
+			if (!string.IsNullOrEmpty(Extension) && OsEx.File.Exists(file) && extension == Extension)
+			{
+				return;
+			}
+		}
+
+		Carbon.Logger.Log($" Loading plugin '{id}'...");
 
 		Remove(id);
 
