@@ -23,7 +23,7 @@ public struct CUI : IDisposable
 		Manager = manager;
 	}
 
-	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string parent = "Overlay")
+	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string parent = "Overlay")
 	{
 		var container = Manager.TakeFromPoolContainer();
 		container.Name = panel;
@@ -39,6 +39,8 @@ public struct CUI : IDisposable
 		var rect = Manager.TakeFromPoolRect();
 		rect.AnchorMin = $"{xMin} {yMin}";
 		rect.AnchorMax = $"{xMax} {yMax}";
+		rect.OffsetMin = $"{OxMin} {OyMin}";
+		rect.OffsetMax = $"{OxMax} {OyMax}";
 		element.Components.Add(rect);
 
 		if (needsCursor) element.Components.Add(Manager.TakeFromPoolNeedsCursor());
@@ -48,37 +50,37 @@ public struct CUI : IDisposable
 		container.Add(Manager.TakeFromPool(Manager.AppendId(), parent));
 		return container;
 	}
-	public string CreatePanel(CuiElementContainer container, string parent, string id, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreatePanel(CuiElementContainer container, string parent, string id, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.Panel(Manager, container, parent, id, color, xMin, xMax, yMin, yMax, blur, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.Panel(Manager, container, parent, id, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, blur, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
-	public string CreateText(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreateText(CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.Text(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, align, font, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.Text(Manager, container, parent, id, color, text, size, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, align, font, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
-	public string CreateButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreateButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, command, align, font, false, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, command, align, font, false, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
-	public string CreateProtectedButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreateProtectedButton(CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, command, align, font, true, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.Button(Manager, container, parent, id, color, textColor, text, size, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, command, align, font, true, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
-	public string CreateInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, int characterLimit, bool readOnly, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreateInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, int characterLimit, bool readOnly, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, characterLimit, readOnly, xMin, xMax, yMin, yMax, command, align, font, false, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, characterLimit, readOnly, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, command, align, font, false, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
-	public string CreateProtectedInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, int characterLimit, bool readOnly, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreateProtectedInputField(CuiElementContainer container, string parent, string id, string color, string text, int size, int characterLimit, bool readOnly, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, string command = null, TextAnchor align = TextAnchor.MiddleCenter, FontTypes font = FontTypes.RobotoCondensedRegular, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, characterLimit, readOnly, xMin, xMax, yMin, yMax, command, align, font, true, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, characterLimit, readOnly, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, command, align, font, true, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
-	public string CreateImage(CuiElementContainer container, string parent, string id, string png, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreateImage(CuiElementContainer container, string parent, string id, string png, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.Image(Manager, container, parent, id, png, xMin, xMax, yMin, yMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.Image(Manager, container, parent, id, png, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
-	public string CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.ItemImage(Manager, container, parent, id, itemID, xMin, xMax, yMin, yMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.ItemImage(Manager, container, parent, id, itemID, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
 
 	public string Color(string hexColor, float alpha)
@@ -482,7 +484,7 @@ public struct CUI : IDisposable
 
 public static class CUIStatics
 {
-	public static string Panel(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, float xMin, float xMax, float yMin, float yMax, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string Panel(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
@@ -497,6 +499,8 @@ public static class CUIStatics
 		var rect = cui.TakeFromPoolRect();
 		rect.AnchorMin = $"{xMin} {yMin}";
 		rect.AnchorMax = $"{xMax} {yMax}";
+		rect.OffsetMin = $"{OxMin} {OyMin}";
+		rect.OffsetMax = $"{OxMax} {OyMax}";
 		element.Components.Add(rect);
 
 		if (needsCursor) element.Components.Add(cui.TakeFromPoolNeedsCursor());
@@ -506,7 +510,7 @@ public static class CUIStatics
 
 		return id;
 	}
-	public static string Text(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, TextAnchor align, FontTypes font, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string Text(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, TextAnchor align, FontTypes font, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
@@ -524,6 +528,8 @@ public static class CUIStatics
 		var rect = cui.TakeFromPoolRect();
 		rect.AnchorMin = $"{xMin} {yMin}";
 		rect.AnchorMax = $"{xMax} {yMax}";
+		rect.OffsetMin = $"{OxMin} {OyMin}";
+		rect.OffsetMax = $"{OxMax} {OyMax}";
 		element.Components.Add(rect);
 
 		if (needsCursor) element.Components.Add(cui.TakeFromPoolNeedsCursor());
@@ -532,7 +538,7 @@ public static class CUIStatics
 		container.Add(element);
 		return id;
 	}
-	public static string Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, FontTypes font, bool @protected, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, string command, TextAnchor align, FontTypes font, bool @protected, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var buttonElement = cui.TakeFromPool(id, parent);
@@ -547,6 +553,8 @@ public static class CUIStatics
 		var rect = cui.TakeFromPoolRect();
 		rect.AnchorMin = $"{xMin} {yMin}";
 		rect.AnchorMax = $"{xMax} {yMax}";
+		rect.OffsetMin = $"{OxMin} {OyMin}";
+		rect.OffsetMax = $"{OxMax} {OyMax}";
 		buttonElement.Components.Add(rect);
 
 		if (needsCursor) buttonElement.Components.Add(cui.TakeFromPoolNeedsCursor());
@@ -574,7 +582,7 @@ public static class CUIStatics
 
 		return id;
 	}
-	public static string InputField(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, int characterLimit, bool readOnly, float xMin, float xMax, float yMin, float yMax, string command, TextAnchor align, FontTypes font, bool @protected, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string InputField(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, int characterLimit, bool readOnly, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, string command, TextAnchor align, FontTypes font, bool @protected, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var inputFieldElement = cui.TakeFromPool(id, parent);
@@ -597,13 +605,15 @@ public static class CUIStatics
 		var rect = cui.TakeFromPoolRect();
 		rect.AnchorMin = $"{xMin} {yMin}";
 		rect.AnchorMax = $"{xMax} {yMax}";
+		rect.OffsetMin = $"{OxMin} {OyMin}";
+		rect.OffsetMax = $"{OxMax} {OyMax}";
 		inputFieldElement.Components.Add(rect);
 
 		container.Add(inputFieldElement);
 
 		return id;
 	}
-	public static string Image(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string png, float xMin, float xMax, float yMin, float yMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string Image(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string png, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
@@ -617,6 +627,8 @@ public static class CUIStatics
 		var rect = cui.TakeFromPoolRect();
 		rect.AnchorMin = $"{xMin} {yMin}";
 		rect.AnchorMax = $"{xMax} {yMax}";
+		rect.OffsetMin = $"{OxMin} {OyMin}";
+		rect.OffsetMax = $"{OxMax} {OyMax}";
 		element.Components.Add(rect);
 
 		if (needsCursor) element.Components.Add(cui.TakeFromPoolNeedsCursor());
@@ -625,7 +637,7 @@ public static class CUIStatics
 		container.Add(element);
 		return id;
 	}
-	public static string ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, float xMin, float xMax, float yMin, float yMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent);
@@ -639,6 +651,8 @@ public static class CUIStatics
 		var rect = cui.TakeFromPoolRect();
 		rect.AnchorMin = $"{xMin} {yMin}";
 		rect.AnchorMax = $"{xMax} {yMax}";
+		rect.OffsetMin = $"{OxMin} {OyMin}";
+		rect.OffsetMax = $"{OxMax} {OyMax}";
 		element.Components.Add(rect);
 
 		if (needsCursor) element.Components.Add(cui.TakeFromPoolNeedsCursor());
