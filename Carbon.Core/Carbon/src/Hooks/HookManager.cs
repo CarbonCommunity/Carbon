@@ -337,7 +337,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 			if (!hook.ApplyPatch())
 				throw new Exception($"Unable to apply patch");
-			Logger.Log($"Installed hook '{hook}");
+			Logger.Debug($"Installed hook '{hook}", 1);
 		}
 		catch (System.Exception e)
 		{
@@ -352,7 +352,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 		{
 			if (!hook.RemovePatch())
 				throw new Exception($"Unable to remove patch");
-			Logger.Log($"Uninstalled hook '{hook}'");
+			Logger.Debug($"Uninstalled hook '{hook}'", 1);
 
 			if (!hook.HasDependencies()) return;
 
