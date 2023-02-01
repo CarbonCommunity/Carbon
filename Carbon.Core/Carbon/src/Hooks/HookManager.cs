@@ -328,7 +328,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 							throw new Exception($"Dependency '{dependency}' installation failed");
 
 						AddSubscriber(dependency.HookName, requester);
-						Logger.Log($"Installed dependency '{dependency}'");
+						Logger.Debug($"Installed dependency '{dependency}'", 1);
 					}
 				}
 
@@ -376,7 +376,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 						throw new Exception($"Dependency '{dependency}' uninstallation failed");
 
 					RemoveSubscriber(dependency.HookName, requester);
-					Logger.Log($"Uninstalled dependency '{dependency}'");
+					Logger.Debug($"Uninstalled dependency '{dependency}'", 1);
 				}
 			}
 
