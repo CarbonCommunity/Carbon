@@ -143,7 +143,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 		{
 			var extension = Path.GetExtension(file);
 
-			if (!string.IsNullOrEmpty(Extension) && OsEx.File.Exists(file) && extension == Extension)
+			if (!string.IsNullOrEmpty(Extension) && OsEx.File.Exists(file) && extension != Extension)
 			{
 				return;
 			}
