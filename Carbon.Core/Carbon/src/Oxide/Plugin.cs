@@ -33,6 +33,7 @@ namespace Oxide.Plugins
 		public int ResourceId { get; set; }
 		public bool HasConfig { get; set; }
 		public bool HasMessages { get; set; }
+		public bool HasConditionals { get; set; }
 
 		[JsonProperty]
 		public double CompileTime { get; internal set; }
@@ -66,13 +67,6 @@ namespace Oxide.Plugins
 			return other != null;
 		}
 
-		internal void _unprocessHooks()
-		{
-			foreach (var hook in Hooks)
-				Community.Runtime.HookProcessorEx.Unsubscribe(hook, Name);
-			Carbon.Logger.Debug(Name, $"Unprocessed hooks");
-		}
-
 		public virtual void IInit()
 		{
 			using (TimeMeasure.New($"Processing HookMethods on '{this}'"))
@@ -99,7 +93,7 @@ namespace Oxide.Plugins
 			using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 			{
 				foreach (var hook in Hooks)
-					Community.Runtime.HookProcessorEx.Subscribe(hook, FileName);
+					Community.Runtime.HookManager.Subscribe(hook, FileName);
 			}
 			Carbon.Logger.Debug(Name, "Processed hooks");
 
@@ -134,7 +128,9 @@ namespace Oxide.Plugins
 		{
 			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 			{
-				_unprocessHooks();
+				foreach (var hook in Hooks)
+					Community.Runtime.HookManager.Unsubscribe(hook, FileName);
+				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 			}
 
 			using (TimeMeasure.New($"IUnload.Disposal on '{this}'"))

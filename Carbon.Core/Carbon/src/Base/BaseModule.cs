@@ -67,8 +67,8 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			//Community.Runtime.HookProcessor.InstallHooks(method.Name);
 			//Community.Runtime.HookProcessor.AppendHook(method.Name);
 
-			if (Community.Runtime.HookProcessorEx.IsHookLoaded(method.Name))
-				Community.Runtime.HookProcessorEx.Subscribe(method.Name, Name);
+			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 		}
 		Puts($"Processed hooks");
 

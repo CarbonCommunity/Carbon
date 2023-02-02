@@ -102,8 +102,7 @@ public class Community
 	public WebScriptProcessor WebScriptProcessor { get; set; }
 	public HarmonyProcessor HarmonyProcessor { get; set; }
 	public ModuleProcessor ModuleProcessor { get; set; }
-
-	internal HookManager HookProcessorEx { get; set; }
+	public HookManager HookManager { get; set; }
 
 	internal void _installProcessors()
 	{
@@ -122,7 +121,7 @@ public class Community
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			HarmonyProcessor = gameObject.AddComponent<HarmonyProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-			HookProcessorEx = gameObject.AddComponent<HookManager>();
+			HookManager = gameObject.AddComponent<HookManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
 
@@ -266,7 +265,7 @@ public class Community
 			_uninstallProcessors();
 			_clearCommands(all: true);
 
-			HookProcessorEx.enabled = false;
+			HookManager.enabled = false;
 
 			ClearPlugins();
 			Loader._loadedMods.Clear();

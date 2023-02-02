@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Hooks;
+using Carbon.Plugins;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
@@ -21,7 +23,7 @@ using UnityEngine;
 
 namespace Carbon.Core;
 
-public class CorePlugin : RustPlugin
+public class CorePlugin : CarbonPlugin
 {
 	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
@@ -93,6 +95,10 @@ public class CorePlugin : RustPlugin
 		}
 		Carbon.Logger.Log(message);
 	}
+
+	#region Commands
+
+	#region App
 
 	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
 	private void Exit(ConsoleSystem.Arg arg)
@@ -193,174 +199,6 @@ public class CorePlugin : RustPlugin
 		}
 	}
 
-#if DEBUG
-	[ConsoleCommand("assembly", "Debug stuff.")]
-	private void AssemblyInfo(ConsoleSystem.Arg arg)
-	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
-		int count = 0;
-		StringTable body = new StringTable("#", "Assembly", "Version", "Dynamic", "Location");
-		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-			body.AddRow($"{count++:n0}", assembly.GetName().Name, assembly.GetName().Version, assembly.IsDynamic, (assembly.IsDynamic) ? string.Empty : assembly.Location);
-		Reply(body.ToStringMinimal(), arg);
-	}
-#endif
-
-	[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
-	private void HookInfo(ConsoleSystem.Arg arg)
-	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
-		StringTable body = new StringTable("#", "Hook", "Identifier", "Type", "Status", "Current", "Total", "Subscribers");
-		int count = 0, success = 0, warning = 0, failure = 0;
-
-		string option1 = arg.GetString(0, null);
-		string option2 = arg.GetString(1, null);
-
-		switch (option1)
-		{
-			case "enable":
-				Community.Runtime.HookProcessorEx.enabled = true;
-				break;
-
-			case "disable":
-				// FIXME : Currently all static hooks go away which means
-				// no moar console commands can be issued :rocket:
-				Community.Runtime.HookProcessorEx.enabled = false;
-				break;
-
-			case "reload":
-				Community.Runtime.HookProcessorEx.Reload();
-				break;
-
-			case "update":
-				try
-				{
-					Carbon.Hooks.Updater.DoUpdate((bool result) =>
-					{
-						if (!result)
-						{
-							Logger.Error($"Unknown error while updating hooks");
-							return;
-						}
-						HookCaller.CallStaticHook("OnServerSave");
-						Community.Runtime.HookProcessorEx.Reload();
-					});
-				}
-				catch (System.Exception e)
-				{
-					Logger.Error($"Error while updating hooks", e);
-				}
-				break;
-
-			case "loaded":
-				{
-					IEnumerable<HookEx> hooks;
-
-					switch (option2)
-					{
-						case "--static":
-							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--dynamic":
-							hooks = Community.Runtime.HookProcessorEx.LoadedDynamicHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--failed":
-							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Failure);
-							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Failure));
-							break;
-
-						case "--warning":
-							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
-							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
-							break;
-
-						case "--success":
-							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success);
-							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success));
-							break;
-
-						default:
-							hooks = Community.Runtime.HookProcessorEx.LoadedStaticHooks.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooks.Where(x => !x.IsHidden));
-							break;
-					}
-
-					foreach (var mod in hooks.OrderBy(x => x.HookName))
-					{
-						if (mod.Status == HookState.Failure) failure++;
-						if (mod.Status == HookState.Success) success++;
-						if (mod.Status == HookState.Warning) warning++;
-
-						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookProcessorEx.GetHookSubscriberCount(mod.HookName)}");
-					}
-
-					Reply(body.ToStringMinimal(), arg);
-					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
-					break;
-				}
-
-			default: // list installed
-				{
-					IEnumerable<HookEx> hooks;
-
-					switch (option1)
-					{
-						case "--static":
-							hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--dynamic":
-							hooks = Community.Runtime.HookProcessorEx.InstalledDynamicHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--warning":
-							hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
-							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.InstalledDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
-							break;
-
-						case "--success":
-							hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success);
-							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.InstalledDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success));
-							break;
-
-						default:
-							hooks = Community.Runtime.HookProcessorEx.InstalledStaticHooks.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookProcessorEx.InstalledDynamicHooks.Where(x => !x.IsHidden));
-							break;
-					}
-
-					foreach (var mod in hooks.OrderBy(x => x.HookName))
-					{
-						if (mod.Status == HookState.Failure) failure++;
-						if (mod.Status == HookState.Success) success++;
-						if (mod.Status == HookState.Warning) warning++;
-
-						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookProcessorEx.GetHookSubscriberCount(mod.HookName)}");
-					}
-
-					Reply(body.ToStringMinimal(), arg);
-					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
-					break;
-				}
-		}
-	}
-
 	[ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
 	private void Update(ConsoleSystem.Arg arg)
 	{
@@ -377,6 +215,266 @@ public class CorePlugin : RustPlugin
 			Supervisor.ASM.UnloadModule("Carbon.dll", true);
 		});
 	}
+
+	#endregion
+
+#if DEBUG
+	[ConsoleCommand("assembly", "Debug stuff.")]
+	private void AssemblyInfo(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		int count = 0;
+		StringTable body = new StringTable("#", "Assembly", "Version", "Dynamic", "Location");
+		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+			body.AddRow($"{count++:n0}", assembly.GetName().Name, assembly.GetName().Version, assembly.IsDynamic, (assembly.IsDynamic) ? string.Empty : assembly.Location);
+		Reply(body.ToStringMinimal(), arg);
+	}
+#endif
+
+	#region Conditionals
+
+	[ConsoleCommand("addconditional", "Adds a new conditional compilation symbol to the compiler.")]
+	private void AddConditional(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		var value = arg.Args[0];
+
+		if (!Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
+		{
+			Community.Runtime.Config.ConditionalCompilationSymbols.Add(value);
+			Community.Runtime.SaveConfig();
+			Reply($"Added conditional '{value}'.", arg);
+		}
+		else
+		{
+			Reply($"Conditional '{value}' already exists.", arg);
+		}
+
+		foreach (var mod in Loader._loadedMods)
+		{
+			var plugins = Pool.GetList<RustPlugin>();
+			plugins.AddRange(mod.Plugins);
+
+			foreach (var plugin in plugins)
+			{
+				if (plugin.HasConditionals)
+				{
+					plugin._processor_instance.Dispose();
+					plugin._processor_instance.Execute();
+					mod.Plugins.Remove(plugin);
+				}
+			}
+
+			Pool.FreeList(ref plugins);
+		}
+	}
+
+	[ConsoleCommand("remconditional", "Removes an existent conditional compilation symbol from the compiler.")]
+	private void RemoveConditional(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		var value = arg.Args[0];
+
+		if (Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
+		{
+			Community.Runtime.Config.ConditionalCompilationSymbols.Remove(value);
+			Community.Runtime.SaveConfig();
+			Reply($"Removed conditional '{value}'.", arg);
+		}
+		else
+		{
+			Reply($"Conditional '{value}' does not exist.", arg);
+		}
+
+		foreach (var mod in Loader._loadedMods)
+		{
+			var plugins = Pool.GetList<RustPlugin>();
+			plugins.AddRange(mod.Plugins);
+
+			foreach (var plugin in plugins)
+			{
+				if (plugin.HasConditionals)
+				{
+					plugin._processor_instance.Dispose();
+					plugin._processor_instance.Execute();
+					mod.Plugins.Remove(plugin);
+				}
+			}
+
+			Pool.FreeList(ref plugins);
+		}
+	}
+
+	[ConsoleCommand("conditionals", "Prints a list of all conditional compilation symbols used by the compiler.")]
+	private void Conditionals(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		Reply($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}", arg);
+	}
+
+	#endregion
+
+	#region Hooks
+
+	[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
+	private void HookInfo(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		StringTable body = new StringTable("#", "Hook", "Identifier", "Type", "Status", "Current", "Total", "Subscribers");
+		int count = 0, success = 0, warning = 0, failure = 0;
+
+		string option1 = arg.GetString(0, null);
+		string option2 = arg.GetString(1, null);
+
+		switch (option1)
+		{
+			case "enable":
+				Community.Runtime.HookManager.enabled = true;
+				break;
+
+			case "disable":
+				// FIXME : Currently all static hooks go away which means
+				// no moar console commands can be issued :rocket:
+				Community.Runtime.HookManager.enabled = false;
+				break;
+
+			case "reload":
+				Community.Runtime.HookManager.Reload();
+				break;
+
+			case "update":
+				try
+				{
+					Carbon.Hooks.Updater.DoUpdate((bool result) =>
+					{
+						if (!result)
+						{
+							Logger.Error($"Unknown error while updating hooks");
+							return;
+						}
+						HookCaller.CallStaticHook("OnServerSave");
+						Community.Runtime.HookManager.Reload();
+					});
+				}
+				catch (System.Exception e)
+				{
+					Logger.Error($"Error while updating hooks", e);
+				}
+				break;
+
+			case "loaded":
+				{
+					IEnumerable<HookEx> hooks;
+
+					switch (option2)
+					{
+						case "--static":
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
+							break;
+
+						case "--dynamic":
+							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
+							break;
+
+						case "--failed":
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Failure);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Failure));
+							break;
+
+						case "--warning":
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
+							break;
+
+						case "--success":
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Success);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Success));
+							break;
+
+						default:
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
+							break;
+					}
+
+					foreach (var mod in hooks.OrderBy(x => x.HookName))
+					{
+						if (mod.Status == HookState.Failure) failure++;
+						if (mod.Status == HookState.Success) success++;
+						if (mod.Status == HookState.Warning) warning++;
+
+						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}");
+					}
+
+					Reply(body.ToStringMinimal(), arg);
+					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
+					break;
+				}
+
+			default: // list installed
+				{
+					IEnumerable<HookEx> hooks;
+
+					switch (option1)
+					{
+						case "--static":
+							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
+							break;
+
+						case "--dynamic":
+							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
+							break;
+
+						case "--warning":
+							hooks = Community.Runtime.HookManager.InstalledStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
+							break;
+
+						case "--success":
+							hooks = Community.Runtime.HookManager.InstalledStaticHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Success);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks
+								.Where(x => !x.IsHidden && x.Status == HookState.Success));
+							break;
+
+						default:
+							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
+							break;
+					}
+
+					foreach (var mod in hooks.OrderBy(x => x.HookName))
+					{
+						if (mod.Status == HookState.Failure) failure++;
+						if (mod.Status == HookState.Success) success++;
+						if (mod.Status == HookState.Warning) warning++;
+
+						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}");
+					}
+
+					Reply(body.ToStringMinimal(), arg);
+					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
+					break;
+				}
+		}
+	}
+
+	#endregion
 
 	#region Config
 
@@ -399,6 +497,9 @@ public class CorePlugin : RustPlugin
 
 		Reply("Saved Carbon config.", arg);
 	}
+
+	[CommandVar("autoupdate", "Updates carbon hooks on boot.", true)]
+	private bool AutoUpdate { get { return Community.Runtime.Config.AutoUpdate; } set { Community.Runtime.Config.AutoUpdate = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("modding", "Mark this server as modded or not.", true)]
 	private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
@@ -1071,6 +1172,8 @@ public class CorePlugin : RustPlugin
 				break;
 		}
 	}
+
+	#endregion
 
 	#endregion
 }

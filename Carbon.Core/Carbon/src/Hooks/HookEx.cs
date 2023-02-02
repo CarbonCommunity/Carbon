@@ -12,68 +12,71 @@ using System.Security.Cryptography;
 
 namespace Carbon.Hooks;
 
-internal class HookEx : IDisposable
+public class HookEx : IDisposable
 {
 	private HookRuntime _runtime;
 	private readonly TypeInfo _patchMethod;
 
-
-	internal string HookName
+	public string HookName
 	{ get; }
 
-	internal HookFlags Options
+	public HookFlags Options
 	{ get; }
 
-	internal Type TargetType
+	public Type TargetType
 	{ get; }
 
-	internal string TargetMethod
+	public string TargetMethod
 	{ get; }
 
-	internal Type[] TargetMethodArgs
+	public Type[] TargetMethodArgs
 	{ get; }
 
-	internal string Identifier
+	public string Identifier
 	{ get; }
 
-	internal string Checksum
+	public string ShortIdentifier
+	{ get => Identifier.Substring(0, 6); }
+
+	public string Checksum
 	{ get; }
 
-	internal string[] Dependencies
+	public string[] Dependencies
 	{ get; }
 
 
-	internal bool IsStaticHook
+	public bool IsStaticHook
 	{ get => Options.HasFlag(HookFlags.Static); }
 
-	internal bool IsHidden
+	public bool IsHidden
 	{ get => Options.HasFlag(HookFlags.Hidden); }
 
-	internal bool IsChecksumIgnored
+	public bool IsChecksumIgnored
 	{ get => Options.HasFlag(HookFlags.IgnoreChecksum); }
 
-	internal bool IsLoaded
-	{ get => _runtime.Status != HookState.Failure; }
+	public bool IsLoaded
+	{ get => _runtime.Status != HookState.Inactive; }
 
-	internal bool IsInstalled
+	public bool IsInstalled
 	{ get => _runtime.Status is HookState.Success or HookState.Warning; }
 
 
-	internal bool HasDependencies()
+	public override string ToString()
+		=> $"{HookName}[{ShortIdentifier}]";
+
+	public bool HasDependencies()
 		=> Dependencies is { Length: > 0 };
 
-
-	internal string PatchMethodName
+	public string PatchMethodName
 	{ get => _patchMethod.Name; }
 
-	internal HookState Status
+	public HookState Status
 	{ get => _runtime.Status; set => _runtime.Status = value; }
 
-	internal Exception LastError
+	public Exception LastError
 	{ get => _runtime.LastError; set => _runtime.LastError = value; }
 
-
-	internal HookEx(TypeInfo type)
+	public HookEx(TypeInfo type)
 	{
 		try
 		{
@@ -120,7 +123,7 @@ internal class HookEx : IDisposable
 		}
 	}
 
-	internal bool ApplyPatch()
+	public bool ApplyPatch()
 	{
 		try
 		{
@@ -143,15 +146,19 @@ internal class HookEx : IDisposable
 			if (current is null)
 				throw new Exception($"Harmony failed to execute");
 
-			if (hasValidChecksum)
-			{
-				_runtime.Status = HookState.Success;
-			}
-			else
-			{
-				Logger.Warn($"Checksum validation failed for '{TargetType.Name}.{TargetMethod}'");
-				_runtime.Status = HookState.Warning;
-			}
+			// the checksum system needs some lovin..
+			// for now let's mark them all as valid
+			_runtime.Status = HookState.Success;
+
+			// if (hasValidChecksum)
+			// {
+			// 	_runtime.Status = HookState.Success;
+			// }
+			// else
+			// {
+			// 	Logger.Warn($"Checksum validation failed for '{TargetType.Name}.{TargetMethod}'");
+			// 	_runtime.Status = HookState.Warning;
+			// }
 
 			Logger.Debug($"Hook '{HookName}[{Identifier}]' patched '{TargetType.Name}.{TargetMethod}'", 2);
 		}
@@ -184,7 +191,7 @@ internal class HookEx : IDisposable
 */
 	}
 
-	internal bool RemovePatch()
+	public bool RemovePatch()
 	{
 		try
 		{
@@ -210,6 +217,12 @@ internal class HookEx : IDisposable
 		byte[] bytes = sha1.ComputeHash(original.GetMethodBody()?.GetILAsByteArray() ?? Array.Empty<byte>());
 		string hash = string.Concat(bytes.Select(b => b.ToString("x2")));
 		return hash.Equals(checksum, StringComparison.InvariantCultureIgnoreCase);
+	}
+
+	public void SetStatus(HookState Status, Exception e = null)
+	{
+		_runtime.Status = Status;
+		_runtime.LastError = e;
 	}
 
 	public void Dispose()

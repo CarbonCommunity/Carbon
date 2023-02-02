@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 /*
  *
@@ -11,40 +12,37 @@ namespace Carbon.Core;
 
 public struct TimeMeasure : IDisposable
 {
-	// #if DEBUG
-	// 		internal string _name;
-	// 		internal string _warn;
-	// 		internal int _miliseconds;
-	// 		internal RealTimeSince _timeSince;
-	// #endif
+#if DEBUG
+	internal string _name;
+	internal string _warn;
+	internal int _miliseconds;
+	internal int _timeSince;
+#endif
 
 	public static TimeMeasure New(string name, int miliseconds = 75, string warn = null)
 	{
+#if DEBUG
+		var result = default(TimeMeasure);
+		result._name = name;
+		result._warn = warn;
+		result._miliseconds = miliseconds;
+		result._timeSince = Environment.TickCount;
+		return result;
+#else
 		return default;
-		// FIXME: get_realtimeSinceStartup can only be called from the main thread.
-		// #if DEBUG
-		// 			var result = default(TimeMeasure);
-		// 			result._name = name;
-		// 			result._warn = warn;
-		// 			result._miliseconds = miliseconds;
-		// 			result._timeSince = 0f;
-		// 			return result;
-		// #else
-		// 			return default;
-		// #endif
+#endif
 	}
 
 	public void Dispose()
 	{
-		// FIXME: get_realtimeSinceStartup can only be called from the main thread.
-		// #if DEBUG
-		// 			var num = (float)_timeSince * 1000f;
+#if DEBUG
+		var num = Environment.TickCount;
 
-		// 			if (num >= _miliseconds)
-		// 			{
-		// 				Carbon.Logger.Warn(
-		// 					$" {_name} took {num:0}ms [abv {_miliseconds}]{(string.IsNullOrEmpty(_warn) ? "" : (": " + _warn))}");
-		// 			}
-		// #endif
+		if (Mathf.Abs(Environment.TickCount - num) >= _miliseconds)
+		{
+			Carbon.Logger.Warn(
+				$" {_name} took {num:0}ms [abv {_miliseconds}]{(string.IsNullOrEmpty(_warn) ? "" : (": " + _warn))}");
+		}
+#endif
 	}
 }

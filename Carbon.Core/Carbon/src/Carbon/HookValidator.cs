@@ -14,16 +14,10 @@ namespace Carbon.Core;
 
 public class HookValidator
 {
-	public static List<string> CarbonHooks { get; private set; } = new List<string>(500);
 	public static HookPackage OxideHooks { get; private set; }
 
 	public static void Refresh()
 	{
-		CarbonHooks.Clear();
-		CarbonHooks = Community.Runtime.HookProcessorEx.LoadedStaticHooksName
-			.Concat(Community.Runtime.HookProcessorEx.LoadedDynamicHooksName).ToList();
-		Logger.Debug($"Refreshed {CarbonHooks.Count} loaded hooks.");
-
 		Community.Runtime.CorePlugin.webrequest.Enqueue("https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj", null, (error, data) =>
 		{
 			OxideHooks = JsonConvert.DeserializeObject<HookPackage>(data);
@@ -33,7 +27,8 @@ public class HookValidator
 
 	public static bool IsIncompatibleOxideHook(string hook)
 	{
-		if (CarbonHooks.Contains(hook)) return false;
+		if (Community.Runtime.HookManager.StaticHooks.Any(x => x.HookName == hook) ||
+			Community.Runtime.HookManager.DynamicHooks.Any(x => x.HookName == hook)) return false;
 
 		if (OxideHooks != null)
 		{

@@ -85,14 +85,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				Logger.Debug(id, $"Added common reference '{item}'", 3);
+				Logger.Debug(id, $"Added common reference '{item}'", 4);
 				byte[] raw = Supervisor.ASM.ReadAssembly(item);
 				using (MemoryStream mem = new MemoryStream(raw))
 					references.Add(MetadataReference.CreateFromStream(mem));
 			}
 			catch (System.Exception)
 			{
-				Logger.Debug(id, $"Error loading common reference '{item}'", 3);
+				Logger.Debug(id, $"Error loading common reference '{item}'", 4);
 			}
 		}
 
@@ -101,13 +101,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				Logger.Debug(id, $"Added using reference '{element}'", 2);
+				Logger.Debug(id, $"Added using reference '{element}'", 4);
 				var outReference = MetadataReference.CreateFromFile(Type.GetType(element).Assembly.Location);
 				if (outReference != null && !references.Any(x => x.Display == outReference.Display)) references.Add(outReference);
 			}
 			catch (System.Exception)
 			{
-				Logger.Debug(id, $"Error loading using reference '{element}'", 2);
+				Logger.Debug(id, $"Error loading using reference '{element}'", 4);
 			}
 		}
 
@@ -157,18 +157,20 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			var trees = new List<SyntaxTree>();
 
-			SyntaxTree tree = CSharpSyntaxTree.ParseText(
-				Source, options: new CSharpParseOptions(LanguageVersion.Latest));
+			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
+				.WithPreprocessorSymbols(Community.Runtime.Config.ConditionalCompilationSymbols);
+			var tree = CSharpSyntaxTree.ParseText(
+				Source, options: parseOptions);
 			trees.Add(tree);
 
-			CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+			var root = tree.GetCompilationUnitRoot();
 
-			foreach (UsingDirectiveSyntax element in root.Usings)
+			foreach (var element in root.Usings)
 				Usings.Add($"{element.Name}");
 
 			var references = _addReferences();
 
-			foreach (string require in Requires)
+			foreach (var require in Requires)
 			{
 				try
 				{
@@ -258,7 +260,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 						unsupportedHooks.Add(method.Name);
 					}
 
-					if (Community.Runtime.HookProcessorEx.IsHookLoaded(method.Name))
+					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 					{
 						if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
 					}

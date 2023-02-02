@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Carbon.Core;
+using Carbon.Extensions;
 using Facepunch;
 using UnityEngine;
 
@@ -137,6 +138,16 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 	public virtual void Prepare(string id, string file)
 	{
 		if (IgnoreList.Contains(file)) return;
+
+		if (!string.IsNullOrEmpty(file))
+		{
+			var extension = Path.GetExtension(file);
+
+			if (!string.IsNullOrEmpty(Extension) && OsEx.File.Exists(file) && extension != Extension)
+			{
+				return;
+			}
+		}
 
 		Carbon.Logger.Log($" Loading plugin '{id}'...");
 
