@@ -33,6 +33,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal CUI.Handler Handler { get; } = new();
 
 	const string PanelId = "carbonmodularui";
+	const string CursorPanelId = "carbonmodularuicur";
 
 	private void OnServerInitialized()
 	{
@@ -48,6 +49,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			ap.Clear();
 
+			DrawCursorLocker(player);
 			Draw(player);
 		});
 
@@ -474,10 +476,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Draw(player);
 	}
 
-	[UiCommand(PanelId + ".closetest")]
+	[UiCommand(PanelId + ".close")]
 	private void CloseUI(Arg args)
 	{
-		Handler.Destroy(PanelId, args.Player());
+		Close(args.Player());
 	}
 
 	#endregion
@@ -498,7 +500,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var container = cui.CreateContainer(PanelId,
 				color: "0 0 0 0.75",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
-				fadeIn: 0.005f,
 				needsCursor: true);
 
 			cui.CreatePanel(container, parent: PanelId, id: "color",
@@ -532,7 +533,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				textColor: "1 0.5 0.5 1",
 				text: "X", 13,
 				xMin: 0.96f, xMax: 0.99f, yMin: 0.95f, yMax: 0.99f,
-				command: PanelId + ".closetest",
+				command: PanelId + ".close",
 				font: CUI.Handler.FontTypes.DroidSansMono);
 
 			#endregion
@@ -663,6 +664,23 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			PutsError($"Draw(player) failed.", ex);
 		}
+	}
+	public void DrawCursorLocker(BasePlayer player)
+	{
+		using var cui = new CUI(Handler);
+
+		var container = cui.CreateContainer(CursorPanelId,
+			color: "0 0 0 0",
+			xMin: 0, xMax: 0, yMin: 0, yMax: 0,
+			fadeIn: 0.005f,
+			needsCursor: true);
+
+		cui.Send(container, player);
+	}
+	public void Close(BasePlayer player)
+	{
+		Handler.Destroy(PanelId, player);
+		Handler.Destroy(CursorPanelId, player);
 	}
 
 	public void RegisterTab(Tab tab, int? insert = null)
