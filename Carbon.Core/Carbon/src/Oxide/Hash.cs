@@ -9,8 +9,6 @@ using System.Collections.Generic;
  *
  */
 
-namespace Oxide.Core;
-
 public class Hash<TKey, TValue> : IDictionary<TKey, TValue>, ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable
 {
 	private readonly IDictionary<TKey, TValue> dictionary;

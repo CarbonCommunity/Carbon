@@ -160,6 +160,14 @@ public class RustPlugin : Plugin
 	public void PrintError(string format, params object[] args)
 		=> Carbon.Logger.Error($"[{Name}] {(args == null ? format : string.Format(format, args))}");
 
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'ERROR'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	public void RaiseError(string message)
+		=> Carbon.Logger.Error($"[{Name}] {message}", null);
+
 	protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 	{
 		var logFolder = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
@@ -328,7 +336,7 @@ public class RustPlugin : Plugin
 
 	#region Covalence
 
-	protected void AddCovalenceCommand(string command, string callback, string[] perms = null)
+	protected void AddCovalenceCommand(string command, string callback, params string[] perms)
 	{
 		cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
 
@@ -343,9 +351,46 @@ public class RustPlugin : Plugin
 			}
 		}
 	}
-	protected void AddUniversalCommand(string command, string callback, string[] perms = null)
+	protected void AddCovalenceCommand(string[] commands, string callback, params string[] perms)
+	{
+		foreach (var command in commands)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+		}
+
+		if (perms != null)
+		{
+			foreach (var permission in perms)
+			{
+				if (!this.permission.PermissionExists(permission))
+				{
+					this.permission.RegisterPermission(permission, this);
+				}
+			}
+		}
+	}
+
+	protected void AddUniversalCommand(string command, string callback, params string[] perms)
 	{
 		cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+
+		if (perms != null)
+		{
+			foreach (var permission in perms)
+			{
+				if (!this.permission.PermissionExists(permission))
+				{
+					this.permission.RegisterPermission(permission, this);
+				}
+			}
+		}
+	}
+	protected void AddUniversalCommand(string[] commands, string callback, params string[] perms)
+	{
+		foreach (var command in commands)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+		}
 
 		if (perms != null)
 		{
