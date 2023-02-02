@@ -55,6 +55,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
 		RegisterTab(PlayersTab.Get());
+		RegisterTab(CarbonTab.Get());
 	}
 
 	private bool CanAccess(BasePlayer player)
@@ -340,7 +341,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0.5",
 			xMin: Config.OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
-		cui.CreateText(container, parent: $"{parent}inppanel", id: null,
+		cui.CreatePanel(container, $"{parent}panel", null,
+			color: "0.2 0.2 0.2 0.5",
+			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
+
+		cui.CreateText(container, parent: $"{parent}panel", id: null,
 			color: "1 1 1 0.7",
 			text: value, 11,
 			xMin: 0, xMax: 1, yMin: 0, yMax: 1,
@@ -1352,6 +1357,64 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.AddText(1, "This is you.", 8, "1 1 1 0.5", TextAnchor.MiddleCenter, CUI.Handler.FontTypes.RobotoCondensedBold);
 			}
+		}
+	}
+	public class CarbonTab
+	{
+		public static Core.Config Config => Community.Runtime.Config;
+
+		public static Tab Get()
+		{
+			var tab = new Tab("carbon", "Carbon", Community.Runtime.CorePlugin);
+			tab.AddColumn(1);
+
+			tab.AddInput(0, "Host Name", $"{ConVar.Server.hostname}", null);
+			tab.AddInput(0, "Level", $"{ConVar.Server.level}", null);
+
+			tab.AddName(0, "Info", TextAnchor.MiddleLeft);
+			{
+				tab.AddInput(0, "Version", $"{Community.Version}", null);
+				tab.AddInput(0, "Informational Version", $"{Community.InformationalVersion}", null);
+
+				var loadedHooks = Community.Runtime.HookManager.DynamicHooks.Count(x => x.IsLoaded) + Community.Runtime.HookManager.StaticHooks.Count(x => x.IsLoaded);
+				var totalHooks = Community.Runtime.HookManager.DynamicHooks.Count + Community.Runtime.HookManager.StaticHooks.Count;
+				tab.AddInput(0, "Hooks", $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
+				tab.AddInput(0, "Static Hooks", $"{Community.Runtime.HookManager.StaticHooks.Count:n0}", null);
+				tab.AddInput(0, "Dynamic Hooks", $"{Community.Runtime.HookManager.DynamicHooks.Count:n0}", null);
+
+				tab.AddName(0, "Plugins", TextAnchor.MiddleLeft);
+				tab.AddInput(0, "Mods", $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
+
+				tab.AddName(0, "Console", TextAnchor.MiddleLeft);
+				tab.AddInput(0, "Execute Server Command", null, (ap, args) => { ConsoleSystem.Run(ConsoleSystem.Option.Server, args[0], args.Skip(1).ToArray()); });
+			}
+
+			tab.AddName(1, "Config", TextAnchor.MiddleLeft);
+			{
+				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded);
+				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate);
+
+				tab.AddName(1, "General", TextAnchor.MiddleLeft);
+				tab.AddToggle(1, "Carbon Tag", ap => { Config.CarbonTag = !Config.CarbonTag; Community.Runtime.SaveConfig(); }, ap => Config.CarbonTag);
+				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker);
+				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation);
+				tab.AddInput(1, "Entity Map Buffer Size (restart required)", Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); });
+
+				tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
+				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers);
+				tab.AddToggle(1, "Harmony Watchers", ap => { Config.HarmonyWatchers = !Config.HarmonyWatchers; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyWatchers);
+
+				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
+				tab.AddInput(1, "Log File Mode", Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "Log Verbosity (Debug)", Config.LogVerbosity.ToString(), (ap, args) => { Config.LogVerbosity = args[0].ToInt().Clamp(0, 10); Community.Runtime.SaveConfig(); });
+				tab.AddEnum(1, "Log Severity", back => { var e = Enum.GetNames(typeof(Logger.Severity)); Config.LogSeverity += back ? -1 : 1; if (Config.LogSeverity < 0) Config.LogSeverity = Logger.Severity.Debug; else if (Config.LogSeverity > Logger.Severity.Debug) Config.LogSeverity = Logger.Severity.Error; Community.Runtime.SaveConfig(); }, () => Config.LogSeverity.ToString());
+
+				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
+				tab.AddInput(1, "Server Language", Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "WebRequest IP", Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
+			}
+
+			return tab;
 		}
 	}
 
