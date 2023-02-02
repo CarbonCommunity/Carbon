@@ -161,6 +161,7 @@ public class Defines
 		"Rust.Platform.Common",
 		"Rust.Workshop",
 		"Rust.World",
+		"Rust.FileSystem",
 		"UnityEngine.AIModule",
 		"UnityEngine.CoreModule",
 		"UnityEngine",
