@@ -11,9 +11,12 @@ namespace Carbon.Utility;
 
 internal static class Blacklist
 {
+
 	private static readonly string[] Items =
 	{
-		// example: @"^Item.OnDirty$",
+		@"^SpawnGroup.GetSpawnPoint$",
+		@"^SpawnGroup.Spawn$",
+		@"^SpawnGroup.PostSpawnProcess$"
 	};
 
 	internal static bool IsBlacklisted(string Name)
