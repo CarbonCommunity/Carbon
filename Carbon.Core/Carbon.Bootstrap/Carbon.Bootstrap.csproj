@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon.Bootstrap</Product>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{682D913A-35E8-4850-A84D-1D4916597591}</ProjectGuid>
+	</PropertyGroup>
+
+	<Import Project="..\.msbuild\Common.props" />
+
+	<ItemGroup>
+		<!-- Carbon API -->
+		<ProjectReference Include="..\Carbon.API\Carbon.API.csproj" Private="false" />
+
+		<!-- Assembly editor -->
+		<PackageReference Include="Mono.Cecil" Version="0.11.4" />
+	</ItemGroup>
+
+	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+	</Target>
+</Project>

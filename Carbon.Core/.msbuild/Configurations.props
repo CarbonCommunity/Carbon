@@ -43,8 +43,14 @@
 
 	<ItemGroup>
 		<!-- System libs -->
-		<Reference Include="System.Configuration.Install" Private="true" />
-		<Reference Include="System.Globalization" Private="true" />
+		<Reference Include="System" />
+		<Reference Include="System.Core" />
+		<Reference Include="System.Xml.Linq" />
+		<Reference Include="System.Data.DataSetExtensions" />
+		<Reference Include="Microsoft.CSharp" />
+		<Reference Include="System.Data" />
+		<Reference Include="System.Net.Http" />
+		<Reference Include="System.Xml" />
 
 		<!-- Facepunch game files -->
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" Private="false" />
