@@ -662,7 +662,7 @@ public static class Loader
 
 			return Assembly.Load(rawAssembly);
 		}
-		catch { }
+		catch(Exception ex) { Logger.Error($"[LoadAssemly] Failed processing '{assemblyPath}'\n{ex}"); }
 
 		return null;
 	}
