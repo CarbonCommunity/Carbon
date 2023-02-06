@@ -141,16 +141,16 @@ public class CorePlugin : CarbonPlugin
 				break;
 
 			default:
-				var body = new StringTable("#", "Mod", "Author", "Version", "Core", "Hook Time", "Compile Time");
+				var body = new StringTable("#", "Mod", "Author", "Version","Hook Time", "Compile Time");
 				var count = 1;
 
 				foreach (var mod in Loader._loadedMods)
 				{
-					body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", mod.IsCoreMod ? "Yes" : "No", "", "");
+					body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "");
 
 					foreach (var plugin in mod.Plugins)
 					{
-						body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", plugin.IsCorePlugin ? "Yes" : "No", $"{plugin.TotalHookTime:0.0}s", $"{plugin.CompileTime:0.0}ms");
+						body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0.0}s", $"{plugin.CompileTime:0}ms");
 					}
 
 					count++;
