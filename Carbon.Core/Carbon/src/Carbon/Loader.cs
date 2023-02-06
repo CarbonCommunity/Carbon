@@ -140,27 +140,26 @@ public static class Loader
 	}
 	public static bool LoadCarbonMod(string fullPath, bool silent = false)
 	{
-		if (OsEx.File.Exists(fullPath)) return false;
+		if (!File.Exists(fullPath)) return false;
 
 		var fileName = Path.GetFileName(fullPath);
 
 		if (fileName.EndsWith(".dll"))
-		{
 			fileName = fileName.Substring(0, fileName.Length - 4);
-		}
+		var domain = "com.rust.carbon." + fileName;
 
 		UnloadCarbonMod(fileName);
-
-		var domain = "com.rust.carbon." + fileName;
 
 		try
 		{
 			var assembly = LoadAssembly(fullPath);
+
 			if (assembly == null)
 			{
 				LogError(domain, $"Failed to load harmony mod '{fileName}.dll' from '{_modPath}'");
 				return false;
 			}
+
 			var mod = new CarbonMod
 			{
 				Assembly = assembly,
@@ -180,7 +179,10 @@ public static class Loader
 						if (harmonyModHooks == null) LogError(mod.Name, "Failed to create hook instance: Is null");
 						else mod.Hooks.Add(harmonyModHooks);
 					}
-					catch (Exception arg) { LogError(mod.Name, $"Failed to create hook instance {arg}"); }
+					catch (Exception e)
+					{
+						LogError(mod.Name, $"Failed to create hook instance {e}");
+					}
 				}
 			}
 
@@ -189,9 +191,10 @@ public static class Loader
 
 			/*try
 			{
+				mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
 				mod.Harmonyv1.PatchAll(assembly);
 			}
-			catch (Exception arg2)
+			catch (Exception e)
 			{
 				if (!silent) LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", arg2));
 				return false;
@@ -199,12 +202,13 @@ public static class Loader
 
 			try
 			{
+				mod.Harmonyv2 = new HarmonyLib.Harmony(domain);
 				mod.Harmonyv2.PatchAll(assembly);
 			}
-			catch (Exception arg2)
+			catch (Exception e)
 			{
-				if (!silent) LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", arg2));
-				return false;
+				if (!silent)
+					LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", e));
 			}
 
 			foreach (var hook in mod.Hooks)
@@ -216,9 +220,10 @@ public static class Loader
 
 					hook.OnLoaded(new OnHarmonyModLoadedArgs());
 				}
-				catch (Exception arg3)
+				catch (Exception e)
 				{
-					if (!silent) LogError(mod.Name, string.Format("Failed to call hook 'OnLoaded' {0}", arg3));
+					if (!silent)
+						LogError(mod.Name, string.Format("Failed to call hook 'OnLoaded' {0}", e));
 				}
 			}
 
@@ -647,22 +652,17 @@ public static class Loader
 		try
 		{
 			if (!File.Exists(assemblyPath))
-			{
-				return null;
-			}
+				throw new FileNotFoundException($"File not found '{assemblyPath}'");
 
 			var rawAssembly = File.ReadAllBytes(assemblyPath);
-			var path = assemblyPath.Substring(0, assemblyPath.Length - 4) + ".pdb";
-
-			if (File.Exists(path))
-			{
-				var rawSymbolStore = File.ReadAllBytes(path);
-				return Assembly.Load(rawAssembly, rawSymbolStore);
-			}
+			if (rawAssembly == null) throw new Exception("No bytes read from file");
 
 			return Assembly.Load(rawAssembly);
 		}
-		catch(Exception ex) { Logger.Error($"[LoadAssemly] Failed processing '{assemblyPath}'\n{ex}"); }
+		catch (Exception ex)
+		{
+			Logger.Error($"[LoadAssembly] Failed processing '{assemblyPath}'\n{ex}");
+		}
 
 		return null;
 	}
