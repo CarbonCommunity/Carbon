@@ -142,6 +142,7 @@ jobs:
     - name: 🏷️ Update release tag
       uses: softprops/action-gh-release@v1
       with:
+        draft: false
         prerelease: false
         tag_name: production_build
         name: 'Carbon Build (production)'
