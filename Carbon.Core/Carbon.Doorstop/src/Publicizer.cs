@@ -16,7 +16,7 @@ namespace Carbon.Utility;
 
 internal static class Publicizer
 {
-	private static MemoryStream memoryStream = null;
+	internal static MemoryStream memoryStream = null;
 
 	internal static void Read(string Source)
 	{
@@ -63,7 +63,7 @@ internal static class Publicizer
 		}
 	}
 
-	internal static void Publicize()
+	internal static void Publicize(Action<ModuleDefinition> onPublicized)
 	{
 		AssemblyDefinition assembly = null;
 		DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
@@ -158,6 +158,8 @@ internal static class Publicizer
 			Logger.Error("Publicize process aborted", ex);
 			throw ex;
 		}
+
+		onPublicized?.Invoke(assembly.MainModule);
 
 		try
 		{

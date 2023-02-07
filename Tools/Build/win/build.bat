@@ -44,6 +44,7 @@ copy /y "%ROOT%\Release\.tmp\%TARGET%\HarmonyMods\Carbon.Stub.dll"        "%ROOT
 copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.dll"          "%ROOT%\Release"
 copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Doorstop.dll" "%ROOT%\Release"
 copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Loader.dll"   "%ROOT%\Release"
+copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Rust.Covalence.dll"   "%ROOT%\Release"
 
 copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\hooks\Carbon.Hooks.Base.dll"     "%ROOT%\Release"
 copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\hooks\Carbon.Hooks.Extended.dll" "%ROOT%\Release"

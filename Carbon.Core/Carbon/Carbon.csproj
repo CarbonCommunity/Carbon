@@ -29,6 +29,10 @@
 		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Carbon.Rust.Covalence\Carbon.Rust.Covalence.csproj" />
+	</ItemGroup>
+
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>

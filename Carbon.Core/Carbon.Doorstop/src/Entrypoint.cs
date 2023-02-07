@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Carbon.Utility;
 
 /*
@@ -25,7 +26,17 @@ public class Entrypoint
 			if (!Publicizer.IsPublic("ServerMgr", "Shutdown"))
 			{
 				Logger.Warn("Assembly is not publicized");
-				Publicizer.Publicize();
+				Publicizer.Publicize(module =>
+				{
+					try
+					{
+						Injector.Inject(module);
+					}
+					catch (Exception ex)
+					{
+						Logger.Error($"Failed injecting: {ex}");
+					}
+				});
 				Publicizer.Write(
 					Path.Combine(Context.Managed, "Assembly-CSharp.dll")
 				);
@@ -35,6 +46,6 @@ public class Entrypoint
 				Logger.Log("All validation checks passed");
 			}
 		}
-		catch { /* exit */}
+		catch { /* exit */ }
 	}
 }
