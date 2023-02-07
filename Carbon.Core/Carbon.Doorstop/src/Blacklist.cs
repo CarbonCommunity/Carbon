@@ -17,7 +17,8 @@ internal static class Blacklist
 		@"^SpawnGroup.GetSpawnPoint$",
 		@"^SpawnGroup.Spawn$",
 		@"^SpawnGroup.PostSpawnProcess$",
-		@"^ScientistNPC.OverrideCorpseName$"
+		@"^ScientistNPC.OverrideCorpseName$",
+		@"^TriggerParentElevator.IsClipping$"
 	};
 
 	internal static bool IsBlacklisted(string Name)
