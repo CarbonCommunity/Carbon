@@ -15,7 +15,7 @@ internal static class Injector
 {
 	public static void Inject(ModuleDefinition module)
 	{
-		var covalence = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(Context.Modules, "Carbon.Rust.Covalence.dll"))));
+		var covalence = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(Context.Modules, "Carbon.Oxide.Covalence.dll"))));
 		module.AssemblyReferences.Add(covalence.Name);
 
 		var iplayer = covalence.MainModule.GetType("Oxide.Core.Libraries.Covalence", "IPlayer");

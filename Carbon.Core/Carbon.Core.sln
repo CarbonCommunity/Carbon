@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Loader", "Carbon.Loa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Stub", "Carbon.Stub\Carbon.Stub.csproj", "{AE1F53A2-861D-4D7E-B684-624A05394F90}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Rust.Covalence", "Carbon.Rust.Covalence\Carbon.Rust.Covalence.csproj", "{53368C8E-C679-4729-AA6F-F41B1EC8A5C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Oxide.Covalence", "Carbon.Rust.Covalence\Carbon.Oxide.Covalence.csproj", "{53368C8E-C679-4729-AA6F-F41B1EC8A5C4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{203D39E4-5847-4396-85B3-D9062DB299AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -144,6 +146,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{53368C8E-C679-4729-AA6F-F41B1EC8A5C4} = {203D39E4-5847-4396-85B3-D9062DB299AC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {28C89D3B-47B2-45D4-88D4-08EE9E94E67A}
