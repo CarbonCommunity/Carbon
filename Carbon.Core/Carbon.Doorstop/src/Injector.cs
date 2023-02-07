@@ -15,26 +15,32 @@ internal static class Injector
 {
 	public static void Inject(ModuleDefinition module)
 	{
-		var covalence = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonModules, "Carbon.Rust.Covalence.dll"))));
+		var covalence = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(Path.Combine(Context.Modules, "Carbon.Rust.Covalence.dll"))));
 		module.AssemblyReferences.Add(covalence.Name);
 
 		var iplayer = covalence.MainModule.GetType("Oxide.Core.Libraries.Covalence", "IPlayer");
 		module.ModuleReferences.Add(covalence.MainModule);
-		module.ImportReference(iplayer);
 
-		foreach (var type in module.Types)
+		module.GetType("BasePlayer").Fields.Add(new FieldDefinition("IPlayer", FieldAttributes.Public, module.ImportReference(iplayer)));
+	}
+
+	public class PatcherAssemblyResolver : DefaultAssemblyResolver
+	{
+		public PatcherAssemblyResolver(string path)
 		{
-			if (type.Name == "BasePlayer")
-			{
-				PatchBasePlayer(type, iplayer);
-				break;
-			}
+			if (path == null) throw new ArgumentNullException("path");
+			if (!Directory.Exists(path)) throw new DirectoryNotFoundException("Directory not found: " + path);
+			AddSearchDirectory(path);
+		}
+
+		public override AssemblyDefinition Resolve(AssemblyNameReference assemblyName)
+		{
+			return base.Resolve(assemblyName);
 		}
 	}
 
 	internal static void PatchBasePlayer(TypeDefinition type, TypeDefinition iplayer)
 	{
-		type.Fields.Add(new FieldDefinition("IPlayer", FieldAttributes.Public, iplayer));
 	}
 	internal static TypeDefinition CreateCommandType(ModuleDefinition md)
 	{

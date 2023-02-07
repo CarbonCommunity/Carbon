@@ -74,6 +74,7 @@ internal static class Publicizer
 			memoryStream.Position = 0;
 
 			resolver.AddSearchDirectory(Context.Managed);
+			resolver.AddSearchDirectory(Context.Modules);
 
 			assembly = AssemblyDefinition.ReadAssembly(
 				memoryStream, parameters: new ReaderParameters { AssemblyResolver = resolver });

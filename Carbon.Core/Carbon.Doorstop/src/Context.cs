@@ -12,7 +12,7 @@ namespace Carbon.Utility;
 
 internal static class Context
 {
-	public static readonly string Base, Carbon, CarbonManaged, CarbonModules, Managed;
+	public static readonly string Base, Carbon, CarbonManaged, Modules, Managed;
 
 	private static readonly string[] Needles = {
 		".", "..", "../.."
@@ -37,7 +37,7 @@ internal static class Context
 		CarbonManaged = Path.GetFullPath(Path.Combine(
 			Base, "carbon", "managed"));
 
-		CarbonModules = Path.GetFullPath(Path.Combine(
+		Modules = Path.GetFullPath(Path.Combine(
 			Base, "carbon", "managed", "modules"));
 
 		Managed = Path.GetFullPath(Path.Combine(
