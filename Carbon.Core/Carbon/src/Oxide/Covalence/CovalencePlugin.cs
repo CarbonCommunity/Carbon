@@ -17,38 +17,46 @@ public class CovalencePlugin : RustPlugin
 {
 	public PlayerManager players = new();
 
-	public struct PlayerManager : IPlayerManager
+	public struct PlayerManager
+#if !NOCOVALENCE
+		: IPlayerManager
+#endif
 	{
-		public IEnumerable<IPlayer> All => BasePlayer.allPlayerList.Select(x => x.AsIPlayer() as IPlayer);
+#if !NOCOVALENCE
+		public IEnumerable<IPlayer> All => BasePlayer.allPlayerList.Select(x => x.IPlayer);
 
-		public IEnumerable<IPlayer> Connected => BasePlayer.activePlayerList.Select(x => x.AsIPlayer() as IPlayer);
+		public IEnumerable<IPlayer> Connected => BasePlayer.activePlayerList.Select(x => x.IPlayer);
 
 		public IPlayer FindPlayer(string partialNameOrId)
 		{
-			return BasePlayer.FindAwakeOrSleeping(partialNameOrId).AsIPlayer() as IPlayer;
+			return BasePlayer.FindAwakeOrSleeping(partialNameOrId).IPlayer;
 		}
 
 		public IPlayer FindPlayerById(string id)
 		{
-			return BasePlayer.FindAwakeOrSleeping(id).AsIPlayer();
+			return BasePlayer.FindAwakeOrSleeping(id).IPlayer;
 		}
 
 		public IPlayer FindPlayerByObj(object obj)
 		{
-			return BasePlayer.FindAwakeOrSleeping(obj.ToString()).AsIPlayer();
+			return BasePlayer.FindAwakeOrSleeping(obj.ToString()).IPlayer;
 		}
 
 		public IEnumerable<IPlayer> FindPlayers(string partialNameOrId)
 		{
-			return BasePlayer.allPlayerList.Where(x => x.displayName.Contains(partialNameOrId) || x.UserIDString == partialNameOrId).Select(x => x.AsIPlayer() as IPlayer);
+			return BasePlayer.allPlayerList.Where(x => x.displayName.Contains(partialNameOrId) || x.UserIDString == partialNameOrId).Select(x => x.IPlayer);
 		}
+#endif
 	}
 
 	public struct Covalence : ICovalence
 	{
 		public Covalence() { }
 
-		public IPlayerManager Players { get; } = new PlayerManager();
+		public IPlayerManager Players { get; }
+#if !NOCOVALENCE
+			= new PlayerManager();
+#endif
 		public IServer Server { get; } = new RustServer();
 	}
 

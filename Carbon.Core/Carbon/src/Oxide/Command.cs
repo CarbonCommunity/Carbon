@@ -60,25 +60,31 @@ namespace Oxide.Game.Rust.Libraries
 					{
 						case 1:
 							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
+								#if !NOCOVALENCE
+								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.IPlayer); else argData.Add(player);
 								result = argData.ToArray();
+#endif
 								break;
 							}
 
 						case 2:
 							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
+#if !NOCOVALENCE
+								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.IPlayer); else argData.Add(player);
 								argData.Add(cmd);
 								result = argData.ToArray();
+#endif
 								break;
 							}
 
 						case 3:
 							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
+#if !NOCOVALENCE
+								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.IPlayer); else argData.Add(player);
 								argData.Add(cmd);
 								argData.Add(args);
 								result = argData.ToArray();
+#endif
 								break;
 							}
 					}
