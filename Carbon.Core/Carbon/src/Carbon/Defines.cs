@@ -132,6 +132,7 @@ public class Defines
 		"System",
 
 		"Carbon",
+		"Carbon.Rust.Covalence",
 		"protobuf-net",
 		"protobuf-net.Core",
 
