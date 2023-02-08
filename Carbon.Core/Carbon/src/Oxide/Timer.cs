@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Facepunch;
+using Oxide.Core.Libraries;
 using static Oxide.Plugins.RustPlugin;
 
 /*
@@ -124,7 +125,7 @@ public class Timers
 	}
 }
 
-public class Timer : IDisposable
+public class Timer : Library, IDisposable
 {
 	public RustPlugin Plugin { get; set; }
 
@@ -218,8 +219,10 @@ public class Timer : IDisposable
 			Callback = null;
 		}
 	}
-	public void Dispose()
+	public override void Dispose()
 	{
 		Destroy();
+
+		base.Dispose();
 	}
 }
