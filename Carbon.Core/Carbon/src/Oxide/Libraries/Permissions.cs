@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Carbon;
-using Oxide.Core.Libraries.Covalence;
 using Oxide.Plugins;
 
 /*
@@ -249,7 +248,7 @@ public class Permission : Library
 			RemoveUserGroup(player.UserIDString, "admin");
 		}
 #if !NOCOVALENCE
-		player.IPlayer ??= new RustPlayer { Object = player };
+		player.IPlayer ??= new Game.Rust.Libraries.Covalence.RustPlayer { Object = player };
 #endif
 	}
 	public void UpdateNickname(string id, string nickname)
