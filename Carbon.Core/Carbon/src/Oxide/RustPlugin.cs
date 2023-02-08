@@ -184,6 +184,15 @@ public class RustPlugin : Plugin
 
 	#endregion
 
+	#region Library
+
+	public static T GetLibrary<T>(string name = null) where T : Library
+	{
+		return Interface.Oxide.GetLibrary<T>();
+	}
+
+	#endregion
+
 	public void ILoadConfig()
 	{
 		LoadConfig();
