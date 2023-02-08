@@ -15,6 +15,7 @@ namespace Oxide.Core;
 public class OxideMod
 {
 	public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem(Defines.GetDataFolder());
+	public PluginManager RootPluginManager { get; private set; }
 
 	public Permission Permission { get; private set; }
 
@@ -46,6 +47,7 @@ public class OxideMod
 		TempDirectory = Defines.GetTempFolder();
 
 		DataFileSystem = new DataFileSystem(DataDirectory);
+		RootPluginManager = new PluginManager();
 
 		Permission = new Permission();
 	}
