@@ -27,6 +27,12 @@ public class InfoAttribute : Attribute
 		this.Author = Author;
 		SetVersion(Version);
 	}
+	public InfoAttribute(string Title, string Author, double Version)
+	{
+		this.Title = Title;
+		this.Author = Author;
+		SetVersion(Version.ToString());
+	}
 
 	private void SetVersion(string version)
 	{
