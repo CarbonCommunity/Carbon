@@ -59,6 +59,7 @@ public class Timers
 			Pool.Free(ref timer);
 		});
 
+		timer.Delay = time;
 		timer.Callback = activity;
 		Persistence.Invoke(activity, time);
 		return timer;
@@ -119,6 +120,7 @@ public class Timers
 			}
 		});
 
+		timer.Delay = time;
 		timer.Callback = activity;
 		Persistence.InvokeRepeating(activity, time, time);
 		return timer;
@@ -133,6 +135,7 @@ public class Timer : Library, IDisposable
 	public Action Callback { get; set; }
 	public Persistence Persistence { get; set; }
 	public int Repetitions { get; set; }
+	public float Delay { get; set; }
 	public int TimesTriggered { get; set; }
 	public bool Destroyed { get; set; }
 
@@ -147,6 +150,7 @@ public class Timer : Library, IDisposable
 	public void Reset(float delay = -1f, int repetitions = 1)
 	{
 		Repetitions = repetitions;
+		Delay = delay;
 
 		if (Destroyed)
 		{
