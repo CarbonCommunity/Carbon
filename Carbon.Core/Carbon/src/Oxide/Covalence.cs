@@ -495,35 +495,6 @@ namespace Carbon.Oxide
 		IServer Server { get; }
 	}
 
-	public interface IServer
-	{
-		string Name { get; set; }
-		System.Net.IPAddress Address { get; }
-		System.Net.IPAddress LocalAddress { get; }
-
-		ushort Port { get; }
-		string Version { get; }
-		string Protocol { get; }
-
-		System.Globalization.CultureInfo Language { get; }
-
-		int Players { get; }
-		int MaxPlayers { get; set; }
-
-		DateTime Time { get; set; }
-
-		void Ban(string id, string reason, TimeSpan duration = default(TimeSpan));
-		TimeSpan BanTimeRemaining(string id);
-		bool IsBanned(string id);
-		void Unban(string id);
-
-		void Save();
-
-		void Broadcast(string message, string prefix, params object[] args);
-		void Broadcast(string message);
-		void Command(string command, params object[] args);
-	}
-
 	public class Element
 	{
 		private Element(ElementType type, object val)
@@ -561,5 +532,37 @@ namespace Carbon.Oxide
 		Italic,
 		Color,
 		Size
+	}
+}
+
+namespace Oxide.Core.Libraries.Covalence
+{
+	public interface IServer
+	{
+		string Name { get; set; }
+		System.Net.IPAddress Address { get; }
+		System.Net.IPAddress LocalAddress { get; }
+
+		ushort Port { get; }
+		string Version { get; }
+		string Protocol { get; }
+
+		System.Globalization.CultureInfo Language { get; }
+
+		int Players { get; }
+		int MaxPlayers { get; set; }
+
+		DateTime Time { get; set; }
+
+		void Ban(string id, string reason, TimeSpan duration = default(TimeSpan));
+		TimeSpan BanTimeRemaining(string id);
+		bool IsBanned(string id);
+		void Unban(string id);
+
+		void Save();
+
+		void Broadcast(string message, string prefix, params object[] args);
+		void Broadcast(string message);
+		void Command(string command, params object[] args);
 	}
 }

@@ -3,6 +3,7 @@ using System.Linq;
 using Carbon;
 using Carbon.Oxide;
 using Oxide.Core.Libraries.Covalence;
+using Oxide.Game.Rust.Libraries.Covalence;
 
 /*
  *
@@ -11,65 +12,72 @@ using Oxide.Core.Libraries.Covalence;
  *
  */
 
-namespace Oxide.Plugins;
-
-public class CovalencePlugin : RustPlugin
+namespace Oxide.Plugins
 {
-	public PlayerManager players = new();
-
-	public struct PlayerManager
-#if !NOCOVALENCE
-		: IPlayerManager
-#endif
+	public class CovalencePlugin : RustPlugin
 	{
+		public PlayerManager players = new();
+
+		public new RustServer server = new();
+
+		public struct PlayerManager
 #if !NOCOVALENCE
-		public IEnumerable<IPlayer> All => BasePlayer.allPlayerList.Select(x => x.IPlayer);
-
-		public IEnumerable<IPlayer> Connected => BasePlayer.activePlayerList.Select(x => x.IPlayer);
-
-		public IPlayer FindPlayer(string partialNameOrId)
-		{
-			return BasePlayer.FindAwakeOrSleeping(partialNameOrId).IPlayer;
-		}
-
-		public IPlayer FindPlayerById(string id)
-		{
-			return BasePlayer.FindAwakeOrSleeping(id).IPlayer;
-		}
-
-		public IPlayer FindPlayerByObj(object obj)
-		{
-			return BasePlayer.FindAwakeOrSleeping(obj.ToString()).IPlayer;
-		}
-
-		public IEnumerable<IPlayer> FindPlayers(string partialNameOrId)
-		{
-			return BasePlayer.allPlayerList.Where(x => x.displayName.Contains(partialNameOrId) || x.UserIDString == partialNameOrId).Select(x => x.IPlayer);
-		}
+			: IPlayerManager
 #endif
-	}
-
-	public struct Covalence : ICovalence
-	{
-		public Covalence() { }
-
-		public IPlayerManager Players { get; }
+		{
 #if !NOCOVALENCE
-			= new PlayerManager();
+			public IEnumerable<IPlayer> All => BasePlayer.allPlayerList.Select(x => x.IPlayer);
+
+			public IEnumerable<IPlayer> Connected => BasePlayer.activePlayerList.Select(x => x.IPlayer);
+
+			public IPlayer FindPlayer(string partialNameOrId)
+			{
+				return BasePlayer.FindAwakeOrSleeping(partialNameOrId).IPlayer;
+			}
+
+			public IPlayer FindPlayerById(string id)
+			{
+				return BasePlayer.FindAwakeOrSleeping(id).IPlayer;
+			}
+
+			public IPlayer FindPlayerByObj(object obj)
+			{
+				return BasePlayer.FindAwakeOrSleeping(obj.ToString()).IPlayer;
+			}
+
+			public IEnumerable<IPlayer> FindPlayers(string partialNameOrId)
+			{
+				return BasePlayer.allPlayerList.Where(x => x.displayName.Contains(partialNameOrId) || x.UserIDString == partialNameOrId).Select(x => x.IPlayer);
+			}
 #endif
-		public IServer Server { get; } = new RustServer();
-
-		public string FormatText(string text)
-		{
-			return Formatter.ToUnity(text);
 		}
 
-		public void UnregisterCommand(string command, Plugin plugin)
+		public struct Covalence : ICovalence
 		{
-			Community.Runtime.CorePlugin.cmd.RemoveConsoleCommand(command, plugin);
+			public Covalence() { }
+
+			public IPlayerManager Players { get; }
+#if !NOCOVALENCE
+				= new PlayerManager();
+#endif
+			public IServer Server { get; } = new RustServer();
+
+			public string FormatText(string text)
+			{
+				return Formatter.ToUnity(text);
+			}
+
+			public void UnregisterCommand(string command, Plugin plugin)
+			{
+				Community.Runtime.CorePlugin.cmd.RemoveConsoleCommand(command, plugin);
+			}
 		}
+
 	}
+}
 
+namespace Oxide.Game.Rust.Libraries.Covalence
+{
 	public struct RustServer : IServer
 	{
 		public RustServer() { }
@@ -160,7 +168,7 @@ public class CovalencePlugin : RustPlugin
 		{
 			get
 			{
-				return Rust.Protocol.printable;
+				return global::Rust.Protocol.printable;
 			}
 		}
 

@@ -39,6 +39,7 @@ namespace Oxide.Core.Libraries.Covalence
 		void Teleport(float x, float y, float z);
 		void Unban();
 		void Position(out float x, out float y, out float z);
+		GenericPosition Position();
 		void Message(string message, string prefix, params object[] args);
 		void Message(string message);
 		void Reply(string message, string prefix, params object[] args);
@@ -181,6 +182,12 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 		public void Position(out float x, out float y, out float z)
 		{
 			x = y = z = 0;
+		}
+
+		public GenericPosition Position()
+		{
+			var position = BasePlayer.transform.position;
+			return new GenericPosition(position.x, position.y, position.z);
 		}
 
 		public void RemoveFromGroup(string group)
