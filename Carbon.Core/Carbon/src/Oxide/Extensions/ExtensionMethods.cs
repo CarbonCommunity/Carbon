@@ -159,4 +159,9 @@ public static class ExtensionMethods
 
 		return text;
 	}
+
+	public static bool IsNullOrEmpty(this string text)
+	{
+		return string.IsNullOrEmpty(text);
+	}
 }
