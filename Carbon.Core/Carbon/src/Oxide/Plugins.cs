@@ -1,4 +1,6 @@
-﻿using Carbon.Core;
+﻿using System.Linq;
+using Carbon;
+using Carbon.Core;
 using Facepunch;
 
 /*
@@ -12,6 +14,11 @@ namespace Oxide.Plugins;
 
 public class Plugins
 {
+	public bool Exists(string name)
+	{
+		return Community.Runtime.Plugins.Plugins.Any(x => x.Name == name);
+	}
+
 	public Plugin Find(string name)
 	{
 		name = name.Replace(" ", "");

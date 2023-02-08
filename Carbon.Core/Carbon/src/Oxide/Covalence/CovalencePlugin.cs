@@ -58,6 +58,16 @@ public class CovalencePlugin : RustPlugin
 			= new PlayerManager();
 #endif
 		public IServer Server { get; } = new RustServer();
+
+		public string FormatText(string text)
+		{
+			return Formatter.ToUnity(text);
+		}
+
+		public void UnregisterCommand(string command, Plugin plugin)
+		{
+			Community.Runtime.CorePlugin.cmd.RemoveConsoleCommand(command, plugin);
+		}
 	}
 
 	public struct RustServer : IServer

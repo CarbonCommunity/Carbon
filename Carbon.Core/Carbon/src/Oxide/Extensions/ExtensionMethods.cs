@@ -13,8 +13,6 @@ using Carbon.Oxide;
  *
  */
 
-namespace Oxide.Core;
-
 public static class ExtensionMethods
 {
 	public static string Basename(this string text, string extension = null)
