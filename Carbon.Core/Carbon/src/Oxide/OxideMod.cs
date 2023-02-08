@@ -42,7 +42,7 @@ public class OxideMod
 		DataDirectory = Defines.GetDataFolder();
 		LangDirectory = Defines.GetLangFolder();
 		LogDirectory = Defines.GetLogsFolder();
-		PluginDirectory = Defines.GetPluginsFolder();
+		PluginDirectory = Defines.GetScriptFolder();
 		TempDirectory = Defines.GetTempFolder();
 
 		DataFileSystem = new DataFileSystem(DataDirectory);

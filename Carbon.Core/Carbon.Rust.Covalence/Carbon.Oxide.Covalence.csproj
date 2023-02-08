@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
-		<Product>Carbon.Rust.Covalence</Product>
+		<Product>Carbon.Oxide.Covalence</Product>
 		<OutputType>Library</OutputType>
 		<TargetFramework>net481</TargetFramework>
 	</PropertyGroup>

@@ -39,9 +39,6 @@ internal static class Injector
 		}
 	}
 
-	internal static void PatchBasePlayer(TypeDefinition type, TypeDefinition iplayer)
-	{
-	}
 	internal static TypeDefinition CreateCommandType(ModuleDefinition md)
 	{
 		var type = CreateType(md, "CommandType", TypeAttributes.Sealed, out var properties, out var methods, out var fields, "Oxide.Core.Libraries.Covalence", md.ImportReference(typeof(System.Enum)));
