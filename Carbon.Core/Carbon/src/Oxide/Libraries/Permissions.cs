@@ -15,7 +15,7 @@ using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries;
 
-public class Permission
+public class Permission : Library
 {
 	public bool IsGlobal
 	{

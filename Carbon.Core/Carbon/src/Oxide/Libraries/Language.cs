@@ -15,11 +15,11 @@ using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries;
 
-public class Language
+public class Lang : Library
 {
 	public Dictionary<string, Dictionary<string, string>> Phrases { get; set; } = new Dictionary<string, Dictionary<string, string>>();
 
-	public Language(Plugin plugin)
+	public Lang(Plugin plugin)
 	{
 		foreach (var directory in Directory.EnumerateDirectories(Defines.GetLangFolder()))
 		{

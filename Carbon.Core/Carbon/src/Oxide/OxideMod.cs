@@ -92,6 +92,11 @@ public class OxideMod
 
 	public T GetLibrary<T>() where T : Library
 	{
+		var type = typeof(T);
+
+		if (type == typeof(Permission)) return Community.Runtime.CorePlugin.permission as T;
+		else if (type == typeof(Lang)) return Community.Runtime.CorePlugin.lang as T;
+
 		return Activator.CreateInstance<T>();
 	}
 

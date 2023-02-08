@@ -23,7 +23,7 @@ public class RustPlugin : Plugin
 	public PluginManager Manager { get; set; }
 
 	public Permission permission { get; set; }
-	public Language lang { get; set; }
+	public Lang lang { get; set; }
 	public Command cmd { get; set; }
 	public Server server { get; set; }
 	public Plugins plugins { get; set; }
@@ -62,7 +62,7 @@ public class RustPlugin : Plugin
 		Manager = new PluginManager();
 		plugins = new Plugins();
 		timer = new Timers(this);
-		lang = new Language(this);
+		lang = new Lang(this);
 		mod = new OxideMod();
 		rust = new Game.Rust.Libraries.Rust();
 		webrequest = new WebRequests();
