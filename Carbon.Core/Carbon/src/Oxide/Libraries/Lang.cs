@@ -76,6 +76,10 @@ public class Lang : Library
 		Community.Runtime.Config.Language = lang;
 		Community.Runtime.SaveConfig();
 	}
+	public string GetServerLanguage()
+	{
+		return Community.Runtime.Config.Language;
+	}
 	private Dictionary<string, string> GetMessageFile(string plugin, string lang = "en")
 	{
 		if (string.IsNullOrEmpty(plugin)) return null;
