@@ -94,7 +94,7 @@ public class Defines
 	}
 	public static string GetHarmonyFolder()
 	{
-		var folder = Path.Combine($"{GetRootFolder()}", "harmony");
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customHarmonyFolder) ? Path.Combine(GetRootFolder(), "harmony") : _customHarmonyFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
