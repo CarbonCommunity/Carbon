@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Carbon.Oxide;
+using Oxide.Core.Libraries.Covalence;
 
 /*
  *
@@ -12,6 +13,8 @@ using Carbon.Oxide;
  * All rights reserved.
  *
  */
+
+namespace Oxide.Core;
 
 public static class ExtensionMethods
 {
