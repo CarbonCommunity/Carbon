@@ -136,6 +136,15 @@ public class OxideMod
 		=> Carbon.Logger.Error(message, null);
 
 	/// <summary>
+	/// Outputs to the game's console a message with severity level 'ERROR'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="ex"></param>
+	public void LogException(string message, Exception ex)
+		=> Carbon.Logger.Error(message, ex);
+
+	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
