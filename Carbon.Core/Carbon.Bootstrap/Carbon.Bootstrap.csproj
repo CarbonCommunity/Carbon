@@ -14,6 +14,9 @@
 		<!-- Assembly patcher -->
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" GeneratePathProperty="true" />
 
+		<!-- Assembly patcher -->
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" GeneratePathProperty="true" />
+
 		<!-- Assembly editor -->
 		<PackageReference Include="Mono.Cecil" Version="0.11.4" Aliases="MonoCecilStandalone" />
 	</ItemGroup>

@@ -186,9 +186,6 @@ public static class Loader
 				}
 			}
 
-			//mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
-			mod.Harmonyv2 = new HarmonyLib.Harmony(domain);
-
 			/*try
 			{
 				mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
