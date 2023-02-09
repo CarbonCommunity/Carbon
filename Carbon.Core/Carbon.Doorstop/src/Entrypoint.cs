@@ -16,14 +16,20 @@ public class Entrypoint
 	public static void Start()
 	{
 		References.Load();
+		Context.Init();
 
 		Logger.Log(">> Carbon.Doorstop using UnityDoorstop entrypoint");
 
+		Execute(Path.Combine(Context.RustManaged, "Assembly-CSharp.dll"));
+	}
+
+	public static void Execute(string filePath)
+	{
 		try
 		{
-			Publicizer.Read(
-				Path.Combine(Context.RustManaged, "Assembly-CSharp.dll")
-			);
+			Logger.Init();
+
+			Publicizer.Read(filePath);
 
 			if (!Publicizer.IsPublic("ServerMgr", "Shutdown"))
 			{
@@ -39,9 +45,7 @@ public class Entrypoint
 						Logger.Error($"Failed injecting: {ex}");
 					}
 				});
-				Publicizer.Write(
-					Path.Combine(Context.RustManaged, "Assembly-CSharp.dll")
-				);
+				Publicizer.Write(filePath);
 			}
 			else
 			{

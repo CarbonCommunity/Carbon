@@ -10,22 +10,25 @@ using System.IO;
 
 namespace Carbon.Utility;
 
-internal static class Context
+public static class Context
 {
-	public static readonly string Base, Carbon, Managed, Modules, RustManaged, Lib;
+	public static string Base, Carbon, Managed, Modules, RustManaged, Lib;
 
 	private static readonly string[] Needles = {
 		".", "..", "../.."
 	};
 
-	static Context()
+	public static void Init()
 	{
-		foreach (string Needle in Needles)
+		if (Base == null)
 		{
-			string t = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Needle));
-			if (!Directory.Exists(Path.Combine(t, "RustDedicated_Data"))) continue;
-			Base = t;
-			break;
+			foreach (string Needle in Needles)
+			{
+				string t = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Needle));
+				if (!Directory.Exists(Path.Combine(t, "RustDedicated_Data"))) continue;
+				Base = t;
+				break;
+			}
 		}
 
 		if (Base == null)

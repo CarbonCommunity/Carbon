@@ -115,7 +115,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			}
 			set
 			{
-				BasePlayer._maxHealth = value;
+				BasePlayer.SetMaxHealth(value);
 			}
 		}
 

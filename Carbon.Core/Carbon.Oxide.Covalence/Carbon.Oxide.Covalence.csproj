@@ -3,6 +3,9 @@
 		<Product>Carbon.Oxide.Covalence</Product>
 		<OutputType>Library</OutputType>
 		<TargetFramework>net481</TargetFramework>
+		<BaseOutputPath></BaseOutputPath>
+		<PackageOutputPath>$(OutputPath)</PackageOutputPath>
+		<BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
 	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />

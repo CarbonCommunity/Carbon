@@ -42,7 +42,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Carbon.Rust.Covalence\Carbon.Oxide.Covalence.csproj" />
+	  <ProjectReference Include="..\Carbon.Oxide.Covalence\Carbon.Oxide.Covalence.csproj" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
