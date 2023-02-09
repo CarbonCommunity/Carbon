@@ -3,19 +3,26 @@
 		<Product>Carbon.Bootstrap</Product>
 		<OutputType>Library</OutputType>
 		<ProjectGuid>{682D913A-35E8-4850-A84D-1D4916597591}</ProjectGuid>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
 	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />
+	<Import Project="..\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
 		<!-- Carbon API -->
 		<ProjectReference Include="..\Carbon.API\Carbon.API.csproj" Private="false" />
 
+		<!-- Assembly patcher -->
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" GeneratePathProperty="true" />
+
 		<!-- Assembly editor -->
-		<PackageReference Include="Mono.Cecil" Version="0.11.4" />
+		<PackageReference Include="Mono.Cecil" Version="0.11.4" Aliases="MonoCecilStandalone" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+		<Copy SourceFiles="$(PkgLib_Harmony)\lib\net48\0Harmony.dll" DestinationFolder="$(c_lib)" />
 	</Target>
 </Project>

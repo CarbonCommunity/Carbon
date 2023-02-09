@@ -38,8 +38,8 @@
 
 	<Import Project="Configurations.props" />
 	<Import Project="Metadata.props" />
-
 	<Import Project="Clean.targets" />
 	<Import Project="Metadata.targets" />
 	<Import Project="Release.targets" />
+	<Import Project="References.props" />
 </Project>

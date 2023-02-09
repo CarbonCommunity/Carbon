@@ -65,7 +65,6 @@ internal sealed class Logger
 			}
 
 			Console.WriteLine(formatted);
-			//UnityEngine.Debug.Log(formatted);
 			System.IO.File.AppendAllText(logFile,
 				$"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {formatted}" + Environment.NewLine);
 		}
