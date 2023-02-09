@@ -21,7 +21,7 @@ namespace Oxide.Game.Rust.Libraries;
 public class Player : Library
 {
 	internal static readonly string ipPattern = ":{1}[0-9]{1}\\d*";
-	internal readonly Permission permission = Community.Runtime.CorePlugin.permission;
+	internal Permission permission => Community.Runtime.CorePlugin.permission;
 
 	public CultureInfo Language(BasePlayer player)
 	{
