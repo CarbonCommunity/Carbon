@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace Oxide.Core.Libraries;
 
-public abstract class Library : IDisposable
+public class Library : IDisposable
 {
 	public static implicit operator bool(Library library)
 	{
