@@ -15,12 +15,14 @@ public class Entrypoint
 {
 	public static void Start()
 	{
+		References.Load();
+
 		Logger.Log(">> Carbon.Doorstop using UnityDoorstop entrypoint");
 
 		try
 		{
 			Publicizer.Read(
-				Path.Combine(Context.Managed, "Assembly-CSharp.dll")
+				Path.Combine(Context.RustManaged, "Assembly-CSharp.dll")
 			);
 
 			if (!Publicizer.IsPublic("ServerMgr", "Shutdown"))
@@ -38,7 +40,7 @@ public class Entrypoint
 					}
 				});
 				Publicizer.Write(
-					Path.Combine(Context.Managed, "Assembly-CSharp.dll")
+					Path.Combine(Context.RustManaged, "Assembly-CSharp.dll")
 				);
 			}
 			else

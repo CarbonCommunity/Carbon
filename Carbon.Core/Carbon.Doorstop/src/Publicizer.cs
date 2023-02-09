@@ -73,7 +73,7 @@ internal static class Publicizer
 			if (memoryStream == null) throw new Exception();
 			memoryStream.Position = 0;
 
-			resolver.AddSearchDirectory(Context.Managed);
+			resolver.AddSearchDirectory(Context.RustManaged);
 			resolver.AddSearchDirectory(Context.Modules);
 
 			assembly = AssemblyDefinition.ReadAssembly(
