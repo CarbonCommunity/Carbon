@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
@@ -244,7 +244,7 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 		AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(
 			stream: new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.API.dll"))));
 
-		TypeDefinition type1 = assembly.MainModule.GetType("API.Contracts", "IPlayer");
+		TypeDefinition type1 = assembly.MainModule.GetType("Oxide.Core.Libraries.Covalence", "IPlayer");
 		if (type1 == null) throw new Exception("Unable to get a type for 'API.Contracts.IPlayer'");
 
 		_assembly.MainModule.AssemblyReferences.Add(assembly.Name);
