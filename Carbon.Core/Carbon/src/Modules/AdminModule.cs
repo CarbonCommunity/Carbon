@@ -55,7 +55,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
 		RegisterTab(PlayersTab.Get());
-
 		RegisterTab(CarbonTab.Get(), 0);
 	}
 

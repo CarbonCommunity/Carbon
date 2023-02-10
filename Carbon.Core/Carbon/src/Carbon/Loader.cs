@@ -87,7 +87,7 @@ public static class Loader
 		{
 			HarmonyLib.Harmony.DEBUG = true;
 			var path = Path.Combine(Defines.GetLogsFolder(), "harmony_v2_log.txt");
-			Harmony.FileLog.logPath = Path.Combine(Defines.GetLogsFolder(), "harmony_v1_log.txt");
+			//Harmony.FileLog.logPath = Path.Combine(Defines.GetLogsFolder(), "harmony_v1_log.txt");
 
 			Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", path);
 
@@ -118,7 +118,7 @@ public static class Loader
 		}
 		finally
 		{
-			Harmony.FileLog.FlushBuffer();
+			//Harmony.FileLog.FlushBuffer();
 			HarmonyLib.FileLog.FlushBuffer();
 		}
 	}
@@ -186,7 +186,7 @@ public static class Loader
 				}
 			}
 
-			try
+			/*try
 			{
 				mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
 				mod.Harmonyv1.PatchAll(assembly);
@@ -195,7 +195,7 @@ public static class Loader
 			{
 				if (!silent)
 					LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", e));
-			}
+			}*/
 
 			try
 			{
@@ -599,7 +599,7 @@ public static class Loader
 	{
 		if (mod.IsCoreMod) return;
 
-		if (mod.Harmonyv1 != null)
+		/*if (mod.Harmonyv1 != null)
 		{
 			Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v1...");
 
@@ -608,13 +608,13 @@ public static class Loader
 				mod.Harmonyv1.UnpatchAll(mod.Harmonyv1.Id);
 				Log(mod.Name, "Unloaded v1 mod");
 			}
-			catch (InvalidCastException ex)
+			catch (Exception ex)
 			{
 				Logger.Error($"Failed unpatching all v1 patches.", ex);
 			}
 
 			mod.Harmonyv1 = null;
-		}
+		}*/
 
 		if (mod.Harmonyv2 != null)
 		{
@@ -625,7 +625,7 @@ public static class Loader
 				mod.Harmonyv2.UnpatchAll(mod.Harmonyv2.Id);
 				Log(mod.Name, "Unloaded v2 mod");
 			}
-			catch (InvalidCastException ex)
+			catch (Exception ex)
 			{
 				Logger.Error($"Failed unpatching all v2 patches.", ex);
 			}
@@ -709,7 +709,7 @@ public static class Loader
 		public string File { get; set; } = string.Empty;
 		[JsonProperty]
 		public bool IsCoreMod { get; set; } = false;
-		public Harmony.HarmonyInstance Harmonyv1 { get; set; }
+		//public Harmony.HarmonyInstance Harmonyv1 { get; set; }
 		public HarmonyLib.Harmony Harmonyv2 { get; set; }
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }

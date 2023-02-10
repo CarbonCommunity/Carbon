@@ -53,13 +53,13 @@ internal static class ASM
 	{
 		try
 		{
-			_loader = AccessTools.TypeByName("Carbon.LoaderEx.Program") ?? null;
-			if (_loader == null) throw new Exception("LoaderEx.Program is null");
+			_loader = AccessTools.TypeByName("Legacy.Loader") ?? null;
+			if (_loader == null) throw new Exception("Loader is null");
 
-			_harmonyLoader = AccessTools.TypeByName("Carbon.LoaderEx.Harmony.HarmonyLoaderEx") ?? null;
+			_harmonyLoader = AccessTools.TypeByName("Legacy.Harmony.HarmonyLoaderEx") ?? null;
 			if (_harmonyLoader == null) throw new Exception("HarmonyLoaderEx is null");
 
-			_assemblyManager = AccessTools.TypeByName("Carbon.LoaderEx.ASM.AssemblyManager") ?? null;
+			_assemblyManager = AccessTools.TypeByName("Legacy.ASM.AssemblyManager") ?? null;
 			if (_assemblyManager == null) throw new Exception("AssemblyManager is null");
 
 
@@ -86,20 +86,30 @@ internal static class ASM
 
 	internal static void Download(string URL, Action<string, byte[]> callback = null)
 	{
-		// Program.GetInstance()
-		Type t1 = AccessTools.TypeByName("Carbon.LoaderEx.Program");
-		Type t2 = AccessTools.TypeByName("Carbon.LoaderEx.DownloadManager");
+		try
+		{
+			// Program.GetInstance()
+			Type t1 = AccessTools.TypeByName("Legacy.Loader");
+			if (t1 == null) throw new Exception("Program is null");
 
-		// Carbon.LoaderEx.DownloadManager.GetInstance()
-		object instance = t1.GetMethod("GetInstance",
-			BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy).Invoke(null, null);
+			Type t2 = AccessTools.TypeByName("Components.DownloadManager");
+			if (t2 == null) throw new Exception("DownloadManager is null");
 
-		// Carbon.LoaderEx.DownloadManager.GetInstance().Downloader
-		object downloader = t1.GetProperty("Downloader",
-			BindingFlags.NonPublic | BindingFlags.Instance).GetValue(instance);
+			// Carbon.LoaderEx.DownloadManager.GetInstance()
+			object instance = t1.GetMethod("GetInstance",
+				BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy).Invoke(null, null);
 
-		// Carbon.LoaderEx.DownloadManager.GetInstance().Downloader.DownloadAsync(string, Action<string, byte[]>)
-		t2.GetMethod("DownloadAsync", BindingFlags.Public | BindingFlags.Instance)
-			.Invoke(downloader, new object[] { URL, callback });
+			// Carbon.LoaderEx.DownloadManager.GetInstance().Downloader
+			object downloader = t1.GetProperty("Downloader",
+				BindingFlags.NonPublic | BindingFlags.Instance).GetValue(instance);
+
+			// Carbon.LoaderEx.DownloadManager.GetInstance().Downloader.DownloadAsync(string, Action<string, byte[]>)
+			t2.GetMethod("DownloadAsync", BindingFlags.Public | BindingFlags.Instance)
+				.Invoke(downloader, new object[] { URL, callback });
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error($"Supervisor late bind error, this is a bug", e);
+		}
 	}
 }

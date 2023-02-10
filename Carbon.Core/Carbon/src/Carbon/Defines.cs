@@ -18,11 +18,13 @@ public class Defines
 {
 	public static void Initialize()
 	{
+		_initializeCommandLine();
+
 		GetRootFolder();
 		GetConfigsFolder();
 		GetModulesFolder();
 		GetDataFolder();
-		GetPluginsFolder();
+		GetScriptFolder();
 		GetHarmonyFolder();
 		GetLogsFolder();
 		GetLangFolder();
@@ -33,6 +35,23 @@ public class Defines
 
 	#region Paths
 
+	internal static string _customRootFolder;
+	internal static string _customScriptFolder;
+	internal static string _customHarmonyFolder;
+	internal static string _customConfigFolder;
+	internal static string _customDataFolder;
+	internal static string _customModuleFolder;
+
+	internal static void _initializeCommandLine()
+	{
+		_customRootFolder = CommandLineEx.GetArgumentResult("-carbon.rootdir");
+		_customScriptFolder = CommandLineEx.GetArgumentResult("-carbon.scriptdir");
+		_customHarmonyFolder = CommandLineEx.GetArgumentResult("-carbon.harmonydir");
+		_customConfigFolder = CommandLineEx.GetArgumentResult("-carbon.configdir");
+		_customDataFolder = CommandLineEx.GetArgumentResult("-carbon.datadir");
+		_customModuleFolder = CommandLineEx.GetArgumentResult("-carbon.moduledir");
+	}
+
 	public static string GetConfigFile()
 	{
 		return Path.Combine(GetRootFolder(), "config.json");
@@ -40,42 +59,42 @@ public class Defines
 
 	public static string GetRootFolder()
 	{
-		var folder = Path.GetFullPath(Path.Combine($"{Application.dataPath}/..", "carbon"));
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customRootFolder) ? Path.Combine($"{Application.dataPath}/..", "carbon") : _customRootFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
 	}
 	public static string GetConfigsFolder()
-	{
-		var folder = Path.Combine($"{GetRootFolder()}", "configs");
+	{	
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customConfigFolder) ? Path.Combine(GetRootFolder(), "configs") : _customConfigFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
 	}
 	public static string GetModulesFolder()
 	{
-		var folder = Path.Combine($"{GetRootFolder()}", "modules");
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customModuleFolder) ? Path.Combine(GetRootFolder(), "modules") : _customModuleFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
 	}
 	public static string GetDataFolder()
 	{
-		var folder = Path.Combine($"{GetRootFolder()}", "data");
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customDataFolder) ? Path.Combine(GetRootFolder(), "data") : _customDataFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
 	}
-	public static string GetPluginsFolder()
+	public static string GetScriptFolder()
 	{
-		var folder = Path.Combine($"{GetRootFolder()}", "plugins");
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customScriptFolder) ? Path.Combine(GetRootFolder(), "plugins") : _customScriptFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
 	}
 	public static string GetHarmonyFolder()
 	{
-		var folder = Path.Combine($"{GetRootFolder()}", "harmony");
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customHarmonyFolder) ? Path.Combine(GetRootFolder(), "harmony") : _customHarmonyFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
@@ -132,10 +151,12 @@ public class Defines
 		"System",
 
 		"Carbon",
+		"Carbon.API",
 		"protobuf-net",
 		"protobuf-net.Core",
 
-		"1Harmony",
+		"0Harmony",		
+
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
 		"Facepunch.Console",
