@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 /*
  *
@@ -7,14 +7,16 @@ using System.Text.RegularExpressions;
  *
  */
 
-namespace Utility;
+namespace Carbon.Utility;
 
 internal static class Blacklist
 {
+
 	private static readonly string[] Items =
 	{
 		@"^SpawnGroup.(GetSpawnPoint|PostSpawnProcess|Spawn)$",
-		@"^ScientistNPC.OverrideCorpseName$"
+		@"^ScientistNPC.OverrideCorpseName$",
+		@"^TriggerParentElevator.IsClipping$"
 	};
 
 	internal static bool IsBlacklisted(string Name)

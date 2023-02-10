@@ -6,6 +6,7 @@ using System.Reflection;
 using API.Contracts;
 using Carbon;
 using Oxide.Core.Libraries.Covalence;
+using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
 
 /*
@@ -17,7 +18,7 @@ using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries;
 
-public class Permission
+public class Permission : Library
 {
 	public bool IsGlobal
 	{

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 
 /*
@@ -36,6 +36,7 @@ public interface IPlayer
 	void Teleport(float x, float y, float z);
 	void Unban();
 	void Position(out float x, out float y, out float z);
+	GenericPosition Position();
 	void Message(string message, string prefix, params object[] args);
 	void Message(string message);
 	void Reply(string message, string prefix, params object[] args);

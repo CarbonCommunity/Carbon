@@ -608,7 +608,7 @@ public static class Loader
 				mod.Harmonyv1.UnpatchAll(mod.Harmonyv1.Id);
 				Log(mod.Name, "Unloaded v1 mod");
 			}
-			catch (InvalidCastException ex)
+			catch (Exception ex)
 			{
 				Logger.Error($"Failed unpatching all v1 patches.", ex);
 			}
@@ -625,7 +625,7 @@ public static class Loader
 				mod.Harmonyv2.UnpatchAll(mod.Harmonyv2.Id);
 				Log(mod.Name, "Unloaded v2 mod");
 			}
-			catch (InvalidCastException ex)
+			catch (Exception ex)
 			{
 				Logger.Error($"Failed unpatching all v2 patches.", ex);
 			}

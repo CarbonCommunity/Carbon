@@ -9,6 +9,7 @@ using Carbon.Processors;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Core.Plugins;
 
 /*
  *

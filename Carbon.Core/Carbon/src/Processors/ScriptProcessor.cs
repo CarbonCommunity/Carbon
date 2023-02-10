@@ -15,7 +15,7 @@ namespace Carbon.Processors;
 public class ScriptProcessor : BaseProcessor
 {
 	public override bool EnableWatcher => Community.IsConfigReady ? Community.Runtime.Config.ScriptWatchers : true;
-	public override string Folder => Defines.GetPluginsFolder();
+	public override string Folder => Defines.GetScriptFolder();
 	public override string Extension => ".cs";
 	public override Type IndexedType => typeof(Script);
 
@@ -91,16 +91,15 @@ public class ScriptProcessor : BaseProcessor
 		}
 
 		public override void Process(string input, out string output)
-		{
+		{	
 			output = input
+				.Replace("RustCore.FindPlayerById", "BasePlayer.FindByID")
+
 				.Replace("using Harmony;", "using HarmonyLib;")
 				.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
 				.Replace("HarmonyInstance", "HarmonyLib.Harmony")
 
-				.Replace("PluginTimers", "Timers")
-
-				.Replace("protected override void PostSpawnProcess", "public override void PostSpawnProcess")
-				.Replace("protected override bool IsClipping", "public override bool IsClipping");
+				.Replace("PluginTimers", "Timers");
 
 			var newOutput = string.Empty;
 			var split = output.Split('\n');

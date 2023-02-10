@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Reflection;
+using Carbon.Utility;
 using Patches;
 using Utility;
 
@@ -22,6 +23,8 @@ public sealed class Entrypoint
 		// this forces Harmony v2 to be loaded instead of the rust's builtin v1
 		Assembly assembly = Assembly.LoadFile(Path.Combine(Context.CarbonLib, "0Harmony.dll"));
 		Logger.Log($"Loaded {assembly.GetName().Name} {assembly.GetName().Version} into current AppDomain");
+
+		References.Load();
 
 		using Sandbox<AssemblyCSharp> isolated1 = new Sandbox<AssemblyCSharp>();
 
