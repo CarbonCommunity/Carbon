@@ -38,6 +38,8 @@ public class Permission
 	public static char[] Star = new char[] { '*' };
 	public static string[] EmptyStringArray = new string[0];
 
+	internal FieldInfo _iPlayerField = typeof(BasePlayer).GetType().GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
+
 	private void LoadFromDatafile()
 	{
 		Utility.DatafileToProto<Dictionary<string, UserData>>("oxide.users", true);
@@ -251,10 +253,7 @@ public class Permission
 			RemoveUserGroup(player.UserIDString, "admin");
 		}
 
-		// covalence nhom nhom nhom
-		IPlayer fuck_you = new RustPlayer { Object = player };
-		FieldInfo field = player.GetType().GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
-		field.SetValue(player, fuck_you);
+		_iPlayerField.SetValue(player, new RustPlayer { Object = player });
 	}
 	public void UpdateNickname(string id, string nickname)
 	{
