@@ -193,8 +193,8 @@ public static class Loader
 			}
 			catch (Exception e)
 			{
-				if (!silent) LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", arg2));
-				return false;
+				if (!silent)
+					LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", e));
 			}*/
 
 			try
