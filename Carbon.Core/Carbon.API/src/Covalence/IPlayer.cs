@@ -8,7 +8,7 @@ using System.Globalization;
  *
  */
 
-namespace API.Contracts;
+namespace Oxide.Core.Libraries.Covalence;
 
 public interface IPlayer
 {

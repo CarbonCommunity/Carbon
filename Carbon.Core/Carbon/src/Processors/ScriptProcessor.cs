@@ -99,9 +99,6 @@ public class ScriptProcessor : BaseProcessor
 
 				.Replace("PluginTimers", "Timers")
 
-				.Replace("Oxide.Core.Libraries.Covalence.IPlayer", "API.Contracts.IPlayer")
-				.Replace("Core.Libraries.Covalence.IPlayer", "API.Contracts.IPlayer")
-
 				.Replace("protected override void PostSpawnProcess", "public override void PostSpawnProcess")
 				.Replace("protected override bool IsClipping", "public override bool IsClipping");
 

@@ -7,7 +7,7 @@
  *
  */
 
-namespace API.Contracts;
+namespace Oxide.Core.Libraries.Covalence;
 
 public enum CommandType
 {
