@@ -50,7 +50,7 @@ internal sealed class ResolverEx : IDisposable
 
 	internal Item ResolveAssembly(string name, string requester)
 	{
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($"Resolve '{name}' requested by '{requester}'");
 #endif
 
@@ -59,7 +59,7 @@ internal sealed class ResolverEx : IDisposable
 
 		if (_cache.Count > 0)
 		{
-#if DEBUG
+#if DEBUG_VERBOSE
 			Logger.Debug($" - Searching {_cache.Count} cached items");
 #endif
 			retvar = _cache.SingleOrDefault<Item>(x => x.IsMatch(assemblyName.Name)) ?? null;
@@ -67,27 +67,34 @@ internal sealed class ResolverEx : IDisposable
 
 		if (retvar == null)
 		{
+#if DEBUG_VERBOSE
 			Logger.Debug($" - Cache miss");
+#endif
 			retvar = new Item(assemblyName.Name, Path.GetDirectoryName(name));
 			if (retvar.Bytes != null) _cache.Add(retvar);
 		}
+#if DEBUG_VERBOSE
 		else Logger.Debug($" - Cache hit");
-
+#endif
 		if (retvar.Bytes == null)
 		{
+#if DEBUG_VERBOSE
 			Logger.Debug($"Unresolved: {name}");
+#endif
 			return default;
 		}
 		else
 		{
+#if DEBUG_VERBOSE
 			Logger.Debug($"Resolved: {retvar.Name.FullName}");
+#endif
 			return retvar;
 		}
 	}
 
 	internal bool RemoveCache(string name)
 	{
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($"Remove from cache '{name}'");
 #endif
 
@@ -96,7 +103,7 @@ internal sealed class ResolverEx : IDisposable
 
 		if (_cache.Count > 0)
 		{
-#if DEBUG
+#if DEBUG_VERBOSE
 			Logger.Debug($" - Searching {_cache.Count} cached items");
 #endif
 			retvar = _cache.SingleOrDefault<Item>(x => x.IsMatch(assemblyName.Name)) ?? null;
@@ -104,7 +111,9 @@ internal sealed class ResolverEx : IDisposable
 
 		if (retvar != null)
 		{
+#if DEBUG_VERBOSE
 			Logger.Debug($" - Cache hit");
+#endif
 			return _cache.Remove(retvar);
 		}
 

@@ -36,7 +36,7 @@ internal sealed class AssemblyManager : Singleton<AssemblyManager>, IDisposable
 
 	internal Assembly LoadAssembly(string file)
 	{
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($"LoadAssembly: {file}");
 #endif
 		return _resolver.ResolveAssembly(this, args: new ResolveEventArgs(file));
@@ -44,7 +44,7 @@ internal sealed class AssemblyManager : Singleton<AssemblyManager>, IDisposable
 
 	internal byte[] ReadAssembly(string file)
 	{
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($"ReadAssembly: {file}");
 #endif
 		return _resolver.ResolveAssembly(file, "AssemblyManager").Bytes;
@@ -52,7 +52,7 @@ internal sealed class AssemblyManager : Singleton<AssemblyManager>, IDisposable
 
 	internal bool RemoveCache(string file)
 	{
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($"RemoveCache: {file}");
 #endif
 		return _resolver.RemoveCache(file);

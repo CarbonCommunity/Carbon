@@ -45,7 +45,7 @@ internal sealed class Item : IDisposable
 		Location = (string.IsNullOrEmpty(location)) ? FindFile(file) : Path.Combine(location, file);
 		Bytes = ReadFile(Location);
 
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($" - Created new cached instance of '{Name.Name}'");
 #endif
 	}
@@ -58,7 +58,7 @@ internal sealed class Item : IDisposable
 		}
 
 		_aliases.Add(name);
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($" - Added new alias '{name}' for '{Name.Name}");
 #endif
 	}
@@ -71,7 +71,7 @@ internal sealed class Item : IDisposable
 		}
 
 		_aliases.Remove(name);
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($" - Removed alias '{name}' for '{Name.Name}");
 #endif
 	}
@@ -89,7 +89,7 @@ internal sealed class Item : IDisposable
 
 	private static string FindFile(string file)
 	{
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($" - FindFile: {file}");
 #endif
 
@@ -135,7 +135,7 @@ internal sealed class Item : IDisposable
 	{
 		byte[] raw = default;
 
-#if DEBUG
+#if DEBUG_VERBOSE
 		Logger.Debug($" - ReadFile: {file}");
 #endif
 
@@ -167,7 +167,7 @@ internal sealed class Item : IDisposable
 		}
 		finally
 		{
-#if DEBUG
+#if DEBUG_VERBOSE
 			Logger.Debug($" - Loading file '{Path.GetFileName(file)}', read {raw.Length} bytes from disk");
 #endif
 		}
