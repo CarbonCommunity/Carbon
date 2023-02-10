@@ -68,10 +68,16 @@ internal sealed class HarmonyLoaderEx : Singleton<HarmonyLoaderEx>
 					throw new ArgumentOutOfRangeException("File extension not supported");
 			}
 		}
+		catch (ReflectionTypeLoadException)
+		{
+			Utility.Logger.Error($"Error while loading hooks from '{path}'.");
+			Utility.Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			return null;
+		}
 		catch (System.Exception e)
 		{
 			Utility.Logger.Error($"Failed loading '{path}'", e);
-			throw;
+			return null;
 		}
 	}
 

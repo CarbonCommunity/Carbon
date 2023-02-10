@@ -11,6 +11,15 @@ namespace API.Events;
 
 public enum CarbonEvent
 {
+	// Debug
+	TestEventOne,
+
 	// Bootstrap.SharedStartup
 	GameStartup, GameStartupComplete,
+
+	// Carbon.Core
+	CarbonStartup, CarbonStartupComplete, CarbonShutdown, CarbonShutdownComplete, CarbonShutdownFailed,
+
+	// Carbon.Hooks
+	HookManagerHooksReady
 }

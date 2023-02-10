@@ -48,7 +48,7 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	{
 		_harmonyInstance = new HarmonyLib.Harmony(identifier);
 
-		_gameObject = new UnityEngine.GameObject(identifier);
+		_gameObject = new UnityEngine.GameObject("Carbon");
 		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
 
 		_gameObject.AddComponent<DownloadManager>();
@@ -57,6 +57,9 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 		// Events
 		Events.Subscribe(API.Events.CarbonEvent.GameStartup,
 			x => HarmonyLoaderEx.GetInstance().Load("Carbon.dll"));
+
+		Events.Subscribe(API.Events.CarbonEvent.CarbonStartupComplete,
+			x => Logger.Debug($"Yeah baby, wanna do it again ?"));
 	}
 
 	internal void Initialize()

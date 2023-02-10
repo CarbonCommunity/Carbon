@@ -95,9 +95,11 @@ internal sealed class Item : IDisposable
 
 		string location = file switch
 		{
+			"Carbon.Bootstrap.dll" => Context.CarbonManaged,
+			"Carbon.Preloader.dll" => Context.CarbonManaged,
+
 			"Carbon.dll" => Context.CarbonManaged,
-			"Carbon.Loader.dll" => Context.CarbonManaged,
-			"Carbon.Doorstop.dll" => Context.CarbonManaged,
+			"Carbon.API.dll" => Context.CarbonManaged,
 
 			"Carbon.Hooks.Base.dll" => Context.CarbonHooks,
 			"Carbon.Hooks.Extended.dll" => Context.CarbonHooks,

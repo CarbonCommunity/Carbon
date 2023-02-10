@@ -11,9 +11,6 @@
 	<Import Project="..\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
-		<!-- Carbon API -->
-		<ProjectReference Include="..\Carbon.API\Carbon.API.csproj" Private="false" />
-
 		<!-- Assembly patcher -->
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" GeneratePathProperty="true" />
 

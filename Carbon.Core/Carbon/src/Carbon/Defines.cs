@@ -131,11 +131,13 @@ public class Defines
 		"System.Xml",
 		"System",
 
-		"Carbon",
+		"Carbon", 		// we need to remove this ref
+		"Carbon.API",	// this ref should be the only one required
 		"protobuf-net",
 		"protobuf-net.Core",
 
-		"1Harmony",
+		"0Harmony",		// should be v2
+
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
 		"Facepunch.Console",

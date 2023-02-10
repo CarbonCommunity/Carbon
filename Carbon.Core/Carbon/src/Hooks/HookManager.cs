@@ -99,6 +99,9 @@ public class HookManager : FacepunchBehaviour, IDisposable
 				_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
 		}
 
+		Community.Runtime.Events.Trigger(
+			API.Events.CarbonEvent.HookManagerHooksReady, EventArgs.Empty);
+
 		try
 		{
 			if (_subscribers.Count == 0) return;
@@ -205,11 +208,12 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			hooks = Supervisor.ASM.LoadModule(fileName);
 
 			if (hooks == null)
-				throw new Exception($"External hooks module '{fileName}' not found");
+				throw new Exception($"Assembly is null");
 		}
 		catch (System.Exception e)
 		{
-			Logger.Error(e.Message, e);
+			Logger.Error($"Error while loading hooks from '{fileName}'.");
+			Logger.Error($"Either the file is corrupt or has an unsuported format/version.", e);
 			return;
 		}
 

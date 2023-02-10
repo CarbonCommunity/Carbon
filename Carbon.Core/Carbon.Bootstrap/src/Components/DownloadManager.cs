@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using API.Contracts;
 using UnityEngine;
 
 /*
@@ -12,7 +13,7 @@ using UnityEngine;
 
 namespace Components;
 
-internal sealed class DownloadManager : MonoBehaviour
+internal sealed class DownloadManager : MonoBehaviour, IDownloadManager
 {
 	private struct Download
 	{
@@ -26,15 +27,9 @@ internal sealed class DownloadManager : MonoBehaviour
 	private Queue<Download> _donwloadQueue;
 	private int _currentDownloads;
 
-	internal DownloadManager()
-	{
-		Utility.Logger.Log($"{this} ctor");
-	}
-
 	private void Awake()
 	{
 		_donwloadQueue = new Queue<Download>();
-		Utility.Logger.Log($"{this} awake");
 	}
 
 	private void Update()
