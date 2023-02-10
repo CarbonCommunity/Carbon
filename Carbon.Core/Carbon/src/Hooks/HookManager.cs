@@ -14,7 +14,7 @@ using Carbon.Core;
 
 namespace Carbon.Hooks;
 
-internal sealed class HookManager : FacepunchBehaviour, IDisposable
+public class HookManager : FacepunchBehaviour, IDisposable
 {
 	public List<HookEx> StaticHooks;
 	public List<HookEx> DynamicHooks;
@@ -328,7 +328,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 							throw new Exception($"Dependency '{dependency}' installation failed");
 
 						AddSubscriber(dependency.HookName, requester);
-						Logger.Log($"Installed dependency '{dependency}'");
+						Logger.Debug($"Installed dependency '{dependency}'", 1);
 					}
 				}
 
@@ -337,7 +337,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 
 			if (!hook.ApplyPatch())
 				throw new Exception($"Unable to apply patch");
-			Logger.Log($"Installed hook '{hook}");
+			Logger.Debug($"Installed hook '{hook}", 1);
 		}
 		catch (System.Exception e)
 		{
@@ -352,7 +352,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 		{
 			if (!hook.RemovePatch())
 				throw new Exception($"Unable to remove patch");
-			Logger.Log($"Uninstalled hook '{hook}'");
+			Logger.Debug($"Uninstalled hook '{hook}'", 1);
 
 			if (!hook.HasDependencies()) return;
 
@@ -376,7 +376,7 @@ internal sealed class HookManager : FacepunchBehaviour, IDisposable
 						throw new Exception($"Dependency '{dependency}' uninstallation failed");
 
 					RemoveSubscriber(dependency.HookName, requester);
-					Logger.Log($"Uninstalled dependency '{dependency}'");
+					Logger.Debug($"Uninstalled dependency '{dependency}'", 1);
 				}
 			}
 

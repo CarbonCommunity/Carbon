@@ -99,6 +99,7 @@ internal sealed class Item : IDisposable
 			"Carbon.dll" => Directories.CarbonManaged,
 			"Carbon.Loader.dll" => Directories.CarbonManaged,
 			"Carbon.Doorstop.dll" => Directories.CarbonManaged,
+			"Carbon.Oxide.Covalence.dll" => Directories.CarbonModules,
 
 			"Carbon.Hooks.Base.dll" => Directories.CarbonHooks,
 			"Carbon.Hooks.Extended.dll" => Directories.CarbonHooks,

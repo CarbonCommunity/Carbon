@@ -16,7 +16,7 @@ namespace Carbon.Utility;
 
 internal static class Publicizer
 {
-	private static MemoryStream memoryStream = null;
+	internal static MemoryStream memoryStream = null;
 
 	internal static void Read(string Source)
 	{
@@ -63,7 +63,7 @@ internal static class Publicizer
 		}
 	}
 
-	internal static void Publicize()
+	internal static void Publicize(Action<ModuleDefinition> onPublicized)
 	{
 		AssemblyDefinition assembly = null;
 		DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
@@ -73,7 +73,8 @@ internal static class Publicizer
 			if (memoryStream == null) throw new Exception();
 			memoryStream.Position = 0;
 
-			resolver.AddSearchDirectory(Context.Managed);
+			resolver.AddSearchDirectory(Context.RustManaged);
+			resolver.AddSearchDirectory(Context.Modules);
 
 			assembly = AssemblyDefinition.ReadAssembly(
 				memoryStream, parameters: new ReaderParameters { AssemblyResolver = resolver });
@@ -105,52 +106,7 @@ internal static class Publicizer
 
 			foreach (TypeDefinition Type in assembly.MainModule.Types)
 			{
-				if (Blacklist.IsBlacklisted(Type.Name))
-				{
-					Logger.Warn($"Excluded '{Type.Name}' due to blacklisting");
-					continue;
-				}
-
-				if (Type.IsNested)
-				{
-					Type.IsNestedPublic = true;
-				}
-				else
-				{
-					Type.IsPublic = true;
-				}
-
-				foreach (MethodDefinition Method in Type.Methods)
-				{
-					if (Blacklist.IsBlacklisted($"{Type.Name}.{Method.Name}"))
-					{
-						Logger.Warn($"Excluded '{Type.Name}.{Method.Name}' due to blacklisting");
-						continue;
-					}
-
-					Method.IsPublic = true;
-				}
-
-				foreach (FieldDefinition Field in Type.Fields)
-				{
-					if (Blacklist.IsBlacklisted($"{Type.Name}.{Field.Name}"))
-					{
-						Logger.Warn($"Excluded '{Type.Name}.{Field.Name}' due to blacklisting");
-						continue;
-					}
-
-					// Prevent publicize auto-generated fields
-					if (Type.Events.Any(x => x.Name == Field.Name)) continue;
-
-					if (nsAttributeCtor != null && !Field.IsPublic
-												&& !Field.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField"))
-					{
-						Field.IsNotSerialized = true;
-						Field.CustomAttributes.Add(item: new CustomAttribute(nsAttributeCtor));
-					}
-
-					Field.IsPublic = true;
-				}
+				PublicizeType(Type, nsAttributeCtor);
 			}
 		}
 		catch (Exception ex)
@@ -158,6 +114,8 @@ internal static class Publicizer
 			Logger.Error("Publicize process aborted", ex);
 			throw ex;
 		}
+
+		onPublicized?.Invoke(assembly.MainModule);
 
 		try
 		{
@@ -183,6 +141,60 @@ internal static class Publicizer
 		{
 			Logger.Error("Unhandled error", ex);
 			throw (ex);
+		}
+	}
+
+	private static void PublicizeType(TypeDefinition type, MethodReference nsAttributeCtor)
+	{
+		if (!Blacklist.IsBlacklisted(type.Name))
+		{
+			Logger.Warn($"Excluded '{type.Name}' due to blacklisting");
+
+			if (type.IsNested)
+			{
+				type.IsNestedPublic = true;
+			}
+			else
+			{
+				type.IsPublic = true;
+			}
+
+			foreach (MethodDefinition Method in type.Methods)
+			{
+				if (Blacklist.IsBlacklisted($"{type.Name}.{Method.Name}"))
+				{
+					Logger.Warn($"Excluded '{type.Name}.{Method.Name}' due to blacklisting");
+					continue;
+				}
+
+				Method.IsPublic = true;
+			}
+
+			foreach (FieldDefinition Field in type.Fields)
+			{
+				if (Blacklist.IsBlacklisted($"{type.Name}.{Field.Name}"))
+				{
+					Logger.Warn($"Excluded '{type.Name}.{Field.Name}' due to blacklisting");
+					continue;
+				}
+
+				// Prevent publicize auto-generated fields
+				if (type.Events.Any(x => x.Name == Field.Name)) continue;
+
+				if (nsAttributeCtor != null && !Field.IsPublic
+											&& !Field.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField"))
+				{
+					Field.IsNotSerialized = true;
+					Field.CustomAttributes.Add(item: new CustomAttribute(nsAttributeCtor));
+				}
+
+				Field.IsPublic = true;
+			}
+		}
+
+		foreach(var subType in type.NestedTypes)
+		{
+			PublicizeType(subType, nsAttributeCtor);
 		}
 	}
 

@@ -9,6 +9,7 @@ using Carbon.Processors;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Core.Plugins;
 
 /*
  *
@@ -93,7 +94,7 @@ namespace Oxide.Plugins
 			using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 			{
 				foreach (var hook in Hooks)
-					Community.Runtime.HookProcessorEx.Subscribe(hook, FileName);
+					Community.Runtime.HookManager.Subscribe(hook, FileName);
 			}
 			Carbon.Logger.Debug(Name, "Processed hooks");
 
@@ -129,7 +130,7 @@ namespace Oxide.Plugins
 			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 			{
 				foreach (var hook in Hooks)
-					Community.Runtime.HookProcessorEx.Unsubscribe(hook, FileName);
+					Community.Runtime.HookManager.Unsubscribe(hook, FileName);
 				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 			}
 

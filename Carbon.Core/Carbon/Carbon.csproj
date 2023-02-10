@@ -1,8 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
 		<Product>Carbon</Product>
 		<OutputType>Library</OutputType>
 		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+	  <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	  <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix|x64'">
+	  <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix|x64'">
+	  <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
 	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />
@@ -27,6 +39,10 @@
 		<PackageReference Include="MySql.Data" Version="8.0.31" PrivateAssets="all" />
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" PrivateAssets="all" />
 		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Carbon.Oxide.Covalence\Carbon.Oxide.Covalence.csproj" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">

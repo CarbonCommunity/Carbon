@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Carbon;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 /*
@@ -14,7 +15,7 @@ using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries;
 
-public class Permission
+public class Permission : Library
 {
 	public bool IsGlobal
 	{
@@ -247,6 +248,9 @@ public class Permission
 		{
 			RemoveUserGroup(player.UserIDString, "admin");
 		}
+#if !NOCOVALENCE
+		player.IPlayer ??= new Game.Rust.Libraries.Covalence.RustPlayer { Object = player };
+#endif
 	}
 	public void UpdateNickname(string id, string nickname)
 	{

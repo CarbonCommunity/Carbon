@@ -60,25 +60,31 @@ namespace Oxide.Game.Rust.Libraries
 					{
 						case 1:
 							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
+#if !NOCOVALENCE
+								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.IPlayer); else argData.Add(player);
 								result = argData.ToArray();
+#endif
 								break;
 							}
 
 						case 2:
 							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
+#if !NOCOVALENCE
+								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.IPlayer); else argData.Add(player);
 								argData.Add(cmd);
 								result = argData.ToArray();
+#endif
 								break;
 							}
 
 						case 3:
 							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
+#if !NOCOVALENCE
+								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.IPlayer); else argData.Add(player);
 								argData.Add(cmd);
 								argData.Add(args);
 								result = argData.ToArray();
+#endif
 								break;
 							}
 					}
@@ -201,6 +207,15 @@ namespace Oxide.Game.Rust.Libraries
 		{
 			AddChatCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups, authLevel);
 			AddConsoleCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups, authLevel);
+		}
+
+		public void RemoveChatCommand(string command, BaseHookable plugin = null)
+		{
+			Community.Runtime.AllChatCommands.RemoveAll(x => x.Command == command && (plugin == null || x.Plugin == plugin));
+		}
+		public void RemoveConsoleCommand(string command, BaseHookable plugin = null)
+		{
+			Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Command == command && (plugin == null || x.Plugin == plugin));
 		}
 	}
 }

@@ -99,7 +99,12 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 				if (element.Value == null)
 				{
 					var instance = Activator.CreateInstance(IndexedType) as Instance;
-					instance.File = Path.Combine(Defines.GetPluginsFolder(), $"{element.Key}{Extension}");
+
+					var p = (Extension.Equals(".dll"))
+						? Defines.GetHarmonyFolder()
+						: Defines.GetScriptFolder();
+
+					instance.File = Path.Combine(p, $"{element.Key}{Extension}");
 					instance.Execute();
 
 					InstanceBuffer[element.Key] = instance;
@@ -139,7 +144,17 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 	{
 		if (IgnoreList.Contains(file)) return;
 
-		if (OsEx.File.Exists(file)) Carbon.Logger.Log($" Loading plugin '{id}'...");
+		if (!string.IsNullOrEmpty(file))
+		{
+			var extension = Path.GetExtension(file);
+
+			if (!string.IsNullOrEmpty(Extension) && OsEx.File.Exists(file) && extension != Extension)
+			{
+				return;
+			}
+		}
+
+		Carbon.Logger.Log($" Loading plugin '{id}'...");
 
 		Remove(id);
 

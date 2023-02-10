@@ -136,6 +136,7 @@ jobs:
     - name: 🏷️ Update release tag
       uses: softprops/action-gh-release@v1
       with:
+        draft: false
         prerelease: true
         tag_name: staging_build
         name: 'Carbon Build (staging)'

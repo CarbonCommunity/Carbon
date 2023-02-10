@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Carbon.Utility;
 
 /*
@@ -14,27 +15,43 @@ public class Entrypoint
 {
 	public static void Start()
 	{
+		References.Load();
+		Context.Init();
+
 		Logger.Log(">> Carbon.Doorstop using UnityDoorstop entrypoint");
 
+		Execute(Path.Combine(Context.RustManaged, "Assembly-CSharp.dll"));
+	}
+
+	public static void Execute(string filePath)
+	{
 		try
 		{
-			Publicizer.Read(
-				Path.Combine(Context.Managed, "Assembly-CSharp.dll")
-			);
+			Logger.Init();
+
+			Publicizer.Read(filePath);
 
 			if (!Publicizer.IsPublic("ServerMgr", "Shutdown"))
 			{
 				Logger.Warn("Assembly is not publicized");
-				Publicizer.Publicize();
-				Publicizer.Write(
-					Path.Combine(Context.Managed, "Assembly-CSharp.dll")
-				);
+				Publicizer.Publicize(module =>
+				{
+					try
+					{
+						Injector.Inject(module);
+					}
+					catch (Exception ex)
+					{
+						Logger.Error($"Failed injecting: {ex}");
+					}
+				});
+				Publicizer.Write(filePath);
 			}
 			else
 			{
 				Logger.Log("All validation checks passed");
 			}
 		}
-		catch { /* exit */}
+		catch { /* exit */ }
 	}
 }

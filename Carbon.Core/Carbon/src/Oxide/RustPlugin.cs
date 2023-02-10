@@ -23,7 +23,7 @@ public class RustPlugin : Plugin
 	public PluginManager Manager { get; set; }
 
 	public Permission permission { get; set; }
-	public Language lang { get; set; }
+	public Lang lang { get; set; }
 	public Command cmd { get; set; }
 	public Server server { get; set; }
 	public Plugins plugins { get; set; }
@@ -62,7 +62,7 @@ public class RustPlugin : Plugin
 		Manager = new PluginManager();
 		plugins = new Plugins();
 		timer = new Timers(this);
-		lang = new Language(this);
+		lang = new Lang(this);
 		mod = new OxideMod();
 		rust = new Game.Rust.Libraries.Rust();
 		webrequest = new WebRequests();
@@ -160,6 +160,14 @@ public class RustPlugin : Plugin
 	public void PrintError(string format, params object[] args)
 		=> Carbon.Logger.Error($"[{Name}] {(args == null ? format : string.Format(format, args))}");
 
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'ERROR'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	public void RaiseError(string message)
+		=> Carbon.Logger.Error($"[{Name}] {message}", null);
+
 	protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
 	{
 		var logFolder = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
@@ -172,6 +180,15 @@ public class RustPlugin : Plugin
 		filename = plugin.Name.ToLower() + "_" + filename.ToLower() + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
 
 		File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
+	}
+
+	#endregion
+
+	#region Library
+
+	public static T GetLibrary<T>(string name = null) where T : Library
+	{
+		return Interface.Oxide.GetLibrary<T>();
 	}
 
 	#endregion
@@ -328,7 +345,7 @@ public class RustPlugin : Plugin
 
 	#region Covalence
 
-	protected void AddCovalenceCommand(string command, string callback, string[] perms = null)
+	protected void AddCovalenceCommand(string command, string callback, params string[] perms)
 	{
 		cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
 
@@ -343,9 +360,46 @@ public class RustPlugin : Plugin
 			}
 		}
 	}
-	protected void AddUniversalCommand(string command, string callback, string[] perms = null)
+	protected void AddCovalenceCommand(string[] commands, string callback, params string[] perms)
+	{
+		foreach (var command in commands)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+		}
+
+		if (perms != null)
+		{
+			foreach (var permission in perms)
+			{
+				if (!this.permission.PermissionExists(permission))
+				{
+					this.permission.RegisterPermission(permission, this);
+				}
+			}
+		}
+	}
+
+	protected void AddUniversalCommand(string command, string callback, params string[] perms)
 	{
 		cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+
+		if (perms != null)
+		{
+			foreach (var permission in perms)
+			{
+				if (!this.permission.PermissionExists(permission))
+				{
+					this.permission.RegisterPermission(permission, this);
+				}
+			}
+		}
+	}
+	protected void AddUniversalCommand(string[] commands, string callback, params string[] perms)
+	{
+		foreach (var command in commands)
+		{
+			cmd.AddCovalenceCommand(command, this, callback, permissions: perms);
+		}
 
 		if (perms != null)
 		{
