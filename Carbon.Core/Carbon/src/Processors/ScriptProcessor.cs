@@ -93,14 +93,14 @@ public class ScriptProcessor : BaseProcessor
 		public override void Process(string input, out string output)
 		{
 			output = input
-				.Replace("layer.IPlayer", "layer.AsIPlayer()")
-				.Replace("ly.IPlayer", "ly.AsIPlayer()")
-
 				.Replace("using Harmony;", "using HarmonyLib;")
 				.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
 				.Replace("HarmonyInstance", "HarmonyLib.Harmony")
 
 				.Replace("PluginTimers", "Timers")
+
+				.Replace("Oxide.Core.Libraries.Covalence.IPlayer", "API.Contracts.IPlayer")
+				.Replace("Core.Libraries.Covalence.IPlayer", "API.Contracts.IPlayer")
 
 				.Replace("protected override void PostSpawnProcess", "public override void PostSpawnProcess")
 				.Replace("protected override bool IsClipping", "public override bool IsClipping");

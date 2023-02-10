@@ -74,55 +74,58 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 			declaringType: new TypeReference("System", "NonSerializedAttribute", _assembly.MainModule, scope))
 		{ HasThis = true };
 
+		foreach (TypeDefinition type in _assembly.MainModule.Types)
+			Publicize(type, ctor);
+	}
+
+	internal static void Publicize(TypeDefinition type, MethodReference ctor)
+	{
 		try
 		{
-			foreach (TypeDefinition Type in _assembly.MainModule.Types)
+			if (Blacklist.IsBlacklisted(type.Name))
 			{
-				if (Blacklist.IsBlacklisted(Type.Name))
+				Logger.Warn($"Excluded '{type.Name}' due to blacklisting");
+				return;
+			}
+
+			if (type.IsNested)
+			{
+				type.IsNestedPublic = true;
+			}
+			else
+			{
+				type.IsPublic = true;
+			}
+
+			foreach (MethodDefinition Method in type.Methods)
+			{
+				if (Blacklist.IsBlacklisted($"{type.Name}.{Method.Name}"))
 				{
-					Logger.Warn($"Excluded '{Type.Name}' due to blacklisting");
+					Logger.Warn($"Excluded '{type.Name}.{Method.Name}' due to blacklisting");
 					continue;
 				}
 
-				if (Type.IsNested)
-				{
-					Type.IsNestedPublic = true;
-				}
-				else
-				{
-					Type.IsPublic = true;
-				}
+				Method.IsPublic = true;
+			}
 
-				foreach (MethodDefinition Method in Type.Methods)
+			foreach (FieldDefinition Field in type.Fields)
+			{
+				if (Blacklist.IsBlacklisted($"{type.Name}.{Field.Name}"))
 				{
-					if (Blacklist.IsBlacklisted($"{Type.Name}.{Method.Name}"))
-					{
-						Logger.Warn($"Excluded '{Type.Name}.{Method.Name}' due to blacklisting");
-						continue;
-					}
-
-					Method.IsPublic = true;
+					Logger.Warn($"Excluded '{type.Name}.{Field.Name}' due to blacklisting");
+					continue;
 				}
 
-				foreach (FieldDefinition Field in Type.Fields)
+				// Prevent publicize auto-generated fields
+				if (type.Events.Any(x => x.Name == Field.Name)) continue;
+
+				if (ctor != null && !Field.IsPublic && !Field.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField"))
 				{
-					if (Blacklist.IsBlacklisted($"{Type.Name}.{Field.Name}"))
-					{
-						Logger.Warn($"Excluded '{Type.Name}.{Field.Name}' due to blacklisting");
-						continue;
-					}
-
-					// Prevent publicize auto-generated fields
-					if (Type.Events.Any(x => x.Name == Field.Name)) continue;
-
-					if (ctor != null && !Field.IsPublic && !Field.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField"))
-					{
-						Field.IsNotSerialized = true;
-						Field.CustomAttributes.Add(item: new CustomAttribute(ctor));
-					}
-
-					Field.IsPublic = true;
+					Field.IsNotSerialized = true;
+					Field.CustomAttributes.Add(item: new CustomAttribute(ctor));
 				}
+
+				Field.IsPublic = true;
 			}
 		}
 		catch (System.Exception ex)
@@ -130,6 +133,9 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 			Logger.Error(ex.Message);
 			throw ex;
 		}
+
+		foreach (TypeDefinition childType in type.NestedTypes)
+			Publicize(childType, ctor);
 	}
 
 	internal void Patch()
@@ -139,6 +145,7 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 			Override_Harmony_Methods();
 			Remove_RustHarmony_Reference();
 			Add_Bootstrap_Tier0_Hook();
+			Add_the_Fucking_IPlayer_shit();
 		}
 		catch (System.Exception ex)
 		{
@@ -226,6 +233,23 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 
 		method2.Body.Instructions.Insert(method2.Body.Instructions.Count,
 			processor.Create(OpCodes.Ret));
+
+		_assembly.MainModule.AssemblyReferences.Add(assembly.Name);
+	}
+
+	internal void Add_the_Fucking_IPlayer_shit()
+	{
+		Logger.Debug($" - Patching BasePlayer.IPlayer");
+
+		AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(
+			stream: new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.API.dll"))));
+
+		TypeDefinition type1 = assembly.MainModule.GetType("API.Contracts", "IPlayer");
+		if (type1 == null) throw new Exception("Unable to get a type for 'API.Contracts.IPlayer'");
+
+		_assembly.MainModule.AssemblyReferences.Add(assembly.Name);
+		_assembly.MainModule.GetType("BasePlayer").Fields.Add(item: new FieldDefinition("IPlayer",
+			FieldAttributes.Public | FieldAttributes.NotSerialized, _assembly.MainModule.ImportReference(type1)));
 	}
 
 	// internal void Add_Bootstrap_StartupShared_Hook()

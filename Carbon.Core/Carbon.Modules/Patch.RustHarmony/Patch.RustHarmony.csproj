@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Patch.RustHarmony</Product>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{712655FF-9B38-4CD3-938B-36099A4D59BA}</ProjectGuid>
+	</PropertyGroup>
+
+	<Import Project="..\..\.msbuild\Common.props" />
+
+	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_modules)" />
+	</Target>
+</Project>

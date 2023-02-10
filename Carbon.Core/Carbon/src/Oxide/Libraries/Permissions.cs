@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using API.Contracts;
 using Carbon;
+using Oxide.Core.Libraries.Covalence;
 using Oxide.Plugins;
 
 /*
@@ -247,6 +250,11 @@ public class Permission
 		{
 			RemoveUserGroup(player.UserIDString, "admin");
 		}
+
+		// covalence nhom nhom nhom
+		IPlayer fuck_you = new RustPlayer { Object = player };
+		FieldInfo field = player.GetType().GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
+		field.SetValue(player, fuck_you);
 	}
 	public void UpdateNickname(string id, string nickname)
 	{

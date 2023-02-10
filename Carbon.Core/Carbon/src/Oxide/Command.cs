@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using API.Contracts;
 using Carbon;
 using Carbon.Base;
 using Oxide.Core;
-using Oxide.Core.Libraries.Covalence;
 using Oxide.Plugins;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;

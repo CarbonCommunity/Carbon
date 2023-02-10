@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using API.Contracts;
 using Carbon;
 using Carbon.Oxide;
-using Oxide.Core.Libraries.Covalence;
 
 /*
  *
