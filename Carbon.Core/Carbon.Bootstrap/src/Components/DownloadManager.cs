@@ -30,7 +30,6 @@ internal sealed class DownloadManager : MonoBehaviour, IDownloadManager
 	private void Awake()
 	{
 		_donwloadQueue = new Queue<Download>();
-		Utility.Logger.Log($"{this} awake");
 	}
 
 	private void Update()
