@@ -332,7 +332,7 @@ public static class Loader
 			return false;
 		}
 
-		var title = info.Title;
+		var title = info.Title?.Replace(" ", "");
 		var author = info.Author;
 		var version = info.Version;
 		var description = desc == null ? string.Empty : desc.Description;
