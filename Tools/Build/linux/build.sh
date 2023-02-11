@@ -24,7 +24,6 @@ dotnet   build "${ROOT}/Carbon.Core" -v:m --configuration ${TARGET} --no-restore
 if [[ "${TARGET}" == *"Unix"* ]]; then
 	echo "** Copy doorstop helper files (unix)"
 	cp "${ROOT}/Tools/Helpers/environment.sh" "${ROOT}/Release/.tmp/${TARGET}/carbon/tools"
-	cp "${ROOT}/Tools/Helpers/publicizer.sh" "${ROOT}/Release/.tmp/${TARGET}/carbon/tools"
 	cp "${ROOT}/Tools/UnityDoorstop/linux/x64/libdoorstop.so" "${ROOT}/Release/.tmp/${TARGET}/libdoorstop.so"
 else
 	echo "** Copy doorstop helper files (windows)"
