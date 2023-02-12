@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using API.Contracts;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -40,6 +41,25 @@ public class Community
 	public Loader.CarbonMod Plugins { get; set; }
 	public Entities Entities { get; set; }
 	public bool IsInitialized { get; set; }
+
+	public IEventManager Events { get; private set; }
+	public IDownloadManager Downloader { get; private set; }
+
+	public Community()
+	{
+		try
+		{
+			GameObject gameObject = GameObject.Find("Carbon");
+			if (gameObject == null) throw new Exception("Carbon GameObject not found");
+
+			Events = gameObject.GetComponent<IEventManager>();
+			Downloader = gameObject.GetComponent<IDownloadManager>();
+		}
+		catch (System.Exception ex)
+		{
+			Carbon.Logger.Error("Critical error", ex);
+		}
+	}
 
 	#region Config
 
@@ -124,7 +144,6 @@ public class Community
 			HookManager = gameObject.AddComponent<HookManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
-
 		}
 
 		_registerProcessors();
@@ -221,6 +240,7 @@ public class Community
 	public void Initialize()
 	{
 		if (IsInitialized) return;
+		Events.Trigger(API.Events.CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		#region Handle Versions
 
@@ -250,11 +270,11 @@ public class Community
 
 		ReloadPlugins();
 
-		Carbon.Logger.Log($"Loaded.");
-
 		RefreshConsoleInfo();
 
 		IsInitialized = true;
+		Carbon.Logger.Log($"Loaded.");
+		Events.Trigger(API.Events.CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 
 		Entities.Init();
 	}
@@ -262,6 +282,8 @@ public class Community
 	{
 		try
 		{
+			Events.Trigger(API.Events.CarbonEvent.CarbonShutdown, EventArgs.Empty);
+
 			_uninstallProcessors();
 			_clearCommands(all: true);
 
@@ -270,6 +292,7 @@ public class Community
 			ClearPlugins();
 			Loader._loadedMods.Clear();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
+			Events.Trigger(API.Events.CarbonEvent.CarbonShutdownComplete, EventArgs.Empty);
 
 #if WIN
 			try
@@ -289,6 +312,7 @@ public class Community
 		catch (Exception ex)
 		{
 			Carbon.Logger.Error($"Failed Carbon uninitialization.", ex);
+			Events.Trigger(API.Events.CarbonEvent.CarbonShutdownFailed, EventArgs.Empty);
 		}
 	}
 }

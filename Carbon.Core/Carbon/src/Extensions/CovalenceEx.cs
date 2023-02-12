@@ -1,4 +1,5 @@
 ﻿using Oxide.Core.Libraries.Covalence;
+using Oxide.Game.Rust.Libraries.Covalence;
 
 /*
  *

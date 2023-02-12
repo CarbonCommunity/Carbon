@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<!-- Facepunch game files -->
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Assembly-CSharp.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Assembly-CSharp-firstpass.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Console.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Network.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Rcon.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Sqlite.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.System.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Unity.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.UnityEngine.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Fleck.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Newtonsoft.Json.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Data.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Global.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Harmony.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Localization.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Platform.Common.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.World.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.AIModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.ImageConversionModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.PhysicsModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.SharedInternalsModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.TerrainModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.TextRenderingModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.UI.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAssetBundleModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestAudioModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll" Private="false" />
+	</ItemGroup>
+
+	<!-- Operating system specific game files -->
+	<Choose>
+		<When Condition="$(Configuration.Contains('Unix'))">
+			<ItemGroup>
+				<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Steamworks.Posix.dll" Private="false" />
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Steamworks.Win64.dll" Private="false" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
+</Project>

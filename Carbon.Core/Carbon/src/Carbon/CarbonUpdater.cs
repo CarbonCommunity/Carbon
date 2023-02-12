@@ -94,7 +94,7 @@ internal sealed class Updater
 		string url = GithubReleaseUrl();
 		Logger.Warn($"Updating component 'Carbon' using the '{Release} [{Platform}]' branch");
 
-		Carbon.Supervisor.ASM.Download(url, (string identifier, byte[] buffer) =>
+		Community.Runtime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
 		{
 			if (buffer is { Length: > 0 })
 			{

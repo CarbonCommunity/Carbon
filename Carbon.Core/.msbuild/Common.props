@@ -30,16 +30,16 @@
 
 	<PropertyGroup>
 		<Authors>Carbon Community</Authors>
-		<Copyright>Copyright © $([System.DateTime]::Now.Year) $(Authors)</Copyright>
+		<Copyright>Copyright © 2022-$([System.DateTime]::Now.Year) $(Authors)</Copyright>
 		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
-		<Description>A very lightweight version of Oxide, all working within Harmony's environment.</Description>
+		<Description>A very lightweight and modular Harmony-based modding framework</Description>
 	</PropertyGroup>
 
 	<Import Project="Configurations.props" />
 	<Import Project="Metadata.props" />
-
 	<Import Project="Clean.targets" />
 	<Import Project="Metadata.targets" />
 	<Import Project="Release.targets" />
+	<Import Project="References.props" />
 </Project>

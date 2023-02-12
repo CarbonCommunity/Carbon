@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using Carbon;
 using Carbon.Core;
 using Oxide.Core.Libraries;
@@ -15,6 +16,7 @@ namespace Oxide.Core;
 public class OxideMod
 {
 	public DataFileSystem DataFileSystem { get; private set; } = new DataFileSystem(Defines.GetDataFolder());
+	public PluginManager RootPluginManager { get; private set; }
 
 	public Permission Permission { get; private set; }
 
@@ -29,7 +31,7 @@ public class OxideMod
 
 	public bool IsShuttingDown { get; private set; }
 
-	//public float Now => UnityEngine.Time.realtimeSinceStartup;
+	internal static readonly Version AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
 
 	public void Load()
 	{
@@ -42,10 +44,11 @@ public class OxideMod
 		DataDirectory = Defines.GetDataFolder();
 		LangDirectory = Defines.GetLangFolder();
 		LogDirectory = Defines.GetLogsFolder();
-		PluginDirectory = Defines.GetPluginsFolder();
+		PluginDirectory = Defines.GetScriptFolder();
 		TempDirectory = Defines.GetTempFolder();
 
 		DataFileSystem = new DataFileSystem(DataDirectory);
+		RootPluginManager = new PluginManager();
 
 		Permission = new Permission();
 	}
@@ -88,10 +91,17 @@ public class OxideMod
 		return HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
 	}
 
-	public T GetLibrary<T>() where T : Library
+	public T GetLibrary<T>(string name = null) where T : Library
 	{
+		var type = typeof(T);
+
+		if (type == typeof(Permission)) return Community.Runtime.CorePlugin.permission as T;
+		else if (type == typeof(Lang)) return Community.Runtime.CorePlugin.lang as T;
+
 		return Activator.CreateInstance<T>();
 	}
+
+	public static readonly VersionNumber Version = new(AssemblyVersion.Major, AssemblyVersion.Minor, AssemblyVersion.Build);
 
 	#region Logging
 
@@ -101,7 +111,7 @@ public class OxideMod
 	/// </summary>
 	/// <param name="message"></param>
 	public void LogInfo(string message)
-		=> Carbon.Logger.Log(message);
+		=> Logger.Log(message);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
@@ -109,7 +119,7 @@ public class OxideMod
 	/// </summary>
 	/// <param name="message"></param>
 	public void LogWarning(string message)
-		=> Carbon.Logger.Warn(message);
+		=> Logger.Warn(message);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -118,7 +128,7 @@ public class OxideMod
 	/// <param name="message"></param>
 	/// <param name="ex"></param>
 	public void LogError(string message, Exception ex)
-		=> Carbon.Logger.Error(message, ex);
+		=> Logger.Error(message, ex);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -126,7 +136,16 @@ public class OxideMod
 	/// </summary>
 	/// <param name="message"></param>
 	public void LogError(string message)
-		=> Carbon.Logger.Error(message, null);
+		=> Logger.Error(message, null);
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'ERROR'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="ex"></param>
+	public void LogException(string message, Exception ex)
+		=> Logger.Error(message, ex);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
@@ -135,7 +154,7 @@ public class OxideMod
 	/// <param name="message"></param>
 	/// <param name="args"></param>
 	public void PrintWarning(string format, params object[] args)
-		=> Carbon.Logger.Warn(string.Format(format, args));
+		=> Logger.Warn(string.Format(format, args));
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -144,7 +163,7 @@ public class OxideMod
 	/// <param name="message"></param>
 	/// <param name="args"></param>
 	public void PrintError(string format, params object[] args)
-		=> Carbon.Logger.Error(string.Format(format, args));
+		=> Logger.Error(string.Format(format, args));
 
 	#endregion
 }

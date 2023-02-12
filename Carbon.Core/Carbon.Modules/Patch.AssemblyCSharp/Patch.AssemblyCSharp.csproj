@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Patch.AssemblyCSharp</Product>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{27839E40-05AB-4B6B-9CF8-AFBB580E4D58}</ProjectGuid>
+	</PropertyGroup>
+
+	<Import Project="..\..\.msbuild\Common.props" />
+
+	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_modules)" />
+	</Target>
+</Project>
