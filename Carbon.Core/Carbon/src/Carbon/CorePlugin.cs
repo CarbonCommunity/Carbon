@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
@@ -10,7 +11,10 @@ using Carbon.Extensions;
 using Carbon.Hooks;
 using Carbon.Plugins;
 using Facepunch;
+using Network;
 using Newtonsoft.Json;
+using Oxide.Core;
+using Oxide.Game.Rust;
 using Oxide.Plugins;
 using UnityEngine;
 
@@ -84,6 +88,28 @@ public class CorePlugin : CarbonPlugin
 	private void OnEntityKill(BaseEntity entity)
 	{
 		Entities.RemoveMap(entity);
+	}
+	private object IOnUserApprove(Connection connection)
+	{
+		var username = connection.username;
+		var text = connection.userid.ToString();
+		var obj = Regex.Replace(connection.ipaddress, global::Oxide.Game.Rust.Libraries.Player.ipPattern, "");
+		var authLevel = connection.authLevel;
+
+		var canClient = Interface.CallHook("CanClientLogin", connection);
+		var canUser = Interface.CallHook("CanUserLogin", username, text, obj);
+
+		var obj4 = (canClient == null) ? canUser : canClient;
+		if (obj4 is string || (obj4 is bool && !(bool)obj4))
+		{
+			ConnectionAuth.Reject(connection, (obj4 is string) ? obj4.ToString() : "Connection was rejected", null);
+			return true;
+		}
+
+		if (Interface.CallHook("OnUserApprove", connection) != null)
+			return Interface.CallHook("OnUserApproved", username, text, obj);
+
+		return null;
 	}
 
 	internal static void Reply(object message, ConsoleSystem.Arg arg)
