@@ -55,7 +55,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
 		RegisterTab(PlayersTab.Get());
-		RegisterTab(CarbonTab.Get());
+		RegisterTab(CarbonTab.Get(), 0);
 	}
 
 	private bool CanAccess(BasePlayer player)
@@ -345,7 +345,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0.5",
 			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
 
-		cui.CreateText(container, parent: $"{parent}panel", id: null,
+		cui.CreateText(container, parent: $"{parent}inppanel", id: null,
 			color: "1 1 1 0.7",
 			text: value, 11,
 			xMin: 0, xMax: 1, yMin: 0, yMax: 1,

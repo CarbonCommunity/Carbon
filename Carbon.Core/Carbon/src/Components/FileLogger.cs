@@ -42,7 +42,7 @@ public class FileLogger : IDisposable
 		try
 		{
 			File.Delete(path);
-			File.Delete(Harmony.FileLog.logPath);
+			//File.Delete(Harmony.FileLog.logPath);
 			File.Delete(HarmonyLib.FileLog.LogPath);
 		}
 		catch { }

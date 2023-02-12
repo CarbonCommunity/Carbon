@@ -14,7 +14,7 @@ BASEDIR="${SCRIPT}/../../"
 # Prepare the environment
 export TERM=xterm
 export DOORSTOP_ENABLED=1
-export DOORSTOP_TARGET_ASSEMBLY="${BASEDIR}/carbon/managed/Carbon.Doorstop.dll"
+export DOORSTOP_TARGET_ASSEMBLY="${BASEDIR}/carbon/managed/Carbon.Preloader.dll"
 
 if [ -z "${LD_LIBRARY_PATH}" ]; then
     export LD_LIBRARY_PATH="${BASEDIR}:${BASEDIR}/RustDedicated_Data/Plugins/x86_64"

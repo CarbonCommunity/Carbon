@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Carbon;
+using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
 
 /*
@@ -14,7 +16,7 @@ using Oxide.Plugins;
 
 namespace Oxide.Core.Libraries;
 
-public class Permission
+public class Permission : Library
 {
 	public bool IsGlobal
 	{
@@ -34,6 +36,8 @@ public class Permission
 
 	public static char[] Star = new char[] { '*' };
 	public static string[] EmptyStringArray = new string[0];
+
+	internal FieldInfo _iPlayerField = typeof(BasePlayer).GetType().GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
 
 	private void LoadFromDatafile()
 	{
@@ -247,6 +251,8 @@ public class Permission
 		{
 			RemoveUserGroup(player.UserIDString, "admin");
 		}
+
+		if (_iPlayerField.GetValue(player) == null) _iPlayerField.SetValue(player, new RustPlayer { Object = player });
 	}
 	public void UpdateNickname(string id, string nickname)
 	{

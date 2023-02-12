@@ -87,7 +87,7 @@ public static class Loader
 		{
 			HarmonyLib.Harmony.DEBUG = true;
 			var path = Path.Combine(Defines.GetLogsFolder(), "harmony_v2_log.txt");
-			Harmony.FileLog.logPath = Path.Combine(Defines.GetLogsFolder(), "harmony_v1_log.txt");
+			//Harmony.FileLog.logPath = Path.Combine(Defines.GetLogsFolder(), "harmony_v1_log.txt");
 
 			Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", path);
 
@@ -118,7 +118,7 @@ public static class Loader
 		}
 		finally
 		{
-			Harmony.FileLog.FlushBuffer();
+			//Harmony.FileLog.FlushBuffer();
 			HarmonyLib.FileLog.FlushBuffer();
 		}
 	}
@@ -140,27 +140,26 @@ public static class Loader
 	}
 	public static bool LoadCarbonMod(string fullPath, bool silent = false)
 	{
-		if (OsEx.File.Exists(fullPath)) return false;
+		if (!File.Exists(fullPath)) return false;
 
 		var fileName = Path.GetFileName(fullPath);
 
 		if (fileName.EndsWith(".dll"))
-		{
 			fileName = fileName.Substring(0, fileName.Length - 4);
-		}
+		var domain = "com.rust.carbon." + fileName;
 
 		UnloadCarbonMod(fileName);
-
-		var domain = "com.rust.carbon." + fileName;
 
 		try
 		{
 			var assembly = LoadAssembly(fullPath);
+
 			if (assembly == null)
 			{
 				LogError(domain, $"Failed to load harmony mod '{fileName}.dll' from '{_modPath}'");
 				return false;
 			}
+
 			var mod = new CarbonMod
 			{
 				Assembly = assembly,
@@ -180,31 +179,33 @@ public static class Loader
 						if (harmonyModHooks == null) LogError(mod.Name, "Failed to create hook instance: Is null");
 						else mod.Hooks.Add(harmonyModHooks);
 					}
-					catch (Exception arg) { LogError(mod.Name, $"Failed to create hook instance {arg}"); }
+					catch (Exception e)
+					{
+						LogError(mod.Name, $"Failed to create hook instance {e}");
+					}
 				}
 			}
 
-			mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
-			mod.Harmonyv2 = new HarmonyLib.Harmony(domain);
-
-			try
+			/*try
 			{
+				mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
 				mod.Harmonyv1.PatchAll(assembly);
 			}
-			catch (Exception arg2)
+			catch (Exception e)
 			{
-				if (!silent) LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", arg2));
-				return false;
-			}
+				if (!silent)
+					LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", e));
+			}*/
 
 			try
 			{
+				mod.Harmonyv2 = new HarmonyLib.Harmony(domain);
 				mod.Harmonyv2.PatchAll(assembly);
 			}
-			catch (Exception arg2)
+			catch (Exception e)
 			{
-				if (!silent) LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", arg2));
-				return false;
+				if (!silent)
+					LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", e));
 			}
 
 			foreach (var hook in mod.Hooks)
@@ -216,9 +217,10 @@ public static class Loader
 
 					hook.OnLoaded(new OnHarmonyModLoadedArgs());
 				}
-				catch (Exception arg3)
+				catch (Exception e)
 				{
-					if (!silent) LogError(mod.Name, string.Format("Failed to call hook 'OnLoaded' {0}", arg3));
+					if (!silent)
+						LogError(mod.Name, string.Format("Failed to call hook 'OnLoaded' {0}", e));
 				}
 			}
 
@@ -330,7 +332,7 @@ public static class Loader
 			return false;
 		}
 
-		var title = info.Title;
+		var title = info.Title?.Replace(" ", "");
 		var author = info.Author;
 		var version = info.Version;
 		var description = desc == null ? string.Empty : desc.Description;
@@ -597,7 +599,7 @@ public static class Loader
 	{
 		if (mod.IsCoreMod) return;
 
-		if (mod.Harmonyv1 != null)
+		/*if (mod.Harmonyv1 != null)
 		{
 			Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v1...");
 
@@ -606,13 +608,13 @@ public static class Loader
 				mod.Harmonyv1.UnpatchAll(mod.Harmonyv1.Id);
 				Log(mod.Name, "Unloaded v1 mod");
 			}
-			catch (InvalidCastException ex)
+			catch (Exception ex)
 			{
 				Logger.Error($"Failed unpatching all v1 patches.", ex);
 			}
 
 			mod.Harmonyv1 = null;
-		}
+		}*/
 
 		if (mod.Harmonyv2 != null)
 		{
@@ -623,7 +625,7 @@ public static class Loader
 				mod.Harmonyv2.UnpatchAll(mod.Harmonyv2.Id);
 				Log(mod.Name, "Unloaded v2 mod");
 			}
-			catch (InvalidCastException ex)
+			catch (Exception ex)
 			{
 				Logger.Error($"Failed unpatching all v2 patches.", ex);
 			}
@@ -647,22 +649,17 @@ public static class Loader
 		try
 		{
 			if (!File.Exists(assemblyPath))
-			{
-				return null;
-			}
+				throw new FileNotFoundException($"File not found '{assemblyPath}'");
 
 			var rawAssembly = File.ReadAllBytes(assemblyPath);
-			var path = assemblyPath.Substring(0, assemblyPath.Length - 4) + ".pdb";
-
-			if (File.Exists(path))
-			{
-				var rawSymbolStore = File.ReadAllBytes(path);
-				return Assembly.Load(rawAssembly, rawSymbolStore);
-			}
+			if (rawAssembly == null) throw new Exception("No bytes read from file");
 
 			return Assembly.Load(rawAssembly);
 		}
-		catch { }
+		catch (Exception ex)
+		{
+			Logger.Error($"[LoadAssembly] Failed processing '{assemblyPath}'\n{ex}");
+		}
 
 		return null;
 	}
@@ -712,7 +709,7 @@ public static class Loader
 		public string File { get; set; } = string.Empty;
 		[JsonProperty]
 		public bool IsCoreMod { get; set; } = false;
-		public Harmony.HarmonyInstance Harmonyv1 { get; set; }
+		//public Harmony.HarmonyInstance Harmonyv1 { get; set; }
 		public HarmonyLib.Harmony Harmonyv2 { get; set; }
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }

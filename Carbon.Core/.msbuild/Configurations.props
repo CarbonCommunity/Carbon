@@ -40,13 +40,4 @@
 			</PropertyGroup>
 		</Otherwise>
 	</Choose>
-
-	<ItemGroup>
-		<!-- System libs -->
-		<Reference Include="System.Configuration.Install" Private="true" />
-		<Reference Include="System.Globalization" Private="true" />
-
-		<!-- Facepunch game files -->
-		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" Private="false" />
-	</ItemGroup>
 </Project>

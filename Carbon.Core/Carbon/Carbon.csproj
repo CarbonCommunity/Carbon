@@ -6,31 +6,32 @@
 	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />
-	<!-- <Import Project="..\.msbuild\AssemblyName.props" /> -->
+	<Import Project="..\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
-		<!-- HarmonyLib using a custom name -->
-		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" />
+		<!-- Assembly patcher -->
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" GeneratePathProperty="true" />
 
 		<!-- Required by Carbon's Logger -->
-		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
+		<PackageReference Include="Ben.Demystifier" Version="0.4.1" PrivateAssets="all" />
 
 		<!-- Compression -->
 		<PackageReference Include="SharpCompress" Version="0.32.2" PrivateAssets="all" />
 
 		<!-- Required by Carbon's Compiler -->
-		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
-		<PackageReference Include="protobuf-net" Version="3.1.17" />
-		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
+		<PackageReference Include="protobuf-net.Core" Version="3.1.17" PrivateAssets="all" />
+		<PackageReference Include="protobuf-net" Version="3.1.17" PrivateAssets="all" />
+		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" PrivateAssets="all" />
 
 		<!-- Required by Carbon's Database support -->
 		<PackageReference Include="MySql.Data" Version="8.0.31" PrivateAssets="all" />
 		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" PrivateAssets="all" />
-		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
+		<PackageReference Include="System.IO.Compression" Version="4.3.0" PrivateAssets="all" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+		<Copy SourceFiles="$(PkgLib_Harmony)\lib\net48\0Harmony.dll" DestinationFolder="$(c_lib)" />
 	</Target>
 
 	<Target Name="AfterResolveReferences">

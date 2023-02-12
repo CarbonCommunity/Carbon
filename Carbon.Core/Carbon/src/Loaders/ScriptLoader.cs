@@ -69,7 +69,7 @@ public class ScriptLoader : IDisposable
 
 	public static void LoadAll()
 	{
-		var files = OsEx.Folder.GetFilesWithExtension(Defines.GetPluginsFolder(), "cs");
+		var files = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs");
 
 		Community.Runtime.ScriptProcessor.Clear();
 		Community.Runtime.ScriptProcessor.IgnoreList.Clear();

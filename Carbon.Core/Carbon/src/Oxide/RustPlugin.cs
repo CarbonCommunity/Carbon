@@ -23,7 +23,7 @@ public class RustPlugin : Plugin
 	public PluginManager Manager { get; set; }
 
 	public Permission permission { get; set; }
-	public Language lang { get; set; }
+	public Lang lang { get; set; }
 	public Command cmd { get; set; }
 	public Server server { get; set; }
 	public Plugins plugins { get; set; }
@@ -62,7 +62,7 @@ public class RustPlugin : Plugin
 		Manager = new PluginManager();
 		plugins = new Plugins();
 		timer = new Timers(this);
-		lang = new Language(this);
+		lang = new Lang(this);
 		mod = new OxideMod();
 		rust = new Game.Rust.Libraries.Rust();
 		webrequest = new WebRequests();
@@ -180,6 +180,15 @@ public class RustPlugin : Plugin
 		filename = plugin.Name.ToLower() + "_" + filename.ToLower() + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
 
 		File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
+	}
+
+	#endregion
+
+	#region Library
+
+	public static T GetLibrary<T>(string name = null) where T : Library
+	{
+		return Interface.Oxide.GetLibrary<T>();
 	}
 
 	#endregion

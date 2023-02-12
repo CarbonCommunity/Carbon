@@ -6,17 +6,17 @@
   <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml/badge.svg?branch=production"></a>
 </p>
 
+## Introduction
+Carbon is an anticipated system designed for lower-to-higher-end **Rust** servers with top priority for best performance and memory optimization, which is compatible with most - if not all - **Oxide** plugins currently out in the market, and a lot more features!
 
-A concept that's becoming reality.
-**Carbon** is a platform in the form of a DLL which gets added under your Rust server, in the *HarmonyMods* folder. 
-
-**Join our official [Discord server](https://discord.gg/eXPcNKK4yd) for more frequent development info, discussions and future plans.**
+Join our official [Discord server][discord] for more frequent development info, discussions and future plans.
 
 ## Documentation
 
-**For more in-depth Carbon documentation, from builds and deployment, check [here](https://carboncommunity.gitbook.io/docs).**
+For more in-depth Carbon documentation, from builds and deployment, check [here][documentation].
 
-Find all currently available hooks **[here](https://carboncommunity.gitbook.io/docs/core/hooks/carbon-hooks)**. We're open for your support to add any missing hooks that you want **[here](https://carboncommunity.gitbook.io/docs/core/hooks/incompatible-hooks)**.
+Find all currently available hooks [here][5].
+We're open for your support to add any missing hooks that you want [here][6].
 
 ## Features
 * Extremely lightweight, stripped out of additional, unrelated-to-Rust processes
@@ -34,7 +34,7 @@ Find all currently available hooks **[here](https://carboncommunity.gitbook.io/d
 * Embedded error/exception Demystifier which shows accurate error outputs
 * Very fast & helpful error handling for plugin compilation
 
-## Installation
+## Running Carbon
 
 ### Flavors
 Carbon has three different main flavors.
@@ -54,43 +54,18 @@ In general most people is advised to get the latest stable version which is the 
 This script will prepare the `LD_LIBRARY_PATH` and `LD_PRELOAD` env to execute Unity Doorstop automatically.
 Update your scripts to always source `source carbon/tools/environment.sh` before starting the game server.
 
-### Folder structure
-This is the example of a default Carbon installation, the full folder structure will get created when starting the rust dedicated server for the first time after the installation.
+#### Pterodactyl
+1. Download [this file][3] and save it locally as `egg-rust-carbon.json`.
+2. Open your Pterodactyl admin panel and go to the `Nests` section.
+3. Click `Import Egg` and browse for the file you've just downloaded.
+4. Select `Rust` as your `Associated Nest` and import.
 
-```
-.
-├── config.json
-├── configs
-├── data
-│   ├── oxide.groups.data
-│   └── oxide.users.data
-├── harmony
-├── lang
-├── logs
-│   ├── Carbon.Doorstop.log
-│   ├── Carbon.Loader.log
-│   └── (...)
-├── managed
-│   ├── Carbon.Doorstop.dll
-│   ├── Carbon-Unix.dll
-│   └── lib
-│       ├── 1Harmony.dll
-│       ├── Ben.Demystifier.dll
-│       └── (...)
-├── modules
-│   ├── RustEdit.Ext
-│   │   ├── config.json
-│   │   └── data.json
-│   └── (...)
-├── plugins
-├── reports
-├── temp
-└── tools
-    ├── environment.sh
-    └── publicizer.sh
-```
+From here you can build a new Rust server with Carbon as your selected egg.
 
-## Compilation
+The source code for this egg is also [available on Github][4].
+For help and support, join [Carbon's Discord server][discord] and `@RustRadio`.
+
+## Building Carbon
 
 This following instructions were written for 🪟 Windows environments but Carbon can be built on 🐧 Linux hosts as well.
 The project has been successfully built using:
@@ -105,14 +80,20 @@ The project has been successfully built using:
 4. 📒 Open the solution found in `Carbon.Core\Carbon.Core.sln`.
 5. 🚀 Develop, build and have fun.
 
-## Exporting
-
-To export your own patches locally, run the `Tools\Build\win\build_debug.bat` script.
+When building locally there a set of scripts that can help you during the development cycle, those scripts are located on the `Tools\Build\` folder, we have windows and linux scripts available.
+To export your own artifacts locally, run the `Tools\Build\win\build_debug.bat` script.
 This will create a `Releases` folder on project's root with the `.dll` and `.zip` files. 
 
 [1]: https://github.com/Carbon-Modding/Carbon.Core
-[2]: (hhttps://github.com/Carbon-Modding/Carbon.Core/releases/latest)
+[2]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
+[3]: https://raw.githubusercontent.com/jondpugh/Carbon-Ptero/main/egg-rust-carbon.json
+[4]: https://github.com/jondpugh/Carbon-Ptero
+[5]: https://carboncommunity.gitbook.io/docs/core/hooks/carbon-hooks
+[6]: https://carboncommunity.gitbook.io/docs/core/hooks/incompatible-hooks
 
 [production]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
 [staging]: https://github.com/Carbon-Modding/Carbon.Core/releases/tag/staging_build
 [development]: https://github.com/Carbon-Modding/Carbon.Core/releases/tag/develop_build
+
+[discord]: https://discord.gg/eXPcNKK4yd
+[documentation]: https://carboncommunity.gitbook.io/docs
