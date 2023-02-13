@@ -15,11 +15,14 @@ public enum CarbonEvent
 	TestEventOne,
 
 	// Bootstrap.SharedStartup
-	GameStartup, GameStartupComplete, AssetWarmupComplete,
+	StartupShared, StartupSharedComplete,
 
 	// Carbon.Core
 	CarbonStartup, CarbonStartupComplete, CarbonShutdown, CarbonShutdownComplete, CarbonShutdownFailed,
 
 	// Carbon.Hooks
-	HookManagerHooksReady
+	HookManagerHooksReady,
+
+	// Carbon.Plugins
+	CarbonPluginsReady
 }
