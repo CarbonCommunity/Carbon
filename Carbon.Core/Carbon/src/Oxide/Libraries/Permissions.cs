@@ -48,7 +48,7 @@ public class Permission : Library
 	private Dictionary<string, GroupData> groupdata = new();
 	private Func<string, bool> validate;
 
-	internal FieldInfo _iPlayerField = typeof(BasePlayer).GetType().GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
+	internal static FieldInfo _iPlayerField = typeof(BasePlayer).GetType().GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
 
 	public virtual void LoadFromDatafile()
 	{
