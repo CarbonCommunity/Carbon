@@ -239,7 +239,10 @@ public class Permission : Library
 
 		var user = GetUserData(player.UserIDString);
 		user.LastSeenNickname = player.displayName;
-		user.Language = player.net.connection.info.GetString("global.language", "en");
+
+		if (player.net != null && player.net.connection != null && player.net.connection.info != null)
+			user.Language = player.net.connection.info.GetString("global.language", "en");
+		else user.Language = "en";
 
 		AddUserGroup(player.UserIDString, "default");
 
