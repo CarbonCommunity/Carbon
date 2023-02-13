@@ -547,6 +547,8 @@ public static class Loader
 
 	public static void OnPluginProcessFinished()
 	{
+		API.Contracts.Bootstrap.ArePluginsReady = true;
+
 		if (Community.IsServerFullyInitialized)
 		{
 			var counter = 0;

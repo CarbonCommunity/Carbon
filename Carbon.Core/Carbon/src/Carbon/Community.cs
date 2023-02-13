@@ -213,6 +213,8 @@ public class Community
 
 	public static void ReloadPlugins()
 	{
+		API.Contracts.Bootstrap.ArePluginsReady = false;
+
 		Loader.ClearAllErrored();
 		Loader.ClearAllRequirees();
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 /*
  *
@@ -15,7 +15,7 @@ public enum CarbonEvent
 	TestEventOne,
 
 	// Bootstrap.SharedStartup
-	GameStartup, GameStartupComplete,
+	GameStartup, GameStartupComplete, AssetWarmupComplete,
 
 	// Carbon.Core
 	CarbonStartup, CarbonStartupComplete, CarbonShutdown, CarbonShutdownComplete, CarbonShutdownFailed,

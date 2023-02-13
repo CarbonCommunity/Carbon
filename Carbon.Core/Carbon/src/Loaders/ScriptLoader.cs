@@ -1,4 +1,4 @@
-﻿#define DISABLE_ASYNC_LOADING
+﻿// #define DISABLE_ASYNC_LOADING
 
 using System;
 using System.Collections;
