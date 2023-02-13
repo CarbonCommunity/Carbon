@@ -23,7 +23,7 @@ public class Config
 	public int EntityMapBufferSize { get; set; } = 100000;
 	public int LogFileMode { get; set; } = 2;
 	public int LogVerbosity { get; set; } = 0;
-	public List<string> ConditionalCompilationSymbols { get; set; } = new List<string>() { "CARBON" };
+	public List<string> ConditionalCompilationSymbols { get; set; }
 	public Logger.Severity LogSeverity { get; set; } = Logger.Severity.Notice;
 	public string Language { get; set; } = "en";
 	public string WebRequestIp { get; set; }
