@@ -1200,7 +1200,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			perms.ClearColumn(1);
 			perms.AddName(1, "Players", TextAnchor.MiddleLeft);
 			{
-				foreach (var player in BasePlayer.allPlayerList)
+				foreach (var player in BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId()))
 				{
 					perms.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
 					{
@@ -1297,7 +1297,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			AddInitial(tab, ap);
 
-			foreach (var player in BasePlayer.allPlayerList)
+			foreach (var player in BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId()))
 			{
 				AddPlayer(tab, ap, player);
 			}
