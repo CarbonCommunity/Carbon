@@ -177,6 +177,7 @@ public class Defines
 		"Rust.Global",
 		"Rust.Harmony",
 		"Rust.Localization",
+		"Rust.Platform",
 		"Rust.Platform.Common",
 		"Rust.Workshop",
 		"Rust.World",
