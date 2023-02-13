@@ -18,6 +18,12 @@ namespace Oxide.Core.Libraries;
 
 public class Permission : Library
 {
+	public enum SerializationMode
+	{
+		Protobuf,
+		SQL
+	}
+
 	public bool IsGlobal
 	{
 		get
@@ -37,9 +43,14 @@ public class Permission : Library
 	public static char[] Star = new char[] { '*' };
 	public static string[] EmptyStringArray = new string[0];
 
+	private readonly Dictionary<Plugin, HashSet<string>> permset;
+	private Dictionary<string, UserData> userdata = new();
+	private Dictionary<string, GroupData> groupdata = new();
+	private Func<string, bool> validate;
+
 	internal FieldInfo _iPlayerField = typeof(BasePlayer).GetType().GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
 
-	private void LoadFromDatafile()
+	public virtual void LoadFromDatafile()
 	{
 		Utility.DatafileToProto<Dictionary<string, UserData>>("oxide.users", true);
 		Utility.DatafileToProto<Dictionary<string, GroupData>>("oxide.groups", true);
@@ -61,7 +72,7 @@ public class Permission : Library
 		IsLoaded = true;
 	}
 
-	public void Export(string prefix = "auth")
+	public virtual void Export(string prefix = "auth")
 	{
 		if (!IsLoaded) return;
 
@@ -69,26 +80,26 @@ public class Permission : Library
 		Interface.Oxide.DataFileSystem.WriteObject(prefix + ".users", userdata, false);
 	}
 
-	public void SaveData()
+	public virtual void SaveData()
 	{
 		SaveUsers();
 		SaveGroups();
 	}
-	public void SaveUsers()
+	public virtual void SaveUsers()
 	{
 		ProtoStorage.Save(userdata, "oxide.users");
 	}
-	public void SaveGroups()
+	public virtual void SaveGroups()
 	{
 		ProtoStorage.Save(groupdata, "oxide.groups");
 	}
 
-	public void RegisterValidate(Func<string, bool> val)
+	public virtual void RegisterValidate(Func<string, bool> val)
 	{
 		validate = val;
 	}
 
-	public void CleanUp()
+	public virtual void CleanUp()
 	{
 		if (!IsLoaded || validate == null) return;
 
@@ -104,7 +115,7 @@ public class Permission : Library
 		}
 	}
 
-	public void MigrateGroup(string oldGroup, string newGroup)
+	public virtual void MigrateGroup(string oldGroup, string newGroup)
 	{
 		if (!IsLoaded) return;
 
@@ -125,7 +136,7 @@ public class Permission : Library
 		}
 	}
 
-	public void RegisterPermission(string name, Plugin owner)
+	public virtual void RegisterPermission(string name, Plugin owner)
 	{
 		if (string.IsNullOrEmpty(name)) return;
 
@@ -145,7 +156,7 @@ public class Permission : Library
 		Interface.CallHook("OnPermissionRegistered", name, owner);
 	}
 
-	public void UnregisterPermissions(Plugin owner)
+	public virtual void UnregisterPermissions(Plugin owner)
 	{
 		if (owner == null) return;
 
@@ -157,7 +168,7 @@ public class Permission : Library
 		}
 	}
 
-	public bool PermissionExists(string name, Plugin owner = null)
+	public virtual bool PermissionExists(string name, Plugin owner = null)
 	{
 		if (string.IsNullOrEmpty(name))
 		{
@@ -198,22 +209,22 @@ public class Permission : Library
 		return hashSet.Contains(name);
 	}
 
-	public bool UserIdValid(string id)
+	public virtual bool UserIdValid(string id)
 	{
 		return validate == null || validate(id);
 	}
 
-	public bool UserExists(string id)
+	public virtual bool UserExists(string id)
 	{
 		return userdata.ContainsKey(id);
 	}
 
-	public bool UserExists(string id, out UserData data)
+	public virtual bool UserExists(string id, out UserData data)
 	{
 		return userdata.TryGetValue(id, out data);
 	}
 
-	public UserData GetUserData(string id)
+	public virtual UserData GetUserData(string id)
 	{
 		if (!userdata.TryGetValue(id, out var result))
 		{
@@ -223,7 +234,7 @@ public class Permission : Library
 		return result;
 	}
 
-	public KeyValuePair<string, UserData> FindUser(string id)
+	public virtual KeyValuePair<string, UserData> FindUser(string id)
 	{
 		foreach (var user in userdata)
 		{
@@ -233,7 +244,7 @@ public class Permission : Library
 		return default;
 	}
 
-	public void RefreshUser(BasePlayer player)
+	public virtual void RefreshUser(BasePlayer player)
 	{
 		if (player == null) return;
 
@@ -257,7 +268,7 @@ public class Permission : Library
 
 		if (_iPlayerField.GetValue(player) == null) _iPlayerField.SetValue(player, new RustPlayer { Object = player });
 	}
-	public void UpdateNickname(string id, string nickname)
+	public virtual void UpdateNickname(string id, string nickname)
 	{
 		if (UserExists(id))
 		{
@@ -269,19 +280,19 @@ public class Permission : Library
 		}
 	}
 
-	public bool UserHasAnyGroup(string id)
+	public virtual bool UserHasAnyGroup(string id)
 	{
 		return UserExists(id) && GetUserData(id).Groups.Count > 0;
 	}
-	public bool GroupsHavePermission(HashSet<string> groups, string perm)
+	public virtual bool GroupsHavePermission(HashSet<string> groups, string perm)
 	{
 		return groups.Any((string group) => GroupHasPermission(group, perm));
 	}
-	public bool GroupHasPermission(string name, string perm)
+	public virtual bool GroupHasPermission(string name, string perm)
 	{
 		return GroupExists(name) && !string.IsNullOrEmpty(perm) && groupdata.TryGetValue(name.ToLower(), out var groupData) && (groupData.Perms.Contains(perm.ToLower()) || GroupHasPermission(groupData.ParentGroup, perm));
 	}
-	public bool UserHasPermission(string id, string perm)
+	public virtual bool UserHasPermission(string id, string perm)
 	{
 		if (string.IsNullOrEmpty(perm)) return false;
 		if (id.Equals("server_console")) return true;
@@ -291,11 +302,11 @@ public class Permission : Library
 		return userData.Perms.Contains(perm) || GroupsHavePermission(userData.Groups, perm);
 	}
 
-	public string[] GetUserGroups(string id)
+	public virtual string[] GetUserGroups(string id)
 	{
 		return GetUserData(id).Groups.ToArray();
 	}
-	public string[] GetUserPermissions(string id)
+	public virtual string[] GetUserPermissions(string id)
 	{
 		var userData = GetUserData(id);
 		var list = userData.Perms.ToList();
@@ -305,7 +316,7 @@ public class Permission : Library
 		}
 		return new HashSet<string>(list).ToArray();
 	}
-	public string[] GetGroupPermissions(string name, bool parents = false)
+	public virtual string[] GetGroupPermissions(string name, bool parents = false)
 	{
 		if (!GroupExists(name))
 		{
@@ -324,11 +335,11 @@ public class Permission : Library
 		}
 		return new HashSet<string>(list).ToArray();
 	}
-	public string[] GetPermissions()
+	public virtual string[] GetPermissions()
 	{
 		return new HashSet<string>(permset.Values.SelectMany((HashSet<string> v) => v)).ToArray();
 	}
-	public string[] GetPermissionUsers(string perm)
+	public virtual string[] GetPermissionUsers(string perm)
 	{
 		if (string.IsNullOrEmpty(perm)) return EmptyStringArray;
 
@@ -343,7 +354,7 @@ public class Permission : Library
 		}
 		return hashSet.ToArray();
 	}
-	public string[] GetPermissionGroups(string perm)
+	public virtual string[] GetPermissionGroups(string perm)
 	{
 		if (string.IsNullOrEmpty(perm)) return EmptyStringArray;
 
@@ -359,14 +370,14 @@ public class Permission : Library
 		return hashSet.ToArray();
 	}
 
-	public void AddUserGroup(string id, string name)
+	public virtual void AddUserGroup(string id, string name)
 	{
 		if (!GroupExists(name)) return;
 		if (!GetUserData(id).Groups.Add(name.ToLower())) return;
 
 		HookCaller.CallStaticHook("OnUserGroupAdded", id, name);
 	}
-	public void RemoveUserGroup(string id, string name)
+	public virtual void RemoveUserGroup(string id, string name)
 	{
 		if (!GroupExists(name)) return;
 
@@ -386,20 +397,20 @@ public class Permission : Library
 			return;
 		}
 	}
-	public bool UserHasGroup(string id, string name)
+	public virtual bool UserHasGroup(string id, string name)
 	{
 		return GroupExists(name) && GetUserData(id).Groups.Contains(name.ToLower());
 	}
-	public bool GroupExists(string group)
+	public virtual bool GroupExists(string group)
 	{
 		return !string.IsNullOrEmpty(group) && (group.Equals("*") || groupdata.ContainsKey(group.ToLower()));
 	}
 
-	public string[] GetGroups()
+	public virtual string[] GetGroups()
 	{
 		return groupdata.Keys.ToArray();
 	}
-	public string[] GetUsersInGroup(string group)
+	public virtual string[] GetUsersInGroup(string group)
 	{
 		if (!GroupExists(group)) return EmptyStringArray;
 
@@ -409,7 +420,7 @@ public class Permission : Library
 				select u.Key + " (" + u.Value.LastSeenNickname + ")").ToArray();
 	}
 
-	public string GetGroupTitle(string group)
+	public virtual string GetGroupTitle(string group)
 	{
 		if (!GroupExists(group)) return string.Empty;
 
@@ -419,7 +430,7 @@ public class Permission : Library
 		}
 		return groupData.Title;
 	}
-	public int GetGroupRank(string group)
+	public virtual int GetGroupRank(string group)
 	{
 		if (!GroupExists(group)) return 0;
 		if (!groupdata.TryGetValue(group.ToLower(), out var groupData)) return 0;
@@ -427,7 +438,7 @@ public class Permission : Library
 		return groupData.Rank;
 	}
 
-	public bool GrantUserPermission(string id, string perm, Plugin owner)
+	public virtual bool GrantUserPermission(string id, string perm, Plugin owner)
 	{
 		if (!PermissionExists(perm, owner)) return false;
 
@@ -463,7 +474,7 @@ public class Permission : Library
 			return true;
 		}
 	}
-	public bool RevokeUserPermission(string id, string perm)
+	public virtual bool RevokeUserPermission(string id, string perm)
 	{
 		if (string.IsNullOrEmpty(perm)) return false;
 
@@ -489,7 +500,7 @@ public class Permission : Library
 			return true;
 		}
 	}
-	public bool GrantGroupPermission(string name, string perm, Plugin owner)
+	public virtual bool GrantGroupPermission(string name, string perm, Plugin owner)
 	{
 		if (!PermissionExists(perm, owner) || !GroupExists(name)) return false;
 
@@ -526,7 +537,7 @@ public class Permission : Library
 			return true;
 		}
 	}
-	public bool RevokeGroupPermission(string name, string perm)
+	public virtual bool RevokeGroupPermission(string name, string perm)
 	{
 		if (!GroupExists(name) || string.IsNullOrEmpty(perm)) return false;
 		if (!groupdata.TryGetValue(name.ToLower(), out var groupData)) return false;
@@ -552,7 +563,7 @@ public class Permission : Library
 		}
 	}
 
-	public bool CreateGroup(string group, string title, int rank)
+	public virtual bool CreateGroup(string group, string title, int rank)
 	{
 		if (GroupExists(group) || string.IsNullOrEmpty(group)) return false;
 
@@ -566,7 +577,7 @@ public class Permission : Library
 		Interface.CallHook("OnGroupCreated", group, title, rank);
 		return true;
 	}
-	public bool RemoveGroup(string group)
+	public virtual bool RemoveGroup(string group)
 	{
 		if (!GroupExists(group)) return false;
 
@@ -592,7 +603,7 @@ public class Permission : Library
 		return true;
 	}
 
-	public bool SetGroupTitle(string group, string title)
+	public virtual bool SetGroupTitle(string group, string title)
 	{
 		if (!GroupExists(group)) return false;
 		group = group.ToLower();
@@ -603,7 +614,7 @@ public class Permission : Library
 		Interface.CallHook("OnGroupTitleSet", group, title);
 		return true;
 	}
-	public bool SetGroupRank(string group, int rank)
+	public virtual bool SetGroupRank(string group, int rank)
 	{
 		if (!GroupExists(group)) return false;
 		group = group.ToLower();
@@ -614,7 +625,7 @@ public class Permission : Library
 		return true;
 	}
 
-	public string GetGroupParent(string group)
+	public virtual string GetGroupParent(string group)
 	{
 		if (!GroupExists(group)) return string.Empty;
 		group = group.ToLower();
@@ -624,7 +635,7 @@ public class Permission : Library
 		}
 		return string.Empty;
 	}
-	public bool SetGroupParent(string group, string parent)
+	public virtual bool SetGroupParent(string group, string parent)
 	{
 		if (!GroupExists(group)) return false;
 		group = group.ToLower();
@@ -647,7 +658,7 @@ public class Permission : Library
 		Interface.CallHook("OnGroupParentSet", group, parent);
 		return true;
 	}
-	private bool HasCircularParent(string group, string parent)
+	public virtual bool HasCircularParent(string group, string parent)
 	{
 		if (!groupdata.TryGetValue(parent, out var groupData))
 		{
@@ -665,12 +676,4 @@ public class Permission : Library
 		}
 		return false;
 	}
-
-	private readonly Dictionary<Plugin, HashSet<string>> permset;
-
-	private Dictionary<string, UserData> userdata = new Dictionary<string, UserData>();
-
-	private Dictionary<string, GroupData> groupdata = new Dictionary<string, GroupData>();
-
-	private Func<string, bool> validate;
 }
