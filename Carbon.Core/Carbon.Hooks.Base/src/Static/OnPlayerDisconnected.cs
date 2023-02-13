@@ -5,6 +5,8 @@
  *
  */
 
+using Oxide.Core;
+
 namespace Carbon.Hooks;
 
 public partial class Category_Static
@@ -19,9 +21,20 @@ public partial class Category_Static
 
 		public class Static_ServerMgr_OnDisconnected_4d9dcdaf8fbd4923a96eef18a7da7488
 		{
-			public static void Postfix(string strReason, Network.Connection connection)
+			public static bool Prefix(string strReason, Network.Connection connection, ref ServerMgr __instance)
 			{
-				HookCaller.CallStaticHook("OnPlayerDisconnected", connection.player as BasePlayer, strReason);
+				__instance.connectionQueue.RemoveConnection(connection);
+				ConnectionAuth.OnDisconnect(connection);
+				PlatformService.Instance.EndPlayerSession(connection.userid);
+				EACServer.OnLeaveGame(connection);
+
+				if (connection.player is BasePlayer player)
+				{
+					HookCaller.CallStaticHook("OnPlayerDisconnected", player, strReason);
+					player.OnDisconnected();
+				}
+
+				return false;
 			}
 		}
 	}
