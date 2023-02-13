@@ -48,7 +48,8 @@ public class Permission : Library
 	private Dictionary<string, GroupData> groupdata = new();
 	private Func<string, bool> validate;
 
-	internal static FieldInfo _iPlayerField = typeof(BasePlayer).GetType().GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
+	private static FieldInfo _iPlayerFieldCache;
+	public static FieldInfo iPlayerField => _iPlayerFieldCache ??= typeof(BasePlayer).GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
 
 	public virtual void LoadFromDatafile()
 	{
@@ -266,7 +267,7 @@ public class Permission : Library
 			RemoveUserGroup(player.UserIDString, "admin");
 		}
 
-		if (_iPlayerField.GetValue(player) == null) _iPlayerField.SetValue(player, new RustPlayer { Object = player });
+		if (iPlayerField.GetValue(player) == null) iPlayerField.SetValue(player, new RustPlayer(player));
 	}
 	public virtual void UpdateNickname(string id, string nickname)
 	{

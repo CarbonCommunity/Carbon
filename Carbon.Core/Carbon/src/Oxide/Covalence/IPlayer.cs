@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Xml.Linq;
 using ConVar;
 using Oxide.Core;
 using Oxide.Core.Libraries;
@@ -21,13 +22,28 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public BasePlayer BasePlayer => Object as BasePlayer;
 
-		private static Permission perms = Interface.Oxide.GetLibrary<Permission>();
+		public RustPlayer()
+		{
+			Id = BasePlayer.UserIDString;
+			Name = BasePlayer.displayName.Sanitize();
+			perms = Interface.Oxide.GetLibrary<Permission>();
+		}
+
+		public RustPlayer(BasePlayer player)
+		{
+			Object = player;
+			Id = BasePlayer.UserIDString;
+			Name = BasePlayer.displayName.Sanitize();
+			perms = Interface.Oxide.GetLibrary<Permission>();
+		}
+
+		private static Permission perms;
 
 		public CommandType LastCommand { get; set; }
 
 		public string Name { get; set; }
 
-		public string Id => BasePlayer?.UserIDString;
+		public string Id { get; }
 
 		public string Address => BasePlayer?.Connection?.ipaddress;
 
@@ -219,8 +235,8 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			BasePlayer.displayName = name;
 			BasePlayer._name = name;
 			BasePlayer.SendNetworkUpdateImmediate(false);
-			if (Permission._iPlayerField.GetValue(BasePlayer) == null) Permission._iPlayerField.SetValue(BasePlayer, new RustPlayer { Object = BasePlayer });
-			(Permission._iPlayerField.GetValue(BasePlayer) as RustPlayer).Name = name;
+			if (Permission.iPlayerField.GetValue(BasePlayer) == null) Permission.iPlayerField.SetValue(BasePlayer, new RustPlayer(BasePlayer));
+			(Permission.iPlayerField.GetValue(BasePlayer) as RustPlayer).Name = name;
 			perms.UpdateNickname(BasePlayer.UserIDString, name);
 			var position = BasePlayer.transform.position;
 			Teleport(position.x, position.y, position.z);

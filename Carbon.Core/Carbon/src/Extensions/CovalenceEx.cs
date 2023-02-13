@@ -13,9 +13,8 @@ public static class CovalenceEx
 {
 	public static RustPlayer AsIPlayer(this BasePlayer player)
 	{
-		var rustPlayer = Permission._iPlayerField.GetValue(player) as RustPlayer;
-
-		if (rustPlayer == null) Permission._iPlayerField.SetValue(player, rustPlayer = new RustPlayer { Object = player });
+		if (Permission.iPlayerField.GetValue(player) is not RustPlayer rustPlayer)
+			Permission.iPlayerField.SetValue(player, rustPlayer = new RustPlayer(player));
 
 		return rustPlayer;
 	}
