@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.Xml.Linq;
-using ConVar;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
@@ -16,7 +14,7 @@ using UnityEngine;
 
 namespace Oxide.Game.Rust.Libraries.Covalence
 {
-	public class RustPlayer : IPlayer
+	public struct RustPlayer : IPlayer
 	{
 		public object Object { get; set; }
 
@@ -235,8 +233,8 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			BasePlayer.displayName = name;
 			BasePlayer._name = name;
 			BasePlayer.SendNetworkUpdateImmediate(false);
-			if (Permission.iPlayerField.GetValue(BasePlayer) == null) Permission.iPlayerField.SetValue(BasePlayer, new RustPlayer(BasePlayer));
-			(Permission.iPlayerField.GetValue(BasePlayer) as RustPlayer).Name = name;
+			var iPlayer = BasePlayer.AsIPlayer();
+			iPlayer.Name = name;
 			perms.UpdateNickname(BasePlayer.UserIDString, name);
 			var position = BasePlayer.transform.position;
 			Teleport(position.x, position.y, position.z);
