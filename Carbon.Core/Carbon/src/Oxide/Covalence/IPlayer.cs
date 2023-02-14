@@ -23,8 +23,8 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 		public RustPlayer(BasePlayer player)
 		{
 			Object = player;
-			Id = BasePlayer.UserIDString;
-			Name = BasePlayer.displayName.Sanitize();
+			Id = player.UserIDString;
+			Name = player.displayName.Sanitize();
 			perms = Interface.Oxide.GetLibrary<Permission>();
 		}
 
