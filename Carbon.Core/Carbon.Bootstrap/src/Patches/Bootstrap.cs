@@ -28,9 +28,7 @@ internal static class __Bootstrap
 			Loader.GetInstance().Events
 				.Trigger(API.Events.CarbonEvent.StartupSharedComplete, EventArgs.Empty);
 
-
-
-			// example mockup -----
+			/* example mockup --------------------------------------------------
 			bool ArePluginsReady = false;
 			Loader.GetInstance().Events.Subscribe(API.Events.CarbonEvent.CarbonPluginsReady, x => ArePluginsReady = true);
 
@@ -40,9 +38,9 @@ internal static class __Bootstrap
 				while (!ArePluginsReady) await Task.Delay(1000);
 				return;
 			});
-
-			// remove comment to start waiting for the event
-			//WaitForPlugins.Wait();
+			
+			WaitForPlugins.Wait();
+			*/
 		}
 	}
 }

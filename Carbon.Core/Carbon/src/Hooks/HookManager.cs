@@ -100,7 +100,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 		}
 
 		Community.Runtime.Events.Trigger(
-			API.Events.CarbonEvent.HookManagerHooksReady, EventArgs.Empty);
+			API.Events.CarbonEvent.HooksInstalled, EventArgs.Empty);
 
 		try
 		{

@@ -547,8 +547,6 @@ public static class Loader
 
 	public static void OnPluginProcessFinished()
 	{
-		API.Contracts.Bootstrap.ArePluginsReady = true;
-
 		if (Community.IsServerFullyInitialized)
 		{
 			var counter = 0;
@@ -593,6 +591,8 @@ public static class Loader
 
 			Report.OnProcessEnded?.Invoke();
 		}
+
+		Community.Runtime.Events.Trigger(API.Events.CarbonEvent.CarbonPluginsReady, EventArgs.Empty);
 	}
 
 	#endregion

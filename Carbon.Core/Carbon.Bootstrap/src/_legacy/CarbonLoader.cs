@@ -57,9 +57,6 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 		// Events
 		Events.Subscribe(API.Events.CarbonEvent.StartupShared,
 			x => HarmonyLoaderEx.GetInstance().Load("Carbon.dll"));
-
-		Events.Subscribe(API.Events.CarbonEvent.CarbonStartupComplete,
-			x => Logger.Debug($"Yeah baby, wanna do it again ?"));
 	}
 
 	internal void Initialize()

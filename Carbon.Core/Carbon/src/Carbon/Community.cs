@@ -213,8 +213,6 @@ public class Community
 
 	public static void ReloadPlugins()
 	{
-		API.Contracts.Bootstrap.ArePluginsReady = false;
-
 		Loader.ClearAllErrored();
 		Loader.ClearAllRequirees();
 
@@ -301,7 +299,6 @@ public class Community
 			ClearPlugins();
 			Loader._loadedMods.Clear();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
-			Events.Trigger(API.Events.CarbonEvent.CarbonShutdownComplete, EventArgs.Empty);
 
 #if WIN
 			try
