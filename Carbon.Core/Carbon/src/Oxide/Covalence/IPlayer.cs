@@ -34,7 +34,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public string Name { get; set; }
 
-		public string Id { get; }
+		public string Id { get; set; }
 
 		public string Address => BasePlayer?.Connection?.ipaddress;
 
