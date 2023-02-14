@@ -25,6 +25,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			Object = player;
 			Id = player.UserIDString;
 			Name = player.displayName.Sanitize();
+			LastCommand = 0;
 			perms = Interface.Oxide.GetLibrary<Permission>();
 		}
 
@@ -76,6 +77,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 				BasePlayer.health = value;
 			}
 		}
+
 		public float MaxHealth
 		{
 			get
