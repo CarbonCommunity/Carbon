@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
+using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -14,7 +14,6 @@ using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
-using Oxide.Game.Rust;
 using Oxide.Plugins;
 using UnityEngine;
 
@@ -168,7 +167,7 @@ public class CorePlugin : CarbonPlugin
 				break;
 
 			default:
-				var body = new StringTable("#", "Mod", "Author", "Version","Hook Time", "Compile Time");
+				var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
 				var count = 1;
 
 				foreach (var mod in Loader._loadedMods)
@@ -435,13 +434,13 @@ public class CorePlugin : CarbonPlugin
 							break;
 					}
 
-					foreach (var mod in hooks.OrderBy(x => x.HookName))
+					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
 					{
 						if (mod.Status == HookState.Failure) failure++;
 						if (mod.Status == HookState.Success) success++;
 						if (mod.Status == HookState.Warning) warning++;
 
-						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+						body.AddRow($"{count++:n0}", mod.HookFullName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}");
 					}
 
@@ -484,13 +483,13 @@ public class CorePlugin : CarbonPlugin
 							break;
 					}
 
-					foreach (var mod in hooks.OrderBy(x => x.HookName))
+					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
 					{
 						if (mod.Status == HookState.Failure) failure++;
 						if (mod.Status == HookState.Success) success++;
 						if (mod.Status == HookState.Warning) warning++;
 
-						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+						body.AddRow($"{count++:n0}", mod.HookFullName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}");
 					}
 

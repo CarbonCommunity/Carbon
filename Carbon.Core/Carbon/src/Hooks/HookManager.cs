@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Hooks;
 using Carbon.Core;
 
 /*
@@ -316,7 +317,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 				foreach (string item in hook.Dependencies)
 				{
-					dependencies = GetHookByName(item).ToList();
+					dependencies = GetHookByFullName(item).ToList();
 
 					if (dependencies.Count < 1)
 						throw new Exception($"Dependency '{item}' not found, this is a bug");
@@ -364,7 +365,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 			foreach (string item in hook.Dependencies)
 			{
-				dependencies = GetHookByName(item).ToList();
+				dependencies = GetHookByFullName(item).ToList();
 
 				if (dependencies.Count < 1)
 					throw new Exception($"Dependency '{item}' not found, this is a bug");
@@ -395,6 +396,9 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 	private IEnumerable<HookEx> GetHookByName(string name)
 		=> DynamicHooks.Where(x => x.HookName == name) ?? null;
+
+	private IEnumerable<HookEx> GetHookByFullName(string name)
+		=> DynamicHooks.Where(x => x.HookFullName == name) ?? null;
 
 	private HookEx GetHookById(string identifier)
 		=> DynamicHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;

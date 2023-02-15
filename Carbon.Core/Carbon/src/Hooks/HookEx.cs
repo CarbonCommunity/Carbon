@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using API.Hooks;
 using HarmonyLib;
 
 /*
@@ -20,6 +21,9 @@ public class HookEx : IDisposable
 	private readonly TypeInfo _patchMethod;
 
 	public string HookName
+	{ get; }
+
+	public string HookFullName
 	{ get; }
 
 	public HookFlags Options
@@ -90,10 +94,11 @@ public class HookEx : IDisposable
 			if (metadata == default)
 				throw new Exception($"Metadata information is invalid or was not found");
 
+			HookFullName = metadata.FullName;
 			HookName = metadata.Name;
-			TargetType = metadata.Target;
 			TargetMethod = metadata.Method;
 			TargetMethodArgs = metadata.MethodArgs;
+			TargetType = metadata.Target;
 
 			if (Attribute.IsDefined(type, typeof(HookAttribute.Identifier), false))
 				Identifier = type.GetCustomAttribute<HookAttribute.Identifier>()?.Value ?? $"{Guid.NewGuid():N}";
@@ -162,7 +167,7 @@ public class HookEx : IDisposable
 			// 	_runtime.Status = HookState.Warning;
 			// }
 
-			Logger.Debug($"Hook '{HookName}[{Identifier}]' patched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{HookFullName}' patched '{TargetType.Name}.{TargetMethod}'", 2);
 		}
 #if DEBUG
 		catch (HarmonyException e)
@@ -197,7 +202,7 @@ public class HookEx : IDisposable
 			if (!IsInstalled) return true;
 			_runtime.HarmonyHandler.UnpatchAll(Identifier);
 
-			Logger.Debug($"Hook '{HookName}[{Identifier}]' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{HookFullName}' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
 			_runtime.Status = HookState.Inactive;
 			return true;
 		}

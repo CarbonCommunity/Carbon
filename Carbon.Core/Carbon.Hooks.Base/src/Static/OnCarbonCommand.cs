@@ -1,4 +1,5 @@
 ﻿using System;
+using API.Hooks;
 using Carbon.Extensions;
 using Facepunch.Extend;
 using Oxide.Game.Rust.Libraries;
