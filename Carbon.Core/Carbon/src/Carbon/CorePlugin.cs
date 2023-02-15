@@ -73,9 +73,10 @@ public class CorePlugin : CarbonPlugin
 	private void OnPluginUnloaded(Plugin plugin)
 	{
 	}
-	private void OnPlayerConnected(BasePlayer player)
+	private void IOnPlayerConnected(BasePlayer player)
 	{
 		permission.RefreshUser(player);
+		Interface.CallHook("OnPlayerConnected", player);
 	}
 	private void OnEntitySpawned(BaseEntity entity)
 	{
