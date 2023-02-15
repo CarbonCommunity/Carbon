@@ -12,7 +12,7 @@
 
 	<ItemGroup>
 		<!-- Assembly patcher -->
-		<PackageReference Include="Lib.Harmony" Version="2.2.2" GeneratePathProperty="true" />
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 
 		<!-- Assembly editor -->
 		<PackageReference Include="Mono.Cecil" Version="0.11.4" Aliases="MonoCecilStandalone" />
@@ -20,6 +20,5 @@
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
-		<Copy SourceFiles="$(PkgLib_Harmony)\lib\net48\0Harmony.dll" DestinationFolder="$(c_lib)" />
 	</Target>
 </Project>

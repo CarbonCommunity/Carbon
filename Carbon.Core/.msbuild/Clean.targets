@@ -21,7 +21,7 @@
 	<!-- ===================== -->
 	<Target Name="CarbonPostBuildEvent2" AfterTargets="PostBuildEvent">
 		<ItemGroup>
-			<RustManaged Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" />
+			<RustManaged Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" Exclude="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\0Harmony.dll" />
 		</ItemGroup>
 
 		<Message Text="[$(AssemblyName)] &gt;&gt; Removing rust managed libs" Importance="high" />
