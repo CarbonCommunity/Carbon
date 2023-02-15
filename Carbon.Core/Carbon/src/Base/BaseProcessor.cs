@@ -5,6 +5,7 @@ using System.IO;
 using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
+using Oxide.Plugins;
 using UnityEngine;
 
 /*
@@ -29,6 +30,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 	public FileSystemWatcher Watcher { get; private set; }
 
 	internal WaitForSeconds _wfsInstance;
+	internal Dictionary<string, Instance> _runtimeCache = new(1000);
 
 	public bool IsInitialized { get; set; }
 
@@ -50,6 +52,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 
 		Watcher?.Dispose();
 		Watcher = null;
+
 		if (!string.IsNullOrEmpty(Extension) && !string.IsNullOrEmpty(Folder))
 		{
 			Watcher = new FileSystemWatcher(Folder)
@@ -80,8 +83,6 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 
 	public virtual IEnumerator Run()
 	{
-		var _tempBuffer = new Dictionary<string, Instance>();
-
 		while (true)
 		{
 			if (!EnableWatcher)
@@ -92,9 +93,9 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 
 			yield return _wfsInstance;
 
-			foreach (var element in InstanceBuffer) _tempBuffer.Add(element.Key, element.Value);
+			foreach (var element in InstanceBuffer) _runtimeCache.Add(element.Key, element.Value);
 
-			foreach (var element in _tempBuffer)
+			foreach (var element in _runtimeCache)
 			{
 				if (element.Value == null)
 				{
@@ -125,7 +126,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 				}
 			}
 
-			_tempBuffer.Clear();
+			_runtimeCache.Clear();
 
 			yield return null;
 		}
