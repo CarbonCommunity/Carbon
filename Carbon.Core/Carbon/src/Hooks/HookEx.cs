@@ -116,7 +116,7 @@ public class HookEx : IDisposable
 			_runtime.Transpiler = HarmonyLib.AccessTools.Method(type, "Transpiler") ?? null;
 
 			if (_runtime.Prefix is null && _runtime.Postfix is null && _runtime.Transpiler is null)
-				throw new Exception($"Patch method not found");
+				throw new Exception($"No patch method found (prefix, postfix, transpiler)");
 		}
 		catch (System.Exception e)
 		{
