@@ -85,14 +85,6 @@ public static class Loader
 	{
 		try
 		{
-			HarmonyLib.Harmony.DEBUG = true;
-			var path = Path.Combine(Defines.GetLogsFolder(), "harmony_v2_log.txt");
-			//Harmony.FileLog.logPath = Path.Combine(Defines.GetLogsFolder(), "harmony_v1_log.txt");
-
-			Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", path);
-
-			typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
-
 			_modPath = Defines.GetHarmonyFolder();
 			if (!Directory.Exists(_modPath))
 			{

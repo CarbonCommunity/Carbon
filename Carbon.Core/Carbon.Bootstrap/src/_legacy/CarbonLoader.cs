@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using Components;
 using Contracts;
@@ -47,6 +48,10 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	internal Loader()
 	{
 		_harmonyInstance = new HarmonyLib.Harmony(identifier);
+
+		HarmonyLib.Harmony.DEBUG = true;
+		Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", Path.Combine(Context.CarbonLogs, "harmony.log"));
+		typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
 
 		_gameObject = new UnityEngine.GameObject("Carbon");
 		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
