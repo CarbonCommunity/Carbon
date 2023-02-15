@@ -20,18 +20,12 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public BasePlayer BasePlayer => Object as BasePlayer;
 
-		public RustPlayer()
-		{
-			Id = BasePlayer.UserIDString;
-			Name = BasePlayer.displayName.Sanitize();
-			perms = Interface.Oxide.GetLibrary<Permission>();
-		}
-
 		public RustPlayer(BasePlayer player)
 		{
 			Object = player;
-			Id = BasePlayer.UserIDString;
-			Name = BasePlayer.displayName.Sanitize();
+			Id = player.UserIDString;
+			Name = player.displayName.Sanitize();
+			LastCommand = 0;
 			perms = Interface.Oxide.GetLibrary<Permission>();
 		}
 
@@ -41,7 +35,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public string Name { get; set; }
 
-		public string Id { get; }
+		public string Id { get; set; }
 
 		public string Address => BasePlayer?.Connection?.ipaddress;
 
@@ -83,6 +77,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 				BasePlayer.health = value;
 			}
 		}
+
 		public float MaxHealth
 		{
 			get
