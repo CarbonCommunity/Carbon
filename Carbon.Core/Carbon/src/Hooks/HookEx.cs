@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text;
+using HarmonyLib;
 
 /*
  *
@@ -162,6 +164,21 @@ public class HookEx : IDisposable
 
 			Logger.Debug($"Hook '{HookName}[{Identifier}]' patched '{TargetType.Name}.{TargetMethod}'", 2);
 		}
+#if DEBUG
+		catch (HarmonyException e)
+		{
+			StringBuilder sb = new StringBuilder();
+			Logger.Error($"Error while patching hook '{HookName}' index:{e.GetErrorIndex()} offset:{e.GetErrorOffset()}", e);
+			sb.AppendLine($"{e.InnerException?.Message.Trim() ?? string.Empty}");
+
+			int x = 0;
+			foreach (var instruction in e.GetInstructionsWithOffsets())
+				sb.AppendLine($"\t{x++:000} {instruction.Key.ToString("X4")}: {instruction.Value}");
+
+			Logger.Error(sb.ToString());
+			sb = default;
+		}
+#endif
 		catch (System.Exception e)
 		{
 			Logger.Error($"Error while patching hook '{HookName}'", e);
@@ -171,24 +188,6 @@ public class HookEx : IDisposable
 		}
 
 		return true;
-
-		/*
-#if DEBUG
-				catch (HarmonyException e)
-				{
-					StringBuilder sb = new StringBuilder();
-					sb.AppendLine($" Couldn't patch hook '{HookName}' ({e.GetType()}: {type.FullName})");
-					sb.AppendLine($">> hook:{HookName} index:{e.GetErrorIndex()} offset:{e.GetErrorOffset()}");
-					sb.AppendLine($">> IL instructions:");
-
-					foreach (var q in e.GetInstructionsWithOffsets())
-						sb.AppendLine($"\t{q.Key.ToString("X4")}: {q.Value}");
-
-					Logger.Error(sb.ToString(), e);
-					sb = default;
-				}
-#endif
-*/
 	}
 
 	public bool RemovePatch()
