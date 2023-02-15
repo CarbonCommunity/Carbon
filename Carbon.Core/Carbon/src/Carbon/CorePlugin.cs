@@ -399,38 +399,42 @@ public class CorePlugin : CarbonPlugin
 
 					switch (option2)
 					{
+						case "--patch":
+							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
+							break;
+
 						case "--static":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden);
 							break;
 
 						case "--dynamic":
-							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden);
 							break;
 
 						case "--failed":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks
+							hooks = Community.Runtime.HookManager.StaticHooks
 								.Where(x => !x.IsHidden && x.Status == HookState.Failure);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks
+							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
 								.Where(x => !x.IsHidden && x.Status == HookState.Failure));
 							break;
 
 						case "--warning":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks
+							hooks = Community.Runtime.HookManager.StaticHooks
 								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks
+							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
 								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
 							break;
 
 						case "--success":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks
+							hooks = Community.Runtime.HookManager.StaticHooks
 								.Where(x => !x.IsHidden && x.Status == HookState.Success);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks
+							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
 								.Where(x => !x.IsHidden && x.Status == HookState.Success));
 							break;
 
 						default:
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
+							hooks = Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden));
 							break;
 					}
 
@@ -440,8 +444,15 @@ public class CorePlugin : CarbonPlugin
 						if (mod.Status == HookState.Success) success++;
 						if (mod.Status == HookState.Warning) warning++;
 
-						body.AddRow($"{count++:n0}", mod.HookFullName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}");
+						body.AddRow(
+							$"{count++:n0}",
+							mod.HookFullName,
+							mod.Identifier.Substring(0, 6),
+							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
+							mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}"
+						);
 					}
 
 					Reply(body.ToStringMinimal(), arg);
@@ -455,6 +466,10 @@ public class CorePlugin : CarbonPlugin
 
 					switch (option1)
 					{
+						case "--patch":
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							break;
+
 						case "--static":
 							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
 							break;
@@ -489,8 +504,16 @@ public class CorePlugin : CarbonPlugin
 						if (mod.Status == HookState.Success) success++;
 						if (mod.Status == HookState.Warning) warning++;
 
-						body.AddRow($"{count++:n0}", mod.HookFullName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}");
+						body.AddRow(
+							$"{count++:n0}",
+							mod.HookFullName,
+							mod.Identifier.Substring(0, 6),
+							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
+							mod.Status,
+							$"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}"
+						);
 					}
 
 					Reply(body.ToStringMinimal(), arg);

@@ -17,8 +17,7 @@ namespace Carbon.Hooks;
 
 public class HookManager : FacepunchBehaviour, IDisposable
 {
-	public List<HookEx> StaticHooks;
-	public List<HookEx> DynamicHooks;
+	public List<HookEx> Patches, StaticHooks, DynamicHooks;
 
 	private bool _doReload;
 	private Queue<Payload> _workQueue;
@@ -44,14 +43,18 @@ public class HookManager : FacepunchBehaviour, IDisposable
 		hooks = default;
 		_workQueue = default;
 		_subscribers = default;
-		StaticHooks = DynamicHooks = default;
+
+		Patches = default;
+		StaticHooks = default;
+		DynamicHooks = default;
 	}
 
 	internal void Awake()
 	{
-		Logger.Log(" Initialized hook processor...");
+		Logger.Log("Initialized hook processor...");
 
 		_workQueue = new Queue<Payload>();
+		Patches = new List<HookEx>();
 		StaticHooks = new List<HookEx>();
 		DynamicHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
@@ -73,6 +76,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 	internal void OnEnable()
 	{
+		Patches.Clear();
 		StaticHooks.Clear();
 		DynamicHooks.Clear();
 
@@ -224,7 +228,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 		IEnumerable<TypeInfo> types = hooks.DefinedTypes
 			.Where(x => Attribute.IsDefined(x, t)).ToList();
 
-		int x = 0, y = 0;
+		int x = 0, y = 0, z = 0;
 		foreach (TypeInfo type in types)
 		{
 			try
@@ -237,7 +241,13 @@ public class HookManager : FacepunchBehaviour, IDisposable
 				if (IsHookLoaded(hook))
 					throw new Exception($"Found duplicated hook '{hook}'");
 
-				if (hook.IsStaticHook)
+				if (hook.IsPatch)
+				{
+					z++;
+					Patches.Add(hook);
+					Logger.Debug($"Loaded patch '{hook}'", 3);
+				}
+				else if (hook.IsStaticHook)
 				{
 					y++;
 					StaticHooks.Add(hook);
@@ -257,7 +267,8 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			}
 		}
 
-		Logger.Log($" - Successfully loaded static:{y} dynamic:{x} ({types.Count()}) hooks from assembly '{Path.GetFileName(fileName)}'");
+		Logger.Log($" - Successfully loaded patches:{z} static:{y} dynamic:{x} "
+			+ $"({types.Count()}) hooks from assembly '{Path.GetFileName(fileName)}'");
 		types = default;
 	}
 
@@ -419,11 +430,8 @@ public class HookManager : FacepunchBehaviour, IDisposable
 	{ get => DynamicHooks.Where(x => x.IsLoaded).Select(x => x.HookName); }
 
 
-	internal IEnumerable<HookEx> LoadedStaticHooks
-	{ get => StaticHooks.Where(x => x.IsLoaded); }
-
-	internal IEnumerable<HookEx> LoadedDynamicHooks
-	{ get => DynamicHooks.Where(x => x.IsLoaded); }
+	internal IEnumerable<HookEx> InstalledPatches
+	{ get => Patches.Where(x => x.IsInstalled); }
 
 	internal IEnumerable<HookEx> InstalledStaticHooks
 	{ get => StaticHooks.Where(x => x.IsInstalled); }

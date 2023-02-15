@@ -51,8 +51,14 @@ public class HookEx : IDisposable
 	{ get; }
 
 
+	public bool IsPatch
+	{ get => Options.HasFlag(HookFlags.Patch); }
+
 	public bool IsStaticHook
 	{ get => Options.HasFlag(HookFlags.Static); }
+
+	public bool IsDynamicHook
+	{ get => !Options.HasFlag(HookFlags.Static) && !Options.HasFlag(HookFlags.Patch); }
 
 	public bool IsHidden
 	{ get => Options.HasFlag(HookFlags.Hidden); }
@@ -61,11 +67,13 @@ public class HookEx : IDisposable
 	{ get => Options.HasFlag(HookFlags.IgnoreChecksum); }
 
 	public bool IsLoaded
-	{ get => _runtime.Status != HookState.Inactive; }
+	{ get => true; } // dummy method, if something is defined.. then it's loaded
 
 	public bool IsInstalled
 	{ get => _runtime.Status is HookState.Success or HookState.Warning; }
 
+	public bool IsFailed
+	{ get => _runtime.Status is HookState.Failure; }
 
 	public override string ToString()
 		=> $"{HookName}[{ShortIdentifier}]";
@@ -113,6 +121,7 @@ public class HookEx : IDisposable
 				Checksum = type.GetCustomAttribute<HookAttribute.Checksum>()?.Value ?? default;
 
 			_patchMethod = type;
+			_runtime.Status = HookState.Inactive;
 			_runtime.HarmonyHandler = new HarmonyLib.Harmony(Identifier);
 
 			// cache the additional metadata about the hook
