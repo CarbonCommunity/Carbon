@@ -24,8 +24,6 @@ public sealed class Entrypoint
 		Assembly assembly = Assembly.LoadFile(Path.Combine(Context.CarbonLib, "0Harmony.dll"));
 		Logger.Log($"Loaded {assembly.GetName().Name} {assembly.GetName().Version} into current AppDomain");
 
-		References.Load();
-
 		using Sandbox<AssemblyCSharp> isolated1 = new Sandbox<AssemblyCSharp>();
 
 		if (!isolated1.Do.IsPublic("ServerMgr", "Shutdown"))

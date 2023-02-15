@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Carbon.Utility;
 using Utility;
 
 /*
@@ -17,5 +18,7 @@ public static class Bootstrap
 		string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
 		Logger.Log($"{assemblyName} loaded.");
 		Legacy.Loader.GetInstance().Initialize();
+
+		References.Load();
 	}
 }
