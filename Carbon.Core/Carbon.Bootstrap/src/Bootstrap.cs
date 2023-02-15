@@ -17,8 +17,9 @@ public static class Bootstrap
 	{
 		string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
 		Logger.Log($"{assemblyName} loaded.");
-		Legacy.Loader.GetInstance().Initialize();
 
 		References.Load();
+
+		Legacy.Loader.GetInstance().Initialize();
 	}
 }
