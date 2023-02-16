@@ -237,9 +237,11 @@ public class Permission : Library
 
 	public virtual KeyValuePair<string, UserData> FindUser(string id)
 	{
+		id = id.ToLower().Trim();
+
 		foreach (var user in userdata)
 		{
-			if (user.Value != null && user.Key == id || (!string.IsNullOrEmpty(user.Value.LastSeenNickname) && user.Value.LastSeenNickname.Equals(id))) return new KeyValuePair<string, UserData>(user.Key, user.Value);
+			if (user.Value != null && user.Key == id || (!string.IsNullOrEmpty(user.Value.LastSeenNickname) && user.Value.LastSeenNickname.ToLower().Trim().Contains(id))) return new KeyValuePair<string, UserData>(user.Key, user.Value);
 		}
 
 		return default;
