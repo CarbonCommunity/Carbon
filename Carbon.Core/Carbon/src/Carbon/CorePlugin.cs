@@ -411,29 +411,30 @@ public class CorePlugin : CarbonPlugin
 							hooks = Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden);
 							break;
 
-						case "--failed":
-							hooks = Community.Runtime.HookManager.StaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Failure);
-							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Failure));
-							break;
+						// case "--failed":
+						// 	hooks = Community.Runtime.HookManager.StaticHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Failure);
+						// 	hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Failure));
+						// 	break;
 
-						case "--warning":
-							hooks = Community.Runtime.HookManager.StaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
-							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
-							break;
+						// case "--warning":
+						// 	hooks = Community.Runtime.HookManager.StaticHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Warning);
+						// 	hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Warning));
+						// 	break;
 
-						case "--success":
-							hooks = Community.Runtime.HookManager.StaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success);
-							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success));
-							break;
+						// case "--success":
+						// 	hooks = Community.Runtime.HookManager.StaticHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Success);
+						// 	hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Success));
+						// 	break;
 
 						default:
-							hooks = Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden));
 							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden));
 							break;
 					}
@@ -480,22 +481,9 @@ public class CorePlugin : CarbonPlugin
 							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
 							break;
 
-						case "--warning":
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
-							break;
-
-						case "--success":
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success);
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success));
-							break;
-
 						default:
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
 							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
 							break;
 					}
