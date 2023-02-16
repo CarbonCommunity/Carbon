@@ -107,7 +107,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 		if (DynamicHooks.Count > 0)
 		{
 			Logger.Log($" - Installing dynamic hooks");
-			foreach (HookEx hook in DynamicHooks.Where(x => HookHasSubscribers(x.HookName)))
+			foreach (HookEx hook in DynamicHooks.Where(x => HookHasSubscribers(x.Identifier)))
 				_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
 		}
 
@@ -126,7 +126,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			foreach (Subscription item in _subscribers.ToList())
 			{
 				_subscribers.Remove(item);
-				Subscribe(item.HookName, item.Subscriber);
+				Subscribe(item.Identifier, item.Subscriber);
 			}
 		}
 		catch (System.Exception e)
@@ -187,7 +187,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 				// static hooks are a special case
 				if (hook.IsStaticHook) return;
 
-				bool hasSubscribers = HookHasSubscribers(hook.HookName);
+				bool hasSubscribers = HookHasSubscribers(hook.Identifier);
 				bool isInstalled = hook.IsInstalled;
 
 				switch (hasSubscribers)
@@ -286,9 +286,9 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			List<HookEx> hooks = GetHookByName(hookName).ToList();
 			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
 
-			foreach (HookEx hook in hooks.Where(hook => !HookIsSubscribedBy(hook.HookName, requester)).ToList())
+			foreach (HookEx hook in hooks.Where(hook => !HookIsSubscribedBy(hook.Identifier, requester)).ToList())
 			{
-				AddSubscriber(hook.HookName, requester);
+				AddSubscriber(hook.Identifier, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
 				Logger.Debug($"Subscribe to '{hook}' by '{requester}'");
 			}
@@ -309,9 +309,9 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			List<HookEx> hooks = GetHookByName(hookName).ToList();
 			if (hooks.Count == 0) throw new Exception($"Hook fileName not found");
 
-			foreach (HookEx hook in hooks.Where(hook => HookIsSubscribedBy(hook.HookName, requester)).ToList())
+			foreach (HookEx hook in hooks.Where(hook => HookIsSubscribedBy(hook.Identifier, requester)).ToList())
 			{
-				RemoveSubscriber(hook.HookName, requester);
+				RemoveSubscriber(hook.Identifier, requester);
 				_workQueue.Enqueue(item: new Payload(hook.HookName, hook.Identifier, requester));
 				Logger.Debug($"Unsubscribe from '{hook}' by '{requester}'");
 			}
@@ -350,7 +350,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 						if (!dependency.ApplyPatch())
 							throw new Exception($"Dependency '{dependency}' installation failed");
 
-						AddSubscriber(dependency.HookName, requester);
+						AddSubscriber(dependency.Identifier, requester);
 						Logger.Debug($"Installed dependency '{dependency}'", 1);
 					}
 				}
@@ -398,7 +398,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 					if (!dependency.RemovePatch())
 						throw new Exception($"Dependency '{dependency}' uninstallation failed");
 
-					RemoveSubscriber(dependency.HookName, requester);
+					RemoveSubscriber(dependency.Identifier, requester);
 					Logger.Debug($"Uninstalled dependency '{dependency}'", 1);
 				}
 			}
@@ -447,20 +447,20 @@ public class HookManager : FacepunchBehaviour, IDisposable
 	{ get => DynamicHooks.Where(x => x.IsInstalled); }
 
 
-	internal bool HookIsSubscribedBy(string hookName, string subscriber)
-		=> _subscribers?.Where(x => x.HookName == hookName).Any(x => x.Subscriber == subscriber) ?? false;
+	internal bool HookIsSubscribedBy(string identifier, string subscriber)
+		=> _subscribers?.Where(x => x.Identifier == identifier).Any(x => x.Subscriber == subscriber) ?? false;
 
-	internal bool HookHasSubscribers(string hookName)
-		=> _subscribers?.Any(x => x.HookName == hookName) ?? false;
+	internal bool HookHasSubscribers(string identifier)
+		=> _subscribers?.Any(x => x.Identifier == identifier) ?? false;
 
-	internal int GetHookSubscriberCount(string hookName)
-		=> _subscribers.Where(x => x.HookName == hookName).ToList().Count;
+	internal int GetHookSubscriberCount(string identifier)
+		=> _subscribers.Where(x => x.Identifier == identifier).ToList().Count;
 
 
-	internal void AddSubscriber(string hookName, string subscriber)
-		=> _subscribers.Add(item: new Subscription { HookName = hookName, Subscriber = subscriber });
+	internal void AddSubscriber(string identifier, string subscriber)
+		=> _subscribers.Add(item: new Subscription { Identifier = identifier, Subscriber = subscriber });
 
-	internal void RemoveSubscriber(string hookName, string subscriber)
-		=> _subscribers.RemoveAll(x => x.HookName == hookName && x.Subscriber == subscriber);
+	internal void RemoveSubscriber(string identifier, string subscriber)
+		=> _subscribers.RemoveAll(x => x.Identifier == identifier && x.Subscriber == subscriber);
 
 }

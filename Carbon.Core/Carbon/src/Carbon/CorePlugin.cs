@@ -453,7 +453,7 @@ public class CorePlugin : CarbonPlugin
 							mod.Status,
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}"
+							$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier)}"
 						);
 					}
 
@@ -515,7 +515,7 @@ public class CorePlugin : CarbonPlugin
 							mod.Status,
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}"
+							$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier)}"
 						);
 					}
 
