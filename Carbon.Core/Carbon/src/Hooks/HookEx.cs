@@ -42,7 +42,7 @@ public class HookEx : IDisposable
 	{ get; }
 
 	public string ShortIdentifier
-	{ get => Identifier.Substring(0, 6); }
+	{ get => Identifier.Substring(Identifier.Length - 6); }
 
 	public string Checksum
 	{ get; }
@@ -176,7 +176,7 @@ public class HookEx : IDisposable
 			// 	_runtime.Status = HookState.Warning;
 			// }
 
-			Logger.Debug($"Hook '{HookFullName}' patched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{this}' patched '{TargetType.Name}.{TargetMethod}'", 2);
 		}
 #if DEBUG
 		catch (HarmonyException e)
@@ -211,7 +211,7 @@ public class HookEx : IDisposable
 			if (!IsInstalled) return true;
 			_runtime.HarmonyHandler.UnpatchAll(Identifier);
 
-			Logger.Debug($"Hook '{HookFullName}' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{this}' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
 			_runtime.Status = HookState.Inactive;
 			return true;
 		}

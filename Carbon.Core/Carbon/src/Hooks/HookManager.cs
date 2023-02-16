@@ -88,6 +88,13 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			LoadHooksFromFile(path);
 		}
 
+		// if (Patches.Count > 0)
+		// {
+		// 	Logger.Log($" - Installing patches");
+		// 	foreach (HookEx patch in Patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
+		// 		patch.ApplyPatch();
+		// }
+
 		if (StaticHooks.Count > 0)
 		{
 			Logger.Log($" - Installing static hooks");
@@ -353,7 +360,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 			if (!hook.ApplyPatch())
 				throw new Exception($"Unable to apply patch");
-			Logger.Debug($"Installed hook '{hook}", 1);
+			Logger.Debug($"Installed hook '{hook}'", 1);
 		}
 		catch (System.Exception e)
 		{

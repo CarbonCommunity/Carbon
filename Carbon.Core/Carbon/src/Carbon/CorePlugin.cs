@@ -351,7 +351,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		StringTable body = new StringTable("#", "Hook", "Identifier", "Type", "Status", "Current", "Total", "Subscribers");
+		StringTable body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Subs");
 		int count = 0, success = 0, warning = 0, failure = 0;
 
 		string option1 = arg.GetString(0, null);
@@ -447,16 +447,18 @@ public class CorePlugin : CarbonPlugin
 						body.AddRow(
 							$"{count++:n0}",
 							mod.HookFullName,
-							mod.Identifier.Substring(0, 6),
+							mod.HookName,
+							mod.Identifier.Substring(mod.Identifier.Length - 6),
 							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
-							mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
+							mod.Status,
+							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
 							$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}"
 						);
 					}
 
-					Reply(body.ToStringMinimal(), arg);
-					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
+					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}"
+						+ Environment.NewLine + Environment.NewLine + body.ToStringMinimal(), arg);
 					break;
 				}
 
@@ -507,17 +509,18 @@ public class CorePlugin : CarbonPlugin
 						body.AddRow(
 							$"{count++:n0}",
 							mod.HookFullName,
-							mod.Identifier.Substring(0, 6),
+							mod.HookName,
+							mod.Identifier.Substring(mod.Identifier.Length - 6),
 							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
 							mod.Status,
-							$"{HookCaller.GetHookTime(mod.HookName)}ms",
+							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
 							$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}"
 						);
 					}
 
-					Reply(body.ToStringMinimal(), arg);
-					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
+					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}"
+						+ Environment.NewLine + Environment.NewLine + body.ToStringMinimal(), arg);
 					break;
 				}
 		}
