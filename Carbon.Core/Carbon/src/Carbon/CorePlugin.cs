@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
+using static Generated.AnimatorController.PlayerMenuAnimation;
 
 /*
  *
@@ -1043,44 +1044,75 @@ public class CorePlugin : CarbonPlugin
 
 		void PrintWarn()
 		{
-			Reply($"Syntax: c.show <user|group> <name|id>", arg);
+			Reply($"Syntax: c.show <groups|perms>", arg);
+			Reply($"Syntax: c.show <group|user> <name|id>", arg);
 		}
 
-		if (!arg.HasArgs(2))
-		{
-			PrintWarn();
-			return;
-		}
+		if (!arg.HasArgs(1)) { PrintWarn(); return; }
 
 		var action = arg.Args[0];
-		var name = arg.Args[1];
 
 		switch (action)
 		{
 			case "user":
-				var user = permission.FindUser(name);
-				if (user.Value == null)
 				{
-					Reply($"Couldn't find that user.", arg);
-					return;
+					if (!arg.HasArgs(2)) { PrintWarn(); return; }
+
+					var name = arg.Args[1];
+					var user = permission.FindUser(name);
+
+					if (user.Value == null)
+					{
+						Reply($"Couldn't find that user.", arg);
+						return;
+					}
+
+					Reply($"User {user.Value.LastSeenNickname}[{user.Key}] found in {user.Value.Groups.Count:n0} groups:\n  {user.Value.Groups.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
+					Reply($"and has {user.Value.Perms.Count:n0} permissions:\n  {user.Value.Perms.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
+					break;
 				}
-
-				Reply($"User {user.Value.LastSeenNickname}[{user.Key}] found in {user.Value.Groups.Count:n0} groups:\n  {user.Value.Groups.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
-				Reply($"and has {user.Value.Perms.Count:n0} permissions:\n  {user.Value.Perms.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
-				break;
-
 			case "group":
-				if (!permission.GroupExists(name))
 				{
-					Reply($"Couldn't find that group.", arg);
-					return;
-				}
+					if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-				var users = permission.GetUsersInGroup(name);
-				var permissions = permission.GetGroupPermissions(name, false);
-				Reply($"Group {name} has {users.Length:n0} users:\n  {users.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
-				Reply($"and has {permissions.Length:n0} permissions:\n  {permissions.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
-				break;
+					var name = arg.Args[1];
+
+					if (!permission.GroupExists(name))
+					{
+						Reply($"Couldn't find that group.", arg);
+						return;
+					}
+
+					var users = permission.GetUsersInGroup(name);
+					var permissions = permission.GetGroupPermissions(name, false);
+					Reply($"Group {name} has {users.Length:n0} users:\n  {users.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
+					Reply($"and has {permissions.Length:n0} permissions:\n  {permissions.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
+					break;
+				}
+			case "groups":
+				{
+					var groups = permission.GetGroups();
+					if (groups.Count() == 0)
+					{
+						Reply($"Couldn't find any group.", arg);
+						return;
+					}
+
+					Reply($"Groups:\n {String.Join(", ", groups)}", arg);
+					break;
+				}
+			case "perms":
+				{
+					var perms = permission.GetPermissions();
+					if (perms.Count() == 0)
+					{
+						Reply($"Couldn't find any permission.", arg);
+					}
+
+					Reply($"Permissions:\n {String.Join(", ", perms)}", arg);
+
+					break;
+				}
 
 			default:
 				PrintWarn();
