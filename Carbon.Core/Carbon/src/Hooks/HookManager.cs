@@ -88,12 +88,14 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			LoadHooksFromFile(path);
 		}
 
-		// if (Patches.Count > 0)
-		// {
-		// 	Logger.Log($" - Installing patches");
-		// 	foreach (HookEx patch in Patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
-		// 		patch.ApplyPatch();
-		// }
+		if (Patches.Count > 0)
+		{
+			Logger.Log($" - Installing patches");
+			// I don't like this, patching stuff that may not be used but for the
+			// sake of time I will let it go for now but this needs to be reviewed.
+			foreach (HookEx patch in Patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
+				patch.ApplyPatch();
+		}
 
 		if (StaticHooks.Count > 0)
 		{
@@ -151,9 +153,16 @@ public class HookManager : FacepunchBehaviour, IDisposable
 		if (StaticHooks.Count > 0)
 		{
 			Logger.Log($" - Uninstalling static hooks");
-			// reverse order, dynamics get removed first, then statics.
+			// reverse order, dynamics get removed first, then statics, then patches
 			foreach (HookEx hook in StaticHooks.Where(x => x.IsInstalled))
 				hook.RemovePatch();
+		}
+
+		if (Patches.Count > 0)
+		{
+			Logger.Log($" - Uninstalling patches");
+			foreach (HookEx patch in Patches.Where(x => x.IsInstalled))
+				patch.RemovePatch();
 		}
 
 		if (!_doReload) return;
@@ -360,6 +369,24 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 			if (!hook.ApplyPatch())
 				throw new Exception($"Unable to apply patch");
+
+			List<HookEx> dependants = Patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
+
+			foreach (HookEx dependant in dependants)
+			{
+				if (dependant is null)
+					throw new Exception($"Dependant is null, this is a bug");
+
+				if (dependant.IsInstalled) continue;
+
+				if (!dependant.ApplyPatch())
+					throw new Exception($"Dependant '{dependant}' installation failed");
+
+				AddSubscriber(dependant.Identifier, requester);
+				Logger.Debug($"Installed dependant '{dependant}'", 1);
+			}
+
+			dependants = default;
 			Logger.Debug($"Installed hook '{hook}'", 1);
 		}
 		catch (System.Exception e)
@@ -373,9 +400,24 @@ public class HookManager : FacepunchBehaviour, IDisposable
 	{
 		try
 		{
+			List<HookEx> dependants = Patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
+
+			foreach (HookEx dependant in dependants)
+			{
+				if (dependant is null)
+					throw new Exception($"Dependant is null, this is a bug");
+
+				if (!dependant.IsInstalled) continue;
+
+				if (!dependant.RemovePatch())
+					throw new Exception($"Dependant '{dependant}' uninstallation failed");
+
+				RemoveSubscriber(dependant.Identifier, requester);
+				Logger.Debug($"Uninstalled dependant '{dependant}'", 1);
+			}
+
 			if (!hook.RemovePatch())
 				throw new Exception($"Unable to remove patch");
-			Logger.Debug($"Uninstalled hook '{hook}'", 1);
 
 			if (!hook.HasDependencies()) return;
 
@@ -393,7 +435,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 					if (dependency is null)
 						throw new Exception($"Dependency '{item}' is null, this is a bug");
 
-					if (dependency.IsInstalled) continue;
+					if (!dependency.IsInstalled) continue;
 
 					if (!dependency.RemovePatch())
 						throw new Exception($"Dependency '{dependency}' uninstallation failed");
@@ -403,7 +445,9 @@ public class HookManager : FacepunchBehaviour, IDisposable
 				}
 			}
 
+			dependants = default;
 			dependencies = default;
+			Logger.Debug($"Uninstalled hook '{hook}'", 1);
 		}
 		catch (System.Exception e)
 		{
