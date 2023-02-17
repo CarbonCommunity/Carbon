@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Reflection;
+using API.Hooks;
 
 /*
  *
@@ -24,10 +25,10 @@ internal struct HookRuntime
 
 internal struct Subscription
 {
-	public string HookName, Subscriber;
+	public string Identifier, Subscriber;
 
-	public Subscription(string name, string sub)
-	{ HookName = name; Subscriber = sub; }
+	public Subscription(string id, string sub)
+	{ Identifier = id; Subscriber = sub; }
 }
 
 internal readonly struct Payload

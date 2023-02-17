@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using HarmonyLib;
 using Legacy;
 
@@ -19,13 +20,27 @@ internal static class __Bootstrap
 		public static void Prefix()
 		{
 			Loader.GetInstance().Events
-				.Trigger(API.Events.CarbonEvent.GameStartup, EventArgs.Empty);
+				.Trigger(API.Events.CarbonEvent.StartupShared, EventArgs.Empty);
 		}
 
 		public static void Postfix()
 		{
 			Loader.GetInstance().Events
-				.Trigger(API.Events.CarbonEvent.GameStartupComplete, EventArgs.Empty);
+				.Trigger(API.Events.CarbonEvent.StartupSharedComplete, EventArgs.Empty);
+
+			/* example mockup --------------------------------------------------
+			bool ArePluginsReady = false;
+			Loader.GetInstance().Events.Subscribe(API.Events.CarbonEvent.CarbonPluginsReady, x => ArePluginsReady = true);
+
+			Task WaitForPlugins = Task.Run(async delegate
+			{
+				Utility.Logger.Debug("Waiting for event CarbonPluginsReady");
+				while (!ArePluginsReady) await Task.Delay(1000);
+				return;
+			});
+			
+			WaitForPlugins.Wait();
+			*/
 		}
 	}
 }

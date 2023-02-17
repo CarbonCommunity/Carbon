@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Globalization;
-using API.Contracts;
+using Oxide.Core;
+using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
+using UnityEngine;
 
 /*
  *
@@ -18,10 +20,22 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public BasePlayer BasePlayer => Object as BasePlayer;
 
+		public RustPlayer(BasePlayer player)
+		{
+			Object = player;
+			Id = player.UserIDString;
+			Name = player.displayName.Sanitize();
+			LastCommand = 0;
+			perms = Interface.Oxide.GetLibrary<Permission>();
+		}
+
+		private static Permission perms;
+
 		public CommandType LastCommand { get; set; }
+
 		public string Name { get; set; }
 
-		public string Id => BasePlayer?.UserIDString;
+		public string Id { get; set; }
 
 		public string Address => BasePlayer?.Connection?.ipaddress;
 
@@ -63,6 +77,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 				BasePlayer.health = value;
 			}
 		}
+
 		public float MaxHealth
 		{
 			get
@@ -77,67 +92,97 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public void AddToGroup(string group)
 		{
+			if (!perms.GroupExists(group))
+			{
+				return;
+			}
+			if (!perms.GetUserData(Id).Groups.Add(group))
+			{
+				return;
+			}
 
+			Interface.Call("OnUserGroupAdded", Id, group);
 		}
 
 		public void Ban(string reason, TimeSpan duration = default)
 		{
+			if (IsBanned)
+			{
+				return;
+			}
 
+			ServerUsers.Set(BasePlayer.userID, ServerUsers.UserGroup.Banned, ((BasePlayer != null) ? BasePlayer.displayName : null) ?? "Unknown", reason, -1L);
+			ServerUsers.Save();
+
+			if (IsConnected)
+			{
+				Kick(reason);
+			}
 		}
 
 		public bool BelongsToGroup(string group)
 		{
-			return false;
+			return perms.UserHasGroup(Id, group);
 		}
 
 		public void Command(string command, params object[] args)
 		{
-
+			BasePlayer.SendConsoleCommand(command, args);
 		}
 
 		public void GrantPermission(string perm)
 		{
-
+			perms.GrantUserPermission(Id, perm, null);
 		}
 
 		public bool HasPermission(string perm)
 		{
-			return false;
+			return perms.UserHasPermission(Id, perm);
 		}
 
 		public void Heal(float amount)
 		{
-
+			BasePlayer.Heal(amount);
 		}
 
 		public void Hurt(float amount)
 		{
-
+			BasePlayer.Hurt(amount);
 		}
 
 		public void Kick(string reason)
 		{
-
+			BasePlayer.Kick(reason);
 		}
 
 		public void Kill()
 		{
-
+			BasePlayer.Die(null);
 		}
 
 		public void Message(string message, string prefix, params object[] args)
 		{
+			if (string.IsNullOrEmpty(message))
+			{
+				return;
+			}
 
+			message = ((args.Length != 0) ? string.Format(Formatter.ToUnity(message), args) : Formatter.ToUnity(message));
+			var text = (prefix != null) ? (prefix + " " + message) : message;
+			BasePlayer.SendConsoleCommand("chat.add", 2, Id, text);
 		}
 
 		public void Message(string message)
 		{
-
+			Message(message, null, Array.Empty<string>());
 		}
 
 		public void Position(out float x, out float y, out float z)
 		{
-			x = y = z = 0;
+			var vector = BasePlayer.transform.position;
+			x = vector.x;
+			y = vector.y;
+			z = vector.z;
 		}
 
 		public GenericPosition Position()
@@ -146,39 +191,122 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			return new GenericPosition(position.x, position.y, position.z);
 		}
 
-		public void RemoveFromGroup(string group)
+		public void RemoveFromGroup(string name)
 		{
+			if (!perms.GroupExists(name))
+			{
+				return;
+			}
 
+			var userData = perms.GetUserData(Id);
+			if (name.Equals("*"))
+			{
+				if (userData.Groups.Count <= 0)
+				{
+					return;
+				}
+				userData.Groups.Clear();
+				return;
+			}
+			else
+			{
+				if (!userData.Groups.Remove(name))
+				{
+					return;
+				}
+
+				Interface.Call("OnUserGroupRemoved", Id, name);
+				return;
+			}
 		}
 
 		public void Rename(string name)
 		{
-
+			name = (string.IsNullOrEmpty(name.Trim()) ? BasePlayer.displayName : name);
+			SingletonComponent<ServerMgr>.Instance.persistance.SetPlayerName(BasePlayer.userID, name);
+			BasePlayer.net.connection.username = name;
+			BasePlayer.displayName = name;
+			BasePlayer._name = name;
+			BasePlayer.SendNetworkUpdateImmediate(false);
+			var iPlayer = BasePlayer.AsIPlayer();
+			iPlayer.Name = name;
+			perms.UpdateNickname(BasePlayer.UserIDString, name);
+			var position = BasePlayer.transform.position;
+			Teleport(position.x, position.y, position.z);
 		}
 
 		public void Reply(string message, string prefix, params object[] args)
 		{
-
+			Message(message, prefix, args);
 		}
 
 		public void Reply(string message)
 		{
-
+			Message(message);
 		}
 
-		public void RevokePermission(string perm)
+		public void RevokePermission(string permission)
 		{
+			if (string.IsNullOrEmpty(permission))
+			{
+				return;
+			}
+			var userData = perms.GetUserData(Id);
+			if (permission.EndsWith("*"))
+			{
+				if (!permission.Equals("*"))
+				{
+					userData.Perms.RemoveWhere((string p) => p.StartsWith(permission.TrimEnd('*'), StringComparison.OrdinalIgnoreCase));
+					return;
+				}
+				if (userData.Perms.Count <= 0)
+				{
+					return;
+				}
+				userData.Perms.Clear();
+				return;
+			}
+			else
+			{
+				if (!userData.Perms.Remove(permission))
+				{
+					return;
+				}
 
+				Interface.Call("OnUserPermissionRevoked", Id, permission);
+				return;
+			}
 		}
 
 		public void Teleport(float x, float y, float z)
 		{
+			if (BasePlayer.IsAlive() && !BasePlayer.IsSpectating())
+			{
+				try
+				{
+					var position = new Vector3(x, y, z);
 
+					BasePlayer.EnsureDismounted();
+					BasePlayer.SetParent(null, true, true);
+					BasePlayer.SetServerFall(true);
+					BasePlayer.MovePosition(position);
+					BasePlayer.ClientRPCPlayer<Vector3>(null, BasePlayer, "ForcePositionTo", position);
+				}
+				finally
+				{
+					BasePlayer.SetServerFall(false);
+				}
+			}
 		}
 
 		public void Unban()
 		{
-
+			if (!IsBanned)
+			{
+				return;
+			}
+			ServerUsers.Remove(BasePlayer.userID);
+			ServerUsers.Save();
 		}
 	}
 

@@ -2,6 +2,9 @@
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text;
+using API.Hooks;
+using HarmonyLib;
 
 /*
  *
@@ -20,6 +23,9 @@ public class HookEx : IDisposable
 	public string HookName
 	{ get; }
 
+	public string HookFullName
+	{ get; }
+
 	public HookFlags Options
 	{ get; }
 
@@ -36,7 +42,7 @@ public class HookEx : IDisposable
 	{ get; }
 
 	public string ShortIdentifier
-	{ get => Identifier.Substring(0, 6); }
+	{ get => Identifier.Substring(Identifier.Length - 6); }
 
 	public string Checksum
 	{ get; }
@@ -45,8 +51,14 @@ public class HookEx : IDisposable
 	{ get; }
 
 
+	public bool IsPatch
+	{ get => Options.HasFlag(HookFlags.Patch); }
+
 	public bool IsStaticHook
 	{ get => Options.HasFlag(HookFlags.Static); }
+
+	public bool IsDynamicHook
+	{ get => !Options.HasFlag(HookFlags.Static) && !Options.HasFlag(HookFlags.Patch); }
 
 	public bool IsHidden
 	{ get => Options.HasFlag(HookFlags.Hidden); }
@@ -55,11 +67,13 @@ public class HookEx : IDisposable
 	{ get => Options.HasFlag(HookFlags.IgnoreChecksum); }
 
 	public bool IsLoaded
-	{ get => _runtime.Status != HookState.Inactive; }
+	{ get => true; } // dummy method, if something is defined.. then it's loaded
 
 	public bool IsInstalled
 	{ get => _runtime.Status is HookState.Success or HookState.Warning; }
 
+	public bool IsFailed
+	{ get => _runtime.Status is HookState.Failure; }
 
 	public override string ToString()
 		=> $"{HookName}[{ShortIdentifier}]";
@@ -88,10 +102,11 @@ public class HookEx : IDisposable
 			if (metadata == default)
 				throw new Exception($"Metadata information is invalid or was not found");
 
+			HookFullName = metadata.FullName;
 			HookName = metadata.Name;
-			TargetType = metadata.Target;
 			TargetMethod = metadata.Method;
 			TargetMethodArgs = metadata.MethodArgs;
+			TargetType = metadata.Target;
 
 			if (Attribute.IsDefined(type, typeof(HookAttribute.Identifier), false))
 				Identifier = type.GetCustomAttribute<HookAttribute.Identifier>()?.Value ?? $"{Guid.NewGuid():N}";
@@ -106,6 +121,7 @@ public class HookEx : IDisposable
 				Checksum = type.GetCustomAttribute<HookAttribute.Checksum>()?.Value ?? default;
 
 			_patchMethod = type;
+			_runtime.Status = HookState.Inactive;
 			_runtime.HarmonyHandler = new HarmonyLib.Harmony(Identifier);
 
 			// cache the additional metadata about the hook
@@ -114,7 +130,7 @@ public class HookEx : IDisposable
 			_runtime.Transpiler = HarmonyLib.AccessTools.Method(type, "Transpiler") ?? null;
 
 			if (_runtime.Prefix is null && _runtime.Postfix is null && _runtime.Transpiler is null)
-				throw new Exception($"Patch method not found");
+				throw new Exception($"No patch method found (prefix, postfix, transpiler)");
 		}
 		catch (System.Exception e)
 		{
@@ -160,8 +176,23 @@ public class HookEx : IDisposable
 			// 	_runtime.Status = HookState.Warning;
 			// }
 
-			Logger.Debug($"Hook '{HookName}[{Identifier}]' patched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{this}' patched '{TargetType.Name}.{TargetMethod}'", 2);
 		}
+#if DEBUG
+		catch (HarmonyException e)
+		{
+			StringBuilder sb = new StringBuilder();
+			Logger.Error($"Error while patching hook '{HookName}' index:{e.GetErrorIndex()} offset:{e.GetErrorOffset()}", e);
+			sb.AppendLine($"{e.InnerException?.Message.Trim() ?? string.Empty}");
+
+			int x = 0;
+			foreach (var instruction in e.GetInstructionsWithOffsets())
+				sb.AppendLine($"\t{x++:000} {instruction.Key.ToString("X4")}: {instruction.Value}");
+
+			Logger.Error(sb.ToString());
+			sb = default;
+		}
+#endif
 		catch (System.Exception e)
 		{
 			Logger.Error($"Error while patching hook '{HookName}'", e);
@@ -171,24 +202,6 @@ public class HookEx : IDisposable
 		}
 
 		return true;
-
-		/*
-#if DEBUG
-				catch (HarmonyException e)
-				{
-					StringBuilder sb = new StringBuilder();
-					sb.AppendLine($" Couldn't patch hook '{HookName}' ({e.GetType()}: {type.FullName})");
-					sb.AppendLine($">> hook:{HookName} index:{e.GetErrorIndex()} offset:{e.GetErrorOffset()}");
-					sb.AppendLine($">> IL instructions:");
-
-					foreach (var q in e.GetInstructionsWithOffsets())
-						sb.AppendLine($"\t{q.Key.ToString("X4")}: {q.Value}");
-
-					Logger.Error(sb.ToString(), e);
-					sb = default;
-				}
-#endif
-*/
 	}
 
 	public bool RemovePatch()
@@ -198,7 +211,7 @@ public class HookEx : IDisposable
 			if (!IsInstalled) return true;
 			_runtime.HarmonyHandler.UnpatchAll(Identifier);
 
-			Logger.Debug($"Hook '{HookName}[{Identifier}]' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{this}' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
 			_runtime.Status = HookState.Inactive;
 			return true;
 		}

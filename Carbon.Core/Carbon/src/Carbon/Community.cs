@@ -72,6 +72,13 @@ public class Community
 		}
 
 		Config = JsonConvert.DeserializeObject<Config>(OsEx.File.ReadText(Defines.GetConfigFile()));
+
+		if (Config.ConditionalCompilationSymbols == null) Config.ConditionalCompilationSymbols = new();
+
+		if (!Config.ConditionalCompilationSymbols.Contains("CARBON"))
+			Config.ConditionalCompilationSymbols.Add("CARBON");
+
+		Config.ConditionalCompilationSymbols = Config.ConditionalCompilationSymbols.Distinct().ToList();
 	}
 
 	public void SaveConfig()
@@ -292,7 +299,6 @@ public class Community
 			ClearPlugins();
 			Loader._loadedMods.Clear();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
-			Events.Trigger(API.Events.CarbonEvent.CarbonShutdownComplete, EventArgs.Empty);
 
 #if WIN
 			try

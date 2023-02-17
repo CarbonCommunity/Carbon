@@ -134,6 +134,18 @@ public class Defines
 
 		return folder;
 	}
+	public static string GetRustRootFolder()
+	{
+		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath)));
+
+		return folder;
+	}
+	public static string GetRustManagedFolder()
+	{
+		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath, "Managed")));
+
+		return folder;
+	}
 
 	#endregion
 
@@ -171,12 +183,16 @@ public class Defines
 #elif UNIX
 		"Facepunch.Steamworks.Posix",
 #endif
+		"MySql.Data",
+		"System.Data.SQLite",
+
 		"Fleck",
 		"Newtonsoft.Json",
 		"Rust.Data",
 		"Rust.Global",
 		"Rust.Harmony",
 		"Rust.Localization",
+		"Rust.Platform",
 		"Rust.Platform.Common",
 		"Rust.Workshop",
 		"Rust.World",

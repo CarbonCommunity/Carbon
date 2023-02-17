@@ -7,7 +7,7 @@
  *
  */
 
-namespace Carbon.Hooks;
+namespace API.Hooks;
 
 [AttributeUsage(System.AttributeTargets.Class)]
 public class HookAttribute : Attribute
@@ -16,6 +16,9 @@ public class HookAttribute : Attribute
 	public class Patch : Attribute
 	{
 		public string Name
+		{ get; }
+
+		public string FullName
 		{ get; }
 
 		public Type Target
@@ -35,7 +38,13 @@ public class HookAttribute : Attribute
 		}
 
 		public Patch(string name, Type target, string method, Type[] args) : this(name, target, method)
-			=> MethodArgs = args;
+		{
+			MethodArgs = args;
+			FullName = name;
+		}
+
+		public Patch(string name, string fullName, Type target, string method, Type[] args) : this(name, target, method, args)
+			=> FullName = fullName;
 	}
 
 	[AttributeUsage(AttributeTargets.Class)]

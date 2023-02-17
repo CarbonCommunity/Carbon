@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using Components;
 using Contracts;
@@ -48,6 +49,10 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	{
 		_harmonyInstance = new HarmonyLib.Harmony(identifier);
 
+		HarmonyLib.Harmony.DEBUG = true;
+		Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", Path.Combine(Context.CarbonLogs, "harmony.log"));
+		typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
+
 		_gameObject = new UnityEngine.GameObject("Carbon");
 		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
 
@@ -55,11 +60,8 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 		_gameObject.AddComponent<EventManager>();
 
 		// Events
-		Events.Subscribe(API.Events.CarbonEvent.GameStartup,
+		Events.Subscribe(API.Events.CarbonEvent.StartupShared,
 			x => HarmonyLoaderEx.GetInstance().Load("Carbon.dll"));
-
-		Events.Subscribe(API.Events.CarbonEvent.CarbonStartupComplete,
-			x => Logger.Debug($"Yeah baby, wanna do it again ?"));
 	}
 
 	internal void Initialize()
