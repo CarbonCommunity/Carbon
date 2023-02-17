@@ -24,12 +24,17 @@ internal class References
 		#region Modules
 		LoadAssembly(Path.Combine(Context.CarbonManaged, "Carbon.API.dll"));
 		#endregion
+
+		#region Libs
+		LoadAssembly(Path.Combine(Context.CarbonLib, "MySql.Data.dll"));
+		LoadAssembly(Path.Combine(Context.CarbonLib, "System.Data.SQLite.dll"));
+		#endregion
 	}
 
 	private static void LoadAssembly(string filePath)
 	{
 		Logger.Log($">> Loading reference: {filePath}");
 
-		Assembly.Load(File.ReadAllBytes(filePath));
+		Assembly.LoadFrom(filePath);
 	}
 }

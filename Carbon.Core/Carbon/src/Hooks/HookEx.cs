@@ -67,7 +67,7 @@ public class HookEx : IDisposable
 	{ get => Options.HasFlag(HookFlags.IgnoreChecksum); }
 
 	public bool IsLoaded
-	{ get => true; } // dummy method, if something is defined.. then it's loaded
+	{ get => _runtime.Status is HookState.Success or HookState.Warning or HookState.Failure or HookState.Inactive; }
 
 	public bool IsInstalled
 	{ get => _runtime.Status is HookState.Success or HookState.Warning; }
@@ -102,6 +102,7 @@ public class HookEx : IDisposable
 			if (metadata == default)
 				throw new Exception($"Metadata information is invalid or was not found");
 
+			Dependencies = new string[0];
 			HookFullName = metadata.FullName;
 			HookName = metadata.Name;
 			TargetMethod = metadata.Method;
