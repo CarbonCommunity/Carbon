@@ -1,4 +1,5 @@
-﻿using Oxide.Core.Libraries.Covalence;
+﻿using Oxide.Core.Libraries;
+using Oxide.Core.Libraries.Covalence;
 using Oxide.Game.Rust.Libraries.Covalence;
 
 /*
@@ -12,9 +13,9 @@ public static class CovalenceEx
 {
 	public static RustPlayer AsIPlayer(this BasePlayer player)
 	{
-		var iplayer = default(RustPlayer);
-		iplayer.Object = player;
+		if (Permission.iPlayerField.GetValue(player) is not RustPlayer rustPlayer)
+			Permission.iPlayerField.SetValue(player, rustPlayer = new RustPlayer(player));
 
-		return iplayer;
+		return rustPlayer;
 	}
 }

@@ -13,12 +13,11 @@
 		<ProjectReference Include="..\Carbon\Carbon.csproj" Private="false" />
 
 		<!-- Assembly patcher -->
-		<PackageReference Include="Lib.Harmony" Version="2.2.2" GeneratePathProperty="true" />
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_hooks)" />
-		<Copy SourceFiles="$(PkgLib_Harmony)\lib\net48\0Harmony.dll" DestinationFolder="$(c_lib)" />
 	</Target>
 
 	<Target Name="AfterResolveReferences">

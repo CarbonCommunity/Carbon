@@ -17,6 +17,7 @@
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Global.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Harmony.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Localization.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Platform.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Platform.Common.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.World.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.AIModule.dll" Private="false" />

@@ -137,16 +137,26 @@ public class Lang : Library
 		if (newPhrases == phrases || save) SaveMessageFile(plugin.Name, lang);
 	}
 
-	public string GetMessage(string name, RustPlugin plugin, string player = null)
+	public string GetMessage(string key, RustPlugin plugin, string player = null)
 	{
 		var lang = GetLanguage(player);
 
-		if (Phrases.TryGetValue(lang, out var messages) && messages.TryGetValue(name, out var phrase))
+		if (Phrases.TryGetValue(lang, out var messages) && messages.TryGetValue(key, out var phrase))
 		{
 			return phrase;
 		}
+		else
+		{
+			messages = GetMessageFile(plugin.Name, lang);
+			SaveMessageFile(plugin.Name, lang);
 
-		return name;
+			if (messages.TryGetValue(key, out phrase))
+			{
+				return phrase;
+			}
+		}
+
+		return key;
 	}
 	public Dictionary<string, string> GetMessages(string lang, RustPlugin plugin)
 	{

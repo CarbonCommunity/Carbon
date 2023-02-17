@@ -1200,7 +1200,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			perms.ClearColumn(1);
 			perms.AddName(1, "Players", TextAnchor.MiddleLeft);
 			{
-				foreach (var player in BasePlayer.allPlayerList)
+				foreach (var player in BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId()))
 				{
 					perms.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
 					{
@@ -1297,7 +1297,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			AddInitial(tab, ap);
 
-			foreach (var player in BasePlayer.allPlayerList)
+			foreach (var player in BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId()))
 			{
 				AddPlayer(tab, ap, player);
 			}
@@ -1412,6 +1412,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
 				tab.AddInput(1, "Server Language", Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
 				tab.AddInput(1, "WebRequest IP", Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
+				tab.AddEnum(1, "Permission Mode", back => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, () => Config.PermissionSerialization.ToString());
 			}
 
 			return tab;

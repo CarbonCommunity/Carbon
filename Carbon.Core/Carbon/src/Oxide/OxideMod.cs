@@ -2,6 +2,7 @@
 using System.Reflection;
 using Carbon;
 using Carbon.Core;
+using Carbon.Oxide;
 using Oxide.Core.Libraries;
 
 /*
@@ -50,7 +51,16 @@ public class OxideMod
 		DataFileSystem = new DataFileSystem(DataDirectory);
 		RootPluginManager = new PluginManager();
 
-		Permission = new Permission();
+		switch(Community.Runtime.Config.PermissionSerialization)
+		{
+			case Permission.SerializationMode.Protobuf:
+				Permission = new Permission();
+				break;
+
+			case Permission.SerializationMode.SQL:
+				Permission = new PermissionSql();
+				break;
+		}
 	}
 
 	public void NextTick(Action callback)

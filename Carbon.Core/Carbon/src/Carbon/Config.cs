@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Oxide.Core.Libraries;
 
 /*
  *
@@ -23,8 +24,9 @@ public class Config
 	public int EntityMapBufferSize { get; set; } = 100000;
 	public int LogFileMode { get; set; } = 2;
 	public int LogVerbosity { get; set; } = 0;
-	public List<string> ConditionalCompilationSymbols { get; set; } = new List<string>() { "CARBON" };
+	public List<string> ConditionalCompilationSymbols { get; set; }
 	public Logger.Severity LogSeverity { get; set; } = Logger.Severity.Notice;
+	public Permission.SerializationMode PermissionSerialization { get; set; } = Permission.SerializationMode.Protobuf;
 	public string Language { get; set; } = "en";
 	public string WebRequestIp { get; set; }
 

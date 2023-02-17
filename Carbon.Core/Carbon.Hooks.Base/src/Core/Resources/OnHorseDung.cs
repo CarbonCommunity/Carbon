@@ -1,4 +1,5 @@
-﻿using Oxide.Core;
+﻿using API.Hooks;
+using Oxide.Core;
 using UnityEngine;
 using Random = UnityEngine.Random;
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 
@@ -15,6 +16,34 @@ public class Initializer : IHarmonyModHooks
 {
 	public void OnLoaded(OnHarmonyModLoadedArgs args)
 	{
+		try
+		{
+			if (IsOxideAround())
+			{
+				Carbon.Logger.Log(Environment.NewLine +
+					@"                                                          " + Environment.NewLine +
+					@"  ________ _______ ______ _______ _______ _______ _______ " + Environment.NewLine +
+					@" |  |  |  |   _   |   __ \    |  |_     _|    |  |     __|" + Environment.NewLine +
+					@" |  |  |  |       |      <       |_|   |_|       |    |  |" + Environment.NewLine +
+					@" |________|___|___|___|__|__|____|_______|__|____|_______|" + Environment.NewLine +
+					@"                                                          " + Environment.NewLine +
+					@"   OXIDE  IS  CURRENTLY  LOADED  IN  YOUR  GAME  FOLDER   " + Environment.NewLine +
+					@"   DIRECTORY: RUSTDEDICATED_DATA/MANAGED. PLEASE DELETE   " + Environment.NewLine +
+					@"   ALL OXIDE-RELATED DLLS  IN  ORDER FOR CARBON TO WORK   " + Environment.NewLine +
+					@"   PROPERLY.                       THANK YOU VERY MUCH!   " + Environment.NewLine +
+					@"                                                          " + Environment.NewLine
+				);
+
+				Thread.Sleep(15000);
+				return;
+			}
+		}
+		catch (Exception e)
+		{
+			Carbon.Logger.Error("Unable to assert assembly status.", e);
+			return;
+		}
+
 		try
 		{
 			Type t = Type.GetType("ServerMgr, Assembly-CSharp");
@@ -77,5 +106,10 @@ public class Initializer : IHarmonyModHooks
 		Carbon.Logger.Log("Uninitalizing...");
 		Community.Runtime?.Uninitalize();
 		Community.Runtime = null;
+	}
+
+	internal static bool IsOxideAround()
+	{
+		return File.Exists(Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Core.dll"));
 	}
 }
