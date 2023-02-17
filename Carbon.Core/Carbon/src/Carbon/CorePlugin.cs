@@ -352,7 +352,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		StringTable body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Subs");
+		StringTable body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
 		int count = 0, success = 0, warning = 0, failure = 0;
 
 		string option1 = arg.GetString(0, null);
@@ -455,7 +455,7 @@ public class CorePlugin : CarbonPlugin
 							mod.Status,
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "-" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier)}"
+							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
 						);
 					}
 
@@ -504,7 +504,7 @@ public class CorePlugin : CarbonPlugin
 							mod.Status,
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "-" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier)}"
+							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
 						);
 					}
 
