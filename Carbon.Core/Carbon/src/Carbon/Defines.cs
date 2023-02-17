@@ -134,6 +134,18 @@ public class Defines
 
 		return folder;
 	}
+	public static string GetRustRootFolder()
+	{
+		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath)));
+
+		return folder;
+	}
+	public static string GetRustManagedFolder()
+	{
+		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath, "Managed")));
+
+		return folder;
+	}
 
 	#endregion
 
