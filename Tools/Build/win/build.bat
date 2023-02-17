@@ -30,18 +30,14 @@ echo ** Copy operating system specific files
 echo "%TARGET%" | findstr /C:"Unix" >NUL && (
 	copy /y "%ROOT%\Tools\Helpers\environment.sh"                 						"%ROOT%\Release\.tmp\%TARGET%\carbon\tools\"
 	copy /y "%ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" 						"%ROOT%\Release\.tmp\%TARGET%"
-	robocopy "%ROOT%\Tools\SQLRedist\x64" 						  						"%ROOT%\Release\.tmp\%TARGET%\RustDedicated_Data\Managed\x64" /E
-	robocopy "%ROOT%\Tools\SQLRedist\x86" 						  						"%ROOT%\Release\.tmp\%TARGET%\RustDedicated_Data\Managed\x86" /E
-	copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\MySql.Data.dll"			"%ROOT%\Release\.tmp\%TARGET%\RustDedicated_Data\Managed\"
-	copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\System.Data.SQLite.dll"	"%ROOT%\Release\.tmp\%TARGET%\RustDedicated_Data\Managed\"
+	robocopy "%ROOT%\Carbon.Core\Carbon\bin\%TARGET%\x64" 						  		"%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\x64" /E
+	robocopy "%ROOT%\Carbon.Core\Carbon\bin\%TARGET%\x86" 						  		"%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\x86" /E
 	(CALL )                                                                                                                     
 ) || (                                                                                                                          
 	copy /y "%ROOT%\Tools\Helpers\doorstop_config.ini"            						"%ROOT%\Release\.tmp\%TARGET%"                                
 	copy /y "%ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" 						"%ROOT%\Release\.tmp\%TARGET%\winhttp.dll"                    
-	robocopy "%ROOT%\Tools\SQLRedist\x64" 						  						"%ROOT%\Release\.tmp\%TARGET%\RustDedicated_Data\Managed\x64" /E
-	robocopy "%ROOT%\Tools\SQLRedist\x86" 						  						"%ROOT%\Release\.tmp\%TARGET%\RustDedicated_Data\Managed\x86" /E
-	copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\MySql.Data.dll"			"%ROOT%\Release\.tmp\%TARGET%\RustDedicated_Data\Managed\"
-	copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\System.Data.SQLite.dll"	"%ROOT%\Release\.tmp\%TARGET%\RustDedicated_Data\Managed\"
+	robocopy "%ROOT%\Carbon.Core\Carbon\bin\%TARGET%\x64" 						  		"%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\x64" /E
+	robocopy "%ROOT%\Carbon.Core\Carbon\bin\%TARGET%\x86" 						  		"%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\x86" /E
 	(CALL )
 )
 
