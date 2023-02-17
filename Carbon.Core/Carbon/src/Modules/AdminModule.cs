@@ -1376,7 +1376,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddInput(0, "Version", $"{Community.Version}", null);
 				tab.AddInput(0, "Informational Version", $"{Community.InformationalVersion}", null);
 
-				var loadedHooks = Community.Runtime.HookManager.DynamicHooks.Count(x => x.IsLoaded) + Community.Runtime.HookManager.StaticHooks.Count(x => x.IsLoaded);
+				var loadedHooks = Community.Runtime.HookManager.DynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.StaticHooks.Count(x => x.IsInstalled);
 				var totalHooks = Community.Runtime.HookManager.DynamicHooks.Count + Community.Runtime.HookManager.StaticHooks.Count;
 				tab.AddInput(0, "Hooks", $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
 				tab.AddInput(0, "Static Hooks", $"{Community.Runtime.HookManager.StaticHooks.Count:n0}", null);

@@ -183,9 +183,6 @@ public class Defines
 #elif UNIX
 		"Facepunch.Steamworks.Posix",
 #endif
-		"MySql.Data",
-		"System.Data.SQLite",
-
 		"Fleck",
 		"Newtonsoft.Json",
 		"Rust.Data",
