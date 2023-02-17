@@ -102,6 +102,7 @@ public class HookEx : IDisposable
 			if (metadata == default)
 				throw new Exception($"Metadata information is invalid or was not found");
 
+			Dependencies = new string[0];
 			HookFullName = metadata.FullName;
 			HookName = metadata.Name;
 			TargetMethod = metadata.Method;
