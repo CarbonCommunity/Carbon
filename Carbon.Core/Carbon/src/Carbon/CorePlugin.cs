@@ -16,7 +16,6 @@ using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
-using static Generated.AnimatorController.PlayerMenuAnimation;
 
 /*
  *

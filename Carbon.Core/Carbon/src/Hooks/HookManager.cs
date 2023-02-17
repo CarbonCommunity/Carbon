@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using API.Hooks;
 using Carbon.Core;
+using HarmonyLib;
 
 /*
  *
@@ -338,33 +339,14 @@ public class HookManager : FacepunchBehaviour, IDisposable
 	{
 		try
 		{
-			if (hook.HasDependencies())
+			List<HookEx> dependencies = GetHookDependencyTree(hook);
+
+			foreach (HookEx dependency in dependencies)
 			{
-				List<HookEx> dependencies;
-
-				foreach (string item in hook.Dependencies)
-				{
-					dependencies = GetHookByFullName(item).ToList();
-
-					if (dependencies.Count < 1)
-						throw new Exception($"Dependency '{item}' not found, this is a bug");
-
-					foreach (HookEx dependency in dependencies)
-					{
-						if (dependency is null)
-							throw new Exception($"Dependency '{item}' is null, this is a bug");
-
-						if (dependency.IsInstalled) continue;
-
-						if (!dependency.ApplyPatch())
-							throw new Exception($"Dependency '{dependency}' installation failed");
-
-						AddSubscriber(dependency.Identifier, requester);
-						Logger.Debug($"Installed dependency '{dependency}'", 1);
-					}
-				}
-
-				dependencies = default;
+				if (!dependency.ApplyPatch())
+					throw new Exception($"Dependency '{dependency}' for '{hook}' installation failed");
+				AddSubscriber(dependency.Identifier, requester);
+				Logger.Debug($"Installed dependency '{dependency}' for '{hook}'", 1);
 			}
 
 			if (!hook.ApplyPatch())
@@ -387,6 +369,8 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			}
 
 			dependants = default;
+			dependencies = default;
+
 			Logger.Debug($"Installed hook '{hook}'", 1);
 		}
 		catch (System.Exception e)
@@ -419,34 +403,20 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			if (!hook.RemovePatch())
 				throw new Exception($"Unable to remove patch");
 
-			if (!hook.HasDependencies()) return;
+			List<HookEx> dependencies = GetHookDependencyTree(hook);
+			dependencies.Reverse();
 
-			List<HookEx> dependencies;
-
-			foreach (string item in hook.Dependencies)
+			foreach (HookEx dependency in dependencies)
 			{
-				dependencies = GetHookByFullName(item).ToList();
-
-				if (dependencies.Count < 1)
-					throw new Exception($"Dependency '{item}' not found, this is a bug");
-
-				foreach (HookEx dependency in dependencies)
-				{
-					if (dependency is null)
-						throw new Exception($"Dependency '{item}' is null, this is a bug");
-
-					if (!dependency.IsInstalled) continue;
-
-					if (!dependency.RemovePatch())
-						throw new Exception($"Dependency '{dependency}' uninstallation failed");
-
-					RemoveSubscriber(dependency.Identifier, requester);
-					Logger.Debug($"Uninstalled dependency '{dependency}'", 1);
-				}
+				if (!dependency.RemovePatch())
+					throw new Exception($"Dependency '{dependency}' for '{hook}' uninstallation failed");
+				RemoveSubscriber(dependency.Identifier, requester);
+				Logger.Debug($"Uninstalled dependency '{dependency}' for '{hook}'", 1);
 			}
 
 			dependants = default;
 			dependencies = default;
+
 			Logger.Debug($"Uninstalled hook '{hook}'", 1);
 		}
 		catch (System.Exception e)
@@ -454,6 +424,32 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			GetHookById(hook.Identifier).SetStatus(HookState.Failure, e);
 			Logger.Error($"Uninstall hook '{hook}' failed", e);
 		}
+	}
+
+	private List<HookEx> GetHookDependencyTree(HookEx hook)
+	{
+		List<HookEx> dependencies = new List<HookEx>();
+
+		if (hook.HasDependencies())
+		{
+			foreach (string dependency in hook.Dependencies)
+			{
+				List<HookEx> list = GetHookByFullName(dependency).ToList();
+
+				if (list.Count < 1)
+				{
+					Logger.Error($"Dependency '{dependency}' for '{hook}' not loaded, this is a bug");
+					continue;
+				}
+
+				foreach (HookEx item in list)
+				{
+					dependencies = dependencies.Concat(GetHookDependencyTree(item)).ToList();
+					dependencies.Add(item);
+				}
+			}
+		}
+		return dependencies.Distinct().ToList();
 	}
 
 	private IEnumerable<HookEx> GetHookByName(string name)
