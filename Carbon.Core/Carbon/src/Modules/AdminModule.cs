@@ -467,11 +467,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				var actualI = i + (page.CurrentPage * contentsPerPage);
 				var current = options[actualI];
-				var isSelected = i == index;
+				var isSelected = actualI == index;
 
 				cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
-					color: isSelected ? $"{color} 0.95" : "0.1 0.1 0.1 0.95",
-					textColor: "1 1 1 0.7",
+					color: isSelected ? $"{color} 0.95" : "0.1 0.1 0.1 0.985",
+					textColor: isSelected ? "1 1 1 0.7" : "1 1 1 0.4",
 					text: $"    {current}", 10,
 					xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
 					OyMin: _offset, OyMax: _offset,
