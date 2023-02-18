@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Extensions;
@@ -8,9 +7,7 @@ using Facepunch;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
-using Steamworks.Data;
 using UnityEngine;
-using UnityEngine.UI;
 using static ConsoleSystem;
 
 /*
@@ -404,6 +401,147 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
 		}
 	}
+	public void TabPanelDropdown(CUI cui, AdminPlayer.Page page, CuiElementContainer container, string parent, string text, string command, float height, float offset, int index, string[] options, bool display, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
+	{
+		var color = "0 0 0 0";
+
+		switch (type)
+		{
+			case Tab.OptionButton.Types.Selected:
+				color = "0.4 0.7 0.2";
+				break;
+
+			case Tab.OptionButton.Types.Warned:
+				color = "0.8 0.7 0.2";
+				break;
+
+			case Tab.OptionButton.Types.Important:
+				color = "0.97 0.2 0.1";
+				break;
+
+			default:
+				color = "0.2 0.2 0.2";
+				break;
+		}
+
+		cui.CreatePanel(container, parent, $"{parent}panel",
+			color: "0.2 0.2 0.2 0",
+			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+
+		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+			color: "1 1 1 0.7",
+			text: text, 12,
+			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleLeft,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
+			color: "0.2 0.2 0.2 0.5",
+			xMin: Config.OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
+
+		cui.CreatePanel(container, $"{parent}panel", null,
+			color: "0.2 0.2 0.2 0.5",
+			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
+
+		cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
+			color: $"{color} 0.7",
+			textColor: "1 1 1 0.7",
+			text: $"  {options[index]}", 10,
+			xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
+			command: $"{command} false",
+			align: TextAnchor.MiddleLeft,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		if (display)
+		{
+			var _spacing = 20;
+			var _offset = -_spacing;
+			var contentsPerPage = 10;
+			var rowPage = options.Skip(contentsPerPage * page.CurrentPage).Take(contentsPerPage);
+			var rowPageCount = rowPage.Count();
+			var shiftOffset = 15;
+			page.TotalPages = (int)Math.Ceiling((double)options.Length / contentsPerPage - 1);
+			page.Check();
+
+			for (int i = 0; i < rowPageCount; i++)
+			{
+				var actualI = i + (page.CurrentPage * contentsPerPage);
+				var current = options[actualI];
+				var isSelected = i == index;
+
+				cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
+					color: isSelected ? $"{color} 0.95" : "0.1 0.1 0.1 0.95",
+					textColor: "1 1 1 0.7",
+					text: $"    {current}", 10,
+					xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
+					OyMin: _offset, OyMax: _offset,
+					OxMin: shiftOffset,
+					command: $"{command} true call {actualI}",
+					align: TextAnchor.MiddleLeft,
+					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+				_offset -= _spacing;
+			}
+
+			if (page.TotalPages > 0)
+			{
+				var controls = cui.CreatePanel(container, parent: $"{parent}inppanel", id: null, "0.2 0.2 0.2 0.2",
+					OyMin: _offset, OyMax: _offset,
+					OxMin: shiftOffset);
+
+				var id = cui.CreatePanel(container, controls, id: $"{parent}dropdown",
+					color: "0.3 0.3 0.3 0.3",
+					xMin: 0f, xMax: 1f, yMin: 0, yMax: 1);
+
+				cui.CreateText(container, parent: id, id: null,
+					color: "1 1 1 0.5",
+					text: $"{page.CurrentPage + 1:n0} / {page.TotalPages + 1:n0}", 9,
+					xMin: 0.5f, xMax: 1f, yMin: 0, yMax: 1,
+					align: TextAnchor.MiddleLeft,
+					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+				#region Left
+
+				cui.CreateProtectedButton(container, parent: id, id: null,
+					color: page.CurrentPage > 0 ? "0.8 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
+					textColor: "1 1 1 0.5",
+					text: "<<", 8,
+					xMin: 0, xMax: 0.1f, yMin: 0f, yMax: 1f,
+					command: $"{command} true --",
+					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+				cui.CreateProtectedButton(container, parent: id, id: null,
+					color: "0.4 0.7 0.2 0.7",
+					textColor: "1 1 1 0.5",
+					text: "<", 8,
+					xMin: 0.1f, xMax: 0.2f, yMin: 0f, yMax: 1f,
+					command: $"{command} true -1",
+					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+				#endregion
+
+				#region Right
+
+				cui.CreateProtectedButton(container, parent: id, id: null,
+					color: page.CurrentPage < page.TotalPages ? "0.8 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
+					textColor: "1 1 1 0.5",
+					text: ">>", 8,
+					xMin: 0.9f, xMax: 1f, yMin: 0f, yMax: 1f,
+					command: $"{command} true ++",
+					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+				cui.CreateProtectedButton(container, parent: id, id: null,
+					color: "0.4 0.7 0.2 0.7",
+					textColor: "1 1 1 0.5",
+					text: ">", 8,
+					xMin: 0.8f, xMax: 0.9f, yMin: 0f, yMax: 1f,
+					command: $"{command} true 1",
+					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+				#endregion
+			}
+		}
+	}
 
 	#endregion
 
@@ -600,12 +738,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var contentsPerPage = 19;
 					var rowSpacing = 0.01f;
 					var rowHeight = 0.04f;
-					var rowIndex = 1f - rowSpacing - rowHeight;
 					var rowPage = rows.Skip(contentsPerPage * columnPage.CurrentPage).Take(contentsPerPage);
+					var rowPageCount = rowPage.Count();
+					var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - 1));
 					columnPage.TotalPages = (int)Math.Ceiling((double)rows.Count / contentsPerPage - 1);
 					columnPage.Check();
 
-					for (int r = 0; r < rowPage.Count(); r++)
+					if (columnPage.TotalPages > 0)
+					{
+						TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+						TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+					}
+
+					for (int r = rowPageCount; r-- > 0;)
 					{
 						var actualI = r + (columnPage.CurrentPage * contentsPerPage);
 						var row = rows.ElementAt(actualI);
@@ -640,17 +785,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								TabPanelRadio(cui, container, panel, radio.Name, radio.Index == tab.Radios[radio.Id].Selected, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
 								break;
 
+							case Tab.OptionDropdown dropdown:
+								TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, ap._selectedDropdown == dropdown);
+								break;
+
 							default:
 								break;
 						}
 
-						rowIndex -= rowHeight + rowSpacing;
-					}
-
-					if (columnPage.TotalPages > 0)
-					{
-						TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
-						TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+						rowIndex += rowHeight + rowSpacing;
 					}
 
 					#endregion
@@ -790,6 +933,59 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					return true;
 				}
 				break;
+
+			case Tab.OptionDropdown dropdown:
+				var page = ap._selectedDropdownPage;
+
+				switch (args[0].ToBool())
+				{
+					case true:
+						switch (args[1])
+						{
+							case "call":
+								ap._selectedDropdown = null;
+								dropdown.Callback?.Invoke(args[2].ToInt());
+								page.CurrentPage = 0;
+								break;
+
+							default:
+								switch (args[1])
+								{
+									case "--":
+										page.CurrentPage = 0;
+										break;
+
+									case "++":
+										page.CurrentPage = page.TotalPages;
+										break;
+
+									default:
+										page.CurrentPage += args[1].ToInt();
+										break;
+								}
+			
+								if (page.CurrentPage < 0) page.CurrentPage = page.TotalPages;
+								else if (page.CurrentPage > page.TotalPages) page.CurrentPage = 0;
+								break;
+						}
+
+						return true;
+
+					case false:
+						page.CurrentPage = 0;
+
+						var oldSelectedDropdown = ap._selectedDropdown;
+						if (oldSelectedDropdown == dropdown)
+						{
+							ap._selectedDropdown = null;
+							return true;
+						}
+						else
+						{
+							ap._selectedDropdown = dropdown;
+							return oldSelectedDropdown != dropdown;
+						}
+				}
 		}
 
 		return false;
@@ -802,13 +998,16 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public static AdminPlayer Blank { get; } = new AdminPlayer(null);
 
 		public BasePlayer Player;
-		public Dictionary<int, Page> ColumnPages = new Dictionary<int, Page>();
-		public Dictionary<string, object> LocalStorage = new Dictionary<string, object>();
+		public Dictionary<int, Page> ColumnPages = new();
+		public Dictionary<string, object> LocalStorage = new();
 
 		public int TabIndex;
 		public int TabSkip;
 		public int LastPressedColumn;
 		public int LastPressedRow;
+
+		internal Tab.OptionDropdown _selectedDropdown;
+		internal Page _selectedDropdownPage = new();
 
 		public AdminPlayer(BasePlayer player)
 		{
@@ -980,6 +1179,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			return AddRow(column, option);
 		}
+		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options)
+		{
+			AddRow(column, new OptionDropdown(name, index, callback, options));
+			return this;
+		}
 
 		public void Dispose()
 		{
@@ -1101,6 +1305,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public Radio Radio;
 
 			public OptionRadio(string name, string id, int index, bool on, Action<bool, AdminPlayer> callback, Radio radio) : base(name) { Id = id; Callback = callback; WantsOn = on; Index = index; Radio = radio; }
+		}
+		public class OptionDropdown : Option
+		{
+			public Func<int> Index;
+			public Action<int> Callback;
+			public string[] Options;
+
+			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options) : base(name) { Index = index; Callback = callback; Options = options; }
 		}
 	}
 
