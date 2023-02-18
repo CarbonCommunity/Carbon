@@ -99,7 +99,6 @@ public class ScriptProcessor : BaseProcessor
 				.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
 				.Replace("HarmonyInstance", "HarmonyLib.Harmony")
 
-				.Replace("OnPlayerAttack", "OnMeleeAttack")
 				.Replace("PluginTimers", "Timers");
 
 			var newOutput = string.Empty;
