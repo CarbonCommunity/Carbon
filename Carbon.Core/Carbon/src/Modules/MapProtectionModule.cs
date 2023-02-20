@@ -36,7 +36,6 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 		{
 			var key = Key.Deserialize(Config.Key);
 			var temporaryEntities = BaseNetworkable.serverEntities.ToArray();
-			var entitiesObliterated = 0;
 
 			Puts($"Unlocking map with key '{Path.GetFileName(Config.Key)}'. Processing {key.points.Count:n0} points...");
 
@@ -51,7 +50,6 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 							if (!entity.IsDestroyed)
 							{
 								entity.Kill();
-								entitiesObliterated++;
 							}
 
 							break;
