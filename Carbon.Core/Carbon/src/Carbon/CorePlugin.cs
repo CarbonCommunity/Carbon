@@ -1227,6 +1227,7 @@ public class CorePlugin : CarbonPlugin
 					Reply($"Set '{group}' group.", arg);
 				}
 				break;
+
 			case "remove":
 				{
 					if (!arg.HasArgs(2)) { PrintWarn(); return; }
@@ -1235,6 +1236,18 @@ public class CorePlugin : CarbonPlugin
 
 					if (permission.RemoveGroup(group)) Reply($"Removed '{group}' group.", arg);
 					else Reply($"Couldn't remove '{group}' group.", arg);
+				}
+				break;
+
+			case "parent":
+				{
+					if (!arg.HasArgs(3)) { PrintWarn(); return; }
+
+					var group = arg.Args[1];
+					var parent = arg.Args[2];
+
+					if (permission.SetGroupParent(group, parent)) Reply($"Changed '{group}' group's parent to '{parent}'.", arg);
+					else Reply($"Couldn't change '{group}' group's parent to '{parent}'.", arg);
 				}
 				break;
 
