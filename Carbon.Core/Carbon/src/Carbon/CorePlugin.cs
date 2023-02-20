@@ -1211,7 +1211,7 @@ public class CorePlugin : CarbonPlugin
 
 			case "set":
 				{
-					if (!arg.HasArgs(2)) { PrintWarn(); return; }
+					if (!arg.HasArgs(4)) { PrintWarn(); return; }
 
 					var group = arg.Args[1];
 
@@ -1221,8 +1221,19 @@ public class CorePlugin : CarbonPlugin
 						return;
 					}
 
-					if (arg.HasArgs(3)) permission.SetGroupTitle(group, arg.Args[2]);
-					if (arg.HasArgs(4)) permission.SetGroupTitle(group, arg.Args[3]);
+					var set = arg.Args[2];
+					var value = arg.Args[3];
+
+					switch (set)
+					{
+						case "title":
+							permission.SetGroupTitle(group, value);
+							break;
+
+						case "rank":
+							permission.SetGroupRank(group, value.ToInt());
+							break;
+					}
 
 					Reply($"Set '{group}' group.", arg);
 				}
@@ -1241,7 +1252,7 @@ public class CorePlugin : CarbonPlugin
 
 			case "parent":
 				{
-					if (!arg.HasArgs(3)) { PrintWarn(); return; }
+					if (!arg.HasArgs(4)) { PrintWarn(); return; }
 
 					var group = arg.Args[1];
 					var parent = arg.Args[2];
