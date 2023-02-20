@@ -444,7 +444,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
 
 		cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
-			color: $"{color} 0.7",
+			color: $"0.2 0.2 0.2 0.7",
 			textColor: "1 1 1 0.7",
 			text: $"  {options[index]}", 10,
 			xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
@@ -1044,6 +1044,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			ColumnPages.Clear();
 			LocalStorage.Clear();
+
+			_selectedDropdown = null;
+			_selectedDropdownPage.CurrentPage = 0;
 		}
 		public Page GetOrCreatePage(int column)
 		{
@@ -1619,7 +1622,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
 				tab.AddInput(1, "Log File Mode", Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); Community.Runtime.SaveConfig(); });
 				tab.AddInput(1, "Log Verbosity (Debug)", Config.LogVerbosity.ToString(), (ap, args) => { Config.LogVerbosity = args[0].ToInt().Clamp(0, 10); Community.Runtime.SaveConfig(); });
-				tab.AddEnum(1, "Log Severity", back => { var e = Enum.GetNames(typeof(Logger.Severity)); Config.LogSeverity += back ? -1 : 1; if (Config.LogSeverity < 0) Config.LogSeverity = Logger.Severity.Debug; else if (Config.LogSeverity > Logger.Severity.Debug) Config.LogSeverity = Logger.Severity.Error; Community.Runtime.SaveConfig(); }, () => Config.LogSeverity.ToString());
+				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Logger.Severity)));
 
 				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
 				tab.AddInput(1, "Server Language", Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
