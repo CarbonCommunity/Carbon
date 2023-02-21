@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using Carbon;
 using Carbon.Core;
@@ -73,9 +74,18 @@ public class OxideMod
 		Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 	}
 
+	public void ReloadPlugin(string name)
+	{
+		var path = CorePlugin.GetPluginPath(name);
+
+		Community.Runtime.HarmonyProcessor.Prepare(name, path);
+		Community.Runtime.ScriptProcessor.Prepare(name, path);
+	}
+
 	public void UnloadPlugin(string name)
 	{
-
+		Community.Runtime.HarmonyProcessor.Remove(name);
+		Community.Runtime.ScriptProcessor.Remove(name);
 	}
 
 	public void OnSave()
@@ -107,7 +117,8 @@ public class OxideMod
 
 		if (type == typeof(Permission)) return Community.Runtime.CorePlugin.permission as T;
 		else if (type == typeof(Lang)) return Community.Runtime.CorePlugin.lang as T;
-		else if (type == typeof(Oxide.Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
+		else if (type == typeof(Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
+		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 
 		return Activator.CreateInstance<T>();
 	}
