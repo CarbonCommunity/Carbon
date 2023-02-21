@@ -1252,7 +1252,7 @@ public class CorePlugin : CarbonPlugin
 
 			case "parent":
 				{
-					if (!arg.HasArgs(4)) { PrintWarn(); return; }
+					if (!arg.HasArgs(3)) { PrintWarn(); return; }
 
 					var group = arg.Args[1];
 					var parent = arg.Args[2];
