@@ -740,14 +740,16 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var rowHeight = 0.04f;
 					var rowPage = rows.Skip(contentsPerPage * columnPage.CurrentPage).Take(contentsPerPage);
 					var rowPageCount = rowPage.Count();
-					var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - 1));
 					columnPage.TotalPages = (int)Math.Ceiling((double)rows.Count / contentsPerPage - 1);
 					columnPage.Check();
+					var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - (columnPage.TotalPages > 0 ? 0 : 1)));
 
 					if (columnPage.TotalPages > 0)
 					{
 						TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
 						TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+
+						rowIndex += rowHeight + rowSpacing;
 					}
 
 					for (int r = rowPageCount; r-- > 0;)
