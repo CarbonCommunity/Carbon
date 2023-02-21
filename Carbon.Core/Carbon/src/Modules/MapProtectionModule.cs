@@ -35,6 +35,10 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 		try
 		{
 			var key = Key.Deserialize(Config.Key);
+
+			World.Serialization.world.size = World.Size = key.size;
+			ConVar.Server.worldsize = (int)key.size;
+
 			var temporaryEntities = BaseNetworkable.serverEntities.ToArray();
 
 			Puts($"Unlocking map with key '{Path.GetFileName(Config.Key)}'. Processing {key.points.Count:n0} points...");
