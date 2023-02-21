@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Carbon.Base;
@@ -39,35 +41,59 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 			World.Serialization.world.size = World.Size = key.size;
 			ConVar.Server.worldsize = (int)key.size;
 
-			var temporaryEntities = BaseNetworkable.serverEntities.ToArray();
+			Community.Runtime.CorePlugin.persistence.StartCoroutine(_doAsynchronousProcess(key));
+		}
+		catch (Exception exception) { PutsWarn($"Failed to successfully unlock map. Please report the following error:\n{exception}"); }
+	}
 
-			Puts($"Unlocking map with key '{Path.GetFileName(Config.Key)}'. Processing {key.points.Count:n0} points...");
+	internal IEnumerator _doAsynchronousProcess(Key key)
+	{
+		Puts($"Unlocking map with key '{Path.GetFileName(Config.Key)}'. Processing {key.points.Count:n0} points...");
 
-			using (TimeMeasure.New("MapProtectionModule.Process"))
+		var temporaryEntities = BaseNetworkable.serverEntities.ToArray();
+		var entitiesDestroyed = 0;
+		var timeTook = new Stopwatch();
+		timeTook.Start();
+
+		var serverExhaleEvery = temporaryEntities.Length.Scale(0, 50000, 0, 2500);
+
+		for (int i = 0; i < temporaryEntities.Length; i++)
+		{
+			var entity = temporaryEntities[i];
+			if (entity == null || entity.IsDestroyed) continue;
+
+			if (i % serverExhaleEvery == 0)
 			{
-				foreach (var entity in temporaryEntities)
-				{
-					for (int i = 0; i < key.points.Count; i++)
-					{
-						if (key.points[i] == entity.transform.position)
-						{
-							if (!entity.IsDestroyed)
-							{
-								entity.Kill();
-							}
+				yield return CoroutineEx.waitForEndOfFrame;
 
-							break;
-						}
+				var percent = i.Scale(0, temporaryEntities.Length, 0, 100);
+				UnityEngine.Debug.Log($" Progress... {percent:n0}%");
+
+				yield return CoroutineEx.waitForEndOfFrame;
+			}
+
+			try
+			{
+				for (int w = 0; w < key.points.Count; w++)
+				{
+					if (key.points[w] == entity.transform.position)
+					{
+						entity.Kill();
+						entitiesDestroyed++;
+						break;
 					}
 				}
 			}
-
-			Array.Clear(temporaryEntities, 0, temporaryEntities.Length);
-			temporaryEntities = null;
-
-			Puts($"Successfully unlocked map.");
+			catch (Exception ex)
+			{
+				PutsError($"Failed at {entity}:", ex);
+			}
 		}
-		catch (Exception exception) { PutsWarn($"Failed to successfully unlock map. Please report the following error:\n{exception}"); }
+
+		Array.Clear(temporaryEntities, 0, temporaryEntities.Length);
+		temporaryEntities = null;
+
+		Puts($"Successfully unlocked map! Destroying {entitiesDestroyed:n0} entities took {timeTook.Elapsed.TotalSeconds:0.0}s.");
 	}
 
 	[ProtoBuf.ProtoContract]
