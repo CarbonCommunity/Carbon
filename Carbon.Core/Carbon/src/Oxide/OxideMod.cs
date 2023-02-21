@@ -107,6 +107,7 @@ public class OxideMod
 
 		if (type == typeof(Permission)) return Community.Runtime.CorePlugin.permission as T;
 		else if (type == typeof(Lang)) return Community.Runtime.CorePlugin.lang as T;
+		else if (type == typeof(Oxide.Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
 
 		return Activator.CreateInstance<T>();
 	}

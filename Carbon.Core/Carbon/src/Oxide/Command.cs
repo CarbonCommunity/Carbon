@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using Carbon;
 using Carbon.Base;
 using Oxide.Core;
+using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
 using Oxide.Plugins;
 using static ConsoleSystem;
@@ -19,7 +20,7 @@ using Pool = Facepunch.Pool;
 
 namespace Oxide.Game.Rust.Libraries
 {
-	public class Command
+	public class Command : Library
 	{
 		public static bool FromRcon { get; set; }
 
