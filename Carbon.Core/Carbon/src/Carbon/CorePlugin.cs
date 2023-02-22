@@ -72,11 +72,6 @@ public class CorePlugin : CarbonPlugin
 	private void OnPluginUnloaded(Plugin plugin)
 	{
 	}
-	private void IOnPlayerConnected(BasePlayer player)
-	{
-		permission.RefreshUser(player);
-		Interface.CallHook("OnPlayerConnected", player);
-	}
 	private void OnEntitySpawned(BaseEntity entity)
 	{
 		Entities.AddMap(entity);
@@ -92,6 +87,11 @@ public class CorePlugin : CarbonPlugin
 
 	#region Internal Hooks
 
+	private void IOnPlayerConnected(BasePlayer player)
+	{
+		permission.RefreshUser(player);
+		Interface.CallHook("OnPlayerConnected", player);
+	}
 	private object IOnUserApprove(Connection connection)
 	{
 		var username = connection.username;
