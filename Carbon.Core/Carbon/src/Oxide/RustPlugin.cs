@@ -199,7 +199,7 @@ public class RustPlugin : Plugin
 	}
 	public void ILoadDefaultMessages()
 	{
-		LoadDefaultMessages();
+		CallHook("LoadDefaultMessages");
 	}
 
 	protected virtual void LoadConfig()
