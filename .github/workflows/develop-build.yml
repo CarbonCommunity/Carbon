@@ -80,7 +80,7 @@ jobs:
         name: build-develop-linux
         path: |
           Release/Carbon.DebugUnix.tar.gz
-          Release/.tmp/DebugUnix/build-unix.txt
+          ${GITHUB_WORKSPACE}/Release/.tmp/DebugUnix/build-unix.txt
 
   build-windows:
     name: 🪟 Windows
@@ -113,7 +113,7 @@ jobs:
         name: build-develop-windows
         path: |
           Release/Carbon.Debug.zip
-          Release/.tmp/Debug/build.txt
+          ${GITHUB_WORKSPACE}/Release/.tmp/Debug/build.txt
 
   release:
     name: 💾 Release
