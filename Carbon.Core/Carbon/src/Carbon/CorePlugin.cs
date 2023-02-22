@@ -757,6 +757,9 @@ public class CorePlugin : CarbonPlugin
 
 				if (!string.IsNullOrEmpty(path))
 				{
+					Community.Runtime.HarmonyProcessor.ClearIgnore(path);
+					Community.Runtime.ScriptProcessor.ClearIgnore(path);
+
 					Community.Runtime.HarmonyProcessor.Prepare(name, path);
 					Community.Runtime.ScriptProcessor.Prepare(name, path);
 					return;
