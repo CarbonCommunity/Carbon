@@ -89,6 +89,7 @@ public class CorePlugin : CarbonPlugin
 
 	private void IOnPlayerConnected(BasePlayer player)
 	{
+
 		permission.RefreshUser(player);
 		Interface.CallHook("OnPlayerConnected", player);
 	}
@@ -116,7 +117,7 @@ public class CorePlugin : CarbonPlugin
 	}
 	private object IOnBasePlayerAttacked(BasePlayer basePlayer, HitInfo hitInfo)
 	{
-		if (!Community.IsServerFullyInitialized || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
+		if (!Community.IsServerFullyInitializedCache || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
 		{
 			return null;
 		}
@@ -128,7 +129,15 @@ public class CorePlugin : CarbonPlugin
 
 		try
 		{
-			basePlayer.OnAttacked(hitInfo);
+			if (!basePlayer.IsDead())
+			{
+				basePlayer.DoHitNotify(hitInfo);
+			}
+
+			if (basePlayer.isServer)
+			{
+				basePlayer.Hurt(hitInfo);
+			}
 		}
 		catch { }
 

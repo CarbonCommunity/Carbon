@@ -31,7 +31,8 @@ public class Community
 	public static string Version { get; set; } = "Unknown";
 	public static string InformationalVersion { get; set; } = "Unknown";
 
-	public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
+	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
+	public static bool IsServerFullyInitializedCache { get; internal set; }
 	public static Community Runtime { get; set; }
 
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
