@@ -1,4 +1,4 @@
-![GitHub-Mark-Light](./.press/logo_light.png#gh-dark-mode-only)![GitHub-Mark-Dark](./.press/logo_dark.png#gh-light-mode-only)
+![Carbon](https://i.imgur.com/Q66GnUo.png)
 
 <p align="center">
   <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg"></a>
