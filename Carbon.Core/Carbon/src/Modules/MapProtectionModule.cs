@@ -25,12 +25,49 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 	public override Type Type => typeof(MapProtectionModule);
 	public override bool EnabledByDefault => true;
 
-	private void OnServerInitialized()
+	private void IOnWorldSerializationLoaded(string fileName, WorldSerialization serialization)
 	{
-		Process();
+		if (!OsEx.File.Exists(Config.Key)) return;
+
+		try
+		{
+			var key = Key.Deserialize(Config.Key);
+
+			Puts($"Unlocking map with key '{Path.GetFileName(Config.Key)}'. Processing {key.points.Count:n0} points...");
+
+			serialization.world.size = World.Size = key.size;
+			ConVar.Server.worldsize = (int)key.size;
+
+			var entitiesRemoved = 0;
+			var prefabs = serialization.world.prefabs.ToArray();
+			var logGuesstimate = key.points.Count.Scale(0, 50000, 0, 2500);
+
+			for (int i = 0; i < key.points.Count; i++)
+			{
+				var point = key.points[i];
+
+				foreach (var prefab in prefabs)
+				{
+					if (prefab.position.x == point.x && prefab.position.y == point.y && prefab.position.z == point.z)
+					{
+						serialization.world.prefabs.Remove(prefab);
+						entitiesRemoved++;
+
+						if (i % logGuesstimate == 0)
+						{
+							UnityEngine.Debug.Log($" Progress... {i.Scale(0, key.points.Count, 0, 100):n0}%");
+						}
+						break;
+					}
+				}
+			}
+
+			Puts($"Successfully unlocked map! Removed {entitiesRemoved:n0} / {key.points.Count:n0} obfuscated entities from the loaded map.");
+		}
+		catch (Exception exception) { PutsWarn($"Failed to successfully unlock map. Please report the following error:\n{exception}"); }
 	}
 
-	private void Process()
+	private void DestroyEntities()
 	{
 		if (!OsEx.File.Exists(Config.Key)) return;
 
@@ -41,12 +78,12 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 			World.Serialization.world.size = World.Size = key.size;
 			ConVar.Server.worldsize = (int)key.size;
 
-			Community.Runtime.CorePlugin.persistence.StartCoroutine(_doAsynchronousProcess(key));
+			Community.Runtime.CorePlugin.persistence.StartCoroutine(_destroyEntities(key));
 		}
 		catch (Exception exception) { PutsWarn($"Failed to successfully unlock map. Please report the following error:\n{exception}"); }
 	}
 
-	internal IEnumerator _doAsynchronousProcess(Key key)
+	internal IEnumerator _destroyEntities(Key key)
 	{
 		Puts($"Unlocking map with key '{Path.GetFileName(Config.Key)}'. Processing {key.points.Count:n0} points...");
 

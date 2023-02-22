@@ -16,6 +16,7 @@ public partial class Category_World
 	{
 		[HookAttribute.Patch("IOnWorldSerializationLoad", typeof(WorldSerialization), "Load", new System.Type[] { typeof(string) })]
 		[HookAttribute.Identifier("46e7586c847e42b392ec0c14b75b9451")]
+		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden | HookFlags.IgnoreChecksum)]
 
 		// Called before and after WorldSerialization is loaded.
 
