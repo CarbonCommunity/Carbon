@@ -29,7 +29,7 @@ if [[ "${TARGET}" == *"Unix"* ]]; then
 	mkdir -p "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/lib/x86"
 	cp -a "${ROOT}/Carbon.Core/Carbon/bin/${TARGET}/x64" "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/lib"
 	cp -a "${ROOT}/Carbon.Core/Carbon/bin/${TARGET}/x86" "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/lib"
-	mono "${ROOT}/Tools/BuildInfo/Carbon.BuildInfo.exe" -carbon "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll" -o "${ROOT}/Release/.tmp/${TARGET}/build.info"
+	mono "${ROOT}/Tools/BuildInfo/Carbon.BuildInfo.exe" -carbon "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll" -o "${ROOT}/Release/.tmp/${TARGET}/build-unix.info"
 else
 	echo "** Copy doorstop helper files (windows)"
 	cp "${ROOT}/Tools/Helpers/doorstop_config.ini" "${ROOT}/Release/.tmp/${TARGET}"
