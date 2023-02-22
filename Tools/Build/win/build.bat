@@ -32,12 +32,14 @@ echo "%TARGET%" | findstr /C:"Unix" >NUL && (
 	copy /y "%ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" 						"%ROOT%\Release\.tmp\%TARGET%"
 	robocopy "%ROOT%\Carbon.Core\Carbon\bin\%TARGET%\x64" 						  		"%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\x64" /E
 	robocopy "%ROOT%\Carbon.Core\Carbon\bin\%TARGET%\x86" 						  		"%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\x86" /E
+	"%ROOT%\Tools\BuildInfo\Carbon.BuildInfo.exe" -carbon "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.dll" -o "%ROOT%\Release\.tmp\%TARGET%\build.info"
 	(CALL )                                                                                                                     
 ) || (                                                                                                                          
 	copy /y "%ROOT%\Tools\Helpers\doorstop_config.ini"            						"%ROOT%\Release\.tmp\%TARGET%"                                
 	copy /y "%ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" 						"%ROOT%\Release\.tmp\%TARGET%\winhttp.dll"                    
 	robocopy "%ROOT%\Carbon.Core\Carbon\bin\%TARGET%\x64" 						  		"%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\x64" /E
 	robocopy "%ROOT%\Carbon.Core\Carbon\bin\%TARGET%\x86" 						  		"%ROOT%\Release\.tmp\%TARGET%\carbon\managed\lib\x86" /E
+	"%ROOT%\Tools\BuildInfo\Carbon.BuildInfo.exe" -carbon "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.dll" -o "%ROOT%\Release\.tmp\%TARGET%\build.info"
 	(CALL )
 )
 
