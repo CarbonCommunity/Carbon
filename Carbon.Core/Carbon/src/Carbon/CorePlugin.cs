@@ -89,6 +89,9 @@ public class CorePlugin : CarbonPlugin
 	{
 		Entities.RemoveMap(entity);
 	}
+
+	#region Internal Hooks
+
 	private object IOnUserApprove(Connection connection)
 	{
 		var username = connection.username;
@@ -111,6 +114,28 @@ public class CorePlugin : CarbonPlugin
 
 		return null;
 	}
+	private object IOnBasePlayerAttacked(BasePlayer basePlayer, HitInfo hitInfo)
+	{
+		if (!Community.IsServerFullyInitialized || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
+		{
+			return null;
+		}
+
+		if (Interface.CallHook("OnEntityTakeDamage", basePlayer, hitInfo) != null)
+		{
+			return true;
+		}
+
+		try
+		{
+			basePlayer.OnAttacked(hitInfo);
+		}
+		catch { }
+
+		return true;
+	}
+
+	#endregion
 
 	internal static void Reply(object message, ConsoleSystem.Arg arg)
 	{
