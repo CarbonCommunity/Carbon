@@ -38,7 +38,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 	public void Dispose()
 	{
-		List<HookEx> hooks = StaticHooks.Concat(DynamicHooks).ToList();
+		List<HookEx> hooks = StaticHooks.Concat(DynamicHooks).Concat(Patches).ToList();
 		foreach (HookEx hook in hooks) hook.Dispose();
 
 		hooks = default;
@@ -352,20 +352,14 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			if (!hook.ApplyPatch())
 				throw new Exception($"Unable to apply patch");
 
-			List<HookEx> dependants = Patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
+			List<HookEx> dependants = GetHookDependantTree(hook);
 
 			foreach (HookEx dependant in dependants)
 			{
-				if (dependant is null)
-					throw new Exception($"Dependant is null, this is a bug");
-
-				if (dependant.IsInstalled) continue;
-
 				if (!dependant.ApplyPatch())
-					throw new Exception($"Dependant '{dependant}' installation failed");
-
+					throw new Exception($"Dependant '{dependant}' for '{hook}' installation failed");
 				AddSubscriber(dependant.Identifier, requester);
-				Logger.Debug($"Installed dependant '{dependant}'", 1);
+				Logger.Debug($"Installed dependant '{dependant}' for '{hook}'", 1);
 			}
 
 			dependants = default;
@@ -384,20 +378,15 @@ public class HookManager : FacepunchBehaviour, IDisposable
 	{
 		try
 		{
-			List<HookEx> dependants = Patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
+			List<HookEx> dependants = GetHookDependantTree(hook);
+			dependants.Reverse();
 
 			foreach (HookEx dependant in dependants)
 			{
-				if (dependant is null)
-					throw new Exception($"Dependant is null, this is a bug");
-
-				if (!dependant.IsInstalled) continue;
-
 				if (!dependant.RemovePatch())
-					throw new Exception($"Dependant '{dependant}' uninstallation failed");
-
+					throw new Exception($"Dependant '{dependant}' for '{hook}' uninstallation failed");
 				RemoveSubscriber(dependant.Identifier, requester);
-				Logger.Debug($"Uninstalled dependant '{dependant}'", 1);
+				Logger.Debug($"Uninstalled dependant '{dependant}' for '{hook}'", 1);
 			}
 
 			if (!hook.RemovePatch())
@@ -450,6 +439,18 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			}
 		}
 		return dependencies.Distinct().ToList();
+	}
+
+	private List<HookEx> GetHookDependantTree(HookEx hook)
+	{
+		List<HookEx> dependants = new List<HookEx>();
+
+		foreach (HookEx item in Patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList())
+		{
+			dependants = dependants.Concat(GetHookDependantTree(item)).ToList();
+			dependants.Add(item);
+		}
+		return dependants.Distinct().ToList();
 	}
 
 	private IEnumerable<HookEx> GetHookByName(string name)
