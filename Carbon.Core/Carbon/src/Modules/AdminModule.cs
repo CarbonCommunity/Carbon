@@ -27,10 +27,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
-	internal CUI.Handler Handler { get; } = new();
+	internal CUI.Handler Handler { get; set; } 
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
+
+	public override void Init()
+	{
+		base.Init();
+
+		Handler = new();
+	}
 
 	private void OnServerInitialized()
 	{
