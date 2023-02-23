@@ -1,3 +1,5 @@
+// #define DEBUG_VERBOSE
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -78,9 +80,7 @@ internal sealed class ResolverEx : IDisposable
 #endif
 		if (retvar.Bytes == null)
 		{
-#if DEBUG_VERBOSE
 			Logger.Debug($"Unresolved: {name}");
-#endif
 			return default;
 		}
 		else

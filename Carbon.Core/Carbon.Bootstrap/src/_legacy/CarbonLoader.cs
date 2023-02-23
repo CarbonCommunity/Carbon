@@ -68,16 +68,6 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 
 	internal void Initialize()
 	{
-		Logger.None(
-			@"                                               " + Environment.NewLine +
-			@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
-			@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
-			@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
-			@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
-			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
-			@"                                               " + Environment.NewLine
-		);
-
 		try
 		{
 			Logger.Log("Patching Facepunch's harmony loader");
