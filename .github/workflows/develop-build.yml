@@ -80,7 +80,7 @@ jobs:
         name: build-develop-linux
         path: |
           Release/Carbon.DebugUnix.tar.gz
-          Release/.tmp/DebugUnix/build-unix.txt
+          Release/build-unix.info
 
   build-windows:
     name: 🪟 Windows
@@ -113,7 +113,7 @@ jobs:
         name: build-develop-windows
         path: |
           Release/Carbon.Debug.zip
-          Release/.tmp/Debug/build.txt
+          Release/build.info
 
   release:
     name: 💾 Release
@@ -165,8 +165,8 @@ jobs:
         files: |
           Release/build-develop-windows/Carbon.Debug.zip
           Release/build-develop-linux/Carbon.DebugUnix.tar.gz
-          Release/build-develop-linux/build-unix.txt
-          Release/build-develop-windows/build.txt
+          Release/build-develop-linux/build-unix.info
+          Release/build-develop-windows/build.info
 
   commitrelease:
     name: 💾 Commit Release
@@ -216,5 +216,5 @@ jobs:
         files: |
           Release/build-develop-windows/Carbon.Debug.zip
           Release/build-develop-linux/Carbon.DebugUnix.tar.gz
-          Release/build-develop-linux/build-unix.txt
-          Release/build-develop-windows/build.txt
+          Release/build-develop-linux/build-unix.info
+          Release/build-develop-windows/build.info

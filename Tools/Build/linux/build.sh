@@ -26,12 +26,12 @@ if [[ "${TARGET}" == *"Unix"* ]]; then
 	cp "${ROOT}/Tools/Helpers/environment.sh"                 "${ROOT}/Release/.tmp/${TARGET}/carbon/tools"
 	cp "${ROOT}/Tools/UnityDoorstop/linux/x64/libdoorstop.so" "${ROOT}/Release/.tmp/${TARGET}/libdoorstop.so"
 
-	mono "${ROOT}/Tools/BuildInfo/Carbon.BuildInfo.exe" -carbon "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll" -o "${ROOT}/Release/.tmp/${TARGET}/build-unix.txt"
+	mono "${ROOT}/Tools/BuildInfo/Carbon.BuildInfo.exe" -carbon "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll" -o "${ROOT}/Release/build-unix.info"
 else
 	cp "${ROOT}/Tools/Helpers/doorstop_config.ini"            "${ROOT}/Release/.tmp/${TARGET}"
 	cp "${ROOT}/Tools/UnityDoorstop/windows/x64/doorstop.dll" "${ROOT}/Release/.tmp/${TARGET}/winhttp.dll"
 
-	mono "${ROOT}/Tools/BuildInfo/Carbon.BuildInfo.exe" -carbon "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll" -o "${ROOT}/Release/.tmp/${TARGET}/build.txt"
+	mono "${ROOT}/Tools/BuildInfo/Carbon.BuildInfo.exe" -carbon "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon.dll" -o "${ROOT}/Release/build.info"
 fi
 
 if [ "${2}" != "--no-archive" ]; then
