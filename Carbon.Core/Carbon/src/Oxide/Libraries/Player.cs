@@ -164,7 +164,6 @@ public class Player : Library
 		player.displayName = name;
 		player._name = name;
 		player.SendNetworkUpdateImmediate(false);
-		player.IPlayer.Name = name;
 		permission.UpdateNickname(player.UserIDString, name);
 		Teleport(player, player.transform.position);
 	}

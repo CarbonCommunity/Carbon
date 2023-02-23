@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using Carbon;
 using Carbon.Core;
+using Carbon.Oxide;
 using Oxide.Core.Libraries;
 
 /*
@@ -50,7 +52,16 @@ public class OxideMod
 		DataFileSystem = new DataFileSystem(DataDirectory);
 		RootPluginManager = new PluginManager();
 
-		Permission = new Permission();
+		switch(Community.Runtime.Config.PermissionSerialization)
+		{
+			case Permission.SerializationMode.Protobuf:
+				Permission = new Permission();
+				break;
+
+			case Permission.SerializationMode.SQL:
+				Permission = new PermissionSql();
+				break;
+		}
 	}
 
 	public void NextTick(Action callback)
@@ -63,9 +74,18 @@ public class OxideMod
 		Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 	}
 
+	public void ReloadPlugin(string name)
+	{
+		var path = CorePlugin.GetPluginPath(name);
+
+		Community.Runtime.HarmonyProcessor.Prepare(name, path);
+		Community.Runtime.ScriptProcessor.Prepare(name, path);
+	}
+
 	public void UnloadPlugin(string name)
 	{
-
+		Community.Runtime.HarmonyProcessor.Remove(name);
+		Community.Runtime.ScriptProcessor.Remove(name);
 	}
 
 	public void OnSave()
@@ -97,6 +117,8 @@ public class OxideMod
 
 		if (type == typeof(Permission)) return Community.Runtime.CorePlugin.permission as T;
 		else if (type == typeof(Lang)) return Community.Runtime.CorePlugin.lang as T;
+		else if (type == typeof(Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
+		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 
 		return Activator.CreateInstance<T>();
 	}

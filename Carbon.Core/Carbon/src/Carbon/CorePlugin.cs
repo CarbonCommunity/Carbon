@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml.Linq;
+using System.Text.RegularExpressions;
+using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Hooks;
 using Carbon.Plugins;
 using Facepunch;
+using Network;
 using Newtonsoft.Json;
+using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
 
@@ -69,10 +72,6 @@ public class CorePlugin : CarbonPlugin
 	private void OnPluginUnloaded(Plugin plugin)
 	{
 	}
-	private void OnPlayerConnected(BasePlayer player)
-	{
-		permission.RefreshUser(player);
-	}
 	private void OnEntitySpawned(BaseEntity entity)
 	{
 		Entities.AddMap(entity);
@@ -85,6 +84,67 @@ public class CorePlugin : CarbonPlugin
 	{
 		Entities.RemoveMap(entity);
 	}
+
+	#region Internal Hooks
+
+	private void IOnPlayerConnected(BasePlayer player)
+	{
+
+		permission.RefreshUser(player);
+		Interface.CallHook("OnPlayerConnected", player);
+	}
+	private object IOnUserApprove(Connection connection)
+	{
+		var username = connection.username;
+		var text = connection.userid.ToString();
+		var obj = Regex.Replace(connection.ipaddress, global::Oxide.Game.Rust.Libraries.Player.ipPattern, "");
+		var authLevel = connection.authLevel;
+
+		var canClient = Interface.CallHook("CanClientLogin", connection);
+		var canUser = Interface.CallHook("CanUserLogin", username, text, obj);
+
+		var obj4 = (canClient == null) ? canUser : canClient;
+		if (obj4 is string || (obj4 is bool && !(bool)obj4))
+		{
+			ConnectionAuth.Reject(connection, (obj4 is string) ? obj4.ToString() : "Connection was rejected", null);
+			return true;
+		}
+
+		if (Interface.CallHook("OnUserApprove", connection) != null)
+			return Interface.CallHook("OnUserApproved", username, text, obj);
+
+		return null;
+	}
+	private object IOnBasePlayerAttacked(BasePlayer basePlayer, HitInfo hitInfo)
+	{
+		if (!Community.IsServerFullyInitializedCache || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
+		{
+			return null;
+		}
+
+		if (Interface.CallHook("OnEntityTakeDamage", basePlayer, hitInfo) != null)
+		{
+			return true;
+		}
+
+		try
+		{
+			if (!basePlayer.IsDead())
+			{
+				basePlayer.DoHitNotify(hitInfo);
+			}
+
+			if (basePlayer.isServer)
+			{
+				basePlayer.Hurt(hitInfo);
+			}
+		}
+		catch { }
+
+		return true;
+	}
+
+	#endregion
 
 	internal static void Reply(object message, ConsoleSystem.Arg arg)
 	{
@@ -141,7 +201,7 @@ public class CorePlugin : CarbonPlugin
 				break;
 
 			default:
-				var body = new StringTable("#", "Mod", "Author", "Version","Hook Time", "Compile Time");
+				var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
 				var count = 1;
 
 				foreach (var mod in Loader._loadedMods)
@@ -325,7 +385,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		StringTable body = new StringTable("#", "Hook", "Identifier", "Type", "Status", "Current", "Total", "Subscribers");
+		StringTable body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
 		int count = 0, success = 0, warning = 0, failure = 0;
 
 		string option1 = arg.GetString(0, null);
@@ -373,53 +433,67 @@ public class CorePlugin : CarbonPlugin
 
 					switch (option2)
 					{
+						case "--patch":
+							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
+							break;
+
 						case "--static":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden);
 							break;
 
 						case "--dynamic":
-							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden);
 							break;
 
-						case "--failed":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Failure);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Failure));
-							break;
+						// case "--failed":
+						// 	hooks = Community.Runtime.HookManager.StaticHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Failure);
+						// 	hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Failure));
+						// 	break;
 
-						case "--warning":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
-							break;
+						// case "--warning":
+						// 	hooks = Community.Runtime.HookManager.StaticHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Warning);
+						// 	hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Warning));
+						// 	break;
 
-						case "--success":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success));
-							break;
+						// case "--success":
+						// 	hooks = Community.Runtime.HookManager.StaticHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Success);
+						// 	hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks
+						// 		.Where(x => !x.IsHidden && x.Status == HookState.Success));
+						// 	break;
 
 						default:
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
+							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden));
+							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden));
 							break;
 					}
 
-					foreach (var mod in hooks.OrderBy(x => x.HookName))
+					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
 					{
 						if (mod.Status == HookState.Failure) failure++;
 						if (mod.Status == HookState.Success) success++;
 						if (mod.Status == HookState.Warning) warning++;
 
-						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}");
+						body.AddRow(
+							$"{count++:n0}",
+							mod.HookFullName,
+							mod.HookName,
+							mod.Identifier.Substring(mod.Identifier.Length - 6),
+							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
+							mod.Status,
+							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
+						);
 					}
 
-					Reply(body.ToStringMinimal(), arg);
-					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
+					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}"
+						+ Environment.NewLine + Environment.NewLine + body.ToStringMinimal(), arg);
 					break;
 				}
 
@@ -429,6 +503,10 @@ public class CorePlugin : CarbonPlugin
 
 					switch (option1)
 					{
+						case "--patch":
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							break;
+
 						case "--static":
 							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
 							break;
@@ -437,38 +515,34 @@ public class CorePlugin : CarbonPlugin
 							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
 							break;
 
-						case "--warning":
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning);
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Warning));
-							break;
-
-						case "--success":
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success);
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks
-								.Where(x => !x.IsHidden && x.Status == HookState.Success));
-							break;
-
 						default:
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
 							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
 							break;
 					}
 
-					foreach (var mod in hooks.OrderBy(x => x.HookName))
+					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
 					{
 						if (mod.Status == HookState.Failure) failure++;
 						if (mod.Status == HookState.Success) success++;
 						if (mod.Status == HookState.Warning) warning++;
 
-						body.AddRow($"{count++:n0}", mod.HookName, mod.Identifier.Substring(0, 6), mod.IsStaticHook ? "Static" : "Dynamic", mod.Status, $"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms", $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.HookName)}");
+						body.AddRow(
+							$"{count++:n0}",
+							mod.HookFullName,
+							mod.HookName,
+							mod.Identifier.Substring(mod.Identifier.Length - 6),
+							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
+							mod.Status,
+							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
+						);
 					}
 
-					Reply(body.ToStringMinimal(), arg);
-					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}", arg);
+					Reply($"total:{count} success:{success} warning:{warning} failed:{failure}"
+						+ Environment.NewLine + Environment.NewLine + body.ToStringMinimal(), arg);
 					break;
 				}
 		}
@@ -717,6 +791,9 @@ public class CorePlugin : CarbonPlugin
 
 				if (!string.IsNullOrEmpty(path))
 				{
+					Community.Runtime.HarmonyProcessor.ClearIgnore(path);
+					Community.Runtime.ScriptProcessor.ClearIgnore(path);
+
 					Community.Runtime.HarmonyProcessor.Prepare(name, path);
 					Community.Runtime.ScriptProcessor.Prepare(name, path);
 					return;
@@ -991,44 +1068,75 @@ public class CorePlugin : CarbonPlugin
 
 		void PrintWarn()
 		{
-			Reply($"Syntax: c.show <user|group> <name|id>", arg);
+			Reply($"Syntax: c.show <groups|perms>", arg);
+			Reply($"Syntax: c.show <group|user> <name|id>", arg);
 		}
 
-		if (!arg.HasArgs(2))
-		{
-			PrintWarn();
-			return;
-		}
+		if (!arg.HasArgs(1)) { PrintWarn(); return; }
 
 		var action = arg.Args[0];
-		var name = arg.Args[1];
 
 		switch (action)
 		{
 			case "user":
-				var user = permission.FindUser(name);
-				if (user.Value == null)
 				{
-					Reply($"Couldn't find that user.", arg);
-					return;
+					if (!arg.HasArgs(2)) { PrintWarn(); return; }
+
+					var name = arg.Args[1];
+					var user = permission.FindUser(name);
+
+					if (user.Value == null)
+					{
+						Reply($"Couldn't find that user.", arg);
+						return;
+					}
+
+					Reply($"User {user.Value.LastSeenNickname}[{user.Key}] found in {user.Value.Groups.Count:n0} groups:\n  {user.Value.Groups.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
+					Reply($"and has {user.Value.Perms.Count:n0} permissions:\n  {user.Value.Perms.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
+					break;
 				}
-
-				Reply($"User {user.Value.LastSeenNickname}[{user.Key}] found in {user.Value.Groups.Count:n0} groups:\n  {user.Value.Groups.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
-				Reply($"and has {user.Value.Perms.Count:n0} permissions:\n  {user.Value.Perms.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
-				break;
-
 			case "group":
-				if (!permission.GroupExists(name))
 				{
-					Reply($"Couldn't find that group.", arg);
-					return;
-				}
+					if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-				var users = permission.GetUsersInGroup(name);
-				var permissions = permission.GetGroupPermissions(name, false);
-				Reply($"Group {name} has {users.Length:n0} users:\n  {users.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
-				Reply($"and has {permissions.Length:n0} permissions:\n  {permissions.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
-				break;
+					var name = arg.Args[1];
+
+					if (!permission.GroupExists(name))
+					{
+						Reply($"Couldn't find that group.", arg);
+						return;
+					}
+
+					var users = permission.GetUsersInGroup(name);
+					var permissions = permission.GetGroupPermissions(name, false);
+					Reply($"Group {name} has {users.Length:n0} users:\n  {users.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
+					Reply($"and has {permissions.Length:n0} permissions:\n  {permissions.Select(x => x).ToArray().ToString(", ", " and ")}", arg);
+					break;
+				}
+			case "groups":
+				{
+					var groups = permission.GetGroups();
+					if (groups.Count() == 0)
+					{
+						Reply($"Couldn't find any group.", arg);
+						return;
+					}
+
+					Reply($"Groups:\n {String.Join(", ", groups)}", arg);
+					break;
+				}
+			case "perms":
+				{
+					var perms = permission.GetPermissions();
+					if (perms.Count() == 0)
+					{
+						Reply($"Couldn't find any permission.", arg);
+					}
+
+					Reply($"Permissions:\n {String.Join(", ", perms)}", arg);
+
+					break;
+				}
 
 			default:
 				PrintWarn();
@@ -1140,7 +1248,7 @@ public class CorePlugin : CarbonPlugin
 
 			case "set":
 				{
-					if (!arg.HasArgs(2)) { PrintWarn(); return; }
+					if (!arg.HasArgs(4)) { PrintWarn(); return; }
 
 					var group = arg.Args[1];
 
@@ -1150,12 +1258,24 @@ public class CorePlugin : CarbonPlugin
 						return;
 					}
 
-					if (arg.HasArgs(3)) permission.SetGroupTitle(group, arg.Args[2]);
-					if (arg.HasArgs(4)) permission.SetGroupTitle(group, arg.Args[3]);
+					var set = arg.Args[2];
+					var value = arg.Args[3];
+
+					switch (set)
+					{
+						case "title":
+							permission.SetGroupTitle(group, value);
+							break;
+
+						case "rank":
+							permission.SetGroupRank(group, value.ToInt());
+							break;
+					}
 
 					Reply($"Set '{group}' group.", arg);
 				}
 				break;
+
 			case "remove":
 				{
 					if (!arg.HasArgs(2)) { PrintWarn(); return; }
@@ -1164,6 +1284,18 @@ public class CorePlugin : CarbonPlugin
 
 					if (permission.RemoveGroup(group)) Reply($"Removed '{group}' group.", arg);
 					else Reply($"Couldn't remove '{group}' group.", arg);
+				}
+				break;
+
+			case "parent":
+				{
+					if (!arg.HasArgs(3)) { PrintWarn(); return; }
+
+					var group = arg.Args[1];
+					var parent = arg.Args[2];
+
+					if (permission.SetGroupParent(group, parent)) Reply($"Changed '{group}' group's parent to '{parent}'.", arg);
+					else Reply($"Couldn't change '{group}' group's parent to '{parent}'.", arg);
 				}
 				break;
 

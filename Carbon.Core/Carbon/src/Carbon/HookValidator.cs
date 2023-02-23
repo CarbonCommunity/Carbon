@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Carbon.Oxide.Metadata;
 using Newtonsoft.Json;
@@ -16,13 +18,30 @@ public class HookValidator
 {
 	public static HookPackage OxideHooks { get; private set; }
 
+	public static void Initialize()
+	{
+		Community.Runtime.Events.Subscribe(API.Events.CarbonEvent.HooksInstalled,
+			x => HookValidator.Refresh());
+	}
+
 	public static void Refresh()
 	{
-		Community.Runtime.CorePlugin.webrequest.Enqueue("https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj", null, (error, data) =>
-		{
-			OxideHooks = JsonConvert.DeserializeObject<HookPackage>(data);
-			Logger.Debug($"Refreshed {OxideHooksCount} oxide hooks.");
-		}, null);
+		string url = "https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj";
+		Community.Runtime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
+			{
+				if (buffer is { Length: > 0 })
+				{
+					Logger.Warn($"Downloaded [{Path.GetFileName(url)}], processing {buffer.Length} bytes from memory");
+					string json = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+
+					OxideHooks = JsonConvert.DeserializeObject<HookPackage>(json);
+					Logger.Debug($"Refreshed {OxideHooksCount} oxide hooks.");
+
+					Community.Runtime.Events.Trigger(
+						API.Events.CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
+				}
+			}
+		);
 	}
 
 	public static bool IsIncompatibleOxideHook(string hook)

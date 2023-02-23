@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using API.Hooks;
 using Carbon.Extensions;
 using Facepunch;
 using Oxide.Core;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using API.Contracts;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -30,7 +31,8 @@ public class Community
 	public static string Version { get; set; } = "Unknown";
 	public static string InformationalVersion { get; set; } = "Unknown";
 
-	public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
+	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
+	public static bool IsServerFullyInitializedCache { get; internal set; }
 	public static Community Runtime { get; set; }
 
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
@@ -40,6 +42,25 @@ public class Community
 	public Loader.CarbonMod Plugins { get; set; }
 	public Entities Entities { get; set; }
 	public bool IsInitialized { get; set; }
+
+	public IEventManager Events { get; private set; }
+	public IDownloadManager Downloader { get; private set; }
+
+	public Community()
+	{
+		try
+		{
+			GameObject gameObject = GameObject.Find("Carbon");
+			if (gameObject == null) throw new Exception("Carbon GameObject not found");
+
+			Events = gameObject.GetComponent<IEventManager>();
+			Downloader = gameObject.GetComponent<IDownloadManager>();
+		}
+		catch (System.Exception ex)
+		{
+			Carbon.Logger.Error("Critical error", ex);
+		}
+	}
 
 	#region Config
 
@@ -52,6 +73,20 @@ public class Community
 		}
 
 		Config = JsonConvert.DeserializeObject<Config>(OsEx.File.ReadText(Defines.GetConfigFile()));
+
+		var needsSave = false;
+		if (Config.ConditionalCompilationSymbols == null)
+		{
+			Config.ConditionalCompilationSymbols = new();
+			needsSave = true;
+		}
+
+		if (!Config.ConditionalCompilationSymbols.Contains("CARBON"))
+			Config.ConditionalCompilationSymbols.Add("CARBON");
+
+		Config.ConditionalCompilationSymbols = Config.ConditionalCompilationSymbols.Distinct().ToList();
+
+		if (needsSave) SaveConfig();
 	}
 
 	public void SaveConfig()
@@ -111,6 +146,7 @@ public class Community
 		if (ScriptProcessor == null ||
 			WebScriptProcessor == null ||
 			HarmonyProcessor == null ||
+			HookManager == null ||
 			ModuleProcessor == null ||
 			CarbonProcessor)
 		{
@@ -124,7 +160,6 @@ public class Community
 			HookManager = gameObject.AddComponent<HookManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
-
 		}
 
 		_registerProcessors();
@@ -158,6 +193,7 @@ public class Community
 			if (WebScriptProcessor != null) UnityEngine.Object.DestroyImmediate(WebScriptProcessor);
 			if (HarmonyProcessor != null) UnityEngine.Object.DestroyImmediate(HarmonyProcessor);
 			if (CarbonProcessor != null) UnityEngine.Object.DestroyImmediate(CarbonProcessor);
+			if (HookManager != null) UnityEngine.Object.DestroyImmediate(HookManager);
 		}
 		catch { }
 
@@ -221,6 +257,7 @@ public class Community
 	public void Initialize()
 	{
 		if (IsInitialized) return;
+		Events.Trigger(API.Events.CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		#region Handle Versions
 
@@ -238,6 +275,7 @@ public class Community
 		Carbon.Logger.Log($"Loading...");
 
 		Defines.Initialize();
+		HookValidator.Initialize();
 
 		_installProcessors();
 
@@ -246,15 +284,13 @@ public class Community
 		_clearCommands();
 		_installDefaultCommands();
 
-		HookValidator.Refresh();
-
 		ReloadPlugins();
-
-		Carbon.Logger.Log($"Loaded.");
 
 		RefreshConsoleInfo();
 
 		IsInitialized = true;
+		Carbon.Logger.Log($"Loaded.");
+		Events.Trigger(API.Events.CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 
 		Entities.Init();
 	}
@@ -262,6 +298,8 @@ public class Community
 	{
 		try
 		{
+			Events.Trigger(API.Events.CarbonEvent.CarbonShutdown, EventArgs.Empty);
+
 			_uninstallProcessors();
 			_clearCommands(all: true);
 
@@ -289,6 +327,7 @@ public class Community
 		catch (Exception ex)
 		{
 			Carbon.Logger.Error($"Failed Carbon uninitialization.", ex);
+			Events.Trigger(API.Events.CarbonEvent.CarbonShutdownFailed, EventArgs.Empty);
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Carbon.Extensions;
@@ -231,5 +232,55 @@ public class AuthLevelAttribute : Attribute
 	public AuthLevelAttribute(int group)
 	{
 		Group = (UserGroup)group;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class CooldownAttribute : Attribute
+{
+	public int Miliseconds { get; } = 0;
+
+	#region Cooldown Logic
+
+	internal static Dictionary<BasePlayer, List<CooldownInstance>> _buffer = new();
+
+	public static bool IsCooledDown(BasePlayer player, string command, int time, bool doCooldownIfNot = true)
+	{
+		if (time == 0 || player == null) return false;
+
+		if (!_buffer.TryGetValue(player, out var pairs))
+		{
+			_buffer.Add(player, pairs = new List<CooldownInstance>());
+		}
+
+		var lookupCommand = pairs.FirstOrDefault(x => x.Command == command);
+		if (lookupCommand == null)
+		{
+			pairs.Add(lookupCommand = new CooldownInstance { Command = command });
+		}
+
+		if ((DateTime.Now - lookupCommand.LastCall).TotalMilliseconds >= time)
+		{
+			if (doCooldownIfNot)
+			{
+				lookupCommand.LastCall = DateTime.Now;
+			}
+			return false;
+		}
+
+		return true;
+	}
+
+	internal class CooldownInstance
+	{
+		public string Command;
+		public DateTime LastCall;
+	}
+
+	#endregion
+
+	public CooldownAttribute(int miliseconds)
+	{
+		Miliseconds = miliseconds;
 	}
 }

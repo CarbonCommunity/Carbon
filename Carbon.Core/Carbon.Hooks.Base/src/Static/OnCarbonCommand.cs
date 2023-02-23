@@ -1,4 +1,5 @@
 ﻿using System;
+using API.Hooks;
 using Carbon.Extensions;
 using Facepunch.Extend;
 using Oxide.Game.Rust.Libraries;
@@ -93,6 +94,11 @@ public partial class Category_Static
 										player?.ConsoleMessage($"You don't have the minimum auth level required to execute this command.");
 										continue;
 									}
+								}
+
+								if (CooldownAttribute.IsCooledDown(player, cmd.Command, cmd.Cooldown, true))
+								{
+									continue;
 								}
 							}
 

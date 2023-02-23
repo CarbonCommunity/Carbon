@@ -106,15 +106,15 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="args"></param>
-	public void Puts(string message, params object[] args)
-		=> Carbon.Logger.Log($"[{Name}] {(args == null ? message : string.Format(message, args))}");
+	public void Puts(object message, params object[] args)
+		=> Carbon.Logger.Log($"[{Name}] {(args == null ? message : string.Format(message.ToString(), args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void Log(string message)
+	public void Log(object message)
 		=> Carbon.Logger.Log($"[{Name}] {message}");
 
 	/// <summary>
@@ -122,7 +122,7 @@ public class RustPlugin : Plugin
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogWarning(string message)
+	public void LogWarning(object message)
 		=> Carbon.Logger.Warn($"[{Name}] {message}");
 
 	/// <summary>
@@ -131,7 +131,7 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="ex"></param>
-	public void LogError(string message, Exception ex)
+	public void LogError(object message, Exception ex)
 		=> Carbon.Logger.Error($"[{Name}] {message}", ex);
 
 	/// <summary>
@@ -139,7 +139,7 @@ public class RustPlugin : Plugin
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogError(string message)
+	public void LogError(object message)
 		=> Carbon.Logger.Error($"[{Name}] {message}", null);
 
 	/// <summary>
@@ -148,8 +148,8 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="args"></param>
-	public void PrintWarning(string format, params object[] args)
-		=> Carbon.Logger.Warn($"[{Name}] {(args == null ? format : string.Format(format, args))}");
+	public void PrintWarning(object format, params object[] args)
+		=> Carbon.Logger.Warn($"[{Name}] {(args == null ? format : string.Format(format.ToString(), args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -157,15 +157,15 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="args"></param>
-	public void PrintError(string format, params object[] args)
-		=> Carbon.Logger.Error($"[{Name}] {(args == null ? format : string.Format(format, args))}");
+	public void PrintError(object format, params object[] args)
+		=> Carbon.Logger.Error($"[{Name}] {(args == null ? format : string.Format(format.ToString(), args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void RaiseError(string message)
+	public void RaiseError(object message)
 		=> Carbon.Logger.Error($"[{Name}] {message}", null);
 
 	protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
@@ -199,7 +199,7 @@ public class RustPlugin : Plugin
 	}
 	public void ILoadDefaultMessages()
 	{
-		LoadDefaultMessages();
+		CallHook("LoadDefaultMessages");
 	}
 
 	protected virtual void LoadConfig()

@@ -1,4 +1,5 @@
 ﻿using System;
+using API.Hooks;
 using Carbon.Extensions;
 using ConVar;
 using Facepunch.Extend;
@@ -98,6 +99,11 @@ public partial class Category_Static
 										player?.ConsoleMessage($"You don't have the minimum required auth level to execute this command.");
 										continue;
 									}
+								}
+
+								if(CooldownAttribute.IsCooledDown(player, cmd.Command ,cmd.Cooldown, true))
+								{
+									continue;
 								}
 							}
 

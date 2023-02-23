@@ -1,34 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
 		<Product>Carbon</Product>
 		<OutputType>Library</OutputType>
 		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix|x64'">
-	  <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix|x64'">
-	  <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
-	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />
-	<!-- <Import Project="..\.msbuild\AssemblyName.props" /> -->
+	<Import Project="..\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
-		<!-- HarmonyLib using a custom name -->
-		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" />
+		<!-- Assembly patcher -->
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 
 		<!-- Required by Carbon's Logger -->
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
 
 		<!-- Compression -->
-		<PackageReference Include="SharpCompress" Version="0.32.2" PrivateAssets="all" />
+		<PackageReference Include="SharpCompress" Version="0.32.2" />
 
 		<!-- Required by Carbon's Compiler -->
 		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
@@ -36,13 +24,9 @@
 		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
 
 		<!-- Required by Carbon's Database support -->
-		<PackageReference Include="MySql.Data" Version="8.0.31" PrivateAssets="all" />
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" PrivateAssets="all" />
+		<PackageReference Include="MySql.Data" Version="8.0.31" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" />
 		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Carbon.Oxide.Covalence\Carbon.Oxide.Covalence.csproj" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">

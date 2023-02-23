@@ -6,13 +6,14 @@
 	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />
+	<Import Project="..\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
 		<!-- Carbon platform -->
 		<ProjectReference Include="..\Carbon\Carbon.csproj" Private="false" />
 
-		<!-- HarmonyLib using a custom name -->
-		<Reference Include="$(SolutionDir)..\Tools\HarmonyLib\Harmony\bin\Release\net48\1Harmony.dll" Private="false" />
+		<!-- Assembly patcher -->
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">

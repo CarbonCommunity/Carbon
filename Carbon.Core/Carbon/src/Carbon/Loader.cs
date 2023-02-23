@@ -85,14 +85,6 @@ public static class Loader
 	{
 		try
 		{
-			HarmonyLib.Harmony.DEBUG = true;
-			var path = Path.Combine(Defines.GetLogsFolder(), "harmony_v2_log.txt");
-			Harmony.FileLog.logPath = Path.Combine(Defines.GetLogsFolder(), "harmony_v1_log.txt");
-
-			Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", path);
-
-			typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
-
 			_modPath = Defines.GetHarmonyFolder();
 			if (!Directory.Exists(_modPath))
 			{
@@ -118,7 +110,7 @@ public static class Loader
 		}
 		finally
 		{
-			Harmony.FileLog.FlushBuffer();
+			//Harmony.FileLog.FlushBuffer();
 			HarmonyLib.FileLog.FlushBuffer();
 		}
 	}
@@ -186,7 +178,7 @@ public static class Loader
 				}
 			}
 
-			try
+			/*try
 			{
 				mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
 				mod.Harmonyv1.PatchAll(assembly);
@@ -195,7 +187,7 @@ public static class Loader
 			{
 				if (!silent)
 					LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", e));
-			}
+			}*/
 
 			try
 			{
@@ -332,7 +324,7 @@ public static class Loader
 			return false;
 		}
 
-		var title = info.Title;
+		var title = info.Title?.Replace(" ", "");
 		var author = info.Author;
 		var version = info.Version;
 		var description = desc == null ? string.Empty : desc.Description;
@@ -390,32 +382,34 @@ public static class Loader
 			var permissions = method.GetCustomAttributes<PermissionAttribute>();
 			var groups = method.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = method.GetCustomAttribute<AuthLevelAttribute>();
+			var cooldown = method.GetCustomAttribute<CooldownAttribute>();
 			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
+			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
 
 			if (command != null)
 			{
 				foreach (var commandName in command.Names)
 				{
-					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
-					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
+					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 				}
 			}
 
 			if (chatCommand != null)
 			{
-				Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method.Name, help: chatCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
+				Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method.Name, help: chatCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 
 			if (consoleCommand != null)
 			{
-				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 
 			if (uiCommand != null)
 			{
-				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel);
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 		}
 
@@ -425,9 +419,11 @@ public static class Loader
 			var permissions = field.GetCustomAttributes<PermissionAttribute>();
 			var groups = field.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = field.GetCustomAttribute<AuthLevelAttribute>();
+			var cooldown = field.GetCustomAttribute<CooldownAttribute>();
 			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
+			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
 
 			if (var != null)
 			{
@@ -474,7 +470,7 @@ public static class Loader
 					}
 
 					Community.LogCommand($"{command}: \"{value}\"", player);
-				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel);
+				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 		}
 
@@ -483,8 +479,12 @@ public static class Loader
 			var var = property.GetCustomAttribute<CommandVarAttribute>();
 			var permissions = property.GetCustomAttributes<PermissionAttribute>();
 			var groups = property.GetCustomAttributes<GroupAttribute>();
+			var authLevelAttribute = property.GetCustomAttribute<AuthLevelAttribute>();
+			var cooldown = property.GetCustomAttribute<CooldownAttribute>();
+			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
+			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
 
 			if (var != null)
 			{
@@ -531,7 +531,7 @@ public static class Loader
 					}
 
 					Community.LogCommand($"{command}: \"{value}\"", player);
-				}, help: var.Help, reference: property, permissions: ps, groups: gs);
+				}, help: var.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 		}
 
@@ -591,6 +591,8 @@ public static class Loader
 
 			Report.OnProcessEnded?.Invoke();
 		}
+
+		Community.Runtime.Events.Trigger(API.Events.CarbonEvent.OnPluginProcessFinished, EventArgs.Empty);
 	}
 
 	#endregion
@@ -599,7 +601,7 @@ public static class Loader
 	{
 		if (mod.IsCoreMod) return;
 
-		if (mod.Harmonyv1 != null)
+		/*if (mod.Harmonyv1 != null)
 		{
 			Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v1...");
 
@@ -614,7 +616,7 @@ public static class Loader
 			}
 
 			mod.Harmonyv1 = null;
-		}
+		}*/
 
 		if (mod.Harmonyv2 != null)
 		{
@@ -709,7 +711,7 @@ public static class Loader
 		public string File { get; set; } = string.Empty;
 		[JsonProperty]
 		public bool IsCoreMod { get; set; } = false;
-		public Harmony.HarmonyInstance Harmonyv1 { get; set; }
+		//public Harmony.HarmonyInstance Harmonyv1 { get; set; }
 		public HarmonyLib.Harmony Harmonyv2 { get; set; }
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }

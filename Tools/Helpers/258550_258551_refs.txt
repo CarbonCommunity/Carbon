@@ -15,6 +15,7 @@ regex:Rust.Data.dll
 regex:Rust.Global.dll
 regex:Rust.Harmony.dll
 regex:Rust.Localization.dll
+regex:Rust.Platform.dll
 regex:Rust.Platform.Common.dll
 regex:Rust.World.dll
 regex:UnityEngine.AIModule.dll

@@ -26,28 +26,28 @@ namespace Oxide.Plugins
 #endif
 		{
 #if !NOCOVALENCE
-			public IEnumerable<IPlayer> All => BasePlayer.allPlayerList.Select(x => x.IPlayer);
+			public IEnumerable<IPlayer> All => BasePlayer.allPlayerList.Select(x => x.AsIPlayer() as IPlayer);
 
-			public IEnumerable<IPlayer> Connected => BasePlayer.activePlayerList.Select(x => x.IPlayer);
+			public IEnumerable<IPlayer> Connected => BasePlayer.activePlayerList.Select(x => x.AsIPlayer() as IPlayer);
 
 			public IPlayer FindPlayer(string partialNameOrId)
 			{
-				return BasePlayer.FindAwakeOrSleeping(partialNameOrId).IPlayer;
+				return BasePlayer.FindAwakeOrSleeping(partialNameOrId).AsIPlayer();
 			}
 
 			public IPlayer FindPlayerById(string id)
 			{
-				return BasePlayer.FindAwakeOrSleeping(id).IPlayer;
+				return BasePlayer.FindAwakeOrSleeping(id).AsIPlayer();
 			}
 
 			public IPlayer FindPlayerByObj(object obj)
 			{
-				return BasePlayer.FindAwakeOrSleeping(obj.ToString()).IPlayer;
+				return BasePlayer.FindAwakeOrSleeping(obj.ToString()).AsIPlayer();
 			}
 
 			public IEnumerable<IPlayer> FindPlayers(string partialNameOrId)
 			{
-				return BasePlayer.allPlayerList.Where(x => x.displayName.Contains(partialNameOrId) || x.UserIDString == partialNameOrId).Select(x => x.IPlayer);
+				return BasePlayer.allPlayerList.Where(x => x.displayName.Contains(partialNameOrId) || x.UserIDString == partialNameOrId).Select(x => x.AsIPlayer() as IPlayer);
 			}
 #endif
 		}

@@ -134,6 +134,18 @@ public class Defines
 
 		return folder;
 	}
+	public static string GetRustRootFolder()
+	{
+		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath)));
+
+		return folder;
+	}
+	public static string GetRustManagedFolder()
+	{
+		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath, "Managed")));
+
+		return folder;
+	}
 
 	#endregion
 
@@ -151,11 +163,12 @@ public class Defines
 		"System",
 
 		"Carbon",
-		"Carbon.Oxide.Covalence",
+		"Carbon.API",
 		"protobuf-net",
 		"protobuf-net.Core",
 
-		"1Harmony",
+		"0Harmony",		
+
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
 		"Facepunch.Console",
@@ -176,6 +189,7 @@ public class Defines
 		"Rust.Global",
 		"Rust.Harmony",
 		"Rust.Localization",
+		"Rust.Platform",
 		"Rust.Platform.Common",
 		"Rust.Workshop",
 		"Rust.World",

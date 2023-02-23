@@ -15,6 +15,7 @@ if "%1" EQU "" (
 ) else (
 	set TARGET=%1
 )
+
 echo ** Set the build target config to %TARGET%
 
 echo ** Cleanup the release folder
@@ -29,26 +30,19 @@ dotnet   build "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --no-restore -
 echo ** Copy operating system specific files
 echo "%TARGET%" | findstr /C:"Unix" >NUL && (
 	copy /y "%ROOT%\Tools\Helpers\environment.sh"                 "%ROOT%\Release\.tmp\%TARGET%\carbon\tools\"
-	copy /y "%ROOT%\Tools\Helpers\publicizer.sh"                  "%ROOT%\Release\.tmp\%TARGET%\carbon\tools\"
 	copy /y "%ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" "%ROOT%\Release\.tmp\%TARGET%"
+
+	"%ROOT%\Tools\BuildInfo\Carbon.BuildInfo.exe" -carbon "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.dll" -o "%ROOT%\Release\build-unix.info"
 	(CALL )
-) || (
-	copy /y "%ROOT%\Tools\Helpers\doorstop_config.ini"            "%ROOT%\Release\.tmp\%TARGET%"
-	copy /y "%ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" "%ROOT%\Release\.tmp\%TARGET%\winhttp.dll"
+) || (                                                                                                                          
+	copy /y "%ROOT%\Tools\Helpers\doorstop_config.ini"            "%ROOT%\Release\.tmp\%TARGET%"                                
+	copy /y "%ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" "%ROOT%\Release\.tmp\%TARGET%\winhttp.dll"    
+
+	"%ROOT%\Tools\BuildInfo\Carbon.BuildInfo.exe" -carbon "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.dll" -o "%ROOT%\Release\build.info"
 	(CALL )
 )
 
-echo ** Create the standalone files
-copy /y "%ROOT%\Release\.tmp\%TARGET%\HarmonyMods\Carbon.Stub.dll"        		  		"%ROOT%\Release"
-																						
-copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.dll"          		  		"%ROOT%\Release"
-copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Doorstop.dll" 		  		"%ROOT%\Release"
-copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Loader.dll"   		  		"%ROOT%\Release"
-copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon.Rust.Covalence.dll"   		"%ROOT%\Release"
-
-copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\hooks\Carbon.Hooks.Base.dll"     	"%ROOT%\Release"
-copy /y "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\hooks\Carbon.Hooks.Extended.dll" 	"%ROOT%\Release"
-
-
-echo ** Create the compressed archive
-powershell -Command "Compress-Archive -Update -Path '%ROOT%\Release\.tmp\%TARGET%\*' -DestinationPath '%ROOT%\Release\Carbon.%TARGET%.zip'"
+if "%2" NEQ "--no-archive" (
+	echo ** Create the compressed archive
+	powershell -Command "Compress-Archive -Update -Path '%ROOT%\Release\.tmp\%TARGET%\*' -DestinationPath '%ROOT%\Release\Carbon.%TARGET%.zip'"
+)
