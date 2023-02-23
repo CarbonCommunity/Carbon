@@ -21,21 +21,15 @@ rem Inits and downloads the submodules
 git submodule init
 git submodule update
 
-rem Changes the assembly name for HamonyLib [requires powershell]
-set HARMONYDIR=%ROOT%\Tools\HarmonyLib\Harmony
-powershell -Command "(Get-Content -path '%HARMONYDIR%\Harmony.csproj') -replace '0Harmony', '1Harmony' | Out-File '%HARMONYDIR%\Harmony.csproj'"
+:: rem Changes the assembly name for HamonyLib [requires powershell]
+:: set HARMONYDIR=%ROOT%\Tools\HarmonyLib\Harmony
+:: powershell -Command "(Get-Content -path '%HARMONYDIR%\Harmony.csproj') -replace '0Harmony', '1Harmony' | Out-File '%HARMONYDIR%\Harmony.csproj'"
 
 FOR %%O IN (DepotDownloader NStrip HarmonyLib) DO (
 	dotnet restore "%ROOT%\Tools\%%O" --verbosity quiet --nologo --force 
 	dotnet clean   "%ROOT%\Tools\%%O" --verbosity quiet --configuration Release --nologo
 	dotnet build   "%ROOT%\Tools\%%O" --verbosity quiet --configuration Release --no-restore --no-incremental
 )
-
-rem Keeping Unity DoorStop out of the game for now due to the more
-rem complex build process.
-
-rem HarmonyLib post build
-call cd "%HARMONYDIR%" && git reset --hard HEAD > NUL
 
 rem Download rust binary libs
 call "%BASE%\update.bat" public 

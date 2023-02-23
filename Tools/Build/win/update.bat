@@ -17,9 +17,6 @@ if "%1" EQU "" (
 	set TARGET=%1
 )
 
-rem Cleans the exiting files 
-rem git clean -fx "%ROOT%\Rust"
-
 FOR %%O IN (windows linux) DO (
 	rem Download rust binary libs
 	"%ROOT%\Tools\DepotDownloader\DepotDownloader\bin\Release\net6.0\DepotDownloader.exe" ^
