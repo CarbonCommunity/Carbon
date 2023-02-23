@@ -38,10 +38,13 @@ public class FileLogger : IDisposable
 		if (_hasInit && !archive) return;
 
 		var path = Path.Combine(Defines.GetLogsFolder(), $"{Name}.log");
+		var archiveFolder = Path.Combine(Defines.GetLogsFolder(), "archive");
+		OsEx.Folder.Create(archiveFolder);
 
-		if(backup && OsEx.File.Exists(path))
+		if (backup && OsEx.File.Exists(path))
 		{
-			var backupPath = Path.Combine(Defines.GetLogsFolder(), "archive", $"{Name}.backup.{DateTime.Now:yyyy.MM.dd}.log");
+
+			var backupPath = Path.Combine(archiveFolder, $"{Name}.backup.{DateTime.Now:yyyy.MM.dd}.log");
 			var logContent = OsEx.File.ReadText(path);
 
 			if (OsEx.File.Exists(backupPath))
@@ -58,7 +61,7 @@ public class FileLogger : IDisposable
 		{
 			if (OsEx.File.Exists(path))
 			{
-				OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"{Name}.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
+				OsEx.File.Move(path, Path.Combine(archiveFolder, $"{Name}.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
 			}
 		}
 
