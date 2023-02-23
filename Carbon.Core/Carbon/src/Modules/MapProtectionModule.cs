@@ -57,7 +57,6 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 						{
 							UnityEngine.Debug.Log($" Progress... {i.Scale(0, key.points.Count, 0, 100):n0}%");
 						}
-						break;
 					}
 				}
 			}
