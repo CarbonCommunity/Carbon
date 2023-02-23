@@ -74,12 +74,19 @@ public class Community
 
 		Config = JsonConvert.DeserializeObject<Config>(OsEx.File.ReadText(Defines.GetConfigFile()));
 
-		if (Config.ConditionalCompilationSymbols == null) Config.ConditionalCompilationSymbols = new();
+		var needsSave = false;
+		if (Config.ConditionalCompilationSymbols == null)
+		{
+			Config.ConditionalCompilationSymbols = new();
+			needsSave = true;
+		}
 
 		if (!Config.ConditionalCompilationSymbols.Contains("CARBON"))
 			Config.ConditionalCompilationSymbols.Add("CARBON");
 
 		Config.ConditionalCompilationSymbols = Config.ConditionalCompilationSymbols.Distinct().ToList();
+
+		if (needsSave) SaveConfig();
 	}
 
 	public void SaveConfig()
