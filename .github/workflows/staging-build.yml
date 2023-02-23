@@ -80,6 +80,7 @@ jobs:
         name: build-staging-linux
         path: |
           Release/Carbon.DebugUnix.tar.gz
+          Release/build-unix.info
 
   build-windows:
     name: 🪟 Windows
@@ -113,6 +114,7 @@ jobs:
         name: build-staging-windows
         path: |
           Release/Carbon.Debug.zip
+          Release/build.info
 
   release:
     name: 💾 Release
@@ -157,3 +159,5 @@ jobs:
         files: |
           Release/build-staging-windows/Carbon.Debug.zip
           Release/build-staging-linux/Carbon.DebugUnix.tar.gz
+          Release/build-develop-linux/build-unix.info
+          Release/build-develop-windows/build.info
