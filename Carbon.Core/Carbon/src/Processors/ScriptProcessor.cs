@@ -93,8 +93,6 @@ public class ScriptProcessor : BaseProcessor
 		public override void Process(string input, out string output)
 		{	
 			output = input
-				.Replace("RustCore.FindPlayerById", "BasePlayer.FindByID")
-
 				.Replace("using Harmony;", "using HarmonyLib;")
 				.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
 				.Replace("HarmonyInstance", "HarmonyLib.Harmony")
