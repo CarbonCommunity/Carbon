@@ -139,6 +139,7 @@ public class Community
 		if (ScriptProcessor == null ||
 			WebScriptProcessor == null ||
 			HarmonyProcessor == null ||
+			HookManager == null ||
 			ModuleProcessor == null ||
 			CarbonProcessor)
 		{
@@ -185,6 +186,7 @@ public class Community
 			if (WebScriptProcessor != null) UnityEngine.Object.DestroyImmediate(WebScriptProcessor);
 			if (HarmonyProcessor != null) UnityEngine.Object.DestroyImmediate(HarmonyProcessor);
 			if (CarbonProcessor != null) UnityEngine.Object.DestroyImmediate(CarbonProcessor);
+			if (HookManager != null) UnityEngine.Object.DestroyImmediate(HookManager);
 		}
 		catch { }
 
@@ -266,6 +268,7 @@ public class Community
 		Carbon.Logger.Log($"Loading...");
 
 		Defines.Initialize();
+		HookValidator.Initialize();
 
 		_installProcessors();
 
@@ -273,8 +276,6 @@ public class Community
 
 		_clearCommands();
 		_installDefaultCommands();
-
-		HookValidator.Refresh();
 
 		ReloadPlugins();
 

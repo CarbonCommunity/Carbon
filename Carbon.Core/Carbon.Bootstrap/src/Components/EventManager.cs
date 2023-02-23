@@ -22,12 +22,12 @@ internal sealed class EventManager : MonoBehaviour, IEventManager
 	{
 		if (!events.ContainsKey(eventId)) events[eventId] = callback;
 		else events[eventId] = Delegate.Combine(events[eventId], callback);
-		Utility.Logger.Debug($"[{eventId}] New subscriptor '{callback}'");
+		Utility.Logger.Debug($"[{eventId}] New subscriptor '{callback.Target}'");
 	}
 
 	public void Trigger(CarbonEvent eventId, EventArgs args)
 	{
-		// Utility.Logger.Debug($"[{eventId}] triggered");
+		Utility.Logger.Debug($"[{eventId}] triggered");
 		if (!events.ContainsKey(eventId)) return;
 
 		Action<EventArgs> @event = events[eventId] as Action<EventArgs>;
