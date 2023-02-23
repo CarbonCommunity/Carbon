@@ -555,10 +555,16 @@ public static class Loader
 			{
 				foreach (var plugin in mod.Plugins)
 				{
+					try { plugin.InternalApplyPluginReferences(); } catch { }
+				}
+			}
+
+			foreach (var mod in _loadedMods)
+			{
+				foreach (var plugin in mod.Plugins)
+				{
 					if (plugin.HasInitialized) continue;
 					counter++;
-
-					try { plugin.InternalApplyPluginReferences(); } catch { }
 
 					try
 					{

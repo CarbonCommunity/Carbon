@@ -87,7 +87,7 @@ public class ScriptProcessor : BaseProcessor
 	{
 		public bool IsLineValid(string line)
 		{
-			return !line.Contains(".splashThreshold");
+			return !line.Contains("using WebSocketSharp;");
 		}
 
 		public override void Process(string input, out string output)
