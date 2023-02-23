@@ -558,6 +558,8 @@ public static class Loader
 					if (plugin.HasInitialized) continue;
 					counter++;
 
+					try { plugin.InternalApplyPluginReferences(); } catch { }
+
 					try
 					{
 						plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);

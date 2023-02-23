@@ -184,6 +184,8 @@ namespace Oxide.Plugins
 		}
 		internal void InternalApplyPluginReferences()
 		{
+			if (PluginReferences == null) return;
+
 			foreach (var reference in PluginReferences)
 			{
 				var field = reference.Field;
