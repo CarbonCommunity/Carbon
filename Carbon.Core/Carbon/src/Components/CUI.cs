@@ -153,6 +153,9 @@ public struct CUI : IDisposable
 
 	public class Handler
 	{
+		public int Pooled => _containerPool.Count + _elements.Count + _images.Count + _rawImages.Count + _texts.Count + _buttons.Count + _inputFields.Count + _rects.Count + _needsCursors.Count + _needsKeyboards.Count;
+		public int Used => _queue.Count;
+
 		#region Properties
 
 		internal int _currentId { get; set; }
