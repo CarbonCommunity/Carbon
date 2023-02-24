@@ -1,16 +1,13 @@
-﻿using Carbon;
-using Oxide.Core.Database;
-using Oxide.Core.Libraries;
-using Oxide.Core.Plugins;
-using Oxide.Plugins;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
 using System.IO;
-using System.Linq;
 using System.Threading;
-using static CombatLog;
+using Carbon;
+using Mono.Data.Sqlite;
+using Oxide.Core.Database;
+using Oxide.Core.Libraries;
+using Oxide.Plugins;
 
 namespace Oxide.Core.SQLite.Libraries
 {
@@ -56,8 +53,8 @@ namespace Oxide.Core.SQLite.Libraries
 			/// </summary>
 			public bool NonQuery { get; internal set; }
 
-			private SQLiteCommand _cmd;
-			private SQLiteConnection _connection;
+			private SqliteCommand _cmd;
+			private SqliteConnection _connection;
 
 			private void Cleanup()
 			{
@@ -81,7 +78,7 @@ namespace Oxide.Core.SQLite.Libraries
 						throw new Exception("Connection is null");
 					}
 
-					_connection = (SQLiteConnection)Connection.Con;
+					_connection = (SqliteConnection)Connection.Con;
 					if (_connection.State == ConnectionState.Closed)
 					{
 						_connection.Open();
@@ -96,7 +93,7 @@ namespace Oxide.Core.SQLite.Libraries
 					}
 					else
 					{
-						using (SQLiteDataReader reader = _cmd.ExecuteReader())
+						using (SqliteDataReader reader = _cmd.ExecuteReader())
 						{
 							list = new List<Dictionary<string, object>>();
 							while (reader.Read())
@@ -110,7 +107,12 @@ namespace Oxide.Core.SQLite.Libraries
 							}
 						}
 					}
-					lastInsertRowId = _connection.LastInsertRowId;
+
+					// FIXME: not working 
+					_cmd.CommandText = "SELECT last_insert_rowid()";
+					lastInsertRowId = (long)_cmd.ExecuteScalar();
+					Logger.Debug($">>>> {lastInsertRowId} ");
+
 					Cleanup();
 				}
 				catch (Exception ex)
@@ -237,7 +239,7 @@ namespace Oxide.Core.SQLite.Libraries
 				connection = new Connection(conStr, persistent)
 				{
 					Plugin = plugin,
-					Con = new SQLiteConnection(conStr)
+					Con = new SqliteConnection(conStr)
 				};
 				_connections[conStr] = connection;
 			}

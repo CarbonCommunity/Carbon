@@ -18,7 +18,7 @@
 
 	<Target Name="CarbonCopyLibs" AfterTargets="Build" DependsOnTargets="CarbonPrepareRelease">
 		<ItemGroup>
-			<FilesToCopy Include="$(OutputPath)\**\*.dll" Exclude="$(OutputPath)$(Product).dll" />
+			<FilesToCopy Include="$(OutputPath)**\*.dll" Exclude="$(OutputPath)$(Product).dll" />
 		</ItemGroup>
 
 		<Message Text="[$(AssemblyName)] &gt;&gt; Copy files to release folder" Importance="high" />

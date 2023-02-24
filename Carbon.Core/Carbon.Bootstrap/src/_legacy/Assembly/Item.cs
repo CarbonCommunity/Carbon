@@ -1,4 +1,6 @@
-﻿using System;
+﻿// #define DEBUG_VERBOSE
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -128,12 +130,13 @@ internal sealed class Item : IDisposable
 			if (File.Exists(needle)) return needle;
 		}
 
-		throw new FileNotFoundException(file);
+		return null;
 	}
 
 	private byte[] ReadFile(string file)
 	{
 		byte[] raw = default;
+		if (file == null) return null;
 
 #if DEBUG_VERBOSE
 		Logger.Debug($" - ReadFile: {file}");
