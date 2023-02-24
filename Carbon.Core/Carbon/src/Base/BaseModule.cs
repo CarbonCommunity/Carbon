@@ -114,7 +114,13 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			catch (Exception exception) { Carbon.Logger.Error($"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 		}
 
+		if (PreLoadShouldSave()) shouldSave = true;
+
 		if (shouldSave) Save();
+	}
+	public virtual bool PreLoadShouldSave()
+	{
+		return false;
 	}
 	public virtual void Save()
 	{
