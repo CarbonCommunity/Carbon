@@ -133,13 +133,13 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		return invalidated;
 	}
 
-	public void QueueBatch(params string[] urls)
+	public void QueueBatch(bool @override, params string[] urls)
 	{
-		QueueBatch(1f, urls);
+		QueueBatch(1f, @override, urls);
 	}
-	public void QueueBatch(float scale, params string[] urls)
+	public void QueueBatch(float scale, bool @override, params string[] urls)
 	{
-		QueueBatch(scale, results =>
+		QueueBatch(scale, @override, results =>
 		{
 			foreach(var result in results)
 			{
@@ -158,7 +158,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			}
 		}, urls);
 	}
-	public void QueueBatch(float scale, Action<List<QueuedThreadResult>> onComplete, params string[] urls)
+	public void QueueBatch(float scale, bool @override, Action<List<QueuedThreadResult>> onComplete, params string[] urls)
 	{
 		var thread = new QueuedThread
 		{
@@ -166,10 +166,20 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		};
 		thread.ImageUrls.AddRange(urls);
 
-		foreach (var url in urls)
+		if (!@override)
 		{
-			DeleteImage(url, 0);
-			if (scale != 0f) DeleteImage(url, scale);
+			foreach (var url in urls)
+			{
+				if (GetImage(url, scale) != 0) thread.ImageUrls.Remove(url);
+			}
+		}
+		else
+		{
+			foreach (var url in thread.ImageUrls)
+			{
+				DeleteImage(url, 0);
+				if (scale != 0f) DeleteImage(url, scale);
+			}
 		}
 
 		Community.Runtime.CorePlugin.persistence.StartCoroutine(_executeQueue(thread, results => onComplete?.Invoke(results)));

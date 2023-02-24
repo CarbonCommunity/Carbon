@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Carbon.Base;
+using Carbon.Modules;
 using Oxide.Game.Rust.Cui;
 using UnityEngine;
 using static Carbon.CUI.Handler;
@@ -17,10 +19,12 @@ namespace Carbon;
 public struct CUI : IDisposable
 {
 	public Handler Manager { get; private set; }
+	public ImageDatabaseModule ImageDatabase { get; private set; }
 
 	public CUI(Handler manager)
 	{
 		Manager = manager;
+		ImageDatabase = BaseModule.GetModule<ImageDatabaseModule>();
 	}
 
 	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string parent = "Overlay")
@@ -74,13 +78,47 @@ public struct CUI : IDisposable
 	{
 		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, characterLimit, readOnly, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, command, align, font, true, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
-	public string CreateImage(CuiElementContainer container, string parent, string id, string png, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreateImage(CuiElementContainer container, string parent, string id, uint png, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.Image(Manager, container, parent, id, png, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.Image(Manager, container, parent, id, png.ToString(), color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+	}
+	public string CreateImage(CuiElementContainer container, string parent, string id, string url, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	{
+		return CUIStatics.Image(Manager, container, parent, id, GetImage(url), color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+	}
+	public string CreateImage(CuiElementContainer container, string parent, string id, string url, float scale, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	{
+		return CUIStatics.Image(Manager, container, parent, id, GetImage(url, scale), color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
 	public string CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
 		return CUIStatics.ItemImage(Manager, container, parent, id, itemID, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+	}
+
+	public string GetImage(string url, float scale = 0)
+	{
+		return ImageDatabase.GetImageString(url, scale);
+	}
+
+	public void QueueImages(float scale, params string[] urls)
+	{
+		ImageDatabase.QueueBatch(scale, false, urls);
+	}
+	public void QueueImages(params string[] urls)
+	{
+		QueueImages(0, urls);
+	}
+
+	public void ClearImages(float scale, params string[] urls)
+	{
+		foreach(var url in urls)
+		{
+			ImageDatabase.DeleteImage(url, scale);
+		}
+	}
+	public void ClearImages(params string[] urls)
+	{
+		ClearImages(0, urls);
 	}
 
 	public string Color(string hexColor, float alpha)
@@ -94,8 +132,9 @@ public struct CUI : IDisposable
 		return $"{(double)red / 255} {(double)green / 255} {(double)blue / 255} {alpha}";
 	}
 
-	public void Send(CuiElementContainer container, BasePlayer player)
+	public void Send(CuiElementContainer container, BasePlayer player, bool autoDestroy = false)
 	{
+		if (autoDestroy) Destroy(container, player);
 		Manager.Send(container, player);
 	}
 	public void Destroy(CuiElementContainer container, BasePlayer player)
