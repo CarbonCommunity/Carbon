@@ -24,10 +24,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override string Name => "Admin";
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
+	public CUI.Handler Handler { get; internal set; }
 
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
-	internal CUI.Handler Handler { get; set; } 
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
