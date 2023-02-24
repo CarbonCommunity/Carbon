@@ -38,6 +38,14 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		onFinished?.Invoke(thread.Result);
 	}
 
+	private void OnServerInitialized()
+	{
+		if (Validate())
+		{
+			Save();
+		}
+	}
+
 	public override bool PreLoadShouldSave()
 	{
 		var shouldSave = false;
@@ -48,21 +56,10 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			shouldSave = true;
 		}
 
-		if (ValidateNulls())
-		{
-			shouldSave = true;
-		}
-
 		return shouldSave;
 	}
-	public override void Load()
-	{
-		base.Load();
 
-		ValidateNulls();
-	}
-
-	public bool ValidateNulls()
+	public bool Validate()
 	{
 		if (DataInstance.Identifier != CommunityEntity.ServerInstance.net.ID)
 		{

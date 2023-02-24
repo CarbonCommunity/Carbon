@@ -64,9 +64,6 @@ public class CarbonModule<C, D> : BaseModule, IModule
 
 		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
-			//Community.Runtime.HookProcessor.InstallHooks(method.Name);
-			//Community.Runtime.HookProcessor.AppendHook(method.Name);
-
 			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 		}
