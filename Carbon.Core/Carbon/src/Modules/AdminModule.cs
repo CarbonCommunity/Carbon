@@ -336,7 +336,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
-			text: text, 12,
+			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
@@ -437,7 +437,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
-			text: text, 12,
+			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
