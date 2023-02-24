@@ -645,12 +645,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using var cui = new CUI(Handler);
 
-			cui.Destroy(PanelId, player);
-
 			var container = cui.CreateContainer(PanelId,
 				color: "0 0 0 0.75",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
-				needsCursor: true);
+				needsCursor: true, destroyUi: PanelId);
 
 			cui.CreatePanel(container, parent: PanelId, id: "color",
 				color: "0 0 0 0.6",
