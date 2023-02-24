@@ -148,8 +148,8 @@ public class WebRequests
 
 			try
 			{
-				if (failure) ErrorCallback(ResponseCode, ResponseText, ResponseError);
-				else SuccessCallback(ResponseCode, ResponseText);
+				if (failure) ErrorCallback?.Invoke(ResponseCode, ResponseText, ResponseError);
+				else SuccessCallback?.Invoke(ResponseCode, ResponseText);
 			}
 			catch (Exception ex)
 			{

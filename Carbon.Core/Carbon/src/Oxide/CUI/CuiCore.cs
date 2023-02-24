@@ -417,6 +417,9 @@ public class CuiElement
 	[JsonProperty("components")]
 	public List<ICuiComponent> Components { get; } = new List<ICuiComponent>();
 
+	[JsonProperty("destroyUi", NullValueHandling = NullValueHandling.Ignore)]
+	public string DestroyUI { get; set; }
+
 	[JsonProperty("fadeOut")]
 	public float FadeOut { get; set; }
 }

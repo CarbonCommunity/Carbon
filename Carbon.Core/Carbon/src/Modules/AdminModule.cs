@@ -24,10 +24,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override string Name => "Admin";
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
+	public CUI.Handler Handler { get; internal set; }
 
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
-	internal CUI.Handler Handler { get; set; } 
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
@@ -336,7 +336,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
-			text: text, 12,
+			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
@@ -437,7 +437,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
-			text: text, 12,
+			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
@@ -645,12 +645,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using var cui = new CUI(Handler);
 
-			cui.Destroy(PanelId, player);
-
 			var container = cui.CreateContainer(PanelId,
 				color: "0 0 0 0.75",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
-				needsCursor: true);
+				needsCursor: true, destroyUi: PanelId);
 
 			cui.CreatePanel(container, parent: PanelId, id: "color",
 				color: "0 0 0 0.6",
