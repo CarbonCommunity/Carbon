@@ -123,6 +123,12 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		};
 		thread.ImageUrls.AddRange(urls);
 
+		foreach (var url in urls)
+		{
+			DeleteImage(url, 0);
+			if (scale != 0f) DeleteImage(url, scale);
+		}
+
 		Community.Runtime.CorePlugin.persistence.StartCoroutine(_executeQueue(thread, results => onComplete?.Invoke(results)));
 	}
 
