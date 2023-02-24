@@ -186,6 +186,10 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 		return 0;
 	}
+	public string GetImageString(string url, float scale = 0)
+	{
+		return GetImage(url, scale).ToString();
+	}
 	public bool DeleteImage(string url, float scale = 0)
 	{
 		var id = scale == 0 ? "0" : scale.ToString("0.0");
