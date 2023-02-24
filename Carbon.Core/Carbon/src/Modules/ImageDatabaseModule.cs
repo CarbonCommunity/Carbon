@@ -13,6 +13,8 @@ using System.Collections;
 using Org.BouncyCastle.Utilities;
 using Epic.OnlineServices;
 using Facepunch;
+using ProtoBuf;
+using Carbon.Core;
 
 /*
  *
@@ -29,6 +31,8 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	public override Type Type => typeof(ImageDatabaseModule);
 	public override bool EnabledByDefault => true;
 
+	internal ImageDatabaseDataProto _protoData { get; set; }
+
 	internal IEnumerator _executeQueue(QueuedThread thread, Action<List<QueuedThreadResult>> onFinished)
 	{
 		thread.Start();
@@ -36,6 +40,10 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		while (thread != null && !thread.IsDone) { yield return null; }
 
 		onFinished?.Invoke(thread.Result);
+	}
+	internal string _getProtoDataPath()
+	{
+		return Path.Combine(Defines.GetModulesFolder(), Name, "data.db");
 	}
 
 	private void OnServerInitialized()
@@ -45,14 +53,49 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			Save();
 		}
 	}
+	private void OnServerSave()
+	{
+		SaveDatabase();
+	}
+
+	public override void Load()
+	{
+		var path = _getProtoDataPath();
+
+		if (OsEx.File.Exists(path))
+		{
+			using var stream = new MemoryStream(OsEx.File.ReadBytes(path));
+			try { _protoData = Serializer.Deserialize<ImageDatabaseDataProto>(stream); } catch { _protoData = new ImageDatabaseDataProto(); }
+		}
+		else
+		{
+			_protoData = new ImageDatabaseDataProto();
+		}
+
+		base.Load();
+	}
+	public override void Save()
+	{
+		base.Save();
+
+		SaveDatabase();
+	}
+	public void SaveDatabase()
+	{
+		var path = _getProtoDataPath();
+		using var file = System.IO.File.Open(path, FileMode.OpenOrCreate);
+		Serializer.Serialize(file, _protoData ??= new ImageDatabaseDataProto());
+		file.Flush();
+		file.Dispose();
+	}
 
 	public override bool PreLoadShouldSave()
 	{
 		var shouldSave = false;
 
-		if (DataInstance.Map == null)
+		if (_protoData.Map == null)
 		{
-			DataInstance.Map = new Dictionary<string, uint>();
+			_protoData.Map = new Dictionary<string, uint>();
 			shouldSave = true;
 		}
 
@@ -61,19 +104,19 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 	public bool Validate()
 	{
-		if (DataInstance.Identifier != CommunityEntity.ServerInstance.net.ID)
+		if (_protoData.Identifier != CommunityEntity.ServerInstance.net.ID)
 		{
 			PutsWarn($"The server identifier has changed. Wiping old image database.");
-			DataInstance.Map.Clear();
-			DataInstance.Identifier = CommunityEntity.ServerInstance.net.ID;
+			_protoData.Map.Clear();
+			_protoData.Identifier = CommunityEntity.ServerInstance.net.ID;
 			return true;
 		}
 
 		var invalidations = Pool.GetList<string>();
 
-		foreach (var pointer in DataInstance.Map)
+		foreach (var pointer in _protoData.Map)
 		{
-			if(FileStorage.server.Get(pointer.Value, FileStorage.Type.png, DataInstance.Identifier) == null)
+			if(FileStorage.server.Get(pointer.Value, FileStorage.Type.png, _protoData.Identifier) == null)
 			{
 				invalidations.Add(pointer.Key);
 			}
@@ -81,7 +124,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 		foreach(var invalidation in invalidations)
 		{
-			DataInstance.Map.Remove(invalidation);
+			_protoData.Map.Remove(invalidation);
 		}
 
 		var invalidated = invalidations.Count > 0;
@@ -102,15 +145,15 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			{
 				if(result.OriginalData == result.ProcessedData)
 				{
-					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, DataInstance.Identifier);
-					DataInstance.Map.Add($"{result.Url}_0", id);
+					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
+					_protoData.Map.Add($"{result.Url}_0", id);
 				}
 				else
 				{
-					var originalId = FileStorage.server.Store(result.OriginalData, FileStorage.Type.png, DataInstance.Identifier);
-					var processedId = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, DataInstance.Identifier);
-					DataInstance.Map.Add($"{result.Url}_0", originalId);
-					DataInstance.Map.Add($"{result.Url}_{scale:0.0}", processedId);
+					var originalId = FileStorage.server.Store(result.OriginalData, FileStorage.Type.png, _protoData.Identifier);
+					var processedId = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
+					_protoData.Map.Add($"{result.Url}_0", originalId);
+					_protoData.Map.Add($"{result.Url}_{scale:0.0}", processedId);
 				}
 			}
 		}, urls);
@@ -136,7 +179,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	{
 		var id = scale == 0 ? "0" : scale.ToString("0.0");
 
-		if (DataInstance.Map.TryGetValue($"{url}_{id}", out var uid))
+		if (_protoData.Map.TryGetValue($"{url}_{id}", out var uid))
 		{
 			return uid;
 		}
@@ -148,10 +191,10 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		var id = scale == 0 ? "0" : scale.ToString("0.0");
 		var name = $"{url}_{id}";
 
-		if (DataInstance.Map.TryGetValue(name, out var uid))
+		if (_protoData.Map.TryGetValue(name, out var uid))
 		{
-			FileStorage.server.Remove(uid, FileStorage.Type.png, DataInstance.Identifier);
-			DataInstance.Map.Remove(name);
+			FileStorage.server.Remove(uid, FileStorage.Type.png, _protoData.Identifier);
+			_protoData.Map.Remove(name);
 			return true;
 		}
 
@@ -306,6 +349,14 @@ public class ImageDatabaseConfig
 }
 public class ImageDatabaseData
 {
+}
+
+[ProtoContract]
+public class ImageDatabaseDataProto
+{
+	[ProtoMember(1)]
 	public uint Identifier { get; set; }
+
+	[ProtoMember(2)]
 	public Dictionary<string, uint> Map { get; set; }
 }
