@@ -38,13 +38,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		"https://carbonmod.gg/assets/media/carbonlogo_w.png",
 		"https://carbonmod.gg/assets/media/carbonlogo_bs.png",
 		"https://carbonmod.gg/assets/media/carbonlogo_ws.png",
-		Checkmark
+		"https://carbonmod.gg/assets/media/cui/checkmark.png"
 	};
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
-
-	const string Checkmark = "https://carbonmod.gg/assets/media/cui/checkmark.png";
 
 	public override void Init()
 	{
@@ -102,6 +100,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	private void LoadDefaultImages()
 	{
 		ImageDatabase.QueueBatch(false, DefaultImages.ToArray());
+		ImageDatabase.AddMap("carbonb", "https://carbonmod.gg/assets/media/carbonlogo_b.png");
+		ImageDatabase.AddMap("carbonw", "https://carbonmod.gg/assets/media/carbonlogo_w.png");
+		ImageDatabase.AddMap("carbonbs", "https://carbonmod.gg/assets/media/carbonlogo_bs.png");
+		ImageDatabase.AddMap("carbonws", "https://carbonmod.gg/assets/media/carbonlogo_ws.png");
+		ImageDatabase.AddMap("checkmark", "https://carbonmod.gg/assets/media/cui/checkmark.png");
 	}
 
 	#region Option Elements
@@ -273,7 +276,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (isOn)
 		{
 			cui.CreateImage(container, button, null,
-				url: Checkmark,
+				url: "checkmark",
 				color: "0.4 0.7 0.2 0.7",
 				xMin: 0.15f, xMax: 0.85f, yMin: 0.15f, yMax: 0.85f);
 		}

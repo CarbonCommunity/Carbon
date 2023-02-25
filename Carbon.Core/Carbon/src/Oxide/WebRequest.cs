@@ -101,23 +101,27 @@ public class WebRequests
 					case "GET":
 						_client.DownloadStringCompleted += (object sender, DownloadStringCompletedEventArgs e) =>
 						{
-							if (e == null)
+							try
 							{
-								OnComplete(true);
-								return;
+								if (e == null)
+								{
+									OnComplete(true);
+									return;
+								}
+
+								if (e.Error != null)
+								{
+									if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
+									ResponseError = e.Error;
+									OnComplete(true);
+									return;
+								}
+
+								ResponseText = e.Result;
+
+								OnComplete(false);
 							}
-
-							if (e.Error != null)
-							{
-								if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
-								ResponseError = e.Error;
-								OnComplete(true);
-								return;
-							}
-
-							ResponseText = e.Result;
-
-							OnComplete(false);
+							catch { }
 						};
 
 						try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }
@@ -127,23 +131,27 @@ public class WebRequests
 					case "POST":
 						_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
 						{
-							if (e == null)
+							try
 							{
-								OnComplete(true);
-								return;
+								if (e == null)
+								{
+									OnComplete(true);
+									return;
+								}
+
+								if (e.Error != null)
+								{
+									if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
+									ResponseError = e.Error;
+									OnComplete(true);
+									return;
+								}
+
+								ResponseText = e.Result;
+
+								OnComplete(false);
 							}
-
-							if (e.Error != null)
-							{
-								if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
-								ResponseError = e.Error;
-								OnComplete(true);
-								return;
-							}
-
-							ResponseText = e.Result;
-
-							OnComplete(false);
+							catch { }
 						};
 
 						try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }

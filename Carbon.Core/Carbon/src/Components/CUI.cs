@@ -21,25 +21,47 @@ public struct CUI : IDisposable
 	public Handler Manager { get; private set; }
 	public ImageDatabaseModule ImageDatabase { get; private set; }
 
+	public enum ClientPanels
+	{
+		Overlay,
+		Hud,
+		HudMenu,
+		Under
+	}
+	public string GetClientPanel(ClientPanels panel)
+	{
+		return panel switch
+		{
+			ClientPanels.Hud => "Hud",
+			ClientPanels.HudMenu => "Hud.Menu",
+			ClientPanels.Under => "Under",
+			_ => "Overlay",
+		};
+	}
+
 	public CUI(Handler manager)
 	{
 		Manager = manager;
 		ImageDatabase = BaseModule.GetModule<ImageDatabaseModule>();
 	}
 
-	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string parent = "Overlay", string destroyUi = null)
+	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, ClientPanels parent = ClientPanels.Overlay, string destroyUi = null)
 	{
 		var container = Manager.TakeFromPoolContainer();
 		container.Name = panel;
 
-		var element = Manager.TakeFromPool(panel, parent);
+		var parentName = GetClientPanel(parent);
+		var element = Manager.TakeFromPool(panel, parentName);
 		element.FadeOut = fadeOut;
 		element.DestroyUI = destroyUi;
 
-		var image = Manager.TakeFromPoolImage();
-		image.Color = color;
-		image.FadeIn = fadeIn;
-		element.Components.Add(image);
+		if(color != "0 0 0 0")
+		{
+			var image = Manager.TakeFromPoolImage();
+			image.Color = color;
+			image.FadeIn = fadeIn;
+			element.Components.Add(image);
+		}
 
 		var rect = Manager.TakeFromPoolRect();
 		rect.AnchorMin = $"{xMin} {yMin}";
@@ -52,7 +74,7 @@ public struct CUI : IDisposable
 		if (needsKeyboard) element.Components.Add(Manager.TakeFromPoolNeedsKeyboard());
 
 		container.Add(element);
-		container.Add(Manager.TakeFromPool(Manager.AppendId(), parent));
+		container.Add(Manager.TakeFromPool(Manager.AppendId(), parentName));
 		return container;
 	}
 	public string CreatePanel(CuiElementContainer container, string parent, string id, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
