@@ -101,15 +101,15 @@ public class WebRequests
 					case "GET":
 						_client.DownloadStringCompleted += (object sender, DownloadStringCompletedEventArgs e) =>
 						{
-							if (e.Error != null)
+							if (e == null || e.Error != null)
 							{
-								if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
-								ResponseError = e.Error;
+								if (e?.Error is WebException web) ResponseCode = (int)(web?.Response as HttpWebResponse)?.StatusCode;
+								ResponseError = e?.Error;
 								OnComplete(true);
 								return;
 							}
 
-							ResponseText = e.Result;
+							ResponseText = e?.Result;
 
 							OnComplete(false);
 						};
@@ -121,15 +121,15 @@ public class WebRequests
 					case "POST":
 						_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
 						{
-							if (e.Error != null)
+							if (e == null || e.Error != null)
 							{
-								if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
-								ResponseError = e.Error;
+								if (e?.Error is WebException web) ResponseCode = (int)(web?.Response as HttpWebResponse)?.StatusCode;
+								ResponseError = e?.Error;
 								OnComplete(true);
 								return;
 							}
 
-							ResponseText = e.Result;
+							ResponseText = e?.Result;
 
 							OnComplete(false);
 						};
