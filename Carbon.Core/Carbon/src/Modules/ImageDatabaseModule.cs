@@ -229,16 +229,15 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		return false;
 	}
 
-	public uint GetQRCode(string text, int pixels = 20)
+	public uint GetQRCode(string text, int pixels = 20, bool transparent = false, bool quietZones = true, bool whiteMode = false)
 	{
 		if (_protoData.Map.TryGetValue($"qr_{UiCommandAttribute.Uniquify(text)}_{pixels}_0", out uint uid)) return uid;
-		var payload = new PayloadGenerator.Url(text);
 
 		using (var qrGenerator = new QRCodeGenerator())
-		using (var qrCodeData = qrGenerator.CreateQrCode(payload.ToString(), QRCodeGenerator.ECCLevel.Q))
+		using (var qrCodeData = qrGenerator.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q))
 		using (var qrCode = new QRCode(qrCodeData))
 		{
-			var qrCodeImage = qrCode.GetGraphic(pixels);
+			var qrCodeImage = qrCode.GetGraphic(pixels, whiteMode ? Color.White : Color.Black, transparent ? Color.Transparent : whiteMode ? Color.Black : Color.White, quietZones);
 
 			using var output = new MemoryStream();
 			qrCodeImage.Save(output, ImageFormat.Png);

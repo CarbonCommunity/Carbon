@@ -99,6 +99,21 @@ public struct CUI : IDisposable
 	{
 		return CUIStatics.ItemImage(Manager, container, parent, id, itemID, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
+	public string CreateQRCode(CuiElementContainer container, string parent, string id, string text, string brandUrl, string brandColor, string brandBgColor, int pixels, bool transparent, bool quietZones, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	{
+		var qr = CreateImage(container, parent, id, ImageDatabase.GetQRCode(text, pixels, transparent, quietZones, true), color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+
+		if (!string.IsNullOrEmpty(brandUrl))
+		{
+			var panel = CreatePanel(container, qr, null, brandBgColor,
+				xMin: 0.4f, xMax: 0.6f, yMin: 0.4f, yMax: 0.6f);
+
+			CreateImage(container, panel, null, brandUrl, brandColor,
+				xMin: 0.15f, 0.85f, yMin: 0.15f, yMax: 0.85f);
+		}
+
+		return qr;
+	}
 
 	public string GetImage(string url, float scale = 0)
 	{
