@@ -108,11 +108,7 @@ namespace Oxide.Core.SQLite.Libraries
 						}
 					}
 
-					// FIXME: not working 
-					_cmd.CommandText = "SELECT last_insert_rowid()";
-					lastInsertRowId = (long)_cmd.ExecuteScalar();
-					Logger.Debug($">>>> {lastInsertRowId} ");
-
+					lastInsertRowId = GetLastInsertRowId(_connection);
 					Cleanup();
 				}
 				catch (Exception ex)
@@ -157,6 +153,14 @@ namespace Oxide.Core.SQLite.Libraries
 					}
 					Connection?.Plugin?.TrackEnd();
 				});
+			}
+
+			private long GetLastInsertRowId(SqliteConnection connection)
+			{
+				using (SqliteCommand command = new SqliteCommand("SELECT last_insert_rowid()", connection))
+				{
+					return (long)command.ExecuteScalar();
+				}
 			}
 		}
 
