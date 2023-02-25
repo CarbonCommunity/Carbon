@@ -229,10 +229,10 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		return false;
 	}
 
-	public uint GetQRCode(string url, int pixels = 20)
+	public uint GetQRCode(string text, int pixels = 20)
 	{
-		if (_protoData.Map.TryGetValue($"{url}_{pixels}_0", out uint uid)) return uid;
-		var payload = new PayloadGenerator.Url(url);
+		if (_protoData.Map.TryGetValue($"qr_{UiCommandAttribute.Uniquify(text)}_{pixels}_0", out uint uid)) return uid;
+		var payload = new PayloadGenerator.Url(text);
 
 		using (var qrGenerator = new QRCodeGenerator())
 		using (var qrCodeData = qrGenerator.CreateQrCode(payload.ToString(), QRCodeGenerator.ECCLevel.Q))
@@ -246,7 +246,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 			var raw = output.ToArray();
 			uid = FileStorage.server.Store(raw, FileStorage.Type.png, _protoData.Identifier);
-			_protoData.Map.Add($"{url}_{pixels}_0", uid);
+			_protoData.Map.Add($"qr_{UiCommandAttribute.Uniquify(text)}_{pixels}_0", uid);
 			return uid;
 		};
 	}
