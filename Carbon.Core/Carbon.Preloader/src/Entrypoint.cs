@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Reflection;
-using Carbon.Utility;
 using Patches;
 using Utility;
 
@@ -21,8 +20,8 @@ public sealed class Entrypoint
 		Logger.Log($">> {assemblyName} is using UnityDoorstop entrypoint");
 
 		// this forces Harmony v2 to be loaded instead of the rust's builtin v1
-		Assembly assembly = Assembly.LoadFile(Path.Combine(Context.CarbonLib, "0Harmony.dll"));
-		Logger.Log($"Loaded {assembly.GetName().Name} {assembly.GetName().Version} into current AppDomain");
+		Assembly harmony = Assembly.LoadFile(Path.Combine(Context.CarbonLib, "0Harmony.dll"));
+		Logger.Log($"Loaded {harmony.GetName().Name} {harmony.GetName().Version} into current AppDomain");
 
 		using Sandbox<AssemblyCSharp> isolated1 = new Sandbox<AssemblyCSharp>();
 

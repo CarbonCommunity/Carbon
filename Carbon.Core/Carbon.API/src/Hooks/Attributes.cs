@@ -43,8 +43,11 @@ public class HookAttribute : Attribute
 			FullName = name;
 		}
 
-		public Patch(string name, string fullName, Type target, string method, Type[] args) : this(name, target, method, args)
+		public Patch(string name, string fullName, Type target, string method) : this(name, target, method)
 			=> FullName = fullName;
+
+		public Patch(string name, string fullName, Type target, string method, Type[] args) : this(name, fullName, target, method)
+			=> MethodArgs = args;
 	}
 
 	[AttributeUsage(AttributeTargets.Class)]

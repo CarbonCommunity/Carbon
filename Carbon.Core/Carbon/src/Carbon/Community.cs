@@ -31,7 +31,8 @@ public class Community
 	public static string Version { get; set; } = "Unknown";
 	public static string InformationalVersion { get; set; } = "Unknown";
 
-	public static bool IsServerFullyInitialized => RelationshipManager.ServerInstance != null;
+	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
+	public static bool IsServerFullyInitializedCache { get; internal set; }
 	public static Community Runtime { get; set; }
 
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
@@ -73,12 +74,19 @@ public class Community
 
 		Config = JsonConvert.DeserializeObject<Config>(OsEx.File.ReadText(Defines.GetConfigFile()));
 
-		if (Config.ConditionalCompilationSymbols == null) Config.ConditionalCompilationSymbols = new();
+		var needsSave = false;
+		if (Config.ConditionalCompilationSymbols == null)
+		{
+			Config.ConditionalCompilationSymbols = new();
+			needsSave = true;
+		}
 
 		if (!Config.ConditionalCompilationSymbols.Contains("CARBON"))
 			Config.ConditionalCompilationSymbols.Add("CARBON");
 
 		Config.ConditionalCompilationSymbols = Config.ConditionalCompilationSymbols.Distinct().ToList();
+
+		if (needsSave) SaveConfig();
 	}
 
 	public void SaveConfig()
@@ -138,6 +146,7 @@ public class Community
 		if (ScriptProcessor == null ||
 			WebScriptProcessor == null ||
 			HarmonyProcessor == null ||
+			HookManager == null ||
 			ModuleProcessor == null ||
 			CarbonProcessor)
 		{
@@ -184,6 +193,7 @@ public class Community
 			if (WebScriptProcessor != null) UnityEngine.Object.DestroyImmediate(WebScriptProcessor);
 			if (HarmonyProcessor != null) UnityEngine.Object.DestroyImmediate(HarmonyProcessor);
 			if (CarbonProcessor != null) UnityEngine.Object.DestroyImmediate(CarbonProcessor);
+			if (HookManager != null) UnityEngine.Object.DestroyImmediate(HookManager);
 		}
 		catch { }
 
@@ -265,6 +275,7 @@ public class Community
 		Carbon.Logger.Log($"Loading...");
 
 		Defines.Initialize();
+		HookValidator.Initialize();
 
 		_installProcessors();
 
@@ -272,8 +283,6 @@ public class Community
 
 		_clearCommands();
 		_installDefaultCommands();
-
-		HookValidator.Refresh();
 
 		ReloadPlugins();
 

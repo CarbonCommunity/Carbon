@@ -23,9 +23,11 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		var hasChanged = false;
 		foreach (var item in ItemManager.itemList)
 		{
-			if (DataInstance.ItemMapping.ContainsKey(item.itemid)) continue;
+			if (!DataInstance.Items.ContainsKey(item.shortname))
+			{
+				DataInstance.Items.Add(item.shortname, item.stackable);
+			}
 
-			DataInstance.ItemMapping.Add(item.itemid, item.stackable);
 			hasChanged = true;
 		}
 
@@ -46,7 +48,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 			{
 				if (item.category != category.Key || Config.Blacklist.Contains(item.shortname) || Config.Items.ContainsKey(item.shortname)) continue;
 
-				DataInstance.ItemMapping.TryGetValue(item.itemid, out var originalStack);
+				DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
 				item.stackable = Mathf.Clamp((int)(originalStack * category.Value * Config.GlobalMultiplier), 1, int.MaxValue);
 			}
@@ -58,12 +60,10 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 			var multiplier = Config.Items[item.shortname];
 
-			DataInstance.ItemMapping.TryGetValue(item.itemid, out var originalStack);
+			DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
 			item.stackable = Mathf.Clamp((int)(originalStack * multiplier * Config.GlobalMultiplier), 1, int.MaxValue);
 		}
-
-		Carbon.Logger.Log("Item stacks patched");
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -79,7 +79,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 			{
 				if (item.category != category.Key || Config.Blacklist.Contains(item.shortname) || Config.Items.ContainsKey(item.shortname)) continue;
 
-				DataInstance.ItemMapping.TryGetValue(item.itemid, out var originalStack);
+				DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
 				item.stackable = originalStack;
 			}
@@ -89,7 +89,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		{
 			if (!Config.Items.ContainsKey(item.shortname)) continue;
 
-			DataInstance.ItemMapping.TryGetValue(item.itemid, out var originalStack);
+			DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
 			item.stackable = originalStack;
 		}
@@ -106,7 +106,7 @@ public class StackManagerConfig
 		"water.salt"
 	};
 
-	public Dictionary<ItemCategory, float> Categories = new Dictionary<ItemCategory, float>
+	public Dictionary<ItemCategory, float> Categories = new()
 	{
 		{ ItemCategory.Ammunition, 1 },
 		{ ItemCategory.Attire, 1 },
@@ -124,12 +124,12 @@ public class StackManagerConfig
 		{ ItemCategory.Weapon, 1 }
 	};
 
-	public Dictionary<string, float> Items = new Dictionary<string, float>
+	public Dictionary<string, float> Items = new()
 	{
 		{ "explosive.timed", 1 }
 	};
 }
 public class StackManagerData
 {
-	public Dictionary<int, int> ItemMapping = new Dictionary<int, int>();
+	public Dictionary<string, int> Items = new();
 }

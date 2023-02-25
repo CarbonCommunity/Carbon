@@ -16,7 +16,7 @@ namespace Oxide.Game.Rust.Cui;
 
 public static class CuiHelper
 {
-	internal static JsonSerializerSettings _cuiSettings = new JsonSerializerSettings
+	internal static JsonSerializerSettings _cuiSettings = new()
 	{
 		DefaultValueHandling = DefaultValueHandling.Ignore
 	};

@@ -83,33 +83,4 @@ internal static class ASM
 			Logger.Error($"Supervisor late bind error, this is a bug", e);
 		}
 	}
-
-	internal static void Download(string URL, Action<string, byte[]> callback = null)
-	{
-		try
-		{
-			// Program.GetInstance()
-			Type t1 = AccessTools.TypeByName("Legacy.Loader");
-			if (t1 == null) throw new Exception("Program is null");
-
-			Type t2 = AccessTools.TypeByName("Components.DownloadManager");
-			if (t2 == null) throw new Exception("DownloadManager is null");
-
-			// Carbon.LoaderEx.DownloadManager.GetInstance()
-			object instance = t1.GetMethod("GetInstance",
-				BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy).Invoke(null, null);
-
-			// Carbon.LoaderEx.DownloadManager.GetInstance().Downloader
-			object downloader = t1.GetProperty("Downloader",
-				BindingFlags.NonPublic | BindingFlags.Instance).GetValue(instance);
-
-			// Carbon.LoaderEx.DownloadManager.GetInstance().Downloader.DownloadAsync(string, Action<string, byte[]>)
-			t2.GetMethod("DownloadAsync", BindingFlags.Public | BindingFlags.Instance)
-				.Invoke(downloader, new object[] { URL, callback });
-		}
-		catch (System.Exception e)
-		{
-			Logger.Error($"Supervisor late bind error, this is a bug", e);
-		}
-	}
 }

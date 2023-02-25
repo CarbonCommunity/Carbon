@@ -87,19 +87,16 @@ public class ScriptProcessor : BaseProcessor
 	{
 		public bool IsLineValid(string line)
 		{
-			return !line.Contains(".splashThreshold");
+			return !line.Contains("using WebSocketSharp;");
 		}
 
 		public override void Process(string input, out string output)
 		{	
 			output = input
-				.Replace("RustCore.FindPlayerById", "BasePlayer.FindByID")
-
 				.Replace("using Harmony;", "using HarmonyLib;")
 				.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
 				.Replace("HarmonyInstance", "HarmonyLib.Harmony")
 
-				.Replace("OnPlayerAttack", "OnMeleeAttack")
 				.Replace("PluginTimers", "Timers");
 
 			var newOutput = string.Empty;

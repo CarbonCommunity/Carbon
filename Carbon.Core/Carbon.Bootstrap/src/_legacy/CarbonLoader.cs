@@ -49,9 +49,11 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	{
 		_harmonyInstance = new HarmonyLib.Harmony(identifier);
 
+#if DEBUG
 		HarmonyLib.Harmony.DEBUG = true;
 		Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", Path.Combine(Context.CarbonLogs, "harmony.log"));
 		typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
+#endif
 
 		_gameObject = new UnityEngine.GameObject("Carbon");
 		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
@@ -66,16 +68,6 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 
 	internal void Initialize()
 	{
-		Logger.None(
-			@"                                               " + Environment.NewLine +
-			@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
-			@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
-			@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
-			@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
-			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
-			@"                                               " + Environment.NewLine
-		);
-
 		try
 		{
 			Logger.Log("Patching Facepunch's harmony loader");

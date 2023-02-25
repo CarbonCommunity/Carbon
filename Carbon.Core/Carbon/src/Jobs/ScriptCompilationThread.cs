@@ -1,4 +1,6 @@
-﻿using System;
+﻿// #define DEBUG_VERBOSE
+
+using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
@@ -40,12 +42,16 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal static byte[] _getPlugin(string name)
 	{
+		name = name.Replace(" ", "");
+
 		if (!_compilationCache.TryGetValue(name, out var result)) return null;
 
 		return result;
 	}
 	internal static void _overridePlugin(string name, byte[] pluginAssembly)
 	{
+		name = name.Replace(" ", "");
+
 		if (pluginAssembly == null) return;
 
 		var plugin = _getPlugin(name);

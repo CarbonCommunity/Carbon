@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using Carbon.Base;
+using ConVar;
 using Facepunch;
 using ProtoBuf;
 using Rust;
@@ -10,6 +12,8 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using static BasePlayer;
+using Pool = Facepunch.Pool;
+using Time = UnityEngine.Time;
 
 /*
  *
@@ -30,45 +34,51 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		if (!ConfigInstance.Enabled) return;
 
-
 		#region Spawnpoints
 
-		if (Spawnpoints != null && Spawnpoints.Count != 0)
+		if (Spawn_Spawnpoints != null && Spawn_Spawnpoints.Count != 0)
 		{
-			PutsWarn($"Found {Spawnpoints.Count:n0} spawn-points.");
+			PutsWarn($"Found {Spawn_Spawnpoints.Count:n0} spawn-points.");
 		}
 
 		#endregion
 
 		#region NPC Spawner
 
-		if (serializedNPCData == null)
+		if (NPCSpawner_serializedNPCData == null)
 		{
 			//Load XML from map
 			var data = GetData("SerializedNPCData");
 
-			if (data != null) { serializedNPCData = Deserialize<SerializedNPCData>(data); }
+			if (data != null) { NPCSpawner_serializedNPCData = Deserialize<SerializedNPCData>(data); }
 		}
-		if (serializedNPCData != null)
+		if (NPCSpawner_serializedNPCData != null)
 		{
-			var npcSpawners = serializedNPCData.npcSpawners;
+			var npcSpawners = NPCSpawner_serializedNPCData.npcSpawners;
 			if (npcSpawners != null && npcSpawners.Count != 0)
 			{
-				Puts($"Loaded {serializedNPCData.npcSpawners.Count:n0} NPC Spawners.");
+				Puts($"Loaded {NPCSpawner_serializedNPCData.npcSpawners.Count:n0} NPC Spawners.");
 				for (int i = 0; i < npcSpawners.Count; i++)
 				{
 					//Setup spawners
 					var npcspawner = new GameObject("NPCSpawner").AddComponent<NPCSpawner>();
-					npcspawner.Initialize(serializedNPCData.npcSpawners[i]);
-					NPCsList.Add(npcspawner);
+					npcspawner.Initialize(NPCSpawner_serializedNPCData.npcSpawners[i]);
+					NPCSpawner_NPCsList.Add(npcspawner);
 				}
 			}
 		}
-		if (NPCThread == null)
+		if (NPCSpawner_NPCThread == null)
 		{
 			//Start NPC management thread.
-			NPCThread = ServerMgr.Instance.StartCoroutine(NPCAIFunction());
+			NPCSpawner_NPCThread = ServerMgr.Instance.StartCoroutine(NPCAIFunction());
 		}
+
+		#endregion
+
+		#region APC
+
+		if (APC_serializedAPCPathList == null) { ReadMapData(); }
+		if (APC_serializedAPCPathList != null) { ServerMgr.Instance.StartCoroutine(APC_Setup()); }
 
 		#endregion
 	}
@@ -76,7 +86,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		if (entity is NPCPlayer && DataInstance.NpcSpawner.APCIgnoreNPCs)
 		{
-			foreach (var npcspawner in NPCsList)
+			foreach (var npcspawner in NPCSpawner_NPCsList)
 			{
 				if (npcspawner == null || npcspawner.BOT == null) continue;
 				if (npcspawner.BOT == entity) return false;
@@ -89,7 +99,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		if (turret.OwnerID == 0 && DataInstance.NpcSpawner.NPCAutoTurretsIgnoreNPCs)
 		{
-			foreach (var npcspawner in NPCsList)
+			foreach (var npcspawner in NPCSpawner_NPCsList)
 			{
 				if (npcspawner == null || npcspawner.BOT == null)
 				{
@@ -112,7 +122,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			if (info.InitiatorPlayer != null)
 			{
 				// Has Been Attacked by player
-				foreach (var nPCSpawner in NPCsList)
+				foreach (var nPCSpawner in NPCSpawner_NPCsList)
 				{
 					// Find if is a bot
 					if (nPCSpawner.BOT.ToPlayer() == player)
@@ -183,58 +193,58 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		return null;
 	}
-
-	#region Spawnpoint
-
-	public List<Vector3> Spawnpoints = new List<Vector3>();
-
-	public const string SpawnpointPrefab = "assets/bundled/prefabs/modding/volumes_and_triggers/spawn_point.prefab";
-
-	[ChatCommand("showspawnpoints")]
-	public void DoBroadcastSpawnpoints(BasePlayer player)
-	{
-		if (!ConfigInstance.Enabled) return;
-
-		BroadcastSpawnpoints(player);
-	}
-
 	private object OnPlayerRespawn(BasePlayer player, BasePlayer.SpawnPoint point)
 	{
 		if (!ConfigInstance.Enabled) return null;
 
-		return RespawnPlayer();
+		return Spawn_RespawnPlayer();
 	}
 	private object OnWorldPrefabSpawn(Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
 	{
 		if (!ConfigInstance.Enabled) return null;
 
-		if (prefab.Name.Equals(SpawnpointPrefab))
+		if (prefab.Name.Equals(Spawn_SpawnpointPrefab))
 		{
-			Spawnpoints.Add(position);
+			Spawn_Spawnpoints.Add(position);
 			return true;
 		}
 
 		return null;
 	}
 
-	public SpawnPoint RespawnPlayer()
-	{
-		if (Spawnpoints == null || Spawnpoints.Count == 0) { return null; }
+	#region Spawn
 
-		var spawnpoint = Spawnpoints.GetRandom();
+	public List<Vector3> Spawn_Spawnpoints = new List<Vector3>();
+
+	public const string Spawn_SpawnpointPrefab = "assets/bundled/prefabs/modding/volumes_and_triggers/spawn_point.prefab";
+
+	[ChatCommand("showspawnpoints")]
+	public void DoBroadcastSpawnpoints(BasePlayer player)
+	{
+		if (!ConfigInstance.Enabled) return;
+
+		Spawn_BroadcastSpawnpoints(player);
+	}
+
+
+	public SpawnPoint Spawn_RespawnPlayer()
+	{
+		if (Spawn_Spawnpoints == null || Spawn_Spawnpoints.Count == 0) { return null; }
+
+		var spawnpoint = Spawn_Spawnpoints.GetRandom();
 		var height = TerrainMeta.HeightMap.GetHeight(spawnpoint);
 
 		if (spawnpoint.y <= height && AntiHack.TestInsideTerrain(spawnpoint)) { spawnpoint.y = height + 0.1f; }
 
 		return new SpawnPoint { pos = spawnpoint, rot = default };
 	}
-	public void BroadcastSpawnpoints(BasePlayer player)
+	public void Spawn_BroadcastSpawnpoints(BasePlayer player)
 	{
 		if (!player.IsAdmin) return;
 
 		player.ChatMessage("Showing spawn points");
 
-		foreach (var spawnpoint in Spawnpoints)
+		foreach (var spawnpoint in Spawn_Spawnpoints)
 		{
 			player.SendConsoleCommand("ddraw.sphere", 8f, Color.blue, spawnpoint, 1f);
 		}
@@ -244,10 +254,10 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	#region NPC Spawner
 
-	public SerializedNPCSpawner serializedNPCSpawner;
-	public SerializedNPCData serializedNPCData;
-	public List<NPCSpawner> NPCsList = new List<NPCSpawner>();
-	public Coroutine NPCThread;
+	public SerializedNPCSpawner NPCSpawner_serializedNPCSpawner;
+	public SerializedNPCData NPCSpawner_serializedNPCData;
+	public List<NPCSpawner> NPCSpawner_NPCsList = new List<NPCSpawner>();
+	public Coroutine NPCSpawner_NPCThread;
 
 	public enum NPCType
 	{
@@ -526,11 +536,11 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		var checks = 0;
 		var _instruction = ConVar.FPS.limit > 30 ? CoroutineEx.waitForSeconds(0.01f) : CoroutineEx.waitForSeconds(0.001f);
-		Puts($"AI thread running on {NPCsList.Count:n0} NPCs");
+		Puts($"AI thread running on {NPCSpawner_NPCsList.Count:n0} NPCs");
 
-		while (NPCThread != null)
+		while (NPCSpawner_NPCThread != null)
 		{
-			foreach (NPCSpawner npcs in NPCsList)
+			foreach (NPCSpawner npcs in NPCSpawner_NPCsList)
 			{
 				if (++checks >= 50)
 				{
@@ -902,6 +912,182 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		}
 
 		return default;
+	}
+
+	#endregion
+
+	#region APC
+
+	public SerializedAPCPathList APC_serializedAPCPathList;
+	public List<CustomAPCSpawner> APC_list = new List<CustomAPCSpawner>();
+	public List<BasePlayer> APC_ViewingList = new List<BasePlayer>();
+	public Coroutine APC_Viewingthread;
+
+	private IEnumerator APC_Setup()
+	{
+		bool HasPath;
+		if (APC_serializedAPCPathList == null) { yield break; }
+		else
+		{
+			List<SerializedAPCPath> paths = APC_serializedAPCPathList.paths;
+			int? num = (paths != null) ? new int?(paths.Count) : null;
+			HasPath = (num.GetValueOrDefault() > 0 & num != null);
+		}
+		if (HasPath)
+		{
+			Debug.LogWarning("[Core.APC] Generating " + APC_serializedAPCPathList.paths.Count + " APC paths");
+			foreach (SerializedAPCPath sapc in APC_serializedAPCPathList.paths)
+			{
+				if (sapc.interestNodes.Count == 0) { Debug.LogError("[Core.APC] No APC interest Nodes Found!"); continue; }
+				CustomAPCSpawner customAPCSpawner = new GameObject("CustomAPCSpawner").AddComponent<CustomAPCSpawner>();
+				customAPCSpawner.LoadBradleyPathing(sapc);
+				APC_list.Add(customAPCSpawner);
+				yield return CoroutineEx.waitForEndOfFrame;
+			}
+		}
+		yield break;
+	}
+
+	public bool ReadMapData()
+	{
+		bool flag = false;
+		if (APC_serializedAPCPathList != null) { return flag; }
+		byte[] array = Get_SerializedIOData();
+		if (array != null && array.Length != 0)
+		{
+			APC_serializedAPCPathList = DeSeriliseMapData<SerializedAPCPathList>(array, out flag);
+		}
+		if (APC_serializedAPCPathList == null) { APC_serializedAPCPathList = new SerializedAPCPathList(); }
+		Debug.LogWarning("[Core.APC] DATA Found:" + flag);
+		return flag;
+	}
+
+	public T DeSeriliseMapData<T>(byte[] bytes, out bool flag)
+	{
+		T result;
+		try
+		{
+			using (MemoryStream memoryStream = new MemoryStream(bytes))
+			{
+				XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
+				T t = (T)((object)xmlSerializer.Deserialize(memoryStream));
+				flag = true;
+				result = t;
+			}
+		}
+		catch (Exception ex)
+		{
+			Debug.Log(ex.Message + " " + ex.StackTrace);
+			flag = false;
+			result = default(T);
+		}
+		return result;
+	}
+
+	public byte[] Get_SerializedIOData()
+	{
+		foreach (MapData MD in World.Serialization.world.maps)
+		{
+			try
+			{
+				if (System.Text.Encoding.ASCII.GetString(MD.data).Contains("SerializedAPCPathList")) { return MD.data; }
+			}
+			catch { }
+		}
+		return null;
+	}
+
+	public class CustomAPCSpawner : MonoBehaviour
+	{
+		public void LoadBradleyPathing(SerializedAPCPath serializedAPCPath)
+		{
+			basePath = new GameObject("CustomAPCSpawner").AddComponent<BasePath>();
+			basePath.nodes = new List<BasePathNode>();
+			basePath.interestZones = new List<PathInterestNode>();
+			basePath.speedZones = new List<PathSpeedZone>();
+			for (int i = 0; i < serializedAPCPath.nodes.Count; i++)
+			{
+				BasePathNode basePathNode = new GameObject("BasePathNode").AddComponent<BasePathNode>();
+				basePathNode.transform.position = serializedAPCPath.nodes[i];
+				basePath.nodes.Add(basePathNode);
+			}
+			for (int j = 0; j < basePath.nodes.Count; j++)
+			{
+				BasePathNode basePathNode2 = basePath.nodes[j];
+				if (!(basePathNode2 == null))
+				{
+					basePathNode2.linked = new List<BasePathNode>();
+					basePathNode2.linked.Add((j == 0) ? basePath.nodes[basePath.nodes.Count - 1] : basePath.nodes[j - 1]);
+					basePathNode2.linked.Add((j == basePath.nodes.Count - 1) ? basePath.nodes[0] : basePath.nodes[j + 1]);
+					basePathNode2.maxVelocityOnApproach = -1f;
+				}
+			}
+			for (int k = 0; k < serializedAPCPath.interestNodes.Count; k++)
+			{
+				PathInterestNode pathInterestNode = new GameObject("PathInterestNode").AddComponent<PathInterestNode>();
+				pathInterestNode.transform.position = serializedAPCPath.interestNodes[k];
+				basePath.interestZones.Add(pathInterestNode);
+			}
+			InvokeHandler.Invoke(this, new Action(Spawner), 3f);
+			InvokeHandler.InvokeRepeating(this, new Action(Checker), 5f, 5f);
+		}
+
+		private void Checker()
+		{
+			if (!NeedsSpawn && (bradleyAPC == null || !bradleyAPC.IsAlive()))
+			{
+				Reset();
+			}
+		}
+
+		private void Reset()
+		{
+			InvokeHandler.CancelInvoke(this, new Action(this.Spawner));
+			InvokeHandler.Invoke(this, new Action(this.Spawner), UnityEngine.Random.Range(Bradley.respawnDelayMinutes - Bradley.respawnDelayVariance, Bradley.respawnDelayMinutes + Bradley.respawnDelayVariance) * 60f);
+			NeedsSpawn = true;
+		}
+
+		public void ForceRespawn()
+		{
+			InvokeHandler.CancelInvoke(this, new Action(this.Spawner));
+			Spawner();
+		}
+
+		private void Spawner()
+		{
+			SpawnBradley();
+			NeedsSpawn = false;
+		}
+
+		private void SpawnBradley()
+		{
+			if (bradleyAPC == null)
+			{
+				Vector3 vector = (basePath.interestZones.Count > 0) ? basePath.interestZones.GetRandom<PathInterestNode>().transform.position : basePath.nodes[0].transform.position;
+				bradleyAPC = GameManager.server.CreateEntity(prefab, vector, default(Quaternion), true).GetComponent<BradleyAPC>();
+				bradleyAPC.enableSaving = false;
+				bradleyAPC.Spawn();
+				bradleyAPC.pathLooping = true;
+				bradleyAPC.InstallPatrolPath(basePath);
+				//Interface.CallHook("RustEdit_APCSpawned", bradleyAPC);
+				Debug.LogWarning("[Core.APC] Custom APC Spawned @ " + vector);
+			}
+		}
+
+		public BasePath basePath;
+		public BradleyAPC bradleyAPC;
+		private bool NeedsSpawn;
+		private string prefab = "assets/prefabs/npc/m2bradley/bradleyapc.prefab";
+	}
+	public class SerializedAPCPath
+	{
+
+		public List<VectorData> nodes = new List<VectorData>();
+		public List<VectorData> interestNodes = new List<VectorData>();
+	}
+	public class SerializedAPCPathList
+	{
+		public List<SerializedAPCPath> paths = new List<SerializedAPCPath>();
 	}
 
 	#endregion

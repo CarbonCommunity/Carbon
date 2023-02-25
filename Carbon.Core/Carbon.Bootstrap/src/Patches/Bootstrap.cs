@@ -30,11 +30,11 @@ internal static class __Bootstrap
 
 			/* example mockup --------------------------------------------------
 			bool ArePluginsReady = false;
-			Loader.GetInstance().Events.Subscribe(API.Events.CarbonEvent.CarbonPluginsReady, x => ArePluginsReady = true);
+			Loader.GetInstance().Events.Subscribe(API.Events.CarbonEvent.OnPluginProcessFinished, x => ArePluginsReady = true);
 
 			Task WaitForPlugins = Task.Run(async delegate
 			{
-				Utility.Logger.Debug("Waiting for event CarbonPluginsReady");
+				Utility.Logger.Debug("Waiting for event OnPluginProcessFinished");
 				while (!ArePluginsReady) await Task.Delay(1000);
 				return;
 			});

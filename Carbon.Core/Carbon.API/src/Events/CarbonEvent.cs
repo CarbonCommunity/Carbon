@@ -18,8 +18,8 @@ public enum CarbonEvent
 	CarbonStartup, CarbonStartupComplete, CarbonShutdown, CarbonShutdownFailed,
 
 	// Carbon.Hooks
-	HooksInstalled,
+	HooksInstalled, HookValidatorRefreshed,
 
 	// Carbon.Plugins
-	CarbonPluginsReady
+	OnPluginProcessFinished
 }

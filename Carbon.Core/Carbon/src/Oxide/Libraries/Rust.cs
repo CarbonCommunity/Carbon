@@ -1,4 +1,5 @@
 ﻿using System;
+using Oxide.Core.Libraries;
 using Oxide.Plugins;
 
 /*
@@ -10,7 +11,7 @@ using Oxide.Plugins;
 
 namespace Oxide.Game.Rust.Libraries;
 
-public class Rust
+public class Rust : Library
 {
 	internal readonly Player Player = new Player();
 	internal readonly Server Server = new Server();
