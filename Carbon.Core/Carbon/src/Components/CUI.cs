@@ -91,6 +91,10 @@ public struct CUI : IDisposable
 	{
 		return CUIStatics.Image(Manager, container, parent, id, GetImage(url, scale), color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
+	public string CreateSprite(CuiElementContainer container, string parent, string id, string sprite, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	{
+		return CUIStatics.Sprite(Manager, container, parent, id, sprite, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+	}
 	public string CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
 		return CUIStatics.ItemImage(Manager, container, parent, id, itemID, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
@@ -98,7 +102,7 @@ public struct CUI : IDisposable
 
 	public string GetImage(string url, float scale = 0)
 	{
-		return ImageDatabase.GetImageString(url, scale);
+		return ImageDatabase.GetImageString(url, scale, true);
 	}
 
 	public void QueueImages(float scale, params string[] urls)
@@ -662,6 +666,30 @@ public static class CUIStatics
 
 		var rawImage = cui.TakeFromPoolRawImage();
 		rawImage.Png = png;
+		rawImage.FadeIn = fadeIn;
+		rawImage.Color = color;
+		element.Components.Add(rawImage);
+
+		var rect = cui.TakeFromPoolRect();
+		rect.AnchorMin = $"{xMin} {yMin}";
+		rect.AnchorMax = $"{xMax} {yMax}";
+		rect.OffsetMin = $"{OxMin} {OyMin}";
+		rect.OffsetMax = $"{OxMax} {OyMax}";
+		element.Components.Add(rect);
+
+		if (needsCursor) element.Components.Add(cui.TakeFromPoolNeedsCursor());
+		if (needsKeyboard) element.Components.Add(cui.TakeFromPoolNeedsKeyboard());
+
+		container.Add(element);
+		return id;
+	}
+	public static string Sprite(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string sprite, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
+	{
+		if (id == null) id = cui.AppendId();
+		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi);
+
+		var rawImage = cui.TakeFromPoolRawImage();
+		rawImage.Sprite = sprite;
 		rawImage.FadeIn = fadeIn;
 		rawImage.Color = color;
 		element.Components.Add(rawImage);
