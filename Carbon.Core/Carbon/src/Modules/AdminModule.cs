@@ -440,7 +440,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
 		}
 	}
-	public void TabPanelDropdown(CUI cui, AdminPlayer.Page page, CuiElementContainer container, string parent, string text, string command, float height, float offset, int index, string[] options, string[] optionsIcons, bool display, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
+	public void TabPanelDropdown(CUI cui, AdminPlayer.Page page, CuiElementContainer container, string parent, string text, string command, float height, float offset, int index, string[] options, string[] optionsIcons, float optionsIconsScale, bool display, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
 	{
 		var color = "0 0 0 0";
 
@@ -502,7 +502,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (!string.IsNullOrEmpty(icon))
 		{
-			cui.CreateImage(container, button, null, icon, "1 1 1 0.7",
+			cui.CreateImage(container, button, null, icon, optionsIconsScale, "1 1 1 0.7",
 				xMin: iconXmin, xMax: iconXmax, yMin: iconYmin, yMax: iconYmax);
 		}
 
@@ -541,7 +541,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (!string.IsNullOrEmpty(subIcon))
 				{
-					cui.CreateImage(container, subButton, null, subIcon, isSelected ? "1 1 1 0.7" : "1 1 1 0.4",
+					cui.CreateImage(container, subButton, null, subIcon, optionsIconsScale, isSelected ? "1 1 1 0.7" : "1 1 1 0.4",
 						xMin: iconXmin, xMax: iconXmax, yMin: iconYmin, yMax: iconYmax);
 				}
 
@@ -912,7 +912,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								break;
 
 							case Tab.OptionDropdown dropdown:
-								TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, dropdown.OptionsIcons, ap._selectedDropdown == dropdown);
+								TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, dropdown.OptionsIcons, dropdown.OptionsIconScale, ap._selectedDropdown == dropdown);
 								break;
 
 							case Tab.OptionRange range:
@@ -1316,9 +1316,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			return AddRow(column, option);
 		}
-		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons = null)
+		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons = null, float optionsIconScale = 0f)
 		{
-			AddRow(column, new OptionDropdown(name, index, callback, options, optionsIcons));
+			AddRow(column, new OptionDropdown(name, index, callback, options, optionsIcons, optionsIconScale));
 			return this;
 		}
 		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<float> callback, Func<string> text)
@@ -1457,8 +1457,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public Action<int> Callback;
 			public string[] Options;
 			public string[] OptionsIcons;
+			public float OptionsIconScale;
 
-			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons) : base(name) { Index = index; Callback = callback; Options = options; OptionsIcons = optionsIcons; }
+			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons, float optionsIconScale) : base(name) { Index = index; Callback = callback; Options = options; OptionsIcons = optionsIcons; OptionsIconScale = optionsIconScale; }
 		}
 	}
 
