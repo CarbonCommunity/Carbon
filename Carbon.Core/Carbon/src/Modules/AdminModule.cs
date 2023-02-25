@@ -490,12 +490,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		var button = cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
 			color: $"0.2 0.2 0.2 0.7",
-			textColor: "1 1 1 0.7",
-			text: $"  {(string.IsNullOrEmpty(icon) ? "" : "      ")}{options[index]}", 10,
+			textColor: "0 0 0 0",
+			text: string.Empty, 0,
 			xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
 			command: $"{command} false",
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		cui.CreateText(container, parent: button, null, "1 1 1 0.7", options[index], 10,
+			xMin: string.IsNullOrEmpty(icon) ? 0.02f : 0.085f, xMax: 1f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleLeft);
 
 		if (!string.IsNullOrEmpty(icon))
 		{
@@ -524,8 +527,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				var subButton = cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
 					color: isSelected ? $"{color} 0.95" : "0.1 0.1 0.1 0.985",
-					textColor: isSelected ? "1 1 1 0.7" : "1 1 1 0.4",
-					text: $"  {(string.IsNullOrEmpty(subIcon) ? "" : "      ")}{current}", 10,
+					textColor: "0 0 0 0",
+					text: string.Empty, 0,
 					xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
 					OyMin: _offset, OyMax: _offset,
 					OxMin: shiftOffset,
@@ -533,9 +536,12 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					align: TextAnchor.MiddleLeft,
 					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
+				cui.CreateText(container, parent: subButton, null, isSelected ? "1 1 1 0.7" : "1 1 1 0.4", current, 10,
+					xMin: string.IsNullOrEmpty(subIcon) ? 0.02f : 0.085f, xMax: 1f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleLeft);
+
 				if (!string.IsNullOrEmpty(subIcon))
 				{
-					cui.CreateImage(container, subButton, null, subIcon, "1 1 1 0.7",
+					cui.CreateImage(container, subButton, null, subIcon, isSelected ? "1 1 1 0.7" : "1 1 1 0.4",
 						xMin: iconXmin, xMax: iconXmax, yMin: iconYmin, yMax: iconYmax);
 				}
 

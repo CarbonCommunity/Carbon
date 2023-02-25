@@ -232,20 +232,19 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	public uint GetQRCode(string url, int pixels = 20)
 	{
 		if (_protoData.Map.TryGetValue($"{url}_{pixels}_0", out uint uid)) return uid;
-		PayloadGenerator.Url payload = new PayloadGenerator.Url(url);
+		var payload = new PayloadGenerator.Url(url);
 
-		using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
-		using (QRCodeData qrCodeData = qrGenerator.CreateQrCode(payload.ToString(), QRCodeGenerator.ECCLevel.Q))
-		using (QRCode qrCode = new QRCode(qrCodeData))
+		using (var qrGenerator = new QRCodeGenerator())
+		using (var qrCodeData = qrGenerator.CreateQrCode(payload.ToString(), QRCodeGenerator.ECCLevel.Q))
+		using (var qrCode = new QRCode(qrCodeData))
 		{
-
-			Bitmap qrCodeImage = qrCode.GetGraphic(pixels);
+			var qrCodeImage = qrCode.GetGraphic(pixels);
 
 			using var output = new MemoryStream();
 			qrCodeImage.Save(output, ImageFormat.Png);
 			qrCodeImage.Dispose();
 
-			byte[] raw = output.ToArray();
+			var raw = output.ToArray();
 			uid = FileStorage.server.Store(raw, FileStorage.Type.png, _protoData.Identifier);
 			_protoData.Map.Add($"{url}_{pixels}_0", uid);
 			return uid;
