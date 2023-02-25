@@ -44,10 +44,8 @@ public class CarbonModule<C, D> : BaseModule, IModule
 
 	protected void Puts(object message)
 		=> Logger.Log($"[{Name}] {message}");
-
 	protected void PutsError(object message, Exception ex = null)
 		=> Logger.Error($"[{Name}] {message}", ex);
-
 	protected void PutsWarn(object message)
 		=> Logger.Warn($"[{Name}] {message}");
 
@@ -67,10 +65,8 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 		}
-		Puts($"Processed hooks");
 
 		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-		Puts("Processed commands");
 
 		File = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
 		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
