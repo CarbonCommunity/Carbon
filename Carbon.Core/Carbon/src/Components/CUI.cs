@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Carbon.Base;
+using Carbon.Modules;
 using Oxide.Game.Rust.Cui;
 using UnityEngine;
 using static Carbon.CUI.Handler;
@@ -17,24 +19,49 @@ namespace Carbon;
 public struct CUI : IDisposable
 {
 	public Handler Manager { get; private set; }
+	public ImageDatabaseModule ImageDatabase { get; private set; }
+
+	public enum ClientPanels
+	{
+		Overlay,
+		Hud,
+		HudMenu,
+		Under
+	}
+	public string GetClientPanel(ClientPanels panel)
+	{
+		return panel switch
+		{
+			ClientPanels.Hud => "Hud",
+			ClientPanels.HudMenu => "Hud.Menu",
+			ClientPanels.Under => "Under",
+			_ => "Overlay",
+		};
+	}
 
 	public CUI(Handler manager)
 	{
 		Manager = manager;
+		ImageDatabase = BaseModule.GetModule<ImageDatabaseModule>();
 	}
 
-	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string parent = "Overlay")
+	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, ClientPanels parent = ClientPanels.Overlay, string destroyUi = null)
 	{
 		var container = Manager.TakeFromPoolContainer();
 		container.Name = panel;
 
-		var element = Manager.TakeFromPool(panel, parent);
+		var parentName = GetClientPanel(parent);
+		var element = Manager.TakeFromPool(panel, parentName);
 		element.FadeOut = fadeOut;
+		element.DestroyUI = destroyUi;
 
-		var image = Manager.TakeFromPoolImage();
-		image.Color = color;
-		image.FadeIn = fadeIn;
-		element.Components.Add(image);
+		if(color != "0 0 0 0")
+		{
+			var image = Manager.TakeFromPoolImage();
+			image.Color = color;
+			image.FadeIn = fadeIn;
+			element.Components.Add(image);
+		}
 
 		var rect = Manager.TakeFromPoolRect();
 		rect.AnchorMin = $"{xMin} {yMin}";
@@ -47,7 +74,7 @@ public struct CUI : IDisposable
 		if (needsKeyboard) element.Components.Add(Manager.TakeFromPoolNeedsKeyboard());
 
 		container.Add(element);
-		container.Add(Manager.TakeFromPool(Manager.AppendId(), parent));
+		container.Add(Manager.TakeFromPool(Manager.AppendId(), parentName));
 		return container;
 	}
 	public string CreatePanel(CuiElementContainer container, string parent, string id, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
@@ -74,13 +101,66 @@ public struct CUI : IDisposable
 	{
 		return CUIStatics.InputField(Manager, container, parent, id, color, text, size, characterLimit, readOnly, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, command, align, font, true, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
-	public string CreateImage(CuiElementContainer container, string parent, string id, string png, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public string CreateImage(CuiElementContainer container, string parent, string id, uint png, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
-		return CUIStatics.Image(Manager, container, parent, id, png, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+		return CUIStatics.Image(Manager, container, parent, id, png.ToString(), color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+	}
+	public string CreateImage(CuiElementContainer container, string parent, string id, string url, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	{
+		return CUIStatics.Image(Manager, container, parent, id, GetImage(url), color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+	}
+	public string CreateImage(CuiElementContainer container, string parent, string id, string url, float scale, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	{
+		return CUIStatics.Image(Manager, container, parent, id, GetImage(url, scale), color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+	}
+	public string CreateSprite(CuiElementContainer container, string parent, string id, string sprite, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	{
+		return CUIStatics.Sprite(Manager, container, parent, id, sprite, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
 	public string CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
 	{
 		return CUIStatics.ItemImage(Manager, container, parent, id, itemID, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+	}
+	public string CreateQRCode(CuiElementContainer container, string parent, string id, string text, string brandUrl, string brandColor, string brandBgColor, int pixels, bool transparent, bool quietZones, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	{
+		var qr = CreateImage(container, parent, id, ImageDatabase.GetQRCode(text, pixels, transparent, quietZones, true), color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
+
+		if (!string.IsNullOrEmpty(brandUrl))
+		{
+			var panel = CreatePanel(container, qr, null, brandBgColor,
+				xMin: 0.4f, xMax: 0.6f, yMin: 0.4f, yMax: 0.6f);
+
+			CreateImage(container, panel, null, brandUrl, brandColor,
+				xMin: 0.15f, 0.85f, yMin: 0.15f, yMax: 0.85f);
+		}
+
+		return qr;
+	}
+
+	public string GetImage(string url, float scale = 0)
+	{
+		return ImageDatabase.GetImageString(url, scale, true);
+	}
+
+	public void QueueImages(float scale, params string[] urls)
+	{
+		ImageDatabase.QueueBatch(scale, false, urls);
+	}
+	public void QueueImages(params string[] urls)
+	{
+		QueueImages(0, urls);
+	}
+
+	public void ClearImages(float scale, params string[] urls)
+	{
+		foreach(var url in urls)
+		{
+			ImageDatabase.DeleteImage(url, scale);
+		}
+	}
+	public void ClearImages(params string[] urls)
+	{
+		ClearImages(0, urls);
 	}
 
 	public string Color(string hexColor, float alpha)
@@ -94,8 +174,9 @@ public struct CUI : IDisposable
 		return $"{(double)red / 255} {(double)green / 255} {(double)blue / 255} {alpha}";
 	}
 
-	public void Send(CuiElementContainer container, BasePlayer player)
+	public void Send(CuiElementContainer container, BasePlayer player, bool autoDestroy = false)
 	{
+		if (autoDestroy) Destroy(container, player);
 		Manager.Send(container, player);
 	}
 	public void Destroy(CuiElementContainer container, BasePlayer player)
@@ -114,6 +195,9 @@ public struct CUI : IDisposable
 
 	public class Handler
 	{
+		public int Pooled => _containerPool.Count + _elements.Count + _images.Count + _rawImages.Count + _texts.Count + _buttons.Count + _inputFields.Count + _rects.Count + _needsCursors.Count + _needsKeyboards.Count;
+		public int Used => _queue.Count;
+
 		#region Properties
 
 		internal int _currentId { get; set; }
@@ -168,11 +252,11 @@ public struct CUI : IDisposable
 				case CuiNeedsKeyboardComponent: _needsKeyboards.Add(element); break;
 			}
 		}
-		internal CuiElement TakeFromPool(string name = null, string parent = "Hud")
+		internal CuiElement TakeFromPool(string name = null, string parent = "Hud", float fadeOut = 0f, string destroyUi = null)
 		{
 			var element = (CuiElement)null;
 
-			if (_containerPool.Count == 0)
+			if (_elements.Count == 0)
 			{
 				element = new CuiElement();
 			}
@@ -184,8 +268,9 @@ public struct CUI : IDisposable
 
 			element.Name = name;
 			element.Parent = parent;
-			element.FadeOut = 0f;
 			element.Components.Clear();
+			element.DestroyUI = destroyUi;
+			element.FadeOut = fadeOut;
 
 			_queue.Add(element);
 			return element;
@@ -195,7 +280,9 @@ public struct CUI : IDisposable
 		{
 			foreach (var entry in _queue)
 			{
-				SendToPool(entry as ICuiComponent);
+				if (entry is CuiElement element) _elements.Add(element);
+				else if (entry is CuiElementContainer elementContainer) _containerPool.Add(elementContainer);
+				else SendToPool(entry as ICuiComponent);
 			}
 
 			_queue.Clear();
@@ -484,11 +571,10 @@ public struct CUI : IDisposable
 
 public static class CUIStatics
 {
-	public static string Panel(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string Panel(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
 	{
 		if (id == null) id = cui.AppendId();
-		var element = cui.TakeFromPool(id, parent);
-		element.FadeOut = fadeOut;
+		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi);
 
 		var image = cui.TakeFromPoolImage();
 		image.Color = color;
@@ -510,11 +596,10 @@ public static class CUIStatics
 
 		return id;
 	}
-	public static string Text(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, TextAnchor align, FontTypes font, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string Text(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, TextAnchor align, FontTypes font, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
 	{
 		if (id == null) id = cui.AppendId();
-		var element = cui.TakeFromPool(id, parent);
-		element.FadeOut = fadeOut;
+		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi);
 
 		var label = cui.TakeFromPoolText();
 		label.Text = text;
@@ -538,11 +623,10 @@ public static class CUIStatics
 		container.Add(element);
 		return id;
 	}
-	public static string Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, string command, TextAnchor align, FontTypes font, bool @protected, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string Button(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string textColor, string text, int size, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, string command, TextAnchor align, FontTypes font, bool @protected, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
 	{
 		if (id == null) id = cui.AppendId();
-		var buttonElement = cui.TakeFromPool(id, parent);
-		buttonElement.FadeOut = fadeOut;
+		var buttonElement = cui.TakeFromPool(id, parent, fadeOut, destroyUi );
 
 		var button = cui.TakeFromPoolButton();
 		button.FadeIn = fadeIn;
@@ -582,11 +666,10 @@ public static class CUIStatics
 
 		return id;
 	}
-	public static string InputField(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, int characterLimit, bool readOnly, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, string command, TextAnchor align, FontTypes font, bool @protected, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string InputField(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string color, string text, int size, int characterLimit, bool readOnly, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, string command, TextAnchor align, FontTypes font, bool @protected, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
 	{
 		if (id == null) id = cui.AppendId();
-		var inputFieldElement = cui.TakeFromPool(id, parent);
-		inputFieldElement.FadeOut = fadeOut;
+		var inputFieldElement = cui.TakeFromPool(id, parent, fadeOut, destroyUi );
 
 		var inputField = cui.TakeFromPoolInputField();
 		inputField.Color = color;
@@ -613,11 +696,10 @@ public static class CUIStatics
 
 		return id;
 	}
-	public static string Image(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string png, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string Image(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string png, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
 	{
 		if (id == null) id = cui.AppendId();
-		var element = cui.TakeFromPool(id, parent);
-		element.FadeOut = fadeOut;
+		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi );
 
 		var rawImage = cui.TakeFromPoolRawImage();
 		rawImage.Png = png;
@@ -638,11 +720,34 @@ public static class CUIStatics
 		container.Add(element);
 		return id;
 	}
-	public static string ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false)
+	public static string Sprite(this CUI.Handler cui, CuiElementContainer container, string parent, string id, string sprite, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
 	{
 		if (id == null) id = cui.AppendId();
-		var element = cui.TakeFromPool(id, parent);
-		element.FadeOut = fadeOut;
+		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi);
+
+		var rawImage = cui.TakeFromPoolRawImage();
+		rawImage.Sprite = sprite;
+		rawImage.FadeIn = fadeIn;
+		rawImage.Color = color;
+		element.Components.Add(rawImage);
+
+		var rect = cui.TakeFromPoolRect();
+		rect.AnchorMin = $"{xMin} {yMin}";
+		rect.AnchorMax = $"{xMax} {yMax}";
+		rect.OffsetMin = $"{OxMin} {OyMin}";
+		rect.OffsetMax = $"{OxMax} {OyMax}";
+		element.Components.Add(rect);
+
+		if (needsCursor) element.Components.Add(cui.TakeFromPoolNeedsCursor());
+		if (needsKeyboard) element.Components.Add(cui.TakeFromPoolNeedsKeyboard());
+
+		container.Add(element);
+		return id;
+	}
+	public static string ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
+	{
+		if (id == null) id = cui.AppendId();
+		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi );
 
 		var rawImage = cui.TakeFromPoolImage();
 		rawImage.ItemId = itemID;

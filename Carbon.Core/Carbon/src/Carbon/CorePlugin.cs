@@ -16,7 +16,6 @@ using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
-using static Generated.AnimatorController.PlayerMenuAnimation;
 
 /*
  *
@@ -73,11 +72,6 @@ public class CorePlugin : CarbonPlugin
 	private void OnPluginUnloaded(Plugin plugin)
 	{
 	}
-	private void IOnPlayerConnected(BasePlayer player)
-	{
-		permission.RefreshUser(player);
-		Interface.CallHook("OnPlayerConnected", player);
-	}
 	private void OnEntitySpawned(BaseEntity entity)
 	{
 		Entities.AddMap(entity);
@@ -89,6 +83,15 @@ public class CorePlugin : CarbonPlugin
 	private void OnEntityKill(BaseEntity entity)
 	{
 		Entities.RemoveMap(entity);
+	}
+
+	#region Internal Hooks
+
+	private void IOnPlayerConnected(BasePlayer player)
+	{
+
+		permission.RefreshUser(player);
+		Interface.CallHook("OnPlayerConnected", player);
 	}
 	private object IOnUserApprove(Connection connection)
 	{
@@ -112,6 +115,36 @@ public class CorePlugin : CarbonPlugin
 
 		return null;
 	}
+	private object IOnBasePlayerAttacked(BasePlayer basePlayer, HitInfo hitInfo)
+	{
+		if (!Community.IsServerFullyInitializedCache || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
+		{
+			return null;
+		}
+
+		if (Interface.CallHook("OnEntityTakeDamage", basePlayer, hitInfo) != null)
+		{
+			return true;
+		}
+
+		try
+		{
+			if (!basePlayer.IsDead())
+			{
+				basePlayer.DoHitNotify(hitInfo);
+			}
+
+			if (basePlayer.isServer)
+			{
+				basePlayer.Hurt(hitInfo);
+			}
+		}
+		catch { }
+
+		return true;
+	}
+
+	#endregion
 
 	internal static void Reply(object message, ConsoleSystem.Arg arg)
 	{
@@ -352,7 +385,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		StringTable body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Subs");
+		StringTable body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
 		int count = 0, success = 0, warning = 0, failure = 0;
 
 		string option1 = arg.GetString(0, null);
@@ -455,7 +488,7 @@ public class CorePlugin : CarbonPlugin
 							mod.Status,
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "-" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier)}"
+							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
 						);
 					}
 
@@ -504,7 +537,7 @@ public class CorePlugin : CarbonPlugin
 							mod.Status,
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "-" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier)}"
+							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
 						);
 					}
 
@@ -758,6 +791,9 @@ public class CorePlugin : CarbonPlugin
 
 				if (!string.IsNullOrEmpty(path))
 				{
+					Community.Runtime.HarmonyProcessor.ClearIgnore(path);
+					Community.Runtime.ScriptProcessor.ClearIgnore(path);
+
 					Community.Runtime.HarmonyProcessor.Prepare(name, path);
 					Community.Runtime.ScriptProcessor.Prepare(name, path);
 					return;
@@ -1212,7 +1248,7 @@ public class CorePlugin : CarbonPlugin
 
 			case "set":
 				{
-					if (!arg.HasArgs(2)) { PrintWarn(); return; }
+					if (!arg.HasArgs(4)) { PrintWarn(); return; }
 
 					var group = arg.Args[1];
 
@@ -1222,12 +1258,24 @@ public class CorePlugin : CarbonPlugin
 						return;
 					}
 
-					if (arg.HasArgs(3)) permission.SetGroupTitle(group, arg.Args[2]);
-					if (arg.HasArgs(4)) permission.SetGroupTitle(group, arg.Args[3]);
+					var set = arg.Args[2];
+					var value = arg.Args[3];
+
+					switch (set)
+					{
+						case "title":
+							permission.SetGroupTitle(group, value);
+							break;
+
+						case "rank":
+							permission.SetGroupRank(group, value.ToInt());
+							break;
+					}
 
 					Reply($"Set '{group}' group.", arg);
 				}
 				break;
+
 			case "remove":
 				{
 					if (!arg.HasArgs(2)) { PrintWarn(); return; }
@@ -1236,6 +1284,18 @@ public class CorePlugin : CarbonPlugin
 
 					if (permission.RemoveGroup(group)) Reply($"Removed '{group}' group.", arg);
 					else Reply($"Couldn't remove '{group}' group.", arg);
+				}
+				break;
+
+			case "parent":
+				{
+					if (!arg.HasArgs(3)) { PrintWarn(); return; }
+
+					var group = arg.Args[1];
+					var parent = arg.Args[2];
+
+					if (permission.SetGroupParent(group, parent)) Reply($"Changed '{group}' group's parent to '{parent}'.", arg);
+					else Reply($"Couldn't change '{group}' group's parent to '{parent}'.", arg);
 				}
 				break;
 

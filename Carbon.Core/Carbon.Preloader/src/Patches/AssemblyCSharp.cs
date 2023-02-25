@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Carbon.Utility;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Utility;

@@ -83,6 +83,7 @@ jobs:
         name: build-production-linux
         path: |
           Release/Carbon.ReleaseUnix.tar.gz
+          Release/build-unix.info
 
   build-windows:
     name: 🪟 Windows
@@ -117,6 +118,7 @@ jobs:
         name: build-production-windows
         path: |
           Release/Carbon.Release.zip
+          Release/build.info
 
   release:
     name: 💾 Release
@@ -159,3 +161,5 @@ jobs:
         files: |
           Release/build-production-windows/Carbon.Release.zip
           Release/build-production-linux/Carbon.ReleaseUnix.tar.gz
+          Release/build-develop-linux/build-unix.info
+          Release/build-develop-windows/build.info

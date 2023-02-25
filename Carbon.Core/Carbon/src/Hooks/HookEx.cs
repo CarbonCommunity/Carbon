@@ -183,7 +183,7 @@ public class HookEx : IDisposable
 		catch (HarmonyException e)
 		{
 			StringBuilder sb = new StringBuilder();
-			Logger.Error($"Error while patching hook '{HookName}' index:{e.GetErrorIndex()} offset:{e.GetErrorOffset()}", e);
+			Logger.Error($"Error while patching hook '{this}' index:{e.GetErrorIndex()} offset:{e.GetErrorOffset()}", e);
 			sb.AppendLine($"{e.InnerException?.Message.Trim() ?? string.Empty}");
 
 			int x = 0;
@@ -192,11 +192,12 @@ public class HookEx : IDisposable
 
 			Logger.Error(sb.ToString());
 			sb = default;
+			return false;
 		}
 #endif
 		catch (System.Exception e)
 		{
-			Logger.Error($"Error while patching hook '{HookName}'", e);
+			Logger.Error($"Error while patching hook '{this}'", e);
 			_runtime.Status = HookState.Failure;
 			_runtime.LastError = e;
 			return false;

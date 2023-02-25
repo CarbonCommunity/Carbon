@@ -1,4 +1,4 @@
-![Carbon](https://i.imgur.com/sG6X07A.jpg)
+![Carbon](https://i.imgur.com/KUv3uZ0.jpg)
 
 <p align="center">
   <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg"></a>

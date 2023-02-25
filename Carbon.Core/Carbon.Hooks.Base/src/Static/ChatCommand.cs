@@ -100,6 +100,11 @@ public partial class Category_Static
 										continue;
 									}
 								}
+
+								if(CooldownAttribute.IsCooledDown(player, cmd.Command ,cmd.Cooldown, true))
+								{
+									continue;
+								}
 							}
 
 							try

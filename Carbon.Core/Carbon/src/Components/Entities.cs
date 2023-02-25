@@ -135,7 +135,7 @@ public class Entities : IDisposable
 		{
 			foreach (var drop in Pool)
 			{
-				if (!condition(drop)) continue;
+				if (condition != null && !condition(drop)) continue;
 
 				callback.Invoke(drop);
 			}

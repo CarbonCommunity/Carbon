@@ -4,18 +4,21 @@
 		<Message Text="[$(AssemblyName)] &gt;&gt; Preparing the release folder ($(OperatingSystem))" Importance="high" />
 		<PropertyGroup>
 			<CarbonBaseDir>$(SolutionDir)..\Release\.tmp\$(Configuration)</CarbonBaseDir>
-			<c_harmony>$(CarbonBaseDir)\HarmonyMods</c_harmony>
-			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
+			<c_harmony>$(CarbonBaseDir)\carbon\harmony</c_harmony>
 			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
 			<c_hooks>$(CarbonBaseDir)\carbon\managed\hooks</c_hooks>
+			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
+			<c_plugins>$(CarbonBaseDir)\carbon\plugins</c_plugins>
 			<c_tools>$(CarbonBaseDir)\carbon\tools</c_tools>
 		</PropertyGroup>
 
 		<Message Text="[$(AssemblyName)] &gt;&gt; Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
-		<MakeDir Directories="$(CarbonBaseDir);$(c_harmony);$(c_lib);$(c_managed);$(c_hooks);$(c_tools)" />
+		<MakeDir Directories="$(CarbonBaseDir);$(c_managed);$(c_lib);$(c_hooks);$(c_tools);$(c_plugins);$(c_harmony)" />
+	</Target>
 
+	<Target Name="CarbonCopyLibs" AfterTargets="Build" DependsOnTargets="CarbonPrepareRelease">
 		<ItemGroup>
-			<FilesToCopy Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(Product).dll" />
+			<FilesToCopy Include="$(OutputPath)**\*.dll" Exclude="$(OutputPath)$(Product).dll" />
 		</ItemGroup>
 
 		<Message Text="[$(AssemblyName)] &gt;&gt; Copy files to release folder" Importance="high" />

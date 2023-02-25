@@ -80,6 +80,7 @@ jobs:
         name: build-develop-linux
         path: |
           Release/Carbon.DebugUnix.tar.gz
+          Release/build-unix.info
 
   build-windows:
     name: 🪟 Windows
@@ -112,6 +113,7 @@ jobs:
         name: build-develop-windows
         path: |
           Release/Carbon.Debug.zip
+          Release/build.info
 
   release:
     name: 💾 Release
@@ -163,3 +165,56 @@ jobs:
         files: |
           Release/build-develop-windows/Carbon.Debug.zip
           Release/build-develop-linux/Carbon.DebugUnix.tar.gz
+          Release/build-develop-linux/build-unix.info
+          Release/build-develop-windows/build.info
+
+  commitrelease:
+    name: 💾 Commit Release
+    needs: [ "build-linux", "build-windows" ]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: ⬇️ Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: Release
+
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: Release
+        
+    - name: 🗑️ Delete existing release tag
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        delete_release: true
+        tag_name: commit_build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 🏷️ Update release tag
+      uses: softprops/action-gh-release@v1
+      with:
+        draft: false
+        prerelease: true
+        tag_name: commit_build
+        name: 'Carbon Commit Build (develop)'
+        body: |
+          This is a development build of Carbon based on the latest commit pushed to the repository.
+          Commit info bellow.
+          
+          This build is targeted at developers.
+          The general public is advised to use one of the [stable] builds.
+
+          ### How to install
+          1. Download the `Carbon.Debug[Unix]` archive from the attachments below.
+          2. Unzip the archive to the root of your Rust Dedicated Server.
+          3. Restart the server and enjoy.
+          
+          ${{ needs.build-linux.outputs.build_info }}
+
+          [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
+        files: |
+          Release/build-develop-windows/Carbon.Debug.zip
+          Release/build-develop-linux/Carbon.DebugUnix.tar.gz
+          Release/build-develop-linux/build-unix.info
+          Release/build-develop-windows/build.info

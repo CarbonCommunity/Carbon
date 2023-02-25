@@ -15,7 +15,7 @@ using Carbon.Core;
 
 namespace Carbon.Hooks;
 
-public class HookManager : FacepunchBehaviour, IDisposable
+public class HookManager : FacepunchBehaviour
 {
 	public List<HookEx> Patches, StaticHooks, DynamicHooks;
 
@@ -29,27 +29,7 @@ public class HookManager : FacepunchBehaviour, IDisposable
 		Path.Combine("hooks", "Carbon.Hooks.Extended.dll"),
 	};
 
-	public void Reload()
-	{
-		_doReload = true;
-		enabled = false;
-	}
-
-	public void Dispose()
-	{
-		List<HookEx> hooks = StaticHooks.Concat(DynamicHooks).ToList();
-		foreach (HookEx hook in hooks) hook.Dispose();
-
-		hooks = default;
-		_workQueue = default;
-		_subscribers = default;
-
-		Patches = default;
-		StaticHooks = default;
-		DynamicHooks = default;
-	}
-
-	internal void Awake()
+	private void Awake()
 	{
 		Logger.Log("Initialized hook processor...");
 
@@ -61,20 +41,20 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 		if (Community.Runtime.Config.AutoUpdate)
 		{
-			Logger.Log(" Updating hooks...");
+			Logger.Log("Updating hooks...");
 			enabled = false;
 
 			Carbon.Hooks.Updater.DoUpdate((bool result) =>
 			{
 				if (!result)
-					Logger.Error($" Unable to update the hooks at this time, please try again later");
+					Logger.Error($"Unable to update the hooks at this time, please try again later");
 
 				enabled = true;
 			});
 		}
 	}
 
-	internal void OnEnable()
+	private void OnEnable()
 	{
 		Patches.Clear();
 		StaticHooks.Clear();
@@ -93,17 +73,15 @@ public class HookManager : FacepunchBehaviour, IDisposable
 			Logger.Log($" - Installing patches");
 			// I don't like this, patching stuff that may not be used but for the
 			// sake of time I will let it go for now but this needs to be reviewed.
-			foreach (HookEx patch in Patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
-				patch.ApplyPatch();
+			foreach (HookEx hook in Patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
+				Install(hook, "Carbon.Core");
 		}
 
 		if (StaticHooks.Count > 0)
 		{
 			Logger.Log($" - Installing static hooks");
-			// this is based on the assumption that a static hook will never have
-			// a dependency on another hook thus it will be always applied first
 			foreach (HookEx hook in StaticHooks.Where(x => !x.IsInstalled))
-				hook.ApplyPatch();
+				Install(hook, "Carbon.Core");
 		}
 
 		if (DynamicHooks.Count > 0)
@@ -115,31 +93,11 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 		Community.Runtime.Events.Trigger(
 			API.Events.CarbonEvent.HooksInstalled, EventArgs.Empty);
-
-		try
-		{
-			if (_subscribers.Count == 0) return;
-
-			// the code block bellow is ugly but the idea is to update the oxide
-			// hook list and reload the running plugins when HookManager "restarts".
-
-			Carbon.Core.HookValidator.Refresh();
-
-			foreach (Subscription item in _subscribers.ToList())
-			{
-				_subscribers.Remove(item);
-				Subscribe(item.Identifier, item.Subscriber);
-			}
-		}
-		catch (System.Exception e)
-		{
-			Logger.Error("Couldn't refresh HookValidator", e);
-		}
 	}
 
-	internal void OnDisable()
+	private void OnDisable()
 	{
-		Logger.Log(" Stopping hook processor...");
+		Logger.Log("Stopping hook processor...");
 
 		if (DynamicHooks.Count > 0)
 		{
@@ -167,51 +125,68 @@ public class HookManager : FacepunchBehaviour, IDisposable
 
 		if (!_doReload) return;
 
-		Logger.Log(" Reloading hook processor...");
+		Logger.Log("Reloading hook processor...");
 		_doReload = false;
 		enabled = true;
 	}
 
-	internal void OnDestroy()
-		=> Dispose();
+	private void OnDestroy()
+	{
+		Logger.Log("Destroying hook processor...");
 
-	internal void Update()
+		// make sure all patches are removed
+		List<HookEx> hooks = StaticHooks.Concat(DynamicHooks).Concat(Patches).ToList();
+		foreach (HookEx hook in hooks) hook.Dispose();
+
+		hooks = default;
+		_workQueue = default;
+		_subscribers = default;
+
+		Patches = default;
+		StaticHooks = default;
+		DynamicHooks = default;
+	}
+
+	private void Update()
 	{
 		// get the fuck out as fast as possible
 		if (_workQueue.Count == 0) return;
 
 		try
 		{
-			Payload payload = _workQueue.Dequeue();
-			List<HookEx> hooks = GetHookByName(payload.HookName).ToList();
-
-			if (payload.Identifier != null)
-				hooks.RemoveAll(x => x.Identifier != payload.Identifier);
-
-			foreach (HookEx hook in hooks)
+			int limit = 10;
+			while (_workQueue.Count > 0 && limit-- > 0)
 			{
-				// int subscribers = GetHookSubscriberCount(hook.HookName);
-				// Logger.Debug($"Hook '{hook.HookName}[{hook.Identifier}]' has {subscribers} subscriber(s)");
+				Payload payload = _workQueue.Dequeue();
 
-				// static hooks are a special case
-				if (hook.IsStaticHook) return;
+				List<HookEx> hooks = GetHookByName(payload.HookName).ToList();
 
-				bool hasSubscribers = HookHasSubscribers(hook.Identifier);
-				bool isInstalled = hook.IsInstalled;
+				if (payload.Identifier != null)
+					hooks.RemoveAll(x => x.Identifier != payload.Identifier);
 
-				switch (hasSubscribers)
+				foreach (HookEx hook in hooks)
 				{
-					// Not installed but has subs, install
-					case true when !isInstalled:
-						Install(hook, payload.Requester);
-						break;
-					// Installed but no subs found, uninstall
-					case false when isInstalled:
-						Uninstall(hook, payload.Requester);
-						break;
+					// static hooks are a special case
+					// and should never be dynamically uninstalled.
+					if (hook.IsStaticHook) return;
+
+					bool hasSubscribers = HookHasSubscribers(hook.Identifier);
+					bool isInstalled = hook.IsInstalled;
+
+					switch (hasSubscribers)
+					{
+						// Not installed but has subs, install
+						case true when !isInstalled:
+							Install(hook, payload.Requester);
+							break;
+						// Installed but no subs found, uninstall
+						case false when isInstalled:
+							Uninstall(hook, payload.Requester);
+							break;
+					}
 				}
+				hooks = default;
 			}
-			hooks = default;
 		}
 		catch (System.Exception e)
 		{
@@ -288,6 +263,169 @@ public class HookManager : FacepunchBehaviour, IDisposable
 		types = default;
 	}
 
+	private void Install(HookEx hook, string requester)
+	{
+		try
+		{
+			List<HookEx> dependencies = GetHookDependencyTree(hook);
+
+			foreach (HookEx dependency in dependencies)
+			{
+				if (!dependency.ApplyPatch())
+					throw new Exception($"Dependency '{dependency}' for '{hook}' installation failed");
+				AddSubscriber(dependency.Identifier, requester);
+				Logger.Debug($"Installed dependency '{dependency}' for '{hook}'", 1);
+			}
+
+			if (!hook.ApplyPatch())
+				throw new Exception($"Unable to apply patch");
+
+			List<HookEx> dependants = GetHookDependantTree(hook);
+
+			foreach (HookEx dependant in dependants)
+			{
+				if (!dependant.ApplyPatch())
+					throw new Exception($"Dependant '{dependant}' for '{hook}' installation failed");
+				AddSubscriber(dependant.Identifier, requester);
+				Logger.Debug($"Installed dependant '{dependant}' for '{hook}'", 1);
+			}
+
+			dependants = default;
+			dependencies = default;
+
+			Logger.Debug($"Installed hook '{hook}'", 1);
+		}
+		catch (System.Exception e)
+		{
+			GetHookById(hook.Identifier).SetStatus(HookState.Failure, e);
+			Logger.Error($"Install hook '{hook}' failed", e);
+		}
+	}
+
+	private void Uninstall(HookEx hook, string requester)
+	{
+		try
+		{
+			List<HookEx> dependants = GetHookDependantTree(hook);
+			dependants.Reverse();
+
+			foreach (HookEx dependant in dependants)
+			{
+				if (!dependant.RemovePatch())
+					throw new Exception($"Dependant '{dependant}' for '{hook}' uninstallation failed");
+				RemoveSubscriber(dependant.Identifier, requester);
+				Logger.Debug($"Uninstalled dependant '{dependant}' for '{hook}'", 1);
+			}
+
+			if (!hook.RemovePatch())
+				throw new Exception($"Unable to remove patch");
+
+			List<HookEx> dependencies = GetHookDependencyTree(hook);
+			dependencies.Reverse();
+
+			foreach (HookEx dependency in dependencies)
+			{
+				if (!dependency.RemovePatch())
+					throw new Exception($"Dependency '{dependency}' for '{hook}' uninstallation failed");
+				RemoveSubscriber(dependency.Identifier, requester);
+				Logger.Debug($"Uninstalled dependency '{dependency}' for '{hook}'", 1);
+			}
+
+			dependants = default;
+			dependencies = default;
+
+			Logger.Debug($"Uninstalled hook '{hook}'", 1);
+		}
+		catch (System.Exception e)
+		{
+			GetHookById(hook.Identifier).SetStatus(HookState.Failure, e);
+			Logger.Error($"Uninstall hook '{hook}' failed", e);
+		}
+	}
+
+	private List<HookEx> GetHookDependencyTree(HookEx hook)
+	{
+		List<HookEx> dependencies = new List<HookEx>();
+
+		foreach (string dependency in hook.Dependencies)
+		{
+			List<HookEx> list = GetHookByFullName(dependency).ToList();
+
+			if (list.Count < 1)
+			{
+				Logger.Error($"Dependency '{dependency}' for '{hook}' not loaded, this is a bug");
+				continue;
+			}
+
+			foreach (HookEx item in list)
+			{
+				dependencies = dependencies.Concat(GetHookDependencyTree(item)).ToList();
+				dependencies.Add(item);
+			}
+		}
+		return dependencies.Distinct().ToList();
+	}
+
+	private List<HookEx> GetHookDependantTree(HookEx hook)
+	{
+		List<HookEx> dependants = new List<HookEx>();
+		List<HookEx> list = Patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
+
+		foreach (HookEx item in list)
+		{
+			dependants = dependants.Concat(GetHookDependantTree(item)).ToList();
+			dependants.Add(item);
+		}
+		return dependants.Distinct().ToList();
+	}
+
+	private IEnumerable<HookEx> LoadedHooks
+	{ get => Patches.Concat(DynamicHooks).Concat(StaticHooks).Where(x => x.IsLoaded); }
+
+	private IEnumerable<HookEx> GetHookByName(string name)
+		=> LoadedHooks.Where(x => x.HookName == name) ?? null;
+
+	private IEnumerable<HookEx> GetHookByFullName(string name)
+		=> LoadedHooks.Where(x => x.HookFullName == name) ?? null;
+
+	private HookEx GetHookById(string identifier)
+		=> LoadedHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
+
+	internal bool IsHookLoaded(HookEx hook)
+		=> LoadedHooks.Any(x => x.PatchMethodName == hook.PatchMethodName);
+
+	internal bool IsHookLoaded(string hookName)
+	{
+		List<HookEx> hooks = GetHookByName(hookName).ToList();
+		return hooks.Count != 0 && hooks.Any(IsHookLoaded);
+	}
+
+	internal IEnumerable<HookEx> InstalledPatches
+	{ get => Patches.Where(x => x.IsInstalled); }
+
+	internal IEnumerable<HookEx> InstalledStaticHooks
+	{ get => StaticHooks.Where(x => x.IsInstalled); }
+
+	internal IEnumerable<HookEx> InstalledDynamicHooks
+	{ get => DynamicHooks.Where(x => x.IsInstalled); }
+
+
+	private bool HookIsSubscribedBy(string identifier, string subscriber)
+		=> _subscribers?.Where(x => x.Identifier == identifier).Any(x => x.Subscriber == subscriber) ?? false;
+
+	private bool HookHasSubscribers(string identifier)
+		=> _subscribers?.Any(x => x.Identifier == identifier) ?? false;
+
+	internal int GetHookSubscriberCount(string identifier)
+		=> _subscribers.Where(x => x.Identifier == identifier).ToList().Count;
+
+
+	private void AddSubscriber(string identifier, string subscriber)
+		=> _subscribers.Add(item: new Subscription { Identifier = identifier, Subscriber = subscriber });
+
+	private void RemoveSubscriber(string identifier, string subscriber)
+		=> _subscribers.RemoveAll(x => x.Identifier == identifier && x.Subscriber == subscriber);
+
 	internal void Subscribe(string hookName, string requester)
 	{
 		try
@@ -334,177 +472,9 @@ public class HookManager : FacepunchBehaviour, IDisposable
 		}
 	}
 
-	private void Install(HookEx hook, string requester)
+	internal void Reload()
 	{
-		try
-		{
-			if (hook.HasDependencies())
-			{
-				List<HookEx> dependencies;
-
-				foreach (string item in hook.Dependencies)
-				{
-					dependencies = GetHookByFullName(item).ToList();
-
-					if (dependencies.Count < 1)
-						throw new Exception($"Dependency '{item}' not found, this is a bug");
-
-					foreach (HookEx dependency in dependencies)
-					{
-						if (dependency is null)
-							throw new Exception($"Dependency '{item}' is null, this is a bug");
-
-						if (dependency.IsInstalled) continue;
-
-						if (!dependency.ApplyPatch())
-							throw new Exception($"Dependency '{dependency}' installation failed");
-
-						AddSubscriber(dependency.Identifier, requester);
-						Logger.Debug($"Installed dependency '{dependency}'", 1);
-					}
-				}
-
-				dependencies = default;
-			}
-
-			if (!hook.ApplyPatch())
-				throw new Exception($"Unable to apply patch");
-
-			List<HookEx> dependants = Patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
-
-			foreach (HookEx dependant in dependants)
-			{
-				if (dependant is null)
-					throw new Exception($"Dependant is null, this is a bug");
-
-				if (dependant.IsInstalled) continue;
-
-				if (!dependant.ApplyPatch())
-					throw new Exception($"Dependant '{dependant}' installation failed");
-
-				AddSubscriber(dependant.Identifier, requester);
-				Logger.Debug($"Installed dependant '{dependant}'", 1);
-			}
-
-			dependants = default;
-			Logger.Debug($"Installed hook '{hook}'", 1);
-		}
-		catch (System.Exception e)
-		{
-			GetHookById(hook.Identifier).SetStatus(HookState.Failure, e);
-			Logger.Error($"Install hook '{hook}' failed", e);
-		}
+		_doReload = true;
+		enabled = false;
 	}
-
-	private void Uninstall(HookEx hook, string requester)
-	{
-		try
-		{
-			List<HookEx> dependants = Patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
-
-			foreach (HookEx dependant in dependants)
-			{
-				if (dependant is null)
-					throw new Exception($"Dependant is null, this is a bug");
-
-				if (!dependant.IsInstalled) continue;
-
-				if (!dependant.RemovePatch())
-					throw new Exception($"Dependant '{dependant}' uninstallation failed");
-
-				RemoveSubscriber(dependant.Identifier, requester);
-				Logger.Debug($"Uninstalled dependant '{dependant}'", 1);
-			}
-
-			if (!hook.RemovePatch())
-				throw new Exception($"Unable to remove patch");
-
-			if (!hook.HasDependencies()) return;
-
-			List<HookEx> dependencies;
-
-			foreach (string item in hook.Dependencies)
-			{
-				dependencies = GetHookByFullName(item).ToList();
-
-				if (dependencies.Count < 1)
-					throw new Exception($"Dependency '{item}' not found, this is a bug");
-
-				foreach (HookEx dependency in dependencies)
-				{
-					if (dependency is null)
-						throw new Exception($"Dependency '{item}' is null, this is a bug");
-
-					if (!dependency.IsInstalled) continue;
-
-					if (!dependency.RemovePatch())
-						throw new Exception($"Dependency '{dependency}' uninstallation failed");
-
-					RemoveSubscriber(dependency.Identifier, requester);
-					Logger.Debug($"Uninstalled dependency '{dependency}'", 1);
-				}
-			}
-
-			dependants = default;
-			dependencies = default;
-			Logger.Debug($"Uninstalled hook '{hook}'", 1);
-		}
-		catch (System.Exception e)
-		{
-			GetHookById(hook.Identifier).SetStatus(HookState.Failure, e);
-			Logger.Error($"Uninstall hook '{hook}' failed", e);
-		}
-	}
-
-	private IEnumerable<HookEx> GetHookByName(string name)
-		=> DynamicHooks.Where(x => x.HookName == name) ?? null;
-
-	private IEnumerable<HookEx> GetHookByFullName(string name)
-		=> DynamicHooks.Where(x => x.HookFullName == name) ?? null;
-
-	private HookEx GetHookById(string identifier)
-		=> DynamicHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
-
-	private bool IsHookLoaded(HookEx hook)
-		=> DynamicHooks.Any(x => x.PatchMethodName == hook.PatchMethodName);
-
-	internal bool IsHookLoaded(string hookName)
-	{
-		List<HookEx> hooks = GetHookByName(hookName).ToList();
-		return hooks.Count != 0 && hooks.Any(IsHookLoaded);
-	}
-
-	internal IEnumerable<string> LoadedStaticHooksName
-	{ get => StaticHooks.Where(x => x.IsLoaded).Select(x => x.HookName); }
-
-	internal IEnumerable<string> LoadedDynamicHooksName
-	{ get => DynamicHooks.Where(x => x.IsLoaded).Select(x => x.HookName); }
-
-
-	internal IEnumerable<HookEx> InstalledPatches
-	{ get => Patches.Where(x => x.IsInstalled); }
-
-	internal IEnumerable<HookEx> InstalledStaticHooks
-	{ get => StaticHooks.Where(x => x.IsInstalled); }
-
-	internal IEnumerable<HookEx> InstalledDynamicHooks
-	{ get => DynamicHooks.Where(x => x.IsInstalled); }
-
-
-	internal bool HookIsSubscribedBy(string identifier, string subscriber)
-		=> _subscribers?.Where(x => x.Identifier == identifier).Any(x => x.Subscriber == subscriber) ?? false;
-
-	internal bool HookHasSubscribers(string identifier)
-		=> _subscribers?.Any(x => x.Identifier == identifier) ?? false;
-
-	internal int GetHookSubscriberCount(string identifier)
-		=> _subscribers.Where(x => x.Identifier == identifier).ToList().Count;
-
-
-	internal void AddSubscriber(string identifier, string subscriber)
-		=> _subscribers.Add(item: new Subscription { Identifier = identifier, Subscriber = subscriber });
-
-	internal void RemoveSubscriber(string identifier, string subscriber)
-		=> _subscribers.RemoveAll(x => x.Identifier == identifier && x.Subscriber == subscriber);
-
 }
