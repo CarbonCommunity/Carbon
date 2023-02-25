@@ -26,6 +26,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override bool EnabledByDefault => true;
 	public CUI.Handler Handler { get; internal set; }
 
+	internal float OptionWidth = 0.475f;
 	internal int RangeCuts = 50;
 
 	internal List<Tab> Tabs = new();
@@ -313,11 +314,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: color,
-			xMin: Config.OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
+			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
 		cui.CreatePanel(container, $"{parent}panel", null,
 			color: color,
-			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
+			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
 
 		var input = cui.CreateProtectedInputField(container, parent: $"{parent}inppanel", id: null,
 			color: $"1 1 1 {(readOnly ? 0.2f : 1f)}",
@@ -374,11 +375,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: "0.2 0.2 0.2 0.5",
-			xMin: Config.OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
+			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
 		cui.CreatePanel(container, $"{parent}panel", null,
 			color: "0.2 0.2 0.2 0.5",
-			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
+			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
 
 		cui.CreateText(container, parent: $"{parent}inppanel", id: null,
 			color: "1 1 1 0.7",
@@ -439,7 +440,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
 		}
 	}
-	public void TabPanelDropdown(CUI cui, AdminPlayer.Page page, CuiElementContainer container, string parent, string text, string command, float height, float offset, int index, string[] options, bool display, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
+	public void TabPanelDropdown(CUI cui, AdminPlayer.Page page, CuiElementContainer container, string parent, string text, string command, float height, float offset, int index, string[] options, string[] optionsIcons, bool display, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
 	{
 		var color = "0 0 0 0";
 
@@ -475,20 +476,32 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: "0.2 0.2 0.2 0.5",
-			xMin: Config.OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
+			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
 		cui.CreatePanel(container, $"{parent}panel", null,
 			color: "0.2 0.2 0.2 0.5",
-			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
+			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
 
-		cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
+		var icon = optionsIcons != null && index <= optionsIcons.Length - 1 ? optionsIcons[index] : null;
+		var iconXmin = 0.015f;
+		var iconXmax = 0.072f;
+		var iconYmin = 0.2f;
+		var iconYmax = 0.8f;
+
+		var button = cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
 			color: $"0.2 0.2 0.2 0.7",
 			textColor: "1 1 1 0.7",
-			text: $"  {options[index]}", 10,
+			text: $"  {(string.IsNullOrEmpty(icon) ? "" : "       ")}{options[index]}", 10,
 			xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
 			command: $"{command} false",
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		if (!string.IsNullOrEmpty(icon))
+		{
+			cui.CreateImage(container, button, null, icon, "1 1 1 0.7",
+				xMin: iconXmin, xMax: iconXmax, yMin: iconYmin, yMax: iconYmax);
+		}
 
 		if (display)
 		{
@@ -507,16 +520,24 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var current = options[actualI];
 				var isSelected = actualI == index;
 
-				cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
+				var subIcon = optionsIcons != null && actualI <= optionsIcons.Length - 1 ? optionsIcons[actualI] : null;
+
+				var subButton = cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
 					color: isSelected ? $"{color} 0.95" : "0.1 0.1 0.1 0.985",
 					textColor: isSelected ? "1 1 1 0.7" : "1 1 1 0.4",
-					text: $"    {current}", 10,
+					text: $"  {(string.IsNullOrEmpty(subIcon) ? "" : "       ")}{current}", 10,
 					xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
 					OyMin: _offset, OyMax: _offset,
 					OxMin: shiftOffset,
 					command: $"{command} true call {actualI}",
 					align: TextAnchor.MiddleLeft,
 					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+				if (!string.IsNullOrEmpty(subIcon))
+				{
+					cui.CreateImage(container, subButton, null, subIcon, "1 1 1 0.7",
+						xMin: iconXmin, xMax: iconXmax, yMin: iconYmin, yMax: iconYmax);
+				}
 
 				_offset -= _spacing;
 			}
@@ -616,11 +637,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreatePanel(container, $"{parent}panel", null,
 			color: color,
-			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
+			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
 
 		var panel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: color,
-			xMin: Config.OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
+			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
 		cui.CreatePanel(container, panel, null,
 			color: cui.Color("#f54242", 0.8f),
@@ -885,7 +906,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								break;
 
 							case Tab.OptionDropdown dropdown:
-								TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, ap._selectedDropdown == dropdown);
+								TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, dropdown.OptionsIcons, ap._selectedDropdown == dropdown);
 								break;
 
 							case Tab.OptionRange range:
@@ -1289,9 +1310,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			return AddRow(column, option);
 		}
-		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options)
+		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons = null)
 		{
-			AddRow(column, new OptionDropdown(name, index, callback, options));
+			AddRow(column, new OptionDropdown(name, index, callback, options, optionsIcons));
 			return this;
 		}
 		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<float> callback, Func<string> text)
@@ -1429,8 +1450,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public Func<int> Index;
 			public Action<int> Callback;
 			public string[] Options;
+			public string[] OptionsIcons;
 
-			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options) : base(name) { Index = index; Callback = callback; Options = options; }
+			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons) : base(name) { Index = index; Callback = callback; Options = options; OptionsIcons = optionsIcons; }
 		}
 	}
 
@@ -1756,7 +1778,6 @@ public class AdminConfig
 {
 	public string OpenCommand = "cadmin";
 	public int MinimumAuthLevel = 2;
-	public float OptionWidth = 0.55f;
 }
 public class AdminData
 {
