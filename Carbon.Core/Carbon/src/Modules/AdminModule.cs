@@ -31,16 +31,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
 	internal ImageDatabaseModule ImageDatabase;
-	internal List<string> DefaultImages = new()
+	internal string[] DefaultImages = new string[]
 	{
 		"https://carbonmod.gg/assets/media/carbonlogo_b.png",
 		"https://carbonmod.gg/assets/media/carbonlogo_w.png",
 		"https://carbonmod.gg/assets/media/carbonlogo_bs.png",
-		"https://carbonmod.gg/assets/media/carbonlogo_ws.png"
+		"https://carbonmod.gg/assets/media/carbonlogo_ws.png",
+		Checkmark
 	};
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
+
+	const string Checkmark = "https://carbonmod.gg/assets/media/cui/checkmark.png";
 
 	public override void Init()
 	{
@@ -241,7 +244,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public void TabPanelToggle(CUI cui, CuiElementContainer container, string parent, string text, string command, float height, float offset, bool isOn)
 	{
-		var toggleButtonScale = 0.93f;
+		var toggleButtonScale = 0.94f;
 
 		cui.CreatePanel(container, parent, $"{parent}panel",
 			color: "0.2 0.2 0.2 0",
@@ -258,7 +261,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0.5",
 			xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
 
-		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
+		var button = cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
 			color: "0.2 0.2 0.2 0.5",
 			textColor: "1 1 1 0.5",
 			text: string.Empty, 11,
@@ -268,9 +271,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (isOn)
 		{
-			cui.CreatePanel(container, $"{parent}btn", null,
+			cui.CreateImage(container, button, null,
+				url: Checkmark,
 				color: "0.4 0.7 0.2 0.7",
-				xMin: 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
+				xMin: 0.15f, xMax: 0.85f, yMin: 0.15f, yMax: 0.85f);
 		}
 	}
 	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, int characterLimit, bool readOnly, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
