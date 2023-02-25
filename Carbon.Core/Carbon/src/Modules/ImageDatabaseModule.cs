@@ -1,20 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using Carbon.Base;
-using Oxide.Core.Libraries;
-using System.Text;
-using Carbon.Extensions;
-using static Oxide.Plugins.RustPlugin;
-using System.Collections;
-using Org.BouncyCastle.Utilities;
-using Epic.OnlineServices;
-using Facepunch;
-using ProtoBuf;
 using Carbon.Core;
+using Carbon.Extensions;
+using Facepunch;
+using Oxide.Core.Libraries;
+using ProtoBuf;
+using QRCoder;
 
 /*
  *
@@ -53,6 +50,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			Save();
 		}
 	}
+
 	private void OnServerSave()
 	{
 		SaveDatabase();
@@ -116,13 +114,13 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 		foreach (var pointer in _protoData.Map)
 		{
-			if(FileStorage.server.Get(pointer.Value, FileStorage.Type.png, _protoData.Identifier) == null)
+			if (FileStorage.server.Get(pointer.Value, FileStorage.Type.png, _protoData.Identifier) == null)
 			{
 				invalidations.Add(pointer.Key);
 			}
 		}
 
-		foreach(var invalidation in invalidations)
+		foreach (var invalidation in invalidations)
 		{
 			_protoData.Map.Remove(invalidation);
 		}
@@ -141,9 +139,9 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	{
 		QueueBatch(scale, @override, results =>
 		{
-			foreach(var result in results)
+			foreach (var result in results)
 			{
-				if(result.OriginalData == result.ProcessedData)
+				if (result.OriginalData == result.ProcessedData)
 				{
 					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
 					_protoData.Map.Add($"{result.Url}_0", id);
@@ -229,6 +227,29 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		}
 
 		return false;
+	}
+
+	public uint GetQRCode(string url, int pixels = 20)
+	{
+		if (_protoData.Map.TryGetValue($"{url}_{pixels}_0", out uint uid)) return uid;
+		PayloadGenerator.Url payload = new PayloadGenerator.Url(url);
+
+		using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+		using (QRCodeData qrCodeData = qrGenerator.CreateQrCode(payload.ToString(), QRCodeGenerator.ECCLevel.Q))
+		using (QRCode qrCode = new QRCode(qrCodeData))
+		{
+
+			Bitmap qrCodeImage = qrCode.GetGraphic(pixels);
+
+			using var output = new MemoryStream();
+			qrCodeImage.Save(output, ImageFormat.Png);
+			qrCodeImage.Dispose();
+
+			byte[] raw = output.ToArray();
+			uid = FileStorage.server.Store(raw, FileStorage.Type.png, _protoData.Identifier);
+			_protoData.Map.Add($"{url}_{pixels}_0", uid);
+			return uid;
+		};
 	}
 
 	public class QueuedThread : BaseThreadedJob, IDisposable
