@@ -283,8 +283,6 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 				_client.DownloadDataCompleted += (object sender, DownloadDataCompletedEventArgs e) =>
 				{
-					Console.WriteLine($"{e.Error}");
-
 					_processed++;
 					Result.Add(new QueuedThreadResult
 					{
