@@ -26,8 +26,18 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override bool EnabledByDefault => true;
 	public CUI.Handler Handler { get; internal set; }
 
+	internal int RangeCuts = 30;
+
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
+	internal ImageDatabaseModule ImageDatabase;
+	internal List<string> DefaultImages = new()
+	{
+		"https://carbonmod.gg/assets/media/carbonlogo_b.png",
+		"https://carbonmod.gg/assets/media/carbonlogo_w.png",
+		"https://carbonmod.gg/assets/media/carbonlogo_bs.png",
+		"https://carbonmod.gg/assets/media/carbonlogo_ws.png"
+	};
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
@@ -41,6 +51,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private void OnServerInitialized()
 	{
+		ImageDatabase = GetModule<ImageDatabaseModule>();
+
 		Community.Runtime.CorePlugin.cmd.AddChatCommand(Config.OpenCommand, this, (player, cmd, args) =>
 		{
 			if (!CanAccess(player)) return;
@@ -60,6 +72,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
 		RegisterTab(PlayersTab.Get());
 		RegisterTab(CarbonTab.Get(), 0);
+
+		LoadDefaultImages();
 	}
 
 	private bool CanAccess(BasePlayer player)
@@ -79,6 +93,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		return false;
+	}
+
+	private void LoadDefaultImages()
+	{
+		ImageDatabase.QueueBatch(false, DefaultImages.ToArray());
 	}
 
 	#region Option Elements
@@ -296,8 +315,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: color,
 			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
 
-		cui.CreateProtectedInputField(container, parent: $"{parent}inppanel", id: null,
-			color: "1 1 1 1",
+		var input = cui.CreateProtectedInputField(container, parent: $"{parent}inppanel", id: null,
+			color: $"1 1 1 {(readOnly ? 0.2f : 1f)}",
 			text: placeholder, 11,
 			xMin: 0.03f, xMax: 1, yMin: 0, yMax: 1,
 			command: command,
@@ -306,6 +325,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			readOnly: readOnly,
 			needsKeyboard: true,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		if (!readOnly)
+		{
+			cui.CreatePanel(container, input, null,
+				color: cui.Color("#4287f5", 0.8f),
+				xMin: 0, xMax: 1, yMin: 0, yMax: 0.065f,
+				OxMin: -6);
+		}
 	}
 	public void TabPanelEnum(CUI cui, CuiElementContainer container, string parent, string text, string value, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
 	{
@@ -549,6 +576,67 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 	}
+	public void TabPanelRange(CUI cui, CuiElementContainer container, string parent, string text, string command, string valueText, float min, float max, float value, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
+	{
+		var color = "0 0 0 0";
+
+		switch (type)
+		{
+			case Tab.OptionButton.Types.Selected:
+				color = "0.4 0.7 0.2 0.7";
+				break;
+
+			case Tab.OptionButton.Types.Warned:
+				color = "0.8 0.7 0.2 0.7";
+				break;
+
+			case Tab.OptionButton.Types.Important:
+				color = "0.97 0.2 0.1 0.7";
+				break;
+
+			default:
+				color = "0.2 0.2 0.2 0.5";
+				break;
+		}
+
+		cui.CreatePanel(container, parent, $"{parent}panel",
+			color: "0.2 0.2 0.2 0",
+			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+
+		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+			color: "1 1 1 0.7",
+			text: $"{text}:", 12,
+			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleLeft,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		cui.CreatePanel(container, $"{parent}panel", null,
+			color: color,
+			xMin: 0, xMax: Config.OptionWidth, yMin: 0, yMax: 0.015f);
+
+		var panel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
+			color: color,
+			xMin: Config.OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
+
+		cui.CreatePanel(container, panel, null,
+			color: cui.Color("#f54242", 0.8f),
+			xMin: 0, xMax: value.Scale(min, max, 0f, 1f), yMin: 0, yMax: 1);
+
+		cui.CreateText(container, panel, null, "1 1 1 1", valueText, 8);
+
+		var cuts = max.Clamp(min, RangeCuts);
+		var offsetScale = 1f / cuts;
+		var currentOffset = 0f;
+
+		for (int i = 0; i < cuts; i++)
+		{
+			cui.CreateProtectedButton(container, panel, null, "0 0 0 0", "0 0 0 0", string.Empty, 0,
+				xMin: currentOffset, xMax: currentOffset + offsetScale, yMin: 0, yMax: 1,
+				command: $"{command} {i}");
+
+			currentOffset += offsetScale;
+		}
+	}
 
 	#endregion
 
@@ -777,7 +865,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								break;
 
 							case Tab.OptionInput input:
-								TabPanelInput(cui, container, panel, input.Name, input.Placeholder, PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
+								TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
 								break;
 
 							case Tab.OptionEnum @enum:
@@ -794,6 +882,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 							case Tab.OptionDropdown dropdown:
 								TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, ap._selectedDropdown == dropdown);
+								break;
+
+							case Tab.OptionRange range:
+								TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(), rowHeight, rowIndex);
 								break;
 
 							default:
@@ -970,7 +1062,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 										page.CurrentPage += args[1].ToInt();
 										break;
 								}
-			
+
 								if (page.CurrentPage < 0) page.CurrentPage = page.TotalPages;
 								else if (page.CurrentPage > page.TotalPages) page.CurrentPage = 0;
 								break;
@@ -993,6 +1085,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 							return oldSelectedDropdown != dropdown;
 						}
 				}
+
+			case Tab.OptionRange range:
+				range.Callback?.Invoke(args[0].ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
+				return range.Callback != null;
 		}
 
 		return false;
@@ -1160,13 +1256,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			return AddRow(column, new OptionText(name, size, color, align, font));
 		}
-		public Tab AddInput(int column, string name, string placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback)
+		public Tab AddInput(int column, string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback)
 		{
 			return AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback));
 		}
-		public Tab AddInput(int column, string name, string placeholder, Action<AdminPlayer, string[]> callback)
+		public Tab AddInput(int column, string name, Func<string> placeholder, Action<AdminPlayer, string[]> callback)
 		{
-			return AddInput(column, name, placeholder, 0, false, callback);
+			return AddInput(column, name, placeholder, 0, callback == null, callback);
 		}
 		public Tab AddEnum(int column, string name, Action<bool> callback, Func<string> text)
 		{
@@ -1192,6 +1288,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options)
 		{
 			AddRow(column, new OptionDropdown(name, index, callback, options));
+			return this;
+		}
+		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<float> callback, Func<string> text)
+		{
+			AddRow(column, new OptionRange(name, min, max, value, callback, text));
 			return this;
 		}
 
@@ -1254,12 +1355,12 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public class OptionInput : Option
 		{
-			public string Placeholder;
+			public Func<string> Placeholder;
 			public int CharacterLimit;
 			public bool ReadOnly;
 			public Action<AdminPlayer, string[]> Callback;
 
-			public OptionInput(string name, string placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> args) : base(name)
+			public OptionInput(string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> args) : base(name)
 			{
 				Placeholder = placeholder;
 				Callback = args;
@@ -1300,10 +1401,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public class OptionRange : Option
 		{
-			public float Value;
+			public float Min = 0;
+			public float Max = 1;
+			public Func<float> Value;
 			public Action<float> Callback;
+			public Func<string> Text;
 
-			public OptionRange(string name, float value, Action<float> callback, Func<float> text) : base(name) { Callback = callback; Value = value; }
+			public OptionRange(string name, float min, float max, Func<float> value, Action<float> callback, Func<string> text) : base(name) { Min = min; Max = max; Callback = callback; Value = value; Text = text; }
 		}
 		public class OptionRadio : Option
 		{
@@ -1510,7 +1614,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static void AddInitial(Tab tab, AdminPlayer ap)
 		{
-			tab.AddInput(0, "Search", ap?.GetStorage<string>("playerfilter"), (ap2, args) => { ap2.SetStorage("playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
+			tab.AddInput(0, "Search", () => ap?.GetStorage<string>("playerfilter"), (ap2, args) => { ap2.SetStorage("playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
 			tab.AddName(0, "Player List", TextAnchor.MiddleLeft);
 		}
 		public static void RefreshPlayers(Tab tab, AdminPlayer ap)
@@ -1544,13 +1648,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.ClearColumn(1);
 
 			tab.AddName(1, $"Player Information", TextAnchor.MiddleLeft);
-			tab.AddInput(1, "Name", player.displayName, null);
-			tab.AddInput(1, "Steam ID", player.UserIDString, null);
-			tab.AddInput(1, "Net ID", $"{player.net?.ID}", null);
+			tab.AddInput(1, "Name", () => player.displayName, null);
+			tab.AddInput(1, "Steam ID", () => player.UserIDString, null);
+			tab.AddInput(1, "Net ID", () => $"{player.net?.ID}", null);
 			try
 			{
 				var position = player.transform.position;
-				tab.AddInput(1, "Position", $"{position.x:0.0}x {position.y:0.0}y {position.z:0.0}z", null);
+				tab.AddInput(1, "Position", () => $"{position.x:0.0}x {position.y:0.0}y {position.z:0.0}z", null);
 			}
 			catch { }
 
@@ -1590,22 +1694,22 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var tab = new Tab("carbon", "Carbon", Community.Runtime.CorePlugin);
 			tab.AddColumn(1);
 
-			tab.AddInput(0, "Host Name", $"{ConVar.Server.hostname}", null);
-			tab.AddInput(0, "Level", $"{ConVar.Server.level}", null);
+			tab.AddInput(0, "Host Name", () => $"{ConVar.Server.hostname}", (ap, args) => { ConVar.Server.hostname = args.ToString(" "); });
+			tab.AddInput(0, "Level", () => $"{ConVar.Server.level}", null);
 
 			tab.AddName(0, "Info", TextAnchor.MiddleLeft);
 			{
-				tab.AddInput(0, "Version", $"{Community.Version}", null);
-				tab.AddInput(0, "Informational Version", $"{Community.InformationalVersion}", null);
+				tab.AddInput(0, "Version", () => $"{Community.Version}", null);
+				tab.AddInput(0, "Informational Version", () => $"{Community.InformationalVersion}", null);
 
 				var loadedHooks = Community.Runtime.HookManager.DynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.StaticHooks.Count(x => x.IsInstalled);
 				var totalHooks = Community.Runtime.HookManager.DynamicHooks.Count + Community.Runtime.HookManager.StaticHooks.Count;
-				tab.AddInput(0, "Hooks", $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
-				tab.AddInput(0, "Static Hooks", $"{Community.Runtime.HookManager.StaticHooks.Count:n0}", null);
-				tab.AddInput(0, "Dynamic Hooks", $"{Community.Runtime.HookManager.DynamicHooks.Count:n0}", null);
+				tab.AddInput(0, "Hooks", () => $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
+				tab.AddInput(0, "Static Hooks", () => $"{Community.Runtime.HookManager.StaticHooks.Count:n0}", null);
+				tab.AddInput(0, "Dynamic Hooks", () => $"{Community.Runtime.HookManager.DynamicHooks.Count:n0}", null);
 
 				tab.AddName(0, "Plugins", TextAnchor.MiddleLeft);
-				tab.AddInput(0, "Mods", $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
+				tab.AddInput(0, "Mods", () => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
 
 				tab.AddName(0, "Console", TextAnchor.MiddleLeft);
 				tab.AddInput(0, "Execute Server Command", null, (ap, args) => { ConsoleSystem.Run(ConsoleSystem.Option.Server, args[0], args.Skip(1).ToArray()); });
@@ -1620,20 +1724,20 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddToggle(1, "Carbon Tag", ap => { Config.CarbonTag = !Config.CarbonTag; Community.Runtime.SaveConfig(); }, ap => Config.CarbonTag);
 				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker);
 				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation);
-				tab.AddInput(1, "Entity Map Buffer Size (restart required)", Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "Entity Map Buffer Size (restart required)", () => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); });
 
 				tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
 				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers);
 				tab.AddToggle(1, "Harmony Watchers", ap => { Config.HarmonyWatchers = !Config.HarmonyWatchers; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyWatchers);
 
 				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
-				tab.AddInput(1, "Log File Mode", Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); Community.Runtime.SaveConfig(); });
-				tab.AddInput(1, "Log Verbosity (Debug)", Config.LogVerbosity.ToString(), (ap, args) => { Config.LogVerbosity = args[0].ToInt().Clamp(0, 10); Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "Log File Mode", () => Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "Log Verbosity (Debug)", () => Config.LogVerbosity.ToString(), (ap, args) => { Config.LogVerbosity = args[0].ToInt().Clamp(0, 10); Community.Runtime.SaveConfig(); });
 				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Logger.Severity)));
 
 				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
-				tab.AddInput(1, "Server Language", Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
-				tab.AddInput(1, "WebRequest IP", Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "Server Language", () => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "WebRequest IP", () => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
 				tab.AddEnum(1, "Permission Mode", back => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, () => Config.PermissionSerialization.ToString());
 			}
 

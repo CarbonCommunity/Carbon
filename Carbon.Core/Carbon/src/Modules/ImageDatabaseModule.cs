@@ -170,7 +170,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		{
 			foreach (var url in urls)
 			{
-				if (GetImage(url, scale) != 0) thread.ImageUrls.Remove(url);
+				if (GetImage(url, scale, true) != 0) thread.ImageUrls.Remove(url);
 			}
 		}
 		else
@@ -182,23 +182,37 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			}
 		}
 
-		Community.Runtime.CorePlugin.persistence.StartCoroutine(_executeQueue(thread, results => onComplete?.Invoke(results)));
+		if (Config.PrintInitializedBatchLogs && thread.ImageUrls.Count > 0) Puts($"Added {thread.ImageUrls.Count:n0} to the queue (scale: {(scale == 0 ? "default" : $"{scale:0.0}")})...");
+
+		Community.Runtime.CorePlugin.persistence.StartCoroutine(_executeQueue(thread, results =>
+		{
+			try
+			{
+				onComplete?.Invoke(results);
+				if (Config.PrintCompletedBatchLogs && results.Count > 0) Puts($"Completed queue of {results.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+			}
+			catch (Exception ex)
+			{
+				PutsError($"Failed QueueBatch of {urls.Length:n0}.", ex);
+			}
+		}));
 	}
 
-	public uint GetImage(string url, float scale = 0)
+	public uint GetImage(string url, float scale = 0, bool silent = false)
 	{
 		var id = scale == 0 ? "0" : scale.ToString("0.0");
 
 		if (_protoData.Map.TryGetValue($"{url}_{id}", out var uid))
 		{
+			if (!silent && Config.PrintCompletedBatchLogs) Puts($"Retrieved image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 			return uid;
 		}
 
-		return 0;
+		return scale != 0 ? GetImage(url, 0, silent) : 0;
 	}
-	public string GetImageString(string url, float scale = 0)
+	public string GetImageString(string url, float scale = 0, bool silent = false)
 	{
-		return GetImage(url, scale).ToString();
+		return GetImage(url, scale, silent).ToString();
 	}
 	public bool DeleteImage(string url, float scale = 0)
 	{
@@ -207,6 +221,8 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 		if (_protoData.Map.TryGetValue(name, out var uid))
 		{
+			if (Config.PrintDeletedImageLogs) Puts($"Deleted image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+
 			FileStorage.server.Remove(uid, FileStorage.Type.png, _protoData.Identifier);
 			_protoData.Map.Remove(name);
 			return true;
@@ -360,6 +376,10 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 public class ImageDatabaseConfig
 {
+	public bool PrintInitializedBatchLogs { get; set; } = true;
+	public bool PrintCompletedBatchLogs { get; set; } = true;
+	public bool PrintRetrievedImageLogs { get; set; } = false;
+	public bool PrintDeletedImageLogs { get; set; } = false;
 }
 public class ImageDatabaseData
 {

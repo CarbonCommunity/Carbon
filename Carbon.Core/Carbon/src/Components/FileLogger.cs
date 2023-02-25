@@ -43,7 +43,6 @@ public class FileLogger : IDisposable
 
 		if (backup && OsEx.File.Exists(path))
 		{
-
 			var backupPath = Path.Combine(archiveFolder, $"{Name}.backup.{DateTime.Now:yyyy.MM.dd}.log");
 			var logContent = OsEx.File.ReadText(path);
 
