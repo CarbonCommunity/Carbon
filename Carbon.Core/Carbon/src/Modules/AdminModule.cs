@@ -26,7 +26,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override bool EnabledByDefault => true;
 	public CUI.Handler Handler { get; internal set; }
 
-	internal int RangeCuts = 30;
+	internal int RangeCuts = 50;
 
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
