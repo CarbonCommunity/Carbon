@@ -97,6 +97,12 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			shouldSave = true;
 		}
 
+		if (_protoData.CustomMap == null)
+		{
+			_protoData.CustomMap = new Dictionary<string, string>();
+			shouldSave = true;
+		}
+
 		return shouldSave;
 	}
 
@@ -196,8 +202,22 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		}));
 	}
 
+	public void AddMap(string key, string url)
+	{
+		_protoData.CustomMap[key] = url;
+	}
+	public void RemoveMap(string key)
+	{
+		if (_protoData.CustomMap.ContainsKey(key)) _protoData.CustomMap.Remove(key);
+	}
+
 	public uint GetImage(string url, float scale = 0, bool silent = false)
 	{
+		if(_protoData.CustomMap.TryGetValue(url, out var realUrl))
+		{
+			url = realUrl;
+		}
+
 		var id = scale == 0 ? "0" : scale.ToString("0.0");
 
 		if (_protoData.Map.TryGetValue($"{url}_{id}", out var uid))
@@ -410,4 +430,7 @@ public class ImageDatabaseDataProto
 
 	[ProtoMember(2)]
 	public Dictionary<string, uint> Map { get; set; }
+
+	[ProtoMember(3)]
+	public Dictionary<string, string> CustomMap { get; set; }
 }
