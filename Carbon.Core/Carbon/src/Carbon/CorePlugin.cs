@@ -52,6 +52,18 @@ public class CorePlugin : CarbonPlugin
 
 	public override void IInit()
 	{
+		Hooks = new List<string>()
+		{
+			"OnEntitySpawned",
+			"OnEntityDeath",
+			"OnEntityKill",
+			"IOnPlayerConnected",
+			"IOnUserApprove",
+			"IOnBasePlayerAttacked"
+		};
+
+		base.IInit();
+
 		foreach (var player in BasePlayer.activePlayerList)
 		{
 			permission.RefreshUser(player);
@@ -87,7 +99,6 @@ public class CorePlugin : CarbonPlugin
 
 	private void IOnPlayerConnected(BasePlayer player)
 	{
-
 		permission.RefreshUser(player);
 		Interface.CallHook("OnPlayerConnected", player);
 	}

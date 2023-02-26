@@ -70,20 +70,23 @@ namespace Oxide.Plugins
 
 		public virtual void IInit()
 		{
-			using (TimeMeasure.New($"Processing HookMethods on '{this}'"))
+			if (HookMethods != null)
 			{
-				foreach (var attribute in HookMethods)
+				using (TimeMeasure.New($"Processing HookMethods on '{this}'"))
 				{
-					var method = attribute.Method;
-					var name = (string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length;
-					if (!HookMethodAttributeCache.TryGetValue(name, out var list))
+					foreach (var attribute in HookMethods)
 					{
-						HookMethodAttributeCache.Add(name, new List<MethodInfo>() { method });
+						var method = attribute.Method;
+						var name = (string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length;
+						if (!HookMethodAttributeCache.TryGetValue(name, out var list))
+						{
+							HookMethodAttributeCache.Add(name, new List<MethodInfo>() { method });
+						}
+						else list.Add(method);
 					}
-					else list.Add(method);
 				}
+				Carbon.Logger.Debug(Name, "Installed hook method attributes");
 			}
-			Carbon.Logger.Debug(Name, "Installed hook method attributes");
 
 			using (TimeMeasure.New($"Processing PluginReferences on '{this}'"))
 			{
@@ -91,12 +94,15 @@ namespace Oxide.Plugins
 			}
 			Carbon.Logger.Debug(Name, "Assigned plugin references");
 
-			using (TimeMeasure.New($"Processing Hooks on '{this}'"))
+			if (Hooks != null)
 			{
-				foreach (var hook in Hooks)
-					Community.Runtime.HookManager.Subscribe(hook, FileName);
+				using (TimeMeasure.New($"Processing Hooks on '{this}'"))
+				{
+					foreach (var hook in Hooks)
+						Community.Runtime.HookManager.Subscribe(hook, FileName);
+				}
+				Carbon.Logger.Debug(Name, "Processed hooks");
 			}
-			Carbon.Logger.Debug(Name, "Processed hooks");
 
 			CallHook("Init");
 		}
