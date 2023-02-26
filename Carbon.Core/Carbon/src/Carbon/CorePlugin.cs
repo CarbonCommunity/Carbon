@@ -86,6 +86,10 @@ public class CorePlugin : CarbonPlugin
 	{
 		Entities.AddMap(entity);
 	}
+	void OnPlayerRespawned(BasePlayer player)
+	{
+		Entities.AddMap(player);
+	}
 	private void OnEntityDeath(BaseCombatEntity entity, HitInfo info)
 	{
 		Entities.RemoveMap(entity);
