@@ -111,7 +111,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	internal void TabButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float width, float offset, bool highlight = false)
 	{
-		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
+		var button = cui.CreateProtectedButton(container, parent: parent, id: null,
 			color: highlight ? "0.4 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
 			textColor: "1 1 1 0.5",
 			text: text, 11,
@@ -121,9 +121,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (highlight)
 		{
-			cui.CreatePanel(container, $"{parent}btn", null,
+			cui.CreatePanel(container, button, null,
 				color: "1 1 1 0.4",
-				xMin: 0, xMax: 1f, yMin: 0f, yMax: 0.03f);
+				xMin: 0, xMax: 1f, yMin: 0f, yMax: 0.03f,
+				OxMax: -1);
 		}
 	}
 
@@ -216,26 +217,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public void TabPanelButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None, TextAnchor align = TextAnchor.MiddleCenter)
 	{
-		var color = "0 0 0 0";
-
-		switch (type)
+		var color = type switch
 		{
-			case Tab.OptionButton.Types.Selected:
-				color = "0.4 0.7 0.2 0.7";
-				break;
-
-			case Tab.OptionButton.Types.Warned:
-				color = "0.8 0.7 0.2 0.7";
-				break;
-
-			case Tab.OptionButton.Types.Important:
-				color = "0.97 0.2 0.1 0.7";
-				break;
-
-			default:
-				color = "0.2 0.2 0.2 0.5";
-				break;
-		}
+			Tab.OptionButton.Types.Selected => "0.4 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Warned => "0.8 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Important => "0.97 0.2 0.1 0.7",
+			_ => "0.2 0.2 0.2 0.5",
+		};
 
 		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
 			color: color,
@@ -283,26 +271,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, int characterLimit, bool readOnly, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
 	{
-		var color = "0 0 0 0";
-
-		switch (type)
+		var color = type switch
 		{
-			case Tab.OptionButton.Types.Selected:
-				color = "0.4 0.7 0.2 0.7";
-				break;
-
-			case Tab.OptionButton.Types.Warned:
-				color = "0.8 0.7 0.2 0.7";
-				break;
-
-			case Tab.OptionButton.Types.Important:
-				color = "0.97 0.2 0.1 0.7";
-				break;
-
-			default:
-				color = "0.2 0.2 0.2 0.5";
-				break;
-		}
+			Tab.OptionButton.Types.Selected => "0.4 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Warned => "0.8 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Important => "0.97 0.2 0.1 0.7",
+			_ => "0.2 0.2 0.2 0.5",
+		};
 
 		cui.CreatePanel(container, parent, $"{parent}panel",
 			color: "0.2 0.2 0.2 0",
@@ -315,7 +290,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
-		cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
+		var inPanel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: color,
 			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
@@ -323,7 +298,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: color,
 			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
 
-		var input = cui.CreateProtectedInputField(container, parent: $"{parent}inppanel", id: null,
+		cui.CreateProtectedInputField(container, parent: inPanel, id: null,
 			color: $"1 1 1 {(readOnly ? 0.2f : 1f)}",
 			text: placeholder, 11,
 			xMin: 0.03f, xMax: 1, yMin: 0, yMax: 1,
@@ -336,34 +311,21 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (!readOnly)
 		{
-			cui.CreatePanel(container, input, null,
-				color: cui.Color("#4287f5", 0.8f),
-				xMin: 0, xMax: 1, yMin: 0, yMax: 0.065f,
-				OxMin: -6);
+			cui.CreatePanel(container, inPanel, null,
+				color: CUI.Color("#4287f5", 0.8f),
+				xMin: 0, xMax: 1, yMin: 0, yMax: 0.05f,
+				OxMax: -1);
 		}
 	}
 	public void TabPanelEnum(CUI cui, CuiElementContainer container, string parent, string text, string value, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
 	{
-		var color = "0 0 0 0";
-
-		switch (type)
+		var color = type switch
 		{
-			case Tab.OptionButton.Types.Selected:
-				color = "0.4 0.7 0.2 0.7";
-				break;
-
-			case Tab.OptionButton.Types.Warned:
-				color = "0.8 0.7 0.2 0.7";
-				break;
-
-			case Tab.OptionButton.Types.Important:
-				color = "0.97 0.2 0.1 0.7";
-				break;
-
-			default:
-				color = "0.2 0.2 0.2 0.5";
-				break;
-		}
+			Tab.OptionButton.Types.Selected => "0.4 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Warned => "0.8 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Important => "0.97 0.2 0.1 0.7",
+			_ => "0.2 0.2 0.2 0.5",
+		};
 
 		cui.CreatePanel(container, parent, $"{parent}panel",
 			color: "0.2 0.2 0.2 0",
@@ -445,26 +407,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public void TabPanelDropdown(CUI cui, AdminPlayer.Page page, CuiElementContainer container, string parent, string text, string command, float height, float offset, int index, string[] options, string[] optionsIcons, float optionsIconsScale, bool display, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
 	{
-		var color = "0 0 0 0";
-
-		switch (type)
+		var color = type switch
 		{
-			case Tab.OptionButton.Types.Selected:
-				color = "0.4 0.7 0.2";
-				break;
-
-			case Tab.OptionButton.Types.Warned:
-				color = "0.8 0.7 0.2";
-				break;
-
-			case Tab.OptionButton.Types.Important:
-				color = "0.97 0.2 0.1";
-				break;
-
-			default:
-				color = "0.2 0.2 0.2";
-				break;
-		}
+			Tab.OptionButton.Types.Selected => "0.4 0.7 0.2",
+			Tab.OptionButton.Types.Warned => "0.8 0.7 0.2",
+			Tab.OptionButton.Types.Important => "0.97 0.2 0.1",
+			_ => "0.2 0.2 0.2",
+		};
 
 		cui.CreatePanel(container, parent, $"{parent}panel",
 			color: "0.2 0.2 0.2 0",
@@ -612,26 +561,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public void TabPanelRange(CUI cui, CuiElementContainer container, string parent, string text, string command, string valueText, float min, float max, float value, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
 	{
-		var color = "0 0 0 0";
-
-		switch (type)
+		var color = type switch
 		{
-			case Tab.OptionButton.Types.Selected:
-				color = "0.4 0.7 0.2 0.7";
-				break;
-
-			case Tab.OptionButton.Types.Warned:
-				color = "0.8 0.7 0.2 0.7";
-				break;
-
-			case Tab.OptionButton.Types.Important:
-				color = "0.97 0.2 0.1 0.7";
-				break;
-
-			default:
-				color = "0.2 0.2 0.2 0.5";
-				break;
-		}
+			Tab.OptionButton.Types.Selected => "0.4 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Warned => "0.8 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Important => "0.97 0.2 0.1 0.7",
+			_ => "0.2 0.2 0.2 0.5",
+		};
 
 		cui.CreatePanel(container, parent, $"{parent}panel",
 			color: "0.2 0.2 0.2 0",
@@ -653,7 +589,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
 		cui.CreatePanel(container, panel, null,
-			color: cui.Color("#f54242", 0.8f),
+			color: CUI.Color("#f54242", 0.8f),
 			xMin: 0, xMax: value.Scale(min, max, 0f, 1f), yMin: 0, yMax: 1);
 
 		cui.CreateText(container, panel, null, "1 1 1 1", valueText, 8);
