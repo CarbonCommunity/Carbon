@@ -1,5 +1,7 @@
-﻿using API.Hooks;
-using Carbon.Core;
+﻿using System;
+using API.Contracts;
+using API.Hooks;
+using UnityEngine;
 
 /*
  *
@@ -23,9 +25,16 @@ public partial class Category_Static
 
 		public class Static_ServerMgr_OpenConnection_b91c13017e4a43fcb2d81244efd8e5b6
 		{
+			private static readonly Lazy<IEventManager> _events = new(() =>
+			{
+				GameObject gameObject = GameObject.Find("Carbon");
+				return gameObject?.GetComponent<IEventManager>();
+			});
+
 			public static void Postfix()
 			{
-				Loader.OnPluginProcessFinished();
+				_events.Value.Trigger(
+					API.Events.CarbonEvent.OnServerInitialized, EventArgs.Empty);
 			}
 		}
 	}

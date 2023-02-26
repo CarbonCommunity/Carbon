@@ -23,6 +23,14 @@ public static class Loader
 	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new Dictionary<string, Assembly>();
 	public static Dictionary<string, List<string>> PendingRequirees { get; } = new Dictionary<string, List<string>>();
 
+	static Loader()
+	{
+		Community.Runtime.Events.Subscribe(
+			API.Events.CarbonEvent.OnServerInitialized,
+			x => OnPluginProcessFinished()
+		);
+	}
+
 	public static List<string> GetRequirees(Plugin initial)
 	{
 		if (PendingRequirees.TryGetValue(initial.FilePath, out var requirees))
