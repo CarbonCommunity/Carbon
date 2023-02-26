@@ -801,8 +801,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			cui.CreateProtectedButton(container, parent: "main", id: null,
 				color: "0.6 0.2 0.2 0.9",
 				textColor: "1 0.5 0.5 1",
-				text: "X", 13,
-				xMin: 0.96f, xMax: 0.99f, yMin: 0.95f, yMax: 0.99f,
+				text: "X", 10,
+				xMin: 0.97f, xMax: 0.99f, yMin: 0.96f, yMax: 0.99f,
 				command: PanelId + ".close",
 				font: CUI.Handler.FontTypes.DroidSansMono);
 
