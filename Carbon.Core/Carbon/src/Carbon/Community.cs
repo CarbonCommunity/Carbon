@@ -272,23 +272,29 @@ public class Community
 
 		Carbon.Logger.Log("Loaded config");
 
+		Events.Subscribe(API.Events.CarbonEvent.HookValidatorRefreshed, args =>
+		{
+			ModuleProcessor.Init();
+
+			ReloadPlugins();
+		});
+
 		Carbon.Logger.Log($"Loading...");
+		{
+			Defines.Initialize();
+			HookValidator.Initialize();
 
-		Defines.Initialize();
-		HookValidator.Initialize();
+			_installProcessors();
 
-		_installProcessors();
+			Interface.Initialize();
 
-		Interface.Initialize();
+			_clearCommands();
+			_installDefaultCommands();
 
-		_clearCommands();
-		_installDefaultCommands();
+			RefreshConsoleInfo();
 
-		ReloadPlugins();
-
-		RefreshConsoleInfo();
-
-		IsInitialized = true;
+			IsInitialized = true;
+		}
 		Carbon.Logger.Log($"Loaded.");
 		Events.Trigger(API.Events.CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 

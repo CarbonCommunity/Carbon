@@ -57,8 +57,6 @@ public class CorePlugin : CarbonPlugin
 			permission.RefreshUser(player);
 		}
 
-		Community.Runtime.ModuleProcessor.Init();
-
 		timer.Every(5f, () =>
 		{
 			if (!Logger._file._hasInit || Logger._file._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
