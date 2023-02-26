@@ -31,7 +31,7 @@ public partial class Category_Entity
 
 				var fuel = __instance.fuelStoragePrefab.instance as StorageContainer;
 				var item = fuel.inventory.FindItemsByItemName("diesel_barrel"); // Default behaviour
-				var obj = Interface.CallHook("OnQuarryConsumeFuel", __instance, item);
+				var obj = HookCaller.CallStaticHook("OnQuarryConsumeFuel", __instance, item);
 
 				if (obj is Item itemObj)
 				{

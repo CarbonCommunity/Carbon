@@ -29,7 +29,7 @@ public partial class Category_Static
 					return false;
 				}
 
-				return Interface.CallHook("OnServerCommand", arg) == null;
+				return HookCaller.CallStaticHook("OnServerCommand", arg) == null;
 			}
 		}
 	}

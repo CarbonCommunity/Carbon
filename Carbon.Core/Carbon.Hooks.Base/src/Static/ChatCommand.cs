@@ -41,7 +41,7 @@ public partial class Category_Static
 					var args = split.Length > 1 ? fullString.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 					Facepunch.Pool.Free(ref split);
 
-					if (Interface.CallHook("OnPlayerCommand", BasePlayer.FindByID(userId), command, args) != null)
+					if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(userId), command, args) != null)
 					{
 						return false;
 					}
@@ -101,7 +101,7 @@ public partial class Category_Static
 									}
 								}
 
-								if(CooldownAttribute.IsCooledDown(player, cmd.Command ,cmd.Cooldown, true))
+								if (CooldownAttribute.IsCooledDown(player, cmd.Command, cmd.Cooldown, true))
 								{
 									continue;
 								}

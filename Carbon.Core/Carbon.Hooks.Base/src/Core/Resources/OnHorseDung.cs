@@ -26,7 +26,7 @@ public partial class Category_Resources
 		{
 			public static bool Prefix(ref BaseRidableAnimal __instance)
 			{
-				var result = Interface.CallHook("OnHorseDung", __instance);
+				var result = HookCaller.CallStaticHook("OnHorseDung", __instance);
 				var dungItem = (Item)null;
 
 				if (result is Item)

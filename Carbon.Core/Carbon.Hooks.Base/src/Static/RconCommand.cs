@@ -41,7 +41,7 @@ public partial class Category_Static
 					var args2 = arguments.ToArray();
 					Pool.FreeList(ref arguments);
 
-					if (Interface.CallHook("OnRconCommand", cmd.Ip, command, args2) != null)
+					if (HookCaller.CallStaticHook("OnRconCommand", cmd.Ip, command, args2) != null)
 					{
 						return false;
 					}

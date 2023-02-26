@@ -23,10 +23,10 @@ public partial class Category_Entity
 		{
 			public static bool Prefix(BasePlayer ply, ref PatrolHelicopterAI __instance, out bool __result)
 			{
-				var obj = Interface.CallHook("CanPatrolHeliSeePlayer", __instance, ply);
-				if (obj is bool)
+				var obj = HookCaller.CallStaticHook("CanPatrolHeliSeePlayer", __instance, ply);
+				if (obj is bool boolean)
 				{
-					__result = (bool)obj;
+					__result = boolean;
 					return false;
 				}
 
