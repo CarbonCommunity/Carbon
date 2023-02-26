@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon.SDK</Product>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{50B851B5-BF90-4856-91D7-FDB4848AC8F7}</ProjectGuid>
+	</PropertyGroup>
+
+	<Import Project="..\.msbuild\Common.props" />
+
+	<ItemGroup>
+	</ItemGroup>
+
+	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+	</Target>
+</Project>
