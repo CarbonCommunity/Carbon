@@ -124,7 +124,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			cui.CreatePanel(container, button, null,
 				color: "1 1 1 0.4",
 				xMin: 0, xMax: 1f, yMin: 0f, yMax: 0.03f,
-				OxMax: -1);
+				OxMax: -0.5f);
 		}
 	}
 
@@ -314,7 +314,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			cui.CreatePanel(container, inPanel, null,
 				color: CUI.Color("#4287f5", 0.8f),
 				xMin: 0, xMax: 1, yMin: 0, yMax: 0.05f,
-				OxMax: -1);
+				OxMax: -0.5f);
 		}
 	}
 	public void TabPanelEnum(CUI cui, CuiElementContainer container, string parent, string text, string value, string command, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.Selected)
@@ -460,7 +460,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (display)
 		{
-			var _spacing = 20;
+			var _spacing = 22;
 			var _offset = -_spacing;
 			var contentsPerPage = 10;
 			var rowPage = options.Skip(contentsPerPage * page.CurrentPage).Take(contentsPerPage);
@@ -489,7 +489,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
 				cui.CreateText(container, parent: subButton, null, isSelected ? "1 1 1 0.7" : "1 1 1 0.4", current, 10,
-					xMin: string.IsNullOrEmpty(subIcon) ? 0.02f : 0.085f, xMax: 1f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleLeft);
+					xMin: string.IsNullOrEmpty(subIcon) ? 0.035f : 0.085f, xMax: 1f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleLeft);
 
 				if (!string.IsNullOrEmpty(subIcon))
 				{
