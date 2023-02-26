@@ -26,7 +26,7 @@ public class HookManager : FacepunchBehaviour
 	private static readonly string[] Files =
 	{
 		Path.Combine("hooks", "Carbon.Hooks.Base.dll"),
-		Path.Combine("hooks", "Carbon.Hooks.Extended.dll"),
+		Path.Combine("hooks", "Carbon.Hooks.Extra.dll"),
 	};
 
 	private void Awake()

@@ -15,7 +15,7 @@
 *.csproj.user
 
 # Oxide autogen hooks
-**/Carbon.Hooks/Carbon.Hooks.Extended/src/Oxide
+**/Carbon.Hooks/Carbon.Hooks.Extra/src/Oxide
 
 # Project release folder
 [Rr]elease/

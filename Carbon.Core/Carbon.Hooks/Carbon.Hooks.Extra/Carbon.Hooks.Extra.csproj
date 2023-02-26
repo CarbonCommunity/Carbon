@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
 	<PropertyGroup>
-		<Product>Carbon.Hooks.Extended</Product>
+		<Product>Carbon.Hooks.Extra</Product>
 		<OutputType>Library</OutputType>
 		<ProjectGuid>{28195F54-F8A2-49D6-AE91-033D078502AD}</ProjectGuid>
 	</PropertyGroup>

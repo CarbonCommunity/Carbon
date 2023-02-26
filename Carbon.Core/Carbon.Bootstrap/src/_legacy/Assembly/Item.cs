@@ -104,7 +104,7 @@ internal sealed class Item : IDisposable
 			"Carbon.API.dll" => Context.CarbonManaged,
 
 			"Carbon.Hooks.Base.dll" => Context.CarbonHooks,
-			"Carbon.Hooks.Extended.dll" => Context.CarbonHooks,
+			"Carbon.Hooks.Extra.dll" => Context.CarbonHooks,
 
 			_ => null
 		};

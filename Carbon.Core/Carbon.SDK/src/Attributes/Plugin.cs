@@ -15,7 +15,7 @@ public class InfoAttribute : Attribute
 {
 	public string Title { get; }
 	public string Author { get; }
-	public VersionNumber Version { get; private set; }
+	public Version Version { get; private set; }
 
 	public InfoAttribute(string Title, string Author, string Version)
 	{
@@ -41,7 +41,7 @@ public class InfoAttribute : Attribute
 		if (list.Count > 3)
 			throw new Exception($"Version {version} is invalid for {Title}, should be 'major.minor.patch'");
 
-		Version = new VersionNumber(list[0], list[1], list[2]);
+		Version = new Version(list[0], list[1], list[2]);
 	}
 }
 
