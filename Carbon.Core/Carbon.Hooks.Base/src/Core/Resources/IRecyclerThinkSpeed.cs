@@ -26,7 +26,7 @@ public partial class Category_Fixes
 		{
 			private static bool Prefix(Recycler __instance)
 			{
-				var hook = HookCaller.CallStaticHook("IRecyclerThinkSpeed");
+				var hook = HookCaller.CallStaticHook("IRecyclerThinkSpeed", __instance);
 
 				if (hook is float value)
 				{
