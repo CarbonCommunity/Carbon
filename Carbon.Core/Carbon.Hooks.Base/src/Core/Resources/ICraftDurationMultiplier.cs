@@ -16,7 +16,7 @@ public partial class Category_Fixes
 	{
 		[HookAttribute.Patch("ICraftDurationMultiplier", typeof(ItemCrafter), "GetScaledDuration", new System.Type[] { typeof(ItemBlueprint), typeof(float) })]
 		[HookAttribute.Identifier("78c74c0fd6624642815e7b147fda0802")]
-		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden)]
+		[HookAttribute.Options(HookFlags.Hidden)]
 
 		public class Fixes_ItemCrafter_GetScaledDuration_78c74c0fd6624642815e7b147fda0802
 		{
