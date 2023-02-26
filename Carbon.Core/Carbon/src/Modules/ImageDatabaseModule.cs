@@ -112,6 +112,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		{
 			PutsWarn($"The server identifier has changed. Wiping old image database.");
 			_protoData.Map.Clear();
+			_protoData.CustomMap.Clear();
 			_protoData.Identifier = CommunityEntity.ServerInstance.net.ID;
 			return true;
 		}
