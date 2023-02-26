@@ -274,6 +274,9 @@ public class Community
 
 		Events.Subscribe(API.Events.CarbonEvent.HookValidatorRefreshed, args =>
 		{
+			_clearCommands();
+			_installDefaultCommands();
+
 			ModuleProcessor.Init();
 
 			ReloadPlugins();
@@ -287,9 +290,6 @@ public class Community
 			_installProcessors();
 
 			Interface.Initialize();
-
-			_clearCommands();
-			_installDefaultCommands();
 
 			RefreshConsoleInfo();
 
