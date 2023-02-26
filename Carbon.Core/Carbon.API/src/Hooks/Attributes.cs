@@ -9,7 +9,7 @@
 
 namespace API.Hooks;
 
-[AttributeUsage(System.AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class)]
 public class HookAttribute : Attribute
 {
 	[AttributeUsage(AttributeTargets.Class)]
