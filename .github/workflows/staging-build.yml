@@ -159,5 +159,5 @@ jobs:
         files: |
           Release/build-staging-windows/Carbon.Debug.zip
           Release/build-staging-linux/Carbon.DebugUnix.tar.gz
-          Release/build-develop-linux/build-unix.info
-          Release/build-develop-windows/build.info
+          Release/build-staging-linux/build-unix.info
+          Release/build-staging-windows/build.info
