@@ -18,15 +18,16 @@ public partial class Category_Fun
 
 		// Gets triggered when a chicken gets scared by something.
 
-		public class Fun_AnimalBrain_FleeState_StateEnter_4af63eb71cfc44f7a66cb1c16974a5c7
+		public class Fun_AnimalBrain_4af63eb71cfc44f7a66cb1c16974a5c7 : Patch
 		{
-			public static void Postfix(BaseAIBrain brain, BaseEntity entity)
+			public static void Postfix(BaseAIBrain brain)
 			{
 				try
 				{
 					if (brain != null && brain.baseEntity is Chicken chicken)
 					{
-						HookCaller.CallStaticHook("OnChickenScared", chicken, brain.Events.Memory.Entity.Get(brain.Events.CurrentInputMemorySlot));
+						HookCaller.CallStaticHook("OnChickenScared", chicken,
+							brain.Events.Memory.Entity.Get(brain.Events.CurrentInputMemorySlot));
 					}
 				}
 				catch { }

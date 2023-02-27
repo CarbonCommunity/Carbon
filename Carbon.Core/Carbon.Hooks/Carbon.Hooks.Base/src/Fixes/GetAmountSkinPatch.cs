@@ -19,7 +19,7 @@ public partial class Category_Fixes
 		[HookAttribute.Identifier("14c9a1716b4248d4b707fbced49641fd")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden)]
 
-		public class Fixes_ItemContainer_GetAmount_14c9a1716b4248d4b707fbced49641fd
+		public class Fixes_ItemContainer_14c9a1716b4248d4b707fbced49641fd : Patch
 		{
 			public static bool Prefix(int itemid, bool onlyUsableAmounts, out int __result, ref ItemContainer __instance)
 			{

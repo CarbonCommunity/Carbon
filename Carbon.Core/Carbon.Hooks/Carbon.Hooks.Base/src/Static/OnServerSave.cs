@@ -20,14 +20,14 @@ public partial class Category_Static
 
 		// Called before the server saves.
 
-		public class Static_SaveRestore_DoAutomatedSave_eb9f4139698447f594d20fb698c1eb15
+		public class Static_SaveRestore_eb9f4139698447f594d20fb698c1eb15 : Patch
 		{
-			public static void Prefix(bool AndWait = false)
+			public static void Prefix()
 			{
-				Carbon.Logger.Log($"Saving plugin configuration and data..");
+				Logger.Log($"Saving plugin configuration and data..");
 				HookCaller.CallStaticHook("OnServerSave");
 
-				Carbon.Logger.Log($"Saving Carbon state..");
+				Logger.Log($"Saving Carbon state..");
 				Interface.Oxide.Permission.SaveData();
 			}
 		}

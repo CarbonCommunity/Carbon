@@ -24,7 +24,7 @@ public partial class Category_Static
 
 		// Called whenever a Carbon server command is called.
 
-		public class Static_ConsoleSystem_Run_4be71c5d077949cdb88438ec6dabac24
+		public class Static_ConsoleSystem_4be71c5d077949cdb88438ec6dabac24 : Patch
 		{
 			internal static string[] EmptyArgs = new string[0];
 

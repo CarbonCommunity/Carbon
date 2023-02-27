@@ -21,7 +21,7 @@ public partial class Category_Fixes
 		[HookAttribute.Identifier("c44b4b824a274a5a96b9154a612d747a")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden)]
 
-		public class Fixes_ItemContainer_Take_c44b4b824a274a5a96b9154a612d747a
+		public class Fixes_ItemContainer_c44b4b824a274a5a96b9154a612d747a : Patch
 		{
 			public static bool Prefix(List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)
 			{

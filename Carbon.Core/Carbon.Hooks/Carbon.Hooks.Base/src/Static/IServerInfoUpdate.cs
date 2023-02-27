@@ -19,7 +19,7 @@ public partial class Category_Static
 		[HookAttribute.Identifier("aaa38191cc9f4f6f911df9742d552a99")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden | HookFlags.IgnoreChecksum)]
 
-		public class Static_ServerMgr_UpdateServerInformation_aaa38191cc9f4f6f911df9742d552a99
+		public class Static_ServerMgr_aaa38191cc9f4f6f911df9742d552a99 : Patch
 		{
 			public static void Postfix()
 			{

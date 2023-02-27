@@ -3,7 +3,6 @@ using System.Linq;
 using API.Hooks;
 using Carbon.Extensions;
 using Facepunch;
-using Oxide.Core;
 using Oxide.Game.Rust.Libraries;
 
 /*
@@ -25,7 +24,7 @@ public partial class Category_Static
 
 		// Called when an RCON command is run.
 
-		public class Static_RCon_OnCommand_ccce0832a0eb4c28bc2372f5e0812c7e
+		public class Static_RCon_ccce0832a0eb4c28bc2372f5e0812c7e : Patch
 		{
 			public static bool Prefix(RCon.Command cmd)
 			{
@@ -58,7 +57,7 @@ public partial class Category_Static
 							}
 							catch (Exception ex)
 							{
-								Carbon.Logger.Error("RconCommand_OnCommand", ex);
+								Logger.Error("RconCommand_OnCommand", ex);
 							}
 
 							break;

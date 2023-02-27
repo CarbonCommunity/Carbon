@@ -20,18 +20,18 @@ public partial class Category_Static
 
 		// Useful for saving something on server shutdown.
 
-		public class Static_ServerMgr_Shutdown_8a0574c7d2d9420580a5ee90a37de357
+		public class Static_ServerMgr_8a0574c7d2d9420580a5ee90a37de357 : Patch
 		{
 			public static void Prefix()
 			{
-				Carbon.Logger.Log($"Saving plugin configuration and data..");
+				Logger.Log($"Saving plugin configuration and data..");
 				HookCaller.CallStaticHook("OnServerSave");
 				HookCaller.CallStaticHook("OnServerShutdown");
 
-				Carbon.Logger.Log($"Saving Carbon state..");
+				Logger.Log($"Saving Carbon state..");
 				Interface.Oxide.Permission.SaveData();
 
-				Carbon.Logger.Log($"Shutting down Carbon..");
+				Logger.Log($"Shutting down Carbon..");
 				Interface.Oxide.OnShutdown();
 				Community.Runtime.HarmonyProcessor.Clear();
 				Community.Runtime.ScriptProcessor.Clear();

@@ -3,7 +3,6 @@ using API.Hooks;
 using Carbon.Extensions;
 using ConVar;
 using Facepunch.Extend;
-using Oxide.Core;
 using Oxide.Plugins;
 
 /*
@@ -25,7 +24,7 @@ public partial class Category_Static
 
 		// Called before a world prefab is spawned.
 
-		public class Static_Chat_SayAs_fbe2fbe2debc47448ce1c319d441203e
+		public class Static_Chat_fbe2fbe2debc47448ce1c319d441203e : Patch
 		{
 			internal static string[] EmptyArgs = new string[0];
 
