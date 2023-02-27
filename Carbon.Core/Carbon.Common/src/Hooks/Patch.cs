@@ -15,7 +15,8 @@ public class Patch
 {
 	internal static readonly Lazy<IEventManager> _events = new(() =>
 	{
-		GameObject gameObject = GameObject.Find("Carbon");
+		GameObject gameObject = GameObject.Find("Carbon")
+			?? throw new Exception("Carbon GameObject not found");
 		return gameObject?.GetComponent<IEventManager>();
 	});
 

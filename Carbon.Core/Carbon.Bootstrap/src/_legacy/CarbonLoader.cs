@@ -37,6 +37,9 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	internal EventManager Events
 	{ get => _gameObject.GetComponent<EventManager>(); }
 
+	internal IdentityManager Identity
+	{ get => _gameObject.GetComponent<IdentityManager>(); }
+
 	static Loader()
 	{
 		identifier = $"{Guid.NewGuid():N}";
@@ -60,6 +63,7 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 
 		_gameObject.AddComponent<DownloadManager>();
 		_gameObject.AddComponent<EventManager>();
+		_gameObject.AddComponent<IdentityManager>();
 
 		// Events
 		Events.Subscribe(API.Events.CarbonEvent.StartupShared,

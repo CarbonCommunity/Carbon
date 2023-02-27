@@ -20,10 +20,6 @@ public enum CarbonEvent
 	// Carbon.Hooks
 	HooksInstalled, HookValidatorRefreshed,
 
-	// Carbon.Plugins
-	OnPluginProcessFinished,
-
-
 	// Hook like stuff..
 	OnServerInitialized
 }
