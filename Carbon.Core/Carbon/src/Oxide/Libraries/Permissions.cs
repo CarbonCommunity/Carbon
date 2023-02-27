@@ -104,6 +104,8 @@ public class Permission : Library
 				}
 			}
 
+			permissionSet.Clear();
+			groupSet.Clear();
 			userdata.Clear();
 			userdata = null;
 			userdata = validatedUsers;
@@ -116,9 +118,9 @@ public class Permission : Library
 
 			foreach (var data in groupdata)
 			{
-				GroupData value = data.Value;
+				var value = data.Value;
 				permissionSet.Clear();
-				foreach (string item in value.Perms)
+				foreach (var item in value.Perms)
 				{
 					permissionSet.Add(item);
 				}
@@ -144,6 +146,7 @@ public class Permission : Library
 				}
 			}
 
+			permissionSet.Clear();
 			groupdata.Clear();
 			groupdata = null;
 			groupdata = validatedGroups;
