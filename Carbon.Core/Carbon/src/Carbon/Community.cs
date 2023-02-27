@@ -55,6 +55,12 @@ public class Community
 
 			Events = gameObject.GetComponent<IEventManager>();
 			Downloader = gameObject.GetComponent<IDownloadManager>();
+
+			Events.Subscribe(API.Events.CarbonEvent.StartupSharedComplete, args =>
+			{
+				IIdentityManager Identity = gameObject.GetComponent<IIdentityManager>();
+				Logger.Log($"Identity check: {Identity.GetSystemUID}");
+			});
 		}
 		catch (System.Exception ex)
 		{
@@ -280,15 +286,6 @@ public class Community
 			ModuleProcessor.Init();
 
 			ReloadPlugins();
-		});
-
-		Events.Subscribe(API.Events.CarbonEvent.StartupSharedComplete, args =>
-		{
-			GameObject gameObject = GameObject.Find("Carbon")
-				?? throw new Exception("Carbon GameObject not found");
-
-			IIdentityManager Identity = gameObject.GetComponent<IIdentityManager>();
-			Logger.Log($"Identity check: {Identity.GetSystemUID}");
 		});
 
 		Carbon.Logger.Log($"Loading...");
