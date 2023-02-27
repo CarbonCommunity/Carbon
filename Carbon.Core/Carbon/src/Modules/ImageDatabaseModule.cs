@@ -214,7 +214,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 	public uint GetImage(string url, float scale = 0, bool silent = false)
 	{
-		if(_protoData.CustomMap.TryGetValue(url, out var realUrl))
+		if (_protoData.CustomMap.TryGetValue(url, out var realUrl))
 		{
 			url = realUrl;
 		}
@@ -253,6 +253,12 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	public uint GetQRCode(string text, int pixels = 20, bool transparent = false, bool quietZones = true, bool whiteMode = false)
 	{
 		if (_protoData.Map.TryGetValue($"qr_{UiCommandAttribute.Uniquify(text)}_{pixels}_0", out uint uid)) return uid;
+
+		if (text.StartsWith("http"))
+		{
+			PayloadGenerator.Url generator = new PayloadGenerator.Url(text);
+			text = generator.ToString();
+		}
 
 		using (var qrGenerator = new QRCodeGenerator())
 		using (var qrCodeData = qrGenerator.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q))
