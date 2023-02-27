@@ -12,6 +12,6 @@
 		<Reference Include="System.Xml" />
 
 		<!-- Carbon API -->
-		<ProjectReference Include="$(SolutionDir)\Carbon.API\Carbon.API.csproj" Private="false" Condition="!$(Product.Contains('Carbon.API'))" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" Private="false" Condition="!$(Product.Contains('Carbon.Common'))" />
 	</ItemGroup>
 </Project>

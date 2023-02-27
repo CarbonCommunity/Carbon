@@ -7,10 +7,10 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon", "Carbon\Carbon.csproj", "{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}"
 EndProject
 
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.API", "Carbon.API\Carbon.API.csproj", "{531A79E2-9D4E-4C69-B277-D668F515C209}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Bootstrap", "Carbon.Bootstrap\Carbon.Bootstrap.csproj", "{682D913A-35E8-4850-A84D-1D4916597591}"
 EndProject
 
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Bootstrap", "Carbon.Bootstrap\Carbon.Bootstrap.csproj", "{682D913A-35E8-4850-A84D-1D4916597591}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Common", "Carbon.Common\Carbon.Common.csproj", "{531A79E2-9D4E-4C69-B277-D668F515C209}"
 EndProject
 
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Hooks.Base", "Carbon.Hooks\Carbon.Hooks.Base\Carbon.Hooks.Base.csproj", "{D59DCF01-9F04-4FD9-8BE8-DA6E2EFC1211}"

@@ -165,7 +165,7 @@ public class Defines
 		"0Harmony", // v2
 
 		"Carbon",
-		"Carbon.API",
+		"Carbon.Common",
 		"protobuf-net",
 		"protobuf-net.Core",
 
