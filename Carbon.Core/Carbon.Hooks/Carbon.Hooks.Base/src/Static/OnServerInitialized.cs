@@ -1,7 +1,5 @@
 ﻿using System;
-using API.Contracts;
 using API.Hooks;
-using UnityEngine;
 
 /*
  *
@@ -23,17 +21,11 @@ public partial class Category_Static
 		// Called after the server startup has been completed and is awaiting connections.
 		// Also called for plugins that are hotloaded while the server is already started running.
 
-		public class Static_ServerMgr_OpenConnection_b91c13017e4a43fcb2d81244efd8e5b6
+		public class Static_ServerMgr_OpenConnection_b91c13017e4a43fcb2d81244efd8e5b6 : Patch
 		{
-			private static readonly Lazy<IEventManager> _events = new(() =>
-			{
-				GameObject gameObject = GameObject.Find("Carbon");
-				return gameObject?.GetComponent<IEventManager>();
-			});
-
 			public static void Postfix()
 			{
-				_events.Value.Trigger(
+				Events.Trigger(
 					API.Events.CarbonEvent.OnServerInitialized, EventArgs.Empty);
 			}
 		}
