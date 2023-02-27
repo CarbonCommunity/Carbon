@@ -50,11 +50,17 @@ public class Community
 	{
 		try
 		{
-			GameObject gameObject = GameObject.Find("Carbon");
-			if (gameObject == null) throw new Exception("Carbon GameObject not found");
+			GameObject gameObject = GameObject.Find("Carbon")
+				?? throw new Exception("Carbon GameObject not found");
 
 			Events = gameObject.GetComponent<IEventManager>();
 			Downloader = gameObject.GetComponent<IDownloadManager>();
+
+			Events.Subscribe(API.Events.CarbonEvent.StartupSharedComplete, args =>
+			{
+				IIdentityManager Identity = gameObject.GetComponent<IIdentityManager>();
+				Logger.Log($"Identity check: {Identity.GetSystemUID}");
+			});
 		}
 		catch (System.Exception ex)
 		{
@@ -272,23 +278,29 @@ public class Community
 
 		Carbon.Logger.Log("Loaded config");
 
+		Events.Subscribe(API.Events.CarbonEvent.HookValidatorRefreshed, args =>
+		{
+			_clearCommands();
+			_installDefaultCommands();
+
+			ModuleProcessor.Init();
+
+			ReloadPlugins();
+		});
+
 		Carbon.Logger.Log($"Loading...");
+		{
+			Defines.Initialize();
+			HookValidator.Initialize();
 
-		Defines.Initialize();
-		HookValidator.Initialize();
+			_installProcessors();
 
-		_installProcessors();
+			Interface.Initialize();
 
-		Interface.Initialize();
+			RefreshConsoleInfo();
 
-		_clearCommands();
-		_installDefaultCommands();
-
-		ReloadPlugins();
-
-		RefreshConsoleInfo();
-
-		IsInitialized = true;
+			IsInitialized = true;
+		}
 		Carbon.Logger.Log($"Loaded.");
 		Events.Trigger(API.Events.CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 

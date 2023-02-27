@@ -1,4 +1,6 @@
-﻿using System;
+﻿// #define DEBUG_VERBOSE
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -99,10 +101,10 @@ internal sealed class Item : IDisposable
 			"Carbon.Preloader.dll" => Context.CarbonManaged,
 
 			"Carbon.dll" => Context.CarbonManaged,
-			"Carbon.API.dll" => Context.CarbonManaged,
+			"Carbon.Common.dll" => Context.CarbonManaged,
 
 			"Carbon.Hooks.Base.dll" => Context.CarbonHooks,
-			"Carbon.Hooks.Extended.dll" => Context.CarbonHooks,
+			"Carbon.Hooks.Extra.dll" => Context.CarbonHooks,
 
 			_ => null
 		};
@@ -128,12 +130,13 @@ internal sealed class Item : IDisposable
 			if (File.Exists(needle)) return needle;
 		}
 
-		throw new FileNotFoundException(file);
+		return null;
 	}
 
 	private byte[] ReadFile(string file)
 	{
 		byte[] raw = default;
+		if (file == null) return null;
 
 #if DEBUG_VERBOSE
 		Logger.Debug($" - ReadFile: {file}");

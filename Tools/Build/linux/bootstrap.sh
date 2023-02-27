@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###
-### Copyright (c) 2022 Carbon Community 
+### Copyright (c) 2022-2023 Carbon Community 
 ### All rights reserved
 ###
 set -e
@@ -26,7 +26,7 @@ git submodule update
 #HARMONYDIR="${ROOT}/Tools/HarmonyLib/Harmony"
 #sed -i 's/0Harmony/1Harmony/' "${HARMONYDIR}/Harmony.csproj"
 
-for TOOL in DepotDownloader NStrip HarmonyLib; do
+for TOOL in DepotDownloader NStrip; do
   dotnet restore "${ROOT}/Tools/${TOOL}" --verbosity quiet --nologo --force
   dotnet clean   "${ROOT}/Tools/${TOOL}" --verbosity quiet --configuration Release --nologo
   dotnet build   "${ROOT}/Tools/${TOOL}" --verbosity quiet --configuration Release --no-restore --no-incremental

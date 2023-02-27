@@ -37,7 +37,14 @@ public class Permission : Library
 	public Permission()
 	{
 		permset = new Dictionary<Plugin, HashSet<string>>();
+
+		RegisterValidate(delegate (string value)
+		{
+			return ulong.TryParse(value, out var output) && ((output == 0UL) ? 1 : ((int)Math.Floor(Math.Log10(output) + 1.0))) >= 17;
+		});
+
 		LoadFromDatafile();
+		CleanUp();
 	}
 
 	public static char[] Star = new char[] { '*' };
@@ -55,22 +62,110 @@ public class Permission : Library
 	{
 		Utility.DatafileToProto<Dictionary<string, UserData>>("oxide.users", true);
 		Utility.DatafileToProto<Dictionary<string, GroupData>>("oxide.groups", true);
-		userdata = (ProtoStorage.Load<Dictionary<string, UserData>>("oxide.users") ?? new Dictionary<string, UserData>());
-		groupdata = (ProtoStorage.Load<Dictionary<string, GroupData>>("oxide.groups") ?? new Dictionary<string, GroupData>());
 
-		foreach (KeyValuePair<string, GroupData> keyValuePair in groupdata)
+		var needsUserSave = false;
+		var needsGroupSave = false;
+
+		userdata = (ProtoStorage.Load<Dictionary<string, UserData>>("oxide.users") ?? new Dictionary<string, UserData>());
 		{
-			if (!string.IsNullOrEmpty(keyValuePair.Value.ParentGroup) && HasCircularParent(keyValuePair.Key, keyValuePair.Value.ParentGroup))
+			var validatedUsers = new Dictionary<string, UserData>(StringComparer.OrdinalIgnoreCase);
+			var groupSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			var permissionSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+			foreach (var data in userdata)
 			{
-				Carbon.Logger.Warn("Detected circular parent group for '{keyValuePair.Key}'! Removing parent '{keyValuePair.Value.ParentGroup}'");
-				keyValuePair.Value.ParentGroup = null;
+				var value = data.Value;
+
+				permissionSet.Clear();
+				groupSet.Clear();
+
+				foreach (string item in value.Perms)
+				{
+					permissionSet.Add(item);
+				}
+
+				value.Perms = new HashSet<string>(permissionSet, StringComparer.OrdinalIgnoreCase);
+
+				foreach (string item2 in value.Groups)
+				{
+					groupSet.Add(item2);
+				}
+
+				value.Groups = new HashSet<string>(groupSet, StringComparer.OrdinalIgnoreCase);
+				if (validatedUsers.TryGetValue(data.Key, out var userData))
+				{
+					userData.Perms.UnionWith(value.Perms);
+					userData.Groups.UnionWith(value.Groups);
+					needsUserSave = true;
+				}
+				else
+				{
+					validatedUsers.Add(data.Key, value);
+				}
 			}
+
+			permissionSet.Clear();
+			groupSet.Clear();
+			userdata.Clear();
+			userdata = null;
+			userdata = validatedUsers;
+		}
+
+		groupdata = (ProtoStorage.Load<Dictionary<string, GroupData>>("oxide.groups") ?? new Dictionary<string, GroupData>());
+		{
+			var validatedGroups = new Dictionary<string, GroupData>(StringComparer.OrdinalIgnoreCase);
+			var permissionSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+			foreach (var data in groupdata)
+			{
+				var value = data.Value;
+				permissionSet.Clear();
+				foreach (var item in value.Perms)
+				{
+					permissionSet.Add(item);
+				}
+				value.Perms = new HashSet<string>(permissionSet, StringComparer.OrdinalIgnoreCase);
+				if (validatedGroups.ContainsKey(data.Key))
+				{
+					validatedGroups[data.Key].Perms.UnionWith(value.Perms);
+					needsGroupSave = true;
+				}
+				else
+				{
+					validatedGroups.Add(data.Key, value);
+				}
+			}
+
+			foreach (var data in groupdata)
+			{
+				if (!string.IsNullOrEmpty(data.Value.ParentGroup) && HasCircularParent(data.Key, data.Value.ParentGroup))
+				{
+					Carbon.Logger.Warn("Detected circular parent group for '{keyValuePair.Key}'! Removing parent '{keyValuePair.Value.ParentGroup}'");
+					data.Value.ParentGroup = null;
+					needsGroupSave = true;
+				}
+			}
+
+			permissionSet.Clear();
+			groupdata.Clear();
+			groupdata = null;
+			groupdata = validatedGroups;
 		}
 
 		if (!GroupExists("default")) CreateGroup("default", "default", 0);
 		if (!GroupExists("admin")) CreateGroup("admin", "admin", 1);
 
 		IsLoaded = true;
+
+		if (needsUserSave)
+		{
+			SaveUsers();
+		}
+
+		if (needsGroupSave)
+		{
+			SaveGroups();
+		}
 	}
 
 	public virtual void Export(string prefix = "auth")
@@ -114,6 +209,9 @@ public class Permission : Library
 		{
 			userdata.Remove(key);
 		}
+
+		Array.Clear(array, 0, array.Length);
+		array = null;
 	}
 
 	public virtual void MigrateGroup(string oldGroup, string newGroup)

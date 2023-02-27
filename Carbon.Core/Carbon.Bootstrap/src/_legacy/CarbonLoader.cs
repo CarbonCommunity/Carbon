@@ -37,6 +37,9 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	internal EventManager Events
 	{ get => _gameObject.GetComponent<EventManager>(); }
 
+	internal IdentityManager Identity
+	{ get => _gameObject.GetComponent<IdentityManager>(); }
+
 	static Loader()
 	{
 		identifier = $"{Guid.NewGuid():N}";
@@ -60,6 +63,7 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 
 		_gameObject.AddComponent<DownloadManager>();
 		_gameObject.AddComponent<EventManager>();
+		_gameObject.AddComponent<IdentityManager>();
 
 		// Events
 		Events.Subscribe(API.Events.CarbonEvent.StartupShared,
@@ -68,16 +72,6 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 
 	internal void Initialize()
 	{
-		Logger.None(
-			@"                                               " + Environment.NewLine +
-			@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
-			@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
-			@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
-			@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
-			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
-			@"                                               " + Environment.NewLine
-		);
-
 		try
 		{
 			Logger.Log("Patching Facepunch's harmony loader");

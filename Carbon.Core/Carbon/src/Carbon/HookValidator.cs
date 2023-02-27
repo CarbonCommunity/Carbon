@@ -24,24 +24,22 @@ public class HookValidator
 			x => HookValidator.Refresh());
 	}
 
-	public static void Refresh()
+	public static async void Refresh()
 	{
 		string url = "https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj";
-		Community.Runtime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
-			{
-				if (buffer is { Length: > 0 })
-				{
-					Logger.Warn($"Downloaded [{Path.GetFileName(url)}], processing {buffer.Length} bytes from memory");
-					string json = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+		byte[] buffer = await Community.Runtime.Downloader.Download(url);
 
-					OxideHooks = JsonConvert.DeserializeObject<HookPackage>(json);
-					Logger.Debug($"Refreshed {OxideHooksCount} oxide hooks.");
+		if (buffer is { Length: > 0 })
+		{
+			Logger.Warn($"Downloaded [{Path.GetFileName(url)}], processing {buffer.Length} bytes from memory");
+			string json = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
 
-					Community.Runtime.Events.Trigger(
-						API.Events.CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
-				}
-			}
-		);
+			OxideHooks = JsonConvert.DeserializeObject<HookPackage>(json);
+			Logger.Debug($"Refreshed {OxideHooksCount} oxide hooks.");
+
+			Community.Runtime.Events.Trigger(
+				API.Events.CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
+		}
 	}
 
 	public static bool IsIncompatibleOxideHook(string hook)

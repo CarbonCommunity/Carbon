@@ -65,7 +65,7 @@ public class Defines
 		return folder;
 	}
 	public static string GetConfigsFolder()
-	{	
+	{
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customConfigFolder) ? Path.Combine(GetRootFolder(), "configs") : _customConfigFolder);
 		Directory.CreateDirectory(folder);
 
@@ -162,12 +162,12 @@ public class Defines
 		"System.Xml",
 		"System",
 
+		"0Harmony", // v2
+
 		"Carbon",
-		"Carbon.API",
+		"Carbon.Common",
 		"protobuf-net",
 		"protobuf-net.Core",
-
-		"0Harmony",		
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",

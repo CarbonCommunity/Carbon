@@ -161,5 +161,5 @@ jobs:
         files: |
           Release/build-production-windows/Carbon.Release.zip
           Release/build-production-linux/Carbon.ReleaseUnix.tar.gz
-          Release/build-develop-linux/build-unix.info
-          Release/build-develop-windows/build.info
+          Release/build-production-linux/build-unix.info
+          Release/build-production-windows/build.info

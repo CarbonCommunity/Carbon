@@ -44,10 +44,8 @@ public class CarbonModule<C, D> : BaseModule, IModule
 
 	protected void Puts(object message)
 		=> Logger.Log($"[{Name}] {message}");
-
 	protected void PutsError(object message, Exception ex = null)
 		=> Logger.Error($"[{Name}] {message}", ex);
-
 	protected void PutsWarn(object message)
 		=> Logger.Warn($"[{Name}] {message}");
 
@@ -64,16 +62,11 @@ public class CarbonModule<C, D> : BaseModule, IModule
 
 		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
-			//Community.Runtime.HookProcessor.InstallHooks(method.Name);
-			//Community.Runtime.HookProcessor.AppendHook(method.Name);
-
 			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 		}
-		Puts($"Processed hooks");
 
 		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-		Puts("Processed commands");
 
 		File = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
 		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
@@ -114,7 +107,13 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			catch (Exception exception) { Carbon.Logger.Error($"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 		}
 
+		if (PreLoadShouldSave()) shouldSave = true;
+
 		if (shouldSave) Save();
+	}
+	public virtual bool PreLoadShouldSave()
+	{
+		return false;
 	}
 	public virtual void Save()
 	{

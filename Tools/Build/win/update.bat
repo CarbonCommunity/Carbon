@@ -1,5 +1,5 @@
 ::
-:: Copyright (c) 2022 Carbon Community 
+:: Copyright (c) 2022-2023 Carbon Community 
 :: All rights reserved
 ::
 @echo off
@@ -21,7 +21,7 @@ FOR %%O IN (windows linux) DO (
 	rem Download rust binary libs
 	"%ROOT%\Tools\DepotDownloader\DepotDownloader\bin\Release\net6.0\DepotDownloader.exe" ^
 		-os %%O -validate -app 258550 -branch %TARGET% -filelist ^
-		"%ROOT%\Tools\Helpers\258550_258551_refs.txt" -dir "%ROOT%\Rust\%%O"
+		"%ROOT%\Tools\Helpers\258550_refs.txt" -dir "%ROOT%\Rust\%%O"
 
 	rem Show me all you've got baby
 	"%ROOT%\Tools\NStrip\NStrip\bin\Release\net452\NStrip.exe" ^

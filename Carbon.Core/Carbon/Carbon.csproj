@@ -25,18 +25,14 @@
 
 		<!-- Required by Carbon's Database support -->
 		<PackageReference Include="MySql.Data" Version="8.0.31" />
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" />
 		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
+
+		<!-- Miscellaneous -->
+		<PackageReference Include="QRCoder" Version="1.4.3" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
 
-	<Target Name="AfterResolveReferences">
-		<!-- Redefine referencepath to add dependencies-->
-		<ItemGroup>
-			<ReferencePath Include="@(ReferenceDependencyPaths)"></ReferencePath>
-		</ItemGroup>
-	</Target>
 </Project>

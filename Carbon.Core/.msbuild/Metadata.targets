@@ -14,7 +14,7 @@
 		</PropertyGroup>
 
 		<Message Text="[$(AssemblyName)] &gt;&gt; Saving git metadata to disk" Importance="high" />
-		<WriteLinesToFile File="$(SolutionDir)$(Product)\bin\.gitag" Overwrite="true" Lines="$(Gitag)" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitag" Overwrite="true" Lines="$(Gitag)" />
 	</Target>
 
 	<Target Name="CarbonPreBuildEvent" BeforeTargets="PreBuildEvent">

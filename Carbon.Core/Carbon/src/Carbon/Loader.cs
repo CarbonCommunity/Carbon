@@ -23,6 +23,14 @@ public static class Loader
 	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new Dictionary<string, Assembly>();
 	public static Dictionary<string, List<string>> PendingRequirees { get; } = new Dictionary<string, List<string>>();
 
+	static Loader()
+	{
+		Community.Runtime.Events.Subscribe(
+			API.Events.CarbonEvent.OnServerInitialized,
+			x => OnPluginProcessFinished()
+		);
+	}
+
 	public static List<string> GetRequirees(Plugin initial)
 	{
 		if (PendingRequirees.TryGetValue(initial.FilePath, out var requirees))
@@ -110,7 +118,6 @@ public static class Loader
 		}
 		finally
 		{
-			//Harmony.FileLog.FlushBuffer();
 			HarmonyLib.FileLog.FlushBuffer();
 		}
 	}
@@ -177,17 +184,6 @@ public static class Loader
 					}
 				}
 			}
-
-			/*try
-			{
-				mod.Harmonyv1 = Harmony.HarmonyInstance.Create(domain);
-				mod.Harmonyv1.PatchAll(assembly);
-			}
-			catch (Exception e)
-			{
-				if (!silent)
-					LogError(mod.Name, string.Format("Failed to patch all v1 hooks: {0}", e));
-			}*/
 
 			try
 			{
@@ -555,6 +551,14 @@ public static class Loader
 			{
 				foreach (var plugin in mod.Plugins)
 				{
+					try { plugin.InternalApplyPluginReferences(); } catch { }
+				}
+			}
+
+			foreach (var mod in _loadedMods)
+			{
+				foreach (var plugin in mod.Plugins)
+				{
 					if (plugin.HasInitialized) continue;
 					counter++;
 
@@ -591,8 +595,6 @@ public static class Loader
 
 			Report.OnProcessEnded?.Invoke();
 		}
-
-		Community.Runtime.Events.Trigger(API.Events.CarbonEvent.OnPluginProcessFinished, EventArgs.Empty);
 	}
 
 	#endregion
@@ -600,23 +602,6 @@ public static class Loader
 	internal static void UnloadMod(CarbonMod mod)
 	{
 		if (mod.IsCoreMod) return;
-
-		/*if (mod.Harmonyv1 != null)
-		{
-			Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v1...");
-
-			try
-			{
-				mod.Harmonyv1.UnpatchAll(mod.Harmonyv1.Id);
-				Log(mod.Name, "Unloaded v1 mod");
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"Failed unpatching all v1 patches.", ex);
-			}
-
-			mod.Harmonyv1 = null;
-		}*/
 
 		if (mod.Harmonyv2 != null)
 		{
@@ -711,7 +696,6 @@ public static class Loader
 		public string File { get; set; } = string.Empty;
 		[JsonProperty]
 		public bool IsCoreMod { get; set; } = false;
-		//public Harmony.HarmonyInstance Harmonyv1 { get; set; }
 		public HarmonyLib.Harmony Harmonyv2 { get; set; }
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }

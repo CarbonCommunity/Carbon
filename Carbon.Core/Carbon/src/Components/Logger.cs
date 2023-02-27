@@ -27,7 +27,7 @@ public class Logger
 	}
 	internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1)
 	{
-		_file.Init();
+		_file.Init(backup: true);
 
 		if (severity != Severity.Debug)
 		{

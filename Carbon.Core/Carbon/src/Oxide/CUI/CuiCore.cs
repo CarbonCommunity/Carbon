@@ -88,10 +88,10 @@ public class CuiButtonComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.Button";
 
-	[JsonProperty("command")]
+	[JsonProperty( "command", NullValueHandling = NullValueHandling.Ignore)]
 	public string Command { get; set; }
 
-	[JsonProperty("close")]
+	[JsonProperty("close", NullValueHandling = NullValueHandling.Ignore)]
 	public string Close { get; set; }
 
 	[DefaultValue("Assets/Content/UI/UI.Background.Tile.psd")]
@@ -102,14 +102,16 @@ public class CuiButtonComponent : ICuiComponent, ICuiColor
 	[JsonProperty("material")]
 	public string Material { get; set; } = "Assets/Icons/IconMaterial.mat";
 
-	public string Color { get; set; } = "1.0 1.0 1.0 1.0";
+	[DefaultValue("1 1 1 1")]
+	[JsonProperty("color", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string Color { get; set; } = "1 1 1 1";
 
 	[DefaultValue(Image.Type.Simple)]
 	[JsonConverter(typeof(StringEnumConverter))]
 	[JsonProperty("imagetype")]
 	public Image.Type ImageType { get; set; }
 
-	[JsonProperty("fadeIn")]
+	[JsonProperty("fadeIn", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeIn { get; set; }
 }
 public class CuiElementContainer : List<CuiElement>
@@ -212,28 +214,30 @@ public class CuiImageComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.Image";
 
-	[JsonProperty("sprite")]
+	[JsonProperty("sprite", NullValueHandling = NullValueHandling.Ignore)]
 	public string Sprite { get; set; }
 
-	[JsonProperty("material")]
+	[JsonProperty("material", NullValueHandling = NullValueHandling.Ignore)]
 	public string Material { get; set; }
 
-	public string Color { get; set; }
+	[DefaultValue("1 1 1 1")]
+	[JsonProperty("color", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string Color { get; set; } = "1 1 1 1";
 
 	[JsonConverter(typeof(StringEnumConverter))]
 	[JsonProperty("imagetype")]
 	public Image.Type ImageType { get; set; }
 
-	[JsonProperty("png")]
+	[JsonProperty("png", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string Png { get; set; }
 
-	[JsonProperty("fadeIn")]
+	[JsonProperty("fadeIn", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeIn { get; set; }
 
-	[JsonProperty("itemid")]
+	[JsonProperty("itemid", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public int ItemId { get; set; }
 
-	[JsonProperty("skinid")]
+	[JsonProperty("skinid", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public ulong SkinId { get; set; }
 }
 public class CuiInputFieldComponent : ICuiComponent, ICuiColor
@@ -257,32 +261,34 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 	[JsonProperty("align")]
 	public TextAnchor Align { get; set; }
 
-	public string Color { get; set; } = "1.0 1.0 1.0 1.0";
+	[DefaultValue("1 1 1 1")]
+	[JsonProperty("color", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string Color { get; set; } = "1 1 1 1";
 
 	[DefaultValue(100)]
-	[JsonProperty("characterLimit")]
+	[JsonProperty("characterLimit", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public int CharsLimit { get; set; } = 100;
 
-	[JsonProperty("command")]
+	[JsonProperty("command", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string Command { get; set; }
 
 	[DefaultValue(false)]
-	[JsonProperty("password")]
+	[JsonProperty("password", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public bool IsPassword { get; set; }
 
-	[JsonProperty("readOnly")]
+	[JsonProperty("readOnly", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public bool ReadOnly { get; set; }
 
 	[DefaultValue(false)]
-	[JsonProperty("needsCursor")]
+	[JsonProperty("needsCursor", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public bool NeedsCursor { get; set; }
 
 	[DefaultValue(false)]
-	[JsonProperty("needsKeyboard")]
+	[JsonProperty("needsKeyboard", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public bool NeedsKeyboard { get; set; }
 
 	[JsonConverter(typeof(StringEnumConverter))]
-	[JsonProperty("lineType")]
+	[JsonProperty("lineType", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public InputField.LineType LineType { get; set; }
 
 }
@@ -298,74 +304,78 @@ public class CuiOutlineComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.Outline";
 
-	public string Color { get; set; } = "1.0 1.0 1.0 1.0";
+	[DefaultValue("1 1 1 1")]
+	[JsonProperty("color", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string Color { get; set; } = "1 1 1 1";
 
 	[DefaultValue("1.0 -1.0")]
-	[JsonProperty("distance")]
+	[JsonProperty("distance", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string Distance { get; set; } = "1.0 -1.0";
 
 	[DefaultValue(false)]
-	[JsonProperty("useGraphicAlpha")]
+	[JsonProperty("useGraphicAlpha", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public bool UseGraphicAlpha { get; set; }
 }
 public class CuiRawImageComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.RawImage";
 
-	[JsonProperty("sprite")]
+	[JsonProperty("sprite", NullValueHandling = NullValueHandling.Ignore)]
 	public string Sprite { get; set; } = "assets/content/textures/generic/fulltransparent.tga";
 
-	public string Color { get; set; }
+	[DefaultValue("1 1 1 1")]
+	[JsonProperty("color", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string Color { get; set; } = "1 1 1 1";
 
-	[JsonProperty("material")]
+	[JsonProperty("material", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string Material { get; set; }
 
-	[JsonProperty("url")]
+	[JsonProperty("url", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string Url { get; set; }
 
-	[JsonProperty("png")]
+	[JsonProperty("png", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string Png { get; set; }
 
-	[JsonProperty("fadeIn")]
+	[JsonProperty("fadeIn", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeIn { get; set; }
 }
 public class CuiRectTransformComponent : ICuiComponent
 {
 	public string Type => "RectTransform";
 
-	[DefaultValue("0.0 0.0")]
-	[JsonProperty("anchormin")]
-	public string AnchorMin { get; set; } = "0.0 0.0";
+	[DefaultValue("0 0")]
+	[JsonProperty("anchormin", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string AnchorMin { get; set; } = "0 0";
 
-	[DefaultValue("1.0 1.0")]
-	[JsonProperty("anchormax")]
-	public string AnchorMax { get; set; } = "1.0 1.0";
+	[DefaultValue("1 1")]
+	[JsonProperty("anchormax", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string AnchorMax { get; set; } = "1 1";
 
-	[DefaultValue("0.0 0.0")]
-	[JsonProperty("offsetmin")]
-	public string OffsetMin { get; set; } = "0.0 0.0";
+	[DefaultValue("0 0")]
+	[JsonProperty("offsetmin", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string OffsetMin { get; set; } = "0 0";
 
-	[DefaultValue("0.0 0.0")]
+	[DefaultValue("0 0")]
 	[JsonProperty("offsetmax")]
-	public string OffsetMax { get; set; } = "0.0 0.0";
+	public string OffsetMax { get; set; } = "0 0";
 }
 public class CuiCountdownComponent : ICuiComponent
 {
 	public string Type => "Countdown";
 
-	[JsonProperty("endTime")]
+	[JsonProperty("endTime", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public int EndTime { get; set; }
 
-	[JsonProperty("startTime")]
+	[JsonProperty("startTime", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public int StartTime { get; set; }
 
-	[JsonProperty("step")]
+	[JsonProperty("step", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public int Step { get; set; }
 
-	[JsonProperty("command")]
+	[JsonProperty("command", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string Command { get; set; }
 
-	[JsonProperty("fadeIn")]
+	[JsonProperty("fadeIn", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeIn { get; set; }
 }
 public class CuiTextComponent : ICuiComponent, ICuiColor
@@ -373,11 +383,11 @@ public class CuiTextComponent : ICuiComponent, ICuiColor
 	public string Type => "UnityEngine.UI.Text";
 
 	[DefaultValue("Text")]
-	[JsonProperty("text")]
+	[JsonProperty("text", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string Text { get; set; } = "Text";
 
 	[DefaultValue(14)]
-	[JsonProperty("fontSize")]
+	[JsonProperty("fontSize", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public int FontSize { get; set; } = 14;
 
 	[DefaultValue("RobotoCondensed-Bold.ttf")]
@@ -386,13 +396,14 @@ public class CuiTextComponent : ICuiComponent, ICuiColor
 
 	[DefaultValue(TextAnchor.UpperLeft)]
 	[JsonConverter(typeof(StringEnumConverter))]
-	[JsonProperty("align")]
+	[JsonProperty("align", NullValueHandling = NullValueHandling.Ignore)]
 	public TextAnchor Align { get; set; }
 
-	[JsonProperty("color")]
-	public string Color { get; set; } = "1.0 1.0 1.0 1.0";
+	[DefaultValue("1 1 1 1")]
+	[JsonProperty("color", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string Color { get; set; } = "1 1 1 1";
 
-	[JsonProperty("fadeIn")]
+	[JsonProperty("fadeIn", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeIn { get; set; }
 }
 
@@ -417,7 +428,10 @@ public class CuiElement
 	[JsonProperty("components")]
 	public List<ICuiComponent> Components { get; } = new List<ICuiComponent>();
 
-	[JsonProperty("fadeOut")]
+	[JsonProperty("destroyUi", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string DestroyUI { get; set; }
+
+	[JsonProperty("fadeOut", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeOut { get; set; }
 }
 public class CuiLabel

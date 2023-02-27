@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Carbon.Core;
@@ -33,29 +33,45 @@ public class FileLogger : IDisposable
 		Name = name;
 	}
 
-	public virtual void Init(bool archive = false)
+	public virtual void Init(bool archive = false, bool backup = false)
 	{
-		if (_hasInit) return;
+		if (_hasInit && !archive) return;
 
 		var path = Path.Combine(Defines.GetLogsFolder(), $"{Name}.log");
+		var archiveFolder = Path.Combine(Defines.GetLogsFolder(), "archive");
+		OsEx.Folder.Create(archiveFolder);
 
-		try
+		if (backup && OsEx.File.Exists(path))
 		{
-			File.Delete(path);
-			//File.Delete(Harmony.FileLog.logPath);
-			File.Delete(HarmonyLib.FileLog.LogPath);
-		}
-		catch { }
+			var backupPath = Path.Combine(archiveFolder, $"{Name}.backup.{DateTime.Now:yyyy.MM.dd}.log");
+			var logContent = OsEx.File.ReadText(path);
 
-		_hasInit = true;
+			if (OsEx.File.Exists(backupPath))
+			{
+				File.AppendAllText(backupPath, logContent);
+			}
+			else
+			{
+				OsEx.File.Create(backupPath, logContent);
+			}
+		}
 
 		if (archive)
 		{
 			if (OsEx.File.Exists(path))
 			{
-				OsEx.File.Move(path, Path.Combine(Defines.GetLogsFolder(), "archive", $"{Name}.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
+				OsEx.File.Move(path, Path.Combine(archiveFolder, $"{Name}.{DateTime.Now:yyyy.MM.dd.HHmmss}.log"));
 			}
 		}
+
+		try
+		{
+			File.Delete(path);
+			File.Delete(HarmonyLib.FileLog.LogPath);
+		}
+		catch { }
+
+		_hasInit = true;
 
 		_file = new StreamWriter(path, append: true);
 	}

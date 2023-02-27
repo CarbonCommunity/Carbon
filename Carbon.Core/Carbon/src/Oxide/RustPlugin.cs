@@ -168,16 +168,26 @@ public class RustPlugin : Plugin
 	public void RaiseError(object message)
 		=> Carbon.Logger.Error($"[{Name}] {message}", null);
 
-	protected void LogToFile(string filename, string text, Plugin plugin, bool timeStamp = true)
+	protected void LogToFile(string filename, string text, Plugin plugin = null, bool timeStamp = true)
 	{
-		var logFolder = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
+		string logFolder;
+
+		if (plugin == null)
+		{
+			var subFolder = Path.GetDirectoryName(filename);
+			filename = Path.GetFileName(filename);
+			logFolder = Path.Combine(Defines.GetLogsFolder(), subFolder) + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
+		}
+		else
+		{
+			logFolder = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
+			filename = plugin.Name.ToLower() + "_" + filename.ToLower() + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
+		}
 
 		if (!Directory.Exists(logFolder))
 		{
 			Directory.CreateDirectory(logFolder);
 		}
-
-		filename = plugin.Name.ToLower() + "_" + filename.ToLower() + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
 
 		File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
 	}

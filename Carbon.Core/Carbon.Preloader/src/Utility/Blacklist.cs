@@ -7,7 +7,7 @@
  *
  */
 
-namespace Carbon.Utility;
+namespace Utility;
 
 internal static class Blacklist
 {
