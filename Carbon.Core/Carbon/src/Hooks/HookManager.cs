@@ -213,11 +213,14 @@ public class HookManager : FacepunchBehaviour
 			return;
 		}
 
-		Type t = hooks.GetType("Carbon.Hooks.HookAttribute.Patch")
+		Type @base = hooks.GetType("Carbon.Hooks.Patch")
+			?? typeof(Patch);
+
+		Type attr = hooks.GetType("Carbon.Hooks.HookAttribute.Patch")
 			?? typeof(HookAttribute.Patch);
 
 		IEnumerable<TypeInfo> types = hooks.DefinedTypes
-			.Where(x => Attribute.IsDefined(x, t)).ToList();
+			.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr)).ToList();
 
 		int x = 0, y = 0, z = 0;
 		foreach (TypeInfo type in types)
