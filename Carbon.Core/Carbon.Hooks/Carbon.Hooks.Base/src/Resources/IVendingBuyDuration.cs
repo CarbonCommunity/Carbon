@@ -12,7 +12,7 @@ namespace Carbon.Hooks;
 
 public partial class Category_Fixes
 {
-	public partial class Fixes_ItemCrafter
+	public partial class Fixes_VendingMachine
 	{
 		[HookAttribute.Patch("IVendingBuyDuration", typeof(VendingMachine), "GetBuyDuration", new System.Type[] {  })]
 		[HookAttribute.Identifier("846de3cd762846e68206ffae9c97911f")]
