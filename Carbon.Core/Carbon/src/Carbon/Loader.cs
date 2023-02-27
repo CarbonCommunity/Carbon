@@ -595,8 +595,6 @@ public static class Loader
 
 			Report.OnProcessEnded?.Invoke();
 		}
-
-		Community.Runtime.Events.Trigger(API.Events.CarbonEvent.OnPluginProcessFinished, EventArgs.Empty);
 	}
 
 	#endregion
