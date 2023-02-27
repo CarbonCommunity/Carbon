@@ -503,7 +503,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (page.TotalPages > 0)
 			{
 				var controls = cui.CreatePanel(container, parent: $"{parent}inppanel", id: null, "0.2 0.2 0.2 0.2",
-					OyMin: _offset, OyMax: _offset,
+					OyMin: _offset, OyMax: _offset - 2,
 					OxMin: shiftOffset);
 
 				var id = cui.CreatePanel(container, controls, id: $"{parent}dropdown",
