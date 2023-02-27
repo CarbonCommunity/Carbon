@@ -56,10 +56,6 @@ internal sealed class IdentityManager : MonoBehaviour, IIdentityManager
 		return info;
 	});
 
-
-	public string GetSystemUID
-	{ get => _serverInfo.Value.UID; }
-
 	private static string Generate()
 	{
 		//SteamServer.PublicIp.ToString();
@@ -94,4 +90,7 @@ internal sealed class IdentityManager : MonoBehaviour, IIdentityManager
 		byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));
 		return BitConverter.ToString(hash).Replace("-", "").ToLower();
 	}
+
+	public string GetSystemUID
+	{ get => _serverInfo.Value.UID; }
 }
