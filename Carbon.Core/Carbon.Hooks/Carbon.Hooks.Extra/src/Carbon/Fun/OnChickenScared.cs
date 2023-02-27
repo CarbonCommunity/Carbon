@@ -18,7 +18,7 @@ public partial class Category_Fun
 
 		// Gets triggered when a chicken gets scared by something.
 
-		public class Fun_AnimalBrain_4af63eb71cfc44f7a66cb1c16974a5c7 : Patch
+		public class Fun_AnimalBrain_4af63eb71cfc44f7a66cb1c16974a5c7 : API.Hooks.Patch
 		{
 			public static void Postfix(BaseAIBrain brain)
 			{

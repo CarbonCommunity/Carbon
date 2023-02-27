@@ -24,7 +24,7 @@ public partial class Category_Static
 
 		// Called before a world prefab is spawned.
 
-		public class Static_Chat_fbe2fbe2debc47448ce1c319d441203e : Patch
+		public class Static_Chat_fbe2fbe2debc47448ce1c319d441203e : API.Hooks.Patch
 		{
 			internal static string[] EmptyArgs = new string[0];
 

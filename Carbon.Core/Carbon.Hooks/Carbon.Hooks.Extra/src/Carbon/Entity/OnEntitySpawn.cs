@@ -18,7 +18,7 @@ public partial class Category_Entity
 
 		// Called before any networked entity has spawned (including trees).
 
-		public class Entity_BaseNetworkable_c7d1643393324307bdaa4c11df129a66 : Patch
+		public class Entity_BaseNetworkable_c7d1643393324307bdaa4c11df129a66 : API.Hooks.Patch
 		{
 			public static void Prefix(ref BaseNetworkable __instance)
 				=> HookCaller.CallStaticHook("OnEntitySpawn", __instance);

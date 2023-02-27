@@ -21,7 +21,7 @@ public partial class Category_Resources
 		// Called when a dung is spawned at the backside of the horse.
 		// Override the return with an item to replace the Dung with any other item that's being dropped.
 
-		public class Resources_BaseRidableAnimal_e5beabfdc524496dbf5657149585bdac : Patch
+		public class Resources_BaseRidableAnimal_e5beabfdc524496dbf5657149585bdac : API.Hooks.Patch
 		{
 			public static bool Prefix(ref BaseRidableAnimal __instance)
 			{

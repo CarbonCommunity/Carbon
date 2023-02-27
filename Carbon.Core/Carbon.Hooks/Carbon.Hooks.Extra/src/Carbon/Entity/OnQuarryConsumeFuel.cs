@@ -18,7 +18,7 @@ public partial class Category_Entity
 
 		// Used to override the fuel needed for any Quarries & Pumpjacks that are running on a server.
 
-		public class Entity_MiningQuarry_28548a7241fa45bd8da612c9187c1e50 : Patch
+		public class Entity_MiningQuarry_28548a7241fa45bd8da612c9187c1e50 : API.Hooks.Patch
 		{
 			public static bool Prefix(ref MiningQuarry __instance, out bool __result)
 			{

@@ -18,7 +18,7 @@ public partial class Category_Resources
 
 		// Called before growable entity will be updated.
 
-		public class Resources_GrowableEntity_0122c151c6dd4865a324d79d05155a57 : Patch
+		public class Resources_GrowableEntity_0122c151c6dd4865a324d79d05155a57 : API.Hooks.Patch
 		{
 			public static void Prefix(ref GrowableEntity __instance)
 				=> HookCaller.CallStaticHook("OnGrowableUpdate", __instance);

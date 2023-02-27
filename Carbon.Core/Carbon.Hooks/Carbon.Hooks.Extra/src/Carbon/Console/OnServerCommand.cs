@@ -18,7 +18,7 @@ public partial class Category_Static
 
 		// Useful for intercepting commands before they get to their intended target.
 
-		public class Static_ConsoleSystem_ServerConsoleCommand_c12426936931457aa7f9cdf6db1a1127 : Patch
+		public class Static_ConsoleSystem_ServerConsoleCommand_c12426936931457aa7f9cdf6db1a1127 : API.Hooks.Patch
 		{
 			public static bool Prefix(ConsoleSystem.Arg arg)
 			{

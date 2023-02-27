@@ -20,7 +20,7 @@ public partial class Category_Static
 
 		// Called before the server saves.
 
-		public class Static_SaveRestore_eb9f4139698447f594d20fb698c1eb15 : Patch
+		public class Static_SaveRestore_eb9f4139698447f594d20fb698c1eb15 : API.Hooks.Patch
 		{
 			public static void Prefix()
 			{
