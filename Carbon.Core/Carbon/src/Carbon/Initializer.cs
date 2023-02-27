@@ -20,7 +20,7 @@ public class Initializer : IHarmonyModHooks
 		{
 			if (IsOxideAround())
 			{
-				Carbon.Logger.Log(Environment.NewLine +
+				Logger.Log(Environment.NewLine +
 					@"                                                          " + Environment.NewLine +
 					@"  ________ _______ ______ _______ _______ _______ _______ " + Environment.NewLine +
 					@" |  |  |  |   _   |   __ \    |  |_     _|    |  |     __|" + Environment.NewLine +
@@ -40,7 +40,7 @@ public class Initializer : IHarmonyModHooks
 		}
 		catch (Exception e)
 		{
-			Carbon.Logger.Error("Unable to assert assembly status.", e);
+			Logger.Error("Unable to assert assembly status.", e);
 			return;
 		}
 
@@ -51,7 +51,7 @@ public class Initializer : IHarmonyModHooks
 
 			if (method == null || !method.IsPublic)
 			{
-				Carbon.Logger.Log(Environment.NewLine +
+				Logger.Log(Environment.NewLine +
 					@"                                                          " + Environment.NewLine +
 					@"  ________ _______ ______ _______ _______ _______ _______ " + Environment.NewLine +
 					@" |  |  |  |   _   |   __ \    |  |_     _|    |  |     __|" + Environment.NewLine +
@@ -71,11 +71,11 @@ public class Initializer : IHarmonyModHooks
 		}
 		catch (Exception e)
 		{
-			Carbon.Logger.Error("Unable to assert assembly status.", e);
+			Logger.Error("Unable to assert assembly status.", e);
 			return;
 		}
 
-		Carbon.Logger.Log(Environment.NewLine +
+		Logger.Log(Environment.NewLine +
 			@"                                               " + Environment.NewLine +
 			@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
 			@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
@@ -87,7 +87,7 @@ public class Initializer : IHarmonyModHooks
 
 		try
 		{
-			Carbon.Logger.Log("Initializing...");
+			Logger.Log("Initializing...");
 
 			if (Community.Runtime == null) Community.Runtime = new Community();
 			else Community.Runtime?.Uninitalize();
@@ -96,14 +96,14 @@ public class Initializer : IHarmonyModHooks
 		}
 		catch (System.Exception e)
 		{
-			Carbon.Logger.Error("Unable to initialize.", e.InnerException ?? e);
+			Logger.Error("Unable to initialize.", e.InnerException ?? e);
 			return;
 		}
 	}
 
 	public void OnUnloaded(OnHarmonyModUnloadedArgs args)
 	{
-		Carbon.Logger.Log("Uninitalizing...");
+		Logger.Log("Uninitalizing...");
 		Community.Runtime?.Uninitalize();
 		Community.Runtime = null;
 	}

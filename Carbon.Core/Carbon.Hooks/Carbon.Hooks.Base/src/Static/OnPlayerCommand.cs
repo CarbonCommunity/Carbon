@@ -112,7 +112,7 @@ public partial class Category_Static
 							}
 							catch (Exception ex)
 							{
-								Carbon.Logger.Error("ConsoleSystem_Run", ex);
+								Logger.Error("ConsoleSystem_Run", ex);
 							}
 
 							return false;
