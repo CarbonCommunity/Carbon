@@ -17,16 +17,15 @@ public partial class Category_Fixes
 {
 	public partial class Fixes_ItemContainer
 	{
-		[HookAttribute.Patch("IItemContainerTakePatch", typeof(ItemContainer), "Take", new System.Type[] { typeof(List<Item>), typeof(int), typeof(int) })]
+		[HookAttribute.Patch("IDisallowSkinnedItemsFromBeingCraftable", typeof(ItemContainer), "Take", new System.Type[] { typeof(List<Item>), typeof(int), typeof(int) })]
 		[HookAttribute.Identifier("c44b4b824a274a5a96b9154a612d747a")]
-		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden)]
+		[HookAttribute.Options(HookFlags.Hidden)]
 
 		public class Fixes_ItemContainer_c44b4b824a274a5a96b9154a612d747a : Patch
 		{
 			public static bool Prefix(List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)
 			{
-				var overrides = BaseModule.GetModule<RustOverridesModule>();
-				if (!overrides.ConfigInstance.Enabled || !overrides.Config.DisallowSkinnedItemsFromBeingCraftable)
+				if (HookCaller.CallStaticHook("IDisallowSkinnedItemsFromBeingCraftable") == null)
 				{
 					__result = default;
 					return true;
