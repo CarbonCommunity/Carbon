@@ -123,12 +123,12 @@ public class HookEx : IDisposable
 
 			_patchMethod = type;
 			_runtime.Status = HookState.Inactive;
-			_runtime.HarmonyHandler = new HarmonyLib.Harmony(Identifier);
+			_runtime.HarmonyHandler = new Harmony(Identifier);
 
 			// cache the additional metadata about the hook
-			_runtime.Prefix = HarmonyLib.AccessTools.Method(type, "Prefix") ?? null;
-			_runtime.Postfix = HarmonyLib.AccessTools.Method(type, "Postfix") ?? null;
-			_runtime.Transpiler = HarmonyLib.AccessTools.Method(type, "Transpiler") ?? null;
+			_runtime.Prefix = AccessTools.Method(type, "Prefix") ?? null;
+			_runtime.Postfix = AccessTools.Method(type, "Postfix") ?? null;
+			_runtime.Transpiler = AccessTools.Method(type, "Transpiler") ?? null;
 
 			if (_runtime.Prefix is null && _runtime.Postfix is null && _runtime.Transpiler is null)
 				throw new Exception($"No patch method found (prefix, postfix, transpiler)");
@@ -146,22 +146,27 @@ public class HookEx : IDisposable
 		{
 			if (IsInstalled) return true;
 
-			MethodInfo original = HarmonyLib.AccessTools.Method(
-				TargetType, TargetMethod, TargetMethodArgs) ?? null;
+			MethodBase original;
+			if (TargetMethod == null)
+			{
+				original = AccessTools.Constructor(TargetType, TargetMethodArgs);
+			}
+			else
+			{
+				original = AccessTools.Method(
+					TargetType, TargetMethod, TargetMethodArgs) ?? null;
+			}
 
 			if (original is null)
 				throw new Exception($"Target method not found");
 
 			bool hasValidChecksum = (IsChecksumIgnored) || IsChecksumValid(original, Checksum);
 
-			MethodInfo current = _runtime.HarmonyHandler.Patch(original,
-				prefix: _runtime.Prefix == null ? null : new HarmonyLib.HarmonyMethod(_runtime.Prefix),
-				postfix: _runtime.Postfix == null ? null : new HarmonyLib.HarmonyMethod(_runtime.Postfix),
-				transpiler: _runtime.Transpiler == null ? null : new HarmonyLib.HarmonyMethod(_runtime.Transpiler)
-			) ?? null;
-
-			if (current is null)
-				throw new Exception($"Harmony failed to execute");
+			MethodInfo current = (_runtime.HarmonyHandler.Patch(original,
+				prefix: _runtime.Prefix == null ? null : new HarmonyMethod(_runtime.Prefix),
+				postfix: _runtime.Postfix == null ? null : new HarmonyMethod(_runtime.Postfix),
+				transpiler: _runtime.Transpiler == null ? null : new HarmonyMethod(_runtime.Transpiler)
+			) ?? null) ?? throw new Exception($"Harmony failed to execute");
 
 			// the checksum system needs some lovin..
 			// for now let's mark them all as valid
