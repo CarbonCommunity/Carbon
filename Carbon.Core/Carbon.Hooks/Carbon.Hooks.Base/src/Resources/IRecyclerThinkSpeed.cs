@@ -22,7 +22,7 @@ public partial class Category_Fixes
 		[HookAttribute.Identifier("a07a3f25546d49d2b140d6cbf6453aa0")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
-		public class Fixes_Recycler_StartRecycling_a07a3f25546d49d2b140d6cbf6453aa0
+		public class Fixes_Recycler_StartRecycling_a07a3f25546d49d2b140d6cbf6453aa0 : API.Hooks.Patch
 		{
 			private static bool Prefix(Recycler __instance)
 			{

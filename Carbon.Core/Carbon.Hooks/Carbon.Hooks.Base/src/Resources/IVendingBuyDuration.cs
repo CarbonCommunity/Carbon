@@ -18,7 +18,7 @@ public partial class Category_Fixes
 		[HookAttribute.Identifier("846de3cd762846e68206ffae9c97911f")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
-		public class Fixes_VendingMachine_GetBuyDuration_846de3cd762846e68206ffae9c97911f
+		public class Fixes_VendingMachine_GetBuyDuration_846de3cd762846e68206ffae9c97911f : API.Hooks.Patch
 		{
 			public static bool Prefix(VendingMachine __instance, ref float __result)
 			{
