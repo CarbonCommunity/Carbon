@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection.Emit;
-using API.Hooks;
-using HarmonyLib;
+﻿using API.Hooks;
 using UnityEngine;
 
 /*

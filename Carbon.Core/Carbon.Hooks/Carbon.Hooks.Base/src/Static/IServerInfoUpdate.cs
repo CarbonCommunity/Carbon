@@ -47,7 +47,7 @@ public partial class Category_Static
 				}
 				catch (Exception ex)
 				{
-					Carbon.Logger.Error($"Couldn't patch UpdateServerInformation.", ex);
+					Logger.Error($"Couldn't patch UpdateServerInformation.", ex);
 				}
 			}
 		}
