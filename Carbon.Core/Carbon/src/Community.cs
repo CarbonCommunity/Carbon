@@ -126,6 +126,9 @@ public partial class CommunityInternal : Community
 	public void Initialize()
 	{
 		if (IsInitialized) return;
+
+		HookCaller.Caller = new HookCallerInternal();
+
 		Events.Trigger(API.Events.CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		#region Handle Versions
