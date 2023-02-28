@@ -145,7 +145,7 @@ namespace Carbon
 			var buffer = Caller.AllocateBuffer(1);
 			buffer[0] = arg1;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return result;
@@ -155,7 +155,7 @@ namespace Carbon
 			var buffer = Caller.AllocateBuffer(1);
 			buffer[0] = arg1;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return (T)result;
@@ -176,7 +176,7 @@ namespace Carbon
 			buffer[0] = arg1;
 			buffer[1] = arg2;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return result;
@@ -187,7 +187,7 @@ namespace Carbon
 			buffer[0] = arg1;
 			buffer[1] = arg2;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return (T)result;
@@ -210,7 +210,7 @@ namespace Carbon
 			buffer[1] = arg2;
 			buffer[2] = arg3;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return result;
@@ -222,7 +222,7 @@ namespace Carbon
 			buffer[1] = arg2;
 			buffer[2] = arg3;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return (T)result;
@@ -247,7 +247,7 @@ namespace Carbon
 			buffer[2] = arg3;
 			buffer[3] = arg4;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return result;
@@ -260,7 +260,7 @@ namespace Carbon
 			buffer[2] = arg3;
 			buffer[3] = arg4;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return (T)result;
@@ -287,7 +287,7 @@ namespace Carbon
 			buffer[3] = arg4;
 			buffer[4] = arg5;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return result;
@@ -301,7 +301,7 @@ namespace Carbon
 			buffer[3] = arg4;
 			buffer[4] = arg5;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return (T)result;
@@ -330,7 +330,7 @@ namespace Carbon
 			buffer[4] = arg5;
 			buffer[6] = arg6;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return result;
@@ -345,7 +345,7 @@ namespace Carbon
 			buffer[4] = arg5;
 			buffer[6] = arg6;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return (T)result;
@@ -376,7 +376,7 @@ namespace Carbon
 			buffer[6] = arg6;
 			buffer[7] = arg7;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return result;
@@ -392,7 +392,7 @@ namespace Carbon
 			buffer[6] = arg6;
 			buffer[7] = arg7;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return (T)result;
@@ -425,7 +425,7 @@ namespace Carbon
 			buffer[7] = arg7;
 			buffer[8] = arg8;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return result;
@@ -442,7 +442,7 @@ namespace Carbon
 			buffer[7] = arg7;
 			buffer[8] = arg8;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return (T)result;
@@ -477,7 +477,7 @@ namespace Carbon
 			buffer[8] = arg8;
 			buffer[9] = arg9;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return result;
@@ -495,7 +495,7 @@ namespace Carbon
 			buffer[8] = arg8;
 			buffer[9] = arg9;
 
-			var result = CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
+			var result = Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, buffer);
 
 			Caller.ClearBuffer(buffer);
 			return (T)result;

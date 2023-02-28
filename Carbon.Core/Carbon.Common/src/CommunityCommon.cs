@@ -27,11 +27,11 @@ public class Community
 	public IDownloadManager Downloader { get; set; }
 	public IEventManager Events { get; set; }
 
-	public ICarbonProcessor CarbonProcessor { get; set; }
-	public IScriptProcessor ScriptProcessor { get; set; }
-	public IWebScriptProcessor WebScriptProcessor { get; set; }
-	public IModuleProcessor ModuleProcessor { get; set; }
 	public IHookManager HookManager { get; set; }
+	public IScriptProcessor ScriptProcessor { get; set; }
+	public IModuleProcessor ModuleProcessor { get; set; }
+	public IWebScriptProcessor WebScriptProcessor { get; set; }
+	public ICarbonProcessor CarbonProcessor { get; set; }
 
 	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
 	public static bool IsServerFullyInitializedCache { get; internal set; }

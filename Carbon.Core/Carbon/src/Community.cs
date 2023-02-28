@@ -27,7 +27,7 @@ namespace Carbon;
 #error Target architecture not defined
 #endif
 
-public partial class CommunityInternal : Community
+public class CommunityInternal : Community
 {
 	public static CommunityInternal InternalRuntime { get { return Runtime as CommunityInternal; } set { Runtime = value; } }
 
