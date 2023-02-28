@@ -26,7 +26,7 @@ public static class Loader
 
 	static Loader()
 	{
-		CommunityCommon.CommonRuntime.Events.Subscribe(
+		Community.Runtime.Events.Subscribe(
 			API.Events.CarbonEvent.OnServerInitialized,
 			x => OnPluginProcessFinished()
 		);
@@ -147,7 +147,7 @@ public static class Loader
 
 				if (!IsValidPlugin(type)) continue;
 
-				if (CommunityCommon.CommonRuntime.Config.HookValidation)
+				if (Community.Runtime.Config.HookValidation)
 				{
 					var counter = 0;
 					foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
@@ -204,7 +204,7 @@ public static class Loader
 		var version = info.Version;
 		var description = desc == null ? string.Empty : desc.Description;
 
-		plugin.SetProcessor(CommunityCommon.CommonRuntime.ScriptProcessor);
+		plugin.SetProcessor(Community.Runtime.ScriptProcessor);
 		plugin.SetupMod(mod, title, author, version, description);
 
 		preInit?.Invoke(plugin);
@@ -267,24 +267,24 @@ public static class Loader
 			{
 				foreach (var commandName in command.Names)
 				{
-					CommunityCommon.CommonRuntime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
-					CommunityCommon.CommonRuntime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 				}
 			}
 
 			if (chatCommand != null)
 			{
-				CommunityCommon.CommonRuntime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method.Name, help: chatCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? chatCommand.Name : $"{prefix}.{chatCommand.Name}", hookable, method.Name, help: chatCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 
 			if (consoleCommand != null)
 			{
-				CommunityCommon.CommonRuntime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 
 			if (uiCommand != null)
 			{
-				CommunityCommon.CommonRuntime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 		}
 
@@ -302,11 +302,11 @@ public static class Loader
 
 			if (var != null)
 			{
-				CommunityCommon.CommonRuntime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
 				{
 					if (player != null && var.AdminOnly && !player.IsAdmin)
 					{
-						CommunityCommon.LogCommand($"You don't have permission to set this value", player);
+						Community.LogCommand($"You don't have permission to set this value", player);
 						return;
 					}
 
@@ -344,7 +344,7 @@ public static class Loader
 						catch { }
 					}
 
-					CommunityCommon.LogCommand($"{command}: \"{value}\"", player);
+					Community.LogCommand($"{command}: \"{value}\"", player);
 				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 		}
@@ -363,11 +363,11 @@ public static class Loader
 
 			if (var != null)
 			{
-				CommunityCommon.CommonRuntime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
 				{
 					if (player != null && var.AdminOnly && !player.IsAdmin)
 					{
-						CommunityCommon.LogCommand($"You don't have permission to set this value", player);
+						Community.LogCommand($"You don't have permission to set this value", player);
 						return;
 					}
 
@@ -405,7 +405,7 @@ public static class Loader
 						catch { }
 					}
 
-					CommunityCommon.LogCommand($"{command}: \"{value}\"", player);
+					Community.LogCommand($"{command}: \"{value}\"", player);
 				}, help: var.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 		}
@@ -416,13 +416,13 @@ public static class Loader
 	}
 	public static void RemoveCommands(RustPlugin plugin)
 	{
-		CommunityCommon.CommonRuntime.AllChatCommands.RemoveAll(x => x.Plugin == plugin);
-		CommunityCommon.CommonRuntime.AllConsoleCommands.RemoveAll(x => x.Plugin == plugin);
+		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == plugin);
+		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == plugin);
 	}
 
 	public static void OnPluginProcessFinished()
 	{
-		if (CommunityCommon.IsServerFullyInitialized)
+		if (Community.IsServerFullyInitialized)
 		{
 			var counter = 0;
 
@@ -443,7 +443,7 @@ public static class Loader
 
 					try
 					{
-						plugin.CallHook("OnServerInitialized", CommunityCommon.IsServerFullyInitialized);
+						plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
 					}
 					catch (Exception initException)
 					{
@@ -454,13 +454,13 @@ public static class Loader
 				}
 			}
 
-			foreach (var plugin in CommunityCommon.CommonRuntime.ModuleProcessor.Modules)
+			foreach (var plugin in Community.Runtime.ModuleProcessor.Modules)
 			{
 				if (plugin.HasInitialized) continue;
 
 				try
 				{
-					HookCaller.CallHook(plugin, "OnServerInitialized", CommunityCommon.IsServerFullyInitialized);
+					HookCaller.CallHook(plugin, "OnServerInitialized", Community.IsServerFullyInitialized);
 				}
 				catch (Exception initException)
 				{
@@ -537,8 +537,6 @@ public static class Loader
 
 	internal static void LogError(string harmonyId, object message)
 		=> Logger.Error($"[{harmonyId}] {message}");
-
-	internal static string _modPath;
 
 	public static List<CarbonMod> LoadedMods = new();
 	public static List<FailedMod> FailedMods = new();

@@ -16,7 +16,7 @@ public class Plugins
 {
 	public bool Exists(string name)
 	{
-		return CommunityCommon.CommonRuntime.Plugins.Plugins.Any(x => x.Name == name);
+		return Community.Runtime.Plugins.Plugins.Any(x => x.Name == name);
 	}
 
 	public Plugin Find(string name)

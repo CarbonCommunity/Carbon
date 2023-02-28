@@ -72,7 +72,7 @@ public class CorePlugin : CarbonPlugin
 
 		timer.Every(5f, () =>
 		{
-			if (!Logger._file._hasInit || Logger._file._buffer.Count == 0 || CommunityCommon.CommonRuntime.Config.LogFileMode != 1) return;
+			if (!Logger._file._hasInit || Logger._file._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
 			Logger._file._flush();
 		});
 	}
@@ -127,7 +127,7 @@ public class CorePlugin : CarbonPlugin
 	}
 	private object IOnBasePlayerAttacked(BasePlayer basePlayer, HitInfo hitInfo)
 	{
-		if (!CommunityCommon.IsServerFullyInitializedCache || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
+		if (!Community.IsServerFullyInitializedCache || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
 		{
 			return null;
 		}
@@ -185,13 +185,13 @@ public class CorePlugin : CarbonPlugin
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
 	private void GetVersion(ConsoleSystem.Arg arg)
 	{
-		Reply($"Carbon v{CommunityCommon.Version}", arg);
+		Reply($"Carbon v{Community.Version}", arg);
 	}
 
 	[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
 	private void GetBuild(ConsoleSystem.Arg arg)
 	{
-		Reply($"{CommunityCommon.InformationalVersion}", arg);
+		Reply($"{Community.InformationalVersion}", arg);
 	}
 
 	[ConsoleCommand("plugins", "Prints the list of mods and their loaded plugins.")]
@@ -311,10 +311,10 @@ public class CorePlugin : CarbonPlugin
 
 		var value = arg.Args[0];
 
-		if (!CommunityCommon.CommonRuntime.Config.ConditionalCompilationSymbols.Contains(value))
+		if (!Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
 		{
-			CommunityCommon.CommonRuntime.Config.ConditionalCompilationSymbols.Add(value);
-			CommunityCommon.CommonRuntime.SaveConfig();
+			Community.Runtime.Config.ConditionalCompilationSymbols.Add(value);
+			Community.Runtime.SaveConfig();
 			Reply($"Added conditional '{value}'.", arg);
 		}
 		else
@@ -348,10 +348,10 @@ public class CorePlugin : CarbonPlugin
 
 		var value = arg.Args[0];
 
-		if (CommunityCommon.CommonRuntime.Config.ConditionalCompilationSymbols.Contains(value))
+		if (Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
 		{
-			CommunityCommon.CommonRuntime.Config.ConditionalCompilationSymbols.Remove(value);
-			CommunityCommon.CommonRuntime.SaveConfig();
+			Community.Runtime.Config.ConditionalCompilationSymbols.Remove(value);
+			Community.Runtime.SaveConfig();
 			Reply($"Removed conditional '{value}'.", arg);
 		}
 		else
@@ -383,7 +383,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		Reply($"Conditionals ({CommunityCommon.CommonRuntime.Config.ConditionalCompilationSymbols.Count:n0}): {CommunityCommon.CommonRuntime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}", arg);
+		Reply($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}", arg);
 	}
 
 	#endregion
@@ -410,15 +410,15 @@ public class CorePlugin : CarbonPlugin
 					switch (option2)
 					{
 						case "--patch":
-							hooks = CommunityCommon.CommonRuntime.HookManager.Patches.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
 							break;
 
 						case "--static":
-							hooks = CommunityCommon.CommonRuntime.HookManager.StaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden);
 							break;
 
 						case "--dynamic":
-							hooks = CommunityCommon.CommonRuntime.HookManager.DynamicHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden);
 							break;
 
 						// case "--failed":
@@ -443,9 +443,9 @@ public class CorePlugin : CarbonPlugin
 						// 	break;
 
 						default:
-							hooks = CommunityCommon.CommonRuntime.HookManager.Patches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(CommunityCommon.CommonRuntime.HookManager.StaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(CommunityCommon.CommonRuntime.HookManager.DynamicHooks.Where(x => !x.IsHidden));
+							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden));
+							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden));
 							break;
 					}
 
@@ -464,7 +464,7 @@ public class CorePlugin : CarbonPlugin
 							mod.Status,
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "N/A" : $"{CommunityCommon.CommonRuntime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
+							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
 						);
 					}
 
@@ -480,21 +480,21 @@ public class CorePlugin : CarbonPlugin
 					switch (option1)
 					{
 						case "--patch":
-							hooks = CommunityCommon.CommonRuntime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
 							break;
 
 						case "--static":
-							hooks = CommunityCommon.CommonRuntime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
 							break;
 
 						case "--dynamic":
-							hooks = CommunityCommon.CommonRuntime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
 							break;
 
 						default:
-							hooks = CommunityCommon.CommonRuntime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(CommunityCommon.CommonRuntime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(CommunityCommon.CommonRuntime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
 							break;
 					}
 
@@ -513,7 +513,7 @@ public class CorePlugin : CarbonPlugin
 							mod.Status,
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "N/A" : $"{CommunityCommon.CommonRuntime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
+							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
 						);
 					}
 
@@ -531,9 +531,9 @@ public class CorePlugin : CarbonPlugin
 	[ConsoleCommand("loadconfig", "Loads Carbon config from file.")]
 	private void CarbonLoadConfig(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || CommunityCommon.CommonRuntime == null) return;
+		if (!arg.IsPlayerCalledAndAdmin() || Community.Runtime == null) return;
 
-		CommunityCommon.CommonRuntime.LoadConfig();
+		Community.Runtime.LoadConfig();
 
 		Reply("Loaded Carbon config.", arg);
 	}
@@ -541,52 +541,55 @@ public class CorePlugin : CarbonPlugin
 	[ConsoleCommand("saveconfig", "Saves Carbon config to file.")]
 	private void CarbonSaveConfig(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || CommunityCommon.CommonRuntime == null) return;
+		if (!arg.IsPlayerCalledAndAdmin() || Community.Runtime == null) return;
 
-		CommunityCommon.CommonRuntime.SaveConfig();
+		Community.Runtime.SaveConfig();
 
 		Reply("Saved Carbon config.", arg);
 	}
 
 	[CommandVar("autoupdate", "Updates carbon hooks on boot.", true)]
-	private bool AutoUpdate { get { return CommunityCommon.CommonRuntime.Config.AutoUpdate; } set { CommunityCommon.CommonRuntime.Config.AutoUpdate = value; CommunityCommon.CommonRuntime.SaveConfig(); } }
+	private bool AutoUpdate { get { return Community.Runtime.Config.AutoUpdate; } set { Community.Runtime.Config.AutoUpdate = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("modding", "Mark this server as modded or not.", true)]
-	private bool Modding { get { return CommunityCommon.CommonRuntime.Config.IsModded; } set { CommunityCommon.CommonRuntime.Config.IsModded = value; CommunityCommon.CommonRuntime.SaveConfig(); } }
+	private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("tag", "Displays this server in the browser list with the 'carbon' tag.", true)]
-	private bool CarbonTag { get { return CommunityCommon.CommonRuntime.Config.CarbonTag; } set { CommunityCommon.CommonRuntime.Config.CarbonTag = value; CommunityCommon.CommonRuntime.SaveConfig(); } }
+	private bool CarbonTag { get { return Community.Runtime.Config.CarbonTag; } set { Community.Runtime.Config.CarbonTag = value; Community.Runtime.SaveConfig(); } }
+
+	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.", true)]
+	private bool HarmonyReference { get { return Community.Runtime.Config.HarmonyReference; } set { Community.Runtime.Config.HarmonyReference = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true)]
-	private int CarbonDebug { get { return CommunityCommon.CommonRuntime.Config.LogVerbosity; } set { CommunityCommon.CommonRuntime.Config.LogVerbosity = value; CommunityCommon.CommonRuntime.SaveConfig(); } }
+	private int CarbonDebug { get { return Community.Runtime.Config.LogVerbosity; } set { Community.Runtime.Config.LogVerbosity = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("logfiletype", "The mode for writing the log to file. (0=disabled, 1=saves updates every 5 seconds, 2=saves immediately)", true)]
-	private int LogFileType { get { return CommunityCommon.CommonRuntime.Config.LogFileMode; } set { CommunityCommon.CommonRuntime.Config.LogFileMode = Mathf.Clamp(value, 0, 2); CommunityCommon.CommonRuntime.SaveConfig(); } }
+	private int LogFileType { get { return Community.Runtime.Config.LogFileMode; } set { Community.Runtime.Config.LogFileMode = Mathf.Clamp(value, 0, 2); Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true)]
-	private bool HookTimeTracker { get { return CommunityCommon.CommonRuntime.Config.HookTimeTracker; } set { CommunityCommon.CommonRuntime.Config.HookTimeTracker = value; CommunityCommon.CommonRuntime.SaveConfig(); } }
+	private bool HookTimeTracker { get { return Community.Runtime.Config.HookTimeTracker; } set { Community.Runtime.Config.HookTimeTracker = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.", true)]
-	private bool HookValidation { get { return CommunityCommon.CommonRuntime.Config.HookValidation; } set { CommunityCommon.CommonRuntime.Config.HookValidation = value; CommunityCommon.CommonRuntime.SaveConfig(); } }
+	private bool HookValidation { get { return Community.Runtime.Config.HookValidation; } set { Community.Runtime.Config.HookValidation = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
-	private int EntityMapBufferSize { get { return CommunityCommon.CommonRuntime.Config.EntityMapBufferSize; } set { CommunityCommon.CommonRuntime.Config.EntityMapBufferSize = value; CommunityCommon.CommonRuntime.SaveConfig(); } }
+	private int EntityMapBufferSize { get { return Community.Runtime.Config.EntityMapBufferSize; } set { Community.Runtime.Config.EntityMapBufferSize = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("language", "Server language used by the Language API.", true)]
-	private string Language { get { return CommunityCommon.CommonRuntime.Config.Language; } set { CommunityCommon.CommonRuntime.Config.Language = value; CommunityCommon.CommonRuntime.SaveConfig(); } }
+	private string Language { get { return Community.Runtime.Config.Language; } set { Community.Runtime.Config.Language = value; Community.Runtime.SaveConfig(); } }
 
 #if WIN
 	[CommandVar("consoleinfo", "Show the Windows-only Carbon information at the bottom of the console.", true)]
 	private bool ConsoleInfo
 	{
-		get { return CommunityCommon.CommonRuntime.Config.ShowConsoleInfo; }
+		get { return Community.Runtime.Config.ShowConsoleInfo; }
 		set
 		{
-			CommunityCommon.CommonRuntime.Config.ShowConsoleInfo = value;
+			Community.Runtime.Config.ShowConsoleInfo = value;
 
 			if (value)
 			{
-				CommunityCommon.CommonRuntime.RefreshConsoleInfo();
+				Community.Runtime.RefreshConsoleInfo();
 			}
 			else
 			{
@@ -611,7 +614,7 @@ public class CorePlugin : CarbonPlugin
 		var body = new StringTable("Command", "Value", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
-		foreach (var command in CommunityCommon.CommonRuntime.AllConsoleCommands)
+		foreach (var command in Community.Runtime.AllConsoleCommands)
 		{
 			if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
 
@@ -637,7 +640,7 @@ public class CorePlugin : CarbonPlugin
 		var body = new StringTable("Command", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
-		foreach (var command in CommunityCommon.CommonRuntime.AllChatCommands)
+		foreach (var command in Community.Runtime.AllChatCommands)
 		{
 			if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
 
@@ -668,7 +671,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(2)) return;
 
-		var hookable = CommunityCommon.CommonRuntime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
 		var module = hookable.To<IModule>();
 
 		if (module == null)
@@ -694,13 +697,13 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		foreach (var hookable in CommunityCommon.CommonRuntime.ModuleProcessor.Modules)
+		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
 		{
 			var module = hookable.To<IModule>();
 			module.Save();
 		}
 
-		Reply($"Saved {CommunityCommon.CommonRuntime.ModuleProcessor.Modules.Count:n0} module configs and data files.", arg);
+		Reply($"Saved {Community.Runtime.ModuleProcessor.Modules.Count:n0} module configs and data files.", arg);
 	}
 
 	[ConsoleCommand("savemoduleconfig", "Saves Carbon module config & data file.")]
@@ -708,7 +711,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-		var hookable = CommunityCommon.CommonRuntime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
 		var module = hookable.To<IModule>();
 
 		if (module == null)
@@ -727,7 +730,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-		var hookable = CommunityCommon.CommonRuntime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
 		var module = hookable.To<IModule>();
 
 		if (module == null)
@@ -758,8 +761,8 @@ public class CorePlugin : CarbonPlugin
 		switch (name)
 		{
 			case "*":
-				CommunityCommon.CommonRuntime.ClearPlugins();
-				CommunityCommon.CommonRuntime.ReloadPlugins();
+				Community.Runtime.ClearPlugins();
+				Community.Runtime.ReloadPlugins();
 				break;
 
 			default:
@@ -767,8 +770,8 @@ public class CorePlugin : CarbonPlugin
 
 				if (!string.IsNullOrEmpty(path))
 				{
-					CommunityCommon.CommonRuntime.ScriptProcessor.ClearIgnore(path);
-					CommunityCommon.CommonRuntime.ScriptProcessor.Prepare(name, path);
+					Community.Runtime.ScriptProcessor.ClearIgnore(path);
+					Community.Runtime.ScriptProcessor.Prepare(name, path);
 					return;
 				}
 
@@ -809,12 +812,12 @@ public class CorePlugin : CarbonPlugin
 				//
 				{
 					var tempList = Pool.GetList<string>();
-					tempList.AddRange(CommunityCommon.CommonRuntime.ScriptProcessor.IgnoreList);
-					CommunityCommon.CommonRuntime.ScriptProcessor.IgnoreList.Clear();
+					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
+					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
 					foreach (var plugin in tempList)
 					{
-						CommunityCommon.CommonRuntime.ScriptProcessor.Prepare(plugin, plugin);
+						Community.Runtime.ScriptProcessor.Prepare(plugin, plugin);
 					}
 					Pool.FreeList(ref tempList);
 				}
@@ -824,8 +827,8 @@ public class CorePlugin : CarbonPlugin
 				var path = GetPluginPath(name);
 				if (!string.IsNullOrEmpty(path))
 				{
-					CommunityCommon.CommonRuntime.ScriptProcessor.ClearIgnore(path);
-					CommunityCommon.CommonRuntime.ScriptProcessor.Prepare(path);
+					Community.Runtime.ScriptProcessor.ClearIgnore(path);
+					Community.Runtime.ScriptProcessor.Prepare(path);
 					return;
 				}
 
@@ -858,13 +861,13 @@ public class CorePlugin : CarbonPlugin
 				//
 				{
 					var tempList = Pool.GetList<string>();
-					tempList.AddRange(CommunityCommon.CommonRuntime.ScriptProcessor.IgnoreList);
-					CommunityCommon.CommonRuntime.ScriptProcessor.IgnoreList.Clear();
-					CommunityCommon.CommonRuntime.ScriptProcessor.Clear();
+					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
+					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
+					Community.Runtime.ScriptProcessor.Clear();
 
 					foreach (var plugin in tempList)
 					{
-						CommunityCommon.CommonRuntime.ScriptProcessor.Ignore(plugin);
+						Community.Runtime.ScriptProcessor.Ignore(plugin);
 					}
 					Pool.FreeList(ref tempList);
 				}
@@ -874,13 +877,13 @@ public class CorePlugin : CarbonPlugin
 				//
 				{
 					var tempList = Pool.GetList<string>();
-					tempList.AddRange(CommunityCommon.CommonRuntime.WebScriptProcessor.IgnoreList);
-					CommunityCommon.CommonRuntime.WebScriptProcessor.IgnoreList.Clear();
-					CommunityCommon.CommonRuntime.WebScriptProcessor.Clear();
+					tempList.AddRange(Community.Runtime.WebScriptProcessor.IgnoreList);
+					Community.Runtime.WebScriptProcessor.IgnoreList.Clear();
+					Community.Runtime.WebScriptProcessor.Clear();
 
 					foreach (var plugin in tempList)
 					{
-						CommunityCommon.CommonRuntime.WebScriptProcessor.Ignore(plugin);
+						Community.Runtime.WebScriptProcessor.Ignore(plugin);
 					}
 					Pool.FreeList(ref tempList);
 				}
@@ -890,8 +893,8 @@ public class CorePlugin : CarbonPlugin
 				var path = GetPluginPath(name);
 				if (!string.IsNullOrEmpty(path))
 				{
-					CommunityCommon.CommonRuntime.ScriptProcessor.Ignore(path);
-					CommunityCommon.CommonRuntime.WebScriptProcessor.Ignore(path);
+					Community.Runtime.ScriptProcessor.Ignore(path);
+					Community.Runtime.WebScriptProcessor.Ignore(path);
 				}
 
 				foreach (var mod in Loader.LoadedMods)

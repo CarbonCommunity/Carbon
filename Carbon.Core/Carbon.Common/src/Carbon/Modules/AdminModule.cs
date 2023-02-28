@@ -56,7 +56,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		ImageDatabase = GetModule<ImageDatabaseModule>();
 
-		CommunityCommon.CommonRuntime.CorePlugin.cmd.AddChatCommand(Config.OpenCommand, this, (player, cmd, args) =>
+		Community.Runtime.CorePlugin.cmd.AddChatCommand(Config.OpenCommand, this, (player, cmd, args) =>
 		{
 			if (!CanAccess(player)) return;
 
@@ -72,7 +72,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Draw(player);
 		});
 
-		RegisterTab(PermissionsTab.Get(CommunityCommon.CommonRuntime.CorePlugin.permission));
+		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
 		RegisterTab(PlayersTab.Get());
 		RegisterTab(CarbonTab.Get(), 0);
 
@@ -726,7 +726,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				font: CUI.Handler.FontTypes.RobotoCondensedBold);
 			cui.CreateText(container, parent: "main", id: null,
 				color: "1 1 1 0.5",
-				text: $"Carbon {CommunityCommon.InformationalVersion}", 11,
+				text: $"Carbon {Community.InformationalVersion}", 11,
 				xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.95f,
 				align: TextAnchor.UpperLeft,
 				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
@@ -1409,7 +1409,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		public static Tab Get(Permission permission)
 		{
-			var perms = new Tab("permissions", "Permissions", CommunityCommon.CommonRuntime.CorePlugin, (instance, tab) =>
+			var perms = new Tab("permissions", "Permissions", Community.Runtime.CorePlugin, (instance, tab) =>
 			{
 				tab.ClearColumn(1);
 				tab.ClearColumn(2);
@@ -1460,7 +1460,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 								perms.AddName(2, "Plugins", TextAnchor.MiddleLeft);
 								{
-									foreach (var plugin in CommunityCommon.CommonRuntime.Plugins.Plugins.Where(x => x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()))))
+									foreach (var plugin in Community.Runtime.Plugins.Plugins.Where(x => x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()))))
 									{
 										perms.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
 										{
@@ -1520,7 +1520,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			perms.ClearColumn(2);
 			perms.AddName(2, "Plugins", TextAnchor.MiddleLeft);
 			{
-				foreach (var plugin in CommunityCommon.CommonRuntime.Plugins.Plugins.Where(x => x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()))))
+				foreach (var plugin in Community.Runtime.Plugins.Plugins.Where(x => x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()))))
 				{
 					perms.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
 					{
@@ -1571,7 +1571,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static Tab Get()
 		{
-			var players = new Tab("players", "Players", CommunityCommon.CommonRuntime.CorePlugin, (instance, tab) =>
+			var players = new Tab("players", "Players", Community.Runtime.CorePlugin, (instance, tab) =>
 			{
 				tab.ClearColumn(1);
 				RefreshPlayers(tab, instance);
@@ -1636,7 +1636,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddRow(1, new Tab.OptionButton("View Permissions", ap =>
 				{
 					var perms = Admin.FindTab("permissions");
-					var permission = CommunityCommon.CommonRuntime.CorePlugin.permission;
+					var permission = Community.Runtime.CorePlugin.permission;
 					Admin.SetTab(ap.Player, "permissions");
 
 					ap.SetStorage("player", player);
@@ -1660,11 +1660,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public class CarbonTab
 	{
-		public static Core.Config Config => CommunityCommon.CommonRuntime.Config;
+		public static Core.Config Config => Community.Runtime.Config;
 
 		public static Tab Get()
 		{
-			var tab = new Tab("carbon", "Carbon", CommunityCommon.CommonRuntime.CorePlugin);
+			var tab = new Tab("carbon", "Carbon", Community.Runtime.CorePlugin);
 			tab.AddColumn(1);
 
 			tab.AddInput(0, "Host Name", () => $"{ConVar.Server.hostname}", (ap, args) => { ConVar.Server.hostname = args.ToString(" "); });
@@ -1672,17 +1672,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(0, "Info", TextAnchor.MiddleLeft);
 			{
-				tab.AddInput(0, "Version", () => $"{CommunityCommon.Version}", null);
-				tab.AddInput(0, "Informational Version", () => $"{CommunityCommon.InformationalVersion}", null);
+				tab.AddInput(0, "Version", () => $"{Community.Version}", null);
+				tab.AddInput(0, "Informational Version", () => $"{Community.InformationalVersion}", null);
 
-				var loadedHooks = CommunityCommon.CommonRuntime.HookManager.DynamicHooks.Count(x => x.IsInstalled) + CommunityCommon.CommonRuntime.HookManager.StaticHooks.Count(x => x.IsInstalled);
-				var totalHooks = CommunityCommon.CommonRuntime.HookManager.DynamicHooksCount + CommunityCommon.CommonRuntime.HookManager.StaticHooksCount;
+				var loadedHooks = Community.Runtime.HookManager.DynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.StaticHooks.Count(x => x.IsInstalled);
+				var totalHooks = Community.Runtime.HookManager.DynamicHooksCount + Community.Runtime.HookManager.StaticHooksCount;
 				tab.AddInput(0, "Hooks", () => $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
-				tab.AddInput(0, "Static Hooks", () => $"{CommunityCommon.CommonRuntime.HookManager.StaticHooksCount:n0}", null);
-				tab.AddInput(0, "Dynamic Hooks", () => $"{CommunityCommon.CommonRuntime.HookManager.DynamicHooksCount:n0}", null);
+				tab.AddInput(0, "Static Hooks", () => $"{Community.Runtime.HookManager.StaticHooksCount:n0}", null);
+				tab.AddInput(0, "Dynamic Hooks", () => $"{Community.Runtime.HookManager.DynamicHooksCount:n0}", null);
 
 				tab.AddName(0, "Plugins", TextAnchor.MiddleLeft);
-				tab.AddInput(0, "Mods", () => $"{CommunityCommon.CommonRuntime.Plugins.Plugins.Count:n0}", null);
+				tab.AddInput(0, "Mods", () => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
 
 				tab.AddName(0, "Console", TextAnchor.MiddleLeft);
 				tab.AddInput(0, "Execute Server Command", null, (ap, args) => { ConsoleSystem.Run(ConsoleSystem.Option.Server, args[0], args.Skip(1).ToArray()); });
@@ -1690,28 +1690,28 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(1, "Config", TextAnchor.MiddleLeft);
 			{
-				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; CommunityCommon.CommonRuntime.SaveConfig(); }, ap => Config.IsModded);
-				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; CommunityCommon.CommonRuntime.SaveConfig(); }, ap => Config.AutoUpdate);
+				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded);
+				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate);
 
 				tab.AddName(1, "General", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Carbon Tag", ap => { Config.CarbonTag = !Config.CarbonTag; CommunityCommon.CommonRuntime.SaveConfig(); }, ap => Config.CarbonTag);
-				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; CommunityCommon.CommonRuntime.SaveConfig(); }, ap => Config.HookTimeTracker);
-				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; CommunityCommon.CommonRuntime.SaveConfig(); }, ap => Config.HookValidation);
-				tab.AddInput(1, "Entity Map Buffer Size (restart required)", () => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); CommunityCommon.CommonRuntime.SaveConfig(); });
+				tab.AddToggle(1, "Carbon Tag", ap => { Config.CarbonTag = !Config.CarbonTag; Community.Runtime.SaveConfig(); }, ap => Config.CarbonTag);
+				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker);
+				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation);
+				tab.AddInput(1, "Entity Map Buffer Size (restart required)", () => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); });
 
 				tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; CommunityCommon.CommonRuntime.SaveConfig(); }, ap => Config.ScriptWatchers);
-				tab.AddToggle(1, "Harmony Watchers", ap => { Config.HarmonyWatchers = !Config.HarmonyWatchers; CommunityCommon.CommonRuntime.SaveConfig(); }, ap => Config.HarmonyWatchers);
+				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers);
+				tab.AddToggle(1, "Harmony Watchers", ap => { Config.HarmonyWatchers = !Config.HarmonyWatchers; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyWatchers);
 
 				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
-				tab.AddInput(1, "Log File Mode", () => Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); CommunityCommon.CommonRuntime.SaveConfig(); });
-				tab.AddInput(1, "Log Verbosity (Debug)", () => Config.LogVerbosity.ToString(), (ap, args) => { Config.LogVerbosity = args[0].ToInt().Clamp(0, 10); CommunityCommon.CommonRuntime.SaveConfig(); });
-				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Logger.Severity)index; CommunityCommon.CommonRuntime.SaveConfig(); }, Enum.GetNames(typeof(Logger.Severity)));
+				tab.AddInput(1, "Log File Mode", () => Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "Log Verbosity (Debug)", () => Config.LogVerbosity.ToString(), (ap, args) => { Config.LogVerbosity = args[0].ToInt().Clamp(0, 10); Community.Runtime.SaveConfig(); });
+				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Logger.Severity)));
 
 				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
-				tab.AddInput(1, "Server Language", () => Config.Language, (ap, args) => { Config.Language = args[0]; CommunityCommon.CommonRuntime.SaveConfig(); });
-				tab.AddInput(1, "WebRequest IP", () => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; CommunityCommon.CommonRuntime.SaveConfig(); });
-				tab.AddEnum(1, "Permission Mode", back => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; CommunityCommon.CommonRuntime.SaveConfig(); }, () => Config.PermissionSerialization.ToString());
+				tab.AddInput(1, "Server Language", () => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "WebRequest IP", () => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
+				tab.AddEnum(1, "Permission Mode", back => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, () => Config.PermissionSerialization.ToString());
 			}
 
 			return tab;

@@ -16,7 +16,7 @@ namespace Carbon.Processors;
 
 public class ScriptProcessor : BaseProcessor, IScriptProcessor
 {
-	public override bool EnableWatcher => CommunityCommon.IsConfigReady ? CommunityCommon.CommonRuntime.Config.ScriptWatchers : true;
+	public override bool EnableWatcher => Community.IsConfigReady ? Community.Runtime.Config.ScriptWatchers : true;
 	public override string Folder => Defines.GetScriptFolder();
 	public override string Extension => ".cs";
 	public override Type IndexedType => typeof(Script);
@@ -79,7 +79,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 				Loader = new ScriptLoader();
 				Loader.Parser = Parser;
 				Loader.File = File;
-				Loader.Mod = CommunityCommon.CommonRuntime.Plugins;
+				Loader.Mod = Community.Runtime.Plugins;
 				Loader.Instance = this;
 				Loader.Load();
 			}

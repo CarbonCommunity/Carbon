@@ -60,7 +60,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 				}
 			}
 
-			CommunityCommon.CommonRuntime.ScriptProcessor.StartCoroutine(Compile());
+			Community.Runtime.ScriptProcessor.StartCoroutine(Compile());
 		}
 		catch (Exception exception)
 		{
@@ -72,16 +72,16 @@ public class ScriptLoader : IDisposable, IScriptLoader
 	{
 		var files = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs");
 
-		CommunityCommon.CommonRuntime.ScriptProcessor.Clear();
-		CommunityCommon.CommonRuntime.ScriptProcessor.IgnoreList.Clear();
+		Community.Runtime.ScriptProcessor.Clear();
+		Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
 		foreach (var file in files)
 		{
 			var plugin = new ScriptProcessor.Script { File = file };
-			CommunityCommon.CommonRuntime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
 		}
 
-		foreach (var plugin in CommunityCommon.CommonRuntime.ScriptProcessor.InstanceBuffer)
+		foreach (var plugin in Community.Runtime.ScriptProcessor.InstanceBuffer)
 		{
 			plugin.Value.SetDirty();
 		}
@@ -97,7 +97,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			var plugin = Scripts[i];
 			if (plugin.IsCore) continue;
 
-			CommunityCommon.CommonRuntime.Plugins.Plugins.Remove(plugin.Instance);
+			Community.Runtime.Plugins.Plugins.Remove(plugin.Instance);
 
 			if (plugin.Instance != null)
 			{
@@ -168,7 +168,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 		HasRequires = AsyncLoader.Requires.Length > 0;
 
-		while (HasRequires && !CommunityCommon.CommonRuntime.ScriptProcessor.AllNonRequiresScriptsComplete())
+		while (HasRequires && !Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete())
 		{
 			yield return _serverExhale;
 			yield return null;
@@ -178,7 +178,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		var noRequiresFound = false;
 		foreach (var require in AsyncLoader.Requires)
 		{
-			var plugin = CommunityCommon.CommonRuntime.CorePlugin.plugins.Find(require);
+			var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
 			if (plugin == null)
 			{
 				Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
@@ -247,7 +247,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 				if (string.IsNullOrEmpty(type.Namespace) ||
 					!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) continue;
 
-				if (CommunityCommon.CommonRuntime.Config.HookValidation)
+				if (Community.Runtime.Config.HookValidation)
 				{
 					var unsupportedHooksString = new StringBuilder();
 					var counter = 0;
@@ -288,7 +288,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 						p.PluginReferences = AsyncLoader.PluginReferences[type];
 
 						p.Requires = requiresResult;
-						p.SetProcessor(CommunityCommon.CommonRuntime.ScriptProcessor);
+						p.SetProcessor(Community.Runtime.ScriptProcessor);
 						p.CompileTime = AsyncLoader.CompileTime;
 
 						p.FilePath = AsyncLoader.FilePath;
@@ -332,7 +332,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 		HasFinished = true;
 
-		if (CommunityCommon.CommonRuntime.ScriptProcessor.AllPendingScriptsComplete())
+		if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
 		{
 			Loader.OnPluginProcessFinished();
 		}

@@ -50,7 +50,7 @@ public class HookManager : FacepunchBehaviour, IHookManager, IHookManagerPublic
 		_dynamicHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 
-		if (CommunityCommon.CommonRuntime.Config.AutoUpdate)
+		if (Community.Runtime.Config.AutoUpdate)
 		{
 			Logger.Log("Updating hooks...");
 			enabled = false;
@@ -102,7 +102,7 @@ public class HookManager : FacepunchBehaviour, IHookManager, IHookManagerPublic
 				_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
 		}
 
-		CommunityCommon.CommonRuntime.Events.Trigger(
+		Community.Runtime.Events.Trigger(
 			API.Events.CarbonEvent.HooksInstalled, EventArgs.Empty);
 	}
 

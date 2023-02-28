@@ -19,11 +19,11 @@ public class Entities : IDisposable
 	{
 		try
 		{
-			CommunityCommon.CommonRuntime.Entities?.Dispose();
+			Community.Runtime.Entities?.Dispose();
 
 			foreach (var type in _findSubClassesOf<BaseEntity>())
 			{
-				Mapping.Add(type, new List<BaseEntity>(CommunityCommon.CommonRuntime.Config.EntityMapBufferSize));
+				Mapping.Add(type, new List<BaseEntity>(Community.Runtime.Config.EntityMapBufferSize));
 			}
 
 			Carbon.Logger.Warn($"Mapping {BaseNetworkable.serverEntities.Count:n0} entities... This will take a while.");

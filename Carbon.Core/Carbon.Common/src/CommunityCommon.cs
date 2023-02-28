@@ -17,9 +17,9 @@ using Carbon.Contracts;
 
 namespace Carbon;
 
-public class CommunityCommon
+public class Community
 {
-	public static CommunityCommon CommonRuntime { get; set; }
+	public static Community Runtime { get; set; }
 
 	public static string Version { get; set; } = "Unknown";
 	public static string InformationalVersion { get; set; } = "Unknown";
@@ -36,7 +36,7 @@ public class CommunityCommon
 	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
 	public static bool IsServerFullyInitializedCache { get; internal set; }
 
-	public static bool IsConfigReady => CommonRuntime != null && CommonRuntime.Config != null;
+	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
 
 	public Config Config { get; set; }
 	public RustPlugin CorePlugin { get; set; }
@@ -102,7 +102,7 @@ public class CommunityCommon
 	}
 	public void ClearPlugins()
 	{
-		CommonRuntime.ClearCommands();
+		Runtime.ClearCommands();
 		Loader.UnloadCarbonMods();
 	}
 

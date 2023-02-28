@@ -23,11 +23,11 @@ public partial class Category_Static
 		{
 			public static void Postfix()
 			{
-				if (CommunityCommon.CommonRuntime == null || CommunityCommon.CommonRuntime.Config == null) return;
+				if (Community.Runtime == null || Community.Runtime.Config == null) return;
 
 				try
 				{
-					if (CommunityCommon.CommonRuntime.Config.CarbonTag)
+					if (Community.Runtime.Config.CarbonTag)
 					{
 						ServerTagEx.SetRequiredTag("carbon");
 					}
@@ -36,7 +36,7 @@ public partial class Category_Static
 						ServerTagEx.UnsetRequiredTag("carbon");
 					}
 
-					if (CommunityCommon.CommonRuntime.Config.IsModded)
+					if (Community.Runtime.Config.IsModded)
 					{
 						ServerTagEx.SetRequiredTag("modded");
 					}

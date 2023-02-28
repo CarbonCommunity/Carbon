@@ -26,9 +26,9 @@ namespace Oxide.Game.Rust.Libraries
 
 		public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0)
 		{
-			if (CommunityCommon.CommonRuntime.AllChatCommands.Count(x => x.Command == command) == 0)
+			if (Community.Runtime.AllChatCommands.Count(x => x.Command == command) == 0)
 			{
-				CommunityCommon.CommonRuntime.AllChatCommands.Add(new OxideCommand
+				Community.Runtime.AllChatCommands.Add(new OxideCommand
 				{
 					Command = command,
 					Plugin = plugin,
@@ -95,9 +95,9 @@ namespace Oxide.Game.Rust.Libraries
 		}
 		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0)
 		{
-			if (CommunityCommon.CommonRuntime.AllConsoleCommands.Count(x => x.Command == command) == 0)
+			if (Community.Runtime.AllConsoleCommands.Count(x => x.Command == command) == 0)
 			{
-				CommunityCommon.CommonRuntime.AllConsoleCommands.Add(new OxideCommand
+				Community.Runtime.AllConsoleCommands.Add(new OxideCommand
 				{
 					Command = command,
 					Plugin = plugin,
@@ -208,11 +208,11 @@ namespace Oxide.Game.Rust.Libraries
 
 		public void RemoveChatCommand(string command, BaseHookable plugin = null)
 		{
-			CommunityCommon.CommonRuntime.AllChatCommands.RemoveAll(x => x.Command == command && (plugin == null || x.Plugin == plugin));
+			Community.Runtime.AllChatCommands.RemoveAll(x => x.Command == command && (plugin == null || x.Plugin == plugin));
 		}
 		public void RemoveConsoleCommand(string command, BaseHookable plugin = null)
 		{
-			CommunityCommon.CommonRuntime.AllConsoleCommands.RemoveAll(x => x.Command == command && (plugin == null || x.Plugin == plugin));
+			Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Command == command && (plugin == null || x.Plugin == plugin));
 		}
 	}
 }

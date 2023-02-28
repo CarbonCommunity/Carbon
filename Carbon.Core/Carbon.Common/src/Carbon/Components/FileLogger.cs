@@ -104,9 +104,9 @@ public class FileLogger : IDisposable
 	}
 	internal void _queueLog(string message)
 	{
-		if (CommunityCommon.IsConfigReady && CommunityCommon.CommonRuntime.Config.LogFileMode == 0) return;
+		if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 0) return;
 
 		_buffer.Add($"[{Logger.GetDate()}] {message}");
-		if (CommunityCommon.IsConfigReady && CommunityCommon.CommonRuntime.Config.LogFileMode == 2) _flush();
+		if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 2) _flush();
 	}
 }

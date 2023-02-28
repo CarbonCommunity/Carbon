@@ -39,13 +39,13 @@ public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 			{
 				_loader = new ScriptLoader();
 
-				CommunityCommon.CommonRuntime.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
+				Community.Runtime.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
 				{
 					Logger.Log($"Downloaded '{File}': {result.Length}");
 
 					_loader.Source = result;
 					_loader.Load();
-				}, CommunityCommon.CommonRuntime.CorePlugin);
+				}, Community.Runtime.CorePlugin);
 			}
 			catch (Exception ex)
 			{

@@ -96,7 +96,7 @@ namespace Oxide.Plugins
 				using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 				{
 					foreach (var hook in Hooks)
-						CommunityCommon.CommonRuntime.HookManager.Subscribe(hook, FileName);
+						Community.Runtime.HookManager.Subscribe(hook, FileName);
 				}
 				Carbon.Logger.Debug(Name, "Processed hooks");
 			}
@@ -121,7 +121,7 @@ namespace Oxide.Plugins
 					foreach (var requiree in requirees)
 					{
 						Logger.Warn($" [{Name}] Loading '{Path.GetFileNameWithoutExtension(requiree)}' to parent's request: '{ToString()}'");
-						CommunityCommon.CommonRuntime.ScriptProcessor.Prepare(requiree);
+						Community.Runtime.ScriptProcessor.Prepare(requiree);
 					}
 
 					Loader.ClearPendingRequirees(this);
@@ -133,7 +133,7 @@ namespace Oxide.Plugins
 			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 			{
 				foreach (var hook in Hooks)
-					CommunityCommon.CommonRuntime.HookManager.Unsubscribe(hook, FileName);
+					Community.Runtime.HookManager.Unsubscribe(hook, FileName);
 				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 			}
 
@@ -207,9 +207,9 @@ namespace Oxide.Plugins
 						continue;
 					}
 
-					plugin = CommunityCommon.CommonRuntime.CorePlugin.plugins.Find(info.Title);
+					plugin = Community.Runtime.CorePlugin.plugins.Find(info.Title);
 				}
-				else plugin = CommunityCommon.CommonRuntime.CorePlugin.plugins.Find(name);
+				else plugin = Community.Runtime.CorePlugin.plugins.Find(name);
 
 				if (plugin != null) field.SetValue(this, plugin);
 			}
@@ -390,11 +390,11 @@ namespace Oxide.Plugins
 
 		public void NextTick(Action callback)
 		{
-			CommunityCommon.CommonRuntime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+			Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 		}
 		public void NextFrame(Action callback)
 		{
-			CommunityCommon.CommonRuntime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+			Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 		}
 
 		public bool IsLoaded { get; set; }

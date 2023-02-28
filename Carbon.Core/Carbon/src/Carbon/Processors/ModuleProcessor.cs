@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Contracts;
+using Carbon.Extensions;
 
 /*
  *
@@ -21,7 +23,7 @@ public class ModuleProcessor : IDisposable, IModuleProcessor
 
 	public void Init()
 	{
-		foreach (var type in typeof(ModuleProcessor).Assembly.GetTypes())
+		foreach (var type in AccessToolsEx.AllTypes())
 		{
 			if (type.BaseType == null || !type.BaseType.Name.Contains("CarbonModule")) continue;
 

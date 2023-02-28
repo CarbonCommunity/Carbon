@@ -89,10 +89,10 @@ public class Initializer : IHarmonyModHooks
 		{
 			Logger.Log("Initializing...");
 
-			if (Community.Runtime == null) Community.Runtime = new Community();
-			else Community.Runtime?.Uninitalize();
+			if (CommunityInternal.InternalRuntime == null) CommunityInternal.InternalRuntime = new CommunityInternal();
+			else CommunityInternal.InternalRuntime?.Uninitalize();
 
-			Community.Runtime.Initialize();
+			CommunityInternal.InternalRuntime.Initialize();
 		}
 		catch (System.Exception e)
 		{
@@ -104,8 +104,8 @@ public class Initializer : IHarmonyModHooks
 	public void OnUnloaded(OnHarmonyModUnloadedArgs args)
 	{
 		Logger.Log("Uninitalizing...");
-		Community.Runtime?.Uninitalize();
-		Community.Runtime = null;
+		CommunityInternal.InternalRuntime?.Uninitalize();
+		CommunityInternal.InternalRuntime = null;
 	}
 
 	internal static bool _isOxideAround()

@@ -91,7 +91,7 @@ public sealed class Updater
 			string url = GithubReleaseUrl(file);
 			Logger.Warn($"Updating component '{Path.GetFileName(file)}' using the '{Release} [{Platform}]' branch");
 
-			CommunityCommon.CommonRuntime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
+			Community.Runtime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
 			{
 				if (buffer is { Length: > 0 })
 				{

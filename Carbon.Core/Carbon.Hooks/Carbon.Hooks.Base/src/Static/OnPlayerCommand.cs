@@ -30,7 +30,7 @@ public partial class Category_Static
 
 			public static bool Prefix(Chat.ChatChannel targetChannel, ulong userId, string username, string message, BasePlayer player = null)
 			{
-				if (CommunityCommon.CommonRuntime == null) return true;
+				if (Community.Runtime == null) return true;
 
 				try
 				{
@@ -45,7 +45,7 @@ public partial class Category_Static
 						return false;
 					}
 
-					foreach (var cmd in CommunityCommon.CommonRuntime?.AllChatCommands)
+					foreach (var cmd in Community.Runtime?.AllChatCommands)
 					{
 						if (cmd.Command == command)
 						{

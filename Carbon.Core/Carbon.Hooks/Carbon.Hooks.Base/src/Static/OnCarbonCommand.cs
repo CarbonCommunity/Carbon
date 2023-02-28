@@ -30,7 +30,7 @@ public partial class Category_Static
 
 			public static bool Prefix(ConsoleSystem.Option options, string strCommand, object[] args)
 			{
-				if (CommunityCommon.CommonRuntime == null) return true;
+				if (Community.Runtime == null) return true;
 
 				try
 				{
@@ -41,7 +41,7 @@ public partial class Category_Static
 
 					var player = options.Connection?.player as BasePlayer;
 
-					foreach (var cmd in CommunityCommon.CommonRuntime.AllConsoleCommands)
+					foreach (var cmd in Community.Runtime.AllConsoleCommands)
 					{
 						if (cmd.Command == command)
 						{

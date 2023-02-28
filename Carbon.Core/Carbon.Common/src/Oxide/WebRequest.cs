@@ -92,7 +92,7 @@ public class WebRequests
 		{
 			using (_client = new Client())
 			{
-				_client.Headers.Add("User-Agent", $"Carbon Mod (v{CommunityCommon.Version}); https://github.com/Carbon-Modding/Carbon.Core");
+				_client.Headers.Add("User-Agent", $"Carbon Mod (v{Community.Version}); https://github.com/Carbon-Modding/Carbon.Core");
 				_client.Credentials = CredentialCache.DefaultCredentials;
 				_client.Proxy = null;
 
@@ -200,7 +200,7 @@ public class WebRequests
 		{
 			protected override System.Net.WebRequest GetWebRequest(Uri address)
 			{
-				if (!CommunityCommon.IsConfigReady || string.IsNullOrEmpty(CommunityCommon.CommonRuntime.Config.WebRequestIp))
+				if (!Community.IsConfigReady || string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))
 				{
 					return base.GetWebRequest(address);
 				}
@@ -209,7 +209,7 @@ public class WebRequests
 
 				request.ServicePoint.BindIPEndPointDelegate = (servicePoint, remoteEndPoint, retryCount) =>
 				{
-					return new IPEndPoint(IPAddress.Parse(CommunityCommon.CommonRuntime.Config.WebRequestIp), 0);
+					return new IPEndPoint(IPAddress.Parse(Community.Runtime.Config.WebRequestIp), 0);
 				};
 
 				return request;

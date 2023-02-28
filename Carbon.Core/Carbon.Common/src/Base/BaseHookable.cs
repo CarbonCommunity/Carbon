@@ -42,7 +42,7 @@ public class BaseHookable
 
 	public virtual void TrackStart()
 	{
-		if (!CommunityCommon.IsServerFullyInitialized)
+		if (!Community.IsServerFullyInitialized)
 		{
 			return;
 		}
@@ -56,7 +56,7 @@ public class BaseHookable
 	}
 	public virtual void TrackEnd()
 	{
-		if (!CommunityCommon.IsServerFullyInitialized)
+		if (!Community.IsServerFullyInitialized)
 		{
 			return;
 		}

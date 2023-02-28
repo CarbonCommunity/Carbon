@@ -64,6 +64,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 		try { _compilationCache[name] = pluginAssembly; } catch { }
 	}
 
+	internal void _injectReference(string id, string name, List<MetadataReference> references)
+	{
+		Logger.Debug(id, $"Added common reference '{name}'", 4);
+		var raw = Supervisor.ASM.ReadAssembly(name);
+		using (MemoryStream mem = new MemoryStream(raw))
+			references.Add(MetadataReference.CreateFromStream(mem));
+	}
+
 	internal static MetadataReference _getReferenceFromCache(string reference)
 	{
 		try
@@ -80,20 +88,16 @@ public class ScriptCompilationThread : BaseThreadedJob
 			return null;
 		}
 	}
-
 	internal List<MetadataReference> _addReferences()
 	{
 		var references = new List<MetadataReference>();
-		string id = Path.GetFileNameWithoutExtension(FilePath);
+		var id = Path.GetFileNameWithoutExtension(FilePath);
 
-		foreach (string item in Community.ReferenceList)
+		foreach (var item in CommunityInternal.CompilerReferenceList)
 		{
 			try
 			{
-				Logger.Debug(id, $"Added common reference '{item}'", 4);
-				byte[] raw = Supervisor.ASM.ReadAssembly(item);
-				using (MemoryStream mem = new MemoryStream(raw))
-					references.Add(MetadataReference.CreateFromStream(mem));
+				_injectReference(id, item, references);
 			}
 			catch (System.Exception)
 			{
@@ -101,8 +105,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 		}
 
+		if (Community.Runtime.Config.HarmonyReference)
+		{
+			_injectReference(id, "0Harmony", references);
+		}
+
 		// goes through the requested use list by the plugin
-		foreach (string element in Usings)
+		foreach (var element in Usings)
 		{
 			try
 			{
@@ -117,12 +126,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 
 		// goes through the requested references by the plugin
-		foreach (string reference in References)
+		foreach (var reference in References)
 		{
 			try
 			{
 				Logger.Debug(id, $"Added require reference '{reference}'", 2);
-				MetadataReference outReference = _getReferenceFromCache(reference);
+				var outReference = _getReferenceFromCache(reference);
 				if (outReference != null && !references.Any(x => x.Display == outReference.Display)) references.Add(outReference);
 			}
 			catch (System.Exception)
@@ -163,7 +172,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var trees = new List<SyntaxTree>();
 
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
-				.WithPreprocessorSymbols(CommunityCommon.CommonRuntime.Config.ConditionalCompilationSymbols);
+				.WithPreprocessorSymbols(Community.Runtime.Config.ConditionalCompilationSymbols);
 			var tree = CSharpSyntaxTree.ParseText(
 				Source, options: parseOptions);
 			trees.Add(tree);
@@ -265,7 +274,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 						unsupportedHooks.Add(method.Name);
 					}
 
-					if (CommunityCommon.CommonRuntime.HookManager.IsHookLoaded(method.Name))
+					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 					{
 						if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
 					}

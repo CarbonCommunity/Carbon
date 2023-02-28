@@ -17,9 +17,9 @@ public class PluginManager
 
 	public bool AddPlugin(RustPlugin plugin)
 	{
-		if (!CommunityCommon.CommonRuntime.Plugins.Plugins.Any(x => x == plugin))
+		if (!Community.Runtime.Plugins.Plugins.Any(x => x == plugin))
 		{
-			CommunityCommon.CommonRuntime.Plugins.Plugins.Add(plugin);
+			Community.Runtime.Plugins.Plugins.Add(plugin);
 			return true;
 		}
 
@@ -27,9 +27,9 @@ public class PluginManager
 	}
 	public bool RemovePlugin(RustPlugin plugin)
 	{
-		if(CommunityCommon.CommonRuntime.Plugins.Plugins.Any(x => x == plugin))
+		if(Community.Runtime.Plugins.Plugins.Any(x => x == plugin))
 		{
-			CommunityCommon.CommonRuntime.Plugins.Plugins.Remove(plugin);
+			Community.Runtime.Plugins.Plugins.Remove(plugin);
 			return true;
 		}
 
@@ -38,12 +38,12 @@ public class PluginManager
 
 	public Plugin GetPlugin(string name)
 	{
-		if (name == "RustCore") return CommunityCommon.CommonRuntime.CorePlugin;
+		if (name == "RustCore") return Community.Runtime.CorePlugin;
 
-		return CommunityCommon.CommonRuntime.Plugins.Plugins.FirstOrDefault(x => x.Name == name);
+		return Community.Runtime.Plugins.Plugins.FirstOrDefault(x => x.Name == name);
 	}
 	public IEnumerable<Plugin> GetPlugins()
 	{
-		return CommunityCommon.CommonRuntime.Plugins.Plugins.AsEnumerable();
+		return Community.Runtime.Plugins.Plugins.AsEnumerable();
 	}
 }

@@ -51,7 +51,7 @@ public class OxideMod
 		DataFileSystem = new DataFileSystem(DataDirectory);
 		RootPluginManager = new PluginManager();
 
-		switch(CommunityCommon.CommonRuntime.Config.PermissionSerialization)
+		switch(Community.Runtime.Config.PermissionSerialization)
 		{
 			case Permission.SerializationMode.Protobuf:
 				Permission = new Permission();
@@ -65,24 +65,24 @@ public class OxideMod
 
 	public void NextTick(Action callback)
 	{
-		CommunityCommon.CommonRuntime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+		Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 	}
 
 	public void NextFrame(Action callback)
 	{
-		CommunityCommon.CommonRuntime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+		Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 	}
 
 	public void ReloadPlugin(string name)
 	{
 		var path = CorePlugin.GetPluginPath(name);
 
-		CommunityCommon.CommonRuntime.ScriptProcessor.Prepare(name, path);
+		Community.Runtime.ScriptProcessor.Prepare(name, path);
 	}
 
 	public void UnloadPlugin(string name)
 	{
-		CommunityCommon.CommonRuntime.ScriptProcessor.Remove(name);
+		Community.Runtime.ScriptProcessor.Remove(name);
 	}
 
 	public void OnSave()
@@ -112,10 +112,10 @@ public class OxideMod
 	{
 		var type = typeof(T);
 
-		if (type == typeof(Permission)) return CommunityCommon.CommonRuntime.CorePlugin.permission as T;
-		else if (type == typeof(Lang)) return CommunityCommon.CommonRuntime.CorePlugin.lang as T;
-		else if (type == typeof(Game.Rust.Libraries.Command)) return CommunityCommon.CommonRuntime.CorePlugin.cmd as T;
-		else if (type == typeof(Game.Rust.Libraries.Rust)) return CommunityCommon.CommonRuntime.CorePlugin.rust as T;
+		if (type == typeof(Permission)) return Community.Runtime.CorePlugin.permission as T;
+		else if (type == typeof(Lang)) return Community.Runtime.CorePlugin.lang as T;
+		else if (type == typeof(Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
+		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 
 		return Activator.CreateInstance<T>();
 	}

@@ -28,7 +28,7 @@ public partial class Category_Static
 		{
 			public static bool Prefix(RCon.Command cmd)
 			{
-				if (CommunityCommon.CommonRuntime == null) return true;
+				if (Community.Runtime == null) return true;
 
 				try
 				{
@@ -45,7 +45,7 @@ public partial class Category_Static
 						return false;
 					}
 
-					foreach (var carbonCommand in CommunityCommon.CommonRuntime.AllConsoleCommands)
+					foreach (var carbonCommand in Community.Runtime.AllConsoleCommands)
 					{
 						if (carbonCommand.Command == command)
 						{

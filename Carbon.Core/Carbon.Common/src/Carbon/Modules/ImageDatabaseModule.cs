@@ -189,7 +189,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 		if (Config.PrintInitializedBatchLogs && thread.ImageUrls.Count > 0) Puts($"Added {thread.ImageUrls.Count:n0} to the queue (scale: {(scale == 0 ? "default" : $"{scale:0.0}")})...");
 
-		CommunityCommon.CommonRuntime.CorePlugin.persistence.StartCoroutine(_executeQueue(thread, results =>
+		Community.Runtime.CorePlugin.persistence.StartCoroutine(_executeQueue(thread, results =>
 		{
 			try
 			{
@@ -303,7 +303,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 			_client = new WebRequests.WebRequest.Client();
 			{
-				_client.Headers.Add("User-Agent", $"Carbon ImageDatabase (v{CommunityCommon.Version}); https://github.com/Carbon-Modding/Carbon.Core");
+				_client.Headers.Add("User-Agent", $"Carbon ImageDatabase (v{Community.Version}); https://github.com/Carbon-Modding/Carbon.Core");
 				_client.Credentials = CredentialCache.DefaultCredentials;
 				_client.Proxy = null;
 

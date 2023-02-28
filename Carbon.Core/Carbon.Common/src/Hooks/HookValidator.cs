@@ -19,14 +19,14 @@ public class HookValidator
 
 	public static void Initialize()
 	{
-		CommunityCommon.CommonRuntime.Events.Subscribe(API.Events.CarbonEvent.HooksInstalled,
+		Community.Runtime.Events.Subscribe(API.Events.CarbonEvent.HooksInstalled,
 			x => HookValidator.Refresh());
 	}
 
 	public static async void Refresh()
 	{
 		string url = "https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj";
-		byte[] buffer = await CommunityCommon.CommonRuntime.Downloader.Download(url);
+		byte[] buffer = await Community.Runtime.Downloader.Download(url);
 
 		if (buffer is { Length: > 0 })
 		{
@@ -36,15 +36,15 @@ public class HookValidator
 			OxideHooks = JsonConvert.DeserializeObject<HookPackage>(json);
 			Logger.Debug($"Refreshed {OxideHooksCount} oxide hooks.");
 
-			CommunityCommon.CommonRuntime.Events.Trigger(
+			Community.Runtime.Events.Trigger(
 				API.Events.CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		}
 	}
 
 	public static bool IsIncompatibleOxideHook(string hook)
 	{
-		if (CommunityCommon.CommonRuntime.HookManager.StaticHooks.Any(x => x.HookName == hook) ||
-			CommunityCommon.CommonRuntime.HookManager.DynamicHooks.Any(x => x.HookName == hook)) return false;
+		if (Community.Runtime.HookManager.StaticHooks.Any(x => x.HookName == hook) ||
+			Community.Runtime.HookManager.DynamicHooks.Any(x => x.HookName == hook)) return false;
 
 		if (OxideHooks != null)
 		{

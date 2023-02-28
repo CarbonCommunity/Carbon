@@ -69,7 +69,7 @@ namespace Oxide.Plugins
 
 			public void UnregisterCommand(string command, Plugin plugin)
 			{
-				CommunityCommon.CommonRuntime.CorePlugin.cmd.RemoveConsoleCommand(command, plugin);
+				Community.Runtime.CorePlugin.cmd.RemoveConsoleCommand(command, plugin);
 			}
 		}
 

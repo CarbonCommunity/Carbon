@@ -27,13 +27,13 @@ namespace Carbon;
 #error Target architecture not defined
 #endif
 
-public partial class Community : CommunityCommon
+public partial class CommunityInternal : Community
 {
-	public static Community Runtime { get { return CommonRuntime as Community; } set { CommonRuntime = value; } }
+	public static CommunityInternal InternalRuntime { get { return Runtime as CommunityInternal; } set { Runtime = value; } }
 
 	public bool IsInitialized { get; set; }
 
-	public Community()
+	public CommunityInternal()
 	{
 		try
 		{
@@ -130,7 +130,7 @@ public partial class Community : CommunityCommon
 
 		#region Handle Versions
 
-		var assembly = typeof(CommunityCommon).Assembly;
+		var assembly = typeof(Community).Assembly;
 
 		try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion; } catch { }
 		try { Version = assembly.GetName().Version.ToString(); } catch { }
@@ -204,7 +204,7 @@ public partial class Community : CommunityCommon
 		}
 	}
 
-	internal static readonly IReadOnlyList<string> ReferenceList = new List<string>
+	internal static readonly IReadOnlyList<string> CompilerReferenceList = new List<string>
 	{
 		"mscorlib",
 		"netstandard",
@@ -217,9 +217,6 @@ public partial class Community : CommunityCommon
 		"System.Xml",
 		"System",
 
-		"0Harmony", // v2
-
-		"Carbon",
 		"Carbon.Common",
 		"protobuf-net",
 		"protobuf-net.Core",

@@ -41,7 +41,7 @@ public class Lang : Library
 			return data.Language;
 		}
 
-		return CommunityCommon.CommonRuntime.Config.Language;
+		return Community.Runtime.Config.Language;
 	}
 	public string[] GetLanguages(Plugin plugin = null)
 	{
@@ -71,14 +71,14 @@ public class Lang : Library
 	}
 	public void SetServerLanguage(string lang)
 	{
-		if (string.IsNullOrEmpty(lang) || lang == CommunityCommon.CommonRuntime.Config.Language) return;
+		if (string.IsNullOrEmpty(lang) || lang == Community.Runtime.Config.Language) return;
 
-		CommunityCommon.CommonRuntime.Config.Language = lang;
-		CommunityCommon.CommonRuntime.SaveConfig();
+		Community.Runtime.Config.Language = lang;
+		Community.Runtime.SaveConfig();
 	}
 	public string GetServerLanguage()
 	{
-		return CommunityCommon.CommonRuntime.Config.Language;
+		return Community.Runtime.Config.Language;
 	}
 	private Dictionary<string, string> GetMessageFile(string plugin, string lang = "en")
 	{

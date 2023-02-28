@@ -31,14 +31,14 @@ public class Logger
 
 		if (severity != Severity.Debug)
 		{
-			Severity minSeverity = CommunityCommon.CommonRuntime?.Config?.LogSeverity ?? Severity.Notice;
+			Severity minSeverity = Community.Runtime?.Config?.LogSeverity ?? Severity.Notice;
 			if (severity > minSeverity) return;
 		}
 
 		switch (severity)
 		{
 			case Severity.Error:
-				var dex = ex?.Demystify() ?? ex;
+				var dex = /* ex?.Demystify() ?? */ ex;
 
 				if (dex != null)
 				{
@@ -63,7 +63,7 @@ public class Logger
 				break;
 
 			case Severity.Debug:
-				int minVerbosity = CommunityCommon.CommonRuntime?.Config?.LogVerbosity ?? -1;
+				int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 				if (verbosity > minVerbosity) break;
 				UnityEngine.Debug.Log($"{message}");
 				_file._queueLog($"[INFO] {message}");
@@ -152,7 +152,7 @@ public class Logger
 		[CallerMemberName] string method = null)
 	{
 		// allows the usage of Error() before config has been init
-		int minVerbosity = CommunityCommon.CommonRuntime?.Config?.LogVerbosity ?? -1;
+		int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 
 		if (minVerbosity > 0)
 			message = $"{message}\n" +
