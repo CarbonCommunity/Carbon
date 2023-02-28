@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using HarmonyLib;
+﻿using System;
+using System.Reflection;
 
 /*
  *
@@ -12,7 +12,7 @@ namespace Carbon.Extensions;
 
 public static class ServerTagEx
 {
-	internal static PropertyInfo _gameTags = AccessTools.TypeByName("Steamworks.SteamServer").GetProperty("GameTags", BindingFlags.Public | BindingFlags.Static);
+	internal static PropertyInfo _gameTags = AccessToolsEx.TypeByName("Steamworks.SteamServer").GetProperty("GameTags", BindingFlags.Public | BindingFlags.Static);
 
 	public static bool SetRequiredTag(string tag)
 	{

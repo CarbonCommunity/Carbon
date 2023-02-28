@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 using System.Reflection;
-using HarmonyLib;
+using Carbon.Extensions;
 
 /*
  *
@@ -53,13 +53,13 @@ internal static class ASM
 	{
 		try
 		{
-			_loader = AccessTools.TypeByName("Legacy.Loader") ?? null;
+			_loader = AccessToolsEx.TypeByName("Legacy.Loader") ?? null;
 			if (_loader == null) throw new Exception("Loader is null");
 
-			_harmonyLoader = AccessTools.TypeByName("Legacy.Harmony.HarmonyLoaderEx") ?? null;
+			_harmonyLoader = AccessToolsEx.TypeByName("Legacy.Harmony.HarmonyLoaderEx") ?? null;
 			if (_harmonyLoader == null) throw new Exception("HarmonyLoaderEx is null");
 
-			_assemblyManager = AccessTools.TypeByName("Legacy.ASM.AssemblyManager") ?? null;
+			_assemblyManager = AccessToolsEx.TypeByName("Legacy.ASM.AssemblyManager") ?? null;
 			if (_assemblyManager == null) throw new Exception("AssemblyManager is null");
 
 

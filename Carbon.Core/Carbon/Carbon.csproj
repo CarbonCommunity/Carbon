@@ -34,7 +34,6 @@
 	<ItemGroup>
 	  <Folder Include="src\Carbon\Base\" />
 	  <Folder Include="src\Carbon\Components\" />
-	  <Folder Include="src\Carbon\Hooks\" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">

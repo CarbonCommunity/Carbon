@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
+using Carbon.Contracts;
 using Carbon.Extensions;
 using Carbon.Hooks;
 using Carbon.Plugins;
@@ -404,7 +405,7 @@ public class CorePlugin : CarbonPlugin
 		{
 			case "loaded":
 				{
-					IEnumerable<HookEx> hooks;
+					IEnumerable<IHook> hooks;
 
 					switch (option2)
 					{
@@ -474,7 +475,7 @@ public class CorePlugin : CarbonPlugin
 
 			default: // list installed
 				{
-					IEnumerable<HookEx> hooks;
+					IEnumerable<IHook> hooks;
 
 					switch (option1)
 					{

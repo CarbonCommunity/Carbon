@@ -18,9 +18,9 @@ namespace Carbon.Hooks;
 
 public class HookManager : FacepunchBehaviour, IHookManager, IHookManagerPublic
 {
-	public IEnumerable<HookEx> Patches { get => _patches; }
-	public IEnumerable<HookEx> StaticHooks { get => _staticHooks; }
-	public IEnumerable<HookEx> DynamicHooks { get => _dynamicHooks; }
+	public IEnumerable<IHook> Patches { get => _patches; }
+	public IEnumerable<IHook> StaticHooks { get => _staticHooks; }
+	public IEnumerable<IHook> DynamicHooks { get => _dynamicHooks; }
 
 	internal List<HookEx> _patches { get; set; }
 	internal List<HookEx> _staticHooks { get; set; }
@@ -414,13 +414,13 @@ public class HookManager : FacepunchBehaviour, IHookManager, IHookManagerPublic
 		return hooks.Count != 0 && hooks.Any(IsHookLoaded);
 	}
 
-	public IEnumerable<HookEx> InstalledPatches
+	public IEnumerable<IHook> InstalledPatches
 	{ get => _patches.Where(x => x.IsInstalled); }
-
-	public IEnumerable<HookEx> InstalledStaticHooks
+					   
+	public IEnumerable<IHook> InstalledStaticHooks
 	{ get => _staticHooks.Where(x => x.IsInstalled); }
-
-	public IEnumerable<HookEx> InstalledDynamicHooks
+					   
+	public IEnumerable<IHook> InstalledDynamicHooks
 	{ get => _dynamicHooks.Where(x => x.IsInstalled); }
 
 

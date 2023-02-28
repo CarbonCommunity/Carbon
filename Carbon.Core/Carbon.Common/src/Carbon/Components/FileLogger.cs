@@ -67,7 +67,6 @@ public class FileLogger : IDisposable
 		try
 		{
 			File.Delete(path);
-			File.Delete(HarmonyLib.FileLog.LogPath);
 		}
 		catch { }
 

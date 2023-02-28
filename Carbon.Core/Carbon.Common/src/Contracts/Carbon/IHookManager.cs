@@ -13,13 +13,13 @@ namespace Carbon.Contracts
 		int StaticHooksCount { get; }
 		int DynamicHooksCount { get; }
 
-		IEnumerable<HookEx> Patches { get; }
-		IEnumerable<HookEx> StaticHooks { get; }
-		IEnumerable<HookEx> DynamicHooks { get; }
+		IEnumerable<IHook> Patches { get; }
+		IEnumerable<IHook> StaticHooks { get; }
+		IEnumerable<IHook> DynamicHooks { get; }
 
-		IEnumerable<HookEx> InstalledPatches { get; }
-		IEnumerable<HookEx> InstalledStaticHooks { get; }
-		IEnumerable<HookEx> InstalledDynamicHooks { get; }
+		IEnumerable<IHook> InstalledPatches { get; }
+		IEnumerable<IHook> InstalledStaticHooks { get; }
+		IEnumerable<IHook> InstalledDynamicHooks { get; }
 
 		void Subscribe(string hookName, string fileName);
 		void Unsubscribe(string hookName, string fileName);

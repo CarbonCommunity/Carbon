@@ -60,8 +60,6 @@ namespace Oxide.Plugins
 		public IBaseProcessor _processor;
 		public IBaseProcessor.IInstance _processor_instance;
 
-		public object Harmony;
-
 		public static implicit operator bool(Plugin other)
 		{
 			return other != null;
@@ -214,25 +212,6 @@ namespace Oxide.Plugins
 				else plugin = CommunityCommon.CommonRuntime.CorePlugin.plugins.Find(name);
 
 				if (plugin != null) field.SetValue(this, plugin);
-			}
-		}
-
-		public void PatchPlugin(Assembly assembly = null)
-		{
-			UnpatchPlugin();
-
-			if (assembly == null) assembly = Assembly.GetExecutingAssembly();
-
-			var patch = new HarmonyLib.Harmony(Name + "Patches");
-			patch.PatchAll(assembly);
-			Harmony = patch;
-		}
-		public void UnpatchPlugin()
-		{
-			if (Harmony is HarmonyLib.Harmony patch)
-			{
-				patch?.UnpatchAll(patch.Id);
-				Harmony = null;
 			}
 		}
 

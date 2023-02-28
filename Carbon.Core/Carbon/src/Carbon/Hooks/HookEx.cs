@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using API.Hooks;
+using Carbon.Contracts;
 using HarmonyLib;
 
 /*
@@ -15,7 +16,7 @@ using HarmonyLib;
 
 namespace Carbon.Hooks;
 
-public class HookEx : IDisposable
+public class HookEx : IDisposable, IHook
 {
 	private HookRuntime _runtime;
 	private readonly TypeInfo _patchMethod;

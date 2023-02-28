@@ -19,9 +19,6 @@
 
 	<ItemGroup>
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
-		<Reference Include="1Harmony">
-		  <HintPath>..\..\Tools\HarmonyLib\Harmony\bin\Release\net472\1Harmony.dll</HintPath>
-		</Reference>
 		<Reference Include="Assembly-CSharp">
 		  <HintPath>..\..\Rust\windows\RustDedicated_Data\Managed\Assembly-CSharp.dll</HintPath>
 		</Reference>

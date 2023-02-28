@@ -106,95 +106,6 @@ public static class Loader
 
 		Facepunch.Pool.FreeList(ref list);
 	}
-	public static bool LoadCarbonMod(string fullPath, bool silent = false)
-	{
-		if (!File.Exists(fullPath)) return false;
-
-		var fileName = Path.GetFileName(fullPath);
-
-		if (fileName.EndsWith(".dll"))
-			fileName = fileName.Substring(0, fileName.Length - 4);
-		var domain = "com.rust.carbon." + fileName;
-
-		UnloadCarbonMod(fileName);
-
-		try
-		{
-			var assembly = LoadAssembly(fullPath);
-
-			if (assembly == null)
-			{
-				LogError(domain, $"Failed to load harmony mod '{fileName}.dll' from '{_modPath}'");
-				return false;
-			}
-
-			var mod = new CarbonMod
-			{
-				Assembly = assembly,
-				AllTypes = assembly.GetTypes(),
-				Name = fileName,
-				File = fullPath
-			};
-
-			foreach (var type in mod.AllTypes)
-			{
-				if (typeof(IHarmonyModHooks).IsAssignableFrom(type))
-				{
-					try
-					{
-						var harmonyModHooks = Activator.CreateInstance(type) as IHarmonyModHooks;
-
-						if (harmonyModHooks == null) LogError(mod.Name, "Failed to create hook instance: Is null");
-						else mod.Hooks.Add(harmonyModHooks);
-					}
-					catch (Exception e)
-					{
-						LogError(mod.Name, $"Failed to create hook instance {e}");
-					}
-				}
-			}
-
-			try
-			{
-				mod.Harmonyv2 = new HarmonyLib.Harmony(domain);
-				mod.Harmonyv2.PatchAll(assembly);
-			}
-			catch (Exception e)
-			{
-				if (!silent)
-					LogError(mod.Name, string.Format("Failed to patch all v2 hooks: {0}", e));
-			}
-
-			foreach (var hook in mod.Hooks)
-			{
-				try
-				{
-					var type = hook.GetType();
-					if (type.Name.Equals("CarbonInitializer")) continue;
-
-					hook.OnLoaded(new OnHarmonyModLoadedArgs());
-				}
-				catch (Exception e)
-				{
-					if (!silent)
-						LogError(mod.Name, string.Format("Failed to call hook 'OnLoaded' {0}", e));
-				}
-			}
-
-			AppendAssembly(mod.Name, assembly);
-			AssemblyCache.Add(assembly);
-			LoadedMods.Add(mod);
-
-			InitializePlugins(mod);
-		}
-		catch (Exception e)
-		{
-			if (!silent) LogError(domain, "Failed to load: " + fullPath);
-			ReportException(domain, e);
-			return false;
-		}
-		return true;
-	}
 	public static bool UnloadCarbonMod(string name)
 	{
 		var mod = GetMod(name);
@@ -218,7 +129,6 @@ public static class Loader
 			}
 		}
 
-		UnloadMod(mod);
 		UninitializePlugins(mod);
 		return true;
 	}
@@ -568,29 +478,6 @@ public static class Loader
 
 	#endregion
 
-	internal static void UnloadMod(CarbonMod mod)
-	{
-		if (mod.IsCoreMod) return;
-
-		if (mod.Harmonyv2 != null)
-		{
-			Log(mod.Name, $"Unpatching hooks for '{mod.Name}' on v2...");
-
-			try
-			{
-				mod.Harmonyv2.UnpatchAll(mod.Harmonyv2.Id);
-				Log(mod.Name, "Unloaded v2 mod");
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"Failed unpatching all v2 patches.", ex);
-			}
-
-			mod.Harmonyv2 = null;
-		}
-
-		LoadedMods.Remove(mod);
-	}
 	internal static CarbonMod GetMod(string name)
 	{
 		foreach (var mod in LoadedMods)
@@ -665,7 +552,6 @@ public static class Loader
 		public string File { get; set; } = string.Empty;
 		[JsonProperty]
 		public bool IsCoreMod { get; set; } = false;
-		public HarmonyLib.Harmony Harmonyv2 { get; set; }
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }
 		public List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks>();
