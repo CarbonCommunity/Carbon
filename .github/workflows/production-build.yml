@@ -45,6 +45,7 @@ jobs:
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "wipe=$( [ $(date +%u) -eq 4 ] && [ $(date +%d) -le 7 ] && echo true || echo false )" >> $GITHUB_OUTPUT
 
+  # BUILD LINUX ----------------------------------------------------------------
   build-linux:
     name: 🐧 Linux
     needs: bootstrap
@@ -85,6 +86,7 @@ jobs:
           Release/Carbon.Linux.Release.tar.gz
           Release/Carbon.Linux.Release.info
 
+  # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
     name: 🪟 Windows
     needs: bootstrap
@@ -120,6 +122,7 @@ jobs:
           Release/Carbon.Windows.Release.zip
           Release/Carbon.Windows.Release.info
 
+  # RELEASE --------------------------------------------------------------------
   release:
     name: 💾 Release
     needs: [ "build-linux", "build-windows" ]

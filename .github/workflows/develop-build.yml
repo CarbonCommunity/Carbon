@@ -45,6 +45,7 @@ jobs:
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+  # BUILD LINUX ----------------------------------------------------------------
   build-linux:
     name: 🐧 Linux
     needs: bootstrap
@@ -79,9 +80,10 @@ jobs:
       with:
         name: build-develop-linux
         path: |
-          Release/Carbon.Linux.Debug.tag.gz
+          Release/Carbon.Linux.Debug.tar.gz
           Release/Carbon.Linux.Debug.info
 
+  # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
     name: 🪟 Windows
     needs: bootstrap
@@ -115,6 +117,7 @@ jobs:
           Release/Carbon.Windows.Debug.zip
           Release/Carbon.Windows.Debug.info
 
+  # RELEASE --------------------------------------------------------------------
   release:
     name: 💾 Release
     needs: [ "build-linux", "build-windows" ]
@@ -168,7 +171,8 @@ jobs:
           Release/build-develop-windows/Carbon.Windows.Debug.info
           Release/build-develop-windows/Carbon.Windows.Debug.zip
 
-  commitrelease:
+  # RELEASE --------------------------------------------------------------------
+  release-on-commit:
     name: 💾 Commit Release
     needs: [ "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
@@ -214,7 +218,7 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/build-develop-windows/Carbon.Linux.Debug.info
-          Release/build-develop-windows/Carbon.Linux.Debug.tar.gz
+          Release/build-develop-linux/Carbon.Linux.Debug.info
+          Release/build-develop-linux/Carbon.Linux.Debug.tar.gz
           Release/build-develop-windows/Carbon.Windows.Debug.info
           Release/build-develop-windows/Carbon.Windows.Debug.zip
