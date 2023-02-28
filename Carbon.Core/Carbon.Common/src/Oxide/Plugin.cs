@@ -93,10 +93,11 @@ namespace Oxide.Plugins
 
 			if (Hooks != null)
 			{
+				string requester = FileName is not default(string) ? FileName : $"{this}";
 				using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 				{
 					foreach (var hook in Hooks)
-						Community.Runtime.HookManager.Subscribe(hook, FileName);
+						Community.Runtime.HookManager.Subscribe(hook, requester);
 				}
 				Carbon.Logger.Debug(Name, "Processed hooks");
 			}
