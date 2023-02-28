@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Contracts;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -121,7 +122,7 @@ public static class Loader
 				var type = hook.GetType();
 				if (type.Name.Equals("CarbonInitializer")) continue;
 
-				hook.OnUnloaded(new OnHarmonyModUnloadedArgs());
+				hook.OnUnloaded(new EventArgs());
 			}
 			catch (Exception arg)
 			{
@@ -552,7 +553,7 @@ public static class Loader
 		public bool IsCoreMod { get; set; } = false;
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }
-		public List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks>();
+		public List<IHarmonyMod> Hooks { get; } = new List<IHarmonyMod>();
 
 		[JsonProperty]
 		public List<RustPlugin> Plugins { get; set; } = new List<RustPlugin>();

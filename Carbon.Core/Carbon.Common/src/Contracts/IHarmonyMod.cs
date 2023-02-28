@@ -9,8 +9,8 @@ using System;
 
 namespace API.Contracts;
 
-public interface IIdentityManager
+public interface IHarmonyMod
 {
-	public string GetSystemUID
-	{ get; }
+	public void OnLoaded(EventArgs args);
+	public void OnUnloaded(EventArgs args);
 }

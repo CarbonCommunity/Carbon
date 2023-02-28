@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using API.Contracts;
 
 /*
  *
@@ -12,9 +13,9 @@ using System.Threading;
 
 namespace Carbon.Core;
 
-public class Initializer : IHarmonyModHooks
+public class Initializer : IHarmonyMod
 {
-	public void OnLoaded(OnHarmonyModLoadedArgs args)
+	public void OnLoaded(EventArgs args)
 	{
 		try
 		{
@@ -101,7 +102,7 @@ public class Initializer : IHarmonyModHooks
 		}
 	}
 
-	public void OnUnloaded(OnHarmonyModUnloadedArgs args)
+	public void OnUnloaded(EventArgs args)
 	{
 		Logger.Log("Uninitalizing...");
 		CommunityInternal.InternalRuntime?.Uninitalize();

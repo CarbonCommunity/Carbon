@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using API.Contracts;
 using Legacy.ASM;
 
 /*
@@ -17,7 +18,7 @@ internal class HarmonyPlugin : IDisposable
 {
 	private string _identifier;
 	private HarmonyLib.Harmony _handler;
-	private List<IHarmonyModHooks> _hooks;
+	private List<IHarmonyMod> _hooks;
 
 
 	private Assembly _assembly;
@@ -65,7 +66,7 @@ internal class HarmonyPlugin : IDisposable
 	private HarmonyPlugin()
 	{
 		_identifier = $"{Guid.NewGuid():N}";
-		_hooks = new List<IHarmonyModHooks>();
+		_hooks = new List<IHarmonyMod>();
 		_handler = new HarmonyLib.Harmony(_identifier);
 	}
 
@@ -82,12 +83,12 @@ internal class HarmonyPlugin : IDisposable
 	{
 		foreach (Type type in types)
 		{
-			if (!typeof(IHarmonyModHooks).IsAssignableFrom(type)) continue;
+			if (!typeof(IHarmonyMod).IsAssignableFrom(type)) continue;
 
 			try
 			{
-				IHarmonyModHooks hook = Activator.CreateInstance(type) as IHarmonyModHooks;
-				if (hook == null) throw new NullReferenceException();
+				if (Activator.CreateInstance(type) is not IHarmonyMod hook)
+					throw new NullReferenceException();
 
 				Utility.Logger.Log($" - Instance of '{hook}' created");
 				_hooks.Add(hook);
@@ -136,12 +137,12 @@ internal class HarmonyPlugin : IDisposable
 
 	internal void OnLoaded()
 	{
-		foreach (IHarmonyModHooks hook in _hooks)
+		foreach (IHarmonyMod hook in _hooks)
 		{
 			try
 			{
 				Utility.Logger.Log($" - Trigger '{this}' OnLoaded hook");
-				hook.OnLoaded(args: new OnHarmonyModLoadedArgs());
+				hook.OnLoaded(args: new EventArgs());
 			}
 			catch (System.Exception e)
 			{
@@ -152,12 +153,12 @@ internal class HarmonyPlugin : IDisposable
 
 	internal void OnUnloaded()
 	{
-		foreach (IHarmonyModHooks hook in _hooks)
+		foreach (IHarmonyMod hook in _hooks)
 		{
 			try
 			{
 				Utility.Logger.Log($" - Trigger '{this}' OnUnloaded hook");
-				hook.OnUnloaded(args: new OnHarmonyModUnloadedArgs());
+				hook.OnUnloaded(args: new EventArgs());
 			}
 			catch (System.Exception e)
 			{
