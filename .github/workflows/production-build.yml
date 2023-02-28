@@ -162,7 +162,7 @@ jobs:
           
           ${{ needs.build-linux.outputs.build_info }}
         files: |
-          Release/build-production-windows/Carbon.Linux.Release.info
-          Release/build-production-windows/Carbon.Linux.Release.tar.gz
+          Release/build-production-linux/Carbon.Linux.Release.info
+          Release/build-production-linux/Carbon.Linux.Release.tar.gz
           Release/build-production-windows/Carbon.Windows.Release.info
           Release/build-production-windows/Carbon.Windows.Release.zip
