@@ -1701,7 +1701,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
 				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers);
-				tab.AddToggle(1, "Harmony Watchers", ap => { Config.HarmonyWatchers = !Config.HarmonyWatchers; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyWatchers);
+				tab.AddToggle(1, "Harmony Reference (<color=red>!</color>)", ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference);
 
 				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
 				tab.AddInput(1, "Log File Mode", () => Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); Community.Runtime.SaveConfig(); });
