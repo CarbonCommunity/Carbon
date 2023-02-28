@@ -31,7 +31,7 @@ public class Community
 	public IScriptProcessor ScriptProcessor { get; set; }
 	public IWebScriptProcessor WebScriptProcessor { get; set; }
 	public IModuleProcessor ModuleProcessor { get; set; }
-	public IHookManagerPublic HookManager { get; set; }
+	public IHookManager HookManager { get; set; }
 
 	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
 	public static bool IsServerFullyInitializedCache { get; internal set; }

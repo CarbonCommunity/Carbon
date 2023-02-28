@@ -7,7 +7,7 @@ using Carbon.Hooks;
 
 namespace Carbon.Contracts
 {
-	public interface IHookManagerPublic
+	public interface IHookManager
 	{	
 		int PatchesCount { get; }
 		int StaticHooksCount { get; }

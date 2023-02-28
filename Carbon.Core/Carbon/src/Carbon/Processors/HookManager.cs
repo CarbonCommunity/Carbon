@@ -16,7 +16,7 @@ using Carbon.Core;
 
 namespace Carbon.Hooks;
 
-public class HookManager : FacepunchBehaviour, IHookManager, IHookManagerPublic
+public class HookManager : FacepunchBehaviour, IHookManager
 {
 	public IEnumerable<IHook> Patches { get => _patches; }
 	public IEnumerable<IHook> StaticHooks { get => _staticHooks; }
