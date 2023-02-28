@@ -79,8 +79,8 @@ jobs:
       with:
         name: build-develop-linux
         path: |
-          Release/Carbon.DebugUnix.tar.gz
-          Release/build-unix.info
+          Release/Carbon.Linux.Debug.tag.gz
+          Release/Carbon.Linux.Debug.info
 
   build-windows:
     name: 🪟 Windows
@@ -112,8 +112,8 @@ jobs:
       with:
         name: build-develop-windows
         path: |
-          Release/Carbon.Debug.zip
-          Release/build.info
+          Release/Carbon.Windows.Debug.zip
+          Release/Carbon.Windows.Debug.info
 
   release:
     name: 💾 Release
