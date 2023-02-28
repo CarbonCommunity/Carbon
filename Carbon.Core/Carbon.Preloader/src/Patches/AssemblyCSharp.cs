@@ -242,7 +242,7 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 		Logger.Debug($" - Patching BasePlayer.IPlayer");
 
 		AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(
-			stream: new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.API.dll"))));
+			stream: new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.Common.dll"))));
 
 		TypeDefinition type1 = assembly.MainModule.GetType("Oxide.Core.Libraries.Covalence", "IPlayer");
 		if (type1 == null) throw new Exception("Unable to get a type for 'API.Contracts.IPlayer'");

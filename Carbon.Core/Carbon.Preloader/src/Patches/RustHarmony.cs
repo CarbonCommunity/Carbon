@@ -44,7 +44,7 @@ internal sealed class RustHarmony : MarshalByRefObject
 	{
 		try
 		{
-			Override_HarmonyLoader_Methods();
+			Deep_Cleanup();
 		}
 		catch (System.Exception ex)
 		{
@@ -84,6 +84,21 @@ internal sealed class RustHarmony : MarshalByRefObject
 			}
 
 			processor.Append(processor.Create(OpCodes.Ret));
+		}
+	}
+
+	private void Deep_Cleanup()
+	{
+		string[] whitelist = {
+			"IHarmonyModHooks",
+			"OnHarmonyModLoadedArgs",
+			"OnHarmonyModUnloadedArgs"
+		};
+
+		foreach (TypeDefinition type in _assembly.MainModule.GetTypes())
+		{
+			if (!whitelist.Contains(type.Name))
+				_assembly.MainModule.Types.Remove(type);
 		}
 	}
 
