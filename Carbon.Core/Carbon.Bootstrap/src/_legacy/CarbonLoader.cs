@@ -65,9 +65,15 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 		_gameObject.AddComponent<EventManager>();
 		_gameObject.AddComponent<IdentityManager>();
 
-		// Events
-		Events.Subscribe(API.Events.CarbonEvent.StartupShared,
-			x => HarmonyLoaderEx.GetInstance().Load("Carbon.dll"));
+		Events.Subscribe(API.Events.CarbonEvent.StartupShared, x =>
+		{
+			HarmonyLoaderEx.GetInstance().Load("Carbon.dll");
+		});
+
+		Events.Subscribe(API.Events.CarbonEvent.CarbonStartupComplete, x =>
+		{
+			HarmonyLoaderEx.GetInstance().Load("Carbon.Modules.dll");
+		});
 	}
 
 	internal void Initialize()
