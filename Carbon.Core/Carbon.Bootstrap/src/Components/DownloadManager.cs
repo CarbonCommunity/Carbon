@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Reflection;
+using System.Threading.Tasks;
 using API.Contracts;
 using UnityEngine;
 
@@ -15,7 +17,7 @@ namespace Components;
 
 internal sealed class DownloadManager : MonoBehaviour, IDownloadManager
 {
-	private struct Download
+	private struct DownloadItem
 	{
 		public string URL;
 		public DateTime Start;
@@ -24,12 +26,14 @@ internal sealed class DownloadManager : MonoBehaviour, IDownloadManager
 	}
 
 	private static readonly int _concurrency = 3;
-	private Queue<Download> _donwloadQueue;
+	private Queue<DownloadItem> _donwloadQueue;
 	private int _currentDownloads;
+	private string _userAgent;
 
 	private void Awake()
 	{
-		_donwloadQueue = new Queue<Download>();
+		_donwloadQueue = new Queue<DownloadItem>();
+		try { _userAgent = $"Carbon v{Assembly.GetExecutingAssembly().GetName().Version}"; } catch { }
 	}
 
 	private void Update()
@@ -38,8 +42,9 @@ internal sealed class DownloadManager : MonoBehaviour, IDownloadManager
 
 		WebClient webClient = new WebClient();
 		webClient.DownloadDataCompleted += OnDownloadDataCompleted;
+		webClient.Headers.Add(HttpRequestHeader.UserAgent, _userAgent);
 
-		Download job = _donwloadQueue.Dequeue();
+		DownloadItem job = _donwloadQueue.Dequeue();
 		job.Start = DateTime.UtcNow;
 		_currentDownloads++;
 
@@ -51,20 +56,20 @@ internal sealed class DownloadManager : MonoBehaviour, IDownloadManager
 	{
 		_currentDownloads--;
 		WebClient webClient = (WebClient)sender;
-		Download job = (Download)e.UserState;
+		DownloadItem job = (DownloadItem)e.UserState;
 
 		try
 		{
 			if (e.Error != null) throw new Exception(e.Error.Message);
 			if (e.Cancelled) throw new Exception("Job was cancelled");
 
-			TimeSpan ts = DateTime.UtcNow - ((Download)e.UserState).Start;
+			TimeSpan ts = DateTime.UtcNow - ((DownloadItem)e.UserState).Start;
 			Utility.Logger.Log($"Download job '{job.Identifier}' finished [{FormatBytes(e.Result.LongLength / ts.TotalSeconds):0}/sec]");
 
 			if (job.Callback == null) throw new Exception("Callback is null, this is a bug");
 			job.Callback(job.Identifier, e.Result);
 		}
-		catch (System.Exception ex)
+		catch (Exception ex)
 		{
 			Utility.Logger.Error($"Download job '{job.Identifier}' failed", ex);
 
@@ -74,20 +79,37 @@ internal sealed class DownloadManager : MonoBehaviour, IDownloadManager
 		finally
 		{
 			webClient.Dispose();
-			webClient = default;
 		}
+	}
+
+	public async Task<byte[]> Download(string url)
+	{
+		var tcs = new TaskCompletionSource<byte[]>();
+
+		DownloadItem job = new DownloadItem()
+		{
+			URL = url,
+			Callback = (id, bytes) => tcs.SetResult(bytes),
+			Identifier = $"{Guid.NewGuid():N}",
+		};
+
+		Utility.Logger.Log($"New download request with token '{job.Identifier}': {job.URL}");
+		_donwloadQueue.Enqueue(job);
+		byte[] bytes = await tcs.Task;
+
+		return bytes;
 	}
 
 	public void DownloadAsync(string url, Action<string, byte[]> callback)
 	{
-		Download job = new Download()
+		DownloadItem job = new DownloadItem()
 		{
 			URL = url,
 			Callback = callback,
 			Identifier = $"{Guid.NewGuid():N}",
 		};
 
-		Utility.Logger.Log($"New download request with token '{job.Identifier}': {job.URL}");
+		Utility.Logger.Log($"New async download request with token '{job.Identifier}': {job.URL}");
 		_donwloadQueue.Enqueue(job);
 	}
 

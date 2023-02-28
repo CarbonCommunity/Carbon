@@ -45,6 +45,7 @@ jobs:
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "wipe=$( [ $(date +%u) -eq 4 ] && [ $(date +%d) -le 7 ] && echo true || echo false )" >> $GITHUB_OUTPUT
 
+  # BUILD LINUX ----------------------------------------------------------------
   build-linux:
     name: 🐧 Linux
     needs: bootstrap
@@ -82,9 +83,10 @@ jobs:
       with:
         name: build-production-linux
         path: |
-          Release/Carbon.ReleaseUnix.tar.gz
-          Release/build-unix.info
+          Release/Carbon.Linux.Release.tar.gz
+          Release/Carbon.Linux.Release.info
 
+  # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
     name: 🪟 Windows
     needs: bootstrap
@@ -117,9 +119,10 @@ jobs:
       with:
         name: build-production-windows
         path: |
-          Release/Carbon.Release.zip
-          Release/build.info
+          Release/Carbon.Windows.Release.zip
+          Release/Carbon.Windows.Release.info
 
+  # RELEASE --------------------------------------------------------------------
   release:
     name: 💾 Release
     needs: [ "build-linux", "build-windows" ]
@@ -159,7 +162,7 @@ jobs:
           
           ${{ needs.build-linux.outputs.build_info }}
         files: |
-          Release/build-production-windows/Carbon.Release.zip
-          Release/build-production-linux/Carbon.ReleaseUnix.tar.gz
-          Release/build-production-linux/build-unix.info
-          Release/build-production-windows/build.info
+          Release/build-production-windows/Carbon.Linux.Release.info
+          Release/build-production-windows/Carbon.Linux.Release.tar.gz
+          Release/build-production-windows/Carbon.Windows.Release.info
+          Release/build-production-windows/Carbon.Windows.Release.zip

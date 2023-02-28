@@ -14,14 +14,8 @@
 *.code-workspace
 *.csproj.user
 
-# Fody - auto-generated XML schema
-FodyWeavers.xsd
-
-# Local HarmonyLib version
-**/Carbon/Resources/1Harmony.dll
-
 # Oxide autogen hooks
-**/Carbon.Hooks.Extended/src
+**/Carbon.Hooks/Carbon.Hooks.Extra/src/Oxide
 
 # Project release folder
 [Rr]elease/
