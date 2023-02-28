@@ -4,7 +4,6 @@
 		<Message Text="[$(AssemblyName)] &gt;&gt; Preparing the release folder ($(OperatingSystem))" Importance="high" />
 		<PropertyGroup>
 			<CarbonBaseDir>$(SolutionDir)..\Release\.tmp\$(Configuration)</CarbonBaseDir>
-			<c_harmony>$(CarbonBaseDir)\carbon\harmony</c_harmony>
 			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
 			<c_hooks>$(CarbonBaseDir)\carbon\managed\hooks</c_hooks>
 			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
