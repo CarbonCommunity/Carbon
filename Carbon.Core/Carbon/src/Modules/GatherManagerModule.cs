@@ -102,6 +102,18 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, GatherManag
 		return Config.VendingMachineBuyDuration;
 	}
 
+	private object IMixingSpeedMultiplier(MixingTable table, float originalValue)
+	{
+		if (table.currentRecipe == null) return null;
+
+		if(originalValue == table.currentRecipe.MixingDuration * table.currentQuantity)
+		{
+			return Config.MixingSpeedMultiplier;
+		}
+
+		return null;
+	}
+
 	#endregion
 
 	public override void OnEnabled(bool initialized)
@@ -118,6 +130,7 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, GatherManag
 		Subscribe("ICraftDurationMultiplier");
 		Subscribe("IRecyclerThinkSpeed");
 		Subscribe("IVendingBuyDuration");
+		Subscribe("IMixingSpeedMultiplier");
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -133,6 +146,7 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, GatherManag
 		Unsubscribe("ICraftDurationMultiplier");
 		Unsubscribe("IRecyclerThinkSpeed");
 		Unsubscribe("IVendingBuyDuration");
+		Unsubscribe("IMixingSpeedMultiplier");
 	}
 
 	#region Helpers
@@ -173,6 +187,7 @@ public class GatherManagerConfig
 	public float ResearchDuration = 10f;
 	public float VendingMachineBuyDuration = 2.5f;
 	public float CraftingSpeedMultiplier = 1f;
+	public float MixingSpeedMultiplier = 1f;
 
 	public Dictionary<string, float> Quarry = new()
 	{
