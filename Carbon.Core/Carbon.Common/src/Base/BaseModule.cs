@@ -20,7 +20,7 @@ public class BaseModule : BaseHookable
 
 	public static T GetModule<T>()
 	{
-		foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+		foreach (var module in CommunityCommon.CommonRuntime.ModuleProcessor.Modules)
 		{
 			if (module.GetType() == typeof(T) && module is T result) return result;
 		}
@@ -62,8 +62,8 @@ public class CarbonModule<C, D> : BaseModule, IModule
 
 		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
-			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
-				Community.Runtime.HookManager.Subscribe(method.Name, Name);
+			if (CommunityCommon.CommonRuntime.HookManager.IsHookLoaded(method.Name))
+				CommunityCommon.CommonRuntime.HookManager.Subscribe(method.Name, Name);
 		}
 
 		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -152,7 +152,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 	{
 		try
 		{
-			if (ConfigInstance.Enabled) OnEnabled(Community.IsServerFullyInitialized); else OnDisabled(Community.IsServerFullyInitialized);
+			if (ConfigInstance.Enabled) OnEnabled(CommunityCommon.IsServerFullyInitialized); else OnDisabled(CommunityCommon.IsServerFullyInitialized);
 		}
 		catch (Exception ex) { Logger.Error($"Failed {(ConfigInstance.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using Carbon.Base;
+using Carbon.Contracts;
 using Carbon.Core;
 
 /*
@@ -12,9 +14,9 @@ using Carbon.Core;
 
 namespace Carbon.Processors;
 
-public class ScriptProcessor : BaseProcessor
+public class ScriptProcessor : BaseProcessor, IScriptProcessor
 {
-	public override bool EnableWatcher => Community.IsConfigReady ? Community.Runtime.Config.ScriptWatchers : true;
+	public override bool EnableWatcher => CommunityCommon.IsConfigReady ? CommunityCommon.CommonRuntime.Config.ScriptWatchers : true;
 	public override string Folder => Defines.GetScriptFolder();
 	public override string Extension => ".cs";
 	public override Type IndexedType => typeof(Script);
@@ -25,7 +27,7 @@ public class ScriptProcessor : BaseProcessor
 		{
 			if (instance.Value is Script script)
 			{
-				if (script._loader != null && !script._loader.HasFinished) return false;
+				if (script.Loader != null && !script.Loader.HasFinished) return false;
 			}
 		}
 
@@ -37,44 +39,49 @@ public class ScriptProcessor : BaseProcessor
 		{
 			if (instance.Value is Script script)
 			{
-				if (script._loader != null && !script._loader.HasRequires && !script._loader.HasFinished) return false;
+				if (script.Loader != null && !script.Loader.HasRequires && !script.Loader.HasFinished) return false;
 			}
 		}
 
 		return true;
 	}
 
-	public class Script : Instance
+	void IScriptProcessor.StartCoroutine(IEnumerator coroutine)
 	{
-		public ScriptLoader _loader;
+		StartCoroutine(coroutine);
+	}
 
-		public override Parser Parser => new ScriptParser();
+	public class Script : Instance, IScriptProcessor.IScript
+	{
+		public IScriptLoader Loader { get; set; }
+
+		public override IBaseProcessor.IParser Parser => new ScriptParser();
 
 		public override void Dispose()
 		{
 			try
 			{
-				_loader?.Clear();
+				Loader?.Clear();
 			}
 			catch (Exception ex)
 			{
 				Logger.Error($"Error disposing {File}", ex);
 			}
 
-			_loader = null;
+			Loader = null;
 		}
 		public override void Execute()
 		{
 			try
 			{
-				Loader.FailedMods.RemoveAll(x => x.File == File);
+				Carbon.Core.Loader.FailedMods.RemoveAll(x => x.File == File);
 
-				_loader = new ScriptLoader();
-				_loader.Parser = Parser;
-				_loader.File = File;
-				_loader.Mod = Community.Runtime.Plugins;
-				_loader.Instance = this;
-				_loader.Load();
+				Loader = new ScriptLoader();
+				Loader.Parser = Parser;
+				Loader.File = File;
+				Loader.Mod = CommunityCommon.CommonRuntime.Plugins;
+				Loader.Instance = this;
+				Loader.Load();
 			}
 			catch (Exception ex)
 			{
@@ -83,7 +90,7 @@ public class ScriptProcessor : BaseProcessor
 		}
 	}
 
-	public class ScriptParser : Parser
+	public class ScriptParser : Parser, IBaseProcessor.IParser
 	{
 		public bool IsLineValid(string line)
 		{

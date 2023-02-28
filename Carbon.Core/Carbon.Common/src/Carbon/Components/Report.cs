@@ -105,7 +105,7 @@ public class Report : IDisposable
 			Dispose();
 		};
 
-		Community.ReloadPlugins();
+		CommunityCommon.CommonRuntime.ReloadPlugins();
 	}
 	public void Dispose()
 	{

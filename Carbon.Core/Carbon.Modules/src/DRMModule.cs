@@ -4,9 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Carbon.Base;
+using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
-using Carbon.Processors;
 using Newtonsoft.Json;
 using Oxide.Core.Libraries;
 
@@ -225,14 +225,16 @@ public class DRMModule : CarbonModule<DRMConfig, DRMData>
 			return Encoding.UTF8.GetString(Convert.FromBase64String(value));
 		}
 
-		public class ScriptInstance : ScriptProcessor.Script
+		public class ScriptInstance : BaseProcessor.Instance, IScriptProcessor.IScript
 		{
 			internal Loader.CarbonMod _mod;
 			internal string _source;
 
+			public IScriptLoader Loader { get; set; }
+
 			public override void Dispose()
 			{
-				foreach (var plugin in _loader.Scripts)
+				foreach (var plugin in Loader.Scripts)
 				{
 					plugin.Dispose();
 					_mod.Plugins.Remove(plugin.Instance);
@@ -244,13 +246,12 @@ public class DRMModule : CarbonModule<DRMConfig, DRMData>
 			{
 				try
 				{
-					_loader = new ScriptLoader();
-					_loader.Parser = Parser;
-					_loader.File = File;
-					_loader.Source = _source;
-					_loader.Mod = _mod;
-					_loader.Instance = this;
-					_loader.Load();
+					Loader.Parser = Parser;
+					Loader.File = File;
+					Loader.Source = _source;
+					Loader.Mod = _mod;
+					Loader.Instance = this;
+					Loader.Load();
 				}
 				catch (Exception ex)
 				{

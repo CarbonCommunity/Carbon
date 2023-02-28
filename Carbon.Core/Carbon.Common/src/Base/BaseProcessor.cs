@@ -6,6 +6,7 @@ using Carbon.Extensions;
 using Carbon.Core;
 using Facepunch;
 using UnityEngine;
+using Carbon.Contracts;
 
 /*
  *
@@ -16,10 +17,10 @@ using UnityEngine;
 
 namespace Carbon.Base;
 
-public class BaseProcessor : FacepunchBehaviour, IDisposable
+public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 {
-	public Dictionary<string, Instance> InstanceBuffer { get; private set; }
-	public List<string> IgnoreList { get; private set; }
+	public Dictionary<string, IBaseProcessor.IInstance> InstanceBuffer { get; set; }
+	public List<string> IgnoreList { get; set; }
 
 	public virtual bool EnableWatcher => true;
 	public virtual string Folder => string.Empty;
@@ -29,7 +30,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 	public FileSystemWatcher Watcher { get; private set; }
 
 	internal WaitForSeconds _wfsInstance;
-	internal Dictionary<string, Instance> _runtimeCache = new(1000);
+	internal Dictionary<string, IBaseProcessor.IInstance> _runtimeCache = new(1000);
 
 	public bool IsInitialized { get; set; }
 
@@ -37,7 +38,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 	{
 		if (IsInitialized) return;
 
-		InstanceBuffer = new Dictionary<string, Instance>();
+		InstanceBuffer = new Dictionary<string, IBaseProcessor.IInstance>();
 		IgnoreList = new List<string>();
 
 		DontDestroyOnLoad(gameObject);
@@ -192,7 +193,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 	{
 		IgnoreList.RemoveAll(x => x == file);
 	}
-	public T Get<T>(string id) where T : Instance
+	public T Get<T>(string id) where T : IBaseProcessor.IInstance
 	{
 		if (InstanceBuffer.TryGetValue(id, out var instance))
 		{
@@ -202,13 +203,13 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 		return default;
 	}
 
-	public virtual void Clear(string id, Instance instance)
+	public virtual void Clear(string id, IBaseProcessor.IInstance instance)
 	{
 		instance?.Dispose();
 		Pool.Free(ref instance);
 		Remove(id);
 	}
-	public virtual void Process(string id, Instance instance)
+	public virtual void Process(string id, IBaseProcessor.IInstance instance)
 	{
 		var file = instance.File;
 
@@ -234,9 +235,9 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable
 		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.MarkDeleted();
 	}
 
-	public class Instance : IDisposable
+	public class Instance : IBaseProcessor.IInstance, IDisposable
 	{
-		public virtual Parser Parser { get; }
+		public virtual IBaseProcessor.IParser Parser { get; }
 
 		public string File { get; set; }
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using API.Hooks;
+using Carbon.Contracts;
 using Carbon.Core;
 
 /*
@@ -15,9 +16,19 @@ using Carbon.Core;
 
 namespace Carbon.Hooks;
 
-public class HookManager : FacepunchBehaviour
+public class HookManager : FacepunchBehaviour, IHookManager, IHookManagerPublic
 {
-	public List<HookEx> Patches, StaticHooks, DynamicHooks;
+	public IEnumerable<HookEx> Patches { get => _patches; }
+	public IEnumerable<HookEx> StaticHooks { get => _staticHooks; }
+	public IEnumerable<HookEx> DynamicHooks { get => _dynamicHooks; }
+
+	internal List<HookEx> _patches { get; set; }
+	internal List<HookEx> _staticHooks { get; set; }
+	internal List<HookEx> _dynamicHooks { get; set; }
+
+	public int PatchesCount => _patches.Count;
+	public int StaticHooksCount => _staticHooks.Count;
+	public int DynamicHooksCount => _dynamicHooks.Count;
 
 	private bool _doReload;
 	private Queue<Payload> _workQueue;
@@ -34,12 +45,12 @@ public class HookManager : FacepunchBehaviour
 		Logger.Log("Initialized hook processor...");
 
 		_workQueue = new Queue<Payload>();
-		Patches = new List<HookEx>();
-		StaticHooks = new List<HookEx>();
-		DynamicHooks = new List<HookEx>();
+		_patches = new List<HookEx>();
+		_staticHooks = new List<HookEx>();
+		_dynamicHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 
-		if (Community.Runtime.Config.AutoUpdate)
+		if (CommunityCommon.CommonRuntime.Config.AutoUpdate)
 		{
 			Logger.Log("Updating hooks...");
 			enabled = false;
@@ -56,9 +67,9 @@ public class HookManager : FacepunchBehaviour
 
 	private void OnEnable()
 	{
-		Patches.Clear();
-		StaticHooks.Clear();
-		DynamicHooks.Clear();
+		_patches.Clear();
+		_staticHooks.Clear();
+		_dynamicHooks.Clear();
 
 		foreach (string file in Files)
 		{
@@ -68,30 +79,30 @@ public class HookManager : FacepunchBehaviour
 			LoadHooksFromFile(path);
 		}
 
-		if (Patches.Count > 0)
+		if (_patches.Count > 0)
 		{
 			Logger.Log($" - Installing patches");
 			// I don't like this, patching stuff that may not be used but for the
 			// sake of time I will let it go for now but this needs to be reviewed.
-			foreach (HookEx hook in Patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
+			foreach (HookEx hook in _patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
 				Install(hook, "Carbon.Core");
 		}
 
-		if (StaticHooks.Count > 0)
+		if (_staticHooks.Count > 0)
 		{
 			Logger.Log($" - Installing static hooks");
-			foreach (HookEx hook in StaticHooks.Where(x => !x.IsInstalled))
+			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
 				Install(hook, "Carbon.Core");
 		}
 
-		if (DynamicHooks.Count > 0)
+		if (_dynamicHooks.Count > 0)
 		{
 			Logger.Log($" - Installing dynamic hooks");
-			foreach (HookEx hook in DynamicHooks.Where(x => HookHasSubscribers(x.Identifier)))
+			foreach (HookEx hook in _dynamicHooks.Where(x => HookHasSubscribers(x.Identifier)))
 				_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
 		}
 
-		Community.Runtime.Events.Trigger(
+		CommunityCommon.CommonRuntime.Events.Trigger(
 			API.Events.CarbonEvent.HooksInstalled, EventArgs.Empty);
 	}
 
@@ -99,27 +110,27 @@ public class HookManager : FacepunchBehaviour
 	{
 		Logger.Log("Stopping hook processor...");
 
-		if (DynamicHooks.Count > 0)
+		if (_dynamicHooks.Count > 0)
 		{
 			Logger.Log($" - Uninstalling dynamic hooks");
 			// the disable event will make sure the patches are removed but the
 			// subscriber list is kept unchanged. this will be used on hot reloads.
-			foreach (HookEx hook in DynamicHooks.Where(x => x.IsInstalled))
+			foreach (HookEx hook in _dynamicHooks.Where(x => x.IsInstalled))
 				hook.RemovePatch();
 		}
 
-		if (StaticHooks.Count > 0)
+		if (_staticHooks.Count > 0)
 		{
 			Logger.Log($" - Uninstalling static hooks");
 			// reverse order, dynamics get removed first, then statics, then patches
-			foreach (HookEx hook in StaticHooks.Where(x => x.IsInstalled))
+			foreach (HookEx hook in _staticHooks.Where(x => x.IsInstalled))
 				hook.RemovePatch();
 		}
 
-		if (Patches.Count > 0)
+		if (_patches.Count > 0)
 		{
 			Logger.Log($" - Uninstalling patches");
-			foreach (HookEx patch in Patches.Where(x => x.IsInstalled))
+			foreach (HookEx patch in _patches.Where(x => x.IsInstalled))
 				patch.RemovePatch();
 		}
 
@@ -135,16 +146,16 @@ public class HookManager : FacepunchBehaviour
 		Logger.Log("Destroying hook processor...");
 
 		// make sure all patches are removed
-		List<HookEx> hooks = StaticHooks.Concat(DynamicHooks).Concat(Patches).ToList();
+		List<HookEx> hooks = _staticHooks.Concat(_dynamicHooks).Concat(_patches).ToList();
 		foreach (HookEx hook in hooks) hook.Dispose();
 
 		hooks = default;
 		_workQueue = default;
 		_subscribers = default;
 
-		Patches = default;
-		StaticHooks = default;
-		DynamicHooks = default;
+		_patches = default;
+		_staticHooks = default;
+		_dynamicHooks = default;
 	}
 
 	private void Update()
@@ -238,19 +249,19 @@ public class HookManager : FacepunchBehaviour
 				if (hook.IsPatch)
 				{
 					z++;
-					Patches.Add(hook);
+					_patches.Add(hook);
 					Logger.Debug($"Loaded patch '{hook}'", 3);
 				}
 				else if (hook.IsStaticHook)
 				{
 					y++;
-					StaticHooks.Add(hook);
+					_staticHooks.Add(hook);
 					Logger.Debug($"Loaded static hook '{hook}'", 3);
 				}
 				else
 				{
 					x++;
-					DynamicHooks.Add(hook);
+					_dynamicHooks.Add(hook);
 					Logger.Debug($"Loaded dynamic hook '{hook}'", 3);
 				}
 			}
@@ -372,7 +383,7 @@ public class HookManager : FacepunchBehaviour
 	private List<HookEx> GetHookDependantTree(HookEx hook)
 	{
 		List<HookEx> dependants = new List<HookEx>();
-		List<HookEx> list = Patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
+		List<HookEx> list = _patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
 
 		foreach (HookEx item in list)
 		{
@@ -383,7 +394,7 @@ public class HookManager : FacepunchBehaviour
 	}
 
 	private IEnumerable<HookEx> LoadedHooks
-	{ get => Patches.Concat(DynamicHooks).Concat(StaticHooks).Where(x => x.IsLoaded); }
+	{ get => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Where(x => x.IsLoaded); }
 
 	private IEnumerable<HookEx> GetHookByName(string name)
 		=> LoadedHooks.Where(x => x.HookName == name) ?? null;
@@ -397,20 +408,20 @@ public class HookManager : FacepunchBehaviour
 	internal bool IsHookLoaded(HookEx hook)
 		=> LoadedHooks.Any(x => x.PatchMethodName == hook.PatchMethodName);
 
-	internal bool IsHookLoaded(string hookName)
+	public bool IsHookLoaded(string hookName)
 	{
 		List<HookEx> hooks = GetHookByName(hookName).ToList();
 		return hooks.Count != 0 && hooks.Any(IsHookLoaded);
 	}
 
-	internal IEnumerable<HookEx> InstalledPatches
-	{ get => Patches.Where(x => x.IsInstalled); }
+	public IEnumerable<HookEx> InstalledPatches
+	{ get => _patches.Where(x => x.IsInstalled); }
 
-	internal IEnumerable<HookEx> InstalledStaticHooks
-	{ get => StaticHooks.Where(x => x.IsInstalled); }
+	public IEnumerable<HookEx> InstalledStaticHooks
+	{ get => _staticHooks.Where(x => x.IsInstalled); }
 
-	internal IEnumerable<HookEx> InstalledDynamicHooks
-	{ get => DynamicHooks.Where(x => x.IsInstalled); }
+	public IEnumerable<HookEx> InstalledDynamicHooks
+	{ get => _dynamicHooks.Where(x => x.IsInstalled); }
 
 
 	private bool HookIsSubscribedBy(string identifier, string subscriber)
@@ -419,9 +430,8 @@ public class HookManager : FacepunchBehaviour
 	private bool HookHasSubscribers(string identifier)
 		=> _subscribers?.Any(x => x.Identifier == identifier) ?? false;
 
-	internal int GetHookSubscriberCount(string identifier)
+	public int GetHookSubscriberCount(string identifier)
 		=> _subscribers.Where(x => x.Identifier == identifier).ToList().Count;
-
 
 	private void AddSubscriber(string identifier, string subscriber)
 		=> _subscribers.Add(item: new Subscription { Identifier = identifier, Subscriber = subscriber });
@@ -429,7 +439,7 @@ public class HookManager : FacepunchBehaviour
 	private void RemoveSubscriber(string identifier, string subscriber)
 		=> _subscribers.RemoveAll(x => x.Identifier == identifier && x.Subscriber == subscriber);
 
-	internal void Subscribe(string hookName, string requester)
+	public void Subscribe(string hookName, string requester)
 	{
 		try
 		{
@@ -452,7 +462,7 @@ public class HookManager : FacepunchBehaviour
 		}
 	}
 
-	internal void Unsubscribe(string hookName, string requester)
+	public void Unsubscribe(string hookName, string requester)
 	{
 		try
 		{
@@ -475,7 +485,7 @@ public class HookManager : FacepunchBehaviour
 		}
 	}
 
-	internal void Reload()
+	void IHookManager.Reload()
 	{
 		_doReload = true;
 		enabled = false;

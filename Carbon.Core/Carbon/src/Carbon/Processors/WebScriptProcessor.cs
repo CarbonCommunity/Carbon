@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Carbon.Base;
+using Carbon.Contracts;
 
 /*
  *
@@ -11,7 +12,7 @@ using Carbon.Base;
 
 namespace Carbon.Processors;
 
-public class WebScriptProcessor : BaseProcessor
+public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 {
 	public override Type IndexedType => typeof(WebScript);
 
@@ -38,13 +39,13 @@ public class WebScriptProcessor : BaseProcessor
 			{
 				_loader = new ScriptLoader();
 
-				Community.Runtime.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
+				CommunityCommon.CommonRuntime.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
 				{
 					Logger.Log($"Downloaded '{File}': {result.Length}");
 
 					_loader.Source = result;
 					_loader.Load();
-				}, Community.Runtime.CorePlugin);
+				}, CommunityCommon.CommonRuntime.CorePlugin);
 			}
 			catch (Exception ex)
 			{

@@ -33,8 +33,7 @@ public partial class Category_Static
 
 				Logger.Log($"Shutting down Carbon..");
 				Interface.Oxide.OnShutdown();
-				Community.Runtime.HarmonyProcessor.Clear();
-				Community.Runtime.ScriptProcessor.Clear();
+				CommunityCommon.CommonRuntime.ScriptProcessor.Clear();
 			}
 		}
 	}

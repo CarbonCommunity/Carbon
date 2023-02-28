@@ -26,7 +26,7 @@ public class OxideCommand
 	public OxideCommand(string command, Action<BasePlayer, string, string[]> callback, bool skipOriginal, string[] permissions = null, string[] groups = null)
 	{
 		Command = command;
-		Plugin = Community.Runtime.CorePlugin;
+		Plugin = CommunityCommon.CommonRuntime.CorePlugin;
 		Callback = callback;
 		SkipOriginal = skipOriginal;
 		Permissions = permissions;

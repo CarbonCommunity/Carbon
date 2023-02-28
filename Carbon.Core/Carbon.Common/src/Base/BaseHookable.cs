@@ -16,13 +16,13 @@ namespace Carbon.Base;
 
 public class BaseHookable
 {
-	public List<string> Hooks { get; internal set; }
-	public List<HookMethodAttribute> HookMethods { get; internal set; }
-	public List<PluginReferenceAttribute> PluginReferences { get; internal set; }
+	public List<string> Hooks { get; set; }
+	public List<HookMethodAttribute> HookMethods { get; set; }
+	public List<PluginReferenceAttribute> PluginReferences { get; set; }
 
-	public Dictionary<string, List<MethodInfo>> HookCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
-	public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; internal set; } = new Dictionary<string, List<MethodInfo>>();
-	public List<string> IgnoredHooks { get; internal set; } = new List<string>();
+	public Dictionary<string, List<MethodInfo>> HookCache { get; set; } = new Dictionary<string, List<MethodInfo>>();
+	public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; set; } = new Dictionary<string, List<MethodInfo>>();
+	public List<string> IgnoredHooks { get; set; } = new List<string>();
 
 	[JsonProperty]
 	public string Name { get; set; }
@@ -42,7 +42,7 @@ public class BaseHookable
 
 	public virtual void TrackStart()
 	{
-		if (!Community.IsServerFullyInitialized)
+		if (!CommunityCommon.IsServerFullyInitialized)
 		{
 			return;
 		}
@@ -56,7 +56,7 @@ public class BaseHookable
 	}
 	public virtual void TrackEnd()
 	{
-		if (!Community.IsServerFullyInitialized)
+		if (!CommunityCommon.IsServerFullyInitialized)
 		{
 			return;
 		}

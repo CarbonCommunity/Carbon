@@ -12,7 +12,7 @@ using API.Hooks;
 
 namespace Carbon.Hooks;
 
-internal struct HookRuntime
+public struct HookRuntime
 {
 	public Exception LastError;
 	//public List<string> subscribers;
@@ -23,7 +23,7 @@ internal struct HookRuntime
 	public MethodInfo Prefix, Postfix, Transpiler;
 }
 
-internal struct Subscription
+public struct Subscription
 {
 	public string Identifier, Subscriber;
 
@@ -31,7 +31,7 @@ internal struct Subscription
 	{ Identifier = id; Subscriber = sub; }
 }
 
-internal readonly struct Payload
+public readonly struct Payload
 {
 	// A hook may need more than one patch applied, hookName is mandatory,
 	// identifier is optional and should only be sent when a specific patch

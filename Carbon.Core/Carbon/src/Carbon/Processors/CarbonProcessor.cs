@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Carbon.Base;
+using Carbon.Contracts;
 
 /*
  *
@@ -11,13 +12,13 @@ using Carbon.Base;
 
 namespace Carbon.Processors;
 
-public class CarbonProcessor : BaseProcessor
+public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 {
 	public override void Start() { }
 	public override void OnDestroy() { }
 	public override void Dispose() { }
 
-	public Queue<Action> OnFrameQueue = new Queue<Action>();
+	public Queue<Action> OnFrameQueue { get; set; } = new Queue<Action>();
 
 	public void Update()
 	{

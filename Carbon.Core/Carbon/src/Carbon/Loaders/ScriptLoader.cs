@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Carbon.Base;
+using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Jobs;
@@ -25,9 +26,9 @@ using UnityEngine;
 
 namespace Carbon.Processors;
 
-public class ScriptLoader : IDisposable
+public class ScriptLoader : IDisposable, IScriptLoader
 {
-	public List<Script> Scripts { get; set; } = new List<Script>();
+	public List<IScript> Scripts { get; set; } = new List<IScript>();
 
 	public string File { get; set; }
 	public string Source { get; set; }
@@ -36,9 +37,9 @@ public class ScriptLoader : IDisposable
 	public bool HasFinished { get; set; }
 	public bool HasRequires { get; set; }
 
-	public BaseProcessor.Instance Instance { get; set; }
+	public IBaseProcessor.IInstance Instance { get; set; }
 	public Loader.CarbonMod Mod { get; set; }
-	public BaseProcessor.Parser Parser { get; set; }
+	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
 
 	internal WaitForSeconds _serverExhale = new WaitForSeconds(0.1f);
@@ -59,7 +60,7 @@ public class ScriptLoader : IDisposable
 				}
 			}
 
-			Community.Runtime.ScriptProcessor.StartCoroutine(Compile());
+			CommunityCommon.CommonRuntime.ScriptProcessor.StartCoroutine(Compile());
 		}
 		catch (Exception exception)
 		{
@@ -71,16 +72,16 @@ public class ScriptLoader : IDisposable
 	{
 		var files = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs");
 
-		Community.Runtime.ScriptProcessor.Clear();
-		Community.Runtime.ScriptProcessor.IgnoreList.Clear();
+		CommunityCommon.CommonRuntime.ScriptProcessor.Clear();
+		CommunityCommon.CommonRuntime.ScriptProcessor.IgnoreList.Clear();
 
 		foreach (var file in files)
 		{
 			var plugin = new ScriptProcessor.Script { File = file };
-			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			CommunityCommon.CommonRuntime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
 		}
 
-		foreach (var plugin in Community.Runtime.ScriptProcessor.InstanceBuffer)
+		foreach (var plugin in CommunityCommon.CommonRuntime.ScriptProcessor.InstanceBuffer)
 		{
 			plugin.Value.SetDirty();
 		}
@@ -96,7 +97,7 @@ public class ScriptLoader : IDisposable
 			var plugin = Scripts[i];
 			if (plugin.IsCore) continue;
 
-			Community.Runtime.Plugins.Plugins.Remove(plugin.Instance);
+			CommunityCommon.CommonRuntime.Plugins.Plugins.Remove(plugin.Instance);
 
 			if (plugin.Instance != null)
 			{
@@ -167,7 +168,7 @@ public class ScriptLoader : IDisposable
 
 		HasRequires = AsyncLoader.Requires.Length > 0;
 
-		while (HasRequires && !Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete())
+		while (HasRequires && !CommunityCommon.CommonRuntime.ScriptProcessor.AllNonRequiresScriptsComplete())
 		{
 			yield return _serverExhale;
 			yield return null;
@@ -177,7 +178,7 @@ public class ScriptLoader : IDisposable
 		var noRequiresFound = false;
 		foreach (var require in AsyncLoader.Requires)
 		{
-			var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
+			var plugin = CommunityCommon.CommonRuntime.CorePlugin.plugins.Find(require);
 			if (plugin == null)
 			{
 				Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
@@ -246,7 +247,7 @@ public class ScriptLoader : IDisposable
 				if (string.IsNullOrEmpty(type.Namespace) ||
 					!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) continue;
 
-				if (Community.Runtime.Config.HookValidation)
+				if (CommunityCommon.CommonRuntime.Config.HookValidation)
 				{
 					var unsupportedHooksString = new StringBuilder();
 					var counter = 0;
@@ -287,7 +288,7 @@ public class ScriptLoader : IDisposable
 						p.PluginReferences = AsyncLoader.PluginReferences[type];
 
 						p.Requires = requiresResult;
-						p.SetProcessor(Community.Runtime.ScriptProcessor);
+						p.SetProcessor(CommunityCommon.CommonRuntime.ScriptProcessor);
 						p.CompileTime = AsyncLoader.CompileTime;
 
 						p.FilePath = AsyncLoader.FilePath;
@@ -331,7 +332,7 @@ public class ScriptLoader : IDisposable
 
 		HasFinished = true;
 
-		if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
+		if (CommunityCommon.CommonRuntime.ScriptProcessor.AllPendingScriptsComplete())
 		{
 			Loader.OnPluginProcessFinished();
 		}
@@ -346,19 +347,19 @@ public class ScriptLoader : IDisposable
 	}
 
 	[Serializable]
-	public class Script : IDisposable
+	public class Script : IDisposable, IScript
 	{
 		public Assembly Assembly { get; set; }
 		public Type Type { get; set; }
 
-		public string Name;
-		public string Author;
-		public VersionNumber Version;
-		public string Description;
-		public string Source;
-		public ScriptLoader Loader;
-		public RustPlugin Instance;
-		public bool IsCore;
+		public string Name { get; set; }
+		public string Author { get; set; }
+		public VersionNumber Version { get; set; }
+		public string Description { get; set; }
+		public string Source { get; set; }
+		public IScriptLoader Loader { get; set; }
+		public RustPlugin Instance { get; set; }
+		public bool IsCore { get; set; }
 
 		public static Script Create(string source, Assembly assembly, Type type)
 		{

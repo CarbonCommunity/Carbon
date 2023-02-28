@@ -25,7 +25,7 @@ namespace Carbon
 
 		internal static void _appendHookTime(string hook, int time)
 		{
-			if (!Community.Runtime.Config.HookTimeTracker) return;
+			if (!CommunityCommon.CommonRuntime.Config.HookTimeTracker) return;
 
 			if (!_hookTimeBuffer.TryGetValue(hook, out var total))
 			{
@@ -42,7 +42,7 @@ namespace Carbon
 		}
 		internal static void _clearHookTime(string hook)
 		{
-			if (!Community.Runtime.Config.HookTimeTracker) return;
+			if (!CommunityCommon.CommonRuntime.Config.HookTimeTracker) return;
 
 			if (!_hookTimeBuffer.ContainsKey(hook))
 			{
@@ -214,7 +214,7 @@ namespace Carbon
 
 			_clearHookTime(hookName);
 
-			foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+			foreach (var module in CommunityCommon.CommonRuntime.ModuleProcessor.Modules)
 			{
 				var result = module.CallHook(hookName, flags: flag, args: args);
 				if (result != null && objectOverride != null)

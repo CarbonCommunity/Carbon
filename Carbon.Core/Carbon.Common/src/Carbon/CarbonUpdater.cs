@@ -94,7 +94,7 @@ internal sealed class Updater
 		string url = GithubReleaseUrl();
 		Logger.Warn($"Updating component 'Carbon' using the '{Release} [{Platform}]' branch");
 
-		Community.Runtime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
+		CommunityCommon.CommonRuntime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
 		{
 			if (buffer is { Length: > 0 })
 			{

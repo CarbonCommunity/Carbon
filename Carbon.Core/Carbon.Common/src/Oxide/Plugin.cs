@@ -5,8 +5,8 @@ using System.Reflection;
 using Carbon;
 using Carbon.Base;
 using Carbon.Components;
+using Carbon.Contracts;
 using Carbon.Core;
-using Carbon.Processors;
 using Facepunch;
 using Newtonsoft.Json;
 
@@ -36,7 +36,7 @@ namespace Oxide.Plugins
 		public bool HasConditionals { get; set; }
 
 		[JsonProperty]
-		public double CompileTime { get; internal set; }
+		public double CompileTime { get; set; }
 
 		public string FilePath { get; set; }
 		public string FileName { get; set; }
@@ -54,11 +54,11 @@ namespace Oxide.Plugins
 			base.TrackEnd();
 		}
 
-		public Plugin[] Requires { get; internal set; }
+		public Plugin[] Requires { get; set; }
 
 		internal Loader.CarbonMod _carbon;
-		internal BaseProcessor _processor;
-		internal BaseProcessor.Instance _processor_instance;
+		public IBaseProcessor _processor;
+		public IBaseProcessor.IInstance _processor_instance;
 
 		public object Harmony;
 
@@ -98,7 +98,7 @@ namespace Oxide.Plugins
 				using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 				{
 					foreach (var hook in Hooks)
-						Community.Runtime.HookManager.Subscribe(hook, FileName);
+						CommunityCommon.CommonRuntime.HookManager.Subscribe(hook, FileName);
 				}
 				Carbon.Logger.Debug(Name, "Processed hooks");
 			}
@@ -123,7 +123,7 @@ namespace Oxide.Plugins
 					foreach (var requiree in requirees)
 					{
 						Logger.Warn($" [{Name}] Loading '{Path.GetFileNameWithoutExtension(requiree)}' to parent's request: '{ToString()}'");
-						Community.Runtime.ScriptProcessor.Prepare(requiree);
+						CommunityCommon.CommonRuntime.ScriptProcessor.Prepare(requiree);
 					}
 
 					Loader.ClearPendingRequirees(this);
@@ -135,7 +135,7 @@ namespace Oxide.Plugins
 			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 			{
 				foreach (var hook in Hooks)
-					Community.Runtime.HookManager.Unsubscribe(hook, FileName);
+					CommunityCommon.CommonRuntime.HookManager.Unsubscribe(hook, FileName);
 				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 			}
 
@@ -173,10 +173,10 @@ namespace Oxide.Plugins
 						{
 							switch (plugin._processor)
 							{
-								case ScriptProcessor script:
+								case IScriptProcessor script:
 									Logger.Warn($" [{Name}] Unloading '{plugin.ToString()}' because parent '{ToString()}' has been unloaded.");
 									Loader.AddPendingRequiree(this, plugin);
-									plugin._processor.Get<ScriptProcessor.Script>(plugin.FileName).Dispose();
+									plugin._processor.Get<IScriptProcessor.IScript>(plugin.FileName).Dispose();
 									break;
 							}
 						}
@@ -209,9 +209,9 @@ namespace Oxide.Plugins
 						continue;
 					}
 
-					plugin = Community.Runtime.CorePlugin.plugins.Find(info.Title);
+					plugin = CommunityCommon.CommonRuntime.CorePlugin.plugins.Find(info.Title);
 				}
-				else plugin = Community.Runtime.CorePlugin.plugins.Find(name);
+				else plugin = CommunityCommon.CommonRuntime.CorePlugin.plugins.Find(name);
 
 				if (plugin != null) field.SetValue(this, plugin);
 			}
@@ -236,7 +236,7 @@ namespace Oxide.Plugins
 			}
 		}
 
-		public void SetProcessor(BaseProcessor processor)
+		public void SetProcessor(IBaseProcessor processor)
 		{
 			_processor = processor;
 		}
@@ -411,11 +411,11 @@ namespace Oxide.Plugins
 
 		public void NextTick(Action callback)
 		{
-			Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+			CommunityCommon.CommonRuntime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 		}
 		public void NextFrame(Action callback)
 		{
-			Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+			CommunityCommon.CommonRuntime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 		}
 
 		public bool IsLoaded { get; set; }

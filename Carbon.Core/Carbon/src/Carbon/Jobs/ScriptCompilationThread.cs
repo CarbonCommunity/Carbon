@@ -86,7 +86,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var references = new List<MetadataReference>();
 		string id = Path.GetFileNameWithoutExtension(FilePath);
 
-		foreach (string item in Defines.ReferenceList)
+		foreach (string item in Community.ReferenceList)
 		{
 			try
 			{
@@ -163,7 +163,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var trees = new List<SyntaxTree>();
 
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
-				.WithPreprocessorSymbols(Community.Runtime.Config.ConditionalCompilationSymbols);
+				.WithPreprocessorSymbols(CommunityCommon.CommonRuntime.Config.ConditionalCompilationSymbols);
 			var tree = CSharpSyntaxTree.ParseText(
 				Source, options: parseOptions);
 			trees.Add(tree);
@@ -265,7 +265,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 						unsupportedHooks.Add(method.Name);
 					}
 
-					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+					if (CommunityCommon.CommonRuntime.HookManager.IsHookLoaded(method.Name))
 					{
 						if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
 					}

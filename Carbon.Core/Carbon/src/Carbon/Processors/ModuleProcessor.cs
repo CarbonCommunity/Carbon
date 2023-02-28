@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
+using Carbon.Contracts;
 
 /*
  *
@@ -12,9 +13,11 @@ using Carbon.Base.Interfaces;
 
 namespace Carbon.Processors;
 
-public class ModuleProcessor : IDisposable
+public class ModuleProcessor : IDisposable, IModuleProcessor
 {
-	public List<BaseHookable> Modules { get; set; } = new List<BaseHookable>(50);
+	List<BaseHookable> IModuleProcessor.Modules { get => _modules; }
+
+	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(50);
 
 	public void Init()
 	{
@@ -30,14 +33,14 @@ public class ModuleProcessor : IDisposable
 		if (module is IModule hookable)
 		{
 			hookable.Init();
-			Modules.Add(module);
+			_modules.Add(module);
 			hookable.InitEnd();
 		}
 	}
 
 	public void Save()
 	{
-		foreach (var hookable in Modules)
+		foreach (var hookable in _modules)
 		{
 			var module = hookable.To<IModule>();
 
@@ -46,7 +49,7 @@ public class ModuleProcessor : IDisposable
 	}
 	public void Load()
 	{
-		foreach (var hookable in Modules)
+		foreach (var hookable in _modules)
 		{
 			var module = hookable.To<IModule>();
 
@@ -57,13 +60,18 @@ public class ModuleProcessor : IDisposable
 
 	public void Dispose()
 	{
-		foreach (var hookable in Modules)
+		foreach (var hookable in _modules)
 		{
 			var module = hookable.To<IModule>();
 
 			module.Dispose();
 		}
 
-		Modules.Clear();
+		_modules.Clear();
+	}
+
+	void IDisposable.Dispose()
+	{
+		Dispose();
 	}
 }

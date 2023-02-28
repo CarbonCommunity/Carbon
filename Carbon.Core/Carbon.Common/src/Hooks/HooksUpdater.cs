@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 
 namespace Carbon.Hooks;
 
-internal sealed class Updater
+public sealed class Updater
 {
 	private static readonly OsType Platform;
 	private static readonly ReleaseType Release;
@@ -78,7 +78,7 @@ internal sealed class Updater
 		return $"https://raw.githubusercontent.com/{Repository}/{branch}/Modules/{target}{suffix}/{file}";
 	}
 
-	internal static void DoUpdate(Action<bool> callback = null)
+	public static void DoUpdate(Action<bool> callback = null)
 	{
 		IReadOnlyList<string> files = new List<string>(){
 			@"carbon/managed/hooks/Carbon.Hooks.Extra.dll"
@@ -91,7 +91,7 @@ internal sealed class Updater
 			string url = GithubReleaseUrl(file);
 			Logger.Warn($"Updating component '{Path.GetFileName(file)}' using the '{Release} [{Platform}]' branch");
 
-			Community.Runtime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
+			CommunityCommon.CommonRuntime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
 			{
 				if (buffer is { Length: > 0 })
 				{

@@ -42,7 +42,7 @@ public class BaseThreadedJob : IDisposable
 
 	public virtual void Start()
 	{
-		if (Community.IsServerFullyInitialized)
+		if (CommunityCommon.IsServerFullyInitialized)
 		{
 			cancellationToken = new CancellationTokenSource();
 			_task = Task.Factory.StartNew(Run, cancellationToken.Token);

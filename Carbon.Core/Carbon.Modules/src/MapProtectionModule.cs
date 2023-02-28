@@ -76,7 +76,7 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 			World.Serialization.world.size = World.Size = key.size;
 			ConVar.Server.worldsize = (int)key.size;
 
-			Community.Runtime.CorePlugin.persistence.StartCoroutine(_destroyEntities(key));
+			CommunityCommon.CommonRuntime.CorePlugin.persistence.StartCoroutine(_destroyEntities(key));
 		}
 		catch (Exception exception) { PutsWarn($"Failed to successfully unlock map. Please report the following error:\n{exception}"); }
 	}

@@ -18,7 +18,7 @@ public class Initializer : IHarmonyModHooks
 	{
 		try
 		{
-			if (IsOxideAround())
+			if (_isOxideAround())
 			{
 				Logger.Log(Environment.NewLine +
 					@"                                                          " + Environment.NewLine +
@@ -108,8 +108,13 @@ public class Initializer : IHarmonyModHooks
 		Community.Runtime = null;
 	}
 
-	internal static bool IsOxideAround()
+	internal static bool _isOxideAround()
 	{
 		return File.Exists(Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Core.dll"));
+	}
+
+	internal void _installProcessors()
+	{
+
 	}
 }
