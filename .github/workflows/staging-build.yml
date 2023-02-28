@@ -79,8 +79,8 @@ jobs:
       with:
         name: build-staging-linux
         path: |
-          Release/Carbon.DebugUnix.tar.gz
-          Release/build-unix.info
+          Release/Carbon.Linux.Debug.tar.gz
+          Release/Carbon.Linux.Debug.tar.info
 
   build-windows:
     name: 🪟 Windows
@@ -113,8 +113,8 @@ jobs:
       with:
         name: build-staging-windows
         path: |
-          Release/Carbon.Debug.zip
-          Release/build.info
+          Release/Carbon.Windows.Debug.zip
+          Release/Carbon.Windows.Debug.info
 
   release:
     name: 💾 Release
@@ -157,7 +157,7 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/build-staging-windows/Carbon.Debug.zip
-          Release/build-staging-linux/Carbon.DebugUnix.tar.gz
-          Release/build-staging-linux/build-unix.info
-          Release/build-staging-windows/build.info
+          Release/build-develop-windows/Carbon.Linux.Debug.info
+          Release/build-develop-windows/Carbon.Linux.Debug.tar.gz
+          Release/build-develop-windows/Carbon.Windows.Debug.info
+          Release/build-develop-windows/Carbon.Windows.Debug.zip

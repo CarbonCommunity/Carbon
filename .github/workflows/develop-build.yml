@@ -163,10 +163,10 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/build-develop-windows/Carbon.Debug.zip
-          Release/build-develop-linux/Carbon.DebugUnix.tar.gz
-          Release/build-develop-linux/build-unix.info
-          Release/build-develop-windows/build.info
+          Release/build-develop-windows/Carbon.Linux.Debug.info
+          Release/build-develop-windows/Carbon.Linux.Debug.tar.gz
+          Release/build-develop-windows/Carbon.Windows.Debug.info
+          Release/build-develop-windows/Carbon.Windows.Debug.zip
 
   commitrelease:
     name: 💾 Commit Release
@@ -214,7 +214,7 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/build-develop-windows/Carbon.Debug.zip
-          Release/build-develop-linux/Carbon.DebugUnix.tar.gz
-          Release/build-develop-linux/build-unix.info
-          Release/build-develop-windows/build.info
+          Release/build-develop-windows/Carbon.Linux.Debug.info
+          Release/build-develop-windows/Carbon.Linux.Debug.tar.gz
+          Release/build-develop-windows/Carbon.Windows.Debug.info
+          Release/build-develop-windows/Carbon.Windows.Debug.zip
