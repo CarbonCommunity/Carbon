@@ -160,7 +160,7 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/build-develop-windows/Carbon.Linux.Debug.info
-          Release/build-develop-windows/Carbon.Linux.Debug.tar.gz
-          Release/build-develop-windows/Carbon.Windows.Debug.info
-          Release/build-develop-windows/Carbon.Windows.Debug.zip
+          Release/build-staging-windows/Carbon.Linux.Debug.info
+          Release/build-staging-windows/Carbon.Linux.Debug.tar.gz
+          Release/build-staging-windows/Carbon.Windows.Debug.info
+          Release/build-staging-windows/Carbon.Windows.Debug.zip
