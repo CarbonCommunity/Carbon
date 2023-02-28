@@ -484,10 +484,4 @@ public class HookManager : FacepunchBehaviour, IHookManager
 			return;
 		}
 	}
-
-	void IHookManager.Reload()
-	{
-		_doReload = true;
-		enabled = false;
-	}
 }
