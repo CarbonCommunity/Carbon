@@ -9,35 +9,18 @@
 	<Import Project="..\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
-		<!-- Assembly patcher -->
-		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
-
-		<!-- Required by Carbon's Logger -->
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-
-		<!-- Compression -->
-		<PackageReference Include="SharpCompress" Version="0.32.2" />
-
-		<!-- Required by Carbon's Compiler -->
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
+		<PackageReference Include="MySql.Data" Version="8.0.32" />
 		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
 		<PackageReference Include="protobuf-net" Version="3.1.17" />
-		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
-
-		<!-- Required by Carbon's Database support -->
-		<PackageReference Include="MySql.Data" Version="8.0.32" />
-		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
-
-		<!-- Miscellaneous -->
 		<PackageReference Include="QRCoder" Version="1.4.3" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="src\Carbon\Base\" />
-	  <Folder Include="src\Carbon\Components\" />
+		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
+		<PackageReference Include="SharpCompress" Version="0.32.2" />
+		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
-
 </Project>
