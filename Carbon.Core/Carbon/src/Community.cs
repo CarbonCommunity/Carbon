@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using API.Contracts;
-using Carbon.Base.Interfaces;
-using Carbon.Extensions;
+using API.Events;
 using Carbon.Core;
+using Carbon.Hooks;
 using Carbon.Processors;
-using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
-using Carbon.Hooks;
-using Carbon.Contracts;
 
 /*
  *
@@ -32,28 +27,6 @@ public class CommunityInternal : Community
 	public static CommunityInternal InternalRuntime { get { return Runtime as CommunityInternal; } set { Runtime = value; } }
 
 	public bool IsInitialized { get; set; }
-
-	public CommunityInternal()
-	{
-		try
-		{
-			GameObject gameObject = GameObject.Find("Carbon")
-				?? throw new Exception("Carbon GameObject not found");
-
-			Events = gameObject.GetComponent<IEventManager>();
-			Downloader = gameObject.GetComponent<IDownloadManager>();
-
-			Events.Subscribe(API.Events.CarbonEvent.StartupSharedComplete, args =>
-			{
-				IIdentityManager Identity = gameObject.GetComponent<IIdentityManager>();
-				Logger.Log($"Identity check: {Identity.GetSystemUID}");
-			});
-		}
-		catch (System.Exception ex)
-		{
-			Carbon.Logger.Error("Critical error", ex);
-		}
-	}
 
 	public override void ReloadPlugins()
 	{
@@ -129,7 +102,7 @@ public class CommunityInternal : Community
 
 		HookCaller.Caller = new HookCallerInternal();
 
-		Events.Trigger(API.Events.CarbonEvent.CarbonStartup, EventArgs.Empty);
+		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		#region Handle Versions
 
@@ -141,16 +114,13 @@ public class CommunityInternal : Community
 		#endregion
 
 		LoadConfig();
-
 		Carbon.Logger.Log("Loaded config");
 
-		Events.Subscribe(API.Events.CarbonEvent.HookValidatorRefreshed, args =>
+		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
 		{
 			ClearCommands();
 			_installDefaultCommands();
-
 			ModuleProcessor.Init();
-
 			ReloadPlugins();
 		});
 
@@ -168,7 +138,7 @@ public class CommunityInternal : Community
 			IsInitialized = true;
 		}
 		Carbon.Logger.Log($"Loaded.");
-		Events.Trigger(API.Events.CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
+		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 
 		Entities.Init();
 	}
@@ -176,7 +146,7 @@ public class CommunityInternal : Community
 	{
 		try
 		{
-			Events.Trigger(API.Events.CarbonEvent.CarbonShutdown, EventArgs.Empty);
+			Events.Trigger(CarbonEvent.CarbonShutdown, EventArgs.Empty);
 
 			_uninstallProcessors();
 			ClearCommands(all: true);
@@ -203,7 +173,7 @@ public class CommunityInternal : Community
 		catch (Exception ex)
 		{
 			Carbon.Logger.Error($"Failed Carbon uninitialization.", ex);
-			Events.Trigger(API.Events.CarbonEvent.CarbonShutdownFailed, EventArgs.Empty);
+			Events.Trigger(CarbonEvent.CarbonShutdownFailed, EventArgs.Empty);
 		}
 	}
 

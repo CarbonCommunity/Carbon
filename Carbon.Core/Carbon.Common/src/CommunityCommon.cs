@@ -1,12 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using API.Contracts;
+using API.Events;
 using Carbon.Base.Interfaces;
-using Carbon.Extensions;
+using Carbon.Contracts;
 using Carbon.Core;
+using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Plugins;
-using Carbon.Contracts;
+using UnityEngine;
 
 /*
  *
@@ -24,8 +28,9 @@ public class Community
 	public static string Version { get; set; } = "Unknown";
 	public static string InformationalVersion { get; set; } = "Unknown";
 
-	public IDownloadManager Downloader { get; set; }
-	public IEventManager Events { get; set; }
+	public IAnalyticsManager Analytics { get; }
+	public IDownloadManager Downloader { get; }
+	public IEventManager Events { get; }
 
 	public IHookManager HookManager { get; set; }
 	public IScriptProcessor ScriptProcessor { get; set; }
@@ -42,6 +47,65 @@ public class Community
 	public RustPlugin CorePlugin { get; set; }
 	public Loader.CarbonMod Plugins { get; set; }
 	public Entities Entities { get; set; }
+
+	public Community()
+	{
+		try
+		{
+			GameObject gameObject = GameObject.Find("Carbon")
+				?? throw new Exception("Carbon GameObject not found");
+
+			Analytics = gameObject.GetComponent<IAnalyticsManager>();
+			Downloader = gameObject.GetComponent<IDownloadManager>();
+			Events = gameObject.GetComponent<IEventManager>();
+
+			Events.Subscribe(CarbonEvent.StartupSharedComplete, args =>
+			{
+				IAnalyticsManager Identity = gameObject.GetComponent<IAnalyticsManager>();
+				Logger.Log($"Carbon fingerprint: {Identity.ClientID}");
+				Analytics.StartSession();
+			});
+
+			Events.Subscribe(CarbonEvent.AllPluginsLoaded, args =>
+			{
+				string platform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) switch
+				{
+					true => "windows",
+					false => "linux"
+				};
+
+				string branch = InformationalVersion switch
+				{
+					string s when s.Contains("Debug") => "debug",
+					string s when s.Contains("Staging") => "staging",
+					string s when s.Contains("Release") => "release",
+					_ => "Unknown"
+				};
+
+				Dictionary<string, object> parameters = new Dictionary<string, object>
+				{
+					{ "branch", branch },
+					{ "platform", platform },
+					{ "short_version", Version },
+					{ "full_version", InformationalVersion },
+					{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) },
+
+					{ "debug_mode", true }
+				};
+
+				Analytics.LogEvent("on_server_initialized", parameters);
+			});
+
+			Events.Subscribe(CarbonEvent.OnServerSave, args =>
+			{
+				Analytics.LogEvent("user_engagement", null);
+			});
+		}
+		catch (Exception ex)
+		{
+			Logger.Error("Critical error", ex);
+		}
+	}
 
 	public void ClearCommands(bool all = false)
 	{
