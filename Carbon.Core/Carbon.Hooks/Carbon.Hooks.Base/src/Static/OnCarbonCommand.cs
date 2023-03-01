@@ -49,7 +49,7 @@ public partial class Category_Static
 							{
 								if (cmd.Permissions != null)
 								{
-									var hasPerm = false;
+									var hasPerm = cmd.Permissions.Length == 0;
 									foreach (var permission in cmd.Permissions)
 									{
 										if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
@@ -68,7 +68,7 @@ public partial class Category_Static
 
 								if (cmd.Groups != null)
 								{
-									var hasGroup = false;
+									var hasGroup = cmd.Groups.Length == 0;
 									foreach (var group in cmd.Groups)
 									{
 										if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
