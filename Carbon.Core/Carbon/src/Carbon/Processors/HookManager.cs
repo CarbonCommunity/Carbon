@@ -39,6 +39,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 	{
 		Path.Combine("hooks", "Carbon.Hooks.Base.dll"),
 		Path.Combine("hooks", "Carbon.Hooks.Extra.dll"),
+		Path.Combine("hooks", "Carbon.Hooks.Community.dll"),
 	};
 
 	private void Awake()

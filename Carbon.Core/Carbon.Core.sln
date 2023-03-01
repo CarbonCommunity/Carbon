@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.SDK", "Carbon.SDK\Ca
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Modules", "Carbon.Modules\Carbon.Modules.csproj", "{E2877350-B0B8-4204-A820-3F347C66D8C7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Hooks.Community", "Carbon.Hooks\Carbon.Hooks.Community\Carbon.Hooks.Community.csproj", "{FF8E6A80-5AF0-4C91-A54B-8A1A856FBF65}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -91,6 +93,14 @@ Global
 		{E2877350-B0B8-4204-A820-3F347C66D8C7}.Release|x64.Build.0 = Release|x64
 		{E2877350-B0B8-4204-A820-3F347C66D8C7}.ReleaseUnix|x64.ActiveCfg = ReleaseUnix|x64
 		{E2877350-B0B8-4204-A820-3F347C66D8C7}.ReleaseUnix|x64.Build.0 = ReleaseUnix|x64
+		{FF8E6A80-5AF0-4C91-A54B-8A1A856FBF65}.Debug|x64.ActiveCfg = Debug|x64
+		{FF8E6A80-5AF0-4C91-A54B-8A1A856FBF65}.Debug|x64.Build.0 = Debug|x64
+		{FF8E6A80-5AF0-4C91-A54B-8A1A856FBF65}.DebugUnix|x64.ActiveCfg = DebugUnix|x64
+		{FF8E6A80-5AF0-4C91-A54B-8A1A856FBF65}.DebugUnix|x64.Build.0 = DebugUnix|x64
+		{FF8E6A80-5AF0-4C91-A54B-8A1A856FBF65}.Release|x64.ActiveCfg = Release|x64
+		{FF8E6A80-5AF0-4C91-A54B-8A1A856FBF65}.Release|x64.Build.0 = Release|x64
+		{FF8E6A80-5AF0-4C91-A54B-8A1A856FBF65}.ReleaseUnix|x64.ActiveCfg = ReleaseUnix|x64
+		{FF8E6A80-5AF0-4C91-A54B-8A1A856FBF65}.ReleaseUnix|x64.Build.0 = ReleaseUnix|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
