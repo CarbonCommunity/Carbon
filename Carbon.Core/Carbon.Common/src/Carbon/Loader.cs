@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using API.Contracts;
+using API.Events;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -28,7 +29,7 @@ public static class Loader
 	static Loader()
 	{
 		Community.Runtime.Events.Subscribe(
-			API.Events.CarbonEvent.OnServerInitialized,
+			CarbonEvent.OnServerInitialized,
 			x => OnPluginProcessFinished()
 		);
 	}
@@ -471,7 +472,11 @@ public static class Loader
 				plugin.HasInitialized = true;
 			}
 
-			if (counter > 1) Logger.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
+			if (counter > 1)
+			{
+				Logger.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
+				Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
+			}
 
 			Report.OnProcessEnded?.Invoke();
 		}

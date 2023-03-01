@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using API.Events;
 using Carbon.Oxide.Metadata;
 using Newtonsoft.Json;
 
@@ -19,8 +20,8 @@ public class HookValidator
 
 	public static void Initialize()
 	{
-		Community.Runtime.Events.Subscribe(API.Events.CarbonEvent.HooksInstalled,
-			x => HookValidator.Refresh());
+		Community.Runtime.Events.Subscribe(
+			CarbonEvent.HooksInstalled, x => HookValidator.Refresh());
 	}
 
 	public static async void Refresh()
@@ -37,7 +38,7 @@ public class HookValidator
 			Logger.Debug($"Refreshed {OxideHooksCount} oxide hooks.");
 
 			Community.Runtime.Events.Trigger(
-				API.Events.CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
+				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		}
 	}
 

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using API.Events;
 using HarmonyLib;
 using Legacy;
 
@@ -20,13 +21,13 @@ internal static class __Bootstrap
 		public static void Prefix()
 		{
 			Loader.GetInstance().Events
-				.Trigger(API.Events.CarbonEvent.StartupShared, EventArgs.Empty);
+				.Trigger(CarbonEvent.StartupShared, EventArgs.Empty);
 		}
 
 		public static void Postfix()
 		{
 			Loader.GetInstance().Events
-				.Trigger(API.Events.CarbonEvent.StartupSharedComplete, EventArgs.Empty);
+				.Trigger(CarbonEvent.StartupSharedComplete, EventArgs.Empty);
 
 			/* example mockup --------------------------------------------------
 			bool ArePluginsReady = false;

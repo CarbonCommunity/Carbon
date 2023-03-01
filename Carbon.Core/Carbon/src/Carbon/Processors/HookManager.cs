@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Events;
 using API.Hooks;
 using Carbon.Contracts;
 using Carbon.Core;
@@ -102,8 +103,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 				_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
 		}
 
-		Community.Runtime.Events.Trigger(
-			API.Events.CarbonEvent.HooksInstalled, EventArgs.Empty);
+		Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty);
 	}
 
 	private void OnDisable()
@@ -416,10 +416,10 @@ public class HookManager : FacepunchBehaviour, IHookManager
 
 	public IEnumerable<IHook> InstalledPatches
 	{ get => _patches.Where(x => x.IsInstalled); }
-					   
+
 	public IEnumerable<IHook> InstalledStaticHooks
 	{ get => _staticHooks.Where(x => x.IsInstalled); }
-					   
+
 	public IEnumerable<IHook> InstalledDynamicHooks
 	{ get => _dynamicHooks.Where(x => x.IsInstalled); }
 

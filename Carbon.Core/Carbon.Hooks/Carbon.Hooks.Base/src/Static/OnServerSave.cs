@@ -1,4 +1,6 @@
-﻿using API.Hooks;
+﻿using System;
+using API.Events;
+using API.Hooks;
 using Oxide.Core;
 
 /*
@@ -24,6 +26,8 @@ public partial class Category_Static
 		{
 			public static void Prefix()
 			{
+				Events.Trigger(CarbonEvent.OnServerSave, EventArgs.Empty);
+
 				Logger.Log($"Saving plugin configuration and data..");
 				HookCaller.CallStaticHook("OnServerSave");
 
