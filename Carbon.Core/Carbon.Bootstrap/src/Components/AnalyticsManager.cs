@@ -102,7 +102,9 @@ internal sealed class AnalyticsManager : MonoBehaviour, IAnalyticsManager
 #if DEBUG_VERBOSE
 		else
 		{
-			Utility.Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode}): {request.downloadHandler.text}");
+			Utility.Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
+			if (request.downloadHandler.text != string.Empty)
+				Utility.Logger.Debug($" > {request.downloadHandler.text}");
 		}
 #endif
 	}

@@ -82,23 +82,22 @@ public class Community
 					_ => "Unknown"
 				};
 
-				Dictionary<string, object> parameters = new Dictionary<string, object>
+				Analytics.LogEvent("on_server_initialized", new Dictionary<string, object>
 				{
 					{ "branch", branch },
 					{ "platform", platform },
 					{ "short_version", Version },
 					{ "full_version", InformationalVersion },
 					{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) },
-
-					{ "debug_mode", true }
-				};
-
-				Analytics.LogEvent("on_server_initialized", parameters);
+				});
 			});
 
 			Events.Subscribe(CarbonEvent.OnServerSave, args =>
 			{
-				Analytics.LogEvent("user_engagement", null);
+				Analytics.LogEvent("user_engagement", new Dictionary<string, object>
+				{
+					{ "engagement_time_msec", 0 }
+				});
 			});
 		}
 		catch (Exception ex)
