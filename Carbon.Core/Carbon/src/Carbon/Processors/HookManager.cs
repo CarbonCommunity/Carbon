@@ -57,7 +57,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 			Logger.Log("Updating hooks...");
 			enabled = false;
 
-			Updater.DoUpdate((bool result) =>
+			Carbon.Hooks.Updater.DoUpdate((bool result) =>
 			{
 				if (!result)
 					Logger.Error($"Unable to update the hooks at this time, please try again later");

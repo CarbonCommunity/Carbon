@@ -86,6 +86,7 @@ public sealed class Updater
 		};
 
 		bool retval = false;
+
 		foreach (string file in files)
 		{
 			string url = GithubReleaseUrl(file);
@@ -110,8 +111,9 @@ public sealed class Updater
 						retval = false;
 					}
 				}
+
+				callback?.Invoke(retval);
 			});
 		}
-		callback?.Invoke(retval);
 	}
 }
