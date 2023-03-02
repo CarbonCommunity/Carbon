@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<OutputPath>bin\$(Configuration)\</OutputPath>
+
+	</PropertyGroup>
+	<Choose>
+		<When Condition="$(Configuration.Contains('Release'))">
+			<PropertyGroup>
+				<DebugType>none</DebugType>
+				<DebugSymbols>false</DebugSymbols>
+				<DefineConstants>$(DefineConstants)</DefineConstants>
+				<Optimize>true</Optimize>
+				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<!-- Changed due to FP_73186 changeset -->
+				<DebugType>embedded</DebugType>
+				<DebugSymbols>true</DebugSymbols>
+				<DefineConstants>DEBUG;UNITY_ASSERTIONS;$(DefineConstants)</DefineConstants>
+				<Optimize>false</Optimize>
+				<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
+	<Choose>
+		<When Condition="$(Configuration.Contains('Unix'))">
+			<PropertyGroup>
+				<DefineConstants>UNIX;$(DefineConstants)</DefineConstants>
+				<OperatingSystem>linux</OperatingSystem>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
+				<OperatingSystem>windows</OperatingSystem>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+</Project>

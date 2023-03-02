@@ -27,8 +27,8 @@ jobs:
       ref:   ${{ steps.step1.outputs.ref }}
 
     steps:
-      - name: 🪵 Log environment
-        uses: crazy-max/ghaction-dump-context@v1
+      #- name: 🪵 Log environment
+      #  uses: crazy-max/ghaction-dump-context@v1
 
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
@@ -38,11 +38,12 @@ jobs:
       - name: 📅 Prepare the environment
         id: step1
         run: |
-          echo "::set-output name=date::$(date +'%Y-%m-%d')"
-          echo "::set-output name=clock::$(date +'%H:%M:%S')"
-          echo "::set-output name=tag::$(date +'%Yd%j')"
-          echo "::set-output name=ref::$(git rev-parse --short HEAD)"
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
+          echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+  # BUILD LINUX ----------------------------------------------------------------
   build-linux:
     name: 🐧 Linux
     needs: bootstrap
@@ -72,14 +73,17 @@ jobs:
     - name: 🐧 Built Carbon on Linux
       shell: bash
       run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build_debug.sh
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix
         
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-staging-${{ needs.bootstrap.outputs.ref }}-linux
-        path: Release
+        name: build-staging-linux
+        path: |
+          Release/Carbon.Linux.Debug.tar.gz
+          Release/Carbon.Linux.Debug.info
 
+  # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
     name: 🪟 Windows
     needs: bootstrap
@@ -104,14 +108,17 @@ jobs:
     - name: 🪟 Built Carbon on Windows
       shell: cmd
       run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\build_debug.bat
+        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-staging-${{ needs.bootstrap.outputs.ref }}-windows
-        path: Release
+        name: build-staging-windows
+        path: |
+          Release/Carbon.Windows.Debug.zip
+          Release/Carbon.Windows.Debug.info
 
+  # RELEASE --------------------------------------------------------------------
   release:
     name: 💾 Release
     needs: [ "build-linux", "build-windows" ]
@@ -121,23 +128,31 @@ jobs:
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: ${{ needs.build-linux.outputs.artifact }}
         path: Release/
+        
+    - name: 🗑️ Delete existing release tag
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        delete_release: true
+        tag_name: staging_build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🏷️ Update release tag
       uses: softprops/action-gh-release@v1
       with:
+        draft: false
         prerelease: true
         tag_name: staging_build
         name: 'Carbon Build (staging)'
         body: |
-          This is a build of Carbon based on the `staging` branch.
+          This is a development build of Carbon based on the `staging` branch.
           
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.
 
           ### How to install
-          1. Download the `Carbon.Patch.zip` archive from the attachments below.
+          1. Download the `Carbon.Debug[Unix]` archive from the attachments below.
           2. Unzip the archive to the root of your Rust Dedicated Server.
           3. Restart the server and enjoy.
           
@@ -145,7 +160,7 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/Carbon.dll
-          Release/Carbon.Patch.zip
-          Release/Carbon-Unix.dll
-          Release/Carbon.Patch-Unix.zip
+          Release/build-staging-linux/Carbon.Linux.Debug.info
+          Release/build-staging-linux/Carbon.Linux.Debug.tar.gz
+          Release/build-staging-windows/Carbon.Windows.Debug.info
+          Release/build-staging-windows/Carbon.Windows.Debug.zip

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon.Hooks.Extra</Product>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{28195F54-F8A2-49D6-AE91-033D078502AD}</ProjectGuid>
+	</PropertyGroup>
+
+	<Import Project="..\..\.msbuild\Common.props" />
+	<Import Project="..\..\.msbuild\ReferencesRust.props" />
+
+	<ItemGroup>
+		<!-- Carbon platform -->
+		<ProjectReference Include="..\..\Carbon\Carbon.csproj" Private="false" />
+
+		<!-- Assembly patcher -->
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
+	</ItemGroup>
+
+	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_hooks)" />
+	</Target>
+</Project>

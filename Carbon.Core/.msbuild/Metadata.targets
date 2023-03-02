@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="GitPropsGenerator" AfterTargets="_GenerateRestoreProjectSpec">
+		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+		</Exec>
+
+		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+		</Exec>
+
+		<PropertyGroup>
+			<Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
+		</PropertyGroup>
+
+		<Message Text="[$(AssemblyName)] &gt;&gt; Saving git metadata to disk" Importance="high" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitag" Overwrite="true" Lines="$(Gitag)" />
+	</Target>
+
+	<Target Name="CarbonPreBuildEvent" BeforeTargets="PreBuildEvent">
+		<Message Text="[$(AssemblyName)] &gt;&gt; Product: $(Product) ($(OperatingSystem))" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
+	</Target>
+</Project>

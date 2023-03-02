@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Choose>
+		<When Condition="Exists('$(MSBuildProjectDirectory)\bin\.gitag')">
+			<PropertyGroup>
+				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitag').Trim())</InformationalVersion>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+</Project>

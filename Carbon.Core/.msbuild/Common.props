@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Deterministic>true</Deterministic>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<FileAlignment>512</FileAlignment>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<LangVersion>latest</LangVersion>
+		<Platforms>x64</Platforms>
+		<PlatformTarget></PlatformTarget>
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+		<TargetFramework>net48</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<AssemblyName>$(Product)</AssemblyName>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(VersionPrefix)</FileVersion>
+		<Version>0.$([System.DateTime]::UtcNow.ToString('yy.MMdd')).$([System.DateTime]::UtcNow.ToString('HHmm'))</Version>
+		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
+		<VersionSuffix>$(Configuration)</VersionSuffix>
+
+		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+		<Platform Condition="'$(Platform)' == ''">x64</Platform>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Authors>Carbon Community</Authors>
+		<Copyright>Copyright © 2022-$([System.DateTime]::Now.Year) $(Authors)</Copyright>
+		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
+		<Description>A very lightweight and modular Harmony-based modding framework</Description>
+	</PropertyGroup>
+
+	<Import Project="Configurations.props" />
+	<Import Project="Metadata.props" />
+	<Import Project="Clean.targets" />
+	<Import Project="Metadata.targets" />
+	<Import Project="Release.targets" />
+	<Import Project="References.props" />
+</Project>

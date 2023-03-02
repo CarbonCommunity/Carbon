@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="CarbonPrepareRelease" AfterTargets="PostBuildEvent">
+		<Message Text="[$(AssemblyName)] &gt;&gt; Preparing the release folder ($(OperatingSystem))" Importance="high" />
+		<PropertyGroup>
+			<CarbonBaseDir>$(SolutionDir)..\Release\.tmp\$(Configuration)</CarbonBaseDir>
+			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
+			<c_hooks>$(CarbonBaseDir)\carbon\managed\hooks</c_hooks>
+			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
+			<c_plugins>$(CarbonBaseDir)\carbon\plugins</c_plugins>
+			<c_tools>$(CarbonBaseDir)\carbon\tools</c_tools>
+		</PropertyGroup>
+
+		<Message Text="[$(AssemblyName)] &gt;&gt; Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
+		<MakeDir Directories="$(CarbonBaseDir);$(c_managed);$(c_lib);$(c_hooks);$(c_tools);$(c_plugins);$(c_harmony)" />
+	</Target>
+
+	<Target Name="CarbonCopyLibs" AfterTargets="Build" DependsOnTargets="CarbonPrepareRelease">
+		<ItemGroup>
+			<FilesToCopy Include="$(OutputPath)**\*.dll" Exclude="$(OutputPath)$(Product).dll" />
+		</ItemGroup>
+
+		<Message Text="[$(AssemblyName)] &gt;&gt; Copy files to release folder" Importance="high" />
+		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
+
+		<ItemGroup>
+			<FilesToClean Include="$(c_lib)\Carbon*.dll" />
+			<FilesToClean Include="$(c_lib)\*.pdb" />
+		</ItemGroup>
+
+		<Message Text="[$(AssemblyName)] &gt;&gt; Cleanup carbon stuff from lib folder" Importance="high" />
+		<Delete Files="@(FilesToClean)" />
+	</Target>
+</Project>
