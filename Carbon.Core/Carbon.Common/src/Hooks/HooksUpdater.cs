@@ -81,8 +81,7 @@ public sealed class Updater
 	public static void DoUpdate(Action<bool> callback = null)
 	{
 		IReadOnlyList<string> files = new List<string>(){
-			@"carbon/managed/hooks/Carbon.Hooks.Extra.dll",
-			@"carbon/managed/hooks/Carbon.Hooks.Community.dll"
+			@"carbon/managed/hooks/Carbon.Hooks.Extra.dll"
 		};
 
 		bool retval = false;
