@@ -185,7 +185,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		cui.CreatePanel(container, $"{parent}text", null,
 			color: "1 1 1 0.7",
-			xMin: 0, xMax: 1, yMin: 0f, yMax: 0.025f);
+			xMin: 0, xMax: 1, yMin: 0f, yMax: 0.015f);
 	}
 	public void TabPanelText(CUI cui, CuiElementContainer container, string parent, string text, int size, string color, float height, float offset, TextAnchor align, CUI.Handler.FontTypes font)
 	{
@@ -459,7 +459,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var subIcon = optionsIcons != null && actualI <= optionsIcons.Length - 1 ? optionsIcons[actualI] : null;
 
 				var subButton = cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
-					color: isSelected ? $"{color} 0.95" : "0.1 0.1 0.1 0.985",
+					color: isSelected ? $"{color} 1" : "0.1 0.1 0.1 1",
 					textColor: "0 0 0 0",
 					text: string.Empty, 0,
 					xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
@@ -701,15 +701,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			cui.CreateText(container, parent: "main", id: null,
 				color: "1 1 1 0.8",
 				text: "<b>Admin Settings</b>", 18,
-				xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.98f,
+				xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
 				align: TextAnchor.UpperLeft,
 				font: CUI.Handler.FontTypes.RobotoCondensedBold);
-			cui.CreateText(container, parent: "main", id: null,
-				color: "1 1 1 0.5",
-				text: $"Carbon {Community.InformationalVersion}", 11,
-				xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.95f,
-				align: TextAnchor.UpperLeft,
-				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
 			#endregion
 
@@ -741,7 +735,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			for (int i = ap.TabSkip; i < amount; i++)
 			{
 				var _tab = Tabs[ap.TabSkip + i];
-				TabButton(cui, container, "tab_buttons", $"{(ap.TabIndex == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}</size>", PanelId + $".changetab {i}", tabWidth, tabIndex, ap.TabIndex == i);
+				var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
+				TabButton(cui, container, "tab_buttons", $"{(ap.TabIndex == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, ap.TabIndex == i);
 				tabIndex += tabWidth;
 			}
 
@@ -1590,11 +1585,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				if (!string.IsNullOrEmpty(filter) && !(player.displayName.ToLower().Contains(filter.ToLower()) || player.UserIDString.Contains(filter))) return;
 			}
 
-			tab.AddRow(0, new Tab.OptionButton($"{player.displayName}", aap =>
+			tab.AddButton(0, $"{player.displayName}", TextAnchor.MiddleCenter, aap =>
 			{
 				ap.SetStorage("playerfilterpl", player);
 				ShowInfo(tab, ap, player);
-			}, aap => aap == null || !(aap.GetStorage<BasePlayer>("playerfilterpl") == player) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Selected));
+			}, aap => aap == null || !(aap.GetStorage<BasePlayer>("playerfilterpl") == player) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Selected);
 		}
 		public static void ShowInfo(Tab tab, AdminPlayer aap, BasePlayer player)
 		{
@@ -1613,7 +1608,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(1, $"Permissions", TextAnchor.MiddleLeft);
 			{
-				tab.AddRow(1, new Tab.OptionButton("View Permissions", ap =>
+				tab.AddButton(1, "View Permissions", TextAnchor.MiddleCenter, ap =>
 				{
 					var perms = Admin.FindTab("permissions");
 					var permission = Community.Runtime.CorePlugin.permission;
@@ -1622,15 +1617,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					ap.SetStorage("player", player);
 					PermissionsTab.GeneratePlayers(perms, permission, ap);
 					PermissionsTab.GeneratePlugins(perms, ap, permission, ap.Player);
-				}, (ap) => Tab.OptionButton.Types.Important));
+				}, (ap) => Tab.OptionButton.Types.Important);
 			}
 
 			if (aap == null || aap.Player != player)
 			{
 				tab.AddName(1, $"Actions", TextAnchor.MiddleLeft);
 
-				tab.AddRow(1, new Tab.OptionButton("Teleport", ap => { ap.Player.Teleport(player); }, (ap) => Tab.OptionButton.Types.Warned));
-				tab.AddRow(1, new Tab.OptionButton("Teleport to me", ap => { player.Teleport(ap.Player); }, (ap) => Tab.OptionButton.Types.Warned));
+				tab.AddButton(1, "Teleport", TextAnchor.MiddleCenter, ap => { ap.Player.Teleport(player); }, (ap) => Tab.OptionButton.Types.Warned);
+				tab.AddButton(1, "Teleport to me", TextAnchor.MiddleCenter, ap => { player.Teleport(ap.Player); }, (ap) => Tab.OptionButton.Types.Warned);
 			}
 			else
 			{
