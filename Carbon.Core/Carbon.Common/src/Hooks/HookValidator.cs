@@ -42,7 +42,7 @@ public class HookValidator
 		}
 	}
 
-	readonly static string[] IgnoreInternalHooks = new string[]
+	readonly static string[] IgnoredInternalHooks = new string[]
 	{
 		"OnPlayerDisconnected",
 		"OnPlayerSleepEnded",
@@ -64,7 +64,7 @@ public class HookValidator
 
 	public static bool IsIncompatibleOxideHook(string hook)
 	{
-		if (IgnoreInternalHooks.Contains(hook))
+		if (IgnoredInternalHooks.Contains(hook))
 		{
 			return false;
 		}
