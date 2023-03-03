@@ -13,7 +13,7 @@
 		<ProjectReference Include="..\..\Carbon\Carbon.csproj" Private="false" />
 
 		<!-- Assembly patcher -->
-		<PackageReference Include="HarmonyX" Version="2.10.1" />
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
