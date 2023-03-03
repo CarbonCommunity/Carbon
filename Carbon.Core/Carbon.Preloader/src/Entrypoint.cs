@@ -24,16 +24,15 @@ public sealed class Entrypoint
 		Logger.Log($"Loaded {harmony.GetName().Name} {harmony.GetName().Version} into current AppDomain");
 
 		using Sandbox<AssemblyCSharp> isolated1 = new Sandbox<AssemblyCSharp>();
-
 		if (!isolated1.Do.IsPublic("ServerMgr", "Shutdown"))
 		{
 			isolated1.Do.Publicize();
 			isolated1.Do.Patch();
 			isolated1.Do.Write();
-
-			using Sandbox<RustHarmony> isolated2 = new Sandbox<RustHarmony>();
-			isolated2.Do.Patch();
-			isolated2.Do.Write();
 		}
+
+		using Sandbox<RustHarmony> isolated2 = new Sandbox<RustHarmony>();
+		isolated2.Do.Patch();
+		isolated2.Do.Write();
 	}
 }
