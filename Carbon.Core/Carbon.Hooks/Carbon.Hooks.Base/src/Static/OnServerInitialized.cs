@@ -15,7 +15,7 @@ public partial class Category_Static
 {
 	public partial class Static_ServerMgr
 	{
-		[HookAttribute.Patch("OnServerInitialized", typeof(ServerMgr), "OpenConnection", new System.Type[] { })]
+		[HookAttribute.Patch("OnServerInitialized", "OnServerInitialized", typeof(ServerMgr), "OpenConnection", new System.Type[] { })]
 		[HookAttribute.Identifier("b91c13017e4a43fcb2d81244efd8e5b6")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 

@@ -14,7 +14,7 @@ public partial class Category_Static
 {
 	public partial class Static_ServerMgr
 	{
-		[HookAttribute.Patch("OnServerShutdown", typeof(ServerMgr), "Shutdown", new System.Type[] { })]
+		[HookAttribute.Patch("OnServerShutdown", "OnServerShutdown", typeof(ServerMgr), "Shutdown", new System.Type[] { })]
 		[HookAttribute.Identifier("8a0574c7d2d9420580a5ee90a37de357")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 

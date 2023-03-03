@@ -18,7 +18,7 @@ public partial class Category_Static
 {
 	public partial class Static_ConsoleSystem
 	{
-		[HookAttribute.Patch("OnCarbonCommand", typeof(ConsoleSystem), "Run", new System.Type[] { typeof(ConsoleSystem.Option), typeof(string), typeof(object[]) })]
+		[HookAttribute.Patch("OnCarbonCommand", "OnCarbonCommand", typeof(ConsoleSystem), "Run", new System.Type[] { typeof(ConsoleSystem.Option), typeof(string), typeof(object[]) })]
 		[HookAttribute.Identifier("4be71c5d077949cdb88438ec6dabac24")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 

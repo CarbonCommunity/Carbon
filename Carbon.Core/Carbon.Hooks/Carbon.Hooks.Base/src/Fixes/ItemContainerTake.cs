@@ -17,7 +17,7 @@ public partial class Category_Fixes
 {
 	public partial class Fixes_ItemContainer
 	{
-		[HookAttribute.Patch("IDisallowSkinnedItemsFromBeingCraftable", typeof(ItemContainer), "Take", new System.Type[] { typeof(List<Item>), typeof(int), typeof(int) })]
+		[HookAttribute.Patch("IDisallowSkinnedItemsFromBeingCraftable", "IDisallowSkinnedItemsFromBeingCraftable", typeof(ItemContainer), "Take", new System.Type[] { typeof(List<Item>), typeof(int), typeof(int) })]
 		[HookAttribute.Identifier("c44b4b824a274a5a96b9154a612d747a")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
