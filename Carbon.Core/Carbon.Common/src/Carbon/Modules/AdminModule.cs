@@ -600,8 +600,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetOrCreateAdminPlayer(player);
 		var previous = ap.TabIndex;
 
-		var tab = GetTab(player);
-		tab?.OnChange?.Invoke(ap, tab);
+		foreach(var tab in Tabs)
+		{
+			tab?.OnChange?.Invoke(ap, tab);
+		}
 
 		ap.Clear();
 
