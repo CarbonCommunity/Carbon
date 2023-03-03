@@ -18,7 +18,7 @@ public partial class Category_Static
 {
 	public partial class Static_Chat
 	{
-		[HookAttribute.Patch("OnPlayerCommand", typeof(Chat), "sayAs", new System.Type[] { typeof(ConVar.Chat.ChatChannel), typeof(ulong), typeof(string), typeof(string), typeof(BasePlayer) })]
+		[HookAttribute.Patch("OnPlayerCommand", "OnPlayerCommand", typeof(Chat), "sayAs", new System.Type[] { typeof(ConVar.Chat.ChatChannel), typeof(ulong), typeof(string), typeof(string), typeof(BasePlayer) })]
 		[HookAttribute.Identifier("fbe2fbe2debc47448ce1c319d441203e")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
