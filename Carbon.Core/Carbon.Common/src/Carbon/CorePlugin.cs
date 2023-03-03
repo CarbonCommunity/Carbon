@@ -9,7 +9,6 @@ using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Extensions;
-using Carbon.Hooks;
 using Carbon.Plugins;
 using Facepunch;
 using Network;
@@ -55,12 +54,13 @@ public class CorePlugin : CarbonPlugin
 	{
 		Hooks = new List<string>()
 		{
-			"OnEntitySpawned",
-			"OnEntityDeath",
-			"OnEntityKill",
+			"IOnBasePlayerAttacked",
+			"IOnPlayerCommand",
 			"IOnPlayerConnected",
 			"IOnUserApprove",
-			"IOnBasePlayerAttacked"
+			"OnEntityDeath",
+			"OnEntityKill",
+			"OnEntitySpawned",
 		};
 
 		base.IInit();
@@ -147,6 +147,102 @@ public class CorePlugin : CarbonPlugin
 			if (basePlayer.isServer)
 			{
 				basePlayer.Hurt(hitInfo);
+			}
+		}
+		catch { }
+
+		return true;
+	}
+
+	private object IOnPlayerCommand(BasePlayer player, string message)
+	{
+		if (Community.Runtime == null) return true;
+
+		try
+		{
+			var fullString = message.Substring(1);
+			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
+			var command = split[0].Trim();
+			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : new string[0];
+			Facepunch.Pool.Free(ref split);
+
+			if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(player.userID), command, args) != null)
+			{
+				return false;
+			}
+
+			foreach (var cmd in Community.Runtime?.AllChatCommands)
+			{
+				if (cmd.Command == command)
+				{
+					if (player != null)
+					{
+						if (cmd.Permissions != null)
+						{
+							var hasPerm = cmd.Permissions.Length == 0;
+							foreach (var permission in cmd.Permissions)
+							{
+								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
+								{
+									hasPerm = true;
+									break;
+								}
+							}
+
+							if (!hasPerm)
+							{
+								player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
+								continue;
+							}
+						}
+
+						if (cmd.Groups != null)
+						{
+							var hasGroup = cmd.Groups.Length == 0;
+							foreach (var group in cmd.Groups)
+							{
+								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
+								{
+									hasGroup = true;
+									break;
+								}
+							}
+
+							if (!hasGroup)
+							{
+								player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
+								continue;
+							}
+						}
+
+						if (cmd.AuthLevel != -1)
+						{
+							var hasAuth = !ServerUsers.users.ContainsKey(player.userID) ? player.Connection.authLevel >= cmd.AuthLevel : (int)ServerUsers.Get(player.userID).group >= cmd.AuthLevel;
+
+							if (!hasAuth)
+							{
+								player?.ConsoleMessage($"You don't have the minimum required auth level to execute this command.");
+								continue;
+							}
+						}
+
+						if (CooldownAttribute.IsCooledDown(player, cmd.Command, cmd.Cooldown, true))
+						{
+							continue;
+						}
+					}
+
+					try
+					{
+						cmd.Callback?.Invoke(player, command, args);
+					}
+					catch (Exception ex)
+					{
+						Logger.Error("ConsoleSystem_Run", ex);
+					}
+
+					return false;
+				}
 			}
 		}
 		catch { }
