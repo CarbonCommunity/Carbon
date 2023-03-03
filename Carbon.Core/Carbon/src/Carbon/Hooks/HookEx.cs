@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -132,9 +133,9 @@ public class HookEx : IDisposable, IHook
 			_runtime.Transpiler = AccessTools.Method(type, "Transpiler") ?? null;
 
 			if (_runtime.Prefix is null && _runtime.Postfix is null && _runtime.Transpiler is null)
-				throw new Exception($"No patch method found (prefix, postfix, transpiler)");
+				throw new Exception($"No patch found (prefix, postfix, transpiler)");
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			Logger.Error($"Error while parsing '{type.Name}'", e);
 			return;
@@ -147,26 +148,30 @@ public class HookEx : IDisposable, IHook
 		{
 			if (IsInstalled) return true;
 
-			MethodBase original;
-			if (TargetMethod == null)
-			{
-				original = AccessTools.Constructor(TargetType, TargetMethodArgs);
-			}
-			else
-			{
-				original = AccessTools.Method(
-					TargetType, TargetMethod, TargetMethodArgs) ?? null;
-			}
-
-			if (original is null)
-				throw new Exception($"Target method not found");
-
+			MethodBase original = ((TargetMethod == null)
+				? AccessTools.Constructor(TargetType, TargetMethodArgs) ?? null
+				: original = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null) ?? throw new Exception($"Target method not found");
 			bool hasValidChecksum = (IsChecksumIgnored) || IsChecksumValid(original, Checksum);
 
+			HarmonyMethod
+				prefix = null,
+				postfix = null,
+				transpiler = null;
+
+			if (_runtime.Prefix != null)
+				prefix = new HarmonyMethod(_runtime.Prefix);
+
+			if (_runtime.Postfix != null)
+				postfix = new HarmonyMethod(_runtime.Postfix);
+
+			if (_runtime.Transpiler != null)
+				transpiler = new HarmonyMethod(_runtime.Transpiler);
+
+			if (prefix is null && postfix is null && transpiler is null)
+				throw new Exception($"No patch found while applying patch (prefix, postfix, transpiler)");
+
 			MethodInfo current = (_runtime.HarmonyHandler.Patch(original,
-				prefix: _runtime.Prefix == null ? null : new HarmonyMethod(_runtime.Prefix),
-				postfix: _runtime.Postfix == null ? null : new HarmonyMethod(_runtime.Postfix),
-				transpiler: _runtime.Transpiler == null ? null : new HarmonyMethod(_runtime.Transpiler)
+				prefix: prefix, postfix: postfix, transpiler: transpiler
 			) ?? null) ?? throw new Exception($"Harmony failed to execute");
 
 			// the checksum system needs some lovin..
@@ -183,7 +188,8 @@ public class HookEx : IDisposable, IHook
 			// 	_runtime.Status = HookState.Warning;
 			// }
 
-			Logger.Debug($"Hook '{this}' patched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{this}' patched '{original}'", 2);
+			//Logger.Debug($" {original} patches: {string.Join(", ", GetPatchIdentifier(original))}");
 		}
 #if DEBUG
 		catch (HarmonyException e)
@@ -194,7 +200,7 @@ public class HookEx : IDisposable, IHook
 
 			int x = 0;
 			foreach (var instruction in e.GetInstructionsWithOffsets())
-				sb.AppendLine($"\t{x++:000} {instruction.Key.ToString("X4")}: {instruction.Value}");
+				sb.AppendLine($"\t{x++:000} {instruction.Key:X4}: {instruction.Value}");
 
 			Logger.Error(sb.ToString());
 			sb = default;
@@ -210,6 +216,12 @@ public class HookEx : IDisposable, IHook
 		}
 
 		return true;
+	}
+
+	private ReadOnlyCollection<string> GetPatchIdentifier(MethodBase method)
+	{
+		Patches patches = Harmony.GetPatchInfo(method);
+		return patches.Owners;
 	}
 
 	public bool RemovePatch()
