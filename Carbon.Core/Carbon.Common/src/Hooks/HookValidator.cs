@@ -42,8 +42,33 @@ public class HookValidator
 		}
 	}
 
+	readonly static string[] IgnoreInternalHooks = new string[]
+	{
+		"OnPlayerDisconnected",
+		"OnPlayerSleepEnded",
+		"OnServerMessage",
+		"OnPlayerRespawned",
+		"OnPlayerDeath",
+		"CanCombineDroppedItem",
+		"OnEntityTakeDamage",
+		"OnPluginLoaded",
+		"OnPluginUnloaded",
+		"OnEntityKill",
+		"OnEntityDeath",
+		"OnEntitySpawned",
+		"CanClientLogin",
+		"CanUserLogin",
+		"OnUserApprove",
+		"OnUserApproved"
+	};
+
 	public static bool IsIncompatibleOxideHook(string hook)
 	{
+		if (IgnoreInternalHooks.Contains(hook))
+		{
+			return false;
+		}
+
 		if (Community.Runtime.HookManager.StaticHooks.Any(x => x.HookName == hook) ||
 			Community.Runtime.HookManager.DynamicHooks.Any(x => x.HookName == hook)) return false;
 
