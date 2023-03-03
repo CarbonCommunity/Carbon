@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Net;
 using Carbon.Base;
 using Carbon.Core;
@@ -30,6 +31,14 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 	internal ImageDatabaseDataProto _protoData { get; set; }
 
+	internal string[] DefaultImages = new string[]
+	{
+		"https://carbonmod.gg/assets/media/carbonlogo_b.png",
+		"https://carbonmod.gg/assets/media/carbonlogo_w.png",
+		"https://carbonmod.gg/assets/media/carbonlogo_bs.png",
+		"https://carbonmod.gg/assets/media/carbonlogo_ws.png",
+		"https://carbonmod.gg/assets/media/cui/checkmark.png"
+	};
 	internal IEnumerator _executeQueue(QueuedThread thread, Action<List<QueuedThreadResult>> onFinished)
 	{
 		thread.Start();
@@ -49,8 +58,9 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		{
 			Save();
 		}
-	}
 
+		LoadDefaultImages();
+	}
 	private void OnServerSave()
 	{
 		SaveDatabase();
@@ -81,10 +91,21 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	public void SaveDatabase()
 	{
 		var path = _getProtoDataPath();
-		using var file = System.IO.File.Open(path, FileMode.OpenOrCreate);
+		OsEx.Folder.Create(Path.GetDirectoryName(path));
+
+		using var file = System.IO.File.OpenWrite(path);
 		Serializer.Serialize(file, _protoData ??= new ImageDatabaseDataProto());
 		file.Flush();
 		file.Dispose();
+	}
+	private void LoadDefaultImages()
+	{
+		QueueBatch(false, DefaultImages.ToArray());
+		AddMap("carbonb", "https://carbonmod.gg/assets/media/carbonlogo_b.png");
+		AddMap("carbonw", "https://carbonmod.gg/assets/media/carbonlogo_w.png");
+		AddMap("carbonbs", "https://carbonmod.gg/assets/media/carbonlogo_bs.png");
+		AddMap("carbonws", "https://carbonmod.gg/assets/media/carbonlogo_ws.png");
+		AddMap("checkmark", "https://carbonmod.gg/assets/media/cui/checkmark.png");
 	}
 
 	public override bool PreLoadShouldSave()

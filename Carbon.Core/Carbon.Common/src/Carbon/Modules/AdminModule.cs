@@ -33,14 +33,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
 	internal ImageDatabaseModule ImageDatabase;
-	internal string[] DefaultImages = new string[]
-	{
-		"https://carbonmod.gg/assets/media/carbonlogo_b.png",
-		"https://carbonmod.gg/assets/media/carbonlogo_w.png",
-		"https://carbonmod.gg/assets/media/carbonlogo_bs.png",
-		"https://carbonmod.gg/assets/media/carbonlogo_ws.png",
-		"https://carbonmod.gg/assets/media/cui/checkmark.png"
-	};
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
@@ -75,8 +67,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
 		RegisterTab(PlayersTab.Get());
 		RegisterTab(CarbonTab.Get(), 0);
-
-		LoadDefaultImages();
 	}
 
 	private bool CanAccess(BasePlayer player)
@@ -96,16 +86,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		return false;
-	}
-
-	private void LoadDefaultImages()
-	{
-		ImageDatabase.QueueBatch(false, DefaultImages.ToArray());
-		ImageDatabase.AddMap("carbonb", "https://carbonmod.gg/assets/media/carbonlogo_b.png");
-		ImageDatabase.AddMap("carbonw", "https://carbonmod.gg/assets/media/carbonlogo_w.png");
-		ImageDatabase.AddMap("carbonbs", "https://carbonmod.gg/assets/media/carbonlogo_bs.png");
-		ImageDatabase.AddMap("carbonws", "https://carbonmod.gg/assets/media/carbonlogo_ws.png");
-		ImageDatabase.AddMap("checkmark", "https://carbonmod.gg/assets/media/cui/checkmark.png");
 	}
 
 	#region Option Elements
@@ -1567,7 +1547,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	public class PlayersTab
 	{
-		internal static AdminModule Admin => BaseModule.GetModule<AdminModule>();
+		internal static AdminModule Admin => GetModule<AdminModule>();
 
 		public static Tab Get()
 		{
