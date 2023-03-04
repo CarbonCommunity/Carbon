@@ -23,19 +23,16 @@ public sealed class Entrypoint
 		Assembly harmony = Assembly.LoadFile(Path.Combine(Context.CarbonLib, "0Harmony.dll"));
 		Logger.Log($"Loaded {harmony.GetName().Name} {harmony.GetName().Version} into current AppDomain");
 
-		// load our good ol' modules
-		var modules = Path.Combine(Context.CarbonManaged, "Carbon.Modules.dll");
-		if (File.Exists(modules)) Assembly.LoadFile(modules);
-
 		using Sandbox<AssemblyCSharp> isolated1 = new Sandbox<AssemblyCSharp>();
-
 		if (!isolated1.Do.IsPublic("ServerMgr", "Shutdown"))
 		{
 			isolated1.Do.Publicize();
 			isolated1.Do.Patch();
 			isolated1.Do.Write();
+		}
 
-			using Sandbox<RustHarmony> isolated2 = new Sandbox<RustHarmony>();
+		using Sandbox<RustHarmony> isolated2 = new Sandbox<RustHarmony>();
+		{
 			isolated2.Do.Patch();
 			isolated2.Do.Write();
 		}

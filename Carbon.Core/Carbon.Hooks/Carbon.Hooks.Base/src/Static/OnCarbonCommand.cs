@@ -18,7 +18,7 @@ public partial class Category_Static
 {
 	public partial class Static_ConsoleSystem
 	{
-		[HookAttribute.Patch("OnCarbonCommand", typeof(ConsoleSystem), "Run", new System.Type[] { typeof(ConsoleSystem.Option), typeof(string), typeof(object[]) })]
+		[HookAttribute.Patch("OnCarbonCommand", "OnCarbonCommand", typeof(ConsoleSystem), "Run", new System.Type[] { typeof(ConsoleSystem.Option), typeof(string), typeof(object[]) })]
 		[HookAttribute.Identifier("4be71c5d077949cdb88438ec6dabac24")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
@@ -49,7 +49,7 @@ public partial class Category_Static
 							{
 								if (cmd.Permissions != null)
 								{
-									var hasPerm = false;
+									var hasPerm = cmd.Permissions.Length == 0;
 									foreach (var permission in cmd.Permissions)
 									{
 										if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
@@ -68,7 +68,7 @@ public partial class Category_Static
 
 								if (cmd.Groups != null)
 								{
-									var hasGroup = false;
+									var hasGroup = cmd.Groups.Length == 0;
 									foreach (var group in cmd.Groups)
 									{
 										if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))

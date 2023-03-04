@@ -13,7 +13,7 @@ public partial class Category_Static
 {
 	public partial class Static_ConsoleSystem
 	{
-		[HookAttribute.Patch("OnServerCommand", typeof(ConsoleSystem), "Internal", new System.Type[] { typeof(ConsoleSystem.Arg) })]
+		[HookAttribute.Patch("OnServerCommand", "OnServerCommand", typeof(ConsoleSystem), "Internal", new System.Type[] { typeof(ConsoleSystem.Arg) })]
 		[HookAttribute.Identifier("c12426936931457aa7f9cdf6db1a1127")]
 
 		// Useful for intercepting commands before they get to their intended target.

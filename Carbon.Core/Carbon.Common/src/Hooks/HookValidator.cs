@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using API.Events;
 using Carbon.Oxide.Metadata;
 using Newtonsoft.Json;
 
@@ -19,8 +20,8 @@ public class HookValidator
 
 	public static void Initialize()
 	{
-		Community.Runtime.Events.Subscribe(API.Events.CarbonEvent.HooksInstalled,
-			x => HookValidator.Refresh());
+		Community.Runtime.Events.Subscribe(
+			CarbonEvent.HooksInstalled, x => HookValidator.Refresh());
 	}
 
 	public static async void Refresh()
@@ -37,12 +38,37 @@ public class HookValidator
 			Logger.Debug($"Refreshed {OxideHooksCount} oxide hooks.");
 
 			Community.Runtime.Events.Trigger(
-				API.Events.CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
+				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		}
 	}
 
+	readonly static string[] IgnoredInternalHooks = new string[]
+	{
+		"OnPlayerDisconnected",
+		"OnPlayerSleepEnded",
+		"OnServerMessage",
+		"OnPlayerRespawned",
+		"OnPlayerDeath",
+		"CanCombineDroppedItem",
+		"OnEntityTakeDamage",
+		"OnPluginLoaded",
+		"OnPluginUnloaded",
+		"OnEntityKill",
+		"OnEntityDeath",
+		"OnEntitySpawned",
+		"CanClientLogin",
+		"CanUserLogin",
+		"OnUserApprove",
+		"OnUserApproved"
+	};
+
 	public static bool IsIncompatibleOxideHook(string hook)
 	{
+		if (IgnoredInternalHooks.Contains(hook))
+		{
+			return false;
+		}
+
 		if (Community.Runtime.HookManager.StaticHooks.Any(x => x.HookName == hook) ||
 			Community.Runtime.HookManager.DynamicHooks.Any(x => x.HookName == hook)) return false;
 

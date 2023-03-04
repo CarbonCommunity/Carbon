@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
+using K4os.Compression.LZ4.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -28,16 +29,17 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string Source;
 	public string[] References;
 	public string[] Requires;
-	public List<string> Usings = new List<string>();
-	public Dictionary<Type, List<string>> Hooks = new Dictionary<Type, List<string>>();
-	public Dictionary<Type, List<string>> UnsupportedHooks = new Dictionary<Type, List<string>>();
-	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new Dictionary<Type, List<HookMethodAttribute>>();
-	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new Dictionary<Type, List<PluginReferenceAttribute>>();
+	public List<string> Usings = new ();
+	public Dictionary<Type, List<string>> Hooks = new ();
+	public Dictionary<Type, List<string>> UnsupportedHooks = new ();
+	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new ();
+	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new ();
 	public float CompileTime;
 	public Assembly Assembly;
-	public List<CompilerException> Exceptions = new List<CompilerException>();
+	public List<CompilerException> Exceptions = new();
 	internal DateTime TimeSinceCompile;
-	internal static Dictionary<string, byte[]> _compilationCache = new Dictionary<string, byte[]>();
+	internal static Dictionary<string, byte[]> _compilationCache = new();
+	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 
 	internal static byte[] _getPlugin(string name)
 	{
@@ -66,10 +68,19 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal void _injectReference(string id, string name, List<MetadataReference> references)
 	{
-		Logger.Debug(id, $"Added common reference '{name}'", 4);
-		var raw = Supervisor.ASM.ReadAssembly(name);
-		using (MemoryStream mem = new MemoryStream(raw))
-			references.Add(MetadataReference.CreateFromStream(mem));
+		if (_referenceCache.TryGetValue(name, out var reference))
+		{
+			references.Add(reference);
+		}
+		else
+		{
+			Logger.Debug(id, $"Added common reference '{name}'", 4);
+			var raw = Supervisor.ASM.ReadAssembly(name);
+			using var mem = new MemoryStream(raw);
+			var processedReference = MetadataReference.CreateFromStream(mem);
+			references.Add(processedReference);
+			_referenceCache.Add(name, processedReference);
+		}
 	}
 
 	internal static MetadataReference _getReferenceFromCache(string reference)

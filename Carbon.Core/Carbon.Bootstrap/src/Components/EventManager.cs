@@ -15,8 +15,7 @@ namespace Components;
 
 internal sealed class EventManager : MonoBehaviour, IEventManager
 {
-	private readonly Dictionary<CarbonEvent, Delegate> events
-		= new Dictionary<CarbonEvent, Delegate>();
+	private readonly Dictionary<CarbonEvent, Delegate> events = new();
 
 	public void Subscribe(CarbonEvent eventId, Action<EventArgs> callback)
 	{

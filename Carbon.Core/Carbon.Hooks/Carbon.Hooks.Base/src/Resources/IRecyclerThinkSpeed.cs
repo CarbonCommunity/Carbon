@@ -14,7 +14,7 @@ public partial class Category_Fixes
 {
 	public partial class Fixes_Recycler
 	{
-		[HookAttribute.Patch("IRecyclerThinkSpeed", typeof(Recycler), "StartRecycling", new System.Type[] { })]
+		[HookAttribute.Patch("IRecyclerThinkSpeed", "IRecyclerThinkSpeed", typeof(Recycler), "StartRecycling", new System.Type[] { })]
 		[HookAttribute.Identifier("a07a3f25546d49d2b140d6cbf6453aa0")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 

@@ -4,6 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Carbon.Base;
+using Carbon.Extensions;
+using Facepunch;
 
 namespace Carbon.Hooks
 {
@@ -80,15 +83,19 @@ namespace Carbon.Hooks
 
 			var id = $"{hookName}[{(args == null ? 0 : args.Length)}]";
 			var result = (object)null;
+			var conflicts = Pool.GetList<Conflict>();
 
 			if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks))
 			{
 				foreach (var method in hooks)
 				{
 					var methodResult = DoCall(method);
-					if (methodResult != null) result = methodResult;
+					if (methodResult != null)
+					{
+						ResultOverride();
+						result = methodResult;
+					}
 				}
-				return result;
 			}
 
 			if (!plugin.HookCache.TryGetValue(id, out hooks))
@@ -108,7 +115,12 @@ namespace Carbon.Hooks
 				try
 				{
 					var methodResult = DoCall(method);
-					if (methodResult != null) result = methodResult;
+
+					if(methodResult != null)
+					{
+						ResultOverride();
+						result = methodResult;
+					}
 				}
 				catch (ArgumentException) { }
 				catch (TargetParameterCountException) { }
@@ -121,6 +133,8 @@ namespace Carbon.Hooks
 					);
 				}
 			}
+
+			ConflictCheck();
 
 			object DoCall(MethodInfo method)
 			{
@@ -137,7 +151,7 @@ namespace Carbon.Hooks
 
 				var beforeTicks = Environment.TickCount;
 				plugin.TrackStart();
-				result = method?.Invoke(plugin, args);
+				var result2 = method.Invoke(plugin, args);
 				plugin.TrackEnd();
 				var afterTicks = Environment.TickCount;
 				var totalTicks = afterTicks - beforeTicks;
@@ -149,9 +163,21 @@ namespace Carbon.Hooks
 					Carbon.Logger.Warn($" {plugin?.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
 				}
 
-				return result;
+				return result2;
+			}
+			void ResultOverride()
+			{
+				conflicts.Add(Conflict.Make(plugin, hookName));
+			}
+			void ConflictCheck()
+			{
+				if(conflicts.Count > 1)
+				{
+					Carbon.Logger.Warn($"Calling hook '{hookName}' resulted in a conflict between the following plugins: {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version}").ToArray().ToString(", ", " and ")}");
+				}
 			}
 
+			Pool.FreeList(ref conflicts);
 			return result;
 		}
 		public override object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args)

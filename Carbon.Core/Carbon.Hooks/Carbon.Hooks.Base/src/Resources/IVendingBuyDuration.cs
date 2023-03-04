@@ -13,7 +13,7 @@ public partial class Category_Fixes
 {
 	public partial class Fixes_VendingMachine
 	{
-		[HookAttribute.Patch("IVendingBuyDuration", typeof(VendingMachine), "GetBuyDuration", new System.Type[] {  })]
+		[HookAttribute.Patch("IVendingBuyDuration", "IVendingBuyDuration", typeof(VendingMachine), "GetBuyDuration", new System.Type[] { })]
 		[HookAttribute.Identifier("846de3cd762846e68206ffae9c97911f")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
@@ -33,7 +33,7 @@ public partial class Category_Fixes
 			}
 		}
 
-		[HookAttribute.Patch("IVendingBuyDuration", typeof(InvisibleVendingMachine), "GetBuyDuration", new System.Type[] { })]
+		[HookAttribute.Patch("IVendingBuyDuration", "IVendingBuyDuration", typeof(InvisibleVendingMachine), "GetBuyDuration", new System.Type[] { })]
 		[HookAttribute.Identifier("ac498841f2714f8f911d61d7713c142c")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 

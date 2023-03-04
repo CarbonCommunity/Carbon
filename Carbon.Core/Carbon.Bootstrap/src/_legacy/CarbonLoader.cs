@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using API.Events;
 using Components;
 using Contracts;
 using Legacy.ASM;
@@ -37,8 +38,8 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	internal EventManager Events
 	{ get => _gameObject.GetComponent<EventManager>(); }
 
-	internal IdentityManager Identity
-	{ get => _gameObject.GetComponent<IdentityManager>(); }
+	internal AnalyticsManager Identity
+	{ get => _gameObject.GetComponent<AnalyticsManager>(); }
 
 	static Loader()
 	{
@@ -63,11 +64,17 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 
 		_gameObject.AddComponent<DownloadManager>();
 		_gameObject.AddComponent<EventManager>();
-		_gameObject.AddComponent<IdentityManager>();
+		_gameObject.AddComponent<AnalyticsManager>();
 
-		// Events
-		Events.Subscribe(API.Events.CarbonEvent.StartupShared,
-			x => HarmonyLoaderEx.GetInstance().Load("Carbon.dll"));
+		Events.Subscribe(CarbonEvent.StartupShared, x =>
+		{
+			HarmonyLoaderEx.GetInstance().Load("Carbon.dll");
+		});
+
+		Events.Subscribe(CarbonEvent.CarbonStartupComplete, x =>
+		{
+			HarmonyLoaderEx.GetInstance().Load("Carbon.Modules.dll");
+		});
 	}
 
 	internal void Initialize()

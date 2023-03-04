@@ -32,6 +32,14 @@ namespace Carbon
 
 		public virtual object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args) where T : BaseHookable => null;
 		public virtual object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args) where T : BaseHookable => null;
+
+		public struct Conflict
+		{
+			public BaseHookable Hookable;
+			public string Hook;
+
+			public static Conflict Make(BaseHookable hookable, string hook) => new Conflict { Hookable =hookable, Hook = hook };
+		}
 	}
 
 	public static class HookCaller

@@ -1,4 +1,5 @@
 ﻿using System;
+using API.Events;
 using API.Hooks;
 
 /*
@@ -14,7 +15,7 @@ public partial class Category_Static
 {
 	public partial class Static_ServerMgr
 	{
-		[HookAttribute.Patch("OnServerInitialized", typeof(ServerMgr), "OpenConnection", new System.Type[] { })]
+		[HookAttribute.Patch("OnServerInitialized", "OnServerInitialized", typeof(ServerMgr), "OpenConnection", new System.Type[] { })]
 		[HookAttribute.Identifier("b91c13017e4a43fcb2d81244efd8e5b6")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
@@ -24,10 +25,7 @@ public partial class Category_Static
 		public class Static_ServerMgr_OpenConnection_b91c13017e4a43fcb2d81244efd8e5b6 : Patch
 		{
 			public static void Postfix()
-			{
-				Events.Trigger(
-					API.Events.CarbonEvent.OnServerInitialized, EventArgs.Empty);
-			}
+				=> Events.Trigger(CarbonEvent.OnServerInitialized, EventArgs.Empty);
 		}
 	}
 }

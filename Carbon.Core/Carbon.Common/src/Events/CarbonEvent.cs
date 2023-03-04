@@ -9,15 +9,18 @@ namespace API.Events;
 
 public enum CarbonEvent
 {
-	// Bootstrap.SharedStartup
+	// Startup events
 	StartupShared, StartupSharedComplete,
 
-	// Carbon.Core
+	// Carbon related
 	CarbonStartup, CarbonStartupComplete, CarbonShutdown, CarbonShutdownFailed,
 
-	// Carbon.Hooks
+	// Hook related
 	HooksInstalled, HookValidatorRefreshed,
 
-	// Hook like stuff..
-	OnServerInitialized
+	// Plugin related
+	AllPluginsLoaded,
+
+	// Things that look like hooks
+	OnServerInitialized, OnServerSave
 }

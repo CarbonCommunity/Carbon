@@ -30,24 +30,35 @@ public class HookAttribute : Attribute
 		public Type[] MethodArgs
 		{ get; }
 
-		public Patch(string name, Type target, string method)
+		/// <summary>
+		/// This should be the most used patch declaration decorator.
+		/// Use one of the other only for specific purposes.
+		/// </summary>
+		public Patch(string name, string fullName, Type target, string method, Type[] args) : this(name, fullName, target, method)
+		 => MethodArgs = args;
+
+		/// <summary>
+		/// Short version of the standard patch declaration decorator.
+		/// Use one of the other only for specific purposes.
+		/// </summary>
+		public Patch(string name, string fullName, Type target, string method)
+		{
+			FullName = fullName;
+			Method = method;
+			Name = name;
+			Target = target;
+		}
+
+
+		/// <summary>
+		/// To be used to facilitate patching of generic methods
+		/// </summary>
+		public Patch(string name, string fullName, Type target)
 		{
 			Name = name;
 			Target = target;
-			Method = method;
+			FullName = fullName;
 		}
-
-		public Patch(string name, Type target, string method, Type[] args) : this(name, target, method)
-		{
-			MethodArgs = args;
-			FullName = name;
-		}
-
-		public Patch(string name, string fullName, Type target, string method) : this(name, target, method)
-			=> FullName = fullName;
-
-		public Patch(string name, string fullName, Type target, string method, Type[] args) : this(name, fullName, target, method)
-			=> MethodArgs = args;
 	}
 
 	[AttributeUsage(AttributeTargets.Class)]
@@ -88,5 +99,25 @@ public class HookAttribute : Attribute
 
 		public Checksum(string value)
 			=> Value = value;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public class MetadataAttribute : Attribute
+{
+	[AttributeUsage(AttributeTargets.Class)]
+	public class Parameter : Attribute
+	{
+		public string Name { get; }
+
+		public Parameter(string name) { Name = name; }
+	}
+
+	[AttributeUsage(AttributeTargets.Class)]
+	public class Info : Attribute
+	{
+		public string Name { get; }
+
+		public Info(string name) { Name = name; }
 	}
 }
