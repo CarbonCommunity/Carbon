@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
@@ -6,7 +7,10 @@ using System.Security.Cryptography;
 using System.Text;
 using API.Hooks;
 using Carbon.Contracts;
+using Facepunch.Extend;
 using HarmonyLib;
+using MonoMod.Utils;
+using Org.BouncyCastle.Utilities.Collections;
 
 /*
  *
@@ -20,7 +24,9 @@ namespace Carbon.Hooks;
 public class HookEx : IDisposable, IHook
 {
 	private HookRuntime _runtime;
+	private string _originalChecksum;
 	private readonly TypeInfo _patchMethod;
+
 
 	public string HookName
 	{ get; }
@@ -92,6 +98,7 @@ public class HookEx : IDisposable, IHook
 	public Exception LastError
 	{ get => _runtime.LastError; set => _runtime.LastError = value; }
 
+
 	public HookEx(TypeInfo type)
 	{
 		try
@@ -151,7 +158,6 @@ public class HookEx : IDisposable, IHook
 			MethodBase original = ((TargetMethod == null)
 				? AccessTools.Constructor(TargetType, TargetMethodArgs) ?? null
 				: original = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null) ?? throw new Exception($"Target method not found");
-			bool hasValidChecksum = (IsChecksumIgnored) || IsChecksumValid(original, Checksum);
 
 			HarmonyMethod
 				prefix = null,
@@ -174,22 +180,8 @@ public class HookEx : IDisposable, IHook
 				prefix: prefix, postfix: postfix, transpiler: transpiler
 			) ?? null) ?? throw new Exception($"Harmony failed to execute");
 
-			// the checksum system needs some lovin..
-			// for now let's mark them all as valid
 			_runtime.Status = HookState.Success;
-
-			// if (hasValidChecksum)
-			// {
-			// 	_runtime.Status = HookState.Success;
-			// }
-			// else
-			// {
-			// 	Logger.Warn($"Checksum validation failed for '{TargetType.Name}.{TargetMethod}'");
-			// 	_runtime.Status = HookState.Warning;
-			// }
-
 			Logger.Debug($"Hook '{this}' patched '{original}'", 2);
-			//Logger.Debug($" {original} patches: {string.Join(", ", GetPatchIdentifier(original))}");
 		}
 #if DEBUG
 		catch (HarmonyException e)
@@ -218,12 +210,6 @@ public class HookEx : IDisposable, IHook
 		return true;
 	}
 
-	private ReadOnlyCollection<string> GetPatchIdentifier(MethodBase method)
-	{
-		Patches patches = Harmony.GetPatchInfo(method);
-		return patches.Owners;
-	}
-
 	public bool RemovePatch()
 	{
 		try
@@ -244,12 +230,19 @@ public class HookEx : IDisposable, IHook
 		}
 	}
 
-	private static bool IsChecksumValid(MethodBase original, string checksum)
+	public string GetTargetMethodChecksum()
 	{
+		if (_originalChecksum != null) return _originalChecksum;
+		MethodBase original = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
+		if (original == null) return default;
+
 		using SHA1Managed sha1 = new SHA1Managed();
 		byte[] bytes = sha1.ComputeHash(original.GetMethodBody()?.GetILAsByteArray() ?? Array.Empty<byte>());
-		string hash = string.Concat(bytes.Select(b => b.ToString("x2")));
-		return hash.Equals(checksum, StringComparison.InvariantCultureIgnoreCase);
+		_originalChecksum = string.Concat(bytes.Select(b => b.ToString("x2")));
+		Logger.Debug($">> CALC: {_originalChecksum}");
+		Logger.Debug($">> HOOK: {Checksum}");
+
+		return _originalChecksum;
 	}
 
 	public void SetStatus(HookState Status, Exception e = null)

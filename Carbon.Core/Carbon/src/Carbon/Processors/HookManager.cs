@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,6 +42,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 
 	private bool _doReload;
 	private Queue<string> _workQueue;
+	private Hashtable _cachedChecksums;
 	private List<Subscription> _subscribers;
 
 	private static readonly string[] Files =
@@ -51,8 +53,9 @@ public class HookManager : FacepunchBehaviour, IHookManager
 
 	private void Awake()
 	{
-		Logger.Log("Initialized hook processor...");
+		Logger.Log($"Initializing {this}..");
 
+		_cachedChecksums = new Hashtable();
 		_dynamicHooks = new List<HookEx>();
 		_installed = new List<HookEx>();
 		_patches = new List<HookEx>();
@@ -65,7 +68,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 			Logger.Log("Updating hooks...");
 			enabled = false;
 
-			Carbon.Hooks.Updater.DoUpdate((bool result) =>
+			Updater.DoUpdate((bool result) =>
 			{
 				if (!result)
 					Logger.Error($"Unable to update the hooks at this time, please try again later");
@@ -165,6 +168,20 @@ public class HookManager : FacepunchBehaviour, IHookManager
 
 				bool hasSubscribers = HookHasSubscribers(hook.Identifier);
 				bool isInstalled = hook.IsInstalled;
+				bool hasValidChecksum = true;
+
+				// if (!isInstalled)
+				// {
+				// 	string id = $"{hook.TargetType}|{hook.TargetMethod}|{hook.TargetMethodArgs.Count()}";
+				// 	string checksum = null;
+
+				// 	if (_cachedChecksums.ContainsKey(id))
+				// 		checksum = (string)_cachedChecksums[id];
+				// 	checksum ??= hook.GetTargetMethodChecksum();
+
+				// 	hasValidChecksum = (hook.IsChecksumIgnored || hook.Checksum == string.Empty)
+				// 		|| checksum.Equals(hook.Checksum, StringComparison.InvariantCultureIgnoreCase);
+				// }
 
 				switch (hasSubscribers)
 				{
@@ -183,6 +200,12 @@ public class HookManager : FacepunchBehaviour, IHookManager
 						_installed.Remove(hook);
 						break;
 				}
+
+				// if (!hasValidChecksum)
+				// {
+				// 	Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}'");
+				// 	hook.SetStatus(HookState.Warning);
+				// }
 			}
 		}
 		catch (System.ApplicationException e)
@@ -218,7 +241,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 		IEnumerable<TypeInfo> types = hooks.DefinedTypes
 			.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr)).ToList();
 
-		int x = 0, y = 0, z = 0;
+		TaskStatus stats = new();
 		foreach (TypeInfo type in types)
 		{
 			try
@@ -231,19 +254,19 @@ public class HookManager : FacepunchBehaviour, IHookManager
 
 				if (hook.IsPatch)
 				{
-					z++;
+					stats.Patch++;
 					_patches.Add(hook);
 					Logger.Debug($"Loaded patch '{hook}'", 3);
 				}
 				else if (hook.IsStaticHook)
 				{
-					y++;
+					stats.Static++;
 					_staticHooks.Add(hook);
 					Logger.Debug($"Loaded static hook '{hook}'", 3);
 				}
 				else
 				{
-					x++;
+					stats.Dynamic++;
 					_dynamicHooks.Add(hook);
 					Logger.Debug($"Loaded dynamic hook '{hook}'", 3);
 				}
@@ -251,99 +274,13 @@ public class HookManager : FacepunchBehaviour, IHookManager
 			catch (System.Exception e)
 			{
 				Logger.Error($"Error while parsing '{type.Name}'", e);
-				continue;
 			}
 		}
 
-		Logger.Log($"- Successfully loaded patches:{z} static:{y} dynamic:{x} "
-			+ $"({types.Count()}) hooks from file '{Path.GetFileName(fileName)}'");
+		Logger.Log($"- Successfully loaded patches:{stats.Patch} static:{stats.Static} dynamic:{stats.Dynamic} "
+			+ $"({stats.Total}) hooks from file '{Path.GetFileName(fileName)}'");
 		types = default;
 	}
-
-	// private void Install(HookEx hook, string requester)
-	// {
-	// 	try
-	// 	{
-	// 		List<HookEx> dependencies = GetHookDependencyTree(hook);
-
-	// 		foreach (HookEx dependency in dependencies)
-	// 		{
-	// 			if (!dependency.ApplyPatch())
-	// 				throw new Exception($"Dependency '{dependency}' for '{hook}' installation failed");
-	// 			AddSubscriber(dependency.Identifier, requester);
-	// 			Logger.Debug($"Installed dependency '{dependency}' for '{hook}'", 1);
-	// 		}
-
-	// 		if (!hook.ApplyPatch())
-	// 			throw new Exception($"Unable to apply patch");
-
-	// 		List<HookEx> dependants = GetHookDependantTree(hook);
-
-	// 		foreach (HookEx dependant in dependants)
-	// 		{
-	// 			if (!dependant.ApplyPatch())
-	// 				throw new Exception($"Dependant '{dependant}' for '{hook}' installation failed");
-	// 			AddSubscriber(dependant.Identifier, requester);
-	// 			Logger.Debug($"Installed dependant '{dependant}' for '{hook}'", 1);
-	// 		}
-
-	// 		dependants = default;
-	// 		dependencies = default;
-
-	// 		_installed.Add(hook);
-	// 		Logger.Debug($"Installed hook '{hook}'", 1);
-	// 	}
-	// 	catch (System.Exception e)
-	// 	{
-	// 		GetHookById(hook.Identifier).SetStatus(HookState.Failure, e);
-	// 		Logger.Error($"Install hook '{hook}' failed", e);
-	// 	}
-	// }
-
-	// private void Uninstall(HookEx hook, string requester)
-	// {
-	// 	try
-	// 	{
-	// 		List<HookEx> dependants = GetHookDependantTree(hook);
-	// 		foreach (HookEx item in _installed)
-	// 		{
-	// 			if (!dependants.Contains(item)) continue;
-
-	// 			if (!item.RemovePatch())
-	// 				throw new Exception($"Dependant '{item}' for '{hook}' uninstallation failed");
-
-	// 			_installed.Remove(item);
-	// 			RemoveSubscriber(item.Identifier, requester);
-	// 			Logger.Debug($"Uninstalled dependant '{item}' for '{hook}'", 1);
-	// 		}
-
-	// 		if (!hook.RemovePatch())
-	// 			throw new Exception($"Unable to remove patch");
-
-	// 		List<HookEx> dependencies = GetHookDependencyTree(hook);
-	// 		foreach (HookEx item in _installed)
-	// 		{
-	// 			if (!dependencies.Contains(item)) continue;
-
-	// 			if (!item.RemovePatch())
-	// 				throw new Exception($"Dependency '{item}' for '{hook}' uninstallation failed");
-
-	// 			_installed.Remove(item);
-	// 			RemoveSubscriber(item.Identifier, requester);
-	// 			Logger.Debug($"Uninstalled dependency '{item}' for '{hook}'", 1);
-	// 		}
-
-	// 		dependants = default;
-	// 		dependencies = default;
-
-	// 		Logger.Debug($"Uninstalled hook '{hook}'", 1);
-	// 	}
-	// 	catch (System.Exception e)
-	// 	{
-	// 		GetHookById(hook.Identifier).SetStatus(HookState.Failure, e);
-	// 		Logger.Error($"Uninstall hook '{hook}' failed", e);
-	// 	}
-	// }
 
 	private List<HookEx> GetHookDependencyTree(HookEx hook)
 	{

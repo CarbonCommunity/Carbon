@@ -1,7 +1,9 @@
 ﻿
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using API.Hooks;
+using Facepunch.Extend;
 using HarmonyLib;
 
 /*
@@ -29,4 +31,10 @@ public struct Subscription
 
 	public Subscription(string id, string sub)
 	{ Identifier = id; Subscriber = sub; }
+}
+
+public struct TaskStatus
+{
+	public int Static, Patch, Dynamic;
+	public int Total { get => (Static + Patch + Dynamic); }
 }

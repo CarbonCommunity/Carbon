@@ -32,7 +32,9 @@ public sealed class Entrypoint
 		}
 
 		using Sandbox<RustHarmony> isolated2 = new Sandbox<RustHarmony>();
-		isolated2.Do.Patch();
-		isolated2.Do.Write();
+		{
+			isolated2.Do.Patch();
+			isolated2.Do.Write();
+		}
 	}
 }
