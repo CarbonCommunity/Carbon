@@ -168,7 +168,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 
 				bool hasSubscribers = HookHasSubscribers(hook.Identifier);
 				bool isInstalled = hook.IsInstalled;
-				bool hasValidChecksum = true;
+				//bool hasValidChecksum = true;
 
 				// if (!isInstalled)
 				// {
