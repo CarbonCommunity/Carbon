@@ -805,7 +805,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								break;
 
 							case Tab.OptionButton button:
-								TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap));
+								TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap), button.Align);
 								break;
 
 							case Tab.OptionText text:
@@ -1188,11 +1188,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			return this;
 		}
-		public Tab AddName(int column, string name, TextAnchor align)
+		public Tab AddName(int column, string name, TextAnchor align = TextAnchor.MiddleLeft)
 		{
 			return AddRow(column, new OptionName(name, align));
 		}
-		public Tab AddButton(int column, string name, TextAnchor align, Action<AdminPlayer> callback, Func<AdminPlayer, OptionButton.Types> type = null)
+		public Tab AddButton(int column, string name, Action<AdminPlayer> callback, Func<AdminPlayer, OptionButton.Types> type = null, TextAnchor align = TextAnchor.MiddleCenter)
 		{
 			return AddRow(column, new OptionButton(name, align, callback, type));
 		}
@@ -1200,15 +1200,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			return AddRow(column, new OptionToggle(name, callback, isOn));
 		}
-		public Tab AddText(int column, string name, int size, string color, TextAnchor align, CUI.Handler.FontTypes font)
+		public Tab AddText(int column, string name, int size, string color, TextAnchor align = TextAnchor.MiddleCenter, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedRegular)
 		{
 			return AddRow(column, new OptionText(name, size, color, align, font));
 		}
-		public Tab AddInput(int column, string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback)
+		public Tab AddInput(int column, string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback = null)
 		{
 			return AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback));
 		}
-		public Tab AddInput(int column, string name, Func<string> placeholder, Action<AdminPlayer, string[]> callback)
+		public Tab AddInput(int column, string name, Func<string> placeholder, Action<AdminPlayer, string[]> callback = null)
 		{
 			return AddInput(column, name, placeholder, 0, callback == null, callback);
 		}
@@ -1217,7 +1217,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			AddRow(column, new OptionEnum(name, callback, text));
 			return this;
 		}
-		public Tab AddRadio(int column, string name, string id, bool wantsOn, Action<bool, AdminPlayer> callback)
+		public Tab AddRadio(int column, string name, string id, bool wantsOn, Action<bool, AdminPlayer> callback = null)
 		{
 			if (!Radios.TryGetValue(id, out var radio))
 			{
@@ -1238,7 +1238,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			AddRow(column, new OptionDropdown(name, index, callback, options, optionsIcons, optionsIconScale));
 			return this;
 		}
-		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<float> callback, Func<string> text)
+		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<float> callback, Func<string> text = null)
 		{
 			AddRow(column, new OptionRange(name, min, max, value, callback, text));
 			return this;
@@ -1587,7 +1587,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				if (!string.IsNullOrEmpty(filter) && !(player.displayName.ToLower().Contains(filter.ToLower()) || player.UserIDString.Contains(filter))) return;
 			}
 
-			tab.AddButton(0, $"{player.displayName}", TextAnchor.MiddleCenter, aap =>
+			tab.AddButton(0, $"{player.displayName}", aap =>
 			{
 				ap.SetStorage("playerfilterpl", player);
 				ShowInfo(tab, ap, player);
@@ -1610,7 +1610,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(1, $"Permissions", TextAnchor.MiddleLeft);
 			{
-				tab.AddButton(1, "View Permissions", TextAnchor.MiddleCenter, ap =>
+				tab.AddButton(1, "View Permissions", ap =>
 				{
 					var perms = Admin.FindTab("permissions");
 					var permission = Community.Runtime.CorePlugin.permission;
@@ -1626,8 +1626,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.AddName(1, $"Actions", TextAnchor.MiddleLeft);
 
-				tab.AddButton(1, "Teleport", TextAnchor.MiddleCenter, ap => { ap.Player.Teleport(player); }, (ap) => Tab.OptionButton.Types.Warned);
-				tab.AddButton(1, "Teleport to me", TextAnchor.MiddleCenter, ap => { player.Teleport(ap.Player); }, (ap) => Tab.OptionButton.Types.Warned);
+				tab.AddButton(1, "Teleport", ap => { ap.Player.Teleport(player); }, (ap) => Tab.OptionButton.Types.Warned);
+				tab.AddButton(1, "Teleport to me", ap => { player.Teleport(ap.Player); }, (ap) => Tab.OptionButton.Types.Warned);
 			}
 			else
 			{

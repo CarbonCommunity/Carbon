@@ -101,3 +101,23 @@ public class HookAttribute : Attribute
 			=> Value = value;
 	}
 }
+
+[AttributeUsage(AttributeTargets.Class)]
+public class MetadataAttribute : Attribute
+{
+	[AttributeUsage(AttributeTargets.Class)]
+	public class Parameter : Attribute
+	{
+		public string Name { get; }
+
+		public Parameter(string name) { Name = name; }
+	}
+
+	[AttributeUsage(AttributeTargets.Class)]
+	public class Info : Attribute
+	{
+		public string Name { get; }
+
+		public Info(string name) { Name = name; }
+	}
+}
