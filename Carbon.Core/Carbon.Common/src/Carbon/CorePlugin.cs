@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Windows.Shell;
 using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
@@ -871,6 +872,8 @@ public class CorePlugin : CarbonPlugin
 					return;
 				}
 
+				var pluginFound = false;
+
 				foreach (var mod in Loader.LoadedMods)
 				{
 					var plugins = Pool.GetList<RustPlugin>();
@@ -883,10 +886,16 @@ public class CorePlugin : CarbonPlugin
 							plugin._processor_instance.Dispose();
 							plugin._processor_instance.Execute();
 							mod.Plugins.Remove(plugin);
+							pluginFound = true;
 						}
 					}
 
 					Pool.FreeList(ref plugins);
+				}
+
+				if (!pluginFound)
+				{
+					Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
 				}
 				break;
 		}
@@ -895,7 +904,14 @@ public class CorePlugin : CarbonPlugin
 	[ConsoleCommand("load", "Loads all mods and/or plugins. E.g 'c.load *' to load everything you've unloaded.")]
 	private void LoadPlugin(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
+		if (!arg.IsPlayerCalledAndAdmin())
+			return;
+
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a plugin or use * to load all plugins.");
+			return;
+		}
 
 		RefreshOrderedFiles();
 
@@ -913,38 +929,49 @@ public class CorePlugin : CarbonPlugin
 
 					foreach (var plugin in tempList)
 					{
-						Community.Runtime.ScriptProcessor.Prepare(plugin, plugin);
+						Community.Runtime.ScriptProcessor.Prepare(Path.GetFileNameWithoutExtension(plugin), plugin);
 					}
+
 					Pool.FreeList(ref tempList);
+					break;
 				}
-				break;
 
 			default:
-				var path = GetPluginPath(name);
-				if (!string.IsNullOrEmpty(path))
 				{
-					Community.Runtime.ScriptProcessor.ClearIgnore(path);
-					Community.Runtime.ScriptProcessor.Prepare(path);
-					return;
-				}
-
-				/*var module = BaseModule.GetModule<DRMModule>();
-				foreach (var drm in module.Config.DRMs)
-				{
-					foreach (var entry in drm.Entries)
+					var path = GetPluginPath(name);
+					if (!string.IsNullOrEmpty(path))
 					{
-						if (entry.Id == name) drm.RequestEntry(entry);
+						Community.Runtime.ScriptProcessor.ClearIgnore(path);
+						Community.Runtime.ScriptProcessor.Prepare(path);
+						return;
 					}
-				}*/
 
-				break;
+					Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+
+					/*var module = BaseModule.GetModule<DRMModule>();
+					foreach (var drm in module.Config.DRMs)
+					{
+						foreach (var entry in drm.Entries)
+						{
+							if (entry.Id == name) drm.RequestEntry(entry);
+						}
+					}*/
+					break;
+				}
 		}
 	}
 
 	[ConsoleCommand("unload", "Unloads all mods and/or plugins. E.g 'c.unload *' to unload everything. They'll be marked as 'ignored'.")]
 	private void UnloadPlugin(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
+		if (!arg.IsPlayerCalledAndAdmin())
+			return;
+
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a plugin or use * to unload all plugins.");
+			return;
+		}
 
 		RefreshOrderedFiles();
 
@@ -957,7 +984,12 @@ public class CorePlugin : CarbonPlugin
 				//
 				{
 					var tempList = Pool.GetList<string>();
-					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
+
+					foreach (var bufferInstance in Community.Runtime.ScriptProcessor.InstanceBuffer)
+					{
+						tempList.Add(bufferInstance.Value.File);
+					}
+
 					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 					Community.Runtime.ScriptProcessor.Clear();
 
@@ -965,7 +997,6 @@ public class CorePlugin : CarbonPlugin
 					{
 						Community.Runtime.ScriptProcessor.Ignore(plugin);
 					}
-					Pool.FreeList(ref tempList);
 				}
 
 				//
@@ -982,34 +1013,44 @@ public class CorePlugin : CarbonPlugin
 						Community.Runtime.WebScriptProcessor.Ignore(plugin);
 					}
 					Pool.FreeList(ref tempList);
+					break;
 				}
-				break;
 
 			default:
-				var path = GetPluginPath(name);
-				if (!string.IsNullOrEmpty(path))
 				{
-					Community.Runtime.ScriptProcessor.Ignore(path);
-					Community.Runtime.WebScriptProcessor.Ignore(path);
-				}
-
-				foreach (var mod in Loader.LoadedMods)
-				{
-					var plugins = Pool.GetList<RustPlugin>();
-					plugins.AddRange(mod.Plugins);
-
-					foreach (var plugin in plugins)
+					var path = GetPluginPath(name);
+					if (!string.IsNullOrEmpty(path))
 					{
-						if (plugin.Name == name)
-						{
-							plugin._processor_instance.Dispose();
-							mod.Plugins.Remove(plugin);
-						}
+						Community.Runtime.ScriptProcessor.Ignore(path);
+						Community.Runtime.WebScriptProcessor.Ignore(path);
 					}
 
-					Pool.FreeList(ref plugins);
+					var pluginFound = false;
+
+					foreach (var mod in Loader.LoadedMods)
+					{
+						var plugins = Pool.GetList<RustPlugin>();
+						plugins.AddRange(mod.Plugins);
+
+						foreach (var plugin in plugins)
+						{
+							if (plugin.Name == name)
+							{
+								plugin._processor_instance.Dispose();
+								mod.Plugins.Remove(plugin);
+								pluginFound = true;
+							}
+						}
+
+						Pool.FreeList(ref plugins);
+					}
+
+					if (!pluginFound)
+					{
+						Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+					}
+					break;
 				}
-				break;
 		}
 	}
 
