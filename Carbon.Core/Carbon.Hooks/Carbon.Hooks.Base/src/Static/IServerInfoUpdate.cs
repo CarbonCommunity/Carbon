@@ -15,7 +15,7 @@ public partial class Category_Static
 {
 	public partial class Static_ServerMgr
 	{
-		[HookAttribute.Patch("IServerInfoUpdate", typeof(ServerMgr), "UpdateServerInformation", new System.Type[] { })]
+		[HookAttribute.Patch("IServerInfoUpdate", "IServerInfoUpdate", typeof(ServerMgr), "UpdateServerInformation", new System.Type[] { })]
 		[HookAttribute.Identifier("aaa38191cc9f4f6f911df9742d552a99")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden | HookFlags.IgnoreChecksum)]
 

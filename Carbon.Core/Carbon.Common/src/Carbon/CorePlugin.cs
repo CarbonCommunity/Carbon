@@ -4,12 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Windows.Shell;
 using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Extensions;
-using Carbon.Hooks;
 using Carbon.Plugins;
 using Facepunch;
 using Network;
@@ -55,12 +55,13 @@ public class CorePlugin : CarbonPlugin
 	{
 		Hooks = new List<string>()
 		{
-			"OnEntitySpawned",
-			"OnEntityDeath",
-			"OnEntityKill",
+			"IOnBasePlayerAttacked",
+			"IOnPlayerCommand",
 			"IOnPlayerConnected",
 			"IOnUserApprove",
-			"IOnBasePlayerAttacked"
+			"OnEntityDeath",
+			"OnEntityKill",
+			"OnEntitySpawned",
 		};
 
 		base.IInit();
@@ -147,6 +148,102 @@ public class CorePlugin : CarbonPlugin
 			if (basePlayer.isServer)
 			{
 				basePlayer.Hurt(hitInfo);
+			}
+		}
+		catch { }
+
+		return true;
+	}
+
+	private object IOnPlayerCommand(BasePlayer player, string message)
+	{
+		if (Community.Runtime == null) return true;
+
+		try
+		{
+			var fullString = message.Substring(1);
+			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
+			var command = split[0].Trim();
+			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : new string[0];
+			Facepunch.Pool.Free(ref split);
+
+			if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(player.userID), command, args) != null)
+			{
+				return false;
+			}
+
+			foreach (var cmd in Community.Runtime?.AllChatCommands)
+			{
+				if (cmd.Command == command)
+				{
+					if (player != null)
+					{
+						if (cmd.Permissions != null)
+						{
+							var hasPerm = cmd.Permissions.Length == 0;
+							foreach (var permission in cmd.Permissions)
+							{
+								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
+								{
+									hasPerm = true;
+									break;
+								}
+							}
+
+							if (!hasPerm)
+							{
+								player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
+								continue;
+							}
+						}
+
+						if (cmd.Groups != null)
+						{
+							var hasGroup = cmd.Groups.Length == 0;
+							foreach (var group in cmd.Groups)
+							{
+								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
+								{
+									hasGroup = true;
+									break;
+								}
+							}
+
+							if (!hasGroup)
+							{
+								player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
+								continue;
+							}
+						}
+
+						if (cmd.AuthLevel != -1)
+						{
+							var hasAuth = !ServerUsers.users.ContainsKey(player.userID) ? player.Connection.authLevel >= cmd.AuthLevel : (int)ServerUsers.Get(player.userID).group >= cmd.AuthLevel;
+
+							if (!hasAuth)
+							{
+								player?.ConsoleMessage($"You don't have the minimum required auth level to execute this command.");
+								continue;
+							}
+						}
+
+						if (CooldownAttribute.IsCooledDown(player, cmd.Command, cmd.Cooldown, true))
+						{
+							continue;
+						}
+					}
+
+					try
+					{
+						cmd.Callback?.Invoke(player, command, args);
+					}
+					catch (Exception ex)
+					{
+						Logger.Error("ConsoleSystem_Run", ex);
+					}
+
+					return false;
+				}
 			}
 		}
 		catch { }
@@ -775,6 +872,8 @@ public class CorePlugin : CarbonPlugin
 					return;
 				}
 
+				var pluginFound = false;
+
 				foreach (var mod in Loader.LoadedMods)
 				{
 					var plugins = Pool.GetList<RustPlugin>();
@@ -787,10 +886,16 @@ public class CorePlugin : CarbonPlugin
 							plugin._processor_instance.Dispose();
 							plugin._processor_instance.Execute();
 							mod.Plugins.Remove(plugin);
+							pluginFound = true;
 						}
 					}
 
 					Pool.FreeList(ref plugins);
+				}
+
+				if (!pluginFound)
+				{
+					Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
 				}
 				break;
 		}
@@ -799,7 +904,14 @@ public class CorePlugin : CarbonPlugin
 	[ConsoleCommand("load", "Loads all mods and/or plugins. E.g 'c.load *' to load everything you've unloaded.")]
 	private void LoadPlugin(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
+		if (!arg.IsPlayerCalledAndAdmin())
+			return;
+
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a plugin or use * to load all plugins.");
+			return;
+		}
 
 		RefreshOrderedFiles();
 
@@ -817,38 +929,49 @@ public class CorePlugin : CarbonPlugin
 
 					foreach (var plugin in tempList)
 					{
-						Community.Runtime.ScriptProcessor.Prepare(plugin, plugin);
+						Community.Runtime.ScriptProcessor.Prepare(Path.GetFileNameWithoutExtension(plugin), plugin);
 					}
+
 					Pool.FreeList(ref tempList);
+					break;
 				}
-				break;
 
 			default:
-				var path = GetPluginPath(name);
-				if (!string.IsNullOrEmpty(path))
 				{
-					Community.Runtime.ScriptProcessor.ClearIgnore(path);
-					Community.Runtime.ScriptProcessor.Prepare(path);
-					return;
-				}
-
-				/*var module = BaseModule.GetModule<DRMModule>();
-				foreach (var drm in module.Config.DRMs)
-				{
-					foreach (var entry in drm.Entries)
+					var path = GetPluginPath(name);
+					if (!string.IsNullOrEmpty(path))
 					{
-						if (entry.Id == name) drm.RequestEntry(entry);
+						Community.Runtime.ScriptProcessor.ClearIgnore(path);
+						Community.Runtime.ScriptProcessor.Prepare(path);
+						return;
 					}
-				}*/
 
-				break;
+					Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+
+					/*var module = BaseModule.GetModule<DRMModule>();
+					foreach (var drm in module.Config.DRMs)
+					{
+						foreach (var entry in drm.Entries)
+						{
+							if (entry.Id == name) drm.RequestEntry(entry);
+						}
+					}*/
+					break;
+				}
 		}
 	}
 
 	[ConsoleCommand("unload", "Unloads all mods and/or plugins. E.g 'c.unload *' to unload everything. They'll be marked as 'ignored'.")]
 	private void UnloadPlugin(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
+		if (!arg.IsPlayerCalledAndAdmin())
+			return;
+
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a plugin or use * to unload all plugins.");
+			return;
+		}
 
 		RefreshOrderedFiles();
 
@@ -861,7 +984,12 @@ public class CorePlugin : CarbonPlugin
 				//
 				{
 					var tempList = Pool.GetList<string>();
-					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
+
+					foreach (var bufferInstance in Community.Runtime.ScriptProcessor.InstanceBuffer)
+					{
+						tempList.Add(bufferInstance.Value.File);
+					}
+
 					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 					Community.Runtime.ScriptProcessor.Clear();
 
@@ -869,7 +997,6 @@ public class CorePlugin : CarbonPlugin
 					{
 						Community.Runtime.ScriptProcessor.Ignore(plugin);
 					}
-					Pool.FreeList(ref tempList);
 				}
 
 				//
@@ -886,34 +1013,44 @@ public class CorePlugin : CarbonPlugin
 						Community.Runtime.WebScriptProcessor.Ignore(plugin);
 					}
 					Pool.FreeList(ref tempList);
+					break;
 				}
-				break;
 
 			default:
-				var path = GetPluginPath(name);
-				if (!string.IsNullOrEmpty(path))
 				{
-					Community.Runtime.ScriptProcessor.Ignore(path);
-					Community.Runtime.WebScriptProcessor.Ignore(path);
-				}
-
-				foreach (var mod in Loader.LoadedMods)
-				{
-					var plugins = Pool.GetList<RustPlugin>();
-					plugins.AddRange(mod.Plugins);
-
-					foreach (var plugin in plugins)
+					var path = GetPluginPath(name);
+					if (!string.IsNullOrEmpty(path))
 					{
-						if (plugin.Name == name)
-						{
-							plugin._processor_instance.Dispose();
-							mod.Plugins.Remove(plugin);
-						}
+						Community.Runtime.ScriptProcessor.Ignore(path);
+						Community.Runtime.WebScriptProcessor.Ignore(path);
 					}
 
-					Pool.FreeList(ref plugins);
+					var pluginFound = false;
+
+					foreach (var mod in Loader.LoadedMods)
+					{
+						var plugins = Pool.GetList<RustPlugin>();
+						plugins.AddRange(mod.Plugins);
+
+						foreach (var plugin in plugins)
+						{
+							if (plugin.Name == name)
+							{
+								plugin._processor_instance.Dispose();
+								mod.Plugins.Remove(plugin);
+								pluginFound = true;
+							}
+						}
+
+						Pool.FreeList(ref plugins);
+					}
+
+					if (!pluginFound)
+					{
+						Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+					}
+					break;
 				}
-				break;
 		}
 	}
 

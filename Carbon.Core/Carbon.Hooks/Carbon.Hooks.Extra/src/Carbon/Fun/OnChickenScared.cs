@@ -13,7 +13,7 @@ public partial class Category_Fun
 {
 	public partial class Fun_AnimalBrain
 	{
-		[HookAttribute.Patch("OnChickenScared", typeof(AnimalBrain.FleeState), "StateEnter", new System.Type[] { typeof(BaseAIBrain), typeof(BaseEntity) })]
+		[HookAttribute.Patch("OnChickenScared", "OnChickenScared", typeof(AnimalBrain.FleeState), "StateEnter", new System.Type[] { typeof(BaseAIBrain), typeof(BaseEntity) })]
 		[HookAttribute.Identifier("4af63eb71cfc44f7a66cb1c16974a5c7")]
 
 		// Gets triggered when a chicken gets scared by something.

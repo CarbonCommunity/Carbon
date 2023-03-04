@@ -18,7 +18,7 @@ public partial class Category_Static
 {
 	public partial class Static_RCon
 	{
-		[HookAttribute.Patch("OnRconCommand", typeof(RCon), "OnCommand", new System.Type[] { typeof(Facepunch.RCon.Command) })]
+		[HookAttribute.Patch("OnRconCommand", "OnRconCommand", typeof(RCon), "OnCommand", new System.Type[] { typeof(Facepunch.RCon.Command) })]
 		[HookAttribute.Identifier("ccce0832a0eb4c28bc2372f5e0812c7e")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 

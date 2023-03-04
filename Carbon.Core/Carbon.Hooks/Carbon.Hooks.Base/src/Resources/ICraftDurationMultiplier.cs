@@ -13,7 +13,7 @@ public partial class Category_Fixes
 {
 	public partial class Fixes_ItemCrafter
 	{
-		[HookAttribute.Patch("ICraftDurationMultiplier", typeof(ItemCrafter), "GetScaledDuration", new System.Type[] { typeof(ItemBlueprint), typeof(float) })]
+		[HookAttribute.Patch("ICraftDurationMultiplier", "ICraftDurationMultiplier", typeof(ItemCrafter), "GetScaledDuration", new System.Type[] { typeof(ItemBlueprint), typeof(float) })]
 		[HookAttribute.Identifier("78c74c0fd6624642815e7b147fda0802")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 

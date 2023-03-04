@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using API.Hooks;
 using Carbon.Contracts;
+using Facepunch.Extend;
 using HarmonyLib;
+using MonoMod.Utils;
+using Org.BouncyCastle.Utilities.Collections;
 
 /*
  *
@@ -19,7 +24,9 @@ namespace Carbon.Hooks;
 public class HookEx : IDisposable, IHook
 {
 	private HookRuntime _runtime;
+	private string _originalChecksum;
 	private readonly TypeInfo _patchMethod;
+
 
 	public string HookName
 	{ get; }
@@ -91,6 +98,7 @@ public class HookEx : IDisposable, IHook
 	public Exception LastError
 	{ get => _runtime.LastError; set => _runtime.LastError = value; }
 
+
 	public HookEx(TypeInfo type)
 	{
 		try
@@ -132,9 +140,9 @@ public class HookEx : IDisposable, IHook
 			_runtime.Transpiler = AccessTools.Method(type, "Transpiler") ?? null;
 
 			if (_runtime.Prefix is null && _runtime.Postfix is null && _runtime.Transpiler is null)
-				throw new Exception($"No patch method found (prefix, postfix, transpiler)");
+				throw new Exception($"No patch found (prefix, postfix, transpiler)");
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			Logger.Error($"Error while parsing '{type.Name}'", e);
 			return;
@@ -147,43 +155,33 @@ public class HookEx : IDisposable, IHook
 		{
 			if (IsInstalled) return true;
 
-			MethodBase original;
-			if (TargetMethod == null)
-			{
-				original = AccessTools.Constructor(TargetType, TargetMethodArgs);
-			}
-			else
-			{
-				original = AccessTools.Method(
-					TargetType, TargetMethod, TargetMethodArgs) ?? null;
-			}
+			MethodBase original = ((TargetMethod == null)
+				? AccessTools.Constructor(TargetType, TargetMethodArgs) ?? null
+				: original = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null) ?? throw new Exception($"Target method not found");
 
-			if (original is null)
-				throw new Exception($"Target method not found");
+			HarmonyMethod
+				prefix = null,
+				postfix = null,
+				transpiler = null;
 
-			bool hasValidChecksum = (IsChecksumIgnored) || IsChecksumValid(original, Checksum);
+			if (_runtime.Prefix != null)
+				prefix = new HarmonyMethod(_runtime.Prefix);
+
+			if (_runtime.Postfix != null)
+				postfix = new HarmonyMethod(_runtime.Postfix);
+
+			if (_runtime.Transpiler != null)
+				transpiler = new HarmonyMethod(_runtime.Transpiler);
+
+			if (prefix is null && postfix is null && transpiler is null)
+				throw new Exception($"No patch found while applying patch (prefix, postfix, transpiler)");
 
 			MethodInfo current = (_runtime.HarmonyHandler.Patch(original,
-				prefix: _runtime.Prefix == null ? null : new HarmonyMethod(_runtime.Prefix),
-				postfix: _runtime.Postfix == null ? null : new HarmonyMethod(_runtime.Postfix),
-				transpiler: _runtime.Transpiler == null ? null : new HarmonyMethod(_runtime.Transpiler)
+				prefix: prefix, postfix: postfix, transpiler: transpiler
 			) ?? null) ?? throw new Exception($"Harmony failed to execute");
 
-			// the checksum system needs some lovin..
-			// for now let's mark them all as valid
 			_runtime.Status = HookState.Success;
-
-			// if (hasValidChecksum)
-			// {
-			// 	_runtime.Status = HookState.Success;
-			// }
-			// else
-			// {
-			// 	Logger.Warn($"Checksum validation failed for '{TargetType.Name}.{TargetMethod}'");
-			// 	_runtime.Status = HookState.Warning;
-			// }
-
-			Logger.Debug($"Hook '{this}' patched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{this}' patched '{original}'", 2);
 		}
 #if DEBUG
 		catch (HarmonyException e)
@@ -194,7 +192,7 @@ public class HookEx : IDisposable, IHook
 
 			int x = 0;
 			foreach (var instruction in e.GetInstructionsWithOffsets())
-				sb.AppendLine($"\t{x++:000} {instruction.Key.ToString("X4")}: {instruction.Value}");
+				sb.AppendLine($"\t{x++:000} {instruction.Key:X4}: {instruction.Value}");
 
 			Logger.Error(sb.ToString());
 			sb = default;
@@ -232,12 +230,19 @@ public class HookEx : IDisposable, IHook
 		}
 	}
 
-	private static bool IsChecksumValid(MethodBase original, string checksum)
+	public string GetTargetMethodChecksum()
 	{
+		if (_originalChecksum != null) return _originalChecksum;
+		MethodBase original = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
+		if (original == null) return default;
+
 		using SHA1Managed sha1 = new SHA1Managed();
 		byte[] bytes = sha1.ComputeHash(original.GetMethodBody()?.GetILAsByteArray() ?? Array.Empty<byte>());
-		string hash = string.Concat(bytes.Select(b => b.ToString("x2")));
-		return hash.Equals(checksum, StringComparison.InvariantCultureIgnoreCase);
+		_originalChecksum = string.Concat(bytes.Select(b => b.ToString("x2")));
+		Logger.Debug($">> CALC: {_originalChecksum}");
+		Logger.Debug($">> HOOK: {Checksum}");
+
+		return _originalChecksum;
 	}
 
 	public void SetStatus(HookState Status, Exception e = null)

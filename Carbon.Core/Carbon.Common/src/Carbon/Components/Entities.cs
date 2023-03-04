@@ -163,7 +163,7 @@ public class Entities : IDisposable
 
 		public void Dispose()
 		{
-			Carbon.Logger.Warn($"Cleaned {typeof(T).Name}");
+			Carbon.Logger.Debug($"Cleaned {typeof(T).Name}", 2);
 			Facepunch.Pool.FreeList(ref Pool);
 		}
 	}
