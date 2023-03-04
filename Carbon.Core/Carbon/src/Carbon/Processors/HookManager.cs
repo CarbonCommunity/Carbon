@@ -469,7 +469,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 		}
 	}
 
-	public void Unsubscribe(HookEx hook, string requester)
+	private void Unsubscribe(HookEx hook, string requester)
 	{
 		try
 		{
