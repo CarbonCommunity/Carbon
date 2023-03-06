@@ -47,7 +47,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public bool IsSleeping => BasePlayer.IsSleeping();
 
-		public bool IsServer => false;
+		public bool IsServer { get; set; }
 
 		public bool IsAdmin => ulong.TryParse(Id, out var id) && ServerUsers.Is(id, ServerUsers.UserGroup.Owner);
 

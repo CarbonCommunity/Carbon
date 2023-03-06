@@ -52,44 +52,47 @@ namespace Oxide.Game.Rust.Libraries
 		{
 			AddChatCommand(command, plugin, (player, cmd, args) =>
 			{
-				var argData = Pool.GetList<object>();
+				var arguments = Pool.GetList<object>();
 				var result = (object[])null;
 				try
 				{
 					var m = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-					var ps = m.GetParameters();
+					var parameters = m.GetParameters();
 
-					switch (ps.Length)
+					if (parameters.Length > 0)
 					{
-						case 1:
-							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
-								break;
-							}
+						if (parameters.ElementAt(0).ParameterType == typeof(IPlayer))
+						{
+							var iplayer = player.AsIPlayer();
+							iplayer.IsServer = player == null;
+							arguments.Add(iplayer);
+						}
+						else arguments.Add(player);
 
-						case 2:
-							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
-								argData.Add(cmd);
-								break;
-							}
+						switch (parameters.Length)
+						{
+							case 2:
+								{
+									arguments.Add(cmd);
+									break;
+								}
 
-						case 3:
-							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
-								argData.Add(cmd);
-								argData.Add(args);
-								break;
-							}
+							case 3:
+								{
+									arguments.Add(cmd);
+									arguments.Add(args);
+									break;
+								}
+						}
 					}
 
-					result = argData.ToArray();
+					result = arguments.ToArray();
 
 					m?.Invoke(plugin, result);
 				}
 				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
-				if (argData != null) Pool.FreeList(ref argData);
+				if (arguments != null) Pool.FreeList(ref arguments);
 				if (result != null) Pool.Free(ref result);
 			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown);
 		}
@@ -136,28 +139,31 @@ namespace Oxide.Game.Rust.Libraries
 						var methodInfo = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 						var parameters = methodInfo.GetParameters();
 
-						switch (parameters.Length)
+						if (parameters.Length > 0)
 						{
-							case 1:
-								{
-									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(arg);
-									break;
-								}
+							if (parameters.ElementAt(0).ParameterType == typeof(IPlayer))
+							{
+								var iplayer = player.AsIPlayer();
+								iplayer.IsServer = player == null;
+								arguments.Add(iplayer);
+							}
+							else arguments.Add(arg);
 
-							case 2:
-								{
-									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(arg);
-									arguments.Add(cmd);
-									break;
-								}
+							switch (parameters.Length)
+							{
+								case 2:
+									{
+										arguments.Add(cmd);
+										break;
+									}
 
-							case 3:
-								{
-									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(arg);
-									arguments.Add(cmd);
-									arguments.Add(args);
-									break;
-								}
+								case 3:
+									{
+										arguments.Add(cmd);
+										arguments.Add(args);
+										break;
+									}
+							}
 						}
 
 						result = arguments.ToArray();
