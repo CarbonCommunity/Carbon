@@ -47,11 +47,11 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public bool IsSleeping => BasePlayer.IsSleeping();
 
-		public bool IsServer => true;
+		public bool IsServer => false;
 
-		public bool IsAdmin => !ulong.TryParse(Id, out var id) ? false : ServerUsers.Is(id, ServerUsers.UserGroup.Owner);
+		public bool IsAdmin => ulong.TryParse(Id, out var id) && ServerUsers.Is(id, ServerUsers.UserGroup.Owner);
 
-		public bool IsBanned => !ulong.TryParse(Id, out var id) ? false : ServerUsers.Is(id, ServerUsers.UserGroup.Banned);
+		public bool IsBanned => ulong.TryParse(Id, out var id) && ServerUsers.Is(id, ServerUsers.UserGroup.Banned);
 
 		public TimeSpan BanTimeRemaining
 		{
