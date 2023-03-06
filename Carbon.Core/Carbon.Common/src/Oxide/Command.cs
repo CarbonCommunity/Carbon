@@ -140,20 +140,20 @@ namespace Oxide.Game.Rust.Libraries
 						{
 							case 1:
 								{
-									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(player);
+									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(arg);
 									break;
 								}
 
 							case 2:
 								{
-									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(player);
+									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(arg);
 									arguments.Add(cmd);
 									break;
 								}
 
 							case 3:
 								{
-									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(player);
+									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(arg);
 									arguments.Add(cmd);
 									arguments.Add(args);
 									break;
