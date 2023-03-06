@@ -58,12 +58,12 @@ namespace Oxide.Game.Rust.Libraries
 				{
 					var m = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 					var ps = m.GetParameters();
+
 					switch (ps.Length)
 					{
 						case 1:
 							{
 								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
-								result = argData.ToArray();
 								break;
 							}
 
@@ -71,7 +71,6 @@ namespace Oxide.Game.Rust.Libraries
 							{
 								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
 								argData.Add(cmd);
-								result = argData.ToArray();
 								break;
 							}
 
@@ -80,10 +79,11 @@ namespace Oxide.Game.Rust.Libraries
 								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
 								argData.Add(cmd);
 								argData.Add(args);
-								result = argData.ToArray();
 								break;
 							}
 					}
+
+					result = argData.ToArray();
 
 					m?.Invoke(plugin, result);
 				}
@@ -136,23 +136,28 @@ namespace Oxide.Game.Rust.Libraries
 						var methodInfo = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 						var parameters = methodInfo.GetParameters();
 
-						if (parameters.Length > 0)
+						switch (parameters.Length)
 						{
-							switch(parameters[0].ParameterType)
-							{
-								case IPlayer iplayer:
-									arguments.Add(player.AsIPlayer());
+							case 1:
+								{
+									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(player);
 									break;
+								}
 
-								default:
-									arguments.Add(arg);
+							case 2:
+								{
+									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(player);
+									arguments.Add(cmd);
 									break;
-							}
+								}
 
-							for (int i = 1; i < parameters.Length; i++)
-							{
-								arguments.Add(null);
-							}
+							case 3:
+								{
+									if (parameters.ElementAt(0).ParameterType == typeof(IPlayer)) arguments.Add(player.AsIPlayer()); else arguments.Add(player);
+									arguments.Add(cmd);
+									arguments.Add(args);
+									break;
+								}
 						}
 
 						result = arguments.ToArray();
