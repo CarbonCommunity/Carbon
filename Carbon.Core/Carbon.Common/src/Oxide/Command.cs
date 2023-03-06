@@ -131,8 +131,6 @@ namespace Oxide.Game.Rust.Libraries
 					arg.FullString = fullString;
 					arg.Args = args;
 
-					arguments.Add(arg);
-
 					try
 					{
 						var methodInfo = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -140,6 +138,17 @@ namespace Oxide.Game.Rust.Libraries
 
 						if (parameters.Length > 0)
 						{
+							switch(parameters[0].ParameterType)
+							{
+								case IPlayer iplayer:
+									arguments.Add(player.AsIPlayer());
+									break;
+
+								default:
+									arguments.Add(arg);
+									break;
+							}
+
 							for (int i = 1; i < parameters.Length; i++)
 							{
 								arguments.Add(null);
