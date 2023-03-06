@@ -664,6 +664,8 @@ public static class CUIStatics
 			textElement.Components.Add(ptext);
 
 			var prect = cui.TakeFromPoolRect();
+			prect.AnchorMin = "0.02 0";
+			prect.AnchorMax = "0.98 1";
 			textElement.Components.Add(prect);
 
 			container.Add(textElement);
