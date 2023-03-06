@@ -143,9 +143,13 @@ namespace Oxide.Game.Rust.Libraries
 						{
 							if (parameters.ElementAt(0).ParameterType == typeof(IPlayer))
 							{
-								var iplayer = player.AsIPlayer();
-								iplayer.IsServer = player == null;
-								arguments.Add(iplayer);
+								if (player == null) arguments.Add(null);
+								else
+								{
+									var iplayer = player.AsIPlayer();
+									iplayer.IsServer = player == null;
+									arguments.Add(iplayer);
+								}
 							}
 							else arguments.Add(arg);
 
