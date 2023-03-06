@@ -292,14 +292,18 @@ public class RustPlugin : Plugin
 
 	protected void SendReply(ConsoleSystem.Arg arg, string format, params object[] args)
 	{
-		var connection = arg.Connection;
-		var basePlayer = connection?.player as BasePlayer;
 		var text = (args != null && args.Length != 0) ? string.Format(format, args) : format;
 
-		if (((basePlayer != null) ? basePlayer.net : null) != null)
+		if (arg != null || arg.Connection != null)
 		{
-			basePlayer.SendConsoleCommand($"echo {text}");
-			return;
+			var connection = arg.Connection;
+			var basePlayer = connection?.player as BasePlayer;
+
+			if (((basePlayer != null) ? basePlayer.net : null) != null)
+			{
+				basePlayer.SendConsoleCommand($"echo {text}");
+				return;
+			}
 		}
 
 		Puts(text, null);
