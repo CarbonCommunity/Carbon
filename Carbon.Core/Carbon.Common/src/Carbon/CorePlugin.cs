@@ -101,6 +101,8 @@ public class CorePlugin : CarbonPlugin
 
 	#region Internal Hooks
 
+	internal static bool _isPlayerTakingDamage = false;
+
 	private void IOnPlayerConnected(BasePlayer player)
 	{
 		permission.RefreshUser(player);
@@ -142,6 +144,8 @@ public class CorePlugin : CarbonPlugin
 
 		try
 		{
+			_isPlayerTakingDamage = true;
+
 			if (!basePlayer.IsDead())
 			{
 				basePlayer.DoHitNotify(hitInfo);
@@ -151,10 +155,30 @@ public class CorePlugin : CarbonPlugin
 			{
 				basePlayer.Hurt(hitInfo);
 			}
+
+			_isPlayerTakingDamage = false;
 		}
 		catch { }
 
 		return true;
+	}
+	private object IOnBasePlayerHurt(BasePlayer basePlayer, HitInfo hitInfo)
+	{
+		if (!_isPlayerTakingDamage)
+		{
+			return Interface.CallHook("OnEntityTakeDamage", basePlayer, hitInfo);
+		}
+
+		return null;
+	}
+	private object IOnBaseCombatEntityHurt(BaseCombatEntity entity, HitInfo hitInfo)
+	{
+		if (entity is not BasePlayer)
+		{
+			return Interface.CallHook("OnEntityTakeDamage", entity, hitInfo);
+		}
+
+		return null;
 	}
 
 	private object IOnPlayerCommand(BasePlayer player, string message)
