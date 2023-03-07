@@ -151,24 +151,24 @@ namespace Oxide.Game.Rust.Libraries
 									iplayer.IsServer = player == null;
 									arguments.Add(iplayer);
 								}
+
+								switch (parameters.Length)
+								{
+									case 2:
+										{
+											arguments.Add(cmd);
+											break;
+										}
+
+									case 3:
+										{
+											arguments.Add(cmd);
+											arguments.Add(args);
+											break;
+										}
+								}
 							}
 							else arguments.Add(arg);
-
-							switch (parameters.Length)
-							{
-								case 2:
-									{
-										arguments.Add(cmd);
-										break;
-									}
-
-								case 3:
-									{
-										arguments.Add(cmd);
-										arguments.Add(args);
-										break;
-									}
-							}
 						}
 
 						result = arguments.ToArray();
