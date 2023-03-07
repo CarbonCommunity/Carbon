@@ -45,6 +45,7 @@ public class CommunityInternal : Community
 		Loader.LoadedMods.Add(Plugins);
 
 		Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
+		Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon");
 	}
 
 	#region Processors
