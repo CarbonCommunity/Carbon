@@ -1076,7 +1076,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			case Tab.OptionDropdown dropdown:
 				var page = ap._selectedDropdownPage;
-
 				switch (args[0].ToBool())
 				{
 					case true:
