@@ -176,6 +176,7 @@ namespace Oxide.Game.Rust.Libraries
 						if (Interface.CallHook("OnCarbonCommand", arg) == null)
 						{
 							methodInfo?.Invoke(plugin, result);
+							Logger.Log(arg.Reply);
 						}
 					}
 					catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
@@ -211,6 +212,7 @@ namespace Oxide.Game.Rust.Libraries
 					if (Interface.CallHook("OnCarbonCommand", arg) == null)
 					{
 						callback.Invoke(arg);
+						Logger.Log(arg.Reply);
 					}
 				}
 				catch (TargetParameterCountException) { }
