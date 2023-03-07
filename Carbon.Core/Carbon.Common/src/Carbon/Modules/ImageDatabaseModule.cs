@@ -37,6 +37,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		"https://carbonmod.gg/assets/media/carbonlogo_w.png",
 		"https://carbonmod.gg/assets/media/carbonlogo_bs.png",
 		"https://carbonmod.gg/assets/media/carbonlogo_ws.png",
+		"https://carbonmod.gg/assets/media/cui/codefling-logo.png",
 		"https://carbonmod.gg/assets/media/cui/checkmark.png"
 	};
 	internal IEnumerator _executeQueue(QueuedThread thread, Action<List<QueuedThreadResult>> onFinished)
@@ -105,6 +106,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		AddMap("carbonw", "https://carbonmod.gg/assets/media/carbonlogo_w.png");
 		AddMap("carbonbs", "https://carbonmod.gg/assets/media/carbonlogo_bs.png");
 		AddMap("carbonws", "https://carbonmod.gg/assets/media/carbonlogo_ws.png");
+		AddMap("cflogo", "https://carbonmod.gg/assets/media/cui/codefling-logo.png");
 		AddMap("checkmark", "https://carbonmod.gg/assets/media/cui/checkmark.png");
 	}
 
@@ -222,6 +224,29 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 				PutsError($"Failed QueueBatch of {urls.Length:n0}.", ex);
 			}
 		}));
+	}
+
+	public void Queue(float scale, bool @override, Dictionary<string, string> mappedUrls)
+	{
+		var urls = Pool.GetList<string>();
+
+		foreach(var url in mappedUrls)
+		{
+			urls.Add(url.Value);
+			AddMap(url.Key, url.Value);
+		}
+
+		QueueBatch(scale, @override, urls.ToArray());
+
+		Pool.FreeList(ref urls);
+	}
+	public void Queue(bool @override, Dictionary<string, string> mappedUrls)
+	{
+		Queue(0, @override, mappedUrls);
+	}
+	public void Queue(Dictionary<string, string> mappedUrls)
+	{
+		Queue(false, mappedUrls);
 	}
 
 	public void AddMap(string key, string url)
