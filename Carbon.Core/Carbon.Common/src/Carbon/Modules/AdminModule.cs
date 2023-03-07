@@ -1611,7 +1611,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddName(0, "Console", TextAnchor.MiddleLeft);
 
 				var command = string.Empty;
-				tab.AddInputButton(0, "Execute Server Command", 0.2f, new Tab.OptionInput(null, null, 0, false, (ap, args) => { command = args.ToString(" "); }), new Tab.OptionButton("Run", ap =>
+				tab.AddInputButton(0, "Execute Server Command", 0.2f, new Tab.OptionInput(null, () => command, 0, false, (ap, args) => { command = args.ToString(" "); }), new Tab.OptionButton("Run", ap =>
 				{
 					var commandSplit = command.Split(' ');
 					Run(Option.Server, commandSplit[0], commandSplit.Skip(1).ToArray());
