@@ -169,7 +169,9 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 			message = ((args.Length != 0) ? string.Format(Formatter.ToUnity(message), args) : Formatter.ToUnity(message));
 			var text = (prefix != null) ? (prefix + " " + message) : message;
-			BasePlayer.SendConsoleCommand("chat.add", 2, Id, text);
+
+			if (BasePlayer == null) Carbon.Logger.Log(text);
+			else BasePlayer.SendConsoleCommand("chat.add", 2, Id, text);
 		}
 
 		public void Message(string message)

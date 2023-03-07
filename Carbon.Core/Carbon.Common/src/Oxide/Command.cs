@@ -7,6 +7,7 @@ using Carbon.Base;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
+using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
@@ -143,7 +144,7 @@ namespace Oxide.Game.Rust.Libraries
 						{
 							if (parameters.ElementAt(0).ParameterType == typeof(IPlayer))
 							{
-								if (player == null) arguments.Add(null);
+								if (player == null) arguments.Add(new RustPlayer { IsServer = true });
 								else
 								{
 									var iplayer = player.AsIPlayer();
