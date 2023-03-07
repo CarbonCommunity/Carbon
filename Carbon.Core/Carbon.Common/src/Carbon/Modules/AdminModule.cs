@@ -1128,7 +1128,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 
 			case Tab.OptionRange range:
-				range.Callback?.Invoke(args[0].ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
+				range.Callback?.Invoke(ap, args[0].ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
 				return range.Callback != null;
 
 			case Tab.ButtonArray array:
@@ -1349,7 +1349,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			AddRow(column, new OptionDropdown(name, index, callback, options, optionsIcons, optionsIconScale));
 			return this;
 		}
-		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<float> callback, Func<string> text = null)
+		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text = null)
 		{
 			AddRow(column, new OptionRange(name, min, max, value, callback, text));
 			return this;
@@ -1478,10 +1478,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public float Min = 0;
 			public float Max = 1;
 			public Func<float> Value;
-			public Action<float> Callback;
+			public Action<AdminPlayer, float> Callback;
 			public Func<string> Text;
 
-			public OptionRange(string name, float min, float max, Func<float> value, Action<float> callback, Func<string> text) : base(name) { Min = min; Max = max; Callback = callback; Value = value; Text = text; }
+			public OptionRange(string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text) : base(name) { Min = min; Max = max; Callback = callback; Value = value; Text = text; }
 		}
 		public class OptionRadio : Option
 		{
