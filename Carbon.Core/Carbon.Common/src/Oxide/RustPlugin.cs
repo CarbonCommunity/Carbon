@@ -91,6 +91,22 @@ public class RustPlugin : Plugin
 		base.Dispose();
 	}
 
+	public static T Singleton<T>()
+	{
+		foreach(var mod in Loader.LoadedMods)
+		{
+			foreach(var plugin in mod.Plugins)
+			{
+				if(plugin is T result)
+				{
+					return result;
+				}
+			}
+		}
+
+		return default;
+	}
+
 	#region Logging
 
 	/// <summary>
