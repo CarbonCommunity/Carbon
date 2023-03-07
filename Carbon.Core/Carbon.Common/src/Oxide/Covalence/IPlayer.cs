@@ -368,9 +368,9 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public void Message(string message, string prefix, params object[] args)
 		{
-			message = (args.Length != 0) ? string.Format(message, args) : message;
+			message = (args != null && args.Length != 0) ? string.Format(message, args) : message;
 			var format = (prefix != null) ? (prefix + " " + message) : message;
-			Message(format);
+			Carbon.Logger.Log(format);
 		}
 		public void Message(string message)
 		{
@@ -382,7 +382,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 		}
 		public void Reply(string message)
 		{
-			Message(message, null, Array.Empty<object>());
+			Message(message, null, null);
 		}
 		public void Command(string command, params object[] args)
 		{
