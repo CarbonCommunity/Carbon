@@ -11,6 +11,7 @@ using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Extensions;
 using Carbon.Plugins;
+using ConVar;
 using Facepunch;
 using Network;
 using Newtonsoft.Json;
@@ -258,6 +259,27 @@ public class CorePlugin : CarbonPlugin
 		}
 
 		return true;
+	}
+	private object IOnPlayerChat(ulong playerId, string playerName, string message, Chat.ChatChannel channel, BasePlayer basePlayer)
+	{
+		if (string.IsNullOrEmpty(message) || message.Equals("text"))
+		{
+			return true;
+		}
+		if (basePlayer == null || !basePlayer.IsConnected)
+		{
+			return Interface.CallHook("OnPlayerOfflineChat", playerId, playerName, message, channel);
+		}
+
+		var hook1 = Interface.CallHook("OnPlayerChat", basePlayer, message, channel);
+		var hook2 = Interface.CallHook("OnUserChat", basePlayer.AsIPlayer(), message);
+
+		if (hook1 != null)
+		{
+			return hook1;
+		}
+
+		return hook2;
 	}
 
 	#endregion
