@@ -285,7 +285,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 				var info = type.GetCustomAttribute(typeof(InfoAttribute), true) as InfoAttribute;
 				if (info == null) continue;
 
-				if (firstPlugin && Community.Runtime.Config.FileNameCheck)
+				if (!IsExtension && firstPlugin && Community.Runtime.Config.FileNameCheck)
 				{
 					var name = Path.GetFileNameWithoutExtension(File).Replace(" ", "").Replace(".", "");
 
