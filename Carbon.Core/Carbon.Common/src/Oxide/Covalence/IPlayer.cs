@@ -26,6 +26,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			Id = player.UserIDString;
 			Name = player.displayName.Sanitize();
 			LastCommand = 0;
+			IsServer = true;
 			perms = Interface.Oxide.GetLibrary<Permission>();
 		}
 
