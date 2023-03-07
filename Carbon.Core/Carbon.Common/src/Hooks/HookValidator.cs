@@ -59,7 +59,10 @@ public class HookValidator
 		"CanClientLogin",
 		"CanUserLogin",
 		"OnUserApprove",
-		"OnUserApproved"
+		"OnUserApproved",
+		"OnPlayerChat",
+		"OnUserChat",
+		"OnPlayerOfflineChat"
 	};
 
 	public static bool IsIncompatibleOxideHook(string hook)
