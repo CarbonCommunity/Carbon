@@ -1,16 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
+using ConVar;
 using Facepunch;
+using Network;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using ProtoBuf;
 using UnityEngine;
 using static ConsoleSystem;
+using Pool = Facepunch.Pool;
+using StringEx = Carbon.Extensions.StringEx;
 
 /*
  *
@@ -65,9 +70,55 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Draw(player);
 		});
 
-		RegisterTab(PermissionsTab.Get(Community.Runtime.CorePlugin.permission));
+		Unsubscribe("OnEntityDismounted");
+		Unsubscribe("CanDismountEntity");
+		Unsubscribe("OnEntityVisibilityCheck");
+		Unsubscribe("OnEntityDistanceCheck");
+
+		RegisterTab(CarbonTab.Get());
+		RegisterTab(EntitiesTab.Get());
+		RegisterTab(PermissionsTab.Get());
 		RegisterTab(PlayersTab.Get());
-		RegisterTab(CarbonTab.Get(), 0);
+		RegisterTab(ModulesTab.Get());
+	}
+
+	private void OnEntityDismounted(BaseMountable entity, BasePlayer player)
+	{
+		var ap = GetOrCreateAdminPlayer(player);
+		if (!ap.GetStorage<bool>("wasviewingcam")) return;
+
+		entity.Kill();
+		Draw(player);
+
+		Unsubscribe("OnEntityDismounted");
+	}
+	private void OnPlayerLootEnd(PlayerLoot loot)
+	{
+		if (EntitiesTab.LastContainerLooter != null && loot.baseEntity == EntitiesTab.LastContainerLooter.Player)
+		{
+			Draw(EntitiesTab.LastContainerLooter.Player);
+			EntitiesTab.LastContainerLooter = null;
+			Unsubscribe("OnEntityVisibilityCheck");
+			Unsubscribe("OnEntityDistanceCheck");
+		}
+	}
+	private object OnEntityDistanceCheck(BaseEntity ent, BasePlayer player, uint id, string debugName, float maximumDistance)
+	{
+		var ap = GetOrCreateAdminPlayer(player);
+		var lootedEnt = ap.GetStorage<BaseEntity>("lootedent");
+
+		if (lootedEnt == null) return null;
+
+		return true;
+	}
+	private object OnEntityVisibilityCheck(BaseEntity ent, BasePlayer player, uint id, string debugName, float maximumDistance)
+	{
+		var ap = GetOrCreateAdminPlayer(player);
+		var lootedEnt = ap.GetStorage<BaseEntity>("lootedent");
+
+		if (lootedEnt == null) return null;
+
+		return true;
 	}
 
 	private bool CanAccess(BasePlayer player)
@@ -1531,10 +1582,80 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region Core Tabs
 
+	public class CarbonTab
+	{
+		public static Core.Config Config => Community.Runtime.Config;
+
+		public static Tab Get()
+		{
+			var tab = new Tab("carbon", "Carbon", Community.Runtime.CorePlugin);
+			tab.AddColumn(1);
+
+			tab.AddInput(0, "Host Name", () => $"{ConVar.Server.hostname}", (ap, args) => { ConVar.Server.hostname = args.ToString(" "); });
+			tab.AddInput(0, "Level", () => $"{ConVar.Server.level}", null);
+
+			tab.AddName(0, "Info", TextAnchor.MiddleLeft);
+			{
+				tab.AddInput(0, "Version", () => $"{Community.Version}", null);
+				tab.AddInput(0, "Informational Version", () => $"{Community.InformationalVersion}", null);
+
+				var loadedHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled);
+				var totalHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count() + Community.Runtime.HookManager.LoadedStaticHooks.Count();
+				tab.AddInput(0, "Hooks", () => $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
+				tab.AddInput(0, "Static Hooks", () => $"{Community.Runtime.HookManager.LoadedStaticHooks.Count():n0}", null);
+				tab.AddInput(0, "Dynamic Hooks", () => $"{Community.Runtime.HookManager.LoadedDynamicHooks.Count():n0}", null);
+
+				tab.AddName(0, "Plugins", TextAnchor.MiddleLeft);
+				tab.AddInput(0, "Mods", () => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
+
+				tab.AddName(0, "Console", TextAnchor.MiddleLeft);
+
+				var command = string.Empty;
+				tab.AddInputButton(0, "Execute Server Command", 0.2f, new Tab.OptionInput(null, null, 0, false, (ap, args) => { command = args.ToString(" "); }), new Tab.OptionButton("Run", ap =>
+				{
+					var commandSplit = command.Split(' ');
+					Run(Option.Server, commandSplit[0], commandSplit.Skip(1).ToArray());
+				}));
+			}
+
+			tab.AddName(1, "Config", TextAnchor.MiddleLeft);
+			{
+				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded);
+				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate);
+
+				tab.AddName(1, "General", TextAnchor.MiddleLeft);
+				tab.AddToggle(1, "Carbon Tag", ap => { Config.CarbonTag = !Config.CarbonTag; Community.Runtime.SaveConfig(); }, ap => Config.CarbonTag);
+				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker);
+				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation);
+				tab.AddInput(1, "Entity Map Buffer Size (restart required)", () => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); });
+
+				tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
+				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers);
+				tab.AddToggle(1, "Harmony Reference (<color=red>!</color>)", ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference);
+				tab.AddToggle(1, "File Name Check", ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck);
+
+				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
+				tab.AddInput(1, "Log File Mode", () => Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "Log Verbosity (Debug)", () => Config.LogVerbosity.ToString(), (ap, args) => { Config.LogVerbosity = args[0].ToInt().Clamp(0, 10); Community.Runtime.SaveConfig(); });
+				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Logger.Severity)));
+
+				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
+				tab.AddInput(1, "Server Language", () => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
+				tab.AddInput(1, "WebRequest IP", () => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
+				tab.AddEnum(1, "Permission Mode", back => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, () => Config.PermissionSerialization.ToString());
+			}
+
+			return tab;
+		}
+	}
 	public class PermissionsTab
 	{
-		public static Tab Get(Permission permission)
+		internal static Permission permission;
+
+		public static Tab Get()
 		{
+			permission = Community.Runtime.CorePlugin.permission;
+
 			var perms = new Tab("permissions", "Permissions", Community.Runtime.CorePlugin, (instance, tab) =>
 			{
 				tab.ClearColumn(1);
@@ -1784,64 +1905,355 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 	}
-	public class CarbonTab
+	public class EntitiesTab
 	{
-		public static Core.Config Config => Community.Runtime.Config;
+		internal static float HurtHealAmount = 10f;
+		internal static int EntityCount = 0;
+		internal static string Filter;
+		internal static float Range;
+		internal static RustPlugin Core = Community.Runtime.CorePlugin;
+		internal static AdminModule Admin = GetModule<AdminModule>();
+		internal static AdminPlayer LastContainerLooter;
 
 		public static Tab Get()
 		{
-			var tab = new Tab("carbon", "Carbon", Community.Runtime.CorePlugin);
+			Range = World.Size;
+
+			var tab = new Tab("entities", "Entities", Community.Runtime.CorePlugin, (ap, tab2) => { tab2.ClearColumn(1); DrawEntities(tab2, ap); });
+			tab.AddColumn(0);
 			tab.AddColumn(1);
 
-			tab.AddInput(0, "Host Name", () => $"{ConVar.Server.hostname}", (ap, args) => { ConVar.Server.hostname = args.ToString(" "); });
-			tab.AddInput(0, "Level", () => $"{ConVar.Server.level}", null);
+			DrawEntities(tab);
 
-			tab.AddName(0, "Info", TextAnchor.MiddleLeft);
+			return tab;
+		}
+
+		internal static void DrawEntities(Tab tab, AdminPlayer ap3 = null)
+		{
+			tab.ClearColumn(0);
+
+			tab.AddInputButton(0, "Search Entity", 0.3f,
+				new Tab.OptionInput(null, () => Filter, 0, false, (ap, args) => { Filter = args.ToString(" "); DrawEntities(tab); }),
+				new Tab.OptionButton($"Refresh", ap => { DrawEntities(tab); }));
+
+			var pool = Facepunch.Pool.GetList<BaseEntity>();
+			EntityCount = 0;
+
+			using var map = Entities.Get<BaseEntity>(true);
+			map.Each(entity =>
 			{
-				tab.AddInput(0, "Version", () => $"{Community.Version}", null);
-				tab.AddInput(0, "Informational Version", () => $"{Community.InformationalVersion}", null);
+				pool.Add(entity);
+				EntityCount++;
+			}, entity => entity != null && entity.transform != null && entity.transform.position != Vector3.zero && (string.IsNullOrEmpty(Filter) || entity.name.Contains(Filter) || entity.GetType().Name == Filter) && (Range != -1 && ap3 != null ? Vector3.Distance(ap3.Player.transform.position, entity.transform.position) <= Range : true));
 
-				var loadedHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled);
-				var totalHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count() + Community.Runtime.HookManager.LoadedStaticHooks.Count();
-				tab.AddInput(0, "Hooks", () => $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
-				tab.AddInput(0, "Static Hooks", () => $"{Community.Runtime.HookManager.LoadedStaticHooks.Count():n0}", null);
-				tab.AddInput(0, "Dynamic Hooks", () => $"{Community.Runtime.HookManager.LoadedDynamicHooks.Count():n0}", null);
+			tab.AddRange(0, "Range", 0, World.Size, () => Range, (ap, value) => { Range = value; DrawEntities(tab, ap); }, () => $"{Range:0.0}m");
+			tab.AddName(0, $"Entities  ({EntityCount:n0})", TextAnchor.MiddleLeft);
 
-				tab.AddName(0, "Plugins", TextAnchor.MiddleLeft);
-				tab.AddInput(0, "Mods", () => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
-
-				tab.AddName(0, "Console", TextAnchor.MiddleLeft);
-				tab.AddInput(0, "Execute Server Command", null, (ap, args) => { ConsoleSystem.Run(ConsoleSystem.Option.Server, args[0], args.Skip(1).ToArray()); });
+			foreach (var entity in pool)
+			{
+				tab.AddButton(0, $"{entity}", ap =>
+				{
+					var existent = ap.GetStorage<BaseEntity>("selectedent");
+					if (existent != null && existent == entity)
+					{
+						ap.ClearStorage("selectedent");
+						tab.ClearColumn(1);
+					}
+					else
+					{
+						DrawEntitySettings(tab, entity, 1, ap);
+						ap.SetStorage("selectedent", entity);
+					}
+				}, ap => ap.GetStorage<BaseEntity>("selectedent") == entity ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 			}
 
-			tab.AddName(1, "Config", TextAnchor.MiddleLeft);
+			if (EntityCount == 0)
 			{
-				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded);
-				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate);
+				tab.AddText(0, "No entities found with that filter", 9, "1 1 1 0.2", TextAnchor.MiddleCenter, CUI.Handler.FontTypes.RobotoCondensedRegular);
+			}
+		}
+		internal static void DrawEntitySettings(Tab tab, BaseEntity entity, int column = 1, AdminPlayer ap3 = null)
+		{
+			tab.ClearColumn(column);
 
-				tab.AddName(1, "General", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Carbon Tag", ap => { Config.CarbonTag = !Config.CarbonTag; Community.Runtime.SaveConfig(); }, ap => Config.CarbonTag);
-				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker);
-				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation);
-				tab.AddInput(1, "Entity Map Buffer Size (restart required)", () => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); });
+			if (column != 1) tab.AddButton(column, "<", ap => { DrawEntities(tab, ap); DrawEntitySettings(tab, entity, 1, ap); }, ap => Tab.OptionButton.Types.Warned);
 
-				tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers);
-				tab.AddToggle(1, "Harmony Reference (<color=red>!</color>)", ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference);
-				tab.AddToggle(1, "File Name Check", ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck);
+			if (entity != null && !entity.IsDestroyed)
+			{
+				var player = entity as BasePlayer;
+				var owner = BasePlayer.FindByID(entity.OwnerID);
 
-				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
-				tab.AddInput(1, "Log File Mode", () => Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); Community.Runtime.SaveConfig(); });
-				tab.AddInput(1, "Log Verbosity (Debug)", () => Config.LogVerbosity.ToString(), (ap, args) => { Config.LogVerbosity = args[0].ToInt().Clamp(0, 10); Community.Runtime.SaveConfig(); });
-				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Logger.Severity)));
+				if (player == null)
+				{
+					tab.AddButtonArray(column,
+						new Tab.OptionButton("Kill", ap =>
+						{
+							entity.Kill();
+							DrawEntities(tab, ap);
+							tab.ClearColumn(column);
+						}, ap => Tab.OptionButton.Types.Important),
+						new Tab.OptionButton("Kill (Gibbed)", ap =>
+						{
+							entity.Kill(BaseNetworkable.DestroyMode.Gib);
+							DrawEntities(tab, ap);
+							tab.ClearColumn(column);
+						}));
+				}
 
-				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
-				tab.AddInput(1, "Server Language", () => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
-				tab.AddInput(1, "WebRequest IP", () => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
-				tab.AddEnum(1, "Permission Mode", back => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, () => Config.PermissionSerialization.ToString());
+				tab.AddInput(column, "Id", () => $"{entity.net.ID} [{entity.GetType().FullName}]", null);
+				tab.AddInput(column, "Name", () => $"{entity.ShortPrefabName}", null);
+				tab.AddInputButton(column, "Owner", 0.3f,
+					new Tab.OptionInput(null, () => $"{(entity.OwnerID.IsSteamId() ? $"{BasePlayer.FindByID(entity.OwnerID).displayName}" : "None")}", 0, true, null),
+					new Tab.OptionButton("Select", ap =>
+					{
+						if (owner == null) return;
+
+						ap.SetStorage("selectedent", owner);
+						DrawEntities(tab, ap);
+						DrawEntitySettings(tab, owner, 1, ap);
+					}, ap => owner == null ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Selected));
+				tab.AddInput(column, "Prefab", () => $"{entity.PrefabName}", null);
+				tab.AddInput(column, "Flags", () => entity.flags == 0 ? "None" : $"{entity.flags}", null);
+				tab.AddButton(column, "Edit Flags", ap => { DrawEntitySettings(tab, entity, 0, ap); DrawEntityFlags(tab, entity, 1); });
+				tab.AddInput(column, "Position", () => $"{entity.transform.position}", null);
+				tab.AddInput(column, "Rotation", () => $"{entity.transform.rotation}", null);
+				tab.AddButtonArray(column,
+					new Tab.OptionButton("TeleportTo", ap => { ap.Player.Teleport(entity.transform.position); }),
+					new Tab.OptionButton("Teleport2Me", ap => { entity.transform.position = ap.Player.transform.position; entity.SendNetworkUpdateImmediate(); }));
+
+				if (entity is StorageContainer storage)
+				{
+					tab.AddButton(column, "Loot Container", ap =>
+					{
+						LastContainerLooter = ap;
+
+						ap.SetStorage("lootedent", entity);
+						Admin.Subscribe("OnEntityVisibilityCheck");
+						Admin.Subscribe("OnEntityDistanceCheck");
+
+						Core.timer.In(0.2f, () => Admin.Close(ap.Player));
+						Core.timer.In(0.5f, () =>
+						{
+							SendEntityToPlayer(ap.Player, entity);
+
+							ap.Player.inventory.loot.Clear();
+							ap.Player.inventory.loot.PositionChecks = false;
+							ap.Player.inventory.loot.entitySource = storage;
+							ap.Player.inventory.loot.itemSource = null;
+							ap.Player.inventory.loot.AddContainer(storage.inventory);
+							ap.Player.inventory.loot.MarkDirty();
+							ap.Player.inventory.loot.SendImmediate();
+
+							ap.Player.ClientRPCPlayer(null, ap.Player, "RPC_OpenLootPanel", storage.panelName);
+						});
+					});
+				}
+
+				if (entity is BasePlayer)
+				{
+					tab.AddButtonArray(column,
+						new Tab.OptionButton("Loot", ap =>
+						{
+							LastContainerLooter = ap;
+							ap.SetStorage("lootedent", entity);
+							SendEntityToPlayer(ap.Player, entity);
+
+							Core.timer.In(0.2f, () => Admin.Close(ap.Player));
+							Core.timer.In(0.5f, () =>
+							{	
+								SendEntityToPlayer(ap.Player, entity);
+
+								ap.Player.inventory.loot.Clear();
+								ap.Player.inventory.loot.PositionChecks = false;
+								ap.Player.inventory.loot.entitySource = RelationshipManager.ServerInstance;
+								ap.Player.inventory.loot.itemSource = null;
+								ap.Player.inventory.loot.AddContainer(player.inventory.containerMain);
+								ap.Player.inventory.loot.AddContainer(player.inventory.containerWear);
+								ap.Player.inventory.loot.AddContainer(player.inventory.containerBelt);
+								ap.Player.inventory.loot.MarkDirty();
+								ap.Player.inventory.loot.SendImmediate();
+
+								ap.Player.ClientRPCPlayer(null, ap.Player, "RPC_OpenLootPanel", "player_corpse");
+							});
+						}),
+						new Tab.OptionButton("Respawn", ap =>
+						{
+							player.Hurt(player.MaxHealth()); player.Respawn(); player.EndSleeping();
+						}));
+					tab.AddInput(column, "Personal Message", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
+				}
+
+				if (entity.parentEntity.IsValid(true)) tab.AddButton(column, $"Parent: {entity.parentEntity.Get(true)}", ap => { ap.SetStorage("selectedent", entity.parentEntity.Get(true)); DrawEntities(tab, ap); DrawEntitySettings(tab, entity.parentEntity.Get(true), 1, ap); });
+
+				if (entity.children.Count > 0)
+				{
+					tab.AddName(column, "Children", TextAnchor.MiddleLeft);
+					foreach (var child in entity.children)
+					{
+						tab.AddButton(column, $"{child}", ap => { ap.SetStorage("selectedent", child); DrawEntities(tab, ap); DrawEntitySettings(tab, child, 1, ap); });
+					}
+				}
+
+				switch (entity)
+				{
+					case CCTV_RC cctv:
+						{
+							tab.AddName(column, "CCTV", TextAnchor.MiddleLeft);
+							tab.AddInput(column, "Identifier", () => cctv.GetIdentifier(), (ap, args) => { cctv.UpdateIdentifier(args.ToString(""), true); });
+							tab.AddButton(column, "View CCTV", ap =>
+							{
+								Core.timer.In(0.1f, () => { Admin.Close(ap.Player); ap.SetStorage("wasviewingcam", true); });
+								Core.timer.In(0.3f, () =>
+								{
+									Admin.Subscribe("OnEntityDismounted");
+									Admin.Subscribe("CanDismountEntity");
+
+									var station = GameManager.server.CreateEntity("assets/prefabs/deployable/computerstation/computerstation.deployed.prefab", ap.Player.transform.position) as ComputerStation;
+									station.SendControlBookmarks(ap.Player);
+									station.Spawn();
+									station.checkPlayerLosOnMount = false;
+									station.legacyDismount = true;
+
+									station.MountPlayer(ap.Player);
+									ViewCamera(ap.Player, station, cctv);
+								});
+							});
+							break;
+						}
+					case CodeLock codeLock:
+						{
+							tab.AddName(column, "Code Lock", TextAnchor.MiddleLeft);
+							tab.AddInput(column, "Code", () => codeLock.code, (ap, args) => { var code = args.ToString(" "); foreach (var character in code) if (char.IsLetter(character)) return; codeLock.code = StringEx.Truncate(code, 4); });
+							break;
+						}
+					case MiniCopter minicopter:
+						{
+							tab.AddName(column, "Minicopter", TextAnchor.MiddleLeft);
+							tab.AddButton(column, "Open Fuel", ap => { LastContainerLooter = ap; Core.timer.In(0.2f, () => Admin.Close(ap.Player)); Core.timer.In(0.5f, () => { minicopter.engineController.FuelSystem.GetFuelContainer().PlayerOpenLoot(ap.Player, doPositionChecks: false); }); });
+							break;
+						}
+				}
+				if (entity is BaseCombatEntity combat)
+				{
+					tab.AddName(column, "Combat", TextAnchor.MiddleLeft);
+					tab.AddRange(column, "Health", 0, combat.MaxHealth(), () => combat.health, (ap, value) => combat.SetHealth(value), () => $"{combat.health:0}");
+
+					if (entity is BasePlayer)
+					{
+						tab.AddRange(column, "Thirst", 0, player.metabolism.hydration.max, () => player.metabolism.hydration.value, (ap, value) => player.metabolism.hydration.SetValue(value), () => $"{player.metabolism.hydration.value:0}");
+						tab.AddRange(column, "Hunger", 0, player.metabolism.calories.max, () => player.metabolism.calories.value, (ap, value) => player.metabolism.calories.SetValue(value), () => $"{player.metabolism.calories.value:0}");
+						tab.AddRange(column, "Radiation", 0, player.metabolism.radiation_poison.max, () => player.metabolism.radiation_poison.value, (ap, value) => player.metabolism.radiation_poison.SetValue(value), () => $"{player.metabolism.radiation_poison.value:0}");
+					}
+
+					tab.AddButtonArray(column,
+						new Tab.OptionButton("Heal", ap => { combat.Heal(HurtHealAmount); }, ap => Tab.OptionButton.Types.Selected),
+						new Tab.OptionButton("Hurt", ap => { combat.Hurt(HurtHealAmount); }, ap => Tab.OptionButton.Types.Warned));
+
+					tab.AddRange(column, "Hurt/Heal Amount", 0, combat.MaxHealth(), () => HurtHealAmount.Clamp(0, combat.MaxHealth()), (ap, value) => HurtHealAmount = value, () => $"{HurtHealAmount:0}");
+				}
+			}
+			else
+			{
+				DrawEntities(tab, ap3);
+				tab.ClearColumn(1);
+			}
+		}
+		internal static void DrawEntityFlags(Tab tab, BaseEntity entity, int column = 1)
+		{
+			var counter = 0;
+			var currentButtons = Facepunch.Pool.GetList<Tab.OptionButton>();
+
+			tab.ClearColumn(column);
+
+			tab.AddName(column, "Entity Flags", TextAnchor.MiddleLeft);
+			foreach (var flag in Enum.GetNames(typeof(BaseEntity.Flags)).OrderBy(x => x))
+			{
+				var flagValue = (BaseEntity.Flags)Enum.Parse(typeof(BaseEntity.Flags), flag);
+				var hasFlag = entity.HasFlag(flagValue);
+
+				currentButtons.Add(new Tab.OptionButton(flag, ap => { entity.SetFlag(flagValue, !hasFlag); DrawEntitySettings(tab, entity, 0); DrawEntityFlags(tab, entity, column); }, ap => hasFlag ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+				counter++;
+
+				if (counter >= 5)
+				{
+					tab.AddButtonArray(column, currentButtons.ToArray());
+					currentButtons.Clear();
+					counter = 0;
+				}
+			}
+
+			Facepunch.Pool.FreeList(ref currentButtons);
+		}
+
+		internal static void ViewCamera(BasePlayer player, ComputerStation station, CCTV_RC camera)
+		{
+			player.net.SwitchSecondaryGroup(camera.net.group);
+			station.currentlyControllingEnt.uid = camera.net.ID;
+			station.currentPlayerID = player.userID;
+			var b = camera.InitializeControl(new CameraViewerId(station.currentPlayerID, 0L));
+			station.SetFlag(BaseEntity.Flags.Reserved2, b, recursive: false, networkupdate: false);
+			station.SendNetworkUpdateImmediate();
+			station.SendControlBookmarks(player);
+		}
+		internal static void SendEntityToPlayer(BasePlayer player, BaseEntity entity)
+		{
+			var connection = player.Connection;
+
+			if (connection == null)
+			{
+				return;
+			}
+
+			var netWrite = Network.Net.sv.StartWrite();
+
+			if (netWrite == null)
+			{
+				return;
+			}
+
+			++connection.validate.entityUpdates;
+
+			netWrite.PacketID(Network.Message.Type.Entities);
+			netWrite.UInt32(connection.validate.entityUpdates);
+
+			entity.ToStreamForNetwork((Stream)netWrite, new BaseNetworkable.SaveInfo() { forConnection = connection, forDisk = false });
+			netWrite.Send(new SendInfo(connection));
+		}
+	}
+	public class ModulesTab
+	{
+		public static Tab Get()
+		{
+			var tab = new Tab("modules", "Modules", Community.Runtime.CorePlugin);
+			tab.AddColumn(0);
+			tab.AddColumn(1);
+
+			foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+			{
+				if (hookable is BaseModule module)
+				{
+					tab.AddButton(0, $"{hookable.Name}", ap =>
+					{
+						DrawModuleSettings(tab, module);
+					});
+				}
 			}
 
 			return tab;
+		}
+
+		internal static void DrawModuleSettings(Tab tab, BaseModule module)
+		{
+			tab.ClearColumn(1);
+
+			var carbonModule = module.GetType();
+			var config = carbonModule.GetProperty("ConfigInstance").GetValue(module);
+			var configEnabled = config.GetType().GetProperty("Enabled");
+			var load = config.GetType().GetMethod("Load");
+			var isEnabled = (bool)configEnabled?.GetValue(config);
+			tab.AddInput(1, "Name", () => module.Name, null);
+			tab.AddToggle(1, "Enabled", ap2 => { carbonModule.GetMethod("SetEnabled").Invoke(module, new object[] { !isEnabled }); DrawModuleSettings(tab, module); }, ap2 => isEnabled);
+			tab.AddButton(1, "Reload", ap => { load.Invoke(module, null); });
 		}
 	}
 
