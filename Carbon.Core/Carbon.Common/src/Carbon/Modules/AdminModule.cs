@@ -638,7 +638,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
 		var inPanel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
-			color: "0 0 0 0",
+			color: color,
 			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
 		cui.CreatePanel(container, $"{parent}panel", null,
