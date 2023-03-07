@@ -38,7 +38,7 @@ public class CommunityInternal : Community
 	internal void _installDefaultCommands()
 	{
 		CorePlugin = new CorePlugin { Name = "Core", IsCorePlugin = true };
-		Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = true };
+		Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = false };
 		CorePlugin.IInit();
 
 		Loader.LoadedMods.Add(new Loader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });

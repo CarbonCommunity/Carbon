@@ -250,6 +250,15 @@ public class CorePlugin : CarbonPlugin
 
 		return true;
 	}
+	private object IOnServerCommand(ConsoleSystem.Arg arg)
+	{
+		if(HookCaller.CallStaticHook("OnServerCommand", arg) == null)
+		{
+			return null;
+		}
+
+		return true;
+	}
 
 	#endregion
 
@@ -313,6 +322,8 @@ public class CorePlugin : CarbonPlugin
 
 				foreach (var mod in Loader.LoadedMods)
 				{
+					if (mod.IsCoreMod) continue;
+
 					body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "");
 
 					foreach (var plugin in mod.Plugins)
