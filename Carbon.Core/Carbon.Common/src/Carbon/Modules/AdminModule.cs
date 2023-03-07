@@ -890,109 +890,112 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				#region Override
 
-				tab.Override?.Invoke(tab, container, "panels");
+				tab.Override?.Invoke(tab, container, "panels", ap);
 
 				#endregion
 
-				#region Columns
-
-				var panelIndex = 0f;
-				var spacing = 0.005f;
-				var panelWidth = (tab.Columns.Count == 0 ? 0f : 1f / tab.Columns.Count) - spacing;
-
-				for (int i = 0; i < tab.Columns.Count; i++)
+				if (tab.Override == null)
 				{
-					var panel = $"sub{i}";
-					var rows = tab.Columns[i];
+					#region Columns
 
-					cui.CreatePanel(container, "panels", panel,
-						color: "0 0 0 0.5",
-						xMin: panelIndex, xMax: panelIndex + panelWidth - spacing, yMin: 0, yMax: 1);
+					var panelIndex = 0f;
+					var spacing = 0.005f;
+					var panelWidth = (tab.Columns.Count == 0 ? 0f : 1f / tab.Columns.Count) - spacing;
 
-					#region Rows
-
-					var columnPage = ap.GetOrCreatePage(i);
-					var contentsPerPage = 19;
-					var rowSpacing = 0.01f;
-					var rowHeight = 0.04f;
-					var rowPage = rows.Skip(contentsPerPage * columnPage.CurrentPage).Take(contentsPerPage);
-					var rowPageCount = rowPage.Count();
-					columnPage.TotalPages = (int)Math.Ceiling((double)rows.Count / contentsPerPage - 1);
-					columnPage.Check();
-					var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - (columnPage.TotalPages > 0 ? 0 : 1)));
-
-					if (columnPage.TotalPages > 0)
+					for (int i = 0; i < tab.Columns.Count; i++)
 					{
-						TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
-						TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+						var panel = $"sub{i}";
+						var rows = tab.Columns[i];
 
-						rowIndex += rowHeight + rowSpacing;
-					}
+						cui.CreatePanel(container, "panels", panel,
+							color: "0 0 0 0.5",
+							xMin: panelIndex, xMax: panelIndex + panelWidth - spacing, yMin: 0, yMax: 1);
 
-					for (int r = rowPageCount; r-- > 0;)
-					{
-						var actualI = r + (columnPage.CurrentPage * contentsPerPage);
-						var row = rows.ElementAt(actualI);
+						#region Rows
 
-						switch (row)
+						var columnPage = ap.GetOrCreatePage(i);
+						var contentsPerPage = 19;
+						var rowSpacing = 0.01f;
+						var rowHeight = 0.04f;
+						var rowPage = rows.Skip(contentsPerPage * columnPage.CurrentPage).Take(contentsPerPage);
+						var rowPageCount = rowPage.Count();
+						columnPage.TotalPages = (int)Math.Ceiling((double)rows.Count / contentsPerPage - 1);
+						columnPage.Check();
+						var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - (columnPage.TotalPages > 0 ? 0 : 1)));
+
+						if (columnPage.TotalPages > 0)
 						{
-							case Tab.OptionName name:
-								TabPanelName(cui, container, panel, name.Name, rowHeight, rowIndex, name.Align);
-								break;
+							TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+							TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
 
-							case Tab.OptionButton button:
-								TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap), button.Align);
-								break;
-
-							case Tab.OptionText text:
-								TabPanelText(cui, container, panel, text.Name, text.Size, text.Color, rowHeight, rowIndex, text.Align, text.Font);
-								break;
-
-							case Tab.OptionInput input:
-								TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
-								break;
-
-							case Tab.OptionEnum @enum:
-								TabPanelEnum(cui, container, panel, @enum.Name, @enum.Text?.Invoke(), PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-								break;
-
-							case Tab.OptionToggle toggle:
-								TabPanelToggle(cui, container, panel, toggle.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, toggle.IsOn != null ? toggle.IsOn.Invoke(ap) : false);
-								break;
-
-							case Tab.OptionRadio radio:
-								TabPanelRadio(cui, container, panel, radio.Name, radio.Index == tab.Radios[radio.Id].Selected, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-								break;
-
-							case Tab.OptionDropdown dropdown:
-								TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, dropdown.OptionsIcons, dropdown.OptionsIconScale, ap._selectedDropdown == dropdown);
-								break;
-
-							case Tab.OptionRange range:
-								TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(), rowHeight, rowIndex);
-								break;
-
-							case Tab.ButtonArray array:
-								TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
-								break;
-
-							case Tab.OptionInputButton inputButton:
-								TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, rowHeight, rowIndex);
-								break;
-
-							default:
-								break;
+							rowIndex += rowHeight + rowSpacing;
 						}
 
-						rowIndex += rowHeight + rowSpacing;
+						for (int r = rowPageCount; r-- > 0;)
+						{
+							var actualI = r + (columnPage.CurrentPage * contentsPerPage);
+							var row = rows.ElementAt(actualI);
+
+							switch (row)
+							{
+								case Tab.OptionName name:
+									TabPanelName(cui, container, panel, name.Name, rowHeight, rowIndex, name.Align);
+									break;
+
+								case Tab.OptionButton button:
+									TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap), button.Align);
+									break;
+
+								case Tab.OptionText text:
+									TabPanelText(cui, container, panel, text.Name, text.Size, text.Color, rowHeight, rowIndex, text.Align, text.Font);
+									break;
+
+								case Tab.OptionInput input:
+									TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
+									break;
+
+								case Tab.OptionEnum @enum:
+									TabPanelEnum(cui, container, panel, @enum.Name, @enum.Text?.Invoke(), PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+									break;
+
+								case Tab.OptionToggle toggle:
+									TabPanelToggle(cui, container, panel, toggle.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, toggle.IsOn != null ? toggle.IsOn.Invoke(ap) : false);
+									break;
+
+								case Tab.OptionRadio radio:
+									TabPanelRadio(cui, container, panel, radio.Name, radio.Index == tab.Radios[radio.Id].Selected, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+									break;
+
+								case Tab.OptionDropdown dropdown:
+									TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, dropdown.OptionsIcons, dropdown.OptionsIconScale, ap._selectedDropdown == dropdown);
+									break;
+
+								case Tab.OptionRange range:
+									TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(), rowHeight, rowIndex);
+									break;
+
+								case Tab.ButtonArray array:
+									TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
+									break;
+
+								case Tab.OptionInputButton inputButton:
+									TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, rowHeight, rowIndex);
+									break;
+
+								default:
+									break;
+							}
+
+							rowIndex += rowHeight + rowSpacing;
+						}
+
+						#endregion
+
+						panelIndex += panelWidth + spacing;
 					}
 
 					#endregion
-
-					panelIndex += panelWidth + spacing;
 				}
-
-				#endregion
 			}
 
 			#endregion
@@ -1292,7 +1295,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public string Id;
 		public string Name;
 		public RustPlugin Plugin;
-		public Action<Tab, CuiElementContainer, string> Override;
+		public Action<Tab, CuiElementContainer, string, AdminPlayer> Override;
 		public Dictionary<int, List<Option>> Columns = new();
 		public Action<AdminPlayer, Tab> OnChange;
 		public Dictionary<string, Radio> Radios = new();
