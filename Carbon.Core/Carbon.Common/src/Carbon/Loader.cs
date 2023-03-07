@@ -8,8 +8,10 @@ using API.Events;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
+using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
+using Report = Carbon.Components.Report;
 
 /*
  *
@@ -427,34 +429,39 @@ public static class Loader
 		if (Community.IsServerFullyInitialized)
 		{
 			var counter = 0;
+			var plugins = Pool.GetList<RustPlugin>();
 
 			foreach (var mod in LoadedMods)
 			{
 				foreach (var plugin in mod.Plugins)
 				{
-					try { plugin.InternalApplyPluginReferences(); } catch { }
+					plugins.Add(plugin);
 				}
 			}
 
-			foreach (var mod in LoadedMods)
+			foreach (var plugin in plugins)
 			{
-				foreach (var plugin in mod.Plugins)
-				{
-					if (plugin.HasInitialized) continue;
-					counter++;
-
-					try
-					{
-						plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
-					}
-					catch (Exception initException)
-					{
-						plugin.LogError($"Failed OnServerInitialized.", initException);
-					}
-
-					plugin.HasInitialized = true;
-				}
+				try { plugin.InternalApplyPluginReferences(); } catch { }
 			}
+
+			foreach (var plugin in plugins)
+			{
+				if (plugin.HasInitialized) continue;
+				counter++;
+
+				try
+				{
+					plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
+				}
+				catch (Exception initException)
+				{
+					plugin.LogError($"Failed OnServerInitialized.", initException);
+				}
+
+				plugin.HasInitialized = true;
+			}
+
+			Pool.FreeList(ref plugins);
 
 			foreach (var plugin in Community.Runtime.ModuleProcessor.Modules)
 			{
