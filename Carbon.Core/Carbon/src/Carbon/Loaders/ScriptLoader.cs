@@ -239,6 +239,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		Loader.AssemblyCache.Add(AsyncLoader.Assembly);
 
 		var assembly = AsyncLoader.Assembly;
+		var firstPlugin = true;
 
 		foreach (var type in assembly.GetTypes())
 		{
@@ -268,6 +269,19 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 				var info = type.GetCustomAttribute(typeof(InfoAttribute), true) as InfoAttribute;
 				if (info == null) continue;
+
+				if (firstPlugin && Community.Runtime.Config.FileNameCheck)
+				{
+					var name = Path.GetFileNameWithoutExtension(File).Replace(" ", "").Replace(".", "");
+
+					if (info.Title.Replace(" ", "").Replace(".", "") != name)
+					{
+						Logger.Warn($"Plugin '{info.Title}' does not match with its file-name '{name}'.");
+						break;
+					}
+				}
+
+				firstPlugin = false;
 
 				if (requires.Any(x => x.Name == info.Title)) continue;
 

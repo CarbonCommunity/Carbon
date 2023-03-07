@@ -669,6 +669,9 @@ public class CorePlugin : CarbonPlugin
 	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.", true)]
 	private bool HookValidation { get { return Community.Runtime.Config.HookValidation; } set { Community.Runtime.Config.HookValidation = value; Community.Runtime.SaveConfig(); } }
 
+	[CommandVar("filenamecheck", "It checks if the file name and the plugin name matches. (only applies to scripts)", true)]
+	private bool FileNameCheck { get { return Community.Runtime.Config.FileNameCheck; } set { Community.Runtime.Config.FileNameCheck = value; Community.Runtime.SaveConfig(); } }
+
 	[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
 	private int EntityMapBufferSize { get { return Community.Runtime.Config.EntityMapBufferSize; } set { Community.Runtime.Config.EntityMapBufferSize = value; Community.Runtime.SaveConfig(); } }
 
