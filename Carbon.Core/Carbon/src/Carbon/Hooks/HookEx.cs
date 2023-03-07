@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using API.Hooks;
 using Carbon.Contracts;
-using Facepunch.Extend;
 using HarmonyLib;
-using MonoMod.Utils;
-using Org.BouncyCastle.Utilities.Collections;
 
 /*
  *
@@ -103,6 +98,8 @@ public class HookEx : IDisposable, IHook
 	{
 		try
 		{
+			Harmony.DEBUG = false;
+
 			if (type == null || !Attribute.IsDefined(type, typeof(HookAttribute.Patch), false))
 				throw new Exception($"Type is null or metadata not defined");
 
@@ -139,13 +136,19 @@ public class HookEx : IDisposable, IHook
 			_runtime.Postfix = AccessTools.Method(type, "Postfix") ?? null;
 			_runtime.Transpiler = AccessTools.Method(type, "Transpiler") ?? null;
 
+			// alternative way to find the target method
+			_runtime.TargetMethodSeeker = AccessTools.Method(type, "TargetMethod") ?? null;
+
 			if (_runtime.Prefix is null && _runtime.Postfix is null && _runtime.Transpiler is null)
 				throw new Exception($"No patch found (prefix, postfix, transpiler)");
 		}
 		catch (Exception e)
 		{
 			Logger.Error($"Error while parsing '{type.Name}'", e);
-			return;
+		}
+		finally
+		{
+			Harmony.DEBUG = true;
 		}
 	}
 
@@ -156,7 +159,7 @@ public class HookEx : IDisposable, IHook
 			if (IsInstalled) return true;
 
 			MethodBase original = ((TargetMethod == null)
-				? AccessTools.Constructor(TargetType, TargetMethodArgs) ?? null
+				? _runtime.TargetMethodSeeker ?? null
 				: original = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null) ?? throw new Exception($"Target method not found");
 
 			HarmonyMethod
@@ -201,7 +204,7 @@ public class HookEx : IDisposable, IHook
 #endif
 		catch (System.Exception e)
 		{
-			Logger.Error($"Error while patching hook '{this}'", e);
+			Logger.Error($"Error while patching hook '{this}'", e.InnerException ?? e);
 			_runtime.Status = HookState.Failure;
 			_runtime.LastError = e;
 			return false;
@@ -251,9 +254,27 @@ public class HookEx : IDisposable, IHook
 		_runtime.LastError = e;
 	}
 
+	private bool disposedValue;
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!disposedValue)
+		{
+			// managed resources
+			if (disposing)
+			{
+				RemovePatch();
+			}
+
+			// unmanaged resources
+			_runtime.HarmonyHandler = null;
+			disposedValue = true;
+		}
+	}
+
 	public void Dispose()
 	{
-		RemovePatch();
-		_runtime.HarmonyHandler = null;
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

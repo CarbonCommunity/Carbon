@@ -685,7 +685,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetOrCreateAdminPlayer(player);
 		var previous = ap.TabIndex;
 
-		foreach(var tab in Tabs)
+		foreach (var tab in Tabs)
 		{
 			tab?.OnChange?.Invoke(ap, tab);
 		}
@@ -1802,11 +1802,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddInput(0, "Version", () => $"{Community.Version}", null);
 				tab.AddInput(0, "Informational Version", () => $"{Community.InformationalVersion}", null);
 
-				var loadedHooks = Community.Runtime.HookManager.DynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.StaticHooks.Count(x => x.IsInstalled);
-				var totalHooks = Community.Runtime.HookManager.DynamicHooksCount + Community.Runtime.HookManager.StaticHooksCount;
+				var loadedHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled);
+				var totalHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count() + Community.Runtime.HookManager.LoadedStaticHooks.Count();
 				tab.AddInput(0, "Hooks", () => $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
-				tab.AddInput(0, "Static Hooks", () => $"{Community.Runtime.HookManager.StaticHooksCount:n0}", null);
-				tab.AddInput(0, "Dynamic Hooks", () => $"{Community.Runtime.HookManager.DynamicHooksCount:n0}", null);
+				tab.AddInput(0, "Static Hooks", () => $"{Community.Runtime.HookManager.LoadedStaticHooks.Count():n0}", null);
+				tab.AddInput(0, "Dynamic Hooks", () => $"{Community.Runtime.HookManager.LoadedDynamicHooks.Count():n0}", null);
 
 				tab.AddName(0, "Plugins", TextAnchor.MiddleLeft);
 				tab.AddInput(0, "Mods", () => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);

@@ -541,15 +541,15 @@ public class CorePlugin : CarbonPlugin
 					switch (option2)
 					{
 						case "--patch":
-							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
 							break;
 
 						case "--static":
-							hooks = Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
 							break;
 
 						case "--dynamic":
-							hooks = Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
 							break;
 
 						// case "--failed":
@@ -574,9 +574,9 @@ public class CorePlugin : CarbonPlugin
 						// 	break;
 
 						default:
-							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden));
+							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
 							break;
 					}
 

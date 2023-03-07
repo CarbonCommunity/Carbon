@@ -72,8 +72,8 @@ public class HookValidator
 			return false;
 		}
 
-		if (Community.Runtime.HookManager.StaticHooks.Any(x => x.HookName == hook) ||
-			Community.Runtime.HookManager.DynamicHooks.Any(x => x.HookName == hook)) return false;
+		if (Community.Runtime.HookManager.LoadedStaticHooks.Any(x => x.HookName == hook) ||
+			Community.Runtime.HookManager.LoadedDynamicHooks.Any(x => x.HookName == hook)) return false;
 
 		if (OxideHooks != null)
 		{

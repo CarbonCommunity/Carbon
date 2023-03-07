@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -8,6 +8,7 @@ using API.Events;
 using API.Hooks;
 using Carbon.Contracts;
 using Carbon.Core;
+using HarmonyLib;
 
 /*
  *
@@ -18,12 +19,8 @@ using Carbon.Core;
 
 namespace Carbon.Hooks;
 
-public class HookManager : FacepunchBehaviour, IHookManager
+public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 {
-	public IEnumerable<IHook> Patches { get => _patches; }
-	public IEnumerable<IHook> StaticHooks { get => _staticHooks; }
-	public IEnumerable<IHook> DynamicHooks { get => _dynamicHooks; }
-
 	internal List<HookEx> _patches { get; set; }
 	internal List<HookEx> _staticHooks { get; set; }
 	internal List<HookEx> _dynamicHooks { get; set; }
@@ -36,15 +33,11 @@ public class HookManager : FacepunchBehaviour, IHookManager
 	// second patch.
 	internal List<HookEx> _installed { get; set; }
 
-	public int PatchesCount => _patches.Count;
-	public int StaticHooksCount => _staticHooks.Count;
-	public int DynamicHooksCount => _dynamicHooks.Count;
-
+	private Stopwatch sw;
 	private bool _doReload;
 	private Queue<string> _workQueue;
-	private Hashtable _cachedChecksums;
+	//private Hashtable _cachedChecksums;
 	private List<Subscription> _subscribers;
-
 	private static readonly string[] Files =
 	{
 		Path.Combine("hooks", "Carbon.Hooks.Base.dll"),
@@ -55,7 +48,10 @@ public class HookManager : FacepunchBehaviour, IHookManager
 	{
 		Logger.Log($"Initializing {this}..");
 
-		_cachedChecksums = new Hashtable();
+		// 
+		sw = new Stopwatch();
+
+		//_cachedChecksums = new Hashtable();
 		_dynamicHooks = new List<HookEx>();
 		_installed = new List<HookEx>();
 		_patches = new List<HookEx>();
@@ -105,7 +101,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 		{
 			Logger.Log($" - Installing static hooks");
 			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
-				Unsubscribe(hook.Identifier, "Carbon.Core");
+				Subscribe(hook.Identifier, "Carbon.Core");
 		}
 
 		// if (_dynamicHooks.Count > 0)
@@ -188,7 +184,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 					// Not installed but has subs, install
 					case true when !isInstalled:
 						if (!hook.ApplyPatch())
-							throw new ApplicationException($"A general error occured while installting '{hook}'");
+							throw new ApplicationException($"A general error occured while installing '{hook}'");
 						Logger.Debug($"Installed hook '{hook}'", 1);
 						_installed.Add(hook);
 						break;
@@ -242,6 +238,8 @@ public class HookManager : FacepunchBehaviour, IHookManager
 			.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr)).ToList();
 
 		TaskStatus stats = new();
+		sw.Restart();
+
 		foreach (TypeInfo type in types)
 		{
 			try
@@ -277,9 +275,11 @@ public class HookManager : FacepunchBehaviour, IHookManager
 			}
 		}
 
-		Logger.Log($"- Successfully loaded patches:{stats.Patch} static:{stats.Static} dynamic:{stats.Dynamic} "
-			+ $"({stats.Total}) hooks from file '{Path.GetFileName(fileName)}'");
+		Logger.Log($"- Successfully loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
+			+ $" from file '{Path.GetFileName(fileName)}' in {sw.ElapsedMilliseconds}ms");
+
 		types = default;
+		sw.Stop();
 	}
 
 	private List<HookEx> GetHookDependencyTree(HookEx hook)
@@ -334,6 +334,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 	private HookEx GetHookById(string identifier)
 		=> LoadedHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
 
+
 	internal bool IsHookLoaded(HookEx hook)
 		=> LoadedHooks.Any(x => x.PatchMethodName == hook.PatchMethodName);
 
@@ -343,11 +344,21 @@ public class HookManager : FacepunchBehaviour, IHookManager
 		return hooks.Count != 0 && hooks.Any(IsHookLoaded);
 	}
 
+
+	public IEnumerable<IHook> LoadedPatches
+	{ get => _patches; }
+
 	public IEnumerable<IHook> InstalledPatches
 	{ get => _patches.Where(x => x.IsInstalled); }
 
+	public IEnumerable<IHook> LoadedStaticHooks
+	{ get => _staticHooks; }
+
 	public IEnumerable<IHook> InstalledStaticHooks
 	{ get => _staticHooks.Where(x => x.IsInstalled); }
+
+	public IEnumerable<IHook> LoadedDynamicHooks
+	{ get => _dynamicHooks; }
 
 	public IEnumerable<IHook> InstalledDynamicHooks
 	{ get => _dynamicHooks.Where(x => x.IsInstalled); }
@@ -367,6 +378,7 @@ public class HookManager : FacepunchBehaviour, IHookManager
 
 	private void RemoveSubscriber(string identifier, string subscriber)
 		=> _subscribers.RemoveAll(x => x.Identifier == identifier && x.Subscriber == subscriber);
+
 
 	public void Subscribe(string hookName, string requester)
 	{
@@ -495,5 +507,38 @@ public class HookManager : FacepunchBehaviour, IHookManager
 			Logger.Error($"Error while unsubscribing hook '{hook}'", e);
 			return;
 		}
+	}
+
+
+	private bool disposedValue;
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!disposedValue)
+		{
+			if (disposing)
+			{
+				foreach (HookEx item in _dynamicHooks) item.Dispose();
+				_dynamicHooks.Clear();
+
+				foreach (HookEx item in _installed) item.Dispose();
+				_installed.Clear();
+
+				foreach (HookEx item in _patches) item.Dispose();
+				_patches.Clear();
+
+				foreach (HookEx item in _staticHooks) item.Dispose();
+				_staticHooks.Clear();
+			}
+
+			// no unmanaged resources
+			disposedValue = true;
+		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }
