@@ -45,6 +45,18 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 		return true;
 	}
+	public bool AllExtensionsComplete()
+	{
+		foreach (var instance in InstanceBuffer)
+		{
+			if (instance.Value is Script script)
+			{
+				if (script.Loader != null && !script.Loader.IsExtension && !script.Loader.HasFinished) return false;
+			}
+		}
+
+		return true;
+	}
 
 	void IScriptProcessor.StartCoroutine(IEnumerator coroutine)
 	{

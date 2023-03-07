@@ -16,6 +16,7 @@ using Facepunch;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
+using static UnityEngine.UI.GridLayoutGroup;
 
 /*
  *
@@ -33,6 +34,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 	public string File { get; set; }
 	public string Source { get; set; }
 	public bool IsCore { get; set; }
+	public bool IsExtension { get; set; }
 
 	public bool HasFinished { get; set; }
 	public bool HasRequires { get; set; }
@@ -48,6 +50,9 @@ public class ScriptLoader : IDisposable, IScriptLoader
 	{
 		try
 		{
+			var directory = Path.GetDirectoryName(File);
+			IsExtension = directory.EndsWith("extensions");
+
 			if (!string.IsNullOrEmpty(File) && OsEx.File.Exists(File)) Source = OsEx.File.ReadText(File);
 
 			if (Parser != null)
@@ -98,6 +103,8 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			if (plugin.IsCore) continue;
 
 			Community.Runtime.Plugins.Plugins.Remove(plugin.Instance);
+
+			if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
 
 			if (plugin.Instance != null)
 			{
@@ -163,12 +170,13 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		AsyncLoader.Source = Source;
 		AsyncLoader.References = resultReferences?.ToArray();
 		AsyncLoader.Requires = resultRequires?.ToArray();
+		AsyncLoader.IsExtension = IsExtension;
 		Pool.FreeList(ref resultReferences);
 		Pool.FreeList(ref resultRequires);
 
 		HasRequires = AsyncLoader.Requires.Length > 0;
 
-		while (HasRequires && !Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete())
+		while (HasRequires && !Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete() && !IsExtension && !Community.Runtime.ScriptProcessor.AllExtensionsComplete())
 		{
 			yield return _serverExhale;
 			yield return null;
@@ -310,6 +318,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 					}))
 				{
 					rustPlugin.HasConditionals = Source.Contains("#if ");
+					rustPlugin.IsExtension = IsExtension;
 
 					plugin.Instance = rustPlugin;
 					plugin.IsCore = IsCore;

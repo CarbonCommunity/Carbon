@@ -29,6 +29,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string Source;
 	public string[] References;
 	public string[] Requires;
+	public bool IsExtension;
 	public List<string> Usings = new ();
 	public Dictionary<Type, List<string>> Hooks = new ();
 	public Dictionary<Type, List<string>> UnsupportedHooks = new ();
@@ -39,7 +40,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public List<CompilerException> Exceptions = new();
 	internal DateTime TimeSinceCompile;
 	internal static Dictionary<string, byte[]> _compilationCache = new();
+	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
+	internal static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
 
 	internal static byte[] _getPlugin(string name)
 	{
@@ -49,6 +52,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		return result;
 	}
+	internal static byte[] _getExtensionPlugin(string name)
+	{
+		if (!_extensionCompilationCache.TryGetValue(name, out var result)) return null;
+
+		return result;
+	}
+
 	internal static void _overridePlugin(string name, byte[] pluginAssembly)
 	{
 		name = name.Replace(" ", "");
@@ -65,6 +75,25 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Array.Clear(plugin, 0, plugin.Length);
 		try { _compilationCache[name] = pluginAssembly; } catch { }
 	}
+	internal static void _overrideExtensionPlugin(string name, byte[] pluginAssembly)
+	{
+		if (pluginAssembly == null) return;
+
+		var plugin = _getExtensionPlugin(name);
+		if (plugin == null)
+		{
+			try { _extensionCompilationCache.Add(name, pluginAssembly); } catch { }
+			return;
+		}
+
+		Array.Clear(plugin, 0, plugin.Length);
+		try { _extensionCompilationCache[name] = pluginAssembly; } catch { }
+	}
+	internal static void _clearExtensionPlugin(string name)
+	{
+		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.Remove(name);
+		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
+	}
 
 	internal void _injectReference(string id, string name, List<MetadataReference> references)
 	{
@@ -80,6 +109,26 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var processedReference = MetadataReference.CreateFromStream(mem);
 			references.Add(processedReference);
 			_referenceCache.Add(name, processedReference);
+		}
+	}
+	internal void _injectExtensionReference(string id, string name, List<MetadataReference> references)
+	{
+		if(!_extensionCompilationCache.TryGetValue(name, out var raw ))
+		{
+			return;
+		}
+
+		if (_extensionReferenceCache.TryGetValue(name, out var reference))
+		{
+			references.Add(reference);
+		}
+		else
+		{
+			Logger.Debug(id, $"Added common Extension reference '{name}'", 4);
+			using var mem = new MemoryStream(raw);
+			var processedReference = MetadataReference.CreateFromStream(mem);
+			references.Add(processedReference);
+			_extensionReferenceCache.Add(name, processedReference);
 		}
 	}
 
@@ -119,6 +168,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 		if (Community.Runtime.Config.HarmonyReference)
 		{
 			_injectReference(id, "0Harmony", references);
+		}
+
+		foreach(var item in _extensionCompilationCache)
+		{
+			_injectExtensionReference(id, item.Key, references);
 		}
 
 		// goes through the requested use list by the plugin
@@ -249,6 +303,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					var assembly = dllStream.ToArray();
 					if (assembly != null)
 					{
+						if(IsExtension) _overrideExtensionPlugin(FilePath, assembly);
 						_overridePlugin(FileName, assembly);
 						Assembly = Assembly.Load(assembly);
 					}

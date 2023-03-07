@@ -25,6 +25,7 @@ public class Defines
 		GetModulesFolder();
 		GetDataFolder();
 		GetScriptFolder();
+		GetScriptExtensionsFolder();
 		GetHarmonyFolder();
 		GetLogsFolder();
 		GetLangFolder();
@@ -88,6 +89,13 @@ public class Defines
 	public static string GetScriptFolder()
 	{
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customScriptFolder) ? Path.Combine(GetRootFolder(), "plugins") : _customScriptFolder);
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
+	public static string GetScriptExtensionsFolder()
+	{
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customScriptFolder) ? Path.Combine(GetRootFolder(), "plugins", "extensions") : Path.Combine(_customScriptFolder, "extensions"));
 		Directory.CreateDirectory(folder);
 
 		return folder;

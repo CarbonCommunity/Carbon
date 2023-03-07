@@ -22,9 +22,9 @@ namespace Carbon.Core;
 
 public static class Loader
 {
-	public static List<Assembly> AssemblyCache { get; } = new List<Assembly>();
-	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new Dictionary<string, Assembly>();
-	public static Dictionary<string, List<string>> PendingRequirees { get; } = new Dictionary<string, List<string>>();
+	public static List<Assembly> AssemblyCache { get; } = new();
+	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new();
+	public static Dictionary<string, List<string>> PendingRequirees { get; } = new();
 
 	static Loader()
 	{

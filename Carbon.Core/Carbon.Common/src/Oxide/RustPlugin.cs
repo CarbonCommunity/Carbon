@@ -21,6 +21,8 @@ public class RustPlugin : Plugin
 {
 	public PluginManager Manager { get; set; }
 
+	public bool IsExtension { get; set; }
+
 	public Permission permission { get; set; }
 	public Lang lang { get; set; }
 	public Command cmd { get; set; }
@@ -84,7 +86,7 @@ public class RustPlugin : Plugin
 			var go = persistence.gameObject;
 			UnityEngine.Object.DestroyImmediate(persistence);
 			UnityEngine.Object.Destroy(go);
-		}
+		}	
 
 		base.Dispose();
 	}
