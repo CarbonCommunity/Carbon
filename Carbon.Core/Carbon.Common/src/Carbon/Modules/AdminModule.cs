@@ -8,6 +8,7 @@ using Facepunch;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
+using ProtoBuf;
 using UnityEngine;
 using static ConsoleSystem;
 
@@ -588,6 +589,90 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			currentOffset += offsetScale;
 		}
 	}
+	public void TabPanelButtonArray(CUI cui, CuiElementContainer container, string parent, string command, float spacing, float height, float offset, params Tab.OptionButton[] buttons)
+	{
+		var panel = cui.CreatePanel(container, parent, $"{parent}panel",
+			color: "0.2 0.2 0.2 0",
+			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+
+		var cuts = (1f / buttons.Length) - spacing;
+		var currentOffset = 0f;
+
+		for (int i = 0; i < buttons.Length; i++)
+		{
+			var button = buttons[i];
+			var color = (button.Type == null ? Tab.OptionButton.Types.None : button.Type(null)) switch
+			{
+				Tab.OptionButton.Types.Selected => "0.4 0.7 0.2 0.7",
+				Tab.OptionButton.Types.Warned => "0.8 0.7 0.2 0.7",
+				Tab.OptionButton.Types.Important => "0.97 0.2 0.1 0.7",
+				_ => "0.2 0.2 0.2 0.5",
+			};
+			cui.CreateProtectedButton(container, panel, null, color, "1 1 1 0.5", button.Name, 11,
+				xMin: currentOffset, xMax: currentOffset + cuts, yMin: 0, yMax: 1,
+				command: $"{command} {i}");
+
+			currentOffset += cuts + spacing;
+		}
+	}
+	public void TabPanelInputButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float buttonPriority, Tab.OptionInput input, Tab.OptionButton button, float height, float offset)
+	{
+		var color = "0.2 0.2 0.2 0.5";
+		var buttonColor = (button.Type == null ? Tab.OptionButton.Types.None : button.Type(null)) switch
+		{
+			Tab.OptionButton.Types.Selected => "0.4 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Warned => "0.8 0.7 0.2 0.7",
+			Tab.OptionButton.Types.Important => "0.97 0.2 0.1 0.7",
+			_ => "0.2 0.2 0.2 0.5",
+		};
+
+		var panel = cui.CreatePanel(container, parent, $"{parent}panel",
+			color: "0.2 0.2 0.2 0",
+			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+
+		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+			color: "1 1 1 0.7",
+			text: $"{text}:", 12,
+			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleLeft,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		var inPanel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
+			color: "0 0 0 0",
+			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
+
+		cui.CreatePanel(container, $"{parent}panel", null,
+			color: color,
+			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
+
+		cui.CreateProtectedInputField(container, parent: inPanel, id: null,
+			color: $"1 1 1 {(input.ReadOnly ? 0.2f : 1f)}",
+			text: input.Placeholder?.Invoke(), 11,
+			xMin: 0.03f, xMax: 1f - buttonPriority, yMin: 0, yMax: 1,
+			command: $"{command} input",
+			align: TextAnchor.MiddleLeft,
+			characterLimit: input.CharacterLimit,
+			readOnly: input.ReadOnly,
+			needsKeyboard: true,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		cui.CreateProtectedButton(container, parent: inPanel, id: null,
+			color: buttonColor,
+			textColor: "1 1 1 0.5",
+			text: button.Name, 11,
+			xMin: 1f - buttonPriority, xMax: 1f, yMin: 0f, yMax: 1f,
+			command: $"{command} button",
+			align: button.Align,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+		if (!input.ReadOnly)
+		{
+			cui.CreatePanel(container, inPanel, null,
+				color: CUI.Color("#4287f5", 0.8f),
+				xMin: 0, xMax: 1f - buttonPriority, yMin: 0, yMax: 0.05f,
+				OxMax: -0.5f);
+		}
+	}
 
 	#endregion
 
@@ -836,6 +921,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(), rowHeight, rowIndex);
 								break;
 
+							case Tab.ButtonArray array:
+								TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
+								break;
+
+							case Tab.OptionInputButton inputButton:
+								TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, rowHeight, rowIndex);
+								break;
+
 							default:
 								break;
 						}
@@ -1037,6 +1130,24 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			case Tab.OptionRange range:
 				range.Callback?.Invoke(args[0].ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
 				return range.Callback != null;
+
+			case Tab.ButtonArray array:
+				var callback = array.Buttons[args[0].ToInt()].Callback;
+				callback?.Invoke(ap);
+				return callback != null;
+
+			case Tab.OptionInputButton inputButton:
+				switch (args[0])
+				{
+					case "input":
+						inputButton.Input.Callback?.Invoke(ap, args.Skip(1).ToArray());
+						return inputButton.Input.Callback != null;
+
+					case "button":
+						inputButton.Button.Callback?.Invoke(ap);
+						return inputButton.Button.Callback != null;
+				}
+				break;
 		}
 
 		return false;
@@ -1243,6 +1354,21 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			AddRow(column, new OptionRange(name, min, max, value, callback, text));
 			return this;
 		}
+		public Tab AddButtonArray(int column, float spacing, params OptionButton[] buttons)
+		{
+			AddRow(column, new ButtonArray(string.Empty, spacing, buttons));
+			return this;
+		}
+		public Tab AddButtonArray(int column, params OptionButton[] buttons)
+		{
+			AddRow(column, new ButtonArray(string.Empty, 0.01f, buttons));
+			return this;
+		}
+		public Tab AddInputButton(int column, string name, float buttonPriority, OptionInput input, OptionButton button)
+		{
+			AddRow(column, new OptionInputButton(name, buttonPriority, input, button));
+			return this;
+		}
 
 		public void Dispose()
 		{
@@ -1377,6 +1503,30 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public float OptionsIconScale;
 
 			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons, float optionsIconScale) : base(name) { Index = index; Callback = callback; Options = options; OptionsIcons = optionsIcons; OptionsIconScale = optionsIconScale; }
+		}
+		public class OptionInputButton : Option
+		{
+			public OptionInput Input;
+			public OptionButton Button;
+			public float ButtonPriority = 0.25f;
+
+			public OptionInputButton(string name, float buttonPriority, OptionInput input, OptionButton button) : base(name)
+			{
+				ButtonPriority = buttonPriority;
+				Input = input;
+				Button = button;
+			}
+		}
+		public class ButtonArray : Option
+		{
+			public OptionButton[] Buttons;
+			public float Spacing = 0.01f;
+
+			public ButtonArray(string name, float spacing, params OptionButton[] buttons) : base(name)
+			{
+				Buttons = buttons;
+				Spacing = spacing;
+			}
 		}
 	}
 
