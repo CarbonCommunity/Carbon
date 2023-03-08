@@ -239,9 +239,9 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 				}
 				else
 				{
-					var originalId = FileStorage.server.Store(result.OriginalData, FileStorage.Type.png, _protoData.Identifier);
+					// var originalId = FileStorage.server.Store(result.OriginalData, FileStorage.Type.png, _protoData.Identifier);
 					var processedId = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
-					_protoData.Map.Add($"{result.Url}_0", originalId);
+					// _protoData.Map.Add($"{result.Url}_0", originalId);
 					_protoData.Map.Add($"{result.Url}_{scale:0.0}", processedId);
 				}
 			}
