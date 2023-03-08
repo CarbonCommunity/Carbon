@@ -226,6 +226,31 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		}));
 	}
 
+	public void QueueBatchCallback(float scale, bool @override, Action<List<QueuedThreadResult>> onComplete, params string[] urls)
+	{
+		QueueBatch(scale, @override, results =>
+		{
+			foreach (var result in results)
+			{
+				if (result.OriginalData == result.ProcessedData)
+				{
+					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
+					_protoData.Map.Add($"{result.Url}_0", id);
+				}
+				else
+				{
+					var originalId = FileStorage.server.Store(result.OriginalData, FileStorage.Type.png, _protoData.Identifier);
+					var processedId = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
+					_protoData.Map.Add($"{result.Url}_0", originalId);
+					_protoData.Map.Add($"{result.Url}_{scale:0.0}", processedId);
+				}
+			}
+
+			onComplete?.Invoke(results);
+		}, urls);
+	}
+
+
 	public void Queue(float scale, bool @override, Dictionary<string, string> mappedUrls)
 	{
 		var urls = Pool.GetList<string>();
