@@ -222,8 +222,8 @@ public static class Loader
 
 		ProcessCommands(type, plugin);
 
-		HookCaller.CallStaticHook("OnPluginLoaded", plugin);
 		Logger.Log($"Loaded plugin {plugin.ToString()}");
+		HookCaller.CallStaticHook("OnPluginLoaded", plugin);
 
 		return true;
 	}

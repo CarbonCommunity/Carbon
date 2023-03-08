@@ -82,12 +82,10 @@ public class PluginReferenceAttribute : Attribute
 public class CommandAttribute : Attribute
 {
 	public string[] Names { get; } = new string[1];
-	public string Help { get; }
 
-	public CommandAttribute(string name, string help = null)
+	public CommandAttribute(string name)
 	{
 		Names[0] = name;
-		Help = help;
 	}
 
 	public CommandAttribute(params string[] commands)
