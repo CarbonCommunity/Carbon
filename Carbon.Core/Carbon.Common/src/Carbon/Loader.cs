@@ -217,11 +217,12 @@ public static class Loader
 		plugin.ILoadDefaultMessages();
 		plugin.IInit();
 		plugin.Load();
-		HookCaller.CallStaticHook("OnPluginLoaded", plugin);
 
 		if (mod != null) mod.Plugins.Add(plugin);
+
 		ProcessCommands(type, plugin);
 
+		HookCaller.CallStaticHook("OnPluginLoaded", plugin);
 		Logger.Log($"Loaded plugin {plugin.ToString()}");
 
 		return true;
