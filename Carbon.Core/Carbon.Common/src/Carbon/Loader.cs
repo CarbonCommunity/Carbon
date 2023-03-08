@@ -180,7 +180,10 @@ public static class Loader
 	}
 	public static void UninitializePlugins(CarbonMod mod)
 	{
-		foreach (var plugin in mod.Plugins)
+		var plugins = Pool.GetList<RustPlugin>();
+		plugins.AddRange(mod.Plugins);
+
+		foreach (var plugin in plugins)
 		{
 			try
 			{
@@ -188,6 +191,8 @@ public static class Loader
 			}
 			catch (Exception ex) { Logger.Error($"Failed unloading '{mod.Name}'", ex); }
 		}
+
+		Pool.FreeList(ref plugins);
 	}
 
 	public static bool InitializePlugin(Type type, out RustPlugin plugin, CarbonMod mod = null, Action<RustPlugin> preInit = null)
