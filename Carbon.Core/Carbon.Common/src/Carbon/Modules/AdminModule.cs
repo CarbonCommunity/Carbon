@@ -819,6 +819,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var ap = GetOrCreateAdminPlayer(player);
 			var tab = GetTab(player);
+			ap.IsInMenu = true;
 
 			using var cui = new CUI(Handler);
 
@@ -1023,6 +1024,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		Handler.Destroy(PanelId, player);
 		Handler.Destroy(CursorPanelId, player);
+
+		var ap = GetOrCreateAdminPlayer(player);
+		ap.IsInMenu = false;
 	}
 
 	public void RegisterTab(Tab tab, int? insert = null)
@@ -1213,6 +1217,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public static AdminPlayer Blank { get; } = new AdminPlayer(null);
 
 		public BasePlayer Player;
+		public bool IsInMenu;
 		public Dictionary<int, Page> ColumnPages = new();
 		public Dictionary<string, object> LocalStorage = new();
 
