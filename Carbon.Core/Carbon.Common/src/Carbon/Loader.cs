@@ -223,13 +223,10 @@ public static class Loader
 		plugin.IInit();
 		plugin.Load();
 
-		if (mod != null) mod.Plugins.Add(plugin);
-
+		mod?.Plugins.Add(plugin);
 		ProcessCommands(type, plugin);
 
 		Logger.Log($"Loaded plugin {plugin.ToString()}");
-		HookCaller.CallStaticHook("OnPluginLoaded", plugin);
-
 		return true;
 	}
 	public static bool UninitializePlugin(RustPlugin plugin)
@@ -238,7 +235,7 @@ public static class Loader
 		plugin.IUnload();
 
 		RemoveCommands(plugin);
-		HookCaller.CallStaticHook("OnPluginUnloaded", plugin);
+		//HookCaller.CallHook(plugin, "OnPluginUnloaded");
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
 
