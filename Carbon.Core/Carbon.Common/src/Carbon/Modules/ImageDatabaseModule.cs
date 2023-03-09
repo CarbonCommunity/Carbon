@@ -10,9 +10,11 @@ using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
+using Network;
 using Oxide.Core.Libraries;
 using ProtoBuf;
 using QRCoder;
+using Defines = Carbon.Core.Defines;
 
 /*
  *
@@ -178,9 +180,9 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 				}
 				else
 				{
-					var originalId = FileStorage.server.Store(result.OriginalData, FileStorage.Type.png, _protoData.Identifier);
+					// var originalId = FileStorage.server.Store(result.OriginalData, FileStorage.Type.png, _protoData.Identifier);
 					var processedId = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
-					_protoData.Map.Add($"{result.Url}_0", originalId);
+					// _protoData.Map.Add($"{result.Url}_0", originalId);
 					_protoData.Map.Add($"{result.Url}_{scale:0.0}", processedId);
 				}
 			}
@@ -239,9 +241,13 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 				}
 				else
 				{
-					// var originalId = FileStorage.server.Store(result.OriginalData, FileStorage.Type.png, _protoData.Identifier);
+					if(result.ProcessedData.Length >= 4194304)
+					{
+						Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.ProcessedData.Length} more or equal than {4194304}");
+						return;
+					}
+
 					var processedId = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
-					// _protoData.Map.Add($"{result.Url}_0", originalId);
 					_protoData.Map.Add($"{result.Url}_{scale:0.0}", processedId);
 				}
 			}
@@ -249,7 +255,6 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			onComplete?.Invoke(results);
 		}, urls);
 	}
-
 
 	public void Queue(float scale, bool @override, Dictionary<string, string> mappedUrls)
 	{
