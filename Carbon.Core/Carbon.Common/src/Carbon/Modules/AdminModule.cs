@@ -230,14 +230,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		cui.CreateText(container, parent: parent, id: $"{parent}text",
 			color: "1 1 1 0.7",
-			text: text.ToUpper(), 12,
+			text: text?.ToUpper(), 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: offset, yMax: offset + height,
 			align: align,
 			font: CUI.Handler.FontTypes.RobotoCondensedBold);
 
-		cui.CreatePanel(container, $"{parent}text", null,
-			color: "1 1 1 0.7",
-			xMin: 0, xMax: 1, yMin: 0f, yMax: 0.015f);
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreatePanel(container, $"{parent}text", null,
+				color: "1 1 1 0.7",
+				xMin: 0, xMax: 1, yMin: 0f, yMax: 0.015f);
+		}
 	}
 	public void TabPanelText(CUI cui, CuiElementContainer container, string parent, string text, int size, string color, float height, float offset, TextAnchor align, CUI.Handler.FontTypes font)
 	{
@@ -275,16 +278,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0",
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
-		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
-		cui.CreatePanel(container, $"{parent}panel", null,
-			color: "0.2 0.2 0.2 0.5",
-			xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
+			cui.CreatePanel(container, $"{parent}panel", null,
+				color: "0.2 0.2 0.2 0.5",
+				xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
+		}
 
 		var button = cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
 			color: "0.2 0.2 0.2 0.5",
@@ -316,20 +322,23 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0",
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
-		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
+			cui.CreatePanel(container, $"{parent}panel", null,
+				color: color,
+				xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
+		}
+
 		var inPanel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: color,
 			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
-
-		cui.CreatePanel(container, $"{parent}panel", null,
-			color: color,
-			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
 
 		cui.CreateProtectedInputField(container, parent: inPanel, id: null,
 			color: $"1 1 1 {(readOnly ? 0.2f : 1f)}",
@@ -364,22 +373,25 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0",
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
-		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
-		cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
-			color: "0.2 0.2 0.2 0.5",
-			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
+			cui.CreatePanel(container, $"{parent}panel", null,
+				color: "0.2 0.2 0.2 0.5",
+				xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
+		}
 
-		cui.CreatePanel(container, $"{parent}panel", null,
-			color: "0.2 0.2 0.2 0.5",
-			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
+			cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
+				color: "0.2 0.2 0.2 0.5",
+				xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
-		cui.CreateText(container, parent: $"{parent}inppanel", id: null,
+			cui.CreateText(container, parent: $"{parent}inppanel", id: null,
 			color: "1 1 1 0.7",
 			text: value, 11,
 			xMin: 0, xMax: 1, yMin: 0, yMax: 1,
@@ -412,16 +424,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0",
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
-		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
-		cui.CreatePanel(container, $"{parent}panel", null,
-			color: "0.2 0.2 0.2 0.5",
-			xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
+			cui.CreatePanel(container, $"{parent}panel", null,
+				color: "0.2 0.2 0.2 0.5",
+				xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
+		}
 
 		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
 			color: "0.2 0.2 0.2 0.5",
@@ -452,20 +467,23 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0",
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
-		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
-			text: $"{text}:", 12,
-			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
-			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+				color: "1 1 1 0.7",
+				text: $"{text}:", 12,
+				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+				align: TextAnchor.MiddleLeft,
+				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+			cui.CreatePanel(container, $"{parent}panel", null,
+				color: "0.2 0.2 0.2 0.5",
+				xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
+		}
 
 		cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: "0.2 0.2 0.2 0.5",
 			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
-
-		cui.CreatePanel(container, $"{parent}panel", null,
-			color: "0.2 0.2 0.2 0.5",
-			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
 
 		var icon = optionsIcons != null && index <= optionsIcons.Length - 1 ? optionsIcons[index] : null;
 		var iconXmin = 0.015f;
@@ -606,16 +624,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0",
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
-		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
 			color: "1 1 1 0.7",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
-		cui.CreatePanel(container, $"{parent}panel", null,
-			color: color,
-			xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
+			cui.CreatePanel(container, $"{parent}panel", null,
+				color: color,
+				xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
+		}
 
 		var panel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: color,
