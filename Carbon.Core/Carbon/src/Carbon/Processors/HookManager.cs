@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using API.Events;
 using API.Hooks;
 using Carbon.Contracts;
@@ -32,6 +33,14 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 	// the first applied patch when dealing with the InjectionIndex of the
 	// second patch.
 	internal List<HookEx> _installed { get; set; }
+
+#if DEBUG
+	// Number of patches applied by update cycle
+	private readonly int PatchLimitPerCycle = 50;
+#else
+	// Number of patches applied by update cycle
+	private readonly int PatchLimitPerCycle = 25;
+#endif
 
 	private Stopwatch sw;
 	private bool _doReload;
@@ -155,7 +164,7 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 		try
 		{
-			int limit = 10;
+			int limit = PatchLimitPerCycle;
 			while (_workQueue.Count > 0 && limit-- > 0)
 			{
 				string identifier = _workQueue.Dequeue();
@@ -228,10 +237,10 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 			return;
 		}
 
-		Type @base = hooks.GetType("Carbon.Hooks.Patch")
+		Type @base = hooks.GetType("API.Hooks.Patch")
 			?? typeof(API.Hooks.Patch);
 
-		Type attr = hooks.GetType("Carbon.Hooks.HookAttribute.Patch")
+		Type attr = hooks.GetType("API.Hooks.HookAttribute.Patch")
 			?? typeof(HookAttribute.Patch);
 
 		IEnumerable<TypeInfo> types = hooks.DefinedTypes
@@ -254,19 +263,19 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 				{
 					stats.Patch++;
 					_patches.Add(hook);
-					Logger.Debug($"Loaded patch '{hook}'", 3);
+					Logger.Debug($"Loaded patch '{hook}'", 4);
 				}
 				else if (hook.IsStaticHook)
 				{
 					stats.Static++;
 					_staticHooks.Add(hook);
-					Logger.Debug($"Loaded static hook '{hook}'", 3);
+					Logger.Debug($"Loaded static hook '{hook}'", 4);
 				}
 				else
 				{
 					stats.Dynamic++;
 					_dynamicHooks.Add(hook);
-					Logger.Debug($"Loaded dynamic hook '{hook}'", 3);
+					Logger.Debug($"Loaded dynamic hook '{hook}'", 4);
 				}
 			}
 			catch (System.Exception e)
@@ -296,8 +305,6 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 				continue;
 			}
 
-			//hook.SetDepedencies(list.Select(x => x.Identifier).ToArray());
-
 			foreach (HookEx item in list)
 			{
 				dependencies = dependencies.Concat(GetHookDependencyTree(item)).ToList();
@@ -311,8 +318,6 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 	{
 		List<HookEx> dependants = new List<HookEx>();
 		List<HookEx> list = _patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
-
-		//hook.SetDepedendents(list.Select(x => x.Identifier).ToArray());
 
 		foreach (HookEx item in list)
 		{

@@ -22,7 +22,7 @@ public struct HookRuntime
 
 	// Harmony
 	public Harmony HarmonyHandler;
-	public MethodInfo Prefix, Postfix, Transpiler, TargetMethodSeeker;
+	public MethodInfo Prefix, Postfix, Transpiler;
 }
 
 public struct Subscription

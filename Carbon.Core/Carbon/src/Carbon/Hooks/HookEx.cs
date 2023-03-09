@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using API.Hooks;
 using Carbon.Contracts;
+using Carbon.Extensions;
 using HarmonyLib;
 
 /*
@@ -36,6 +38,9 @@ public class HookEx : IDisposable, IHook
 	{ get; }
 
 	public string TargetMethod
+	{ get; }
+
+	private List<MethodBase> TargetMethods
 	{ get; }
 
 	public Type[] TargetMethodArgs
@@ -113,6 +118,7 @@ public class HookEx : IDisposable, IHook
 			HookName = metadata.Name;
 			TargetMethod = metadata.Method;
 			TargetMethodArgs = metadata.MethodArgs;
+			TargetMethods = new();
 			TargetType = metadata.Target;
 
 			if (Attribute.IsDefined(type, typeof(HookAttribute.Identifier), false))
@@ -136,11 +142,28 @@ public class HookEx : IDisposable, IHook
 			_runtime.Postfix = AccessTools.Method(type, "Postfix") ?? null;
 			_runtime.Transpiler = AccessTools.Method(type, "Transpiler") ?? null;
 
-			// alternative way to find the target method
-			_runtime.TargetMethodSeeker = AccessTools.Method(type, "TargetMethod") ?? null;
+			// Type generics need to handled differently from a standard type.
+			// Harmony/Mono.Cecil will not allow the patching of the generic type
+			// which means we need to find each type matching the constrain and
+			// then patch each one of them idividually.
+			if (TargetType.IsGenericType)
+			{
+				Type generic = typeof(VehicleEngineController<>);
+				List<Type> constrains = AccessToolsEx.GetConstraints(generic);
 
-			if (_runtime.Prefix is null && _runtime.Postfix is null && _runtime.Transpiler is null)
-				throw new Exception($"No patch found (prefix, postfix, transpiler)");
+				foreach (Type item in AccessToolsEx.MatchConstrains(constrains))
+				{
+					Logger.Debug($"Unrolling generic {generic}[{item}] requested by {type}", 3);
+					Type constructed = generic.MakeGenericType(new Type[] { item });
+					MethodInfo method = AccessTools.Method(constructed, TargetMethod) ?? null;
+					if (method != null) TargetMethods.Add(method);
+				}
+			}
+			else
+			{
+				MethodBase method = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
+				if (method != null) TargetMethods.Add(method);
+			}
 		}
 		catch (Exception e)
 		{
@@ -154,19 +177,13 @@ public class HookEx : IDisposable, IHook
 
 	public bool ApplyPatch()
 	{
+		if (IsInstalled) return true;
+
+		HarmonyMethod
+			prefix = null, postfix = null, transpiler = null;
+
 		try
 		{
-			if (IsInstalled) return true;
-
-			MethodBase original = ((TargetMethod == null)
-				? _runtime.TargetMethodSeeker ?? null
-				: original = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null) ?? throw new Exception($"Target method not found");
-
-			HarmonyMethod
-				prefix = null,
-				postfix = null,
-				transpiler = null;
-
 			if (_runtime.Prefix != null)
 				prefix = new HarmonyMethod(_runtime.Prefix);
 
@@ -177,14 +194,30 @@ public class HookEx : IDisposable, IHook
 				transpiler = new HarmonyMethod(_runtime.Transpiler);
 
 			if (prefix is null && postfix is null && transpiler is null)
-				throw new Exception($"No patch found while applying patch (prefix, postfix, transpiler)");
+				throw new Exception($"(prefix, postfix, transpiler not found");
 
-			MethodInfo current = (_runtime.HarmonyHandler.Patch(original,
-				prefix: prefix, postfix: postfix, transpiler: transpiler
-			) ?? null) ?? throw new Exception($"Harmony failed to execute");
+			if (TargetMethod is null || TargetMethod.Count() == 0)
+				throw new Exception($"target method not found");
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error($"Error while patching hook '{this}'", e);
+			_runtime.Status = HookState.Failure;
+			_runtime.LastError = e;
+			return false;
+		}
 
-			_runtime.Status = HookState.Success;
-			Logger.Debug($"Hook '{this}' patched '{original}'", 2);
+		try
+		{
+			foreach (MethodBase method in TargetMethods)
+			{
+				MethodInfo current = (_runtime.HarmonyHandler.Patch(method,
+					prefix: prefix, postfix: postfix, transpiler: transpiler
+				) ?? null) ?? throw new Exception($"HarmonyLib failed to patch '{method}'");
+
+				_runtime.Status = HookState.Success;
+				Logger.Debug($"Hook '{this}' patched '[{method.DeclaringType}] {method}'", 2);
+			}
 		}
 #if DEBUG
 		catch (HarmonyException e)
