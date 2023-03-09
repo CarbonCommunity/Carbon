@@ -278,7 +278,7 @@ public class CorePlugin : CarbonPlugin
 	}
 	private object IOnServerCommand(ConsoleSystem.Arg arg)
 	{
-		if(HookCaller.CallStaticHook("OnServerCommand", arg) == null)
+		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
 		{
 			return null;
 		}
