@@ -1157,7 +1157,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 										break;
 
 									default:
-										page.CurrentPage += args[1].ToInt();
+										page.CurrentPage = args[1].ToInt();
 										break;
 								}
 
