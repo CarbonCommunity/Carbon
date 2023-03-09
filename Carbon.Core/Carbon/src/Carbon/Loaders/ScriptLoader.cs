@@ -246,6 +246,11 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			AsyncLoader.Exceptions.Clear();
 			AsyncLoader.Exceptions = null;
 			HasFinished = true;
+
+			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
+			{
+				Loader.OnPluginProcessFinished();
+			}
 			yield break;
 		}
 
