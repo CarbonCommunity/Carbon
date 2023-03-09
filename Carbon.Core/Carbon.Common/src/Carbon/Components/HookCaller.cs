@@ -39,7 +39,7 @@ namespace Carbon
 			public BaseHookable Hookable;
 			public string Hook;
 
-			public static Conflict Make(BaseHookable hookable, string hook) => new Conflict { Hookable =hookable, Hook = hook };
+			public static Conflict Make(BaseHookable hookable, string hook) => new Conflict { Hookable = hookable, Hook = hook };
 		}
 	}
 
@@ -100,7 +100,7 @@ namespace Carbon
 				}
 			}
 
-			foreach(var plugin in plugins)
+			foreach (var plugin in plugins)
 			{
 				try
 				{
