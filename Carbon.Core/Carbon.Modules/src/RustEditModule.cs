@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Xml.Serialization;
 using Carbon.Base;
 using ConVar;
@@ -12,6 +13,8 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using static BasePlayer;
+using static Carbon.Modules.RustEditModule;
+using static QRCoder.PayloadGenerator;
 using Pool = Facepunch.Pool;
 using Time = UnityEngine.Time;
 
@@ -77,7 +80,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		#region APC
 
-		if (APC_serializedAPCPathList == null) { ReadMapData(); }
+		if (APC_serializedAPCPathList == null) { APC_ReadMapData(); }
 		if (APC_serializedAPCPathList != null) { ServerMgr.Instance.StartCoroutine(APC_Setup()); }
 
 		#endregion
@@ -212,11 +215,54 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		return null;
 	}
 
+	#region Common
+
+	public static T DeserializeMapData<T>(byte[] bytes, out bool flag)
+	{
+		T result;
+		try
+		{
+			using MemoryStream memoryStream = new MemoryStream(bytes);
+			XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
+			T t = (T)((object)xmlSerializer.Deserialize(memoryStream));
+			flag = true;
+			result = t;
+		}
+		catch (Exception ex)
+		{
+			Debug.Log(ex.Message + " " + ex.StackTrace);
+			flag = false;
+			result = default(T);
+		}
+		return result;
+	}
+	public static byte[] SerializeMapData<T>(T stream)
+	{
+		if (stream == null)
+		{
+			return null;
+		}
+		byte[] result;
+		try
+		{
+			using MemoryStream memoryStream = new MemoryStream();
+			new XmlSerializer(typeof(T)).Serialize(memoryStream, stream);
+			result = memoryStream.ToArray();
+		}
+		catch (Exception ex)
+		{
+			Debug.Log(ex.Message + "\n" + ex.StackTrace);
+			result = null;
+		}
+		return result;
+	}
+
+	#endregion
+
 	#region Spawn
 
-	public List<Vector3> Spawn_Spawnpoints = new List<Vector3>();
-
-	public const string Spawn_SpawnpointPrefab = "assets/bundled/prefabs/modding/volumes_and_triggers/spawn_point.prefab";
+	internal List<Vector3> Spawn_Spawnpoints = new List<Vector3>();
+	internal const string Spawn_SpawnpointPrefab = "assets/bundled/prefabs/modding/volumes_and_triggers/spawn_point.prefab";
 
 	[ChatCommand("showspawnpoints")]
 	public void DoBroadcastSpawnpoints(BasePlayer player)
@@ -225,7 +271,6 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		Spawn_BroadcastSpawnpoints(player);
 	}
-
 
 	public SpawnPoint Spawn_RespawnPlayer()
 	{
@@ -254,10 +299,10 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	#region NPC Spawner
 
-	public SerializedNPCSpawner NPCSpawner_serializedNPCSpawner;
-	public SerializedNPCData NPCSpawner_serializedNPCData;
-	public List<NPCSpawner> NPCSpawner_NPCsList = new List<NPCSpawner>();
-	public Coroutine NPCSpawner_NPCThread;
+	internal SerializedNPCSpawner NPCSpawner_serializedNPCSpawner;
+	internal SerializedNPCData NPCSpawner_serializedNPCData;
+	internal List<NPCSpawner> NPCSpawner_NPCsList = new List<NPCSpawner>();
+	internal Coroutine NPCSpawner_NPCThread;
 
 	public enum NPCType
 	{
@@ -918,28 +963,28 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	#region APC
 
-	public SerializedAPCPathList APC_serializedAPCPathList;
-	public List<CustomAPCSpawner> APC_list = new List<CustomAPCSpawner>();
-	public List<BasePlayer> APC_ViewingList = new List<BasePlayer>();
-	public Coroutine APC_Viewingthread;
+	internal APC_SerializedAPCPathList APC_serializedAPCPathList;
+	internal List<APC_CustomAPCSpawner> APC_list = new();
+	internal List<BasePlayer> APC_ViewingList = new();
+	internal Coroutine APC_Viewingthread;
 
-	private IEnumerator APC_Setup()
+	internal IEnumerator APC_Setup()
 	{
 		bool HasPath;
 		if (APC_serializedAPCPathList == null) { yield break; }
 		else
 		{
-			List<SerializedAPCPath> paths = APC_serializedAPCPathList.paths;
+			List<APC_SerializedAPCPath> paths = APC_serializedAPCPathList.paths;
 			int? num = (paths != null) ? new int?(paths.Count) : null;
 			HasPath = (num.GetValueOrDefault() > 0 & num != null);
 		}
 		if (HasPath)
 		{
 			Debug.LogWarning("[Core.APC] Generating " + APC_serializedAPCPathList.paths.Count + " APC paths");
-			foreach (SerializedAPCPath sapc in APC_serializedAPCPathList.paths)
+			foreach (APC_SerializedAPCPath sapc in APC_serializedAPCPathList.paths)
 			{
 				if (sapc.interestNodes.Count == 0) { Debug.LogError("[Core.APC] No APC interest Nodes Found!"); continue; }
-				CustomAPCSpawner customAPCSpawner = new GameObject("CustomAPCSpawner").AddComponent<CustomAPCSpawner>();
+				APC_CustomAPCSpawner customAPCSpawner = new GameObject("CustomAPCSpawner").AddComponent<APC_CustomAPCSpawner>();
 				customAPCSpawner.LoadBradleyPathing(sapc);
 				APC_list.Add(customAPCSpawner);
 				yield return CoroutineEx.waitForEndOfFrame;
@@ -948,43 +993,21 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		yield break;
 	}
 
-	public bool ReadMapData()
+	internal bool APC_ReadMapData()
 	{
 		bool flag = false;
 		if (APC_serializedAPCPathList != null) { return flag; }
-		byte[] array = Get_SerializedIOData();
+		byte[] array = APC_GetSerializedIOData();
 		if (array != null && array.Length != 0)
 		{
-			APC_serializedAPCPathList = DeSeriliseMapData<SerializedAPCPathList>(array, out flag);
+			APC_serializedAPCPathList = DeserializeMapData<APC_SerializedAPCPathList>(array, out flag);
 		}
-		if (APC_serializedAPCPathList == null) { APC_serializedAPCPathList = new SerializedAPCPathList(); }
+		if (APC_serializedAPCPathList == null) { APC_serializedAPCPathList = new APC_SerializedAPCPathList(); }
 		Debug.LogWarning("[Core.APC] DATA Found:" + flag);
 		return flag;
 	}
 
-	public T DeSeriliseMapData<T>(byte[] bytes, out bool flag)
-	{
-		T result;
-		try
-		{
-			using (MemoryStream memoryStream = new MemoryStream(bytes))
-			{
-				XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
-				T t = (T)((object)xmlSerializer.Deserialize(memoryStream));
-				flag = true;
-				result = t;
-			}
-		}
-		catch (Exception ex)
-		{
-			Debug.Log(ex.Message + " " + ex.StackTrace);
-			flag = false;
-			result = default(T);
-		}
-		return result;
-	}
-
-	public byte[] Get_SerializedIOData()
+	internal byte[] APC_GetSerializedIOData()
 	{
 		foreach (MapData MD in World.Serialization.world.maps)
 		{
@@ -997,9 +1020,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		return null;
 	}
 
-	public class CustomAPCSpawner : MonoBehaviour
+	public class APC_CustomAPCSpawner : MonoBehaviour
 	{
-		public void LoadBradleyPathing(SerializedAPCPath serializedAPCPath)
+		public void LoadBradleyPathing(APC_SerializedAPCPath serializedAPCPath)
 		{
 			basePath = new GameObject("CustomAPCSpawner").AddComponent<BasePath>();
 			basePath.nodes = new List<BasePathNode>();
@@ -1079,16 +1102,522 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		private bool NeedsSpawn;
 		private string prefab = "assets/prefabs/npc/m2bradley/bradleyapc.prefab";
 	}
-	public class SerializedAPCPath
+	public class APC_SerializedAPCPath
 	{
 
 		public List<VectorData> nodes = new List<VectorData>();
 		public List<VectorData> interestNodes = new List<VectorData>();
 	}
-	public class SerializedAPCPathList
+	public class APC_SerializedAPCPathList
 	{
-		public List<SerializedAPCPath> paths = new List<SerializedAPCPath>();
+		public List<APC_SerializedAPCPath> paths = new();
 	}
+
+	#endregion
+
+	#region Cargo Path
+
+	internal const string _c4 = "assets/prefabs/tools/c4/effects/c4_explosion.prefab";
+	internal const string _debris = "assets/prefabs/npc/patrol helicopter/damage_effect_debris.prefab";
+	internal static bool DisableSpawns = false;
+	internal const bool SinkMode = true;
+	internal const int StopDelay = 60;
+	internal const int DistanceFromStop = 35;
+	internal const int DespawnDistance = 80;
+	internal static List<BasePlayer> ViewingList = new();
+	internal static Coroutine Viewingthread;
+	internal static List<CargoMod> CargoShips = new();
+	internal static List<Vector3> CargoPath = new();
+	internal static List<Vector3> CargoSpawn = new();
+	internal static List<Vector3> CargoStops = new();
+	internal static SerializedPathList serializedPathList;
+
+	public class SerializedPathList
+	{
+		public List<VectorData> vectorData = new();
+	}
+
+	#region Hooks
+
+	private void OnEntitySpawned(CargoShip cargo)
+	{
+		if (cargo != null)
+		{
+			Cargo_ApplyCargoMod(cargo);
+
+			if (CargoSpawn != null && CargoSpawn.Count != 0)
+			{
+				if (!DisableSpawns)
+				{
+					cargo.transform.position = CargoSpawn.GetRandom();
+				}
+			}
+		}
+	}
+	private object OnPlayerViolation(BasePlayer player, AntiHackType type, float amount)
+	{
+		Puts("OnPlayerViolation works!");
+		return null;
+	}
+
+	#endregion
+
+	#region Commands
+
+	[ChatCommand("rusteditext.cargo.egresscargo")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void Cargo_Egresscargo(BasePlayer player)
+	{
+		foreach (CargoMod cm in CargoShips)
+		{
+			if (cm != null && cm._cargoship != null)
+			{
+				cm._cargoship.StartEgress();
+			}
+		}
+
+		player.ChatMessage("Egressing CargoShips.");
+	}
+
+	[ChatCommand("rusteditext.cargo.showcargopath")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void Cargo_ShowCargoPath(BasePlayer player)
+	{
+		if (player.IsAdmin)
+		{
+			if (ViewingList.Contains(player))
+			{
+				player.ChatMessage("Stopped Viewing Cargo Path");
+				ViewingList.Remove(player);
+			}
+			else
+			{
+				player.ChatMessage("Started Viewing Cargo Path");
+				ViewingList.Add(player);
+			}
+			if (Viewingthread == null && ViewingList.Count != 0)
+			{
+				Viewingthread = ServerMgr.Instance.StartCoroutine(ShowCargoPath());
+				return;
+			}
+			else
+			{
+				ServerMgr.Instance.StopCoroutine(Viewingthread);
+				Viewingthread = null;
+			}
+		}
+	}
+
+	[ChatCommand("rusteditext.cargo.bypasscargospawn")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void Cargo_BypassCargoSpawn(BasePlayer player)
+	{
+		DisableSpawns = !DisableSpawns;
+		player.ChatMessage("Disabling cargospawn points " + DisableSpawns.ToString());
+	}
+
+	[ChatCommand("rusteditext.cargo.exportcargopath")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void Cargo_ExportCargoPath(BasePlayer player)
+	{
+		player.ChatMessage("Exporting SerializedPathList.xml!");
+		Cargo_SaveMap();
+		player.ChatMessage("Saved in server root.");
+	}
+
+	#endregion
+
+	#region Command Helpers
+
+	public IEnumerator ShowCargoPath()
+	{
+		var distance = 2000;
+		var LastNode = Vector3.zero;
+
+		while (ViewingList != null && ViewingList.Count != 0)
+		{
+			foreach (BasePlayer bp in ViewingList.ToArray())
+			{
+				if (!bp.IsConnected || bp.IsSleeping() || !bp.IsAdmin)
+				{
+					ViewingList.Remove(bp);
+					continue;
+				}
+
+				foreach (Vector3 spawnpoints in CargoSpawn)
+				{
+					bp.SendConsoleCommand("ddraw.box", 5f, Color.green, spawnpoints, 10f);
+					bp.SendConsoleCommand("ddraw.text", 5f, Color.green, spawnpoints, "<size=20>CargoSpawn</size>");
+				}
+
+				foreach (Vector3 stoppoints in CargoStops)
+				{
+					bp.SendConsoleCommand("ddraw.box", 5f, Color.red, stoppoints, 10f);
+					bp.SendConsoleCommand("ddraw.text", 5f, Color.red, stoppoints, "<size=20>CargoStop</size>");
+				}
+
+				var nodeindex = 0;
+				foreach (Vector3 vector in CargoPath)
+				{
+					if (Vector3.Distance(vector, bp.transform.position) < distance)
+					{
+						var colour = Color.white;
+						if (Cargo_AreaBlocked(vector)) { colour = Color.red; }
+
+						bp.SendConsoleCommand("ddraw.sphere", 5f, colour, vector, 20f);
+
+						if (LastNode != Vector3.zero) { bp.SendConsoleCommand("ddraw.line", 5f, colour, vector, LastNode); }
+
+						bp.SendConsoleCommand("ddraw.text", 5f, colour, vector, "<size=25>" + nodeindex.ToString() + "</size>");
+						LastNode = vector;
+					}
+					else { LastNode = Vector3.zero; }
+					nodeindex++;
+				}
+				yield return CoroutineEx.waitForSeconds(5f);
+			}
+		}
+
+		ServerMgr.Instance.StopCoroutine(Viewingthread);
+		Viewingthread = null;
+		yield break;
+	}
+
+	#endregion
+
+	internal static void Cargo_ApplyCargoMod(CargoShip cs, bool reload = false)
+	{
+		if (cs != null)
+		{
+			if (cs.gameObject.HasComponent<CargoMod>()) { return; }
+			var newcargoship = cs.gameObject.AddComponent<CargoMod>();
+			newcargoship._cargoship = cs;
+			newcargoship.CargoThread = ServerMgr.Instance.StartCoroutine(newcargoship.CargoTick());
+			CargoShips.Add(newcargoship);
+		}
+	}
+	internal static bool Cargo_AreaStop(Vector3 vector3)
+	{
+		foreach (var vector in CargoStops)
+		{
+			if (Vector3.Distance(vector, vector3) < DistanceFromStop)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+	internal static bool Cargo_AreaBlocked(Vector3 vector3)
+	{
+		var colliders = Pool.GetList<Collider>();
+		Vis.Colliders(vector3, 5, colliders, -1, QueryTriggerInteraction.Collide);
+		foreach (var collider in colliders) { if (collider.name.Contains("prevent_building_")) { return true; } }
+		Pool.FreeList(ref colliders);
+		return false;
+	}
+	internal static bool Cargo_InitializeHook()
+	{
+		if (CargoSpawn.Count != 0 || CargoStops.Count != 0)
+		{
+			Debug.LogWarning("[Core.CargoPath] Found " + CargoSpawn.Count.ToString() + " Spawn Points And " + CargoStops.Count.ToString() + " Stop Points");
+		}
+
+		foreach (var b in BaseNetworkable.serverEntities)
+		{
+			if (b is CargoShip)
+			{
+				Cargo_ApplyCargoMod(b as CargoShip, true);
+			}
+		}
+
+		return true;
+	}
+	internal static bool Cargo_ShutdownHook()
+	{
+		foreach (var destry in CargoShips)
+		{
+			if (destry != null && destry._cargoship != null)
+			{
+				ServerMgr.Instance.StopCoroutine(destry.CargoThread);
+				UnityEngine.Object.Destroy(destry);
+			}
+		}
+		return true;
+	}
+	internal static bool Cargo_World_SpawnHook(string category, Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
+	{
+		//2741054453 - assets/bundled/prefabs/world/event_cargoship.prefab
+		if (prefab.ID == 2741054453)
+		{
+			CargoSpawn.Add(position);
+			return false;
+		}
+		//843218194 - assets/prefabs/tools/map/cargomarker.prefab
+		else if (prefab.ID == 843218194)
+		{
+			CargoStops.Add(position);
+			return false;
+		}
+		return true;
+	}
+	internal static bool Cargo_SpawnHook(CargoShip __instance)
+	{
+
+		return true;
+	}
+	internal static bool Cargo_AntiHackHook(BasePlayer player, AntiHackType type)
+	{
+		if (player != null)
+		{
+			try
+			{
+				var be = player.GetParentEntity();
+
+				if (be != null && be is CargoShip && type == AntiHackType.InsideTerrain)
+				{
+					player.Hurt(5f);
+				}
+
+				return false;
+			}
+			catch { }
+		}
+		return true;
+	}
+	internal static void Cargo_SaveMap()
+	{
+		if (serializedPathList == null)
+		{
+			var SPL = new SerializedPathList();
+			var nvd = new List<VectorData>();
+			foreach (Vector3 vector in CargoPath) { nvd.Add(vector); }
+			SPL.vectorData = nvd;
+			serializedPathList = SPL;
+		}
+		System.IO.File.WriteAllBytes("SerializedPathList.xml", SerializeMapData(serializedPathList));
+	}
+	internal static byte[] Cargo_GetSerializedIOData()
+	{
+		foreach (var md in World.Serialization.world.maps)
+		{
+			try
+			{
+				if (System.Text.Encoding.ASCII.GetString(md.data).Contains("SerializedPathList")) { return md.data; }
+			}
+			catch { }
+		}
+		return null;
+	}
+
+	internal static bool Cargo_ReadMapData()
+	{
+		var flag = false;
+		if (serializedPathList != null) { return flag; }
+
+		var array = Cargo_GetSerializedIOData();
+		if (array != null && array.Length != 0)
+		{
+			serializedPathList = DeserializeMapData<SerializedPathList>(array, out flag);
+		}
+		Debug.LogWarning("[Core.CargoPath] DATA Found:" + flag);
+		return flag;
+	}
+	internal static byte[] Cargo_SerializeMapData<T>(T stream)
+	{
+		if (stream == null)
+		{
+			return null;
+		}
+
+		byte[] result;
+
+		try
+		{
+			using (var memoryStream = new MemoryStream())
+			{
+				new XmlSerializer(typeof(T)).Serialize(memoryStream, stream);
+				result = memoryStream.ToArray();
+			}
+		}
+		catch (Exception ex)
+		{
+			Debug.Log(ex.Message + "\n" + ex.StackTrace);
+			result = null;
+		}
+
+		return result;
+	}
+
+	#region Command
+
+	public class CargoMod : FacepunchBehaviour
+	{
+		public CargoShip _cargoship;
+		public bool HasStopped = false;
+		public bool AllowCrash = false;
+		public Coroutine CargoThread;
+		public FieldInfo _currentThrottle = typeof(CargoShip).GetField("currentThrottle", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		public FieldInfo _turnScale = typeof(CargoShip).GetField("turnScale", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		public FieldInfo _currentTurnSpeed = typeof(CargoShip).GetField("currentTurnSpeed", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		public FieldInfo _currentVelocity = typeof(CargoShip).GetField("currentVelocity", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		public int LastNode = -1;
+		public List<ScientistNPC> NPCs = new List<ScientistNPC>();
+		private float PlayerCheck = 0;
+		private bool sunk = false;
+		public bool inhaled = false;
+
+		public IEnumerator CargoTick()
+		{
+			while (_cargoship != null)
+			{
+				if (AllowCrash)
+				{
+					HasStopped = true;
+					_cargoship.CancelInvoke(new Action(_cargoship.RespawnLoot));
+					_cargoship.SetFlag(BaseEntity.Flags.Reserved8, true, false, true);
+					_cargoship.targetNodeIndex = -1;
+					_currentThrottle.SetValue(_cargoship, 0);
+					Vector3 bow = _cargoship.transform.position + (_cargoship.transform.forward * -35) + (_cargoship.transform.up * 1);
+					List<Vector3> ExpoPos = new List<Vector3>();
+					ExpoPos.Add(bow + _cargoship.transform.right * 6);
+					ExpoPos.Add(bow + _cargoship.transform.right * -6);
+					ExpoPos.Add(bow + (_cargoship.transform.forward * -10) + (_cargoship.transform.right * 6));
+					ExpoPos.Add(bow + (_cargoship.transform.forward * -10) + (_cargoship.transform.right * -6));
+					_cargoship.Invoke(() => { if (ExpoPos != null) { playexp(ExpoPos); } }, 10);
+					yield break;
+				}
+				if (!HasStopped && Cargo_AreaStop(_cargoship.transform.position))
+				{
+					HasStopped = true;
+					StopCargoShip(StopDelay);
+				}
+				if (_cargoship.transform.position.y < -1) { AllowCrash = true; }
+				yield return CoroutineEx.waitForSeconds(1f);
+			}
+			yield break;
+		}
+
+		public IEnumerator Sink()
+		{
+
+			while (_cargoship != null && HasStopped)
+			{
+				if (PlayerCheck < Time.time)
+				{
+					PlayerCheck = Time.time + 3f;
+					foreach (BaseEntity b in _cargoship.children.ToArray())
+					{
+						if (b is ScientistNPC)
+						{
+							if (b == null || b.IsDestroyed) { continue; }
+							if ((b as ScientistNPC).IsAlive() && b.transform.position.y < -1.5f) { (b as ScientistNPC).Kill(); }
+							continue;
+						}
+					}
+				}
+				_cargoship.transform.position += _cargoship.transform.up * -1.5f * Time.deltaTime;
+				if ((_cargoship.transform.position.y - 1) <= TerrainMeta.HeightMap.GetHeight(_cargoship.transform.position))
+				{
+					sunk = true;
+					while (_cargoship != null && PlayersNearbyfunction(_cargoship.transform.position, DespawnDistance))
+					{
+						yield return CoroutineEx.waitForSeconds(5f);
+					}
+					killme();
+					yield break;
+				}
+				yield return CoroutineEx.waitForSeconds(0.01f);
+			}
+			yield break;
+		}
+
+		public void StopCargoShip(float seconds)
+		{
+			if (_cargoship == null || AllowCrash) { return; }
+			LastNode = _cargoship.targetNodeIndex;
+			if (LastNode == -1) { LastNode = _cargoship.GetClosestNodeToUs(); }
+			_cargoship.targetNodeIndex = -1;
+			_currentThrottle.SetValue(_cargoship, 0);
+			_cargoship.Invoke(() =>
+			{
+				if (_cargoship != null)
+				{
+					_cargoship.targetNodeIndex = LastNode;
+					LastNode = -1;
+					_cargoship.Invoke(() => { HasStopped = false; }, 60);
+				}
+			}, seconds);
+		}
+
+		public void killme()
+		{
+			if (_cargoship != null)
+			{
+				foreach (BaseEntity b in _cargoship.children.ToArray())
+				{
+					if (b != null && b.GetParentEntity() is CargoShip)
+					{
+						if (b is BasePlayer || b is LootableCorpse || b is BaseCorpse || b is PlayerCorpse)
+						{
+							Vector3 oldpos = b.transform.position;
+							oldpos.y = 1;
+							b.SetParent(null, true, true);
+							continue;
+						}
+						b.Kill();
+					}
+				}
+			}
+			_cargoship.Invoke(() =>
+			{
+				if (_cargoship != null && !_cargoship.IsDestroyed) { _cargoship.Kill(); }
+				Destroy(this);
+			}, 0.1f);
+		}
+
+		public bool PlayersNearbyfunction(Vector3 _base, float Distance)
+		{
+			if (_base == null) { return false; }
+			List<BasePlayer> obj = Pool.GetList<BasePlayer>();
+			Vis.Entities(_base, Distance, obj, 131072);
+			bool result = false;
+			if (obj == null) { return false; }
+			foreach (BasePlayer player in obj)
+			{
+				if (player == null) { continue; }
+				if (!player.IsSleeping() && player.IsAlive() && !player.IsNpc && player.IsConnected && player.transform.position.y < -2f)
+				{
+					if (sunk) { player.metabolism.radiation_poison.Add(2); player.Hurt(1, Rust.DamageType.Radiation); }
+					result = true;
+				}
+			}
+			Pool.FreeList(ref obj);
+			return result;
+		}
+
+		private void playexp(List<Vector3> ExPoint)
+		{
+			if (ExPoint != null && ExPoint.Count > 1)
+			{
+				RunEffect(_c4, null, ExPoint[0]);
+				RunEffect(_debris, null, ExPoint[1]);
+				ExPoint.RemoveAt(0);
+				ExPoint.RemoveAt(0);
+				_cargoship.Invoke(() => { playexp(ExPoint); }, 0.5f);
+				return;
+			}
+			ServerMgr.Instance.StartCoroutine(Sink());
+		}
+
+		private void RunEffect(string name, BaseEntity entity = null, Vector3 position = new Vector3(), Vector3 offset = new Vector3())
+		{
+			if (entity != null) { Effect.server.Run(name, entity, 0, offset, position, null, true); return; }
+			Effect.server.Run(name, position, Vector3.up, null, true);
+		}
+	}
+
+	#endregion
 
 	#endregion
 }
