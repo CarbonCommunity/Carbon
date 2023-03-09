@@ -14,7 +14,7 @@ namespace Carbon.Extensions;
 
 public static class AccessToolsEx
 {
-	internal static Type TypeByName(string name)
+	public static Type TypeByName(string name)
 	{
 		Type type = Type.GetType(name, throwOnError: false);
 		if ((object)type == null)
@@ -35,12 +35,12 @@ public static class AccessToolsEx
 		return type;
 	}
 
-	internal static IEnumerable<Type> AllTypes()
+	public static IEnumerable<Type> AllTypes()
 	{
 		return AllAssemblies().SelectMany((Assembly a) => GetTypesFromAssembly(a));
 	}
 
-	internal static Type[] GetTypesFromAssembly(Assembly assembly)
+	public static Type[] GetTypesFromAssembly(Assembly assembly)
 	{
 		try
 		{
@@ -53,14 +53,14 @@ public static class AccessToolsEx
 		}
 	}
 
-	internal static IEnumerable<Assembly> AllAssemblies()
+	public static IEnumerable<Assembly> AllAssemblies()
 	{
 		return from a in AppDomain.CurrentDomain.GetAssemblies()
 			   where !a.FullName.StartsWith("Microsoft.VisualStudio")
 			   select a;
 	}
 
-	internal static List<Type> GetConstraints(Type type)
+	public static List<Type> GetConstraints(Type type)
 	{
 		// generics with only one type will be supported
 		Type[] generics = type.GetGenericArguments();
@@ -72,7 +72,7 @@ public static class AccessToolsEx
 		return generic.GetGenericParameterConstraints().ToList();
 	}
 
-	internal static List<Type> MatchConstrains(List<Type> constrains)
+	public static List<Type> MatchConstrains(List<Type> constrains)
 	{
 		IEnumerable<Type> interfaces = constrains.Where(x => x.IsInterface);
 		Type @base = constrains.Single(x => !x.IsInterface);
