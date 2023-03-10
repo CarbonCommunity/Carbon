@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using API.Hooks;
 using Network.Visibility;
@@ -8,7 +8,7 @@ using Network.Visibility;
 
 namespace Carbon.Modules;
 
-public partial class CircularNetworkDistance
+public partial class CircularNetworkDistanceModule
 {
 	[HookAttribute.Patch("ae0577348a5140ea9aa861cd71c31e7c", "CircularNetworkDistance [Patch]", typeof(NetworkVisibilityGrid), "GetVisibleFrom")]
 	[HookAttribute.Identifier("ae0577348a5140ea9aa861cd71c31e7c")]

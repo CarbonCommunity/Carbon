@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Carbon.Base;
 using Network;
@@ -14,10 +14,10 @@ using Network.Visibility;
 
 namespace Carbon.Modules;
 
-public partial class CircularNetworkDistance : CarbonModule<GenericConfig, EmptyModuleData>
+public partial class CircularNetworkDistanceModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 {
 	public override string Name => "CircularNetworkDistance";
-	public override Type Type => typeof(CircularNetworkDistance);
+	public override Type Type => typeof(CircularNetworkDistanceModule);
 
 	public override void Init()
 	{

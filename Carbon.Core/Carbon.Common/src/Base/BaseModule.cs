@@ -29,15 +29,8 @@ public class BaseModule : BaseHookable
 	}
 }
 
-public class GenericConfig
-{
-	// nothing here
-}
-
-public class EmptyModuleData
-{
-	// nothing here
-}
+public class EmptyModuleConfig { }
+public class EmptyModuleData { }
 
 public class CarbonModule<C, D> : BaseModule, IModule
 {
