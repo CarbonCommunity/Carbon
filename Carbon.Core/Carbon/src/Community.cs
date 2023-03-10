@@ -50,6 +50,8 @@ public class CommunityInternal : Community
 
 	#region Processors
 
+	internal ExtensionProcessor ExtensionProcessor { get; set; }
+
 	internal void _installProcessors()
 	{
 		Carbon.Logger.Log("Installed processors");
@@ -60,6 +62,7 @@ public class CommunityInternal : Community
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
+			ExtensionProcessor = gameObject.AddComponent<ExtensionProcessor>();
 			HookManager = gameObject.AddComponent<HookManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
@@ -85,6 +88,7 @@ public class CommunityInternal : Community
 			if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
 			if (ModuleProcessor != null) ModuleProcessor?.Dispose();
 			if (CarbonProcessor != null) CarbonProcessor?.Dispose();
+			if(ExtensionProcessor!= null) ExtensionProcessor?.Dispose();
 		}
 		catch { }
 

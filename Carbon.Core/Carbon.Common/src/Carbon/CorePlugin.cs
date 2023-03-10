@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Shell;
+using API.Events;
 using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
@@ -82,9 +83,11 @@ public class CorePlugin : CarbonPlugin
 
 	private void OnPluginLoaded(Plugin plugin)
 	{
+		Community.Runtime.Events.Trigger(CarbonEvent.PluginLoaded, new CarbonEventArgs(plugin));
 	}
 	private void OnPluginUnloaded(Plugin plugin)
 	{
+		Community.Runtime.Events.Trigger(CarbonEvent.PluginUnloaded, new CarbonEventArgs(plugin));
 	}
 	private void OnEntitySpawned(BaseEntity entity)
 	{
