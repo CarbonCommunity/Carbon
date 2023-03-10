@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using Carbon.Base;
 using ConVar;
 using Facepunch;
+using Network;
 using ProtoBuf;
 using Rust;
 using UnityEngine;
@@ -264,6 +265,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Subscribe("IOnPostGenerateOceanPatrolPath");
 		Subscribe("IPostSaveLoad");
 		Subscribe("IPostSaveSave");
+		Subscribe("ICanWireToolModifyEntity");
+		Subscribe("OnEntityTakeDamage");
+		Subscribe("CanLootEntity");
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -284,6 +288,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Unsubscribe("IOnPostGenerateOceanPatrolPath");
 		Unsubscribe("IPostSaveLoad");
 		Unsubscribe("IPostSaveSave");
+		Unsubscribe("ICanWireToolModifyEntity");
+		Unsubscribe("OnEntityTakeDamage");
+		Unsubscribe("CanLootEntity");
 	}
 
 	#region Common
@@ -2274,13 +2281,53 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	private void IPostSaveSave()
 	{
-		foreach (BaseEntity be in IO_DestroyOnUnload)
+		foreach (var entity in IO_DestroyOnUnload)
 		{
-			if (BaseEntity.saveList.Contains(be))
+			if (BaseEntity.saveList.Contains(entity))
 			{
-				BaseEntity.saveList.Remove(be);
+				BaseEntity.saveList.Remove(entity);
 			}
 		}
+	}
+	private object OnEntityTakeDamage(BaseCombatEntity entity)
+	{
+		if (entity == null)
+		{
+			return true;
+		}
+		if (IO_Protect.Contains(entity.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
+	private object ICanWireToolModifyEntity(BasePlayer player, BaseEntity entity)
+	{
+		if (player == null || entity == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
+		{
+			return true;
+		}
+		if (IO_Protect.Contains(entity.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
+	private object CanLootEntity(BasePlayer player, DroppedItemContainer container)
+	{
+		if (player == null || container == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
+		{
+			return true;
+		}
+
+		if (IO_Protect.Contains(container.transform.position))
+		{
+			return false;
+		}
+
+		return null;
 	}
 
 	#endregion
