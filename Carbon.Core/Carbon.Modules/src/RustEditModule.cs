@@ -22,7 +22,7 @@ using Time = UnityEngine.Time;
 /*
  *
  * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 bmgjet
+ * Copyright (c) 2022 bmgjet, bg
  * All rights reserved.
  *
  */
@@ -110,6 +110,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		#endregion
 	}
+
 	private object CanBradleyApcTarget(BradleyAPC apc, BaseEntity entity)
 	{
 		if (entity is NPCPlayer && DataInstance.NpcSpawner.APCIgnoreNPCs)
@@ -261,6 +262,8 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Subscribe("ICanGenerateOceanPatrolPath");
 		Subscribe("IOnGenerateOceanPatrolPath");
 		Subscribe("IOnPostGenerateOceanPatrolPath");
+		Subscribe("IPostSaveLoad");
+		Subscribe("IPostSaveSave");
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -279,6 +282,8 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Unsubscribe("ICanGenerateOceanPatrolPath");
 		Unsubscribe("IOnGenerateOceanPatrolPath");
 		Unsubscribe("IOnPostGenerateOceanPatrolPath");
+		Unsubscribe("IPostSaveLoad");
+		Unsubscribe("IPostSaveSave");
 	}
 
 	#region Common
@@ -1765,38 +1770,35 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	#region I/O
 
-
-	internal static List<BaseEntity> DestroyOnUnload = new List<BaseEntity>();
-	internal static Dictionary<Vector3, PrefabData> Elevators = new Dictionary<Vector3, PrefabData>();
-	internal static List<Vector3> Protect;
-	internal static List<IOEntity> Processed = new List<IOEntity>();
-	internal static Dictionary<AutoTurret, bool> AutoTurrets = new Dictionary<AutoTurret, bool>();
-	internal static List<Dictionary<Vector3, Vector3>> Wires = new List<Dictionary<Vector3, Vector3>>();
-	internal static SerializedIOData serializedIOData;
-	internal static Type[] types = new Type[]
+	internal static List<BaseEntity> IO_DestroyOnUnload = new List<BaseEntity>();
+	internal static Dictionary<Vector3, PrefabData> IO_Elevators = new Dictionary<Vector3, PrefabData>();
+	internal static List<Vector3> IO_Protect;
+	internal static List<IOEntity> IO_Processed = new List<IOEntity>();
+	internal static Dictionary<AutoTurret, bool> IO_AutoTurrets = new Dictionary<AutoTurret, bool>();
+	internal static List<Dictionary<Vector3, Vector3>> IO_Wires = new List<Dictionary<Vector3, Vector3>>();
+	internal static SerializedIOData IO_serializedIOData;
+	internal static Type[] IO_types = new Type[]
 	{
 			typeof(GroundWatch),
 			typeof(DestroyOnGroundMissing),
 			typeof(DeployableDecay)
 	};
-	internal static FieldInfo _decay = typeof(DecayEntity).GetField("decay", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo _targetCounterNumber = typeof(PowerCounter).GetField("targetCounterNumber", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo _IOEntity = typeof(Elevator).GetField("IOEntity", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default | BindingFlags.Public);
-	internal static FieldInfo _liftEntity = typeof(Elevator).GetField("liftEntity", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo _nextVisCheck = typeof(AutoTurret).GetField("nextVisCheck", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo _lastTargetSeenTime = typeof(AutoTurret).GetField("lastTargetSeenTime", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo _nextShotTime = typeof(AutoTurret).GetField("nextShotTime", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
+	internal static FieldInfo IO__decay = typeof(DecayEntity).GetField("decay", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+	internal static FieldInfo IO__targetCounterNumber = typeof(PowerCounter).GetField("targetCounterNumber", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+	internal static FieldInfo IO__IOEntity = typeof(Elevator).GetField("IOEntity", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default | BindingFlags.Public);
+	internal static FieldInfo IO__liftEntity = typeof(Elevator).GetField("liftEntity", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+	internal static FieldInfo IO__nextVisCheck = typeof(AutoTurret).GetField("nextVisCheck", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+	internal static FieldInfo IO__lastTargetSeenTime = typeof(AutoTurret).GetField("lastTargetSeenTime", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+	internal static FieldInfo IO__nextShotTime = typeof(AutoTurret).GetField("nextShotTime", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
 	private IOEntity IO_IOTrigger;
 	private List<WheelSwitch> IO_ConnectedWheelSwitches = new List<WheelSwitch>();
 	private bool IO_Running;
-
 	private BaseEntity.Flags IO_Triggered;
 
 	internal static void IO_RunCore_IO()
 	{
-		foreach (KeyValuePair<Vector3, PrefabData> be in Elevators)
+		foreach (KeyValuePair<Vector3, PrefabData> be in IO_Elevators)
 		{
 			try
 			{
@@ -1804,7 +1806,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			}
 			catch { Debug.LogError("Fault With Currupted Elevators"); }
 		}
-		foreach (SerializedIOEntity SIOE in serializedIOData.entities)
+		foreach (SerializedIOEntity SIOE in IO_serializedIOData.entities)
 		{
 			try
 			{
@@ -1879,7 +1881,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 					{
 						(IO as PowerCounter).SetFlag(PowerCounter.Flag_ShowPassthrough, SIOE.counterPassthrough);
 						(IO as PowerCounter).SetCounterNumber(0);
-						_targetCounterNumber.SetValue(IO as PowerCounter, SIOE.targetCounterNumber);
+						IO__targetCounterNumber.SetValue(IO as PowerCounter, SIOE.targetCounterNumber);
 					}
 					else if (IO is AutoTurret)
 					{
@@ -1940,7 +1942,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				Debug.LogError(e.ToString());
 			}
 		}
-		foreach (IOEntity IO in Processed)
+		foreach (IOEntity IO in IO_Processed)
 		{
 			try
 			{
@@ -1949,12 +1951,12 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			}
 			catch { }
 		}
-		Debug.LogWarning("[Core.IO] Ran " + Wires.Count + " IO Connections");
+		Debug.LogWarning("[Core.IO] Ran " + IO_Wires.Count + " IO Connections");
 	}
 	internal static bool IO_DirtyElevators()
 	{
 		var restart = false;
-		foreach (var be in Elevators)
+		foreach (var be in IO_Elevators)
 		{
 			var list = Pool.GetList<BaseEntity>();
 			var floor = be.Key;
@@ -1999,8 +2001,8 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		OutputSlot.outputs[s_slot].connectedTo.Set(InputSlot);
 		OutputSlot.outputs[s_slot].connectedToSlot = Input_slot;
 		OutputSlot.outputs[s_slot].connectedTo.Init();
-		if (!Processed.Contains(OutputSlot)) { Processed.Add(OutputSlot); }
-		if (!Processed.Contains(InputSlot)) { Processed.Add(InputSlot); }
+		if (!IO_Processed.Contains(OutputSlot)) { IO_Processed.Add(OutputSlot); }
+		if (!IO_Processed.Contains(InputSlot)) { IO_Processed.Add(InputSlot); }
 		IO_LogWires(InputSlot, OutputSlot);
 	}
 	internal static void IO_LogWires(IOEntity Input, IOEntity Output)
@@ -2009,11 +2011,11 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Vector3 P2 = Output.transform.position;
 		if (Input is CardReader || Input is TimerSwitch || Input is PowerCounter || Input is ElectricSwitch || Input is SmartSwitch || Input is PressButton || Input is ORSwitch || Input is XORSwitch || Input is ANDSwitch || Input is DoorManipulator || Input is FuseBox) { P1.y += 0.8f; }
 		if (Output is CardReader || Output is TimerSwitch || Output is PowerCounter || Output is ElectricSwitch || Output is SmartSwitch || Output is PressButton || Output is ORSwitch || Output is XORSwitch || Output is ANDSwitch || Output is DoorManipulator || Output is FuseBox) { P2.y += 0.8f; }
-		Wires.Add(new Dictionary<Vector3, Vector3>() { { P1, P2 } });
+		IO_Wires.Add(new Dictionary<Vector3, Vector3>() { { P1, P2 } });
 	}
 	internal static void IO_CreateElevator(Elevator baseelevator, SerializedIOEntity serializedIOEntity)
 	{
-		Processed.Add(baseelevator);
+		IO_Processed.Add(baseelevator);
 		Elevator Top = baseelevator;
 		for (int i = 1; i < serializedIOEntity.floors; i++)
 		{
@@ -2022,9 +2024,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			elevator2.EnableSaving(false);
 			elevator2.Spawn();
 			IO_SetupEntity(elevator2);
-			Protect.Add(elevator2.transform.position);
-			Processed.Add(elevator2);
-			DestroyOnUnload.Add(elevator2);
+			IO_Protect.Add(elevator2.transform.position);
+			IO_Processed.Add(elevator2);
+			IO_DestroyOnUnload.Add(elevator2);
 			elevator2.RefreshEntityLinks();
 			elevator2.OnDeployed(null, null, null);
 			elevator2.SetFlag(BaseEntity.Flags.Reserved2, true, false, false);
@@ -2035,7 +2037,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	internal static void IO_CreateLift(Elevator elevator)
 	{
-		var elevatorLift = _liftEntity.GetValue(elevator) as ElevatorLift;
+		var elevatorLift = IO__liftEntity.GetValue(elevator) as ElevatorLift;
 		if (elevatorLift == null)
 		{
 			elevatorLift = IO_FindLift(elevator);
@@ -2045,9 +2047,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				elevatorLift.SetParent(elevator, true, false);
 				elevatorLift.enableSaving = false;
 				elevatorLift.Spawn();
-				DestroyOnUnload.Add(elevatorLift);
-				Protect.Add(elevatorLift.transform.position);
-				_liftEntity.SetValue(elevator, elevatorLift);
+				IO_DestroyOnUnload.Add(elevatorLift);
+				IO_Protect.Add(elevatorLift.transform.position);
+				IO__liftEntity.SetValue(elevator, elevatorLift);
 				return;
 			}
 		}
@@ -2056,8 +2058,8 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			elevatorLift.pickup.enabled = false;
 			elevatorLift.enableSaving = false;
 			elevatorLift.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
-			DestroyOnUnload.Add(elevatorLift);
-			Protect.Add(elevatorLift.transform.position);
+			IO_DestroyOnUnload.Add(elevatorLift);
+			IO_Protect.Add(elevatorLift.transform.position);
 		}
 	}
 	internal static ElevatorLift IO_FindLift(Elevator elevator)
@@ -2096,10 +2098,10 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	internal static BaseEntity IO_RecreateElevatorBase(string path, Vector3 pos, Quaternion rot)
 	{
 		BaseEntity elevator = GameManager.server.CreateEntity(path, pos, rot, true);
-		Protect.Add(elevator.transform.position);
+		IO_Protect.Add(elevator.transform.position);
 		elevator.Spawn();
 		IO_SetupEntity(elevator);
-		DestroyOnUnload.Add(elevator);
+		IO_DestroyOnUnload.Add(elevator);
 		elevator.SendNetworkUpdateImmediate();
 		return elevator;
 	}
@@ -2135,9 +2137,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	internal static void IO_RustEditIOEntity(BaseEntity ioentity_0)
 	{
-		for (int i = 0; i < types.Length; i++)
+		for (int i = 0; i < IO_types.Length; i++)
 		{
-			Component component = ioentity_0.GetComponent(types[i]);
+			Component component = ioentity_0.GetComponent(IO_types[i]);
 			if (component != null)
 			{
 				UnityEngine.Object.Destroy(component);
@@ -2146,7 +2148,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		DecayEntity componentInParent = ioentity_0.GetComponentInParent<DecayEntity>();
 		if (componentInParent != null)
 		{
-			_decay.SetValue(componentInParent, null);
+			IO__decay.SetValue(componentInParent, null);
 		}
 	}
 	internal static void IO_ResetIOEntity(IOEntity ioentity_0)
@@ -2221,7 +2223,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			Revert = true;
 			player.SetPlayerFlag(BasePlayer.PlayerFlags.IsAdmin, true);
 		}
-		foreach (Dictionary<Vector3, Vector3> v in Wires)
+		foreach (Dictionary<Vector3, Vector3> v in IO_Wires)
 		{
 			foreach (KeyValuePair<Vector3, Vector3> w in v)
 			{
@@ -2262,12 +2264,23 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				Debug.LogWarning(ex);
 			}
 			Rust.Application.isQuitting = true;
+			Network.Net.sv.Stop("Restarting");
 			System.Diagnostics.Process.GetCurrentProcess().Kill();
 			Rust.Application.Quit();
 			return false;
 		}
 
 		return true;
+	}
+	private void IPostSaveSave()
+	{
+		foreach (BaseEntity be in IO_DestroyOnUnload)
+		{
+			if (BaseEntity.saveList.Contains(be))
+			{
+				BaseEntity.saveList.Remove(be);
+			}
+		}
 	}
 
 	#endregion
@@ -2356,7 +2369,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 					autoTurret.Invoke(new Action(autoTurret.UpdateAttachedWeapon), 0.5f);
 				}
 				autoTurret.Invoke(new Action(GiveAmmo), 1f);
-				AutoTurrets.Add(autoTurret, UnlimitedAmmo);
+				IO_AutoTurrets.Add(autoTurret, UnlimitedAmmo);
 				if (!UnlimitedAmmo)
 				{
 					autoTurret.InvokeRepeating(() =>
