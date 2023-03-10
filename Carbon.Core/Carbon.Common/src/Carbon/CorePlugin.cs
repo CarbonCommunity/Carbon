@@ -914,7 +914,7 @@ public class CorePlugin : CarbonPlugin
 		{
 			if (hookable is not IModule module) continue;
 
-			print.AddRow(hookable.Name, module.GetEnabled() ? "Yes" : "No", $"c.setmodule {hookable.Name} 0/1");
+			print.AddRow(hookable.Name, module.GetEnabled() ? "Yes" : "No", $"c.setmodule \"{hookable.Name}\" 0/1");
 		}
 
 		Reply(print.ToStringMinimal(), arg);
