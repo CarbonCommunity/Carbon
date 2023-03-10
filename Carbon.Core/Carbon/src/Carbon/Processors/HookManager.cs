@@ -173,15 +173,16 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 				bool hasSubscribers = HookHasSubscribers(hook.Identifier);
 				bool isInstalled = hook.IsInstalled;
-				//bool hasValidChecksum = true;
 
+				//bool hasValidChecksum = true;
+				//
 				// if (!isInstalled)
 				// {
 				// 	string id = $"{hook.TargetType}|{hook.TargetMethod}|{hook.TargetMethodArgs.Count()}";
 				// 	string checksum = null;
 
-				// 	if (_cachedChecksums.ContainsKey(id))
-				// 		checksum = (string)_cachedChecksums[id];
+				// 	// if (_cachedChecksums.ContainsKey(id))
+				// 	// 	checksum = (string)_cachedChecksums[id];
 				// 	checksum ??= hook.GetTargetMethodChecksum();
 
 				// 	hasValidChecksum = (hook.IsChecksumIgnored || hook.Checksum == string.Empty)
@@ -225,10 +226,8 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 	private void LoadHooksFromFile(string fileName)
 	{
-		Assembly hooks;
-
 		// delegates asm loading to Carbon.Loader 
-		hooks = Supervisor.ASM.LoadModule(fileName);
+		Assembly hooks = Supervisor.ASM.LoadModule(fileName);
 
 		if (hooks == null)
 		{
@@ -246,7 +245,32 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 		IEnumerable<TypeInfo> types = hooks.DefinedTypes
 			.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr)).ToList();
 
-		TaskStatus stats = new();
+		TaskStatus stats = LoadHooks(types);
+		if (stats.Total == 0) return;
+
+		Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
+			+ $" from file '{Path.GetFileName(fileName)}' in {sw.ElapsedMilliseconds}ms");
+	}
+
+	public void LoadHooksFromType(Type type)
+	{
+		Type @base = typeof(API.Hooks.Patch);
+		Type attr = typeof(HookAttribute.Patch);
+
+		IEnumerable<TypeInfo> types = type.GetNestedTypes()
+			.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr))
+			.Select(x => x.GetTypeInfo()).ToList();
+
+		TaskStatus stats = LoadHooks(types);
+		if (stats.Total == 0) return;
+
+		Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
+			+ $" from type '{type}' in {sw.ElapsedMilliseconds}ms");
+	}
+
+	private TaskStatus LoadHooks(IEnumerable<TypeInfo> types)
+	{
+		TaskStatus retvar = new();
 		sw.Restart();
 
 		foreach (TypeInfo type in types)
@@ -261,19 +285,19 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 				if (hook.IsPatch)
 				{
-					stats.Patch++;
+					retvar.Patch++;
 					_patches.Add(hook);
 					Logger.Debug($"Loaded patch '{hook}'", 4);
 				}
 				else if (hook.IsStaticHook)
 				{
-					stats.Static++;
+					retvar.Static++;
 					_staticHooks.Add(hook);
 					Logger.Debug($"Loaded static hook '{hook}'", 4);
 				}
 				else
 				{
-					stats.Dynamic++;
+					retvar.Dynamic++;
 					_dynamicHooks.Add(hook);
 					Logger.Debug($"Loaded dynamic hook '{hook}'", 4);
 				}
@@ -284,11 +308,8 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 			}
 		}
 
-		Logger.Log($"- Successfully loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
-			+ $" from file '{Path.GetFileName(fileName)}' in {sw.ElapsedMilliseconds}ms");
-
-		types = default;
 		sw.Stop();
+		return retvar;
 	}
 
 	private List<HookEx> GetHookDependencyTree(HookEx hook)

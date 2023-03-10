@@ -22,5 +22,7 @@ namespace Carbon.Contracts
 
 		bool IsHookLoaded(string hookName);
 		int GetHookSubscriberCount(string identifier);
+
+		public void LoadHooksFromType(Type type);
 	}
 }

@@ -71,6 +71,8 @@ public class CarbonModule<C, D> : BaseModule, IModule
 		base.Name = Name;
 		base.Type = Type;
 
+		Community.Runtime.HookManager.LoadHooksFromType(Type);
+
 		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
 			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
