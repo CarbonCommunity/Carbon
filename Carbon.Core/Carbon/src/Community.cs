@@ -196,6 +196,8 @@ public class CommunityInternal : Community
 		"System",
 
 		"Carbon.Common",
+		"Carbon.Ext.Discord",
+
 		"protobuf-net",
 		"protobuf-net.Core",
 		"websocket-sharp",

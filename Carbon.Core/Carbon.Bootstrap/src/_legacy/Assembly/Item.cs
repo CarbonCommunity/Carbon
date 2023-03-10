@@ -104,6 +104,8 @@ internal sealed class Item : IDisposable
 			"Carbon.Common.dll" => Context.CarbonManaged,
 			"Carbon.Modules.dll" => Context.CarbonManaged,
 
+			"Carbon.Ext.Discord.dll" => Context.CarbonExtensions,
+
 			"Carbon.Hooks.Base.dll" => Context.CarbonHooks,
 			"Carbon.Hooks.Extra.dll" => Context.CarbonHooks,
 
