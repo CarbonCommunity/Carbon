@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 using Carbon.Base;
@@ -82,6 +83,24 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		if (APC_serializedAPCPathList == null) { APC_ReadMapData(); }
 		if (APC_serializedAPCPathList != null) { ServerMgr.Instance.StartCoroutine(APC_Setup()); }
+
+		#endregion
+
+		#region Cargo Path
+
+		if (CargoSpawn.Count != 0 || CargoStops.Count != 0)
+		{
+			Debug.LogWarning("[Core.CargoPath] Found " + CargoSpawn.Count.ToString() + " Spawn Points And " + CargoStops.Count.ToString() + " Stop Points");
+		}
+		foreach (var ship in BaseNetworkable.serverEntities.OfType<CargoShip>())
+		{
+			if (ship.gameObject.HasComponent<CargoMod>()) continue;
+
+			var newcargoship = ship.gameObject.AddComponent<CargoMod>();
+			newcargoship._cargoship = ship;
+			newcargoship.CargoThread = ServerMgr.Instance.StartCoroutine(newcargoship.CargoTick());
+			CargoShips.Add(newcargoship);
+		}
 
 		#endregion
 	}
@@ -232,8 +251,11 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Subscribe("IOnCargoShipEgressStart");
 		Subscribe("ICanCargoShipBlockWaterFor");
 		Subscribe("IOnWorldPrefabSpawn");
+		Subscribe("ICanCargoShipBlockWaterFor");
+		Subscribe("ICanGenerateOceanPatrolPath");
+		Subscribe("IOnGenerateOceanPatrolPath");
+		Subscribe("IOnPostGenerateOceanPatrolPath");
 	}
-
 	public override void OnDisabled(bool initialized)
 	{
 		base.OnDisabled(initialized);
@@ -247,6 +269,10 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Unsubscribe("IOnCargoShipEgressStart");
 		Unsubscribe("ICanCargoShipBlockWaterFor");
 		Unsubscribe("IOnWorldPrefabSpawn");
+		Unsubscribe("ICanCargoShipBlockWaterFor");
+		Unsubscribe("ICanGenerateOceanPatrolPath");
+		Unsubscribe("IOnGenerateOceanPatrolPath");
+		Unsubscribe("IOnPostGenerateOceanPatrolPath");
 	}
 
 	#region Common
@@ -1300,6 +1326,39 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	private object ICanCargoShipBlockWaterFor()
 	{
 		return true;
+	}
+	private object ICanGenerateOceanPatrolPath()
+	{
+		if (Cargo_ReadMapData())
+		{
+			if (serializedPathList != null)
+			{
+				var newPath = new List<Vector3>();
+
+				foreach (var vd in serializedPathList.vectorData)
+				{
+					newPath.Add(new Vector3(vd.x, vd.y, vd.z));
+				}
+
+				return CargoPath = newPath;
+			}
+		}
+
+		return null;
+	}
+	private object IOnGenerateOceanPatrolPath(List<Vector3> list)
+	{
+		if (CargoPath != null && CargoPath.Count != 0)
+		{
+			Debug.LogWarning("[Core.CargoPath] Loaded Custom Path " + list.Count + " Nodes.");
+			return CargoPath;
+		}
+
+		return null;
+	}
+	private void IOnPostGenerateOceanPatrolPath(List<Vector3> list)
+	{
+		CargoPath = list;
 	}
 
 	#endregion
