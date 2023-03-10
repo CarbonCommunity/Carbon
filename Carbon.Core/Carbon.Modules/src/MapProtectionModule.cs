@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace Carbon.Modules;
 
-public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtectionData>
+public class MapProtectionModule : CarbonModule<MapProtectionConfig, EmptyModuleData>
 {
 	public override string Name => "Map Protection";
 	public override Type Type => typeof(MapProtectionModule);
@@ -206,8 +206,4 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 public class MapProtectionConfig
 {
 	public string Key { get; set; }
-}
-public class MapProtectionData
-{
-
 }

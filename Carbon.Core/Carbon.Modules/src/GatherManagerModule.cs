@@ -14,7 +14,7 @@ using static BaseEntity;
 
 namespace Carbon.Modules;
 
-public class GatherManagerModule : CarbonModule<GatherManagerConfig, GatherManagerData>
+public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
 {
 	public override string Name => "GatherManager";
 	public override Type Type => typeof(GatherManagerModule);
@@ -104,7 +104,7 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, GatherManag
 	{
 		if (table.currentRecipe == null) return null;
 
-		if(originalValue == table.currentRecipe.MixingDuration * table.currentQuantity)
+		if (originalValue == table.currentRecipe.MixingDuration * table.currentQuantity)
 		{
 			return Config.MixingSpeedMultiplier;
 		}
@@ -215,8 +215,4 @@ public class GatherManagerConfig
 		["skull.wolf"] = 1f,
 		["skull.human"] = 1f
 	};
-}
-public class GatherManagerData
-{
-
 }

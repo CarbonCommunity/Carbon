@@ -28,6 +28,17 @@ public class BaseModule : BaseHookable
 		return default;
 	}
 }
+
+public class GenericConfig
+{
+	// nothing here
+}
+
+public class EmptyModuleData
+{
+	// nothing here
+}
+
 public class CarbonModule<C, D> : BaseModule, IModule
 {
 	public DynamicConfigFile File { get; private set; }
