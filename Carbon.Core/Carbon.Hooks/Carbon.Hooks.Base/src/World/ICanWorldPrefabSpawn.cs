@@ -15,7 +15,7 @@ public partial class Category_World
 {
 	public partial class World_World
 	{
-		[HookAttribute.Patch("IOnWorldPrefabSpawn", "IOnWorldPrefabSpawn", typeof(World), "Spawn", new System.Type[] { typeof(System.String), typeof(Prefab), typeof(UnityEngine.Vector3), typeof(UnityEngine.Quaternion), typeof(UnityEngine.Vector3) })]
+		[HookAttribute.Patch("ICanWorldPrefabSpawn", "ICanWorldPrefabSpawn", typeof(World), "Spawn", new System.Type[] { typeof(System.String), typeof(Prefab), typeof(UnityEngine.Vector3), typeof(UnityEngine.Quaternion), typeof(UnityEngine.Vector3) })]
 		[HookAttribute.Identifier("37656a8fcdb7486693f0085c831f11ad")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
@@ -23,7 +23,7 @@ public partial class Category_World
 		{
 			public static bool Prefix(string category, Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
 			{
-				return HookCaller.CallStaticHook("IOnWorldPrefabSpawn", category, prefab, position, rotation, scale) == null;
+				return HookCaller.CallStaticHook("ICanWorldPrefabSpawn", category, prefab, position, rotation, scale) == null;
 			}
 		}
 	}

@@ -236,34 +236,40 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		return Spawn_RespawnPlayer();
 	}
-	private object IOnWorldPrefabSpawn(Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
+	private object ICanWorldPrefabSpawn(string category, Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
 	{
 		#region IO
-
-		IO_WorldSpawnHook(null, prefab, position, rotation, scale);
-
+		try
+		{
+			IO_WorldSpawnHook(null, prefab, position, rotation, scale);
+		}
+		catch (Exception ex) { PutsError($"Failed IOnWorldPrefabSpawn for IO.", ex); }
 		#endregion
 
 		#region Cargo Paths
-
-		switch (prefab.ID)
+		try
 		{
-			case 2741054453:
-			case 843218194:
-				Cargo_CargoSpawn.Add(position);
-				return false;
+			switch (prefab.ID)
+			{
+				case 2741054453:
+				case 843218194:
+					Cargo_CargoSpawn.Add(position);
+					return false;
+			}
 		}
-
+		catch (Exception ex) { PutsError($"Failed IOnWorldPrefabSpawn for Cargo Path.", ex); }
 		#endregion
 
 		#region Spawn
-
-		if (prefab.Name.Equals(Spawn_SpawnpointPrefab))
+		try
 		{
-			Spawn_Spawnpoints.Add(position);
-			return true;
+			if (prefab.Name.Equals(Spawn_SpawnpointPrefab))
+			{
+				Spawn_Spawnpoints.Add(position);
+				return null;
+			}
 		}
-
+		catch (Exception ex) { PutsError($"Failed IOnWorldPrefabSpawn for Spawn.", ex); }
 		#endregion
 
 		return null;
@@ -353,6 +359,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		base.OnEnabled(initialized);
 
+		Puts($"Subscribing to hooks");
 		Subscribe("CanBradleyApcTarget");
 		Subscribe("OnTurretTarget");
 		Subscribe("OnBasePlayerAttacked");
@@ -361,7 +368,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Subscribe("OnEntitySpawned");
 		Subscribe("IOnCargoShipEgressStart");
 		Subscribe("ICanCargoShipBlockWaterFor");
-		Subscribe("IOnWorldPrefabSpawn");
+		Subscribe("ICanWorldPrefabSpawn");
 		Subscribe("ICanCargoShipBlockWaterFor");
 		Subscribe("ICanGenerateOceanPatrolPath");
 		Subscribe("IOnGenerateOceanPatrolPath");
@@ -378,6 +385,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		base.OnDisabled(initialized);
 
+		Puts($"Unsubscribing hooks");
 		Unsubscribe("CanBradleyApcTarget");
 		Unsubscribe("OnTurretTarget");
 		Unsubscribe("OnBasePlayerAttacked");
@@ -386,7 +394,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Unsubscribe("OnEntitySpawned");
 		Unsubscribe("IOnCargoShipEgressStart");
 		Unsubscribe("ICanCargoShipBlockWaterFor");
-		Unsubscribe("IOnWorldPrefabSpawn");
+		Unsubscribe("ICanWorldPrefabSpawn");
 		Unsubscribe("ICanCargoShipBlockWaterFor");
 		Unsubscribe("ICanGenerateOceanPatrolPath");
 		Unsubscribe("IOnGenerateOceanPatrolPath");
@@ -2051,138 +2059,141 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			}
 			catch { Debug.LogError("Fault With Currupted Elevators"); }
 		}
-		foreach (SerializedIOEntity SIOE in IO_serializedIOData.entities)
+		if (IO_serializedIOData != null)
 		{
-			try
+			foreach (SerializedIOEntity SIOE in IO_serializedIOData.entities)
 			{
-				BaseEntity IO = IO_FindEntity(SIOE.position, SIOE.fullPath);
-				if (IO == null) { continue; }
-				if (SIOE.timerLength == 0) { SIOE.timerLength += 0.25f; }
 				try
 				{
-					if (IO is Elevator elevator)
+					BaseEntity IO = IO_FindEntity(SIOE.position, SIOE.fullPath);
+					if (IO == null) { continue; }
+					if (SIOE.timerLength == 0) { SIOE.timerLength += 0.25f; }
+					try
+					{
+						if (IO is Elevator elevator)
+						{
+							try
+							{
+								IO_CreateElevator(elevator, SIOE);
+							}
+							catch
+							{
+								Debug.LogError("Elevator Fault");
+							}
+							continue;
+						}
+						else if (IO is CardReader reader)
+						{
+							if (reader != null)
+							{
+								SIOE.accessLevel += 1;
+								var cardReaderMonitor = IO.gameObject.GetComponent<CardReaderMonitor>() ?? IO.gameObject.AddComponent<CardReaderMonitor>();
+								if (cardReaderMonitor != null)
+								{
+									cardReaderMonitor.Timerlength = SIOE.timerLength;
+								}
+								reader.accessLevel = SIOE.accessLevel;
+								reader.accessDuration = SIOE.timerLength;
+								reader.SetFlag(BaseEntity.Flags.Reserved1, SIOE.accessLevel == 1, false, true);
+								reader.SetFlag(BaseEntity.Flags.Reserved2, SIOE.accessLevel == 2, false, true);
+								reader.SetFlag(BaseEntity.Flags.Reserved3, SIOE.accessLevel == 3, false, true);
+							}
+						}
+						else if (IO is PressButton pressButton)
+						{
+							pressButton.pressDuration = SIOE.timerLength;
+						}
+						else if (IO is RFBroadcaster rf)
+						{
+							rf.frequency = SIOE.frequency;
+							rf.MarkDirty();
+							rf.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
+						}
+						else if (IO is CCTV_RC cctv)
+						{
+							cctv.isStatic = true;
+							cctv.UpdateIdentifier(SIOE.rcIdentifier, true);
+						}
+						else if (IO is Telephone telephone)
+						{
+							telephone.Controller.PhoneName = SIOE.phoneName;
+						}
+						else if (IO is TimerSwitch timerSwitch)
+						{
+							timerSwitch.timerLength = SIOE.timerLength;
+						}
+						else if (IO is SamSite samSite)
+						{
+							samSite.staticRespawn = true;
+						}
+						else if (IO is ElectricalBranch electricalBranch)
+						{
+							electricalBranch.branchAmount = SIOE.branchAmount;
+						}
+						else if (IO is PowerCounter power)
+						{
+							power.SetFlag(PowerCounter.Flag_ShowPassthrough, SIOE.counterPassthrough);
+							power.SetCounterNumber(0);
+							power.targetCounterNumber = SIOE.targetCounterNumber;
+						}
+						else if (IO is AutoTurret)
+						{
+							var manager = IO.gameObject.GetComponent<AutoTurretManager>() ?? IO.gameObject.AddComponent<AutoTurretManager>();
+							manager.SetupTurret(SIOE.unlimitedAmmo, SIOE.peaceKeeper, SIOE.autoTurretWeapon);
+						}
+						else if (IO is WheelSwitch wheelSwitch)
+						{
+							var connection = IO.gameObject.GetComponent<IOEntityToWheelSwitchConnection>() ?? IO.gameObject.AddComponent<IOEntityToWheelSwitchConnection>();
+							connection.SetTarget(wheelSwitch);
+						}
+						else if (IO is DoorManipulator doorManipulator)
+						{
+							doorManipulator.SetTargetDoor(doorManipulator.FindDoor(true));
+						}
+					}
+					catch
+					{
+						Debug.LogError("Failed To Set Setting " + IO.ToString());
+					}
+					IOEntity IOE = IO as IOEntity;
+					if (IOE == null) { continue; }
+					Array.Resize<IOEntity.IOSlot>(ref IOE.outputs, SIOE.outputs.Length);
+					for (int i = 0; i < IOE.outputs.Length; i++)
 					{
 						try
 						{
-							IO_CreateElevator(elevator, SIOE);
-						}
-						catch
-						{
-							Debug.LogError("Elevator Fault");
-						}
-						continue;
-					}
-					else if (IO is CardReader reader)
-					{
-						if (reader != null)
-						{
-							SIOE.accessLevel += 1;
-							var cardReaderMonitor = IO.gameObject.GetComponent<CardReaderMonitor>() ?? IO.gameObject.AddComponent<CardReaderMonitor>();
-							if (cardReaderMonitor != null)
+							IOE.outputs[i] = new IOEntity.IOSlot { connectedTo = new IOEntity.IORef() };
+							if (SIOE.outputs[i] != null)
 							{
-								cardReaderMonitor.Timerlength = SIOE.timerLength;
-							}
-							reader.accessLevel = SIOE.accessLevel;
-							reader.accessDuration = SIOE.timerLength;
-							reader.SetFlag(BaseEntity.Flags.Reserved1, SIOE.accessLevel == 1, false, true);
-							reader.SetFlag(BaseEntity.Flags.Reserved2, SIOE.accessLevel == 2, false, true);
-							reader.SetFlag(BaseEntity.Flags.Reserved3, SIOE.accessLevel == 3, false, true);
-						}
-					}
-					else if (IO is PressButton pressButton)
-					{
-						pressButton.pressDuration = SIOE.timerLength;
-					}
-					else if (IO is RFBroadcaster rf)
-					{
-						rf.frequency = SIOE.frequency;
-						rf.MarkDirty();
-						rf.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
-					}
-					else if (IO is CCTV_RC cctv)
-					{
-						cctv.isStatic = true;
-						cctv.UpdateIdentifier(SIOE.rcIdentifier, true);
-					}
-					else if (IO is Telephone telephone)
-					{
-						telephone.Controller.PhoneName = SIOE.phoneName;
-					}
-					else if (IO is TimerSwitch timerSwitch)
-					{
-						timerSwitch.timerLength = SIOE.timerLength;
-					}
-					else if (IO is SamSite samSite)
-					{
-						samSite.staticRespawn = true;
-					}
-					else if (IO is ElectricalBranch electricalBranch)
-					{
-						electricalBranch.branchAmount = SIOE.branchAmount;
-					}
-					else if (IO is PowerCounter power)
-					{
-						power.SetFlag(PowerCounter.Flag_ShowPassthrough, SIOE.counterPassthrough);
-						power.SetCounterNumber(0);
-						power.targetCounterNumber = SIOE.targetCounterNumber;
-					}
-					else if (IO is AutoTurret)
-					{
-						var manager = IO.gameObject.GetComponent<AutoTurretManager>() ?? IO.gameObject.AddComponent<AutoTurretManager>();
-						manager.SetupTurret(SIOE.unlimitedAmmo, SIOE.peaceKeeper, SIOE.autoTurretWeapon);
-					}
-					else if (IO is WheelSwitch wheelSwitch)
-					{
-						var connection = IO.gameObject.GetComponent<IOEntityToWheelSwitchConnection>() ?? IO.gameObject.AddComponent<IOEntityToWheelSwitchConnection>();
-						connection.SetTarget(wheelSwitch);
-					}
-					else if (IO is DoorManipulator doorManipulator)
-					{
-						doorManipulator.SetTargetDoor(doorManipulator.FindDoor(true));
-					}
-				}
-				catch
-				{
-					Debug.LogError("Failed To Set Setting " + IO.ToString());
-				}
-				IOEntity IOE = IO as IOEntity;
-				if (IOE == null) { continue; }
-				Array.Resize<IOEntity.IOSlot>(ref IOE.outputs, SIOE.outputs.Length);
-				for (int i = 0; i < IOE.outputs.Length; i++)
-				{
-					try
-					{
-						IOE.outputs[i] = new IOEntity.IOSlot { connectedTo = new IOEntity.IORef() };
-						if (SIOE.outputs[i] != null)
-						{
-							IOEntity I = (IO_FindEntity(SIOE.outputs[i].position, SIOE.outputs[i].fullPath) as IOEntity);
-							if (I is Elevator && !(IOE is ElectricGenerator))
-							{
-								int Floor = SIOE.outputs[i].connectedTo;
-								int socket = 0;
-								if (Floor % 2 == 0) { Floor = (Floor / 2); }
-								else { Floor = ((Floor + 1) / 2); socket = 1; }
-								List<Elevator> list = new List<Elevator>();
-								Vis.Entities(IO_GetWorldSpaceFloorPosition(I as Elevator, Floor - 1), 1f, list);
-								foreach (Elevator be in list)
+								IOEntity I = (IO_FindEntity(SIOE.outputs[i].position, SIOE.outputs[i].fullPath) as IOEntity);
+								if (I is Elevator && !(IOE is ElectricGenerator))
 								{
-									IO_RunWire(IOE, i, be, socket);
-									break;
+									int Floor = SIOE.outputs[i].connectedTo;
+									int socket = 0;
+									if (Floor % 2 == 0) { Floor = (Floor / 2); }
+									else { Floor = ((Floor + 1) / 2); socket = 1; }
+									List<Elevator> list = new List<Elevator>();
+									Vis.Entities(IO_GetWorldSpaceFloorPosition(I as Elevator, Floor - 1), 1f, list);
+									foreach (Elevator be in list)
+									{
+										IO_RunWire(IOE, i, be, socket);
+										break;
+									}
+									continue;
 								}
-								continue;
-							}
-							if (I != null)
-							{
-								IO_RunWire(IOE, i, I, SIOE.outputs[i].connectedTo);
+								if (I != null)
+								{
+									IO_RunWire(IOE, i, I, SIOE.outputs[i].connectedTo);
+								}
 							}
 						}
+						catch { }
 					}
-					catch { }
 				}
-			}
-			catch (Exception e)
-			{
-				Debug.LogError(e.ToString());
+				catch (Exception e)
+				{
+					Debug.LogError(e.ToString());
+				}
 			}
 		}
 		foreach (IOEntity IO in IO_Processed)
