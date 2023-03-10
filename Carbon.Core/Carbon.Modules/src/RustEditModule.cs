@@ -40,7 +40,7 @@ namespace Carbon.Modules;
 
 public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 {
-	internal static RustEditModule Singleton { get; internal set; }
+	internal static RustEditModule Singleton { get; set; }
 
 	public override string Name => "RustEdit.Ext";
 	public override Type Type => typeof(RustEditModule);
