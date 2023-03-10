@@ -18,6 +18,7 @@
 		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
 		<PackageReference Include="SharpCompress" Version="0.32.2" />
 		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
+		<PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
