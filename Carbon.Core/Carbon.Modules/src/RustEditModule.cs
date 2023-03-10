@@ -40,75 +40,84 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		if (!ConfigInstance.Enabled) return;
 
 		#region Spawnpoints
-
-		if (Spawn_Spawnpoints != null && Spawn_Spawnpoints.Count != 0)
+		try
 		{
-			PutsWarn($"Found {Spawn_Spawnpoints.Count:n0} spawn-points.");
-		}
-
+			if (Spawn_Spawnpoints != null && Spawn_Spawnpoints.Count != 0)
+			{
+				PutsWarn($"Found {Spawn_Spawnpoints.Count:n0} spawn-points.");
+			}
+		} catch (Exception ex) { PutsError($"Failed to install Spawnpoints.", ex); }
 		#endregion
 
 		#region NPC Spawner
-
-		if (NPCSpawner_serializedNPCData == null)
+		try
 		{
-			//Load XML from map
-			var data = GetData("SerializedNPCData");
-
-			if (data != null) { NPCSpawner_serializedNPCData = Deserialize<SerializedNPCData>(data); }
-		}
-		if (NPCSpawner_serializedNPCData != null)
-		{
-			var npcSpawners = NPCSpawner_serializedNPCData.npcSpawners;
-			if (npcSpawners != null && npcSpawners.Count != 0)
+			if (NPCSpawner_serializedNPCData == null)
 			{
-				Puts($"Loaded {NPCSpawner_serializedNPCData.npcSpawners.Count:n0} NPC Spawners.");
-				for (int i = 0; i < npcSpawners.Count; i++)
+				//Load XML from map
+				var data = GetData("SerializedNPCData");
+
+				if (data != null) { NPCSpawner_serializedNPCData = Deserialize<SerializedNPCData>(data); }
+			}
+			if (NPCSpawner_serializedNPCData != null)
+			{
+				var npcSpawners = NPCSpawner_serializedNPCData.npcSpawners;
+				if (npcSpawners != null && npcSpawners.Count != 0)
 				{
-					//Setup spawners
-					var npcspawner = new GameObject("NPCSpawner").AddComponent<NPCSpawner>();
-					npcspawner.Initialize(NPCSpawner_serializedNPCData.npcSpawners[i]);
-					NPCSpawner_NPCsList.Add(npcspawner);
+					Puts($"Loaded {NPCSpawner_serializedNPCData.npcSpawners.Count:n0} NPC Spawners.");
+					for (int i = 0; i < npcSpawners.Count; i++)
+					{
+						//Setup spawners
+						var npcspawner = new GameObject("NPCSpawner").AddComponent<NPCSpawner>();
+						npcspawner.Initialize(NPCSpawner_serializedNPCData.npcSpawners[i]);
+						NPCSpawner_NPCsList.Add(npcspawner);
+					}
 				}
 			}
+			if (NPCSpawner_NPCThread == null)
+			{
+				//Start NPC management thread.
+				NPCSpawner_NPCThread = ServerMgr.Instance.StartCoroutine(NPCAIFunction());
+			}
 		}
-		if (NPCSpawner_NPCThread == null)
-		{
-			//Start NPC management thread.
-			NPCSpawner_NPCThread = ServerMgr.Instance.StartCoroutine(NPCAIFunction());
-		}
-
+		catch (Exception ex) { PutsError($"Failed to install NPC Spawner.", ex); }
 		#endregion
 
 		#region APC
-
-		if (APC_serializedAPCPathList == null) { APC_ReadMapData(); }
-		if (APC_serializedAPCPathList != null) { ServerMgr.Instance.StartCoroutine(APC_Setup()); }
-
+		try
+		{
+			if (APC_serializedAPCPathList == null) { APC_ReadMapData(); }
+			if (APC_serializedAPCPathList != null) { ServerMgr.Instance.StartCoroutine(APC_Setup()); }
+		}
+		catch (Exception ex) { PutsError($"Failed to install APC.", ex); }
 		#endregion
 
 		#region Cargo Path
-
-		if (Cargo_CargoSpawn.Count != 0 || Cargo_CargoStops.Count != 0)
+		try
 		{
-			Debug.LogWarning("[Core.CargoPath] Found " + Cargo_CargoSpawn.Count.ToString() + " Spawn Points And " + Cargo_CargoStops.Count.ToString() + " Stop Points");
-		}
-		foreach (var ship in BaseNetworkable.serverEntities.OfType<CargoShip>())
-		{
-			if (ship.gameObject.HasComponent<CargoMod>()) continue;
+			if (Cargo_CargoSpawn.Count != 0 || Cargo_CargoStops.Count != 0)
+			{
+				Debug.LogWarning("[Core.CargoPath] Found " + Cargo_CargoSpawn.Count.ToString() + " Spawn Points And " + Cargo_CargoStops.Count.ToString() + " Stop Points");
+			}
+			foreach (var ship in BaseNetworkable.serverEntities.OfType<CargoShip>())
+			{
+				if (ship.gameObject.HasComponent<CargoMod>()) continue;
 
-			var newcargoship = ship.gameObject.AddComponent<CargoMod>();
-			newcargoship._cargoship = ship;
-			newcargoship.CargoThread = ServerMgr.Instance.StartCoroutine(newcargoship.CargoTick());
-			Cargo_CargoShips.Add(newcargoship);
+				var newcargoship = ship.gameObject.AddComponent<CargoMod>();
+				newcargoship._cargoship = ship;
+				newcargoship.CargoThread = ServerMgr.Instance.StartCoroutine(newcargoship.CargoTick());
+				Cargo_CargoShips.Add(newcargoship);
+			}
 		}
-
+		catch (Exception ex) { PutsError($"Failed to install Cargo Path.", ex); }
 		#endregion
 
 		#region I/O
-
-
-
+		try
+		{
+			IO_RunCore_IO();
+		}
+		catch (Exception ex) { PutsError($"Failed to install IO.", ex); }
 		#endregion
 	}
 
@@ -313,6 +322,32 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		return null;
 	}
+	private object CanPickupEntity(BasePlayer player, BaseCombatEntity entity)
+	{
+		if (entity == null)
+		{
+			return true;
+		}
+		if (IO_Protect.Contains(entity.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
+	private object OnEntityKill(BaseNetworkable networkable)
+	{
+		if (networkable == null)
+		{
+			return true;
+		}
+		if (IO_Protect.Contains(networkable.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
 
 	public override void OnEnabled(bool initialized)
 	{
@@ -335,6 +370,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Subscribe("IPostSaveSave");
 		Subscribe("ICanWireToolModifyEntity");
 		Subscribe("IPreTurretTargetTick");
+		Subscribe("ICanDie");
 		Subscribe("OnEntityTakeDamage");
 		Subscribe("CanLootEntity");
 	}
@@ -358,8 +394,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Unsubscribe("IPostSaveLoad");
 		Unsubscribe("IPostSaveSave");
 		Unsubscribe("ICanWireToolModifyEntity");
-		Unsubscribe("OnEntityTakeDamage");
 		Unsubscribe("IPreTurretTargetTick");
+		Unsubscribe("ICanDie");
+		Unsubscribe("OnEntityTakeDamage");
 		Unsubscribe("CanLootEntity");
 	}
 
@@ -2653,7 +2690,19 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		return null;
 	}
+	private object ICanDie(BaseCombatEntity entity, HitInfo info)
+	{
+		if (entity == null)
+		{
+			return true;
+		}
+		if (IO_Protect.Contains(entity.transform.position))
+		{
+			return false;
+		}
 
+		return null;
+	}
 	#endregion
 
 	public class SerializedIOData
