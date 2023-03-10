@@ -1156,7 +1156,14 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	private object OnPlayerViolation(BasePlayer player, AntiHackType type, float amount)
 	{
-		Puts("OnPlayerViolation works!");
+		var entity = player.GetParentEntity();
+
+		if (type == AntiHackType.InsideTerrain && entity != null && entity is CargoShip)
+		{
+			player.Hurt(5f);
+			return false;
+		}
+
 		return null;
 	}
 
@@ -1223,6 +1230,40 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		player.ChatMessage("Exporting SerializedPathList.xml!");
 		Cargo_SaveMap();
 		player.ChatMessage("Saved in server root.");
+	}
+
+	#endregion
+
+	#region Custom Hooks
+
+	private void IOnCargoShipEgressStart(CargoShip cargo)
+	{
+		if (cargo != null)
+		{
+			if (Cargo_AreaBlocked(cargo.transform.position))
+			{
+				cargo.Invoke(() => { cargo.StartEgress(); }, 30);
+				return;
+			}
+			if (SinkMode)
+			{
+				var cargos = Pool.GetList<CargoMod>();
+				cargos.AddRange(CargoShips);
+
+				foreach (var cm in cargos)
+				{
+					if (cm._cargoship == cargo)
+					{
+						CargoShips.Remove(cm);
+						cm._cargoship.targetNodeIndex = -1;
+						cm.AllowCrash = true;
+						break;
+					}
+				}
+
+				Pool.FreeList(ref cargos);
+			}
+		}
 	}
 
 	#endregion
