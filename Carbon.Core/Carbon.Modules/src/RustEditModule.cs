@@ -2413,7 +2413,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			if (BEIO != null)
 			{
 				BEIO.ResetIOState();
-				BEIO.OnCircuitChanged(true);
+				try { BEIO.OnCircuitChanged(true); } catch { }
 				IO_ResetIOEntity(BEIO);
 				BEIO.SendIONetworkUpdate();
 			}
