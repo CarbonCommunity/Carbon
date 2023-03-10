@@ -57,11 +57,36 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		return Path.Combine(Defines.GetModulesFolder(), Name, "data.db");
 	}
 
+	internal const int MaximumBytes = 4104304;
+
 	[ConsoleCommand("imagedb.pending")]
 	[AuthLevel(ServerUsers.UserGroup.Owner)]
 	private void ShowPending(ConsoleSystem.Arg arg)
 	{
 		arg.ReplyWith($"Queued {_queue.Count} batches of {_queue.Sum(x => x._urlQueue.Count):n0} URLs.");
+	}
+
+	[ConsoleCommand("imagedb.clearinvalid")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void ClearInvalid(ConsoleSystem.Arg arg)
+	{
+		var toDelete = Pool.GetList<KeyValuePair<uint, FileStorage.CacheData>>();
+
+		foreach(var file in FileStorage.server._cache)
+		{
+			if(file.Value.data.Length >= MaximumBytes)
+			{
+				toDelete.Add(new KeyValuePair<uint, FileStorage.CacheData>(file.Key, file.Value));
+			}
+		}
+
+		foreach(var data in toDelete)
+		{
+			FileStorage.server.Remove(data.Key, FileStorage.Type.png, data.Value.entityID);
+		}
+
+		arg.ReplyWith($"Removed {toDelete.Count:n0} invalid stored files from FileStorage (above the maximum size of {ByteEx.Format(MaximumBytes, shortName: true).ToUpper()}).");
+		Pool.FreeList(ref toDelete);
 	}
 
 	private void OnServerInitialized()
@@ -176,6 +201,12 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		{
 			foreach (var result in results)
 			{
+				if (result.ProcessedData.Length >= MaximumBytes)
+				{
+					Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.ProcessedData.Length} more or equal than {MaximumBytes}");
+					continue;
+				}
+
 				if (result.OriginalData == result.ProcessedData)
 				{
 					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
@@ -246,6 +277,12 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		{
 			foreach (var result in results)
 			{
+				if (result.ProcessedData.Length >= MaximumBytes)
+				{
+					Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.ProcessedData.Length} more or equal than {MaximumBytes}");
+					continue;
+				}
+
 				if (result.OriginalData == result.ProcessedData)
 				{
 					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
@@ -253,12 +290,6 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 				}
 				else
 				{
-					if (result.ProcessedData.Length >= 4194304)
-					{
-						Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.ProcessedData.Length} more or equal than {4194304}");
-						return;
-					}
-
 					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
 					_protoData.Map[$"{result.Url}_{scale:0.0}"] = id;
 				}
