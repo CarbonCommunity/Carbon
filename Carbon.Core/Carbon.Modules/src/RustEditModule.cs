@@ -89,9 +89,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		#region Cargo Path
 
-		if (CargoSpawn.Count != 0 || CargoStops.Count != 0)
+		if (Cargo_CargoSpawn.Count != 0 || Cargo_CargoStops.Count != 0)
 		{
-			Debug.LogWarning("[Core.CargoPath] Found " + CargoSpawn.Count.ToString() + " Spawn Points And " + CargoStops.Count.ToString() + " Stop Points");
+			Debug.LogWarning("[Core.CargoPath] Found " + Cargo_CargoSpawn.Count.ToString() + " Spawn Points And " + Cargo_CargoStops.Count.ToString() + " Stop Points");
 		}
 		foreach (var ship in BaseNetworkable.serverEntities.OfType<CargoShip>())
 		{
@@ -100,7 +100,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			var newcargoship = ship.gameObject.AddComponent<CargoMod>();
 			newcargoship._cargoship = ship;
 			newcargoship.CargoThread = ServerMgr.Instance.StartCoroutine(newcargoship.CargoTick());
-			CargoShips.Add(newcargoship);
+			Cargo_CargoShips.Add(newcargoship);
 		}
 
 		#endregion
@@ -229,18 +229,86 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	private object IOnWorldPrefabSpawn(Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
 	{
+		#region IO
+
+		IO_WorldSpawnHook(null, prefab, position, rotation, scale);
+
+		#endregion
+
+		#region Cargo Paths
+
 		switch (prefab.ID)
 		{
 			case 2741054453:
 			case 843218194:
-				CargoSpawn.Add(position);
+				Cargo_CargoSpawn.Add(position);
 				return false;
 		}
+
+		#endregion
+
+		#region Spawn
 
 		if (prefab.Name.Equals(Spawn_SpawnpointPrefab))
 		{
 			Spawn_Spawnpoints.Add(position);
 			return true;
+		}
+
+		#endregion
+
+		return null;
+	}
+	private object OnEntityTakeDamage(BaseCombatEntity entity)
+	{
+		if (entity == null)
+		{
+			return true;
+		}
+		if (IO_Protect.Contains(entity.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
+	private object CanLootEntity(BasePlayer player, StorageContainer container)
+	{
+		if (player == null || container == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
+		{
+			return true;
+		}
+
+		if (IO_Protect.Contains(container.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
+	private object CanLootEntity(BasePlayer player, ContainerIOEntity container)
+	{
+		if (player == null || container == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
+		{
+			return true;
+		}
+
+		if (IO_Protect.Contains(container.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
+	private object OnTurretAuthorize(AutoTurret turret, BasePlayer player)
+	{
+		if (player == null || turret == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
+		{
+			return true;
+		}
+		if (IO_AutoTurrets.ContainsKey(turret))
+		{
+			return false;
 		}
 
 		return null;
@@ -266,6 +334,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Subscribe("IPostSaveLoad");
 		Subscribe("IPostSaveSave");
 		Subscribe("ICanWireToolModifyEntity");
+		Subscribe("IPreTurretTargetTick");
 		Subscribe("OnEntityTakeDamage");
 		Subscribe("CanLootEntity");
 	}
@@ -290,6 +359,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Unsubscribe("IPostSaveSave");
 		Unsubscribe("ICanWireToolModifyEntity");
 		Unsubscribe("OnEntityTakeDamage");
+		Unsubscribe("IPreTurretTargetTick");
 		Unsubscribe("CanLootEntity");
 	}
 
@@ -377,7 +447,6 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	#region NPC Spawner
 
-	internal SerializedNPCSpawner NPCSpawner_serializedNPCSpawner;
 	internal SerializedNPCData NPCSpawner_serializedNPCData;
 	internal List<NPCSpawner> NPCSpawner_NPCsList = new List<NPCSpawner>();
 	internal Coroutine NPCSpawner_NPCThread;
@@ -1041,12 +1110,12 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	#region APC
 
-	internal APC_SerializedAPCPathList APC_serializedAPCPathList;
-	internal List<APC_CustomAPCSpawner> APC_list = new();
-	internal List<BasePlayer> APC_ViewingList = new();
-	internal Coroutine APC_Viewingthread;
+	internal static APC_SerializedAPCPathList APC_serializedAPCPathList;
+	internal static List<APC_CustomAPCSpawner> APC_list = new();
+	internal static List<BasePlayer> APC_ViewingList = new();
+	internal static Coroutine APC_Viewingthread;
 
-	internal IEnumerator APC_Setup()
+	internal static IEnumerator APC_Setup()
 	{
 		bool HasPath;
 		if (APC_serializedAPCPathList == null) { yield break; }
@@ -1070,7 +1139,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		}
 		yield break;
 	}
-	internal bool APC_ReadMapData()
+	internal static bool APC_ReadMapData()
 	{
 		bool flag = false;
 		if (APC_serializedAPCPathList != null) { return flag; }
@@ -1083,7 +1152,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Debug.LogWarning("[Core.APC] DATA Found:" + flag);
 		return flag;
 	}
-	internal byte[] APC_GetSerializedIOData()
+	internal static byte[] APC_GetSerializedIOData()
 	{
 		foreach (MapData MD in World.Serialization.world.maps)
 		{
@@ -1095,6 +1164,150 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		}
 		return null;
 	}
+	internal static void APC_ForceRespawn(BasePlayer player)
+	{
+		int counter = 0;
+		for (int i = 0; i < APC_list.Count; i++)
+		{
+			APC_CustomAPCSpawner customAPCSpawner = APC_list[i];
+			if (!(customAPCSpawner == null) && (customAPCSpawner.bradleyAPC == null || !customAPCSpawner.bradleyAPC.IsAlive()))
+			{
+				customAPCSpawner.ForceRespawn();
+				counter++;
+			}
+		}
+		player.ChatMessage("[Core.APC] Respawned " + counter + " Bradleys");
+	}
+	internal static void APC_ForceKill(BasePlayer player)
+	{
+		int counter = 0;
+		for (int i = 0; i < APC_list.Count; i++)
+		{
+			var customAPCSpawner = APC_list[i];
+			if (!(customAPCSpawner == null) && (customAPCSpawner.bradleyAPC != null && customAPCSpawner.bradleyAPC.IsAlive()))
+			{
+				customAPCSpawner.bradleyAPC.DieInstantly();
+				counter++;
+			}
+		}
+		player.ChatMessage("[Core.APC] Killed " + counter + " Bradleys");
+	}
+	internal static void APC_GetStatus(BasePlayer player)
+	{
+		var counterA = 0;
+		var counterD = 0;
+		for (int i = 0; i < APC_list.Count; i++)
+		{
+			var customAPCSpawner = APC_list[i];
+			if (!(customAPCSpawner == null) && customAPCSpawner.bradleyAPC != null)
+			{
+				if (customAPCSpawner.bradleyAPC.IsAlive())
+				{
+					counterA++;
+				}
+				else
+				{
+					counterD++;
+				}
+			}
+		}
+		player.ChatMessage("[Core.APC] Bradleys Alive: " + counterA + " Dead: " + counterD);
+	}
+	internal static void APC_showapcpath(BasePlayer player)
+	{
+		if (player.IsAdmin)
+		{
+			if (APC_ViewingList.Contains(player))
+			{
+				player.ChatMessage("Stopped Viewing Cargo Path");
+				APC_ViewingList.Remove(player);
+			}
+			else
+			{
+				player.ChatMessage("Started Viewing Cargo Path");
+				APC_ViewingList.Add(player);
+			}
+			if (APC_Viewingthread == null && APC_ViewingList.Count != 0)
+			{
+				APC_Viewingthread = ServerMgr.Instance.StartCoroutine(ShowAPCPath());
+				return;
+			}
+			else
+			{
+				ServerMgr.Instance.StopCoroutine(APC_Viewingthread);
+				APC_Viewingthread = null;
+			}
+		}
+	}
+	internal static IEnumerator ShowAPCPath()
+	{
+		while (APC_ViewingList != null && APC_ViewingList.Count != 0)
+		{
+			foreach (BasePlayer bp in APC_ViewingList.ToArray())
+			{
+				if (!bp.IsConnected || bp.IsSleeping() || !bp.IsAdmin)
+				{
+					APC_ViewingList.Remove(bp);
+					continue;
+				}
+				foreach (var capc in APC_list)
+				{
+					Vector3 LastNode = Vector3.zero;
+					foreach (PathInterestNode pin in capc.basePath.interestZones)
+					{
+						bp.SendConsoleCommand("ddraw.sphere", 5f, Color.red, pin.transform.position, 1f);
+						bp.SendConsoleCommand("ddraw.text", 5f, Color.green, pin.transform.position, "<size=20>APC Intrest Point</size>");
+					}
+					foreach (BasePathNode node in capc.basePath.nodes)
+					{
+						if (Vector3.Distance(node.transform.position, bp.transform.position) < 2000)
+						{
+							bp.SendConsoleCommand("ddraw.sphere", 5f, Color.green, node.transform.position, 3f);
+							if (LastNode != Vector3.zero) { bp.SendConsoleCommand("ddraw.line", 5f, Color.blue, node.transform.position + new Vector3(0, 1, 0), LastNode + new Vector3(0, 1, 0)); }
+							LastNode = node.transform.position;
+						}
+						else { LastNode = Vector3.zero; }
+					}
+				}
+				yield return CoroutineEx.waitForSeconds(5f);
+			}
+		}
+		ServerMgr.Instance.StopCoroutine(APC_Viewingthread);
+		APC_Viewingthread = null;
+		yield break;
+	}
+
+	#region Commands
+
+	[ChatCommand("rusteditext.apc.apcforcerespawn")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void APC_APCForceRespawn(BasePlayer player)
+	{
+		APC_ForceRespawn(player);
+	}
+
+	[ChatCommand("rusteditext.apc.apcforcekill")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void APC_APCForceKill(BasePlayer player)
+	{
+		APC_ForceKill(player);
+	}
+
+	[ChatCommand("rusteditext.apc.apcstatus")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void APC_APCGetStatus(BasePlayer player)
+	{
+		APC_GetStatus(player);
+	}
+
+	[ChatCommand("rusteditext.apc.showapcpath")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void APC_APCShowAPCPath(BasePlayer player)
+	{
+		APC_ForceKill(player);
+	}
+
+	#endregion
 
 	public class APC_CustomAPCSpawner : MonoBehaviour
 	{
@@ -1193,20 +1406,20 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	#region Cargo Path
 
-	internal const string _c4 = "assets/prefabs/tools/c4/effects/c4_explosion.prefab";
-	internal const string _debris = "assets/prefabs/npc/patrol helicopter/damage_effect_debris.prefab";
-	internal static bool DisableSpawns = false;
-	internal const bool SinkMode = true;
-	internal const int StopDelay = 60;
-	internal const int DistanceFromStop = 35;
-	internal const int DespawnDistance = 80;
-	internal static List<BasePlayer> ViewingList = new();
-	internal static Coroutine Viewingthread;
-	internal static List<CargoMod> CargoShips = new();
-	internal static List<Vector3> CargoPath = new();
-	internal static List<Vector3> CargoSpawn = new();
-	internal static List<Vector3> CargoStops = new();
-	internal static SerializedPathList serializedPathList;
+	internal const string Cargo__c4 = "assets/prefabs/tools/c4/effects/c4_explosion.prefab";
+	internal const string Cargo__debris = "assets/prefabs/npc/patrol helicopter/damage_effect_debris.prefab";
+	internal static bool Cargo_DisableSpawns = false;
+	internal const bool Cargo_SinkMode = true;
+	internal const int Cargo_StopDelay = 60;
+	internal const int Cargo_DistanceFromStop = 35;
+	internal const int Cargo_DespawnDistance = 80;
+	internal static List<BasePlayer> Cargo_ViewingList = new();
+	internal static Coroutine Cargo_Viewingthread;
+	internal static List<CargoMod> Cargo_CargoShips = new();
+	internal static List<Vector3> Cargo_CargoPath = new();
+	internal static List<Vector3> Cargo_CargoSpawn = new();
+	internal static List<Vector3> Cargo_CargoStops = new();
+	internal static SerializedPathList Cargo_serializedPathList;
 
 	public class SerializedPathList
 	{
@@ -1221,11 +1434,11 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		{
 			Cargo_ApplyCargoMod(cargo);
 
-			if (CargoSpawn != null && CargoSpawn.Count != 0)
+			if (Cargo_CargoSpawn != null && Cargo_CargoSpawn.Count != 0)
 			{
-				if (!DisableSpawns)
+				if (!Cargo_DisableSpawns)
 				{
-					cargo.transform.position = CargoSpawn.GetRandom();
+					cargo.transform.position = Cargo_CargoSpawn.GetRandom();
 				}
 			}
 		}
@@ -1251,7 +1464,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	[AuthLevel(ServerUsers.UserGroup.Owner)]
 	private void Cargo_Egresscargo(BasePlayer player)
 	{
-		foreach (CargoMod cm in CargoShips)
+		foreach (CargoMod cm in Cargo_CargoShips)
 		{
 			if (cm != null && cm._cargoship != null)
 			{
@@ -1268,25 +1481,25 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		if (player.IsAdmin)
 		{
-			if (ViewingList.Contains(player))
+			if (Cargo_ViewingList.Contains(player))
 			{
 				player.ChatMessage("Stopped Viewing Cargo Path");
-				ViewingList.Remove(player);
+				Cargo_ViewingList.Remove(player);
 			}
 			else
 			{
 				player.ChatMessage("Started Viewing Cargo Path");
-				ViewingList.Add(player);
+				Cargo_ViewingList.Add(player);
 			}
-			if (Viewingthread == null && ViewingList.Count != 0)
+			if (Cargo_Viewingthread == null && Cargo_ViewingList.Count != 0)
 			{
-				Viewingthread = ServerMgr.Instance.StartCoroutine(ShowCargoPath());
+				Cargo_Viewingthread = ServerMgr.Instance.StartCoroutine(ShowCargoPath());
 				return;
 			}
 			else
 			{
-				ServerMgr.Instance.StopCoroutine(Viewingthread);
-				Viewingthread = null;
+				ServerMgr.Instance.StopCoroutine(Cargo_Viewingthread);
+				Cargo_Viewingthread = null;
 			}
 		}
 	}
@@ -1295,8 +1508,8 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	[AuthLevel(ServerUsers.UserGroup.Owner)]
 	private void Cargo_BypassCargoSpawn(BasePlayer player)
 	{
-		DisableSpawns = !DisableSpawns;
-		player.ChatMessage("Disabling cargospawn points " + DisableSpawns.ToString());
+		Cargo_DisableSpawns = !Cargo_DisableSpawns;
+		player.ChatMessage("Disabling cargospawn points " + Cargo_DisableSpawns.ToString());
 	}
 
 	[ChatCommand("rusteditext.cargo.exportcargopath")]
@@ -1321,16 +1534,16 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				cargo.Invoke(() => { cargo.StartEgress(); }, 30);
 				return;
 			}
-			if (SinkMode)
+			if (Cargo_SinkMode)
 			{
 				var cargos = Pool.GetList<CargoMod>();
-				cargos.AddRange(CargoShips);
+				cargos.AddRange(Cargo_CargoShips);
 
 				foreach (var cm in cargos)
 				{
 					if (cm._cargoship == cargo)
 					{
-						CargoShips.Remove(cm);
+						Cargo_CargoShips.Remove(cm);
 						cm._cargoship.targetNodeIndex = -1;
 						cm.AllowCrash = true;
 						break;
@@ -1349,16 +1562,16 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		if (Cargo_ReadMapData())
 		{
-			if (serializedPathList != null)
+			if (Cargo_serializedPathList != null)
 			{
 				var newPath = new List<Vector3>();
 
-				foreach (var vd in serializedPathList.vectorData)
+				foreach (var vd in Cargo_serializedPathList.vectorData)
 				{
 					newPath.Add(new Vector3(vd.x, vd.y, vd.z));
 				}
 
-				return CargoPath = newPath;
+				return Cargo_CargoPath = newPath;
 			}
 		}
 
@@ -1366,17 +1579,17 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	private object IOnGenerateOceanPatrolPath(List<Vector3> list)
 	{
-		if (CargoPath != null && CargoPath.Count != 0)
+		if (Cargo_CargoPath != null && Cargo_CargoPath.Count != 0)
 		{
 			Debug.LogWarning("[Core.CargoPath] Loaded Custom Path " + list.Count + " Nodes.");
-			return CargoPath;
+			return Cargo_CargoPath;
 		}
 
 		return null;
 	}
 	private void IOnPostGenerateOceanPatrolPath(List<Vector3> list)
 	{
-		CargoPath = list;
+		Cargo_CargoPath = list;
 	}
 
 	#endregion
@@ -1388,30 +1601,30 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		var distance = 2000;
 		var LastNode = Vector3.zero;
 
-		while (ViewingList != null && ViewingList.Count != 0)
+		while (Cargo_ViewingList != null && Cargo_ViewingList.Count != 0)
 		{
-			foreach (BasePlayer bp in ViewingList.ToArray())
+			foreach (BasePlayer bp in Cargo_ViewingList.ToArray())
 			{
 				if (!bp.IsConnected || bp.IsSleeping() || !bp.IsAdmin)
 				{
-					ViewingList.Remove(bp);
+					Cargo_ViewingList.Remove(bp);
 					continue;
 				}
 
-				foreach (Vector3 spawnpoints in CargoSpawn)
+				foreach (Vector3 spawnpoints in Cargo_CargoSpawn)
 				{
 					bp.SendConsoleCommand("ddraw.box", 5f, Color.green, spawnpoints, 10f);
 					bp.SendConsoleCommand("ddraw.text", 5f, Color.green, spawnpoints, "<size=20>CargoSpawn</size>");
 				}
 
-				foreach (Vector3 stoppoints in CargoStops)
+				foreach (Vector3 stoppoints in Cargo_CargoStops)
 				{
 					bp.SendConsoleCommand("ddraw.box", 5f, Color.red, stoppoints, 10f);
 					bp.SendConsoleCommand("ddraw.text", 5f, Color.red, stoppoints, "<size=20>CargoStop</size>");
 				}
 
 				var nodeindex = 0;
-				foreach (Vector3 vector in CargoPath)
+				foreach (Vector3 vector in Cargo_CargoPath)
 				{
 					if (Vector3.Distance(vector, bp.transform.position) < distance)
 					{
@@ -1432,8 +1645,8 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			}
 		}
 
-		ServerMgr.Instance.StopCoroutine(Viewingthread);
-		Viewingthread = null;
+		ServerMgr.Instance.StopCoroutine(Cargo_Viewingthread);
+		Cargo_Viewingthread = null;
 		yield break;
 	}
 
@@ -1447,14 +1660,14 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			var newcargoship = cs.gameObject.AddComponent<CargoMod>();
 			newcargoship._cargoship = cs;
 			newcargoship.CargoThread = ServerMgr.Instance.StartCoroutine(newcargoship.CargoTick());
-			CargoShips.Add(newcargoship);
+			Cargo_CargoShips.Add(newcargoship);
 		}
 	}
 	internal static bool Cargo_AreaStop(Vector3 vector3)
 	{
-		foreach (var vector in CargoStops)
+		foreach (var vector in Cargo_CargoStops)
 		{
-			if (Vector3.Distance(vector, vector3) < DistanceFromStop)
+			if (Vector3.Distance(vector, vector3) < Cargo_DistanceFromStop)
 			{
 				return true;
 			}
@@ -1472,9 +1685,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	internal static bool Cargo_InitializeHook()
 	{
-		if (CargoSpawn.Count != 0 || CargoStops.Count != 0)
+		if (Cargo_CargoSpawn.Count != 0 || Cargo_CargoStops.Count != 0)
 		{
-			Debug.LogWarning("[Core.CargoPath] Found " + CargoSpawn.Count.ToString() + " Spawn Points And " + CargoStops.Count.ToString() + " Stop Points");
+			Debug.LogWarning("[Core.CargoPath] Found " + Cargo_CargoSpawn.Count.ToString() + " Spawn Points And " + Cargo_CargoStops.Count.ToString() + " Stop Points");
 		}
 
 		foreach (var b in BaseNetworkable.serverEntities)
@@ -1489,7 +1702,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	internal static bool Cargo_ShutdownHook()
 	{
-		foreach (var destry in CargoShips)
+		foreach (var destry in Cargo_CargoShips)
 		{
 			if (destry != null && destry._cargoship != null)
 			{
@@ -1504,13 +1717,13 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		//2741054453 - assets/bundled/prefabs/world/event_cargoship.prefab
 		if (prefab.ID == 2741054453)
 		{
-			CargoSpawn.Add(position);
+			Cargo_CargoSpawn.Add(position);
 			return false;
 		}
 		//843218194 - assets/prefabs/tools/map/cargomarker.prefab
 		else if (prefab.ID == 843218194)
 		{
-			CargoStops.Add(position);
+			Cargo_CargoStops.Add(position);
 			return false;
 		}
 		return true;
@@ -1541,15 +1754,15 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	internal static void Cargo_SaveMap()
 	{
-		if (serializedPathList == null)
+		if (Cargo_serializedPathList == null)
 		{
 			var SPL = new SerializedPathList();
 			var nvd = new List<VectorData>();
-			foreach (Vector3 vector in CargoPath) { nvd.Add(vector); }
+			foreach (Vector3 vector in Cargo_CargoPath) { nvd.Add(vector); }
 			SPL.vectorData = nvd;
-			serializedPathList = SPL;
+			Cargo_serializedPathList = SPL;
 		}
-		System.IO.File.WriteAllBytes("SerializedPathList.xml", SerializeMapData(serializedPathList));
+		System.IO.File.WriteAllBytes("SerializedPathList.xml", SerializeMapData(Cargo_serializedPathList));
 	}
 	internal static byte[] Cargo_GetSerializedIOData()
 	{
@@ -1567,12 +1780,12 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	internal static bool Cargo_ReadMapData()
 	{
 		var flag = false;
-		if (serializedPathList != null) { return flag; }
+		if (Cargo_serializedPathList != null) { return flag; }
 
 		var array = Cargo_GetSerializedIOData();
 		if (array != null && array.Length != 0)
 		{
-			serializedPathList = DeserializeMapData<SerializedPathList>(array, out flag);
+			Cargo_serializedPathList = DeserializeMapData<SerializedPathList>(array, out flag);
 		}
 		Debug.LogWarning("[Core.CargoPath] DATA Found:" + flag);
 		return flag;
@@ -1644,7 +1857,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				if (!HasStopped && Cargo_AreaStop(_cargoship.transform.position))
 				{
 					HasStopped = true;
-					StopCargoShip(StopDelay);
+					StopCargoShip(Cargo_StopDelay);
 				}
 				if (_cargoship.transform.position.y < -1) { AllowCrash = true; }
 				yield return CoroutineEx.waitForSeconds(1f);
@@ -1674,7 +1887,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				if ((_cargoship.transform.position.y - 1) <= TerrainMeta.HeightMap.GetHeight(_cargoship.transform.position))
 				{
 					sunk = true;
-					while (_cargoship != null && PlayersNearbyfunction(_cargoship.transform.position, DespawnDistance))
+					while (_cargoship != null && PlayersNearbyfunction(_cargoship.transform.position, Cargo_DespawnDistance))
 					{
 						yield return CoroutineEx.waitForSeconds(5f);
 					}
@@ -1754,8 +1967,8 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		{
 			if (ExPoint != null && ExPoint.Count > 1)
 			{
-				RunEffect(_c4, null, ExPoint[0]);
-				RunEffect(_debris, null, ExPoint[1]);
+				RunEffect(Cargo__c4, null, ExPoint[0]);
+				RunEffect(Cargo__debris, null, ExPoint[1]);
 				ExPoint.RemoveAt(0);
 				ExPoint.RemoveAt(0);
 				_cargoship.Invoke(() => { playexp(ExPoint); }, 0.5f);
@@ -1777,12 +1990,12 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	#region I/O
 
-	internal static List<BaseEntity> IO_DestroyOnUnload = new List<BaseEntity>();
-	internal static Dictionary<Vector3, PrefabData> IO_Elevators = new Dictionary<Vector3, PrefabData>();
+	internal static List<BaseEntity> IO_DestroyOnUnload = new();
+	internal static Dictionary<Vector3, PrefabData> IO_Elevators = new();
 	internal static List<Vector3> IO_Protect;
-	internal static List<IOEntity> IO_Processed = new List<IOEntity>();
-	internal static Dictionary<AutoTurret, bool> IO_AutoTurrets = new Dictionary<AutoTurret, bool>();
-	internal static List<Dictionary<Vector3, Vector3>> IO_Wires = new List<Dictionary<Vector3, Vector3>>();
+	internal static List<IOEntity> IO_Processed = new();
+	internal static Dictionary<AutoTurret, bool> IO_AutoTurrets = new();
+	internal static List<Dictionary<Vector3, Vector3>> IO_Wires = new();
 	internal static SerializedIOData IO_serializedIOData;
 	internal static Type[] IO_types = new Type[]
 	{
@@ -1790,18 +2003,6 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			typeof(DestroyOnGroundMissing),
 			typeof(DeployableDecay)
 	};
-	internal static FieldInfo IO__decay = typeof(DecayEntity).GetField("decay", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo IO__targetCounterNumber = typeof(PowerCounter).GetField("targetCounterNumber", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo IO__IOEntity = typeof(Elevator).GetField("IOEntity", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default | BindingFlags.Public);
-	internal static FieldInfo IO__liftEntity = typeof(Elevator).GetField("liftEntity", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo IO__nextVisCheck = typeof(AutoTurret).GetField("nextVisCheck", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo IO__lastTargetSeenTime = typeof(AutoTurret).GetField("lastTargetSeenTime", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-	internal static FieldInfo IO__nextShotTime = typeof(AutoTurret).GetField("nextShotTime", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-	private IOEntity IO_IOTrigger;
-	private List<WheelSwitch> IO_ConnectedWheelSwitches = new List<WheelSwitch>();
-	private bool IO_Running;
-	private BaseEntity.Flags IO_Triggered;
 
 	internal static void IO_RunCore_IO()
 	{
@@ -1822,11 +2023,11 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				if (SIOE.timerLength == 0) { SIOE.timerLength += 0.25f; }
 				try
 				{
-					if (IO is Elevator)
+					if (IO is Elevator elevator)
 					{
 						try
 						{
-							IO_CreateElevator(IO as Elevator, SIOE);
+							IO_CreateElevator(elevator, SIOE);
 						}
 						catch
 						{
@@ -1834,75 +2035,73 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 						}
 						continue;
 					}
-					else if (IO is CardReader)
+					else if (IO is CardReader reader)
 					{
-						CardReader CR = IO as CardReader;
-						if (CR != null)
+						if (reader != null)
 						{
 							SIOE.accessLevel += 1;
-							CardReaderMonitor cardReaderMonitor = IO.gameObject.GetComponent<CardReaderMonitor>() ?? IO.gameObject.AddComponent<CardReaderMonitor>();
+							var cardReaderMonitor = IO.gameObject.GetComponent<CardReaderMonitor>() ?? IO.gameObject.AddComponent<CardReaderMonitor>();
 							if (cardReaderMonitor != null)
 							{
 								cardReaderMonitor.Timerlength = SIOE.timerLength;
 							}
-							CR.accessLevel = SIOE.accessLevel;
-							CR.accessDuration = SIOE.timerLength;
-							CR.SetFlag(BaseEntity.Flags.Reserved1, SIOE.accessLevel == 1, false, true);
-							CR.SetFlag(BaseEntity.Flags.Reserved2, SIOE.accessLevel == 2, false, true);
-							CR.SetFlag(BaseEntity.Flags.Reserved3, SIOE.accessLevel == 3, false, true);
+							reader.accessLevel = SIOE.accessLevel;
+							reader.accessDuration = SIOE.timerLength;
+							reader.SetFlag(BaseEntity.Flags.Reserved1, SIOE.accessLevel == 1, false, true);
+							reader.SetFlag(BaseEntity.Flags.Reserved2, SIOE.accessLevel == 2, false, true);
+							reader.SetFlag(BaseEntity.Flags.Reserved3, SIOE.accessLevel == 3, false, true);
 						}
 					}
-					else if (IO is PressButton)
+					else if (IO is PressButton pressButton)
 					{
-						(IO as PressButton).pressDuration = SIOE.timerLength;
+						pressButton.pressDuration = SIOE.timerLength;
 					}
-					else if (IO is RFBroadcaster)
+					else if (IO is RFBroadcaster rf)
 					{
-						RFBroadcaster rfBroadcaster = IO as RFBroadcaster;
-						rfBroadcaster.frequency = SIOE.frequency;
-						rfBroadcaster.MarkDirty();
-						rfBroadcaster.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
+						rf.frequency = SIOE.frequency;
+						rf.MarkDirty();
+						rf.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
 					}
-					else if (IO is CCTV_RC)
+					else if (IO is CCTV_RC cctv)
 					{
-						(IO as CCTV_RC).isStatic = true;
-						(IO as CCTV_RC).UpdateIdentifier(SIOE.rcIdentifier, true);
+						cctv.isStatic = true;
+						cctv.UpdateIdentifier(SIOE.rcIdentifier, true);
 					}
-					else if (IO is Telephone)
+					else if (IO is Telephone telephone)
 					{
-						(IO as Telephone).Controller.PhoneName = SIOE.phoneName;
+						telephone.Controller.PhoneName = SIOE.phoneName;
 					}
-					else if (IO is TimerSwitch)
+					else if (IO is TimerSwitch timerSwitch)
 					{
-						(IO as TimerSwitch).timerLength = SIOE.timerLength;
+						timerSwitch.timerLength = SIOE.timerLength;
 					}
-					else if (IO is SamSite)
+					else if (IO is SamSite samSite)
 					{
-						(IO as SamSite).staticRespawn = true;
+						samSite.staticRespawn = true;
 					}
-					else if (IO is ElectricalBranch)
+					else if (IO is ElectricalBranch electricalBranch)
 					{
-						(IO as ElectricalBranch).branchAmount = SIOE.branchAmount;
+						electricalBranch.branchAmount = SIOE.branchAmount;
 					}
-					else if (IO is PowerCounter)
+					else if (IO is PowerCounter power)
 					{
-						(IO as PowerCounter).SetFlag(PowerCounter.Flag_ShowPassthrough, SIOE.counterPassthrough);
-						(IO as PowerCounter).SetCounterNumber(0);
-						IO__targetCounterNumber.SetValue(IO as PowerCounter, SIOE.targetCounterNumber);
+						power.SetFlag(PowerCounter.Flag_ShowPassthrough, SIOE.counterPassthrough);
+						power.SetCounterNumber(0);
+						power.targetCounterNumber = SIOE.targetCounterNumber;
 					}
 					else if (IO is AutoTurret)
 					{
-						AutoTurretManager autoTurretManager = IO.gameObject.GetComponent<AutoTurretManager>() ?? IO.gameObject.AddComponent<AutoTurretManager>();
-						autoTurretManager.SetupTurret(SIOE.unlimitedAmmo, SIOE.peaceKeeper, SIOE.autoTurretWeapon);
+						var manager = IO.gameObject.GetComponent<AutoTurretManager>() ?? IO.gameObject.AddComponent<AutoTurretManager>();
+						manager.SetupTurret(SIOE.unlimitedAmmo, SIOE.peaceKeeper, SIOE.autoTurretWeapon);
 					}
-					else if (IO is WheelSwitch)
+					else if (IO is WheelSwitch wheelSwitch)
 					{
-						IOEntityToWheelSwitchConnection WheelSwitchConnection = IO.gameObject.GetComponent<IOEntityToWheelSwitchConnection>() ?? IO.gameObject.AddComponent<IOEntityToWheelSwitchConnection>();
-						WheelSwitchConnection.SetTarget(IO as WheelSwitch);
+						var connection = IO.gameObject.GetComponent<IOEntityToWheelSwitchConnection>() ?? IO.gameObject.AddComponent<IOEntityToWheelSwitchConnection>();
+						connection.SetTarget(wheelSwitch);
 					}
-					else if (IO is DoorManipulator)
+					else if (IO is DoorManipulator doorManipulator)
 					{
-						(IO as DoorManipulator).SetTargetDoor((IO as DoorManipulator).FindDoor(true));
+						doorManipulator.SetTargetDoor(doorManipulator.FindDoor(true));
 					}
 				}
 				catch
@@ -1959,6 +2158,36 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			catch { }
 		}
 		Debug.LogWarning("[Core.IO] Ran " + IO_Wires.Count + " IO Connections");
+	}
+	internal static void IO_ReadMapData()
+	{
+		IO_Protect = new List<Vector3>();
+		if (IO_serializedIOData != null) { return; }
+		byte[] array = IO_GetSerializedIOData();
+		if (array != null)
+		{
+			IO_serializedIOData = DeserializeMapData<SerializedIOData>(array, out var flag);
+
+			if (flag && IO_serializedIOData != null)
+			{
+				foreach (var sioe in IO_serializedIOData.entities)
+				{
+					IO_Protect.Add(new Vector3(sioe.position.x, sioe.position.y, sioe.position.z));
+				}
+			}
+			Debug.LogWarning("[Core.IO] IO DATA Found:" + flag);
+		}
+	}
+	internal static byte[] IO_GetSerializedIOData()
+	{
+		foreach (var map in World.Serialization.world.maps)
+		{
+			if (System.Text.Encoding.ASCII.GetString(map.data).Contains("SerializedIOData"))
+			{
+				return map.data;
+			}
+		}
+		return null;
 	}
 	internal static bool IO_DirtyElevators()
 	{
@@ -2043,8 +2272,8 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		IO_CreateLift(Top);
 	}
 	internal static void IO_CreateLift(Elevator elevator)
-	{
-		var elevatorLift = IO__liftEntity.GetValue(elevator) as ElevatorLift;
+	{		
+		var elevatorLift = elevator.liftEntity;
 		if (elevatorLift == null)
 		{
 			elevatorLift = IO_FindLift(elevator);
@@ -2056,7 +2285,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				elevatorLift.Spawn();
 				IO_DestroyOnUnload.Add(elevatorLift);
 				IO_Protect.Add(elevatorLift.transform.position);
-				IO__liftEntity.SetValue(elevator, elevatorLift);
+				elevator.liftEntity = elevatorLift;
 				return;
 			}
 		}
@@ -2155,7 +2384,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		DecayEntity componentInParent = ioentity_0.GetComponentInParent<DecayEntity>();
 		if (componentInParent != null)
 		{
-			IO__decay.SetValue(componentInParent, null);
+			componentInParent.decay = null;
 		}
 	}
 	internal static void IO_ResetIOEntity(IOEntity ioentity_0)
@@ -2250,6 +2479,57 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			player.SetPlayerFlag(BasePlayer.PlayerFlags.IsAdmin, false);
 		}
 	}
+	internal static bool IO_WorldSpawnHook(string category, Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
+	{
+		if (IO_Protect == null)
+		{
+			IO_ReadMapData();
+		}
+		if (position == null || prefab == null)
+		{
+			return true;
+		}
+		if (prefab.ID == 3978222077)
+		{
+			PrefabData pd = new PrefabData();
+			pd.position = position;
+			pd.id = 3978222077;
+			pd.rotation = rotation;
+			pd.scale = scale;
+			pd.category = category;
+			IO_Elevators.Add(position, pd);
+			return false;
+		}
+		if (IO_Protect.Contains(position))
+		{
+			var be = prefab.Object.GetComponent<BaseEntity>();
+			if (be != null)
+			{
+				IO_SetupEntity(be);
+			}
+		}
+		return true;
+	}
+
+	#region Commands
+
+	[ChatCommand("rusteditext.io.showiowires")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void IO_ShowIOWires(BasePlayer player)
+	{
+		player.ChatMessage("Showing IO Wires");
+		IO_ShowWires(player);
+	}
+
+	[ChatCommand("rusteditext.io.reloaddoors")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void IO_ReloadDoor(BasePlayer player)
+	{
+		player.ChatMessage("Reloading Doors");
+		IO_ReloadDoors(player);
+	}
+
+	#endregion
 
 	#region Custom Hooks
 
@@ -2289,19 +2569,6 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			}
 		}
 	}
-	private object OnEntityTakeDamage(BaseCombatEntity entity)
-	{
-		if (entity == null)
-		{
-			return true;
-		}
-		if (IO_Protect.Contains(entity.transform.position))
-		{
-			return false;
-		}
-
-		return null;
-	}
 	private object ICanWireToolModifyEntity(BasePlayer player, BaseEntity entity)
 	{
 		if (player == null || entity == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
@@ -2315,16 +2582,73 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		return null;
 	}
-	private object CanLootEntity(BasePlayer player, DroppedItemContainer container)
+	private object IPreTurretTargetTick(AutoTurret turret)
 	{
-		if (player == null || container == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
+		if (turret == null || !IO_AutoTurrets.ContainsKey(turret))
 		{
 			return true;
 		}
-
-		if (IO_Protect.Contains(container.transform.position))
+		if (UnityEngine.Time.realtimeSinceStartup >= turret.nextVisCheck)
 		{
-			return false;
+			turret.nextVisCheck = UnityEngine.Time.realtimeSinceStartup + UnityEngine.Random.Range(0.2f, 0.3f);
+
+			if (turret.ObjectVisible(turret.target))
+			{
+				turret.lastTargetSeenTime = UnityEngine.Time.realtimeSinceStartup;
+			}
+		}
+		if (turret.targetTrigger.entityContents != null)
+		{
+			foreach (var baseEntity in turret.targetTrigger.entityContents)
+			{
+				if (!(baseEntity == null))
+				{
+					var basePlayer = baseEntity as BasePlayer;
+					if (basePlayer == null || (basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying) || turret.IsAuthed(basePlayer) || (turret.PeacekeeperMode() && !basePlayer.IsHostile())) { continue; }
+					if (!turret.target.IsNpc && turret.target.IsAlive() && turret.InFiringArc(turret.target) && turret.ObjectVisible(turret.target))
+					{
+						turret.SetTarget(basePlayer);
+						break;
+					}
+				}
+			}
+			if (turret.target != null)
+			{
+				turret.EnsureReloaded(true);
+				BaseProjectile attachedWeapon = turret.GetAttachedWeapon();
+				if (UnityEngine.Time.time >= turret.nextShotTime && turret.ObjectVisible(turret.target) && Mathf.Abs(turret.AngleToTarget(turret.target)) < turret.GetMaxAngleForEngagement())
+				{
+					if (attachedWeapon)
+					{
+						if (attachedWeapon.primaryMagazine.contents > 0)
+						{
+							//unlimited ammo
+							if (IO_AutoTurrets[turret])
+							{
+								attachedWeapon.primaryMagazine.contents = attachedWeapon.primaryMagazine.capacity;
+								attachedWeapon.SendNetworkUpdateImmediate();
+							}
+							BasePlayer basePlayer = (turret.target as BasePlayer);
+							if (basePlayer != null && basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying)
+							{
+								return false;
+							}
+							if (turret.PeacekeeperMode() && !turret.target.IsHostile())
+							{
+								return false;
+							}
+							turret.FireAttachedGun(turret.AimOffset(turret.target), turret.aimCone, null, turret.PeacekeeperMode() ? turret.target : null);
+							float num = attachedWeapon.isSemiAuto ? (attachedWeapon.repeatDelay * 1.5f) : attachedWeapon.repeatDelay;
+							num = attachedWeapon.ScaleRepeatDelay(num);
+							turret.nextShotTime = UnityEngine.Time.time + num;
+						}
+						else
+						{
+							turret.nextShotTime = UnityEngine.Time.time + 5f;
+						}
+					}
+				}
+			}
 		}
 
 		return null;
