@@ -292,9 +292,9 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 				if (!IsExtension && firstPlugin && Community.Runtime.Config.FileNameCheck)
 				{
-					var name = Path.GetFileNameWithoutExtension(File).Replace(" ", "").Replace(".", "");
+					var name = Path.GetFileNameWithoutExtension(File).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
 
-					if (info.Title.Replace(" ", "").Replace(".", "") != name)
+					if (info.Title.ToLower().Replace(" ", "").Replace(".", "").Replace("-", "") != name)
 					{
 						Logger.Warn($"Plugin '{info.Title}' does not match with its file-name '{name}'.");
 						break;
