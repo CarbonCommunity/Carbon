@@ -904,6 +904,22 @@ public class CorePlugin : CarbonPlugin
 		Reply($"Reloaded '{module.Name}' module config.", arg);
 	}
 
+	[ConsoleCommand("modules", "Prints a list of all available modules.")]
+	private void Modules(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		using var print = new StringTable("Name", "Is Enabled", "Quick Command");
+		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+		{
+			if (hookable is not IModule module) continue;
+
+			print.AddRow(hookable.Name, module.GetEnabled() ? "Yes" : "No", $"c.setmodule {hookable.Name} 0/1");
+		}
+
+		Reply(print.ToStringMinimal(), arg);
+	}
+
 	#endregion
 
 	#region Mod & Plugin Loading
