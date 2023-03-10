@@ -193,7 +193,7 @@ namespace Oxide.Ext.Discord
 						DiscordClient.Clients[plugin.Name] = discordClient;
 					}
 					fieldInfo.SetValue(plugin, discordClient);
-					plugin.Call("OnDiscordClientCreated", Array.Empty<object>());
+					plugin.Call("OnDiscordClientCreated");
 					break;
 				}
 			}
