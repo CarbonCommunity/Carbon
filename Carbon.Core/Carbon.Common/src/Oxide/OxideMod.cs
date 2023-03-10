@@ -34,6 +34,8 @@ public class OxideMod
 
 	internal static readonly Version AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
 
+	public float Now => UnityEngine.Time.realtimeSinceStartup;
+
 	public void Load()
 	{
 		InstanceDirectory = Defines.GetRootFolder();
