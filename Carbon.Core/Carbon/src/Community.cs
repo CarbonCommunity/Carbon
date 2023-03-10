@@ -194,6 +194,7 @@ public class CommunityInternal : Community
 		"Carbon.Common",
 		"protobuf-net",
 		"protobuf-net.Core",
+		"websocket-sharp",
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",

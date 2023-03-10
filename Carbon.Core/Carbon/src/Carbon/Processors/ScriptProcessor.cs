@@ -106,7 +106,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		public bool IsLineValid(string line)
 		{
-			return !line.Contains("using WebSocketSharp;");
+			return true;
 		}
 
 		public override void Process(string input, out string output)
