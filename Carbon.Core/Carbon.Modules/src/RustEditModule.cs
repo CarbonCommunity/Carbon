@@ -1265,6 +1265,10 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			}
 		}
 	}
+	private object ICanCargoShipBlockWaterFor()
+	{
+		return true;
+	}
 
 	#endregion
 
