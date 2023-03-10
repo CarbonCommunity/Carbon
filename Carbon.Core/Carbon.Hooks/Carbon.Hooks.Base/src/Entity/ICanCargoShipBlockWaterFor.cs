@@ -11,7 +11,7 @@ namespace Carbon.Hooks;
 
 public partial class Category_Entity
 {
-	public partial class Entitys_CargoShip
+	public partial class Entity_CargoShip
 	{
 		[HookAttribute.Patch("ICanCargoShipBlockWaterFor", "ICanCargoShipBlockWaterFor", typeof(CargoShip), "BlocksWaterFor", new System.Type[] { })]
 		[HookAttribute.Identifier("441be9f49c4e45e89ad5e4b7cd32c33b")]

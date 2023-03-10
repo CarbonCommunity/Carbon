@@ -198,13 +198,17 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	private object OnPlayerRespawn(BasePlayer player, BasePlayer.SpawnPoint point)
 	{
-		if (!ConfigInstance.Enabled) return null;
-
 		return Spawn_RespawnPlayer();
 	}
-	private object OnWorldPrefabSpawn(Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
+	private object IOnWorldPrefabSpawn(Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
 	{
-		if (!ConfigInstance.Enabled) return null;
+		switch (prefab.ID)
+		{
+			case 2741054453:
+			case 843218194:
+				CargoSpawn.Add(position);
+				return false;
+		}
 
 		if (prefab.Name.Equals(Spawn_SpawnpointPrefab))
 		{
@@ -213,6 +217,36 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		}
 
 		return null;
+	}
+
+	public override void OnEnabled(bool initialized)
+	{
+		base.OnEnabled(initialized);
+
+		Subscribe("CanBradleyApcTarget");
+		Subscribe("OnTurretTarget");
+		Subscribe("OnBasePlayerAttacked");
+		Subscribe("OnPlayerRespawn");
+		Subscribe("OnWorldPrefabSpawn");
+		Subscribe("OnEntitySpawned");
+		Subscribe("IOnCargoShipEgressStart");
+		Subscribe("ICanCargoShipBlockWaterFor");
+		Subscribe("IOnWorldPrefabSpawn");
+	}
+
+	public override void OnDisabled(bool initialized)
+	{
+		base.OnDisabled(initialized);
+
+		Unsubscribe("CanBradleyApcTarget");
+		Unsubscribe("OnTurretTarget");
+		Unsubscribe("OnBasePlayerAttacked");
+		Unsubscribe("OnPlayerRespawn");
+		Unsubscribe("OnWorldPrefabSpawn");
+		Unsubscribe("OnEntitySpawned");
+		Unsubscribe("IOnCargoShipEgressStart");
+		Unsubscribe("ICanCargoShipBlockWaterFor");
+		Unsubscribe("IOnWorldPrefabSpawn");
 	}
 
 	#region Common
@@ -992,7 +1026,6 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		}
 		yield break;
 	}
-
 	internal bool APC_ReadMapData()
 	{
 		bool flag = false;
@@ -1006,7 +1039,6 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		Debug.LogWarning("[Core.APC] DATA Found:" + flag);
 		return flag;
 	}
-
 	internal byte[] APC_GetSerializedIOData()
 	{
 		foreach (MapData MD in World.Serialization.world.maps)

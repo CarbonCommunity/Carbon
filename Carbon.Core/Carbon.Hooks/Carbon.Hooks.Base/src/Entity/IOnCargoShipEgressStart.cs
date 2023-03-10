@@ -11,7 +11,7 @@ namespace Carbon.Hooks;
 
 public partial class Category_Entity
 {
-	public partial class Entitys_CargoShip
+	public partial class Entity_CargoShip
 	{
 		[HookAttribute.Patch("IOnCargoShipEgressStart", "IOnCargoShipEgressStart", typeof(CargoShip), "StartEgress", new System.Type[] { })]
 		[HookAttribute.Identifier("153555ffaa5543049c0e05f5b197e697")]
