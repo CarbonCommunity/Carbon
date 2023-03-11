@@ -164,12 +164,12 @@ public class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual void OnDisabled(bool initialized)
 	{
-		foreach(var hook in Hooks)
+		foreach (var hook in Hooks)
 		{
 			Unsubscribe(hook);
 		}
 
-		Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
+		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
@@ -178,7 +178,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			Unsubscribe(hook);
 		}
 
-		Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
+		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
 
 	public void OnEnableStatus()
