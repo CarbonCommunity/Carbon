@@ -2287,7 +2287,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.ClearColumn(1);
 
 			var carbonModule = module.GetType();
-			var config = carbonModule.GetProperty("ConfigInstance").GetValue(module);
+			var config = carbonModule.GetProperty("ModuleConfiguration").GetValue(module);
 			var configEnabled = config.GetType().GetProperty("Enabled");
 			var load = config.GetType().GetMethod("Load");
 			var isEnabled = (bool)configEnabled?.GetValue(config);
