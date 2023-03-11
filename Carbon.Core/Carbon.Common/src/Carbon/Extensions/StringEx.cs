@@ -290,7 +290,7 @@ public static class StringEx
 		if (number > 0)
 		{
 			if (words != "")
-				words += "and ";
+				words += " and ";
 
 			var unitsMap = camelCase ? _unitsMapCamel : _unitsMapNonCamel;
 			var tensMap = camelCase ? _tensMapCamel : _tensMapNonCamel;
