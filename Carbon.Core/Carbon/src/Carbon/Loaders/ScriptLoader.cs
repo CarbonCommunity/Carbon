@@ -294,9 +294,9 @@ public class ScriptLoader : IDisposable, IScriptLoader
 				{
 					var name = Path.GetFileNameWithoutExtension(File).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
 
-					if (info.Title.ToLower().Replace(" ", "").Replace(".", "").Replace("-", "") != name)
+					if (type.Name.ToLower().Replace(" ", "").Replace(".", "").Replace("-", "") != name)
 					{
-						Logger.Warn($"Plugin '{info.Title}' does not match with its file-name '{name}'.");
+						Logger.Warn($"Plugin '{type.Name}' does not match with its file-name '{name}'.");
 						break;
 					}
 				}
