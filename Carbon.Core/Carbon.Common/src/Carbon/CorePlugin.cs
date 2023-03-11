@@ -102,6 +102,12 @@ public class CorePlugin : CarbonPlugin
 		Entities.RemoveMap(entity);
 	}
 
+	private void OnServerSave()
+	{
+		Logger.Log($"Saving Carbon state..");
+		Interface.Oxide.Permission.SaveData();
+	}
+
 	#region Internal Hooks
 
 	internal static bool _isPlayerTakingDamage = false;

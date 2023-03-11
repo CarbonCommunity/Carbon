@@ -156,7 +156,7 @@ namespace Carbon
 					var localResult = conflicts[0].Result;
 					foreach (var conflict in conflicts)
 					{
-						if (conflict.Result != localResult)
+						if (conflict.Result == localResult)
 						{
 							localResult = conflict.Result;
 						}
