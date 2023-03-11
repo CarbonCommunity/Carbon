@@ -172,7 +172,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 	{
 		foreach (var hook in Hooks)
 		{
-			Unsubscribe(hook);
+			Subscribe(hook);
 		}
 
 		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
