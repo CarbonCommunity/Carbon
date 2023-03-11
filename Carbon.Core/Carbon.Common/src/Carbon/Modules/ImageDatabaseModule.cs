@@ -197,6 +197,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	}
 	public void QueueBatch(float scale, bool @override, params string[] urls)
 	{
+		if(urls == null || urls.Length == 0)
+		{
+			return;
+		}
+
 		QueueBatch(scale, @override, results =>
 		{
 			foreach (var result in results)
@@ -222,6 +227,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	}
 	public void QueueBatch(float scale, bool @override, Action<List<QueuedThreadResult>> onComplete, params string[] urls)
 	{
+		if (urls == null || urls.Length == 0)
+		{
+			return;
+		}
+
 		var thread = new QueuedThread
 		{
 			Scale = scale
@@ -270,9 +280,13 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			}
 		});
 	}
-
 	public void QueueBatchCallback(float scale, bool @override, Action<List<QueuedThreadResult>> onComplete, params string[] urls)
 	{
+		if (urls == null || urls.Length == 0)
+		{
+			return;
+		}
+
 		QueueBatch(scale, @override, results =>
 		{
 			foreach (var result in results)
@@ -301,6 +315,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 	public void Queue(float scale, bool @override, Dictionary<string, string> mappedUrls)
 	{
+		if (mappedUrls == null || mappedUrls.Count == 0)
+		{
+			return;
+		}
+
 		var urls = Pool.GetList<string>();
 
 		foreach(var url in mappedUrls)
@@ -315,10 +334,20 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	}
 	public void Queue(bool @override, Dictionary<string, string> mappedUrls)
 	{
+		if (mappedUrls == null || mappedUrls.Count == 0)
+		{
+			return;
+		}
+
 		Queue(0, @override, mappedUrls);
 	}
 	public void Queue(Dictionary<string, string> mappedUrls)
 	{
+		if (mappedUrls == null || mappedUrls.Count == 0)
+		{
+			return;
+		}
+
 		Queue(false, mappedUrls);
 	}
 
