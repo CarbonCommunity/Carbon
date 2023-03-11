@@ -413,33 +413,36 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				return false;
 			}
 		}
-		catch (Exception ex) { PutsError($"Failed IOnWorldPrefabSpawn for IO.", ex); }
+		catch (Exception ex) { PutsError($"Failed ICanWorldPrefabSpawn for IO.", ex); }
 		#endregion
 
 		#region Cargo Paths
 		try
 		{
-			switch (prefab.ID)
+			if (prefab != null)
 			{
-				case 2741054453:
-				case 843218194:
-					Cargo_CargoSpawn.Add(position);
-					return false;
+				switch (prefab.ID)
+				{
+					case 2741054453:
+					case 843218194:
+						Cargo_CargoSpawn.Add(position);
+						return false;
+				}
 			}
 		}
-		catch (Exception ex) { PutsError($"Failed IOnWorldPrefabSpawn for Cargo Path.", ex); }
+		catch (Exception ex) { PutsError($"Failed ICanWorldPrefabSpawn for Cargo Path.", ex); }
 		#endregion
 
 		#region Spawn
 		try
 		{
-			if (prefab.Name.Equals(Spawn_SpawnpointPrefab))
+			if (prefab != null && prefab.Name.Equals(Spawn_SpawnpointPrefab))
 			{
 				Spawn_Spawnpoints.Add(position);
 				return null;
 			}
 		}
-		catch (Exception ex) { PutsError($"Failed IOnWorldPrefabSpawn for Spawn.", ex); }
+		catch (Exception ex) { PutsError($"Failed ICanWorldPrefabSpawn for Spawn.", ex); }
 		#endregion
 
 		return null;
