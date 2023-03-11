@@ -171,7 +171,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 				if (npcspawner.BOT == entity)
 				{
-					return false;
+					return true;
 				}
 			}
 		}
@@ -272,7 +272,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		if (IO_Protect.Contains(entity.transform.position))
 		{
-			return false;
+			return true;
 		}
 
 		#endregion
@@ -281,7 +281,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		if (!Deployables_ProtectedHook(entity))
 		{
-			return false;
+			return true;
 		}
 
 		#endregion
@@ -292,12 +292,12 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		if (player == null || container == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
 		{
-			return true;
+			return null;
 		}
 
 		if (IO_Protect.Contains(container.transform.position))
 		{
-			return false;
+			return true;
 		}
 
 		return null;
@@ -311,7 +311,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		if (IO_Protect.Contains(container.transform.position))
 		{
-			return false;
+			return true;
 		}
 
 		return null;
@@ -322,10 +322,15 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		{
 			return null;
 		}
+
+		#region I/O
+
 		if (IO_AutoTurrets.ContainsKey(turret))
 		{
-			return false;
+			return true;
 		}
+
+		#endregion
 
 		return null;
 	}
@@ -345,11 +350,12 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		#endregion
 
+
 		#region Deployables
 
 		try
 		{
-			if ((player.IsAdmin || player.IsGod() || player.IsFlying) && !Deployables_ProtectedHook(entity))
+			if (player != null && (player.IsAdmin || player.IsGod() || player.IsFlying) && !Deployables_ProtectedHook(entity))
 			{
 				return false;
 			}
@@ -371,7 +377,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		if (IO_Protect.Contains(networkable.transform.position))
 		{
-			return false;
+			return true;
 		}
 
 		#endregion
@@ -380,7 +386,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 		if (!Deployables_KillHook(networkable))
 		{
-			return false;
+			return true;
 		}
 
 		#endregion
