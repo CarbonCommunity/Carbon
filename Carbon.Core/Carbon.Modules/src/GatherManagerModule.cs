@@ -114,39 +114,6 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 
 	#endregion
 
-	public override void OnEnabled(bool initialized)
-	{
-		base.OnEnabled(initialized);
-
-		Subscribe("OnCollectiblePickup");
-		Subscribe("OnExcavatorGather");
-		Subscribe("OnQuarryGather");
-		Subscribe("OnGrowableGathered");
-		Subscribe("OnItemResearch");
-		Subscribe("OnDispenserBonus");
-
-		Subscribe("ICraftDurationMultiplier");
-		Subscribe("IRecyclerThinkSpeed");
-		Subscribe("IVendingBuyDuration");
-		Subscribe("IMixingSpeedMultiplier");
-	}
-	public override void OnDisabled(bool initialized)
-	{
-		base.OnDisabled(initialized);
-
-		Unsubscribe("OnCollectiblePickup");
-		Unsubscribe("OnExcavatorGather");
-		Unsubscribe("OnQuarryGather");
-		Unsubscribe("OnGrowableGathered");
-		Unsubscribe("OnItemResearch");
-		Unsubscribe("OnDispenserBonus");
-
-		Unsubscribe("ICraftDurationMultiplier");
-		Unsubscribe("IRecyclerThinkSpeed");
-		Unsubscribe("IVendingBuyDuration");
-		Unsubscribe("IMixingSpeedMultiplier");
-	}
-
 	#region Helpers
 
 	internal Item ByID(int itemID, int amount, ulong skin, int kind)

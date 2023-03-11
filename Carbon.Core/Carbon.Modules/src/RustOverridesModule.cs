@@ -17,19 +17,6 @@ public class RustOverridesModule : CarbonModule<RustOverridesConfig, EmptyModule
 	public override Type Type => typeof(RustOverridesModule);
 	public override bool EnabledByDefault => true;
 
-	public override void OnEnabled(bool initialized)
-	{
-		base.OnEnabled(initialized);
-
-		Subscribe("IDisallowSkinnedItemsFromBeingCraftable");
-	}
-	public override void OnDisabled(bool initialized)
-	{
-		base.OnDisabled(initialized);
-
-		Unsubscribe("IDisallowSkinnedItemsFromBeingCraftable");
-	}
-
 	private object IDisallowSkinnedItemsFromBeingCraftable()
 	{
 		if (Config.DisallowSkinnedItemsFromBeingCraftable) return true;

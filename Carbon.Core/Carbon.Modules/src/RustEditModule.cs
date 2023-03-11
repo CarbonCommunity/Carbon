@@ -348,16 +348,13 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		#region Deployables
 
 		try
-		{ if (player.IsAdmin && player.IsGod() && player.IsFlying)
-			{
-				return null;
-			}
-
-			if (!Deployables_ProtectedHook(entity))
+		{
+			if ((player.IsAdmin || player.IsGod() || player.IsFlying) && !Deployables_ProtectedHook(entity))
 			{
 				return false;
 			}
-		} catch { }
+		}
+		catch { }
 
 		#endregion
 
@@ -455,65 +452,6 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 
 	#endregion
-
-	public override void OnEnabled(bool initialized)
-	{
-		base.OnEnabled(initialized);
-
-		Puts($"Subscribing to hooks");
-		Subscribe("CanBradleyApcTarget");
-		Subscribe("OnTurretTarget");
-		Subscribe("OnBasePlayerAttacked");
-		Subscribe("OnPlayerRespawn");
-		Subscribe("OnWorldPrefabSpawn");
-		Subscribe("OnEntitySpawned");
-		Subscribe("IOnCargoShipEgressStart");
-		Subscribe("ICanCargoShipBlockWaterFor");
-		Subscribe("ICanWorldPrefabSpawn");
-		Subscribe("ICanCargoShipBlockWaterFor");
-		Subscribe("ICanGenerateOceanPatrolPath");
-		Subscribe("IOnGenerateOceanPatrolPath");
-		Subscribe("IOnPostGenerateOceanPatrolPath");
-		Subscribe("IPostSaveLoad");
-		Subscribe("IPostSaveSave");
-		Subscribe("ICanWireToolModifyEntity");
-		Subscribe("IPreTurretTargetTick");
-		Subscribe("ICanDie");
-		Subscribe("ICanCH47CreateMapMarker");
-		Subscribe("IPreObjectSetHierarchyGroup");
-		Subscribe("ICanDoorManipulatorDoAction");
-		Subscribe("OnEntityTakeDamage");
-		Subscribe("CanLootEntity");
-	}
-	public override void OnDisabled(bool initialized)
-	{
-		base.OnDisabled(initialized);
-
-		Puts($"Unsubscribing hooks");
-		Unsubscribe("CanBradleyApcTarget");
-		Unsubscribe("OnTurretTarget");
-		Unsubscribe("OnBasePlayerAttacked");
-		Unsubscribe("OnPlayerRespawn");
-		Unsubscribe("OnWorldPrefabSpawn");
-		Unsubscribe("OnEntitySpawned");
-		Unsubscribe("IOnCargoShipEgressStart");
-		Unsubscribe("ICanCargoShipBlockWaterFor");
-		Unsubscribe("ICanWorldPrefabSpawn");
-		Unsubscribe("ICanCargoShipBlockWaterFor");
-		Unsubscribe("ICanGenerateOceanPatrolPath");
-		Unsubscribe("IOnGenerateOceanPatrolPath");
-		Unsubscribe("IOnPostGenerateOceanPatrolPath");
-		Unsubscribe("IPostSaveLoad");
-		Unsubscribe("IPostSaveSave");
-		Unsubscribe("ICanWireToolModifyEntity");
-		Unsubscribe("IPreTurretTargetTick");
-		Unsubscribe("ICanDie");
-		Unsubscribe("ICanCH47CreateMapMarker");
-		Unsubscribe("IPreObjectSetHierarchyGroup");
-		Unsubscribe("ICanDoorManipulatorDoAction");
-		Unsubscribe("OnEntityTakeDamage");
-		Unsubscribe("CanLootEntity");
-	}
 
 	#region Common
 

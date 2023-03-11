@@ -151,8 +151,24 @@ public class CarbonModule<C, D> : BaseModule, IModule
 		return ConfigInstance.Enabled;
 	}
 
-	public virtual void OnDisabled(bool initialized) { }
-	public virtual void OnEnabled(bool initialized) { }
+	public virtual void OnDisabled(bool initialized)
+	{
+		foreach(var hook in Hooks)
+		{
+			Unsubscribe(hook);
+		}
+
+		Puts($"Unsubscribed from {Hooks.Count:n0} hooks.");
+	}
+	public virtual void OnEnabled(bool initialized)
+	{
+		foreach (var hook in Hooks)
+		{
+			Unsubscribe(hook);
+		}
+
+		Puts($"Subscribed to {Hooks.Count:n0} hooks.");
+	}
 
 	public void OnEnableStatus()
 	{

@@ -52,7 +52,7 @@ public class RustPlugin : Plugin
 	}
 	public virtual void Setup(string name, string author, VersionNumber version, string description)
 	{
-		Name = name;
+		Name = Title = name;
 		Version = version;
 		Author = author;
 		Description = description;

@@ -41,8 +41,9 @@ namespace Carbon
 		{
 			public BaseHookable Hookable;
 			public string Hook;
+			public object Result;
 
-			public static Conflict Make(BaseHookable hookable, string hook) => new Conflict { Hookable = hookable, Hook = hook };
+			public static Conflict Make(BaseHookable hookable, string hook, object result) => new() { Hookable = hookable, Hook = hook, Result = result };
 		}
 
 		public static Delegate CreateDelegate(MethodInfo methodInfo, object target)
@@ -106,8 +107,8 @@ namespace Carbon
 
 				if (methodResult != null)
 				{
-					ResultOverride(module);
 					result = methodResult;
+					ResultOverride(module);
 				}
 			}
 
@@ -130,8 +131,8 @@ namespace Carbon
 
 					if (methodResult != null)
 					{
-						ResultOverride(plugin);
 						result = methodResult;
+						ResultOverride(plugin);
 					}
 				}
 				catch (Exception ex) { Logger.Error("Fuck:", ex); }
@@ -145,13 +146,24 @@ namespace Carbon
 
 			void ResultOverride(BaseHookable hookable)
 			{
-				conflicts.Add(Conflict.Make(hookable, hookName));
+				conflicts.Add(Conflict.Make(hookable, hookName, result));
 			}
 			void ConflictCheck()
 			{
 				if (conflicts.Count > 1)
 				{
-					Carbon.Logger.Warn($"Calling hook '{hookName}' resulted in a conflict between the following plugins: {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version}").ToArray().ToString(", ", " and ")}");
+					var differentResults = false;
+					var localResult = conflicts[0].Result;
+					foreach (var conflict in conflicts)
+					{
+						if (conflict.Result != localResult)
+						{
+							localResult = conflict.Result;
+						}
+						else differentResults = true;
+					}
+
+					if (differentResults) Carbon.Logger.Warn($"Calling hook '{hookName}' resulted in a conflict between the following plugins: {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version}").ToArray().ToString(", ", " and ")}");
 				}
 			}
 
