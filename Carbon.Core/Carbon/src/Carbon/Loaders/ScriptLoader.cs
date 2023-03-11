@@ -345,7 +345,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			catch (Exception exception)
 			{
 				HasFinished = true;
-				Logger.Error($"Failed to compile: ", exception);
+				Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}': ", exception);
 			}
 
 			yield return _serverExhale;
