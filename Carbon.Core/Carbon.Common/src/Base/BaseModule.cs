@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
+using Carbon.Extensions;
 using Oxide.Core.Configuration;
 
 /*
@@ -163,7 +164,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			Unsubscribe(hook);
 		}
 
-		Puts($"Unsubscribed from {Hooks.Count:n0} hooks.");
+		Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
@@ -172,7 +173,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			Unsubscribe(hook);
 		}
 
-		Puts($"Subscribed to {Hooks.Count:n0} hooks.");
+		Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
 
 	public void OnEnableStatus()

@@ -833,11 +833,11 @@ public class CorePlugin : CarbonPlugin
 		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(2)) return;
 
 		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
-		var module = hookable.To<IModule>();
+		var module = hookable?.To<IModule>();
 
 		if (module == null)
 		{
-			Reply($"Couldn't find that module.", arg);
+			Reply($"Couldn't find that module. Try 'c.modules' to print them all.", arg);
 			return;
 		}
 

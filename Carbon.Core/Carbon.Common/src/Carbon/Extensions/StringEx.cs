@@ -254,7 +254,7 @@ public static class StringEx
 
 	#region "Numbering" Family
 
-	public static string ToNumbered(int number, string separatingString = "-", bool camelCase = true)
+	public static string ToNumbered(this int number, string separatingString = "-", bool camelCase = true)
 	{
 		if (number == 0)
 			return camelCase ? "Zero" : "zero";
