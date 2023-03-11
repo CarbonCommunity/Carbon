@@ -254,7 +254,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			yield break;
 		}
 
-		Logger.Warn($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...");
+		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...", 1);
 
 		Loader.AssemblyCache.Add(AsyncLoader.Assembly);
 

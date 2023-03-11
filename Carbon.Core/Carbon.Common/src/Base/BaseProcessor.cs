@@ -161,7 +161,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 			}
 		}
 
-		Logger.Log($" Loading plugin '{id}'...");
+		Logger.Debug($" Loading plugin '{id}'...", 1);
 
 		Remove(id);
 

@@ -79,16 +79,21 @@ namespace Oxide.Game.Rust.Libraries
 								}
 
 							case 3:
-								{
+						 		{
 									arguments.Add(cmd);
 									arguments.Add(args);
 									break;
 								}
 						}
 
-						for (int i = 1; i < parameters.Length; i++)
+						var currentArgumentCount = arguments.Count;
+
+						if (parameters.Length > currentArgumentCount)
 						{
-							arguments.Add(null);
+							for (int i = 0; i < parameters.Length - currentArgumentCount; i++)
+							{
+								arguments.Add(null);
+							}
 						}
 					}
 

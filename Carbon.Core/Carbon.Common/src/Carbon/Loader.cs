@@ -226,7 +226,7 @@ public static class Loader
 		mod?.Plugins.Add(plugin);
 		ProcessCommands(type, plugin);
 
-		Logger.Log($"Loaded plugin {plugin.ToString()}");
+		Logger.Log($"Loaded plugin {plugin.ToString()} [{plugin.CompileTime:0}ms]");
 		return true;
 	}
 	public static bool UninitializePlugin(RustPlugin plugin)
