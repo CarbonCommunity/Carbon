@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
@@ -43,6 +44,30 @@ namespace Carbon
 
 			public static Conflict Make(BaseHookable hookable, string hook) => new Conflict { Hookable = hookable, Hook = hook };
 		}
+
+		public static Delegate CreateDelegate(MethodInfo methodInfo, object target)
+		{
+			Func<Type[], Type> getType;
+			var isAction = methodInfo.ReturnType.Equals((typeof(void)));
+			var types = methodInfo.GetParameters().Select(p => p.ParameterType);
+
+			if (isAction)
+			{
+				getType = Expression.GetActionType;
+			}
+			else
+			{
+				getType = Expression.GetFuncType;
+				types = types.Concat(new[] { methodInfo.ReturnType });
+			}
+
+			if (methodInfo.IsStatic)
+			{
+				return Delegate.CreateDelegate(getType(types.ToArray()), methodInfo);
+			}
+
+			return Delegate.CreateDelegate(getType(types.ToArray()), target, methodInfo.Name);
+		}
 	}
 
 	public static class HookCaller
@@ -68,7 +93,7 @@ namespace Carbon
 			return total;
 		}
 
-		private static object CallStaticHook(string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object[] args = null)
+		private static object CallStaticHook(string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, object[] args = null)
 		{
 			Caller.ClearHookTime(hookName);
 

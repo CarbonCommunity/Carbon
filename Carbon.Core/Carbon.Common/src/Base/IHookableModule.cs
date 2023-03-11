@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 /*
@@ -12,5 +13,5 @@ namespace Carbon.Base.Interfaces;
 
 public interface IHookableModule
 {
-	Dictionary<string, List<MethodInfo>> HookCache { get; }
+	Dictionary<string, List<KeyValuePair<MethodInfo, Delegate>>> HookCache { get; }
 }
