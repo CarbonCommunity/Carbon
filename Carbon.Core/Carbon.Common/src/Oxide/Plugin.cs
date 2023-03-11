@@ -41,6 +41,8 @@ namespace Oxide.Plugins
 		public string FilePath { get; set; }
 		public string FileName { get; set; }
 
+		public string Filename => FileName;
+
 		public override void TrackStart()
 		{
 			if (IsCorePlugin) return;
