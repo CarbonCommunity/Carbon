@@ -26,7 +26,7 @@ using Defines = Carbon.Core.Defines;
 
 namespace Carbon.Modules;
 
-public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDatabaseData>
+public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModuleData>
 {
 	public override string Name => "Image Database";
 	public override Type Type => typeof(ImageDatabaseModule);
@@ -275,6 +275,9 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		{
 			if (!thread._disposed)
 			{
+				thread.DisposalSave();
+				onComplete?.Invoke(thread.Result);
+				if (ConfigInstance.PrintCompletedBatchLogs && thread.Result.Count > 0) Puts($"Completed queue of {thread.Result.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 				thread.Dispose();
 				_queue.Remove(thread);
 			}
@@ -505,6 +508,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			base.Dispose();
 		}
 
+		public void DisposalSave()
+		{
+			_processImages();
+		}
+
 		internal void _doQueue()
 		{
 			if (_urlQueue.Count == 0) return;
@@ -570,14 +578,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 public class ImageDatabaseConfig
 {
-	public float TimeoutPerUrl { get; set; } = 4f;
+	public float TimeoutPerUrl { get; set; } = 2f;
 	public bool PrintInitializedBatchLogs { get; set; } = true;
 	public bool PrintCompletedBatchLogs { get; set; } = true;
 	public bool PrintRetrievedImageLogs { get; set; } = false;
 	public bool PrintDeletedImageLogs { get; set; } = false;
-}
-public class ImageDatabaseData
-{
 }
 
 [ProtoContract]
