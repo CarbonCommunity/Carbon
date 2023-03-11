@@ -77,13 +77,11 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			}
 		}
 
-		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
 		Config = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
 		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 		Load();
-		OnEnableStatus();
+		if (ModuleConfiguration.Enabled) OnEnableStatus();
 	}
 	public virtual void InitEnd()
 	{
@@ -161,6 +159,8 @@ public class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual void OnDisabled(bool initialized)
 	{
+		Loader.RemoveCommands(this);
+
 		foreach (var hook in Hooks)
 		{
 			Unsubscribe(hook);
@@ -170,6 +170,13 @@ public class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
+		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+		if (Community.IsServerFullyInitialized)
+		{
+			HookCaller.CallHook(this, "OnServerInitialized");
+		}
+
 		foreach (var hook in Hooks)
 		{
 			Subscribe(hook);

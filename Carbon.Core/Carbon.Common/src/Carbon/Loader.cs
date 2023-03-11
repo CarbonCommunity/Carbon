@@ -421,10 +421,10 @@ public static class Loader
 		Facepunch.Pool.Free(ref fields);
 		Facepunch.Pool.Free(ref properties);
 	}
-	public static void RemoveCommands(RustPlugin plugin)
+	public static void RemoveCommands(BaseHookable hookable)
 	{
-		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == plugin);
-		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == plugin);
+		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == hookable);
+		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == hookable);
 	}
 
 	public static void OnPluginProcessFinished()
