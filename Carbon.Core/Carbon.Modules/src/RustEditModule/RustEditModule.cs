@@ -6,23 +6,17 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Policy;
 using System.Text;
 using System.Xml.Serialization;
 using Carbon.Base;
 using ConVar;
 using Facepunch;
-using Network;
-using Newtonsoft.Json;
 using ProtoBuf;
 using Rust;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using static BasePlayer;
-using static Carbon.Modules.RustEditModule;
-using static QRCoder.PayloadGenerator;
-using static UnityEngine.UI.GridLayoutGroup;
 using Color = UnityEngine.Color;
 using Pool = Facepunch.Pool;
 using Random = UnityEngine.Random;
@@ -38,7 +32,7 @@ using Time = UnityEngine.Time;
 
 namespace Carbon.Modules;
 
-public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
+public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleData>
 {
 	internal static RustEditModule Singleton { get; set; }
 
@@ -616,10 +610,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			var settings = module.ConfigInstance.NpcSpawner;
 
 			var position = (Vector3)serializedNPCSpawner.position;
-			var num = 1;
 			var npc = (ScientistNPC)null;
 			var npc2 = (ScarecrowNPC)null;
-			stationary = !module.NPCSpawner_IsOnGround(ref position, out num);
+			stationary = !module.NPCSpawner_IsOnGround(ref position, out var num);
 
 			if (settings.UseRustEditNPCLogic || type == NPCType.Scarecrow || type == NPCType.Murderer)
 			{
@@ -4729,7 +4722,4 @@ public class RustEditConfig
 		};
 		public string DefaultSignImage = "iVBORw0KGgoAAAANSUhEUgAAANcAAAB9CAYAAAAx+vY9AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB/SURBVHhe7cGBAAAAAMOg+VNf4QBVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8aqR4AAFsKyZjAAAAAElFTkSuQmCC";
 	}
-}
-public class RustEditData
-{
 }
