@@ -1872,10 +1872,21 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			AddInitial(tab, ap);
 
-			foreach (var player in BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId()))
+			tab.AddName(0, "Online");
+			var onlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && x.IsConnected);
+			foreach (var player in onlinePlayers)
 			{
 				AddPlayer(tab, ap, player);
 			}
+			if (onlinePlayers.Count() == 0) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
+
+			tab.AddName(0, "Offline");
+			var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
+			foreach (var player in offlinePlayers)
+			{
+				AddPlayer(tab, ap, player);
+			}
+			if (offlinePlayers.Count() == 0) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
 		}
 		public static void AddPlayer(Tab tab, AdminPlayer ap, BasePlayer player)
 		{
