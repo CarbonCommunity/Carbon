@@ -15,6 +15,7 @@ public class RustOverridesModule : CarbonModule<RustOverridesConfig, EmptyModule
 {
 	public override string Name => "RustOverrides";
 	public override Type Type => typeof(RustOverridesModule);
+	public override bool ForceModded => true;
 	public override bool EnabledByDefault => true;
 
 	private object IDisallowSkinnedItemsFromBeingCraftable()

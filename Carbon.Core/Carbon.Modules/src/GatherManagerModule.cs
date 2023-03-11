@@ -17,6 +17,7 @@ namespace Carbon.Modules;
 public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
 {
 	public override string Name => "GatherManager";
+	public override bool ForceModded => true;
 	public override Type Type => typeof(GatherManagerModule);
 
 	#region Hooks

@@ -15,9 +15,12 @@ using Oxide.Core.Configuration;
 
 namespace Carbon.Base;
 
-public class BaseModule : BaseHookable
+public abstract class BaseModule : BaseHookable
 {
 	public virtual bool EnabledByDefault => false;
+	public virtual bool ForceModded => false;
+
+	public abstract bool GetEnabled();
 
 	public static T GetModule<T>()
 	{
@@ -33,7 +36,7 @@ public class BaseModule : BaseHookable
 public class EmptyModuleConfig { }
 public class EmptyModuleData { }
 
-public class CarbonModule<C, D> : BaseModule, IModule
+public abstract class CarbonModule<C, D> : BaseModule, IModule
 {
 	public Configuration ModuleConfiguration { get; set; }
 	public DynamicConfigFile Config { get; private set; }
@@ -152,7 +155,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			OnEnableStatus();
 		}
 	}
-	public bool GetEnabled()
+	public override bool GetEnabled()
 	{
 		return ModuleConfiguration != null && ModuleConfiguration.Enabled;
 	}

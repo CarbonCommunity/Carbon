@@ -43,6 +43,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	internal static RustEditModule Singleton { get; set; }
 
 	public override string Name => "RustEdit.Ext";
+	public override bool ForceModded => true;
 	public override Type Type => typeof(RustEditModule);
 
 	public RustEditModule()

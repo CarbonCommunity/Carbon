@@ -16,6 +16,7 @@ namespace Carbon.Modules;
 public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerData>
 {
 	public override string Name => "StackManager";
+	public override bool ForceModded => true;
 	public override Type Type => typeof(StackManagerModule);
 
 	private void OnServerInitialized()
@@ -100,7 +101,7 @@ public class StackManagerConfig
 {
 	public float GlobalMultiplier = 1f;
 
-	public HashSet<string> Blacklist = new HashSet<string>
+	public HashSet<string> Blacklist = new()
 	{
 		"water",
 		"water.salt"
