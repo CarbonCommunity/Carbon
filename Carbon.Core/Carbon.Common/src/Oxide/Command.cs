@@ -85,6 +85,11 @@ namespace Oxide.Game.Rust.Libraries
 									break;
 								}
 						}
+
+						for (int i = 1; i < parameters.Length; i++)
+						{
+							arguments.Add(null);
+						}
 					}
 
 					result = arguments.ToArray();
