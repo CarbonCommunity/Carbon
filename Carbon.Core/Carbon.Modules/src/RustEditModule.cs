@@ -3325,7 +3325,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	internal static bool Deployables_ProtectedHook(BaseCombatEntity __instance, HitInfo info = null)
 	{
 		//Logic to stop pickup and decay.
-		if (__instance == null) { return true; }
+		if (__instance == null) { return false; }
 		if (Singleton.Config.Deployables.ManagedPrefabs.Contains(__instance.PrefabName))
 		{
 			if (Singleton.Config.Deployables.DisableDamageLikeRE)

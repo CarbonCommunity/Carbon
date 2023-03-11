@@ -5,8 +5,10 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
+using Carbon.Extensions;
 using Facepunch;
 using Oxide.Plugins;
+using static Carbon.HookCallerCommon;
 
 /*
  *
@@ -68,24 +70,19 @@ namespace Carbon
 
 		private static object CallStaticHook(string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object[] args = null)
 		{
-			var objectOverride = (object)null;
-			var hookableOverride = (BaseHookable)null;
-
 			Caller.ClearHookTime(hookName);
+
+			var result = (object)null;
+			var conflicts = Pool.GetList<Conflict>();
 
 			foreach (var module in Community.Runtime.ModuleProcessor.Modules)
 			{
-				var result = Caller.CallHook(module, hookName, flags: flag, args: args);
-				if (result != null && objectOverride != null)
-				{
-					Carbon.Logger.Warn($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
-					break;
-				}
+				var methodResult = Caller.CallHook(module, hookName, flags: flag, args: args);
 
-				if (result != null)
+				if (methodResult != null)
 				{
-					objectOverride = result;
-					hookableOverride = module;
+					ResultOverride(module);
+					result = methodResult;
 				}
 			}
 
@@ -104,27 +101,36 @@ namespace Carbon
 			{
 				try
 				{
-					var result = Caller.CallHook(plugin, hookName, flags: flag, args: array);
-					if (result != null && objectOverride != null)
-					{
-						Carbon.Logger.Warn($"Hook '{hookName}' conflicts with {hookableOverride.Name}");
-						break;
-					}
+					var methodResult = Caller.CallHook(plugin, hookName, flags: flag, args: array);
 
-					if (result != null)
+					if (methodResult != null)
 					{
-						objectOverride = result;
-						hookableOverride = plugin;
+						ResultOverride(plugin);
+						result = methodResult;
 					}
 				}
 				catch (Exception ex) { Logger.Error("Fuck:", ex); }
 			}
 
+			ConflictCheck();
+
 			Pool.FreeList(ref plugins);
 
 			if (array != null) Pool.Free(ref array);
 
-			return objectOverride;
+			void ResultOverride(BaseHookable hookable)
+			{
+				conflicts.Add(Conflict.Make(hookable, hookName));
+			}
+			void ConflictCheck()
+			{
+				if (conflicts.Count > 1)
+				{
+					Carbon.Logger.Warn($"Calling hook '{hookName}' resulted in a conflict between the following plugins: {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version}").ToArray().ToString(", ", " and ")}");
+				}
+			}
+
+			return result;
 		}
 		private static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object[] args = null)
 		{

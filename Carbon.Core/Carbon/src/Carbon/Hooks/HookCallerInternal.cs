@@ -92,7 +92,6 @@ namespace Carbon.Hooks
 					var methodResult = DoCall(method);
 					if (methodResult != null)
 					{
-						ResultOverride();
 						result = methodResult;
 					}
 				}
@@ -118,7 +117,6 @@ namespace Carbon.Hooks
 
 					if(methodResult != null)
 					{
-						ResultOverride();
 						result = methodResult;
 					}
 				}
@@ -133,8 +131,6 @@ namespace Carbon.Hooks
 					);
 				}
 			}
-
-			ConflictCheck();
 
 			object DoCall(MethodInfo method)
 			{
@@ -164,17 +160,6 @@ namespace Carbon.Hooks
 				}
 
 				return result2;
-			}
-			void ResultOverride()
-			{
-				conflicts.Add(Conflict.Make(plugin, hookName));
-			}
-			void ConflictCheck()
-			{
-				if(conflicts.Count > 1)
-				{
-					Carbon.Logger.Warn($"Calling hook '{hookName}' resulted in a conflict between the following plugins: {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version}").ToArray().ToString(", ", " and ")}");
-				}
 			}
 
 			Pool.FreeList(ref conflicts);
