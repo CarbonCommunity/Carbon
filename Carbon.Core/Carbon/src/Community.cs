@@ -242,5 +242,6 @@ public class CommunityInternal : Community
 		"UnityEngine.UnityWebRequestModule",
 		"UnityEngine.UnityWebRequestTextureModule",
 		"UnityEngine.UnityWebRequestWWWModule",
+		"UnityEngine.VehiclesModule"
 	};
 }
