@@ -83,7 +83,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 		Load();
-		if (ModuleConfiguration.Enabled) OnEnableStatus();
+		OnEnableStatus();
 	}
 	public virtual void InitEnd()
 	{
@@ -93,22 +93,19 @@ public class CarbonModule<C, D> : BaseModule, IModule
 	{
 		var shouldSave = false;
 
-		if (typeof(C) != typeof(EmptyModuleConfig))
+		if (!Config.Exists())
 		{
-			if (!Config.Exists())
-			{
-				ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
-				if (EnabledByDefault) ModuleConfiguration.Enabled = true;
-				shouldSave = true;
-			}
-			else
-			{
-				try { ModuleConfiguration = Config.ReadObject<Configuration>(); }
-				catch (Exception exception) { Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
-			}
-
-			ConfigInstance = ModuleConfiguration.Config;
+			ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
+			if (EnabledByDefault) ModuleConfiguration.Enabled = true;
+			shouldSave = true;
 		}
+		else
+		{
+			try { ModuleConfiguration = Config.ReadObject<Configuration>(); }
+			catch (Exception exception) { Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
+		}
+
+		ConfigInstance = ModuleConfiguration.Config;
 
 		if (typeof(D) != typeof(EmptyModuleData))
 		{
@@ -134,7 +131,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public virtual void Save()
 	{
-		if (ModuleConfiguration == null && typeof(C) != typeof(EmptyModuleConfig))
+		if (ModuleConfiguration == null)
 		{
 			ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
 			ConfigInstance = ModuleConfiguration.Config;
@@ -145,7 +142,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 			DataInstance = Activator.CreateInstance<D>();
 		}
 
-		if (ModuleConfiguration != null) Config.WriteObject(ModuleConfiguration);
+		Config.WriteObject(ModuleConfiguration);
 		if (DataInstance != null) Data.WriteObject(DataInstance);
 	}
 
@@ -159,7 +156,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public bool GetEnabled()
 	{
-		return ModuleConfiguration.Enabled;
+		return ModuleConfiguration != null && ModuleConfiguration.Enabled;
 	}
 
 	public virtual void OnDisabled(bool initialized)
@@ -185,7 +182,7 @@ public class CarbonModule<C, D> : BaseModule, IModule
 	{
 		try
 		{
-			if (ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized); else OnDisabled(Community.IsServerFullyInitialized);
+			if (ModuleConfiguration != null && ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized); else OnDisabled(Community.IsServerFullyInitialized);
 		}
 		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}
