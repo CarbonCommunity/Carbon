@@ -64,12 +64,17 @@ public class CarbonModule<C, D> : BaseModule, IModule
 		base.Name = Name;
 		base.Type = Type;
 
+		Hooks = new System.Collections.Generic.List<string>();
+
 		Community.Runtime.HookManager.LoadHooksFromType(Type);
 
 		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
 			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+			{
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
+				Hooks.Add(method.Name);
+			}
 		}
 
 		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
