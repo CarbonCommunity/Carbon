@@ -152,7 +152,18 @@ namespace Carbon
 			{
 				if (conflicts.Count > 1)
 				{
-					if (conflicts[0].Result != conflicts[1].Result) Carbon.Logger.Warn($"Calling hook '{hookName}' resulted in a conflict between the following plugins: {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToArray().ToString(", ", " and ")}");
+					var differentResults = false;
+					var localResult = conflicts[0].Result;
+					foreach (var conflict in conflicts)
+					{
+						if (conflict.Result?.ToString() != localResult?.ToString())
+						{
+							differentResults = true;			
+						}
+						else localResult = conflict.Result;
+					}
+
+					if (differentResults) Carbon.Logger.Warn($"Calling hook '{hookName}' resulted in a conflict between the following plugins: {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToArray().ToString(", ", " and ")}");
 				}
 			}
 
