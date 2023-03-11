@@ -54,7 +54,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		ImageDatabase = GetModule<ImageDatabaseModule>();
 
-		Community.Runtime.CorePlugin.cmd.AddChatCommand(Config.OpenCommand, this, (player, cmd, args) =>
+		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
 		{
 			if (!CanAccess(player)) return;
 
@@ -123,7 +123,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
-		var level = Config.MinimumAuthLevel;
+		var level = ConfigInstance.MinimumAuthLevel;
 
 		switch (level)
 		{

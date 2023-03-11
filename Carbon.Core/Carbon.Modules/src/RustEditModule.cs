@@ -52,7 +52,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	private void OnServerInitialized()
 	{
-		if (!ConfigInstance.Enabled) return;
+		if (!ModuleConfiguration.Enabled) return;
 
 		#region Spawnpoints
 		try
@@ -147,7 +147,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	private object CanBradleyApcTarget(BradleyAPC apc, BaseEntity entity)
 	{
-		if (entity is NPCPlayer && Config.NpcSpawner.APCIgnoreNPCs)
+		if (entity is NPCPlayer && ConfigInstance.NpcSpawner.APCIgnoreNPCs)
 		{
 			foreach (var npcspawner in NPCSpawner_NPCsList)
 			{
@@ -160,7 +160,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	private object OnTurretTarget(AutoTurret turret, BaseCombatEntity entity)
 	{
-		if (turret.OwnerID == 0 && Config.NpcSpawner.NPCAutoTurretsIgnoreNPCs)
+		if (turret.OwnerID == 0 && ConfigInstance.NpcSpawner.NPCAutoTurretsIgnoreNPCs)
 		{
 			foreach (var npcspawner in NPCSpawner_NPCsList)
 			{
@@ -180,7 +180,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	}
 	private object OnBasePlayerAttacked(BasePlayer player, HitInfo info)
 	{
-		if (!Config.NpcSpawner.UseRustEditNPCLogic)
+		if (!ConfigInstance.NpcSpawner.UseRustEditNPCLogic)
 		{
 			// BMG Pirate Logic
 			if (info.InitiatorPlayer != null)
@@ -510,7 +510,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	[ChatCommand("showspawnpoints")]
 	public void DoBroadcastSpawnpoints(BasePlayer player)
 	{
-		if (!ConfigInstance.Enabled) return;
+		if (!ModuleConfiguration.Enabled) return;
 
 		Spawn_BroadcastSpawnpoints(player);
 	}
@@ -603,7 +603,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		public void SpawnNPC()
 		{
 			var module = GetModule<RustEditModule>();
-			var settings = module.Config.NpcSpawner;
+			var settings = module.ConfigInstance.NpcSpawner;
 
 			var position = (Vector3)serializedNPCSpawner.position;
 			var num = 1;
@@ -689,7 +689,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			switch (type)
 			{
 				case NPCType.Scientist:
-					npc.InitializeHealth(module.Config.NpcSpawner.ScientistNPCHealth, settings.ScientistNPCHealth);
+					npc.InitializeHealth(module.ConfigInstance.NpcSpawner.ScientistNPCHealth, settings.ScientistNPCHealth);
 					if (npc != null)
 					{
 						RoamDistance = settings.ScientistNPCRoamRange;
@@ -843,7 +843,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 					{
 						if (npcs.Delay <= Time.time)
 						{
-							if (!NPCSpawner_AnyPlayersNearby(npcs.serializedNPCSpawner.position, Config.NpcSpawner.SpawnBlockingDistance)) { npcs.SpawnNPC(); }
+							if (!NPCSpawner_AnyPlayersNearby(npcs.serializedNPCSpawner.position, ConfigInstance.NpcSpawner.SpawnBlockingDistance)) { npcs.SpawnNPC(); }
 						}
 						continue;
 					}
@@ -853,7 +853,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 						npcs.Delay = Time.time + (float)UnityEngine.Random.Range(npcs.serializedNPCSpawner.respawnMin, npcs.serializedNPCSpawner.respawnMax);
 						continue;
 					}
-					if (Config.NpcSpawner.UseRustEditNPCLogic || npcs.type == NPCType.Scarecrow || npcs.type == NPCType.Murderer)
+					if (ConfigInstance.NpcSpawner.UseRustEditNPCLogic || npcs.type == NPCType.Scarecrow || npcs.type == NPCType.Murderer)
 					{
 						//Rust Edit AI Logic and Scarecrow/murderer Fix
 						ScarecrowNPC scnpc = npcs.BOT as ScarecrowNPC;
@@ -953,7 +953,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				catch { }
 			}
 
-			yield return CoroutineEx.waitForSeconds(Config.NpcSpawner.AITickRate);
+			yield return CoroutineEx.waitForSeconds(ConfigInstance.NpcSpawner.AITickRate);
 		}
 
 		PutsWarn("Stopped AI processing.");
@@ -3070,7 +3070,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 	private object ICanCH47CreateMapMarker(CH47Helicopter heli)
 	{
-		if (Config.Deployables.EnableCH47MapMarker)
+		if (ConfigInstance.Deployables.EnableCH47MapMarker)
 		{
 			return null;
 		}
@@ -3163,8 +3163,8 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 
 							var ass = baseEntity.gameObject.AddComponent<AnimalSpawner>();
 							ass.PD = pd;
-							ass.Lifetime = (float)Time.time + Singleton.Config.Deployables.AnimalsMinRespawnDelay;
-							if (Singleton.Config.Deployables.LogManagedSpawns)
+							ass.Lifetime = (float)Time.time + Singleton.ConfigInstance.Deployables.AnimalsMinRespawnDelay;
+							if (Singleton.ConfigInstance.Deployables.LogManagedSpawns)
 							{
 								Singleton.PutsWarn($"Spawned {baseEntity} @ {baseEntity.transform.position}");
 							}
@@ -3197,7 +3197,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		if (Deployables_serializedVehicleData != null) { Deployables_SpawnPoints.AddRange(Deployables_serializedVehicleData.vehicles); }
 		for (int i = 0; i < World.Serialization.world.prefabs.Count; i++)
 		{
-			if (Singleton.Config.Deployables.ManagedPrefabs.Contains(StringPool.Get(World.Serialization.world.prefabs[i].id)))
+			if (Singleton.ConfigInstance.Deployables.ManagedPrefabs.Contains(StringPool.Get(World.Serialization.world.prefabs[i].id)))
 			{
 				Deployables_SpawnPoints.Add(World.Serialization.world.prefabs[i]);
 			}
@@ -3264,9 +3264,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		//Logic to stop pickup and decay.
 		if (__instance == null) { return false; }
-		if (Singleton.Config.Deployables.ManagedPrefabs.Contains(__instance.PrefabName))
+		if (Singleton.ConfigInstance.Deployables.ManagedPrefabs.Contains(__instance.PrefabName))
 		{
-			if (Singleton.Config.Deployables.DisableDamageLikeRE)
+			if (Singleton.ConfigInstance.Deployables.DisableDamageLikeRE)
 			{
 				//Blcosk all damage
 				return false;
@@ -3289,7 +3289,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		if (gameObject != null)
 		{
 			//Card and ore spawners ect
-			if (Singleton.Config.Deployables.ManagedSpawners.Contains(gameObject.name))
+			if (Singleton.ConfigInstance.Deployables.ManagedSpawners.Contains(gameObject.name))
 			{
 				foreach (Transform child in gameObject.transform.GetAllChildren())
 				{
@@ -3502,9 +3502,9 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 	{
 		if (__instance == null) { return; }
 
-		if (Singleton.Config.Deployables.LockedCrates.Contains(__instance.PrefabName))
+		if (Singleton.ConfigInstance.Deployables.LockedCrates.Contains(__instance.PrefabName))
 		{
-			__instance.InitializeHealth(Singleton.Config.Deployables.LockedCratesHealth, Singleton.Config.Deployables.LockedCratesHealth);
+			__instance.InitializeHealth(Singleton.ConfigInstance.Deployables.LockedCratesHealth, Singleton.ConfigInstance.Deployables.LockedCratesHealth);
 			__instance.SetFlag(BaseEntity.Flags.Locked, true);
 		}
 		foreach (CustomLootContainer clc in Deployables_customLootContainer)
@@ -3525,7 +3525,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			Deployables_BuildPrefabList();
 		}
 
-		if (Singleton.Config.Deployables.RemovePrefabsLocations.Contains(prefab.position))
+		if (Singleton.ConfigInstance.Deployables.RemovePrefabsLocations.Contains(prefab.position))
 		{
 			return false;
 		}
@@ -3621,11 +3621,11 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		if (!door.HasFlag(BaseEntity.Flags.Reserved11))
 		{
 			List<DoorManipulator> list = new List<DoorManipulator>();
-			Vis.Entities<DoorManipulator>(door.transform.position, Singleton.Config.Deployables.HangerDoorScanRange, list);
+			Vis.Entities<DoorManipulator>(door.transform.position, Singleton.ConfigInstance.Deployables.HangerDoorScanRange, list);
 			if (list != null && list.Count != 0)
 			{
 				list[0].SetTargetDoor(door);
-				if (Singleton.Config.Deployables.HideDoorManipulators)
+				if (Singleton.ConfigInstance.Deployables.HideDoorManipulators)
 				{
 					list[0]._limitedNetworking = true;
 				}
@@ -3642,7 +3642,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			if (list != null && list.Count != 0)
 			{
 				list[0].SetTargetDoor(door);
-				if (Singleton.Config.Deployables.HideDoorManipulators)
+				if (Singleton.ConfigInstance.Deployables.HideDoorManipulators)
 				{
 					list[0]._limitedNetworking = true;
 				}
@@ -3738,7 +3738,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 						try
 						{
 							if (prefab.Contains("cassetterecorder")) { continue; }
-							if (!Deployables_AnyPlayersNearby(pd.position, Singleton.Config.Deployables.PlayerDistanceBlock))
+							if (!Deployables_AnyPlayersNearby(pd.position, Singleton.ConfigInstance.Deployables.PlayerDistanceBlock))
 							{
 								foreach (TakenV ttv in Deployables_TakenVehicles.ToList())
 								{
@@ -3754,7 +3754,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 								if (be != null)
 								{
 									be.Spawn();
-									if (Singleton.Config.Deployables.LogManagedSpawns)
+									if (Singleton.ConfigInstance.Deployables.LogManagedSpawns)
 									{
 										Singleton.PutsWarn($"Spawned {be} @ {be.transform.position}");
 									}
@@ -3770,7 +3770,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 											neon.pickup.enabled = false;
 											neon.currentFrame = 0;
 											neon.animationSpeed = 1;
-											byte[] Blank = Convert.FromBase64String(Singleton.Config.Deployables.DefaultSignImage);
+											byte[] Blank = Convert.FromBase64String(Singleton.ConfigInstance.Deployables.DefaultSignImage);
 											if (neon.prefabID == 708840119)
 											{
 												Deployables_ApplySignage(neon, null, Blank, 0);
@@ -3820,7 +3820,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 					if (be != null)
 					{
 						//Apply Skins
-						if (Singleton.Config.Deployables.EnableMapSkins)
+						if (Singleton.ConfigInstance.Deployables.EnableMapSkins)
 						{
 							if (be.skinID == 0 && pd.category.Contains("skinid="))
 							{
@@ -3841,7 +3841,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 							}
 						}
 						//Apply Images
-						if (Singleton.Config.Deployables.EnableImages)
+						if (Singleton.ConfigInstance.Deployables.EnableImages)
 						{
 							PhotoFrame photoframe = be as PhotoFrame;
 							if (photoframe != null)
@@ -3857,7 +3857,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 								}
 							}
 						}
-						if (Singleton.Config.Deployables.FillSwimmingPools)
+						if (Singleton.ConfigInstance.Deployables.FillSwimmingPools)
 						{
 							if (be is PaddlingPool && !be.HasFlag(BaseEntity.Flags.Reserved4))
 							{
@@ -3899,7 +3899,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			FoundCoalings = true;
 			DoneSigns = true;
 			//Recheck after X seconds.
-			yield return CoroutineEx.waitForSeconds(Singleton.Config.Deployables.RecheckerSeconds);
+			yield return CoroutineEx.waitForSeconds(Singleton.ConfigInstance.Deployables.RecheckerSeconds);
 		}
 	}
 	internal static void Deployables_ProcessImages(BaseEntity sign, PrefabData pd, bool DoneSigns)
@@ -3938,7 +3938,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 							{
 								if (!imagelink.StartsWith("http"))
 								{
-									imagelink = Singleton.Config.Deployables.URLPrefix + imagelink;
+									imagelink = Singleton.ConfigInstance.Deployables.URLPrefix + imagelink;
 								}
 								ServerMgr.Instance.StartCoroutine(Deployables_DownloadSignData(imagelink, signage, photoframe, frames++));
 							}
@@ -3946,7 +3946,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 							{
 								if (!imagelink.StartsWith("http"))
 								{
-									imagelink = Singleton.Config.Deployables.URLPrefix + imagelink;
+									imagelink = Singleton.ConfigInstance.Deployables.URLPrefix + imagelink;
 								}
 								ServerMgr.Instance.StartCoroutine(Deployables_DownloadSignData(imagelink, signage, null, 0, true));
 							}
@@ -4260,14 +4260,14 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 		{
 			if (baseEntity)
 			{
-				if (!Deployables_AnyPlayersNearby(PD.position, Singleton.Config.Deployables.PlayerDistanceBlockAnimals) && (Lifetime <= UnityEngine.Time.time))
+				if (!Deployables_AnyPlayersNearby(PD.position, Singleton.ConfigInstance.Deployables.PlayerDistanceBlockAnimals) && (Lifetime <= UnityEngine.Time.time))
 				{
 					baseEntity.enableSaving = false;
 					baseEntity.gameObject.AwakeFromInstantiate();
 					baseEntity.Spawn();
 					AnimalSpawner ass = baseEntity.gameObject.AddComponent<AnimalSpawner>();
 					ass.PD = PD;
-					ass.Lifetime = (float)UnityEngine.Time.time + Singleton.Config.Deployables.AnimalsMinRespawnDelay;
+					ass.Lifetime = (float)UnityEngine.Time.time + Singleton.ConfigInstance.Deployables.AnimalsMinRespawnDelay;
 					return;
 				}
 				baseEntity.Invoke(() => { Spawn(baseEntity); }, 30f);
@@ -4282,7 +4282,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				if (baseEntity)
 				{
 					Spawn(baseEntity);
-					if (Singleton.Config.Deployables.LogManagedSpawns)
+					if (Singleton.ConfigInstance.Deployables.LogManagedSpawns)
 					{
 						Singleton.PutsWarn($"Spawned {baseEntity} @ {baseEntity.transform.position}");
 					}
@@ -4322,7 +4322,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 			if (!flag)
 			{
 				//Invoke delay to respawn
-				InvokeHandler.Invoke(this, new Action(CreateEntity), Singleton.Config.Deployables.KeyCardsRespawnSeconds);
+				InvokeHandler.Invoke(this, new Action(CreateEntity), Singleton.ConfigInstance.Deployables.KeyCardsRespawnSeconds);
 			}
 		}
 
@@ -4338,7 +4338,7 @@ public class RustEditModule : CarbonModule<RustEditConfig, RustEditData>
 				baseEntity.Spawn();
 				baseEntity.gameObject.AddComponent<SpawnManager>().spawnmanager = this;
 				flag = true;
-				if (Singleton.Config.Deployables.LogManagedSpawns)
+				if (Singleton.ConfigInstance.Deployables.LogManagedSpawns)
 				{
 					Singleton.PutsWarn($"Spawned {baseEntity} @ {baseEntity.transform.position}");
 				}

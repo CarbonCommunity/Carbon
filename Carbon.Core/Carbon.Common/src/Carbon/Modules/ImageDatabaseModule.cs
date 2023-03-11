@@ -255,14 +255,14 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			}
 		}
 
-		if (Config.PrintInitializedBatchLogs && thread.ImageUrls.Count > 0) Puts($"Added {thread.ImageUrls.Count:n0} to the queue (scale: {(scale == 0 ? "default" : $"{scale:0.0}")})...");
+		if (ConfigInstance.PrintInitializedBatchLogs && thread.ImageUrls.Count > 0) Puts($"Added {thread.ImageUrls.Count:n0} to the queue (scale: {(scale == 0 ? "default" : $"{scale:0.0}")})...");
 
 		Community.Runtime.CorePlugin.persistence.StartCoroutine(_executeQueue(thread, results =>
 		{
 			try
 			{
 				onComplete?.Invoke(results);
-				if (Config.PrintCompletedBatchLogs && results.Count > 0) Puts($"Completed queue of {results.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+				if (ConfigInstance.PrintCompletedBatchLogs && results.Count > 0) Puts($"Completed queue of {results.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 				_queue.Remove(thread);
 			}
 			catch (Exception ex)
@@ -271,7 +271,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			}
 		}));
 
-		Community.Runtime.CorePlugin.timer.In(Config.TimeoutPerUrl * urls.Length, () =>
+		Community.Runtime.CorePlugin.timer.In(ConfigInstance.TimeoutPerUrl * urls.Length, () =>
 		{
 			if (!thread._disposed)
 			{
@@ -371,7 +371,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 		if (_protoData.Map.TryGetValue($"{url}_{id}", out var uid))
 		{
-			if (!silent && Config.PrintCompletedBatchLogs) Puts($"Retrieved image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+			if (!silent && ConfigInstance.PrintCompletedBatchLogs) Puts($"Retrieved image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 			return uid;
 		}
 
@@ -388,7 +388,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 		if (_protoData.Map.TryGetValue(name, out var uid))
 		{
-			if (Config.PrintDeletedImageLogs) Puts($"Deleted image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+			if (ConfigInstance.PrintDeletedImageLogs) Puts($"Deleted image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 
 			FileStorage.server.Remove(uid, FileStorage.Type.png, _protoData.Identifier);
 			_protoData.Map.Remove(name);

@@ -29,14 +29,14 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 	{
 		base.Init();
 
-		foreach (var processor in Config.DRMs)
+		foreach (var processor in ConfigInstance.DRMs)
 		{
 			processor.Initialize();
 		}
 	}
 	public override void Dispose()
 	{
-		foreach (var processor in Config.DRMs)
+		foreach (var processor in ConfigInstance.DRMs)
 		{
 			processor.Uninitialize();
 		}
@@ -57,7 +57,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 	{
 		if (!args.IsPlayerCalledAndAdmin()) return;
 
-		foreach (var processor in Config.DRMs)
+		foreach (var processor in ConfigInstance.DRMs)
 		{
 			processor.Uninitialize();
 			processor.Initialize();

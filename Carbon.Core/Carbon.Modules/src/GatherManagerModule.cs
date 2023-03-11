@@ -80,7 +80,7 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 	}
 	private void OnItemResearch(ResearchTable table, Item targetItem, BasePlayer player)
 	{
-		table.researchDuration = Config.ResearchDuration;
+		table.researchDuration = ConfigInstance.ResearchDuration;
 	}
 	private void OnDispenserBonus(ResourceDispenser dispenser, BasePlayer player, Item item)
 	{
@@ -89,15 +89,15 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 
 	private object ICraftDurationMultiplier()
 	{
-		return Config.CraftingSpeedMultiplier;
+		return ConfigInstance.CraftingSpeedMultiplier;
 	}
 	private object IRecyclerThinkSpeed()
 	{
-		return Config.RecycleTick;
+		return ConfigInstance.RecycleTick;
 	}
 	private object IVendingBuyDuration()
 	{
-		return Config.VendingMachineBuyDuration;
+		return ConfigInstance.VendingMachineBuyDuration;
 	}
 
 	private object IMixingSpeedMultiplier(MixingTable table, float originalValue)
@@ -106,7 +106,7 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 
 		if (originalValue == table.currentRecipe.MixingDuration * table.currentQuantity)
 		{
-			return Config.MixingSpeedMultiplier;
+			return ConfigInstance.MixingSpeedMultiplier;
 		}
 
 		return null;
@@ -128,10 +128,10 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 	{
 		var dictionary = kind switch
 		{
-			0 => Config.Pickup,
-			1 => Config.Gather,
-			2 => Config.Quarry,
-			3 => Config.Excavator,
+			0 => ConfigInstance.Pickup,
+			1 => ConfigInstance.Gather,
+			2 => ConfigInstance.Quarry,
+			3 => ConfigInstance.Excavator,
 			_ => throw new Exception("Invalid CreateItemEx kind"),
 		};
 

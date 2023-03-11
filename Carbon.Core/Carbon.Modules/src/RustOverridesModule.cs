@@ -19,7 +19,7 @@ public class RustOverridesModule : CarbonModule<RustOverridesConfig, EmptyModule
 
 	private object IDisallowSkinnedItemsFromBeingCraftable()
 	{
-		if (Config.DisallowSkinnedItemsFromBeingCraftable) return true;
+		if (ConfigInstance.DisallowSkinnedItemsFromBeingCraftable) return true;
 
 		return null;
 	}
