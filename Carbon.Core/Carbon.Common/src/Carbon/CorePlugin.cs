@@ -944,7 +944,6 @@ public class CorePlugin : CarbonPlugin
 		switch (name)
 		{
 			case "*":
-				Community.Runtime.ClearPlugins();
 				Community.Runtime.ReloadPlugins();
 				break;
 
