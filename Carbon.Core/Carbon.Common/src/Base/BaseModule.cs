@@ -84,7 +84,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 		Load();
-		OnEnableStatus();
+		if (ModuleConfiguration.Enabled) OnEnableStatus();
 	}
 	public virtual void InitEnd()
 	{
