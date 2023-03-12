@@ -426,11 +426,22 @@ public static class Loader
 		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == hookable);
 		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == hookable);
 	}
+	
+	public static List<string> PostBatchFailedRequirees { get; } = new();
 
 	public static void OnPluginProcessFinished()
 	{
-		if (Community.IsServerFullyInitialized)
+		foreach(var plug in PostBatchFailedRequirees)
 		{
+			var file = System.IO.Path.GetFileNameWithoutExtension(plug);
+			Community.Runtime.ScriptProcessor.ClearIgnore(file);
+			Community.Runtime.ScriptProcessor.Prepare(file, plug);
+		}
+		
+		PostBatchFailedRequirees.Clear();
+		
+		if (Community.IsServerFullyInitialized)
+		{			
 			var counter = 0;
 			var plugins = Pool.GetList<RustPlugin>();
 
