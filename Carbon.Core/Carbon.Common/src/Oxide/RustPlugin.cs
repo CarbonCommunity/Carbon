@@ -208,6 +208,10 @@ public class RustPlugin : Plugin
 
 		File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
 	}
+	protected void LogToFile(string filename, string text, Plugin plugin = null, bool datedFilename = true, bool timestamp = true)
+	{
+		LogToFile(filename, text, plugin, timestamp);
+	}
 
 	#endregion
 
