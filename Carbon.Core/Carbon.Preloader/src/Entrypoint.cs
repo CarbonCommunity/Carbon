@@ -14,14 +14,16 @@ namespace Doorstop;
 
 public sealed class Entrypoint
 {
+	private static readonly string[] Preload = {
+		Path.Combine(Context.CarbonLib, "0Harmony.dll"),
+		//Path.Combine(Context.CarbonManaged, "Carbon.Bootstrap.dll"),
+		//Path.Combine(Context.CarbonManaged, "Carbon.Common.dll")
+	};
+
 	public static void Start()
 	{
 		string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
-		Logger.Log($">> {assemblyName} is using UnityDoorstop entrypoint");
-
-		// this forces Harmony v2 to be loaded instead of the rust's builtin v1
-		Assembly harmony = Assembly.LoadFile(Path.Combine(Context.CarbonLib, "0Harmony.dll"));
-		Logger.Log($"Loaded {harmony.GetName().Name} {harmony.GetName().Version} into current AppDomain");
+		Logger.Log($">> {assemblyName} is using a mono injector as entrypoint");
 
 		using Sandbox<AssemblyCSharp> isolated1 = new Sandbox<AssemblyCSharp>();
 		if (!isolated1.Do.IsPublic("ServerMgr", "Shutdown"))
@@ -35,6 +37,19 @@ public sealed class Entrypoint
 		{
 			isolated2.Do.Patch();
 			isolated2.Do.Write();
+		}
+
+		foreach (string file in Preload)
+		{
+			try
+			{
+				Assembly harmony = Assembly.LoadFile(file);
+				Logger.Log($"Loaded {harmony.GetName().Name} {harmony.GetName().Version} into current AppDomain");
+			}
+			catch (System.Exception e)
+			{
+				Logger.Log($"Unable to preload '{file}' ({e?.Message})");
+			}
 		}
 	}
 }

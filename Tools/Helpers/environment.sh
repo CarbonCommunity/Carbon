@@ -23,7 +23,7 @@ else
 fi
 
 if [ -z "${LD_PRELOAD}" ]; then
-    export LD_PRELOAD="libdoorstop.so"
+    export LD_PRELOAD="${BASEDIR}/libdoorstop.so"
 else
-    export LD_PRELOAD="libdoorstop.so:${LD_PRELOAD}"
+    export LD_PRELOAD="${BASEDIR}/libdoorstop.so:${LD_PRELOAD}"
 fi

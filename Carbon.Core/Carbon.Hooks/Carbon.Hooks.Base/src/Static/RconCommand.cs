@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.Serialization;
 using API.Hooks;
 using Carbon.Extensions;
+using ConVar;
 using Facepunch;
+using Facepunch.Extend;
 using Oxide.Game.Rust.Libraries;
+using static ConsoleSystem;
+using Command = Oxide.Game.Rust.Libraries.Command;
+using Pool = Facepunch.Pool;
 
 /*
  *
@@ -26,6 +32,8 @@ public partial class Category_Static
 
 		public class Static_RCon_ccce0832a0eb4c28bc2372f5e0812c7e : Patch
 		{
+			internal static string[] EmptyArgs = new string[0];
+
 			public static bool Prefix(RCon.Command cmd)
 			{
 				if (Community.Runtime == null) return true;
@@ -35,12 +43,13 @@ public partial class Category_Static
 					var split = cmd.Message.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 					var command = split[0].Trim();
 
-					var arguments = Pool.GetList<string>();
-					foreach (var arg in split.Skip(1)) arguments.Add(arg.Trim());
-					var args2 = arguments.ToArray();
-					Pool.FreeList(ref arguments);
-
-					if (HookCaller.CallStaticHook("OnRconCommand", cmd.Ip, command, args2) != null)
+					var arguments = split.Length > 1 ? cmd.Message.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
+					var consoleArg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
+					consoleArg.Option = Option.Unrestricted;
+					consoleArg.FullString = cmd.Message;
+					consoleArg.Args = arguments;
+				
+					if (HookCaller.CallStaticHook("OnRconCommand", cmd.Ip, command, arguments) != null)
 					{
 						return false;
 					}
@@ -52,7 +61,7 @@ public partial class Category_Static
 							try
 							{
 								Command.FromRcon = true;
-								carbonCommand.Callback?.Invoke(null, command, args2);
+								carbonCommand.Callback?.Invoke(null, command, arguments);
 								return !carbonCommand.SkipOriginal;
 							}
 							catch (Exception ex)

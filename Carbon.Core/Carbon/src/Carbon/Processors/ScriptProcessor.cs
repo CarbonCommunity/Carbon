@@ -16,6 +16,7 @@ namespace Carbon.Processors;
 
 public class ScriptProcessor : BaseProcessor, IScriptProcessor
 {
+	public override string Name => "Script Processor";
 	public override bool EnableWatcher => Community.IsConfigReady ? Community.Runtime.Config.ScriptWatchers : true;
 	public override string Folder => Defines.GetScriptFolder();
 	public override string Extension => ".cs";
@@ -40,6 +41,18 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			if (instance.Value is Script script)
 			{
 				if (script.Loader != null && !script.Loader.HasRequires && !script.Loader.HasFinished) return false;
+			}
+		}
+
+		return true;
+	}
+	public bool AllExtensionsComplete()
+	{
+		foreach (var instance in InstanceBuffer)
+		{
+			if (instance.Value is Script script)
+			{
+				if (script.Loader != null && !script.Loader.IsExtension && !script.Loader.HasFinished) return false;
 			}
 		}
 
@@ -94,7 +107,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		public bool IsLineValid(string line)
 		{
-			return !line.Contains("using WebSocketSharp;");
+			return true;
 		}
 
 		public override void Process(string input, out string output)

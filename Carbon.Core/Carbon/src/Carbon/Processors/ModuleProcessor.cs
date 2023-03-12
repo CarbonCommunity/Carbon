@@ -15,8 +15,10 @@ using Carbon.Extensions;
 
 namespace Carbon.Processors;
 
-public class ModuleProcessor : IDisposable, IModuleProcessor
+public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 {
+	public override string Name => "Module Processor";
+
 	List<BaseHookable> IModuleProcessor.Modules { get => _modules; }
 
 	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(50);
@@ -34,7 +36,15 @@ public class ModuleProcessor : IDisposable, IModuleProcessor
 	{
 		if (module is IModule hookable)
 		{
-			hookable.Init();
+			try
+			{
+				hookable.Init();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"[ModuleProcessor] Failed initializing '{hookable.Name}'.", ex);
+			}
+
 			_modules.Add(module);
 			hookable.InitEnd();
 		}
@@ -60,7 +70,7 @@ public class ModuleProcessor : IDisposable, IModuleProcessor
 		}
 	}
 
-	public void Dispose()
+	public override void Dispose()
 	{
 		foreach (var hookable in _modules)
 		{

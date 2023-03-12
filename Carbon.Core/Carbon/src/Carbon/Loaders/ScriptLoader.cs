@@ -16,6 +16,7 @@ using Facepunch;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
+using static UnityEngine.UI.GridLayoutGroup;
 
 /*
  *
@@ -33,6 +34,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 	public string File { get; set; }
 	public string Source { get; set; }
 	public bool IsCore { get; set; }
+	public bool IsExtension { get; set; }
 
 	public bool HasFinished { get; set; }
 	public bool HasRequires { get; set; }
@@ -48,6 +50,9 @@ public class ScriptLoader : IDisposable, IScriptLoader
 	{
 		try
 		{
+			var directory = Path.GetDirectoryName(File);
+			IsExtension = directory.EndsWith("extensions");
+
 			if (!string.IsNullOrEmpty(File) && OsEx.File.Exists(File)) Source = OsEx.File.ReadText(File);
 
 			if (Parser != null)
@@ -70,12 +75,19 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 	public static void LoadAll()
 	{
-		var files = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs");
+		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptExtensionsFolder(), "cs");
+		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: SearchOption.TopDirectoryOnly);
 
 		Community.Runtime.ScriptProcessor.Clear();
 		Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
-		foreach (var file in files)
+		foreach (var file in extensionPlugins)
+		{
+			var plugin = new ScriptProcessor.Script { File = file };
+			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+		}
+
+		foreach (var file in plugins)
 		{
 			var plugin = new ScriptProcessor.Script { File = file };
 			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
@@ -98,6 +110,8 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			if (plugin.IsCore) continue;
 
 			Community.Runtime.Plugins.Plugins.Remove(plugin.Instance);
+
+			if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
 
 			if (plugin.Instance != null)
 			{
@@ -163,12 +177,13 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		AsyncLoader.Source = Source;
 		AsyncLoader.References = resultReferences?.ToArray();
 		AsyncLoader.Requires = resultRequires?.ToArray();
+		AsyncLoader.IsExtension = IsExtension;
 		Pool.FreeList(ref resultReferences);
 		Pool.FreeList(ref resultRequires);
 
 		HasRequires = AsyncLoader.Requires.Length > 0;
 
-		while (HasRequires && !Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete())
+		while (HasRequires && !Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete() && !IsExtension && !Community.Runtime.ScriptProcessor.AllExtensionsComplete())
 		{
 			yield return _serverExhale;
 			yield return null;
@@ -231,14 +246,20 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			AsyncLoader.Exceptions.Clear();
 			AsyncLoader.Exceptions = null;
 			HasFinished = true;
+
+			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
+			{
+				Loader.OnPluginProcessFinished();
+			}
 			yield break;
 		}
 
-		Logger.Warn($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...");
+		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...", 1);
 
 		Loader.AssemblyCache.Add(AsyncLoader.Assembly);
 
 		var assembly = AsyncLoader.Assembly;
+		var firstPlugin = true;
 
 		foreach (var type in assembly.GetTypes())
 		{
@@ -269,6 +290,19 @@ public class ScriptLoader : IDisposable, IScriptLoader
 				var info = type.GetCustomAttribute(typeof(InfoAttribute), true) as InfoAttribute;
 				if (info == null) continue;
 
+				if (!IsExtension && firstPlugin && Community.Runtime.Config.FileNameCheck)
+				{
+					var name = Path.GetFileNameWithoutExtension(File).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
+
+					if (type.Name.ToLower().Replace(" ", "").Replace(".", "").Replace("-", "") != name)
+					{
+						Logger.Warn($"Plugin '{type.Name}' does not match with its file-name '{name}'.");
+						break;
+					}
+				}
+
+				firstPlugin = false;
+
 				if (requires.Any(x => x.Name == info.Title)) continue;
 
 				var description = type.GetCustomAttribute(typeof(DescriptionAttribute), true) as DescriptionAttribute;
@@ -296,6 +330,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 					}))
 				{
 					rustPlugin.HasConditionals = Source.Contains("#if ");
+					rustPlugin.IsExtension = IsExtension;
 
 					plugin.Instance = rustPlugin;
 					plugin.IsCore = IsCore;
@@ -304,12 +339,15 @@ public class ScriptLoader : IDisposable, IScriptLoader
 					Scripts.Add(plugin);
 
 					Carbon.Components.Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);
+
+					Plugin.InternalApplyAllPluginReferences();
+					HookCaller.CallStaticHook("OnPluginLoaded", rustPlugin);
 				}
 			}
 			catch (Exception exception)
 			{
 				HasFinished = true;
-				Logger.Error($"Failed to compile: ", exception);
+				Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}': ", exception);
 			}
 
 			yield return _serverExhale;

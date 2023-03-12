@@ -2,6 +2,7 @@
 using API.Hooks;
 using Carbon.Extensions;
 using Facepunch.Extend;
+using Org.BouncyCastle.Crypto.Engines;
 using Oxide.Game.Rust.Libraries;
 using Oxide.Plugins;
 
@@ -38,6 +39,12 @@ public partial class Category_Static
 					var command = split[0].Trim();
 					var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 					Facepunch.Pool.Free(ref split);
+
+					if (command.StartsWith("o.") || command.StartsWith("oxide."))
+					{
+						Logger.Warn($"Oxide commands (o.* or oxide.*) don't work in Carbon. Please use 'c.find c.' to list all available Carbon commands.");
+						return false;
+					}
 
 					var player = options.Connection?.player as BasePlayer;
 

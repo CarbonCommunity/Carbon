@@ -118,7 +118,7 @@ public class CuiElementContainer : List<CuiElement>
 {
 	public string Name { get; set; }
 
-	public string Add(CuiButton button, string parent = "Hud", string name = null)
+	public string Add(CuiButton button, string parent = "Hud", string name = null, string destroyUi = null)
 	{
 		if (string.IsNullOrEmpty(name))
 		{
@@ -133,7 +133,8 @@ public class CuiElementContainer : List<CuiElement>
 			{
 				button.Button,
 				button.RectTransform
-			}
+			},
+			DestroyUI = destroyUi
 		});
 		if (!string.IsNullOrEmpty(button.Text.Text))
 		{
@@ -145,18 +146,20 @@ public class CuiElementContainer : List<CuiElement>
 				{
 					button.Text,
 					new CuiRectTransformComponent()
-				}
+				},
+				DestroyUI = destroyUi
 			});
 		}
 		return name;
 	}
 
-	public string Add(CuiLabel label, string parent = "Hud", string name = null)
+	public string Add(CuiLabel label, string parent = "Hud", string name = null, string destroyUi = null)
 	{
 		if (string.IsNullOrEmpty(name))
 		{
 			name = CuiHelper.GetGuid();
 		}
+
 		Add(new CuiElement
 		{
 			Name = name,
@@ -166,22 +169,25 @@ public class CuiElementContainer : List<CuiElement>
 			{
 				label.Text,
 				label.RectTransform
-			}
+			},
+			DestroyUI = destroyUi
 		});
 		return name;
 	}
 
-	public string Add(CuiPanel panel, string parent = "Hud", string name = null)
+	public string Add(CuiPanel panel, string parent = "Hud", string name = null, string destroyUi = null)
 	{
 		if (string.IsNullOrEmpty(name))
 		{
 			name = CuiHelper.GetGuid();
 		}
-		CuiElement cuiElement = new CuiElement
+
+		var cuiElement = new CuiElement
 		{
 			Name = name,
 			Parent = parent,
-			FadeOut = panel.FadeOut
+			FadeOut = panel.FadeOut,
+			DestroyUI = destroyUi
 		};
 		if (panel.Image != null)
 		{

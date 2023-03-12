@@ -7,12 +7,15 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using Carbon.Base;
+using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
+using Network;
 using Oxide.Core.Libraries;
 using ProtoBuf;
 using QRCoder;
+using Defines = Carbon.Core.Defines;
 
 /*
  *
@@ -23,21 +26,23 @@ using QRCoder;
 
 namespace Carbon.Modules;
 
-public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDatabaseData>
+public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModuleData>
 {
 	public override string Name => "Image Database";
 	public override Type Type => typeof(ImageDatabaseModule);
 	public override bool EnabledByDefault => true;
 
+	internal List<QueuedThread> _queue =new List<QueuedThread>();
 	internal ImageDatabaseDataProto _protoData { get; set; }
 
-	internal string[] DefaultImages = new string[]
+	internal Dictionary<string, string> DefaultImages = new()
 	{
-		"https://carbonmod.gg/assets/media/carbonlogo_b.png",
-		"https://carbonmod.gg/assets/media/carbonlogo_w.png",
-		"https://carbonmod.gg/assets/media/carbonlogo_bs.png",
-		"https://carbonmod.gg/assets/media/carbonlogo_ws.png",
-		"https://carbonmod.gg/assets/media/cui/checkmark.png"
+		["carbonb"] = "https://carbonmod.gg/assets/media/carbonlogo_b.png",
+		["carbonw"] = "https://carbonmod.gg/assets/media/carbonlogo_w.png",
+		["carbonbs"] = "https://carbonmod.gg/assets/media/carbonlogo_bs.png",
+		["carbonws"] = "https://carbonmod.gg/assets/media/carbonlogo_ws.png",
+		["cflogo"] = "https://carbonmod.gg/assets/media/cui/codefling-logo.png",
+		["checkmark"] = "https://carbonmod.gg/assets/media/cui/checkmark.png"
 	};
 	internal IEnumerator _executeQueue(QueuedThread thread, Action<List<QueuedThreadResult>> onFinished)
 	{
@@ -50,6 +55,38 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	internal string _getProtoDataPath()
 	{
 		return Path.Combine(Defines.GetModulesFolder(), Name, "data.db");
+	}
+
+	internal const int MaximumBytes = 4104304;
+
+	[ConsoleCommand("imagedb.pending")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void ShowPending(ConsoleSystem.Arg arg)
+	{
+		arg.ReplyWith($"Queued {_queue.Count} batches of {_queue.Sum(x => x._urlQueue.Count):n0} URLs.");
+	}
+
+	[ConsoleCommand("imagedb.clearinvalid")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void ClearInvalid(ConsoleSystem.Arg arg)
+	{
+		var toDelete = Pool.GetList<KeyValuePair<uint, FileStorage.CacheData>>();
+
+		foreach(var file in FileStorage.server._cache)
+		{
+			if(file.Value.data.Length >= MaximumBytes)
+			{
+				toDelete.Add(new KeyValuePair<uint, FileStorage.CacheData>(file.Key, file.Value));
+			}
+		}
+
+		foreach(var data in toDelete)
+		{
+			FileStorage.server.Remove(data.Key, FileStorage.Type.png, data.Value.entityID);
+		}
+
+		arg.ReplyWith($"Removed {toDelete.Count:n0} invalid stored files from FileStorage (above the maximum size of {ByteEx.Format(MaximumBytes, shortName: true).ToUpper()}).");
+		Pool.FreeList(ref toDelete);
 	}
 
 	private void OnServerInitialized()
@@ -100,12 +137,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	}
 	private void LoadDefaultImages()
 	{
-		QueueBatch(false, DefaultImages.ToArray());
-		AddMap("carbonb", "https://carbonmod.gg/assets/media/carbonlogo_b.png");
-		AddMap("carbonw", "https://carbonmod.gg/assets/media/carbonlogo_w.png");
-		AddMap("carbonbs", "https://carbonmod.gg/assets/media/carbonlogo_bs.png");
-		AddMap("carbonws", "https://carbonmod.gg/assets/media/carbonlogo_ws.png");
-		AddMap("checkmark", "https://carbonmod.gg/assets/media/cui/checkmark.png");
+		Queue(DefaultImages);
 	}
 
 	public override bool PreLoadShouldSave()
@@ -165,32 +197,47 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 	}
 	public void QueueBatch(float scale, bool @override, params string[] urls)
 	{
+		if(urls == null || urls.Length == 0)
+		{
+			return;
+		}
+
 		QueueBatch(scale, @override, results =>
 		{
 			foreach (var result in results)
 			{
+				if (result.ProcessedData.Length >= MaximumBytes)
+				{
+					Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.ProcessedData.Length} more or equal than {MaximumBytes}");
+					continue;
+				}
+
 				if (result.OriginalData == result.ProcessedData)
 				{
 					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
-					_protoData.Map.Add($"{result.Url}_0", id);
+					_protoData.Map[$"{result.Url}_0"]= id;
 				}
 				else
 				{
-					var originalId = FileStorage.server.Store(result.OriginalData, FileStorage.Type.png, _protoData.Identifier);
-					var processedId = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
-					_protoData.Map.Add($"{result.Url}_0", originalId);
-					_protoData.Map.Add($"{result.Url}_{scale:0.0}", processedId);
+					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
+					_protoData.Map[$"{result.Url}_{scale:0.0}"] = id;
 				}
 			}
 		}, urls);
 	}
 	public void QueueBatch(float scale, bool @override, Action<List<QueuedThreadResult>> onComplete, params string[] urls)
 	{
+		if (urls == null || urls.Length == 0)
+		{
+			return;
+		}
+
 		var thread = new QueuedThread
 		{
 			Scale = scale
 		};
 		thread.ImageUrls.AddRange(urls);
+		_queue.Add(thread);
 
 		if (!@override)
 		{
@@ -208,20 +255,103 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			}
 		}
 
-		if (Config.PrintInitializedBatchLogs && thread.ImageUrls.Count > 0) Puts($"Added {thread.ImageUrls.Count:n0} to the queue (scale: {(scale == 0 ? "default" : $"{scale:0.0}")})...");
+		if (ConfigInstance.PrintInitializedBatchLogs && thread.ImageUrls.Count > 0) Puts($"Added {thread.ImageUrls.Count:n0} to the queue (scale: {(scale == 0 ? "default" : $"{scale:0.0}")})...");
 
 		Community.Runtime.CorePlugin.persistence.StartCoroutine(_executeQueue(thread, results =>
 		{
 			try
 			{
 				onComplete?.Invoke(results);
-				if (Config.PrintCompletedBatchLogs && results.Count > 0) Puts($"Completed queue of {results.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+				if (ConfigInstance.PrintCompletedBatchLogs && results.Count > 0) Puts($"Completed queue of {results.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+				_queue.Remove(thread);
 			}
 			catch (Exception ex)
 			{
 				PutsError($"Failed QueueBatch of {urls.Length:n0}.", ex);
 			}
 		}));
+
+		Community.Runtime.CorePlugin.timer.In(ConfigInstance.TimeoutPerUrl * urls.Length, () =>
+		{
+			if (!thread._disposed)
+			{
+				thread.DisposalSave();
+				onComplete?.Invoke(thread.Result);
+				if (ConfigInstance.PrintCompletedBatchLogs && thread.Result.Count > 0) Puts($"Completed queue of {thread.Result.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+				thread.Dispose();
+				_queue.Remove(thread);
+			}
+		});
+	}
+	public void QueueBatchCallback(float scale, bool @override, Action<List<QueuedThreadResult>> onComplete, params string[] urls)
+	{
+		if (urls == null || urls.Length == 0)
+		{
+			return;
+		}
+
+		QueueBatch(scale, @override, results =>
+		{
+			foreach (var result in results)
+			{
+				if (result.ProcessedData.Length >= MaximumBytes)
+				{
+					Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.ProcessedData.Length} more or equal than {MaximumBytes}");
+					continue;
+				}
+
+				if (result.OriginalData == result.ProcessedData)
+				{
+					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
+					_protoData.Map[$"{result.Url}_0"] = id;
+				}
+				else
+				{
+					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
+					_protoData.Map[$"{result.Url}_{scale:0.0}"] = id;
+				}
+			}
+
+			onComplete?.Invoke(results);
+		}, urls);
+	}
+
+	public void Queue(float scale, bool @override, Dictionary<string, string> mappedUrls)
+	{
+		if (mappedUrls == null || mappedUrls.Count == 0)
+		{
+			return;
+		}
+
+		var urls = Pool.GetList<string>();
+
+		foreach(var url in mappedUrls)
+		{
+			urls.Add(url.Value);
+			AddMap(url.Key, url.Value);
+		}
+
+		QueueBatch(scale, @override, urls.ToArray());
+
+		Pool.FreeList(ref urls);
+	}
+	public void Queue(bool @override, Dictionary<string, string> mappedUrls)
+	{
+		if (mappedUrls == null || mappedUrls.Count == 0)
+		{
+			return;
+		}
+
+		Queue(0, @override, mappedUrls);
+	}
+	public void Queue(Dictionary<string, string> mappedUrls)
+	{
+		if (mappedUrls == null || mappedUrls.Count == 0)
+		{
+			return;
+		}
+
+		Queue(false, mappedUrls);
 	}
 
 	public void AddMap(string key, string url)
@@ -244,7 +374,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 		if (_protoData.Map.TryGetValue($"{url}_{id}", out var uid))
 		{
-			if (!silent && Config.PrintCompletedBatchLogs) Puts($"Retrieved image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+			if (!silent && ConfigInstance.PrintCompletedBatchLogs) Puts($"Retrieved image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 			return uid;
 		}
 
@@ -261,7 +391,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 		if (_protoData.Map.TryGetValue(name, out var uid))
 		{
-			if (Config.PrintDeletedImageLogs) Puts($"Deleted image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+			if (ConfigInstance.PrintDeletedImageLogs) Puts($"Deleted image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 
 			FileStorage.server.Remove(uid, FileStorage.Type.png, _protoData.Identifier);
 			_protoData.Map.Remove(name);
@@ -310,6 +440,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 		internal WebRequests _webRequests;
 		internal WebRequests.WebRequest.Client _client;
 		internal bool _finishedProcessing;
+		internal bool _disposed;
 
 		public override void Start()
 		{
@@ -368,12 +499,18 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 			_client?.Dispose();
 			_webRequests = null;
 			_finishedProcessing = default;
+			_disposed = true;
 
 			ImageUrls = null;
 			Result = null;
 			_urlQueue = null;
 
 			base.Dispose();
+		}
+
+		public void DisposalSave()
+		{
+			_processImages();
 		}
 
 		internal void _doQueue()
@@ -441,13 +578,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, ImageDataba
 
 public class ImageDatabaseConfig
 {
+	public float TimeoutPerUrl { get; set; } = 2f;
 	public bool PrintInitializedBatchLogs { get; set; } = true;
 	public bool PrintCompletedBatchLogs { get; set; } = true;
 	public bool PrintRetrievedImageLogs { get; set; } = false;
 	public bool PrintDeletedImageLogs { get; set; } = false;
-}
-public class ImageDatabaseData
-{
 }
 
 [ProtoContract]

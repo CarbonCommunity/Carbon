@@ -20,8 +20,8 @@ public class BaseHookable
 	public List<HookMethodAttribute> HookMethods { get; set; }
 	public List<PluginReferenceAttribute> PluginReferences { get; set; }
 
-	public Dictionary<string, List<MethodInfo>> HookCache { get; set; } = new Dictionary<string, List<MethodInfo>>();
-	public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; set; } = new Dictionary<string, List<MethodInfo>>();
+	public Dictionary<string, List<KeyValuePair<MethodInfo, Delegate>>> HookCache { get; set; } = new ();
+	public Dictionary<string, List<KeyValuePair<MethodInfo, Delegate>>> HookMethodAttributeCache { get; set; } = new ();
 	public List<string> IgnoredHooks { get; set; } = new List<string>();
 
 	[JsonProperty]

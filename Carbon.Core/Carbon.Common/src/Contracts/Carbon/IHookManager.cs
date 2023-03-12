@@ -8,14 +8,10 @@ using Carbon.Hooks;
 namespace Carbon.Contracts
 {
 	public interface IHookManager
-	{	
-		int PatchesCount { get; }
-		int StaticHooksCount { get; }
-		int DynamicHooksCount { get; }
-
-		IEnumerable<IHook> Patches { get; }
-		IEnumerable<IHook> StaticHooks { get; }
-		IEnumerable<IHook> DynamicHooks { get; }
+	{
+		IEnumerable<IHook> LoadedPatches { get; }
+		IEnumerable<IHook> LoadedStaticHooks { get; }
+		IEnumerable<IHook> LoadedDynamicHooks { get; }
 
 		IEnumerable<IHook> InstalledPatches { get; }
 		IEnumerable<IHook> InstalledStaticHooks { get; }
@@ -26,5 +22,7 @@ namespace Carbon.Contracts
 
 		bool IsHookLoaded(string hookName);
 		int GetHookSubscriberCount(string identifier);
+
+		public void LoadHooksFromType(Type type);
 	}
 }

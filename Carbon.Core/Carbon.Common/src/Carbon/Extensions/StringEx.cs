@@ -254,7 +254,12 @@ public static class StringEx
 
 	#region "Numbering" Family
 
-	public static string ToNumbered(int number, string separatingString = "-", bool camelCase = true)
+	internal static readonly string[] _unitsMapCamel = new[] { "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen" };
+	internal static readonly string[] _unitsMapNonCamel = new[] { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
+	internal static readonly string[] _tensMapCamel = new[] { "Zero", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
+	internal static readonly string[] _tensMapNonCamel = new[] { "zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety" };
+
+	public static string ToNumbered(this int number, string separatingString = "-", bool camelCase = true)
 	{
 		if (number == 0)
 			return camelCase ? "Zero" : "zero";
@@ -285,14 +290,10 @@ public static class StringEx
 		if (number > 0)
 		{
 			if (words != "")
-				words += "and ";
+				words += " and ";
 
-			var unitsMap = camelCase ?
-				new[] { "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen" } :
-				new[] { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
-			var tensMap = camelCase ?
-				new[] { "Zero", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" } :
-				new[] { "zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety" };
+			var unitsMap = camelCase ? _unitsMapCamel : _unitsMapNonCamel;
+			var tensMap = camelCase ? _tensMapCamel : _tensMapNonCamel;
 
 			if (number < 20)
 				words += unitsMap[number];
@@ -312,8 +313,8 @@ public static class StringEx
 
 	#region "Morse" Family
 
-	private static string Dot { get { return "."; } }
-	private static string Dash { get { return "-"; } }
+	private const string Dot = ".";
+	private const string Dash = "-";
 
 	public static Dictionary<char, string> MorseMapping { get; set; } = new Dictionary<char, string>()
 	{
@@ -375,7 +376,7 @@ public static class StringEx
 
 	public static string ToMorse(string value, string spacing = "/")
 	{
-		var sb = new StringBody();
+		using var sb = new StringBody();
 
 		foreach (var @char in value.ToLower())
 		{
@@ -413,6 +414,8 @@ public static class StringEx
 				result += MorseMapping.FirstOrDefault(x => x.Value == split).Key;
 			}
 		}
+
+		Array.Clear(splits, 0, splits.Length);
 
 		return result;
 	}
@@ -453,7 +456,7 @@ public static class StringEx
 
 	public static string ToL33t(string value, string spacing = " ")
 	{
-		var sb = new StringBody();
+		using var sb = new StringBody();
 
 		foreach (var @char in value)
 		{
@@ -499,6 +502,8 @@ public static class StringEx
 				result += $"{splitFormatted} ";
 			}
 		}
+
+		Array.Clear(splits, 0, splits.Length);
 
 		return result;
 	}

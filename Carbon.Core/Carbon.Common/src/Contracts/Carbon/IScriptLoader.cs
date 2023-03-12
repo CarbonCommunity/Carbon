@@ -18,6 +18,7 @@ namespace Carbon.Contracts
 		string File { get; set; }
 		string Source { get; set; }
 		bool IsCore { get; set; }
+		bool IsExtension { get; set; }
 
 		bool HasFinished { get; set; }
 		bool HasRequires { get; set; }

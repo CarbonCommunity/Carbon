@@ -21,6 +21,8 @@ public class RustPlugin : Plugin
 {
 	public PluginManager Manager { get; set; }
 
+	public bool IsExtension { get; set; }
+
 	public Permission permission { get; set; }
 	public Lang lang { get; set; }
 	public Command cmd { get; set; }
@@ -50,7 +52,7 @@ public class RustPlugin : Plugin
 	}
 	public virtual void Setup(string name, string author, VersionNumber version, string description)
 	{
-		Name = name;
+		Name = Title = name;
 		Version = version;
 		Author = author;
 		Description = description;
@@ -84,9 +86,25 @@ public class RustPlugin : Plugin
 			var go = persistence.gameObject;
 			UnityEngine.Object.DestroyImmediate(persistence);
 			UnityEngine.Object.Destroy(go);
-		}
+		}	
 
 		base.Dispose();
+	}
+
+	public static T Singleton<T>()
+	{
+		foreach(var mod in Loader.LoadedMods)
+		{
+			foreach(var plugin in mod.Plugins)
+			{
+				if(plugin is T result)
+				{
+					return result;
+				}
+			}
+		}
+
+		return default;
 	}
 
 	#region Logging
@@ -292,14 +310,18 @@ public class RustPlugin : Plugin
 
 	protected void SendReply(ConsoleSystem.Arg arg, string format, params object[] args)
 	{
-		var connection = arg.Connection;
-		var basePlayer = connection?.player as BasePlayer;
 		var text = (args != null && args.Length != 0) ? string.Format(format, args) : format;
 
-		if (((basePlayer != null) ? basePlayer.net : null) != null)
+		if (arg != null || arg.Connection != null)
 		{
-			basePlayer.SendConsoleCommand($"echo {text}");
-			return;
+			var connection = arg.Connection;
+			var basePlayer = connection?.player as BasePlayer;
+
+			if (((basePlayer != null) ? basePlayer.net : null) != null)
+			{
+				basePlayer.SendConsoleCommand($"echo {text}");
+				return;
+			}
 		}
 
 		Puts(text, null);

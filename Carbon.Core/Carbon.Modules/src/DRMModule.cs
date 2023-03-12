@@ -19,7 +19,7 @@ using Oxide.Core.Libraries;
 
 namespace Carbon.Modules;
 
-public class DRMModule : CarbonModule<DRMConfig, DRMData>
+public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 {
 	public override string Name => "DRM";
 	public override Type Type => typeof(DRMModule);
@@ -29,14 +29,14 @@ public class DRMModule : CarbonModule<DRMConfig, DRMData>
 	{
 		base.Init();
 
-		foreach (var processor in Config.DRMs)
+		foreach (var processor in ConfigInstance.DRMs)
 		{
 			processor.Initialize();
 		}
 	}
 	public override void Dispose()
 	{
-		foreach (var processor in Config.DRMs)
+		foreach (var processor in ConfigInstance.DRMs)
 		{
 			processor.Uninitialize();
 		}
@@ -57,7 +57,7 @@ public class DRMModule : CarbonModule<DRMConfig, DRMData>
 	{
 		if (!args.IsPlayerCalledAndAdmin()) return;
 
-		foreach (var processor in Config.DRMs)
+		foreach (var processor in ConfigInstance.DRMs)
 		{
 			processor.Uninitialize();
 			processor.Initialize();
@@ -296,8 +296,4 @@ public class DRMModule : CarbonModule<DRMConfig, DRMData>
 public class DRMConfig
 {
 	public List<DRMModule.Processor> DRMs { get; set; } = new List<DRMModule.Processor>();
-}
-public class DRMData
-{
-
 }
