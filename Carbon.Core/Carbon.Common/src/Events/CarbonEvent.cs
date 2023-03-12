@@ -19,7 +19,7 @@ public enum CarbonEvent
 	HooksInstalled, HookValidatorRefreshed,
 
 	// Plugin related
-	AllPluginsLoaded,
+	AllPluginsLoaded, PluginLoaded, PluginUnloaded,
 
 	// Things that look like hooks
 	OnServerInitialized, OnServerSave

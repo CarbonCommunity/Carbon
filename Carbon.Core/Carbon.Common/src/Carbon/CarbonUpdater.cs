@@ -69,11 +69,11 @@ internal sealed class Updater
 		switch (Platform)
 		{
 			case OsType.Windows:
-				file = $"Carbon.{target}.zip";
+				file = $"Carbon.Windows.{target}.zip";
 				break;
 
 			case OsType.Linux:
-				file = $"Carbon.{target}Unix.tar.gz";
+				file = $"Carbon.Linux.{target}.tar.gz";
 				break;
 		}
 

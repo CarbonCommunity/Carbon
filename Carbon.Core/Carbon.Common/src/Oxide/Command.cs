@@ -7,6 +7,7 @@ using Carbon.Base;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
+using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
@@ -52,44 +53,57 @@ namespace Oxide.Game.Rust.Libraries
 		{
 			AddChatCommand(command, plugin, (player, cmd, args) =>
 			{
-				var argData = Pool.GetList<object>();
+				var arguments = Pool.GetList<object>();
 				var result = (object[])null;
 				try
 				{
 					var m = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-					var ps = m.GetParameters();
-					switch (ps.Length)
+					var parameters = m.GetParameters();
+
+					if (parameters.Length > 0)
 					{
-						case 1:
-							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
-								result = argData.ToArray();
-								break;
-							}
+						if (parameters.ElementAt(0).ParameterType == typeof(IPlayer))
+						{
+							var iplayer = player.AsIPlayer();
+							iplayer.IsServer = player == null;
+							arguments.Add(iplayer);
+						}
+						else arguments.Add(player);
 
-						case 2:
-							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
-								argData.Add(cmd);
-								result = argData.ToArray();
-								break;
-							}
+						switch (parameters.Length)
+						{
+							case 2:
+								{
+									arguments.Add(cmd);
+									break;
+								}
 
-						case 3:
+							case 3:
+						 		{
+									arguments.Add(cmd);
+									arguments.Add(args);
+									break;
+								}
+						}
+
+						var currentArgumentCount = arguments.Count;
+
+						if (parameters.Length > currentArgumentCount)
+						{
+							for (int i = 0; i < parameters.Length - currentArgumentCount; i++)
 							{
-								if (ps.ElementAt(0).ParameterType == typeof(IPlayer)) argData.Add(player.AsIPlayer()); else argData.Add(player);
-								argData.Add(cmd);
-								argData.Add(args);
-								result = argData.ToArray();
-								break;
+								arguments.Add(null);
 							}
+						}
 					}
+
+					result = arguments.ToArray();
 
 					m?.Invoke(plugin, result);
 				}
 				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
-				if (argData != null) Pool.FreeList(ref argData);
+				if (arguments != null) Pool.FreeList(ref arguments);
 				if (result != null) Pool.Free(ref result);
 			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown);
 		}
@@ -131,8 +145,6 @@ namespace Oxide.Game.Rust.Libraries
 					arg.FullString = fullString;
 					arg.Args = args;
 
-					arguments.Add(arg);
-
 					try
 					{
 						var methodInfo = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -140,9 +152,40 @@ namespace Oxide.Game.Rust.Libraries
 
 						if (parameters.Length > 0)
 						{
-							for (int i = 1; i < parameters.Length; i++)
+							if (parameters.ElementAt(0).ParameterType == typeof(IPlayer))
 							{
-								arguments.Add(null);
+								if (player == null) arguments.Add(new RustPlayer { IsServer = true });
+								else
+								{
+									var iplayer = player.AsIPlayer();
+									iplayer.IsServer = player == null;
+									arguments.Add(iplayer);
+								}
+
+								switch (parameters.Length)
+								{
+									case 2:
+										{
+											arguments.Add(cmd);
+											break;
+										}
+
+									case 3:
+										{
+											arguments.Add(cmd);
+											arguments.Add(args);
+											break;
+										}
+								}
+							}
+							else
+							{
+								arguments.Add(arg);
+
+								for (int i = 1; i < parameters.Length; i++)
+								{
+									arguments.Add(null);
+								}
 							}
 						}
 
@@ -151,6 +194,11 @@ namespace Oxide.Game.Rust.Libraries
 						if (Interface.CallHook("OnCarbonCommand", arg) == null)
 						{
 							methodInfo?.Invoke(plugin, result);
+
+							if (!string.IsNullOrEmpty(arg.Reply))
+							{
+								if (player != null) player.ConsoleMessage(arg.Reply); else Logger.Log(arg.Reply);
+							}
 						}
 					}
 					catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
@@ -186,6 +234,11 @@ namespace Oxide.Game.Rust.Libraries
 					if (Interface.CallHook("OnCarbonCommand", arg) == null)
 					{
 						callback.Invoke(arg);
+
+						if (!string.IsNullOrEmpty(arg.Reply))
+						{
+							if (player != null) player.ConsoleMessage(arg.Reply); else Logger.Log(arg.Reply);
+						}
 					}
 				}
 				catch (TargetParameterCountException) { }

@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace Carbon.Modules;
 
-public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtectionData>
+public class MapProtectionModule : CarbonModule<MapProtectionConfig, EmptyModuleData>
 {
 	public override string Name => "Map Protection";
 	public override Type Type => typeof(MapProtectionModule);
@@ -26,13 +26,13 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 
 	private void IOnWorldSerializationLoaded(string fileName, WorldSerialization serialization)
 	{
-		if (!OsEx.File.Exists(Config.Key)) return;
+		if (!OsEx.File.Exists(ConfigInstance.Key)) return;
 
 		try
 		{
-			var key = Key.Deserialize(Config.Key);
+			var key = Key.Deserialize(ConfigInstance.Key);
 
-			Puts($"Unlocking map with key '{Path.GetFileName(Config.Key)}'. Processing {key.points.Count:n0} points...");
+			Puts($"Unlocking map with key '{Path.GetFileName(ConfigInstance.Key)}'. Processing {key.points.Count:n0} points...");
 
 			serialization.world.size = World.Size = key.size;
 			ConVar.Server.worldsize = (int)key.size;
@@ -67,11 +67,11 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 
 	private void DestroyEntities()
 	{
-		if (!OsEx.File.Exists(Config.Key)) return;
+		if (!OsEx.File.Exists(ConfigInstance.Key)) return;
 
 		try
 		{
-			var key = Key.Deserialize(Config.Key);
+			var key = Key.Deserialize(ConfigInstance.Key);
 
 			World.Serialization.world.size = World.Size = key.size;
 			ConVar.Server.worldsize = (int)key.size;
@@ -83,7 +83,7 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 
 	internal IEnumerator _destroyEntities(Key key)
 	{
-		Puts($"Unlocking map with key '{Path.GetFileName(Config.Key)}'. Processing {key.points.Count:n0} points...");
+		Puts($"Unlocking map with key '{Path.GetFileName(ConfigInstance.Key)}'. Processing {key.points.Count:n0} points...");
 
 		var temporaryEntities = BaseNetworkable.serverEntities.ToArray();
 		var entitiesDestroyed = 0;
@@ -206,8 +206,4 @@ public class MapProtectionModule : CarbonModule<MapProtectionConfig, MapProtecti
 public class MapProtectionConfig
 {
 	public string Key { get; set; }
-}
-public class MapProtectionData
-{
-
 }

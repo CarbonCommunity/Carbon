@@ -16,6 +16,7 @@ namespace Carbon.Modules;
 public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerData>
 {
 	public override string Name => "StackManager";
+	public override bool ForceModded => true;
 	public override Type Type => typeof(StackManagerModule);
 
 	private void OnServerInitialized()
@@ -32,8 +33,6 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		}
 
 		if (hasChanged) Save();
-
-		OnEnableStatus();
 	}
 
 	public override void OnEnabled(bool initialized)
@@ -42,27 +41,27 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 		if (!initialized || ItemManager.itemList == null) return;
 
-		foreach (var category in Config.Categories)
+		foreach (var category in ConfigInstance.Categories)
 		{
 			foreach (var item in ItemManager.itemList)
 			{
-				if (item.category != category.Key || Config.Blacklist.Contains(item.shortname) || Config.Items.ContainsKey(item.shortname)) continue;
+				if (item.category != category.Key || ConfigInstance.Blacklist.Contains(item.shortname) || ConfigInstance.Items.ContainsKey(item.shortname)) continue;
 
 				DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
-				item.stackable = Mathf.Clamp((int)(originalStack * category.Value * Config.GlobalMultiplier), 1, int.MaxValue);
+				item.stackable = Mathf.Clamp((int)(originalStack * category.Value * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
 			}
 		}
 
 		foreach (var item in ItemManager.itemList)
 		{
-			if (!Config.Items.ContainsKey(item.shortname)) continue;
+			if (!ConfigInstance.Items.ContainsKey(item.shortname)) continue;
 
-			var multiplier = Config.Items[item.shortname];
+			var multiplier = ConfigInstance.Items[item.shortname];
 
 			DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
-			item.stackable = Mathf.Clamp((int)(originalStack * multiplier * Config.GlobalMultiplier), 1, int.MaxValue);
+			item.stackable = Mathf.Clamp((int)(originalStack * multiplier * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
 		}
 	}
 	public override void OnDisabled(bool initialized)
@@ -73,11 +72,11 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 		Logger.Log("Rolling back item manager");
 
-		foreach (var category in Config.Categories)
+		foreach (var category in ConfigInstance.Categories)
 		{
 			foreach (var item in ItemManager.itemList)
 			{
-				if (item.category != category.Key || Config.Blacklist.Contains(item.shortname) || Config.Items.ContainsKey(item.shortname)) continue;
+				if (item.category != category.Key || ConfigInstance.Blacklist.Contains(item.shortname) || ConfigInstance.Items.ContainsKey(item.shortname)) continue;
 
 				DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
@@ -87,7 +86,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 		foreach (var item in ItemManager.itemList)
 		{
-			if (!Config.Items.ContainsKey(item.shortname)) continue;
+			if (!ConfigInstance.Items.ContainsKey(item.shortname)) continue;
 
 			DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
@@ -100,7 +99,7 @@ public class StackManagerConfig
 {
 	public float GlobalMultiplier = 1f;
 
-	public HashSet<string> Blacklist = new HashSet<string>
+	public HashSet<string> Blacklist = new()
 	{
 		"water",
 		"water.salt"

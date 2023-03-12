@@ -19,6 +19,8 @@ namespace Carbon.Base;
 
 public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 {
+	public virtual string Name { get; }
+
 	public Dictionary<string, IBaseProcessor.IInstance> InstanceBuffer { get; set; }
 	public List<string> IgnoreList { get; set; }
 
@@ -34,6 +36,10 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 
 	public bool IsInitialized { get; set; }
 
+	public void Awake()
+	{
+		Logger.Log($"- Installed {Name}");
+	}
 	public virtual void Start()
 	{
 		if (IsInitialized) return;
@@ -155,7 +161,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 			}
 		}
 
-		Logger.Log($" Loading plugin '{id}'...");
+		Logger.Debug($" Loading plugin '{id}'...", 1);
 
 		Remove(id);
 

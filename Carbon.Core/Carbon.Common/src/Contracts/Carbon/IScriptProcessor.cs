@@ -16,6 +16,7 @@ namespace Carbon.Contracts
 
 		bool AllPendingScriptsComplete();
 		bool AllNonRequiresScriptsComplete();
+		bool AllExtensionsComplete();
 
 		void StartCoroutine(IEnumerator coroutine);
 

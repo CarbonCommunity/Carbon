@@ -14,9 +14,10 @@ using static BaseEntity;
 
 namespace Carbon.Modules;
 
-public class GatherManagerModule : CarbonModule<GatherManagerConfig, GatherManagerData>
+public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
 {
 	public override string Name => "GatherManager";
+	public override bool ForceModded => true;
 	public override Type Type => typeof(GatherManagerModule);
 
 	#region Hooks
@@ -80,7 +81,7 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, GatherManag
 	}
 	private void OnItemResearch(ResearchTable table, Item targetItem, BasePlayer player)
 	{
-		table.researchDuration = Config.ResearchDuration;
+		table.researchDuration = ConfigInstance.ResearchDuration;
 	}
 	private void OnDispenserBonus(ResourceDispenser dispenser, BasePlayer player, Item item)
 	{
@@ -89,63 +90,30 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, GatherManag
 
 	private object ICraftDurationMultiplier()
 	{
-		return Config.CraftingSpeedMultiplier;
+		return ConfigInstance.CraftingSpeedMultiplier;
 	}
 	private object IRecyclerThinkSpeed()
 	{
-		return Config.RecycleTick;
+		return ConfigInstance.RecycleTick;
 	}
 	private object IVendingBuyDuration()
 	{
-		return Config.VendingMachineBuyDuration;
+		return ConfigInstance.VendingMachineBuyDuration;
 	}
 
 	private object IMixingSpeedMultiplier(MixingTable table, float originalValue)
 	{
 		if (table.currentRecipe == null) return null;
 
-		if(originalValue == table.currentRecipe.MixingDuration * table.currentQuantity)
+		if (originalValue == table.currentRecipe.MixingDuration * table.currentQuantity)
 		{
-			return Config.MixingSpeedMultiplier;
+			return ConfigInstance.MixingSpeedMultiplier;
 		}
 
 		return null;
 	}
 
 	#endregion
-
-	public override void OnEnabled(bool initialized)
-	{
-		base.OnEnabled(initialized);
-
-		Subscribe("OnCollectiblePickup");
-		Subscribe("OnExcavatorGather");
-		Subscribe("OnQuarryGather");
-		Subscribe("OnGrowableGathered");
-		Subscribe("OnItemResearch");
-		Subscribe("OnDispenserBonus");
-
-		Subscribe("ICraftDurationMultiplier");
-		Subscribe("IRecyclerThinkSpeed");
-		Subscribe("IVendingBuyDuration");
-		Subscribe("IMixingSpeedMultiplier");
-	}
-	public override void OnDisabled(bool initialized)
-	{
-		base.OnDisabled(initialized);
-
-		Unsubscribe("OnCollectiblePickup");
-		Unsubscribe("OnExcavatorGather");
-		Unsubscribe("OnQuarryGather");
-		Unsubscribe("OnGrowableGathered");
-		Unsubscribe("OnItemResearch");
-		Unsubscribe("OnDispenserBonus");
-
-		Unsubscribe("ICraftDurationMultiplier");
-		Unsubscribe("IRecyclerThinkSpeed");
-		Unsubscribe("IVendingBuyDuration");
-		Unsubscribe("IMixingSpeedMultiplier");
-	}
 
 	#region Helpers
 
@@ -161,10 +129,10 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, GatherManag
 	{
 		var dictionary = kind switch
 		{
-			0 => Config.Pickup,
-			1 => Config.Gather,
-			2 => Config.Quarry,
-			3 => Config.Excavator,
+			0 => ConfigInstance.Pickup,
+			1 => ConfigInstance.Gather,
+			2 => ConfigInstance.Quarry,
+			3 => ConfigInstance.Excavator,
 			_ => throw new Exception("Invalid CreateItemEx kind"),
 		};
 
@@ -215,8 +183,4 @@ public class GatherManagerConfig
 		["skull.wolf"] = 1f,
 		["skull.human"] = 1f
 	};
-}
-public class GatherManagerData
-{
-
 }

@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Carbon.Base;
-using Carbon.Extensions;
 using Facepunch;
 
 namespace Carbon.Hooks
@@ -87,12 +84,11 @@ namespace Carbon.Hooks
 
 			if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks))
 			{
-				foreach (var method in hooks)
+				foreach (var @delegate in hooks)
 				{
-					var methodResult = DoCall(method);
+					var methodResult = DoCall( @delegate.Key, @delegate.Value);
 					if (methodResult != null)
 					{
-						ResultOverride();
 						result = methodResult;
 					}
 				}
@@ -100,25 +96,24 @@ namespace Carbon.Hooks
 
 			if (!plugin.HookCache.TryGetValue(id, out hooks))
 			{
-				plugin.HookCache.Add(id, hooks = new List<MethodInfo>());
+				plugin.HookCache.Add(id, hooks = new List<KeyValuePair<MethodInfo, Delegate>>());
 
 				foreach (var method in plugin.Type.GetMethods(flags))
 				{
 					if (method.Name != hookName) continue;
 
-					hooks.Add(method);
+					hooks.Add(new KeyValuePair<MethodInfo, Delegate>(method, CreateDelegate(method, plugin)));
 				}
 			}
 
-			foreach (var method in hooks)
+			foreach (var @delegate in hooks)
 			{
 				try
 				{
-					var methodResult = DoCall(method);
+					var methodResult = DoCall(@delegate.Key, @delegate.Value);
 
-					if(methodResult != null)
+					if (methodResult != null)
 					{
-						ResultOverride();
 						result = methodResult;
 					}
 				}
@@ -134,15 +129,16 @@ namespace Carbon.Hooks
 				}
 			}
 
-			ConflictCheck();
-
-			object DoCall(MethodInfo method)
+			object DoCall(MethodInfo info, Delegate @delegate)
 			{
-				if (method == null) return null;
+				if (@delegate == null)
+				{
+					return null;
+				}
 
 				if (args != null)
 				{
-					var actualLength = method.GetParameters().Length;
+					var actualLength = info.GetParameters().Length;
 					if (actualLength != args.Length)
 					{
 						args = RescaleBuffer(args, actualLength);
@@ -151,7 +147,7 @@ namespace Carbon.Hooks
 
 				var beforeTicks = Environment.TickCount;
 				plugin.TrackStart();
-				var result2 = method.Invoke(plugin, args);
+				var result2 = @delegate.DynamicInvoke(args);
 				plugin.TrackEnd();
 				var afterTicks = Environment.TickCount;
 				var totalTicks = afterTicks - beforeTicks;
@@ -164,17 +160,6 @@ namespace Carbon.Hooks
 				}
 
 				return result2;
-			}
-			void ResultOverride()
-			{
-				conflicts.Add(Conflict.Make(plugin, hookName));
-			}
-			void ConflictCheck()
-			{
-				if(conflicts.Count > 1)
-				{
-					Carbon.Logger.Warn($"Calling hook '{hookName}' resulted in a conflict between the following plugins: {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version}").ToArray().ToString(", ", " and ")}");
-				}
 			}
 
 			Pool.FreeList(ref conflicts);

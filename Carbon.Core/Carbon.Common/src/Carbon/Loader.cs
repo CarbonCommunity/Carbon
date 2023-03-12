@@ -8,8 +8,10 @@ using API.Events;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
+using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Plugins;
+using Report = Carbon.Components.Report;
 
 /*
  *
@@ -22,9 +24,9 @@ namespace Carbon.Core;
 
 public static class Loader
 {
-	public static List<Assembly> AssemblyCache { get; } = new List<Assembly>();
-	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new Dictionary<string, Assembly>();
-	public static Dictionary<string, List<string>> PendingRequirees { get; } = new Dictionary<string, List<string>>();
+	public static List<Assembly> AssemblyCache { get; } = new();
+	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new();
+	public static Dictionary<string, List<string>> PendingRequirees { get; } = new();
 
 	static Loader()
 	{
@@ -178,7 +180,10 @@ public static class Loader
 	}
 	public static void UninitializePlugins(CarbonMod mod)
 	{
-		foreach (var plugin in mod.Plugins)
+		var plugins = Pool.GetList<RustPlugin>();
+		plugins.AddRange(mod.Plugins);
+
+		foreach (var plugin in plugins)
 		{
 			try
 			{
@@ -186,6 +191,8 @@ public static class Loader
 			}
 			catch (Exception ex) { Logger.Error($"Failed unloading '{mod.Name}'", ex); }
 		}
+
+		Pool.FreeList(ref plugins);
 	}
 
 	public static bool InitializePlugin(Type type, out RustPlugin plugin, CarbonMod mod = null, Action<RustPlugin> preInit = null)
@@ -215,13 +222,11 @@ public static class Loader
 		plugin.ILoadDefaultMessages();
 		plugin.IInit();
 		plugin.Load();
-		HookCaller.CallStaticHook("OnPluginLoaded", plugin);
 
-		if (mod != null) mod.Plugins.Add(plugin);
+		mod?.Plugins.Add(plugin);
 		ProcessCommands(type, plugin);
 
-		Logger.Log($"Loaded plugin {plugin.ToString()}");
-
+		Logger.Log($"Loaded plugin {plugin.ToString()} [{plugin.CompileTime:0}ms]");
 		return true;
 	}
 	public static bool UninitializePlugin(RustPlugin plugin)
@@ -230,7 +235,7 @@ public static class Loader
 		plugin.IUnload();
 
 		RemoveCommands(plugin);
-		HookCaller.CallStaticHook("OnPluginUnloaded", plugin);
+		//HookCaller.CallHook(plugin, "OnPluginUnloaded");
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
 
@@ -269,8 +274,8 @@ public static class Loader
 			{
 				foreach (var commandName in command.Names)
 				{
-					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
-					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 				}
 			}
 
@@ -416,10 +421,10 @@ public static class Loader
 		Facepunch.Pool.Free(ref fields);
 		Facepunch.Pool.Free(ref properties);
 	}
-	public static void RemoveCommands(RustPlugin plugin)
+	public static void RemoveCommands(BaseHookable hookable)
 	{
-		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == plugin);
-		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == plugin);
+		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == hookable);
+		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == hookable);
 	}
 
 	public static void OnPluginProcessFinished()
@@ -427,34 +432,39 @@ public static class Loader
 		if (Community.IsServerFullyInitialized)
 		{
 			var counter = 0;
+			var plugins = Pool.GetList<RustPlugin>();
 
 			foreach (var mod in LoadedMods)
 			{
 				foreach (var plugin in mod.Plugins)
 				{
-					try { plugin.InternalApplyPluginReferences(); } catch { }
+					plugins.Add(plugin);
 				}
 			}
 
-			foreach (var mod in LoadedMods)
+			foreach (var plugin in plugins)
 			{
-				foreach (var plugin in mod.Plugins)
-				{
-					if (plugin.HasInitialized) continue;
-					counter++;
-
-					try
-					{
-						plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
-					}
-					catch (Exception initException)
-					{
-						plugin.LogError($"Failed OnServerInitialized.", initException);
-					}
-
-					plugin.HasInitialized = true;
-				}
+				try { plugin.InternalApplyPluginReferences(); } catch { }
 			}
+
+			foreach (var plugin in plugins)
+			{
+				if (plugin.HasInitialized) continue;
+				counter++;
+
+				try
+				{
+					plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
+				}
+				catch (Exception initException)
+				{
+					plugin.LogError($"Failed OnServerInitialized.", initException);
+				}
+
+				plugin.HasInitialized = true;
+			}
+
+			Pool.FreeList(ref plugins);
 
 			foreach (var plugin in Community.Runtime.ModuleProcessor.Modules)
 			{

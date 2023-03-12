@@ -14,6 +14,8 @@ namespace Carbon.Processors;
 
 public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 {
+	public override string Name => "Carbon Processor";
+
 	public override void Start() { }
 	public override void OnDestroy() { }
 	public override void Dispose() { }

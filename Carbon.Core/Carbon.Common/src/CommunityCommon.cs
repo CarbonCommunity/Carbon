@@ -142,6 +142,9 @@ public class Community
 		if (!Config.ConditionalCompilationSymbols.Contains("CARBON"))
 			Config.ConditionalCompilationSymbols.Add("CARBON");
 
+		if (!Config.ConditionalCompilationSymbols.Contains("RUST"))
+			Config.ConditionalCompilationSymbols.Add("RUST");
+
 		Config.ConditionalCompilationSymbols = Config.ConditionalCompilationSymbols.Distinct().ToList();
 
 		if (needsSave) SaveConfig();

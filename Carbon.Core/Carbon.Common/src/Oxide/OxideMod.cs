@@ -34,6 +34,8 @@ public class OxideMod
 
 	internal static readonly Version AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
 
+	public float Now => UnityEngine.Time.realtimeSinceStartup;
+
 	public void Load()
 	{
 		InstanceDirectory = Defines.GetRootFolder();
@@ -51,7 +53,7 @@ public class OxideMod
 		DataFileSystem = new DataFileSystem(DataDirectory);
 		RootPluginManager = new PluginManager();
 
-		switch(Community.Runtime.Config.PermissionSerialization)
+		switch (Community.Runtime.Config.PermissionSerialization)
 		{
 			case Permission.SerializationMode.Protobuf:
 				Permission = new Permission();
@@ -125,37 +127,21 @@ public class OxideMod
 	#region Logging
 
 	/// <summary>
-	/// Outputs to the game's console a message with severity level 'NOTICE'.
+	/// Outputs to the game's console a message with severity level 'DEBUG'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogInfo(string message)
-		=> Logger.Log(message);
-
-	/// <summary>
-	/// Outputs to the game's console a message with severity level 'WARNING'.
-	/// NOTE: Oxide compatibility layer.
-	/// </summary>
-	/// <param name="message"></param>
-	public void LogWarning(string message)
-		=> Logger.Warn(message);
+	public void LogDebug(string message, params object[] args)
+		=> Logger.Debug(string.Format(message, args));
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	/// <param name="ex"></param>
-	public void LogError(string message, Exception ex)
-		=> Logger.Error(message, ex);
-
-	/// <summary>
-	/// Outputs to the game's console a message with severity level 'ERROR'.
-	/// NOTE: Oxide compatibility layer.
-	/// </summary>
-	/// <param name="message"></param>
-	public void LogError(string message)
-		=> Logger.Error(message, null);
+	/// <param name="args"></param>
+	public void LogError(string message, params object[] args)
+		=> Logger.Error(string.Format(message, args));
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -165,6 +151,24 @@ public class OxideMod
 	/// <param name="ex"></param>
 	public void LogException(string message, Exception ex)
 		=> Logger.Error(message, ex);
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'NOTICE'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="args"></param>
+	public void LogInfo(string message, params object[] args)
+		=> Logger.Log(string.Format(message, args));
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'WARNING'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="args"></param>
+	public void LogWarning(string message, params object[] args)
+		=> Logger.Warn(string.Format(message, args));
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.

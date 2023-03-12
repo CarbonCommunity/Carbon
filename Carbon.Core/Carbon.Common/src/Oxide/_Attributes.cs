@@ -82,12 +82,10 @@ public class PluginReferenceAttribute : Attribute
 public class CommandAttribute : Attribute
 {
 	public string[] Names { get; } = new string[1];
-	public string Help { get; }
 
-	public CommandAttribute(string name, string help = null)
+	public CommandAttribute(string name)
 	{
 		Names[0] = name;
-		Help = help;
 	}
 
 	public CommandAttribute(params string[] commands)
@@ -149,7 +147,7 @@ public class UiCommandAttribute : Attribute
 		args = null;
 		split = null;
 
-		return $"{RandomEx.GetRandomString(16, command + Tick.ToString(), command.Length + Tick)} {arguments}".TrimEnd();
+		return $"carboncui_{RandomEx.GetRandomString(16, command + Tick.ToString(), command.Length + Tick)} {arguments}".TrimEnd();
 	}
 
 	public UiCommandAttribute(string name)

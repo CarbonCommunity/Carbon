@@ -16,6 +16,10 @@
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="src\Carbon\Console\" />
+	</ItemGroup>
+
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_hooks)" />
 	</Target>

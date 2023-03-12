@@ -38,16 +38,19 @@ public class CommunityInternal : Community
 	internal void _installDefaultCommands()
 	{
 		CorePlugin = new CorePlugin { Name = "Core", IsCorePlugin = true };
-		Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = true };
+		Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = false };
 		CorePlugin.IInit();
 
 		Loader.LoadedMods.Add(new Loader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
 		Loader.LoadedMods.Add(Plugins);
 
 		Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
+		Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon");
 	}
 
 	#region Processors
+
+	internal ExtensionProcessor ExtensionProcessor { get; set; }
 
 	internal void _installProcessors()
 	{
@@ -59,6 +62,7 @@ public class CommunityInternal : Community
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
+			ExtensionProcessor = gameObject.AddComponent<ExtensionProcessor>();
 			HookManager = gameObject.AddComponent<HookManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
@@ -84,6 +88,7 @@ public class CommunityInternal : Community
 			if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
 			if (ModuleProcessor != null) ModuleProcessor?.Dispose();
 			if (CarbonProcessor != null) CarbonProcessor?.Dispose();
+			if(ExtensionProcessor!= null) ExtensionProcessor?.Dispose();
 		}
 		catch { }
 
@@ -191,8 +196,11 @@ public class CommunityInternal : Community
 		"System",
 
 		"Carbon.Common",
+		"Carbon.Ext.Discord",
+
 		"protobuf-net",
 		"protobuf-net.Core",
+		"websocket-sharp",
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
@@ -234,5 +242,6 @@ public class CommunityInternal : Community
 		"UnityEngine.UnityWebRequestModule",
 		"UnityEngine.UnityWebRequestTextureModule",
 		"UnityEngine.UnityWebRequestWWWModule",
+		"UnityEngine.VehiclesModule"
 	};
 }

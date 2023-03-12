@@ -126,6 +126,15 @@ public class Timers
 		Persistence.InvokeRepeating(activity, time, time);
 		return timer;
 	}
+	public void Destroy(ref Timer timer)
+	{
+		if (timer != null)
+		{
+			timer.Destroy();
+		}
+
+		timer = null;
+	}
 }
 
 public class Timer : Library, IDisposable

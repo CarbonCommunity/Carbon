@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using API.Hooks;
+using Carbon.Base;
 using Carbon.Extensions;
 
 /*
@@ -21,6 +23,8 @@ public partial class Category_Static
 
 		public class Static_ServerMgr_aaa38191cc9f4f6f911df9742d552a99 : API.Hooks.Patch
 		{
+			public static bool ForceModded => Community.Runtime.ModuleProcessor.Modules.Any(x => x is BaseModule module && module.GetEnabled() && module.ForceModded);
+
 			public static void Postfix()
 			{
 				if (Community.Runtime == null || Community.Runtime.Config == null) return;
@@ -36,7 +40,7 @@ public partial class Category_Static
 						ServerTagEx.UnsetRequiredTag("carbon");
 					}
 
-					if (Community.Runtime.Config.IsModded)
+					if (Community.Runtime.Config.IsModded || ForceModded)
 					{
 						ServerTagEx.SetRequiredTag("modded");
 					}

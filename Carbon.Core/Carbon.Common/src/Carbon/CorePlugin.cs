@@ -5,18 +5,21 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Shell;
+using API.Events;
 using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Extensions;
 using Carbon.Plugins;
+using ConVar;
 using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
+using Pool = Facepunch.Pool;
 
 /*
  *
@@ -80,9 +83,11 @@ public class CorePlugin : CarbonPlugin
 
 	private void OnPluginLoaded(Plugin plugin)
 	{
+		Community.Runtime.Events.Trigger(CarbonEvent.PluginLoaded, new CarbonEventArgs(plugin));
 	}
 	private void OnPluginUnloaded(Plugin plugin)
 	{
+		Community.Runtime.Events.Trigger(CarbonEvent.PluginUnloaded, new CarbonEventArgs(plugin));
 	}
 	private void OnEntitySpawned(BaseEntity entity)
 	{
@@ -97,7 +102,15 @@ public class CorePlugin : CarbonPlugin
 		Entities.RemoveMap(entity);
 	}
 
+	private void OnServerSave()
+	{
+		Logger.Log($"Saving Carbon state..");
+		Interface.Oxide.Permission.SaveData();
+	}
+
 	#region Internal Hooks
+
+	internal static bool _isPlayerTakingDamage = false;
 
 	private void IOnPlayerConnected(BasePlayer player)
 	{
@@ -140,6 +153,8 @@ public class CorePlugin : CarbonPlugin
 
 		try
 		{
+			_isPlayerTakingDamage = true;
+
 			if (!basePlayer.IsDead())
 			{
 				basePlayer.DoHitNotify(hitInfo);
@@ -149,10 +164,30 @@ public class CorePlugin : CarbonPlugin
 			{
 				basePlayer.Hurt(hitInfo);
 			}
+
+			_isPlayerTakingDamage = false;
 		}
 		catch { }
 
 		return true;
+	}
+	private object IOnBasePlayerHurt(BasePlayer basePlayer, HitInfo hitInfo)
+	{
+		if (!_isPlayerTakingDamage)
+		{
+			return Interface.CallHook("OnEntityTakeDamage", basePlayer, hitInfo);
+		}
+
+		return null;
+	}
+	private object IOnBaseCombatEntityHurt(BaseCombatEntity entity, HitInfo hitInfo)
+	{
+		if (entity is not BasePlayer)
+		{
+			return Interface.CallHook("OnEntityTakeDamage", entity, hitInfo);
+		}
+
+		return null;
 	}
 
 	private object IOnPlayerCommand(BasePlayer player, string message)
@@ -250,6 +285,36 @@ public class CorePlugin : CarbonPlugin
 
 		return true;
 	}
+	private object IOnServerCommand(ConsoleSystem.Arg arg)
+	{
+		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
+		{
+			return null;
+		}
+
+		return true;
+	}
+	private object IOnPlayerChat(ulong playerId, string playerName, string message, Chat.ChatChannel channel, BasePlayer basePlayer)
+	{
+		if (string.IsNullOrEmpty(message) || message.Equals("text"))
+		{
+			return true;
+		}
+		if (basePlayer == null || !basePlayer.IsConnected)
+		{
+			return Interface.CallHook("OnPlayerOfflineChat", playerId, playerName, message, channel);
+		}
+
+		var hook1 = Interface.CallHook("OnPlayerChat", basePlayer, message, channel);
+		var hook2 = Interface.CallHook("OnUserChat", basePlayer.AsIPlayer(), message);
+
+		if (hook1 != null)
+		{
+			return hook1;
+		}
+
+		return hook2;
+	}
 
 	#endregion
 
@@ -313,6 +378,8 @@ public class CorePlugin : CarbonPlugin
 
 				foreach (var mod in Loader.LoadedMods)
 				{
+					if (mod.IsCoreMod) continue;
+
 					body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "");
 
 					foreach (var plugin in mod.Plugins)
@@ -507,15 +574,15 @@ public class CorePlugin : CarbonPlugin
 					switch (option2)
 					{
 						case "--patch":
-							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
 							break;
 
 						case "--static":
-							hooks = Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
 							break;
 
 						case "--dynamic":
-							hooks = Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
 							break;
 
 						// case "--failed":
@@ -540,9 +607,9 @@ public class CorePlugin : CarbonPlugin
 						// 	break;
 
 						default:
-							hooks = Community.Runtime.HookManager.Patches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.StaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(Community.Runtime.HookManager.DynamicHooks.Where(x => !x.IsHidden));
+							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
 							break;
 					}
 
@@ -669,6 +736,9 @@ public class CorePlugin : CarbonPlugin
 	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.", true)]
 	private bool HookValidation { get { return Community.Runtime.Config.HookValidation; } set { Community.Runtime.Config.HookValidation = value; Community.Runtime.SaveConfig(); } }
 
+	[CommandVar("filenamecheck", "It checks if the file name and the plugin name matches. (only applies to scripts)", true)]
+	private bool FileNameCheck { get { return Community.Runtime.Config.FileNameCheck; } set { Community.Runtime.Config.FileNameCheck = value; Community.Runtime.SaveConfig(); } }
+
 	[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
 	private int EntityMapBufferSize { get { return Community.Runtime.Config.EntityMapBufferSize; } set { Community.Runtime.Config.EntityMapBufferSize = value; Community.Runtime.SaveConfig(); } }
 
@@ -769,11 +839,11 @@ public class CorePlugin : CarbonPlugin
 		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(2)) return;
 
 		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
-		var module = hookable.To<IModule>();
+		var module = hookable?.To<IModule>();
 
 		if (module == null)
 		{
-			Reply($"Couldn't find that module.", arg);
+			Reply($"Couldn't find that module. Try 'c.modules' to print them all.", arg);
 			return;
 		}
 
@@ -841,6 +911,22 @@ public class CorePlugin : CarbonPlugin
 		if (module.GetEnabled()) module.OnEnableStatus();
 
 		Reply($"Reloaded '{module.Name}' module config.", arg);
+	}
+
+	[ConsoleCommand("modules", "Prints a list of all available modules.")]
+	private void Modules(ConsoleSystem.Arg arg)
+	{
+		if (!arg.IsPlayerCalledAndAdmin()) return;
+
+		using var print = new StringTable("Name", "Is Enabled", "Quick Command");
+		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+		{
+			if (hookable is not IModule module) continue;
+
+			print.AddRow(hookable.Name, module.GetEnabled() ? "Yes" : "No", $"c.setmodule \"{hookable.Name}\" 0/1");
+		}
+
+		Reply(print.ToStringMinimal(), arg);
 	}
 
 	#endregion
