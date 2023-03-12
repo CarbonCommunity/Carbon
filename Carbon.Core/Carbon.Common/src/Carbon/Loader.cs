@@ -427,6 +427,7 @@ public static class Loader
 		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == hookable);
 	}
 	
+	public static bool IsBatchComplete { get; set; }
 	public static List<string> PostBatchFailedRequirees { get; } = new();
 
 	public static void OnPluginProcessFinished()
@@ -436,6 +437,11 @@ public static class Loader
 			var file = System.IO.Path.GetFileNameWithoutExtension(plug);
 			Community.Runtime.ScriptProcessor.ClearIgnore(file);
 			Community.Runtime.ScriptProcessor.Prepare(file, plug);
+		}
+		
+		if(PostBatchFailedRequirees.Count == 0)
+		{
+			IsBatchComplete = true;
 		}
 		
 		PostBatchFailedRequirees.Clear();

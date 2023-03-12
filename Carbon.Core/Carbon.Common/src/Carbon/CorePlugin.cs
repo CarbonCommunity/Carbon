@@ -938,6 +938,12 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
+		if(!Loader.IsBatchComplete)
+		{
+			Logger.Warn($"There are plugins still processing, please wait...");		
+			return;
+		}
+
 		RefreshOrderedFiles();
 
 		var name = arg.Args[0];
@@ -998,6 +1004,12 @@ public class CorePlugin : CarbonPlugin
 			return;
 		}
 
+		if(!Loader.IsBatchComplete)
+		{
+			Logger.Warn($"There are plugins still processing, please wait...");		
+			return;
+		}
+		
 		RefreshOrderedFiles();
 
 		var name = arg.Args[0];
@@ -1058,6 +1070,12 @@ public class CorePlugin : CarbonPlugin
 			return;
 		}
 
+		if(!Loader.IsBatchComplete)
+		{
+			Logger.Warn($"There are plugins still processing, please wait...");		
+			return;
+		}
+		
 		RefreshOrderedFiles();
 
 		var name = arg.Args[0];

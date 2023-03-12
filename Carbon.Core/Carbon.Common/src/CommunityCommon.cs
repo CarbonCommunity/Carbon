@@ -163,6 +163,7 @@ public class Community
 
 	public virtual void ReloadPlugins()
 	{
+		Loader.IsBatchComplete = false;
 		Loader.ClearAllErrored();
 		Loader.ClearAllRequirees();
 	}
