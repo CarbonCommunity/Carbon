@@ -36,7 +36,15 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		if (module is IModule hookable)
 		{
-			hookable.Init();
+			try
+			{
+				hookable.Init();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"[ModuleProcessor] Failed initializing '{hookable.Name}'.", ex);
+			}
+
 			_modules.Add(module);
 			hookable.InitEnd();
 		}

@@ -339,6 +339,8 @@ public class ScriptLoader : IDisposable, IScriptLoader
 					Scripts.Add(plugin);
 
 					Carbon.Components.Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);
+
+					Plugin.InternalApplyAllPluginReferences();
 					HookCaller.CallStaticHook("OnPluginLoaded", rustPlugin);
 				}
 			}

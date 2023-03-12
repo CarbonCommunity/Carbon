@@ -190,11 +190,11 @@ namespace Carbon
 
 		public static object CallHook(BaseHookable plugin, string hookName)
 		{
-			return CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
+			return Caller.CallHook(plugin, hookName, flags: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
 		}
 		public static T CallHook<T>(BaseHookable plugin, string hookName)
 		{
-			return (T)CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
+			return (T)Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
 		}
 		public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate)
 		{

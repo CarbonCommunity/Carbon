@@ -33,8 +33,6 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		}
 
 		if (hasChanged) Save();
-
-		OnEnableStatus();
 	}
 
 	public override void OnEnabled(bool initialized)
