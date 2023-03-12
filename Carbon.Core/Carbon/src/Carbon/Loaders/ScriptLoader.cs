@@ -204,6 +204,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 		if (noRequiresFound)
 		{
+			Loader.PostBatchFailedRequirees.Add(File);
 			HasFinished = true;
 			Pool.FreeList(ref requires);
 			yield break;
