@@ -52,7 +52,7 @@ public struct CUI : IDisposable
 		var parentName = GetClientPanel(parent);
 		var element = Manager.TakeFromPool(panel, parentName);
 		element.FadeOut = fadeOut;
-		element.DestroyUI = destroyUi;
+		element.DestroyUi = destroyUi;
 
 		if (color != "0 0 0 0")
 		{
@@ -289,7 +289,7 @@ public struct CUI : IDisposable
 			element.Name = name;
 			element.Parent = parent;
 			element.Components.Clear();
-			element.DestroyUI = destroyUi;
+			element.DestroyUi = destroyUi;
 			element.FadeOut = fadeOut;
 
 			_queue.Add(element);
