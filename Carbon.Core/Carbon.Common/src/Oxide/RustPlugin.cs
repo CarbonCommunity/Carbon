@@ -185,7 +185,7 @@ public class RustPlugin : Plugin
 	public void RaiseError(object message)
 		=> Carbon.Logger.Error($"[{Name}] {message}", null);
 
-	protected void LogToFile(string filename, string text, Plugin plugin = null, bool timeStamp = true)
+	protected void LogToFile(string filename, string text, Plugin plugin = null, bool timeStamp = true, bool anotherBool = false)
 	{
 		string logFolder;
 
@@ -207,10 +207,6 @@ public class RustPlugin : Plugin
 		}
 
 		File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
-	}
-	protected void LogToFile(string filename, string text, Plugin plugin = null, bool datedFilename = true, bool timestamp = true)
-	{
-		LogToFile(filename, text, plugin, timestamp);
 	}
 
 	#endregion
