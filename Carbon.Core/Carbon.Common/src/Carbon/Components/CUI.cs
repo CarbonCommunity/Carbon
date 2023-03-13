@@ -176,9 +176,8 @@ public struct CUI : IDisposable
 		return $"{color.r} {color.g} {color.b} {alpha ?? color.a}";
 	}
 
-	public void Send(CuiElementContainer container, BasePlayer player, bool autoDestroy = false)
+	public void Send(CuiElementContainer container, BasePlayer player)
 	{
-		if (autoDestroy) Destroy(container, player);
 		Manager.Send(container, player);
 	}
 	public void Destroy(CuiElementContainer container, BasePlayer player)
