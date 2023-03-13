@@ -20,7 +20,7 @@ using HarmonyLib;
 
 namespace Carbon.Hooks;
 
-public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
+public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 {
 	internal List<HookEx> _patches { get; set; }
 	internal List<HookEx> _staticHooks { get; set; }
@@ -538,7 +538,7 @@ public class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 	private bool disposedValue;
 
-	protected virtual void Dispose(bool disposing)
+	internal void Dispose(bool disposing)
 	{
 		if (!disposedValue)
 		{
