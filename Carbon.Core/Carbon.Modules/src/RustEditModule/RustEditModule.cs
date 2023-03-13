@@ -2708,6 +2708,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		{
 			return null;
 		}
+
 		if (IO_Protect.Contains(entity.transform.position))
 		{
 			return false;
@@ -2737,7 +2738,8 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 				if (!(baseEntity == null))
 				{
 					var basePlayer = baseEntity as BasePlayer;
-					if (basePlayer == null || (basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying) || turret.IsAuthed(basePlayer) || (turret.PeacekeeperMode() && !basePlayer.IsHostile())) { continue; }
+
+					if (basePlayer == null || (basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying) || turret.IsAuthed(basePlayer) || (turret.PeacekeeperMode() && !basePlayer.IsHostile())) continue; 
 					if (!turret.target.IsNpc && turret.target.IsAlive() && turret.InFiringArc(turret.target) && turret.ObjectVisible(turret.target))
 					{
 						turret.SetTarget(basePlayer);
@@ -2745,6 +2747,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 					}
 				}
 			}
+
 			if (turret.target != null)
 			{
 				turret.EnsureReloaded(true);
