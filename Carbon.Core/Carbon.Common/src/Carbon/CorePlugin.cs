@@ -190,16 +190,18 @@ public class CorePlugin : CarbonPlugin
 		return null;
 	}
 
+	internal readonly string[] _emptyStringArray = new string[0];
+
 	private object IOnPlayerCommand(BasePlayer player, string message)
 	{
 		if (Community.Runtime == null) return true;
 
 		try
 		{
-			var fullString = message.Substring(1);
+			var fullString = message[1..];
 			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 			var command = split[0].Trim();
-			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : new string[0];
+			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString[(command.Length + 1)..]) : _emptyStringArray;
 			Facepunch.Pool.Free(ref split);
 
 			if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(player.userID), command, args) != null)
@@ -281,12 +283,14 @@ public class CorePlugin : CarbonPlugin
 				}
 			}
 		}
-		catch { }
+		catch(Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }
 
 		return true;
 	}
 	private object IOnServerCommand(ConsoleSystem.Arg arg)
 	{
+		if (arg != null && arg.cmd != null && arg.cmd.FullName == "chat.say") return null;
+
 		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
 		{
 			return null;
