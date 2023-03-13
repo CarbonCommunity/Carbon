@@ -17,7 +17,7 @@ public partial class RustEditModule
 
 	// Called before and after WorldSerialization is loaded.
 
-	public class World_WorldSerialization_Load_46e7586c847e42b392ec0c14b75b9451
+	public class World_WorldSerialization_Load_46e7586c847e42b392ec0c14b75b9451 : API.Hooks.Patch
 	{
 		public static void Prefix(string fileName, ref WorldSerialization __instance)
 		{
