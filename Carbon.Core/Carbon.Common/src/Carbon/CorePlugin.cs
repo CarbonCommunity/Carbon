@@ -198,10 +198,10 @@ public class CorePlugin : CarbonPlugin
 
 		try
 		{
-			var fullString = message[1..];
+			var fullString = message.Substring(1);
 			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 			var command = split[0].Trim();
-			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString[(command.Length + 1)..]) : _emptyStringArray;
+			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
 			Facepunch.Pool.Free(ref split);
 
 			if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(player.userID), command, args) != null)
