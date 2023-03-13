@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Carbon;
 using Carbon.Core;
@@ -32,7 +33,8 @@ public class OxideMod
 
 	public bool IsShuttingDown { get; private set; }
 
-	internal static readonly Version AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
+	internal static readonly Version _assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
+	internal List<Extensions.Extension> _extensions = new();
 
 	public float Now => UnityEngine.Time.realtimeSinceStartup;
 
@@ -63,6 +65,8 @@ public class OxideMod
 				Permission = new PermissionSql();
 				break;
 		}
+
+		_extensions.Add(new Extensions.Extension { Name = "Rust", Author = "Carbon Community LTD", Branch = "none", Filename = "Carbon.dll", Version = new VersionNumber(1, 0, 0) });
 	}
 
 	public void NextTick(Action callback)
@@ -100,6 +104,11 @@ public class OxideMod
 		}
 	}
 
+	public IEnumerable<Extensions.Extension> GetAllExtensions()
+	{
+		return _extensions;
+	}
+
 	public object CallHook(string hookName, params object[] args)
 	{
 		return HookCaller.CallStaticHook(hookName, args);
@@ -122,7 +131,7 @@ public class OxideMod
 		return Activator.CreateInstance<T>();
 	}
 
-	public static readonly VersionNumber Version = new(AssemblyVersion.Major, AssemblyVersion.Minor, AssemblyVersion.Build);
+	public static readonly VersionNumber Version = new(_assemblyVersion.Major, _assemblyVersion.Minor, _assemblyVersion.Build);
 
 	#region Logging
 
