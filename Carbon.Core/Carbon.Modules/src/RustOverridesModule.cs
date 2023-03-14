@@ -23,10 +23,21 @@ public class RustOverridesModule : CarbonModule<RustOverridesConfig, EmptyModule
 
 		return null;
 	}
+
+	[HookPriority(Priorities.Highest)]
+	private object OnServerMessage(string message, string name)
+	{
+		if (!ConfigInstance.NoGiveNotices) return null;
+
+		return name == "SERVER" && message.Contains("gave");
+	}
 }
 
 public class RustOverridesConfig
 {
 	[JsonProperty("Disallow skinned items from being craftable")]
 	public bool DisallowSkinnedItemsFromBeingCraftable = true;
+
+	[JsonProperty("No give notices")]
+	public bool NoGiveNotices = true;
 }
