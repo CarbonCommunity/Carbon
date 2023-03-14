@@ -87,6 +87,10 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 	{
 		item.amount = GetAmount(item.info, item.amount, 1);
 	}
+	private void OnDispenserGather(ResourceDispenser dispenser, BasePlayer player, Item item)
+	{
+		item.amount = GetAmount(item.info, item.amount, 1);
+	}
 
 	private object ICraftDurationMultiplier()
 	{
