@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using API.Contracts;
 using Utility;
@@ -19,8 +20,9 @@ internal sealed class AssemblyLoader : IDisposable
 {
 	private class Item : IAssemblyCache
 	{
-		public byte[] raw { get; internal set; }
-		public Assembly assembly { get; internal set; }
+		public string Name { get; internal set; }
+		public byte[] Raw { get; internal set; }
+		public Assembly Assembly { get; internal set; }
 	}
 
 	private readonly Hash<string, Item> _cache = new();
@@ -32,17 +34,17 @@ internal sealed class AssemblyLoader : IDisposable
 		Context.CarbonExtensions,
 	};
 
-	internal IAssemblyCache Load(string file, string requester = "unknown")
+	internal IAssemblyCache Load(string file, string requester = "unknown", string[] directories = null)
 	{
 		// normalize filename
 		file = Path.GetFileName(file);
 
 #if DEBUG_VERBOSE
-		Logger.Debug($"Resolve assembly '{file}' requested by '{requester}'");
+		Logger.Debug($"Load assembly '{file}' requested by '{requester}'");
 #endif
 
 		string path = default;
-		foreach (string directory in _directoryList)
+		foreach (string directory in (directories is null) ? _directoryList : directories)
 		{
 			if (!File.Exists(Path.Combine(directory, file))) continue;
 			path = Path.Combine(directory, file);
@@ -50,7 +52,7 @@ internal sealed class AssemblyLoader : IDisposable
 
 		if (path.IsNullOrEmpty())
 		{
-			Logger.Debug($"Unresolved assembly: '{file}'");
+			Logger.Debug($"Unable to load assembly: '{file}'");
 			return default;
 		}
 
@@ -60,21 +62,27 @@ internal sealed class AssemblyLoader : IDisposable
 		if (_cache.TryGetValue(sha1, out Item cache))
 		{
 #if DEBUG_VERBOSE
-			Logger.Debug($"Resolved assembly from cache: "
-				+ $"'{cache.assembly.GetName().Name}' v{cache.assembly.GetName().Version}");
+			Logger.Debug($"Loaded assembly from cache: "
+				+ $"'{cache.Assembly.GetName().Name}' v{cache.Assembly.GetName().Version}");
 #endif
 			return cache;
 		}
 
 		Assembly asm = Assembly.Load(raw);
-		cache = new Item { raw = raw, assembly = asm };
+		cache = new Item { Name = file, Raw = raw, Assembly = asm };
 		_cache.Add(sha1, cache);
 
 #if DEBUG_VERBOSE
-		Logger.Debug($"Resolved assembly: '{asm.GetName().Name}' v{asm.GetName().Version}");
+		Logger.Debug($"Loaded assembly: '{asm.GetName().Name}' v{asm.GetName().Version}");
 #endif
 
 		return cache;
+	}
+
+	internal IAssemblyCache ReadFromCache(string name)
+	{
+		Item item = _cache.Select(x => x.Value).Last(x => x.Name == name);
+		return item ?? default;
 	}
 
 	private bool disposedValue;

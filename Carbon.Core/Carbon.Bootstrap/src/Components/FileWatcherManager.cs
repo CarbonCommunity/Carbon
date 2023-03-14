@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Legacy;
+using UnityEngine;
 
 /*
  *
@@ -11,82 +14,169 @@ using System.IO;
 
 namespace Components;
 
-internal abstract class FileWatcherManager : IDisposable
+internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 {
-	private string _directory;
-	private string _extension;
-	internal bool includeSubdirectories;
-
-	internal List<string> Blacklist;
-
-	private FileSystemWatcher Handler;
-
-	internal virtual void Awake()
+	private class Item
 	{
-		//Carbon.LoaderEx.Utility.Logger.Log("FileWatcherBehaviour:Awake()");
+		public bool IncludeSubFolders { get; internal set; }
+		public FileSystemWatcher Handler { get; internal set; }
+		public string Directory { get; internal set; }
+		public string Extension { get; internal set; }
 
-		_directory = string.Empty;
-		_extension = string.Empty;
-		includeSubdirectories = false;
-		Blacklist = new List<string>();
+		public OnFileChangedEvent OnFileChanged { get; internal set; }
+		public delegate void OnFileChangedEvent(object sender, string path);
+
+		public OnFileCreatedEvent OnFileCreated { get; internal set; }
+		public delegate void OnFileCreatedEvent(object sender, string path);
+
+		public OnFileDeletedEvent OnFileDeleted { get; internal set; }
+		public delegate void OnFileDeletedEvent(object sender, string path);
+	}
+
+	private readonly List<Item> _watchlist = new()
+	{
+		new Item
+		{
+			Extension = "*.dll",
+			IncludeSubFolders = false,
+			Directory = Utility.Context.CarbonExtensions,
+
+			OnFileCreated = (sender, file) =>
+			{
+				Loader.GetInstance().AssemblyEx.LoadExtension(
+					Path.GetFileName(file), Path.GetDirectoryName(file));
+			},
+		}
+	};
+
+	internal void Awake()
+	{
+		// by default disable the behaviour
+		enabled = false;
+
+		foreach (Item item in _watchlist)
+		{
+			try
+			{
+				if (string.IsNullOrEmpty(item.Extension))
+					throw new ArgumentException("No file extension defined");
+
+				if (string.IsNullOrEmpty(item.Directory) && !Directory.Exists(item.Directory))
+					throw new Exception($"Unable to watch '{item.Directory}");
+
+				if (item.Handler is null)
+				{
+					item.Handler = new FileSystemWatcher(item.Directory)
+					{
+						Filter =
+							item.Extension,
+
+						NotifyFilter =
+							NotifyFilters.FileName | NotifyFilters.LastWrite
+					};
+
+					item.Handler.Changed += FileSystemEvent;
+					item.Handler.Created += FileSystemEvent;
+					item.Handler.Deleted += FileSystemEvent;
+
+					item.Handler.EnableRaisingEvents = false;
+					item.Handler.IncludeSubdirectories = item.IncludeSubFolders;
+				}
+			}
+			catch (System.Exception e)
+			{
+				Utility.Logger.Error($"Unable to instantiate a new folder watcher", e);
+				throw;
+			}
+		}
 	}
 
 	internal void OnEnable()
 	{
-		//Carbon.LoaderEx.Utility.Logger.Log("FileWatcherBehaviour:OnEnable()");
-
-		if (string.IsNullOrEmpty(_extension))
-			throw new ArgumentException("No file extension defined");
-
-		if (string.IsNullOrEmpty(_directory) && !Directory.Exists(_directory))
-			throw new Exception($"Unable to watch '{_directory}");
-
-		if (Handler is null)
+		foreach (Item item in _watchlist)
 		{
-			Handler = new FileSystemWatcher(_directory)
+			foreach (string file in Directory.GetFiles(item.Handler.Path, item.Handler.Filter))
 			{
-				Filter =
-					_extension,
-
-				NotifyFilter =
-					NotifyFilters.FileName |
-					NotifyFilters.LastWrite |
-					NotifyFilters.LastAccess
-			};
-
-			Handler.Changed += OnFileChangedEvent;
-			Handler.Created += OnFileCreatedEvent;
-			Handler.Deleted += OnFileDeletedEvent;
-			Handler.Renamed += OnFileRenamedEvent;
-
-			Handler.IncludeSubdirectories = includeSubdirectories;
+				FileSystemEventArgs args = new FileSystemEventArgs(
+					WatcherChangeTypes.Created, item.Handler.Path, Path.GetFileName(file));
+				FileSystemEvent(item.Handler, args);
+			}
+			item.Handler.EnableRaisingEvents = true;
 		}
-
-		Handler.EnableRaisingEvents = true;
 	}
-
-	internal abstract void OnFileChangedEvent(object sender, FileSystemEventArgs e);
-	internal abstract void OnFileCreatedEvent(object sender, FileSystemEventArgs e);
-	internal abstract void OnFileDeletedEvent(object sender, FileSystemEventArgs e);
-	internal abstract void OnFileRenamedEvent(object sender, RenamedEventArgs e);
 
 	internal void OnDisable()
 	{
-		//Carbon.LoaderEx.Utility.Logger.Log("FileWatcherBehaviour:OnDisable()");
 
-		if (Handler == null) return;
-		Handler.EnableRaisingEvents = false;
+		foreach (Item item in _watchlist)
+		{
+			foreach (string file in Directory.GetFiles(item.Handler.Path, item.Handler.Filter))
+			{
+				FileSystemEventArgs args = new FileSystemEventArgs(
+					WatcherChangeTypes.Created, item.Handler.Path, Path.GetFileName(file));
+				FileSystemEvent(item.Handler, args);
+			}
+			item.Handler.EnableRaisingEvents = false;
+		}
 	}
 
-	internal virtual void OnDestroy()
+	internal void OnDestroy()
+		=> Dispose();
+
+	internal void FileSystemEvent(object sender, FileSystemEventArgs e)
 	{
-		//Carbon.LoaderEx.Utility.Logger.Log("FileWatcherBehaviour:OnDestroy()");
-		Dispose();
+		Utility.Logger.Debug($"New file system event '{e.ChangeType}' triggered for file '{e.FullPath}'");
+
+		try
+		{
+			Item item = _watchlist.Single(x => x.Directory == Path.GetDirectoryName(e.FullPath));
+
+			switch (e.ChangeType)
+			{
+				case WatcherChangeTypes.Changed:
+					item.OnFileChanged?.Invoke(sender, e.FullPath);
+					break;
+
+				case WatcherChangeTypes.Created:
+					item.OnFileCreated?.Invoke(sender, e.FullPath);
+					break;
+
+				case WatcherChangeTypes.Deleted:
+					item.OnFileDeleted?.Invoke(sender, e.FullPath);
+					break;
+			}
+		}
+		catch (System.Exception)
+		{
+			Utility.Logger.Error($"Unable to find watcher item for '{e.FullPath}");
+		}
 	}
 
-	public virtual void Dispose()
+	private bool disposedValue;
+
+	private void Dispose(bool disposing)
 	{
-		Handler?.Dispose();
-		Handler = default;
+		if (!disposedValue)
+		{
+			if (disposing)
+			{
+				foreach (Item item in _watchlist)
+				{
+					item.Handler.Changed -= FileSystemEvent;
+					item.Handler.Created -= FileSystemEvent;
+					item.Handler.Deleted -= FileSystemEvent;
+					item.Handler.EnableRaisingEvents = false;
+					item.Handler.Dispose();
+				}
+				_watchlist.Clear();
+			}
+			disposedValue = true;
+		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

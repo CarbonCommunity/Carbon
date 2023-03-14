@@ -51,7 +51,7 @@ internal sealed class Context
 			CarbonManaged = Path.Combine(Carbon, "managed");
 			if (!Directory.Exists(CarbonManaged)) Directory.CreateDirectory(CarbonManaged);
 
-			CarbonExtensions = Path.Combine(Carbon, "managed", "extensions");
+			CarbonExtensions = Path.Combine(Carbon, "extensions");
 			if (!Directory.Exists(CarbonExtensions)) Directory.CreateDirectory(CarbonExtensions);
 
 			CarbonLib = Path.Combine(Carbon, "managed", "lib");

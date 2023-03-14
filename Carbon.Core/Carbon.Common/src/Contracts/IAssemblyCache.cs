@@ -12,6 +12,7 @@ namespace API.Contracts;
 
 public interface IAssemblyCache
 {
-	public byte[] raw { get; }
-	public Assembly assembly { get; }
+	public string Name { get; }
+	public byte[] Raw { get; }
+	public Assembly Assembly { get; }
 }

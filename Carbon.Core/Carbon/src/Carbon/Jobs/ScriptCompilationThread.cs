@@ -54,6 +54,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		return result;
 	}
+
 	internal static byte[] _getExtensionPlugin(string name)
 	{
 		if (!_extensionCompilationCache.TryGetValue(name, out var result)) return null;
@@ -77,6 +78,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Array.Clear(plugin, 0, plugin.Length);
 		try { _compilationCache[name] = pluginAssembly; } catch { }
 	}
+
 	internal static void _overrideExtensionPlugin(string name, byte[] pluginAssembly)
 	{
 		if (pluginAssembly == null) return;
@@ -91,6 +93,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Array.Clear(plugin, 0, plugin.Length);
 		try { _extensionCompilationCache[name] = pluginAssembly; } catch { }
 	}
+
 	internal static void _clearExtensionPlugin(string name)
 	{
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.Remove(name);
@@ -101,12 +104,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		if (_referenceCache.TryGetValue(name, out var reference))
 		{
-			Logger.Debug(id, $"Added common references from cache", 4);
+			Logger.Debug(id, $"Added common references from cache '{name}'", 4);
 			references.Add(reference);
 		}
 		else
 		{
-			//FIXMENOW
 			var raw = Community.Runtime.AssemblyEx.Read(name, this);
 			if (raw == null) return;
 
@@ -118,47 +120,27 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
+
 	internal void _injectExtensionReference(string id, string name, List<MetadataReference> references)
 	{
-		if (!_extensionCompilationCache.TryGetValue(name, out var raw))
-		{
-			Logger.Debug(id, $">>> oops", 4);
-			return;
-		}
-
 		if (_extensionReferenceCache.TryGetValue(name, out var reference))
 		{
-			Logger.Debug(id, $"Added common Extension references from cache", 4);
+			Logger.Debug(id, $"Added common Extension references from cache '{name}'", 4);
 			references.Add(reference);
 		}
 		else
 		{
-			Logger.Debug(id, $"Added common Extension reference '{name}'", 4);
+			var raw = Community.Runtime.AssemblyEx.Read(name, this);
+			if (raw == null) return;
+
 			using var mem = new MemoryStream(raw);
 			var processedReference = MetadataReference.CreateFromStream(mem);
+
 			references.Add(processedReference);
 			_extensionReferenceCache.Add(name, processedReference);
+			Logger.Debug(id, $"Added common Extension reference '{name}'", 4);
 		}
 	}
-
-	// internal static MetadataReference _getReferenceFromCache(string reference)
-	// {
-	// 	try
-	// 	{
-	// 		//FIXMENOW
-	// 		byte[] raw = Community.Runtime.AssemblyEx.Read(reference, "ScriptCompilationThread");
-
-	// 		if (raw == null || raw.Length == 0) throw new ArgumentException();
-
-	// 		using MemoryStream mem = new MemoryStream(raw);
-	// 		return MetadataReference.CreateFromStream(mem);
-	// 	}
-	// 	catch (System.Exception e)
-	// 	{
-	// 		Logger.Error($"_getReferenceFromCache('{reference}') failed", e);
-	// 		return null;
-	// 	}
-	// }
 
 	internal List<MetadataReference> _addReferences()
 	{
@@ -182,40 +164,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 			_injectReference(id, "0Harmony", references);
 		}
 
-		foreach (var item in _extensionCompilationCache)
+		foreach (var item in Community.Runtime.AssemblyEx.LoadedExtensions)
 		{
-			_injectExtensionReference(id, item.Key, references);
+			_injectExtensionReference(id, item, references);
 		}
-
-		// goes through the requested use list by the plugin
-		/*foreach (var element in Usings)
-		{
-			try
-			{
-				Logger.Debug(id, $"Added using reference '{element}'", 4);
-				var outReference = MetadataReference.CreateFromFile(Type.GetType(element).Assembly.Location);
-				if (outReference != null && !references.Any(x => x.Display == outReference.Display)) references.Add(outReference);
-			}
-			catch (System.Exception)
-			{
-				Logger.Debug(id, $"Error loading using reference '{element}'", 4);
-			}
-		}*/
-
-		// // goes through the requested references by the plugin
-		// foreach (var reference in References)
-		// {
-		// 	try
-		// 	{
-		// 		Logger.Debug(id, $"Added require reference '{reference}'", 2);
-		// 		var outReference = _getReferenceFromCache(reference);
-		// 		if (outReference != null && !references.Any(x => x.Display == outReference.Display)) references.Add(outReference);
-		// 	}
-		// 	catch (System.Exception)
-		// 	{
-		// 		Logger.Debug(id, $"Error loading require reference '{reference}'", 2);
-		// 	}
-		// }
 
 		Logger.Debug(id, $"Compiler will use {references.Count} assembly references", 1);
 		return references;
@@ -229,7 +181,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		public override string ToString()
 		{
-			return $" --- {Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
+			return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
 		}
 	}
 

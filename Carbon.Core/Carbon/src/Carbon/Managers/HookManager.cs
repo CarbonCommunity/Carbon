@@ -1,15 +1,14 @@
-﻿using System;
+﻿#pragma warning disable IDE0051
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using API.Events;
 using API.Hooks;
 using Carbon.Contracts;
-using Carbon.Core;
-using HarmonyLib;
 
 /*
  *
@@ -231,7 +230,7 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 	private void LoadHooksFromFile(string fileName)
 	{
 		// delegates asm loading to Carbon.Loader 
-		Assembly hooks = Community.Runtime.AssemblyEx.Load(fileName, this);
+		Assembly hooks = Community.Runtime.AssemblyEx.LoadHook(fileName, this);
 
 		if (hooks == null)
 		{

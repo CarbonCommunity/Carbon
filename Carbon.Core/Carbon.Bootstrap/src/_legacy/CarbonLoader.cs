@@ -44,6 +44,9 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	internal EventManager Events
 	{ get => _gameObject.GetComponent<EventManager>(); }
 
+	internal FileWatcherManager Watcher
+	{ get => _gameObject.GetComponent<FileWatcherManager>(); }
+
 
 	static Loader()
 	{
@@ -69,16 +72,17 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 		_gameObject.AddComponent<AssemblyManagerEx>();
 		_gameObject.AddComponent<DownloadManager>();
 		_gameObject.AddComponent<EventManager>();
+		_gameObject.AddComponent<FileWatcherManager>();
 
 		Events.Subscribe(CarbonEvent.StartupShared, x =>
 		{
-			AssemblyEx.Load("Carbon.dll", this);
+			AssemblyEx.LoadComponent("Carbon.dll", this);
 		});
 
 		Events.Subscribe(CarbonEvent.CarbonStartupComplete, x =>
 		{
-			AssemblyEx.Load("Carbon.Modules.dll", this);
-			AssemblyEx.Load("Carbon.Ext.Discord.dll", this);
+			Watcher.enabled = true;
+			AssemblyEx.LoadModule("Carbon.Modules.dll", this);
 		});
 	}
 

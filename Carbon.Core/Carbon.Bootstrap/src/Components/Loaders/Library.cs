@@ -1,7 +1,6 @@
 #define DEBUG_VERBOSE
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,8 +20,9 @@ internal sealed class LibraryLoader : IDisposable
 {
 	private class Item : IAssemblyCache
 	{
-		public byte[] raw { get; internal set; }
-		public Assembly assembly { get; internal set; }
+		public string Name { get; internal set; }
+		public byte[] Raw { get; internal set; }
+		public Assembly Assembly { get; internal set; }
 	}
 
 	private AppDomain _domain;
@@ -55,7 +55,7 @@ internal sealed class LibraryLoader : IDisposable
 	{
 		AssemblyName assemblyName = new AssemblyName(args.Name);
 		string requester = args.RequestingAssembly?.GetName().Name ?? "unknown";
-		return ResolveAssembly(assemblyName.Name, requester).assembly;
+		return ResolveAssembly(assemblyName.Name, requester).Assembly;
 	}
 
 	internal IAssemblyCache ResolveAssembly(string name, string requester)
@@ -85,13 +85,13 @@ internal sealed class LibraryLoader : IDisposable
 		{
 #if DEBUG_VERBOSE
 			Logger.Debug($"Resolved library from cache: "
-				+ $"'{cache.assembly.GetName().Name}' v{cache.assembly.GetName().Version}");
+				+ $"'{cache.Assembly.GetName().Name}' v{cache.Assembly.GetName().Version}");
 #endif
 			return cache;
 		}
 
 		Assembly asm = Assembly.LoadFile(path);
-		cache = new Item { raw = raw, assembly = asm };
+		cache = new Item { Name = name, Raw = raw, Assembly = asm };
 		_cache.Add(sha1, cache);
 
 #if DEBUG_VERBOSE
@@ -99,6 +99,12 @@ internal sealed class LibraryLoader : IDisposable
 #endif
 
 		return cache;
+	}
+
+	internal IAssemblyCache ReadFromCache(string name)
+	{
+		Item item = _cache.Select(x => x.Value).Last(x => x.Name == name);
+		return item ?? default;
 	}
 
 	private bool disposedValue;

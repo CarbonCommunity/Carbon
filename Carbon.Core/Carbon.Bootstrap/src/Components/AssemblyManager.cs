@@ -1,11 +1,11 @@
 #define DEBUG_VERBOSE
+#pragma warning disable IDE0051
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using API.Contracts;
 using Components.Loaders;
 using Utility;
@@ -50,6 +50,9 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 	private LibraryLoader _library;
 	private AssemblyLoader _loader;
 
+	public List<string> LoadedExtensions
+	{ get; private set; } = new();
+
 	private void Awake()
 	{
 		_library = new LibraryLoader();
@@ -77,31 +80,39 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 
 		Assembly assembly = _library.GetDomain().GetAssemblies()
 			.FirstOrDefault(asm => asm.GetName().Name.Equals(file));
-		if (assembly == null || assembly.IsDynamic)
+		if (assembly != null && !assembly.IsDynamic)
 		{
-			Logger.Warn($"Unable to get byte[] for '{file}'");
-			return default;
+			if (assembly.Location != string.Empty)
+			{
+				raw = File.ReadAllBytes(assembly.Location);
+				if (raw != null) return raw;
+			}
 		}
 
-		if (assembly.Location != string.Empty)
+		if (LoadedExtensions.Contains(file))
 		{
-			raw = File.ReadAllBytes(assembly.Location);
-			return raw;
+			raw = _loader.ReadFromCache(file).Raw;
+			if (raw != null) return raw;
 		}
 
 		Logger.Warn($"Unable to get byte[] for '{file}'");
 		return default;
 	}
 
-	public Assembly Load(string file, object sender)
+	public Assembly LoadComponent(string file, object sender)
 	{
 		try
 		{
+			string[] directories =
+			{
+				Context.CarbonManaged,
+			};
+
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, $"{this}").assembly;
+					Assembly asm = _loader.Load(file, $"{sender}", directories).Assembly;
 
 					if (IsComponent(asm, out types))
 					{
@@ -125,7 +136,54 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 							}
 						}
 					}
-					else if (IsModule(asm, out types))
+					else
+					{
+						throw new Exception("Unsupported assembly type");
+					}
+
+					return asm;
+
+				// case ".drm"
+				// 	LoadFromDRM();
+				// 	break;
+
+				default:
+					throw new Exception("File extension not supported");
+			}
+		}
+		catch (ReflectionTypeLoadException)
+		{
+			Logger.Error($"Error while loading component from '{file}'.");
+			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			return null;
+		}
+		catch (System.Exception e)
+		{
+#if DEBUG
+			Logger.Error($"Failed loading component '{file}'", e);
+#else
+			Logger.Error($"Failed loading component '{file}'");
+#endif
+			return null;
+		}
+	}
+
+	public Assembly LoadModule(string file, object sender)
+	{
+		try
+		{
+			string[] directories =
+			{
+				Context.CarbonManaged,
+			};
+
+			switch (Path.GetExtension(file))
+			{
+				case ".dll":
+					IEnumerable<Type> types;
+					Assembly asm = _loader.Load(file, $"{sender}", directories).Assembly;
+
+					if (IsModule(asm, out types))
 					{
 						Logger.Debug($"Loading module from file '{file}'");
 
@@ -147,7 +205,54 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 							}
 						}
 					}
-					else if (IsExtension(asm, out types))
+					else
+					{
+						throw new Exception("Unsupported assembly type");
+					}
+
+					return asm;
+
+				// case ".drm"
+				// 	LoadFromDRM();
+				// 	break;
+
+				default:
+					throw new Exception("File extension not supported");
+			}
+		}
+		catch (ReflectionTypeLoadException)
+		{
+			Logger.Error($"Error while loading module from '{file}'.");
+			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			return null;
+		}
+		catch (System.Exception e)
+		{
+#if DEBUG
+			Logger.Error($"Failed loading module '{file}'", e);
+#else
+			Logger.Error($"Failed loading module '{file}'");
+#endif
+			return null;
+		}
+	}
+
+	public Assembly LoadExtension(string file, object sender)
+	{
+		try
+		{
+			string[] directories =
+			{
+				Context.CarbonExtensions,
+			};
+
+			switch (Path.GetExtension(file))
+			{
+				case ".dll":
+					IEnumerable<Type> types;
+					Assembly asm = _loader.Load(file, $"{sender}", directories).Assembly;
+
+					if (IsExtension(asm, out types))
 					{
 						Logger.Debug($"Loading extension from file '{file}'");
 
@@ -168,7 +273,55 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 							}
 						}
 					}
-					else if (IsHook(asm, out types))
+					else
+					{
+						throw new Exception("Unsupported assembly type");
+					}
+
+					LoadedExtensions.Add(file);
+					return asm;
+
+				// case ".drm"
+				// 	LoadFromDRM();
+				// 	break;
+
+				default:
+					throw new Exception("File extension not supported");
+			}
+		}
+		catch (ReflectionTypeLoadException)
+		{
+			Logger.Error($"Error while loading extension from '{file}'.");
+			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			return null;
+		}
+		catch (System.Exception e)
+		{
+#if DEBUG
+			Logger.Error($"Failed loading extension '{file}'", e);
+#else
+			Logger.Error($"Failed loading extension '{file}'");
+#endif
+			return null;
+		}
+	}
+
+	public Assembly LoadHook(string file, object sender)
+	{
+		try
+		{
+			string[] directories =
+			{
+				Context.CarbonHooks,
+			};
+
+			switch (Path.GetExtension(file))
+			{
+				case ".dll":
+					IEnumerable<Type> types;
+					Assembly asm = _loader.Load(file, $"{sender}", directories).Assembly;
+
+					if (IsHook(asm, out types))
 					{
 						Logger.Debug($"Loading hooks file '{file}'");
 						// TODO: Integrate part of HookManager here
@@ -190,13 +343,17 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		}
 		catch (ReflectionTypeLoadException)
 		{
-			Logger.Error($"Error while loading assembly from '{file}'.");
+			Logger.Error($"Error while loading hooks from '{file}'.");
 			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
 			return null;
 		}
 		catch (System.Exception e)
 		{
-			Logger.Error($"Failed loading '{file}'", e);
+#if DEBUG
+			Logger.Error($"Failed loading hooks '{file}'", e);
+#else
+			Logger.Error($"Failed loading hooks '{file}'");
+#endif
 			return null;
 		}
 	}
