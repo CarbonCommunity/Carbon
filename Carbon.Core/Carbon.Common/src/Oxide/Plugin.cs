@@ -76,12 +76,14 @@ namespace Oxide.Plugins
 					foreach (var attribute in HookMethods)
 					{
 						var method = attribute.Method;
+						var priority = method.GetCustomAttribute<HookPriority>();
+
 						var name = (string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length;
 						if (!HookMethodAttributeCache.TryGetValue(name, out var list))
 						{
-							HookMethodAttributeCache.Add(name, new List<KeyValuePair<MethodInfo, Delegate>> () { new KeyValuePair<MethodInfo, Delegate>(method, HookCallerCommon.CreateDelegate(method, this)) });
+							HookMethodAttributeCache.Add(name, new () { CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority) });
 						}
-						else list.Add(new KeyValuePair<MethodInfo, Delegate>(method, HookCallerCommon.CreateDelegate(method, this)));
+						else list.Add(CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority));
 					}
 				}
 				Carbon.Logger.Debug(Name, "Installed hook method attributes");

@@ -20,9 +20,26 @@ public class BaseHookable
 	public List<HookMethodAttribute> HookMethods { get; set; }
 	public List<PluginReferenceAttribute> PluginReferences { get; set; }
 
-	public Dictionary<string, List<KeyValuePair<MethodInfo, Delegate>>> HookCache { get; set; } = new ();
-	public Dictionary<string, List<KeyValuePair<MethodInfo, Delegate>>> HookMethodAttributeCache { get; set; } = new ();
+	public Dictionary<string, List<CachedHook>> HookCache { get; set; } = new ();
+	public Dictionary<string, List<CachedHook>> HookMethodAttributeCache { get; set; } = new ();
 	public List<string> IgnoredHooks { get; set; } = new List<string>();
+
+	public struct CachedHook
+	{
+		public MethodInfo Method;
+		public Delegate Delegate;
+		public Priorities Priority;
+
+		public static CachedHook Make(MethodInfo method, Delegate @delegate, Priorities priority)
+		{
+			return new CachedHook
+			{
+				Method = method,
+				Delegate = @delegate,
+				Priority = priority
+			};
+		}
+	}
 
 	[JsonProperty]
 	public string Name { get; set; }
