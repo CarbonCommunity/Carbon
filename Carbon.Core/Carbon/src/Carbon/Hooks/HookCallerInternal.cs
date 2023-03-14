@@ -74,8 +74,10 @@ namespace Carbon.Hooks
 			}
 		}
 
-		public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args)
+		public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority)
 		{
+			priority = Priorities.Normal;
+
 			if (plugin.IsHookIgnored(hookName)) return null;
 
 			var id = $"{hookName}[{(args == null ? 0 : args.Length)}]";
@@ -165,7 +167,7 @@ namespace Carbon.Hooks
 			Pool.FreeList(ref conflicts);
 			return result;
 		}
-		public override object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args)
+		public override object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority)
 		{
 			if (expireDate < DateTime.Now)
 			{
@@ -181,7 +183,7 @@ namespace Carbon.Hooks
 				Carbon.Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 			}
 
-			return CallDeprecatedHook(plugin, oldHook, newHook, expireDate, flags, args);
+			return CallHook(plugin, newHook, flags, args, ref priority);
 		}
 	}
 }

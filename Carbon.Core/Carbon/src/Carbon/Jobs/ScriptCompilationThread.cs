@@ -31,7 +31,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string[] Requires;
 	public bool IsExtension;
 	public List<string> Usings = new ();
-	public Dictionary<Type, List<string>> Hooks = new ();
+	public Dictionary<Type, Dictionary<string, Priorities>> Hooks = new ();
 	public Dictionary<Type, List<string>> UnsupportedHooks = new ();
 	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new ();
 	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new ();
@@ -324,7 +324,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			foreach (var type in Assembly.GetTypes())
 			{
-				var hooks = new List<string>();
+				var hooks = new Dictionary<string, Priorities>();
 				var unsupportedHooks = new List<string>();
 				var hookMethods = new List<HookMethodAttribute>();
 				var pluginReferences = new List<PluginReferenceAttribute>();
@@ -342,7 +342,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 					{
-						if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
+						var priority = method.GetCustomAttribute<HookPriority>();
+						if (!hooks.ContainsKey(method.Name)) hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
 					}
 					else
 					{

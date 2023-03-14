@@ -99,7 +99,7 @@ namespace Oxide.Plugins
 				using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 				{
 					foreach (var hook in Hooks)
-						Community.Runtime.HookManager.Subscribe(hook, requester);
+						Community.Runtime.HookManager.Subscribe(hook.Key, requester);
 				}
 				Carbon.Logger.Debug(Name, "Processed hooks");
 			}
@@ -136,7 +136,7 @@ namespace Oxide.Plugins
 			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 			{
 				foreach (var hook in Hooks)
-					Community.Runtime.HookManager.Unsubscribe(hook, FileName);
+					Community.Runtime.HookManager.Unsubscribe(hook.Key, FileName);
 				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 			}
 

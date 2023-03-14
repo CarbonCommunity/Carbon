@@ -20,7 +20,10 @@ public abstract class BaseModule : BaseHookable
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
 
+	public abstract void Load();
+	public abstract void Save();
 	public abstract bool GetEnabled();
+	public abstract void SetEnabled(bool enable);
 
 	public static T GetModule<T>()
 	{
@@ -67,7 +70,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		base.Name = Name;
 		base.Type = Type;
 
-		Hooks = new System.Collections.Generic.List<string>();
+		Hooks = new();
 
 		Community.Runtime.HookManager.LoadHooksFromType(Type);
 
@@ -76,7 +79,9 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 			{
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
-				Hooks.Add(method.Name);
+
+				var priority = method.GetCustomAttribute<HookPriority>();
+				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
 			}
 		}
 
@@ -90,7 +95,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		Puts($"Initialized.");
 	}
-	public virtual void Load()
+	public override void Load()
 	{
 		var shouldSave = false;
 
@@ -130,7 +135,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		return false;
 	}
-	public virtual void Save()
+	public override void Save()
 	{
 		if (ModuleConfiguration == null)
 		{
@@ -147,7 +152,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		if (DataInstance != null) Data.WriteObject(DataInstance);
 	}
 
-	public void SetEnabled(bool enable)
+	public override void SetEnabled(bool enable)
 	{
 		if (ModuleConfiguration != null)
 		{
@@ -166,7 +171,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		foreach (var hook in Hooks)
 		{
-			Unsubscribe(hook);
+			Unsubscribe(hook.Key);
 		}
 
 		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
@@ -182,7 +187,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		foreach (var hook in Hooks)
 		{
-			Subscribe(hook);
+			Subscribe(hook.Key);
 		}
 
 		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");

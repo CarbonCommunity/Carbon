@@ -16,7 +16,7 @@ namespace Carbon.Base;
 
 public class BaseHookable
 {
-	public List<string> Hooks { get; set; }
+	public Dictionary<string, Priorities> Hooks { get; set; }
 	public List<HookMethodAttribute> HookMethods { get; set; }
 	public List<PluginReferenceAttribute> PluginReferences { get; set; }
 

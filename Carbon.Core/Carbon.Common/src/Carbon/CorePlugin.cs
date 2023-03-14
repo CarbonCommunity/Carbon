@@ -34,6 +34,7 @@ public class CorePlugin : CarbonPlugin
 {
 	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
+
 	public static void RefreshOrderedFiles()
 	{
 		OrderedFiles.Clear();
@@ -56,16 +57,19 @@ public class CorePlugin : CarbonPlugin
 
 	public override void IInit()
 	{
-		Hooks = new List<string>()
+		Type = GetType();
+		Hooks = new();
+
+		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
-			"IOnBasePlayerAttacked",
-			"IOnPlayerCommand",
-			"IOnPlayerConnected",
-			"IOnUserApprove",
-			"OnEntityDeath",
-			"OnEntityKill",
-			"OnEntitySpawned",
-		};
+			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+			{
+				Community.Runtime.HookManager.Subscribe(method.Name, Name);
+
+				var priority = method.GetCustomAttribute<HookPriority>();
+				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+			}
+		}
 
 		base.IInit();
 
@@ -944,7 +948,8 @@ public class CorePlugin : CarbonPlugin
 
 		if(!Loader.IsBatchComplete)
 		{
-			Logger.Warn($"There are plugins still processing, please wait...");		
+			Loader.ReloadQueueList.Add(arg.Args.ToString(" "));
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");
 			return;
 		}
 
@@ -1010,7 +1015,8 @@ public class CorePlugin : CarbonPlugin
 
 		if(!Loader.IsBatchComplete)
 		{
-			Logger.Warn($"There are plugins still processing, please wait...");		
+			Loader.LoadQueueList.Add(arg.Args.ToString(" "));
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");
 			return;
 		}
 		
@@ -1076,7 +1082,8 @@ public class CorePlugin : CarbonPlugin
 
 		if(!Loader.IsBatchComplete)
 		{
-			Logger.Warn($"There are plugins still processing, please wait...");		
+			Loader.UnloadQueueList.Add(arg.Args.ToString(" "));
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");		
 			return;
 		}
 		

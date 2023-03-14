@@ -849,180 +849,189 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				needsCursor: true, destroyUi: PanelId, parent: CUI.ClientPanels.Hud);
 
-			cui.CreatePanel(container, parent: PanelId, id: "color",
-				color: "0 0 0 0.6",
-				xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f);
-			cui.CreatePanel(container, "color", "main",
-				color: "0 0 0 0.5",
-				blur: true);
-
-			#region Title
-
-			cui.CreateText(container, parent: "main", id: null,
-				color: "1 1 1 0.8",
-				text: "<b>Admin Settings</b>", 18,
-				xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
-				align: TextAnchor.UpperLeft,
-				font: CUI.Handler.FontTypes.RobotoCondensedBold);
-
-			#endregion
-
-			#region Exit
-
-			cui.CreateProtectedButton(container, parent: "main", id: null,
-				color: "0.6 0.2 0.2 0.9",
-				textColor: "1 0.5 0.5 1",
-				text: "X", 10,
-				xMin: 0.97f, xMax: 0.99f, yMin: 0.96f, yMax: 0.99f,
-				command: PanelId + ".close",
-				font: CUI.Handler.FontTypes.DroidSansMono);
-
-			#endregion
-
-			#region Tabs
-
-			cui.CreatePanel(container, parent: "main", id: "tab_buttons",
-				color: "0 0 0 0.6",
-				xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
-
-			TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
-			TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
-
-			var tabIndex = 0.03f;
-			var amount = Tabs.Count;
-			var tabWidth = amount == 0 ? 0f : 0.94f / amount;
-
-			for (int i = ap.TabSkip; i < amount; i++)
+			using (TimeMeasure.New($"{Name}.Main"))
 			{
-				var _tab = Tabs[ap.TabSkip + i];
-				var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
-				TabButton(cui, container, "tab_buttons", $"{(ap.TabIndex == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, ap.TabIndex == i);
-				tabIndex += tabWidth;
-			}
+				cui.CreatePanel(container, parent: PanelId, id: "color",
+					color: "0 0 0 0.6",
+					xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f);
+				cui.CreatePanel(container, "color", "main",
+					color: "0 0 0 0.5",
+					blur: true);
 
-			#endregion
+				#region Title
 
-			#region Panels
-
-			cui.CreatePanel(container, "main", "panels",
-				color: "0 0 0 0",
-				xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
-
-			if (tab != null)
-			{
-				#region Override
-
-				tab.Override?.Invoke(tab, container, "panels", ap);
+				cui.CreateText(container, parent: "main", id: null,
+					color: "1 1 1 0.8",
+					text: "<b>Admin Settings</b>", 18,
+					xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
+					align: TextAnchor.UpperLeft,
+					font: CUI.Handler.FontTypes.RobotoCondensedBold);
 
 				#endregion
 
-				if (tab.Override == null)
+				#region Exit
+
+				cui.CreateProtectedButton(container, parent: "main", id: null,
+					color: "0.6 0.2 0.2 0.9",
+					textColor: "1 0.5 0.5 1",
+					text: "X", 10,
+					xMin: 0.97f, xMax: 0.99f, yMin: 0.96f, yMax: 0.99f,
+					command: PanelId + ".close",
+					font: CUI.Handler.FontTypes.DroidSansMono);
+
+				#endregion
+
+				#region Tabs
+
+				cui.CreatePanel(container, parent: "main", id: "tab_buttons",
+					color: "0 0 0 0.6",
+					xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
+
+				TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
+				TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
+
+				var tabIndex = 0.03f;
+				var amount = Tabs.Count;
+				var tabWidth = amount == 0 ? 0f : 0.94f / amount;
+
+				for (int i = ap.TabSkip; i < amount; i++)
 				{
-					#region Columns
+					var _tab = Tabs[ap.TabSkip + i];
+					var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
+					TabButton(cui, container, "tab_buttons", $"{(ap.TabIndex == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, ap.TabIndex == i);
+					tabIndex += tabWidth;
+				}
 
-					var panelIndex = 0f;
-					var spacing = 0.005f;
-					var panelWidth = (tab.Columns.Count == 0 ? 0f : 1f / tab.Columns.Count) - spacing;
+				#endregion
+			}
 
-					for (int i = 0; i < tab.Columns.Count; i++)
+			#region Panels
+
+			using (TimeMeasure.New($"{Name}.Panels/Overrides"))
+			{
+				cui.CreatePanel(container, "main", "panels",
+				color: "0 0 0 0",
+				xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
+
+				if (tab != null)
+				{
+					#region Override
+
+					tab.Override?.Invoke(tab, container, "panels", ap);
+
+					#endregion
+
+					if (tab.Override == null)
 					{
-						var panel = $"sub{i}";
-						var rows = tab.Columns[i];
+						#region Columns
 
-						cui.CreatePanel(container, "panels", panel,
-							color: "0 0 0 0.5",
-							xMin: panelIndex, xMax: panelIndex + panelWidth - spacing, yMin: 0, yMax: 1);
+						var panelIndex = 0f;
+						var spacing = 0.005f;
+						var panelWidth = (tab.Columns.Count == 0 ? 0f : 1f / tab.Columns.Count) - spacing;
 
-						#region Rows
-
-						var columnPage = ap.GetOrCreatePage(i);
-						var contentsPerPage = 19;
-						var rowSpacing = 0.01f;
-						var rowHeight = 0.04f;
-						var rowPage = rows.Skip(contentsPerPage * columnPage.CurrentPage).Take(contentsPerPage);
-						var rowPageCount = rowPage.Count();
-						columnPage.TotalPages = (int)Math.Ceiling((double)rows.Count / contentsPerPage - 1);
-						columnPage.Check();
-						var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - (columnPage.TotalPages > 0 ? 0 : 1)));
-
-						if (columnPage.TotalPages > 0)
+						for (int i = 0; i < tab.Columns.Count; i++)
 						{
-							TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
-							TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+							var panel = $"sub{i}";
+							var rows = tab.Columns[i];
 
-							rowIndex += rowHeight + rowSpacing;
-						}
+							cui.CreatePanel(container, "panels", panel,
+								color: "0 0 0 0.5",
+								xMin: panelIndex, xMax: panelIndex + panelWidth - spacing, yMin: 0, yMax: 1);
 
-						for (int r = rowPageCount; r-- > 0;)
-						{
-							var actualI = r + (columnPage.CurrentPage * contentsPerPage);
-							var row = rows.ElementAt(actualI);
+							#region Rows
 
-							switch (row)
+							var columnPage = ap.GetOrCreatePage(i);
+							var contentsPerPage = 19;
+							var rowSpacing = 0.01f;
+							var rowHeight = 0.04f;
+							var rowPage = rows.Skip(contentsPerPage * columnPage.CurrentPage).Take(contentsPerPage);
+							var rowPageCount = rowPage.Count();
+							columnPage.TotalPages = (int)Math.Ceiling((double)rows.Count / contentsPerPage - 1);
+							columnPage.Check();
+							var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - (columnPage.TotalPages > 0 ? 0 : 1)));
+
+							if (columnPage.TotalPages > 0)
 							{
-								case Tab.OptionName name:
-									TabPanelName(cui, container, panel, name.Name, rowHeight, rowIndex, name.Align);
-									break;
+								TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+								TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
 
-								case Tab.OptionButton button:
-									TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap), button.Align);
-									break;
-
-								case Tab.OptionText text:
-									TabPanelText(cui, container, panel, text.Name, text.Size, text.Color, rowHeight, rowIndex, text.Align, text.Font);
-									break;
-
-								case Tab.OptionInput input:
-									TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
-									break;
-
-								case Tab.OptionEnum @enum:
-									TabPanelEnum(cui, container, panel, @enum.Name, @enum.Text?.Invoke(), PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-									break;
-
-								case Tab.OptionToggle toggle:
-									TabPanelToggle(cui, container, panel, toggle.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, toggle.IsOn != null ? toggle.IsOn.Invoke(ap) : false);
-									break;
-
-								case Tab.OptionRadio radio:
-									TabPanelRadio(cui, container, panel, radio.Name, radio.Index == tab.Radios[radio.Id].Selected, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-									break;
-
-								case Tab.OptionDropdown dropdown:
-									TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, dropdown.OptionsIcons, dropdown.OptionsIconScale, ap._selectedDropdown == dropdown);
-									break;
-
-								case Tab.OptionRange range:
-									TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(), rowHeight, rowIndex);
-									break;
-
-								case Tab.ButtonArray array:
-									TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
-									break;
-
-								case Tab.OptionInputButton inputButton:
-									TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, rowHeight, rowIndex);
-									break;
-
-								default:
-									break;
+								rowIndex += rowHeight + rowSpacing;
 							}
 
-							rowIndex += rowHeight + rowSpacing;
+							for (int r = rowPageCount; r-- > 0;)
+							{
+								var actualI = r + (columnPage.CurrentPage * contentsPerPage);
+								var row = rows.ElementAt(actualI);
+
+								switch (row)
+								{
+									case Tab.OptionName name:
+										TabPanelName(cui, container, panel, name.Name, rowHeight, rowIndex, name.Align);
+										break;
+
+									case Tab.OptionButton button:
+										TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap), button.Align);
+										break;
+
+									case Tab.OptionText text:
+										TabPanelText(cui, container, panel, text.Name, text.Size, text.Color, rowHeight, rowIndex, text.Align, text.Font);
+										break;
+
+									case Tab.OptionInput input:
+										TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
+										break;
+
+									case Tab.OptionEnum @enum:
+										TabPanelEnum(cui, container, panel, @enum.Name, @enum.Text?.Invoke(), PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+										break;
+
+									case Tab.OptionToggle toggle:
+										TabPanelToggle(cui, container, panel, toggle.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, toggle.IsOn != null ? toggle.IsOn.Invoke(ap) : false);
+										break;
+
+									case Tab.OptionRadio radio:
+										TabPanelRadio(cui, container, panel, radio.Name, radio.Index == tab.Radios[radio.Id].Selected, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+										break;
+
+									case Tab.OptionDropdown dropdown:
+										TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(), dropdown.Options, dropdown.OptionsIcons, dropdown.OptionsIconScale, ap._selectedDropdown == dropdown);
+										break;
+
+									case Tab.OptionRange range:
+										TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(), rowHeight, rowIndex);
+										break;
+
+									case Tab.ButtonArray array:
+										TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
+										break;
+
+									case Tab.OptionInputButton inputButton:
+										TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, rowHeight, rowIndex);
+										break;
+
+									default:
+										break;
+								}
+
+								rowIndex += rowHeight + rowSpacing;
+							}
+
+							#endregion
+
+							panelIndex += panelWidth + spacing;
 						}
 
 						#endregion
-
-						panelIndex += panelWidth + spacing;
 					}
-
-					#endregion
 				}
 			}
 
 			#endregion
 
-			cui.Send(container, player);
+			using (TimeMeasure.New($"{Name}.Send"))
+			{
+				cui.Send(container, player);
+			}
 		}
 		catch (Exception ex)
 		{
@@ -1680,6 +1689,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public class PermissionsTab
 	{
 		internal static Permission permission;
+		internal static string PluginFilter;
 
 		public static Tab Get()
 		{
@@ -1695,7 +1705,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				perms.AddName(0, "Options", TextAnchor.MiddleLeft);
 
-				perms.AddRow(0, new Tab.OptionButton($"Players", instance =>
+				perms.AddButton(0, "Players", instance =>
 				{
 					perms.ClearColumn(1);
 					perms.ClearColumn(2);
@@ -1705,21 +1715,21 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					instance.SetStorage("option", 0);
 
 					GeneratePlayers(perms, permission, instance);
-				}, type: (instance) => instance.GetStorage<int>("option") == 0 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+				}, type: (instance) => instance.GetStorage<int>("option") == 0 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 
 				GeneratePlayers(perms, permission, AdminPlayer.Blank);
 
-				perms.AddRow(0, new Tab.OptionButton($"Groups", instance =>
+				perms.AddButton(0, "Groups", ap =>
 				{
 					perms.ClearColumn(1);
 					perms.ClearColumn(2);
 					perms.ClearColumn(3);
-					instance.Clear();
+					ap.Clear();
 
-					instance.ClearStorage("player");
-					instance.ClearStorage("plugin");
+					ap.ClearStorage("player");
+					ap.ClearStorage("plugin");
 
-					instance.SetStorage("option", 1);
+					ap.SetStorage("option", 1);
 
 					perms.AddName(1, "Groups", TextAnchor.MiddleLeft);
 					{
@@ -1727,9 +1737,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							perms.AddRow(1, new Tab.OptionButton($"{group}", instance2 =>
 							{
-								instance.SetStorage("group", group);
+								ap.SetStorage("group", group);
 
-								instance.ClearStorage("plugin");
+								ap.ClearStorage("plugin");
 
 								perms.ClearColumn(2);
 								perms.ClearColumn(3);
@@ -1740,7 +1750,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 									{
 										perms.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
 										{
-											instance.SetStorage("plugin", plugin);
+											ap.SetStorage("plugin", plugin);
 
 											perms.ClearColumn(3);
 
@@ -1754,14 +1764,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 													else permission.GrantGroupPermission(group, perm, plugin);
 												}, type: (_instance) => permission.GroupHasPermission(group, perm) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 											}
-										}, type: (_instance) => instance.GetStorage("plugin") == plugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+										}, type: (_instance) => ap.GetStorage("plugin") == plugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 									}
 								}
-							}, type: (_instance) => instance.GetStorage<string>("group") == group ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+							}, type: (_instance) => ap.GetStorage<string>("group") == group ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 						}
 					}
 					perms.AddRow(1, new Tab.OptionButton("Add Group", null, (_instance) => Tab.OptionButton.Types.Warned));
-				}, type: (instance) => instance.GetStorage<int>("option") == 1 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+				}, type: (instance) => instance.GetStorage<int>("option") == 1 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 				perms.AddColumn(1);
 				perms.AddColumn(2);
 				perms.AddColumn(3);
@@ -1793,10 +1803,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static void GeneratePlugins(Tab perms, AdminPlayer instance, Permission permission, BasePlayer player)
 		{
+			var plugins = Community.Runtime.Plugins.Plugins.Where(x =>
+			{
+				if (!string.IsNullOrEmpty(PluginFilter))
+				{
+					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(PluginFilter.Trim().ToLower()));
+				}
+
+				return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
+			});
+
 			perms.ClearColumn(2);
 			perms.AddName(2, "Plugins", TextAnchor.MiddleLeft);
 			{
-				foreach (var plugin in Community.Runtime.Plugins.Plugins.Where(x => x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()))))
+				perms.AddInput(2, "Search", () => PluginFilter, (ap, args) =>
+				{
+					PluginFilter = args.ToString(" ");
+					GeneratePlugins(perms, instance, permission, player);
+				});
+
+				foreach (var plugin in plugins)
 				{
 					perms.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
 					{
@@ -1864,7 +1890,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public static void AddInitial(Tab tab, AdminPlayer ap)
 		{
 			tab.AddInput(0, "Search", () => ap?.GetStorage<string>("playerfilter"), (ap2, args) => { ap2.SetStorage("playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
-			tab.AddName(0, "Player List", TextAnchor.MiddleLeft);
 		}
 		public static void RefreshPlayers(Tab tab, AdminPlayer ap)
 		{
@@ -2268,6 +2293,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.AddColumn(0);
 			tab.AddColumn(1);
 
+			tab.AddName(0, "Modules");
 			foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
 			{
 				if (hookable is BaseModule module)
@@ -2287,13 +2313,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.ClearColumn(1);
 
 			var carbonModule = module.GetType();
-			var config = carbonModule.GetProperty("ModuleConfiguration").GetValue(module);
-			var configEnabled = config.GetType().GetProperty("Enabled");
-			var load = config.GetType().GetMethod("Load");
-			var isEnabled = (bool)configEnabled?.GetValue(config);
 			tab.AddInput(1, "Name", () => module.Name, null);
-			tab.AddToggle(1, "Enabled", ap2 => { carbonModule.GetMethod("SetEnabled").Invoke(module, new object[] { !isEnabled }); DrawModuleSettings(tab, module); }, ap2 => isEnabled);
-			tab.AddButton(1, "Reload", ap => { load.Invoke(module, null); });
+			tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
+			tab.AddButtonArray(1,
+				new Tab.OptionButton("Save", ap => { module.Save(); }),
+				new Tab.OptionButton("Load", ap => { module.Load(); }) );
 		}
 	}
 
