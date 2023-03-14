@@ -4,18 +4,6 @@
 		<OutputType>Library</OutputType>
 		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-	  <NoWarn>1701;1702;1685</NoWarn>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-	  <NoWarn>1701;1702;1685</NoWarn>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix|x64'">
-	  <NoWarn>1701;1702;1685</NoWarn>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix|x64'">
-	  <NoWarn>1701;1702;1685</NoWarn>
-	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />
 	<Import Project="..\.msbuild\ReferencesRust.props" />
