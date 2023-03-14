@@ -3,6 +3,18 @@
 		<Product>Carbon.Modules</Product>
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+	  <NoWarn>1701;1702;1685</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	  <NoWarn>1701;1702;1685</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseUnix|x64'">
+	  <NoWarn>1701;1702;1685</NoWarn>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnix|x64'">
+	  <NoWarn>1701;1702;1685</NoWarn>
+	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />
 	<Import Project="..\.msbuild\ReferencesRust.props" />
