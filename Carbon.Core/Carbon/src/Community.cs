@@ -198,9 +198,11 @@ public class CommunityInternal : Community
 		"Carbon.Common",
 		"Carbon.Ext.Discord",
 
+		#region NuGets
+		"websocket-sharp",
 		"protobuf-net",
 		"protobuf-net.Core",
-		"websocket-sharp",
+		#endregion
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",

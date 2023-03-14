@@ -47,8 +47,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	private void OnServerInitialized()
 	{
-		if (!ModuleConfiguration.Enabled) return;
-
 		#region Spawnpoints
 		try
 		{
@@ -392,6 +390,10 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	{
 		Deployables_EntitySpawned(container);
 	}
+	private void OnServerShutdown()
+	{
+		IO_ShutdownHook();
+	}
 
 	#endregion
 
@@ -402,7 +404,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		#region IO
 		try
 		{
-			if (!IO_WorldSpawnHook(null, prefab, position, rotation, scale))
+			if (!IO_WorldSpawnHook(category, prefab, position, rotation, scale))
 			{
 				return false;
 			}
@@ -467,9 +469,8 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		{
 			using MemoryStream memoryStream = new MemoryStream(bytes);
 			XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
-			T t = (T)((object)xmlSerializer.Deserialize(memoryStream));
+			result = (T)((object)xmlSerializer.Deserialize(memoryStream));
 			flag = true;
-			result = t;
 		}
 		catch (Exception ex)
 		{
@@ -2447,11 +2448,11 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		elevator.SendNetworkUpdateImmediate();
 		return elevator;
 	}
-	internal static  void IO_SetupEntity(BaseEntity be)
+	internal static void IO_SetupEntity(BaseEntity be)
 	{
-		if (be is ReactiveTarget)
+		if (be is ReactiveTarget target)
 		{
-			(be as ReactiveTarget).ResetTarget();
+			target.ResetTarget();
 		}
 		BaseEntity.Flags flags = be.flags;
 		if (be is Elevator)
@@ -2597,12 +2598,14 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		}
 		if (prefab.ID == 3978222077)
 		{
-			PrefabData pd = new PrefabData();
-			pd.position = position;
-			pd.id = 3978222077;
-			pd.rotation = rotation;
-			pd.scale = scale;
-			pd.category = category;
+			PrefabData pd = new PrefabData
+			{
+				position = position,
+				id = 3978222077,
+				rotation = rotation,
+				scale = scale,
+				category = category
+			};
 			IO_Elevators.Add(position, pd);
 			return false;
 		}
@@ -2614,6 +2617,22 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 				IO_SetupEntity(be);
 			}
 		}
+		return true;
+	}
+	internal static bool IO_ShutdownHook()
+	{
+		foreach (BaseEntity baseEntity in IO_DestroyOnUnload)
+		{
+			if (!baseEntity.IsDestroyed)
+			{
+				baseEntity.transform.position = new Vector3(0f, -5f, 0f);
+				baseEntity.transform.hasChanged = true;
+				IO_Protect.Remove(baseEntity.transform.position);
+				baseEntity.Kill(0);
+			}
+		}
+		Debug.LogWarning("Cleaned UP Elevators");
+		SaveRestore.Save(true);
 		return true;
 	}
 
@@ -2643,8 +2662,11 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	{
 		if (IO_DirtyElevators())
 		{
+			Puts($"Called IPostSaveLoad, wanting to shutdown!?");
+
 			SaveRestore.Save(true);
-			System.Diagnostics.Process runProg = new System.Diagnostics.Process();
+			var runProg = new System.Diagnostics.Process();
+
 			try
 			{
 				runProg.StartInfo.FileName = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
@@ -2656,6 +2678,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			{
 				Debug.LogWarning(ex);
 			}
+
 			Rust.Application.isQuitting = true;
 			Network.Net.sv.Stop("Restarting");
 			System.Diagnostics.Process.GetCurrentProcess().Kill();
@@ -2675,12 +2698,17 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			}
 		}
 	}
+	private void IPostClearMapEntities()
+	{
+		BaseEntity.saveList.Clear();
+	}
 	private object ICanWireToolModifyEntity(BasePlayer player, BaseEntity entity)
 	{
 		if (player == null || entity == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
 		{
 			return null;
 		}
+
 		if (IO_Protect.Contains(entity.transform.position))
 		{
 			return false;
@@ -2710,7 +2738,8 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 				if (!(baseEntity == null))
 				{
 					var basePlayer = baseEntity as BasePlayer;
-					if (basePlayer == null || (basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying) || turret.IsAuthed(basePlayer) || (turret.PeacekeeperMode() && !basePlayer.IsHostile())) { continue; }
+
+					if (basePlayer == null || (basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying) || turret.IsAuthed(basePlayer) || (turret.PeacekeeperMode() && !basePlayer.IsHostile())) continue; 
 					if (!turret.target.IsNpc && turret.target.IsAlive() && turret.InFiringArc(turret.target) && turret.ObjectVisible(turret.target))
 					{
 						turret.SetTarget(basePlayer);
@@ -2718,6 +2747,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 					}
 				}
 			}
+
 			if (turret.target != null)
 			{
 				turret.EnsureReloaded(true);
@@ -3085,7 +3115,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		return null;
 	}
-	private void IPreObjectSetHierarchyGroup(GameObject @object, string root)
+	private void IPreObjectSetHierarchyGroup(GameObject @object, string root, bool groupActive, bool persistant)
 	{
 		Deployables_WorldSpawnHook(@object, root);
 	}
@@ -3214,7 +3244,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 				//File.WriteAllBytes("SerializedVendingContainerData.xml", XMLData);
 				if (XMLData != null) { Deployables_serializedVendingContainerData = Deployables_DeSerializePlugin<SerializedVendingContainerData>(XMLData); }
 			}
-			Singleton.PutsWarn($"Managed vending machines: {Deployables_serializedVendingContainerData.entities.Count:n0}");
+			Singleton.PutsWarn($"Managed {Deployables_serializedVendingContainerData.entities.Count:n0} vending machines.");
 		}
 		catch { }
 		try
@@ -3225,7 +3255,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 				//File.WriteAllBytes("SerializedLootableContainerData.xml", XMLData);
 				if (XMLData != null) { Deployables_serializedLootableContainerData = Deployables_DeSerializePlugin<SerializedLootableContainerData>(XMLData); }
 			}
-			Singleton.PutsWarn($"Managed lootable containers: {Deployables_serializedLootableContainerData.entities.Count:n0}");
+			Singleton.PutsWarn($"Managed {Deployables_serializedLootableContainerData.entities.Count:n0} lootable containers.");
 		}
 		catch { }
 	}

@@ -34,6 +34,7 @@ public class CorePlugin : CarbonPlugin
 {
 	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
+
 	public static void RefreshOrderedFiles()
 	{
 		OrderedFiles.Clear();
@@ -56,16 +57,19 @@ public class CorePlugin : CarbonPlugin
 
 	public override void IInit()
 	{
-		Hooks = new List<string>()
+		Type = GetType();
+		Hooks = new();
+
+		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
-			"IOnBasePlayerAttacked",
-			"IOnPlayerCommand",
-			"IOnPlayerConnected",
-			"IOnUserApprove",
-			"OnEntityDeath",
-			"OnEntityKill",
-			"OnEntitySpawned",
-		};
+			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+			{
+				Community.Runtime.HookManager.Subscribe(method.Name, Name);
+
+				var priority = method.GetCustomAttribute<HookPriority>();
+				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+			}
+		}
 
 		base.IInit();
 
@@ -190,6 +194,8 @@ public class CorePlugin : CarbonPlugin
 		return null;
 	}
 
+	internal readonly string[] _emptyStringArray = new string[0];
+
 	private object IOnPlayerCommand(BasePlayer player, string message)
 	{
 		if (Community.Runtime == null) return true;
@@ -199,7 +205,7 @@ public class CorePlugin : CarbonPlugin
 			var fullString = message.Substring(1);
 			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 			var command = split[0].Trim();
-			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : new string[0];
+			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
 			Facepunch.Pool.Free(ref split);
 
 			if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(player.userID), command, args) != null)
@@ -281,12 +287,14 @@ public class CorePlugin : CarbonPlugin
 				}
 			}
 		}
-		catch { }
+		catch(Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }
 
 		return true;
 	}
 	private object IOnServerCommand(ConsoleSystem.Arg arg)
 	{
+		if (arg != null && arg.cmd != null && arg.cmd.FullName == "chat.say") return null;
+
 		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
 		{
 			return null;
@@ -940,7 +948,8 @@ public class CorePlugin : CarbonPlugin
 
 		if(!Loader.IsBatchComplete)
 		{
-			Logger.Warn($"There are plugins still processing, please wait...");		
+			Loader.ReloadQueueList.Add(arg.Args.ToString(" "));
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");
 			return;
 		}
 
@@ -1006,7 +1015,8 @@ public class CorePlugin : CarbonPlugin
 
 		if(!Loader.IsBatchComplete)
 		{
-			Logger.Warn($"There are plugins still processing, please wait...");		
+			Loader.LoadQueueList.Add(arg.Args.ToString(" "));
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");
 			return;
 		}
 		
@@ -1072,7 +1082,8 @@ public class CorePlugin : CarbonPlugin
 
 		if(!Loader.IsBatchComplete)
 		{
-			Logger.Warn($"There are plugins still processing, please wait...");		
+			Loader.UnloadQueueList.Add(arg.Args.ToString(" "));
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");		
 			return;
 		}
 		

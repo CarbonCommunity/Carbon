@@ -135,12 +135,28 @@ public class RustPlugin : Plugin
 		=> Carbon.Logger.Log($"[{Name}] {message}");
 
 	/// <summary>
+	/// Outputs to the game's console a message with severity level 'NOTICE'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	public void Log(object message, params object[] args)
+		=> Carbon.Logger.Log($"[{Name}] {string.Format(message.ToString(), args)}");
+
+	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
 	public void LogWarning(object message)
 		=> Carbon.Logger.Warn($"[{Name}] {message}");
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'WARNING'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	public void LogWarning(object message, params object[] args)
+		=> Carbon.Logger.Warn($"[{Name}] {string.Format(message.ToString(), args)}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -156,8 +172,25 @@ public class RustPlugin : Plugin
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
+	/// <param name="ex"></param>
+	public void LogError(object message, Exception ex, params object[] args)
+		=> Carbon.Logger.Error($"[{Name}] {string.Format(message.ToString(), args)}", ex);
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'ERROR'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
 	public void LogError(object message)
 		=> Carbon.Logger.Error($"[{Name}] {message}", null);
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'ERROR'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	public void LogError(object message, params object[] args)
+		=> Carbon.Logger.Error($"[{Name}] {string.Format(message.ToString(), args)}", null);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.

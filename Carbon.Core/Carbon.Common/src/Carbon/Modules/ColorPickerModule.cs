@@ -16,7 +16,7 @@ using Carbon.Extensions;
 
 namespace Carbon.Modules;
 
-public class ColorPickerModule : CarbonModule<ColorPickerConfig, ColorPickerData>
+public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 {
 	public override string Name => "Color Picker";
 	public override Type Type => typeof(ColorPickerModule);
@@ -36,6 +36,14 @@ public class ColorPickerModule : CarbonModule<ColorPickerConfig, ColorPickerData
 
 	public void Open(BasePlayer player, Action<string, string> onColorPicked)
 	{
+		if(!ModuleConfiguration.Enabled)
+		{
+			var empty = string.Empty;
+			onColorPicked?.Invoke(empty, empty);
+			PutsWarn($"");
+			return;
+		}
+
 		DrawCursorLocker(player);
 		Draw(player, onColorPicked);
 		FirstOpen = true;
@@ -217,13 +225,4 @@ public class ColorPickerModule : CarbonModule<ColorPickerConfig, ColorPickerData
 		OnColorPicked = null;
 		Close(args.Player());
 	}
-}
-
-public class ColorPickerConfig
-{
-
-}
-public class ColorPickerData
-{
-
 }

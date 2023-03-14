@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using API.Contracts;
 using API.Events;
 using Carbon.Base;
@@ -27,6 +28,11 @@ public static class Loader
 	public static List<Assembly> AssemblyCache { get; } = new();
 	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new();
 	public static Dictionary<string, List<string>> PendingRequirees { get; } = new();
+	public static bool IsBatchComplete { get; set; }
+	public static List<string> PostBatchFailedRequirees { get; } = new();
+	public static List<string> ReloadQueueList { get; } = new();
+	public static List<string> LoadQueueList { get; } = new();
+	public static List<string> UnloadQueueList { get; } = new();
 
 	static Loader()
 	{
@@ -234,8 +240,9 @@ public static class Loader
 		plugin.CallHook("Unload");
 		plugin.IUnload();
 
+		HookCaller.CallStaticHook("OnPluginUnloaded", plugin);
+
 		RemoveCommands(plugin);
-		//HookCaller.CallHook(plugin, "OnPluginUnloaded");
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
 
@@ -427,25 +434,63 @@ public static class Loader
 		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == hookable);
 	}
 	
-	public static bool IsBatchComplete { get; set; }
-	public static List<string> PostBatchFailedRequirees { get; } = new();
-
 	public static void OnPluginProcessFinished()
 	{
-		foreach(var plug in PostBatchFailedRequirees)
+		var temp = Pool.GetList<string>();
+		temp.AddRange(PostBatchFailedRequirees);
+
+		foreach (var plugin in temp)
 		{
-			var file = System.IO.Path.GetFileNameWithoutExtension(plug);
+			var file = System.IO.Path.GetFileNameWithoutExtension(plugin);
 			Community.Runtime.ScriptProcessor.ClearIgnore(file);
-			Community.Runtime.ScriptProcessor.Prepare(file, plug);
+			Community.Runtime.ScriptProcessor.Prepare(file, plugin);
 		}
-		
-		if(PostBatchFailedRequirees.Count == 0)
+
+		PostBatchFailedRequirees.Clear();
+
+		if (PostBatchFailedRequirees.Count == 0)
 		{
 			IsBatchComplete = true;
 		}
-		
-		PostBatchFailedRequirees.Clear();
-		
+
+		if (IsBatchComplete)
+		{
+			if (ReloadQueueList.Count > 0 ||
+				LoadQueueList.Count > 0 ||
+				UnloadQueueList.Count > 0)
+			{
+				IsBatchComplete = false;
+			}
+
+			temp.Clear();
+			temp.AddRange(ReloadQueueList);
+			foreach (var plugin in temp)
+			{
+				ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.reload {plugin}");
+			}
+
+			temp.Clear();
+			temp.AddRange(LoadQueueList);
+			foreach (var plugin in temp)
+			{
+				ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.load {plugin}");
+			}
+
+			temp.Clear();
+			temp.AddRange(UnloadQueueList);
+			foreach (var plugin in temp)
+			{
+				ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.unload {plugin}");
+			}
+
+			ReloadQueueList.Clear();
+			LoadQueueList.Clear();
+			UnloadQueueList.Clear();
+		}
+
+		temp.Clear();
+		Pool.FreeList(ref temp);
+
 		if (Community.IsServerFullyInitialized)
 		{			
 			var counter = 0;

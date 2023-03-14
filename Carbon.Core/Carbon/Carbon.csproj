@@ -9,9 +9,12 @@
 	<Import Project="..\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
-		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
+		<PackageReference Include="PolySharp" Version="1.12.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">

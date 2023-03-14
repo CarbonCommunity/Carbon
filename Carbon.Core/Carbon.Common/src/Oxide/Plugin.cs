@@ -76,12 +76,14 @@ namespace Oxide.Plugins
 					foreach (var attribute in HookMethods)
 					{
 						var method = attribute.Method;
+						var priority = method.GetCustomAttribute<HookPriority>();
+
 						var name = (string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length;
 						if (!HookMethodAttributeCache.TryGetValue(name, out var list))
 						{
-							HookMethodAttributeCache.Add(name, new List<KeyValuePair<MethodInfo, Delegate>> () { new KeyValuePair<MethodInfo, Delegate>(method, HookCallerCommon.CreateDelegate(method, this)) });
+							HookMethodAttributeCache.Add(name, new () { CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority) });
 						}
-						else list.Add(new KeyValuePair<MethodInfo, Delegate>(method, HookCallerCommon.CreateDelegate(method, this)));
+						else list.Add(CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority));
 					}
 				}
 				Carbon.Logger.Debug(Name, "Installed hook method attributes");
@@ -99,7 +101,7 @@ namespace Oxide.Plugins
 				using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 				{
 					foreach (var hook in Hooks)
-						Community.Runtime.HookManager.Subscribe(hook, requester);
+						Community.Runtime.HookManager.Subscribe(hook.Key, requester);
 				}
 				Carbon.Logger.Debug(Name, "Processed hooks");
 			}
@@ -136,7 +138,7 @@ namespace Oxide.Plugins
 			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 			{
 				foreach (var hook in Hooks)
-					Community.Runtime.HookManager.Unsubscribe(hook, FileName);
+					Community.Runtime.HookManager.Unsubscribe(hook.Key, FileName);
 				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 			}
 
