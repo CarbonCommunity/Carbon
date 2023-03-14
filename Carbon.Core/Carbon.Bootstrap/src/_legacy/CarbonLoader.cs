@@ -4,8 +4,6 @@ using System.Reflection;
 using API.Events;
 using Components;
 using Contracts;
-using Legacy.ASM;
-using Legacy.Harmony;
 using Utility;
 
 /*
@@ -23,7 +21,6 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	private static readonly string assemblyName;
 
 	private HarmonyLib.Harmony _harmonyInstance;
-	private UnityEngine.GameObject _gameObject;
 
 
 	internal string Name
@@ -32,21 +29,27 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	internal HarmonyLib.Harmony Harmony
 	{ get => _harmonyInstance; }
 
+
+	private static UnityEngine.GameObject _gameObject;
+
+	internal AnalyticsManager Analytics
+	{ get => _gameObject.GetComponent<AnalyticsManager>(); }
+
+	internal AssemblyManagerEx AssemblyEx
+	{ get => _gameObject.GetComponent<AssemblyManagerEx>(); }
+
 	internal DownloadManager Downloader
 	{ get => _gameObject.GetComponent<DownloadManager>(); }
 
 	internal EventManager Events
 	{ get => _gameObject.GetComponent<EventManager>(); }
 
-	internal AnalyticsManager Identity
-	{ get => _gameObject.GetComponent<AnalyticsManager>(); }
 
 	static Loader()
 	{
 		identifier = $"{Guid.NewGuid():N}";
 		Logger.Warn($"Using '{identifier}' as runtime namespace");
 		assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
-		AssemblyManager.GetInstance().Register(AppDomain.CurrentDomain);
 	}
 
 	internal Loader()
@@ -62,19 +65,20 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 		_gameObject = new UnityEngine.GameObject("Carbon");
 		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
 
+		_gameObject.AddComponent<AnalyticsManager>();
+		_gameObject.AddComponent<AssemblyManagerEx>();
 		_gameObject.AddComponent<DownloadManager>();
 		_gameObject.AddComponent<EventManager>();
-		_gameObject.AddComponent<AnalyticsManager>();
 
 		Events.Subscribe(CarbonEvent.StartupShared, x =>
 		{
-			HarmonyLoaderEx.GetInstance().Load("Carbon.dll");
+			AssemblyEx.Load("Carbon.dll", this);
 		});
 
 		Events.Subscribe(CarbonEvent.CarbonStartupComplete, x =>
 		{
-			HarmonyLoaderEx.GetInstance().Load("Carbon.Modules.dll");
-			HarmonyLoaderEx.GetInstance().Load("Carbon.Ext.Discord.dll");
+			AssemblyEx.Load("Carbon.Modules.dll", this);
+			AssemblyEx.Load("Carbon.Ext.Discord.dll", this);
 		});
 	}
 
@@ -82,12 +86,12 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 	{
 		try
 		{
-			Logger.Log("Patching Facepunch's harmony loader");
+			Logger.Log("Applying Harmony patches");
 			Harmony.PatchAll(Assembly.GetExecutingAssembly());
 		}
 		catch (Exception e)
 		{
-			Logger.Error("Unable to apply all Harmony patches", e);
+			Logger.Error("Unable to apply all patches", e);
 		}
 	}
 
@@ -100,7 +104,7 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 		}
 		catch (Exception e)
 		{
-			Logger.Error("Unable to remove all Harmony patches", e);
+			Logger.Error("Unable to remove all patches", e);
 		}
 
 		_harmonyInstance = default;

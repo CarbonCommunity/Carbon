@@ -9,7 +9,7 @@ using System;
 
 namespace API.Contracts;
 
-public interface IHarmonyMod
+public interface ICarbonExtension
 {
 	public void OnLoaded(EventArgs args);
 	public void OnUnloaded(EventArgs args);

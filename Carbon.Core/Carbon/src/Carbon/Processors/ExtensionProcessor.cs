@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
+using API.Contracts;
 using Carbon.Base;
-using Carbon.Common;
 using Carbon.Extensions;
 
 /*
@@ -30,10 +30,10 @@ public class ExtensionProcessor : BaseProcessor
 	internal void _propagateCall(bool init)
 	{
 		var count = 0;
-		foreach (var type in AccessToolsEx.AllTypes().Where(x => x.GetInterfaces().Contains(typeof(IExtension))))
+		foreach (var type in AccessToolsEx.AllTypes().Where(x => x.GetInterfaces().Contains(typeof(ICarbonExtension))))
 		{
-			var ext = Activator.CreateInstance(type) as IExtension;
-			if (init) ext.OnInit(); else ext.OnUnload();
+			var ext = Activator.CreateInstance(type) as ICarbonExtension;
+			if (init) ext.OnLoaded(EventArgs.Empty); else ext.OnUnloaded(EventArgs.Empty);
 
 			Logger.Log($"{(init ? "Installed" : "Uninstalled")} Carbon extension '{type.FullName}'");
 			count++;

@@ -1,4 +1,4 @@
-﻿// #define DEBUG_VERBOSE
+﻿//#define DEBUG_VERBOSE
 
 using System;
 using System.CodeDom.Compiler;
@@ -8,10 +8,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon.Base;
+using Carbon.Components;
 using Carbon.Core;
 using K4os.Compression.LZ4.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Mysqlx;
 
 /*
  *
@@ -30,11 +32,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string[] References;
 	public string[] Requires;
 	public bool IsExtension;
-	public List<string> Usings = new ();
-	public Dictionary<Type, Dictionary<string, Priorities>> Hooks = new ();
-	public Dictionary<Type, List<string>> UnsupportedHooks = new ();
-	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new ();
-	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new ();
+	public List<string> Usings = new();
+	public Dictionary<Type, Dictionary<string, Priorities>> Hooks = new();
+	public Dictionary<Type, List<string>> UnsupportedHooks = new();
+	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
+	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
 	public float CompileTime;
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new();
@@ -99,27 +101,34 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		if (_referenceCache.TryGetValue(name, out var reference))
 		{
+			Logger.Debug(id, $"Added common references from cache", 4);
 			references.Add(reference);
 		}
 		else
 		{
-			Logger.Debug(id, $"Added common reference '{name}'", 4);
-			var raw = Supervisor.ASM.ReadAssembly(name);
+			//FIXMENOW
+			var raw = Community.Runtime.AssemblyEx.Read(name, this);
+			if (raw == null) return;
+
 			using var mem = new MemoryStream(raw);
 			var processedReference = MetadataReference.CreateFromStream(mem);
+
 			references.Add(processedReference);
 			_referenceCache.Add(name, processedReference);
+			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
 	internal void _injectExtensionReference(string id, string name, List<MetadataReference> references)
 	{
-		if(!_extensionCompilationCache.TryGetValue(name, out var raw ))
+		if (!_extensionCompilationCache.TryGetValue(name, out var raw))
 		{
+			Logger.Debug(id, $">>> oops", 4);
 			return;
 		}
 
 		if (_extensionReferenceCache.TryGetValue(name, out var reference))
 		{
+			Logger.Debug(id, $"Added common Extension references from cache", 4);
 			references.Add(reference);
 		}
 		else
@@ -132,22 +141,25 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 	}
 
-	internal static MetadataReference _getReferenceFromCache(string reference)
-	{
-		try
-		{
-			byte[] raw = Supervisor.ASM.ReadAssembly(reference);
-			if (raw == null || raw.Length == 0) throw new ArgumentException();
+	// internal static MetadataReference _getReferenceFromCache(string reference)
+	// {
+	// 	try
+	// 	{
+	// 		//FIXMENOW
+	// 		byte[] raw = Community.Runtime.AssemblyEx.Read(reference, "ScriptCompilationThread");
 
-			using (MemoryStream mem = new MemoryStream(raw))
-				return MetadataReference.CreateFromStream(mem);
-		}
-		catch (System.Exception e)
-		{
-			Logger.Error($"_getReferenceFromCache('{reference}') failed", e);
-			return null;
-		}
-	}
+	// 		if (raw == null || raw.Length == 0) throw new ArgumentException();
+
+	// 		using MemoryStream mem = new MemoryStream(raw);
+	// 		return MetadataReference.CreateFromStream(mem);
+	// 	}
+	// 	catch (System.Exception e)
+	// 	{
+	// 		Logger.Error($"_getReferenceFromCache('{reference}') failed", e);
+	// 		return null;
+	// 	}
+	// }
+
 	internal List<MetadataReference> _addReferences()
 	{
 		var references = new List<MetadataReference>();
@@ -170,13 +182,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 			_injectReference(id, "0Harmony", references);
 		}
 
-		foreach(var item in _extensionCompilationCache)
+		foreach (var item in _extensionCompilationCache)
 		{
 			_injectExtensionReference(id, item.Key, references);
 		}
 
 		// goes through the requested use list by the plugin
-		foreach (var element in Usings)
+		/*foreach (var element in Usings)
 		{
 			try
 			{
@@ -188,22 +200,22 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				Logger.Debug(id, $"Error loading using reference '{element}'", 4);
 			}
-		}
+		}*/
 
-		// goes through the requested references by the plugin
-		foreach (var reference in References)
-		{
-			try
-			{
-				Logger.Debug(id, $"Added require reference '{reference}'", 2);
-				var outReference = _getReferenceFromCache(reference);
-				if (outReference != null && !references.Any(x => x.Display == outReference.Display)) references.Add(outReference);
-			}
-			catch (System.Exception)
-			{
-				Logger.Debug(id, $"Error loading require reference '{reference}'", 2);
-			}
-		}
+		// // goes through the requested references by the plugin
+		// foreach (var reference in References)
+		// {
+		// 	try
+		// 	{
+		// 		Logger.Debug(id, $"Added require reference '{reference}'", 2);
+		// 		var outReference = _getReferenceFromCache(reference);
+		// 		if (outReference != null && !references.Any(x => x.Display == outReference.Display)) references.Add(outReference);
+		// 	}
+		// 	catch (System.Exception)
+		// 	{
+		// 		Logger.Debug(id, $"Error loading require reference '{reference}'", 2);
+		// 	}
+		// }
 
 		Logger.Debug(id, $"Compiler will use {references.Count} assembly references", 1);
 		return references;
@@ -217,7 +229,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		public override string ToString()
 		{
-			return $"{Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
+			return $" --- {Error.ErrorText}\n ({FilePath} {Error.Column} line {Error.Line})";
 		}
 	}
 
@@ -255,10 +267,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 				{
 					var requiredPlugin = _getPlugin(require);
 
-					using (var dllStream = new MemoryStream(requiredPlugin))
-					{
-						references.Add(MetadataReference.CreateFromStream(dllStream));
-					}
+					using var dllStream = new MemoryStream(requiredPlugin);
+					references.Add(MetadataReference.CreateFromStream(dllStream));
 				}
 				catch { /* do nothing */ }
 			}
@@ -276,44 +286,48 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				var emit = compilation.Emit(dllStream);
 
+				StringTable body = new StringTable("Type", "Line", "Col", "Error", "Description");
+
+				int x = 0;
+				List<string> errors = new();
 				foreach (var error in emit.Diagnostics)
 				{
+#if DEBUG_VERBOSE
+					if (error.Severity != DiagnosticSeverity.Error && error.Severity != DiagnosticSeverity.Warning) continue;
+					if (error.Id == "CS1701") continue; // you may need to supply runtime policy
+#else
+					if (error.Severity != DiagnosticSeverity.Error) continue;
+					if (errors.Contains(error.Id)) continue;
+					errors.Add(error.Id);
+#endif
 					var span = error.Location.GetMappedLineSpan().Span;
-					switch (error.Severity)
-					{
-#if DEBUG_VERBOSE
-							case DiagnosticSeverity.Warning:
-								Logger.Warn($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
-									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
-								break;
-#endif
-						case DiagnosticSeverity.Error:
-#if DEBUG_VERBOSE
-								Logger.Error($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
-									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
-#endif
-							Exceptions.Add(new CompilerException(FilePath,
-								new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
-							break;
-					}
+					body.AddRow(
+						$"{error.Severity}", $"{span.Start.Line + 1}", $"{span.Start.Character + 1}",
+						error.Id, error.GetMessage(CultureInfo.InvariantCulture));
+					x++;
+
+					Exceptions.Add(new CompilerException(FilePath,
+						new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 				}
+
+				errors.Clear();
+
+				if (x > 0)
+					Logger.Warn($"Compiler output for '{FilePath}'.{Environment.NewLine}{Environment.NewLine}{body.ToStringMinimal()}");
 
 				if (emit.Success)
 				{
 					var assembly = dllStream.ToArray();
 					if (assembly != null)
 					{
-						if(IsExtension) _overrideExtensionPlugin(FilePath, assembly);
+						if (IsExtension) _overrideExtensionPlugin(FilePath, assembly);
 						_overridePlugin(FileName, assembly);
 						Assembly = Assembly.Load(assembly);
 					}
 				}
 			}
 
-			if (Assembly == null)
-			{
-				throw null;
-			}
+			if (Assembly == null) return;
 
 			CompileTime = (float)(DateTime.Now - TimeSinceCompile).Milliseconds;
 

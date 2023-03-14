@@ -28,9 +28,30 @@ public class Community
 	public static string Version { get; set; } = "Unknown";
 	public static string InformationalVersion { get; set; } = "Unknown";
 
-	public IAnalyticsManager Analytics { get; }
-	public IDownloadManager Downloader { get; }
-	public IEventManager Events { get; }
+	public static GameObject GameObject { get => _gameObject.Value; }
+	private static readonly Lazy<GameObject> _gameObject = new(() =>
+	{
+		GameObject gameObject = GameObject.Find("Carbon")
+			?? throw new Exception("Carbon GameObject not found");
+		return gameObject;
+	});
+
+	public IAnalyticsManager Analytics { get => _analyticsManager.Value; }
+	private readonly Lazy<IAnalyticsManager> _analyticsManager
+		= new(GameObject.GetComponent<IAnalyticsManager>);
+
+	public IAssemblyManager AssemblyEx { get => _assemblyEx.Value; }
+	private readonly Lazy<IAssemblyManager> _assemblyEx
+		= new(GameObject.GetComponent<IAssemblyManager>);
+
+	public IDownloadManager Downloader { get => _downloadManager.Value; }
+	private readonly Lazy<IDownloadManager> _downloadManager
+		= new(GameObject.GetComponent<IDownloadManager>);
+
+	public IEventManager Events { get => _eventManager.Value; }
+	private readonly Lazy<IEventManager> _eventManager
+		= new(GameObject.GetComponent<IEventManager>);
+
 
 	public IHookManager HookManager { get; set; }
 	public IScriptProcessor ScriptProcessor { get; set; }
@@ -52,17 +73,9 @@ public class Community
 	{
 		try
 		{
-			GameObject gameObject = GameObject.Find("Carbon")
-				?? throw new Exception("Carbon GameObject not found");
-
-			Analytics = gameObject.GetComponent<IAnalyticsManager>();
-			Downloader = gameObject.GetComponent<IDownloadManager>();
-			Events = gameObject.GetComponent<IEventManager>();
-
 			Events.Subscribe(CarbonEvent.StartupSharedComplete, args =>
 			{
-				IAnalyticsManager Identity = gameObject.GetComponent<IAnalyticsManager>();
-				Logger.Log($"Carbon fingerprint: {Identity.ClientID}");
+				Logger.Log($"Carbon fingerprint: {Analytics.ClientID}");
 				Analytics.StartSession();
 			});
 

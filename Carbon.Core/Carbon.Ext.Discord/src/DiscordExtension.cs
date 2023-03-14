@@ -9,9 +9,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using API.Contracts;
 using API.Events;
 using Carbon;
-using Carbon.Common;
 using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Configuration;
@@ -26,7 +26,7 @@ using Logger = Oxide.Ext.Discord.Logging.Logger;
 namespace Oxide.Ext.Discord
 {
 	// Token: 0x02000004 RID: 4
-	public class DiscordExtension : IExtension
+	public class DiscordExtension : ICarbonExtension
 	{
 		public void OnInit()
 		{
@@ -51,7 +51,13 @@ namespace Oxide.Ext.Discord
 			Community.Runtime.Events.Subscribe(CarbonEvent.PluginUnloaded, arg => OnPluginUnloaded(arg as CarbonEventArgs));
 
 		}
-		public void OnUnload()
+
+		public void OnLoaded(EventArgs args)
+		{
+			// do nothing
+		}
+
+		public void OnUnloaded(EventArgs args)
 		{
 			foreach (DiscordClient client in DiscordClient.Clients.Values.ToList())
 			{
@@ -83,7 +89,7 @@ namespace Oxide.Ext.Discord
 		// Token: 0x04000016 RID: 22
 		internal static readonly JsonSerializerSettings ExtensionSerializeSettings = new JsonSerializerSettings
 		{
-			NullValueHandling = (NullValueHandling) 1
+			NullValueHandling = (NullValueHandling)1
 		};
 
 		// Token: 0x04000017 RID: 23

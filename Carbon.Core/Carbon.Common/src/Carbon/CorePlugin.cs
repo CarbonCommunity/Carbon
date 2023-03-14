@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Windows.Shell;
 using API.Events;
 using API.Hooks;
 using Carbon.Base.Interfaces;
@@ -13,7 +12,6 @@ using Carbon.Contracts;
 using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
-using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
@@ -343,13 +341,15 @@ public class CorePlugin : CarbonPlugin
 	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
 	private void Exit(ConsoleSystem.Arg arg)
 	{
-		Supervisor.ASM.UnloadModule("Carbon.dll", false);
+		//FIXMENOW
+		//Supervisor.ASM.UnloadModule("Carbon.dll", false);
 	}
 
 	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
 	private void Reboot(ConsoleSystem.Arg arg)
 	{
-		Supervisor.ASM.UnloadModule("Carbon.dll", true);
+		//FIXMENOW
+		//Supervisor.ASM.UnloadModule("Carbon.dll", true);
 	}
 
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
@@ -454,7 +454,9 @@ public class CorePlugin : CarbonPlugin
 				return;
 			}
 			HookCaller.CallStaticHook("OnServerSave");
-			Supervisor.ASM.UnloadModule("Carbon.dll", true);
+
+			//FIXMENOW
+			//Supervisor.ASM.UnloadModule("Carbon.dll", true);
 		});
 	}
 
@@ -946,7 +948,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-		if(!Loader.IsBatchComplete)
+		if (!Loader.IsBatchComplete)
 		{
 			Loader.ReloadQueueList.Add(arg.Args.ToString(" "));
 			Logger.Warn($"There are plugins still processing. Command has been queued up!");
@@ -1013,13 +1015,13 @@ public class CorePlugin : CarbonPlugin
 			return;
 		}
 
-		if(!Loader.IsBatchComplete)
+		if (!Loader.IsBatchComplete)
 		{
 			Loader.LoadQueueList.Add(arg.Args.ToString(" "));
 			Logger.Warn($"There are plugins still processing. Command has been queued up!");
 			return;
 		}
-		
+
 		RefreshOrderedFiles();
 
 		var name = arg.Args[0];
@@ -1080,13 +1082,13 @@ public class CorePlugin : CarbonPlugin
 			return;
 		}
 
-		if(!Loader.IsBatchComplete)
+		if (!Loader.IsBatchComplete)
 		{
 			Loader.UnloadQueueList.Add(arg.Args.ToString(" "));
 			Logger.Warn($"There are plugins still processing. Command has been queued up!");		
 			return;
 		}
-		
+
 		RefreshOrderedFiles();
 
 		var name = arg.Args[0];

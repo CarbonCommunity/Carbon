@@ -124,20 +124,21 @@ public static class Loader
 			return false;
 		}
 
-		foreach (var hook in mod.Hooks)
-		{
-			try
-			{
-				var type = hook.GetType();
-				if (type.Name.Equals("CarbonInitializer")) continue;
+		//FIXMENOW
+		// foreach (var hook in mod.Hooks)
+		// {
+		// 	try
+		// 	{
+		// 		var type = hook.GetType();
+		// 		if (type.Name.Equals("CarbonInitializer")) continue;
 
-				hook.OnUnloaded(new EventArgs());
-			}
-			catch (Exception arg)
-			{
-				LogError(mod.Name, $"Failed to call hook 'OnLoaded' {arg}");
-			}
-		}
+		// 		hook.OnUnloaded(new EventArgs());
+		// 	}
+		// 	catch (Exception arg)
+		// 	{
+		// 		LogError(mod.Name, $"Failed to call hook 'OnLoaded' {arg}");
+		// 	}
+		// }
 
 		UninitializePlugins(mod);
 		return true;
@@ -492,7 +493,7 @@ public static class Loader
 		Pool.FreeList(ref temp);
 
 		if (Community.IsServerFullyInitialized)
-		{			
+		{
 			var counter = 0;
 			var plugins = Pool.GetList<RustPlugin>();
 
@@ -630,7 +631,7 @@ public static class Loader
 		public bool IsCoreMod { get; set; } = false;
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }
-		public List<IHarmonyMod> Hooks { get; } = new List<IHarmonyMod>();
+		//public List<IHarmonyMod> Hooks { get; } = new List<IHarmonyMod>();
 
 		[JsonProperty]
 		public List<RustPlugin> Plugins { get; set; } = new List<RustPlugin>();

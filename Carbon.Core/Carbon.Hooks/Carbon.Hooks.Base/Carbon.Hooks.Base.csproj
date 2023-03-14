@@ -7,6 +7,7 @@
 
 	<Import Project="..\..\.msbuild\Common.props" />
 	<Import Project="..\..\.msbuild\ReferencesRust.props" />
+	<Import Project="..\..\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
 		<!-- Carbon platform -->

@@ -4,7 +4,6 @@
 		<OutputType>Library</OutputType>
 		<ProjectGuid>{682D913A-35E8-4850-A84D-1D4916597591}</ProjectGuid>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-
 	</PropertyGroup>
 
 	<Import Project="..\.msbuild\Common.props" />
