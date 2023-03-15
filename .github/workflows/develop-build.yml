@@ -127,6 +127,14 @@ jobs:
     # or if manually triggered by a developer
 
     steps:
+    - name: 🗑️ Delete existing release tag
+      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
+      with:
+        delete_release: true
+        tag_name: commit_build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
@@ -135,14 +143,6 @@ jobs:
     - name: Display structure of downloaded files
       run: ls -R
       working-directory: Release
-        
-    - name: 🗑️ Delete existing release tag
-      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
-      with:
-        delete_release: true
-        tag_name: develop_build
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🏷️ Update release tag
       uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
@@ -178,6 +178,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: 🗑️ Delete existing release tag
+      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
+      with:
+        delete_release: true
+        tag_name: commit_build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
@@ -186,14 +194,6 @@ jobs:
     - name: Display structure of downloaded files
       run: ls -R
       working-directory: Release
-        
-    - name: 🗑️ Delete existing release tag
-      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
-      with:
-        delete_release: true
-        tag_name: commit_build
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🏷️ Update release tag
       uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
