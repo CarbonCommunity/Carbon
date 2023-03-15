@@ -11,7 +11,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
-		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
+		<PackageReference Include="Roslynator.CSharp" Version="4.2.0" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
