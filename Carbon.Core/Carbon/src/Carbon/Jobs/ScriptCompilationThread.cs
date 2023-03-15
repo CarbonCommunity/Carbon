@@ -5,15 +5,12 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Core;
-using K4os.Compression.LZ4.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Mysqlx;
 
 /*
  *
@@ -109,7 +106,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name, this);
+			var raw = Community.Runtime.AssemblyEx.Read(name, "ScriptCompilationThread._injectReference");
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -130,7 +127,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name, this);
+			var raw = Community.Runtime.AssemblyEx.Read(name, "ScriptCompilationThread._injectReference");
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);

@@ -28,13 +28,13 @@ namespace Oxide.Ext.Discord
 	// Token: 0x02000004 RID: 4
 	public class DiscordExtension : ICarbonExtension
 	{
-		public void OnInit()
+		public void OnLoaded(EventArgs args)
 		{
 			GlobalLogger = (string.IsNullOrEmpty("") ? new Logger(DiscordLogLevel.Warning) : new Logger(DiscordLogLevel.Debug));
-			AppDomain.CurrentDomain.UnhandledException += delegate (object sender, UnhandledExceptionEventArgs exception)
-			{
-				GlobalLogger.Exception("An exception was thrown!", exception.ExceptionObject as Exception);
-			};
+			// AppDomain.CurrentDomain.UnhandledException += delegate (object sender, UnhandledExceptionEventArgs exception)
+			// {
+			// 	GlobalLogger.Exception("An exception was thrown!", exception.ExceptionObject as Exception);
+			// };
 			string text = Path.Combine(Interface.Oxide.InstanceDirectory, "discord.config.json");
 			bool flag = !File.Exists(text);
 			if (flag)
@@ -49,12 +49,6 @@ namespace Oxide.Ext.Discord
 			DiscordSubscriptions = new DiscordSubscriptions(GlobalLogger);
 			Community.Runtime.Events.Subscribe(CarbonEvent.PluginLoaded, arg => OnPluginLoaded(arg as CarbonEventArgs));
 			Community.Runtime.Events.Subscribe(CarbonEvent.PluginUnloaded, arg => OnPluginUnloaded(arg as CarbonEventArgs));
-
-		}
-
-		public void OnLoaded(EventArgs args)
-		{
-			// do nothing
 		}
 
 		public void OnUnloaded(EventArgs args)

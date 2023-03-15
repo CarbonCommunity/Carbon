@@ -26,18 +26,18 @@ namespace Components;
 	A LIBRARY is an external dependency which is required by a loading assembly
 	to be executed, this is the same definition as C# reference.
 
-	2) Component
+	2) Component - API.Contracts.ICarbonComponent
 	A COMPONENT is a core assembly for Carbon, core assembliess are always required
 	for Carbon to work. Examples are Preloader, Bootstrap, Common and API.
 
-	3) Hooks
+	3) Hooks - API.Hooks.Patch
 	A HOOK is a set of harmony patche which trigger events.
 
-	4) Module
+	4) Module - API.Contracts.ICarbonModule
 	A MODULE is an optional feature for Carbon which is not required for the core
 	functionality of the framework.
 
-	5) Extensions
+	5) Extensions - API.Contracts.ICarbonExtension
 	An EXTENSION is an assembly just like a plugin with the difference that it will
 	be passed as a reference to the Rosylin compiler so plugins can use them.
 
@@ -47,11 +47,17 @@ namespace Components;
 
 internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 {
-	private LibraryLoader _library;
-	private AssemblyLoader _loader;
+	public List<string> LoadedModules
+	{ get; private set; } = new();
+
+	public List<string> LoadedComponents
+	{ get; private set; } = new();
 
 	public List<string> LoadedExtensions
 	{ get; private set; } = new();
+
+	private LibraryLoader _library;
+	private AssemblyLoader _loader;
 
 	private void Awake()
 	{
@@ -74,7 +80,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		_library.Dispose();
 	}
 
-	public byte[] Read(string file, object sender)
+	public byte[] Read(string file, string requester = "unknown")
 	{
 		byte[] raw = default;
 
@@ -99,7 +105,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		return default;
 	}
 
-	public Assembly LoadComponent(string file, object sender)
+	public Assembly LoadComponent(string file, string requester = "unknown")
 	{
 		try
 		{
@@ -112,7 +118,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, $"{sender}", directories).Assembly;
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
 
 					if (IsComponent(asm, out types))
 					{
@@ -141,6 +147,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 						throw new Exception("Unsupported assembly type");
 					}
 
+					LoadedComponents.Add(file);
 					return asm;
 
 				// case ".drm"
@@ -168,7 +175,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		}
 	}
 
-	public Assembly LoadModule(string file, object sender)
+	public Assembly LoadModule(string file, string requester = "unknown")
 	{
 		try
 		{
@@ -181,7 +188,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, $"{sender}", directories).Assembly;
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
 
 					if (IsModule(asm, out types))
 					{
@@ -210,6 +217,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 						throw new Exception("Unsupported assembly type");
 					}
 
+					LoadedModules.Add(file);
 					return asm;
 
 				// case ".drm"
@@ -237,7 +245,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		}
 	}
 
-	public Assembly LoadExtension(string file, object sender)
+	public Assembly LoadExtension(string file, string requester = "unknown")
 	{
 		try
 		{
@@ -250,7 +258,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, $"{sender}", directories).Assembly;
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
 
 					if (IsExtension(asm, out types))
 					{
@@ -306,7 +314,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		}
 	}
 
-	public Assembly LoadHook(string file, object sender)
+	public Assembly LoadHook(string file, string requester = "unknown")
 	{
 		try
 		{
@@ -319,7 +327,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, $"{sender}", directories).Assembly;
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
 
 					if (IsHook(asm, out types))
 					{

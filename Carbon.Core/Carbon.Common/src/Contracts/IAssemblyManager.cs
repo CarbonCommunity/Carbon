@@ -13,11 +13,13 @@ namespace API.Contracts;
 
 public interface IAssemblyManager
 {
+	public List<string> LoadedModules { get; }
+	public List<string> LoadedComponents { get; }
 	public List<string> LoadedExtensions { get; }
 
-	public byte[] Read(string file, object sender);
-	public Assembly LoadComponent(string file, object sender);
-	public Assembly LoadModule(string file, object sender);
-	public Assembly LoadExtension(string file, object sender);
-	public Assembly LoadHook(string file, object sender);
+	public byte[] Read(string file, string requester);
+	public Assembly LoadComponent(string file, string requester);
+	public Assembly LoadModule(string file, string requester);
+	public Assembly LoadExtension(string file, string requester);
+	public Assembly LoadHook(string file, string requester);
 }

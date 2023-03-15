@@ -230,7 +230,7 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 	private void LoadHooksFromFile(string fileName)
 	{
 		// delegates asm loading to Carbon.Loader 
-		Assembly hooks = Community.Runtime.AssemblyEx.LoadHook(fileName, this);
+		Assembly hooks = Community.Runtime.AssemblyEx.LoadHook(fileName, "HookManager.LoadHooksFromFile");
 
 		if (hooks == null)
 		{
