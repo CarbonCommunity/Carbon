@@ -233,6 +233,7 @@ namespace Oxide.Ext.Discord.WebSockets
 		public void SocketMessage(object sender, MessageEventArgs e)
 		{
 			EventPayload eventPayload = JsonConvert.DeserializeObject<EventPayload>(e.Data);
+			Carbon.Logger.Log($"{e.Data}");
 			bool flag = eventPayload.Sequence != null;
 			if (flag)
 			{

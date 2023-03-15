@@ -72,7 +72,7 @@ namespace Oxide.Ext.Discord.Libraries.Command
 		{
 			this.AddDirectMessageCommand(name, plugin, delegate(DiscordMessage message, string command, string[] args)
 			{
-				plugin.CallHook(callback, new object[]
+				plugin.Call(callback, new object[]
 				{
 					message,
 					command,
@@ -125,7 +125,7 @@ namespace Oxide.Ext.Discord.Libraries.Command
 		{
 			this.AddGuildCommand(name, plugin, allowedChannels, delegate(DiscordMessage message, string command, string[] args)
 			{
-				plugin.CallHook(callback, new object[]
+				plugin.Call (callback, new object[]
 				{
 					message,
 					command,

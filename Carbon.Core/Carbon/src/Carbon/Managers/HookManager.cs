@@ -1,15 +1,14 @@
-﻿using System;
+﻿#pragma warning disable IDE0051
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using API.Events;
 using API.Hooks;
 using Carbon.Contracts;
-using Carbon.Core;
-using HarmonyLib;
 
 /*
  *
@@ -49,8 +48,8 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 	private List<Subscription> _subscribers;
 	private static readonly string[] Files =
 	{
-		Path.Combine("hooks", "Carbon.Hooks.Base.dll"),
-		Path.Combine("hooks", "Carbon.Hooks.Extra.dll"),
+		"Carbon.Hooks.Base.dll",
+		"Carbon.Hooks.Extra.dll",
 	};
 
 	private void Awake()
@@ -91,10 +90,14 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 		foreach (string file in Files)
 		{
-			string path = Path.Combine(Defines.GetManagedFolder(), file);
-			if (Supervisor.ASM.IsLoaded(Path.GetFileName(path)))
-				Supervisor.ASM.UnloadModule(path, false);
-			LoadHooksFromFile(path);
+
+			//FIXMENOW
+			//string path = Path.Combine(Defines.GetManagedFolder(), file);
+
+			//if (Supervisor.ASM.IsLoaded(Path.GetFileName(path)))
+			//	Supervisor.ASM.UnloadModule(path, false);
+
+			LoadHooksFromFile(file);
 		}
 
 		if (_patches.Count > 0)
@@ -227,7 +230,7 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 	private void LoadHooksFromFile(string fileName)
 	{
 		// delegates asm loading to Carbon.Loader 
-		Assembly hooks = Supervisor.ASM.LoadModule(fileName);
+		Assembly hooks = Community.Runtime.AssemblyEx.LoadHook(fileName, "HookManager.LoadHooksFromFile");
 
 		if (hooks == null)
 		{

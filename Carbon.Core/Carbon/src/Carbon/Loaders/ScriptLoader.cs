@@ -44,7 +44,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
 
-	internal WaitForSeconds _serverExhale = new WaitForSeconds(0.1f);
+	internal WaitForSeconds _serverExhale = new(0.1f);
 
 	public void Load()
 	{
@@ -75,7 +75,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 	public static void LoadAll()
 	{
-		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptExtensionsFolder(), "cs");
+		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
 		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: SearchOption.TopDirectoryOnly);
 
 		Community.Runtime.ScriptProcessor.Clear();
@@ -232,12 +232,12 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		if (AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0)
 		{
 			var errors = Pool.GetList<string>();
-			Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
+			//Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
 			for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
 			{
 				var error = AsyncLoader.Exceptions[i];
 				var print = $"{error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
-				Logger.Error($"  {i + 1:n0}. {print}");
+				//Logger.Error($"  {i + 1:n0}. {print}");
 				errors.Add(print);
 			}
 
@@ -288,8 +288,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 					unsupportedHooksString = null;
 				}
 
-				var info = type.GetCustomAttribute(typeof(InfoAttribute), true) as InfoAttribute;
-				if (info == null) continue;
+				if (type.GetCustomAttribute(typeof(InfoAttribute), true) is not InfoAttribute info) continue;
 
 				if (!IsExtension && firstPlugin && Community.Runtime.Config.FileNameCheck)
 				{

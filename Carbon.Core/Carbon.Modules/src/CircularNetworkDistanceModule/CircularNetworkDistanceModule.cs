@@ -22,20 +22,32 @@ public partial class CircularNetworkDistanceModule : CarbonModule<EmptyModuleCon
 	public override void Init()
 	{
 		base.Init();
-		Subscribe("ae0577348a5140ea9aa861cd71c31e7c");
-
-		if (ConVar.Net.visibilityRadiusFarOverride == -1)
-			ConVar.Net.visibilityRadiusFarOverride = 6;
-
-		if (ConVar.Net.visibilityRadiusNearOverride == -1)
-			ConVar.Net.visibilityRadiusNearOverride = 4;
 	}
 
+#pragma warning disable IDE0051
 	private void ae0577348a5140ea9aa861cd71c31e7c()
 	{
 		// FIXME:
 		// We should be able to us Init() to subscribe to hooks like so
 		// Subscribe("ae0577348a5140ea9aa861cd71c31e7c");
+	}
+#pragma warning restore IDE0051
+
+	public override void OnEnabled(bool initialized)
+	{
+		if (ConVar.Net.visibilityRadiusFarOverride == -1)
+			ConVar.Net.visibilityRadiusFarOverride = 6;
+
+		if (ConVar.Net.visibilityRadiusNearOverride == -1)
+			ConVar.Net.visibilityRadiusNearOverride = 4;
+
+		Subscribe("ae0577348a5140ea9aa861cd71c31e7c");
+	}
+
+	public override void OnDisabled(bool initialized)
+	{
+		ConVar.Net.visibilityRadiusFarOverride = -1;
+		ConVar.Net.visibilityRadiusNearOverride = -1;
 	}
 
 	// hardcoded values because this is probably fastest

@@ -19,6 +19,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 	public override bool ForceModded => true;
 	public override Type Type => typeof(StackManagerModule);
 
+#pragma warning disable IDE0051
 	private void OnServerInitialized()
 	{
 		var hasChanged = false;
@@ -36,6 +37,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 		OnEnableStatus();
 	}
+#pragma warning restore IDE0051
 
 	public override void OnEnabled(bool initialized)
 	{

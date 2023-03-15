@@ -313,7 +313,7 @@ namespace Oxide.Plugins
 
 		public object Call(string hook, params object[] args)
 		{
-			return args.Length switch
+			return args?.Length switch
 			{
 				1 => HookCaller.CallHook(this, hook, args[0]),
 				2 => HookCaller.CallHook(this, hook, args[0], args[1]),
