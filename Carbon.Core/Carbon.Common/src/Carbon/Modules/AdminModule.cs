@@ -2062,14 +2062,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var pool = Facepunch.Pool.GetList<BaseEntity>();
 			EntityCount = 0;
 
-			var usedFilter = Filter.ToLower().Trim();
+			var usedFilter = Filter?.ToLower()?.Trim();
 			using var map = Entities.Get<BaseEntity>(true);
 			map.Each(entity =>
 			{
 				pool.Add(entity);
 				EntityCount++;
 			}, entity => entity != null && entity.transform != null && entity.transform.position != Vector3.zero
-				&& (string.IsNullOrEmpty(Filter) || entity.name.ToLower().Contains(usedFilter) || entity.GetType().Name.ToLower() == usedFilter)
+				&& (string.IsNullOrEmpty(usedFilter) || entity.name.ToLower().Contains(usedFilter) || entity.GetType().Name?.ToLower() == usedFilter)
 				&& (Range == -1 || ap3 == null || Vector3.Distance(ap3.Player.transform.position, entity.transform.position) <= Range));
 
 			tab.AddRange(0, "Range", 0, World.Size, () => Range, (ap, value) => { Range = value; DrawEntities(tab, ap); }, () => $"{Range:0.0}m");

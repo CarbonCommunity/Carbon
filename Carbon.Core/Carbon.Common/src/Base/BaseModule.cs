@@ -21,6 +21,7 @@ public abstract class BaseModule : BaseHookable
 	public virtual bool ForceModded => false;
 	public virtual bool Disabled => false;
 
+	public abstract void OnServerInit();
 	public abstract void Load();
 	public abstract void Save();
 	public abstract bool GetEnabled();
@@ -60,8 +61,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	protected void PutsWarn(object message)
 		=> Logger.Warn($"[{Name}] {message}");
 
-	protected bool PreviouslyEnabled { get; set; }
-
 	public virtual void Dispose()
 	{
 		Config = null;
@@ -94,7 +93,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 		Load();
-		OnEnableStatus();
 	}
 	public virtual void InitEnd()
 	{
@@ -164,8 +162,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		if (ModuleConfiguration != null)
 		{
 			ModuleConfiguration.Enabled = enable;
-			if(PreviouslyEnabled != enable) OnEnableStatus();
-			PreviouslyEnabled = enable;
+			OnEnableStatus();
 		}
 	}
 	public override bool GetEnabled()
@@ -188,11 +185,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-		if (Community.IsServerFullyInitialized)
-		{
-			HookCaller.CallHook(this, "OnServerInitialized");
-		}
-
 		foreach (var hook in Hooks)
 		{
 			Subscribe(hook.Key);
@@ -205,14 +197,17 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		try
 		{
-			if (ModuleConfiguration != null && ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized); else OnDisabled(Community.IsServerFullyInitialized);
+			if (ModuleConfiguration == null) return;
+
+			if (ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized);
+			else OnDisabled(Community.IsServerFullyInitialized);
 		}
 		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}
 
-	private void OnServerInitialized()
+	public override void OnServerInit()
 	{
-		if (GetEnabled()) OnEnableStatus();
+		OnEnableStatus();
 	}
 
 	public class Configuration : IModuleConfig

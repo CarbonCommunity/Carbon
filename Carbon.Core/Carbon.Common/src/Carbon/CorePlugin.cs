@@ -34,7 +34,6 @@ public class CorePlugin : CarbonPlugin
 {
 	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
-
 	public static void RefreshOrderedFiles()
 	{
 		OrderedFiles.Clear();
@@ -83,6 +82,11 @@ public class CorePlugin : CarbonPlugin
 			if (!Logger._file._hasInit || Logger._file._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
 			Logger._file._flush();
 		});
+	}
+
+	private void OnServerInitialized()
+	{
+		Community.Runtime.ModuleProcessor.OnServerInit();
 	}
 
 	private void OnPluginLoaded(Plugin plugin)
