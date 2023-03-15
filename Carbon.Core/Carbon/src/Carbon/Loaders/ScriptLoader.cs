@@ -13,6 +13,7 @@ using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Jobs;
 using Facepunch;
+using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
@@ -140,44 +141,47 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			yield break;
 		}
 
-		var lines = Source.Split('\n');
+		var lines = Source?.Split('\n');
 		var resultReferences = Pool.GetList<string>();
-		foreach (var reference in lines)
-		{
-			try
-			{
-				if (reference.StartsWith("// Reference:") || reference.StartsWith("//Reference:"))
-				{
-					var @ref = $"{reference.Replace("// Reference:", "").Replace("//Reference:", "")}".Trim();
-					resultReferences.Add(@ref);
-					Logger.Log($" Added reference: {@ref}");
-				}
-			}
-			catch { }
-		}
-
 		var resultRequires = Pool.GetList<string>();
-		foreach (var require in lines)
-		{
-			try
-			{
-				if (require.StartsWith("// Requires:") || require.StartsWith("//Requires:"))
-				{
 
-					var @ref = $"{require.Replace("// Requires:", "").Replace("//Requires:", "")}".Trim();
-					resultRequires.Add(@ref);
-					Logger.Log($" Added required plugin: {@ref}");
+		if (lines != null)
+		{
+			foreach (var line in lines)
+			{
+				try
+				{
+					if (line.StartsWith("// Reference:") || line.StartsWith("//Reference:"))
+					{
+						var @ref = $"{line.Replace("// Reference:", "").Replace("//Reference:", "")}".Trim();
+						resultReferences.Add(@ref);
+						Logger.Log($" Added reference: {@ref}");
+					}
 				}
+				catch { }
+				try
+				{
+					if (line.StartsWith("// Requires:") || line.StartsWith("//Requires:"))
+					{
+
+						var @ref = $"{line.Replace("// Requires:", "").Replace("//Requires:", "")}".Trim();
+						resultRequires.Add(@ref);
+						Logger.Log($" Added required plugin: {@ref}");
+					}
+				}
+				catch { }
 			}
-			catch { }
 		}
 
 		Pool.Free(ref lines);
-		AsyncLoader.FilePath = File;
-		AsyncLoader.Source = Source;
-		AsyncLoader.References = resultReferences?.ToArray();
-		AsyncLoader.Requires = resultRequires?.ToArray();
-		AsyncLoader.IsExtension = IsExtension;
+		if (AsyncLoader != null)
+		{
+			AsyncLoader.FilePath = File;
+			AsyncLoader.Source = Source;
+			AsyncLoader.References = resultReferences?.ToArray();
+			AsyncLoader.Requires = resultRequires?.ToArray();
+			AsyncLoader.IsExtension = IsExtension;
+		}
 		Pool.FreeList(ref resultReferences);
 		Pool.FreeList(ref resultRequires);
 
