@@ -19,6 +19,7 @@ public abstract class BaseModule : BaseHookable
 {
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
+	public virtual bool Disabled => false;
 
 	public abstract void Load();
 	public abstract void Save();
@@ -70,6 +71,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		base.Name = Name;
 		base.Type = Type;
 
+		if (Disabled) return;
+
 		Hooks = new();
 
 		Community.Runtime.HookManager.LoadHooksFromType(Type);
@@ -93,7 +96,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public virtual void InitEnd()
 	{
-		Puts($"Initialized.");
+		Puts(Disabled ? "Disabled." : $"Initialized.");
 	}
 	public override void Load()
 	{
@@ -154,6 +157,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public override void SetEnabled(bool enable)
 	{
+		if (Disabled) return;
+
 		if (ModuleConfiguration != null)
 		{
 			ModuleConfiguration.Enabled = enable;
@@ -162,7 +167,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override bool GetEnabled()
 	{
-		return ModuleConfiguration != null && ModuleConfiguration.Enabled;
+		return !Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled;
 	}
 
 	public virtual void OnDisabled(bool initialized)
