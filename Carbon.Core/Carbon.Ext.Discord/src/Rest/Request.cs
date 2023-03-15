@@ -212,7 +212,7 @@ namespace Oxide.Ext.Discord.Rest
 			this.SetRequestBody();
 			HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(this.RequestUrl);
 			httpWebRequest.Method = this.Method.ToString();
-			httpWebRequest.UserAgent = "DiscordBot (https://github.com/CarbonCommunity/Carbon.Core, " + Community.InformationalVersion + ")";
+			httpWebRequest.UserAgent = "DiscordBot (https://github.com/Kirollos/Oxide.Ext.Discord, 2.1.9)";
 			httpWebRequest.Timeout = 15000;
 			httpWebRequest.ContentLength = 0L;
 			httpWebRequest.Headers.Set("Authorization", this._authHeader);
