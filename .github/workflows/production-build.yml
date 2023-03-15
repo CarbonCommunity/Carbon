@@ -137,7 +137,7 @@ jobs:
         path: Release/
         
     - name: 🗑️ Delete existing release tag
-      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
       with:
         delete_release: true
         tag_name: production_build
