@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Carbon.Base;
+using Carbon.Extensions;
 using UnityEngine;
 
 /*
@@ -19,26 +20,6 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 	public override bool ForceModded => true;
 	public override Type Type => typeof(StackManagerModule);
 
-#pragma warning disable IDE0051
-	private void OnServerInitialized()
-	{
-		var hasChanged = false;
-		foreach (var item in ItemManager.itemList)
-		{
-			if (!DataInstance.Items.ContainsKey(item.shortname))
-			{
-				DataInstance.Items.Add(item.shortname, item.stackable);
-			}
-
-			hasChanged = true;
-		}
-
-		if (hasChanged) Save();
-
-		OnEnableStatus();
-	}
-#pragma warning restore IDE0051
-
 	public override void OnEnabled(bool initialized)
 	{
 		base.OnEnabled(initialized);
@@ -53,7 +34,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 				DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
-				item.stackable = Mathf.Clamp((int)(originalStack * category.Value * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
+				if(originalStack > 0) item.stackable = Mathf.Clamp((int)(originalStack * category.Value * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
 			}
 		}
 
@@ -65,7 +46,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 			DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
-			item.stackable = Mathf.Clamp((int)(originalStack * multiplier * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
+			if (originalStack > 0) item.stackable = Mathf.Clamp((int)(originalStack * multiplier * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
 		}
 	}
 	public override void OnDisabled(bool initialized)
@@ -84,7 +65,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 				DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
-				item.stackable = originalStack;
+				if (originalStack > 0) item.stackable = originalStack.Clamp(1, int.MaxValue);
 			}
 		}
 
@@ -94,8 +75,26 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 			DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
-			item.stackable = originalStack;
+			if (originalStack > 0) item.stackable = originalStack.Clamp(1, int.MaxValue);
 		}
+	}
+
+	public override void OnServerInit()
+	{
+		var hasChanged = false;
+		foreach (var item in ItemManager.itemList)
+		{
+			if (!DataInstance.Items.ContainsKey(item.shortname))
+			{
+				DataInstance.Items.Add(item.shortname, item.stackable);
+
+				hasChanged = true;
+			}
+		}
+
+		if (hasChanged) Save();
+
+		base.OnServerInit();
 	}
 }
 
