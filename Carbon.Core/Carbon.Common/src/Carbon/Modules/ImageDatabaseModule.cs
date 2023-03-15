@@ -374,7 +374,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 		if (_protoData.Map.TryGetValue($"{keyOrUrl}_{id}", out var uid))
 		{
-			if (!silent && ConfigInstance.PrintCompletedBatchLogs) Puts($"Retrieved image '{keyOrUrl}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+			if (!silent && ConfigInstance.PrintRetrievedImageLogs) Puts($"Retrieved image '{keyOrUrl}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 			return uid;
 		}
 
