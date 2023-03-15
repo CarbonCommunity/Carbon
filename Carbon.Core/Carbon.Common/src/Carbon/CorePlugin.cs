@@ -32,12 +32,11 @@ public class CorePlugin : CarbonPlugin
 {
 	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
-
 	public static void RefreshOrderedFiles()
 	{
 		OrderedFiles.Clear();
 
-		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs"))
+		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", SearchOption.TopDirectoryOnly))
 		{
 			OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
 		}
@@ -320,6 +319,18 @@ public class CorePlugin : CarbonPlugin
 		}
 
 		return hook2;
+	}
+	private void IOnServerShutdown()
+	{
+		Logger.Log($"Saving plugin configuration and data..");
+		HookCaller.CallStaticHook("OnServerSave");
+
+		Logger.Log($"Saving Carbon state..");
+		Interface.Oxide.Permission.SaveData();
+
+		Logger.Log($"Shutting down Carbon..");
+		Interface.Oxide.OnShutdown();
+		Community.Runtime.ScriptProcessor.Clear();
 	}
 
 	#endregion
