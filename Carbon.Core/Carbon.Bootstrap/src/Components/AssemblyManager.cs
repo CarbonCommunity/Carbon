@@ -1,4 +1,4 @@
-#define DEBUG_VERBOSE
+//#define DEBUG_VERBOSE
 #pragma warning disable IDE0051
 
 using System;

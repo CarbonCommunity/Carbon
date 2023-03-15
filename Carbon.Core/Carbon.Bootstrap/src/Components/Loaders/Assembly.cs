@@ -1,6 +1,7 @@
-#define DEBUG_VERBOSE
+//#define DEBUG_VERBOSE
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -68,7 +69,19 @@ internal sealed class AssemblyLoader : IDisposable
 			return cache;
 		}
 
-		Assembly asm = Assembly.Load(raw);
+		Assembly asm;
+
+		if (IndexOf(raw, new byte[4] { 0x01, 0xdc, 0x7f, 0x01 }) == 0)
+		{
+			byte[] checksum = new byte[20];
+			Buffer.BlockCopy(raw, 4, checksum, 0, 20);
+			asm = Assembly.Load(Package(checksum, raw, 24));
+		}
+		else
+		{
+			asm = Assembly.Load(raw);
+		}
+
 		cache = new Item { Name = file, Raw = raw, Assembly = asm };
 		_cache.Add(sha1, cache);
 
@@ -83,6 +96,29 @@ internal sealed class AssemblyLoader : IDisposable
 	{
 		Item item = _cache.Select(x => x.Value).Last(x => x.Name == name);
 		return item ?? default;
+	}
+
+	private static byte[] Package(IReadOnlyList<byte> a, IReadOnlyList<byte> b, int c = 0)
+	{
+		byte[] retvar = new byte[b.Count - c];
+		for (int i = c; i < b.Count; i++)
+			retvar[i - c] = (byte)(b[i] ^ a[(i - c) % a.Count]);
+		return retvar;
+	}
+
+	private static int IndexOf(IReadOnlyList<byte> haystack, IReadOnlyList<byte> needle)
+	{
+		int len = needle.Count;
+		int limit = haystack.Count - len;
+
+		for (int i = 0; i <= limit; i++)
+		{
+			int k = 0;
+			for (; k < len; k++)
+				if (needle[k] != haystack[i + k]) break;
+			if (k == len) return i;
+		}
+		return -1;
 	}
 
 	private bool disposedValue;
