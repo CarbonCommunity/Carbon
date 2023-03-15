@@ -76,13 +76,13 @@ internal sealed class Loader : Singleton<Loader>, IDisposable
 
 		Events.Subscribe(CarbonEvent.StartupShared, x =>
 		{
-			AssemblyEx.LoadComponent("Carbon.dll", this);
+			AssemblyEx.LoadComponent("Carbon.dll", "Loader.ctor");
 		});
 
 		Events.Subscribe(CarbonEvent.CarbonStartupComplete, x =>
 		{
 			Watcher.enabled = true;
-			AssemblyEx.LoadModule("Carbon.Modules.dll", this);
+			AssemblyEx.LoadModule("Carbon.Modules.dll", "Loader.ctor");
 		});
 	}
 
