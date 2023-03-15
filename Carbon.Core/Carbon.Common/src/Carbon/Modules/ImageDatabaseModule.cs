@@ -261,13 +261,17 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		{
 			try
 			{
-				onComplete?.Invoke(results);
-				if (ConfigInstance.PrintCompletedBatchLogs && results.Count > 0) Puts($"Completed queue of {results.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+				if (results != null)
+				{
+					onComplete?.Invoke(results);
+					if (ConfigInstance.PrintCompletedBatchLogs && results.Count > 0) Puts($"Completed queue of {results.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+				}
+
 				_queue.Remove(thread);
 			}
 			catch (Exception ex)
 			{
-				PutsError($"Failed QueueBatch of {urls.Length:n0}.", ex);
+				PutsWarn($"Failed QueueBatch of {urls.Length:n0}. ({ex.Message})");
 			}
 		}));
 
