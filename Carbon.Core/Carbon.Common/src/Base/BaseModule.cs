@@ -19,7 +19,9 @@ public abstract class BaseModule : BaseHookable
 {
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
+	public virtual bool Disabled => false;
 
+	public abstract void OnServerInit();
 	public abstract void Load();
 	public abstract void Save();
 	public abstract bool GetEnabled();
@@ -70,6 +72,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		base.Name = Name;
 		base.Type = Type;
 
+		if (Disabled) return;
+
 		Hooks = new();
 
 		Community.Runtime.HookManager.LoadHooksFromType(Type);
@@ -89,11 +93,10 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 		Load();
-		OnEnableStatus();
 	}
 	public virtual void InitEnd()
 	{
-		Puts($"Initialized.");
+		Puts(Disabled ? "Disabled." : $"Initialized.");
 	}
 	public override void Load()
 	{
@@ -154,6 +157,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public override void SetEnabled(bool enable)
 	{
+		if (Disabled) return;
+
 		if (ModuleConfiguration != null)
 		{
 			ModuleConfiguration.Enabled = enable;
@@ -162,7 +167,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override bool GetEnabled()
 	{
-		return ModuleConfiguration != null && ModuleConfiguration.Enabled;
+		return !Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled;
 	}
 
 	public virtual void OnDisabled(bool initialized)
@@ -180,11 +185,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-		if (Community.IsServerFullyInitialized)
-		{
-			HookCaller.CallHook(this, "OnServerInitialized");
-		}
-
 		foreach (var hook in Hooks)
 		{
 			Subscribe(hook.Key);
@@ -197,14 +197,17 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		try
 		{
-			if (ModuleConfiguration != null && ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized); else OnDisabled(Community.IsServerFullyInitialized);
+			if (ModuleConfiguration == null) return;
+
+			if (ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized);
+			else OnDisabled(Community.IsServerFullyInitialized);
 		}
 		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}
 
-	private void OnServerInitialized()
+	public override void OnServerInit()
 	{
-		if (GetEnabled()) OnEnableStatus();
+		OnEnableStatus();
 	}
 
 	public class Configuration : IModuleConfig

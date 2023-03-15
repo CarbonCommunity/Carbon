@@ -111,27 +111,34 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		}
 
 		public override void Process(string input, out string output)
-		{	
-			output = input
-				.Replace("using Harmony;", "using HarmonyLib;")
-				.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
-				.Replace("HarmonyInstance", "HarmonyLib.Harmony")
-
-				.Replace("PluginTimers", "Timers");
-
-			var newOutput = string.Empty;
-			var split = output.Split('\n');
-
-			foreach (var line in split)
+		{
+			try
 			{
-				if (!IsLineValid(line)) continue;
+				output = input
+					.Replace("using Harmony;", "using HarmonyLib;")
+					.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
+					.Replace("HarmonyInstance", "HarmonyLib.Harmony")
 
-				newOutput += line + "\n";
+					.Replace("PluginTimers", "Timers");
+
+				var newOutput = string.Empty;
+				var split = output.Split('\n');
+
+				foreach (var line in split)
+				{
+					if (!IsLineValid(line)) continue;
+
+					newOutput += line + "\n";
+				}
+
+				output = newOutput;
+				Array.Clear(split, 0, split.Length);
+				split = null;
 			}
-
-			output = newOutput;
-			Array.Clear(split, 0, split.Length);
-			split = null;
+			catch
+			{
+				output = input;
+			}
 		}
 	}
 }

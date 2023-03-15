@@ -31,14 +31,7 @@ public partial class Category_Static
 
 				try
 				{
-					if (Community.Runtime.Config.CarbonTag)
-					{
-						ServerTagEx.SetRequiredTag("carbon");
-					}
-					else
-					{
-						ServerTagEx.UnsetRequiredTag("carbon");
-					}
+					ServerTagEx.SetRequiredTag("carbon");
 
 					if (Community.Runtime.Config.IsModded || ForceModded)
 					{

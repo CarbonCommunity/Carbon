@@ -34,6 +34,8 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		}
 
 		if (hasChanged) Save();
+
+		OnEnableStatus();
 	}
 #pragma warning restore IDE0051
 
