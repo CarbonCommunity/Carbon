@@ -139,7 +139,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🏷️ Update release tag
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
       with:
         draft: false
         prerelease: true
