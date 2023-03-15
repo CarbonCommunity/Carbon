@@ -60,6 +60,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	protected void PutsWarn(object message)
 		=> Logger.Warn($"[{Name}] {message}");
 
+	protected bool PreviouslyEnabled { get; set; }
+
 	public virtual void Dispose()
 	{
 		Config = null;
@@ -162,7 +164,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		if (ModuleConfiguration != null)
 		{
 			ModuleConfiguration.Enabled = enable;
-			OnEnableStatus();
+			if(PreviouslyEnabled != enable) OnEnableStatus();
+			PreviouslyEnabled = enable;
 		}
 	}
 	public override bool GetEnabled()
