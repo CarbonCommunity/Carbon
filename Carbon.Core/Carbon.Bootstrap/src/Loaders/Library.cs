@@ -12,7 +12,7 @@ using Utility;
  *
  */
 
-namespace Components.Loaders;
+namespace Loaders;
 
 //#define DEBUG_VERBOSE
 
