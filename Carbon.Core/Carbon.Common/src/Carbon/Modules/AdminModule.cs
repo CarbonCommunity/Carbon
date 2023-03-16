@@ -902,7 +902,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var container = cui.CreateContainer(PanelId,
 				color: "0 0 0 0.75",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
-				needsCursor: true, destroyUi: PanelId, parent: CUI.ClientPanels.Hud);
+				needsCursor: true, destroyUi: PanelId, parent: CUI.ClientPanels.HudMenu);
 
 			using (TimeMeasure.New($"{Name}.Main"))
 			{
@@ -1681,6 +1681,23 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public static Core.Config Config => Community.Runtime.Config;
 		public static string Command;
 
+		internal static string[] LogFileModes = new string[]
+		{
+			"Disabled",
+			"Save every 5 min.",
+			"Save immediately"
+		};
+		internal static string[] LogVerbosity = new string[]
+		{
+			"Normal",
+			"Level 1",
+			"Level 2",
+			"Level 3",
+			"Level 4",
+			"Level 5",
+			"Level 6"
+		};
+
 		public static Tab Get()
 		{
 			var tab = new Tab("carbon", "Carbon", Community.Runtime.CorePlugin, (ap, t) => { if (t.Id == "carbon") Refresh(t); });
@@ -1741,8 +1758,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddToggle(1, "File Name Check", ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck);
 
 				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
-				tab.AddInput(1, "Log File Mode", () => Config.LogFileMode.ToString(), (ap, args) => { Config.LogFileMode = args[0].ToInt().Clamp(0, 2); Community.Runtime.SaveConfig(); });
-				tab.AddInput(1, "Log Verbosity (Debug)", () => Config.LogVerbosity.ToString(), (ap, args) => { Config.LogVerbosity = args[0].ToInt().Clamp(0, 10); Community.Runtime.SaveConfig(); });
+				tab.AddDropdown(1, "Log File Mode", () => Config.LogFileMode, index => { Config.LogFileMode = index; Community.Runtime.SaveConfig(); }, LogFileModes);
+				tab.AddDropdown(1, "Log Verbosity (Debug)", () => Config.LogVerbosity, index => { Config.LogVerbosity = index; Community.Runtime.SaveConfig(); }, LogVerbosity);
 				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Logger.Severity)));
 
 				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
@@ -2342,7 +2359,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			netWrite.PacketID(Network.Message.Type.Entities);
 			netWrite.UInt32(connection.validate.entityUpdates);
 
-			entity.ToStreamForNetwork((Stream)netWrite, new BaseNetworkable.SaveInfo() { forConnection = connection, forDisk = false });
+			entity.ToStreamForNetwork(netWrite, new BaseNetworkable.SaveInfo() { forConnection = connection, forDisk = false });
 			netWrite.Send(new SendInfo(connection));
 		}
 	}
