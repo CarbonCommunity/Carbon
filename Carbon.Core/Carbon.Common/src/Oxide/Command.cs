@@ -25,7 +25,7 @@ namespace Oxide.Game.Rust.Libraries
 	{
 		public static bool FromRcon { get; set; }
 
-		public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0)
+		public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool silent = false)
 		{
 			if (Community.Runtime.AllChatCommands.Count(x => x.Command == command) == 0)
 			{
@@ -47,9 +47,9 @@ namespace Oxide.Game.Rust.Libraries
 					Cooldown = cooldown
 				});
 			}
-			else Logger.Warn($"Chat command '{command}' already exists.");
+			else if(!silent) Logger.Warn($"Chat command '{command}' already exists.");
 		}
-		public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0)
+		public void AddChatCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool silent = false)
 		{
 			AddChatCommand(command, plugin, (player, cmd, args) =>
 			{
@@ -108,9 +108,9 @@ namespace Oxide.Game.Rust.Libraries
 
 				if (arguments != null) Pool.FreeList(ref arguments);
 				if (result != null) Pool.Free(ref result);
-			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown);
+			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, silent);
 		}
-		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0)
+		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool silent = false)
 		{
 			if (Community.Runtime.AllConsoleCommands.Count(x => x.Command == command) == 0)
 			{
@@ -128,9 +128,9 @@ namespace Oxide.Game.Rust.Libraries
 					Cooldown = cooldown
 				});
 			}
-			else Logger.Warn($"Console command '{command}' already exists.");
+			else if(!silent) Logger.Warn($"Console command '{command}' already exists.");
 		}
-		public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0)
+		public void AddConsoleCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool silent = false)
 		{
 			AddConsoleCommand(command, plugin, (player, cmd, args) =>
 			{
@@ -215,9 +215,9 @@ namespace Oxide.Game.Rust.Libraries
 
 				Pool.FreeList(ref arguments);
 				if (result != null) Pool.Free(ref result);
-			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown);
+			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, silent);
 		}
-		public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0)
+		public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool silent = false)
 		{
 			AddConsoleCommand(command, plugin, (player, cmd, args) =>
 			{
@@ -253,17 +253,17 @@ namespace Oxide.Game.Rust.Libraries
 
 				Pool.FreeList(ref arguments);
 				if (result != null) Pool.Free(ref result);
-			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown);
+			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, silent);
 		}
-		public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0)
+		public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool silent = true)
 		{
-			AddChatCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups, authLevel, cooldown);
-			AddConsoleCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups, authLevel, cooldown);
+			AddChatCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, silent);
+			AddConsoleCommand(command, plugin, method, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, silent);
 		}
-		public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0)
+		public void AddCovalenceCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool silent = true)
 		{
-			AddChatCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups, authLevel, cooldown);
-			AddConsoleCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups, authLevel, cooldown );
+			AddChatCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, silent);
+			AddConsoleCommand(command, plugin, callback, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, silent);
 		}
 
 		public void RemoveChatCommand(string command, BaseHookable plugin = null)
