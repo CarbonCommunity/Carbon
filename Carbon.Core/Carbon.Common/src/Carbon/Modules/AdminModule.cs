@@ -2415,20 +2415,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			Vendor = VendorTypes.Codefling.ToString();
 
-			var payload = new Dictionary<string, string>()
-			{
-				["umodlogo"] = "https://carbonmod.gg/assets/media/cui/umod-logo.png",
-				["clouddl"] = "https://carbonmod.gg/assets/media/cui/cloud-dl.png",
-				["trashcan"] = "https://carbonmod.gg/assets/media/cui/trash-can.png",
-				["shopping"] = "https://carbonmod.gg/assets/media/cui/shopping-cart.png",
-				["installed"] = "https://carbonmod.gg/assets/media/cui/installed.png",
-				["update-pending"] = "https://carbonmod.gg/assets/media/cui/update-pending.png",
-				["magnifying-glass"] = "https://carbonmod.gg/assets/media/cui/magnifying-glass.png",
-				["star"] = "https://carbonmod.gg/assets/media/cui/star.png"
-			};
-
-			Instance.ImageDatabase.Queue(true, payload);
-
 			OsEx.Folder.Create(Path.Combine(Carbon.Core.Defines.GetScriptFolder(), "backups"));
 
 			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) => { SelectedPlugin = null; })

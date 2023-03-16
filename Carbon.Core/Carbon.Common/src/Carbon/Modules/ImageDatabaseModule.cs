@@ -42,7 +42,15 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		["carbonbs"] = "https://carbonmod.gg/assets/media/carbonlogo_bs.png",
 		["carbonws"] = "https://carbonmod.gg/assets/media/carbonlogo_ws.png",
 		["cflogo"] = "https://carbonmod.gg/assets/media/cui/codefling-logo.png",
-		["checkmark"] = "https://carbonmod.gg/assets/media/cui/checkmark.png"
+		["checkmark"] = "https://carbonmod.gg/assets/media/cui/checkmark.png",
+		["umodlogo"] = "https://carbonmod.gg/assets/media/cui/umod-logo.png",
+		["clouddl"] = "https://carbonmod.gg/assets/media/cui/cloud-dl.png",
+		["trashcan"] = "https://carbonmod.gg/assets/media/cui/trash-can.png",
+		["shopping"] = "https://carbonmod.gg/assets/media/cui/shopping-cart.png",
+		["installed"] = "https://carbonmod.gg/assets/media/cui/installed.png",
+		["update-pending"] = "https://carbonmod.gg/assets/media/cui/update-pending.png",
+		["magnifying-glass"] = "https://carbonmod.gg/assets/media/cui/magnifying-glass.png",
+		["star"] = "https://carbonmod.gg/assets/media/cui/star.png"
 	};
 	internal IEnumerator _executeQueue(QueuedThread thread, Action<List<QueuedThreadResult>> onFinished)
 	{
