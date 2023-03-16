@@ -1,6 +1,4 @@
-﻿//#define DEBUG_VERBOSE
-
-using System;
+﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,6 +18,8 @@ using Microsoft.CodeAnalysis.CSharp;
  */
 
 namespace Carbon.Jobs;
+
+//#define DEBUG_VERBOSE
 
 public class ScriptCompilationThread : BaseThreadedJob
 {

@@ -1,6 +1,4 @@
-﻿//#define DEBUG_VERBOSE
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -13,6 +11,8 @@ using System.Reflection;
  */
 
 namespace Utility;
+
+//#define DEBUG_VERBOSE
 
 internal sealed class Logger
 {

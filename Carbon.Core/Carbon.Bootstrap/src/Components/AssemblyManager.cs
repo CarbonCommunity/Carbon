@@ -1,6 +1,3 @@
-//#define DEBUG_VERBOSE
-#pragma warning disable IDE0051
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +15,9 @@ using Utility;
  */
 
 namespace Components;
+
+//#define DEBUG_VERBOSE
+#pragma warning disable IDE0051
 
 /*
 	Types of assemblies:

@@ -1,5 +1,3 @@
-//#define DEBUG_VERBOSE
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +14,8 @@ using Utility;
  */
 
 namespace Components.Loaders;
+
+//#define DEBUG_VERBOSE
 
 internal sealed class AssemblyLoader : IDisposable
 {

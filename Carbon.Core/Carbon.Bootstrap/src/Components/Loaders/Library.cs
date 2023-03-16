@@ -1,5 +1,3 @@
-//#define DEBUG_VERBOSE
-
 using System;
 using System.IO;
 using System.Linq;
@@ -15,6 +13,8 @@ using Utility;
  */
 
 namespace Components.Loaders;
+
+//#define DEBUG_VERBOSE
 
 internal sealed class LibraryLoader : IDisposable
 {
