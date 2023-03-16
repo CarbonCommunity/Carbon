@@ -101,18 +101,24 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		base.OnEnabled(initialized);
 
-		UnityEngine.Application.logMessageReceived += OnLog;
+		if (initialized)
+		{
+			UnityEngine.Application.logMessageReceived += OnLog;
+		}
 	}
 	public override void OnDisabled(bool initialized)
 	{
-		foreach (var player in BasePlayer.activePlayerList)
+		if (initialized)
 		{
-			Close(player);
+			foreach (var player in BasePlayer.activePlayerList)
+			{
+				Close(player);
+			}
+
+			UnityEngine.Application.logMessageReceived -= OnLog;
 		}
 
 		base.OnDisabled(initialized);
-
-		UnityEngine.Application.logMessageReceived -= OnLog;
 	}
 
 	private void OnLog(string condition, string stackTrace, LogType type)
@@ -2392,7 +2398,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var carbonModule = module.GetType();
 			tab.AddInput(1, "Name", () => module.Name, null);
-			tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
+			tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
 			tab.AddButtonArray(1,
 				new Tab.OptionButton("Save", ap => { module.Save(); }),
 				new Tab.OptionButton("Load", ap => { module.Load(); }));

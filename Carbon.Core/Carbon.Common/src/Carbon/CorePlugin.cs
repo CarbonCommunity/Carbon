@@ -330,9 +330,6 @@ public class CorePlugin : CarbonPlugin
 		Logger.Log($"Saving plugin configuration and data..");
 		HookCaller.CallStaticHook("OnServerSave");
 
-		Logger.Log($"Saving Carbon state..");
-		Interface.Oxide.Permission.SaveData();
-
 		Logger.Log($"Shutting down Carbon..");
 		Interface.Oxide.OnShutdown();
 		Community.Runtime.ScriptProcessor.Clear();
