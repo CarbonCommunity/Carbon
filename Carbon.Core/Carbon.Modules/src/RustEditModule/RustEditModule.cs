@@ -136,6 +136,16 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		#endregion
 	}
 
+	public override void Load()
+	{
+		base.Load();
+
+		if (!GetEnabled())
+		{
+			UnsubscribeAll();
+		}
+	}
+
 	#region Hooks
 
 	private object CanBradleyApcTarget(BradleyAPC apc, BaseEntity entity)

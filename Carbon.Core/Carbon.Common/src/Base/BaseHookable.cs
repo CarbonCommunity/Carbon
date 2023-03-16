@@ -107,6 +107,25 @@ public class BaseHookable
 		return IgnoredHooks == null || IgnoredHooks.Contains(hook);
 	}
 
+	public void SubscribeAll(Func<string, bool> condition = null)
+	{
+		foreach (var hook in Hooks)
+		{
+			if (condition != null && !condition(hook.Key)) continue;
+
+			Subscribe(hook.Key);
+		}
+	}
+	public void UnsubscribeAll(Func<string, bool> condition = null)
+	{
+		foreach(var hook in Hooks)
+		{
+			if (condition != null && !condition(hook.Key)) continue;
+
+			Unsubscribe(hook.Key);
+		}
+	}
+
 	public T To<T>()
 	{
 		if (this is T result)
