@@ -15,7 +15,6 @@ namespace Carbon.Core;
 public class Config
 {
 	public bool AutoUpdate { get; set; } = true;
-	public bool CarbonTag { get; set; } = true;
 	public bool HarmonyReference { get; set; } = false;
 	public bool ScriptWatchers { get; set; } = true;
 	public bool HookTimeTracker { get; set; } = false;

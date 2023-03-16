@@ -261,13 +261,17 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		{
 			try
 			{
-				onComplete?.Invoke(results);
-				if (ConfigInstance.PrintCompletedBatchLogs && results.Count > 0) Puts($"Completed queue of {results.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+				if (results != null)
+				{
+					onComplete?.Invoke(results);
+					if (ConfigInstance.PrintCompletedBatchLogs && results.Count > 0) Puts($"Completed queue of {results.Count:n0} urls (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+				}
+
 				_queue.Remove(thread);
 			}
 			catch (Exception ex)
 			{
-				PutsError($"Failed QueueBatch of {urls.Length:n0}.", ex);
+				PutsWarn($"Failed QueueBatch of {urls.Length:n0}. ({ex.Message})");
 			}
 		}));
 
@@ -363,26 +367,26 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		if (_protoData.CustomMap.ContainsKey(key)) _protoData.CustomMap.Remove(key);
 	}
 
-	public uint GetImage(string url, float scale = 0, bool silent = false)
+	public uint GetImage(string keyOrUrl, float scale = 0, bool silent = false)
 	{
-		if (_protoData.CustomMap.TryGetValue(url, out var realUrl))
+		if (_protoData.CustomMap.TryGetValue(keyOrUrl, out var realUrl))
 		{
-			url = realUrl;
+			keyOrUrl = realUrl;
 		}
 
 		var id = scale == 0 ? "0" : scale.ToString("0.0");
 
-		if (_protoData.Map.TryGetValue($"{url}_{id}", out var uid))
+		if (_protoData.Map.TryGetValue($"{keyOrUrl}_{id}", out var uid))
 		{
-			if (!silent && ConfigInstance.PrintCompletedBatchLogs) Puts($"Retrieved image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+			if (!silent && ConfigInstance.PrintRetrievedImageLogs) Puts($"Retrieved image '{keyOrUrl}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 			return uid;
 		}
 
-		return scale != 0 ? GetImage(url, 0, silent) : 0;
+		return scale != 0 ? GetImage(keyOrUrl, 0, silent) : 0;
 	}
-	public string GetImageString(string url, float scale = 0, bool silent = false)
+	public string GetImageString(string keyOrUrl, float scale = 0, bool silent = false)
 	{
-		return GetImage(url, scale, silent).ToString();
+		return GetImage(keyOrUrl, scale, silent).ToString();
 	}
 	public bool DeleteImage(string url, float scale = 0)
 	{

@@ -1,15 +1,14 @@
-﻿// #define DEBUG_VERBOSE
+﻿//#define DEBUG_VERBOSE
 
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Carbon.Base;
+using Carbon.Components;
 using Carbon.Core;
-using K4os.Compression.LZ4.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -30,11 +29,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string[] References;
 	public string[] Requires;
 	public bool IsExtension;
-	public List<string> Usings = new ();
-	public Dictionary<Type, List<string>> Hooks = new ();
-	public Dictionary<Type, List<string>> UnsupportedHooks = new ();
-	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new ();
-	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new ();
+	public List<string> Usings = new();
+	public Dictionary<Type, Dictionary<string, Priorities>> Hooks = new();
+	public Dictionary<Type, List<string>> UnsupportedHooks = new();
+	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
+	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
 	public float CompileTime;
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new();
@@ -52,6 +51,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		return result;
 	}
+
 	internal static byte[] _getExtensionPlugin(string name)
 	{
 		if (!_extensionCompilationCache.TryGetValue(name, out var result)) return null;
@@ -75,6 +75,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Array.Clear(plugin, 0, plugin.Length);
 		try { _compilationCache[name] = pluginAssembly; } catch { }
 	}
+
 	internal static void _overrideExtensionPlugin(string name, byte[] pluginAssembly)
 	{
 		if (pluginAssembly == null) return;
@@ -89,6 +90,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Array.Clear(plugin, 0, plugin.Length);
 		try { _extensionCompilationCache[name] = pluginAssembly; } catch { }
 	}
+
 	internal static void _clearExtensionPlugin(string name)
 	{
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.Remove(name);
@@ -99,55 +101,44 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		if (_referenceCache.TryGetValue(name, out var reference))
 		{
+			Logger.Debug(id, $"Added common references from cache '{name}'", 4);
 			references.Add(reference);
 		}
 		else
 		{
-			Logger.Debug(id, $"Added common reference '{name}'", 4);
-			var raw = Supervisor.ASM.ReadAssembly(name);
+			var raw = Community.Runtime.AssemblyEx.Read(name, "ScriptCompilationThread._injectReference");
+			if (raw == null) return;
+
 			using var mem = new MemoryStream(raw);
 			var processedReference = MetadataReference.CreateFromStream(mem);
+
 			references.Add(processedReference);
 			_referenceCache.Add(name, processedReference);
+			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
+
 	internal void _injectExtensionReference(string id, string name, List<MetadataReference> references)
 	{
-		if(!_extensionCompilationCache.TryGetValue(name, out var raw ))
-		{
-			return;
-		}
-
 		if (_extensionReferenceCache.TryGetValue(name, out var reference))
 		{
+			Logger.Debug(id, $"Added common Extension references from cache '{name}'", 4);
 			references.Add(reference);
 		}
 		else
 		{
-			Logger.Debug(id, $"Added common Extension reference '{name}'", 4);
+			var raw = Community.Runtime.AssemblyEx.Read(name, "ScriptCompilationThread._injectReference");
+			if (raw == null) return;
+
 			using var mem = new MemoryStream(raw);
 			var processedReference = MetadataReference.CreateFromStream(mem);
+
 			references.Add(processedReference);
 			_extensionReferenceCache.Add(name, processedReference);
+			Logger.Debug(id, $"Added common Extension reference '{name}'", 4);
 		}
 	}
 
-	internal static MetadataReference _getReferenceFromCache(string reference)
-	{
-		try
-		{
-			byte[] raw = Supervisor.ASM.ReadAssembly(reference);
-			if (raw == null || raw.Length == 0) throw new ArgumentException();
-
-			using (MemoryStream mem = new MemoryStream(raw))
-				return MetadataReference.CreateFromStream(mem);
-		}
-		catch (System.Exception e)
-		{
-			Logger.Error($"_getReferenceFromCache('{reference}') failed", e);
-			return null;
-		}
-	}
 	internal List<MetadataReference> _addReferences()
 	{
 		var references = new List<MetadataReference>();
@@ -170,39 +161,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 			_injectReference(id, "0Harmony", references);
 		}
 
-		foreach(var item in _extensionCompilationCache)
+		foreach (var item in Community.Runtime.AssemblyEx.LoadedExtensions)
 		{
-			_injectExtensionReference(id, item.Key, references);
-		}
-
-		// goes through the requested use list by the plugin
-		foreach (var element in Usings)
-		{
-			try
-			{
-				Logger.Debug(id, $"Added using reference '{element}'", 4);
-				var outReference = MetadataReference.CreateFromFile(Type.GetType(element).Assembly.Location);
-				if (outReference != null && !references.Any(x => x.Display == outReference.Display)) references.Add(outReference);
-			}
-			catch (System.Exception)
-			{
-				Logger.Debug(id, $"Error loading using reference '{element}'", 4);
-			}
-		}
-
-		// goes through the requested references by the plugin
-		foreach (var reference in References)
-		{
-			try
-			{
-				Logger.Debug(id, $"Added require reference '{reference}'", 2);
-				var outReference = _getReferenceFromCache(reference);
-				if (outReference != null && !references.Any(x => x.Display == outReference.Display)) references.Add(outReference);
-			}
-			catch (System.Exception)
-			{
-				Logger.Debug(id, $"Error loading require reference '{reference}'", 2);
-			}
+			_injectExtensionReference(id, item, references);
 		}
 
 		Logger.Debug(id, $"Compiler will use {references.Count} assembly references", 1);
@@ -255,10 +216,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 				{
 					var requiredPlugin = _getPlugin(require);
 
-					using (var dllStream = new MemoryStream(requiredPlugin))
-					{
-						references.Add(MetadataReference.CreateFromStream(dllStream));
-					}
+					using var dllStream = new MemoryStream(requiredPlugin);
+					references.Add(MetadataReference.CreateFromStream(dllStream));
 				}
 				catch { /* do nothing */ }
 			}
@@ -276,44 +235,48 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				var emit = compilation.Emit(dllStream);
 
+				StringTable body = new StringTable("Type", "Line", "Col", "Error", "Description");
+
+				int x = 0;
+				List<string> errors = new();
 				foreach (var error in emit.Diagnostics)
 				{
+#if DEBUG_VERBOSE
+					if (error.Severity != DiagnosticSeverity.Error && error.Severity != DiagnosticSeverity.Warning) continue;
+					if (error.Id == "CS1701") continue; // you may need to supply runtime policy
+#else
+					if (error.Severity != DiagnosticSeverity.Error) continue;
+					if (errors.Contains(error.Id)) continue;
+					errors.Add(error.Id);
+#endif
 					var span = error.Location.GetMappedLineSpan().Span;
-					switch (error.Severity)
-					{
-#if DEBUG_VERBOSE
-							case DiagnosticSeverity.Warning:
-								Logger.Warn($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
-									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
-								break;
-#endif
-						case DiagnosticSeverity.Error:
-#if DEBUG_VERBOSE
-								Logger.Error($"Compile error {error.Id} '{FilePath}' @{span.Start.Line + 1}:{span.Start.Character + 1}" +
-									Environment.NewLine + error.GetMessage(CultureInfo.InvariantCulture));
-#endif
-							Exceptions.Add(new CompilerException(FilePath,
-								new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
-							break;
-					}
+					body.AddRow(
+						$"{error.Severity}", $"{span.Start.Line + 1}", $"{span.Start.Character + 1}",
+						error.Id, error.GetMessage(CultureInfo.InvariantCulture));
+					x++;
+
+					Exceptions.Add(new CompilerException(FilePath,
+						new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 				}
+
+				errors.Clear();
+
+				if (x > 0)
+					Logger.Warn($"Compiler output for '{FilePath}'.{Environment.NewLine}{Environment.NewLine}{body.ToStringMinimal()}");
 
 				if (emit.Success)
 				{
 					var assembly = dllStream.ToArray();
 					if (assembly != null)
 					{
-						if(IsExtension) _overrideExtensionPlugin(FilePath, assembly);
+						if (IsExtension) _overrideExtensionPlugin(FilePath, assembly);
 						_overridePlugin(FileName, assembly);
 						Assembly = Assembly.Load(assembly);
 					}
 				}
 			}
 
-			if (Assembly == null)
-			{
-				throw null;
-			}
+			if (Assembly == null) return;
 
 			CompileTime = (float)(DateTime.Now - TimeSinceCompile).Milliseconds;
 
@@ -324,7 +287,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			foreach (var type in Assembly.GetTypes())
 			{
-				var hooks = new List<string>();
+				var hooks = new Dictionary<string, Priorities>();
 				var unsupportedHooks = new List<string>();
 				var hookMethods = new List<HookMethodAttribute>();
 				var pluginReferences = new List<PluginReferenceAttribute>();
@@ -342,7 +305,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 					{
-						if (!hooks.Contains(method.Name)) hooks.Add(method.Name);
+						var priority = method.GetCustomAttribute<HookPriority>();
+						if (!hooks.ContainsKey(method.Name)) hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
 					}
 					else
 					{

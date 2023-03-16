@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Windows.Shell;
 using API.Events;
 using API.Hooks;
 using Carbon.Base.Interfaces;
@@ -13,7 +12,6 @@ using Carbon.Contracts;
 using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
-using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
@@ -38,7 +36,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		OrderedFiles.Clear();
 
-		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs"))
+		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", SearchOption.TopDirectoryOnly))
 		{
 			OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
 		}
@@ -56,16 +54,19 @@ public class CorePlugin : CarbonPlugin
 
 	public override void IInit()
 	{
-		Hooks = new List<string>()
+		Type = GetType();
+		Hooks = new();
+
+		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
-			"IOnBasePlayerAttacked",
-			"IOnPlayerCommand",
-			"IOnPlayerConnected",
-			"IOnUserApprove",
-			"OnEntityDeath",
-			"OnEntityKill",
-			"OnEntitySpawned",
-		};
+			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+			{
+				Community.Runtime.HookManager.Subscribe(method.Name, Name);
+
+				var priority = method.GetCustomAttribute<HookPriority>();
+				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+			}
+		}
 
 		base.IInit();
 
@@ -79,6 +80,11 @@ public class CorePlugin : CarbonPlugin
 			if (!Logger._file._hasInit || Logger._file._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
 			Logger._file._flush();
 		});
+	}
+
+	private void OnServerInitialized()
+	{
+		Community.Runtime.ModuleProcessor.OnServerInit();
 	}
 
 	private void OnPluginLoaded(Plugin plugin)
@@ -190,6 +196,8 @@ public class CorePlugin : CarbonPlugin
 		return null;
 	}
 
+	internal readonly string[] _emptyStringArray = new string[0];
+
 	private object IOnPlayerCommand(BasePlayer player, string message)
 	{
 		if (Community.Runtime == null) return true;
@@ -199,7 +207,7 @@ public class CorePlugin : CarbonPlugin
 			var fullString = message.Substring(1);
 			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 			var command = split[0].Trim();
-			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : new string[0];
+			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
 			Facepunch.Pool.Free(ref split);
 
 			if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(player.userID), command, args) != null)
@@ -281,12 +289,14 @@ public class CorePlugin : CarbonPlugin
 				}
 			}
 		}
-		catch { }
+		catch(Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }
 
 		return true;
 	}
 	private object IOnServerCommand(ConsoleSystem.Arg arg)
 	{
+		if (arg != null && arg.cmd != null && arg.cmd.FullName == "chat.say") return null;
+
 		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
 		{
 			return null;
@@ -315,6 +325,18 @@ public class CorePlugin : CarbonPlugin
 
 		return hook2;
 	}
+	private void IOnServerShutdown()
+	{
+		Logger.Log($"Saving plugin configuration and data..");
+		HookCaller.CallStaticHook("OnServerSave");
+
+		Logger.Log($"Saving Carbon state..");
+		Interface.Oxide.Permission.SaveData();
+
+		Logger.Log($"Shutting down Carbon..");
+		Interface.Oxide.OnShutdown();
+		Community.Runtime.ScriptProcessor.Clear();
+	}
 
 	#endregion
 
@@ -335,13 +357,15 @@ public class CorePlugin : CarbonPlugin
 	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
 	private void Exit(ConsoleSystem.Arg arg)
 	{
-		Supervisor.ASM.UnloadModule("Carbon.dll", false);
+		//FIXMENOW
+		//Supervisor.ASM.UnloadModule("Carbon.dll", false);
 	}
 
 	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
 	private void Reboot(ConsoleSystem.Arg arg)
 	{
-		Supervisor.ASM.UnloadModule("Carbon.dll", true);
+		//FIXMENOW
+		//Supervisor.ASM.UnloadModule("Carbon.dll", true);
 	}
 
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
@@ -446,7 +470,9 @@ public class CorePlugin : CarbonPlugin
 				return;
 			}
 			HookCaller.CallStaticHook("OnServerSave");
-			Supervisor.ASM.UnloadModule("Carbon.dll", true);
+
+			//FIXMENOW
+			//Supervisor.ASM.UnloadModule("Carbon.dll", true);
 		});
 	}
 
@@ -718,9 +744,6 @@ public class CorePlugin : CarbonPlugin
 	[CommandVar("modding", "Mark this server as modded or not.", true)]
 	private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("tag", "Displays this server in the browser list with the 'carbon' tag.", true)]
-	private bool CarbonTag { get { return Community.Runtime.Config.CarbonTag; } set { Community.Runtime.Config.CarbonTag = value; Community.Runtime.SaveConfig(); } }
-
 	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.", true)]
 	private bool HarmonyReference { get { return Community.Runtime.Config.HarmonyReference; } set { Community.Runtime.Config.HarmonyReference = value; Community.Runtime.SaveConfig(); } }
 
@@ -938,13 +961,19 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
+		if (!Loader.IsBatchComplete)
+		{
+			Loader.ReloadQueueList.Add(arg.Args.ToString(" "));
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");
+			return;
+		}
+
 		RefreshOrderedFiles();
 
 		var name = arg.Args[0];
 		switch (name)
 		{
 			case "*":
-				Community.Runtime.ClearPlugins();
 				Community.Runtime.ReloadPlugins();
 				break;
 
@@ -996,6 +1025,13 @@ public class CorePlugin : CarbonPlugin
 		if (!arg.HasArgs(1))
 		{
 			Logger.Warn("You must provide the name of a plugin or use * to load all plugins.");
+			return;
+		}
+
+		if (!Loader.IsBatchComplete)
+		{
+			Loader.LoadQueueList.Add(arg.Args.ToString(" "));
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");
 			return;
 		}
 
@@ -1056,6 +1092,13 @@ public class CorePlugin : CarbonPlugin
 		if (!arg.HasArgs(1))
 		{
 			Logger.Warn("You must provide the name of a plugin or use * to unload all plugins.");
+			return;
+		}
+
+		if (!Loader.IsBatchComplete)
+		{
+			Loader.UnloadQueueList.Add(arg.Args.ToString(" "));
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");		
 			return;
 		}
 

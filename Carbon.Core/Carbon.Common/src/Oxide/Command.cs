@@ -57,12 +57,15 @@ namespace Oxide.Game.Rust.Libraries
 				var result = (object[])null;
 				try
 				{
-					var m = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-					var parameters = m.GetParameters();
+					var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+					var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer)));
+					var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer)));
+					var methodInfo = covalenceMethod ?? consoleMethod;
+					var parameters = methodInfo.GetParameters();
 
 					if (parameters.Length > 0)
 					{
-						if (parameters.ElementAt(0).ParameterType == typeof(IPlayer))
+						if (methodInfo == covalenceMethod)
 						{
 							var iplayer = player.AsIPlayer();
 							iplayer.IsServer = player == null;
@@ -99,7 +102,7 @@ namespace Oxide.Game.Rust.Libraries
 
 					result = arguments.ToArray();
 
-					m?.Invoke(plugin, result);
+					methodInfo?.Invoke(plugin, result);
 				}
 				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
@@ -147,12 +150,16 @@ namespace Oxide.Game.Rust.Libraries
 
 					try
 					{
-						var methodInfo = plugin.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+						var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+						var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer)));
+						var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer)));
+						var methodInfo = covalenceMethod ?? consoleMethod;
+
 						var parameters = methodInfo.GetParameters();
 
 						if (parameters.Length > 0)
 						{
-							if (parameters.ElementAt(0).ParameterType == typeof(IPlayer))
+							if (methodInfo == covalenceMethod)
 							{
 								if (player == null) arguments.Add(new RustPlayer { IsServer = true });
 								else

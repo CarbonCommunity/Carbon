@@ -18,6 +18,7 @@ public interface IModule : IHookableModule, IDisposable
 	void Save();
 	void Load();
 
+	void OnServerInit();
 	void SetEnabled(bool enabled);
 	bool GetEnabled();
 	void OnEnableStatus();

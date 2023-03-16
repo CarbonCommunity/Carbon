@@ -1,4 +1,5 @@
-﻿#define DEBUG_VERBOSE
+﻿//#define DEBUG_VERBOSE
+#pragma warning disable IDE0051
 
 using System;
 using System.Collections;
@@ -74,10 +75,13 @@ internal sealed class AnalyticsManager : MonoBehaviour, IAnalyticsManager
 		string url = "https://www.google-analytics.com/mp/collect";
 		string query = $"api_secret={MeasurementSecret}&measurement_id={MeasurementID}";
 
-		Dictionary<string, object> eventData = new Dictionary<string, object>();
-		eventData.Add("client_id", ClientID);
-		eventData.Add("non_personalized_ads", true);
-		eventData.Add("timestamp_micros", GetUnixTimestampMicros());
+		Dictionary<string, object> eventData = new()
+		{
+			{ "client_id", ClientID },
+			{ "non_personalized_ads", true },
+			{ "timestamp_micros", GetUnixTimestampMicros() }
+		};
+
 		eventData.Add("events", value: new List<Dictionary<string, object>> {
 			new Dictionary<string, object> {
 				{ "name", eventName },

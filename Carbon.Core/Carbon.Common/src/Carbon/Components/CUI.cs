@@ -52,7 +52,7 @@ public struct CUI : IDisposable
 		var parentName = GetClientPanel(parent);
 		var element = Manager.TakeFromPool(panel, parentName);
 		element.FadeOut = fadeOut;
-		element.DestroyUI = destroyUi;
+		element.DestroyUi = destroyUi;
 
 		if (color != "0 0 0 0")
 		{
@@ -176,9 +176,8 @@ public struct CUI : IDisposable
 		return $"{color.r} {color.g} {color.b} {alpha ?? color.a}";
 	}
 
-	public void Send(CuiElementContainer container, BasePlayer player, bool autoDestroy = false)
+	public void Send(CuiElementContainer container, BasePlayer player)
 	{
-		if (autoDestroy) Destroy(container, player);
 		Manager.Send(container, player);
 	}
 	public void Destroy(CuiElementContainer container, BasePlayer player)
@@ -289,7 +288,7 @@ public struct CUI : IDisposable
 			element.Name = name;
 			element.Parent = parent;
 			element.Components.Clear();
-			element.DestroyUI = destroyUi;
+			element.DestroyUi = destroyUi;
 			element.FadeOut = fadeOut;
 
 			_queue.Add(element);

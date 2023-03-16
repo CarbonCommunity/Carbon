@@ -11,6 +11,7 @@ namespace Carbon.Contracts
 	public interface IModuleProcessor : IDisposable
 	{
 		void Init();
+		void OnServerInit();
 		List<BaseHookable> Modules { get; }
 	}
 }

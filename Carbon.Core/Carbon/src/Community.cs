@@ -88,7 +88,7 @@ public class CommunityInternal : Community
 			if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
 			if (ModuleProcessor != null) ModuleProcessor?.Dispose();
 			if (CarbonProcessor != null) CarbonProcessor?.Dispose();
-			if(ExtensionProcessor!= null) ExtensionProcessor?.Dispose();
+			if (ExtensionProcessor != null) ExtensionProcessor?.Dispose();
 		}
 		catch { }
 
@@ -196,11 +196,13 @@ public class CommunityInternal : Community
 		"System",
 
 		"Carbon.Common",
-		"Carbon.Ext.Discord",
+		//"Carbon.Ext.Discord",
 
+		#region NuGets
+		"websocket-sharp",
 		"protobuf-net",
 		"protobuf-net.Core",
-		"websocket-sharp",
+		#endregion
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
@@ -211,25 +213,19 @@ public class CommunityInternal : Community
 		"Facepunch.System",
 		"Facepunch.Unity",
 		"Facepunch.UnityEngine",
-#if WIN
-		"Facepunch.Steamworks.Win64",
-#elif UNIX
-		"Facepunch.Steamworks.Posix",
-#endif
 		"Fleck",
 		"Newtonsoft.Json",
 		"Rust.Data",
+		"Rust.FileSystem",
 		"Rust.Global",
 		"Rust.Harmony",
 		"Rust.Localization",
-		"Rust.Platform",
 		"Rust.Platform.Common",
+		"Rust.Platform",
 		"Rust.Workshop",
 		"Rust.World",
-		"Rust.FileSystem",
 		"UnityEngine.AIModule",
 		"UnityEngine.CoreModule",
-		"UnityEngine",
 		"UnityEngine.ImageConversionModule",
 		"UnityEngine.PhysicsModule",
 		"UnityEngine.SharedInternalsModule",
@@ -242,6 +238,13 @@ public class CommunityInternal : Community
 		"UnityEngine.UnityWebRequestModule",
 		"UnityEngine.UnityWebRequestTextureModule",
 		"UnityEngine.UnityWebRequestWWWModule",
-		"UnityEngine.VehiclesModule"
+		"UnityEngine.VehiclesModule",
+		"UnityEngine",
+
+#if WIN
+		"Facepunch.Steamworks.Win64",
+#elif UNIX
+		"Facepunch.Steamworks.Posix",
+#endif
 	};
 }

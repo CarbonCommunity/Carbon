@@ -7,13 +7,14 @@
 			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
 			<c_hooks>$(CarbonBaseDir)\carbon\managed\hooks</c_hooks>
 			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
-			<c_ext>$(CarbonBaseDir)\carbon\managed\extensions</c_ext>
+			<c_ext>$(CarbonBaseDir)\carbon\extensions</c_ext>
 			<c_plugins>$(CarbonBaseDir)\carbon\plugins</c_plugins>
 			<c_tools>$(CarbonBaseDir)\carbon\tools</c_tools>
+			<c_data>$(CarbonBaseDir)\carbon\data</c_data>
 		</PropertyGroup>
 
 		<Message Text="[$(AssemblyName)] &gt;&gt; Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
-		<MakeDir Directories="$(CarbonBaseDir);$(c_managed);$(c_lib);$(c_hooks);$(c_tools);$(c_plugins);$(c_harmony)" />
+		<MakeDir Directories="$(CarbonBaseDir);$(c_managed);$(c_lib);$(c_hooks);$(c_tools);$(c_plugins);$(c_harmony);$(c_ext);$(c_data)" />
 	</Target>
 
 	<Target Name="CarbonCopyLibs" AfterTargets="Build" DependsOnTargets="CarbonPrepareRelease">

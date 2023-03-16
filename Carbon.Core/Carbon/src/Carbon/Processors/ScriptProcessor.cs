@@ -2,6 +2,7 @@
 using System.Collections;
 using System.IO;
 using Carbon.Base;
+using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Core;
 
@@ -89,11 +90,13 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			{
 				Carbon.Core.Loader.FailedMods.RemoveAll(x => x.File == File);
 
-				Loader = new ScriptLoader();
-				Loader.Parser = Parser;
-				Loader.File = File;
-				Loader.Mod = Community.Runtime.Plugins;
-				Loader.Instance = this;
+				Loader = new ScriptLoader
+				{
+					Parser = Parser,
+					File = File,
+					Mod = Community.Runtime.Plugins,
+					Instance = this
+				};
 				Loader.Load();
 			}
 			catch (Exception ex)
@@ -111,27 +114,33 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		}
 
 		public override void Process(string input, out string output)
-		{	
-			output = input
-				.Replace("using Harmony;", "using HarmonyLib;")
-				.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
-				.Replace("HarmonyInstance", "HarmonyLib.Harmony")
-
-				.Replace("PluginTimers", "Timers");
-
-			var newOutput = string.Empty;
-			var split = output.Split('\n');
-
-			foreach (var line in split)
+		{
+			using (TimeMeasure.New("ScriptParser.Process"))
 			{
-				if (!IsLineValid(line)) continue;
+				try
+				{
+					output = input
+						.Replace("PluginTimers", "Timers");
 
-				newOutput += line + "\n";
+					var newOutput = string.Empty;
+					var split = output.Split('\n');
+
+					foreach (var line in split)
+					{
+						if (!IsLineValid(line)) continue;
+
+						newOutput += line + "\n";
+					}
+
+					output = newOutput;
+					Array.Clear(split, 0, split.Length);
+					split = null;
+				}
+				catch
+				{
+					output = input;
+				}
 			}
-
-			output = newOutput;
-			Array.Clear(split, 0, split.Length);
-			split = null;
 		}
 	}
 }
