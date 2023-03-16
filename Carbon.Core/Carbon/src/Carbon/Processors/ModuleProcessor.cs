@@ -83,7 +83,6 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			var module = hookable.To<IModule>();
 
 			module.Load();
-			module.OnEnableStatus();
 		}
 	}
 
