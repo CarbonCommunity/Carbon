@@ -1,4 +1,4 @@
-//#define DEBUG_VERBOSE
+﻿//#define DEBUG_VERBOSE
 #pragma warning disable IDE0051
 
 using System;
@@ -164,15 +164,21 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
 			return null;
 		}
+#if DEBUG
 		catch (System.Exception e)
 		{
-#if DEBUG
-			Logger.Error($"Failed loading component '{file}'", e);
+			Logger.Error($"Failed loading module '{file}'", e);
+
+			return null;
+	    }
 #else
-			Logger.Error($"Failed loading component '{file}'");
-#endif
+		catch (System.Exception)
+		{
+			Logger.Error($"Failed loading module '{file}'");
+
 			return null;
 		}
+#endif
 	}
 
 	public Assembly LoadModule(string file, string requester = "unknown")
@@ -234,15 +240,21 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
 			return null;
 		}
+#if DEBUG
 		catch (System.Exception e)
 		{
-#if DEBUG
 			Logger.Error($"Failed loading module '{file}'", e);
+
+			return null;
+	    }
 #else
+		catch (System.Exception)
+		{
 			Logger.Error($"Failed loading module '{file}'");
-#endif
+
 			return null;
 		}
+#endif
 	}
 
 	public Assembly LoadExtension(string file, string requester = "unknown")
@@ -303,15 +315,21 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
 			return null;
 		}
+#if DEBUG
 		catch (System.Exception e)
 		{
-#if DEBUG
-			Logger.Error($"Failed loading extension '{file}'", e);
+			Logger.Error($"Failed loading module '{file}'", e);
+
+			return null;
+	    }
 #else
-			Logger.Error($"Failed loading extension '{file}'");
-#endif
+		catch (System.Exception)
+		{
+			Logger.Error($"Failed loading module '{file}'");
+
 			return null;
 		}
+#endif
 	}
 
 	public Assembly LoadHook(string file, string requester = "unknown")
@@ -355,15 +373,21 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
 			return null;
 		}
+#if DEBUG
 		catch (System.Exception e)
 		{
-#if DEBUG
-			Logger.Error($"Failed loading hooks '{file}'", e);
+			Logger.Error($"Failed loading module '{file}'", e);
+
+			return null;
+	    }
 #else
-			Logger.Error($"Failed loading hooks '{file}'");
-#endif
+		catch (System.Exception)
+		{
+			Logger.Error($"Failed loading module '{file}'");
+
 			return null;
 		}
+#endif
 	}
 
 	private bool IsComponent(Assembly assembly, out IEnumerable<Type> output)

@@ -5,8 +5,6 @@ using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
-using ConVar;
-using Facepunch;
 using Network;
 using Newtonsoft.Json.Linq;
 using Oxide.Core.Libraries;
@@ -14,9 +12,7 @@ using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using ProtoBuf;
 using UnityEngine;
-using Windows;
 using static ConsoleSystem;
-using static FreeImage;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
 
@@ -64,8 +60,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Handler = new();
 	}
 
-	private void OnServerInitialized()
+	public override void OnServerInit()
 	{
+		base.OnServerInit();
+
 		ImageDatabase = GetModule<ImageDatabaseModule>();
 
 		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
@@ -94,7 +92,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		RegisterTab(CarbonTab.Get());
 		RegisterTab(EntitiesTab.Get());
 		RegisterTab(PermissionsTab.Get());
-		RegisterTab(PlayersTab.Get());
 		RegisterTab(ModulesTab.Get());
 		RegisterTab(PluginsTab.Get());
 	}
@@ -544,7 +541,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: OptionWidth, yMin: 0, yMax: 0.015f);
 		}
 
-		cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
+		var inPanel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: "0.2 0.2 0.2 0.5",
 			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
@@ -554,7 +551,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var iconYmin = 0.2f;
 		var iconYmax = 0.8f;
 
-		var button = cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
+		var button = cui.CreateProtectedButton(container, parent: inPanel, id: null,
 			color: $"0.2 0.2 0.2 0.7",
 			textColor: "0 0 0 0",
 			text: string.Empty, 0,
@@ -728,7 +725,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		var panel = cui.CreatePanel(container, parent, $"{parent}panel",
 			color: "0.2 0.2 0.2 0",
-			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+			xMin: 0.015f, xMax: 0.985f, yMin: offset, yMax: offset + height);
 
 		var cuts = (1f / buttons.Length) - spacing;
 		var currentOffset = 0f;
@@ -1015,7 +1012,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 							if (columnPage.TotalPages > 0)
 							{
-								TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
 								TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
 
 								rowIndex += rowHeight + rowSpacing;
@@ -1969,114 +1965,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		}
 	}
-	public class PlayersTab
-	{
-		internal static AdminModule Admin => GetModule<AdminModule>();
-
-		public static Tab Get()
-		{
-			var players = new Tab("players", "Players", Community.Runtime.CorePlugin, (instance, tab) =>
-			{
-				tab.ClearColumn(1);
-				RefreshPlayers(tab, instance);
-			});
-			{
-				AddInitial(players, null);
-				RefreshPlayers(players, null);
-			}
-			players.AddColumn(1);
-
-			return players;
-		}
-
-		public static void AddInitial(Tab tab, AdminPlayer ap)
-		{
-			tab.AddInput(0, "Search", () => ap?.GetStorage<string>("playerfilter"), (ap2, args) => { ap2.SetStorage("playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
-		}
-		public static void RefreshPlayers(Tab tab, AdminPlayer ap)
-		{
-			tab.ClearColumn(0);
-
-			AddInitial(tab, ap);
-
-			tab.AddName(0, "Online");
-			var onlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && x.IsConnected);
-			foreach (var player in onlinePlayers)
-			{
-				AddPlayer(tab, ap, player);
-			}
-			if (onlinePlayers.Count() == 0) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
-
-			tab.AddName(0, "Offline");
-			var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
-			foreach (var player in offlinePlayers)
-			{
-				AddPlayer(tab, ap, player);
-			}
-			if (offlinePlayers.Count() == 0) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
-		}
-		public static void AddPlayer(Tab tab, AdminPlayer ap, BasePlayer player)
-		{
-			if (ap != null)
-			{
-				var filter = ap.GetStorage<string>("playerfilter");
-
-				if (!string.IsNullOrEmpty(filter) && !(player.displayName.ToLower().Contains(filter.ToLower()) || player.UserIDString.Contains(filter))) return;
-			}
-
-			tab.AddButton(0, $"{player.displayName}", aap =>
-			{
-				ap.SetStorage("playerfilterpl", player);
-				ShowInfo(tab, ap, player);
-			}, aap => aap == null || !(aap.GetStorage<BasePlayer>("playerfilterpl") == player) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Selected);
-		}
-		public static void ShowInfo(Tab tab, AdminPlayer aap, BasePlayer player)
-		{
-			tab.ClearColumn(1);
-
-			tab.AddName(1, $"Player Information", TextAnchor.MiddleLeft);
-			tab.AddInput(1, "Name", () => player.displayName, null);
-			tab.AddInput(1, "Steam ID", () => player.UserIDString, null);
-			tab.AddInput(1, "Net ID", () => $"{player.net?.ID}", null);
-			try
-			{
-				var position = player.transform.position;
-				tab.AddInput(1, "Position", () => $"{position.x:0.0}x {position.y:0.0}y {position.z:0.0}z", null);
-			}
-			catch { }
-
-			tab.AddName(1, $"Permissions", TextAnchor.MiddleLeft);
-			{
-				tab.AddButton(1, "View Permissions", ap =>
-				{
-					var perms = Admin.FindTab("permissions");
-					var permission = Community.Runtime.CorePlugin.permission;
-					Admin.SetTab(ap.Player, "permissions");
-
-					ap.SetStorage("player", player);
-					PermissionsTab.GeneratePlayers(perms, permission, ap);
-					PermissionsTab.GeneratePlugins(perms, ap, permission, ap.Player, null);
-				}, (ap) => Tab.OptionButton.Types.Important);
-			}
-
-			if (aap == null || aap.Player != player)
-			{
-				tab.AddName(1, $"Actions", TextAnchor.MiddleLeft);
-
-				tab.AddButton(1, "Teleport", ap => { ap.Player.Teleport(player); }, (ap) => Tab.OptionButton.Types.Warned);
-				tab.AddButton(1, "Teleport to me", ap => { player.Teleport(ap.Player); }, (ap) => Tab.OptionButton.Types.Warned);
-			}
-			else
-			{
-				tab.AddText(1, "This is you.", 8, "1 1 1 0.5", TextAnchor.MiddleCenter, CUI.Handler.FontTypes.RobotoCondensedBold);
-			}
-		}
-	}
 	public class EntitiesTab
 	{
 		internal static float HurtHealAmount = 10f;
 		internal static int EntityCount = 0;
 		internal static string Filter;
+		internal static Func<BaseEntity, bool> ValidateFilter;
+
 		internal static float Range;
 		internal static RustPlugin Core = Community.Runtime.CorePlugin;
 		internal static AdminModule Admin = GetModule<AdminModule>();
@@ -2084,7 +1979,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static Tab Get()
 		{
-			Range = World.Size;
+			Range = ((int)World.Size).Clamp(1, int.MaxValue) / 2;
 
 			var tab = new Tab("entities", "Entities", Community.Runtime.CorePlugin, (ap, tab2) => { tab2.ClearColumn(1); DrawEntities(tab2, ap); });
 			tab.AddColumn(0);
@@ -2112,16 +2007,32 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				pool.Add(entity);
 				EntityCount++;
-			}, entity => entity != null && entity.transform != null && entity.transform.position != Vector3.zero
+			}, entity => entity != null && entity.transform != null && (ValidateFilter?.Invoke(entity)).GetValueOrDefault(true) && entity.transform.position != Vector3.zero
 				&& (string.IsNullOrEmpty(usedFilter) || entity.ToString().ToLower().Contains(usedFilter) || entity.name.ToLower().Contains(usedFilter) || entity.GetType().Name?.ToLower() == usedFilter)
 				&& (Range == -1 || ap3 == null || Vector3.Distance(ap3.Player.transform.position, entity.transform.position) <= Range));
 
-			tab.AddRange(0, "Range", 0, World.Size, () => Range, (ap, value) => { Range = value; DrawEntities(tab, ap); }, () => $"{Range:0.0}m");
+			tab.AddRange(0, "Range", 0, ((int)World.Size).Clamp(1, int.MaxValue) / 2, () => Range, (ap, value) => { Range = value; DrawEntities(tab, ap); }, () => $"{Range:0.0}m");
 			tab.AddName(0, $"Entities  ({EntityCount:n0})", TextAnchor.MiddleLeft);
+			tab.AddButtonArray(0,
+				new Tab.OptionButton("Players", ap => { Filter = "BasePlayer"; DrawEntities(tab);  }, ap => Filter == "BasePlayer" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+				new Tab.OptionButton("Containers", ap => { Filter = "StorageContainer"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "StorageContainer" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+				new Tab.OptionButton("Deployables", ap => { Filter = "Deployable"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "Deployable" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+				new Tab.OptionButton("Collectibles", ap => { Filter = "CollectibleEntity"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "CollectibleEntity" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+				new Tab.OptionButton("I/O", ap => { Filter = "IOEntity"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "IOEntity" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+
+			switch (Filter)
+			{
+				case "BasePlayer":
+					tab.AddButtonArray(0,
+						new Tab.OptionButton("Online", ap => { ValidateFilter = entity => entity is BasePlayer player && player.IsConnected; DrawEntities(tab); }),
+						new Tab.OptionButton("Offline", ap => { ValidateFilter = entity => entity is BasePlayer player && !player.IsConnected; DrawEntities(tab); }),
+						new Tab.OptionButton("Dead", ap => { ValidateFilter = entity => entity is BasePlayer player && player.IsDead(); DrawEntities(tab); }));
+					break;
+			}
 
 			foreach (var entity in pool)
 			{
-				tab.AddButton(0, $"{entity}", ap =>
+				tab.AddButton(0, $"{entity.ShortPrefabName}", ap =>
 				{
 					var existent = ap.GetStorage<BaseEntity>("selectedent");
 					if (existent != null && existent == entity)
@@ -2221,6 +2132,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (entity is BasePlayer)
 				{
+					tab.AddInput(column, "Steam ID", () => player.UserIDString);
+
 					tab.AddButtonArray(column,
 						new Tab.OptionButton("Loot", ap =>
 						{
@@ -2514,7 +2427,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				["star"] = "https://carbonmod.gg/assets/media/cui/star.png"
 			};
 
-			Instance.ImageDatabase.Queue(payload);
+			Instance.ImageDatabase.Queue(true, payload);
 
 			OsEx.Folder.Create(Path.Combine(Carbon.Core.Defines.GetScriptFolder(), "backups"));
 

@@ -193,7 +193,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 	public void QueueBatch(bool @override, params string[] urls)
 	{
-		QueueBatch(1f, @override, urls);
+		QueueBatch(0f, @override, urls);
 	}
 	public void QueueBatch(float scale, bool @override, params string[] urls)
 	{
@@ -206,22 +206,14 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		{
 			foreach (var result in results)
 			{
-				if (result.ProcessedData.Length >= MaximumBytes)
+				if (result.Data.Length >= MaximumBytes)
 				{
-					Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.ProcessedData.Length} more or equal than {MaximumBytes}");
+					Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.Data.Length} more or equal than {MaximumBytes}");
 					continue;
 				}
 
-				if (result.OriginalData == result.ProcessedData)
-				{
-					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
-					_protoData.Map[$"{result.Url}_0"]= id;
-				}
-				else
-				{
-					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
-					_protoData.Map[$"{result.Url}_{scale:0.0}"] = id;
-				}
+				var id = FileStorage.server.Store(result.Data, FileStorage.Type.png, _protoData.Identifier);
+				if (id != 0) _protoData.Map[GetId(result.Url, scale)] = id;
 			}
 		}, urls);
 	}
@@ -298,22 +290,14 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		{
 			foreach (var result in results)
 			{
-				if (result.ProcessedData.Length >= MaximumBytes)
+				if (result.Data.Length >= MaximumBytes)
 				{
-					Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.ProcessedData.Length} more or equal than {MaximumBytes}");
+					Puts($"Failed storing {urls.Length:n0} jobs [scale:{scale}]: {result.Data.Length} more or equal than {MaximumBytes}");
 					continue;
 				}
 
-				if (result.OriginalData == result.ProcessedData)
-				{
-					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
-					_protoData.Map[$"{result.Url}_0"] = id;
-				}
-				else
-				{
-					var id = FileStorage.server.Store(result.ProcessedData, FileStorage.Type.png, _protoData.Identifier);
-					_protoData.Map[$"{result.Url}_{scale:0.0}"] = id;
-				}
+				var id = FileStorage.server.Store(result.Data, FileStorage.Type.png, _protoData.Identifier);
+				if (id != 0) _protoData.Map[GetId(result.Url, scale)] = id;
 			}
 
 			onComplete?.Invoke(results);
@@ -355,7 +339,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			return;
 		}
 
-		Queue(false, mappedUrls);
+		Queue(true, mappedUrls);
 	}
 
 	public void AddMap(string key, string url)
@@ -374,11 +358,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			keyOrUrl = realUrl;
 		}
 
-		var id = scale == 0 ? "0" : scale.ToString("0.0");
+		var id = GetId(keyOrUrl, scale);
 
-		if (_protoData.Map.TryGetValue($"{keyOrUrl}_{id}", out var uid))
+		if (_protoData.Map.TryGetValue(id, out var uid))
 		{
-			if (!silent && ConfigInstance.PrintRetrievedImageLogs) Puts($"Retrieved image '{keyOrUrl}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
+			if (!silent && ConfigInstance.PrintRetrievedImageLogs) Puts($"Retrieved image '{keyOrUrl}'{(scale == 0 ? "" : $" (scale:{scale:0.0})")}.");
 			return uid;
 		}
 
@@ -390,15 +374,14 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	}
 	public bool DeleteImage(string url, float scale = 0)
 	{
-		var id = scale == 0 ? "0" : scale.ToString("0.0");
-		var name = $"{url}_{id}";
+		var id = GetId(url, scale);
 
-		if (_protoData.Map.TryGetValue(name, out var uid))
+		if (_protoData.Map.TryGetValue(id, out var uid))
 		{
 			if (ConfigInstance.PrintDeletedImageLogs) Puts($"Deleted image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 
 			FileStorage.server.Remove(uid, FileStorage.Type.png, _protoData.Identifier);
-			_protoData.Map.Remove(name);
+			_protoData.Map.Remove(id);
 			return true;
 		}
 
@@ -430,6 +413,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			_protoData.Map.Add($"qr_{UiCommandAttribute.Uniquify(text)}_{pixels}_0", uid);
 			return uid;
 		};
+	}
+
+	internal static string GetId(string url, float scale)
+	{
+		return $"{url}_{scale}";
 	}
 
 	public class QueuedThread : BaseThreadedJob, IDisposable
@@ -469,8 +457,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 					Result.Add(new QueuedThreadResult
 					{
 						Url = (string)e.UserState,
-						OriginalData = e.Result,
-						ProcessedData = e.Result
+						Data = e.Result
 					});
 
 					_doQueue();
@@ -547,7 +534,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			{
 				try
 				{
-					using var stream = new MemoryStream(result.OriginalData);
+					using var stream = new MemoryStream(result.Data);
 					using var image = Image.FromStream(stream);
 					using var graphics = Graphics.FromImage(image);
 					using var resized = new Bitmap((int)(image.Width * Scale), (int)(image.Height * Scale));
@@ -560,7 +547,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 					using var output = new MemoryStream();
 					resized.Save(output, ImageFormat.Png);
 					resized.Dispose();
-					result.ProcessedData = output.ToArray();
+					result.Data = output.ToArray();
 				}
 				catch { }
 			}
@@ -574,13 +561,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	public class QueuedThreadResult : IDisposable
 	{
 		public string Url { get; set; }
-		public byte[] OriginalData { get; set; }
-		public byte[] ProcessedData { get; set; }
+		public byte[] Data { get; set; }
 
 		public void Dispose()
 		{
-			OriginalData = null;
-			ProcessedData = null;
+			Data = null;
 		}
 	}
 }
