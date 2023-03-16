@@ -84,6 +84,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Draw(player);
 		});
 
+		Unsubscribe("OnPluginLoaded");
+		Unsubscribe("OnPluginUnloaded");
 		Unsubscribe("OnEntityDismounted");
 		Unsubscribe("CanDismountEntity");
 		Unsubscribe("OnEntityVisibilityCheck");
@@ -1098,6 +1100,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			PutsError($"Draw(player) failed.", ex);
 		}
+
+		Subscribe("OnPluginLoaded");
+		Subscribe("OnPluginUnloaded");
 	}
 	public void DrawCursorLocker(BasePlayer player)
 	{
@@ -1118,6 +1123,22 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		var ap = GetOrCreateAdminPlayer(player);
 		ap.IsInMenu = false;
+
+		var noneInMenu = true;
+		foreach (var admin in AdminPlayers)
+		{
+			if (admin.Value.IsInMenu)
+			{
+				noneInMenu = false;
+				break;
+			}
+		}
+
+		if (noneInMenu)
+		{
+			Unsubscribe("OnPluginLoaded");
+			Unsubscribe("OnPluginUnloaded");
+		}
 	}
 
 	public void RegisterTab(Tab tab, int? insert = null)
