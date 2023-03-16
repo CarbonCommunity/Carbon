@@ -9,6 +9,7 @@ using Carbon.Contracts;
 using Carbon.Core;
 using Facepunch;
 using Newtonsoft.Json;
+using Oxide.Core.Configuration;
 
 /*
  *
@@ -512,6 +513,8 @@ namespace Oxide.Plugins
 		{
 			Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
 		}
+
+		public DynamicConfigFile Config { get; internal set; }
 
 		public bool IsLoaded { get; set; }
 

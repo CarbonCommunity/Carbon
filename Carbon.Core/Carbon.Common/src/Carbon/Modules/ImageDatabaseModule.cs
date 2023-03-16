@@ -540,7 +540,10 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 				return;
 			}
 
-			foreach (var result in Result)
+			var results = Pool.GetList<QueuedThreadResult>();
+			results.AddRange(Result);
+
+			foreach (var result in results)
 			{
 				try
 				{
@@ -561,6 +564,8 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 				}
 				catch { }
 			}
+
+			Pool.FreeList(ref results);
 
 			_finishedProcessing = true;
 		}

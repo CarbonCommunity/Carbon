@@ -87,6 +87,10 @@ public class CorePlugin : CarbonPlugin
 		Community.Runtime.ModuleProcessor.OnServerInit();
 	}
 
+	private void OnPlayerDisconnected(BasePlayer player, string reason)
+	{
+		Logger.Log($"[{player.userID}] {player.displayName} left: {reason}");
+	}
 	private void OnPluginLoaded(Plugin plugin)
 	{
 		Community.Runtime.Events.Trigger(CarbonEvent.PluginLoaded, new CarbonEventArgs(plugin));
