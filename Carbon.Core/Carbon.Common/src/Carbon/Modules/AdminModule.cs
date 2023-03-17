@@ -1939,6 +1939,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
 						ap.Player.ChatMessage("Becoming Spectator");
 						ap.Player.SpectatePlayer(player);
+						ShowInfo(tab, ap, player);
 					});
 				}
 				else
@@ -1948,6 +1949,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						ap.Player.SetParent(null);
 						ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: false);
 						ap.Player.gameObject.SetLayerRecursive(17);
+						ShowInfo(tab, ap, player);
 					}, ap => Tab.OptionButton.Types.Selected);
 				}
 				if (!BlindedPlayers.Contains(player))
@@ -1956,7 +1958,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						using var cui = new CUI(Instance.Handler);
 						var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+						cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 						cui.Send(container, player);
+						ShowInfo(tab, ap, player);
 
 						if (ap.Player == player) Core.timer.In(1, () => { Instance.Close(player); });
 					});
@@ -1967,6 +1971,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						using var cui = new CUI(Instance.Handler);
 						cui.Destroy("blindingpanel", player);
+						ShowInfo(tab, ap, player);
 					}, ap => Tab.OptionButton.Types.Selected);
 				}
 
