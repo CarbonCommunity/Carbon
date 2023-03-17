@@ -2394,7 +2394,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 							tab.AddButton(1, "End Spectating", ap =>
 							{
 								var spectated = ap.Player.GetParentEntity();
-								ap.Player.SetParent(null);
+								ap.Player.SetParent(null, true, true);
 								ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: false);
 								ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
 								ap.Player.gameObject.SetLayerRecursive(17);
