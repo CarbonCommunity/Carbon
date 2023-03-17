@@ -1955,8 +1955,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.AddButton(1, "Blind Player", ap =>
 					{
 						using var cui = new CUI(Instance.Handler);
-						var container = cui.CreateContainer("blindingpanel", "1 1 1 1");
+						var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
 						cui.Send(container, player);
+
+						if (ap.Player == player) Core.timer.In(1, () => { Instance.Close(player); });
 					});
 				}
 				else
