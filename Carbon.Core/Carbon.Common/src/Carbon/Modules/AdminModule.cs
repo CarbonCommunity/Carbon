@@ -5,6 +5,8 @@ using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
+using Carbon.Plugins;
+using ConVar;
 using Network;
 using Newtonsoft.Json.Linq;
 using Oxide.Core.Libraries;
@@ -12,6 +14,7 @@ using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using ProtoBuf;
 using UnityEngine;
+using static BasePlayer;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
@@ -90,7 +93,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Unsubscribe("OnEntityDistanceCheck");
 
 		RegisterTab(CarbonTab.Get());
-		RegisterTab(EntitiesTab.Get());
+		RegisterTab(PlayersTab.Get());
+		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
 		RegisterTab(PermissionsTab.Get());
 		RegisterTab(ModulesTab.Get());
 		RegisterTab(PluginsTab.Get());
@@ -167,6 +171,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (lootedEnt == null) return null;
 
 		return true;
+	}
+	private void OnPlayerDisconnected(BasePlayer player)
+	{
+		if (PlayersTab.BlindedPlayers.Contains(player)) PlayersTab.BlindedPlayers.Remove(player);
 	}
 
 	private bool CanAccess(BasePlayer player)
@@ -1792,6 +1800,190 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 	}
+	public class PlayersTab
+	{
+		internal static RustPlugin Core = Community.Runtime.CorePlugin;
+		internal static List<BasePlayer> BlindedPlayers = new();
+
+		public static Tab Get()
+		{
+             var players = new Tab("players", "Players", Community.Runtime.CorePlugin, (instance, tab) =>
+             {
+                 tab.ClearColumn(1);
+                 RefreshPlayers(tab, instance);
+             });
+             {
+                 AddInitial(players, null);
+                 RefreshPlayers(players, null);
+             }
+             players.AddColumn(1);
+ 
+             return players;
+		}
+
+		public static void AddInitial(Tab tab, AdminPlayer ap)
+		{
+			tab.AddInput(0, "Search", () => ap?.GetStorage<string>("playerfilter"), (ap2, args) => { ap2.SetStorage("playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
+		}
+		public static void RefreshPlayers(Tab tab, AdminPlayer ap)
+		{
+			tab.ClearColumn(0);
+
+			AddInitial(tab, ap);
+
+			tab.AddName(0, "Online");
+			var onlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && x.IsConnected);
+			foreach (var player in onlinePlayers)
+			{
+				AddPlayer(tab, ap, player);
+			}
+			if (!onlinePlayers.Any()) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
+
+			tab.AddName(0, "Offline");
+			var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
+			foreach (var player in offlinePlayers)
+			{
+				AddPlayer(tab, ap, player);
+			}
+			if (!offlinePlayers.Any()) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
+		}
+		public static void AddPlayer(Tab tab, AdminPlayer ap, BasePlayer player)
+		{
+			if (ap != null)
+			{
+				var filter = ap.GetStorage<string>("playerfilter");
+
+				if (!string.IsNullOrEmpty(filter) && !(player.displayName.ToLower().Contains(filter.ToLower()) || player.UserIDString.Contains(filter))) return;
+			}
+
+			tab.AddButton(0, $"{player.displayName}", aap =>
+			{
+				ap.SetStorage("playerfilterpl", player);
+				ShowInfo(tab, ap, player);
+			}, aap => aap == null || !(aap.GetStorage<BasePlayer>("playerfilterpl") == player) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Selected);
+		}
+		public static void ShowInfo(Tab tab, AdminPlayer aap, BasePlayer player)
+		{
+			tab.ClearColumn(1);
+
+			tab.AddName(1, $"Player Information", TextAnchor.MiddleLeft);
+			tab.AddInput(1, "Name", () => player.displayName, null);
+			tab.AddInput(1, "Steam ID", () => player.UserIDString, null);
+			tab.AddInput(1, "Net ID", () => $"{player.net?.ID}", null);
+			try
+			{
+				var position = player.transform.position;
+				tab.AddInput(1, "Position", () => $"{player.transform.position}", null);
+				tab.AddInput(1, "Rotation", () => $"{player.transform.rotation}", null);
+			}
+			catch { }
+
+			tab.AddName(1, $"Permissions", TextAnchor.MiddleLeft);
+			{
+				tab.AddButton(1, "View Permissions", ap =>
+				{
+					var perms = Instance.FindTab("permissions");
+					var permission = Community.Runtime.CorePlugin.permission;
+					Instance.SetTab(ap.Player, "permissions");
+
+					ap.SetStorage("player", player);
+					PermissionsTab.GeneratePlayers(perms, permission, ap);
+					PermissionsTab.GeneratePlugins(perms, ap, permission, ap.Player, null);
+				}, (ap) => Tab.OptionButton.Types.Important);
+			}
+
+			if (aap != null)
+			{
+				tab.AddName(1, $"Actions", TextAnchor.MiddleLeft);
+
+				tab.AddButtonArray(1,
+					new Tab.OptionButton("TeleportTo", ap => { ap.Player.Teleport(player.transform.position); }),
+					new Tab.OptionButton("Teleport2Me", ap => { player.transform.position = ap.Player.transform.position; player.SendNetworkUpdateImmediate(); }));
+
+				tab.AddButtonArray(1,
+					new Tab.OptionButton("Loot", ap =>
+					{
+						EntitiesTab.LastContainerLooter = ap;
+						ap.SetStorage("lootedent", player);
+						EntitiesTab.SendEntityToPlayer(ap.Player, player);
+
+						Core.timer.In(0.2f, () => Instance.Close(ap.Player));
+						Core.timer.In(0.5f, () =>
+						{
+							EntitiesTab.SendEntityToPlayer(ap.Player, player);
+
+							ap.Player.inventory.loot.Clear();
+							ap.Player.inventory.loot.PositionChecks = false;
+							ap.Player.inventory.loot.entitySource = RelationshipManager.ServerInstance;
+							ap.Player.inventory.loot.itemSource = null;
+							ap.Player.inventory.loot.AddContainer(player.inventory.containerMain);
+							ap.Player.inventory.loot.AddContainer(player.inventory.containerWear);
+							ap.Player.inventory.loot.AddContainer(player.inventory.containerBelt);
+							ap.Player.inventory.loot.MarkDirty();
+							ap.Player.inventory.loot.SendImmediate();
+
+							ap.Player.ClientRPCPlayer(null, ap.Player, "RPC_OpenLootPanel", "player_corpse");
+						});
+					}),
+					new Tab.OptionButton("Respawn", ap =>
+					{
+						player.Hurt(player.MaxHealth()); player.Respawn(); player.EndSleeping();
+					}));
+				tab.AddInput(1, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
+				if (!aap.Player.IsSpectating())
+				{
+					tab.AddButton(1, "Spectate", ap =>
+					{
+						ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: true);
+						ap.Player.gameObject.SetLayerRecursive(10);
+						ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
+						ap.Player.ChatMessage("Becoming Spectator");
+						ap.Player.SpectatePlayer(player);
+					});
+				}
+				else
+				{
+					tab.AddButton(1, "End Spectating", ap =>
+					{
+						ap.Player.SetParent(null);
+						ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: false);
+						ap.Player.gameObject.SetLayerRecursive(17);
+					}, ap => Tab.OptionButton.Types.Selected);
+				}
+				if (!BlindedPlayers.Contains(player))
+				{
+					tab.AddButton(1, "Blind Player", ap =>
+					{
+						using var cui = new CUI(Instance.Handler);
+						var container = cui.CreateContainer("blindingpanel", "1 1 1 1");
+						cui.Send(container, player);
+					});
+				}
+				else
+				{
+					tab.AddButton(1, "Unblind Player", ap =>
+					{
+						using var cui = new CUI(Instance.Handler);
+						cui.Destroy("blindingpanel", player);
+					}, ap => Tab.OptionButton.Types.Selected);
+				}
+
+				tab.AddName(1, "Stats");
+				tab.AddName(1, "Combat", TextAnchor.MiddleLeft);
+				tab.AddRange(1, "Health", 0, player.MaxHealth(), () => player.health, (ap, value) => player.SetHealth(value), () => $"{player.health:0}");
+
+				tab.AddRange(1, "Thirst", 0, player.metabolism.hydration.max, () => player.metabolism.hydration.value, (ap, value) => player.metabolism.hydration.SetValue(value), () => $"{player.metabolism.hydration.value:0}");
+				tab.AddRange(1, "Hunger", 0, player.metabolism.calories.max, () => player.metabolism.calories.value, (ap, value) => player.metabolism.calories.SetValue(value), () => $"{player.metabolism.calories.value:0}");
+				tab.AddRange(1, "Radiation", 0, player.metabolism.radiation_poison.max, () => player.metabolism.radiation_poison.value, (ap, value) => player.metabolism.radiation_poison.SetValue(value), () => $"{player.metabolism.radiation_poison.value:0}");
+
+				tab.AddButtonArray(1,
+					new Tab.OptionButton("Heal", ap => { player.Heal(EntitiesTab.HurtHealAmount); }, ap => Tab.OptionButton.Types.Selected),
+					new Tab.OptionButton("Hurt", ap => { player.Hurt(EntitiesTab.HurtHealAmount); }, ap => Tab.OptionButton.Types.Warned));
+
+				tab.AddRange(1, "Hurt/Heal Amount", 0, player.MaxHealth(), () => EntitiesTab.HurtHealAmount.Clamp(0, player.MaxHealth()), (ap, value) => EntitiesTab.HurtHealAmount = value, () => $"{EntitiesTab.HurtHealAmount:0}");
+			}
+		}
+	}
 	public class PermissionsTab
 	{
 		internal static Permission permission;
@@ -2032,7 +2224,16 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			foreach (var entity in pool)
 			{
-				tab.AddButton(0, $"{entity.ShortPrefabName}", ap =>
+				var name = entity.ToString();
+
+				switch (entity)
+				{
+					case BasePlayer player:
+						name = $"{player.displayName} ({player.userID})";
+						break;
+				}
+
+				tab.AddButton(0, name, ap =>
 				{
 					var existent = ap.GetStorage<BaseEntity>("selectedent");
 					if (existent != null && existent == entity)
@@ -2163,7 +2364,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							player.Hurt(player.MaxHealth()); player.Respawn(); player.EndSleeping();
 						}));
-					tab.AddInput(column, "Personal Message", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
+					tab.AddInput(column, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
 				}
 
 				if (entity.parentEntity.IsValid(true)) tab.AddButton(column, $"Parent: {entity.parentEntity.Get(true)}", ap => { ap.SetStorage("selectedent", entity.parentEntity.Get(true)); DrawEntities(tab, ap); DrawEntitySettings(tab, entity.parentEntity.Get(true), 1, ap); });
@@ -3926,6 +4127,7 @@ public class AdminConfig
 {
 	public string OpenCommand = "cadmin";
 	public int MinimumAuthLevel = 2;
+	public bool DisableEntitiesTab = false;
 }
 public class AdminData
 {
