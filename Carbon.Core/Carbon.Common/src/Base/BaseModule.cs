@@ -162,8 +162,9 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		if (ModuleConfiguration != null)
 		{
+			var previous = ModuleConfiguration.Enabled;
 			ModuleConfiguration.Enabled = enable;
-			OnEnableStatus();
+			if(previous != enable) OnEnableStatus();
 		}
 	}
 	public override bool GetEnabled()
@@ -173,7 +174,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual void OnDisabled(bool initialized)
 	{
-		Loader.RemoveCommands(this);
+		if (initialized) Loader.RemoveCommands(this);
 
 		foreach (var hook in Hooks)
 		{
@@ -184,7 +185,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
-		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		if(initialized) Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
 		foreach (var hook in Hooks)
 		{

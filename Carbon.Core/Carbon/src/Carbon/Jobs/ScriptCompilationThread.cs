@@ -237,8 +237,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				StringTable body = new StringTable("Type", "Line", "Col", "Error", "Description");
 
-				int x = 0;
-				List<string> errors = new();
+				var count = 0;
+				var errors = new List<string>();
 				foreach (var error in emit.Diagnostics)
 				{
 #if DEBUG_VERBOSE
@@ -253,7 +253,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					body.AddRow(
 						$"{error.Severity}", $"{span.Start.Line + 1}", $"{span.Start.Character + 1}",
 						error.Id, error.GetMessage(CultureInfo.InvariantCulture));
-					x++;
+					count++;
 
 					Exceptions.Add(new CompilerException(FilePath,
 						new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
@@ -261,8 +261,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				errors.Clear();
 
-				if (x > 0)
-					Logger.Warn($"Compiler output for '{FilePath}'.{Environment.NewLine}{Environment.NewLine}{body.ToStringMinimal()}");
+				// if (count > 0) Console.WriteLine($"Compiler output for '{FilePath}'.{Environment.NewLine}{Environment.NewLine}{body.ToStringMinimal()}");
 
 				if (emit.Success)
 				{

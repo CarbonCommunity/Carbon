@@ -35,8 +35,6 @@ public class RustPlugin : Plugin
 	public Persistence persistence { get; set; }
 	public CovalencePlugin.Covalence covalence { get; set; }
 
-	public DynamicConfigFile Config { get; private set; }
-
 	public Player Player { get { return rust.Player; } private set { } }
 	public Server Server { get { return rust.Server; } private set { } }
 

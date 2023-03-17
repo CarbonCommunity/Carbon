@@ -42,11 +42,11 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		{
 			if (!ConfigInstance.Items.ContainsKey(item.shortname)) continue;
 
-			var multiplier = ConfigInstance.Items[item.shortname];
+			var value = ConfigInstance.Items[item.shortname];
 
 			DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
-			if (originalStack > 0) item.stackable = Mathf.Clamp((int)(originalStack * multiplier * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
+			if (originalStack > 0) item.stackable = Mathf.Clamp((int)(value * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
 		}
 	}
 	public override void OnDisabled(bool initialized)
