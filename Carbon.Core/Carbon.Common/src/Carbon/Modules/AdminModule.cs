@@ -4176,7 +4176,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	[ConsoleCommand("adminmodule.downloadplugin", "Downloads a plugin from a vendor (if available). Syntax: adminmodule.downloadplugin <codefling|umod> <plugin>")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void DownloadPlugin(Arg args)
 	{
 		var vendor = PluginsTab.GetVendor(args.Args[0] == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);

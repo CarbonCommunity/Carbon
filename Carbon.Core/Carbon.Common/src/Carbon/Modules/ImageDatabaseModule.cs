@@ -68,14 +68,14 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	internal const int MaximumBytes = 4104304;
 
 	[ConsoleCommand("imagedb.pending")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void ShowPending(ConsoleSystem.Arg arg)
 	{
 		arg.ReplyWith($"Queued {_queue.Count} batches of {_queue.Sum(x => x._urlQueue.Count):n0} URLs.");
 	}
 
 	[ConsoleCommand("imagedb.clearinvalid")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void ClearInvalid(ConsoleSystem.Arg arg)
 	{
 		var toDelete = Pool.GetList<KeyValuePair<uint, FileStorage.CacheData>>();

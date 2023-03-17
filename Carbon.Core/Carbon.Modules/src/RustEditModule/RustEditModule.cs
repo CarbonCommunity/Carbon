@@ -1390,28 +1390,28 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	#region Commands
 
 	[ChatCommand("rusteditext.apc.apcforcerespawn")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void APC_APCForceRespawn(BasePlayer player)
 	{
 		APC_ForceRespawn(player);
 	}
 
 	[ChatCommand("rusteditext.apc.apcforcekill")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void APC_APCForceKill(BasePlayer player)
 	{
 		APC_ForceKill(player);
 	}
 
 	[ChatCommand("rusteditext.apc.apcstatus")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void APC_APCGetStatus(BasePlayer player)
 	{
 		APC_GetStatus(player);
 	}
 
 	[ChatCommand("rusteditext.apc.showapcpath")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void APC_APCShowAPCPath(BasePlayer player)
 	{
 		APC_ForceKill(player);
@@ -1572,7 +1572,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	#region Commands
 
 	[ChatCommand("rusteditext.cargo.egresscargo")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void Cargo_Egresscargo(BasePlayer player)
 	{
 		foreach (CargoMod cm in Cargo_CargoShips)
@@ -1587,7 +1587,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 
 	[ChatCommand("rusteditext.cargo.showcargopath")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void Cargo_ShowCargoPath(BasePlayer player)
 	{
 		if (player.IsAdmin)
@@ -1616,7 +1616,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 
 	[ChatCommand("rusteditext.cargo.bypasscargospawn")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void Cargo_BypassCargoSpawn(BasePlayer player)
 	{
 		Cargo_DisableSpawns = !Cargo_DisableSpawns;
@@ -1624,7 +1624,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 
 	[ChatCommand("rusteditext.cargo.exportcargopath")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void Cargo_ExportCargoPath(BasePlayer player)
 	{
 		player.ChatMessage("Exporting SerializedPathList.xml!");
@@ -2649,7 +2649,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	#region Commands
 
 	[ChatCommand("rusteditext.io.showiowires")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void IO_ShowIOWires(BasePlayer player)
 	{
 		player.ChatMessage("Showing IO Wires");
@@ -2657,7 +2657,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 
 	[ChatCommand("rusteditext.io.reloaddoors")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void IO_ReloadDoor(BasePlayer player)
 	{
 		player.ChatMessage("Reloading Doors");
@@ -3054,7 +3054,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	#region Commands
 
 	[ChatCommand("rusteditext.deployables.showanimalspawns")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void Deployables_ShowAnimalSpawns(BasePlayer player)
 	{
 		foreach (var pd in Deployables_AnimalsSpawners)
@@ -3068,7 +3068,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 
 	[ChatCommand("rusteditext.deployables.showlootspawns")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void Deployables_ShowLootSpawns(BasePlayer player)
 	{
 		foreach (var pd in Deployables_AnimalsSpawners)
@@ -3082,7 +3082,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 
 	[ChatCommand("rusteditext.deployables.showvendingspawns")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void Deployables_ShowVendingSpawns(BasePlayer player)
 	{
 		foreach (var pd in Deployables_customVendingMachine)
@@ -3094,7 +3094,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 
 	[ChatCommand("rusteditext.deployables.showentityspawns")]
-	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	[AuthLevel(2)]
 	private void Deployables_ShowEntitySpawns(BasePlayer player)
 	{
 		foreach (var pd in Deployables_SpawnPoints)
