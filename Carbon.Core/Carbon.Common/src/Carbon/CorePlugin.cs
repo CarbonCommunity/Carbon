@@ -357,6 +357,7 @@ public class CorePlugin : CarbonPlugin
 	internal static StackTraceLogType _defaultWarningTrace= Application.GetStackTraceLogType(LogType.Warning);
 	internal static StackTraceLogType _defaultErrorTrace= Application.GetStackTraceLogType(LogType.Error);
 	internal static StackTraceLogType _defaultAssertTrace= Application.GetStackTraceLogType(LogType.Assert);
+	internal static StackTraceLogType _defaultExceptionTrace = Application.GetStackTraceLogType(LogType.Exception);
 
 	public static void ApplyStacktrace()
 	{
@@ -366,6 +367,7 @@ public class CorePlugin : CarbonPlugin
 			Application.SetStackTraceLogType(LogType.Warning, _defaultWarningTrace);
 			Application.SetStackTraceLogType(LogType.Error, _defaultErrorTrace);
 			Application.SetStackTraceLogType(LogType.Assert, _defaultAssertTrace);
+			Application.SetStackTraceLogType(LogType.Exception, _defaultExceptionTrace);
 		}
 		else
 		{
@@ -373,6 +375,7 @@ public class CorePlugin : CarbonPlugin
 			Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
 			Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.None);
 			Application.SetStackTraceLogType(LogType.Assert, StackTraceLogType.None);
+			Application.SetStackTraceLogType(LogType.Exception, StackTraceLogType.None);
 		}
 	}
 
