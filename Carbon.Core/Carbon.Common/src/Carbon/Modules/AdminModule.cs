@@ -2385,6 +2385,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
 								ap.Player.ChatMessage("Becoming Spectator");
 								ap.Player.SpectatePlayer(player);
+								ap.Player.Teleport(player.transform.position);
 								DrawEntitySettings(tab, entity, column, ap3);
 							});
 						}
@@ -2392,10 +2393,12 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							tab.AddButton(1, "End Spectating", ap =>
 							{
+								var spectated = ap.Player.GetParentEntity();
 								ap.Player.SetParent(null);
 								ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: false);
 								ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
 								ap.Player.gameObject.SetLayerRecursive(17);
+								ap.Player.Teleport(spectated.transform.position);
 								DrawEntitySettings(tab, entity, column, ap3);
 							}, ap => Tab.OptionButton.Types.Selected);
 						}
