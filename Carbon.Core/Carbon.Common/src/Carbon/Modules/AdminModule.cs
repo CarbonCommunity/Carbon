@@ -4126,6 +4126,25 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Instance.Draw(args.Player());
 	}
 
+	[ConsoleCommand("adminmodule.downloadplugin", "Downloads a plugin from a vendor (if available). Syntax: adminmodule.downloadplugin <codefling|umod> <plugin>")]
+	[AuthLevel(ServerUsers.UserGroup.Owner)]
+	private void DownloadPlugin(Arg args)
+	{
+		var vendor = PluginsTab.GetVendor(args.Args[0] == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
+		if (vendor == null)
+		{
+			PutsWarn($"Couldn't find that vendor.");
+			return;
+		}
+		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Name.ToLower().Trim().Contains(args.Args[1].ToLower().Trim()));
+		if (plugin == null)
+		{
+			PutsWarn($"Cannot find that plugin.");
+			return;
+		}
+		vendor.Download(plugin.Id, () => { PutsWarn($"Couldn't download {plugin.Name}."); });
+	}
+
 	#endregion
 
 	#endregion
