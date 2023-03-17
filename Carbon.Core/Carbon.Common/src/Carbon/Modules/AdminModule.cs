@@ -1934,11 +1934,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					tab.AddButton(1, "Spectate", ap =>
 					{
+						ap.Player.Teleport(player.transform.position);
 						ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: true);
 						ap.Player.gameObject.SetLayerRecursive(10);
 						ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
 						ap.Player.ChatMessage("Becoming Spectator");
 						ap.Player.SpectatePlayer(player);
+
 						ShowInfo(tab, ap, player);
 					});
 				}
@@ -1946,10 +1948,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					tab.AddButton(1, "End Spectating", ap =>
 					{
-						ap.Player.SetParent(null);
+						var spectated = ap.Player.GetParentEntity();
+						ap.Player.SetParent(null, true, true);
 						ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: false);
 						ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
 						ap.Player.gameObject.SetLayerRecursive(17);
+						ap.Player.Teleport(spectated.transform.position);
+
 						ShowInfo(tab, ap, player);
 					}, ap => Tab.OptionButton.Types.Selected);
 				}
@@ -2380,12 +2385,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							tab.AddButton(1, "Spectate", ap =>
 							{
+								ap.Player.Teleport(player.transform.position);
 								ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: true);
 								ap.Player.gameObject.SetLayerRecursive(10);
 								ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
 								ap.Player.ChatMessage("Becoming Spectator");
 								ap.Player.SpectatePlayer(player);
-								ap.Player.Teleport(player.transform.position);
+
 								DrawEntitySettings(tab, entity, column, ap3);
 							});
 						}
