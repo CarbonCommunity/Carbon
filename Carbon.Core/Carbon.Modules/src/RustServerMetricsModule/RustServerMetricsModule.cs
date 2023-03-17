@@ -1,16 +1,16 @@
 ﻿using System;
-using Carbon.Base;
-using Newtonsoft.Json;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Network;
-using UnityEngine;
-using System.Collections;
-using UnityEngine.Networking;
 using System.Text.RegularExpressions;
+using Carbon.Base;
 using Carbon.Components;
+using Network;
+using Newtonsoft.Json;
+using UnityEngine;
+using UnityEngine.Networking;
 
 /*
  *
@@ -21,12 +21,16 @@ using Carbon.Components;
 
 namespace Carbon.Modules;
 
+#pragma warning disable IDE0051
+
 public partial class RustServerMetricsModule : CarbonModule<RustServerMetricsConfig, EmptyModuleData>
 {
 	public override string Name => "RustServerMetrics";
 	public override Type Type => typeof(RustServerMetricsModule);
 	public override bool ForceModded => true;
 	public override bool Disabled => true;
+
+	public override bool EnabledByDefault => false;
 
 	internal static RustServerMetricsModule Singleton { get; set; }
 

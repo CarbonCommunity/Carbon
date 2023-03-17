@@ -32,6 +32,8 @@ using Time = UnityEngine.Time;
 
 namespace Carbon.Modules;
 
+#pragma warning disable IDE0051
+
 public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleData>
 {
 	internal static RustEditModule Singleton { get; set; }
@@ -39,6 +41,8 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	public override string Name => "RustEdit.Ext";
 	public override bool ForceModded => true;
 	public override Type Type => typeof(RustEditModule);
+
+	public override bool EnabledByDefault => false;
 
 	public RustEditModule()
 	{
@@ -2389,7 +2393,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		IO_CreateLift(Top);
 	}
 	internal static void IO_CreateLift(Elevator elevator)
-	{		
+	{
 		var elevatorLift = elevator.liftEntity;
 		if (elevatorLift == null)
 		{
@@ -2749,7 +2753,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 				{
 					var basePlayer = baseEntity as BasePlayer;
 
-					if (basePlayer == null || (basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying) || turret.IsAuthed(basePlayer) || (turret.PeacekeeperMode() && !basePlayer.IsHostile())) continue; 
+					if (basePlayer == null || (basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying) || turret.IsAuthed(basePlayer) || (turret.PeacekeeperMode() && !basePlayer.IsHostile())) continue;
 					if (!turret.target.IsNpc && turret.target.IsAlive() && turret.InFiringArc(turret.target) && turret.ObjectVisible(turret.target))
 					{
 						turret.SetTarget(basePlayer);
@@ -3390,7 +3394,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			}
 		}
 	}
-	internal static  void Deployables_ClearContainer(LootContainer lootContainer)
+	internal static void Deployables_ClearContainer(LootContainer lootContainer)
 	{
 		if (lootContainer != null)
 		{
@@ -3422,7 +3426,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			}
 		}
 	}
-	internal static  void Deployables_ContainerRespawner(LootContainer lootContainer, LootableContainerData lootableContainerData)
+	internal static void Deployables_ContainerRespawner(LootContainer lootContainer, LootableContainerData lootableContainerData)
 	{
 		if (lootContainer != null && !lootContainer.IsDestroyed)
 		{
@@ -3430,7 +3434,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			Deployables_AddContainerItems(lootContainer, lootableContainerData);
 		}
 	}
-	internal static  void Deployables_AddContainerItems(LootContainer lootContainer, LootableContainerData lootableContainerData)
+	internal static void Deployables_AddContainerItems(LootContainer lootContainer, LootableContainerData lootableContainerData)
 	{
 		if (!(lootContainer == null) && !lootContainer.IsDestroyed)
 		{
@@ -3469,7 +3473,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			}
 		}
 	}
-	internal static  void Deployables_StockVending(CustomVendingMachines vendingm)
+	internal static void Deployables_StockVending(CustomVendingMachines vendingm)
 	{
 		NPCVendingMachine npcvendingMachine = vendingm.npcVendingMachine;
 		if (npcvendingMachine == null)
@@ -3659,7 +3663,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		Pool.FreeList<BaseNetworkable>(ref list);
 		return null;
 	}
-	internal static  void Deployables_PairHangerDoor(Door door)
+	internal static void Deployables_PairHangerDoor(Door door)
 	{
 		if (!door.HasFlag(BaseEntity.Flags.Reserved11))
 		{
@@ -3676,7 +3680,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			}
 		}
 	}
-	internal static  void Deployables_PairDoor(Door door)
+	internal static void Deployables_PairDoor(Door door)
 	{
 		if (!door.HasFlag(BaseEntity.Flags.Reserved11))
 		{
@@ -3694,7 +3698,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			}
 		}
 	}
-	internal static  IEnumerator Deployables_SpawnManagerPrefabs()
+	internal static IEnumerator Deployables_SpawnManagerPrefabs()
 	{
 		bool HangerDoorsDone = false;
 		bool FoundCoalings = false;

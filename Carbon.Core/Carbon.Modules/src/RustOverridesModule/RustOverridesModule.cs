@@ -11,11 +11,15 @@ using Newtonsoft.Json;
 
 namespace Carbon.Modules;
 
+#pragma warning disable IDE0051
+
 public class RustOverridesModule : CarbonModule<RustOverridesConfig, EmptyModuleData>
 {
 	public override string Name => "RustOverrides";
 	public override Type Type => typeof(RustOverridesModule);
 	public override bool ForceModded => true;
+
+	public override bool EnabledByDefault => false;
 
 	private object IDisallowSkinnedItemsFromBeingCraftable()
 	{
@@ -36,8 +40,8 @@ public class RustOverridesModule : CarbonModule<RustOverridesConfig, EmptyModule
 public class RustOverridesConfig
 {
 	[JsonProperty("Disallow skinned items from being craftable")]
-	public bool DisallowSkinnedItemsFromBeingCraftable = true;
+	public bool DisallowSkinnedItemsFromBeingCraftable = false;
 
 	[JsonProperty("No give notices")]
-	public bool NoGiveNotices = true;
+	public bool NoGiveNotices = false;
 }
