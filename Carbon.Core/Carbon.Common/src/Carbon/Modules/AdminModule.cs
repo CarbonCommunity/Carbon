@@ -1966,6 +1966,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
 						cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 						cui.Send(container, player);
+						BlindedPlayers.Add(player);
 						ShowInfo(tab, ap, player);
 
 						if (ap.Player == player) Core.timer.In(1, () => { Instance.Close(player); });
@@ -1977,6 +1978,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						using var cui = new CUI(Instance.Handler);
 						cui.Destroy("blindingpanel", player);
+						BlindedPlayers.Remove(player);
 						ShowInfo(tab, ap, player);
 					}, ap => Tab.OptionButton.Types.Selected);
 				}
@@ -2416,6 +2418,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
 								cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 								cui.Send(container, player);
+								PlayersTab.BlindedPlayers.Add(player);
 								DrawEntitySettings(tab, entity, column, ap3);
 
 								if (ap.Player == player) Core.timer.In(1, () => { Instance.Close(player); });
@@ -2427,6 +2430,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 							{
 								using var cui = new CUI(Instance.Handler);
 								cui.Destroy("blindingpanel", player);
+								PlayersTab.BlindedPlayers.Remove(player);
 								DrawEntitySettings(tab, entity, column, ap3);
 							}, ap => Tab.OptionButton.Types.Selected);
 						}
