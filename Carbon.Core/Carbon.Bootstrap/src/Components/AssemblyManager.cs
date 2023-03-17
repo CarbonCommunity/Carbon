@@ -59,6 +59,14 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 	private LibraryLoader _library;
 	private AssemblyLoader _loader;
 
+	private static readonly string[] _knownLibs = {
+		"System.Core",
+		"System.Data",
+		"System.Net.Http",
+		"System.Xml.Linq",
+		"System.Xml",
+	};
+
 	private void Awake()
 	{
 		_library = new LibraryLoader();
@@ -99,6 +107,12 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		{
 			raw = _loader.ReadFromCache(file).Raw;
 			if (raw != null) return raw;
+		}
+
+		if (_knownLibs.Contains(file))
+		{
+			IAssemblyCache result = _library.ResolveAssembly(file, $"{this}");
+			if (result.Raw != null) return result.Raw;
 		}
 
 		Logger.Warn($"Unable to get byte[] for '{file}'");
@@ -170,7 +184,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Failed loading module '{file}'", e);
 
 			return null;
-	    }
+		}
 #else
 		catch (System.Exception)
 		{
@@ -246,7 +260,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Failed loading module '{file}'", e);
 
 			return null;
-	    }
+		}
 #else
 		catch (System.Exception)
 		{
@@ -321,7 +335,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Failed loading module '{file}'", e);
 
 			return null;
-	    }
+		}
 #else
 		catch (System.Exception)
 		{
@@ -379,7 +393,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Failed loading module '{file}'", e);
 
 			return null;
-	    }
+		}
 #else
 		catch (System.Exception)
 		{
