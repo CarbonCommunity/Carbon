@@ -236,12 +236,12 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		if (AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0)
 		{
 			var errors = Pool.GetList<string>();
-			//Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
+			Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
 			for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
 			{
 				var error = AsyncLoader.Exceptions[i];
 				var print = $"{error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
-				//Logger.Error($"  {i + 1:n0}. {print}");
+				Logger.Error($"  {i + 1:n0}. {print}");
 				errors.Add(print);
 			}
 

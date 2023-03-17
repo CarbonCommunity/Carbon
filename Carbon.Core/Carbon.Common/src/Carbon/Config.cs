@@ -24,6 +24,7 @@ public class Config
 	public int EntityMapBufferSize { get; set; } = 100000;
 	public int LogFileMode { get; set; } = 2;
 	public int LogVerbosity { get; set; } = 0;
+	public bool UnityStacktrace { get; set; } = false;
 	public List<string> ConditionalCompilationSymbols { get; set; }
 	public Logger.Severity LogSeverity { get; set; } = Logger.Severity.Notice;
 	public Permission.SerializationMode PermissionSerialization { get; set; } = Permission.SerializationMode.Protobuf;
