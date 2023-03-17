@@ -54,6 +54,8 @@ public class CorePlugin : CarbonPlugin
 
 	public override void IInit()
 	{
+		ApplyStacktrace();
+
 		Type = GetType();
 		Hooks = new();
 
@@ -89,7 +91,7 @@ public class CorePlugin : CarbonPlugin
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)
 	{
-		Logger.Log($"[{player.userID}] {player.displayName} left: {reason}");
+		Logger.Log($" {player.net.connection.ToString()} left: {reason}");
 	}
 	private void OnPluginLoaded(Plugin plugin)
 	{
@@ -212,7 +214,7 @@ public class CorePlugin : CarbonPlugin
 			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 			var command = split[0].Trim();
 			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
-			Facepunch.Pool.Free(ref split);
+			Pool.Free(ref split);
 
 			if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(player.userID), command, args) != null)
 			{
@@ -351,6 +353,29 @@ public class CorePlugin : CarbonPlugin
 		Logger.Log(message);
 	}
 
+	internal static StackTraceLogType _defaultLogTrace = Application.GetStackTraceLogType(LogType.Log);
+	internal static StackTraceLogType _defaultWarningTrace= Application.GetStackTraceLogType(LogType.Warning);
+	internal static StackTraceLogType _defaultErrorTrace= Application.GetStackTraceLogType(LogType.Error);
+	internal static StackTraceLogType _defaultAssertTrace= Application.GetStackTraceLogType(LogType.Assert);
+
+	public static void ApplyStacktrace()
+	{
+		if (Community.Runtime.Config.UnityStacktrace)
+		{
+			Application.SetStackTraceLogType(LogType.Log, _defaultLogTrace);
+			Application.SetStackTraceLogType(LogType.Warning, _defaultWarningTrace);
+			Application.SetStackTraceLogType(LogType.Error, _defaultErrorTrace);
+			Application.SetStackTraceLogType(LogType.Assert, _defaultAssertTrace);
+		}
+		else
+		{
+			Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
+			Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
+			Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.None);
+			Application.SetStackTraceLogType(LogType.Assert, StackTraceLogType.None);
+		}
+	}
+
 	#region Commands
 
 	#region App
@@ -463,7 +488,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		Carbon.Core.Updater.DoUpdate((bool result) =>
+		Updater.DoUpdate((bool result) =>
 		{
 			if (!result)
 			{
@@ -753,6 +778,18 @@ public class CorePlugin : CarbonPlugin
 
 	[CommandVar("logfiletype", "The mode for writing the log to file. (0=disabled, 1=saves updates every 5 seconds, 2=saves immediately)", true)]
 	private int LogFileType { get { return Community.Runtime.Config.LogFileMode; } set { Community.Runtime.Config.LogFileMode = Mathf.Clamp(value, 0, 2); Community.Runtime.SaveConfig(); } }
+
+	[CommandVar("unitystacktrace", "Enables a big chunk of detail of Unity's default stacktrace. Recommended to be disabled as a lot of it is internal and unnecessary for the average user.", true)]
+	private bool UnityStacktrace
+	{
+		get { return Community.Runtime.Config.UnityStacktrace; }
+		set
+		{
+			Community.Runtime.Config.UnityStacktrace = value;
+			Community.Runtime.SaveConfig();
+			ApplyStacktrace();
+		}
+	}
 
 	[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true)]
 	private bool HookTimeTracker { get { return Community.Runtime.Config.HookTimeTracker; } set { Community.Runtime.Config.HookTimeTracker = value; Community.Runtime.SaveConfig(); } }
