@@ -1948,6 +1948,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						ap.Player.SetParent(null);
 						ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: false);
+						ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
 						ap.Player.gameObject.SetLayerRecursive(17);
 						ShowInfo(tab, ap, player);
 					}, ap => Tab.OptionButton.Types.Selected);
