@@ -2237,7 +2237,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				switch (entity)
 				{
 					case BasePlayer player:
-						name = $"{player.displayName} ({player.userID})";
+						name = $"{player.displayName}";
 						break;
 				}
 
@@ -2341,6 +2341,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (entity is BasePlayer)
 				{
+					tab.AddInput(column, "Display Name", () => player.displayName);
 					tab.AddInput(column, "Steam ID", () => player.UserIDString);
 
 					tab.AddButtonArray(column,
@@ -2373,6 +2374,54 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 							player.Hurt(player.MaxHealth()); player.Respawn(); player.EndSleeping();
 						}));
 					tab.AddInput(column, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
+					if (ap3 != null)
+					{
+						if (!ap3.Player.IsSpectating())
+						{
+							tab.AddButton(1, "Spectate", ap =>
+							{
+								ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: true);
+								ap.Player.gameObject.SetLayerRecursive(10);
+								ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
+								ap.Player.ChatMessage("Becoming Spectator");
+								ap.Player.SpectatePlayer(player);
+								DrawEntitySettings(tab, entity, column, ap3);
+							});
+						}
+						else
+						{
+							tab.AddButton(1, "End Spectating", ap =>
+							{
+								ap.Player.SetParent(null);
+								ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: false);
+								ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
+								ap.Player.gameObject.SetLayerRecursive(17);
+								DrawEntitySettings(tab, entity, column, ap3);
+							}, ap => Tab.OptionButton.Types.Selected);
+						}
+						if (!PlayersTab.BlindedPlayers.Contains(player))
+						{
+							tab.AddButton(1, "Blind Player", ap =>
+							{
+								using var cui = new CUI(Instance.Handler);
+								var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+								cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
+								cui.Send(container, player);
+								DrawEntitySettings(tab, entity, column, ap3);
+
+								if (ap.Player == player) Core.timer.In(1, () => { Instance.Close(player); });
+							});
+						}
+						else
+						{
+							tab.AddButton(1, "Unblind Player", ap =>
+							{
+								using var cui = new CUI(Instance.Handler);
+								cui.Destroy("blindingpanel", player);
+								DrawEntitySettings(tab, entity, column, ap3);
+							}, ap => Tab.OptionButton.Types.Selected);
+						}
+					}
 				}
 
 				if (entity.parentEntity.IsValid(true)) tab.AddButton(column, $"Parent: {entity.parentEntity.Get(true)}", ap => { ap.SetStorage("selectedent", entity.parentEntity.Get(true)); DrawEntities(tab, ap); DrawEntitySettings(tab, entity.parentEntity.Get(true), 1, ap); });
