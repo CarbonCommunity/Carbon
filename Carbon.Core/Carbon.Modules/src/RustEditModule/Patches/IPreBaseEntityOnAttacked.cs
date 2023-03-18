@@ -11,7 +11,7 @@ namespace Carbon.Modules;
 
 public partial class RustEditModule
 {
-	[HookAttribute.Patch("IPreBasePlayerOnAttacked", "IPreBasePlayerOnAttacked", typeof(BaseEntity), "OnAttacked", new System.Type[] { typeof(HitInfo) })]
+	[HookAttribute.Patch("IPreBaseEntityOnAttacked", "IPreBaseEntityOnAttacked", typeof(BaseEntity), "OnAttacked", new System.Type[] { typeof(HitInfo) })]
 	[HookAttribute.Identifier("25cb3d11502d4da29aea9bfb5c53a661")]
 	[HookAttribute.Options(HookFlags.Hidden)]
 
@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix( BaseEntity __instance)
 		{
-			if (HookCaller.CallStaticHook("IPreBasePlayerOnAttacked", __instance) != null)
+			if (HookCaller.CallStaticHook("IPreBaseEntityOnAttacked", __instance) != null)
 			{
 				return false;
 			}

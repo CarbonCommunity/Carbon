@@ -2586,7 +2586,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		return null;
 	}
-	private object IPreBasePlayerOnAttacked(BaseEntity entity)
+	private object IPreBaseEntityOnAttacked(BaseEntity entity)
 	{
 		if (entity == null)
 		{
