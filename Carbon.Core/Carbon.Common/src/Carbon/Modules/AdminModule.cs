@@ -203,7 +203,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal void TabButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float width, float offset, bool highlight = false)
 	{
 		var button = cui.CreateProtectedButton(container, parent: parent, id: null,
-			color: highlight ? "0.4 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
+			color: highlight ? $"{DataInstance.Colors.SelectedTabColor} 0.7" : "0.3 0.3 0.3 0.1",
 			textColor: "1 1 1 0.5",
 			text: text, 11,
 			xMin: offset, xMax: offset + width, yMin: 0, yMax: 1,
@@ -296,7 +296,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreatePanel(container, $"{parent}text", null,
-				color: "1 1 1 0.7",
+				color: $"1 1 1 {DataInstance.Colors.TitleUnderlineOpacity}",
 				xMin: 0, xMax: 1, yMin: 0f, yMax: 0.015f);
 		}
 	}
@@ -351,7 +351,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -395,7 +395,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -424,7 +424,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!readOnly)
 		{
 			cui.CreatePanel(container, inPanel, null,
-				color: CUI.Color("#4287f5", 0.8f),
+				color: $"{DataInstance.Colors.EditableInputHighlight} 0.9",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 0.05f,
 				OxMax: -0.5f);
 		}
@@ -446,7 +446,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -497,7 +497,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -540,7 +540,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-				color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 				text: $"{text}:", 12,
 				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 				align: TextAnchor.MiddleLeft,
@@ -697,7 +697,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -773,7 +773,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
 		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -810,7 +810,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!input.ReadOnly)
 		{
 			cui.CreatePanel(container, inPanel, null,
-				color: CUI.Color("#4287f5", 0.8f),
+				color: $"{DataInstance.Colors.EditableInputHighlight} 0.9",
 				xMin: 0, xMax: 1f - buttonPriority, yMin: 0, yMax: 0.05f,
 				OxMax: -0.5f);
 		}
@@ -826,7 +826,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -4316,5 +4316,14 @@ public class AdminConfig
 }
 public class AdminData
 {
+	public DataColors Colors = new DataColors();
 
+	public class DataColors
+	{
+		public string SelectedTabColor = "0.4 0.7 0.2";
+		public string EditableInputHighlight = "0.259 0.529 0.961";
+		public float OptionNameOpacity = 0.7f;
+		public float TitleUnderlineOpacity = 0.9f;
+
+	}
 }
