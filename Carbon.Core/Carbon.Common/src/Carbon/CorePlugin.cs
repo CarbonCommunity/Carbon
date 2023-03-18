@@ -116,8 +116,11 @@ public class CorePlugin : CarbonPlugin
 
 	private void OnServerSave()
 	{
-		Logger.Log($"Saving Carbon state..");
+		Logger.Debug($"Saving Carbon state..", 1);
 		Interface.Oxide.Permission.SaveData();
+
+		Community.Runtime.Events
+			.Trigger(CarbonEvent.OnServerSave, EventArgs.Empty);
 	}
 
 	#region Internal Hooks
@@ -298,7 +301,7 @@ public class CorePlugin : CarbonPlugin
 				}
 			}
 		}
-		catch(Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }
+		catch (Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }
 
 		return true;
 	}
@@ -357,9 +360,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	internal static StackTraceLogType _defaultLogTrace = Application.GetStackTraceLogType(LogType.Log);
-	internal static StackTraceLogType _defaultWarningTrace= Application.GetStackTraceLogType(LogType.Warning);
-	internal static StackTraceLogType _defaultErrorTrace= Application.GetStackTraceLogType(LogType.Error);
-	internal static StackTraceLogType _defaultAssertTrace= Application.GetStackTraceLogType(LogType.Assert);
+	internal static StackTraceLogType _defaultWarningTrace = Application.GetStackTraceLogType(LogType.Warning);
+	internal static StackTraceLogType _defaultErrorTrace = Application.GetStackTraceLogType(LogType.Error);
+	internal static StackTraceLogType _defaultAssertTrace = Application.GetStackTraceLogType(LogType.Assert);
 	internal static StackTraceLogType _defaultExceptionTrace = Application.GetStackTraceLogType(LogType.Exception);
 
 	public static void ApplyStacktrace()
@@ -1145,7 +1148,7 @@ public class CorePlugin : CarbonPlugin
 		if (!Loader.IsBatchComplete)
 		{
 			Loader.UnloadQueueList.Add(arg.Args.ToString(" "));
-			Logger.Warn($"There are plugins still processing. Command has been queued up!");		
+			Logger.Warn($"There are plugins still processing. Command has been queued up!");
 			return;
 		}
 
