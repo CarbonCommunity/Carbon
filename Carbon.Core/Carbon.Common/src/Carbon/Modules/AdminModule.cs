@@ -4207,6 +4207,39 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		vendor.Download(plugin.Id, () => { PutsWarn($"Couldn't download {plugin.Name}."); });
 	}
 
+	[ConsoleCommand("adminmodule.updatevendor", "Downloads latest vendor information. Syntax: adminmodule.updatevendor <codefling|umod>")]
+	[AuthLevel(2)]
+	private void UpdateVendor(Arg args)
+	{
+		var vendor = PluginsTab.GetVendor(args.Args[0] == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
+		if (vendor == null)
+		{
+			PutsWarn($"Couldn't find that vendor.");
+			return;
+		}
+
+		var id = string.Empty;
+		switch (vendor)
+		{
+			case PluginsTab.Codefling:
+				id = "cf";
+				break;
+
+			case PluginsTab.uMod:
+				id = "umod";
+				break;
+		}
+
+		var dataPath = Path.Combine(Core.Defines.GetDataFolder(), $"vendordata_{id}.db");
+		OsEx.File.Delete(dataPath);
+
+		if (!vendor.Load())
+		{
+			vendor.FetchList();
+			vendor.Refresh();
+		}
+	}
+
 	#endregion
 
 	#endregion
