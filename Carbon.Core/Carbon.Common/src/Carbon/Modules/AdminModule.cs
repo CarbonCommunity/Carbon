@@ -74,22 +74,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		ImageDatabase = GetModule<ImageDatabaseModule>();
 		ColorPicker = GetModule<ColorPickerModule>();
 
-		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
-		{
-			if (!CanAccess(player)) return;
-
-			var ap = GetOrCreateAdminPlayer(player);
-			ap.TabIndex = 0;
-
-			var tab = GetTab(player);
-			tab?.OnChange?.Invoke(ap, tab);
-
-			ap.Clear();
-
-			DrawCursorLocker(player);
-			Draw(player);
-		});
-
 		Unsubscribe("OnPluginLoaded");
 		Unsubscribe("OnPluginUnloaded");
 		Unsubscribe("OnEntityDismounted");
@@ -113,6 +97,22 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			UnityEngine.Application.logMessageReceived += OnLog;
 		}
+
+		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
+		{
+			if (!CanAccess(player)) return;
+
+			var ap = GetOrCreateAdminPlayer(player);
+			ap.TabIndex = 0;
+
+			var tab = GetTab(player);
+			tab?.OnChange?.Invoke(ap, tab);
+
+			ap.Clear();
+
+			DrawCursorLocker(player);
+			Draw(player);
+		});
 	}
 	public override void OnDisabled(bool initialized)
 	{

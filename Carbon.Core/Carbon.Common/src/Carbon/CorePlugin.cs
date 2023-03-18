@@ -853,7 +853,7 @@ public class CorePlugin : CarbonPlugin
 
 		foreach (var command in Community.Runtime.AllConsoleCommands)
 		{
-			if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
+			if (command.IsHidden || (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter))) continue;
 
 			var value = " ";
 
@@ -879,7 +879,7 @@ public class CorePlugin : CarbonPlugin
 
 		foreach (var command in Community.Runtime.AllChatCommands)
 		{
-			if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
+			if (command.IsHidden || (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter))) continue;
 
 			body.AddRow(command.Command, command.Help);
 		}
