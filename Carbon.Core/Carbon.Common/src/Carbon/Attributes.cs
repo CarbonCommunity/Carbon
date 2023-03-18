@@ -220,16 +220,11 @@ public class GroupAttribute : Attribute
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class AuthLevelAttribute : Attribute
 {
-	public UserGroup Group { get; } = UserGroup.None;
+	public int AuthLevel { get; }
 
-	public AuthLevelAttribute(UserGroup group)
+	public AuthLevelAttribute(int level)
 	{
-		Group = group;
-	}
-
-	public AuthLevelAttribute(int group)
-	{
-		Group = (UserGroup)group;
+		AuthLevel = level;
 	}
 }
 

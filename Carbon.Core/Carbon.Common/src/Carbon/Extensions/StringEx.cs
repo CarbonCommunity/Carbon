@@ -509,4 +509,20 @@ public static class StringEx
 	}
 
 	#endregion
+
+	public static string SpacedString(this string value, int spaces)
+	{
+		var result = string.Empty;
+		foreach (var character in value)
+		{
+			result += character;
+
+			for (int i = 0; i < spaces; i++)
+			{
+				result += " ";
+			}
+		}
+
+		return result.TrimEnd();
+	}
 }

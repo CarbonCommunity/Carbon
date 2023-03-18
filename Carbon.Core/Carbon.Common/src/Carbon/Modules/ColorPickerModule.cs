@@ -209,7 +209,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		var player = args.Player();
 		var mode = args.Args[0];
 		var hex = args.Args[1];
-		var rawColor = args.Args.Skip(2).ToArray().ToString(", ", ", ");
+		var rawColor = args.Args.Skip(2).ToArray().ToString(" ", " ");
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
 		switch (mode)

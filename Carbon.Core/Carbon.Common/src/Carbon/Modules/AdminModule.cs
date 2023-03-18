@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Controls;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -16,6 +17,7 @@ using ProtoBuf;
 using UnityEngine;
 using static BasePlayer;
 using static ConsoleSystem;
+using static SkinnedMultiMesh;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
 
@@ -43,6 +45,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
 	internal ImageDatabaseModule ImageDatabase;
+	internal ColorPickerModule ColorPicker;
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
@@ -68,6 +71,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		base.OnServerInit();
 
 		ImageDatabase = GetModule<ImageDatabaseModule>();
+		ColorPicker = GetModule<ColorPickerModule>();
 
 		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
 		{
@@ -201,7 +205,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal void TabButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float width, float offset, bool highlight = false)
 	{
 		var button = cui.CreateProtectedButton(container, parent: parent, id: null,
-			color: highlight ? "0.4 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
+			color: highlight ? $"{DataInstance.Colors.SelectedTabColor} 0.7" : "0.3 0.3 0.3 0.1",
 			textColor: "1 1 1 0.5",
 			text: text, 11,
 			xMin: offset, xMax: offset + width, yMin: 0, yMax: 1,
@@ -294,7 +298,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreatePanel(container, $"{parent}text", null,
-				color: "1 1 1 0.7",
+				color: $"1 1 1 {DataInstance.Colors.TitleUnderlineOpacity}",
 				xMin: 0, xMax: 1, yMin: 0f, yMax: 0.015f);
 		}
 	}
@@ -349,7 +353,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -393,7 +397,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -422,7 +426,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!readOnly)
 		{
 			cui.CreatePanel(container, inPanel, null,
-				color: CUI.Color("#4287f5", 0.8f),
+				color: $"{DataInstance.Colors.EditableInputHighlight} 0.9",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 0.05f,
 				OxMax: -0.5f);
 		}
@@ -444,7 +448,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -495,7 +499,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -538,7 +542,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-				color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 				text: $"{text}:", 12,
 				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 				align: TextAnchor.MiddleLeft,
@@ -695,7 +699,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -771,7 +775,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
 		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -808,10 +812,43 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!input.ReadOnly)
 		{
 			cui.CreatePanel(container, inPanel, null,
-				color: CUI.Color("#4287f5", 0.8f),
+				color: $"{DataInstance.Colors.EditableInputHighlight} 0.9",
 				xMin: 0, xMax: 1f - buttonPriority, yMin: 0, yMax: 0.05f,
 				OxMax: -0.5f);
 		}
+	}
+	public void TabPanelColor(CUI cui, CuiElementContainer container, string parent, string text, string color, string command, float height, float offset)
+	{
+		var toggleButtonScale = 0.825f;
+
+		cui.CreatePanel(container, parent, $"{parent}panel",
+			color: "0.2 0.2 0.2 0",
+			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
+			text: $"{text}:", 12,
+			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleLeft,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+			cui.CreatePanel(container, $"{parent}panel", null,
+				color: "0.2 0.2 0.2 0.5",
+				xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
+		}
+
+		var split = color.Split(' ');
+		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
+			color: color,
+			textColor: "1 1 1 1",
+			text: split.Length > 1 ? $"#{ColorUtility.ToHtmlStringRGB(new Color(split[0].ToFloat(), split[1].ToFloat(), split[2].ToFloat(), 1))}" : string.Empty, 10,
+			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
+			command: command,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+		Array.Clear(split, 0, split.Length);
+		split = null;
 	}
 
 	#endregion
@@ -977,15 +1014,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using (TimeMeasure.New($"{Name}.Panels/Overrides"))
 			{
-				cui.CreatePanel(container, "main", "panels",
-				color: "0 0 0 0",
-				xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
+				var panels = cui.CreatePanel(container, "main", "panels",
+					color: "0 0 0 0",
+					xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
 
 				if (tab != null)
 				{
+					tab.Under?.Invoke(tab, container, panels, ap);
+
 					#region Override
 
-					tab.Override?.Invoke(tab, container, "panels", ap);
+					tab.Override?.Invoke(tab, container, panels, ap);
 
 					#endregion
 
@@ -1068,12 +1107,16 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 										TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(), rowHeight, rowIndex);
 										break;
 
-									case Tab.ButtonArray array:
+									case Tab.OptionButtonArray array:
 										TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
 										break;
 
 									case Tab.OptionInputButton inputButton:
 										TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, rowHeight, rowIndex);
+										break;
+
+									case Tab.OptionColor color:
+										TabPanelColor(cui, container, panel, color.Name, color.Color?.Invoke() ?? "0.1 0.1 0.1 0.5", PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
 										break;
 
 									default:
@@ -1089,6 +1132,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 
 						#endregion
+					}
+
+					tab.Over?.Invoke(tab, container, panels, ap);
+
+					if (tab.Dialog != null)
+					{
+						var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
+						cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
+
+						cui.CreateText(container, dialog, null,
+							"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
+
+						cui.CreateText(container, dialog, null,
+							"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
+
+						cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
+							xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: "dialog.action decline");
+
+						cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
+							xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: "dialog.action confirm");
 					}
 				}
 			}
@@ -1304,7 +1367,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				range.Callback?.Invoke(ap, args[0].ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
 				return range.Callback != null;
 
-			case Tab.ButtonArray array:
+			case Tab.OptionButtonArray array:
 				var callback = array.Buttons[args[0].ToInt()].Callback;
 				callback?.Invoke(ap);
 				return callback != null;
@@ -1319,6 +1382,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					case "button":
 						inputButton.Button.Callback?.Invoke(ap);
 						return inputButton.Button.Callback != null;
+				}
+				break;
+
+			case Tab.OptionColor color:
+				if (color.Callback != null)
+				{
+					ColorPicker.Draw(player, (rustColor, hexColor) => { color.Callback?.Invoke(ap, rustColor, hexColor); });
+					return false;
 				}
 				break;
 		}
@@ -1416,10 +1487,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public string Id;
 		public string Name;
 		public RustPlugin Plugin;
-		public Action<Tab, CuiElementContainer, string, AdminPlayer> Override;
+		public Action<Tab, CuiElementContainer, string, AdminPlayer> Over, Under, Override;
 		public Dictionary<int, List<Option>> Columns = new();
 		public Action<AdminPlayer, Tab> OnChange;
 		public Dictionary<string, Radio> Radios = new();
+		public TabDialog Dialog;
 
 		public Tab(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null)
 		{
@@ -1530,18 +1602,28 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public Tab AddButtonArray(int column, float spacing, params OptionButton[] buttons)
 		{
-			AddRow(column, new ButtonArray(string.Empty, spacing, buttons));
+			AddRow(column, new OptionButtonArray(string.Empty, spacing, buttons));
 			return this;
 		}
 		public Tab AddButtonArray(int column, params OptionButton[] buttons)
 		{
-			AddRow(column, new ButtonArray(string.Empty, 0.01f, buttons));
+			AddRow(column, new OptionButtonArray(string.Empty, 0.01f, buttons));
 			return this;
 		}
 		public Tab AddInputButton(int column, string name, float buttonPriority, OptionInput input, OptionButton button)
 		{
 			AddRow(column, new OptionInputButton(name, buttonPriority, input, button));
 			return this;
+		}
+		public Tab AddColor(int column, string name, Func<string> color, Action<AdminPlayer, string, string> callback)
+		{
+			AddRow(column, new OptionColor(name, color, callback));
+			return this;
+		}
+
+		public void CreateDialog(string title, Action<AdminPlayer> onConfirm, Action<AdminPlayer> onDecline)
+		{
+			Dialog = new TabDialog(title, onConfirm, onDecline);
 		}
 
 		public void Dispose()
@@ -1574,6 +1656,18 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				Options.Clear();
 				Options = null;
+			}
+		}
+		public class TabDialog
+		{
+			public string Title;
+			public Action<AdminPlayer> OnConfirm, OnDecline;
+
+			public TabDialog(string title, Action<AdminPlayer> onConfirm, Action<AdminPlayer> onDecline)
+			{
+				Title = title;
+				OnConfirm = onConfirm;
+				OnDecline = onDecline;
 			}
 		}
 
@@ -1692,15 +1786,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Button = button;
 			}
 		}
-		public class ButtonArray : Option
+		public class OptionButtonArray : Option
 		{
 			public OptionButton[] Buttons;
 			public float Spacing = 0.01f;
 
-			public ButtonArray(string name, float spacing, params OptionButton[] buttons) : base(name)
+			public OptionButtonArray(string name, float spacing, params OptionButton[] buttons) : base(name)
 			{
 				Buttons = buttons;
 				Spacing = spacing;
+			}
+		}
+		public class OptionColor : Option
+		{
+			public Func<string> Color;
+			public Action<AdminPlayer, string, string> Callback;
+
+			public OptionColor(string name, Func<string> color, Action<AdminPlayer, string, string> callback) : base(name)
+			{
+				Color = color;
+				Callback = callback;
 			}
 		}
 	}
@@ -4207,6 +4312,39 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		vendor.Download(plugin.Id, () => { PutsWarn($"Couldn't download {plugin.Name}."); });
 	}
 
+	[ConsoleCommand("adminmodule.updatevendor", "Downloads latest vendor information. Syntax: adminmodule.updatevendor <codefling|umod>")]
+	[AuthLevel(2)]
+	private void UpdateVendor(Arg args)
+	{
+		var vendor = PluginsTab.GetVendor(args.Args[0] == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
+		if (vendor == null)
+		{
+			PutsWarn($"Couldn't find that vendor.");
+			return;
+		}
+
+		var id = string.Empty;
+		switch (vendor)
+		{
+			case PluginsTab.Codefling:
+				id = "cf";
+				break;
+
+			case PluginsTab.uMod:
+				id = "umod";
+				break;
+		}
+
+		var dataPath = Path.Combine(Core.Defines.GetDataFolder(), $"vendordata_{id}.db");
+		OsEx.File.Delete(dataPath);
+
+		if (!vendor.Load())
+		{
+			vendor.FetchList();
+			vendor.Refresh();
+		}
+	}
+
 	#endregion
 
 	#endregion
@@ -4220,5 +4358,14 @@ public class AdminConfig
 }
 public class AdminData
 {
+	public DataColors Colors = new DataColors();
 
+	public class DataColors
+	{
+		public string SelectedTabColor = "0.4 0.7 0.2";
+		public string EditableInputHighlight = "0.259 0.529 0.961";
+		public float OptionNameOpacity = 0.7f;
+		public float TitleUnderlineOpacity = 0.9f;
+
+	}
 }

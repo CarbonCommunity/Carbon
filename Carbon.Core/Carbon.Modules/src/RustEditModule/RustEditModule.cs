@@ -7,16 +7,20 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Windows.Media.Converters;
 using System.Xml.Serialization;
 using Carbon.Base;
 using ConVar;
 using Facepunch;
+using Oxide.Game.Rust.Libraries;
 using ProtoBuf;
 using Rust;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
+using VLB;
 using static BasePlayer;
+using static UnityEngine.UI.GridLayoutGroup;
 using Color = UnityEngine.Color;
 using Pool = Facepunch.Pool;
 using Random = UnityEngine.Random;
@@ -126,11 +130,9 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		#endregion
 
 		#region I/O
-		try
-		{
-			IO_RunCore_IO();
-		}
-		catch (Exception ex) { PutsError($"Failed to install IO.", ex); }
+
+		IO_OnServerInit();
+
 		#endregion
 
 		#region Deployables
@@ -277,9 +279,9 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		#region I/O
 
-		if (IO_Protect.Contains(entity.transform.position))
+		if (IO_Protection.Contains(entity.transform.position))
 		{
-			return true;
+			return false;
 		}
 
 		#endregion
@@ -302,10 +304,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			return null;
 		}
 
-		if (IO_Protect.Contains(container.transform.position))
-		{
-			return true;
-		}
 
 		return null;
 	}
@@ -316,25 +314,25 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			return true;
 		}
 
-		if (IO_Protect.Contains(container.transform.position))
+		if (IO_Protection.Contains(container.transform.position))
 		{
-			return true;
+			return false;
 		}
 
 		return null;
 	}
-	private object OnTurretAuthorize(AutoTurret turret, BasePlayer player)
+	private object OnTurretAuthorize(AutoTurret entity, BasePlayer player)
 	{
-		if (player == null || turret == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
+		if (player == null || entity == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
 		{
 			return null;
 		}
 
 		#region I/O
 
-		if (IO_AutoTurrets.ContainsKey(turret))
+		if (IO_Protection.Contains(entity.transform.position))
 		{
-			return true;
+			return false;
 		}
 
 		#endregion
@@ -350,13 +348,8 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		#region I/O
 
-		if (IO_Protect.Contains(entity.transform.position))
-		{
-			return false;
-		}
 
 		#endregion
-
 
 		#region Deployables
 
@@ -382,7 +375,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		#region I/O
 
-		if (IO_Protect.Contains(networkable.transform.position))
+		if (IO_Protection.Contains(networkable.transform.position))
 		{
 			return true;
 		}
@@ -406,7 +399,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 	private void OnServerShutdown()
 	{
-		IO_ShutdownHook();
 	}
 
 	#endregion
@@ -416,14 +408,9 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	private object ICanWorldPrefabSpawn(string category, Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
 	{
 		#region IO
-		try
-		{
-			if (!IO_WorldSpawnHook(category, prefab, position, rotation, scale))
-			{
-				return false;
-			}
-		}
-		catch (Exception ex) { PutsError($"Failed ICanWorldPrefabSpawn for IO.", ex); }
+
+
+
 		#endregion
 
 		#region Cargo Paths
@@ -2106,307 +2093,93 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	#region I/O
 
-	internal static List<BaseEntity> IO_DestroyOnUnload = new();
-	internal static Dictionary<Vector3, PrefabData> IO_Elevators = new();
-	internal static List<Vector3> IO_Protect;
-	internal static List<IOEntity> IO_Processed = new();
+	internal static List<Vector3> IO_Protection = new();
 	internal static Dictionary<AutoTurret, bool> IO_AutoTurrets = new();
-	internal static List<Dictionary<Vector3, Vector3>> IO_Wires = new();
-	internal static SerializedIOData IO_serializedIOData;
-	internal static Type[] IO_types = new Type[]
-	{
-			typeof(GroundWatch),
-			typeof(DestroyOnGroundMissing),
-			typeof(DeployableDecay)
-	};
+	internal static List<IOEntity> IO_Processed = new();
 
-	internal static void IO_RunCore_IO()
+	public static void IO_RunWire(IOEntity outputSlot, int s_slot, IOEntity inputSlot, int Input_slot)
 	{
-		foreach (KeyValuePair<Vector3, PrefabData> be in IO_Elevators)
+		if (inputSlot.inputs[Input_slot] == null || inputSlot.inputs.Length < Input_slot - 1 || outputSlot.outputs[s_slot] == null || outputSlot.outputs.Length < s_slot - 1)
 		{
-			try
-			{
-				IO_RecreateElevatorBase("assets/prefabs/deployable/elevator/elevator.prefab", be.Value.position, be.Value.rotation);
-			}
-			catch { Debug.LogError("Fault With Currupted Elevators"); }
+			UnityEngine.Debug.LogError("Failed To Run Wire No Socket: " + outputSlot.ToString() + ":" + s_slot + " To " + inputSlot.ToString() + ":" + Input_slot);
+			return;
 		}
-		if (IO_serializedIOData != null)
+		if (inputSlot is WheelSwitch)
 		{
-			foreach (SerializedIOEntity SIOE in IO_serializedIOData.entities)
-			{
-				try
-				{
-					BaseEntity IO = IO_FindEntity(SIOE.position, SIOE.fullPath);
-					if (IO == null) { continue; }
-					if (SIOE.timerLength == 0) { SIOE.timerLength += 0.25f; }
-					try
-					{
-						if (IO is Elevator elevator)
-						{
-							try
-							{
-								IO_CreateElevator(elevator, SIOE);
-							}
-							catch
-							{
-								Debug.LogError("Elevator Fault");
-							}
-							continue;
-						}
-						else if (IO is CardReader reader)
-						{
-							if (reader != null)
-							{
-								SIOE.accessLevel += 1;
-								var cardReaderMonitor = IO.gameObject.GetComponent<CardReaderMonitor>() ?? IO.gameObject.AddComponent<CardReaderMonitor>();
-								if (cardReaderMonitor != null)
-								{
-									cardReaderMonitor.Timerlength = SIOE.timerLength;
-								}
-								reader.accessLevel = SIOE.accessLevel;
-								reader.accessDuration = SIOE.timerLength;
-								reader.SetFlag(BaseEntity.Flags.Reserved1, SIOE.accessLevel == 1, false, true);
-								reader.SetFlag(BaseEntity.Flags.Reserved2, SIOE.accessLevel == 2, false, true);
-								reader.SetFlag(BaseEntity.Flags.Reserved3, SIOE.accessLevel == 3, false, true);
-							}
-						}
-						else if (IO is PressButton pressButton)
-						{
-							pressButton.pressDuration = SIOE.timerLength;
-						}
-						else if (IO is RFBroadcaster rf)
-						{
-							rf.frequency = SIOE.frequency;
-							rf.MarkDirty();
-							rf.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
-						}
-						else if (IO is CCTV_RC cctv)
-						{
-							cctv.isStatic = true;
-							cctv.UpdateIdentifier(SIOE.rcIdentifier, true);
-						}
-						else if (IO is Telephone telephone)
-						{
-							telephone.Controller.PhoneName = SIOE.phoneName;
-						}
-						else if (IO is TimerSwitch timerSwitch)
-						{
-							timerSwitch.timerLength = SIOE.timerLength;
-						}
-						else if (IO is SamSite samSite)
-						{
-							samSite.staticRespawn = true;
-						}
-						else if (IO is ElectricalBranch electricalBranch)
-						{
-							electricalBranch.branchAmount = SIOE.branchAmount;
-						}
-						else if (IO is PowerCounter power)
-						{
-							power.SetFlag(PowerCounter.Flag_ShowPassthrough, SIOE.counterPassthrough);
-							power.SetCounterNumber(0);
-							power.targetCounterNumber = SIOE.targetCounterNumber;
-						}
-						else if (IO is AutoTurret)
-						{
-							var manager = IO.gameObject.GetComponent<AutoTurretManager>() ?? IO.gameObject.AddComponent<AutoTurretManager>();
-							manager.SetupTurret(SIOE.unlimitedAmmo, SIOE.peaceKeeper, SIOE.autoTurretWeapon);
-						}
-						else if (IO is WheelSwitch wheelSwitch)
-						{
-							var connection = IO.gameObject.GetComponent<IOEntityToWheelSwitchConnection>() ?? IO.gameObject.AddComponent<IOEntityToWheelSwitchConnection>();
-							connection.SetTarget(wheelSwitch);
-						}
-						else if (IO is DoorManipulator doorManipulator)
-						{
-							doorManipulator.SetTargetDoor(doorManipulator.FindDoor(true));
-						}
-					}
-					catch
-					{
-						Debug.LogError("Failed To Set Setting " + IO.ToString());
-					}
-					IOEntity IOE = IO as IOEntity;
-					if (IOE == null) { continue; }
-					Array.Resize<IOEntity.IOSlot>(ref IOE.outputs, SIOE.outputs.Length);
-					for (int i = 0; i < IOE.outputs.Length; i++)
-					{
-						try
-						{
-							IOE.outputs[i] = new IOEntity.IOSlot { connectedTo = new IOEntity.IORef() };
-							if (SIOE.outputs[i] != null)
-							{
-								IOEntity I = (IO_FindEntity(SIOE.outputs[i].position, SIOE.outputs[i].fullPath) as IOEntity);
-								if (I is Elevator && !(IOE is ElectricGenerator))
-								{
-									int Floor = SIOE.outputs[i].connectedTo;
-									int socket = 0;
-									if (Floor % 2 == 0) { Floor = (Floor / 2); }
-									else { Floor = ((Floor + 1) / 2); socket = 1; }
-									List<Elevator> list = new List<Elevator>();
-									Vis.Entities(IO_GetWorldSpaceFloorPosition(I as Elevator, Floor - 1), 1f, list);
-									foreach (Elevator be in list)
-									{
-										IO_RunWire(IOE, i, be, socket);
-										break;
-									}
-									continue;
-								}
-								if (I != null)
-								{
-									IO_RunWire(IOE, i, I, SIOE.outputs[i].connectedTo);
-								}
-							}
-						}
-						catch { }
-					}
-				}
-				catch (Exception e)
-				{
-					Debug.LogError(e.ToString());
-				}
-			}
+			IOEntityToWheelSwitchConnection WheelSwitchConnection = outputSlot.gameObject.GetComponent<IOEntityToWheelSwitchConnection>() ?? outputSlot.gameObject.AddComponent<IOEntityToWheelSwitchConnection>();
+			WheelSwitchConnection.SetTarget(inputSlot as WheelSwitch);
 		}
-		foreach (IOEntity IO in IO_Processed)
-		{
-			try
-			{
-				IO.MarkDirtyForceUpdateOutputs();
-				IO.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
-			}
-			catch { }
-		}
-
-		Singleton.PutsWarn($"Ran {IO_Wires.Count:n0} IO connections.");
+		inputSlot.inputs[Input_slot].connectedTo.Set(outputSlot);
+		inputSlot.inputs[Input_slot].connectedToSlot = s_slot;
+		inputSlot.inputs[Input_slot].connectedTo.Init();
+		outputSlot.outputs[s_slot].connectedTo.Set(inputSlot);
+		outputSlot.outputs[s_slot].connectedToSlot = Input_slot;
+		outputSlot.outputs[s_slot].connectedTo.Init();
+		if (!IO_Processed.Contains(outputSlot)) { IO_Processed.Add(outputSlot); }
+		if (!IO_Processed.Contains(inputSlot)) { IO_Processed.Add(inputSlot); }
+		inputSlot.MarkDirtyForceUpdateOutputs();
+		outputSlot.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
+		inputSlot.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
+		inputSlot.SendChangedToRoot(true);
 	}
-	internal static void IO_ReadMapData()
+	public static BaseEntity IO_FindEntity(List<BaseEntity> ents, Vector3 pos, string path)
 	{
-		IO_Protect = new List<Vector3>();
-		if (IO_serializedIOData != null) { return; }
-		byte[] array = IO_GetSerializedIOData();
-		if (array != null)
+		foreach (BaseEntity bn in ents)
 		{
-			IO_serializedIOData = DeserializeMapData<SerializedIOData>(array, out var flag);
-
-			if (flag && IO_serializedIOData != null)
-			{
-				foreach (var sioe in IO_serializedIOData.entities)
-				{
-					IO_Protect.Add(new Vector3(sioe.position.x, sioe.position.y, sioe.position.z));
-				}
-			}
-
-			Singleton.PutsWarn($"I/O data valid: {flag}");
+			if (bn == null || bn.IsDestroyed || bn.PrefabName != path) { continue; }
+			if (pos == bn.transform.position) { return bn; }
 		}
+		return null;
 	}
-	internal static byte[] IO_GetSerializedIOData()
+	public static Vector3 IO_GetWorldSpaceFloorPosition(Elevator elevator, int floor)
 	{
-		foreach (var map in World.Serialization.world.maps)
+		int num = elevator.Floor - floor;
+		Vector3 vector = elevator.transform.up * ((float)num * 3f);
+		vector.y -= 1f;
+		return elevator.transform.position - vector;
+	}
+	public static ElevatorLift IO_FindLift(Elevator elevator)
+	{
+		foreach (BaseEntity baseEntity in elevator.children)
 		{
-			if (System.Text.Encoding.ASCII.GetString(map.data).Contains("SerializedIOData"))
+			ElevatorLift elevatorLift = baseEntity as ElevatorLift;
+			if (elevatorLift != null)
 			{
-				return map.data;
+				return elevatorLift;
 			}
 		}
 		return null;
 	}
-	internal static bool IO_DirtyElevators()
+	public static void IO_CreateElevator(Elevator baseelevator, SerializedIOEntity serializedIOEntity)
 	{
-		var restart = false;
-		foreach (var be in IO_Elevators)
-		{
-			var list = Pool.GetList<BaseEntity>();
-			var floor = be.Key;
+		var top = baseelevator;
 
-			for (int i = 0; i < 100; i++)
-			{
-				Vis.Entities(floor, 3f, list);
-				floor.y = i * 3f;
-				floor.y -= 1f;
-				foreach (BaseEntity bel in list)
-				{
-					if (bel is Elevator || bel is ElevatorLift)
-					{
-						if (!bel.IsDestroyed)
-						{
-							restart = true;
-							bel.Kill();
-						}
-					}
-				}
-			}
-
-			Pool.FreeList(ref list);
-		}
-		return restart;
-	}
-	internal static void IO_RunWire(IOEntity OutputSlot, int s_slot, IOEntity InputSlot, int Input_slot)
-	{
-		if (InputSlot.inputs[Input_slot] == null || InputSlot.inputs.Length < Input_slot - 1 || OutputSlot.outputs[s_slot] == null || OutputSlot.outputs.Length < s_slot - 1)
-		{
-			Debug.LogError("Failed To Run Wire No Socket: " + OutputSlot.ToString() + ":" + s_slot + " To " + InputSlot.ToString() + ":" + Input_slot);
-			return;
-		}
-		if (InputSlot is WheelSwitch)
-		{
-			IOEntityToWheelSwitchConnection WheelSwitchConnection = OutputSlot.gameObject.GetComponent<IOEntityToWheelSwitchConnection>() ?? OutputSlot.gameObject.AddComponent<IOEntityToWheelSwitchConnection>();
-			WheelSwitchConnection.SetTarget(InputSlot as WheelSwitch);
-		}
-		InputSlot.inputs[Input_slot].connectedTo.Set(OutputSlot);
-		InputSlot.inputs[Input_slot].connectedToSlot = s_slot;
-		InputSlot.inputs[Input_slot].connectedTo.Init();
-		OutputSlot.outputs[s_slot].connectedTo.Set(InputSlot);
-		OutputSlot.outputs[s_slot].connectedToSlot = Input_slot;
-		OutputSlot.outputs[s_slot].connectedTo.Init();
-		if (!IO_Processed.Contains(OutputSlot)) { IO_Processed.Add(OutputSlot); }
-		if (!IO_Processed.Contains(InputSlot)) { IO_Processed.Add(InputSlot); }
-		IO_LogWires(InputSlot, OutputSlot);
-	}
-	internal static void IO_LogWires(IOEntity Input, IOEntity Output)
-	{
-		Vector3 P1 = Input.transform.position;
-		Vector3 P2 = Output.transform.position;
-		if (Input is CardReader || Input is TimerSwitch || Input is PowerCounter || Input is ElectricSwitch || Input is SmartSwitch || Input is PressButton || Input is ORSwitch || Input is XORSwitch || Input is ANDSwitch || Input is DoorManipulator || Input is FuseBox) { P1.y += 0.8f; }
-		if (Output is CardReader || Output is TimerSwitch || Output is PowerCounter || Output is ElectricSwitch || Output is SmartSwitch || Output is PressButton || Output is ORSwitch || Output is XORSwitch || Output is ANDSwitch || Output is DoorManipulator || Output is FuseBox) { P2.y += 0.8f; }
-		IO_Wires.Add(new Dictionary<Vector3, Vector3>() { { P1, P2 } });
-	}
-	internal static void IO_CreateElevator(Elevator baseelevator, SerializedIOEntity serializedIOEntity)
-	{
-		IO_Processed.Add(baseelevator);
-		Elevator Top = baseelevator;
 		for (int i = 1; i < serializedIOEntity.floors; i++)
 		{
 			Elevator elevator2 = GameManager.server.CreateEntity(baseelevator.PrefabName, baseelevator.transform.position + baseelevator.transform.up * (3f * (float)i), baseelevator.transform.rotation, true) as Elevator;
 			elevator2.pickup.enabled = false;
 			elevator2.EnableSaving(false);
 			elevator2.Spawn();
-			IO_SetupEntity(elevator2);
-			IO_Protect.Add(elevator2.transform.position);
-			IO_Processed.Add(elevator2);
-			IO_DestroyOnUnload.Add(elevator2);
 			elevator2.RefreshEntityLinks();
 			elevator2.OnDeployed(null, null, null);
+			IO_Protection.Add(elevator2.transform.position);
 			elevator2.SetFlag(BaseEntity.Flags.Reserved2, true, false, false);
-			Top = elevator2;
+			top = elevator2;
 		}
-		Top.SetFlag(BaseEntity.Flags.Reserved1, true, false, false);
-		IO_CreateLift(Top);
-	}
-	internal static void IO_CreateLift(Elevator elevator)
-	{
-		var elevatorLift = elevator.liftEntity;
-		if (elevatorLift == null)
+		top.SetFlag(BaseEntity.Flags.Reserved1, true, false, false);
+
+		var elevatorLift = top.liftEntity;
+		if (top.liftEntity != null)
 		{
-			elevatorLift = IO_FindLift(elevator);
+			elevatorLift = IO_FindLift(top);
 			if (elevatorLift == null)
 			{
-				elevatorLift = GameManager.server.CreateEntity(elevator.LiftEntityPrefab.resourcePath, IO_GetWorldSpaceFloorPosition(elevator, elevator.Floor), elevator.LiftRoot.rotation, true) as ElevatorLift;
-				elevatorLift.SetParent(elevator, true, false);
+				elevatorLift = GameManager.server.CreateEntity(top.LiftEntityPrefab.resourcePath, IO_GetWorldSpaceFloorPosition(top, top.Floor), top.LiftRoot.rotation, true) as ElevatorLift;
+				elevatorLift.SetParent(top, true, false);
 				elevatorLift.enableSaving = false;
 				elevatorLift.Spawn();
-				IO_DestroyOnUnload.Add(elevatorLift);
-				IO_Protect.Add(elevatorLift.transform.position);
-				elevator.liftEntity = elevatorLift;
+				IO_Protection.Add(elevatorLift.transform.position);
+				top.liftEntity = elevatorLift;
 				return;
 			}
 		}
@@ -2415,415 +2188,170 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			elevatorLift.pickup.enabled = false;
 			elevatorLift.enableSaving = false;
 			elevatorLift.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
-			IO_DestroyOnUnload.Add(elevatorLift);
-			IO_Protect.Add(elevatorLift.transform.position);
+			IO_Protection.Add(elevatorLift.transform.position);
 		}
 	}
-	internal static ElevatorLift IO_FindLift(Elevator elevator)
+	public static void IO_OnServerInit()
 	{
-		foreach (var baseEntity in elevator.children)
+		byte[] array = null;
+		int wires = 0;
+		foreach (MapData MD in World.Serialization.world.maps)
 		{
-			if (baseEntity is ElevatorLift lift)
+			if (System.Text.Encoding.ASCII.GetString(MD.data).Contains("SerializedIOData"))
 			{
-				return lift;
+				array = MD.data;
+				break;
 			}
 		}
-		return null;
-	}
-	internal static Vector3 IO_GetWorldSpaceFloorPosition(Elevator elevator, int floor)
-	{
-		var num = elevator.Floor - floor;
-		var vector = elevator.transform.up * ((float)num * 3f);
-		vector.y -= 1f;
-		return elevator.transform.position - vector;
-	}
-	internal static BaseEntity IO_FindEntity(Vector3 pos, string path = "")
-	{
-		if (pos == null || path == null) { return null; }
-		foreach (BaseNetworkable bn in BaseEntity.serverEntities)
-		{
-			if (bn == null || bn.IsDestroyed) { continue; }
-			if (bn.PrefabName != path && path != "") { continue; }
-			if (Vector3.Distance(pos, bn.transform.position) < 0.01f)
-			{
-				BaseEntity be = bn as BaseEntity;
-				if (be != null) { return be; }
-			}
-		}
-		return null;
-	}
-	internal static BaseEntity IO_RecreateElevatorBase(string path, Vector3 pos, Quaternion rot)
-	{
-		BaseEntity elevator = GameManager.server.CreateEntity(path, pos, rot, true);
-		IO_Protect.Add(elevator.transform.position);
-		elevator.Spawn();
-		IO_SetupEntity(elevator);
-		IO_DestroyOnUnload.Add(elevator);
-		elevator.SendNetworkUpdateImmediate();
-		return elevator;
-	}
-	internal static void IO_SetupEntity(BaseEntity be)
-	{
-		if (be is ReactiveTarget target)
-		{
-			target.ResetTarget();
-		}
-		BaseEntity.Flags flags = be.flags;
-		if (be is Elevator)
-		{
-			be.enableSaving = false;
-		}
-		else
-		{
-			be.enableSaving = true;
-		}
-		be.ResetState();
-		be.flags = flags;
-		IO_RustEditIOEntity(be);
-		if (be is IOEntity)
-		{
-			IOEntity BEIO = be as IOEntity;
-			if (BEIO != null)
-			{
-				BEIO.ResetIOState();
-				try { BEIO.OnCircuitChanged(true); } catch { }
-				IO_ResetIOEntity(BEIO);
-				BEIO.SendIONetworkUpdate();
-			}
-		}
-	}
-	internal static void IO_RustEditIOEntity(BaseEntity ioentity_0)
-	{
-		for (int i = 0; i < IO_types.Length; i++)
-		{
-			Component component = ioentity_0.GetComponent(IO_types[i]);
-			if (component != null)
-			{
-				UnityEngine.Object.Destroy(component);
-			}
-		}
-		DecayEntity componentInParent = ioentity_0.GetComponentInParent<DecayEntity>();
-		if (componentInParent != null)
-		{
-			componentInParent.decay = null;
-		}
-	}
-	internal static void IO_ResetIOEntity(IOEntity ioentity_0)
-	{
-		if (!(ioentity_0 == null))
-		{
-			for (int i = 0; i < ioentity_0.inputs.Length; i++)
-			{
-				ioentity_0.inputs[i].Clear();
-			}
-			for (int j = 0; j < ioentity_0.outputs.Length; j++)
-			{
-				ioentity_0.outputs[j].Clear();
-			}
-		}
-	}
-	internal static void IO_ReloadDoors(BasePlayer player)
-	{
-		var reloaded = 0;
+		if (array == null) { return; }
 
-		var currentDoors = new Dictionary<BaseEntity, Vector3>();
-		foreach (BaseNetworkable bn in BaseNetworkable.serverEntities)
+		var serializedIOData = DeserializeMapData<SerializedIOData>(array, out var flag);
+		if (flag && serializedIOData != null) { foreach (SerializedIOEntity sioe in serializedIOData.entities) { IO_Protection.Add(new Vector3(sioe.position.x, sioe.position.y, sioe.position.z)); } }
+
+		Singleton.PutsWarn($"Creating I/O connections...");
+
+		var ioEntities = Pool.GetList<BaseEntity>();
+		foreach (var be in BaseEntity.saveList) { if (IO_Protection.Contains(be.transform.position)) { ioEntities.Add(be); } }
+		foreach (var data in serializedIOData.entities)
 		{
-			if (bn == null || !bn.PrefabName.ToLower().Contains("hinged"))
+			try
 			{
-				continue;
-			}
-			currentDoors.Add(bn as BaseEntity, bn.transform.position);
-		}
-		player.ChatMessage("Found " + currentDoors.Count + " Doors on server!");
-		foreach (PrefabData pd in World.Serialization.world.prefabs)
-		{
-			string prefabpath = StringPool.Get(pd.id);
-			if (!prefabpath.ToLower().Contains("hinged"))
-			{
-				continue;
-			}
-			if (!currentDoors.ContainsValue(pd.position))
-			{
-				List<Door> olddoor = new List<Door>();
-				Vis.Entities<Door>(pd.position, 1.5f, olddoor);
-				if (olddoor != null && olddoor.Count != 0) { continue; }
+				var entity = IO_FindEntity(ioEntities, data.position, data.fullPath);
+				if (entity == null) { continue; }
+				if (entity is BaseCombatEntity combat) { combat.pickup.enabled = false; } //Block pickingup
+
+				foreach (var mesh in entity.GetComponentsInChildren<MeshCollider>()) { UnityEngine.Object.DestroyImmediate(mesh); }
+				UnityEngine.Object.DestroyImmediate(entity.GetComponent<DestroyOnGroundMissing>());
+				UnityEngine.Object.DestroyImmediate(entity.GetComponent<GroundWatch>());
+
+				if (data.timerLength == 0) { data.timerLength += 0.25f; }
+
 				try
 				{
-					StabilityEntity newdoor = GameManager.server.CreateEntity(prefabpath, pd.position, Quaternion.Euler(pd.rotation)) as StabilityEntity;
-					if (newdoor != null)
+					switch (entity)
 					{
-						newdoor.Spawn();
-						IO_SetupEntity(newdoor);
-						newdoor.grounded = true;
-						newdoor.pickup.enabled = false;
-						reloaded++;
-						newdoor.Invoke(() =>
-						{
-							List<DoorManipulator> list = new List<DoorManipulator>();
-							Vis.Entities<DoorManipulator>(pd.position, 1.5f, list);
-							if (list != null && list.Count != 0) { list[0].SetTargetDoor(newdoor as Door); }
-						}
-						, 5f);
+						case Elevator elevator:
+							IO_CreateElevator(elevator, data);
+							break;
+
+						case CardReader reader:
+							data.accessLevel += 1;
+							var cardReaderMonitor = entity.gameObject.GetComponent<CardReaderMonitor>() ?? entity.gameObject.AddComponent<CardReaderMonitor>();
+							if (cardReaderMonitor != null) { cardReaderMonitor.Timerlength = data.timerLength; }
+							reader.accessLevel = data.accessLevel;
+							reader.accessDuration = data.timerLength;
+							reader.SetFlag(BaseEntity.Flags.Reserved1, data.accessLevel == 1, false, true);
+							reader.SetFlag(BaseEntity.Flags.Reserved2, data.accessLevel == 2, false, true);
+							reader.SetFlag(BaseEntity.Flags.Reserved3, data.accessLevel == 3, false, true);
+							break;
+
+						case PressButton press:
+							press.pressDuration = data.timerLength;
+							break;
+
+						case RFBroadcaster rf:
+							rf.frequency = data.frequency;
+							rf.MarkDirty();
+							rf.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
+							break;
+
+						case CCTV_RC cctv:
+							cctv.isStatic = true;
+							cctv.UpdateIdentifier(data.rcIdentifier, true);
+							break;
+
+						case Telephone phone:
+							phone.Controller.PhoneName = data.phoneName;
+							break;
+
+						case TimerSwitch timerSwitch:
+							timerSwitch.timerLength = data.timerLength;
+							break;
+
+						case SamSite samSite:
+							samSite.staticRespawn = true;
+							break;
+
+						case ElectricalBranch electricalBranch:
+							electricalBranch.branchAmount = data.branchAmount;
+							break;
+
+						case PowerCounter powerCounter:
+							powerCounter.SetFlag(PowerCounter.Flag_ShowPassthrough, data.counterPassthrough);
+							powerCounter.SetCounterNumber(0);
+							powerCounter.targetCounterNumber = data.targetCounterNumber;
+							break;
+
+						case AutoTurret autoTurret:
+							var manager = entity.gameObject.GetOrAddComponent<AutoTurretManager>();
+							manager.SetupTurret(data.unlimitedAmmo, data.peaceKeeper, data.autoTurretWeapon);
+							break;
+
+						case WheelSwitch wheelSwitch:
+							var connection = entity.gameObject.GetOrAddComponent<IOEntityToWheelSwitchConnection>();
+							connection.SetTarget(entity as WheelSwitch);
+							break;
+
+						case DoorManipulator doorManipulator:
+							doorManipulator.SetTargetDoor(doorManipulator.FindDoor(true));
+							break;
 					}
 				}
 				catch { }
-			}
-		}
-		player.ChatMessage("Reloaded " + reloaded + " Missing Doors");
-	}
-	internal static void IO_ShowWires(BasePlayer player)
-	{
-		bool Revert = false;
-		if (!player.IsAdmin)
-		{
-			Revert = true;
-			player.SetPlayerFlag(BasePlayer.PlayerFlags.IsAdmin, true);
-		}
-		foreach (Dictionary<Vector3, Vector3> v in IO_Wires)
-		{
-			foreach (KeyValuePair<Vector3, Vector3> w in v)
-			{
-				if (Vector3.Distance(w.Key, player.transform.position) < 100 || Vector3.Distance(w.Value, player.transform.position) < 100)
+				IOEntity IOE = entity as IOEntity;
+				if (IOE == null) { continue; }
+				Array.Resize<IOEntity.IOSlot>(ref IOE.outputs, data.outputs.Length);
+				for (int i = 0; i < IOE.outputs.Length; i++)
 				{
-					Vector3 point1 = w.Key + new Vector3(0, 0.5f, 0);
-					Vector3 point2 = w.Value + new Vector3(0, 0.5f, 0);
-					if (player.IsAdmin)
+					try
 					{
-						player.SendConsoleCommand("ddraw.line", 10f, Color.green, point1, point2);
+						IOE.outputs[i] = new IOEntity.IOSlot { connectedTo = new IOEntity.IORef() };
+						if (data.outputs[i] != null)
+						{
+							IOEntity I = (IO_FindEntity(ioEntities, data.outputs[i].position, data.outputs[i].fullPath) as IOEntity);
+							if (I is Elevator && !(IOE is ElectricGenerator))
+							{
+								int Floor = data.outputs[i].connectedTo;
+								int socket = 0;
+								if (Floor % 2 == 0) { Floor = (Floor / 2); }
+								else { Floor = ((Floor + 1) / 2); socket = 1; }
+								List<Elevator> list = new List<Elevator>();
+								Vis.Entities(IO_GetWorldSpaceFloorPosition(I as Elevator, Floor - 1), 1f, list);
+								foreach (Elevator be in list)
+								{
+									IO_RunWire(IOE, i, be, socket);
+									break;
+								}
+								continue;
+							}
+							if (I != null)
+							{
+								IO_RunWire(IOE, i, I, data.outputs[i].connectedTo);
+								wires++;
+							}
+						}
 					}
+					catch { }
 				}
 			}
+			catch { }
 		}
-		if (Revert)
+		Pool.FreeList(ref ioEntities);
+
+		foreach (IOEntity io in IO_Processed)
 		{
-			player.SetPlayerFlag(BasePlayer.PlayerFlags.IsAdmin, false);
-		}
-	}
-	internal static bool IO_WorldSpawnHook(string category, Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
-	{
-		if (IO_Protect == null)
-		{
-			IO_ReadMapData();
-		}
-		if (position == null || prefab == null)
-		{
-			return true;
-		}
-		if (prefab.ID == 3978222077)
-		{
-			PrefabData pd = new PrefabData
-			{
-				position = position,
-				id = 3978222077,
-				rotation = rotation,
-				scale = scale,
-				category = category
-			};
-			IO_Elevators.Add(position, pd);
-			return false;
-		}
-		if (IO_Protect.Contains(position))
-		{
-			var be = prefab.Object.GetComponent<BaseEntity>();
-			if (be != null)
-			{
-				IO_SetupEntity(be);
-			}
-		}
-		return true;
-	}
-	internal static bool IO_ShutdownHook()
-	{
-		foreach (BaseEntity baseEntity in IO_DestroyOnUnload)
-		{
-			if (!baseEntity.IsDestroyed)
-			{
-				baseEntity.transform.position = new Vector3(0f, -5f, 0f);
-				baseEntity.transform.hasChanged = true;
-				IO_Protect.Remove(baseEntity.transform.position);
-				baseEntity.Kill(0);
-			}
-		}
-		Debug.LogWarning("Cleaned UP Elevators");
-		SaveRestore.Save(true);
-		return true;
-	}
-
-	#region Commands
-
-	[ChatCommand("rusteditext.io.showiowires")]
-	[AuthLevel(2)]
-	private void IO_ShowIOWires(BasePlayer player)
-	{
-		player.ChatMessage("Showing IO Wires");
-		IO_ShowWires(player);
-	}
-
-	[ChatCommand("rusteditext.io.reloaddoors")]
-	[AuthLevel(2)]
-	private void IO_ReloadDoor(BasePlayer player)
-	{
-		player.ChatMessage("Reloading Doors");
-		IO_ReloadDoors(player);
-	}
-
-	#endregion
-
-	#region Custom Hooks
-
-	private object IPostSaveLoad()
-	{
-		if (IO_DirtyElevators())
-		{
-			Puts($"Called IPostSaveLoad, wanting to shutdown!?");
-
-			SaveRestore.Save(true);
-			var runProg = new System.Diagnostics.Process();
-
 			try
 			{
-				runProg.StartInfo.FileName = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
-				runProg.StartInfo.Arguments = Facepunch.CommandLine.Full;
-				runProg.StartInfo.CreateNoWindow = false;
-				runProg.Start();
+				io.MarkDirtyForceUpdateOutputs();
+				io.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
 			}
-			catch (Exception ex)
-			{
-				Debug.LogWarning(ex);
-			}
-
-			Rust.Application.isQuitting = true;
-			Network.Net.sv.Stop("Restarting");
-			System.Diagnostics.Process.GetCurrentProcess().Kill();
-			Rust.Application.Quit();
-			return false;
+			catch { }
 		}
 
-		return true;
-	}
-	private void IPostSaveSave()
-	{
-		foreach (var entity in IO_DestroyOnUnload)
-		{
-			if (BaseEntity.saveList.Contains(entity))
-			{
-				BaseEntity.saveList.Remove(entity);
-			}
-		}
-	}
-	private void IPostClearMapEntities()
-	{
-		BaseEntity.saveList.Clear();
-	}
-	private object ICanWireToolModifyEntity(BasePlayer player, BaseEntity entity)
-	{
-		if (player == null || entity == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
-		{
-			return null;
-		}
-
-		if (IO_Protect.Contains(entity.transform.position))
-		{
-			return false;
-		}
-
-		return null;
-	}
-	private object IPreTurretTargetTick(AutoTurret turret)
-	{
-		if (turret == null || !IO_AutoTurrets.ContainsKey(turret))
-		{
-			return null;
-		}
-		if (UnityEngine.Time.realtimeSinceStartup >= turret.nextVisCheck)
-		{
-			turret.nextVisCheck = UnityEngine.Time.realtimeSinceStartup + UnityEngine.Random.Range(0.2f, 0.3f);
-
-			if (turret.ObjectVisible(turret.target))
-			{
-				turret.lastTargetSeenTime = UnityEngine.Time.realtimeSinceStartup;
-			}
-		}
-		if (turret.targetTrigger.entityContents != null)
-		{
-			foreach (var baseEntity in turret.targetTrigger.entityContents)
-			{
-				if (!(baseEntity == null))
-				{
-					var basePlayer = baseEntity as BasePlayer;
-
-					if (basePlayer == null || (basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying) || turret.IsAuthed(basePlayer) || (turret.PeacekeeperMode() && !basePlayer.IsHostile())) continue;
-					if (!turret.target.IsNpc && turret.target.IsAlive() && turret.InFiringArc(turret.target) && turret.ObjectVisible(turret.target))
-					{
-						turret.SetTarget(basePlayer);
-						break;
-					}
-				}
-			}
-
-			if (turret.target != null)
-			{
-				turret.EnsureReloaded(true);
-				BaseProjectile attachedWeapon = turret.GetAttachedWeapon();
-				if (UnityEngine.Time.time >= turret.nextShotTime && turret.ObjectVisible(turret.target) && Mathf.Abs(turret.AngleToTarget(turret.target)) < turret.GetMaxAngleForEngagement())
-				{
-					if (attachedWeapon)
-					{
-						if (attachedWeapon.primaryMagazine.contents > 0)
-						{
-							//unlimited ammo
-							if (IO_AutoTurrets[turret])
-							{
-								attachedWeapon.primaryMagazine.contents = attachedWeapon.primaryMagazine.capacity;
-								attachedWeapon.SendNetworkUpdateImmediate();
-							}
-							BasePlayer basePlayer = (turret.target as BasePlayer);
-							if (basePlayer != null && basePlayer.IsAdmin && basePlayer.IsGod() && basePlayer.IsFlying)
-							{
-								return false;
-							}
-							if (turret.PeacekeeperMode() && !turret.target.IsHostile())
-							{
-								return false;
-							}
-							turret.FireAttachedGun(turret.AimOffset(turret.target), turret.aimCone, null, turret.PeacekeeperMode() ? turret.target : null);
-							float num = attachedWeapon.isSemiAuto ? (attachedWeapon.repeatDelay * 1.5f) : attachedWeapon.repeatDelay;
-							num = attachedWeapon.ScaleRepeatDelay(num);
-							turret.nextShotTime = UnityEngine.Time.time + num;
-						}
-						else
-						{
-							turret.nextShotTime = UnityEngine.Time.time + 5f;
-						}
-					}
-				}
-			}
-		}
-
-		return null;
-	}
-	private object ICanDie(BaseCombatEntity entity, HitInfo info)
-	{
-		if (entity == null)
-		{
-			return null;
-		}
-		if (IO_Protect.Contains(entity.transform.position))
-		{
-			return false;
-		}
-
-		return null;
+		Singleton.PutsWarn($"Ran {wires:n0} I/O connections.");
 	}
 
-	#endregion
-
-	public class SerializedIOData
-	{
-		public List<SerializedIOEntity> entities = new();
-	}
-
+	public class SerializedIOData { public List<SerializedIOEntity> entities = new List<SerializedIOEntity>(); }
 	public class SerializedConnectionData
 	{
 		public string fullPath;
@@ -2836,7 +2364,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		public int type;
 	}
-
 	public class SerializedIOEntity
 	{
 		public string fullPath;
@@ -2908,10 +2435,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 				{
 					autoTurret.InvokeRepeating(() =>
 					{
-						if (!autoTurret.HasClipAmmo())
-						{
-							GiveAmmo();
-						}
+						if (!autoTurret.HasClipAmmo()) { GiveAmmo(); }
 					}, 60, 60);
 				}
 			}
@@ -2933,7 +2457,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		}
 
 	}
-
 	internal class CardReaderMonitor : MonoBehaviour
 	{
 		private CardReader cardReader;
@@ -2976,7 +2499,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			TimeOut = false;
 		}
 	}
-
 	internal class IOEntityToWheelSwitchConnection : MonoBehaviour
 	{
 		private void Awake()
@@ -3028,12 +2550,72 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		private IOEntity IOTrigger;
 
-		private List<WheelSwitch> ConnectedWheelSwitches = new();
+		private List<WheelSwitch> ConnectedWheelSwitches = new List<WheelSwitch>();
 
 		private bool Running;
 
 		private BaseEntity.Flags Triggered;
 	}
+
+	#region Custom Hooks
+
+	private object ICanDie(BaseCombatEntity entity, HitInfo info)
+	{
+		if (entity == null)
+		{
+			return null;
+		}
+		if (IO_Protection.Contains(entity.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
+	private object ICanWireToolModifyEntity(BasePlayer player, BaseEntity entity)
+	{
+		if (player == null || entity == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
+		{
+			return null;
+		}
+
+		if (IO_Protection.Contains(entity.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
+	private object IPreBaseEntityOnAttacked(BaseEntity entity)
+	{
+		if (entity == null)
+		{
+			return null;
+		}
+		if (IO_Protection.Contains(entity.transform.position))
+		{
+			return false;
+		}
+
+		return null;
+	}
+	private void IPreTurretTargetTick(AutoTurret __instance)
+	{
+		if (__instance == null || !IO_AutoTurrets.ContainsKey(__instance)) return;
+
+		if (IO_AutoTurrets[__instance])
+		{
+			var attachedWeapon = __instance.GetAttachedWeapon();
+			if (attachedWeapon?.primaryMagazine?.contents < 1)
+			{
+				attachedWeapon.primaryMagazine.contents = attachedWeapon.primaryMagazine.capacity;
+				attachedWeapon.SendNetworkUpdateImmediate();
+				__instance.EnsureReloaded(true);
+			}
+		}
+	}
+
+	#endregion
 
 	#endregion
 
