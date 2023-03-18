@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Controls;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -16,6 +17,7 @@ using ProtoBuf;
 using UnityEngine;
 using static BasePlayer;
 using static ConsoleSystem;
+using static SkinnedMultiMesh;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
 
@@ -1012,15 +1014,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using (TimeMeasure.New($"{Name}.Panels/Overrides"))
 			{
-				cui.CreatePanel(container, "main", "panels",
-				color: "0 0 0 0",
-				xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
+				var panels = cui.CreatePanel(container, "main", "panels",
+					color: "0 0 0 0",
+					xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
 
 				if (tab != null)
 				{
+					tab.Under?.Invoke(tab, container, panels, ap);
+
 					#region Override
 
-					tab.Override?.Invoke(tab, container, "panels", ap);
+					tab.Override?.Invoke(tab, container, panels, ap);
 
 					#endregion
 
@@ -1128,6 +1132,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 
 						#endregion
+					}
+
+					tab.Over?.Invoke(tab, container, panels, ap);
+
+					if (tab.Dialog != null)
+					{
+						var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
+						cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
+
+						cui.CreateText(container, dialog, null,
+							"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
+
+						cui.CreateText(container, dialog, null,
+							"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
+
+						cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
+							xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: "dialog.action decline");
+
+						cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
+							xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: "dialog.action confirm");
 					}
 				}
 			}
@@ -1463,10 +1487,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public string Id;
 		public string Name;
 		public RustPlugin Plugin;
-		public Action<Tab, CuiElementContainer, string, AdminPlayer> Override;
+		public Action<Tab, CuiElementContainer, string, AdminPlayer> Over, Under, Override;
 		public Dictionary<int, List<Option>> Columns = new();
 		public Action<AdminPlayer, Tab> OnChange;
 		public Dictionary<string, Radio> Radios = new();
+		public TabDialog Dialog;
 
 		public Tab(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null)
 		{
@@ -1596,6 +1621,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			return this;
 		}
 
+		public void CreateDialog(string title, Action<AdminPlayer> onConfirm, Action<AdminPlayer> onDecline)
+		{
+			Dialog = new TabDialog(title, onConfirm, onDecline);
+		}
+
 		public void Dispose()
 		{
 			foreach (var column in Columns)
@@ -1626,6 +1656,18 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				Options.Clear();
 				Options = null;
+			}
+		}
+		public class TabDialog
+		{
+			public string Title;
+			public Action<AdminPlayer> OnConfirm, OnDecline;
+
+			public TabDialog(string title, Action<AdminPlayer> onConfirm, Action<AdminPlayer> onDecline)
+			{
+				Title = title;
+				OnConfirm = onConfirm;
+				OnDecline = onDecline;
 			}
 		}
 
