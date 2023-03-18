@@ -308,30 +308,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		return null;
 	}
 
-	private object CanLootEntity(BasePlayer player, StorageContainer container)
-	{
-		if (player == null || container == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
-		{
-			return null;
-		}
-
-
-		return null;
-	}
-	private object CanLootEntity(BasePlayer player, ContainerIOEntity container)
-	{
-		if (player == null || container == null || (player.IsAdmin && player.IsGod() && player.IsFlying))
-		{
-			return true;
-		}
-
-		if (IO_Protection.Contains(container.transform.position))
-		{
-			return false;
-		}
-
-		return null;
-	}
 	private object OnTurretAuthorize(AutoTurret entity, BasePlayer player)
 	{
 		if (player == null || entity == null || (player.IsAdmin && player.IsGod() && player.IsFlying))

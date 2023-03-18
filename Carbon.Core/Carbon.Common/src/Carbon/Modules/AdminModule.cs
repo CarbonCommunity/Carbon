@@ -2,13 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Windows.Controls;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
-using Carbon.Plugins;
-using ConVar;
 using Network;
 using Newtonsoft.Json.Linq;
 using Oxide.Core.Libraries;
@@ -16,9 +12,7 @@ using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using ProtoBuf;
 using UnityEngine;
-using static BasePlayer;
 using static ConsoleSystem;
-using static SkinnedMultiMesh;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
 
@@ -118,10 +112,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		if (initialized)
 		{
-			foreach (var player in BasePlayer.activePlayerList)
+			Community.Runtime.CorePlugin.NextTick(() =>
 			{
-				Close(player);
-			}
+				foreach (var player in BasePlayer.activePlayerList)
+				{
+					Close(player);
+				}
+			});
 
 			UnityEngine.Application.logMessageReceived -= OnLog;
 		}
