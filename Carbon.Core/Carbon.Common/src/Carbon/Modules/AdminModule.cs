@@ -43,6 +43,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
 	internal ImageDatabaseModule ImageDatabase;
+	internal ColorPickerModule ColorPicker;
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
@@ -68,6 +69,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		base.OnServerInit();
 
 		ImageDatabase = GetModule<ImageDatabaseModule>();
+		ColorPicker = GetModule<ColorPickerModule>();
 
 		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
 		{
@@ -813,6 +815,39 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				OxMax: -0.5f);
 		}
 	}
+	public void TabPanelColor(CUI cui, CuiElementContainer container, string parent, string text, string color, string command, float height, float offset)
+	{
+		var toggleButtonScale = 0.825f;
+
+		cui.CreatePanel(container, parent, $"{parent}panel",
+			color: "0.2 0.2 0.2 0",
+			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+			color: "1 1 1 0.7",
+			text: $"{text}:", 12,
+			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleLeft,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+			cui.CreatePanel(container, $"{parent}panel", null,
+				color: "0.2 0.2 0.2 0.5",
+				xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
+		}
+
+		var split = color.Split(' ');
+		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
+			color: color,
+			textColor: "1 1 1 1",
+			text: split.Length > 1 ? $"#{ColorUtility.ToHtmlStringRGB(new Color(split[0].ToFloat(), split[1].ToFloat(), split[2].ToFloat(), 1))}" : string.Empty, 10,
+			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
+			command: command,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+		Array.Clear(split, 0, split.Length);
+		split = null;
+	}
 
 	#endregion
 
@@ -1068,12 +1103,16 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 										TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(), rowHeight, rowIndex);
 										break;
 
-									case Tab.ButtonArray array:
+									case Tab.OptionButtonArray array:
 										TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
 										break;
 
 									case Tab.OptionInputButton inputButton:
 										TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, rowHeight, rowIndex);
+										break;
+
+									case Tab.OptionColor color:
+										TabPanelColor(cui, container, panel, color.Name, color.Color?.Invoke() ?? "0.1 0.1 0.1 0.5", PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
 										break;
 
 									default:
@@ -1304,7 +1343,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				range.Callback?.Invoke(ap, args[0].ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
 				return range.Callback != null;
 
-			case Tab.ButtonArray array:
+			case Tab.OptionButtonArray array:
 				var callback = array.Buttons[args[0].ToInt()].Callback;
 				callback?.Invoke(ap);
 				return callback != null;
@@ -1319,6 +1358,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					case "button":
 						inputButton.Button.Callback?.Invoke(ap);
 						return inputButton.Button.Callback != null;
+				}
+				break;
+
+			case Tab.OptionColor color:
+				if (color.Callback != null)
+				{
+					ColorPicker.Draw(player, (rustColor, hexColor) => { color.Callback?.Invoke(ap, rustColor, hexColor); });
+					return false;
 				}
 				break;
 		}
@@ -1530,17 +1577,22 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public Tab AddButtonArray(int column, float spacing, params OptionButton[] buttons)
 		{
-			AddRow(column, new ButtonArray(string.Empty, spacing, buttons));
+			AddRow(column, new OptionButtonArray(string.Empty, spacing, buttons));
 			return this;
 		}
 		public Tab AddButtonArray(int column, params OptionButton[] buttons)
 		{
-			AddRow(column, new ButtonArray(string.Empty, 0.01f, buttons));
+			AddRow(column, new OptionButtonArray(string.Empty, 0.01f, buttons));
 			return this;
 		}
 		public Tab AddInputButton(int column, string name, float buttonPriority, OptionInput input, OptionButton button)
 		{
 			AddRow(column, new OptionInputButton(name, buttonPriority, input, button));
+			return this;
+		}
+		public Tab AddColor(int column, string name, Func<string> color, Action<AdminPlayer, string, string> callback)
+		{
+			AddRow(column, new OptionColor(name, color, callback));
 			return this;
 		}
 
@@ -1692,15 +1744,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Button = button;
 			}
 		}
-		public class ButtonArray : Option
+		public class OptionButtonArray : Option
 		{
 			public OptionButton[] Buttons;
 			public float Spacing = 0.01f;
 
-			public ButtonArray(string name, float spacing, params OptionButton[] buttons) : base(name)
+			public OptionButtonArray(string name, float spacing, params OptionButton[] buttons) : base(name)
 			{
 				Buttons = buttons;
 				Spacing = spacing;
+			}
+		}
+		public class OptionColor : Option
+		{
+			public Func<string> Color;
+			public Action<AdminPlayer, string, string> Callback;
+
+			public OptionColor(string name, Func<string> color, Action<AdminPlayer, string, string> callback) : base(name)
+			{
+				Color = color;
+				Callback = callback;
 			}
 		}
 	}
