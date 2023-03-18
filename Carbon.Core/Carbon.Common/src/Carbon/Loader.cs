@@ -273,7 +273,7 @@ public static class Loader
 			var groups = method.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = method.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = method.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -310,7 +310,7 @@ public static class Loader
 			var groups = field.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = field.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = field.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -371,7 +371,7 @@ public static class Loader
 			var groups = property.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = property.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = property.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;

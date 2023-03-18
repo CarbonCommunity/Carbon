@@ -94,11 +94,11 @@ public partial class Category_Static
 
 								if (cmd.AuthLevel != -1)
 								{
-									var hasAuth = !ServerUsers.users.ContainsKey(player.userID) ? player.Connection.authLevel >= cmd.AuthLevel : (int)ServerUsers.Get(player.userID).group >= cmd.AuthLevel;
+									var hasAuth =  player.Connection.authLevel >= cmd.AuthLevel;
 
 									if (!hasAuth)
 									{
-										player?.ConsoleMessage($"You don't have the minimum auth level required to execute this command.");
+										player?.ConsoleMessage($"You don't have the minimum auth level [{cmd.AuthLevel}] required to execute this command [your level: {player.Connection.authLevel}].");
 										continue;
 									}
 								}
