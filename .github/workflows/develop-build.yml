@@ -131,7 +131,7 @@ jobs:
       uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
       with:
         delete_release: true
-        tag_name: commit_build
+        tag_name: develop_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
