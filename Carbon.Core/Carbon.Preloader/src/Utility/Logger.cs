@@ -64,11 +64,8 @@ internal sealed class Logger
 					throw new Exception($"Severity {severity} not implemented.");
 			}
 
-#if DEBUG_VERBOSE
-			UnityEngine.Debug.Log(formatted);
-#endif
 			System.IO.File.AppendAllText(logFile,
-				$"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {formatted}" + Environment.NewLine);
+				$"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {formatted}" + Environment.NewLine);
 		}
 	}
 
