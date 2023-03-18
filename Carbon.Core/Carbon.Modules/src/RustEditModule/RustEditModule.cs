@@ -357,7 +357,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		#endregion
 
-
 		#region Deployables
 
 		try
@@ -2108,7 +2107,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	internal static List<BaseEntity> IO_DestroyOnUnload = new();
 	internal static Dictionary<Vector3, PrefabData> IO_Elevators = new();
-	internal static List<Vector3> IO_Protect;
+	internal static List<Vector3> IO_Protect = new();
 	internal static List<IOEntity> IO_Processed = new();
 	internal static Dictionary<AutoTurret, bool> IO_AutoTurrets = new();
 	internal static List<Dictionary<Vector3, Vector3>> IO_Wires = new();
@@ -2122,14 +2121,14 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	internal static void IO_RunCore_IO()
 	{
-		foreach (KeyValuePair<Vector3, PrefabData> be in IO_Elevators)
-		{
-			try
-			{
-				IO_RecreateElevatorBase("assets/prefabs/deployable/elevator/elevator.prefab", be.Value.position, be.Value.rotation);
-			}
-			catch { Debug.LogError("Fault With Currupted Elevators"); }
-		}
+		// foreach (KeyValuePair<Vector3, PrefabData> be in IO_Elevators)
+		// {
+		// 	try
+		// 	{
+		// 		IO_RecreateElevatorBase("assets/prefabs/deployable/elevator/elevator.prefab", be.Value.position, be.Value.rotation);
+		// 	}
+		// 	catch { Debug.LogError("Fault With Currupted Elevators"); }
+		// }
 		if (IO_serializedIOData != null)
 		{
 			foreach (SerializedIOEntity SIOE in IO_serializedIOData.entities)
@@ -2281,7 +2280,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 	internal static void IO_ReadMapData()
 	{
-		IO_Protect = new List<Vector3>();
 		if (IO_serializedIOData != null) { return; }
 		byte[] array = IO_GetSerializedIOData();
 		if (array != null)
@@ -2313,31 +2311,31 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	internal static bool IO_DirtyElevators()
 	{
 		var restart = false;
-		foreach (var be in IO_Elevators)
-		{
-			var list = Pool.GetList<BaseEntity>();
-			var floor = be.Key;
-
-			for (int i = 0; i < 100; i++)
-			{
-				Vis.Entities(floor, 3f, list);
-				floor.y = i * 3f;
-				floor.y -= 1f;
-				foreach (BaseEntity bel in list)
-				{
-					if (bel is Elevator || bel is ElevatorLift)
-					{
-						if (!bel.IsDestroyed)
-						{
-							restart = true;
-							bel.Kill();
-						}
-					}
-				}
-			}
-
-			Pool.FreeList(ref list);
-		}
+		// foreach (var be in IO_Elevators)
+		// {
+		// 	var list = Pool.GetList<BaseEntity>();
+		// 	var floor = be.Key;
+		// 
+		// 	for (int i = 0; i < 100; i++)
+		//	{
+		//		Vis.Entities(floor, 3f, list);
+		//		floor.y = i * 3f;
+		//		floor.y -= 1f; 
+		//		foreach (BaseEntity bel in list)
+		//		{
+		//			if (bel is Elevator || bel is ElevatorLift)
+		//			{
+		//				if (!bel.IsDestroyed)
+		//				{
+		//					restart = true;
+		//					bel.Kill();
+		//				}
+		//			}
+		//		}
+		//	}
+		// 
+		// 	Pool.FreeList(ref list);
+		// }
 		return restart;
 	}
 	internal static void IO_RunWire(IOEntity OutputSlot, int s_slot, IOEntity InputSlot, int Input_slot)
@@ -2612,15 +2610,14 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		}
 		if (prefab.ID == 3978222077)
 		{
-			PrefabData pd = new PrefabData
+			IO_Elevators.Add(position, new PrefabData
 			{
 				position = position,
 				id = 3978222077,
 				rotation = rotation,
 				scale = scale,
 				category = category
-			};
-			IO_Elevators.Add(position, pd);
+			});
 			return false;
 		}
 		if (IO_Protect.Contains(position))
@@ -2672,7 +2669,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	#region Custom Hooks
 
-	private object IPostSaveLoad()
+	private object DisabledIPostSaveLoad()
 	{
 		if (IO_DirtyElevators())
 		{
