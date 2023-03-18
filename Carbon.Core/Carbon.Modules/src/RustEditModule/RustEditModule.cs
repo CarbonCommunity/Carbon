@@ -10,6 +10,7 @@ using System.Text;
 using System.Windows.Media.Converters;
 using System.Xml.Serialization;
 using Carbon.Base;
+using Carbon.Extensions;
 using ConVar;
 using Facepunch;
 using Oxide.Game.Rust.Libraries;
@@ -22,6 +23,7 @@ using VLB;
 using static BasePlayer;
 using static UnityEngine.UI.GridLayoutGroup;
 using Color = UnityEngine.Color;
+using Object = UnityEngine.Object;
 using Pool = Facepunch.Pool;
 using Random = UnityEngine.Random;
 using Time = UnityEngine.Time;
@@ -138,6 +140,12 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		#region Deployables
 
 		Deployables_InitializeHook();
+
+		#endregion
+
+		#region Excavator
+
+		Excavator_OnServerInit();
 
 		#endregion
 	}
@@ -345,11 +353,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		{
 			return null;
 		}
-
-		#region I/O
-
-
-		#endregion
 
 		#region Deployables
 
@@ -3973,6 +3976,57 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 				}
 			}
 		}
+	}
+
+	#endregion
+
+	#region Excavator
+
+	internal static void Excavator_OnServerInit()
+	{
+		var dictionary = new Dictionary<Vector3, float>();
+		var array = Object.FindObjectsOfType<MonumentInfo>();
+
+		if (array != null && array.Length != 0)
+		{
+			foreach (var monumentInfo in array)
+			{
+				try
+				{
+					if (monumentInfo.gameObject.name != "assets/bundled/prefabs/autospawn/monument/large/excavator_1.prefab") continue;
+
+					dictionary.Add(monumentInfo.transform.position, monumentInfo.transform.eulerAngles.y);
+				}
+				catch { }
+			}
+		}
+
+		var processedExcavators = 0;
+
+		foreach (var excavatorArm in BaseNetworkable.serverEntities.OfType<ExcavatorArm>())
+		{
+			if (excavatorArm == null) continue;
+
+			foreach (var pair in dictionary)
+			{
+				var num = Vector3.Distance(excavatorArm.transform.position, pair.Key);
+
+				if (num > 60f && num < 65f)
+				{
+					excavatorArm.yaw1 = -4f + pair.Value;
+					excavatorArm.yaw2 = 132.3f + pair.Value;
+					processedExcavators++;
+					break;
+				}
+			}
+		}
+
+		Singleton.PutsWarn($"Processed {processedExcavators:n0} {processedExcavators.Plural("excavator", "excavators")}.");
+
+		dictionary.Clear();
+		Array.Clear(array, 0, array.Length);
+		dictionary = null;
+		array = null;
 	}
 
 	#endregion

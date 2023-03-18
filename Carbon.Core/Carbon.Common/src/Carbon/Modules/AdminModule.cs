@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Controls;
 using Carbon.Base;
 using Carbon.Components;
@@ -934,7 +935,27 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		Close(args.Player());
 	}
+	[UiCommand(PanelId + ".dialogaction")]
+	private void Dialog_Action(ConsoleSystem.Arg args)
+	{
+		var player = args.Player();
+		var admin = GetOrCreateAdminPlayer(player);
+		var tab = GetTab(player);
+		var dialog = tab?.Dialog;
 
+		switch (args.Args[0])
+		{
+			case "confirm":
+				try { dialog?.OnConfirm(admin); } catch { }
+				break;
+
+			case "decline":
+				try { dialog?.OnDecline(admin); } catch { }
+				break;
+		}
+
+		Draw(player);
+	}
 	#endregion
 
 	#region Methods
@@ -1148,10 +1169,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 							"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
 
 						cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
-							xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: "dialog.action decline");
+							xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}dialogaction decline");
 
 						cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
-							xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: "dialog.action confirm");
+							xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}dialogaction confirm");
 					}
 				}
 			}
