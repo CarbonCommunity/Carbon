@@ -131,7 +131,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private void OnLog(string condition, string stackTrace, LogType type)
 	{
-		if (_logQueue.Count >= 7) _logQueue.RemoveAt(0);
+		try { if (_logQueue.Count >= 7) _logQueue.RemoveAt(0); } catch { }
 
 		var log = condition.Split('\n');
 		var result = log[0];
@@ -935,6 +935,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		Close(args.Player());
 	}
+
 	[UiCommand(PanelId + ".dialogaction")]
 	private void Dialog_Action(ConsoleSystem.Arg args)
 	{
@@ -942,6 +943,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var admin = GetOrCreateAdminPlayer(player);
 		var tab = GetTab(player);
 		var dialog = tab?.Dialog;
+		if (tab != null) tab.Dialog = null;
 
 		switch (args.Args[0])
 		{
@@ -956,6 +958,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Draw(player);
 	}
+
 	#endregion
 
 	#region Methods

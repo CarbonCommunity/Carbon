@@ -176,10 +176,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		if (initialized) Loader.RemoveCommands(this);
 
-		foreach (var hook in Hooks)
-		{
-			Unsubscribe(hook.Key);
-		}
+		UnsubscribeAll();
 
 		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
@@ -187,10 +184,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		if(initialized) Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-		foreach (var hook in Hooks)
-		{
-			Subscribe(hook.Key);
-		}
+		SubscribeAll();
 
 		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
 	}

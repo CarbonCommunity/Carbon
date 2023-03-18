@@ -278,6 +278,8 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	{
 		return Spawn_RespawnPlayer();
 	}
+
+	[HookPriority(Priorities.Highest)]
 	private object OnEntityTakeDamage(BaseCombatEntity entity)
 	{
 		if (entity == null)
@@ -305,6 +307,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		return null;
 	}
+
 	private object CanLootEntity(BasePlayer player, StorageContainer container)
 	{
 		if (player == null || container == null || (player.IsAdmin && player.IsGod() && player.IsFlying))

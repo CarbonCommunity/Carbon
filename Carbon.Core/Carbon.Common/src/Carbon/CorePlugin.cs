@@ -126,6 +126,9 @@ public class CorePlugin : CarbonPlugin
 
 	private void IOnPlayerConnected(BasePlayer player)
 	{
+		lang.SetLanguage(player.net.connection.info.GetString("global.language", "en"), player.UserIDString);
+		player.SendEntitySnapshot(CommunityEntity.ServerInstance);
+
 		permission.RefreshUser(player);
 		Interface.CallHook("OnPlayerConnected", player);
 	}
@@ -772,6 +775,9 @@ public class CorePlugin : CarbonPlugin
 
 	[CommandVar("modding", "Mark this server as modded or not.", true)]
 	private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
+
+	[CommandVar("higherpriorityhookwarns", "Print warns if hooks with higher priority conflict with other hooks. Best to keep this disabled. Same-priority hooks will be printed.", true)]
+	private bool HigherPriorityHookWarns { get { return Community.Runtime.Config.HigherPriorityHookWarns; } set { Community.Runtime.Config.HigherPriorityHookWarns = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.", true)]
 	private bool HarmonyReference { get { return Community.Runtime.Config.HarmonyReference; } set { Community.Runtime.Config.HarmonyReference = value; Community.Runtime.SaveConfig(); } }

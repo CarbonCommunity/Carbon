@@ -21,6 +21,7 @@ public class Config
 	public bool HookValidation { get; set; } = true;
 	public bool FileNameCheck { get; set; } = true;
 	public bool IsModded { get; set; } = true;
+	public bool HigherPriorityHookWarns { get; set; } = false;
 	public int EntityMapBufferSize { get; set; } = 100000;
 	public int LogFileMode { get; set; } = 2;
 	public int LogVerbosity { get; set; } = 0;
