@@ -162,9 +162,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		if (ModuleConfiguration != null)
 		{
-			var previous = ModuleConfiguration.Enabled;
 			ModuleConfiguration.Enabled = enable;
-			if(previous != enable) OnEnableStatus();
+			OnEnableStatus();
 		}
 	}
 	public override bool GetEnabled()
