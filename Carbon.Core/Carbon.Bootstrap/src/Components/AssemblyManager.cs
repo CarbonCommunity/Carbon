@@ -15,8 +15,6 @@ using Utility;
  */
 
 namespace Components;
-
-//#define DEBUG_VERBOSE
 #pragma warning disable IDE0051
 
 /*

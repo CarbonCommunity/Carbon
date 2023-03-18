@@ -36,13 +36,13 @@
 	<Choose>
 		<When Condition="$(Configuration.Contains('Unix'))">
 			<PropertyGroup>
-				<DefineConstants>UNIX;$(DefineConstants)</DefineConstants>
+				<DefineConstants>UNIX;$(DefineConstants);$(UserConstants)</DefineConstants>
 				<OperatingSystem>linux</OperatingSystem>
 			</PropertyGroup>
 		</When>
 		<Otherwise>
 			<PropertyGroup>
-				<DefineConstants>WIN;$(DefineConstants)</DefineConstants>
+				<DefineConstants>WIN;$(DefineConstants);$(UserConstants)</DefineConstants>
 				<OperatingSystem>windows</OperatingSystem>
 			</PropertyGroup>
 		</Otherwise>

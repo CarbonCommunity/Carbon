@@ -12,8 +12,6 @@ using System.Reflection;
 
 namespace Utility;
 
-//#define DEBUG_VERBOSE
-
 internal sealed class Logger
 {
 	private static string logFile

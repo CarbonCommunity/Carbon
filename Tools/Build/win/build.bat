@@ -25,7 +25,7 @@ del /q "%ROOT%\Release\Carbon.%TARGET%.zip" 2>NUL
 echo ** Build the solution
 dotnet restore "%ROOT%\Carbon.Core" -v:m --nologo || exit /b
 dotnet   clean "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --nologo || exit /b
-dotnet   build "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --no-restore --no-incremental || exit /b
+dotnet   build "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --no-restore --no-incremental /p:UserConstants="%DEFINES%" || exit /b
 
 echo ** Copy operating system specific files
 echo "%TARGET%" | findstr /C:"Unix" >NUL && (

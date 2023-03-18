@@ -14,8 +14,6 @@ using Utility;
 
 namespace Loaders;
 
-//#define DEBUG_VERBOSE
-
 internal sealed class LibraryLoader : IDisposable
 {
 	private class Item : IAssemblyCache

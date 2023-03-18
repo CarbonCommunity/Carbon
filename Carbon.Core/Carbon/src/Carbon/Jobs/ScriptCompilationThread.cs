@@ -19,8 +19,6 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Carbon.Jobs;
 
-//#define DEBUG_VERBOSE
-
 public class ScriptCompilationThread : BaseThreadedJob
 {
 	public string FilePath;
