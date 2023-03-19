@@ -2096,6 +2096,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
 						ap.Player.ChatMessage("Becoming Spectator");
 						ap.Player.SpectatePlayer(player);
+						aap.Player.spectateFilter = player.UserIDString;
 
 						ShowInfo(tab, ap, player);
 					});
@@ -2110,6 +2111,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
 						ap.Player.gameObject.SetLayerRecursive(17);
 						ap.Player.Teleport(spectated.transform.position);
+						aap.Player.spectateFilter = string.Empty;
 
 						ShowInfo(tab, ap, player);
 					}, ap => Tab.OptionButton.Types.Selected);
@@ -2587,16 +2589,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.AddInput(column, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
 					if (ap3 != null)
 					{
-						if (!ap3.Player.IsSpectating())
+						if (ap3.Player.spectateFilter != player.UserIDString)
 						{
 							tab.AddButton(1, "Spectate", ap =>
 							{
-								ap.Player.Teleport(player.transform.position);
-								ap.Player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: true);
-								ap.Player.gameObject.SetLayerRecursive(10);
-								ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
-								ap.Player.ChatMessage("Becoming Spectator");
-								ap.Player.SpectatePlayer(player);
+								ap3.Player.Teleport(player.transform.position);
+								ap3.Player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: true);
+								ap3.Player.gameObject.SetLayerRecursive(10);
+								ap3.Player.CancelInvoke(ap.Player.InventoryUpdate);
+								ap3.Player.ChatMessage("Becoming Spectator");
+								ap3.Player.SpectatePlayer(player);
+								ap3.Player.spectateFilter = player.UserIDString;
 
 								DrawEntitySettings(tab, entity, column, ap3);
 							});
@@ -2611,6 +2614,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
 								ap.Player.gameObject.SetLayerRecursive(17);
 								ap.Player.Teleport(spectated.transform.position);
+								ap3.Player.spectateFilter = string.Empty;
+
 								DrawEntitySettings(tab, entity, column, ap3);
 							}, ap => Tab.OptionButton.Types.Selected);
 						}
