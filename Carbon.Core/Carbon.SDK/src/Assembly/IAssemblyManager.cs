@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 /*
  *
@@ -9,7 +8,7 @@ using System.Reflection;
  *
  */
 
-namespace API.Contracts;
+namespace API.Assembly;
 
 public interface IAssemblyManager
 {
@@ -20,8 +19,8 @@ public interface IAssemblyManager
 	public string[] References { get; }
 
 	public byte[] Read(string file, string requester);
-	public Assembly LoadComponent(string file, string requester);
-	public Assembly LoadModule(string file, string requester);
-	public Assembly LoadExtension(string file, string requester);
-	public Assembly LoadHook(string file, string requester);
+	public System.Reflection.Assembly LoadComponent(string file, string requester);
+	public System.Reflection.Assembly LoadModule(string file, string requester);
+	public System.Reflection.Assembly LoadExtension(string file, string requester);
+	public System.Reflection.Assembly LoadHook(string file, string requester);
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using API.Contracts;
+using API.Assembly;
 using Utility;
 
 /*

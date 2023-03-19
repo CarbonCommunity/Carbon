@@ -1,5 +1,4 @@
 using System;
-using API.Events;
 
 /*
  *
@@ -8,7 +7,7 @@ using API.Events;
  *
  */
 
-namespace API.Contracts;
+namespace API.Events;
 
 public interface IEventManager
 {
