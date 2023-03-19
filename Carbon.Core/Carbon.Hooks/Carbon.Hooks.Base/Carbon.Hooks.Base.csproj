@@ -5,16 +5,13 @@
 		<ProjectGuid>{D59DCF01-9F04-4FD9-8BE8-DA6E2EFC1211}</ProjectGuid>
 	</PropertyGroup>
 
-	<Import Project="..\..\.msbuild\Common.props" />
-	<Import Project="..\..\.msbuild\ReferencesRust.props" />
-	<Import Project="..\..\.msbuild\AssemblyName.props" />
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
+	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
-		<!-- Carbon platform -->
-		<ProjectReference Include="..\..\Carbon\Carbon.csproj" Private="false" />
-
-		<!-- Assembly patcher -->
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
+		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">

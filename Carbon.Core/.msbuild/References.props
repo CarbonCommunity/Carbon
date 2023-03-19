@@ -10,6 +10,6 @@
 		<Reference Include="System" />
 
 		<!-- Carbon API -->
-		<ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" Private="false" Condition="!$(Product.Contains('Carbon.Common'))" />
+		<!-- <ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" Private="false" Condition="!$(Product.Contains('Carbon.Common'))" /> -->
 	</ItemGroup>
 </Project>

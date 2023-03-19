@@ -6,15 +6,13 @@
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	</PropertyGroup>
 
-	<Import Project="..\.msbuild\Common.props" />
-	<Import Project="..\.msbuild\ReferencesRust.props" />
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
-		<!-- Assembly patcher -->
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
-
-		<!-- Assembly editor -->
 		<PackageReference Include="Mono.Cecil" Version="0.11.4" Aliases="MonoCecilStandalone" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" Private="false" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
