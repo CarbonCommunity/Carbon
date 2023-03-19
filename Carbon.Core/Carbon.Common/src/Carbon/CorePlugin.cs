@@ -294,7 +294,7 @@ public class CorePlugin : CarbonPlugin
 					}
 					catch (Exception ex)
 					{
-						Logger.Error("ConsoleSystem_Run", ex);
+						Logger.Error("IOnPlayerCommand", ex);
 					}
 
 					return false;
