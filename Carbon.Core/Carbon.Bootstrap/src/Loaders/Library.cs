@@ -105,15 +105,15 @@ internal sealed class LibraryLoader : IDisposable
 		return item ?? default;
 	}
 
-	private bool disposedValue;
+	private bool _disposing;
 
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposing)
 		{
 			if (disposing)
 				_cache.Clear();
-			disposedValue = true;
+			_disposing = true;
 
 			_domain.AssemblyResolve -= ResolveAssembly;
 		}

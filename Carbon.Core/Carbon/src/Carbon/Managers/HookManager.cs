@@ -539,11 +539,11 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 	}
 
 
-	private bool disposedValue;
+	private bool _disposing;
 
 	internal void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposing)
 		{
 			if (disposing)
 			{
@@ -561,7 +561,7 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 			}
 
 			// no unmanaged resources
-			disposedValue = true;
+			_disposing = true;
 		}
 	}
 

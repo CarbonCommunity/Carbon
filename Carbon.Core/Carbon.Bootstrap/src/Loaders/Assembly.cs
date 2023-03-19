@@ -119,15 +119,15 @@ internal sealed class AssemblyLoader : IDisposable
 		return -1;
 	}
 
-	private bool disposedValue;
+	private bool _disposing;
 
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposing)
 		{
 			if (disposing)
 				_cache.Clear();
-			disposedValue = true;
+			_disposing = true;
 		}
 	}
 
