@@ -222,7 +222,7 @@ public class CorePlugin : CarbonPlugin
 			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
 			Pool.Free(ref split);
 
-			if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(player.userID), command, args) != null)
+			if (HookCaller.CallStaticHook("OnPlayerCommand", player, command, args) != null)
 			{
 				return false;
 			}
@@ -302,6 +302,11 @@ public class CorePlugin : CarbonPlugin
 			}
 		}
 		catch (Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }
+
+		if (HookCaller.CallStaticHook("OnHandleUnknownChatCommand", player, command, args) != null)
+		{
+			return false;
+		}
 
 		return true;
 	}
