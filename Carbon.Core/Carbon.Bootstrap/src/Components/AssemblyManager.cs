@@ -54,16 +54,13 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 	public List<string> LoadedExtensions
 	{ get; private set; } = new();
 
+	public string[] References
+	{ get => _knownLibs; }
+
+
 	private LibraryLoader _library;
 	private AssemblyLoader _loader;
 
-	private static readonly string[] _knownLibs = {
-		"System.Core",
-		"System.Data",
-		"System.Net.Http",
-		"System.Xml.Linq",
-		"System.Xml",
-	};
 
 	private void Awake()
 	{
@@ -429,4 +426,69 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
 		return (output.Count() > 0);
 	}
+
+	public static readonly string[] _knownLibs = {
+		"mscorlib",
+		"netstandard",
+
+		"System.Core",
+		"System.Data",
+		"System.Drawing",
+		"System.Memory",
+		"System.Net.Http",
+		"System.Runtime",
+		"System.Xml.Linq",
+		"System.Xml",
+		"System",
+
+		"Carbon.Common",
+		"Carbon.SDK",
+
+		"protobuf-net",
+		"protobuf-net.Core",
+		"websocket-sharp",
+
+		"Assembly-CSharp-firstpass",
+		"Assembly-CSharp",
+		"Facepunch.Console",
+		"Facepunch.Network",
+		"Facepunch.Rcon",
+		"Facepunch.Sqlite",
+		"Facepunch.System",
+		"Facepunch.Unity",
+		"Facepunch.UnityEngine",
+		"Fleck",
+		"Newtonsoft.Json",
+		"Rust.Data",
+		"Rust.FileSystem",
+		"Rust.Global",
+		// "Rust.Harmony",
+		"Rust.Localization",
+		"Rust.Platform.Common",
+		"Rust.Platform",
+		"Rust.Workshop",
+		"Rust.World",
+		"UnityEngine.AIModule",
+		"UnityEngine.CoreModule",
+		"UnityEngine.ImageConversionModule",
+		"UnityEngine.PhysicsModule",
+		"UnityEngine.SharedInternalsModule",
+		"UnityEngine.TerrainModule",
+		"UnityEngine.TerrainPhysicsModule",
+		"UnityEngine.TextRenderingModule",
+		"UnityEngine.UI",
+		"UnityEngine.UnityWebRequestAssetBundleModule",
+		"UnityEngine.UnityWebRequestAudioModule",
+		"UnityEngine.UnityWebRequestModule",
+		"UnityEngine.UnityWebRequestTextureModule",
+		"UnityEngine.UnityWebRequestWWWModule",
+		"UnityEngine.VehiclesModule",
+		"UnityEngine",
+
+#if WIN
+		"Facepunch.Steamworks.Win64",
+#elif UNIX
+		"Facepunch.Steamworks.Posix",
+#endif
+	};
 }

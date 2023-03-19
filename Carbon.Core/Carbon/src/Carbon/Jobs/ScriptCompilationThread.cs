@@ -142,7 +142,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var references = new List<MetadataReference>();
 		var id = Path.GetFileNameWithoutExtension(FilePath);
 
-		foreach (var item in CommunityInternal.CompilerReferenceList)
+		foreach (var item in Community.Runtime.AssemblyEx.References)
 		{
 			try
 			{
