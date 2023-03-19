@@ -107,6 +107,9 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	public void StartSession()
 		=> LogEvent(_first ? "first_visit" : "user_engagement");
 
+	public void Keepalive()
+		=> LogEvent("user_engagement");
+
 	public void LogEvent(string eventName)
 		=> StartCoroutine(SendEvent(eventName));
 

@@ -100,7 +100,7 @@ public class Community
 
 			Events.Subscribe(CarbonEvent.OnServerSave, args =>
 			{
-				Analytics.LogEvent("on_server_save", null);
+				Analytics.Keepalive();
 			});
 		}
 		catch (Exception ex)
