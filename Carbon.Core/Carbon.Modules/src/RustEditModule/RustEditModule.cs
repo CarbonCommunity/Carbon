@@ -2132,13 +2132,13 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		}
 		return null;
 	}
-	public static void IO_CreateElevator(Elevator baseelevator, SerializedIOEntity serializedIOEntity)
+	public static void IO_CreateElevator(Elevator baseElevator, SerializedIOEntity serializedIOEntity)
 	{
-		var top = baseelevator;
+		var top = baseElevator;
 
 		for (int i = 1; i < serializedIOEntity.floors; i++)
 		{
-			Elevator elevator2 = GameManager.server.CreateEntity(baseelevator.PrefabName, baseelevator.transform.position + baseelevator.transform.up * (3f * (float)i), baseelevator.transform.rotation, true) as Elevator;
+			var elevator2 = GameManager.server.CreateEntity(baseElevator.PrefabName, baseElevator.transform.position + baseElevator.transform.up * (3f * (float)i), baseElevator.transform.rotation, true) as Elevator;
 			elevator2.pickup.enabled = false;
 			elevator2.EnableSaving(false);
 			elevator2.Spawn();

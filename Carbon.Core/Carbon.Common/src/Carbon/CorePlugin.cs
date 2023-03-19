@@ -91,7 +91,7 @@ public class CorePlugin : CarbonPlugin
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)
 	{
-		Logger.Log($" {player.net.connection.ToString()} left: {reason}");
+		Logger.Log($"{player.net.connection} left: {reason}");
 	}
 	private void OnPluginLoaded(Plugin plugin)
 	{
