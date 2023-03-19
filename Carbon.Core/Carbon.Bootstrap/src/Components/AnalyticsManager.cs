@@ -40,6 +40,9 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	public string InformationalVersion
 	{ get; private set; }
 
+	public string Protocol
+	{ get; private set; }
+
 	public string SessionID
 	{ get; private set; }
 
@@ -83,7 +86,12 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	{
 		InformationalVersion = Assembly.GetExecutingAssembly()
 			.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-		Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+		Version = Assembly.GetExecutingAssembly()
+			.GetName().Version.ToString();
+
+		Protocol = Assembly.GetExecutingAssembly()
+			.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
 
 		Platform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) switch
 		{
@@ -118,7 +126,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	public IEnumerator SendEvent(string eventName)
 	{
 		float delta = 1; bool newsession = true;
-		if (_engagement >= 0 && _engagement <= 1800)
+		if (_engagement >= 0 && _engagement <= 900)
 		{
 			newsession = false;
 			delta = (UnityEngine.Time.realtimeSinceStartup - _engagement) * 1000;

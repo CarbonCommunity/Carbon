@@ -12,10 +12,12 @@ namespace API.Analytics;
 
 public interface IAnalyticsManager
 {
-	public string Platform { get; }
 	public string Branch { get; }
-	public string Version { get; }
 	public string InformationalVersion { get; }
+	public string Platform { get; }
+	public string Protocol { get; }
+	public string Version { get; }
+
 
 
 	public string ClientID { get; }
