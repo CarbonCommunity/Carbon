@@ -101,7 +101,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		};
 
 		SessionID = Util.GetRandomNumber(10);
-		_engagement = UnityEngine.Time.realtimeSinceStartup;
+		_engagement = -1;
 	}
 
 	public void StartSession()
@@ -118,8 +118,17 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 	public IEnumerator SendEvent(string eventName)
 	{
+		float delta = 1; bool newsession = true;
+		if (_engagement >= 0 && _engagement <= 1800)
+		{
+			newsession = false;
+			delta = (UnityEngine.Time.realtimeSinceStartup - _engagement) * 1000;
+		}
+		_engagement = UnityEngine.Time.realtimeSinceStartup;
+
 		string url = "https://www.google-analytics.com/g/collect";
-		string query = $"v=2&tid={MeasurementID}&cid={ClientID}&_ss=1&en={eventName}&seg=1";
+		string query = $"v=2&tid={MeasurementID}&cid={ClientID}&en={eventName}"
+			+ $"{(newsession ? "&_ss=1" : string.Empty)}&seg=1&_et={Math.Round(delta)}";
 
 #if DEBUG_VERBOSE
 		query += "&_dbg=1";
@@ -130,6 +139,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		request.SetRequestHeader("Content-Type", "application/json");
 		request.uploadHandler = new UploadHandlerRaw(default);
 		request.downloadHandler = new DownloadHandlerBuffer();
+
 		yield return request.SendWebRequest();
 
 #if DEBUG_VERBOSE
@@ -148,6 +158,9 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 	private IEnumerator SendMPEvent(string eventName, IDictionary<string, object> properties = null)
 	{
+		float delta = (UnityEngine.Time.realtimeSinceStartup - _engagement) * 1000;
+		_engagement = UnityEngine.Time.realtimeSinceStartup;
+
 		string url = "https://www.google-analytics.com/mp/collect";
 		string query = $"api_secret={MeasurementSecret}&measurement_id={MeasurementID}";
 
@@ -155,9 +168,6 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		request.SetRequestHeader("User-Agent", $"carbon/server ({Platform}; x64; {Branch}) carbon/{Version}");
 		request.SetRequestHeader("Content-Type", "application/json");
 		request.downloadHandler = new DownloadHandlerBuffer();
-
-		float delta = (UnityEngine.Time.realtimeSinceStartup - _engagement) * 1000;
-		_engagement = UnityEngine.Time.realtimeSinceStartup;
 
 		Dictionary<string, object> parameters = new() {
 #if DEBUG_VERBOSE
