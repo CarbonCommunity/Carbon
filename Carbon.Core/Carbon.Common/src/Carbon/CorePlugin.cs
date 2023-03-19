@@ -301,7 +301,7 @@ public class CorePlugin : CarbonPlugin
 				}
 			}
 
-			if (HookCaller.CallStaticHook("OnHandleUnknownChatCommand", player, command, args) != null)
+			if (HookCaller.CallStaticHook("OnUnknownPlayerCommand", player, command, args) != null)
 			{
 				return false;
 			}
