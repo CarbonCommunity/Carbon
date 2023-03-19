@@ -300,13 +300,13 @@ public class CorePlugin : CarbonPlugin
 					return false;
 				}
 			}
+
+			if (HookCaller.CallStaticHook("OnHandleUnknownChatCommand", player, command, args) != null)
+			{
+				return false;
+			}
 		}
 		catch (Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }
-
-		if (HookCaller.CallStaticHook("OnHandleUnknownChatCommand", player, command, args) != null)
-		{
-			return false;
-		}
 
 		return true;
 	}
