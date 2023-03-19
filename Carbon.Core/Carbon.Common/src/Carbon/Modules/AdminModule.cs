@@ -13,6 +13,7 @@ using Oxide.Plugins;
 using ProtoBuf;
 using UnityEngine;
 using static ConsoleSystem;
+using Color = UnityEngine.Color;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
 
@@ -1297,6 +1298,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		return Tabs.FirstOrDefault(x => x.Id == id);
 	}
+	public bool HasTab(string id)
+	{
+		return FindTab(id) != null;
+	}
 	public bool CallColumnRow(BasePlayer player, int column, int row, string[] args)
 	{
 		var ap = GetOrCreateAdminPlayer(player);
@@ -1963,7 +1968,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				AddPlayer(tab, ap, player);
 			}
-			if (!onlinePlayers.Any()) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
+			if (onlinePlayers.Count() == 0) tab.AddText(0, "No online players found.", 10, "1 1 1 0.4");
 
 			tab.AddName(0, "Offline");
 			var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
@@ -1971,7 +1976,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				AddPlayer(tab, ap, player);
 			}
-			if (!offlinePlayers.Any()) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
+			if (offlinePlayers.Count() == 0) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
 		}
 		public static void AddPlayer(Tab tab, AdminPlayer ap, BasePlayer player)
 		{
@@ -2067,6 +2072,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 							player.EndSleeping();
 						}, null);
 					}));
+
+				if (Singleton.HasTab("entities"))
+				{
+					tab.AddButton(1, "Select Entity", ap2 =>
+					{
+						Singleton.SetTab(ap2.Player, "entities");
+						var tab = Singleton.GetTab(ap2.Player);
+						ap2.SetStorage("selectedent", player);
+						EntitiesTab.DrawEntities(tab, ap2);
+						EntitiesTab.DrawEntitySettings(tab, player, 1, ap2);
+					});
+				}
+
 				tab.AddInput(1, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
 				if (aap.Player.spectateFilter != player.UserIDString)
 				{
@@ -2141,6 +2159,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		internal static Permission permission;
 		internal static string PluginFilter;
+		internal static string PlayerFilter;
 
 		public static Tab Get()
 		{
@@ -2193,10 +2212,29 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static void GeneratePlayers(Tab tab, Permission perms, AdminPlayer ap)
 		{
+			var filter = PlayerFilter?.Trim().ToLower();
+			var players = BasePlayer.allPlayerList.Where(x =>
+			{
+				if (!x.userID.IsSteamId()) return false;
+
+				if (!string.IsNullOrEmpty(filter))
+				{
+					return x.displayName.ToLower().Contains(filter) || x.UserIDString.Contains(filter);
+				}
+
+				return true;
+			});
+
 			tab.ClearColumn(1);
 			tab.AddName(1, "Players", TextAnchor.MiddleLeft);
 			{
-				foreach (var player in BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId()))
+				tab.AddInput(1, "Search", () => PlayerFilter, (ap, args) =>
+				{
+					PlayerFilter = args.ToString(" ");
+					GeneratePlayers(tab, perms, ap);
+				});
+
+				foreach (var player in players)
 				{
 					tab.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
 					{
@@ -2213,17 +2251,27 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public static void GeneratePlugins(Tab tab, AdminPlayer ap, Permission permission, BasePlayer player, string selectedGroup)
 		{
+			var filter = PluginFilter?.Trim().ToLower();
 			var plugins = Community.Runtime.Plugins.Plugins.Where(x =>
 			{
-				if (!string.IsNullOrEmpty(PluginFilter))
+				if (!string.IsNullOrEmpty(filter))
 				{
-					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(PluginFilter.Trim().ToLower()));
+					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(filter));
 				}
 
 				return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
 			});
 
 			tab.ClearColumn(2);
+			tab.AddButton(2, "Select", ap2 =>
+			{
+				Singleton.SetTab(ap.Player, "players");
+				var tab = Singleton.GetTab(ap.Player);
+				ap.SetStorage("playerfilterpl", player);
+				PlayersTab.AddInitial(tab, ap);
+				PlayersTab.RefreshPlayers(tab, ap);
+				PlayersTab.ShowInfo(tab, ap, player);
+			});
 			tab.AddName(2, "Plugins", TextAnchor.MiddleLeft);
 			{
 				tab.AddInput(2, "Search", () => PluginFilter, (ap, args) =>
