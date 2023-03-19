@@ -40,7 +40,6 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		{
 			var empty = string.Empty;
 			onColorPicked?.Invoke(empty, empty);
-			PutsWarn($"");
 			return;
 		}
 
@@ -217,6 +216,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 			case "brightness":
 				Brightness = color.r.Scale(0f, 1f, 0f, 2.5f);
 				BrightnessIndicator = (int)color.r.Scale(0f, 1f, 0f, 20.5f);
+				FirstOpen = true;
 				Draw(player, OnColorPicked);
 				return;
 		}

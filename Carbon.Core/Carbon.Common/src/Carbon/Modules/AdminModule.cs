@@ -13,6 +13,7 @@ using Oxide.Plugins;
 using ProtoBuf;
 using UnityEngine;
 using static ConsoleSystem;
+using Color = UnityEngine.Color;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
 
@@ -27,7 +28,7 @@ namespace Carbon.Modules;
 
 public class AdminModule : CarbonModule<AdminConfig, AdminData>
 {
-	internal static AdminModule Instance { get; set; }
+	internal static AdminModule Singleton { get; set; }
 
 	public override string Name => "Admin";
 	public override Type Type => typeof(AdminModule);
@@ -57,7 +58,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		base.Init();
 
-		Instance = this;
+		Singleton = this;
 		Handler = new();
 	}
 
@@ -1297,6 +1298,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		return Tabs.FirstOrDefault(x => x.Id == id);
 	}
+	public bool HasTab(string id)
+	{
+		return FindTab(id) != null;
+	}
 	public bool CallColumnRow(BasePlayer player, int column, int row, string[] args)
 	{
 		var ap = GetOrCreateAdminPlayer(player);
@@ -1963,7 +1968,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				AddPlayer(tab, ap, player);
 			}
-			if (!onlinePlayers.Any()) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
+			if (onlinePlayers.Count() == 0) tab.AddText(0, "No online players found.", 10, "1 1 1 0.4");
 
 			tab.AddName(0, "Offline");
 			var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
@@ -1971,7 +1976,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				AddPlayer(tab, ap, player);
 			}
-			if (!offlinePlayers.Any()) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
+			if (offlinePlayers.Count() == 0) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
 		}
 		public static void AddPlayer(Tab tab, AdminPlayer ap, BasePlayer player)
 		{
@@ -2008,9 +2013,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.AddButton(1, "View Permissions", ap =>
 				{
-					var perms = Instance.FindTab("permissions");
+					var perms = Singleton.FindTab("permissions");
 					var permission = Community.Runtime.CorePlugin.permission;
-					Instance.SetTab(ap.Player, "permissions");
+					Singleton.SetTab(ap.Player, "permissions");
 
 					ap.SetStorage("player", player);
 					PermissionsTab.GeneratePlayers(perms, permission, ap);
@@ -2024,7 +2029,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				tab.AddButtonArray(1,
 					new Tab.OptionButton("TeleportTo", ap => { ap.Player.Teleport(player.transform.position); }),
-					new Tab.OptionButton("Teleport2Me", ap => { player.transform.position = ap.Player.transform.position; player.SendNetworkUpdateImmediate(); }));
+					new Tab.OptionButton("Teleport2Me", ap =>
+					{
+						tab.CreateDialog($"Are you sure about that?", ap =>
+						{
+							player.transform.position = ap.Player.transform.position;
+							player.SendNetworkUpdateImmediate();
+						}, null);
+					}));
 
 				tab.AddButtonArray(1,
 					new Tab.OptionButton("Loot", ap =>
@@ -2033,7 +2045,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						ap.SetStorage("lootedent", player);
 						EntitiesTab.SendEntityToPlayer(ap.Player, player);
 
-						Core.timer.In(0.2f, () => Instance.Close(ap.Player));
+						Core.timer.In(0.2f, () => Singleton.Close(ap.Player));
 						Core.timer.In(0.5f, () =>
 						{
 							EntitiesTab.SendEntityToPlayer(ap.Player, player);
@@ -2053,10 +2065,28 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}),
 					new Tab.OptionButton("Respawn", ap =>
 					{
-						player.Hurt(player.MaxHealth()); player.Respawn(); player.EndSleeping();
+						tab.CreateDialog($"Are you sure about that?", ap =>
+						{
+							player.Hurt(player.MaxHealth());
+							player.Respawn();
+							player.EndSleeping();
+						}, null);
 					}));
+
+				if (Singleton.HasTab("entities"))
+				{
+					tab.AddButton(1, "Select Entity", ap2 =>
+					{
+						Singleton.SetTab(ap2.Player, "entities");
+						var tab = Singleton.GetTab(ap2.Player);
+						ap2.SetStorage("selectedent", player);
+						EntitiesTab.DrawEntities(tab, ap2);
+						EntitiesTab.DrawEntitySettings(tab, player, 1, ap2);
+					});
+				}
+
 				tab.AddInput(1, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
-				if (!aap.Player.IsSpectating())
+				if (aap.Player.spectateFilter != player.UserIDString)
 				{
 					tab.AddButton(1, "Spectate", ap =>
 					{
@@ -2088,21 +2118,21 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					tab.AddButton(1, "Blind Player", ap =>
 					{
-						using var cui = new CUI(Instance.Handler);
+						using var cui = new CUI(Singleton.Handler);
 						var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
 						cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 						cui.Send(container, player);
 						BlindedPlayers.Add(player);
 						ShowInfo(tab, ap, player);
 
-						if (ap.Player == player) Core.timer.In(1, () => { Instance.Close(player); });
+						if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
 					});
 				}
 				else
 				{
 					tab.AddButton(1, "Unblind Player", ap =>
 					{
-						using var cui = new CUI(Instance.Handler);
+						using var cui = new CUI(Singleton.Handler);
 						cui.Destroy("blindingpanel", player);
 						BlindedPlayers.Remove(player);
 						ShowInfo(tab, ap, player);
@@ -2129,6 +2159,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		internal static Permission permission;
 		internal static string PluginFilter;
+		internal static string PlayerFilter;
 
 		public static Tab Get()
 		{
@@ -2181,10 +2212,29 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static void GeneratePlayers(Tab tab, Permission perms, AdminPlayer ap)
 		{
+			var filter = PlayerFilter?.Trim().ToLower();
+			var players = BasePlayer.allPlayerList.Where(x =>
+			{
+				if (!x.userID.IsSteamId()) return false;
+
+				if (!string.IsNullOrEmpty(filter))
+				{
+					return x.displayName.ToLower().Contains(filter) || x.UserIDString.Contains(filter);
+				}
+
+				return true;
+			});
+
 			tab.ClearColumn(1);
 			tab.AddName(1, "Players", TextAnchor.MiddleLeft);
 			{
-				foreach (var player in BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId()))
+				tab.AddInput(1, "Search", () => PlayerFilter, (ap, args) =>
+				{
+					PlayerFilter = args.ToString(" ");
+					GeneratePlayers(tab, perms, ap);
+				});
+
+				foreach (var player in players)
 				{
 					tab.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
 					{
@@ -2201,17 +2251,27 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public static void GeneratePlugins(Tab tab, AdminPlayer ap, Permission permission, BasePlayer player, string selectedGroup)
 		{
+			var filter = PluginFilter?.Trim().ToLower();
 			var plugins = Community.Runtime.Plugins.Plugins.Where(x =>
 			{
-				if (!string.IsNullOrEmpty(PluginFilter))
+				if (!string.IsNullOrEmpty(filter))
 				{
-					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(PluginFilter.Trim().ToLower()));
+					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(filter));
 				}
 
 				return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
 			});
 
 			tab.ClearColumn(2);
+			tab.AddButton(2, "Select", ap2 =>
+			{
+				Singleton.SetTab(ap.Player, "players");
+				var tab = Singleton.GetTab(ap.Player);
+				ap.SetStorage("playerfilterpl", player);
+				PlayersTab.AddInitial(tab, ap);
+				PlayersTab.RefreshPlayers(tab, ap);
+				PlayersTab.ShowInfo(tab, ap, player);
+			});
 			tab.AddName(2, "Plugins", TextAnchor.MiddleLeft);
 			{
 				tab.AddInput(2, "Search", () => PluginFilter, (ap, args) =>
@@ -2406,20 +2466,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var player = entity as BasePlayer;
 				var owner = BasePlayer.FindByID(entity.OwnerID);
 
-				if (player == null)
+				if (player != ap3?.Player)
 				{
 					tab.AddButtonArray(column,
 						new Tab.OptionButton("Kill", ap =>
 						{
-							entity.Kill();
-							DrawEntities(tab, ap);
-							tab.ClearColumn(column);
+							tab.CreateDialog($"Are you sure about that?", ap =>
+							{
+								entity.Kill();
+								DrawEntities(tab, ap);
+								tab.ClearColumn(column);
+							}, null);
 						}, ap => Tab.OptionButton.Types.Important),
 						new Tab.OptionButton("Kill (Gibbed)", ap =>
 						{
-							entity.Kill(BaseNetworkable.DestroyMode.Gib);
-							DrawEntities(tab, ap);
-							tab.ClearColumn(column);
+							tab.CreateDialog($"Are you sure about that?", ap =>
+							{
+								entity.Kill(BaseNetworkable.DestroyMode.Gib);
+								DrawEntities(tab, ap);
+								tab.ClearColumn(column);
+							}, null);
 						}));
 				}
 
@@ -2442,7 +2508,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddInput(column, "Rotation", () => $"{entity.transform.rotation}", null);
 				tab.AddButtonArray(column,
 					new Tab.OptionButton("TeleportTo", ap => { ap.Player.Teleport(entity.transform.position); }),
-					new Tab.OptionButton("Teleport2Me", ap => { entity.transform.position = ap.Player.transform.position; entity.SendNetworkUpdateImmediate(); }));
+					new Tab.OptionButton("Teleport2Me", ap =>
+					{
+						tab.CreateDialog($"Are you sure about that?", ap =>
+						{
+							entity.transform.position = ap.Player.transform.position;
+							entity.SendNetworkUpdateImmediate();
+						}, null);
+					}));
 
 				if (entity is StorageContainer storage)
 				{
@@ -2504,7 +2577,12 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}),
 						new Tab.OptionButton("Respawn", ap =>
 						{
-							player.Hurt(player.MaxHealth()); player.Respawn(); player.EndSleeping();
+							tab.CreateDialog($"Are you sure about that?", ap =>
+							{
+								player.Hurt(player.MaxHealth());
+								player.Respawn();
+								player.EndSleeping();
+							}, null);
 						}));
 					tab.AddInput(column, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
 					if (ap3 != null)
@@ -2540,21 +2618,21 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							tab.AddButton(1, "Blind Player", ap =>
 							{
-								using var cui = new CUI(Instance.Handler);
+								using var cui = new CUI(Singleton.Handler);
 								var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
 								cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 								cui.Send(container, player);
 								PlayersTab.BlindedPlayers.Add(player);
 								DrawEntitySettings(tab, entity, column, ap3);
 
-								if (ap.Player == player) Core.timer.In(1, () => { Instance.Close(player); });
+								if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
 							});
 						}
 						else
 						{
 							tab.AddButton(1, "Unblind Player", ap =>
 							{
-								using var cui = new CUI(Instance.Handler);
+								using var cui = new CUI(Singleton.Handler);
 								cui.Destroy("blindingpanel", player);
 								PlayersTab.BlindedPlayers.Remove(player);
 								DrawEntitySettings(tab, entity, column, ap3);
@@ -2816,7 +2894,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) => { SelectedPlugin = null; })
 			{
-				Override = (t, container, parent, ap) => GenerateUI(t, container, parent, ap)
+				Override = (t, container, parent, ap) => GenerateUI(container, parent, ap)
 			};
 
 			CodeflingInstance = new Codefling();
@@ -3027,17 +3105,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var eraseAllBeforehand = false;
 
-			if (images.Count > 0) Instance.ImageDatabase.QueueBatchCallback(vendor.IconScale, eraseAllBeforehand, result => { }, images.ToArray());
-			if (imagesSafe.Count > 0) Instance.ImageDatabase.QueueBatch(vendor.SafeIconScale, eraseAllBeforehand, imagesSafe.ToArray());
+			if (images.Count > 0) Singleton.ImageDatabase.QueueBatchCallback(vendor.IconScale, eraseAllBeforehand, result => { }, images.ToArray());
+			if (imagesSafe.Count > 0) Singleton.ImageDatabase.QueueBatch(vendor.SafeIconScale, eraseAllBeforehand, imagesSafe.ToArray());
 
 			Pool.FreeList(ref plugins);
 			Pool.FreeList(ref images);
 			Pool.FreeList(ref imagesSafe);
 		}
 
-		public static void GenerateUI(Tab tab, CuiElementContainer container, string parent, AdminPlayer ap)
+		public static void GenerateUI(CuiElementContainer container, string parent, AdminPlayer ap)
 		{
-			using var cui = new CUI(Instance.Handler);
+			using var cui = new CUI(Singleton.Handler);
 
 			var header = cui.CreatePanel(container, parent, null, "0.2 0.2 0.2 0.5",
 				xMin: 0f, xMax: 1f, yMin: 0.95f, yMax: 1f);
@@ -3079,7 +3157,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				if (plugin.NoImage()) cui.CreateImage(container, card, null, vendor.Logo, "0.2 0.2 0.2 0.4", xMin: 0.2f, xMax: 0.8f, yMin: 0.2f + vendor.LogoRatio, yMax: 0.8f - vendor.LogoRatio);
 				else
 				{
-					if (Instance.ImageDatabase.GetImage(plugin.Image) != 0) cui.CreateImage(container, card, null, plugin.Image, plugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1");
+					if (Singleton.ImageDatabase.GetImage(plugin.Image) != 0) cui.CreateImage(container, card, null, plugin.Image, plugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1");
 					else cui.CreateClientImage(container, card, null, plugin.Image, "1 1 1 1");
 				}
 
@@ -3127,7 +3205,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0f, xMax: 0.8f, yMin: 0.89f, yMax: 0.94f);
 
 			var drop = cui.CreatePanel(container, sidebar, null, "0 0 0 0", yMin: 0.96f, OxMin: -155);
-			Instance.TabPanelDropdown(cui, PlaceboPage, container, drop, null, $"pluginbrowser.changesetting filter_dd", 1, 0, (int)Filter, DropdownOptions, null, 0, DropdownShow);
+			Singleton.TabPanelDropdown(cui, PlaceboPage, container, drop, null, $"pluginbrowser.changesetting filter_dd", 1, 0, (int)Filter, DropdownOptions, null, 0, DropdownShow);
 
 			var topbarYScale = 0.1f;
 			cui.CreateText(container, topbar, null, "1 1 1 1", plugins.Count > 0 ? $"/ {maxPages + 1:n0}" : "NONE", plugins.Count > 0 ? 10 : 8, xMin: plugins.Count > 0 ? 0.925f : 0.92f, xMax: 0.996f, align: TextAnchor.MiddleLeft);
@@ -3166,7 +3244,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			if (SelectedPlugin != null)
 			{
-				vendor.CheckMetadata(SelectedPlugin.Id, () => { Instance.Draw(ap.Player); });
+				vendor.CheckMetadata(SelectedPlugin.Id, () => { Singleton.Draw(ap.Player); });
 
 				var mainPanel = cui.CreatePanel(container, parent, null, "0.15 0.15 0.15 0.35", blur: true);
 				cui.CreatePanel(container, mainPanel, null, "0.1 0.1 0.1 0.9");
@@ -3175,7 +3253,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (SelectedPlugin.NoImage()) cui.CreateImage(container, image, null, vendor.Logo, "0.2 0.2 0.2 0.4", xMin: 0.2f, xMax: 0.8f, yMin: 0.2f + vendor.LogoRatio, yMax: 0.8f - vendor.LogoRatio);
 				{
-					if (Instance.ImageDatabase.GetImage(SelectedPlugin.Image) == 0) cui.CreateClientImage(container, image, null, SelectedPlugin.Image, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
+					if (Singleton.ImageDatabase.GetImage(SelectedPlugin.Image) == 0) cui.CreateClientImage(container, image, null, SelectedPlugin.Image, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 					else cui.CreateImage(container, image, null, SelectedPlugin.Image, SelectedPlugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 				}
 				cui.CreateText(container, mainPanel, null, "1 1 1 1", SelectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
@@ -3488,7 +3566,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if (!source.StartsWith("<!DOCTYPE html>"))
 					{
-						Instance.Puts($"Downloaded {plugin.Name}");
+						Singleton.Puts($"Downloaded {plugin.Name}");
 						OsEx.File.Create(path, source);
 					}
 				}, Community.Runtime.CorePlugin, headers: new Dictionary<string, string>
@@ -3524,13 +3602,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if ((DateTime.Now - new DateTime(value.LastTick)).TotalHours >= 24)
 					{
-						Instance.Puts($"Invalidated {Type} database. Fetching...");
+						Singleton.Puts($"Invalidated {Type} database. Fetching...");
 						return false;
 					}
 
 					OwnedData = InstalledData;
 
-					Instance.Puts($"Loaded {Type} from file: {path}");
+					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
 				catch { Save(); }
@@ -3542,7 +3620,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				using var file = File.OpenWrite(path);
 				LastTick = DateTime.Now.Ticks;
 				Serializer.Serialize(file, this);
-				Instance.Puts($"Stored {Type} to file: {path}");
+				Singleton.Puts($"Stored {Type} to file: {path}");
 			}
 		}
 
@@ -3653,7 +3731,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				Community.Runtime.CorePlugin.webrequest.Enqueue(url, null, (error, source) =>
 				{
-					Instance.Puts($"Downloaded {plugin.Name}");
+					Singleton.Puts($"Downloaded {plugin.Name}");
 					OsEx.File.Create(path, source);
 
 					plugin.IsBusy = false;
@@ -3777,13 +3855,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if ((DateTime.Now - new DateTime(value.LastTick)).TotalHours >= 24)
 					{
-						Instance.Puts($"Invalidated {Type} database. Fetching...");
+						Singleton.Puts($"Invalidated {Type} database. Fetching...");
 						return false;
 					}
 
 					OwnedData = InstalledData;
 
-					Instance.Puts($"Loaded {Type} from file: {path}");
+					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
 				catch { Save(); }
@@ -3796,7 +3874,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				LastTick = DateTime.Now.Ticks;
 				Serializer.Serialize(file, this);
-				Instance.Puts($"Stored {Type} to file: {path}");
+				Singleton.Puts($"Stored {Type} to file: {path}");
 			}
 		}
 
@@ -3945,7 +4023,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if (!source.StartsWith("<!DOCTYPE html>"))
 					{
-						Instance.Puts($"Downloaded {plugin.Name}");
+						Singleton.Puts($"Downloaded {plugin.Name}");
 						OsEx.File.Create(path, source);
 					}
 				}, Community.Runtime.CorePlugin, headers: new Dictionary<string, string>
@@ -3981,13 +4059,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if ((DateTime.Now - new DateTime(value.LastTick)).TotalHours >= 24)
 					{
-						Instance.Puts($"Invalidated {Type} database. Fetching...");
+						Singleton.Puts($"Invalidated {Type} database. Fetching...");
 						return false;
 					}
 
 					OwnedData = InstalledData;
 
-					Instance.Puts($"Loaded {Type} from file: {path}");
+					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
 				catch { Save(); }
@@ -3999,7 +4077,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				using var file = File.OpenWrite(path);
 				LastTick = DateTime.Now.Ticks;
 				Serializer.Serialize(file, this);
-				Instance.Puts($"Stored {Type} to file: {path}");
+				Singleton.Puts($"Stored {Type} to file: {path}");
 			}
 		}
 
@@ -4107,11 +4185,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		foreach (var player in BasePlayer.activePlayerList)
 		{
-			var ap = Instance.GetOrCreateAdminPlayer(player);
+			var ap = Singleton.GetOrCreateAdminPlayer(player);
 
-			if (ap.IsInMenu && Instance.GetTab(player).Id == "plugins")
+			if (ap.IsInMenu && Singleton.GetTab(player).Id == "plugins")
 			{
-				Instance.Draw(player);
+				Singleton.Draw(player);
 			}
 		}
 	}
@@ -4121,11 +4199,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			foreach (var player in BasePlayer.activePlayerList)
 			{
-				var ap = Instance.GetOrCreateAdminPlayer(player);
+				var ap = Singleton.GetOrCreateAdminPlayer(player);
 
-				if (ap.IsInMenu && Instance.GetTab(player).Id == "pluginbrowser")
+				if (ap.IsInMenu && Singleton.GetTab(player).Id == "pluginbrowser")
 				{
-					Instance.Draw(player);
+					Singleton.Draw(player);
 				}
 			}
 		});
@@ -4140,22 +4218,27 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		vendor.Refresh();
 		PluginsTab.TagFilter.Clear();
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
-		Instance.Draw(args.Player());
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.interact")]
 	private void PluginBrowserInteract(ConsoleSystem.Arg args)
 	{
 		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), PluginsTab.Vendor));
+		var tab = Singleton.GetTab(args.Player());
+
 		switch (args.Args[0])
 		{
 			case "0":
 			case "1":
-				vendor.Download(args.Args[1], () => Instance.Draw(args.Player()));
+				vendor.Download(args.Args[1], () => Singleton.Draw(args.Player()));
 				break;
 
 			case "2":
-				vendor.Uninstall(args.Args[1]);
+				tab.CreateDialog($"Are you sure you want to uninstall '{PluginsTab.SelectedPlugin.Name}'?", ap =>
+				{
+					vendor.Uninstall(args.Args[1]);
+				}, null);
 				break;
 
 			case "10":
@@ -4166,7 +4249,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				break;
 		}
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.page")]
 	private void PluginBrowserPage(ConsoleSystem.Arg args)
@@ -4204,9 +4287,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.filter")]
 	private void PluginBrowserFilter(ConsoleSystem.Arg args)
@@ -4219,9 +4302,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		PluginsTab.Page = 0;
 		PluginsTab.Filter = (PluginsTab.FilterTypes)args.Args[0].ToInt();
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.tagfilter")]
 	private void PluginBrowserTagFilter(ConsoleSystem.Arg args)
@@ -4234,9 +4317,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (PluginsTab.TagFilter.Contains(filter)) PluginsTab.TagFilter.Remove(filter);
 		else PluginsTab.TagFilter.Add(filter);
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.search")]
 	private void PluginBrowserSearch(ConsoleSystem.Arg args)
@@ -4249,9 +4332,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (PluginsTab.Search == "Search...") PluginsTab.Search = null;
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.selectplugin")]
 	private void PluginBrowserSelectPlugin(ConsoleSystem.Arg args)
@@ -4261,7 +4344,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		PluginsTab.SelectedPlugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[0]);
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.deselectplugin")]
 	private void PluginBrowserDeselectPlugin(ConsoleSystem.Arg args)
@@ -4271,7 +4354,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		PluginsTab.SelectedPlugin = null;
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.changeselectedplugin")]
 	private void PluginBrowserChangeSelected(ConsoleSystem.Arg args)
@@ -4284,9 +4367,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		PluginsTab.SelectedPlugin = plugins[nextPage > plugins.Count - 1 ? 0 : nextPage < 0 ? plugins.Count - 1 : nextPage];
 		Pool.FreeList(ref plugins);
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.changesetting")]
 	private void PluginBrowserChangeSetting(ConsoleSystem.Arg args)
@@ -4308,10 +4391,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				break;
 		}
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
 		vendor.Refresh();
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 
 	[ConsoleCommand("adminmodule.downloadplugin", "Downloads a plugin from a vendor (if available). Syntax: adminmodule.downloadplugin <codefling|umod> <plugin>")]
