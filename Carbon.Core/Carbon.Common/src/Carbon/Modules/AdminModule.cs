@@ -2130,7 +2130,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 
 				tab.AddInput(1, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
-				if (aap.Player.spectateFilter != player.UserIDString)
+				if (aap.Player != player && aap.Player.spectateFilter != player.UserIDString)
 				{
 					tab.AddButton(1, "Spectate", ap =>
 					{
@@ -2138,7 +2138,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						ShowInfo(tab, ap, player);
 					});
 				}
-				else
+				if(aap.Player.UserIDString == player.UserIDString || aap.Player.spectateFilter == player.UserIDString)
 				{
 					tab.AddButton(1, "End Spectating", ap =>
 					{
@@ -2619,7 +2619,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.AddInput(column, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
 					if (ap3 != null)
 					{
-						if (ap3.Player.spectateFilter != player.UserIDString)
+						if (ap3.Player != player && ap3.Player.spectateFilter != player.UserIDString)
 						{
 							tab.AddButton(1, "Spectate", ap =>
 							{
@@ -2627,7 +2627,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								DrawEntitySettings(tab, entity, column, ap3);
 							});
 						}
-						else
+						if (ap3.Player.UserIDString == player.UserIDString || ap3.Player.spectateFilter == player.UserIDString)
 						{
 							tab.AddButton(1, "End Spectating", ap =>
 							{
