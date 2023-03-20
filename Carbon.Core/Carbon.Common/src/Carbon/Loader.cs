@@ -30,9 +30,6 @@ public static class Loader
 	public static Dictionary<string, List<string>> PendingRequirees { get; } = new();
 	public static bool IsBatchComplete { get; set; }
 	public static List<string> PostBatchFailedRequirees { get; } = new();
-	public static List<string> ReloadQueueList { get; } = new();
-	public static List<string> LoadQueueList { get; } = new();
-	public static List<string> UnloadQueueList { get; } = new();
 
 	static Loader()
 	{
@@ -452,41 +449,6 @@ public static class Loader
 		if (PostBatchFailedRequirees.Count == 0)
 		{
 			IsBatchComplete = true;
-		}
-
-		if (IsBatchComplete)
-		{
-			if (ReloadQueueList.Count > 0 ||
-				LoadQueueList.Count > 0 ||
-				UnloadQueueList.Count > 0)
-			{
-				IsBatchComplete = false;
-			}
-
-			temp.Clear();
-			temp.AddRange(ReloadQueueList);
-			foreach (var plugin in temp)
-			{
-				ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.reload {plugin}");
-			}
-
-			temp.Clear();
-			temp.AddRange(LoadQueueList);
-			foreach (var plugin in temp)
-			{
-				ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.load {plugin}");
-			}
-
-			temp.Clear();
-			temp.AddRange(UnloadQueueList);
-			foreach (var plugin in temp)
-			{
-				ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.unload {plugin}");
-			}
-
-			ReloadQueueList.Clear();
-			LoadQueueList.Clear();
-			UnloadQueueList.Clear();
 		}
 
 		temp.Clear();

@@ -1016,13 +1016,6 @@ public class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
 
-		if (!Loader.IsBatchComplete)
-		{
-			Loader.ReloadQueueList.Add(arg.Args.ToString(" "));
-			Logger.Warn($"There are plugins still processing. Command has been queued up!");
-			return;
-		}
-
 		RefreshOrderedFiles();
 
 		var name = arg.Args[0];
@@ -1083,13 +1076,6 @@ public class CorePlugin : CarbonPlugin
 			return;
 		}
 
-		if (!Loader.IsBatchComplete)
-		{
-			Loader.LoadQueueList.Add(arg.Args.ToString(" "));
-			Logger.Warn($"There are plugins still processing. Command has been queued up!");
-			return;
-		}
-
 		RefreshOrderedFiles();
 
 		var name = arg.Args[0];
@@ -1147,13 +1133,6 @@ public class CorePlugin : CarbonPlugin
 		if (!arg.HasArgs(1))
 		{
 			Logger.Warn("You must provide the name of a plugin or use * to unload all plugins.");
-			return;
-		}
-
-		if (!Loader.IsBatchComplete)
-		{
-			Loader.UnloadQueueList.Add(arg.Args.ToString(" "));
-			Logger.Warn($"There are plugins still processing. Command has been queued up!");
 			return;
 		}
 
