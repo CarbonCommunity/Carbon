@@ -4499,7 +4499,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		using var cui = new CUI(Singleton.Handler);
 		var container = cui.CreateContainer(SpectatePanelId, "0.1 0.1 0.1 0.3", needsCursor: true, parent: CUI.ClientPanels.Hud);
-		cui.CreateText(container, SpectatePanelId, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{player.displayName.ToUpper().SpacedString(1)}</b>", 15);
+		cui.CreateText(container, SpectatePanelId, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{target.displayName.ToUpper().SpacedString(1)}</b>", 15);
 		cui.CreateProtectedButton(container, SpectatePanelId, null, "#1c6aa0", "1 1 1 0.7", "END SPECTATE".SpacedString(1), 10,
 			xMin: 0.45f, xMax: 0.55f, yMin: 0.15f, yMax: 0.19f, command: "carbongg.endspectate");
 		cui.Send(container, player);
