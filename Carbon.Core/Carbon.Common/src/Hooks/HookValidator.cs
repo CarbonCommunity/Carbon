@@ -42,7 +42,7 @@ public class HookValidator
 		}
 	}
 
-	readonly static string[] IgnoredInternalHooks = new string[]
+	static readonly string[] IgnoredInternalHooks = new string[]
 	{
 		"OnPlayerDisconnected",
 		"OnPlayerSleepEnded",

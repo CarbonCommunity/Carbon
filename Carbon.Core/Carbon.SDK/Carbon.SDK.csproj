@@ -7,10 +7,6 @@
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
 
-	<ItemGroup>
-		<Folder Include="src\Contracts\" />
-	</ItemGroup>
-
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
