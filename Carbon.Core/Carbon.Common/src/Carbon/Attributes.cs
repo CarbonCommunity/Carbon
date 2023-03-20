@@ -252,7 +252,8 @@ public class CooldownAttribute : Attribute
 			pairs.Add(lookupCommand = new CooldownInstance { Command = command });
 		}
 
-		if ((DateTime.Now - lookupCommand.LastCall).TotalMilliseconds >= time)
+		var timePassed = (DateTime.Now - lookupCommand.LastCall);
+		if (timePassed.TotalMilliseconds >= time)
 		{
 			if (doCooldownIfNot)
 			{
@@ -261,6 +262,9 @@ public class CooldownAttribute : Attribute
 			return false;
 		}
 
+		var log = $"You're cooled down. Please wait {TimeEx.Format(time - timePassed.TotalSeconds).ToLower()}.";
+		player.ChatMessage(log);
+		player.ConsoleMessage(log);
 		return true;
 	}
 
