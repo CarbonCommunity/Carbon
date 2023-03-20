@@ -15,6 +15,7 @@ using Oxide.Plugins;
 
 namespace Carbon.Hooks;
 #pragma warning disable IDE0051
+#pragma warning disable IDE0060
 
 public partial class Category_Static
 {

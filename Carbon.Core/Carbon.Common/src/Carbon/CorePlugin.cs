@@ -29,6 +29,7 @@ using Pool = Facepunch.Pool;
  */
 
 namespace Carbon.Core;
+#pragma warning disable IDE0051
 
 public class CorePlugin : CarbonPlugin
 {
