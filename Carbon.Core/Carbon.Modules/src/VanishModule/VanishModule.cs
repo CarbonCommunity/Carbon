@@ -7,6 +7,7 @@ using Epic.OnlineServices.Connect;
 using Network;
 using Newtonsoft.Json;
 using Rust.AI;
+using UnityEngine;
 
 /*
  *
@@ -25,7 +26,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	public override bool EnabledByDefault => false;
 	public CUI.Handler Handler { get; internal set; }
 
-	internal List<ulong> _vanishedPlayers = new(500);
+	internal Dictionary<ulong, Vector3> _vanishedPlayers = new(500);
 
 	internal readonly GameObjectRef _drownEffect = new() { guid = "28ad47c8e6d313742a7a2740674a25b5" };
 	internal readonly GameObjectRef _fallDamageEffect = new() { guid = "ca14ed027d5924003b1c5d9e523a5fce" };
@@ -47,9 +48,9 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		base.OnDisabled(initialized);
 
-		foreach(var vanished in _vanishedPlayers)
+		foreach (var vanished in _vanishedPlayers)
 		{
-			DoVanish(BasePlayer.FindByID(vanished), false);
+			DoVanish(BasePlayer.FindByID(vanished.Key), false);
 		}
 
 		_vanishedPlayers.Clear();
@@ -58,14 +59,36 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	[HookPriority(Priorities.Highest)]
 	private object CanUseLockedEntity(BasePlayer player, BaseLock @lock)
 	{
-		if (_vanishedPlayers.Contains(player.userID)) return true;
+		if (_vanishedPlayers.ContainsKey(player.userID)
+			&& player.net.connection.authLevel >= ConfigInstance.MinimumAuthLevelUnlockWhileVanished)
+		{
+			return true;
+		}
+
+		return null;
+	}
+
+	[HookPriority(Priorities.Highest)]
+	private object OnPlayerAttack(BasePlayer player, HitInfo hit)
+	{
+		if (hit == null || hit.Initiator == null || hit.HitEntity == null) return null;
+
+		if(hit.Initiator is BasePlayer attacker && hit.HitEntity.OwnerID != attacker.userID)
+		{
+			if (!ConfigInstance.CanDamageWhenVanished && _vanishedPlayers.ContainsKey(attacker.userID))
+			{
+				var owner = BasePlayer.FindByID(hit.HitEntity.OwnerID);
+				player.ChatMessage($"You're vanished. You may not damage this entity owned by {owner?.displayName ?? hit.HitEntity.OwnerID.ToString()}.");
+				return false;
+			}
+		}
 
 		return null;
 	}
 
 	private void OnPlayerConnected(BasePlayer player)
 	{
-		if (!_vanishedPlayers.Contains(player.userID)) return;
+		if (!_vanishedPlayers.ContainsKey(player.userID)) return;
 
 		DoVanish(player, true);
 	}
@@ -87,6 +110,8 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			SimpleAIMemory.AddIgnorePlayer(player);
 
 			_drawUI(player);
+
+			if (ConfigInstance.EnableLogs) Puts($"{player} just vanished at {player.transform.position}");
 		}
 		else
 		{
@@ -106,21 +131,25 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 			using var cui = new CUI(Handler);
 			cui.Destroy("vanishui", player);
+
+			if (ConfigInstance.EnableLogs) Puts($"{player} unvanished at {player.transform.position}");
 		}
 	}
 
-	[AuthLevel(2)]
 	private void Vanish(BasePlayer player, string cmd, string[] args)
 	{
+		if (player.net.connection.authLevel < ConfigInstance.MinimumVanishAuthLevel) return;
+
 		var wants = false;
 
-		if (_vanishedPlayers.Contains(player.userID))
+		if (_vanishedPlayers.TryGetValue(player.userID, out var originalPosition))
 		{
 			_vanishedPlayers.Remove(player.userID);
+			if (ConfigInstance.TeleportBackOnUnvanish) player.Teleport(originalPosition);
 		}
 		else
 		{
-			_vanishedPlayers.Add(player.userID);
+			_vanishedPlayers.Add(player.userID, player.transform.position);
 			wants = true;
 		}
 
@@ -140,7 +169,12 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 public class VanishConfig
 {
+	public int MinimumVanishAuthLevel = 2;
+	public int MinimumAuthLevelUnlockWhileVanished = 2;
 	public string VanishCommand = "vanish";
 	public string InvisibleText = "You are currently invisible.";
 	public bool GutshotScreamOnUnvanish = true;
+	public bool EnableLogs = true;
+	public bool TeleportBackOnUnvanish = false;
+	public bool CanDamageWhenVanished = true;
 }

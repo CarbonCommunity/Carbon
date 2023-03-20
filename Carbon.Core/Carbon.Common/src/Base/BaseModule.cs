@@ -20,6 +20,7 @@ public abstract class BaseModule : BaseHookable
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
 	public virtual bool Disabled => false;
+	public virtual bool IsCoreModule => false;
 
 	public abstract void OnServerInit();
 	public abstract void Load();
@@ -162,14 +163,13 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		if (ModuleConfiguration != null)
 		{
-			var previous = ModuleConfiguration.Enabled;
 			ModuleConfiguration.Enabled = enable;
-			if (previous != enable) OnEnableStatus();
+			OnEnableStatus();
 		}
 	}
 	public override bool GetEnabled()
 	{
-		return !Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled;
+		return IsCoreModule || (!Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled);
 	}
 
 	public virtual void OnDisabled(bool initialized)
@@ -177,6 +177,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		if (initialized) Loader.RemoveCommands(this);
 
 		UnsubscribeAll();
+		UnregisterPermissions();
 
 		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
@@ -204,6 +205,23 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	public override void OnServerInit()
 	{
 		OnEnableStatus();
+	}
+
+	public virtual void RegisterPermission(string permission)
+	{
+		Community.Runtime.CorePlugin.permission.RegisterPermission(permission, Community.Runtime.CorePlugin);
+	}
+	public virtual void UnregisterPermissions()
+	{
+		Community.Runtime.CorePlugin.permission.UnregisterPermissions(this);
+	}
+	public virtual bool HasPermission(string userId, string permission)
+	{
+		return Community.Runtime.CorePlugin.permission.UserHasPermission(userId, permission);
+	}
+	public virtual bool HasPermission(BasePlayer player, string permission)
+	{
+		return HasPermission(player.UserIDString, permission);
 	}
 
 	public class Configuration : IModuleConfig

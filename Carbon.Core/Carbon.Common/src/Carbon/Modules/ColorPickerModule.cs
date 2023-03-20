@@ -20,6 +20,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 {
 	public override string Name => "Color Picker";
 	public override Type Type => typeof(ColorPickerModule);
+	public override bool IsCoreModule => true;
 	public override bool EnabledByDefault => true;
 
 	public static float Brightness = 1f;

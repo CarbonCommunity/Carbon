@@ -238,7 +238,7 @@ public class CorePlugin : CarbonPlugin
 							var hasPerm = cmd.Permissions.Length == 0;
 							foreach (var permission in cmd.Permissions)
 							{
-								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
+								if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasPermission(player.UserIDString, permission))
 								{
 									hasPerm = true;
 									break;
@@ -257,7 +257,7 @@ public class CorePlugin : CarbonPlugin
 							var hasGroup = cmd.Groups.Length == 0;
 							foreach (var group in cmd.Groups)
 							{
-								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
+								if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasGroup(player.UserIDString, group))
 								{
 									hasGroup = true;
 									break;

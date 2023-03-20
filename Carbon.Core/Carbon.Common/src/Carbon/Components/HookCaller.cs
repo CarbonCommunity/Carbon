@@ -107,11 +107,12 @@ namespace Carbon
 
 			var result = (object)null;
 			var conflicts = Pool.GetList<Conflict>();
+			var array = args == null || args.Length == 0 ? null : args.ToArray();
 
 			foreach (var module in Community.Runtime.ModuleProcessor.Modules)
 			{
 				var priority = (Priorities)default;
-				var methodResult = Caller.CallHook(module, hookName, flags: flag, args: args, ref priority);
+				var methodResult = Caller.CallHook(module, hookName, flags: flag, args: array, ref priority);
 
 				if (methodResult != null)
 				{
@@ -120,7 +121,6 @@ namespace Carbon
 				}
 			}
 
-			var array = args == null || args.Length == 0 ? null : args.ToArray();
 			var plugins = Pool.GetList<RustPlugin>();
 
 			foreach (var mod in Loader.LoadedMods)

@@ -33,6 +33,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override string Name => "Admin";
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
+	public override bool IsCoreModule => true;
+
 	public CUI.Handler Handler { get; internal set; }
 
 	internal float OptionWidth = 0.475f;

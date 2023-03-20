@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon;
+using Carbon.Base;
 using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
 
@@ -36,7 +37,7 @@ public class Permission : Library
 
 	public Permission()
 	{
-		permset = new Dictionary<Plugin, HashSet<string>>();
+		permset = new Dictionary<BaseHookable, HashSet<string>>();
 
 		RegisterValidate(delegate (string value)
 		{
@@ -50,7 +51,7 @@ public class Permission : Library
 	public static char[] Star = new char[] { '*' };
 	public static string[] EmptyStringArray = new string[0];
 
-	private readonly Dictionary<Plugin, HashSet<string>> permset;
+	private readonly Dictionary<BaseHookable, HashSet<string>> permset;
 	private Dictionary<string, UserData> userdata = new();
 	private Dictionary<string, GroupData> groupdata = new();
 	private Func<string, bool> validate;
@@ -235,7 +236,7 @@ public class Permission : Library
 		}
 	}
 
-	public virtual void RegisterPermission(string name, Plugin owner)
+	public virtual void RegisterPermission(string name, BaseHookable owner)
 	{
 		if (string.IsNullOrEmpty(name)) return;
 
@@ -255,7 +256,7 @@ public class Permission : Library
 		Interface.CallHook("OnPermissionRegistered", name, owner);
 	}
 
-	public virtual void UnregisterPermissions(Plugin owner)
+	public virtual void UnregisterPermissions(BaseHookable owner)
 	{
 		if (owner == null) return;
 
