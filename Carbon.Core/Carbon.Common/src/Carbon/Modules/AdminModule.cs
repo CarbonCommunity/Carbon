@@ -1882,8 +1882,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(0, "Info", TextAnchor.MiddleLeft);
 			{
-				tab.AddInput(0, "Version", () => $"{Community.Version}", null);
-				tab.AddInput(0, "Informational Version", () => $"{Community.InformationalVersion}", null);
+				tab.AddInput(0, "Version", () => $"{Community.Runtime.Analytics.Version}", null);
+				tab.AddInput(0, "Informational Version", () => $"{Community.Runtime.Analytics.InformationalVersion}", null);
 
 				var loadedHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled);
 				var totalHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count() + Community.Runtime.HookManager.LoadedStaticHooks.Count();
@@ -1940,18 +1940,18 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static Tab Get()
 		{
-             var players = new Tab("players", "Players", Community.Runtime.CorePlugin, (instance, tab) =>
-             {
-                 tab.ClearColumn(1);
-                 RefreshPlayers(tab, instance);
-             });
-             {
-                 AddInitial(players, null);
-                 RefreshPlayers(players, null);
-             }
-             players.AddColumn(1);
- 
-             return players;
+			var players = new Tab("players", "Players", Community.Runtime.CorePlugin, (instance, tab) =>
+			{
+				tab.ClearColumn(1);
+				RefreshPlayers(tab, instance);
+			});
+			{
+				AddInitial(players, null);
+				RefreshPlayers(players, null);
+			}
+			players.AddColumn(1);
+
+			return players;
 		}
 
 		public static void AddInitial(Tab tab, AdminPlayer ap)
@@ -2411,7 +2411,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.AddRange(0, "Range", 0, ((int)World.Size).Clamp(1, int.MaxValue) / 2, () => Range, (ap, value) => { Range = value; DrawEntities(tab, ap); }, () => $"{Range:0.0}m");
 			tab.AddName(0, $"Entities  ({EntityCount:n0})", TextAnchor.MiddleLeft);
 			tab.AddButtonArray(0,
-				new Tab.OptionButton("Players", ap => { Filter = "BasePlayer"; DrawEntities(tab);  }, ap => Filter == "BasePlayer" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+				new Tab.OptionButton("Players", ap => { Filter = "BasePlayer"; DrawEntities(tab); }, ap => Filter == "BasePlayer" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 				new Tab.OptionButton("Containers", ap => { Filter = "StorageContainer"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "StorageContainer" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 				new Tab.OptionButton("Deployables", ap => { Filter = "Deployable"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "Deployable" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 				new Tab.OptionButton("Collectibles", ap => { Filter = "CollectibleEntity"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "CollectibleEntity" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),

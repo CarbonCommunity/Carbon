@@ -109,15 +109,6 @@ public class CommunityInternal : Community
 
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
-		#region Handle Versions
-
-		var assembly = typeof(Community).Assembly;
-
-		try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion; } catch { }
-		try { Version = assembly.GetName().Version.ToString(); } catch { }
-
-		#endregion
-
 		LoadConfig();
 		Carbon.Logger.Log("Loaded config");
 

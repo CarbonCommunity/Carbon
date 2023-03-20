@@ -33,7 +33,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	public override bool IsCoreModule => true;
 	public override bool EnabledByDefault => true;
 
-	internal List<QueuedThread> _queue =new List<QueuedThread>();
+	internal List<QueuedThread> _queue = new List<QueuedThread>();
 	internal ImageDatabaseDataProto _protoData { get; set; }
 
 	internal Dictionary<string, string> DefaultImages = new()
@@ -81,15 +81,15 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	{
 		var toDelete = Pool.GetList<KeyValuePair<uint, FileStorage.CacheData>>();
 
-		foreach(var file in FileStorage.server._cache)
+		foreach (var file in FileStorage.server._cache)
 		{
-			if(file.Value.data.Length >= MaximumBytes)
+			if (file.Value.data.Length >= MaximumBytes)
 			{
 				toDelete.Add(new KeyValuePair<uint, FileStorage.CacheData>(file.Key, file.Value));
 			}
 		}
 
-		foreach(var data in toDelete)
+		foreach (var data in toDelete)
 		{
 			FileStorage.server.Remove(data.Key, FileStorage.Type.png, data.Value.entityID);
 		}
@@ -206,7 +206,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	}
 	public void QueueBatch(float scale, bool @override, params string[] urls)
 	{
-		if(urls == null || urls.Length == 0)
+		if (urls == null || urls.Length == 0)
 		{
 			return;
 		}
@@ -322,7 +322,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 		var urls = Pool.GetList<string>();
 
-		foreach(var url in mappedUrls)
+		foreach (var url in mappedUrls)
 		{
 			urls.Add(url.Value);
 			AddMap(url.Key, url.Value);
@@ -456,7 +456,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 			_client = new WebRequests.WebRequest.Client();
 			{
-				_client.Headers.Add("User-Agent", $"Carbon ImageDatabase (v{Community.Version}); https://github.com/Carbon-Modding/Carbon.Core");
+				_client.Headers.Add("User-Agent", Community.Runtime.Analytics.UserAgent);
 				_client.Credentials = CredentialCache.DefaultCredentials;
 				_client.Proxy = null;
 

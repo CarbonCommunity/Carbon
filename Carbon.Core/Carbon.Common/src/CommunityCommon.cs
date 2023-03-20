@@ -27,9 +27,6 @@ public class Community
 {
 	public static Community Runtime { get; set; }
 
-	public static string Version { get; set; } = "Unknown";
-	public static string InformationalVersion { get; set; } = "Unknown";
-
 	public static GameObject GameObject { get => _gameObject.Value; }
 	private static readonly Lazy<GameObject> _gameObject = new(() =>
 	{
@@ -193,9 +190,9 @@ public class Community
 
 		var version =
 #if DEBUG
-			InformationalVersion;
+			Analytics.InformationalVersion;
 #else
-            Version;
+            Analytics.Version;
 #endif
 
 		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader.LoadedMods.Count:n0} mods, {Loader.LoadedMods.Sum(x => x.Plugins.Count):n0} plgs";
