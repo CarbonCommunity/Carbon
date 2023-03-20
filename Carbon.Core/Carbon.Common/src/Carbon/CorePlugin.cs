@@ -8,15 +8,17 @@ using API.Events;
 using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
-using Carbon.Contracts;
 using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
+using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Game.Rust.Libraries;
 using Oxide.Plugins;
 using UnityEngine;
+using Application = UnityEngine.Application;
 using Pool = Facepunch.Pool;
 
 /*
@@ -361,7 +363,9 @@ public class CorePlugin : CarbonPlugin
 			arg.Player().SendConsoleCommand($"echo {message}");
 			return;
 		}
-		Logger.Log(message);
+
+		if (message is string) arg.ReplyWith(message.ToString());
+		else arg.ReplyWith(message);
 	}
 
 	internal static StackTraceLogType _defaultLogTrace = Application.GetStackTraceLogType(LogType.Log);

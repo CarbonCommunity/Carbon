@@ -6,6 +6,7 @@ using Carbon.Extensions;
 using ConVar;
 using Facepunch;
 using Facepunch.Extend;
+using Newtonsoft.Json;
 using Oxide.Game.Rust.Libraries;
 using static ConsoleSystem;
 using Command = Oxide.Game.Rust.Libraries.Command;
@@ -38,6 +39,10 @@ public partial class Category_Static
 			{
 				if (Community.Runtime == null) return true;
 
+				RCon.responseIdentifier = cmd.Identifier;
+				RCon.responseConnection = cmd.ConnectionId;
+				RCon.isInput = false;
+
 				try
 				{
 					var split = cmd.Message.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
@@ -45,10 +50,12 @@ public partial class Category_Static
 
 					var arguments = split.Length > 1 ? cmd.Message.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 					var consoleArg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
-					consoleArg.Option = Option.Unrestricted;
+					var option = Option.Unrestricted;
+					option.FromRcon = true;
+					consoleArg.Option = option;
 					consoleArg.FullString = cmd.Message;
 					consoleArg.Args = arguments;
-				
+
 					if (HookCaller.CallStaticHook("OnRconCommand", cmd.Ip, command, arguments) != null)
 					{
 						return false;
