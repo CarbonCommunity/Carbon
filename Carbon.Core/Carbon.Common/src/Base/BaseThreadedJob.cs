@@ -15,7 +15,7 @@ namespace Carbon.Base;
 public class BaseThreadedJob : IDisposable
 {
 	internal bool _isDone = false;
-	internal object _handle = new object();
+	internal object _handle = new();
 	internal Task _task = null;
 
 	private CancellationTokenSource cancellationToken;
@@ -51,7 +51,7 @@ public class BaseThreadedJob : IDisposable
 	}
 	public virtual void Abort()
 	{
-		if (cancellationToken != null) cancellationToken.Cancel();
+		cancellationToken?.Cancel();
 	}
 
 	public virtual void ThreadFunction() { }

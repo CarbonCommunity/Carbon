@@ -1,6 +1,4 @@
-﻿#pragma warning disable IDE0051
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,6 +16,7 @@ using Carbon.Contracts;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 {

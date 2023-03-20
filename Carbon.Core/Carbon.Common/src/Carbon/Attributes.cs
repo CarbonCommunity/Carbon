@@ -144,8 +144,6 @@ public class UiCommandAttribute : Attribute
 
 		Array.Clear(split, 0, split.Length);
 		Array.Clear(args, 0, args.Length);
-		args = null;
-		split = null;
 
 		return $"carboncui_{RandomEx.GetRandomString(16, command + Tick.ToString(), command.Length + Tick)} {arguments}".TrimEnd();
 	}

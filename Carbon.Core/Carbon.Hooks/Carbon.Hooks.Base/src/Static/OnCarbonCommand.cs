@@ -14,6 +14,7 @@ using Oxide.Plugins;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Static
 {
@@ -94,7 +95,7 @@ public partial class Category_Static
 
 								if (cmd.AuthLevel != -1)
 								{
-									var hasAuth =  player.Connection.authLevel >= cmd.AuthLevel;
+									var hasAuth = player.Connection.authLevel >= cmd.AuthLevel;
 
 									if (!hasAuth)
 									{

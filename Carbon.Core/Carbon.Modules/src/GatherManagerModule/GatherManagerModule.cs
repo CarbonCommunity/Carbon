@@ -13,7 +13,6 @@ using static BaseEntity;
  */
 
 namespace Carbon.Modules;
-
 #pragma warning disable IDE0051
 
 public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>

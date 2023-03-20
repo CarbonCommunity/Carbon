@@ -8,6 +8,7 @@
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Fun
 {

@@ -20,7 +20,6 @@ using UnityEngine.Networking;
  */
 
 namespace Carbon.Modules;
-
 #pragma warning disable IDE0051
 
 public partial class RustServerMetricsModule : CarbonModule<RustServerMetricsConfig, EmptyModuleData>

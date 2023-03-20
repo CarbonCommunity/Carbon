@@ -13,7 +13,7 @@ namespace Utility;
 
 public static class Util
 {
-	private static Random _generator = new();
+	private static readonly Random _generator = new();
 
 	public static string SHA1(byte[] raw)
 	{

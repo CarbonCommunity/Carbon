@@ -3,14 +3,10 @@ using System.Linq;
 using System.Runtime.Serialization;
 using API.Hooks;
 using Carbon.Extensions;
-using ConVar;
 using Facepunch;
 using Facepunch.Extend;
-using Newtonsoft.Json;
-using Oxide.Game.Rust.Libraries;
 using static ConsoleSystem;
 using Command = Oxide.Game.Rust.Libraries.Command;
-using Pool = Facepunch.Pool;
 
 /*
  *
@@ -20,6 +16,7 @@ using Pool = Facepunch.Pool;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Static
 {

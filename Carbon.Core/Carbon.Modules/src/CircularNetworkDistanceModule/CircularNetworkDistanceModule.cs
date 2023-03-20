@@ -13,7 +13,6 @@ using Network.Visibility;
  */
 
 namespace Carbon.Modules;
-
 #pragma warning disable IDE0051
 
 public partial class CircularNetworkDistanceModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>

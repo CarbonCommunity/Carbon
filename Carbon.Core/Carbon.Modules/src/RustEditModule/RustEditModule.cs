@@ -37,7 +37,6 @@ using Time = UnityEngine.Time;
  */
 
 namespace Carbon.Modules;
-
 #pragma warning disable IDE0051
 
 public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleData>

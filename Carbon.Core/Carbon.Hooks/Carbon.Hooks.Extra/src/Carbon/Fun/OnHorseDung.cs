@@ -10,6 +10,7 @@ using Random = UnityEngine.Random;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Resources
 {
