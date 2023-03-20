@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using Carbon;
 using Carbon.Base;
+using Facepunch;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
@@ -205,7 +206,7 @@ namespace Oxide.Game.Rust.Libraries
 							methodInfo?.Invoke(plugin, result);
 
 							if (!string.IsNullOrEmpty(arg.Reply))
-							{
+							{							
 								if (player != null) player.ConsoleMessage(arg.Reply); else Logger.Log(arg.Reply);
 							}
 						}
