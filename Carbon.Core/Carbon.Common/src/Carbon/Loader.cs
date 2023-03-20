@@ -296,7 +296,7 @@ public static class Loader
 
 			if (uiCommand != null)
 			{
-				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true);
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(CUI.UniquifyCommand(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true);
 			}
 		}
 

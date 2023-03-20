@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Carbon.Base;
+using Carbon.Extensions;
 using Carbon.Modules;
 using Oxide.Game.Rust.Cui;
 using UnityEngine;
@@ -43,6 +45,8 @@ public struct CUI : IDisposable
 		Manager = manager;
 		ImageDatabase = BaseModule.GetModule<ImageDatabaseModule>();
 	}
+
+	#region Methods
 
 	public CuiElementContainer CreateContainer(string panel, string color = "0 0 0 0", float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, ClientPanels parent = ClientPanels.Overlay, string destroyUi = null)
 	{
@@ -140,6 +144,20 @@ public struct CUI : IDisposable
 		return Manager.Image(container, parent, id, null, url, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
 
+	public static string Color(string hexColor, float? alpha = null)
+	{
+		if (!ColorUtility.TryParseHtmlString(hexColor, out var color))
+		{
+			return $"1 1 1 {alpha.GetValueOrDefault(1)}";
+		}
+
+		return $"{color.r} {color.g} {color.b} {alpha ?? color.a}";
+	}
+
+	#endregion
+
+	#region ImageDatabase
+
 	public string GetImage(string url, float scale = 0)
 	{
 		return ImageDatabase.GetImageString(url, scale, true);
@@ -166,15 +184,9 @@ public struct CUI : IDisposable
 		ClearImages(0, urls);
 	}
 
-	public static string Color(string hexColor, float? alpha = null)
-	{
-		if (!ColorUtility.TryParseHtmlString(hexColor, out var color))
-		{
-			return $"1 1 1 {alpha.GetValueOrDefault(1)}";
-		}
+	#endregion
 
-		return $"{color.r} {color.g} {color.b} {alpha ?? color.a}";
-	}
+	#region Use
 
 	public void Send(CuiElementContainer container, BasePlayer player)
 	{
@@ -188,6 +200,29 @@ public struct CUI : IDisposable
 	{
 		Manager.Destroy(name, player);
 	}
+
+	#endregion
+
+	#region UI Command
+
+	internal static int Tick = DateTime.UtcNow.Year + DateTime.UtcNow.Month + DateTime.UtcNow.Day + DateTime.UtcNow.Hour + DateTime.UtcNow.Minute + DateTime.UtcNow.Second + DateTime.UtcNow.Month;
+
+	public static string UniquifyCommand(string name)
+	{
+		if (string.IsNullOrEmpty(name)) return string.Empty;
+
+		var split = name.Split(' ');
+		var command = split[0];
+		var args = split.Skip(1).ToArray();
+		var arguments = args.ToString(" ");
+
+		Array.Clear(split, 0, split.Length);
+		Array.Clear(args, 0, args.Length);
+
+		return $"carboncui_{RandomEx.GetRandomString(16, command + Tick.ToString(), command.Length + Tick)} {arguments}".TrimEnd();
+	}
+
+	#endregion
 
 	public void Dispose()
 	{
@@ -639,7 +674,7 @@ public static class CUIStatics
 		var button = cui.TakeFromPoolButton();
 		button.FadeIn = fadeIn;
 		button.Color = ProcessColor(color);
-		button.Command = @protected ? UiCommandAttribute.Uniquify(command) : command;
+		button.Command = @protected ? CUI.UniquifyCommand(command) : command;
 		buttonElement.Components.Add(button);
 
 		var rect = cui.TakeFromPoolRect();
@@ -689,7 +724,7 @@ public static class CUIStatics
 		inputField.Align = align;
 		inputField.CharsLimit = characterLimit;
 		inputField.ReadOnly = readOnly;
-		inputField.Command = @protected ? UiCommandAttribute.Uniquify(command) : command;
+		inputField.Command = @protected ? CUI.UniquifyCommand(command) : command;
 		inputFieldElement.Components.Add(inputField);
 
 		if (needsCursor) inputFieldElement.Components.Add(cui.TakeFromPoolNeedsCursor());

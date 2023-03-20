@@ -2138,7 +2138,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						ShowInfo(tab, ap, player);
 					});
 				}
-				if(aap.Player.UserIDString == player.UserIDString || aap.Player.spectateFilter == player.UserIDString)
+				if (!string.IsNullOrEmpty(aap.Player.spectateFilter) && (aap.Player.UserIDString == player.UserIDString || aap.Player.spectateFilter == player.UserIDString))
 				{
 					tab.AddButton(1, "End Spectating", ap =>
 					{
@@ -2627,7 +2627,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 								DrawEntitySettings(tab, entity, column, ap3);
 							});
 						}
-						if (ap3.Player.UserIDString == player.UserIDString || ap3.Player.spectateFilter == player.UserIDString)
+						if (!string.IsNullOrEmpty(ap3.Player.spectateFilter) && (ap3.Player.UserIDString == player.UserIDString || ap3.Player.spectateFilter == player.UserIDString))
 						{
 							tab.AddButton(1, "End Spectating", ap =>
 							{
