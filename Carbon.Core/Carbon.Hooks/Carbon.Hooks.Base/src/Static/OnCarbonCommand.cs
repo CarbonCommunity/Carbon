@@ -1,6 +1,7 @@
 ﻿using System;
 using API.Hooks;
 using Carbon.Extensions;
+using Carbon.Plugins;
 using Facepunch.Extend;
 using Org.BouncyCastle.Crypto.Engines;
 using Oxide.Game.Rust.Libraries;
@@ -105,7 +106,7 @@ public partial class Category_Static
 									}
 								}
 
-								if (CooldownAttribute.IsCooledDown(player, cmd.Command, cmd.Cooldown, true))
+								if (CarbonPlugin.IsCommandCooledDown(player, cmd.Command, cmd.Cooldown, true))
 								{
 									continue;
 								}

@@ -214,49 +214,6 @@ public class CooldownAttribute : Attribute
 {
 	public int Miliseconds { get; } = 0;
 
-	#region Cooldown Logic
-
-	internal static Dictionary<BasePlayer, List<CooldownInstance>> _buffer = new();
-
-	public static bool IsCooledDown(BasePlayer player, string command, int time, bool doCooldownIfNot = true)
-	{
-		if (time == 0 || player == null) return false;
-
-		if (!_buffer.TryGetValue(player, out var pairs))
-		{
-			_buffer.Add(player, pairs = new List<CooldownInstance>());
-		}
-
-		var lookupCommand = pairs.FirstOrDefault(x => x.Command == command);
-		if (lookupCommand == null)
-		{
-			pairs.Add(lookupCommand = new CooldownInstance { Command = command });
-		}
-
-		var timePassed = (DateTime.Now - lookupCommand.LastCall);
-		if (timePassed.TotalMilliseconds >= time)
-		{
-			if (doCooldownIfNot)
-			{
-				lookupCommand.LastCall = DateTime.Now;
-			}
-			return false;
-		}
-
-		var log = $"You're cooled down. Please wait {TimeEx.Format(time - timePassed.TotalSeconds).ToLower()}.";
-		player.ChatMessage(log);
-		player.ConsoleMessage(log);
-		return true;
-	}
-
-	internal class CooldownInstance
-	{
-		public string Command;
-		public DateTime LastCall;
-	}
-
-	#endregion
-
 	public CooldownAttribute(int miliseconds)
 	{
 		Miliseconds = miliseconds;

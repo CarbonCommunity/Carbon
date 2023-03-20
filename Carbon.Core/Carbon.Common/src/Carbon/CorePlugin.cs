@@ -285,7 +285,7 @@ public class CorePlugin : CarbonPlugin
 							}
 						}
 
-						if (CooldownAttribute.IsCooledDown(player, cmd.Command, cmd.Cooldown, true))
+						if (CarbonPlugin.IsCommandCooledDown(player, cmd.Command, cmd.Cooldown, true))
 						{
 							continue;
 						}
