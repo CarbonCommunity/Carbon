@@ -24,7 +24,6 @@ public interface IAnalyticsManager
 	public string SessionID { get; }
 
 
-	public void Keepalive();
 	public void StartSession();
 	public void LogEvent(string eventName);
 	public void LogEvent(string eventName, IDictionary<string, object> parameters);

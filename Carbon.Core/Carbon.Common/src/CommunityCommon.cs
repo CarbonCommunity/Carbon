@@ -102,7 +102,10 @@ public class Community
 
 			Events.Subscribe(CarbonEvent.OnServerSave, args =>
 			{
-				Analytics.Keepalive();
+				Analytics.LogEvent("on_server_save", new Dictionary<string, object>
+				{
+					{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) },
+				});
 			});
 		}
 		catch (Exception ex)

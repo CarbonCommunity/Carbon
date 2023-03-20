@@ -20,12 +20,12 @@ using Utility;
 
 namespace Components;
 #pragma warning disable IDE0051
-
 internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsManager
 {
 	private static bool _first;
 	private static string _location;
-	private static float _engagement;
+	private static float _lastUpdate;
+	private static float _lastEngagement;
 	private const string MeasurementID = "G-M7ZBRYS3X7";
 	private const string MeasurementSecret = "edBQH3_wRCWxZSzx5Y2IWA";
 	public string Platform
@@ -82,7 +82,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		return info;
 	});
 
-	public AnalyticsManager()
+	public void Awake()
 	{
 		InformationalVersion = Assembly.GetExecutingAssembly()
 			.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
@@ -108,14 +108,20 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		};
 
 		SessionID = Util.GetRandomNumber(10);
-		_engagement = -1;
+		_lastEngagement = -1;
+	}
+
+	private void Update()
+	{
+		_lastUpdate += UnityEngine.Time.deltaTime;
+		if (_lastUpdate < 300) return;
+
+		LogEvent("user_engagement");
+		_lastUpdate = 0;
 	}
 
 	public void StartSession()
 		=> LogEvent(_first ? "first_visit" : "user_engagement");
-
-	public void Keepalive()
-		=> LogEvent("user_engagement");
 
 	public void LogEvent(string eventName)
 		=> StartCoroutine(SendEvent(eventName));
@@ -126,12 +132,12 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	public IEnumerator SendEvent(string eventName)
 	{
 		float delta = 1; bool newsession = true;
-		if (_engagement >= 0 && _engagement <= 900)
+		if (_lastEngagement >= 0 && _lastEngagement <= 1800)
 		{
 			newsession = false;
-			delta = (UnityEngine.Time.realtimeSinceStartup - _engagement) * 1000;
+			delta = (UnityEngine.Time.realtimeSinceStartup - _lastEngagement) * 1000;
 		}
-		_engagement = UnityEngine.Time.realtimeSinceStartup;
+		_lastEngagement = UnityEngine.Time.realtimeSinceStartup;
 
 		string url = "https://www.google-analytics.com/g/collect";
 		string query = $"v=2&tid={MeasurementID}&cid={ClientID}&en={eventName}"
@@ -165,8 +171,8 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 	private IEnumerator SendMPEvent(string eventName, IDictionary<string, object> properties = null)
 	{
-		float delta = (UnityEngine.Time.realtimeSinceStartup - _engagement) * 1000;
-		_engagement = UnityEngine.Time.realtimeSinceStartup;
+		float delta = (UnityEngine.Time.realtimeSinceStartup - _lastEngagement) * 1000;
+		_lastEngagement = UnityEngine.Time.realtimeSinceStartup;
 
 		string url = "https://www.google-analytics.com/mp/collect";
 		string query = $"api_secret={MeasurementSecret}&measurement_id={MeasurementID}";
