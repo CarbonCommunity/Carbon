@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Carbon.Base;
@@ -37,8 +38,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	public CUI.Handler Handler { get; internal set; }
 
-	internal float OptionWidth = 0.475f;
-	internal int RangeCuts = 50;
+	internal const float OptionWidth = 0.475f;
+	internal const float TooltipOffset = 15;
+	internal const int RangeCuts = 50;
 
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
@@ -47,6 +49,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
+	const string SpectatePanelId = "carbonmodularuispectate";
 
 	internal static List<string> _logQueue { get; } = new();
 	internal static Dictionary<LogType, string> _logColor { get; } = new()
@@ -63,7 +66,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton = this;
 		Handler = new();
 	}
-
 	public override void OnServerInit()
 	{
 		base.OnServerInit();
@@ -354,11 +356,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
-			text: $"{text}:", 12,
-			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
-			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+				color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
+				text: $"{text}:", 12,
+				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+				align: TextAnchor.MiddleLeft,
+				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreatePanel(container, $"{parent}panel", null,
 				color: "0.2 0.2 0.2 0.5",
@@ -775,12 +777,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0",
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
-		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
-			text: $"{text}:", 12,
-			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
-			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+				color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
+				text: $"{text}:", 12,
+				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+				align: TextAnchor.MiddleLeft,
+				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+		}
 
 		var inPanel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: color,
@@ -850,6 +855,23 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 		Array.Clear(split, 0, split.Length);
 		split = null;
+	}
+	public void TabTooltip(CUI cui, CuiElementContainer container, string parent, Tab.Option tooltip, string command, AdminPlayer admin, float height, float offset)
+	{
+		if (admin.Tooltip == tooltip)
+		{
+			var tip = cui.CreatePanel(container, parent, null, "#1a6498",
+				xMin: 0.05f, xMax: ((float)admin.Tooltip.Tooltip.Length).Scale(1f, 78f, 0.1f, 0.80f), yMin: offset, yMax: offset + height);
+
+			cui.CreateText(container, tip, null, "#6bc0fc", admin.Tooltip.Tooltip, 10);
+		}
+
+		if (!string.IsNullOrEmpty(tooltip.Tooltip))
+		{
+			cui.CreateProtectedButton(container, parent, null, "0 0 0 0", "0 0 0 0", string.Empty, 0,
+				xMin: 0, xMax: OptionWidth, yMin: offset, yMax: offset + height,
+				command: $"{command} tooltip");
+		}
 	}
 
 	#endregion
@@ -1147,6 +1169,12 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 										break;
 								}
 
+								#region Tooltip
+
+								TabTooltip(cui, container, panel, row, PanelId + $".callaction {i} {actualI}", ap, rowHeight, rowIndex);
+
+								#endregion
+
 								rowIndex += rowHeight + rowSpacing;
 							}
 
@@ -1205,6 +1233,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			fadeIn: 0.005f,
 			needsCursor: true);
 
+		cui.Destroy(CursorPanelId, player);
 		cui.Send(container, player);
 	}
 	public void Close(BasePlayer player)
@@ -1281,6 +1310,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = Tabs.FirstOrDefault(x => x.Id == id);
 		if (tab != null)
 		{
+			ap.Tooltip = null;
 			ap.TabIndex = Tabs.IndexOf(tab);
 			tab?.OnChange?.Invoke(ap, tab);
 		}
@@ -1312,7 +1342,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		ap.LastPressedColumn = column;
 		ap.LastPressedRow = row;
 
-		switch (tab.Columns[column][row])
+		var option = tab.Columns[column][row];
+		if (args.Length > 0 && args[0] == "tooltip")
+		{
+			if (ap.Tooltip != option) ap.Tooltip = option;
+			else ap.Tooltip = null;
+			return true;
+		}
+
+		switch (option)
 		{
 			case Tab.OptionButton button:
 				button.Callback?.Invoke(ap);
@@ -1440,6 +1478,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public int TabSkip;
 		public int LastPressedColumn;
 		public int LastPressedRow;
+
+		public Tab.Option Tooltip;
 
 		internal Tab.OptionDropdown _selectedDropdown;
 		internal Page _selectedDropdownPage = new();
@@ -1581,28 +1621,28 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			return AddRow(column, new OptionButton(name, align, callback, type));
 		}
-		public Tab AddToggle(int column, string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null)
+		public Tab AddToggle(int column, string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null, string tooltip = null)
 		{
-			return AddRow(column, new OptionToggle(name, callback, isOn));
+			return AddRow(column, new OptionToggle(name, callback, isOn, tooltip));
 		}
 		public Tab AddText(int column, string name, int size, string color, TextAnchor align = TextAnchor.MiddleCenter, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedRegular, bool isInput = false)
 		{
 			return AddRow(column, new OptionText(name, size, color, align, font, isInput));
 		}
-		public Tab AddInput(int column, string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback = null)
+		public Tab AddInput(int column, string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback = null, string tooltip = null)
 		{
-			return AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback));
+			return AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback, tooltip));
 		}
-		public Tab AddInput(int column, string name, Func<string> placeholder, Action<AdminPlayer, string[]> callback = null)
+		public Tab AddInput(int column, string name, Func<string> placeholder, Action<AdminPlayer, string[]> callback = null, string tooltip = null)
 		{
-			return AddInput(column, name, placeholder, 0, callback == null, callback);
+			return AddInput(column, name, placeholder, 0, callback == null, callback, tooltip);
 		}
-		public Tab AddEnum(int column, string name, Action<bool> callback, Func<string> text)
+		public Tab AddEnum(int column, string name, Action<bool> callback, Func<string> text, string tooltip = null)
 		{
-			AddRow(column, new OptionEnum(name, callback, text));
+			AddRow(column, new OptionEnum(name, callback, text, tooltip));
 			return this;
 		}
-		public Tab AddRadio(int column, string name, string id, bool wantsOn, Action<bool, AdminPlayer> callback = null)
+		public Tab AddRadio(int column, string name, string id, bool wantsOn, Action<bool, AdminPlayer> callback = null, string tooltip = null)
 		{
 			if (!Radios.TryGetValue(id, out var radio))
 			{
@@ -1613,39 +1653,39 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (wantsOn) radio.Selected = radio.TemporaryIndex;
 
 			var index = radio.TemporaryIndex;
-			var option = new OptionRadio(name, id, index, wantsOn, callback, radio);
+			var option = new OptionRadio(name, id, index, wantsOn, callback, radio, tooltip);
 			radio.Options.Add(option);
 
 			return AddRow(column, option);
 		}
-		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons = null, float optionsIconScale = 0f)
+		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons = null, float optionsIconScale = 0f, string tooltip = null)
 		{
-			AddRow(column, new OptionDropdown(name, index, callback, options, optionsIcons, optionsIconScale));
+			AddRow(column, new OptionDropdown(name, index, callback, options, optionsIcons, optionsIconScale, tooltip));
 			return this;
 		}
-		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text = null)
+		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text = null, string tooltip = null)
 		{
-			AddRow(column, new OptionRange(name, min, max, value, callback, text));
+			AddRow(column, new OptionRange(name, min, max, value, callback, text, tooltip));
 			return this;
 		}
 		public Tab AddButtonArray(int column, float spacing, params OptionButton[] buttons)
 		{
-			AddRow(column, new OptionButtonArray(string.Empty, spacing, buttons));
+			AddRow(column, new OptionButtonArray(string.Empty, spacing, null, buttons));
 			return this;
 		}
 		public Tab AddButtonArray(int column, params OptionButton[] buttons)
 		{
-			AddRow(column, new OptionButtonArray(string.Empty, 0.01f, buttons));
+			AddRow(column, new OptionButtonArray(string.Empty, 0.01f, null, buttons));
 			return this;
 		}
-		public Tab AddInputButton(int column, string name, float buttonPriority, OptionInput input, OptionButton button)
+		public Tab AddInputButton(int column, string name, float buttonPriority, OptionInput input, OptionButton button, string tooltip = null)
 		{
-			AddRow(column, new OptionInputButton(name, buttonPriority, input, button));
+			AddRow(column, new OptionInputButton(name, buttonPriority, input, button, tooltip));
 			return this;
 		}
-		public Tab AddColor(int column, string name, Func<string> color, Action<AdminPlayer, string, string> callback)
+		public Tab AddColor(int column, string name, Func<string> color, Action<AdminPlayer, string, string> callback, string tooltip = null)
 		{
-			AddRow(column, new OptionColor(name, color, callback));
+			AddRow(column, new OptionColor(name, color, callback, tooltip));
 			return this;
 		}
 
@@ -1702,17 +1742,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public class Option
 		{
 			public string Name;
+			public string Tooltip;
 
-			public Option(string name)
+			public Option(string name, string tooltip = null)
 			{
 				Name = name;
+				Tooltip = tooltip;
 			}
 		}
 		public class OptionName : Option
 		{
 			public TextAnchor Align;
 
-			public OptionName(string name, TextAnchor align) : base(name) { Align = align; }
+			public OptionName(string name, TextAnchor align, string tooltip = null) : base(name, tooltip) { Align = align; }
 		}
 		public class OptionText : Option
 		{
@@ -1722,7 +1764,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public CUI.Handler.FontTypes Font;
 			public bool IsInput;
 
-			public OptionText(string name, int size, string color, TextAnchor align, CUI.Handler.FontTypes font, bool isInput) : base(name) { Align = align; Size = size; Color = color; Font = font; IsInput = isInput; }
+			public OptionText(string name, int size, string color, TextAnchor align, CUI.Handler.FontTypes font, bool isInput, string tooltip = null) : base(name, tooltip) { Align = align; Size = size; Color = color; Font = font; IsInput = isInput; }
 		}
 		public class OptionInput : Option
 		{
@@ -1731,7 +1773,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public bool ReadOnly;
 			public Action<AdminPlayer, string[]> Callback;
 
-			public OptionInput(string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> args) : base(name)
+			public OptionInput(string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> args, string tooltip = null) : base(name, tooltip)
 			{
 				Placeholder = placeholder;
 				Callback = args;
@@ -1753,22 +1795,22 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Important
 			}
 
-			public OptionButton(string name, TextAnchor align, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null) : base(name) { Align = align; Callback = callback; Type = type; }
-			public OptionButton(string name, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null) : base(name) { Callback = callback; Type = type; }
+			public OptionButton(string name, TextAnchor align, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null, string tooltip = null) : base(name, tooltip) { Align = align; Callback = callback; Type = type; }
+			public OptionButton(string name, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null, string tooltip = null) : base(name, tooltip) { Callback = callback; Type = type; }
 		}
 		public class OptionToggle : Option
 		{
 			public Func<AdminPlayer, bool> IsOn;
 			public Action<AdminPlayer> Callback;
 
-			public OptionToggle(string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null) : base(name) { Callback = callback; IsOn = isOn; }
+			public OptionToggle(string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null, string tooltip = null) : base(name, tooltip) { Callback = callback; IsOn = isOn; }
 		}
 		public class OptionEnum : Option
 		{
 			public Func<string> Text;
 			public Action<bool> Callback;
 
-			public OptionEnum(string name, Action<bool> callback, Func<string> text) : base(name) { Callback = callback; Text = text; }
+			public OptionEnum(string name, Action<bool> callback, Func<string> text, string tooltip = null) : base(name, tooltip) { Callback = callback; Text = text; }
 		}
 		public class OptionRange : Option
 		{
@@ -1778,7 +1820,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public Action<AdminPlayer, float> Callback;
 			public Func<string> Text;
 
-			public OptionRange(string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text) : base(name) { Min = min; Max = max; Callback = callback; Value = value; Text = text; }
+			public OptionRange(string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text, string tooltip = null) : base(name, tooltip) { Min = min; Max = max; Callback = callback; Value = value; Text = text; }
 		}
 		public class OptionRadio : Option
 		{
@@ -1789,7 +1831,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			public Radio Radio;
 
-			public OptionRadio(string name, string id, int index, bool on, Action<bool, AdminPlayer> callback, Radio radio) : base(name) { Id = id; Callback = callback; WantsOn = on; Index = index; Radio = radio; }
+			public OptionRadio(string name, string id, int index, bool on, Action<bool, AdminPlayer> callback, Radio radio, string tooltip = null) : base(name, tooltip) { Id = id; Callback = callback; WantsOn = on; Index = index; Radio = radio; }
 		}
 		public class OptionDropdown : Option
 		{
@@ -1799,7 +1841,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public string[] OptionsIcons;
 			public float OptionsIconScale;
 
-			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons, float optionsIconScale) : base(name) { Index = index; Callback = callback; Options = options; OptionsIcons = optionsIcons; OptionsIconScale = optionsIconScale; }
+			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons, float optionsIconScale, string tooltip = null) : base(name, tooltip) { Index = index; Callback = callback; Options = options; OptionsIcons = optionsIcons; OptionsIconScale = optionsIconScale; }
 		}
 		public class OptionInputButton : Option
 		{
@@ -1807,7 +1849,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public OptionButton Button;
 			public float ButtonPriority = 0.25f;
 
-			public OptionInputButton(string name, float buttonPriority, OptionInput input, OptionButton button) : base(name)
+			public OptionInputButton(string name, float buttonPriority, OptionInput input, OptionButton button, string tooltip = null) : base(name, tooltip)
 			{
 				ButtonPriority = buttonPriority;
 				Input = input;
@@ -1819,7 +1861,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public OptionButton[] Buttons;
 			public float Spacing = 0.01f;
 
-			public OptionButtonArray(string name, float spacing, params OptionButton[] buttons) : base(name)
+			public OptionButtonArray(string name, float spacing, string tooltip = null, params OptionButton[] buttons) : base(name, tooltip)
 			{
 				Buttons = buttons;
 				Spacing = spacing;
@@ -1830,7 +1872,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public Func<string> Color;
 			public Action<AdminPlayer, string, string> Callback;
 
-			public OptionColor(string name, Func<string> color, Action<AdminPlayer, string, string> callback) : base(name)
+			public OptionColor(string name, Func<string> color, Action<AdminPlayer, string, string> callback, string tooltip = null) : base(name, tooltip)
 			{
 				Color = color;
 				Callback = callback;
@@ -1908,18 +1950,18 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(1, "Config", TextAnchor.MiddleLeft);
 			{
-				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded);
-				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate);
+				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded, "When enabled, it marks the server as modded.");
+				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.");
 
 				tab.AddName(1, "General", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker);
-				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation);
-				tab.AddInput(1, "Entity Map Buffer Size (restart required)", () => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); });
+				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker, "Tracks the time taken for hooks to be executed.");
+				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation, "Probably obsolete, but when enabled, it prints a list of hooks that are compatible in Oxide, but not Carbon.");
+				tab.AddInput(1, "Entity Map Buffer Size (restart required)", () => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, "Only change if you're aware what this is used for. Developers-related option.");
 
 				tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers);
-				tab.AddToggle(1, "Harmony Reference (<color=red>!</color>)", ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference);
-				tab.AddToggle(1, "File Name Check", ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck);
+				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers, "When disabled, you must load/unload plugins manually with 'c.load' or 'c.unload'.");
+				tab.AddToggle(1, "Harmony Reference (<color=red>!</color>)", ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference, "Enabling this will allow plugins to patch Harmony patches at runtime. This might create instability and conflict if unmanaged.");
+				tab.AddToggle(1, "File Name Check", ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck, "Checks for file names. Otherwise will load the plugins regardless. Recommended to be enabled.");
 
 				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
 				tab.AddDropdown(1, "Log File Mode", () => Config.LogFileMode, index => { Config.LogFileMode = index; Community.Runtime.SaveConfig(); }, LogFileModes);
@@ -2092,14 +2134,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					tab.AddButton(1, "Spectate", ap =>
 					{
-						ap.Player.Teleport(player.transform.position);
-						ap.Player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: true);
-						ap.Player.gameObject.SetLayerRecursive(10);
-						ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
-						ap.Player.ChatMessage("Becoming Spectator");
-						ap.Player.SpectatePlayer(player);
-						aap.Player.spectateFilter = player.UserIDString;
-
+						StartSpectating(ap.Player, player);
 						ShowInfo(tab, ap, player);
 					});
 				}
@@ -2107,14 +2142,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					tab.AddButton(1, "End Spectating", ap =>
 					{
-						var spectated = ap.Player.GetParentEntity();
-						ap.Player.SetParent(null, true, true);
-						ap.Player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: false);
-						ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
-						ap.Player.gameObject.SetLayerRecursive(17);
-						ap.Player.Teleport(spectated.transform.position);
-						aap.Player.spectateFilter = string.Empty;
-
+						StopSpectating(ap.Player);
 						ShowInfo(tab, ap, player);
 					}, ap => Tab.OptionButton.Types.Selected);
 				}
@@ -2595,14 +2623,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							tab.AddButton(1, "Spectate", ap =>
 							{
-								ap3.Player.Teleport(player.transform.position);
-								ap3.Player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: true);
-								ap3.Player.gameObject.SetLayerRecursive(10);
-								ap3.Player.CancelInvoke(ap.Player.InventoryUpdate);
-								ap3.Player.ChatMessage("Becoming Spectator");
-								ap3.Player.SpectatePlayer(player);
-								ap3.Player.spectateFilter = player.UserIDString;
-
+								StartSpectating(ap.Player, player);
 								DrawEntitySettings(tab, entity, column, ap3);
 							});
 						}
@@ -2610,14 +2631,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							tab.AddButton(1, "End Spectating", ap =>
 							{
-								var spectated = ap.Player.GetParentEntity();
-								ap.Player.SetParent(null, true, true);
-								ap.Player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: false);
-								ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
-								ap.Player.gameObject.SetLayerRecursive(17);
-								ap.Player.Teleport(spectated.transform.position);
-								ap3.Player.spectateFilter = string.Empty;
-
+								StopSpectating(ap.Player);
 								DrawEntitySettings(tab, entity, column, ap3);
 							}, ap => Tab.OptionButton.Types.Selected);
 						}
@@ -4183,6 +4197,16 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		#endregion
 	}
 
+	#region Administration - Custom Commands
+
+	[UiCommand("carbongg.endspectate")]
+	private void EndSpectate(ConsoleSystem.Arg arg)
+	{
+		StopSpectating(arg.Player());
+	}
+
+	#endregion
+
 	#region Plugins - Custom Commands
 
 	private void OnPluginLoaded(RustPlugin plugin)
@@ -4457,6 +4481,53 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	#endregion
+
+	internal static void StartSpectating(BasePlayer player, BasePlayer target)
+	{
+		if (!string.IsNullOrEmpty(player.spectateFilter))
+		{
+			StopSpectating(player);
+		}
+
+		player.Teleport(target.transform.position);
+		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: true);
+		player.gameObject.SetLayerRecursive(10);
+		player.CancelInvoke(player.InventoryUpdate);
+		player.ChatMessage("Becoming Spectator");
+		player.SpectatePlayer(target);
+		player.spectateFilter = target.UserIDString;
+
+		using var cui = new CUI(Singleton.Handler);
+		var container = cui.CreateContainer(SpectatePanelId, "0.1 0.1 0.1 0.3", needsCursor: true, parent: CUI.ClientPanels.Hud);
+		cui.CreateText(container, SpectatePanelId, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{player.displayName.ToUpper().SpacedString(1)}</b>", 15);
+		cui.CreateProtectedButton(container, SpectatePanelId, null, "#1c6aa0", "1 1 1 0.7", "END SPECTATE".SpacedString(1), 10,
+			xMin: 0.45f, xMax: 0.55f, yMin: 0.15f, yMax: 0.19f, command: "carbongg.endspectate");
+		cui.Send(container, player);
+
+		Community.Runtime.CorePlugin.NextTick(() => Singleton.Close(player));
+	}
+	internal static void StopSpectating(BasePlayer player)
+	{
+		if (string.IsNullOrEmpty(player.spectateFilter))
+		{
+			return;
+		}
+
+		var spectated = player.GetParentEntity();
+		player.SetParent(null, true, true);
+		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: false);
+		player.InvokeRepeating(player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
+		player.gameObject.SetLayerRecursive(17);
+		player.Teleport(spectated.transform.position);
+		player.spectateFilter = string.Empty;
+
+		using var cui = new CUI(Singleton.Handler);
+		cui.Destroy(SpectatePanelId, player);
+
+		var ap = Singleton.GetOrCreateAdminPlayer(player);
+		EntitiesTab.DrawEntitySettings(Singleton.GetTab(player), spectated, 1, ap);
+		Singleton.Draw(player);
+	}
 
 	#endregion
 }
