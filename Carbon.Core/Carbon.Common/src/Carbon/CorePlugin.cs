@@ -8,7 +8,6 @@ using API.Events;
 using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
-using Carbon.Contracts;
 using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
@@ -394,30 +393,32 @@ public class CorePlugin : CarbonPlugin
 
 	#region App
 
-	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
-	private void Exit(ConsoleSystem.Arg arg)
-	{
-		//FIXMENOW
-		//Supervisor.ASM.UnloadModule("Carbon.dll", false);
-	}
+	// DISABLED UNTIL FULLY FUNCTIONAL
+	// [ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
+	// private void Exit(ConsoleSystem.Arg arg)
+	// {
+	// 	//FIXMENOW
+	// 	//Supervisor.ASM.UnloadModule("Carbon.dll", false);
+	// }
 
-	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
-	private void Reboot(ConsoleSystem.Arg arg)
-	{
-		//FIXMENOW
-		//Supervisor.ASM.UnloadModule("Carbon.dll", true);
-	}
+	// DISABLED UNTIL FULLY FUNCTIONAL
+	// [ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
+	// private void Reboot(ConsoleSystem.Arg arg)
+	// {
+	// 	//FIXMENOW
+	// 	//Supervisor.ASM.UnloadModule("Carbon.dll", true);
+	// }
 
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
 	private void GetVersion(ConsoleSystem.Arg arg)
 	{
-		Reply($"Carbon v{Community.Version}", arg);
+		Reply($"Carbon v{Community.Runtime.Analytics.Version}", arg);
 	}
 
 	[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
 	private void GetBuild(ConsoleSystem.Arg arg)
 	{
-		Reply($"{Community.InformationalVersion}", arg);
+		Reply($"{Community.Runtime.Analytics.InformationalVersion}", arg);
 	}
 
 	[ConsoleCommand("plugins", "Prints the list of mods and their loaded plugins.")]
@@ -497,24 +498,25 @@ public class CorePlugin : CarbonPlugin
 		}
 	}
 
-	[ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
-	private void Update(ConsoleSystem.Arg arg)
-	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
+	// DISABLED UNTIL FULLY FUNCTIONAL
+	// [ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
+	// private void Update(ConsoleSystem.Arg arg)
+	// {
+	// 	if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		Updater.DoUpdate((bool result) =>
-		{
-			if (!result)
-			{
-				Logger.Error($"Unknown error while updating Carbon");
-				return;
-			}
-			HookCaller.CallStaticHook("OnServerSave");
+	// 	Updater.DoUpdate((bool result) =>
+	// 	{
+	// 		if (!result)
+	// 		{
+	// 			Logger.Error($"Unknown error while updating Carbon");
+	// 			return;
+	// 		}
+	// 		HookCaller.CallStaticHook("OnServerSave");
 
-			//FIXMENOW
-			//Supervisor.ASM.UnloadModule("Carbon.dll", true);
-		});
-	}
+	// 		//FIXMENOW
+	// 		//Supervisor.ASM.UnloadModule("Carbon.dll", true);
+	// 	});
+	// }
 
 	#endregion
 
@@ -650,27 +652,6 @@ public class CorePlugin : CarbonPlugin
 						case "--dynamic":
 							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
 							break;
-
-						// case "--failed":
-						// 	hooks = CommunityCommon.Runtime.HookManager.StaticHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Failure);
-						// 	hooks = hooks.Concat(CommunityCommon.Runtime.HookManager.DynamicHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Failure));
-						// 	break;
-
-						// case "--warning":
-						// 	hooks = CommunityCommon.Runtime.HookManager.StaticHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Warning);
-						// 	hooks = hooks.Concat(CommunityCommon.Runtime.HookManager.DynamicHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Warning));
-						// 	break;
-
-						// case "--success":
-						// 	hooks = CommunityCommon.Runtime.HookManager.StaticHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Success);
-						// 	hooks = hooks.Concat(CommunityCommon.Runtime.HookManager.DynamicHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Success));
-						// 	break;
 
 						default:
 							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
