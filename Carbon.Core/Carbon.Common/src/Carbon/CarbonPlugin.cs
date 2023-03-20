@@ -1,4 +1,5 @@
-﻿using Carbon.Components;
+﻿using System;
+using Carbon.Components;
 using Oxide.Core;
 using Oxide.Plugins;
 
@@ -15,7 +16,7 @@ public class CarbonPlugin : RustPlugin
 {
 	public CUI.Handler CuiHandler { get; set; }
 
-	public override void Setup(string name, string author, VersionNumber version, string description)
+	public override void Setup(string name, string author, Version version, string description)
 	{
 		base.Setup(name, author, version, description);
 

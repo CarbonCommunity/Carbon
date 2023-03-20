@@ -87,7 +87,7 @@ namespace Oxide.Ext.Discord
 		};
 
 		// Token: 0x04000017 RID: 23
-		private static readonly VersionNumber ExtensionVersion = new VersionNumber(2, 1, 9);
+		private static readonly Version ExtensionVersion = new Version(2, 1, 9);
 
 		// Token: 0x04000018 RID: 24
 		public static ILogger GlobalLogger;

@@ -67,7 +67,7 @@ public class OxideMod
 				break;
 		}
 
-		_extensions.Add(new Extensions.Extension { Name = "Rust", Author = "Carbon Community LTD", Branch = "none", Filename = "Carbon.dll", Version = new VersionNumber(1, 0, 0) });
+		_extensions.Add(new Extensions.Extension { Name = "Rust", Author = "Carbon Community LTD", Branch = "none", Filename = "Carbon.dll", Version = new Version(1, 0, 0) });
 	}
 
 	public void NextTick(Action callback)
@@ -135,20 +135,20 @@ public class OxideMod
 	{
 		return args.Length switch
 		{
-			1 =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0]),
-			2 =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1]),
-			3 =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2]),
-			4 =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3]),
-			5 =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4]),
-			6 =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5]),
-			7 =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
-			8 =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
-			9 =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+			1 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0]),
+			2 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1]),
+			3 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2]),
+			4 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3]),
+			5 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4]),
+			6 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5]),
+			7 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+			8 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+			9 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
 			10 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
 			11 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
 			12 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
 			13 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
-			_ =>  HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate)
+			_ => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate)
 		};
 	}
 
@@ -164,7 +164,7 @@ public class OxideMod
 		return Activator.CreateInstance<T>();
 	}
 
-	public static readonly VersionNumber Version = new(_assemblyVersion.Major, _assemblyVersion.Minor, _assemblyVersion.Build);
+	public static readonly Version Version = new(_assemblyVersion.Major, _assemblyVersion.Minor, _assemblyVersion.Build);
 
 	#region Logging
 

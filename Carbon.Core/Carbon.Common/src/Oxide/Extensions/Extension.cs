@@ -1,10 +1,12 @@
-﻿namespace Oxide.Core.Extensions
+﻿using System;
+
+namespace Oxide.Core.Extensions
 {
 	public class Extension
 	{
-		public  string Name { get; set; }
-		public  string Author { get; set; }
-		public  VersionNumber Version { get; set; }
+		public string Name { get; set; }
+		public string Author { get; set; }
+		public Version Version { get; set; }
 		public string Filename { get; set; }
 		public string Branch { get; set; } = "public";
 

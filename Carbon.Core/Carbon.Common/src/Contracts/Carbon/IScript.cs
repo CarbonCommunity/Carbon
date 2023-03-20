@@ -18,7 +18,7 @@ namespace Carbon.Contracts
 
 		string Name { get; set; }
 		string Author { get; set; }
-		VersionNumber Version { get; set; }
+		Version Version { get; set; }
 		string Description { get; set; }
 		string Source { get; set; }
 		IScriptLoader Loader { get; set; }
