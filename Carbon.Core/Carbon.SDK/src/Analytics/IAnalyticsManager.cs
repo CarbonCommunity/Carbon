@@ -16,8 +16,8 @@ public interface IAnalyticsManager
 	public string InformationalVersion { get; }
 	public string Platform { get; }
 	public string Protocol { get; }
+	public string UserAgent { get; }
 	public string Version { get; }
-
 
 
 	public string ClientID { get; }

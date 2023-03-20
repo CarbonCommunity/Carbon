@@ -28,26 +28,77 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	private static float _lastEngagement;
 	private const string MeasurementID = "G-M7ZBRYS3X7";
 	private const string MeasurementSecret = "edBQH3_wRCWxZSzx5Y2IWA";
-	public string Platform
-	{ get; private set; }
+
 
 	public string Branch
-	{ get; private set; }
+	{ get => _branch.Value; }
 
-	public string Version
-	{ get; private set; }
+	private static readonly Lazy<string> _branch = new(() =>
+	{
+		return _infoVersion.Value switch
+		{
+			string s when s.Contains("Debug") => "debug",
+			string s when s.Contains("Staging") => "staging",
+			string s when s.Contains("Release") => "release",
+			_ => "Unknown"
+		};
+	});
 
 	public string InformationalVersion
-	{ get; private set; }
+	{ get => _infoVersion.Value; }
+
+	private static readonly Lazy<string> _infoVersion = new(() =>
+	{
+		return AccessTools.TypeByName("Carbon.Community")
+			.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+	});
+
+	public string Platform
+	{ get => _platform.Value; }
+
+	private static readonly Lazy<string> _platform = new(() =>
+	{
+		return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) switch
+		{
+			true => "windows",
+			false => "linux"
+		};
+	});
 
 	public string Protocol
-	{ get; private set; }
+	{ get => _protocol.Value; }
+
+	private static readonly Lazy<string> _protocol = new(() =>
+	{
+		return AccessTools.TypeByName("Carbon.Community")
+			.Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+	});
+
+	public string UserAgent
+	{ get => _userAgent.Value; }
+
+	private static readonly Lazy<string> _userAgent = new(() =>
+	{
+		return $"carbon/{_version.Value} ({_platform.Value}; x64; {_branch.Value};"
+			+ $" +https://github.com/CarbonCommunity/Carbon.Core)";
+	});
+
+	public string Version
+	{ get => _version.Value; }
+
+	private static readonly Lazy<string> _version = new(() =>
+	{
+		return AccessTools.TypeByName("Carbon.Community")
+			.Assembly.GetName().Version.ToString();
+	});
+
 
 	public string SessionID
 	{ get; private set; }
 
 	public string ClientID
 	{ get => _serverInfo.Value.UID; }
+
 
 	private static readonly Lazy<Identity> _serverInfo = new(() =>
 	{
@@ -84,31 +135,9 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 	public void Awake()
 	{
-		InformationalVersion = Assembly.GetExecutingAssembly()
-			.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-
-		Version = Assembly.GetExecutingAssembly()
-			.GetName().Version.ToString();
-
-		Protocol = Assembly.GetExecutingAssembly()
-			.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-
-		Platform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) switch
-		{
-			true => "windows",
-			false => "linux"
-		};
-
-		Branch = InformationalVersion switch
-		{
-			string s when s.Contains("Debug") => "debug",
-			string s when s.Contains("Staging") => "staging",
-			string s when s.Contains("Release") => "release",
-			_ => "Unknown"
-		};
-
 		SessionID = Util.GetRandomNumber(10);
 		_lastEngagement = -1;
+		_lastUpdate = 0;
 	}
 
 	private void Update()
@@ -148,7 +177,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 #endif
 
 		using UnityWebRequest request = new UnityWebRequest($"{url}?{query}", "POST");
-		request.SetRequestHeader("User-Agent", $"carbon/server ({Platform}; x64; {Branch}) carbon/{Version}");
+		request.SetRequestHeader("User-Agent", UserAgent);
 		request.SetRequestHeader("Content-Type", "application/json");
 		request.uploadHandler = new UploadHandlerRaw(default);
 		request.downloadHandler = new DownloadHandlerBuffer();
@@ -178,7 +207,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		string query = $"api_secret={MeasurementSecret}&measurement_id={MeasurementID}";
 
 		using UnityWebRequest request = new UnityWebRequest($"{url}?{query}", "POST");
-		request.SetRequestHeader("User-Agent", $"carbon/server ({Platform}; x64; {Branch}) carbon/{Version}");
+		request.SetRequestHeader("User-Agent", UserAgent);
 		request.SetRequestHeader("Content-Type", "application/json");
 		request.downloadHandler = new DownloadHandlerBuffer();
 
