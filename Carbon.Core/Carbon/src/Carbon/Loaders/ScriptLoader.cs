@@ -396,7 +396,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 		public string Name { get; set; }
 		public string Author { get; set; }
-		public Version Version { get; set; }
+		public VersionNumber Version { get; set; }
 		public string Description { get; set; }
 		public string Source { get; set; }
 		public IScriptLoader Loader { get; set; }
@@ -413,7 +413,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 				Name = null,
 				Author = null,
-				Version = new Version(1, 0, 0),
+				Version = new VersionNumber(1, 0, 0),
 				Description = null,
 			};
 		}

@@ -45,7 +45,7 @@ public class BaseHookable
 	public string Name { get; set; }
 
 	[JsonProperty]
-	public Version Version { get; set; }
+	public VersionNumber Version { get; set; }
 
 	[JsonProperty]
 	public double TotalHookTime { get; internal set; }
