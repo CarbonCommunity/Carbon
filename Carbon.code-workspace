@@ -1,0 +1,54 @@
+{
+  "folders": [
+    {
+      "name": "Carbon",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.insertSpaces": false,
+    "editor.snippetSuggestions": "inline",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.rulers": [
+      {
+        "column": 80,
+        "color": "#ff000025"
+      },
+      {
+        "column": 130,
+        "color": "#ff000025"
+      }
+    ],
+
+    "files.watcherExclude": {
+      "**/.git/objects/**": true,
+      "**/.git/subtree-cache/**": true,
+      "**/node_modules/*/**": true
+    },
+
+    "omnisharp.enableImportCompletion": true,
+    "omnisharp.organizeImportsOnFormat": true,
+    "omnisharp.disableMSBuildDiagnosticWarning": true,
+    "omnisharp.enableAsyncCompletion": true,
+    "omnisharp.projectLoadTimeout": 240,
+    "omnisharp.analyzeOpenDocumentsOnly": true,
+    "omnisharp.enableRoslynAnalyzers": true,
+    "git.openRepositoryInParentFolders": "never",
+
+    "[csharp]": {
+      "editor.defaultFormatter": "ms-dotnettools.csharp"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-dotnettools.csharp",
+      "ms-vscode.powershell",
+      "donjayamanne.githistory",
+      "dotjoshjohnson.xml",
+      "fabiospampinato.vscode-diff",
+      "fudge.auto-using",
+      "esbenp.prettier-vscode"
+    ]
+  }
+}
