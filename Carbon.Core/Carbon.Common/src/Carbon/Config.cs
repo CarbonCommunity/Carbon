@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using API.Logger;
 using Oxide.Core.Libraries;
 
 /*
@@ -27,7 +28,7 @@ public class Config
 	public int LogVerbosity { get; set; } = 0;
 	public bool UnityStacktrace { get; set; } = false;
 	public List<string> ConditionalCompilationSymbols { get; set; }
-	public Logger.Severity LogSeverity { get; set; } = Logger.Severity.Notice;
+	public Severity LogSeverity { get; set; } = Severity.Notice;
 	public Permission.SerializationMode PermissionSerialization { get; set; } = Permission.SerializationMode.Protobuf;
 	public string Language { get; set; } = "en";
 	public string WebRequestIp { get; set; }
