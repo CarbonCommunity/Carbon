@@ -232,34 +232,21 @@ public class ScriptCompilationThread : BaseThreadedJob
 			using (var dllStream = new MemoryStream())
 			{
 				var emit = compilation.Emit(dllStream);
-
-				StringTable body = new StringTable("Type", "Line", "Col", "Error", "Description");
-
-				var count = 0;
 				var errors = new List<string>();
+
 				foreach (var error in emit.Diagnostics)
 				{
-#if DEBUG_VERBOSE
-					if (error.Severity != DiagnosticSeverity.Error && error.Severity != DiagnosticSeverity.Warning) continue;
-					if (error.Id == "CS1701") continue; // you may need to supply runtime policy
-#else
 					if (error.Severity != DiagnosticSeverity.Error) continue;
 					if (errors.Contains(error.Id)) continue;
 					errors.Add(error.Id);
-#endif
+
 					var span = error.Location.GetMappedLineSpan().Span;
-					body.AddRow(
-						$"{error.Severity}", $"{span.Start.Line + 1}", $"{span.Start.Character + 1}",
-						error.Id, error.GetMessage(CultureInfo.InvariantCulture));
-					count++;
 
 					Exceptions.Add(new CompilerException(FilePath,
 						new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 				}
 
 				errors.Clear();
-
-				// if (count > 0) Console.WriteLine($"Compiler output for '{FilePath}'.{Environment.NewLine}{Environment.NewLine}{body.ToStringMinimal()}");
 
 				if (emit.Success)
 				{
