@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Carbon.Extensions;
 using Oxide.Core;
-using UnityEngine;
-using static ServerUsers;
 
 /*
  *
@@ -13,6 +9,8 @@ using static ServerUsers;
  * All rights reserved.
  *
  */
+
+//namespace API.Plugins;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class InfoAttribute : Attribute
@@ -37,18 +35,14 @@ public class InfoAttribute : Attribute
 
 	private void SetVersion(string version)
 	{
-		ushort result;
 		var list = (from part in version.Split('.')
-					select (ushort)(ushort.TryParse(part, out result) ? result : 0)).ToList();
-		while (list.Count < 3)
-		{
-			list.Add(0);
-		}
+					select (ushort)(ushort.TryParse(part, out var result) ? result : 0)).ToList();
+		while (list.Count < 3) list.Add(0);
 
-		if (list.Count > 3)
-		{
-			Debug.LogWarning("Version `" + version + "` is invalid for " + Title + ", should be `major.minor.patch`");
-		}
+		// if (list.Count > 3)
+		// {
+		// 	Debug.LogWarning("Version `" + version + "` is invalid for " + Title + ", should be `major.minor.patch`");
+		// }
 
 		Version = new VersionNumber(list[0], list[1], list[2]);
 	}
@@ -242,20 +236,4 @@ public class PluginPriority : Attribute
 	{
 		Priority = priority;
 	}
-
-	public enum Priorities
-	{
-		Low,
-		Normal,
-		High,
-		Highest
-	}
-}
-
-public enum Priorities
-{
-	Low,
-	Normal,
-	High,
-	Highest
 }
