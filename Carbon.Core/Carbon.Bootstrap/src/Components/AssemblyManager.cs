@@ -34,11 +34,14 @@ namespace Components;
 
 	4) Module - API.Contracts.ICarbonModule
 	A MODULE is an optional feature for Carbon which is not required for the core
-	functionality of the framework.
+	functionality of the framework. Modules CAN access sensitive parts of the
+	Carbon framework.
 
 	5) Extensions - API.Contracts.ICarbonExtension
 	An EXTENSION is an assembly just like a plugin with the difference that it will
-	be passed as a reference to the Rosylin compiler so plugins can use them.
+	be passed as a reference to the Rosylin compiler so plugins can use them. Note
+	that another huge difference to MODULES is that wxtensions CANNOT access
+	sensitive parts of the Carbon framework.
 
 	6) Plugins
 	Not applicable for now.
