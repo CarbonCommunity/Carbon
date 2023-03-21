@@ -79,13 +79,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Unsubscribe("CanDismountEntity");
 		Unsubscribe("OnEntityVisibilityCheck");
 		Unsubscribe("OnEntityDistanceCheck");
-
-		RegisterTab(CarbonTab.Get());
-		RegisterTab(PlayersTab.Get());
-		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
-		RegisterTab(PermissionsTab.Get());
-		RegisterTab(ModulesTab.Get());
-		RegisterTab(PluginsTab.Get());
 	}
 
 	public override void OnEnabled(bool initialized)
@@ -111,7 +104,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			DrawCursorLocker(player);
 			Draw(player);
-		});
+		}, silent: true);
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -129,6 +122,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		base.OnDisabled(initialized);
+	}
+	public override void Load()
+	{
+		base.Load();
+
+		UnregisterAllTabs();
+
+		RegisterTab(CarbonTab.Get());
+		RegisterTab(PlayersTab.Get());
+		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
+		RegisterTab(PermissionsTab.Get());
+		RegisterTab(ModulesTab.Get());
+		if (!ConfigInstance.DisablePluginsTab) RegisterTab(PluginsTab.Get());
 	}
 
 	private void OnLog(string condition, string stackTrace, LogType type)
@@ -1292,6 +1298,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		Tabs.RemoveAll(x => x.Id == id);
+	}
+	public void UnregisterAllTabs()
+	{
+		Tabs.Clear();
 	}
 
 	public AdminPlayer GetOrCreateAdminPlayer(BasePlayer player)
@@ -4498,7 +4508,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.spectateFilter = target.UserIDString;
 
 		using var cui = new CUI(Singleton.Handler);
-		var container = cui.CreateContainer(SpectatePanelId, "0.1 0.1 0.1 0.3", needsCursor: true, parent: CUI.ClientPanels.Hud);
+		var container = cui.CreateContainer(SpectatePanelId, "0.1 0.1 0.1 0.3", needsCursor: true, parent: CUI.ClientPanels.Overlay);
 		cui.CreateText(container, SpectatePanelId, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{target.displayName.ToUpper().SpacedString(1)}</b>", 15);
 		cui.CreateProtectedButton(container, SpectatePanelId, null, "#1c6aa0", "1 1 1 0.7", "END SPECTATE".SpacedString(1), 10,
 			xMin: 0.45f, xMax: 0.55f, yMin: 0.15f, yMax: 0.19f, command: "carbongg.endspectate");
@@ -4508,6 +4518,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	internal static void StopSpectating(BasePlayer player)
 	{
+		using var cui = new CUI(Singleton.Handler);
+		cui.Destroy(SpectatePanelId, player);
+
 		if (string.IsNullOrEmpty(player.spectateFilter))
 		{
 			return;
@@ -4520,9 +4533,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.gameObject.SetLayerRecursive(17);
 		player.Teleport(spectated.transform.position);
 		player.spectateFilter = string.Empty;
-
-		using var cui = new CUI(Singleton.Handler);
-		cui.Destroy(SpectatePanelId, player);
 
 		var ap = Singleton.GetOrCreateAdminPlayer(player);
 		EntitiesTab.DrawEntitySettings(Singleton.GetTab(player), spectated, 1, ap);
@@ -4537,6 +4547,7 @@ public class AdminConfig
 	public string OpenCommand = "cadmin";
 	public int MinimumAuthLevel = 2;
 	public bool DisableEntitiesTab = false;
+	public bool DisablePluginsTab = true;
 }
 public class AdminData
 {

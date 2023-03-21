@@ -207,8 +207,14 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		OnEnableStatus();
 	}
 
+	public virtual bool PermissionExists(string permission)
+	{
+		return Community.Runtime.CorePlugin.permission.PermissionExists(permission, Community.Runtime.CorePlugin);
+	}
 	public virtual void RegisterPermission(string permission)
 	{
+		if (PermissionExists(permission)) return;
+
 		Community.Runtime.CorePlugin.permission.RegisterPermission(permission, Community.Runtime.CorePlugin);
 	}
 	public virtual void UnregisterPermissions()
