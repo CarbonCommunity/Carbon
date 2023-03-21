@@ -4508,6 +4508,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 	internal static void StopSpectating(BasePlayer player)
 	{
+		using var cui = new CUI(Singleton.Handler);
+		cui.Destroy(SpectatePanelId, player);
+
 		if (string.IsNullOrEmpty(player.spectateFilter))
 		{
 			return;
@@ -4520,9 +4523,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.gameObject.SetLayerRecursive(17);
 		player.Teleport(spectated.transform.position);
 		player.spectateFilter = string.Empty;
-
-		using var cui = new CUI(Singleton.Handler);
-		cui.Destroy(SpectatePanelId, player);
 
 		var ap = Singleton.GetOrCreateAdminPlayer(player);
 		EntitiesTab.DrawEntitySettings(Singleton.GetTab(player), spectated, 1, ap);
