@@ -2160,14 +2160,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					tab.AddButton(1, "Blind Player", ap =>
 					{
-						using var cui = new CUI(Singleton.Handler);
-						var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
-						cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
-						cui.Send(container, player);
-						BlindedPlayers.Add(player);
-						ShowInfo(tab, ap, player);
+						tab.CreateDialog("Are you sure you want to blind the player?", ap =>
+						{
+							using var cui = new CUI(Singleton.Handler);
+							var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+							cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
+							cui.Send(container, player);
+							BlindedPlayers.Add(player);
+							ShowInfo(tab, ap, player);
 
-						if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
+							if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
+						}, null);
 					});
 				}
 				else
@@ -2649,14 +2652,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							tab.AddButton(1, "Blind Player", ap =>
 							{
-								using var cui = new CUI(Singleton.Handler);
-								var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
-								cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
-								cui.Send(container, player);
-								PlayersTab.BlindedPlayers.Add(player);
-								DrawEntitySettings(tab, entity, column, ap3);
+								tab.CreateDialog("Are you sure you want to blind the player?", ap =>
+								{
+									using var cui = new CUI(Singleton.Handler);
+									var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+									cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
+									cui.Send(container, player);
+									PlayersTab.BlindedPlayers.Add(player);
+									DrawEntitySettings(tab, entity, column, ap3);
 
-								if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
+									if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
+								}, null);
 							});
 						}
 						else
