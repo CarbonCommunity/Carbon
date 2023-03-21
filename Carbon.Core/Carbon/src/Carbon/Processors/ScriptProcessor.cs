@@ -123,15 +123,15 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 				{
 					#region Handle Unicode & Quote Escaping
 
-					if (input.Contains("\\u"))
-					{
-						output = Regex.Unescape(input.Replace(Quote, QuoteReplacer).Replace(NewLine, NewLineReplacer)).Replace(QuoteReplacer, Quote).Replace(NewLineReplacer, NewLine);
-					}
-					else output = input;
+					// if (input.Contains("\\u"))
+					// {
+					// 	output = Regex.Unescape(input.Replace(Quote, QuoteReplacer).Replace(NewLine, NewLineReplacer)).Replace(QuoteReplacer, Quote).Replace(NewLineReplacer, NewLine);
+					// }
+					// else output = input;
 
 					#endregion
 
-					output = output.Replace("PluginTimers", "Timers");
+					output = input.Replace("PluginTimers", "Timers");
 
 					var newOutput = string.Empty;
 					var split = output.Split('\n');
