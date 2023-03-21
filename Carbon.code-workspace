@@ -29,12 +29,6 @@
 
     "omnisharp.enableImportCompletion": true,
     "omnisharp.organizeImportsOnFormat": true,
-    "omnisharp.disableMSBuildDiagnosticWarning": true,
-    "omnisharp.enableAsyncCompletion": true,
-    "omnisharp.projectLoadTimeout": 240,
-    "omnisharp.analyzeOpenDocumentsOnly": true,
-    "omnisharp.enableRoslynAnalyzers": true,
-    "git.openRepositoryInParentFolders": "never",
 
     "[csharp]": {
       "editor.defaultFormatter": "ms-dotnettools.csharp"
