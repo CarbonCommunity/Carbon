@@ -35,11 +35,11 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		var cmod1Permissions = new string[] { ConfigInstance.Cmod.Cmod1Permission };
 		var cmod2Permissions = new string[] { ConfigInstance.Cmod.Cmod2Permission };
 		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.Cmod.CmodCommand, this, nameof(ToggleCmod), permissions: cmod1Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.mute", this, nameof(Mute), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.unmute", this, nameof(Unmute), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.mutelist", this, nameof(MuteList), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.kick", this, nameof(Kick), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.ban", this, nameof(Ban), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.mute", this, nameof(Mute), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.unmute", this, nameof(Unmute), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.mutelist", this, nameof(MuteList), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.kick", this, nameof(Kick), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.ban", this, nameof(Ban), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
 	}
 
 	private object IDisallowSkinnedItemsFromBeingCraftable()

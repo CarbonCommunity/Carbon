@@ -79,13 +79,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Unsubscribe("CanDismountEntity");
 		Unsubscribe("OnEntityVisibilityCheck");
 		Unsubscribe("OnEntityDistanceCheck");
-
-		RegisterTab(CarbonTab.Get());
-		RegisterTab(PlayersTab.Get());
-		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
-		RegisterTab(PermissionsTab.Get());
-		RegisterTab(ModulesTab.Get());
-		RegisterTab(PluginsTab.Get());
 	}
 
 	public override void OnEnabled(bool initialized)
@@ -111,7 +104,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			DrawCursorLocker(player);
 			Draw(player);
-		});
+		}, silent: true);
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -129,6 +122,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		base.OnDisabled(initialized);
+	}
+	public override void Load()
+	{
+		base.Load();
+
+		UnregisterAllTabs();
+
+		RegisterTab(CarbonTab.Get());
+		RegisterTab(PlayersTab.Get());
+		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
+		RegisterTab(PermissionsTab.Get());
+		RegisterTab(ModulesTab.Get());
+		if (!ConfigInstance.DisablePluginsTab) RegisterTab(PluginsTab.Get());
 	}
 
 	private void OnLog(string condition, string stackTrace, LogType type)
@@ -1292,6 +1298,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		Tabs.RemoveAll(x => x.Id == id);
+	}
+	public void UnregisterAllTabs()
+	{
+		Tabs.Clear();
 	}
 
 	public AdminPlayer GetOrCreateAdminPlayer(BasePlayer player)
@@ -4537,6 +4547,7 @@ public class AdminConfig
 	public string OpenCommand = "cadmin";
 	public int MinimumAuthLevel = 2;
 	public bool DisableEntitiesTab = false;
+	public bool DisablePluginsTab = true;
 }
 public class AdminData
 {
