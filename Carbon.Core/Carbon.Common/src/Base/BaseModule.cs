@@ -204,7 +204,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public override void OnServerInit()
 	{
-		OnEnableStatus();
+
 	}
 
 	public virtual void RegisterPermission(string permission)
