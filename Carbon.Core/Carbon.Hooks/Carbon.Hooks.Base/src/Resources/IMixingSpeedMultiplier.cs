@@ -18,7 +18,7 @@ public partial class Category_Fixes
 		[HookAttribute.Identifier("0ad5ad2cc4224102be7e9ab434815462")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
-		public class Fixes_MixingTable_set_RemainingMixTime_0ad5ad2cc4224102be7e9ab434815462 : API.Hooks.Patch
+		public class Fixes_MixingTable_set_RemainingMixTime_0ad5ad2cc4224102be7e9ab434815462 : Patch
 		{
 			public static void Prefix(ref float value, ref MixingTable __instance)
 			{

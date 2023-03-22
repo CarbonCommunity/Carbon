@@ -18,7 +18,7 @@ public partial class Category_Fixes
 		[HookAttribute.Identifier("846de3cd762846e68206ffae9c97911f")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
-		public class Fixes_VendingMachine_GetBuyDuration_846de3cd762846e68206ffae9c97911f : API.Hooks.Patch
+		public class Fixes_VendingMachine_GetBuyDuration_846de3cd762846e68206ffae9c97911f : Patch
 		{
 			public static bool Prefix(VendingMachine __instance, ref float __result)
 			{
@@ -38,7 +38,7 @@ public partial class Category_Fixes
 		[HookAttribute.Identifier("ac498841f2714f8f911d61d7713c142c")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
-		public class Fixes_InvisibleVendingMachine_GetBuyDuration_ac498841f2714f8f911d61d7713c142c
+		public class Fixes_InvisibleVendingMachine_GetBuyDuration_ac498841f2714f8f911d61d7713c142c : Patch
 		{
 			public static bool Prefix(InvisibleVendingMachine __instance, ref float __result)
 			{
