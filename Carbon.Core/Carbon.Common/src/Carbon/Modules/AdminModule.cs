@@ -1991,7 +1991,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
 				tab.AddDropdown(1, "Log File Mode", () => Config.LogFileMode, index => { Config.LogFileMode = index; Community.Runtime.SaveConfig(); }, LogFileModes);
 				tab.AddDropdown(1, "Log Verbosity (Debug)", () => Config.LogVerbosity, index => { Config.LogVerbosity = index; Community.Runtime.SaveConfig(); }, LogVerbosity);
-				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Severity)));
+				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (API.Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(API.Logger.Severity)));
 
 				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
 				tab.AddInput(1, "Server Language", () => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
