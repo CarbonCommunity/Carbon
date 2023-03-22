@@ -267,11 +267,10 @@ public class RustPlugin : Plugin
 		if (!Config.Exists(null))
 		{
 			LoadDefaultConfig();
-			SaveConfig();
 		}
 		try
 		{
-			Config.Load(null);
+			if(Config.Exists(null)) Config.Load(null);
 		}
 		catch (Exception ex)
 		{
