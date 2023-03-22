@@ -677,7 +677,7 @@ public partial class RustServerMetricsModule : CarbonModule<RustServerMetricsCon
 				redirectLimit = 5
 			};
 			yield return request.SendWebRequest();
-			if (request.result == UnityWebRequest.Result.ConnectionError)
+			if (request.isNetworkError)
 			{
 				if (_attempt >= 2)
 				{
@@ -699,7 +699,7 @@ public partial class RustServerMetricsModule : CarbonModule<RustServerMetricsCon
 			}
 			else
 			{
-				if (request.result == UnityWebRequest.Result.ProtocolError)
+				if (request.isHttpError)
 				{
 					if (_throttleHttpErrorMessages)
 					{
