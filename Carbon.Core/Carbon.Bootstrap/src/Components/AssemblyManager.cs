@@ -395,14 +395,14 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #if DEBUG
 		catch (System.Exception e)
 		{
-			Logger.Error($"Failed loading module '{file}'", e);
+			Logger.Error($"Failed loading hook '{file}'", e);
 
 			return null;
 		}
 #else
 		catch (System.Exception)
 		{
-			Logger.Error($"Failed loading module '{file}'");
+			Logger.Error($"Failed loading hook '{file}'");
 
 			return null;
 		}
@@ -472,14 +472,14 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #if DEBUG
 		catch (System.Exception e)
 		{
-			Logger.Error($"Failed loading module '{file}'", e);
+			Logger.Error($"Failed loading plugin '{file}'", e);
 
 			return null;
 		}
 #else
 		catch (System.Exception)
 		{
-			Logger.Error($"Failed loading module '{file}'");
+			Logger.Error($"Failed loading plugin '{file}'");
 
 			return null;
 		}

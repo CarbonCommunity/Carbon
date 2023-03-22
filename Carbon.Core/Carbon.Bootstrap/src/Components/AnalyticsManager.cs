@@ -179,24 +179,21 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		using UnityWebRequest request = new UnityWebRequest($"{url}?{query}", "POST");
 		request.SetRequestHeader("User-Agent", UserAgent);
 		request.SetRequestHeader("Content-Type", "application/json");
-		request.uploadHandler = new UploadHandlerRaw(new byte[] { });
+		request.uploadHandler = new UploadHandlerRaw(default);
 		request.downloadHandler = new DownloadHandlerBuffer();
 
 		yield return request.SendWebRequest();
 
 #if DEBUG_VERBOSE
-		switch(request.result)
+		if (request.isNetworkError || request.isHttpError)
 		{
-			case UnityWebRequest.Result.ConnectionError:
-			case UnityWebRequest.Result.ProtocolError:
-				Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
-				Logger.Debug($" > {url}?{query}");
-				break;
-
-			default:
-				Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
-				Logger.Debug($" > {url}?{query}");
-				break;
+			Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
+			Logger.Debug($" > {url}?{query}");
+		}
+		else
+		{
+			Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
+			Logger.Debug($" > {url}?{query}");
 		}
 #endif
 	}
@@ -253,18 +250,16 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		yield return request.SendWebRequest();
 
 #if DEBUG_VERBOSE
-		switch(request.result)
+		if (request.isNetworkError || request.isHttpError)
 		{
-			case UnityWebRequest.Result.ConnectionError:
-			case UnityWebRequest.Result.ProtocolError:
-				Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
+			Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
 			Logger.Debug($" > {url}?{query}");
-				break;
+		}
 
-			default:
-				Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
+		else
+		{
+			Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
 			Logger.Debug($" > {url}?{query}");
-				break;
 		}
 #endif
 	}
