@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -24,7 +25,7 @@ internal sealed class LibraryLoader : IDisposable
 	}
 
 	private AppDomain _domain;
-	private readonly Hash<string, Item> _cache = new();
+	private readonly Dictionary<string, Item> _cache = new();
 
 	private readonly string[] _directoryList =
 	{
@@ -70,7 +71,7 @@ internal sealed class LibraryLoader : IDisposable
 			path = Path.Combine(directory, $"{name}.dll");
 		}
 
-		if (path.IsNullOrEmpty())
+		if (String.IsNullOrEmpty(path))
 		{
 			Logger.Debug($"Unresolved library: '{name}'");
 			return default;

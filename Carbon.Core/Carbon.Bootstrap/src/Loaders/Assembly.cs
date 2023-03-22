@@ -24,7 +24,7 @@ internal sealed class AssemblyLoader : IDisposable
 		public Assembly Assembly { get; internal set; }
 	}
 
-	private readonly Hash<string, Item> _cache = new();
+	private readonly Dictionary<string, Item> _cache = new();
 
 	private readonly string[] _directoryList =
 	{
@@ -49,7 +49,7 @@ internal sealed class AssemblyLoader : IDisposable
 			path = Path.Combine(directory, file);
 		}
 
-		if (path.IsNullOrEmpty())
+		if (String.IsNullOrEmpty(path))
 		{
 			Logger.Debug($"Unable to load assembly: '{file}'");
 			return default;
