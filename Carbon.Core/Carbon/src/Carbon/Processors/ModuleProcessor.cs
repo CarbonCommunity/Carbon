@@ -32,21 +32,53 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			Setup(Activator.CreateInstance(type) as BaseHookable);
 		}
 	}
-	public void Setup(BaseHookable module)
+	public void OnServerInit()
 	{
-		if (module is IModule hookable)
+		foreach(var hookable in _modules)
+		{
+			if (hookable is IModule module)
+			{
+				try
+				{
+					module.OnServerInit();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnServerInit for '{hookable.Name}'", ex);
+				}
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module)
+			{
+				try
+				{
+					module.OnPostServerInit();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnPostServerInit for '{hookable.Name}'", ex);
+				}
+			}
+		}
+	}
+	public void Setup(BaseHookable hookable)
+	{
+		if (hookable is IModule module)
 		{
 			try
 			{
-				hookable.Init();
+				module.Init();
 			}
 			catch (Exception ex)
 			{
 				Logger.Error($"[ModuleProcessor] Failed initializing '{hookable.Name}'.", ex);
 			}
 
-			_modules.Add(module);
-			hookable.InitEnd();
+			_modules.Add(hookable);
+			module.InitEnd();
 		}
 	}
 
@@ -66,7 +98,6 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			var module = hookable.To<IModule>();
 
 			module.Load();
-			module.OnEnableStatus();
 		}
 	}
 

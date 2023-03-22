@@ -9,9 +9,10 @@
 using System;
 using System.IO;
 using System.Linq;
+using API.Contracts;
 using API.Events;
 using Carbon;
-using Carbon.Common;
+using Carbon.Core;
 using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Configuration;
@@ -26,16 +27,16 @@ using Logger = Oxide.Ext.Discord.Logging.Logger;
 namespace Oxide.Ext.Discord
 {
 	// Token: 0x02000004 RID: 4
-	public class DiscordExtension : IExtension
+	public class DiscordExtension : ICarbonExtension
 	{
-		public void OnInit()
+		public void OnLoaded(EventArgs args)
 		{
 			GlobalLogger = (string.IsNullOrEmpty("") ? new Logger(DiscordLogLevel.Warning) : new Logger(DiscordLogLevel.Debug));
-			AppDomain.CurrentDomain.UnhandledException += delegate (object sender, UnhandledExceptionEventArgs exception)
-			{
-				GlobalLogger.Exception("An exception was thrown!", exception.ExceptionObject as Exception);
-			};
-			string text = Path.Combine(Interface.Oxide.InstanceDirectory, "discord.config.json");
+			// AppDomain.CurrentDomain.UnhandledException += delegate (object sender, UnhandledExceptionEventArgs exception)
+			// {
+			// 	GlobalLogger.Exception("An exception was thrown!", exception.ExceptionObject as Exception);
+			// };
+			string text = Path.Combine(Defines.GetConfigsFolder(), "discord.config.json");
 			bool flag = !File.Exists(text);
 			if (flag)
 			{
@@ -49,9 +50,9 @@ namespace Oxide.Ext.Discord
 			DiscordSubscriptions = new DiscordSubscriptions(GlobalLogger);
 			Community.Runtime.Events.Subscribe(CarbonEvent.PluginLoaded, arg => OnPluginLoaded(arg as CarbonEventArgs));
 			Community.Runtime.Events.Subscribe(CarbonEvent.PluginUnloaded, arg => OnPluginUnloaded(arg as CarbonEventArgs));
-
 		}
-		public void OnUnload()
+
+		public void OnUnloaded(EventArgs args)
 		{
 			foreach (DiscordClient client in DiscordClient.Clients.Values.ToList())
 			{
@@ -83,7 +84,7 @@ namespace Oxide.Ext.Discord
 		// Token: 0x04000016 RID: 22
 		internal static readonly JsonSerializerSettings ExtensionSerializeSettings = new JsonSerializerSettings
 		{
-			NullValueHandling = (NullValueHandling) 1
+			NullValueHandling = (NullValueHandling)1
 		};
 
 		// Token: 0x04000017 RID: 23

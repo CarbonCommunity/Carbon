@@ -44,9 +44,9 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public CultureInfo Language => CultureInfo.GetCultureInfo(BasePlayer.net.connection.info.GetString("global.language", "") ?? "en");
 
-		public bool IsConnected => BasePlayer.IsConnected;
+		public bool IsConnected => BasePlayer != null && BasePlayer.IsConnected;
 
-		public bool IsSleeping => BasePlayer.IsSleeping();
+		public bool IsSleeping => BasePlayer != null && BasePlayer.IsSleeping();
 
 		public bool IsServer { get; set; }
 

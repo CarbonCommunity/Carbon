@@ -32,4 +32,7 @@ FOR %%O IN (DepotDownloader NStrip) DO (
 )
 
 rem Download rust binary libs
-call "%BASE%\update.bat" public 
+call "%BASE%\update.bat" public
+
+rem Don't track changes to this file
+git update-index --assume-unchanged "%ROOT%\Tools\Helpers\doorstop_config.ini"

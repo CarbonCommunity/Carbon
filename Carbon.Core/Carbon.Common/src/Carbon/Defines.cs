@@ -25,7 +25,7 @@ public class Defines
 		GetModulesFolder();
 		GetDataFolder();
 		GetScriptFolder();
-		GetScriptExtensionsFolder();
+		GetExtensionsFolder();
 		GetHarmonyFolder();
 		GetLogsFolder();
 		GetLangFolder();
@@ -42,6 +42,7 @@ public class Defines
 	internal static string _customConfigFolder;
 	internal static string _customDataFolder;
 	internal static string _customModuleFolder;
+	internal static string _customExtensionsFolder;
 
 	internal static void _initializeCommandLine()
 	{
@@ -51,6 +52,7 @@ public class Defines
 		_customConfigFolder = CommandLineEx.GetArgumentResult("-carbon.configdir");
 		_customDataFolder = CommandLineEx.GetArgumentResult("-carbon.datadir");
 		_customModuleFolder = CommandLineEx.GetArgumentResult("-carbon.moduledir");
+		_customExtensionsFolder = CommandLineEx.GetArgumentResult("-carbon.extdir");
 	}
 
 	public static string GetConfigFile()
@@ -93,9 +95,9 @@ public class Defines
 
 		return folder;
 	}
-	public static string GetScriptExtensionsFolder()
+	public static string GetExtensionsFolder()
 	{
-		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customScriptFolder) ? Path.Combine(GetRootFolder(), "plugins", "extensions") : Path.Combine(_customScriptFolder, "extensions"));
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customExtensionsFolder) ? Path.Combine(GetRootFolder(), "extensions") : _customExtensionsFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;

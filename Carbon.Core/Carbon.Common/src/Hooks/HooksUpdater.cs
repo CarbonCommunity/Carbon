@@ -1,8 +1,14 @@
 ﻿
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 /*
  *
@@ -15,70 +21,20 @@ namespace Carbon.Hooks;
 
 public sealed class Updater
 {
-	private static readonly OsType Platform;
-	private static readonly ReleaseType Release;
-	private static readonly string Repository;
+	private static readonly string Repository
+		= @"CarbonCommunity/Carbon.Redist";
 
-	public enum OsType { Windows, Linux }
-	public enum ReleaseType { Develop, Staging, Production }
-
-	static Updater()
+	private static string GithubReleaseUrl(string file, string protocol = null)
 	{
-		Platform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) switch
-		{
-			true => OsType.Windows,
-			false => OsType.Linux
-		};
+		string branch = "main";
+		string suffix = (Community.Runtime.Analytics.Platform == "linux") ? "Unix" : default;
+		string target = (Community.Runtime.Analytics.Branch == "Release") ? "Release" : "Debug";
 
-		Repository = @"CarbonCommunity/Carbon.Redist";
-
-		Release =
-#if DEBUG
-		ReleaseType.Develop;
-#else
-		ReleaseType.Production;
-#endif
+		return $"https://raw.githubusercontent.com/{Repository}/{branch}/Modules/"
+			+ $"{target}{suffix}/{(protocol is null ? $"{file}" : $"/{protocol}/{file}")}";
 	}
 
-	private static string GithubReleaseUrl(string file)
-	{
-		string branch = string.Empty;
-		string suffix = string.Empty;
-		string target = string.Empty;
-
-		switch (Release)
-		{
-			case ReleaseType.Develop:
-				branch = "main";
-				target = "Debug";
-				break;
-
-			case ReleaseType.Staging:
-				branch = "main";
-				target = "Debug";
-				break;
-
-			case ReleaseType.Production:
-				branch = "main";
-				target = "Release";
-				break;
-		}
-
-		switch (Platform)
-		{
-			case OsType.Windows:
-				suffix = string.Empty;
-				break;
-
-			case OsType.Linux:
-				suffix = $"Unix";
-				break;
-		}
-
-		return $"https://raw.githubusercontent.com/{Repository}/{branch}/Modules/{target}{suffix}/{file}";
-	}
-
-	public static void DoUpdate(Action<bool> callback = null)
+	public static async void DoUpdate(Action<bool> callback = null)
 	{
 		// FIXME: the update process is triggering carbon init process twice
 		// when more than one file is listed here to be downloaded [and] one of
@@ -87,35 +43,100 @@ public sealed class Updater
 			@"carbon/managed/hooks/Carbon.Hooks.Extra.dll"
 		};
 
-		bool retval = false;
-
+		int failed = 0;
 		foreach (string file in files)
 		{
-			string url = GithubReleaseUrl(file);
-			Logger.Warn($"Updating component '{Path.GetFileName(file)}' using the '{Release} [{Platform}]' branch");
+			Logger.Warn($"Updating component '{Path.GetFileName(file)}@{Community.Runtime.Analytics.Protocol}' using the "
+				+ $"'{Community.Runtime.Analytics.Branch} [{Community.Runtime.Analytics.Platform}]' branch");
+			byte[] buffer = await Community.Runtime.Downloader.Download(GithubReleaseUrl(file, Community.Runtime.Analytics.Protocol));
 
-			Community.Runtime.Downloader.DownloadAsync(url, (string identifier, byte[] buffer) =>
+			if (buffer is { Length: < 1 })
 			{
-				if (buffer is { Length: > 0 })
-				{
-					Logger.Warn($"Patch downloaded [{Path.GetFileName(url)}], processing {buffer.Length} bytes from memory");
-					string root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory);
+				Logger.Warn($"[Retry updating component '{Path.GetFileName(file)}' using the "
+					+ $"'{Community.Runtime.Analytics.Branch} [{Community.Runtime.Analytics.Platform}]' branch");
+				buffer = await Community.Runtime.Downloader.Download(GithubReleaseUrl(file));
+			}
 
-					try
-					{
-						string destination = Path.GetFullPath(Path.Combine(root, file));
-						File.WriteAllBytes(destination, buffer);
-						retval = true;
-					}
-					catch (System.Exception e)
-					{
-						Logger.Error($"Error while updating component '{file}'", e);
-						retval = false;
-					}
-				}
+			if (buffer is { Length: < 1 })
+			{
+				Logger.Warn($"Unable to update component '{Path.GetFileName(file)}', please try again later");
+				failed++; continue;
+			}
 
-				callback?.Invoke(retval);
-			});
+			try
+			{
+				string destination = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file));
+				File.WriteAllBytes(destination, buffer);
+			}
+			catch (System.Exception e)
+			{
+				Logger.Error($"Error while updating component '{Path.GetFileName(file)}'", e);
+				failed++;
+			}
 		}
+		callback?.Invoke(failed == 0);
 	}
+
+	// private static async Task<string[]> APIGetFileList()
+	// {
+	// 	string suffix = (Community.Runtime.Analytics.Platform == "linux") ? "Unix" : default;
+	// 	string target = (Community.Runtime.Analytics.Branch == "Release") ? "Release" : "Debug";
+	// 	string url = $"https://api.github.com/repos/{Repository}/contents";
+
+	// 	byte[] buffer = await Community.Runtime.Downloader.Download($"{url}/Modules/{target}{suffix}");
+
+	// 	if (buffer is { Length: > 0 })
+	// 	{
+	// 		string json = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+	// 		List<GithubAPIContents> result = JsonConvert.DeserializeObject<List<GithubAPIContents>>(json);
+	// 		return result.Where(x => Regex.IsMatch(x.Name, @"^[\d]{8}$"))
+	// 			.OrderByDescending(x => x.Name).Select(x => x.Path).ToArray();
+	// 	}
+	// 	return default;
+	// }
+
+	// public partial class GithubAPIContents
+	// {
+	// 	[JsonProperty("name")]
+	// 	public string Name { get; set; }
+
+	// 	[JsonProperty("path")]
+	// 	public string Path { get; set; }
+
+	// 	[JsonProperty("sha")]
+	// 	public string Sha { get; set; }
+
+	// 	[JsonProperty("size")]
+	// 	public long Size { get; set; }
+
+	// 	[JsonProperty("url")]
+	// 	public Uri Url { get; set; }
+
+	// 	[JsonProperty("html_url")]
+	// 	public Uri HtmlUrl { get; set; }
+
+	// 	[JsonProperty("git_url")]
+	// 	public Uri GitUrl { get; set; }
+
+	// 	[JsonProperty("download_url")]
+	// 	public object DownloadUrl { get; set; }
+
+	// 	[JsonProperty("type")]
+	// 	public string Type { get; set; }
+
+	// 	[JsonProperty("_links")]
+	// 	public GithubAPILinks Links { get; set; }
+
+	// 	public partial class GithubAPILinks
+	// 	{
+	// 		[JsonProperty("self")]
+	// 		public Uri Self { get; set; }
+
+	// 		[JsonProperty("git")]
+	// 		public Uri Git { get; set; }
+
+	// 		[JsonProperty("html")]
+	// 		public Uri Html { get; set; }
+	// 	}
+	// }
 }

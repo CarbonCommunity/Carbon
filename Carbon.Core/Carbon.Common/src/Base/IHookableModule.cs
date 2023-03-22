@@ -13,5 +13,5 @@ namespace Carbon.Base.Interfaces;
 
 public interface IHookableModule
 {
-	Dictionary<string, List<KeyValuePair<MethodInfo, Delegate>>> HookCache { get; }
+	Dictionary<string, List<BaseHookable.CachedHook>> HookCache { get; }
 }

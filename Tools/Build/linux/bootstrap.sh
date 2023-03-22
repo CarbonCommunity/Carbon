@@ -34,3 +34,6 @@ done
 
 # Download rust binary libs
 "${BASE}/update.sh" public
+
+# Don't track changes to this file
+git update-index --assume-unchanged "${ROOT}/Tools/Helpers/doorstop_config.ini"

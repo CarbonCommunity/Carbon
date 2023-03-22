@@ -16,10 +16,11 @@ using Carbon.Extensions;
 
 namespace Carbon.Modules;
 
-public class ColorPickerModule : CarbonModule<ColorPickerConfig, ColorPickerData>
+public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 {
 	public override string Name => "Color Picker";
 	public override Type Type => typeof(ColorPickerModule);
+	public override bool IsCoreModule => true;
 	public override bool EnabledByDefault => true;
 
 	public static float Brightness = 1f;
@@ -36,6 +37,13 @@ public class ColorPickerModule : CarbonModule<ColorPickerConfig, ColorPickerData
 
 	public void Open(BasePlayer player, Action<string, string> onColorPicked)
 	{
+		if(!ModuleConfiguration.Enabled)
+		{
+			var empty = string.Empty;
+			onColorPicked?.Invoke(empty, empty);
+			return;
+		}
+
 		DrawCursorLocker(player);
 		Draw(player, onColorPicked);
 		FirstOpen = true;
@@ -201,7 +209,7 @@ public class ColorPickerModule : CarbonModule<ColorPickerConfig, ColorPickerData
 		var player = args.Player();
 		var mode = args.Args[0];
 		var hex = args.Args[1];
-		var rawColor = args.Args.Skip(2).ToArray().ToString(", ", ", ");
+		var rawColor = args.Args.Skip(2).ToArray().ToString(" ", " ");
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
 		switch (mode)
@@ -209,6 +217,7 @@ public class ColorPickerModule : CarbonModule<ColorPickerConfig, ColorPickerData
 			case "brightness":
 				Brightness = color.r.Scale(0f, 1f, 0f, 2.5f);
 				BrightnessIndicator = (int)color.r.Scale(0f, 1f, 0f, 20.5f);
+				FirstOpen = true;
 				Draw(player, OnColorPicked);
 				return;
 		}
@@ -217,13 +226,4 @@ public class ColorPickerModule : CarbonModule<ColorPickerConfig, ColorPickerData
 		OnColorPicked = null;
 		Close(args.Player());
 	}
-}
-
-public class ColorPickerConfig
-{
-
-}
-public class ColorPickerData
-{
-
 }

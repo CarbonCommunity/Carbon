@@ -125,21 +125,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: ⬇️ Download artifacts
-      uses: actions/download-artifact@v3
-      with:
-        path: Release/
-        
     - name: 🗑️ Delete existing release tag
-      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
       with:
         delete_release: true
         tag_name: staging_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: ⬇️ Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: Release/
+        
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: Release
+
     - name: 🏷️ Update release tag
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
       with:
         draft: false
         prerelease: true
@@ -152,7 +156,7 @@ jobs:
           The general public is advised to use one of the [stable] builds.
 
           ### How to install
-          1. Download the `Carbon.Debug[Unix]` archive from the attachments below.
+          1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
           2. Unzip the archive to the root of your Rust Dedicated Server.
           3. Restart the server and enjoy.
           

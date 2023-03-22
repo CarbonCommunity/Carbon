@@ -4,12 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Windows.Shell;
 using API.Events;
 using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
-using Carbon.Contracts;
 using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
@@ -17,8 +15,10 @@ using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Game.Rust.Libraries;
 using Oxide.Plugins;
 using UnityEngine;
+using Application = UnityEngine.Application;
 using Pool = Facepunch.Pool;
 
 /*
@@ -29,6 +29,7 @@ using Pool = Facepunch.Pool;
  */
 
 namespace Carbon.Core;
+#pragma warning disable IDE0051
 
 public class CorePlugin : CarbonPlugin
 {
@@ -38,7 +39,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		OrderedFiles.Clear();
 
-		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs"))
+		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", SearchOption.TopDirectoryOnly))
 		{
 			OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
 		}
@@ -56,16 +57,21 @@ public class CorePlugin : CarbonPlugin
 
 	public override void IInit()
 	{
-		Hooks = new List<string>()
+		ApplyStacktrace();
+
+		Type = GetType();
+		Hooks = new();
+
+		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
-			"IOnBasePlayerAttacked",
-			"IOnPlayerCommand",
-			"IOnPlayerConnected",
-			"IOnUserApprove",
-			"OnEntityDeath",
-			"OnEntityKill",
-			"OnEntitySpawned",
-		};
+			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+			{
+				Community.Runtime.HookManager.Subscribe(method.Name, Name);
+
+				var priority = method.GetCustomAttribute<HookPriority>();
+				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+			}
+		}
 
 		base.IInit();
 
@@ -81,6 +87,15 @@ public class CorePlugin : CarbonPlugin
 		});
 	}
 
+	private void OnServerInitialized()
+	{
+		Community.Runtime.ModuleProcessor.OnServerInit();
+	}
+
+	private void OnPlayerDisconnected(BasePlayer player, string reason)
+	{
+		Logger.Log($"{player.net.connection} left: {reason}");
+	}
 	private void OnPluginLoaded(Plugin plugin)
 	{
 		Community.Runtime.Events.Trigger(CarbonEvent.PluginLoaded, new CarbonEventArgs(plugin));
@@ -104,8 +119,11 @@ public class CorePlugin : CarbonPlugin
 
 	private void OnServerSave()
 	{
-		Logger.Log($"Saving Carbon state..");
+		Logger.Debug($"Saving Carbon state..", 1);
 		Interface.Oxide.Permission.SaveData();
+
+		Community.Runtime.Events
+			.Trigger(CarbonEvent.OnServerSave, EventArgs.Empty);
 	}
 
 	#region Internal Hooks
@@ -114,6 +132,9 @@ public class CorePlugin : CarbonPlugin
 
 	private void IOnPlayerConnected(BasePlayer player)
 	{
+		lang.SetLanguage(player.net.connection.info.GetString("global.language", "en"), player.UserIDString);
+		player.SendEntitySnapshot(CommunityEntity.ServerInstance);
+
 		permission.RefreshUser(player);
 		Interface.CallHook("OnPlayerConnected", player);
 	}
@@ -190,6 +211,8 @@ public class CorePlugin : CarbonPlugin
 		return null;
 	}
 
+	internal readonly string[] _emptyStringArray = new string[0];
+
 	private object IOnPlayerCommand(BasePlayer player, string message)
 	{
 		if (Community.Runtime == null) return true;
@@ -199,10 +222,10 @@ public class CorePlugin : CarbonPlugin
 			var fullString = message.Substring(1);
 			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 			var command = split[0].Trim();
-			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : new string[0];
-			Facepunch.Pool.Free(ref split);
+			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
+			Pool.Free(ref split);
 
-			if (HookCaller.CallStaticHook("OnPlayerCommand", BasePlayer.FindByID(player.userID), command, args) != null)
+			if (HookCaller.CallStaticHook("OnPlayerCommand", player, command, args) != null)
 			{
 				return false;
 			}
@@ -218,7 +241,7 @@ public class CorePlugin : CarbonPlugin
 							var hasPerm = cmd.Permissions.Length == 0;
 							foreach (var permission in cmd.Permissions)
 							{
-								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
+								if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasPermission(player.UserIDString, permission))
 								{
 									hasPerm = true;
 									break;
@@ -237,7 +260,7 @@ public class CorePlugin : CarbonPlugin
 							var hasGroup = cmd.Groups.Length == 0;
 							foreach (var group in cmd.Groups)
 							{
-								if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
+								if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasGroup(player.UserIDString, group))
 								{
 									hasGroup = true;
 									break;
@@ -253,16 +276,16 @@ public class CorePlugin : CarbonPlugin
 
 						if (cmd.AuthLevel != -1)
 						{
-							var hasAuth = !ServerUsers.users.ContainsKey(player.userID) ? player.Connection.authLevel >= cmd.AuthLevel : (int)ServerUsers.Get(player.userID).group >= cmd.AuthLevel;
+							var hasAuth = player.Connection.authLevel >= cmd.AuthLevel;
 
 							if (!hasAuth)
 							{
-								player?.ConsoleMessage($"You don't have the minimum required auth level to execute this command.");
+								player?.ConsoleMessage($"You don't have the minimum auth level [{cmd.AuthLevel}] required to execute this command [your level: {player.Connection.authLevel}].");
 								continue;
 							}
 						}
 
-						if (CooldownAttribute.IsCooledDown(player, cmd.Command, cmd.Cooldown, true))
+						if (CarbonPlugin.IsCommandCooledDown(player, cmd.Command, cmd.Cooldown, true))
 						{
 							continue;
 						}
@@ -274,19 +297,26 @@ public class CorePlugin : CarbonPlugin
 					}
 					catch (Exception ex)
 					{
-						Logger.Error("ConsoleSystem_Run", ex);
+						Logger.Error("IOnPlayerCommand", ex);
 					}
 
 					return false;
 				}
 			}
+
+			if (HookCaller.CallStaticHook("OnUnknownPlayerCommand", player, command, args) != null)
+			{
+				return false;
+			}
 		}
-		catch { }
+		catch (Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }
 
 		return true;
 	}
 	private object IOnServerCommand(ConsoleSystem.Arg arg)
 	{
+		if (arg != null && arg.cmd != null && arg.cmd.FullName == "chat.say") return null;
+
 		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
 		{
 			return null;
@@ -315,6 +345,15 @@ public class CorePlugin : CarbonPlugin
 
 		return hook2;
 	}
+	private void IOnServerShutdown()
+	{
+		Logger.Log($"Saving plugin configuration and data..");
+		HookCaller.CallStaticHook("OnServerSave");
+
+		Logger.Log($"Shutting down Carbon..");
+		Interface.Oxide.OnShutdown();
+		Community.Runtime.ScriptProcessor.Clear();
+	}
 
 	#endregion
 
@@ -325,35 +364,67 @@ public class CorePlugin : CarbonPlugin
 			arg.Player().SendConsoleCommand($"echo {message}");
 			return;
 		}
-		Logger.Log(message);
+
+		if (message is string) arg.ReplyWith(message.ToString());
+		else arg.ReplyWith(message);
+	}
+
+	internal static StackTraceLogType _defaultLogTrace = Application.GetStackTraceLogType(LogType.Log);
+	internal static StackTraceLogType _defaultWarningTrace = Application.GetStackTraceLogType(LogType.Warning);
+	internal static StackTraceLogType _defaultErrorTrace = Application.GetStackTraceLogType(LogType.Error);
+	internal static StackTraceLogType _defaultAssertTrace = Application.GetStackTraceLogType(LogType.Assert);
+	internal static StackTraceLogType _defaultExceptionTrace = Application.GetStackTraceLogType(LogType.Exception);
+
+	public static void ApplyStacktrace()
+	{
+		if (Community.Runtime.Config.UnityStacktrace)
+		{
+			Application.SetStackTraceLogType(LogType.Log, _defaultLogTrace);
+			Application.SetStackTraceLogType(LogType.Warning, _defaultWarningTrace);
+			Application.SetStackTraceLogType(LogType.Error, _defaultErrorTrace);
+			Application.SetStackTraceLogType(LogType.Assert, _defaultAssertTrace);
+			Application.SetStackTraceLogType(LogType.Exception, _defaultExceptionTrace);
+		}
+		else
+		{
+			Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
+			Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
+			Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.None);
+			Application.SetStackTraceLogType(LogType.Assert, StackTraceLogType.None);
+			Application.SetStackTraceLogType(LogType.Exception, StackTraceLogType.None);
+		}
 	}
 
 	#region Commands
 
 	#region App
 
-	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
-	private void Exit(ConsoleSystem.Arg arg)
-	{
-		Supervisor.ASM.UnloadModule("Carbon.dll", false);
-	}
+	// DISABLED UNTIL FULLY FUNCTIONAL
+	// [ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
+	// private void Exit(ConsoleSystem.Arg arg)
+	// {
+	// 	//FIXMENOW
+	// 	//Supervisor.ASM.UnloadModule("Carbon.dll", false);
+	// }
 
-	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
-	private void Reboot(ConsoleSystem.Arg arg)
-	{
-		Supervisor.ASM.UnloadModule("Carbon.dll", true);
-	}
+	// DISABLED UNTIL FULLY FUNCTIONAL
+	// [ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
+	// private void Reboot(ConsoleSystem.Arg arg)
+	// {
+	// 	//FIXMENOW
+	// 	//Supervisor.ASM.UnloadModule("Carbon.dll", true);
+	// }
 
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
 	private void GetVersion(ConsoleSystem.Arg arg)
 	{
-		Reply($"Carbon v{Community.Version}", arg);
+		Reply($"Carbon v{Community.Runtime.Analytics.Version}", arg);
 	}
 
 	[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
 	private void GetBuild(ConsoleSystem.Arg arg)
 	{
-		Reply($"{Community.InformationalVersion}", arg);
+		Reply($"{Community.Runtime.Analytics.InformationalVersion}", arg);
 	}
 
 	[ConsoleCommand("plugins", "Prints the list of mods and their loaded plugins.")]
@@ -433,22 +504,25 @@ public class CorePlugin : CarbonPlugin
 		}
 	}
 
-	[ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
-	private void Update(ConsoleSystem.Arg arg)
-	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
+	// DISABLED UNTIL FULLY FUNCTIONAL
+	// [ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
+	// private void Update(ConsoleSystem.Arg arg)
+	// {
+	// 	if (!arg.IsPlayerCalledAndAdmin()) return;
 
-		Carbon.Core.Updater.DoUpdate((bool result) =>
-		{
-			if (!result)
-			{
-				Logger.Error($"Unknown error while updating Carbon");
-				return;
-			}
-			HookCaller.CallStaticHook("OnServerSave");
-			Supervisor.ASM.UnloadModule("Carbon.dll", true);
-		});
-	}
+	// 	Updater.DoUpdate((bool result) =>
+	// 	{
+	// 		if (!result)
+	// 		{
+	// 			Logger.Error($"Unknown error while updating Carbon");
+	// 			return;
+	// 		}
+	// 		HookCaller.CallStaticHook("OnServerSave");
+
+	// 		//FIXMENOW
+	// 		//Supervisor.ASM.UnloadModule("Carbon.dll", true);
+	// 	});
+	// }
 
 	#endregion
 
@@ -585,27 +659,6 @@ public class CorePlugin : CarbonPlugin
 							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
 							break;
 
-						// case "--failed":
-						// 	hooks = CommunityCommon.Runtime.HookManager.StaticHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Failure);
-						// 	hooks = hooks.Concat(CommunityCommon.Runtime.HookManager.DynamicHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Failure));
-						// 	break;
-
-						// case "--warning":
-						// 	hooks = CommunityCommon.Runtime.HookManager.StaticHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Warning);
-						// 	hooks = hooks.Concat(CommunityCommon.Runtime.HookManager.DynamicHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Warning));
-						// 	break;
-
-						// case "--success":
-						// 	hooks = CommunityCommon.Runtime.HookManager.StaticHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Success);
-						// 	hooks = hooks.Concat(CommunityCommon.Runtime.HookManager.DynamicHooks
-						// 		.Where(x => !x.IsHidden && x.Status == HookState.Success));
-						// 	break;
-
 						default:
 							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
 							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
@@ -718,8 +771,8 @@ public class CorePlugin : CarbonPlugin
 	[CommandVar("modding", "Mark this server as modded or not.", true)]
 	private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("tag", "Displays this server in the browser list with the 'carbon' tag.", true)]
-	private bool CarbonTag { get { return Community.Runtime.Config.CarbonTag; } set { Community.Runtime.Config.CarbonTag = value; Community.Runtime.SaveConfig(); } }
+	[CommandVar("higherpriorityhookwarns", "Print warns if hooks with higher priority conflict with other hooks. Best to keep this disabled. Same-priority hooks will be printed.", true)]
+	private bool HigherPriorityHookWarns { get { return Community.Runtime.Config.HigherPriorityHookWarns; } set { Community.Runtime.Config.HigherPriorityHookWarns = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.", true)]
 	private bool HarmonyReference { get { return Community.Runtime.Config.HarmonyReference; } set { Community.Runtime.Config.HarmonyReference = value; Community.Runtime.SaveConfig(); } }
@@ -729,6 +782,18 @@ public class CorePlugin : CarbonPlugin
 
 	[CommandVar("logfiletype", "The mode for writing the log to file. (0=disabled, 1=saves updates every 5 seconds, 2=saves immediately)", true)]
 	private int LogFileType { get { return Community.Runtime.Config.LogFileMode; } set { Community.Runtime.Config.LogFileMode = Mathf.Clamp(value, 0, 2); Community.Runtime.SaveConfig(); } }
+
+	[CommandVar("unitystacktrace", "Enables a big chunk of detail of Unity's default stacktrace. Recommended to be disabled as a lot of it is internal and unnecessary for the average user.", true)]
+	private bool UnityStacktrace
+	{
+		get { return Community.Runtime.Config.UnityStacktrace; }
+		set
+		{
+			Community.Runtime.Config.UnityStacktrace = value;
+			Community.Runtime.SaveConfig();
+			ApplyStacktrace();
+		}
+	}
 
 	[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true)]
 	private bool HookTimeTracker { get { return Community.Runtime.Config.HookTimeTracker; } set { Community.Runtime.Config.HookTimeTracker = value; Community.Runtime.SaveConfig(); } }
@@ -783,7 +848,7 @@ public class CorePlugin : CarbonPlugin
 
 		foreach (var command in Community.Runtime.AllConsoleCommands)
 		{
-			if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
+			if (command.IsHidden || (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter))) continue;
 
 			var value = " ";
 
@@ -809,7 +874,7 @@ public class CorePlugin : CarbonPlugin
 
 		foreach (var command in Community.Runtime.AllChatCommands)
 		{
-			if (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter)) continue;
+			if (command.IsHidden || (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter))) continue;
 
 			body.AddRow(command.Command, command.Help);
 		}
@@ -944,7 +1009,6 @@ public class CorePlugin : CarbonPlugin
 		switch (name)
 		{
 			case "*":
-				Community.Runtime.ClearPlugins();
 				Community.Runtime.ReloadPlugins();
 				break;
 

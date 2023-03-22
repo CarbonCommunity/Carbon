@@ -142,7 +142,7 @@ namespace Oxide.Ext.Discord
 				for (int i = 0; i < this.RegisteredForHooks.Count; i++)
 				{
 					Plugin plugin = this.RegisteredForHooks[i];
-					plugin.CallHook(hookName, args);
+					plugin.Call(hookName, args);
 				}
 			});
 		}

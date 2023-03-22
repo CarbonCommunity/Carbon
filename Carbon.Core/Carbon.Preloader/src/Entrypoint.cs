@@ -16,8 +16,6 @@ public sealed class Entrypoint
 {
 	private static readonly string[] Preload = {
 		Path.Combine(Context.CarbonLib, "0Harmony.dll"),
-		//Path.Combine(Context.CarbonManaged, "Carbon.Bootstrap.dll"),
-		//Path.Combine(Context.CarbonManaged, "Carbon.Common.dll")
 	};
 
 	public static void Start()

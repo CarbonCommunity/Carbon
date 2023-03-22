@@ -9,6 +9,7 @@ using HarmonyLib;
  */
 
 namespace Patches;
+#pragma warning disable IDE0051
 
 internal static class __RCon
 {

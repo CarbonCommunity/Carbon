@@ -8,6 +8,7 @@
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Fun
 {
@@ -18,7 +19,7 @@ public partial class Category_Fun
 
 		// Checks if player that connected is Jackie Chan.
 
-		public class Fun_BasePlayer_98afa60bc10945799214031b1c017ac5 : API.Hooks.Patch
+		public class Fun_BasePlayer_98afa60bc10945799214031b1c017ac5 : Patch
 		{
 			public static void Prefix(Network.Connection c)
 			{

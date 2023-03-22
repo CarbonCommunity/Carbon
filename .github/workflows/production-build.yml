@@ -131,21 +131,25 @@ jobs:
     if: ${{ (github.event_name == 'push') || (github.event_name == 'workflow_dispatch') || (github.event_name == 'schedule' && needs.build-linux.outputs.wipe == 'true') }}
 
     steps:
-    - name: ⬇️ Download artifacts
-      uses: actions/download-artifact@v3
-      with:
-        path: Release/
-        
     - name: 🗑️ Delete existing release tag
-      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
       with:
         delete_release: true
         tag_name: production_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: ⬇️ Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: Release/
+        
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: Release
+
     - name: 🏷️ Update release tag
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
       with:
         draft: false
         prerelease: false
@@ -156,7 +160,7 @@ jobs:
           This build is targeted at the general public.
 
           ### How to install
-          1. Download the `Carbon.Release[Unix].zip` archive from the attachments below.
+          1. Download the `Carbon.[Windows|Linux].Release` archive from the attachments below.
           2. Unzip the archive to the root of your Rust Dedicated Server.
           3. Restart the server and enjoy.
           

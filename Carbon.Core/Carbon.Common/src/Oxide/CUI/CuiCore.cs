@@ -134,7 +134,7 @@ public class CuiElementContainer : List<CuiElement>
 				button.Button,
 				button.RectTransform
 			},
-			DestroyUI = destroyUi
+			DestroyUi = destroyUi
 		});
 		if (!string.IsNullOrEmpty(button.Text.Text))
 		{
@@ -147,7 +147,7 @@ public class CuiElementContainer : List<CuiElement>
 					button.Text,
 					new CuiRectTransformComponent()
 				},
-				DestroyUI = destroyUi
+				DestroyUi = destroyUi
 			});
 		}
 		return name;
@@ -170,7 +170,7 @@ public class CuiElementContainer : List<CuiElement>
 				label.Text,
 				label.RectTransform
 			},
-			DestroyUI = destroyUi
+			DestroyUi = destroyUi
 		});
 		return name;
 	}
@@ -187,7 +187,7 @@ public class CuiElementContainer : List<CuiElement>
 			Name = name,
 			Parent = parent,
 			FadeOut = panel.FadeOut,
-			DestroyUI = destroyUi
+			DestroyUi = destroyUi
 		};
 		if (panel.Image != null)
 		{
@@ -435,7 +435,7 @@ public class CuiElement
 	public List<ICuiComponent> Components { get; } = new List<ICuiComponent>();
 
 	[JsonProperty("destroyUi", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
-	public string DestroyUI { get; set; }
+	public string DestroyUi { get; set; }
 
 	[JsonProperty("fadeOut", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeOut { get; set; }

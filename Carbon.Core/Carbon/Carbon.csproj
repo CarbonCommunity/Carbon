@@ -5,20 +5,14 @@
 		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
 	</PropertyGroup>
 
-	<Import Project="..\.msbuild\Common.props" />
-	<Import Project="..\.msbuild\ReferencesRust.props" />
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
+	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
-		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
-		<PackageReference Include="MySql.Data" Version="8.0.32" />
-		<PackageReference Include="protobuf-net.Core" Version="3.1.17" />
-		<PackageReference Include="protobuf-net" Version="3.1.17" />
-		<PackageReference Include="QRCoder" Version="1.4.3" />
-		<PackageReference Include="Roslynator.CSharp" Version="4.1.1" />
-		<PackageReference Include="SharpCompress" Version="0.32.2" />
-		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
-		<PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
+		<PackageReference Include="Roslynator.CSharp" Version="4.2.0" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" Private="false" />
 	</ItemGroup>
 
 	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">

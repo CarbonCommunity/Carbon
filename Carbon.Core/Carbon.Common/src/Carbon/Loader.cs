@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using API.Contracts;
 using API.Events;
 using Carbon.Base;
@@ -27,6 +28,8 @@ public static class Loader
 	public static List<Assembly> AssemblyCache { get; } = new();
 	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new();
 	public static Dictionary<string, List<string>> PendingRequirees { get; } = new();
+	public static bool IsBatchComplete { get; set; }
+	public static List<string> PostBatchFailedRequirees { get; } = new();
 
 	static Loader()
 	{
@@ -118,20 +121,21 @@ public static class Loader
 			return false;
 		}
 
-		foreach (var hook in mod.Hooks)
-		{
-			try
-			{
-				var type = hook.GetType();
-				if (type.Name.Equals("CarbonInitializer")) continue;
+		//FIXMENOW
+		// foreach (var hook in mod.Hooks)
+		// {
+		// 	try
+		// 	{
+		// 		var type = hook.GetType();
+		// 		if (type.Name.Equals("CarbonInitializer")) continue;
 
-				hook.OnUnloaded(new EventArgs());
-			}
-			catch (Exception arg)
-			{
-				LogError(mod.Name, $"Failed to call hook 'OnLoaded' {arg}");
-			}
-		}
+		// 		hook.OnUnloaded(new EventArgs());
+		// 	}
+		// 	catch (Exception arg)
+		// 	{
+		// 		LogError(mod.Name, $"Failed to call hook 'OnLoaded' {arg}");
+		// 	}
+		// }
 
 		UninitializePlugins(mod);
 		return true;
@@ -234,8 +238,9 @@ public static class Loader
 		plugin.CallHook("Unload");
 		plugin.IUnload();
 
+		HookCaller.CallStaticHook("OnPluginUnloaded", plugin);
+
 		RemoveCommands(plugin);
-		//HookCaller.CallHook(plugin, "OnPluginUnloaded");
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
 
@@ -265,7 +270,7 @@ public static class Loader
 			var groups = method.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = method.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = method.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -291,7 +296,7 @@ public static class Loader
 
 			if (uiCommand != null)
 			{
-				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(CUI.UniquifyCommand(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true);
 			}
 		}
 
@@ -302,7 +307,7 @@ public static class Loader
 			var groups = field.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = field.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = field.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -363,7 +368,7 @@ public static class Loader
 			var groups = property.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = property.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = property.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -426,9 +431,29 @@ public static class Loader
 		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == hookable);
 		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == hookable);
 	}
-
+	
 	public static void OnPluginProcessFinished()
 	{
+		var temp = Pool.GetList<string>();
+		temp.AddRange(PostBatchFailedRequirees);
+
+		foreach (var plugin in temp)
+		{
+			var file = System.IO.Path.GetFileNameWithoutExtension(plugin);
+			Community.Runtime.ScriptProcessor.ClearIgnore(file);
+			Community.Runtime.ScriptProcessor.Prepare(file, plugin);
+		}
+
+		PostBatchFailedRequirees.Clear();
+
+		if (PostBatchFailedRequirees.Count == 0)
+		{
+			IsBatchComplete = true;
+		}
+
+		temp.Clear();
+		Pool.FreeList(ref temp);
+
 		if (Community.IsServerFullyInitialized)
 		{
 			var counter = 0;
@@ -568,7 +593,7 @@ public static class Loader
 		public bool IsCoreMod { get; set; } = false;
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }
-		public List<IHarmonyMod> Hooks { get; } = new List<IHarmonyMod>();
+		//public List<IHarmonyMod> Hooks { get; } = new List<IHarmonyMod>();
 
 		[JsonProperty]
 		public List<RustPlugin> Plugins { get; set; } = new List<RustPlugin>();

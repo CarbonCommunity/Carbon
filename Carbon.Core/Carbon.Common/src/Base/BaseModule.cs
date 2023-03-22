@@ -19,8 +19,15 @@ public abstract class BaseModule : BaseHookable
 {
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
+	public virtual bool Disabled => false;
+	public virtual bool IsCoreModule => false;
 
+	public abstract void OnPostServerInit();
+	public abstract void OnServerInit();
+	public abstract void Load();
+	public abstract void Save();
 	public abstract bool GetEnabled();
+	public abstract void SetEnabled(bool enable);
 
 	public static T GetModule<T>()
 	{
@@ -67,7 +74,9 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		base.Name = Name;
 		base.Type = Type;
 
-		Hooks = new System.Collections.Generic.List<string>();
+		if (Disabled) return;
+
+		Hooks = new();
 
 		Community.Runtime.HookManager.LoadHooksFromType(Type);
 
@@ -76,7 +85,9 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 			{
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
-				Hooks.Add(method.Name);
+
+				var priority = method.GetCustomAttribute<HookPriority>();
+				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
 			}
 		}
 
@@ -84,13 +95,13 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 		Load();
-		OnEnableStatus();
+		if (ModuleConfiguration.Enabled) OnEnableStatus();
 	}
 	public virtual void InitEnd()
 	{
-		Puts($"Initialized.");
+		Puts(Disabled ? "Disabled." : $"Initialized.");
 	}
-	public virtual void Load()
+	public override void Load()
 	{
 		var shouldSave = false;
 
@@ -130,7 +141,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		return false;
 	}
-	public virtual void Save()
+	public override void Save()
 	{
 		if (ModuleConfiguration == null)
 		{
@@ -147,8 +158,10 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		if (DataInstance != null) Data.WriteObject(DataInstance);
 	}
 
-	public void SetEnabled(bool enable)
+	public override void SetEnabled(bool enable)
 	{
+		if (Disabled) return;
+
 		if (ModuleConfiguration != null)
 		{
 			ModuleConfiguration.Enabled = enable;
@@ -157,33 +170,23 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override bool GetEnabled()
 	{
-		return ModuleConfiguration != null && ModuleConfiguration.Enabled;
+		return IsCoreModule || (!Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled);
 	}
 
 	public virtual void OnDisabled(bool initialized)
 	{
-		Loader.RemoveCommands(this);
+		if (initialized) Loader.RemoveCommands(this);
 
-		foreach (var hook in Hooks)
-		{
-			Unsubscribe(hook);
-		}
+		UnsubscribeAll();
+		UnregisterPermissions();
 
 		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
-		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		if(initialized) Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-		if (Community.IsServerFullyInitialized)
-		{
-			HookCaller.CallHook(this, "OnServerInitialized");
-		}
-
-		foreach (var hook in Hooks)
-		{
-			Subscribe(hook);
-		}
+		SubscribeAll();
 
 		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
@@ -192,14 +195,53 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		try
 		{
-			if (ModuleConfiguration != null && ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized); else OnDisabled(Community.IsServerFullyInitialized);
+			if (ModuleConfiguration == null) return;
+
+			if (ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized);
+			else OnDisabled(Community.IsServerFullyInitialized);
 		}
 		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}
 
-	private void OnServerInitialized()
+	private void OnServerSave()
 	{
-		if (GetEnabled()) OnEnableStatus();
+		try { Save(); }
+		catch(Exception ex)
+		{
+			Logger.Error($"Couldn't save '{Name}'", ex);
+		}
+	}
+
+	public override void OnServerInit()
+	{
+		OnEnableStatus();
+	}
+	public override void OnPostServerInit()
+	{
+		
+	}
+
+	public virtual bool PermissionExists(string permission)
+	{
+		return Community.Runtime.CorePlugin.permission.PermissionExists(permission, Community.Runtime.CorePlugin);
+	}
+	public virtual void RegisterPermission(string permission)
+	{
+		if (PermissionExists(permission)) return;
+
+		Community.Runtime.CorePlugin.permission.RegisterPermission(permission, Community.Runtime.CorePlugin);
+	}
+	public virtual void UnregisterPermissions()
+	{
+		Community.Runtime.CorePlugin.permission.UnregisterPermissions(this);
+	}
+	public virtual bool HasPermission(string userId, string permission)
+	{
+		return Community.Runtime.CorePlugin.permission.UserHasPermission(userId, permission);
+	}
+	public virtual bool HasPermission(BasePlayer player, string permission)
+	{
+		return HasPermission(player.UserIDString, permission);
 	}
 
 	public class Configuration : IModuleConfig

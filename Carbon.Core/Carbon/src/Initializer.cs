@@ -13,13 +13,17 @@ using API.Contracts;
 
 namespace Carbon.Core;
 
-public class Initializer : IHarmonyMod
+public class Initializer : ICarbonComponent
 {
+	public void Initialize(string identifier)
+	{
+	}
+
 	public void OnLoaded(EventArgs args)
 	{
 		try
 		{
-			if (_isOxideAround())
+			if (File.Exists(Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Core.dll")))
 			{
 				Logger.Log(Environment.NewLine +
 					@"                                                          " + Environment.NewLine +
@@ -107,15 +111,5 @@ public class Initializer : IHarmonyMod
 		Logger.Log("Uninitalizing...");
 		CommunityInternal.InternalRuntime?.Uninitalize();
 		CommunityInternal.InternalRuntime = null;
-	}
-
-	internal static bool _isOxideAround()
-	{
-		return File.Exists(Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Core.dll"));
-	}
-
-	internal void _installProcessors()
-	{
-
 	}
 }

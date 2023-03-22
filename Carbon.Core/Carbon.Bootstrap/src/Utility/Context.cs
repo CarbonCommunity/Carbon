@@ -16,9 +16,9 @@ internal sealed class Context
 		Needles = { ".", "..", "../.." };
 
 	internal static readonly string
-		Game, GameManaged, GameHarmony,
+		Game, GameManaged,
 
-		Carbon, CarbonManaged, CarbonExtensions, CarbonHarmony, CarbonLib, CarbonHooks, CarbonModules, CarbonLogs;
+		Carbon, CarbonManaged, CarbonLib, CarbonHarmony, CarbonHooks, CarbonModules, CarbonExtensions, CarbonPlugins, CarbonLogs;
 
 	static Context()
 	{
@@ -28,41 +28,43 @@ internal sealed class Context
 			string t = Path.GetFullPath(Path.Combine(
 				AppDomain.CurrentDomain.BaseDirectory, Needle));
 
-			if (!System.IO.Directory.Exists(Path.Combine(t, "RustDedicated_Data"))) continue;
+			if (!Directory.Exists(Path.Combine(t, "RustDedicated_Data"))) continue;
 			Game = t;
 			break;
 		}
 
 		try
 		{
-			if (Game == null) throw new System.Exception("Unable to find root folder");
+			if (Game == null) throw new Exception("Unable to find root folder");
 
 			GameManaged = Path.GetFullPath(Path.Combine(Game, "RustDedicated_Data", "Managed"));
-			GameHarmony = Path.GetFullPath(Path.Combine(Game, "HarmonyMods"));
 
 			Carbon = Path.GetFullPath(Path.Combine(Game, "carbon"));
 			if (!Directory.Exists(Carbon)) throw new Exception("Carbon folder is missing");
 
-			CarbonLogs = Path.Combine(Carbon, "logs");
-			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonLogs);
+			CarbonManaged = Path.Combine(Carbon, "managed");
+			if (!Directory.Exists(CarbonManaged)) Directory.CreateDirectory(CarbonManaged);
+
+			CarbonLib = Path.Combine(Carbon, "managed", "lib");
+			if (!Directory.Exists(CarbonLib)) Directory.CreateDirectory(CarbonLib);
 
 			CarbonHarmony = Path.Combine(Carbon, "harmony");
 			if (!Directory.Exists(CarbonHarmony)) Directory.CreateDirectory(CarbonHarmony);
 
-			CarbonManaged = Path.Combine(Carbon, "managed");
-			if (!Directory.Exists(CarbonManaged)) Directory.CreateDirectory(CarbonManaged);
+			CarbonHooks = Path.Combine(Carbon, "managed", "hooks");
+			if (!Directory.Exists(CarbonHooks)) Directory.CreateDirectory(CarbonHooks);
 
-			CarbonExtensions = Path.Combine(Carbon, "managed", "extensions");
+			CarbonModules = Path.Combine(Carbon, "managed", "modules");
+			if (!Directory.Exists(CarbonModules)) Directory.CreateDirectory(CarbonModules);
+
+			CarbonExtensions = Path.Combine(Carbon, "extensions");
 			if (!Directory.Exists(CarbonExtensions)) Directory.CreateDirectory(CarbonExtensions);
 
-			CarbonLib = Path.Combine(CarbonManaged, "lib");
-			if (!Directory.Exists(CarbonLib)) Directory.CreateDirectory(CarbonLib);
+			CarbonPlugins = Path.Combine(Carbon, "plugins");
+			if (!Directory.Exists(CarbonPlugins)) Directory.CreateDirectory(CarbonPlugins);
 
-			CarbonHooks = Path.Combine(CarbonManaged, "hooks");
-			if (!Directory.Exists(CarbonHooks)) Directory.CreateDirectory(CarbonModules);
-
-			CarbonModules = Path.Combine(CarbonManaged, "modules");
-			if (!Directory.Exists(CarbonModules)) Directory.CreateDirectory(CarbonModules);
+			CarbonLogs = Path.Combine(Carbon, "logs");
+			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonLogs);
 		}
 		catch (System.Exception e)
 		{

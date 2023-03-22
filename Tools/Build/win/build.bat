@@ -25,7 +25,7 @@ del /q "%ROOT%\Release\Carbon.%TARGET%.zip" 2>NUL
 echo ** Build the solution
 dotnet restore "%ROOT%\Carbon.Core" -v:m --nologo || exit /b
 dotnet   clean "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --nologo || exit /b
-dotnet   build "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --no-restore --no-incremental || exit /b
+dotnet   build "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --no-restore --no-incremental /p:UserConstants="%DEFINES%" || exit /b
 
 echo ** Copy operating system specific files
 echo "%TARGET%" | findstr /C:"Unix" >NUL && (
@@ -63,8 +63,6 @@ echo "%TARGET%" | findstr /C:"Unix" >NUL && (
 )
 
 if "%2" NEQ "--no-archive" (
-	
-
 	echo ** Create the compressed archive 'Carbon.%TOS%.%TAG%.zip'
 	powershell -Command "Compress-Archive -Update -Path '%ROOT%\Release\.tmp\%TARGET%\*' -DestinationPath '%ROOT%\Release\Carbon.%TOS%.%TAG%.zip'"
 	"%ROOT%\Tools\BuildInfo\Carbon.BuildInfo.exe" -carbon "%ROOT%\Release\.tmp\%TARGET%\carbon\managed\Carbon" -o "%ROOT%\Release\Carbon.%TOS%.%TAG%.info"

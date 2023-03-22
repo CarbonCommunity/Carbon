@@ -287,11 +287,11 @@ public class HookEx : IDisposable, IHook
 		_runtime.LastError = e;
 	}
 
-	private bool disposedValue;
+	private bool _disposing;
 
 	protected virtual void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposing)
 		{
 			// managed resources
 			if (disposing)
@@ -301,7 +301,7 @@ public class HookEx : IDisposable, IHook
 
 			// unmanaged resources
 			_runtime.HarmonyHandler = null;
-			disposedValue = true;
+			_disposing = true;
 		}
 	}
 
