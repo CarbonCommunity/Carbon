@@ -203,6 +203,15 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}
 
+	private void OnServerSave()
+	{
+		try { Save(); }
+		catch(Exception ex)
+		{
+			Logger.Error($"Couldn't save '{Name}'", ex);
+		}
+	}
+
 	public override void OnServerInit()
 	{
 		OnEnableStatus();
