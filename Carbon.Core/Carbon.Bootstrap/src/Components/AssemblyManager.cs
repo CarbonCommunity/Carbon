@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using API.Assembly;
 using API.Contracts;
-using API.Hooks;
 using API.Plugins;
 using Loaders;
 using Utility;
@@ -133,10 +132,9 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
-						?? throw new ReflectionTypeLoadException(null, null, null);
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
 
-					if (IsType<ICarbonComponent>(asm, out types))
+					if (IsComponent(asm, out types))
 					{
 						Logger.Debug($"Loading component from file '{file}'");
 
@@ -183,14 +181,14 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #if DEBUG
 		catch (System.Exception e)
 		{
-			Logger.Error($"Failed loading component '{file}'", e);
+			Logger.Error($"Failed loading module '{file}'", e);
 
 			return null;
 		}
 #else
 		catch (System.Exception)
 		{
-			Logger.Error($"Failed loading component '{file}'");
+			Logger.Error($"Failed loading module '{file}'");
 
 			return null;
 		}
@@ -210,10 +208,9 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
-						?? throw new ReflectionTypeLoadException(null, null, null);
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
 
-					if (IsType<ICarbonModule>(asm, out types))
+					if (IsModule(asm, out types))
 					{
 						Logger.Debug($"Loading module from file '{file}'");
 
@@ -287,10 +284,9 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
-						?? throw new ReflectionTypeLoadException(null, null, null);
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
 
-					if (IsType<ICarbonExtension>(asm, out types))
+					if (IsExtension(asm, out types))
 					{
 						Logger.Debug($"Loading extension from file '{file}'");
 
@@ -336,14 +332,14 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #if DEBUG
 		catch (System.Exception e)
 		{
-			Logger.Error($"Failed loading extension '{file}'", e);
+			Logger.Error($"Failed loading module '{file}'", e);
 
 			return null;
 		}
 #else
 		catch (System.Exception)
 		{
-			Logger.Error($"Failed loading extension '{file}'");
+			Logger.Error($"Failed loading module '{file}'");
 
 			return null;
 		}
@@ -363,10 +359,9 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
-						?? throw new ReflectionTypeLoadException(null, null, null);
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
 
-					if (IsType<Patch>(asm, out types))
+					if (IsHook(asm, out types))
 					{
 						Logger.Debug($"Loading hooks file '{file}'");
 						// TODO: Integrate part of HookManager here
@@ -422,10 +417,9 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
-						?? throw new ReflectionTypeLoadException(null, null, null);
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
 
-					if (IsType<ICarbonPlugin>(asm, out types))
+					if (IsPlugin(asm, out types))
 					{
 						Logger.Debug($"Loading plugin from file '{file}'");
 
@@ -486,19 +480,39 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #endif
 	}
 
-	private bool IsType<T>(Assembly assembly, out IEnumerable<Type> output)
+	private bool IsComponent(Assembly assembly, out IEnumerable<Type> output)
 	{
-		try
-		{
-			Type @base = typeof(T) ?? throw new Exception();
-			output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
-			return output.Count() > 0;
-		}
-		catch (System.Exception)
-		{
-			output = new List<Type>();
-			return false;
-		}
+		Type @base = typeof(API.Contracts.ICarbonComponent);
+		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
+		return (output.Count() > 0);
+	}
+
+	private bool IsModule(Assembly assembly, out IEnumerable<Type> output)
+	{
+		Type @base = typeof(API.Contracts.ICarbonModule);
+		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
+		return (output.Count() > 0);
+	}
+
+	private bool IsExtension(Assembly assembly, out IEnumerable<Type> output)
+	{
+		Type @base = typeof(API.Contracts.ICarbonExtension);
+		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
+		return (output.Count() > 0);
+	}
+
+	private bool IsHook(Assembly assembly, out IEnumerable<Type> output)
+	{
+		Type @base = typeof(API.Hooks.Patch);
+		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
+		return (output.Count() > 0);
+	}
+
+	private bool IsPlugin(Assembly assembly, out IEnumerable<Type> output)
+	{
+		Type @base = typeof(API.Plugins.ICarbonPlugin);
+		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
+		return (output.Count() > 0);
 	}
 
 	private static readonly string[] _knownLibs = {
