@@ -20,8 +20,8 @@ public class BaseHookable
 	public List<HookMethodAttribute> HookMethods { get; set; }
 	public List<PluginReferenceAttribute> PluginReferences { get; set; }
 
-	public Dictionary<string, List<CachedHook>> HookCache { get; set; } = new ();
-	public Dictionary<string, List<CachedHook>> HookMethodAttributeCache { get; set; } = new ();
+	public Dictionary<string, List<CachedHook>> HookCache { get; set; } = new();
+	public Dictionary<string, List<CachedHook>> HookMethodAttributeCache { get; set; } = new();
 	public List<string> IgnoredHooks { get; set; } = new List<string>();
 
 	public struct CachedHook
@@ -55,7 +55,7 @@ public class BaseHookable
 
 	#region Tracking
 
-	internal Stopwatch _trackStopwatch = new Stopwatch();
+	internal Stopwatch _trackStopwatch = new();
 
 	public virtual void TrackStart()
 	{
@@ -118,7 +118,7 @@ public class BaseHookable
 	}
 	public void UnsubscribeAll(Func<string, bool> condition = null)
 	{
-		foreach(var hook in Hooks)
+		foreach (var hook in Hooks)
 		{
 			if (condition != null && !condition(hook.Key)) continue;
 

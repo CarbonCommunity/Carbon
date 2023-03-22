@@ -1,10 +1,9 @@
-//#define DEBUG_VERBOSE
-
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using API.Contracts;
+using API.Assembly;
 using Utility;
 
 /*
@@ -14,7 +13,7 @@ using Utility;
  *
  */
 
-namespace Components.Loaders;
+namespace Loaders;
 
 internal sealed class LibraryLoader : IDisposable
 {
@@ -26,7 +25,7 @@ internal sealed class LibraryLoader : IDisposable
 	}
 
 	private AppDomain _domain;
-	private readonly Hash<string, Item> _cache = new();
+	private readonly Dictionary<string, Item> _cache = new();
 
 	private readonly string[] _directoryList =
 	{
@@ -72,7 +71,7 @@ internal sealed class LibraryLoader : IDisposable
 			path = Path.Combine(directory, $"{name}.dll");
 		}
 
-		if (path.IsNullOrEmpty())
+		if (String.IsNullOrEmpty(path))
 		{
 			Logger.Debug($"Unresolved library: '{name}'");
 			return default;
@@ -107,15 +106,15 @@ internal sealed class LibraryLoader : IDisposable
 		return item ?? default;
 	}
 
-	private bool disposedValue;
+	private bool _disposing;
 
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposing)
 		{
 			if (disposing)
 				_cache.Clear();
-			disposedValue = true;
+			_disposing = true;
 
 			_domain.AssemblyResolve -= ResolveAssembly;
 		}

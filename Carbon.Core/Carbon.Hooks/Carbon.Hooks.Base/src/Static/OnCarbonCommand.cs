@@ -1,6 +1,7 @@
 ﻿using System;
 using API.Hooks;
 using Carbon.Extensions;
+using Carbon.Plugins;
 using Facepunch.Extend;
 using Org.BouncyCastle.Crypto.Engines;
 using Oxide.Game.Rust.Libraries;
@@ -14,6 +15,8 @@ using Oxide.Plugins;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
+#pragma warning disable IDE0060
 
 public partial class Category_Static
 {
@@ -59,7 +62,7 @@ public partial class Category_Static
 									var hasPerm = cmd.Permissions.Length == 0;
 									foreach (var permission in cmd.Permissions)
 									{
-										if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasPermission(player.UserIDString, permission))
+										if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasPermission(player.UserIDString, permission))
 										{
 											hasPerm = true;
 											break;
@@ -78,7 +81,7 @@ public partial class Category_Static
 									var hasGroup = cmd.Groups.Length == 0;
 									foreach (var group in cmd.Groups)
 									{
-										if (cmd.Plugin is RustPlugin rust && rust.permission.UserHasGroup(player.UserIDString, group))
+										if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasGroup(player.UserIDString, group))
 										{
 											hasGroup = true;
 											break;
@@ -94,16 +97,16 @@ public partial class Category_Static
 
 								if (cmd.AuthLevel != -1)
 								{
-									var hasAuth = !ServerUsers.users.ContainsKey(player.userID) ? player.Connection.authLevel >= cmd.AuthLevel : (int)ServerUsers.Get(player.userID).group >= cmd.AuthLevel;
+									var hasAuth = player.Connection.authLevel >= cmd.AuthLevel;
 
 									if (!hasAuth)
 									{
-										player?.ConsoleMessage($"You don't have the minimum auth level required to execute this command.");
+										player?.ConsoleMessage($"You don't have the minimum auth level [{cmd.AuthLevel}] required to execute this command [your level: {player.Connection.authLevel}].");
 										continue;
 									}
 								}
 
-								if (CooldownAttribute.IsCooledDown(player, cmd.Command, cmd.Cooldown, true))
+								if (CarbonPlugin.IsCommandCooledDown(player, cmd.Command, cmd.Cooldown, true))
 								{
 									continue;
 								}

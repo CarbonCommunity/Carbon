@@ -20,13 +20,13 @@ internal static class __Bootstrap
 	{
 		public static void Prefix()
 		{
-			Loader.GetInstance().Events
+			Carbon.Bootstrap.Events
 				.Trigger(CarbonEvent.StartupShared, EventArgs.Empty);
 		}
 
 		public static void Postfix()
 		{
-			Loader.GetInstance().Events
+			Carbon.Bootstrap.Events
 				.Trigger(CarbonEvent.StartupSharedComplete, EventArgs.Empty);
 
 			/* example mockup --------------------------------------------------

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
+using API.Analytics;
+using API.Assembly;
 using API.Contracts;
 using API.Events;
+using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Contracts;
 using Carbon.Core;
@@ -24,9 +26,6 @@ namespace Carbon;
 public class Community
 {
 	public static Community Runtime { get; set; }
-
-	public static string Version { get; set; } = "Unknown";
-	public static string InformationalVersion { get; set; } = "Unknown";
 
 	public static GameObject GameObject { get => _gameObject.Value; }
 	private static readonly Lazy<GameObject> _gameObject = new(() =>
@@ -73,43 +72,36 @@ public class Community
 	{
 		try
 		{
-			Events.Subscribe(CarbonEvent.StartupSharedComplete, args =>
+			Events.Subscribe(CarbonEvent.CarbonStartup, args =>
 			{
 				Logger.Log($"Carbon fingerprint: {Analytics.ClientID}");
 				Analytics.StartSession();
 			});
 
+			Events.Subscribe(CarbonEvent.CarbonStartupComplete, args =>
+			{
+				Analytics.LogEvent("on_server_startup", new Dictionary<string, object>
+				{
+					{ "branch", Analytics.Branch },
+					{ "platform", Analytics.Platform },
+					{ "short_version", Analytics.Version },
+					{ "full_version", Analytics.InformationalVersion },
+				});
+			});
+
 			Events.Subscribe(CarbonEvent.AllPluginsLoaded, args =>
 			{
-				string platform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) switch
-				{
-					true => "windows",
-					false => "linux"
-				};
-
-				string branch = InformationalVersion switch
-				{
-					string s when s.Contains("Debug") => "debug",
-					string s when s.Contains("Staging") => "staging",
-					string s when s.Contains("Release") => "release",
-					_ => "Unknown"
-				};
-
 				Analytics.LogEvent("on_server_initialized", new Dictionary<string, object>
 				{
-					{ "branch", branch },
-					{ "platform", platform },
-					{ "short_version", Version },
-					{ "full_version", InformationalVersion },
 					{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) },
 				});
 			});
 
 			Events.Subscribe(CarbonEvent.OnServerSave, args =>
 			{
-				Analytics.LogEvent("user_engagement", new Dictionary<string, object>
+				Analytics.LogEvent("on_server_save", new Dictionary<string, object>
 				{
-					{ "engagement_time_msec", 0 }
+					{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) },
 				});
 			});
 		}
@@ -128,8 +120,8 @@ public class Community
 		}
 		else
 		{
-			AllChatCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
-			AllConsoleCommands.RemoveAll(x => !(x.Plugin is IModule) && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
+			AllChatCommands.RemoveAll(x => x.Plugin is not IModule && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
+			AllConsoleCommands.RemoveAll(x => x.Plugin is not IModule && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
 		}
 	}
 
@@ -198,9 +190,9 @@ public class Community
 
 		var version =
 #if DEBUG
-			InformationalVersion;
+			Analytics.InformationalVersion;
 #else
-            Version;
+            Analytics.Version;
 #endif
 
 		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader.LoadedMods.Count:n0} mods, {Loader.LoadedMods.Sum(x => x.Plugins.Count):n0} plgs";

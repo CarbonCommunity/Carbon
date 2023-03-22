@@ -92,7 +92,7 @@ public class WebRequests
 		{
 			using (_client = new Client())
 			{
-				_client.Headers.Add("User-Agent", $"Carbon Mod (v{Community.Version}); https://github.com/Carbon-Modding/Carbon.Core");
+				_client.Headers.Add("User-Agent", Community.Runtime.Analytics.UserAgent);
 				_client.Credentials = CredentialCache.DefaultCredentials;
 				_client.Proxy = null;
 

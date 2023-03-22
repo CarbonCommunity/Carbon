@@ -20,6 +20,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 {
 	public override string Name => "Color Picker";
 	public override Type Type => typeof(ColorPickerModule);
+	public override bool IsCoreModule => true;
 	public override bool EnabledByDefault => true;
 
 	public static float Brightness = 1f;
@@ -40,7 +41,6 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		{
 			var empty = string.Empty;
 			onColorPicked?.Invoke(empty, empty);
-			PutsWarn($"");
 			return;
 		}
 
@@ -209,7 +209,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		var player = args.Player();
 		var mode = args.Args[0];
 		var hex = args.Args[1];
-		var rawColor = args.Args.Skip(2).ToArray().ToString(", ", ", ");
+		var rawColor = args.Args.Skip(2).ToArray().ToString(" ", " ");
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
 		switch (mode)
@@ -217,6 +217,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 			case "brightness":
 				Brightness = color.r.Scale(0f, 1f, 0f, 2.5f);
 				BrightnessIndicator = (int)color.r.Scale(0f, 1f, 0f, 20.5f);
+				FirstOpen = true;
 				Draw(player, OnColorPicked);
 				return;
 		}

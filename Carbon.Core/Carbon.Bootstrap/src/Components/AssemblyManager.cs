@@ -1,13 +1,13 @@
-﻿//#define DEBUG_VERBOSE
-#pragma warning disable IDE0051
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Assembly;
 using API.Contracts;
-using Components.Loaders;
+using API.Hooks;
+using API.Plugins;
+using Loaders;
 using Utility;
 
 /*
@@ -18,6 +18,7 @@ using Utility;
  */
 
 namespace Components;
+#pragma warning disable IDE0051
 
 /*
 	Types of assemblies:
@@ -35,11 +36,14 @@ namespace Components;
 
 	4) Module - API.Contracts.ICarbonModule
 	A MODULE is an optional feature for Carbon which is not required for the core
-	functionality of the framework.
+	functionality of the framework. Modules CAN access sensitive parts of the
+	Carbon framework.
 
 	5) Extensions - API.Contracts.ICarbonExtension
 	An EXTENSION is an assembly just like a plugin with the difference that it will
-	be passed as a reference to the Rosylin compiler so plugins can use them.
+	be passed as a reference to the Rosylin compiler so plugins can use them. Note
+	that another huge difference to MODULES is that wxtensions CANNOT access
+	sensitive parts of the Carbon framework.
 
 	6) Plugins
 	Not applicable for now.
@@ -56,8 +60,13 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 	public List<string> LoadedExtensions
 	{ get; private set; } = new();
 
+	public string[] References
+	{ get => _knownLibs; }
+
+
 	private LibraryLoader _library;
 	private AssemblyLoader _loader;
+
 
 	private void Awake()
 	{
@@ -101,6 +110,12 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			if (raw != null) return raw;
 		}
 
+		if (_knownLibs.Contains(file))
+		{
+			IAssemblyCache result = _library.ResolveAssembly(file, $"{this}");
+			if (result.Raw != null) return result.Raw;
+		}
+
 		Logger.Warn($"Unable to get byte[] for '{file}'");
 		return default;
 	}
@@ -118,9 +133,10 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories).Assembly;
+					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+						?? throw new ReflectionTypeLoadException(null, null, null);
 
-					if (IsComponent(asm, out types))
+					if (IsType<ICarbonComponent>(asm, out types))
 					{
 						Logger.Debug($"Loading component from file '{file}'");
 
@@ -161,20 +177,20 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading component from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
 			return null;
 		}
 #if DEBUG
 		catch (System.Exception e)
 		{
-			Logger.Error($"Failed loading module '{file}'", e);
+			Logger.Error($"Failed loading component '{file}'", e);
 
 			return null;
-	    }
+		}
 #else
 		catch (System.Exception)
 		{
-			Logger.Error($"Failed loading module '{file}'");
+			Logger.Error($"Failed loading component '{file}'");
 
 			return null;
 		}
@@ -194,9 +210,10 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories).Assembly;
+					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+						?? throw new ReflectionTypeLoadException(null, null, null);
 
-					if (IsModule(asm, out types))
+					if (IsType<ICarbonModule>(asm, out types))
 					{
 						Logger.Debug($"Loading module from file '{file}'");
 
@@ -237,7 +254,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading module from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
 			return null;
 		}
 #if DEBUG
@@ -246,7 +263,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Failed loading module '{file}'", e);
 
 			return null;
-	    }
+		}
 #else
 		catch (System.Exception)
 		{
@@ -270,9 +287,10 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories).Assembly;
+					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+						?? throw new ReflectionTypeLoadException(null, null, null);
 
-					if (IsExtension(asm, out types))
+					if (IsType<ICarbonExtension>(asm, out types))
 					{
 						Logger.Debug($"Loading extension from file '{file}'");
 
@@ -312,20 +330,20 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading extension from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
 			return null;
 		}
 #if DEBUG
 		catch (System.Exception e)
 		{
-			Logger.Error($"Failed loading module '{file}'", e);
+			Logger.Error($"Failed loading extension '{file}'", e);
 
 			return null;
-	    }
+		}
 #else
 		catch (System.Exception)
 		{
-			Logger.Error($"Failed loading module '{file}'");
+			Logger.Error($"Failed loading extension '{file}'");
 
 			return null;
 		}
@@ -345,9 +363,10 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories).Assembly;
+					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+						?? throw new ReflectionTypeLoadException(null, null, null);
 
-					if (IsHook(asm, out types))
+					if (IsType<Patch>(asm, out types))
 					{
 						Logger.Debug($"Loading hooks file '{file}'");
 						// TODO: Integrate part of HookManager here
@@ -370,7 +389,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading hooks from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
 			return null;
 		}
 #if DEBUG
@@ -379,7 +398,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			Logger.Error($"Failed loading module '{file}'", e);
 
 			return null;
-	    }
+		}
 #else
 		catch (System.Exception)
 		{
@@ -390,31 +409,160 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #endif
 	}
 
-	private bool IsComponent(Assembly assembly, out IEnumerable<Type> output)
+	public Assembly LoadPlugin(string file, string requester = "unknown")
 	{
-		Type @base = typeof(API.Contracts.ICarbonComponent);
-		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
-		return (output.Count() > 0);
+		try
+		{
+			string[] directories =
+			{
+				Context.CarbonPlugins,
+			};
+
+			switch (Path.GetExtension(file))
+			{
+				case ".dll":
+					IEnumerable<Type> types;
+					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+						?? throw new ReflectionTypeLoadException(null, null, null);
+
+					if (IsType<ICarbonPlugin>(asm, out types))
+					{
+						Logger.Debug($"Loading plugin from file '{file}'");
+
+						foreach (Type type in types)
+						{
+							try
+							{
+								if (Activator.CreateInstance(type) is not ICarbonPlugin plugin)
+									throw new NullReferenceException();
+								Logger.Debug($"A new instance of '{plugin}' created");
+
+								plugin.Initialize("nothing for now");
+								plugin.OnLoaded(args: new EventArgs());
+							}
+							catch (Exception e)
+							{
+								Logger.Error($"Failed to instantiate plugin from type '{type}'", e);
+								continue;
+							}
+						}
+					}
+					else
+					{
+						throw new Exception("Unsupported assembly type");
+					}
+
+					LoadedExtensions.Add(file);
+					return asm;
+
+				// case ".drm"
+				// 	LoadFromDRM();
+				// 	break;
+
+				default:
+					throw new Exception("File extension not supported");
+			}
+		}
+		catch (ReflectionTypeLoadException)
+		{
+			Logger.Error($"Error while loading plugin from '{file}'.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			return null;
+		}
+#if DEBUG
+		catch (System.Exception e)
+		{
+			Logger.Error($"Failed loading module '{file}'", e);
+
+			return null;
+		}
+#else
+		catch (System.Exception)
+		{
+			Logger.Error($"Failed loading module '{file}'");
+
+			return null;
+		}
+#endif
 	}
 
-	private bool IsModule(Assembly assembly, out IEnumerable<Type> output)
+	private bool IsType<T>(Assembly assembly, out IEnumerable<Type> output)
 	{
-		Type @base = typeof(API.Contracts.ICarbonModule);
-		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
-		return (output.Count() > 0);
+		try
+		{
+			Type @base = typeof(T) ?? throw new Exception();
+			output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
+			return output.Count() > 0;
+		}
+		catch (System.Exception)
+		{
+			output = new List<Type>();
+			return false;
+		}
 	}
 
-	private bool IsExtension(Assembly assembly, out IEnumerable<Type> output)
-	{
-		Type @base = typeof(API.Contracts.ICarbonExtension);
-		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
-		return (output.Count() > 0);
-	}
+	private static readonly string[] _knownLibs = {
+		"mscorlib",
+		"netstandard",
 
-	private bool IsHook(Assembly assembly, out IEnumerable<Type> output)
-	{
-		Type @base = typeof(API.Hooks.Patch);
-		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
-		return (output.Count() > 0);
-	}
+		"System.Core",
+		"System.Data",
+		"System.Drawing",
+		"System.Memory",
+		"System.Net.Http",
+		"System.Runtime",
+		"System.Xml.Linq",
+		"System.Xml",
+		"System",
+
+		"Carbon.Common",
+		"Carbon.SDK",
+
+		"protobuf-net",
+		"protobuf-net.Core",
+		"websocket-sharp",
+
+		"Assembly-CSharp-firstpass",
+		"Assembly-CSharp",
+		"Facepunch.Console",
+		"Facepunch.Network",
+		"Facepunch.Rcon",
+		"Facepunch.Sqlite",
+		"Facepunch.System",
+		"Facepunch.Unity",
+		"Facepunch.UnityEngine",
+		"Fleck",
+		"Newtonsoft.Json",
+		"Rust.Data",
+		"Rust.FileSystem",
+		"Rust.Global",
+		// "Rust.Harmony",
+		"Rust.Localization",
+		"Rust.Platform.Common",
+		"Rust.Platform",
+		"Rust.Workshop",
+		"Rust.World",
+		"UnityEngine.AIModule",
+		"UnityEngine.CoreModule",
+		"UnityEngine.ImageConversionModule",
+		"UnityEngine.PhysicsModule",
+		"UnityEngine.SharedInternalsModule",
+		"UnityEngine.TerrainModule",
+		"UnityEngine.TerrainPhysicsModule",
+		"UnityEngine.TextRenderingModule",
+		"UnityEngine.UI",
+		"UnityEngine.UnityWebRequestAssetBundleModule",
+		"UnityEngine.UnityWebRequestAudioModule",
+		"UnityEngine.UnityWebRequestModule",
+		"UnityEngine.UnityWebRequestTextureModule",
+		"UnityEngine.UnityWebRequestWWWModule",
+		"UnityEngine.VehiclesModule",
+		"UnityEngine",
+
+#if WIN
+		"Facepunch.Steamworks.Win64",
+#elif UNIX
+		"Facepunch.Steamworks.Posix",
+#endif
+	};
 }

@@ -509,4 +509,22 @@ public static class StringEx
 	}
 
 	#endregion
+
+	public static string SpacedString(this string value, int spaces, bool trimEnd = true)
+	{
+		if (spaces == 0) return string.Empty;
+
+		var result = string.Empty;
+		foreach (var character in value)
+		{
+			result += character;
+
+			for (int i = 0; i < spaces; i++)
+			{
+				result += " ";
+			}
+		}
+
+		return trimEnd ? result.TrimEnd() : result;
+	}
 }

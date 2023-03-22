@@ -30,9 +30,6 @@ public static class Loader
 	public static Dictionary<string, List<string>> PendingRequirees { get; } = new();
 	public static bool IsBatchComplete { get; set; }
 	public static List<string> PostBatchFailedRequirees { get; } = new();
-	public static List<string> ReloadQueueList { get; } = new();
-	public static List<string> LoadQueueList { get; } = new();
-	public static List<string> UnloadQueueList { get; } = new();
 
 	static Loader()
 	{
@@ -273,7 +270,7 @@ public static class Loader
 			var groups = method.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = method.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = method.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -299,7 +296,7 @@ public static class Loader
 
 			if (uiCommand != null)
 			{
-				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(CUI.UniquifyCommand(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true);
 			}
 		}
 
@@ -310,7 +307,7 @@ public static class Loader
 			var groups = field.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = field.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = field.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -371,7 +368,7 @@ public static class Loader
 			var groups = property.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = property.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = property.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -452,41 +449,6 @@ public static class Loader
 		if (PostBatchFailedRequirees.Count == 0)
 		{
 			IsBatchComplete = true;
-		}
-
-		if (IsBatchComplete)
-		{
-			if (ReloadQueueList.Count > 0 ||
-				LoadQueueList.Count > 0 ||
-				UnloadQueueList.Count > 0)
-			{
-				IsBatchComplete = false;
-			}
-
-			temp.Clear();
-			temp.AddRange(ReloadQueueList);
-			foreach (var plugin in temp)
-			{
-				ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.reload {plugin}");
-			}
-
-			temp.Clear();
-			temp.AddRange(LoadQueueList);
-			foreach (var plugin in temp)
-			{
-				ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.load {plugin}");
-			}
-
-			temp.Clear();
-			temp.AddRange(UnloadQueueList);
-			foreach (var plugin in temp)
-			{
-				ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.unload {plugin}");
-			}
-
-			ReloadQueueList.Clear();
-			LoadQueueList.Clear();
-			UnloadQueueList.Clear();
 		}
 
 		temp.Clear();

@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Carbon.Extensions;
 using Oxide.Core;
-using UnityEngine;
-using static ServerUsers;
 
 /*
  *
@@ -13,6 +9,8 @@ using static ServerUsers;
  * All rights reserved.
  *
  */
+
+//namespace API.Plugins;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class InfoAttribute : Attribute
@@ -37,18 +35,14 @@ public class InfoAttribute : Attribute
 
 	private void SetVersion(string version)
 	{
-		ushort result;
 		var list = (from part in version.Split('.')
-					select (ushort)(ushort.TryParse(part, out result) ? result : 0)).ToList();
-		while (list.Count < 3)
-		{
-			list.Add(0);
-		}
+					select (ushort)(ushort.TryParse(part, out var result) ? result : 0)).ToList();
+		while (list.Count < 3) list.Add(0);
 
-		if (list.Count > 3)
-		{
-			Debug.LogWarning("Version `" + version + "` is invalid for " + Title + ", should be `major.minor.patch`");
-		}
+		// if (list.Count > 3)
+		// {
+		// 	Debug.LogWarning("Version `" + version + "` is invalid for " + Title + ", should be `major.minor.patch`");
+		// }
 
 		Version = new VersionNumber(list[0], list[1], list[2]);
 	}
@@ -131,25 +125,6 @@ public class UiCommandAttribute : Attribute
 	public string Name { get; }
 	public string Help { get; }
 
-	internal static int Tick = DateTime.UtcNow.Year + DateTime.UtcNow.Month + DateTime.UtcNow.Day + DateTime.UtcNow.Hour + DateTime.UtcNow.Minute + DateTime.UtcNow.Second + DateTime.UtcNow.Month;
-
-	public static string Uniquify(string name)
-	{
-		if (string.IsNullOrEmpty(name)) return string.Empty;
-
-		var split = name.Split(' ');
-		var command = split[0];
-		var args = split.Skip(1).ToArray();
-		var arguments = args.ToString(" ");
-
-		Array.Clear(split, 0, split.Length);
-		Array.Clear(args, 0, args.Length);
-		args = null;
-		split = null;
-
-		return $"carboncui_{RandomEx.GetRandomString(16, command + Tick.ToString(), command.Length + Tick)} {arguments}".TrimEnd();
-	}
-
 	public UiCommandAttribute(string name)
 	{
 		Name = name;
@@ -220,16 +195,11 @@ public class GroupAttribute : Attribute
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class AuthLevelAttribute : Attribute
 {
-	public UserGroup Group { get; } = UserGroup.None;
+	public int AuthLevel { get; }
 
-	public AuthLevelAttribute(UserGroup group)
+	public AuthLevelAttribute(int level)
 	{
-		Group = group;
-	}
-
-	public AuthLevelAttribute(int group)
-	{
-		Group = (UserGroup)group;
+		AuthLevel = level;
 	}
 }
 
@@ -237,45 +207,6 @@ public class AuthLevelAttribute : Attribute
 public class CooldownAttribute : Attribute
 {
 	public int Miliseconds { get; } = 0;
-
-	#region Cooldown Logic
-
-	internal static Dictionary<BasePlayer, List<CooldownInstance>> _buffer = new();
-
-	public static bool IsCooledDown(BasePlayer player, string command, int time, bool doCooldownIfNot = true)
-	{
-		if (time == 0 || player == null) return false;
-
-		if (!_buffer.TryGetValue(player, out var pairs))
-		{
-			_buffer.Add(player, pairs = new List<CooldownInstance>());
-		}
-
-		var lookupCommand = pairs.FirstOrDefault(x => x.Command == command);
-		if (lookupCommand == null)
-		{
-			pairs.Add(lookupCommand = new CooldownInstance { Command = command });
-		}
-
-		if ((DateTime.Now - lookupCommand.LastCall).TotalMilliseconds >= time)
-		{
-			if (doCooldownIfNot)
-			{
-				lookupCommand.LastCall = DateTime.Now;
-			}
-			return false;
-		}
-
-		return true;
-	}
-
-	internal class CooldownInstance
-	{
-		public string Command;
-		public DateTime LastCall;
-	}
-
-	#endregion
 
 	public CooldownAttribute(int miliseconds)
 	{
@@ -305,20 +236,4 @@ public class PluginPriority : Attribute
 	{
 		Priority = priority;
 	}
-
-	public enum Priorities
-	{
-		Low,
-		Normal,
-		High,
-		Highest
-	}
-}
-
-public enum Priorities
-{
-	Low,
-	Normal,
-	High,
-	Highest
 }

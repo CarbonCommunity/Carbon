@@ -1,6 +1,4 @@
-﻿#pragma warning disable IDE0051
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,6 +16,7 @@ using Carbon.Contracts;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 {
@@ -76,7 +75,6 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 			{
 				if (!result)
 					Logger.Error($"Unable to update the hooks at this time, please try again later");
-
 				enabled = true;
 			});
 		}
@@ -90,7 +88,6 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 		foreach (string file in Files)
 		{
-
 			//FIXMENOW
 			//string path = Path.Combine(Defines.GetManagedFolder(), file);
 
@@ -102,7 +99,7 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 		if (_patches.Count > 0)
 		{
-			Logger.Log($" - Installing patches");
+			Logger.Debug($" - Installing patches");
 			// I don't like this, patching stuff that may not be used but for the
 			// sake of time I will let it go for now but this needs to be reviewed.
 			foreach (HookEx hook in _patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
@@ -111,7 +108,7 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 		if (_staticHooks.Count > 0)
 		{
-			Logger.Log($" - Installing static hooks");
+			Logger.Debug($" - Installing static hooks");
 			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
 				Subscribe(hook.Identifier, "Carbon.Core");
 		}
@@ -229,30 +226,38 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 
 	private void LoadHooksFromFile(string fileName)
 	{
-		// delegates asm loading to Carbon.Loader 
-		Assembly hooks = Community.Runtime.AssemblyEx.LoadHook(fileName, "HookManager.LoadHooksFromFile");
-
-		if (hooks == null)
+		try
 		{
-			Logger.Error($"Error while loading hooks from '{fileName}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported format/version.");
+			// delegates asm loading to Carbon.Loader 
+			Assembly hooks = Community.Runtime.AssemblyEx.LoadHook(fileName, "HookManager.LoadHooksFromFile");
+
+			if (hooks == null)
+			{
+				Logger.Error($"Error while loading hooks from '{fileName}'.");
+				Logger.Error($"Either the file is corrupt or has an unsuported format/version.");
+				return;
+			}
+
+			Type @base = hooks.GetType("API.Hooks.Patch")
+				?? typeof(API.Hooks.Patch);
+
+			Type attr = hooks.GetType("API.Hooks.HookAttribute.Patch")
+				?? typeof(HookAttribute.Patch);
+
+			IEnumerable<TypeInfo> types = hooks.DefinedTypes
+				.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr)).ToList();
+
+			TaskStatus stats = LoadHooks(types);
+			if (stats.Total == 0) return;
+
+			Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
+				+ $" from file '{Path.GetFileName(fileName)}' in {sw.ElapsedMilliseconds}ms");
+		}
+		catch (System.Exception)
+		{
+			Logger.Error($"- Error while loading hooks from file '{Path.GetFileName(fileName)}'");
 			return;
 		}
-
-		Type @base = hooks.GetType("API.Hooks.Patch")
-			?? typeof(API.Hooks.Patch);
-
-		Type attr = hooks.GetType("API.Hooks.HookAttribute.Patch")
-			?? typeof(HookAttribute.Patch);
-
-		IEnumerable<TypeInfo> types = hooks.DefinedTypes
-			.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr)).ToList();
-
-		TaskStatus stats = LoadHooks(types);
-		if (stats.Total == 0) return;
-
-		Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
-			+ $" from file '{Path.GetFileName(fileName)}' in {sw.ElapsedMilliseconds}ms");
 	}
 
 	public void LoadHooksFromType(Type type)
@@ -539,11 +544,11 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 	}
 
 
-	private bool disposedValue;
+	private bool _disposing;
 
 	internal void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposing)
 		{
 			if (disposing)
 			{
@@ -561,7 +566,7 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 			}
 
 			// no unmanaged resources
-			disposedValue = true;
+			_disposing = true;
 		}
 	}
 

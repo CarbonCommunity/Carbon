@@ -43,8 +43,21 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 
 			OnFileCreated = (sender, file) =>
 			{
-				Loader.GetInstance().AssemblyEx.LoadExtension(
-					Path.GetFileName(file), Path.GetDirectoryName(file));
+				Carbon.Bootstrap.AssemblyEx.LoadExtension(
+					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
+			},
+		},
+
+		new Item
+		{
+			Extension = "*.dll",
+			IncludeSubFolders = false,
+			Directory = Utility.Context.CarbonPlugins,
+
+			OnFileCreated = (sender, file) =>
+			{
+				Carbon.Bootstrap.AssemblyEx.LoadPlugin(
+					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
 			},
 		}
 	};
@@ -152,11 +165,11 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 		}
 	}
 
-	private bool disposedValue;
+	private bool _disposing;
 
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposing)
 		{
 			if (disposing)
 			{
@@ -170,7 +183,7 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 				}
 				_watchlist.Clear();
 			}
-			disposedValue = true;
+			_disposing = true;
 		}
 	}
 

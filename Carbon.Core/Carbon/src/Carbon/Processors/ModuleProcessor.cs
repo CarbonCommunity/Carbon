@@ -44,7 +44,22 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				}
 				catch (Exception ex)
 				{
-					Logger.Error($"[ModuleProcessor] Failed OnServerInit for '{hookable.Name}'.", ex);
+					Logger.Error($"[ModuleProcessor] Failed OnServerInit for '{hookable.Name}'", ex);
+				}
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module)
+			{
+				try
+				{
+					module.OnPostServerInit();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnPostServerInit for '{hookable.Name}'", ex);
 				}
 			}
 		}

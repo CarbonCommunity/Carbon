@@ -12,6 +12,7 @@ using System.Linq;
 using API.Contracts;
 using API.Events;
 using Carbon;
+using Carbon.Core;
 using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Configuration;
@@ -35,7 +36,7 @@ namespace Oxide.Ext.Discord
 			// {
 			// 	GlobalLogger.Exception("An exception was thrown!", exception.ExceptionObject as Exception);
 			// };
-			string text = Path.Combine(Interface.Oxide.InstanceDirectory, "discord.config.json");
+			string text = Path.Combine(Defines.GetConfigsFolder(), "discord.config.json");
 			bool flag = !File.Exists(text);
 			if (flag)
 			{

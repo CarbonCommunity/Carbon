@@ -13,25 +13,25 @@ using Network.Visibility;
  */
 
 namespace Carbon.Modules;
+#pragma warning disable IDE0051
 
-public partial class CircularNetworkDistanceModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
+public partial class OptimisationsModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 {
-	public override string Name => "CircularNetworkDistance";
-	public override Type Type => typeof(CircularNetworkDistanceModule);
+	public override string Name => "Optimisations";
+	public override Type Type => typeof(OptimisationsModule);
+	public override bool EnabledByDefault => false;
 
 	public override void Init()
 	{
 		base.Init();
 	}
 
-#pragma warning disable IDE0051
 	private void ae0577348a5140ea9aa861cd71c31e7c()
 	{
 		// FIXME:
 		// We should be able to us Init() to subscribe to hooks like so
 		// Subscribe("ae0577348a5140ea9aa861cd71c31e7c");
 	}
-#pragma warning restore IDE0051
 
 	public override void OnEnabled(bool initialized)
 	{
@@ -43,7 +43,6 @@ public partial class CircularNetworkDistanceModule : CarbonModule<EmptyModuleCon
 
 		Subscribe("ae0577348a5140ea9aa861cd71c31e7c");
 	}
-
 	public override void OnDisabled(bool initialized)
 	{
 		ConVar.Net.visibilityRadiusFarOverride = -1;

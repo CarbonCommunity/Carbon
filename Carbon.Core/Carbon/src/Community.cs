@@ -109,15 +109,6 @@ public class CommunityInternal : Community
 
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
-		#region Handle Versions
-
-		var assembly = typeof(Community).Assembly;
-
-		try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion; } catch { }
-		try { Version = assembly.GetName().Version.ToString(); } catch { }
-
-		#endregion
-
 		LoadConfig();
 		Carbon.Logger.Log("Loaded config");
 
@@ -181,70 +172,4 @@ public class CommunityInternal : Community
 			Events.Trigger(CarbonEvent.CarbonShutdownFailed, EventArgs.Empty);
 		}
 	}
-
-	internal static readonly IReadOnlyList<string> CompilerReferenceList = new List<string>
-	{
-		"mscorlib",
-		"netstandard",
-
-		"System.Core",
-		"System.Data",
-		"System.Drawing",
-		"System.Memory",
-		"System.Runtime",
-		"System.Xml",
-		"System",
-
-		"Carbon.Common",
-		//"Carbon.Ext.Discord",
-
-		#region NuGets
-		"websocket-sharp",
-		"protobuf-net",
-		"protobuf-net.Core",
-		#endregion
-
-		"Assembly-CSharp-firstpass",
-		"Assembly-CSharp",
-		"Facepunch.Console",
-		"Facepunch.Network",
-		"Facepunch.Rcon",
-		"Facepunch.Sqlite",
-		"Facepunch.System",
-		"Facepunch.Unity",
-		"Facepunch.UnityEngine",
-		"Fleck",
-		"Newtonsoft.Json",
-		"Rust.Data",
-		"Rust.FileSystem",
-		"Rust.Global",
-		"Rust.Harmony",
-		"Rust.Localization",
-		"Rust.Platform.Common",
-		"Rust.Platform",
-		"Rust.Workshop",
-		"Rust.World",
-		"UnityEngine.AIModule",
-		"UnityEngine.CoreModule",
-		"UnityEngine.ImageConversionModule",
-		"UnityEngine.PhysicsModule",
-		"UnityEngine.SharedInternalsModule",
-		"UnityEngine.TerrainModule",
-		"UnityEngine.TerrainPhysicsModule",
-		"UnityEngine.TextRenderingModule",
-		"UnityEngine.UI",
-		"UnityEngine.UnityWebRequestAssetBundleModule",
-		"UnityEngine.UnityWebRequestAudioModule",
-		"UnityEngine.UnityWebRequestModule",
-		"UnityEngine.UnityWebRequestTextureModule",
-		"UnityEngine.UnityWebRequestWWWModule",
-		"UnityEngine.VehiclesModule",
-		"UnityEngine",
-
-#if WIN
-		"Facepunch.Steamworks.Win64",
-#elif UNIX
-		"Facepunch.Steamworks.Posix",
-#endif
-	};
 }

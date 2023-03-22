@@ -13,7 +13,7 @@ namespace Contracts;
 public abstract class Singleton<T> where T : class
 {
 	private static readonly Lazy<T> Instance
-		= new Lazy<T>(() => CreateInstance());
+		= new(() => CreateInstance());
 
 	public static T GetInstance()
 		=> Instance.Value;

@@ -39,7 +39,9 @@ namespace Oxide.Plugins
 		[JsonProperty]
 		public double CompileTime { get; set; }
 
+		[JsonProperty]
 		public string FilePath { get; set; }
+		[JsonProperty]
 		public string FileName { get; set; }
 
 		public string Filename => FileName;

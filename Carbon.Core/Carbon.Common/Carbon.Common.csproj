@@ -5,8 +5,8 @@
 		<ProjectGuid>{531A79E2-9D4E-4C69-B277-D668F515C209}</ProjectGuid>
 	</PropertyGroup>
 
-	<Import Project="..\.msbuild\Common.props" />
-	<Import Project="..\.msbuild\ReferencesRust.props" />
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
 		<PackageReference Include="MySql.Data" Version="8.0.32.1" />

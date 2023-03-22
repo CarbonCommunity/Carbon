@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using API.Logger;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
-using Carbon.Plugins;
-using ConVar;
 using Network;
 using Newtonsoft.Json.Linq;
 using Oxide.Core.Libraries;
@@ -14,8 +14,8 @@ using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using ProtoBuf;
 using UnityEngine;
-using static BasePlayer;
 using static ConsoleSystem;
+using Color = UnityEngine.Color;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
 
@@ -30,22 +30,27 @@ namespace Carbon.Modules;
 
 public class AdminModule : CarbonModule<AdminConfig, AdminData>
 {
-	internal static AdminModule Instance { get; set; }
+	internal static AdminModule Singleton { get; set; }
 
 	public override string Name => "Admin";
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
+	public override bool IsCoreModule => true;
+
 	public CUI.Handler Handler { get; internal set; }
 
-	internal float OptionWidth = 0.475f;
-	internal int RangeCuts = 50;
+	internal const float OptionWidth = 0.475f;
+	internal const float TooltipOffset = 15;
+	internal const int RangeCuts = 50;
 
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, AdminPlayer> AdminPlayers = new();
 	internal ImageDatabaseModule ImageDatabase;
+	internal ColorPickerModule ColorPicker;
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
+	const string SpectatePanelId = "carbonmodularuispectate";
 
 	internal static List<string> _logQueue { get; } = new();
 	internal static Dictionary<LogType, string> _logColor { get; } = new()
@@ -59,15 +64,32 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		base.Init();
 
-		Instance = this;
+		Singleton = this;
 		Handler = new();
 	}
-
 	public override void OnServerInit()
 	{
 		base.OnServerInit();
 
 		ImageDatabase = GetModule<ImageDatabaseModule>();
+		ColorPicker = GetModule<ColorPickerModule>();
+
+		Unsubscribe("OnPluginLoaded");
+		Unsubscribe("OnPluginUnloaded");
+		Unsubscribe("OnEntityDismounted");
+		Unsubscribe("CanDismountEntity");
+		Unsubscribe("OnEntityVisibilityCheck");
+		Unsubscribe("OnEntityDistanceCheck");
+	}
+
+	public override void OnEnabled(bool initialized)
+	{
+		base.OnEnabled(initialized);
+
+		if (initialized)
+		{
+			UnityEngine.Application.logMessageReceived += OnLog;
+		}
 
 		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
 		{
@@ -83,50 +105,42 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			DrawCursorLocker(player);
 			Draw(player);
-		});
-
-		Unsubscribe("OnPluginLoaded");
-		Unsubscribe("OnPluginUnloaded");
-		Unsubscribe("OnEntityDismounted");
-		Unsubscribe("CanDismountEntity");
-		Unsubscribe("OnEntityVisibilityCheck");
-		Unsubscribe("OnEntityDistanceCheck");
-
-		RegisterTab(CarbonTab.Get());
-		RegisterTab(PlayersTab.Get());
-		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
-		RegisterTab(PermissionsTab.Get());
-		RegisterTab(ModulesTab.Get());
-		RegisterTab(PluginsTab.Get());
-	}
-
-	public override void OnEnabled(bool initialized)
-	{
-		base.OnEnabled(initialized);
-
-		if (initialized)
-		{
-			UnityEngine.Application.logMessageReceived += OnLog;
-		}
+		}, silent: true);
 	}
 	public override void OnDisabled(bool initialized)
 	{
 		if (initialized)
 		{
-			foreach (var player in BasePlayer.activePlayerList)
+			Community.Runtime.CorePlugin.NextTick(() =>
 			{
-				Close(player);
-			}
+				foreach (var player in BasePlayer.activePlayerList)
+				{
+					Close(player);
+				}
+			});
 
 			UnityEngine.Application.logMessageReceived -= OnLog;
 		}
 
 		base.OnDisabled(initialized);
 	}
+	public override void Load()
+	{
+		base.Load();
+
+		UnregisterAllTabs();
+
+		RegisterTab(CarbonTab.Get());
+		RegisterTab(PlayersTab.Get());
+		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
+		RegisterTab(PermissionsTab.Get());
+		RegisterTab(ModulesTab.Get());
+		if (!ConfigInstance.DisablePluginsTab) RegisterTab(PluginsTab.Get());
+	}
 
 	private void OnLog(string condition, string stackTrace, LogType type)
 	{
-		if (_logQueue.Count >= 7) _logQueue.RemoveAt(0);
+		try { if (_logQueue.Count >= 7) _logQueue.RemoveAt(0); } catch { }
 
 		var log = condition.Split('\n');
 		var result = log[0];
@@ -201,7 +215,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal void TabButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float width, float offset, bool highlight = false)
 	{
 		var button = cui.CreateProtectedButton(container, parent: parent, id: null,
-			color: highlight ? "0.4 0.7 0.2 0.7" : "0.3 0.3 0.3 0.1",
+			color: highlight ? $"{DataInstance.Colors.SelectedTabColor} 0.7" : "0.3 0.3 0.3 0.1",
 			textColor: "1 1 1 0.5",
 			text: text, 11,
 			xMin: offset, xMax: offset + width, yMin: 0, yMax: 1,
@@ -294,7 +308,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreatePanel(container, $"{parent}text", null,
-				color: "1 1 1 0.7",
+				color: $"1 1 1 {DataInstance.Colors.TitleUnderlineOpacity}",
 				xMin: 0, xMax: 1, yMin: 0f, yMax: 0.015f);
 		}
 	}
@@ -349,11 +363,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
-			text: $"{text}:", 12,
-			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
-			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+				color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
+				text: $"{text}:", 12,
+				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+				align: TextAnchor.MiddleLeft,
+				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreatePanel(container, $"{parent}panel", null,
 				color: "0.2 0.2 0.2 0.5",
@@ -393,7 +407,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -422,7 +436,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!readOnly)
 		{
 			cui.CreatePanel(container, inPanel, null,
-				color: CUI.Color("#4287f5", 0.8f),
+				color: $"{DataInstance.Colors.EditableInputHighlight} 0.9",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 0.05f,
 				OxMax: -0.5f);
 		}
@@ -444,7 +458,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -495,7 +509,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -538,7 +552,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-				color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 				text: $"{text}:", 12,
 				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 				align: TextAnchor.MiddleLeft,
@@ -695,7 +709,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!string.IsNullOrEmpty(text))
 		{
 			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
@@ -770,12 +784,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0.2 0.2 0.2 0",
 			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
 
-		cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
-			color: "1 1 1 0.7",
-			text: $"{text}:", 12,
-			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
-			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+				color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
+				text: $"{text}:", 12,
+				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+				align: TextAnchor.MiddleLeft,
+				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+		}
 
 		var inPanel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
 			color: color,
@@ -808,9 +825,59 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (!input.ReadOnly)
 		{
 			cui.CreatePanel(container, inPanel, null,
-				color: CUI.Color("#4287f5", 0.8f),
+				color: $"{DataInstance.Colors.EditableInputHighlight} 0.9",
 				xMin: 0, xMax: 1f - buttonPriority, yMin: 0, yMax: 0.05f,
 				OxMax: -0.5f);
+		}
+	}
+	public void TabPanelColor(CUI cui, CuiElementContainer container, string parent, string text, string color, string command, float height, float offset)
+	{
+		var toggleButtonScale = 0.825f;
+
+		cui.CreatePanel(container, parent, $"{parent}panel",
+			color: "0.2 0.2 0.2 0",
+			xMin: 0, xMax: 1f, yMin: offset, yMax: offset + height);
+
+		if (!string.IsNullOrEmpty(text))
+		{
+			cui.CreateText(container, parent: $"{parent}panel", id: $"{parent}text",
+			color: $"1 1 1 {DataInstance.Colors.OptionNameOpacity}",
+			text: $"{text}:", 12,
+			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
+			align: TextAnchor.MiddleLeft,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+
+			cui.CreatePanel(container, $"{parent}panel", null,
+				color: "0.2 0.2 0.2 0.5",
+				xMin: 0, xMax: toggleButtonScale, yMin: 0, yMax: 0.015f);
+		}
+
+		var split = color.Split(' ');
+		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
+			color: color,
+			textColor: "1 1 1 1",
+			text: split.Length > 1 ? $"#{ColorUtility.ToHtmlStringRGB(new Color(split[0].ToFloat(), split[1].ToFloat(), split[2].ToFloat(), 1))}" : string.Empty, 10,
+			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
+			command: command,
+			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+		Array.Clear(split, 0, split.Length);
+		split = null;
+	}
+	public void TabTooltip(CUI cui, CuiElementContainer container, string parent, Tab.Option tooltip, string command, AdminPlayer admin, float height, float offset)
+	{
+		if (admin.Tooltip == tooltip)
+		{
+			var tip = cui.CreatePanel(container, parent, null, "#1a6498",
+				xMin: 0.05f, xMax: ((float)admin.Tooltip.Tooltip.Length).Scale(1f, 78f, 0.1f, 0.80f), yMin: offset, yMax: offset + height);
+
+			cui.CreateText(container, tip, null, "#6bc0fc", admin.Tooltip.Tooltip, 10);
+		}
+
+		if (!string.IsNullOrEmpty(tooltip.Tooltip))
+		{
+			cui.CreateProtectedButton(container, parent, null, "0 0 0 0", "0 0 0 0", string.Empty, 0,
+				xMin: 0, xMax: OptionWidth, yMin: offset, yMax: offset + height,
+				command: $"{command} tooltip");
 		}
 	}
 
@@ -898,6 +965,29 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Close(args.Player());
 	}
 
+	[UiCommand(PanelId + ".dialogaction")]
+	private void Dialog_Action(ConsoleSystem.Arg args)
+	{
+		var player = args.Player();
+		var admin = GetOrCreateAdminPlayer(player);
+		var tab = GetTab(player);
+		var dialog = tab?.Dialog;
+		if (tab != null) tab.Dialog = null;
+
+		switch (args.Args[0])
+		{
+			case "confirm":
+				try { dialog?.OnConfirm(admin); } catch { }
+				break;
+
+			case "decline":
+				try { dialog?.OnDecline(admin); } catch { }
+				break;
+		}
+
+		Draw(player);
+	}
+
 	#endregion
 
 	#region Methods
@@ -977,15 +1067,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using (TimeMeasure.New($"{Name}.Panels/Overrides"))
 			{
-				cui.CreatePanel(container, "main", "panels",
-				color: "0 0 0 0",
-				xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
+				var panels = cui.CreatePanel(container, "main", "panels",
+					color: "0 0 0 0",
+					xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
 
 				if (tab != null)
 				{
+					tab.Under?.Invoke(tab, container, panels, ap);
+
 					#region Override
 
-					tab.Override?.Invoke(tab, container, "panels", ap);
+					tab.Override?.Invoke(tab, container, panels, ap);
 
 					#endregion
 
@@ -1068,7 +1160,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 										TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(), rowHeight, rowIndex);
 										break;
 
-									case Tab.ButtonArray array:
+									case Tab.OptionButtonArray array:
 										TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
 										break;
 
@@ -1076,9 +1168,19 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 										TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, rowHeight, rowIndex);
 										break;
 
+									case Tab.OptionColor color:
+										TabPanelColor(cui, container, panel, color.Name, color.Color?.Invoke() ?? "0.1 0.1 0.1 0.5", PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+										break;
+
 									default:
 										break;
 								}
+
+								#region Tooltip
+
+								TabTooltip(cui, container, panel, row, PanelId + $".callaction {i} {actualI}", ap, rowHeight, rowIndex);
+
+								#endregion
 
 								rowIndex += rowHeight + rowSpacing;
 							}
@@ -1089,6 +1191,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 
 						#endregion
+					}
+
+					tab.Over?.Invoke(tab, container, panels, ap);
+
+					if (tab.Dialog != null)
+					{
+						var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
+						cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
+
+						cui.CreateText(container, dialog, null,
+							"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
+
+						cui.CreateText(container, dialog, null,
+							"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
+
+						cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
+							xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
+
+						cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
+							xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
 					}
 				}
 			}
@@ -1118,6 +1240,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			fadeIn: 0.005f,
 			needsCursor: true);
 
+		cui.Destroy(CursorPanelId, player);
 		cui.Send(container, player);
 	}
 	public void Close(BasePlayer player)
@@ -1177,6 +1300,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Tabs.RemoveAll(x => x.Id == id);
 	}
+	public void UnregisterAllTabs()
+	{
+		Tabs.Clear();
+	}
 
 	public AdminPlayer GetOrCreateAdminPlayer(BasePlayer player)
 	{
@@ -1194,6 +1321,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = Tabs.FirstOrDefault(x => x.Id == id);
 		if (tab != null)
 		{
+			ap.Tooltip = null;
 			ap.TabIndex = Tabs.IndexOf(tab);
 			tab?.OnChange?.Invoke(ap, tab);
 		}
@@ -1213,6 +1341,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		return Tabs.FirstOrDefault(x => x.Id == id);
 	}
+	public bool HasTab(string id)
+	{
+		return FindTab(id) != null;
+	}
 	public bool CallColumnRow(BasePlayer player, int column, int row, string[] args)
 	{
 		var ap = GetOrCreateAdminPlayer(player);
@@ -1221,7 +1353,15 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		ap.LastPressedColumn = column;
 		ap.LastPressedRow = row;
 
-		switch (tab.Columns[column][row])
+		var option = tab.Columns[column][row];
+		if (args.Length > 0 && args[0] == "tooltip")
+		{
+			if (ap.Tooltip != option) ap.Tooltip = option;
+			else ap.Tooltip = null;
+			return true;
+		}
+
+		switch (option)
 		{
 			case Tab.OptionButton button:
 				button.Callback?.Invoke(ap);
@@ -1304,7 +1444,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				range.Callback?.Invoke(ap, args[0].ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
 				return range.Callback != null;
 
-			case Tab.ButtonArray array:
+			case Tab.OptionButtonArray array:
 				var callback = array.Buttons[args[0].ToInt()].Callback;
 				callback?.Invoke(ap);
 				return callback != null;
@@ -1319,6 +1459,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					case "button":
 						inputButton.Button.Callback?.Invoke(ap);
 						return inputButton.Button.Callback != null;
+				}
+				break;
+
+			case Tab.OptionColor color:
+				if (color.Callback != null)
+				{
+					ColorPicker.Draw(player, (rustColor, hexColor) => { color.Callback?.Invoke(ap, rustColor, hexColor); });
+					return false;
 				}
 				break;
 		}
@@ -1341,6 +1489,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public int TabSkip;
 		public int LastPressedColumn;
 		public int LastPressedRow;
+
+		public Tab.Option Tooltip;
 
 		internal Tab.OptionDropdown _selectedDropdown;
 		internal Page _selectedDropdownPage = new();
@@ -1416,10 +1566,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public string Id;
 		public string Name;
 		public RustPlugin Plugin;
-		public Action<Tab, CuiElementContainer, string, AdminPlayer> Override;
+		public Action<Tab, CuiElementContainer, string, AdminPlayer> Over, Under, Override;
 		public Dictionary<int, List<Option>> Columns = new();
 		public Action<AdminPlayer, Tab> OnChange;
 		public Dictionary<string, Radio> Radios = new();
+		public TabDialog Dialog;
 
 		public Tab(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null)
 		{
@@ -1481,28 +1632,28 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			return AddRow(column, new OptionButton(name, align, callback, type));
 		}
-		public Tab AddToggle(int column, string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null)
+		public Tab AddToggle(int column, string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null, string tooltip = null)
 		{
-			return AddRow(column, new OptionToggle(name, callback, isOn));
+			return AddRow(column, new OptionToggle(name, callback, isOn, tooltip));
 		}
 		public Tab AddText(int column, string name, int size, string color, TextAnchor align = TextAnchor.MiddleCenter, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedRegular, bool isInput = false)
 		{
 			return AddRow(column, new OptionText(name, size, color, align, font, isInput));
 		}
-		public Tab AddInput(int column, string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback = null)
+		public Tab AddInput(int column, string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> callback = null, string tooltip = null)
 		{
-			return AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback));
+			return AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback, tooltip));
 		}
-		public Tab AddInput(int column, string name, Func<string> placeholder, Action<AdminPlayer, string[]> callback = null)
+		public Tab AddInput(int column, string name, Func<string> placeholder, Action<AdminPlayer, string[]> callback = null, string tooltip = null)
 		{
-			return AddInput(column, name, placeholder, 0, callback == null, callback);
+			return AddInput(column, name, placeholder, 0, callback == null, callback, tooltip);
 		}
-		public Tab AddEnum(int column, string name, Action<bool> callback, Func<string> text)
+		public Tab AddEnum(int column, string name, Action<bool> callback, Func<string> text, string tooltip = null)
 		{
-			AddRow(column, new OptionEnum(name, callback, text));
+			AddRow(column, new OptionEnum(name, callback, text, tooltip));
 			return this;
 		}
-		public Tab AddRadio(int column, string name, string id, bool wantsOn, Action<bool, AdminPlayer> callback = null)
+		public Tab AddRadio(int column, string name, string id, bool wantsOn, Action<bool, AdminPlayer> callback = null, string tooltip = null)
 		{
 			if (!Radios.TryGetValue(id, out var radio))
 			{
@@ -1513,35 +1664,45 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (wantsOn) radio.Selected = radio.TemporaryIndex;
 
 			var index = radio.TemporaryIndex;
-			var option = new OptionRadio(name, id, index, wantsOn, callback, radio);
+			var option = new OptionRadio(name, id, index, wantsOn, callback, radio, tooltip);
 			radio.Options.Add(option);
 
 			return AddRow(column, option);
 		}
-		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons = null, float optionsIconScale = 0f)
+		public Tab AddDropdown(int column, string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons = null, float optionsIconScale = 0f, string tooltip = null)
 		{
-			AddRow(column, new OptionDropdown(name, index, callback, options, optionsIcons, optionsIconScale));
+			AddRow(column, new OptionDropdown(name, index, callback, options, optionsIcons, optionsIconScale, tooltip));
 			return this;
 		}
-		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text = null)
+		public Tab AddRange(int column, string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text = null, string tooltip = null)
 		{
-			AddRow(column, new OptionRange(name, min, max, value, callback, text));
+			AddRow(column, new OptionRange(name, min, max, value, callback, text, tooltip));
 			return this;
 		}
 		public Tab AddButtonArray(int column, float spacing, params OptionButton[] buttons)
 		{
-			AddRow(column, new ButtonArray(string.Empty, spacing, buttons));
+			AddRow(column, new OptionButtonArray(string.Empty, spacing, null, buttons));
 			return this;
 		}
 		public Tab AddButtonArray(int column, params OptionButton[] buttons)
 		{
-			AddRow(column, new ButtonArray(string.Empty, 0.01f, buttons));
+			AddRow(column, new OptionButtonArray(string.Empty, 0.01f, null, buttons));
 			return this;
 		}
-		public Tab AddInputButton(int column, string name, float buttonPriority, OptionInput input, OptionButton button)
+		public Tab AddInputButton(int column, string name, float buttonPriority, OptionInput input, OptionButton button, string tooltip = null)
 		{
-			AddRow(column, new OptionInputButton(name, buttonPriority, input, button));
+			AddRow(column, new OptionInputButton(name, buttonPriority, input, button, tooltip));
 			return this;
+		}
+		public Tab AddColor(int column, string name, Func<string> color, Action<AdminPlayer, string, string> callback, string tooltip = null)
+		{
+			AddRow(column, new OptionColor(name, color, callback, tooltip));
+			return this;
+		}
+
+		public void CreateDialog(string title, Action<AdminPlayer> onConfirm, Action<AdminPlayer> onDecline)
+		{
+			Dialog = new TabDialog(title, onConfirm, onDecline);
 		}
 
 		public void Dispose()
@@ -1576,21 +1737,35 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Options = null;
 			}
 		}
+		public class TabDialog
+		{
+			public string Title;
+			public Action<AdminPlayer> OnConfirm, OnDecline;
+
+			public TabDialog(string title, Action<AdminPlayer> onConfirm, Action<AdminPlayer> onDecline)
+			{
+				Title = title;
+				OnConfirm = onConfirm;
+				OnDecline = onDecline;
+			}
+		}
 
 		public class Option
 		{
 			public string Name;
+			public string Tooltip;
 
-			public Option(string name)
+			public Option(string name, string tooltip = null)
 			{
 				Name = name;
+				Tooltip = tooltip;
 			}
 		}
 		public class OptionName : Option
 		{
 			public TextAnchor Align;
 
-			public OptionName(string name, TextAnchor align) : base(name) { Align = align; }
+			public OptionName(string name, TextAnchor align, string tooltip = null) : base(name, tooltip) { Align = align; }
 		}
 		public class OptionText : Option
 		{
@@ -1600,7 +1775,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public CUI.Handler.FontTypes Font;
 			public bool IsInput;
 
-			public OptionText(string name, int size, string color, TextAnchor align, CUI.Handler.FontTypes font, bool isInput) : base(name) { Align = align; Size = size; Color = color; Font = font; IsInput = isInput; }
+			public OptionText(string name, int size, string color, TextAnchor align, CUI.Handler.FontTypes font, bool isInput, string tooltip = null) : base(name, tooltip) { Align = align; Size = size; Color = color; Font = font; IsInput = isInput; }
 		}
 		public class OptionInput : Option
 		{
@@ -1609,7 +1784,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public bool ReadOnly;
 			public Action<AdminPlayer, string[]> Callback;
 
-			public OptionInput(string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> args) : base(name)
+			public OptionInput(string name, Func<string> placeholder, int characterLimit, bool readOnly, Action<AdminPlayer, string[]> args, string tooltip = null) : base(name, tooltip)
 			{
 				Placeholder = placeholder;
 				Callback = args;
@@ -1631,22 +1806,22 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Important
 			}
 
-			public OptionButton(string name, TextAnchor align, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null) : base(name) { Align = align; Callback = callback; Type = type; }
-			public OptionButton(string name, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null) : base(name) { Callback = callback; Type = type; }
+			public OptionButton(string name, TextAnchor align, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null, string tooltip = null) : base(name, tooltip) { Align = align; Callback = callback; Type = type; }
+			public OptionButton(string name, Action<AdminPlayer> callback, Func<AdminPlayer, Types> type = null, string tooltip = null) : base(name, tooltip) { Callback = callback; Type = type; }
 		}
 		public class OptionToggle : Option
 		{
 			public Func<AdminPlayer, bool> IsOn;
 			public Action<AdminPlayer> Callback;
 
-			public OptionToggle(string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null) : base(name) { Callback = callback; IsOn = isOn; }
+			public OptionToggle(string name, Action<AdminPlayer> callback, Func<AdminPlayer, bool> isOn = null, string tooltip = null) : base(name, tooltip) { Callback = callback; IsOn = isOn; }
 		}
 		public class OptionEnum : Option
 		{
 			public Func<string> Text;
 			public Action<bool> Callback;
 
-			public OptionEnum(string name, Action<bool> callback, Func<string> text) : base(name) { Callback = callback; Text = text; }
+			public OptionEnum(string name, Action<bool> callback, Func<string> text, string tooltip = null) : base(name, tooltip) { Callback = callback; Text = text; }
 		}
 		public class OptionRange : Option
 		{
@@ -1656,7 +1831,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public Action<AdminPlayer, float> Callback;
 			public Func<string> Text;
 
-			public OptionRange(string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text) : base(name) { Min = min; Max = max; Callback = callback; Value = value; Text = text; }
+			public OptionRange(string name, float min, float max, Func<float> value, Action<AdminPlayer, float> callback, Func<string> text, string tooltip = null) : base(name, tooltip) { Min = min; Max = max; Callback = callback; Value = value; Text = text; }
 		}
 		public class OptionRadio : Option
 		{
@@ -1667,7 +1842,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			public Radio Radio;
 
-			public OptionRadio(string name, string id, int index, bool on, Action<bool, AdminPlayer> callback, Radio radio) : base(name) { Id = id; Callback = callback; WantsOn = on; Index = index; Radio = radio; }
+			public OptionRadio(string name, string id, int index, bool on, Action<bool, AdminPlayer> callback, Radio radio, string tooltip = null) : base(name, tooltip) { Id = id; Callback = callback; WantsOn = on; Index = index; Radio = radio; }
 		}
 		public class OptionDropdown : Option
 		{
@@ -1677,7 +1852,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public string[] OptionsIcons;
 			public float OptionsIconScale;
 
-			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons, float optionsIconScale) : base(name) { Index = index; Callback = callback; Options = options; OptionsIcons = optionsIcons; OptionsIconScale = optionsIconScale; }
+			public OptionDropdown(string name, Func<int> index, Action<int> callback, string[] options, string[] optionsIcons, float optionsIconScale, string tooltip = null) : base(name, tooltip) { Index = index; Callback = callback; Options = options; OptionsIcons = optionsIcons; OptionsIconScale = optionsIconScale; }
 		}
 		public class OptionInputButton : Option
 		{
@@ -1685,22 +1860,33 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public OptionButton Button;
 			public float ButtonPriority = 0.25f;
 
-			public OptionInputButton(string name, float buttonPriority, OptionInput input, OptionButton button) : base(name)
+			public OptionInputButton(string name, float buttonPriority, OptionInput input, OptionButton button, string tooltip = null) : base(name, tooltip)
 			{
 				ButtonPriority = buttonPriority;
 				Input = input;
 				Button = button;
 			}
 		}
-		public class ButtonArray : Option
+		public class OptionButtonArray : Option
 		{
 			public OptionButton[] Buttons;
 			public float Spacing = 0.01f;
 
-			public ButtonArray(string name, float spacing, params OptionButton[] buttons) : base(name)
+			public OptionButtonArray(string name, float spacing, string tooltip = null, params OptionButton[] buttons) : base(name, tooltip)
 			{
 				Buttons = buttons;
 				Spacing = spacing;
+			}
+		}
+		public class OptionColor : Option
+		{
+			public Func<string> Color;
+			public Action<AdminPlayer, string, string> Callback;
+
+			public OptionColor(string name, Func<string> color, Action<AdminPlayer, string, string> callback, string tooltip = null) : base(name, tooltip)
+			{
+				Color = color;
+				Callback = callback;
 			}
 		}
 	}
@@ -1749,8 +1935,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(0, "Info", TextAnchor.MiddleLeft);
 			{
-				tab.AddInput(0, "Version", () => $"{Community.Version}", null);
-				tab.AddInput(0, "Informational Version", () => $"{Community.InformationalVersion}", null);
+				tab.AddInput(0, "Version", () => $"{Community.Runtime.Analytics.Version}", null);
+				tab.AddInput(0, "Informational Version", () => $"{Community.Runtime.Analytics.InformationalVersion}", null);
 
 				var loadedHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled);
 				var totalHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count() + Community.Runtime.HookManager.LoadedStaticHooks.Count();
@@ -1775,23 +1961,23 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(1, "Config", TextAnchor.MiddleLeft);
 			{
-				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded);
-				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate);
+				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded, "When enabled, it marks the server as modded.");
+				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.");
 
 				tab.AddName(1, "General", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker);
-				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation);
-				tab.AddInput(1, "Entity Map Buffer Size (restart required)", () => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); });
+				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker, "Tracks the time taken for hooks to be executed.");
+				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation, "Probably obsolete, but when enabled, it prints a list of hooks that are compatible in Oxide, but not Carbon.");
+				tab.AddInput(1, "Entity Map Buffer Size (restart required)", () => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, "Only change if you're aware what this is used for. Developers-related option.");
 
 				tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers);
-				tab.AddToggle(1, "Harmony Reference (<color=red>!</color>)", ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference);
-				tab.AddToggle(1, "File Name Check", ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck);
+				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers, "When disabled, you must load/unload plugins manually with 'c.load' or 'c.unload'.");
+				tab.AddToggle(1, "Harmony Reference (<color=red>!</color>)", ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference, "Enabling this will allow plugins to patch Harmony patches at runtime. This might create instability and conflict if unmanaged.");
+				tab.AddToggle(1, "File Name Check", ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck, "Checks for file names. Otherwise will load the plugins regardless. Recommended to be enabled.");
 
 				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
 				tab.AddDropdown(1, "Log File Mode", () => Config.LogFileMode, index => { Config.LogFileMode = index; Community.Runtime.SaveConfig(); }, LogFileModes);
 				tab.AddDropdown(1, "Log Verbosity (Debug)", () => Config.LogVerbosity, index => { Config.LogVerbosity = index; Community.Runtime.SaveConfig(); }, LogVerbosity);
-				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Logger.Severity)));
+				tab.AddDropdown(1, "Log Severity", () => (int)Config.LogSeverity, index => { Config.LogSeverity = (Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(Severity)));
 
 				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
 				tab.AddInput(1, "Server Language", () => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
@@ -1807,18 +1993,18 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static Tab Get()
 		{
-             var players = new Tab("players", "Players", Community.Runtime.CorePlugin, (instance, tab) =>
-             {
-                 tab.ClearColumn(1);
-                 RefreshPlayers(tab, instance);
-             });
-             {
-                 AddInitial(players, null);
-                 RefreshPlayers(players, null);
-             }
-             players.AddColumn(1);
- 
-             return players;
+			var players = new Tab("players", "Players", Community.Runtime.CorePlugin, (instance, tab) =>
+			{
+				tab.ClearColumn(1);
+				RefreshPlayers(tab, instance);
+			});
+			{
+				AddInitial(players, null);
+				RefreshPlayers(players, null);
+			}
+			players.AddColumn(1);
+
+			return players;
 		}
 
 		public static void AddInitial(Tab tab, AdminPlayer ap)
@@ -1837,7 +2023,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				AddPlayer(tab, ap, player);
 			}
-			if (!onlinePlayers.Any()) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
+			if (onlinePlayers.Count() == 0) tab.AddText(0, "No online players found.", 10, "1 1 1 0.4");
 
 			tab.AddName(0, "Offline");
 			var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
@@ -1845,7 +2031,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				AddPlayer(tab, ap, player);
 			}
-			if (!offlinePlayers.Any()) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
+			if (offlinePlayers.Count() == 0) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
 		}
 		public static void AddPlayer(Tab tab, AdminPlayer ap, BasePlayer player)
 		{
@@ -1882,9 +2068,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.AddButton(1, "View Permissions", ap =>
 				{
-					var perms = Instance.FindTab("permissions");
+					var perms = Singleton.FindTab("permissions");
 					var permission = Community.Runtime.CorePlugin.permission;
-					Instance.SetTab(ap.Player, "permissions");
+					Singleton.SetTab(ap.Player, "permissions");
 
 					ap.SetStorage("player", player);
 					PermissionsTab.GeneratePlayers(perms, permission, ap);
@@ -1898,7 +2084,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				tab.AddButtonArray(1,
 					new Tab.OptionButton("TeleportTo", ap => { ap.Player.Teleport(player.transform.position); }),
-					new Tab.OptionButton("Teleport2Me", ap => { player.transform.position = ap.Player.transform.position; player.SendNetworkUpdateImmediate(); }));
+					new Tab.OptionButton("Teleport2Me", ap =>
+					{
+						tab.CreateDialog($"Are you sure about that?", ap =>
+						{
+							player.transform.position = ap.Player.transform.position;
+							player.SendNetworkUpdateImmediate();
+						}, null);
+					}));
 
 				tab.AddButtonArray(1,
 					new Tab.OptionButton("Loot", ap =>
@@ -1907,7 +2100,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						ap.SetStorage("lootedent", player);
 						EntitiesTab.SendEntityToPlayer(ap.Player, player);
 
-						Core.timer.In(0.2f, () => Instance.Close(ap.Player));
+						Core.timer.In(0.2f, () => Singleton.Close(ap.Player));
 						Core.timer.In(0.5f, () =>
 						{
 							EntitiesTab.SendEntityToPlayer(ap.Player, player);
@@ -1927,34 +2120,40 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}),
 					new Tab.OptionButton("Respawn", ap =>
 					{
-						player.Hurt(player.MaxHealth()); player.Respawn(); player.EndSleeping();
+						tab.CreateDialog($"Are you sure about that?", ap =>
+						{
+							player.Hurt(player.MaxHealth());
+							player.Respawn();
+							player.EndSleeping();
+						}, null);
 					}));
+
+				if (Singleton.HasTab("entities"))
+				{
+					tab.AddButton(1, "Select Entity", ap2 =>
+					{
+						Singleton.SetTab(ap2.Player, "entities");
+						var tab = Singleton.GetTab(ap2.Player);
+						ap2.SetStorage("selectedent", player);
+						EntitiesTab.DrawEntities(tab, ap2);
+						EntitiesTab.DrawEntitySettings(tab, player, 1, ap2);
+					});
+				}
+
 				tab.AddInput(1, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
-				if (!aap.Player.IsSpectating())
+				if (aap.Player != player && aap.Player.spectateFilter != player.UserIDString)
 				{
 					tab.AddButton(1, "Spectate", ap =>
 					{
-						ap.Player.Teleport(player.transform.position);
-						ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: true);
-						ap.Player.gameObject.SetLayerRecursive(10);
-						ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
-						ap.Player.ChatMessage("Becoming Spectator");
-						ap.Player.SpectatePlayer(player);
-
+						StartSpectating(ap.Player, player);
 						ShowInfo(tab, ap, player);
 					});
 				}
-				else
+				if (!string.IsNullOrEmpty(aap.Player.spectateFilter) && (aap.Player.UserIDString == player.UserIDString || aap.Player.spectateFilter == player.UserIDString))
 				{
 					tab.AddButton(1, "End Spectating", ap =>
 					{
-						var spectated = ap.Player.GetParentEntity();
-						ap.Player.SetParent(null, true, true);
-						ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: false);
-						ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
-						ap.Player.gameObject.SetLayerRecursive(17);
-						ap.Player.Teleport(spectated.transform.position);
-
+						StopSpectating(ap.Player);
 						ShowInfo(tab, ap, player);
 					}, ap => Tab.OptionButton.Types.Selected);
 				}
@@ -1962,21 +2161,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					tab.AddButton(1, "Blind Player", ap =>
 					{
-						using var cui = new CUI(Instance.Handler);
-						var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
-						cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
-						cui.Send(container, player);
-						ShowInfo(tab, ap, player);
+						tab.CreateDialog("Are you sure you want to blind the player?", ap =>
+						{
+							using var cui = new CUI(Singleton.Handler);
+							var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+							cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
+							cui.Send(container, player);
+							BlindedPlayers.Add(player);
+							ShowInfo(tab, ap, player);
 
-						if (ap.Player == player) Core.timer.In(1, () => { Instance.Close(player); });
+							if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
+						}, null);
 					});
 				}
 				else
 				{
 					tab.AddButton(1, "Unblind Player", ap =>
 					{
-						using var cui = new CUI(Instance.Handler);
+						using var cui = new CUI(Singleton.Handler);
 						cui.Destroy("blindingpanel", player);
+						BlindedPlayers.Remove(player);
 						ShowInfo(tab, ap, player);
 					}, ap => Tab.OptionButton.Types.Selected);
 				}
@@ -2001,6 +2205,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		internal static Permission permission;
 		internal static string PluginFilter;
+		internal static string PlayerFilter;
 
 		public static Tab Get()
 		{
@@ -2053,10 +2258,29 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static void GeneratePlayers(Tab tab, Permission perms, AdminPlayer ap)
 		{
+			var filter = PlayerFilter?.Trim().ToLower();
+			var players = BasePlayer.allPlayerList.Where(x =>
+			{
+				if (!x.userID.IsSteamId()) return false;
+
+				if (!string.IsNullOrEmpty(filter))
+				{
+					return x.displayName.ToLower().Contains(filter) || x.UserIDString.Contains(filter);
+				}
+
+				return true;
+			});
+
 			tab.ClearColumn(1);
 			tab.AddName(1, "Players", TextAnchor.MiddleLeft);
 			{
-				foreach (var player in BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId()))
+				tab.AddInput(1, "Search", () => PlayerFilter, (ap, args) =>
+				{
+					PlayerFilter = args.ToString(" ");
+					GeneratePlayers(tab, perms, ap);
+				});
+
+				foreach (var player in players)
 				{
 					tab.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
 					{
@@ -2073,17 +2297,27 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public static void GeneratePlugins(Tab tab, AdminPlayer ap, Permission permission, BasePlayer player, string selectedGroup)
 		{
+			var filter = PluginFilter?.Trim().ToLower();
 			var plugins = Community.Runtime.Plugins.Plugins.Where(x =>
 			{
-				if (!string.IsNullOrEmpty(PluginFilter))
+				if (!string.IsNullOrEmpty(filter))
 				{
-					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(PluginFilter.Trim().ToLower()));
+					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(filter));
 				}
 
 				return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
 			});
 
 			tab.ClearColumn(2);
+			tab.AddButton(2, "Select", ap2 =>
+			{
+				Singleton.SetTab(ap.Player, "players");
+				var tab = Singleton.GetTab(ap.Player);
+				ap.SetStorage("playerfilterpl", player);
+				PlayersTab.AddInitial(tab, ap);
+				PlayersTab.RefreshPlayers(tab, ap);
+				PlayersTab.ShowInfo(tab, ap, player);
+			});
 			tab.AddName(2, "Plugins", TextAnchor.MiddleLeft);
 			{
 				tab.AddInput(2, "Search", () => PluginFilter, (ap, args) =>
@@ -2219,7 +2453,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.AddRange(0, "Range", 0, ((int)World.Size).Clamp(1, int.MaxValue) / 2, () => Range, (ap, value) => { Range = value; DrawEntities(tab, ap); }, () => $"{Range:0.0}m");
 			tab.AddName(0, $"Entities  ({EntityCount:n0})", TextAnchor.MiddleLeft);
 			tab.AddButtonArray(0,
-				new Tab.OptionButton("Players", ap => { Filter = "BasePlayer"; DrawEntities(tab);  }, ap => Filter == "BasePlayer" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+				new Tab.OptionButton("Players", ap => { Filter = "BasePlayer"; DrawEntities(tab); }, ap => Filter == "BasePlayer" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 				new Tab.OptionButton("Containers", ap => { Filter = "StorageContainer"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "StorageContainer" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 				new Tab.OptionButton("Deployables", ap => { Filter = "Deployable"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "Deployable" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 				new Tab.OptionButton("Collectibles", ap => { Filter = "CollectibleEntity"; ValidateFilter = null; DrawEntities(tab); }, ap => Filter == "CollectibleEntity" ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
@@ -2278,20 +2512,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var player = entity as BasePlayer;
 				var owner = BasePlayer.FindByID(entity.OwnerID);
 
-				if (player == null)
+				if (player != ap3?.Player)
 				{
 					tab.AddButtonArray(column,
 						new Tab.OptionButton("Kill", ap =>
 						{
-							entity.Kill();
-							DrawEntities(tab, ap);
-							tab.ClearColumn(column);
+							tab.CreateDialog($"Are you sure about that?", ap =>
+							{
+								entity.Kill();
+								DrawEntities(tab, ap);
+								tab.ClearColumn(column);
+							}, null);
 						}, ap => Tab.OptionButton.Types.Important),
 						new Tab.OptionButton("Kill (Gibbed)", ap =>
 						{
-							entity.Kill(BaseNetworkable.DestroyMode.Gib);
-							DrawEntities(tab, ap);
-							tab.ClearColumn(column);
+							tab.CreateDialog($"Are you sure about that?", ap =>
+							{
+								entity.Kill(BaseNetworkable.DestroyMode.Gib);
+								DrawEntities(tab, ap);
+								tab.ClearColumn(column);
+							}, null);
 						}));
 				}
 
@@ -2314,7 +2554,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddInput(column, "Rotation", () => $"{entity.transform.rotation}", null);
 				tab.AddButtonArray(column,
 					new Tab.OptionButton("TeleportTo", ap => { ap.Player.Teleport(entity.transform.position); }),
-					new Tab.OptionButton("Teleport2Me", ap => { entity.transform.position = ap.Player.transform.position; entity.SendNetworkUpdateImmediate(); }));
+					new Tab.OptionButton("Teleport2Me", ap =>
+					{
+						tab.CreateDialog($"Are you sure about that?", ap =>
+						{
+							entity.transform.position = ap.Player.transform.position;
+							entity.SendNetworkUpdateImmediate();
+						}, null);
+					}));
 
 				if (entity is StorageContainer storage)
 				{
@@ -2376,35 +2623,29 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}),
 						new Tab.OptionButton("Respawn", ap =>
 						{
-							player.Hurt(player.MaxHealth()); player.Respawn(); player.EndSleeping();
+							tab.CreateDialog($"Are you sure about that?", ap =>
+							{
+								player.Hurt(player.MaxHealth());
+								player.Respawn();
+								player.EndSleeping();
+							}, null);
 						}));
 					tab.AddInput(column, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
 					if (ap3 != null)
 					{
-						if (!ap3.Player.IsSpectating())
+						if (ap3.Player != player && ap3.Player.spectateFilter != player.UserIDString)
 						{
 							tab.AddButton(1, "Spectate", ap =>
 							{
-								ap.Player.Teleport(player.transform.position);
-								ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: true);
-								ap.Player.gameObject.SetLayerRecursive(10);
-								ap.Player.CancelInvoke(ap.Player.InventoryUpdate);
-								ap.Player.ChatMessage("Becoming Spectator");
-								ap.Player.SpectatePlayer(player);
-
+								StartSpectating(ap.Player, player);
 								DrawEntitySettings(tab, entity, column, ap3);
 							});
 						}
-						else
+						if (!string.IsNullOrEmpty(ap3.Player.spectateFilter) && (ap3.Player.UserIDString == player.UserIDString || ap3.Player.spectateFilter == player.UserIDString))
 						{
 							tab.AddButton(1, "End Spectating", ap =>
 							{
-								var spectated = ap.Player.GetParentEntity();
-								ap.Player.SetParent(null, true, true);
-								ap.Player.SetPlayerFlag(PlayerFlags.Spectating, b: false);
-								ap.Player.InvokeRepeating(ap.Player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
-								ap.Player.gameObject.SetLayerRecursive(17);
-								ap.Player.Teleport(spectated.transform.position);
+								StopSpectating(ap.Player);
 								DrawEntitySettings(tab, entity, column, ap3);
 							}, ap => Tab.OptionButton.Types.Selected);
 						}
@@ -2412,21 +2653,26 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							tab.AddButton(1, "Blind Player", ap =>
 							{
-								using var cui = new CUI(Instance.Handler);
-								var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
-								cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
-								cui.Send(container, player);
-								DrawEntitySettings(tab, entity, column, ap3);
+								tab.CreateDialog("Are you sure you want to blind the player?", ap =>
+								{
+									using var cui = new CUI(Singleton.Handler);
+									var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+									cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
+									cui.Send(container, player);
+									PlayersTab.BlindedPlayers.Add(player);
+									DrawEntitySettings(tab, entity, column, ap3);
 
-								if (ap.Player == player) Core.timer.In(1, () => { Instance.Close(player); });
+									if (ap.Player == player) Core.timer.In(1, () => { Singleton.Close(player); });
+								}, null);
 							});
 						}
 						else
 						{
 							tab.AddButton(1, "Unblind Player", ap =>
 							{
-								using var cui = new CUI(Instance.Handler);
+								using var cui = new CUI(Singleton.Handler);
 								cui.Destroy("blindingpanel", player);
+								PlayersTab.BlindedPlayers.Remove(player);
 								DrawEntitySettings(tab, entity, column, ap3);
 							}, ap => Tab.OptionButton.Types.Selected);
 						}
@@ -2686,7 +2932,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) => { SelectedPlugin = null; })
 			{
-				Override = (t, container, parent, ap) => GenerateUI(t, container, parent, ap)
+				Override = (t, container, parent, ap) => GenerateUI(container, parent, ap)
 			};
 
 			CodeflingInstance = new Codefling();
@@ -2897,17 +3143,17 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var eraseAllBeforehand = false;
 
-			if (images.Count > 0) Instance.ImageDatabase.QueueBatchCallback(vendor.IconScale, eraseAllBeforehand, result => { }, images.ToArray());
-			if (imagesSafe.Count > 0) Instance.ImageDatabase.QueueBatch(vendor.SafeIconScale, eraseAllBeforehand, imagesSafe.ToArray());
+			if (images.Count > 0) Singleton.ImageDatabase.QueueBatchCallback(vendor.IconScale, eraseAllBeforehand, result => { }, images.ToArray());
+			if (imagesSafe.Count > 0) Singleton.ImageDatabase.QueueBatch(vendor.SafeIconScale, eraseAllBeforehand, imagesSafe.ToArray());
 
 			Pool.FreeList(ref plugins);
 			Pool.FreeList(ref images);
 			Pool.FreeList(ref imagesSafe);
 		}
 
-		public static void GenerateUI(Tab tab, CuiElementContainer container, string parent, AdminPlayer ap)
+		public static void GenerateUI(CuiElementContainer container, string parent, AdminPlayer ap)
 		{
-			using var cui = new CUI(Instance.Handler);
+			using var cui = new CUI(Singleton.Handler);
 
 			var header = cui.CreatePanel(container, parent, null, "0.2 0.2 0.2 0.5",
 				xMin: 0f, xMax: 1f, yMin: 0.95f, yMax: 1f);
@@ -2949,7 +3195,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				if (plugin.NoImage()) cui.CreateImage(container, card, null, vendor.Logo, "0.2 0.2 0.2 0.4", xMin: 0.2f, xMax: 0.8f, yMin: 0.2f + vendor.LogoRatio, yMax: 0.8f - vendor.LogoRatio);
 				else
 				{
-					if (Instance.ImageDatabase.GetImage(plugin.Image) != 0) cui.CreateImage(container, card, null, plugin.Image, plugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1");
+					if (Singleton.ImageDatabase.GetImage(plugin.Image) != 0) cui.CreateImage(container, card, null, plugin.Image, plugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1");
 					else cui.CreateClientImage(container, card, null, plugin.Image, "1 1 1 1");
 				}
 
@@ -2997,7 +3243,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0f, xMax: 0.8f, yMin: 0.89f, yMax: 0.94f);
 
 			var drop = cui.CreatePanel(container, sidebar, null, "0 0 0 0", yMin: 0.96f, OxMin: -155);
-			Instance.TabPanelDropdown(cui, PlaceboPage, container, drop, null, $"pluginbrowser.changesetting filter_dd", 1, 0, (int)Filter, DropdownOptions, null, 0, DropdownShow);
+			Singleton.TabPanelDropdown(cui, PlaceboPage, container, drop, null, $"pluginbrowser.changesetting filter_dd", 1, 0, (int)Filter, DropdownOptions, null, 0, DropdownShow);
 
 			var topbarYScale = 0.1f;
 			cui.CreateText(container, topbar, null, "1 1 1 1", plugins.Count > 0 ? $"/ {maxPages + 1:n0}" : "NONE", plugins.Count > 0 ? 10 : 8, xMin: plugins.Count > 0 ? 0.925f : 0.92f, xMax: 0.996f, align: TextAnchor.MiddleLeft);
@@ -3036,7 +3282,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			if (SelectedPlugin != null)
 			{
-				vendor.CheckMetadata(SelectedPlugin.Id, () => { Instance.Draw(ap.Player); });
+				vendor.CheckMetadata(SelectedPlugin.Id, () => { Singleton.Draw(ap.Player); });
 
 				var mainPanel = cui.CreatePanel(container, parent, null, "0.15 0.15 0.15 0.35", blur: true);
 				cui.CreatePanel(container, mainPanel, null, "0.1 0.1 0.1 0.9");
@@ -3045,7 +3291,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (SelectedPlugin.NoImage()) cui.CreateImage(container, image, null, vendor.Logo, "0.2 0.2 0.2 0.4", xMin: 0.2f, xMax: 0.8f, yMin: 0.2f + vendor.LogoRatio, yMax: 0.8f - vendor.LogoRatio);
 				{
-					if (Instance.ImageDatabase.GetImage(SelectedPlugin.Image) == 0) cui.CreateClientImage(container, image, null, SelectedPlugin.Image, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
+					if (Singleton.ImageDatabase.GetImage(SelectedPlugin.Image) == 0) cui.CreateClientImage(container, image, null, SelectedPlugin.Image, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 					else cui.CreateImage(container, image, null, SelectedPlugin.Image, SelectedPlugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 				}
 				cui.CreateText(container, mainPanel, null, "1 1 1 1", SelectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
@@ -3358,7 +3604,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if (!source.StartsWith("<!DOCTYPE html>"))
 					{
-						Instance.Puts($"Downloaded {plugin.Name}");
+						Singleton.Puts($"Downloaded {plugin.Name}");
 						OsEx.File.Create(path, source);
 					}
 				}, Community.Runtime.CorePlugin, headers: new Dictionary<string, string>
@@ -3394,13 +3640,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if ((DateTime.Now - new DateTime(value.LastTick)).TotalHours >= 24)
 					{
-						Instance.Puts($"Invalidated {Type} database. Fetching...");
+						Singleton.Puts($"Invalidated {Type} database. Fetching...");
 						return false;
 					}
 
 					OwnedData = InstalledData;
 
-					Instance.Puts($"Loaded {Type} from file: {path}");
+					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
 				catch { Save(); }
@@ -3412,7 +3658,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				using var file = File.OpenWrite(path);
 				LastTick = DateTime.Now.Ticks;
 				Serializer.Serialize(file, this);
-				Instance.Puts($"Stored {Type} to file: {path}");
+				Singleton.Puts($"Stored {Type} to file: {path}");
 			}
 		}
 
@@ -3523,7 +3769,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				Community.Runtime.CorePlugin.webrequest.Enqueue(url, null, (error, source) =>
 				{
-					Instance.Puts($"Downloaded {plugin.Name}");
+					Singleton.Puts($"Downloaded {plugin.Name}");
 					OsEx.File.Create(path, source);
 
 					plugin.IsBusy = false;
@@ -3647,13 +3893,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if ((DateTime.Now - new DateTime(value.LastTick)).TotalHours >= 24)
 					{
-						Instance.Puts($"Invalidated {Type} database. Fetching...");
+						Singleton.Puts($"Invalidated {Type} database. Fetching...");
 						return false;
 					}
 
 					OwnedData = InstalledData;
 
-					Instance.Puts($"Loaded {Type} from file: {path}");
+					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
 				catch { Save(); }
@@ -3666,7 +3912,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				LastTick = DateTime.Now.Ticks;
 				Serializer.Serialize(file, this);
-				Instance.Puts($"Stored {Type} to file: {path}");
+				Singleton.Puts($"Stored {Type} to file: {path}");
 			}
 		}
 
@@ -3815,7 +4061,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if (!source.StartsWith("<!DOCTYPE html>"))
 					{
-						Instance.Puts($"Downloaded {plugin.Name}");
+						Singleton.Puts($"Downloaded {plugin.Name}");
 						OsEx.File.Create(path, source);
 					}
 				}, Community.Runtime.CorePlugin, headers: new Dictionary<string, string>
@@ -3851,13 +4097,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if ((DateTime.Now - new DateTime(value.LastTick)).TotalHours >= 24)
 					{
-						Instance.Puts($"Invalidated {Type} database. Fetching...");
+						Singleton.Puts($"Invalidated {Type} database. Fetching...");
 						return false;
 					}
 
 					OwnedData = InstalledData;
 
-					Instance.Puts($"Loaded {Type} from file: {path}");
+					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
 				catch { Save(); }
@@ -3869,7 +4115,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				using var file = File.OpenWrite(path);
 				LastTick = DateTime.Now.Ticks;
 				Serializer.Serialize(file, this);
-				Instance.Puts($"Stored {Type} to file: {path}");
+				Singleton.Puts($"Stored {Type} to file: {path}");
 			}
 		}
 
@@ -3968,6 +4214,16 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		#endregion
 	}
 
+	#region Administration - Custom Commands
+
+	[UiCommand("carbongg.endspectate")]
+	private void EndSpectate(ConsoleSystem.Arg arg)
+	{
+		StopSpectating(arg.Player());
+	}
+
+	#endregion
+
 	#region Plugins - Custom Commands
 
 	private void OnPluginLoaded(RustPlugin plugin)
@@ -3977,11 +4233,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		foreach (var player in BasePlayer.activePlayerList)
 		{
-			var ap = Instance.GetOrCreateAdminPlayer(player);
+			var ap = Singleton.GetOrCreateAdminPlayer(player);
 
-			if (ap.IsInMenu && Instance.GetTab(player).Id == "plugins")
+			if (ap.IsInMenu && Singleton.GetTab(player).Id == "plugins")
 			{
-				Instance.Draw(player);
+				Singleton.Draw(player);
 			}
 		}
 	}
@@ -3991,11 +4247,11 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			foreach (var player in BasePlayer.activePlayerList)
 			{
-				var ap = Instance.GetOrCreateAdminPlayer(player);
+				var ap = Singleton.GetOrCreateAdminPlayer(player);
 
-				if (ap.IsInMenu && Instance.GetTab(player).Id == "pluginbrowser")
+				if (ap.IsInMenu && Singleton.GetTab(player).Id == "pluginbrowser")
 				{
-					Instance.Draw(player);
+					Singleton.Draw(player);
 				}
 			}
 		});
@@ -4010,22 +4266,27 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		vendor.Refresh();
 		PluginsTab.TagFilter.Clear();
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
-		Instance.Draw(args.Player());
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.interact")]
 	private void PluginBrowserInteract(ConsoleSystem.Arg args)
 	{
 		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), PluginsTab.Vendor));
+		var tab = Singleton.GetTab(args.Player());
+
 		switch (args.Args[0])
 		{
 			case "0":
 			case "1":
-				vendor.Download(args.Args[1], () => Instance.Draw(args.Player()));
+				vendor.Download(args.Args[1], () => Singleton.Draw(args.Player()));
 				break;
 
 			case "2":
-				vendor.Uninstall(args.Args[1]);
+				tab.CreateDialog($"Are you sure you want to uninstall '{PluginsTab.SelectedPlugin.Name}'?", ap =>
+				{
+					vendor.Uninstall(args.Args[1]);
+				}, null);
 				break;
 
 			case "10":
@@ -4036,7 +4297,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				break;
 		}
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.page")]
 	private void PluginBrowserPage(ConsoleSystem.Arg args)
@@ -4074,9 +4335,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.filter")]
 	private void PluginBrowserFilter(ConsoleSystem.Arg args)
@@ -4089,9 +4350,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		PluginsTab.Page = 0;
 		PluginsTab.Filter = (PluginsTab.FilterTypes)args.Args[0].ToInt();
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.tagfilter")]
 	private void PluginBrowserTagFilter(ConsoleSystem.Arg args)
@@ -4104,9 +4365,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (PluginsTab.TagFilter.Contains(filter)) PluginsTab.TagFilter.Remove(filter);
 		else PluginsTab.TagFilter.Add(filter);
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.search")]
 	private void PluginBrowserSearch(ConsoleSystem.Arg args)
@@ -4119,9 +4380,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (PluginsTab.Search == "Search...") PluginsTab.Search = null;
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.selectplugin")]
 	private void PluginBrowserSelectPlugin(ConsoleSystem.Arg args)
@@ -4131,7 +4392,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		PluginsTab.SelectedPlugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[0]);
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.deselectplugin")]
 	private void PluginBrowserDeselectPlugin(ConsoleSystem.Arg args)
@@ -4141,7 +4402,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		PluginsTab.SelectedPlugin = null;
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.changeselectedplugin")]
 	private void PluginBrowserChangeSelected(ConsoleSystem.Arg args)
@@ -4154,9 +4415,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		PluginsTab.SelectedPlugin = plugins[nextPage > plugins.Count - 1 ? 0 : nextPage < 0 ? plugins.Count - 1 : nextPage];
 		Pool.FreeList(ref plugins);
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.changesetting")]
 	private void PluginBrowserChangeSetting(ConsoleSystem.Arg args)
@@ -4178,10 +4439,10 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 				break;
 		}
 
-		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Instance.GetOrCreateAdminPlayer(args.Player()));
+		PluginsTab.DownloadThumbnails(vendor, PluginsTab.Page, Singleton.GetOrCreateAdminPlayer(args.Player()));
 
 		vendor.Refresh();
-		Instance.Draw(args.Player());
+		Singleton.Draw(args.Player());
 	}
 
 	[ConsoleCommand("adminmodule.downloadplugin", "Downloads a plugin from a vendor (if available). Syntax: adminmodule.downloadplugin <codefling|umod> <plugin>")]
@@ -4203,7 +4464,88 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		vendor.Download(plugin.Id, () => { PutsWarn($"Couldn't download {plugin.Name}."); });
 	}
 
+	[ConsoleCommand("adminmodule.updatevendor", "Downloads latest vendor information. Syntax: adminmodule.updatevendor <codefling|umod>")]
+	[AuthLevel(2)]
+	private void UpdateVendor(Arg args)
+	{
+		var vendor = PluginsTab.GetVendor(args.Args[0] == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
+		if (vendor == null)
+		{
+			PutsWarn($"Couldn't find that vendor.");
+			return;
+		}
+
+		var id = string.Empty;
+		switch (vendor)
+		{
+			case PluginsTab.Codefling:
+				id = "cf";
+				break;
+
+			case PluginsTab.uMod:
+				id = "umod";
+				break;
+		}
+
+		var dataPath = Path.Combine(Core.Defines.GetDataFolder(), $"vendordata_{id}.db");
+		OsEx.File.Delete(dataPath);
+
+		if (!vendor.Load())
+		{
+			vendor.FetchList();
+			vendor.Refresh();
+		}
+	}
+
 	#endregion
+
+	internal static void StartSpectating(BasePlayer player, BasePlayer target)
+	{
+		if (!string.IsNullOrEmpty(player.spectateFilter))
+		{
+			StopSpectating(player);
+		}
+
+		player.Teleport(target.transform.position);
+		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: true);
+		player.gameObject.SetLayerRecursive(10);
+		player.CancelInvoke(player.InventoryUpdate);
+		player.ChatMessage("Becoming Spectator");
+		player.SpectatePlayer(target);
+		player.spectateFilter = target.UserIDString;
+
+		using var cui = new CUI(Singleton.Handler);
+		var container = cui.CreateContainer(SpectatePanelId, needsCursor: true, parent: CUI.ClientPanels.Overlay);
+		var panel = cui.CreatePanel(container, SpectatePanelId, null, "0.1 0.1 0.1 0.3");
+		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{target.displayName.ToUpper().SpacedString(1)}</b>", 15);
+		cui.CreateProtectedButton(container, panel, null, "#1c6aa0", "1 1 1 0.7", "END SPECTATE".SpacedString(1), 10,
+			xMin: 0.45f, xMax: 0.55f, yMin: 0.15f, yMax: 0.19f, command: "carbongg.endspectate");
+		cui.Send(container, player);
+
+		Community.Runtime.CorePlugin.NextTick(() => Singleton.Close(player));
+	}
+	internal static void StopSpectating(BasePlayer player)
+	{
+		using var cui = new CUI(Singleton.Handler);
+		cui.Destroy(SpectatePanelId, player);
+
+		if (string.IsNullOrEmpty(player.spectateFilter))
+		{
+			return;
+		}
+
+		var spectated = player.GetParentEntity();
+		player.SetParent(null, true, true);
+		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: false);
+		player.InvokeRepeating(player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
+		player.gameObject.SetLayerRecursive(17);
+		player.Teleport(spectated.transform.position);
+		player.spectateFilter = string.Empty;
+
+		var ap = Singleton.GetOrCreateAdminPlayer(player);
+		EntitiesTab.DrawEntitySettings(Singleton.GetTab(player), spectated, 1, ap);
+		Singleton.Draw(player);
+	}
 
 	#endregion
 }
@@ -4213,8 +4555,18 @@ public class AdminConfig
 	public string OpenCommand = "cadmin";
 	public int MinimumAuthLevel = 2;
 	public bool DisableEntitiesTab = false;
+	public bool DisablePluginsTab = true;
 }
 public class AdminData
 {
+	public DataColors Colors = new DataColors();
 
+	public class DataColors
+	{
+		public string SelectedTabColor = "0.4 0.7 0.2";
+		public string EditableInputHighlight = "0.259 0.529 0.961";
+		public float OptionNameOpacity = 0.7f;
+		public float TitleUnderlineOpacity = 0.9f;
+
+	}
 }

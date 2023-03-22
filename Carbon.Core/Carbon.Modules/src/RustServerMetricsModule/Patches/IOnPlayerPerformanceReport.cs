@@ -9,6 +9,8 @@ using Newtonsoft.Json;
  */
 
 namespace Carbon.Modules;
+#pragma warning disable IDE0051
+#pragma warning disable IDE0060
 
 public partial class RustServerMetricsModule
 {

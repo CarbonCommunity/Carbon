@@ -8,11 +8,23 @@ using System.Collections.Generic;
  *
  */
 
-namespace API.Contracts;
+namespace API.Analytics;
 
 public interface IAnalyticsManager
 {
+	public string Branch { get; }
+	public string InformationalVersion { get; }
+	public string Platform { get; }
+	public string Protocol { get; }
+	public string UserAgent { get; }
+	public string Version { get; }
+
+
 	public string ClientID { get; }
+	public string SessionID { get; }
+
+
 	public void StartSession();
+	public void LogEvent(string eventName);
 	public void LogEvent(string eventName, IDictionary<string, object> parameters);
 }

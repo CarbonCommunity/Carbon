@@ -18,6 +18,7 @@ using Oxide.Core.Libraries;
  */
 
 namespace Carbon.Modules;
+#pragma warning disable IDE0051
 
 public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 {

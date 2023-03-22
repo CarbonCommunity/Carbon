@@ -1,11 +1,9 @@
-//#define DEBUG_VERBOSE
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using API.Contracts;
+using API.Assembly;
 using Utility;
 
 /*
@@ -15,7 +13,7 @@ using Utility;
  *
  */
 
-namespace Components.Loaders;
+namespace Loaders;
 
 internal sealed class AssemblyLoader : IDisposable
 {
@@ -26,7 +24,7 @@ internal sealed class AssemblyLoader : IDisposable
 		public Assembly Assembly { get; internal set; }
 	}
 
-	private readonly Hash<string, Item> _cache = new();
+	private readonly Dictionary<string, Item> _cache = new();
 
 	private readonly string[] _directoryList =
 	{
@@ -51,7 +49,7 @@ internal sealed class AssemblyLoader : IDisposable
 			path = Path.Combine(directory, file);
 		}
 
-		if (path.IsNullOrEmpty())
+		if (String.IsNullOrEmpty(path))
 		{
 			Logger.Debug($"Unable to load assembly: '{file}'");
 			return default;
@@ -121,15 +119,15 @@ internal sealed class AssemblyLoader : IDisposable
 		return -1;
 	}
 
-	private bool disposedValue;
+	private bool _disposing;
 
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposing)
 		{
 			if (disposing)
 				_cache.Clear();
-			disposedValue = true;
+			_disposing = true;
 		}
 	}
 

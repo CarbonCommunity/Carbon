@@ -32,17 +32,27 @@ namespace Oxide.Plugins
 
 			public IPlayer FindPlayer(string partialNameOrId)
 			{
-				return BasePlayer.FindAwakeOrSleeping(partialNameOrId).AsIPlayer();
+				var player = BasePlayer.FindAwakeOrSleeping(partialNameOrId);
+				if (player == null) return new RustPlayer { Id = partialNameOrId };
+
+				return player.AsIPlayer();
 			}
 
 			public IPlayer FindPlayerById(string id)
 			{
-				return BasePlayer.FindAwakeOrSleeping(id).AsIPlayer();
+				var player = BasePlayer.FindAwakeOrSleeping(id);
+				if (player == null) return new RustPlayer { Id = id };
+
+				return player.AsIPlayer();
 			}
 
 			public IPlayer FindPlayerByObj(object obj)
 			{
-				return BasePlayer.FindAwakeOrSleeping(obj.ToString()).AsIPlayer();
+				var value = obj.ToString();
+				var player = BasePlayer.FindAwakeOrSleeping(value);
+				if (player == null) return new RustPlayer { Id = value };
+
+				return player.AsIPlayer();
 			}
 
 			public IEnumerable<IPlayer> FindPlayers(string partialNameOrId)

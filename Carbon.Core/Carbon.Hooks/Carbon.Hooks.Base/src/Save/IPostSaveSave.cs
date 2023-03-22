@@ -11,6 +11,7 @@ using UnityEngine;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Save
 {
@@ -20,7 +21,7 @@ public partial class Category_Save
 		[HookAttribute.Identifier("184bb59290c64312a2d12bc3502fe6ca")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
-		public class Save_SaveRestore_Save_184bb59290c64312a2d12bc3502fe6ca : API.Hooks.Patch
+		public class Save_SaveRestore_Save_184bb59290c64312a2d12bc3502fe6ca : Patch
 		{
 			public static void Postfix()
 			{

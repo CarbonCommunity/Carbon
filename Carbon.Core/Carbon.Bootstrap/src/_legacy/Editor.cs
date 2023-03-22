@@ -31,9 +31,8 @@ public sealed class Editor : MarshalByRefObject
 	{
 		try
 		{
-			byte[] raw = File.ReadAllBytes(Path.Combine(location, file));
-			if (raw == null) throw new Exception("Unable to read file");
-
+			byte[] raw = File.ReadAllBytes(Path.Combine(location, file))
+				?? throw new Exception("Unable to read file");
 			raw = SetAssemblyName(raw, name);
 
 			using FileStream disk = new FileStream(Path.Combine(location, file), FileMode.Truncate);
@@ -65,8 +64,8 @@ public sealed class Editor : MarshalByRefObject
 	{
 		try
 		{
-			byte[] raw = File.ReadAllBytes(Path.Combine(location, file));
-			if (raw == null) throw new Exception("Unable to read file");
+			byte[] raw = File.ReadAllBytes(Path.Combine(location, file))
+				?? throw new Exception("Unable to read file");
 			return GetAssemblyName(raw);
 		}
 		catch (System.Exception) { throw; }
@@ -89,8 +88,8 @@ public sealed class Editor : MarshalByRefObject
 	{
 		try
 		{
-			byte[] raw = File.ReadAllBytes(Path.Combine(location, file));
-			if (raw == null) throw new Exception("Unable to read file");
+			byte[] raw = File.ReadAllBytes(Path.Combine(location, file))
+				?? throw new Exception("Unable to read file");
 			return GetAssemblyVersion(raw);
 		}
 		catch (System.Exception) { throw; }

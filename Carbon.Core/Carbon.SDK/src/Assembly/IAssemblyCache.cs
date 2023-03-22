@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 
 /*
  *
@@ -8,11 +7,11 @@ using System.Reflection;
  *
  */
 
-namespace API.Contracts;
+namespace API.Assembly;
 
 public interface IAssemblyCache
 {
 	public string Name { get; }
 	public byte[] Raw { get; }
-	public Assembly Assembly { get; }
+	public System.Reflection.Assembly Assembly { get; }
 }

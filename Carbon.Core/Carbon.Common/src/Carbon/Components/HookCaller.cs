@@ -107,11 +107,12 @@ namespace Carbon
 
 			var result = (object)null;
 			var conflicts = Pool.GetList<Conflict>();
+			var array = args == null || args.Length == 0 ? null : args.ToArray();
 
 			foreach (var module in Community.Runtime.ModuleProcessor.Modules)
 			{
 				var priority = (Priorities)default;
-				var methodResult = Caller.CallHook(module, hookName, flags: flag, args: args, ref priority);
+				var methodResult = Caller.CallHook(module, hookName, flags: flag, args: array, ref priority);
 
 				if (methodResult != null)
 				{
@@ -120,7 +121,6 @@ namespace Carbon
 				}
 			}
 
-			var array = args == null || args.Length == 0 ? null : args.ToArray();
 			var plugins = Pool.GetList<RustPlugin>();
 
 			foreach (var mod in Loader.LoadedMods)
@@ -201,7 +201,7 @@ namespace Carbon
 							}
 
 							localResult = priorityConflict.Result;
-							if (differentResults) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+							if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
 
 							break;
 					}

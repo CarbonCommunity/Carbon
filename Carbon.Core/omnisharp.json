@@ -6,6 +6,11 @@
 	},
 	"RoslynExtensionsOptions": {
 		"EnableAnalyzersSupport": true,
+		"EnableDecompilationSupport": true,
 		"LocationPaths": []
+	},
+	"FormattingOptions": {
+		"TabSize": 4,
+		"UseTabs": true
 	}
 }

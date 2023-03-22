@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Contracts;
@@ -108,10 +110,10 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 	public class ScriptParser : Parser, IBaseProcessor.IParser
 	{
-		public bool IsLineValid(string line)
-		{
-			return true;
-		}
+		internal const string QuoteReplacer = "[CARBONQUOTE]";
+		internal const string Quote = "\\\"";
+		internal const string NewLineReplacer = "[CARBONNEWLINE]";
+		internal const string NewLine = "\\n";
 
 		public override void Process(string input, out string output)
 		{
@@ -119,16 +121,23 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			{
 				try
 				{
-					output = input
-						.Replace("PluginTimers", "Timers");
+					#region Handle Unicode & Quote Escaping
+
+					// if (input.Contains("\\u"))
+					// {
+					// 	output = Regex.Unescape(input.Replace(Quote, QuoteReplacer).Replace(NewLine, NewLineReplacer)).Replace(QuoteReplacer, Quote).Replace(NewLineReplacer, NewLine);
+					// }
+					// else output = input;
+
+					#endregion
+
+					output = input.Replace("PluginTimers", "Timers");
 
 					var newOutput = string.Empty;
 					var split = output.Split('\n');
 
 					foreach (var line in split)
 					{
-						if (!IsLineValid(line)) continue;
-
 						newOutput += line + "\n";
 					}
 

@@ -5,7 +5,7 @@
  *
  */
 
-namespace API.Structs;
+namespace API.Analytics;
 
 public struct Identity
 {

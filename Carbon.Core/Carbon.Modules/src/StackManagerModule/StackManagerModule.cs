@@ -13,12 +13,15 @@ using UnityEngine;
  */
 
 namespace Carbon.Modules;
+#pragma warning disable IDE0051
 
 public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerData>
 {
 	public override string Name => "StackManager";
 	public override bool ForceModded => true;
 	public override Type Type => typeof(StackManagerModule);
+
+	public override bool EnabledByDefault => false;
 
 	public override void OnEnabled(bool initialized)
 	{
@@ -34,7 +37,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 				DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
-				if(originalStack > 0) item.stackable = Mathf.Clamp((int)(originalStack * category.Value * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
+				if (originalStack > 0) item.stackable = Mathf.Clamp((int)(originalStack * category.Value * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
 			}
 		}
 

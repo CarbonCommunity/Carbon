@@ -13,12 +13,15 @@ using static BaseEntity;
  */
 
 namespace Carbon.Modules;
+#pragma warning disable IDE0051
 
 public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
 {
 	public override string Name => "GatherManager";
 	public override bool ForceModded => true;
 	public override Type Type => typeof(GatherManagerModule);
+
+	public override bool EnabledByDefault => false;
 
 	#region Hooks
 

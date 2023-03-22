@@ -17,6 +17,7 @@ using UnityEngine;
  */
 
 namespace Carbon.Modules;
+#pragma warning disable IDE0051
 
 public class MapProtectionModule : CarbonModule<MapProtectionConfig, EmptyModuleData>
 {

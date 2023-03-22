@@ -15,6 +15,7 @@ using UnityEngine;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Static
 {
@@ -24,7 +25,7 @@ public partial class Category_Static
 		[HookAttribute.Identifier("e1c940a317fe4608ad4add1510107c09")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden | HookFlags.IgnoreChecksum)]
 
-		public class Static_Debug_Log_e1c940a317fe4608ad4add1510107c09 : API.Hooks.Patch
+		public class Static_Debug_Log_e1c940a317fe4608ad4add1510107c09 : Patch
 		{
 			internal static string[] _filter = new string[]
 			{
