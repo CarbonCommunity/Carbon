@@ -179,21 +179,24 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		using UnityWebRequest request = new UnityWebRequest($"{url}?{query}", "POST");
 		request.SetRequestHeader("User-Agent", UserAgent);
 		request.SetRequestHeader("Content-Type", "application/json");
-		request.uploadHandler = new UploadHandlerRaw((byte[])default);
+		request.uploadHandler = new UploadHandlerRaw(new byte[] { });
 		request.downloadHandler = new DownloadHandlerBuffer();
 
 		yield return request.SendWebRequest();
 
 #if DEBUG_VERBOSE
-		if (request.isNetworkError || request.isHttpError)
+		switch(request.result)
 		{
-			Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
-			Logger.Debug($" > {url}?{query}");
-		}
-		else
-		{
-			Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
-			Logger.Debug($" > {url}?{query}");
+			case UnityWebRequest.Result.ConnectionError:
+			case UnityWebRequest.Result.ProtocolError:
+				Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
+				Logger.Debug($" > {url}?{query}");
+				break;
+
+			default:
+				Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
+				Logger.Debug($" > {url}?{query}");
+				break;
 		}
 #endif
 	}
@@ -250,16 +253,18 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		yield return request.SendWebRequest();
 
 #if DEBUG_VERBOSE
-		if (request.isNetworkError || request.isHttpError)
+		switch(request.result)
 		{
-			Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
+			case UnityWebRequest.Result.ConnectionError:
+			case UnityWebRequest.Result.ProtocolError:
+				Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
 			Logger.Debug($" > {url}?{query}");
-		}
+				break;
 
-		else
-		{
-			Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
+			default:
+				Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
 			Logger.Debug($" > {url}?{query}");
+				break;
 		}
 #endif
 	}
