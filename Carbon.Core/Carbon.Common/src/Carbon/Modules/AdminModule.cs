@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using API.Logger;
+using System.Text;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -80,6 +80,13 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Unsubscribe("CanDismountEntity");
 		Unsubscribe("OnEntityVisibilityCheck");
 		Unsubscribe("OnEntityDistanceCheck");
+
+	}
+	public override void OnPostServerInit()
+	{
+		base.OnPostServerInit();
+
+		GenerateTabs();
 	}
 
 	public override void OnEnabled(bool initialized)
@@ -128,14 +135,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		base.Load();
 
-		UnregisterAllTabs();
-
-		RegisterTab(CarbonTab.Get());
-		RegisterTab(PlayersTab.Get());
-		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
-		RegisterTab(PermissionsTab.Get());
-		RegisterTab(ModulesTab.Get());
-		if (!ConfigInstance.DisablePluginsTab) RegisterTab(PluginsTab.Get());
+		if (Community.IsServerFullyInitializedCache) GenerateTabs();
 	}
 
 	private void OnLog(string condition, string stackTrace, LogType type)
@@ -146,6 +146,18 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var result = log[0];
 		Array.Clear(log, 0, log.Length);
 		_logQueue.Add($"<color={_logColor[type]}>{result}</color>");
+	}
+
+	public void GenerateTabs()
+	{
+		UnregisterAllTabs();
+
+		RegisterTab(CarbonTab.Get());
+		RegisterTab(PlayersTab.Get());
+		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
+		RegisterTab(PermissionsTab.Get());
+		RegisterTab(ModulesTab.Get());
+		if (!ConfigInstance.DisablePluginsTab) RegisterTab(PluginsTab.Get());
 	}
 
 	private void OnEntityDismounted(BaseMountable entity, BasePlayer player)
@@ -892,11 +904,6 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetOrCreateAdminPlayer(player);
 		var previous = ap.TabIndex;
 
-		foreach (var tab in Tabs)
-		{
-			tab?.OnChange?.Invoke(ap, tab);
-		}
-
 		ap.Clear();
 
 		if (int.TryParse(args.Args[0], out int index))
@@ -910,6 +917,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (ap.TabIndex > Tabs.Count - 1) ap.TabIndex = 0;
 			else if (ap.TabIndex < 0) ap.TabIndex = Tabs.Count - 1;
 		}
+
+		var tab2 = GetTab(player);
+		tab2.OnChange?.Invoke(ap, tab2);
 
 		if (ap.TabIndex != previous) Draw(player);
 	}
@@ -1285,6 +1295,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 			else Tabs.Add(tab);
 		}
 
+		Puts($"Registered tab '{tab.Name}'");
+
 		AdminPlayers.Clear();
 	}
 	public void UnregisterTab(string id)
@@ -1299,6 +1311,8 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		Tabs.RemoveAll(x => x.Id == id);
+
+		Puts($"Unregistered tab '{tab.Name}'");
 	}
 	public void UnregisterAllTabs()
 	{
