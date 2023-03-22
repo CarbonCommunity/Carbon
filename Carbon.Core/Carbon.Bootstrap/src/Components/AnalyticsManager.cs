@@ -179,7 +179,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		using UnityWebRequest request = new UnityWebRequest($"{url}?{query}", "POST");
 		request.SetRequestHeader("User-Agent", UserAgent);
 		request.SetRequestHeader("Content-Type", "application/json");
-		request.uploadHandler = new UploadHandlerRaw((byte[])default);
+		request.uploadHandler = new UploadHandlerRaw(default);
 		request.downloadHandler = new DownloadHandlerBuffer();
 
 		yield return request.SendWebRequest();
