@@ -167,6 +167,20 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			UnsubscribeAll();
 		}
 	}
+	public override bool PreLoadShouldSave()
+	{
+		if (ConfigInstance.Deployables.ManagedSpawners == null ||
+			ConfigInstance.Deployables.ManagedSpawners == null ||
+			ConfigInstance.Deployables.ManagedPrefabs == null)
+		{
+			ConfigInstance.Deployables.LockedCrates = RustEditConfig.DeployablesSettings.GetDefaultLockedCrates();
+			ConfigInstance.Deployables.ManagedSpawners = RustEditConfig.DeployablesSettings.GetDefaultManagedSpawners();
+			ConfigInstance.Deployables.ManagedPrefabs = RustEditConfig.DeployablesSettings.GetDefaultManagedPrefabs();
+			return true;
+		}
+
+		return false;
+	}
 
 	#region Hooks
 
@@ -308,7 +322,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		if (!Deployables_ProtectedHook(entity))
 		{
-			return true;
+			return false;
 		}
 
 		#endregion
@@ -2883,11 +2897,11 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	{
 		//Logic to stop pickup and decay.
 		if (__instance == null) { return false; }
-		if (Singleton.ConfigInstance.Deployables.ManagedPrefabs.Contains(__instance.PrefabName))
+		if (__instance.OwnerID == 0 && Singleton.ConfigInstance.Deployables.ManagedPrefabs.Contains(__instance.PrefabName))
 		{
 			if (Singleton.ConfigInstance.Deployables.DisableDamageLikeRE)
 			{
-				//Blcosk all damage
+				//Blocks all damage
 				return false;
 			}
 			if (info == null)
@@ -4119,7 +4133,12 @@ public class RustEditConfig
 		public bool LogManagedSpawns = false;
 		public int LockedCratesHealth = 100;
 		public List<Vector3> RemovePrefabsLocations = new() { new Vector3(0, -499, 0) };
-		public List<string> LockedCrates = new()
+		public List<string> LockedCrates;
+		public List<string> ManagedSpawners;
+		public List<string> ManagedPrefabs;
+		public string DefaultSignImage = "iVBORw0KGgoAAAANSUhEUgAAANcAAAB9CAYAAAAx+vY9AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB/SURBVHhe7cGBAAAAAMOg+VNf4QBVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8aqR4AAFsKyZjAAAAAElFTkSuQmCC";
+
+		public static List<string> GetDefaultLockedCrates() => new()
 		{
 			"assets/bundled/prefabs/radtown/dmloot/dm tier3 lootbox.prefab",
 			"assets/bundled/prefabs/radtown/dmloot/dm tier2 lootbox.prefab",
@@ -4132,7 +4151,7 @@ public class RustEditConfig
 			"assets/bundled/prefabs/radtown/dmloot/dm ammo.prefab",
 			"assets/bundled/prefabs/radtown/dmloot/dm c4.prefab"
 		};
-		public List<string> ManagedSpawners = new()
+		public static List<string> GetDefaultManagedSpawners() => new()
 		{
 			"assets/bundled/prefabs/hapis/desk_greencard_hapis.prefab",
 			"assets/bundled/prefabs/radtown/desk_bluecard.prefab",
@@ -4142,7 +4161,7 @@ public class RustEditConfig
 			"assets/bundled/prefabs/modding/lootables/green_card_spawner.prefab",
 			"assets/bundled/prefabs/modding/lootables/blue_card_spawner.prefab",
 		};
-		public List<string> ManagedPrefabs = new()
+		public static List<string> GetDefaultManagedPrefabs() => new()
 		{
 			"assets/prefabs/building/wall.window.bars/wall.window.bars.metal.prefab",
 			"assets/prefabs/misc/xmas/neon_sign/sign.neon.xl.prefab",
@@ -4241,7 +4260,6 @@ public class RustEditConfig
 			"assets/content/vehicles/boats/rowboat/rowboat.prefab",
 			"assets/content/vehicles/snowmobiles/tomahasnowmobile.prefab",
 			"assets/content/vehicles/snowmobiles/snowmobile.prefab",
-			"assets/rust.ai/nextai/testridablehorse.prefab",
 			"assets/prefabs/deployable/barricades/barricade.wood.prefab",
 			"assets/prefabs/deployable/barricades/barricade.woodwire.prefab",
 			"assets/prefabs/deployable/barricades/barricade.stone.prefab",
@@ -4388,6 +4406,5 @@ public class RustEditConfig
 			"assets/prefabs/misc/junkpile_water/junkpile_water_b.prefab",
 			"assets/prefabs/misc/junkpile_water/junkpile_water_a.prefab"
 		};
-		public string DefaultSignImage = "iVBORw0KGgoAAAANSUhEUgAAANcAAAB9CAYAAAAx+vY9AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAB/SURBVHhe7cGBAAAAAMOg+VNf4QBVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8aqR4AAFsKyZjAAAAAElFTkSuQmCC";
 	}
 }

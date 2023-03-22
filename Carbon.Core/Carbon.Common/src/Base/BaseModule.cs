@@ -22,6 +22,7 @@ public abstract class BaseModule : BaseHookable
 	public virtual bool Disabled => false;
 	public virtual bool IsCoreModule => false;
 
+	public abstract void OnPostServerInit();
 	public abstract void OnServerInit();
 	public abstract void Load();
 	public abstract void Save();
@@ -205,6 +206,10 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	public override void OnServerInit()
 	{
 		OnEnableStatus();
+	}
+	public override void OnPostServerInit()
+	{
+		
 	}
 
 	public virtual bool PermissionExists(string permission)
