@@ -46,6 +46,19 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 				Carbon.Bootstrap.AssemblyEx.LoadExtension(
 					Path.GetFileName(file), Path.GetDirectoryName(file));
 			},
+		},
+
+		new Item
+		{
+			Extension = "*.dll",
+			IncludeSubFolders = false,
+			Directory = Utility.Context.CarbonPlugins,
+
+			OnFileCreated = (sender, file) =>
+			{
+				Carbon.Bootstrap.AssemblyEx.LoadExtension(
+					Path.GetFileName(file), Path.GetDirectoryName(file));
+			},
 		}
 	};
 

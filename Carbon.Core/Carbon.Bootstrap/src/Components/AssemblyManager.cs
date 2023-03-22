@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using API.Assembly;
 using API.Contracts;
+using API.Plugins;
 using Loaders;
 using Utility;
 
@@ -174,7 +175,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading component from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
 			return null;
 		}
 #if DEBUG
@@ -250,7 +251,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading module from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
 			return null;
 		}
 #if DEBUG
@@ -325,7 +326,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading extension from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
 			return null;
 		}
 #if DEBUG
@@ -383,7 +384,83 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading hooks from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has it's from an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			return null;
+		}
+#if DEBUG
+		catch (System.Exception e)
+		{
+			Logger.Error($"Failed loading module '{file}'", e);
+
+			return null;
+		}
+#else
+		catch (System.Exception)
+		{
+			Logger.Error($"Failed loading module '{file}'");
+
+			return null;
+		}
+#endif
+	}
+
+	public Assembly LoadPlugin(string file, string requester = "unknown")
+	{
+		try
+		{
+			string[] directories =
+			{
+				Context.CarbonPlugins,
+			};
+
+			switch (Path.GetExtension(file))
+			{
+				case ".dll":
+					IEnumerable<Type> types;
+					Assembly asm = _loader.Load(file, requester, directories).Assembly;
+
+					if (IsPlugin(asm, out types))
+					{
+						Logger.Debug($"Loading plugin from file '{file}'");
+
+						foreach (Type type in types)
+						{
+							try
+							{
+								if (Activator.CreateInstance(type) is not ICarbonPlugin plugin)
+									throw new NullReferenceException();
+								Logger.Debug($"A new instance of '{plugin}' created");
+
+								plugin.Initialize("nothing for now");
+								plugin.OnLoaded(args: new EventArgs());
+							}
+							catch (Exception e)
+							{
+								Logger.Error($"Failed to instantiate plugin from type '{type}'", e);
+								continue;
+							}
+						}
+					}
+					else
+					{
+						throw new Exception("Unsupported assembly type");
+					}
+
+					LoadedExtensions.Add(file);
+					return asm;
+
+				// case ".drm"
+				// 	LoadFromDRM();
+				// 	break;
+
+				default:
+					throw new Exception("File extension not supported");
+			}
+		}
+		catch (ReflectionTypeLoadException)
+		{
+			Logger.Error($"Error while loading plugin from '{file}'.");
+			Logger.Error($"Either the file is corrupt or has an unsuported version.");
 			return null;
 		}
 #if DEBUG
@@ -431,7 +508,14 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		return (output.Count() > 0);
 	}
 
-	public static readonly string[] _knownLibs = {
+	private bool IsPlugin(Assembly assembly, out IEnumerable<Type> output)
+	{
+		Type @base = typeof(API.Plugins.ICarbonPlugin);
+		output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
+		return (output.Count() > 0);
+	}
+
+	private static readonly string[] _knownLibs = {
 		"mscorlib",
 		"netstandard",
 
