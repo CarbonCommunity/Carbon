@@ -4598,7 +4598,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		using var cui = new CUI(Singleton.Handler);
 		var container = cui.CreateContainer(SpectatePanelId, color: "0.1 0.1 0.1 0.8", needsCursor: true, parent: CUI.ClientPanels.Overlay);
 		var panel = cui.CreatePanel(container, SpectatePanelId, null, "0 0 0 0");
-		cui.CreatePanel(container, panel, null, "0 0 0 1", yMax: 0.175f);
+		cui.CreatePanel(container, panel, null, "0 0 0 1", yMax: 0.075f);
 		cui.CreatePanel(container, panel, null, "0 0 0 1", yMin: 0.925f);
 
 		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{target.displayName.ToUpper().SpacedString(1)}</b>", 15);
