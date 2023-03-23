@@ -4591,8 +4591,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: true);
 		player.gameObject.SetLayerRecursive(10);
 		player.CancelInvoke(player.InventoryUpdate);
-		player.ChatMessage("Becoming Spectator");
-		player.SpectatePlayer(target);
+		player.SendEntitySnapshot(target);
+		player.gameObject.Identity();
+		player.SetParent(target);
 		player.spectateFilter = target.UserIDString;
 
 		using var cui = new CUI(Singleton.Handler);
