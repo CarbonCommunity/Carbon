@@ -6,6 +6,7 @@ using System.Reflection;
 using API.Assembly;
 using API.Contracts;
 using API.Hooks;
+using API.Logger;
 using API.Plugins;
 using Loaders;
 using Utility;
@@ -51,13 +52,16 @@ namespace Components;
 
 internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 {
-	public List<string> LoadedModules
-	{ get; private set; } = new();
-
 	public List<string> LoadedComponents
 	{ get; private set; } = new();
 
+	public List<string> LoadedModules
+	{ get; private set; } = new();
+
 	public List<string> LoadedExtensions
+	{ get; private set; } = new();
+
+	public List<string> LoadedPlugins
 	{ get; private set; } = new();
 
 	public string[] References
@@ -409,6 +413,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #endif
 	}
 
+#if EXPERIMENTAL
 	public Assembly LoadPlugin(string file, string requester = "unknown")
 	{
 		try
@@ -434,8 +439,20 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 							try
 							{
 								if (Activator.CreateInstance(type) is not ICarbonPlugin plugin)
-									throw new NullReferenceException();
-								Logger.Debug($"A new instance of '{plugin}' created");
+									throw new Exception($"Failed to create an 'ICarbonPlugin' instance from '{type}'");
+
+								Logger.Debug($"A new instance of '{plugin}' was created");
+
+								// Carbon.Plugins.PluginBase.Logger
+								PropertyInfo b = plugin.GetType().GetProperty("Logger",
+									BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy)
+									?? throw new Exception("Logger field not found on assembly");
+
+								// Carbon.Logger
+								Type c = HarmonyLib.AccessTools.TypeByName("Carbon.Logger")
+									?? throw new Exception("Logger type not found");
+
+								b.SetValue(plugin, Activator.CreateInstance(c));
 
 								plugin.Initialize("nothing for now");
 								plugin.OnLoaded(args: new EventArgs());
@@ -452,7 +469,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 						throw new Exception("Unsupported assembly type");
 					}
 
-					LoadedExtensions.Add(file);
+					LoadedPlugins.Add(file);
 					return asm;
 
 				// case ".drm"
@@ -485,6 +502,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		}
 #endif
 	}
+#endif
 
 	private bool IsType<T>(Assembly assembly, out IEnumerable<Type> output)
 	{
@@ -512,6 +530,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"System.Net.Http",
 		"System.Runtime",
 		"System.Xml.Linq",
+		"System.Xml.Serialization",
 		"System.Xml",
 		"System",
 
