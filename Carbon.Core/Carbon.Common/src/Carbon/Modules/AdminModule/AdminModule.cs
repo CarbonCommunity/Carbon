@@ -911,6 +911,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (int.TryParse(args.Args[0], out int index))
 		{
+			SetTab(player, index);
 			ap.SelectedTab = Tabs[index];
 		}
 		else
@@ -921,11 +922,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (indexOf > Tabs.Count - 1) indexOf = 0;
 			else if (indexOf < 0) indexOf = Tabs.Count - 1;
 
-			ap.SelectedTab = Tabs[indexOf];
+			SetTab(player, indexOf);
 		}
-
-		var tab2 = GetTab(player);
-		tab2.OnChange?.Invoke(ap, tab2);
 
 		if (ap.SelectedTab != previous) Draw(player);
 	}
@@ -1332,6 +1330,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = Tabs.FirstOrDefault(x => x.Id == id);
 		if (tab != null)
 		{
+			tab.Over = tab.Under = null;
 			ap.Tooltip = null;
 			ap.SelectedTab = tab;
 			try { tab?.OnChange?.Invoke(ap, tab); } catch { }
@@ -1347,6 +1346,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = Tabs[index];
 		if (tab != null)
 		{
+			tab.Over = tab.Under = null;
+			ap.Tooltip = null;
+			ap.SelectedTab = tab;
+			try { tab?.OnChange?.Invoke(ap, tab); } catch { }
+		}
+
+		if (ap.SelectedTab != previous) Draw(player);
+	}
+	public void SetTab(BasePlayer player, Tab tab)
+	{
+		var ap = GetOrCreateAdminPlayer(player);
+		var previous = ap.SelectedTab;
+
+		if (tab != null)
+		{
+			tab.Over = tab.Under = null;
 			ap.Tooltip = null;
 			ap.SelectedTab = tab;
 			try { tab?.OnChange?.Invoke(ap, tab); } catch { }
@@ -4638,8 +4653,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var panel = cui.CreatePanel(container, SpectatePanelId, null, "0 0 0 0");
 		cui.CreatePanel(container, panel, null, "0 0 0 1", yMax: 0.075f);
 		cui.CreatePanel(container, panel, null, "0 0 0 1", yMin: 0.925f);
-
-		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{(targetPlayer == null ? target.ShortPrefabName.ToUpper().SpacedString(1) : targetPlayer.displayName.ToUpper().SpacedString(1))}</b>", 15);
+		var item = target.GetItem();
+		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{(targetPlayer == null ? item != null ? item.info.displayName : target.ShortPrefabName.ToUpper().SpacedString(1) : targetPlayer.displayName.ToUpper().SpacedString(1))}</b>", 15);
 		cui.CreateProtectedButton(container, panel, null, "#1c6aa0", "1 1 1 0.7", "END SPECTATE".SpacedString(1), 10,
 			xMin: 0.45f, xMax: 0.55f, yMin: 0.15f, yMax: 0.19f, command: "carbongg.endspectate");
 		cui.Send(container, player);
