@@ -4629,7 +4629,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.SendEntitySnapshot(target);
 		player.gameObject.Identity();
 		player.SetParent(target);
-		player.viewAngles = Vector3.zero;
+		player.viewAngles = Vector3.one;
 		player.SendNetworkUpdate();
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
 
