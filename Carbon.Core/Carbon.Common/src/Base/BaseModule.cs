@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
@@ -37,6 +38,10 @@ public abstract class BaseModule : BaseHookable
 		}
 
 		return default;
+	}
+	public static BaseModule FindModule(string name)
+	{
+		return Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Type.Name == name) as BaseModule;
 	}
 }
 
