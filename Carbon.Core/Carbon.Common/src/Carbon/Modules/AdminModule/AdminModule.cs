@@ -28,7 +28,7 @@ using StringEx = Carbon.Extensions.StringEx;
 
 namespace Carbon.Modules;
 
-public class AdminModule : CarbonModule<AdminConfig, AdminData>
+public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 {
 	internal static AdminModule Singleton { get; set; }
 
@@ -1488,6 +1488,23 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#endregion
 
+	#region Custom Hooks
+
+	private object IValidDismountPosition(BaseMountable mountable, BasePlayer player)
+	{
+		switch (mountable.skinID)
+		{
+			case 69696:
+				return true;
+			default:
+				break;
+		}
+
+		return null;
+	}
+
+	#endregion
+
 	public class AdminPlayer : IDisposable
 	{
 		public static AdminPlayer Blank { get; } = new AdminPlayer(null);
@@ -2678,24 +2695,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 							}, null);
 						}));
 					tab.AddInput(column, "PM", null, (ap, args) => { player.ChatMessage($"[{ap.Player.displayName}]: {args.ToString(" ")}"); });
+
 					if (ap3 != null)
 					{
-						if (ap3.Player != player && ap3.Player.spectateFilter != player.UserIDString)
-						{
-							tab.AddButton(1, "Spectate", ap =>
-							{
-								StartSpectating(ap.Player, player);
-								DrawEntitySettings(tab, entity, column, ap3);
-							});
-						}
-						if (!string.IsNullOrEmpty(ap3.Player.spectateFilter) && (ap3.Player.UserIDString == player.UserIDString || ap3.Player.spectateFilter == player.UserIDString))
-						{
-							tab.AddButton(1, "End Spectating", ap =>
-							{
-								StopSpectating(ap.Player);
-								DrawEntitySettings(tab, entity, column, ap3);
-							}, ap => Tab.OptionButton.Types.Selected);
-						}
 						if (!PlayersTab.BlindedPlayers.Contains(player))
 						{
 							tab.AddButton(1, "Blind Player", ap =>
@@ -2726,6 +2728,23 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}
 				}
 
+				if (ap3.Player != player && (ap3.Player.spectateFilter != player?.UserIDString && ap3.Player.spectateFilter != entity.net.ID.ToString()))
+				{
+					tab.AddButton(1, "Spectate", ap =>
+					{
+						StartSpectating(ap.Player, entity);
+						DrawEntitySettings(tab, entity, column, ap3);
+					});
+				}
+				if (!string.IsNullOrEmpty(ap3.Player.spectateFilter) && (ap3.Player.UserIDString == player?.UserIDString || ap3.Player.spectateFilter == entity.net.ID.ToString()))
+				{
+					tab.AddButton(1, "End Spectating", ap =>
+					{
+						StopSpectating(ap.Player);
+						DrawEntitySettings(tab, entity, column, ap3);
+					}, ap => Tab.OptionButton.Types.Selected);
+				}
+
 				if (entity.parentEntity.IsValid(true)) tab.AddButton(column, $"Parent: {entity.parentEntity.Get(true)}", ap => { ap.SetStorage(tab, "selectedent", entity.parentEntity.Get(true)); DrawEntities(tab, ap); DrawEntitySettings(tab, entity.parentEntity.Get(true), 1, ap); });
 
 				if (entity.children.Count > 0)
@@ -2752,6 +2771,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 									Admin.Subscribe("CanDismountEntity");
 
 									var station = GameManager.server.CreateEntity("assets/prefabs/deployable/computerstation/computerstation.deployed.prefab", ap.Player.transform.position) as ComputerStation;
+									station.skinID = 69696;
 									station.SendControlBookmarks(ap.Player);
 									station.Spawn();
 									station.checkPlayerLosOnMount = false;
@@ -4580,13 +4600,14 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#endregion
 
-	internal static void StartSpectating(BasePlayer player, BasePlayer target)
+	internal static void StartSpectating(BasePlayer player, BaseEntity target)
 	{
 		if (!string.IsNullOrEmpty(player.spectateFilter))
 		{
 			StopSpectating(player);
 		}
 
+		var targetPlayer = target as BasePlayer;
 		player.Teleport(target.transform.position);
 		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: true);
 		player.gameObject.SetLayerRecursive(10);
@@ -4594,7 +4615,9 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.SendEntitySnapshot(target);
 		player.gameObject.Identity();
 		player.SetParent(target);
-		player.spectateFilter = target.UserIDString;
+		player.viewAngles = Vector3.zero;
+		player.SendNetworkUpdate();
+		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
 
 		using var cui = new CUI(Singleton.Handler);
 		var container = cui.CreateContainer(SpectatePanelId, color: "0.1 0.1 0.1 0.8", needsCursor: true, parent: CUI.ClientPanels.Overlay);
@@ -4602,7 +4625,7 @@ public class AdminModule : CarbonModule<AdminConfig, AdminData>
 		cui.CreatePanel(container, panel, null, "0 0 0 1", yMax: 0.075f);
 		cui.CreatePanel(container, panel, null, "0 0 0 1", yMin: 0.925f);
 
-		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{target.displayName.ToUpper().SpacedString(1)}</b>", 15);
+		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{(targetPlayer == null ? target.ShortPrefabName.ToUpper().SpacedString(1) : targetPlayer.displayName.ToUpper().SpacedString(1))}</b>", 15);
 		cui.CreateProtectedButton(container, panel, null, "#1c6aa0", "1 1 1 0.7", "END SPECTATE".SpacedString(1), 10,
 			xMin: 0.45f, xMax: 0.55f, yMin: 0.15f, yMax: 0.19f, command: "carbongg.endspectate");
 		cui.Send(container, player);
