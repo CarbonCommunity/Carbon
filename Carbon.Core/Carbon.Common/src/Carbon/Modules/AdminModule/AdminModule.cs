@@ -103,7 +103,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (!CanAccess(player)) return;
 
 			var ap = GetOrCreateAdminPlayer(player);
-			ap.TabIndex = 0;
+			ap.SelectedTab = Tabs[0];
 
 			var tab = GetTab(player);
 			tab?.OnChange?.Invoke(ap, tab);
@@ -905,26 +905,29 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		var player = args.Player();
 		var ap = GetOrCreateAdminPlayer(player);
-		var previous = ap.TabIndex;
+		var previous = ap.SelectedTab;
 
 		ap.Clear();
 
 		if (int.TryParse(args.Args[0], out int index))
 		{
-			ap.TabIndex = index;
+			ap.SelectedTab = Tabs[index];
 		}
 		else
 		{
-			ap.TabIndex += args.Args[0] == "up" ? 1 : -1;
+			var indexOf = Tabs.IndexOf(previous);
+			indexOf = args.Args[0] == "up" ? indexOf + 1 : indexOf - 1;
 
-			if (ap.TabIndex > Tabs.Count - 1) ap.TabIndex = 0;
-			else if (ap.TabIndex < 0) ap.TabIndex = Tabs.Count - 1;
+			if (indexOf > Tabs.Count - 1) indexOf = 0;
+			else if (indexOf < 0) indexOf = Tabs.Count - 1;
+
+			ap.SelectedTab = Tabs[indexOf];
 		}
 
 		var tab2 = GetTab(player);
 		tab2.OnChange?.Invoke(ap, tab2);
 
-		if (ap.TabIndex != previous) Draw(player);
+		if (ap.SelectedTab != previous) Draw(player);
 	}
 
 	[UiCommand(PanelId + ".callaction")]
@@ -1069,7 +1072,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					var _tab = Tabs[ap.TabSkip + i];
 					var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
-					TabButton(cui, container, "tab_buttons", $"{(ap.TabIndex == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, ap.TabIndex == i);
+					TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i);
 					tabIndex += tabWidth;
 				}
 
@@ -1302,15 +1305,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		AdminPlayers.Clear();
 
 		var tab = Tabs.FirstOrDefault(x => x.Id == id);
-
-		if (tab != null)
-		{
-			tab.Dispose();
-		}
+		tab?.Dispose();
 
 		Tabs.RemoveAll(x => x.Id == id);
 
-		Puts($"Unregistered tab '{tab.Name}'");
+		if (tab != null) Puts($"Unregistered tab '{tab.Name}'");
 	}
 	public void UnregisterAllTabs()
 	{
@@ -1328,26 +1327,41 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public void SetTab(BasePlayer player, string id)
 	{
 		var ap = GetOrCreateAdminPlayer(player);
-		var previous = ap.TabIndex;
+		var previous = ap.SelectedTab;
 
 		var tab = Tabs.FirstOrDefault(x => x.Id == id);
 		if (tab != null)
 		{
 			ap.Tooltip = null;
-			ap.TabIndex = Tabs.IndexOf(tab);
+			ap.SelectedTab = tab;
 			try { tab?.OnChange?.Invoke(ap, tab); } catch { }
 		}
 
-		if (ap.TabIndex != previous) Draw(player);
+		if (ap.SelectedTab != previous) Draw(player);
+	}
+	public void SetTab(BasePlayer player, int index)
+	{
+		var ap = GetOrCreateAdminPlayer(player);
+		var previous = ap.SelectedTab;
+
+		var tab = Tabs[index];
+		if (tab != null)
+		{
+			ap.Tooltip = null;
+			ap.SelectedTab = tab;
+			try { tab?.OnChange?.Invoke(ap, tab); } catch { }
+		}
+
+		if (ap.SelectedTab != previous) Draw(player);
 	}
 	public Tab GetTab(BasePlayer player)
 	{
 		if (Tabs.Count == 0) return null;
 
-		var adminPlayer = GetOrCreateAdminPlayer(player);
-		if (adminPlayer.TabIndex > Tabs.Count - 1 || adminPlayer.TabIndex < 0) return null;
+		var ap = GetOrCreateAdminPlayer(player);
+		if (ap.SelectedTab  == null) return null;
 
-		return Tabs[adminPlayer.TabIndex];
+		return ap.SelectedTab;
 	}
 	public Tab FindTab(string id)
 	{
@@ -1514,7 +1528,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public Dictionary<int, Page> ColumnPages = new();
 		public Dictionary<string, object> LocalStorage = new();
 
-		public int TabIndex;
+		public Tab SelectedTab;
 		public int TabSkip;
 		public int LastPressedColumn;
 		public int LastPressedRow;
