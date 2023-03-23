@@ -4367,7 +4367,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				break;
 
 			case "2":
-				tab.CreateDialog($"Are you sure you want to uninstall '{ap.GetStorage<Plugin>(tab, "selectedplugin").Name}'?", ap =>
+				tab.CreateDialog($"Are you sure you want to uninstall '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
 				{
 					vendor.Uninstall(args.Args[1]);
 				}, null);
