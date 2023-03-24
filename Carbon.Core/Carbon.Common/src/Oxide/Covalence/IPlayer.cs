@@ -302,6 +302,11 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			}
 		}
 
+		public void Teleport(GenericPosition position)
+		{
+			Teleport(position.X, position.Y, position.Z);
+		}
+
 		public void Unban()
 		{
 			if (!IsBanned)
