@@ -1038,8 +1038,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					#endregion
 				}
 
-
-
 				if (!tab.Fullscreen)
 				{
 					#region Tabs
@@ -1223,8 +1221,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				cui.CreateProtectedButton(container, parent: "main", id: null,
 					color: "0.6 0.2 0.2 0.9",
 					textColor: "1 0.5 0.5 1",
-					text: "X", 8,
-					xMin: 0.96f, xMax: 0.99f, yMin: 0.95f, yMax: 0.99f,
+					text: "X", 9,
+					xMin: 0.965f, xMax: 0.99f, yMin: 0.955f, yMax: 0.99f,
 					command: PanelId + ".close",
 					font: CUI.Handler.FontTypes.DroidSansMono);
 			}

@@ -25,6 +25,7 @@ public abstract class BaseModule : BaseHookable
 
 	public abstract void OnPostServerInit();
 	public abstract void OnServerInit();
+	public abstract void OnServerSave();
 	public abstract void Load();
 	public abstract void Save();
 	public abstract bool GetEnabled();
@@ -209,7 +210,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}
 
-	private void OnServerSave()
+	public override void OnServerSave()
 	{
 		try { Save(); }
 		catch(Exception ex)
