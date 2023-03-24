@@ -137,6 +137,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (Community.IsServerFullyInitializedCache) GenerateTabs();
 	}
+	public override void Save()
+	{
+		base.Save();
+
+		PluginsTab.ServerOwner.Save();
+	}
 
 	private void OnLog(string condition, string stackTrace, LogType type)
 	{
@@ -877,7 +883,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (admin.Tooltip == tooltip)
 		{
 			var tip = cui.CreatePanel(container, parent, null, "#1a6498",
-				xMin: 0.05f, xMax: ((float)admin.Tooltip.Tooltip.Length).Scale(1f, 78f, 0.1f, 0.85f), yMin: offset, yMax: offset + height);
+				xMin: 0.05f, xMax: ((float)admin.Tooltip.Tooltip.Length).Scale(1f, 78f, 0.1f, 0.79f), yMin: offset, yMax: offset + height);
 
 			cui.CreateText(container, tip, null, "#6bc0fc", admin.Tooltip.Tooltip, 10);
 		}
