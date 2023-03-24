@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -64,7 +65,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 	public List<string> LoadedPlugins
 	{ get; private set; } = new();
 
-	public string[] References
+	public IReadOnlyList<string> References
 	{ get => _knownLibs; }
 
 
@@ -291,7 +292,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<ICarbonExtension>(asm, out types))
@@ -367,7 +368,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<Patch>(asm, out types))
@@ -427,7 +428,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<ICarbonPlugin>(asm, out types))
@@ -519,7 +520,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		}
 	}
 
-	private static readonly string[] _knownLibs = {
+	private static readonly IReadOnlyList<string> _knownLibs = new List<string>() {
 		"mscorlib",
 		"netstandard",
 
@@ -543,6 +544,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
+
 		"Facepunch.Console",
 		"Facepunch.Network",
 		"Facepunch.Rcon",
@@ -550,17 +552,19 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Facepunch.System",
 		"Facepunch.Unity",
 		"Facepunch.UnityEngine",
-		"Fleck",
+
+		"Fleck", // websocket server
 		"Newtonsoft.Json",
+
 		"Rust.Data",
 		"Rust.FileSystem",
 		"Rust.Global",
-		// "Rust.Harmony",
 		"Rust.Localization",
 		"Rust.Platform.Common",
 		"Rust.Platform",
 		"Rust.Workshop",
 		"Rust.World",
+
 		"UnityEngine.AIModule",
 		"UnityEngine.CoreModule",
 		"UnityEngine.ImageConversionModule",
