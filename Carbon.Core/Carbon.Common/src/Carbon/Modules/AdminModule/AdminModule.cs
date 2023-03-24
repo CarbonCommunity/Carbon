@@ -208,21 +208,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
-		var level = ConfigInstance.MinimumAuthLevel;
+		var minLevel = ConfigInstance.MinimumAuthLevel;
+		var userLevel = ServerUsers.Is(player.userID, ServerUsers.UserGroup.Moderator) ? 1 : ServerUsers.Is(player.userID, ServerUsers.UserGroup.Owner) ? 2 : 0;
 
-		switch (level)
+		if (userLevel < minLevel && userLevel > 0)
 		{
-			case 0:
-				return true;
-
-			case 1:
-				return ServerUsers.Is(player.userID, ServerUsers.UserGroup.Moderator);
-
-			case 2:
-				return ServerUsers.Is(player.userID, ServerUsers.UserGroup.Owner);
+			player.ChatMessage($"Your auth level is not high enough to use this feature. Please adjust the minimum level required in your config or give yourself auth level {minLevel}.");
 		}
 
-		return false;
+		return userLevel >= minLevel;
 	}
 
 	#region Option Elements
