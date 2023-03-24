@@ -877,7 +877,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (admin.Tooltip == tooltip)
 		{
 			var tip = cui.CreatePanel(container, parent, null, "#1a6498",
-				xMin: 0.05f, xMax: ((float)admin.Tooltip.Tooltip.Length).Scale(1f, 78f, 0.1f, 0.80f), yMin: offset, yMax: offset + height);
+				xMin: 0.05f, xMax: ((float)admin.Tooltip.Tooltip.Length).Scale(1f, 78f, 0.1f, 0.85f), yMin: offset, yMax: offset + height);
 
 			cui.CreateText(container, tip, null, "#6bc0fc", admin.Tooltip.Tooltip, 10);
 		}
@@ -1072,7 +1072,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (tab != null)
 				{
-					tab.Under?.Invoke(tab, container, panels, ap);
+					tab.Under?.Invoke(tab, cui, container, panels, ap);
 
 					if (tab.Override == null)
 					{
@@ -1185,9 +1185,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						#endregion
 					}
-					else tab.Override.Invoke(tab, container, panels, ap);
+					else tab.Override.Invoke(tab, cui, container, panels, ap);
 
-					tab.Over?.Invoke(tab, container, panels, ap);
+					tab.Over?.Invoke(tab, cui, container, panels, ap);
 
 					if (tab.Dialog != null)
 					{
@@ -1641,7 +1641,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public string Id;
 		public string Name;
 		public RustPlugin Plugin;
-		public Action<Tab, CuiElementContainer, string, AdminPlayer> Over, Under, Override;
+		public Action<Tab, CUI, CuiElementContainer, string, AdminPlayer> Over, Under, Override;
 		public Dictionary<int, List<Option>> Columns = new();
 		public Action<AdminPlayer, Tab> OnChange;
 		public Dictionary<string, Radio> Radios = new();
@@ -3017,7 +3017,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) => { ap.SetStorage(t, "selectedplugin", (Plugin)null); })
 			{
-				Override = (t, container, parent, ap) => GenerateUI(container, parent, t, ap)
+				Override = (t, cui, container, parent, ap) => GenerateUI(cui, container, parent, t, ap)
 			};
 
 			CodeflingInstance = new Codefling();
@@ -3239,11 +3239,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Pool.FreeList(ref imagesSafe);
 		}
 
-		public static void GenerateUI(CuiElementContainer container, string parent, Tab tab, AdminPlayer ap)
+		public static void GenerateUI(CUI cui, CuiElementContainer container, string parent, Tab tab, AdminPlayer ap)
 		{
 			ap.SetDefaultStorage(tab, "vendor", "Codefling");
-
-			using var cui = new CUI(Singleton.Handler);
 
 			var header = cui.CreatePanel(container, parent, null, "0.2 0.2 0.2 0.5",
 				xMin: 0f, xMax: 1f, yMin: 0.95f, yMax: 1f);
