@@ -72,7 +72,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			{
 				try
 				{
-					module.OnServerSave();
+					module.OnServerSaved();
 				}
 				catch (Exception ex)
 				{

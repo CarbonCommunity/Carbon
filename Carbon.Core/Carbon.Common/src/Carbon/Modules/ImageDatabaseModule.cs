@@ -107,9 +107,9 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 		LoadDefaultImages();
 	}
-	public override void OnServerSave()
+	public override void OnServerSaved()
 	{
-		base.OnServerSave();
+		base.OnServerSaved();
 
 		SaveDatabase();
 	}

@@ -25,7 +25,7 @@ public abstract class BaseModule : BaseHookable
 
 	public abstract void OnPostServerInit();
 	public abstract void OnServerInit();
-	public abstract void OnServerSave();
+	public abstract void OnServerSaved();
 	public abstract void Load();
 	public abstract void Save();
 	public abstract bool GetEnabled();
@@ -109,6 +109,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override void Load()
 	{
+		if(Disabled) return;
+
 		var shouldSave = false;
 
 		if (!Config.Exists())
@@ -150,6 +152,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override void Save()
 	{
+		if (Disabled) return;
+
 		if (ModuleConfiguration == null)
 		{
 			ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
@@ -210,7 +214,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}
 
-	public override void OnServerSave()
+	public override void OnServerSaved()
 	{
 		try { Save(); }
 		catch(Exception ex)
