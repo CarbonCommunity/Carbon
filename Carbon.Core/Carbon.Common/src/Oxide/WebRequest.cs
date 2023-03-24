@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using Carbon;
 using Oxide.Plugins;
 
@@ -154,7 +155,12 @@ public class WebRequests
 							catch { }
 						};
 
-						try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }
+						try
+						{
+							_client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+							_client.UploadStringAsync(_uri, Body);
+						}
+						catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 						break;
 				}
 			}

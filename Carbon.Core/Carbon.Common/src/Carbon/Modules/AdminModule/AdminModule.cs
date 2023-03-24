@@ -4648,7 +4648,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		cui.CreatePanel(container, panel, null, "0 0 0 1", yMax: 0.075f);
 		cui.CreatePanel(container, panel, null, "0 0 0 1", yMin: 0.925f);
 		var item = target.GetItem();
-		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{(targetPlayer == null ? item != null ? item.info.displayName.english : target.ShortPrefabName.ToUpper().SpacedString(1) : targetPlayer.displayName.ToUpper().SpacedString(1))}</b>", 15);
+		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{(targetPlayer == null ? item != null ? item.info.displayName.english.ToUpper().SpacedString(1) : target.ShortPrefabName.ToUpper().SpacedString(1) : targetPlayer.displayName.ToUpper().SpacedString(1))}</b>", 15);
 		cui.CreateProtectedButton(container, panel, null, "#1c6aa0", "1 1 1 0.7", "END SPECTATE".SpacedString(1), 10,
 			xMin: 0.45f, xMax: 0.55f, yMin: 0.15f, yMax: 0.19f, command: "carbongg.endspectate");
 		cui.Send(container, player);
