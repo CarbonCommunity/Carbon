@@ -1,4 +1,8 @@
 using System;
+using System.Reflection;
+using System.Security;
+using System.Security.Permissions;
+using System.Security.Policy;
 
 /*
  *
@@ -16,25 +20,26 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 	private readonly T _proxy;
 	private readonly string _identifier;
 
-	public T GetProxy
-	{ get => _proxy; }
+	public T Proxy { get => _proxy; }
 
 	public Sandbox()
 	{
 		_identifier = $"sandbox_{Guid.NewGuid():N}";
-		AppDomainSetup domaininfo = new AppDomainSetup
+
+		Evidence evidence = new Evidence(null, null);
+		PermissionSet permissions = new PermissionSet(PermissionState.None);
+
+		AppDomainSetup setup = new AppDomainSetup
 		{
-			// this is still not perfect but it let's run with it for now.. ideally
-			// the sandbox should be able to resolve their load requests using the 
-			// domain assembly resolver event
-			ApplicationBase = Context.CarbonManaged
+			PrivateBinPath = string.Empty,
+			ApplicationBase = Context.Carbon,
+			LoaderOptimization = LoaderOptimization.MultiDomainHost,
 		};
 
-		_domain = AppDomain.CreateDomain(_identifier, null, domaininfo);
-		Logger.Log($"Created a new AppDomain '{_identifier}'");
-
 		Type type = typeof(T);
+		_domain = AppDomain.CreateDomain(_identifier, evidence, setup, permissions);
 		_proxy = (T)_domain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
+
 		Logger.Log($"Created a new AppDomain '{_identifier}' with a proxy to '{type.Name}'");
 	}
 
