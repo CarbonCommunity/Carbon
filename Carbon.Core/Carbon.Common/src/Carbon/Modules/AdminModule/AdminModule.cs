@@ -1017,10 +1017,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using (TimeMeasure.New($"{Name}.Main"))
 			{
-				cui.CreatePanel(container, parent: PanelId, id: "color",
+				cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
 					color: "0 0 0 0.6",
 					xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f);
-				cui.CreatePanel(container, "color", "main",
+				cui.CreatePanel(container, $"{PanelId}color", $"{PanelId}main",
 					color: "0 0 0 0.5",
 					blur: true);
 
@@ -1028,7 +1028,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					#region Title
 
-					cui.CreateText(container, parent: "main", id: null,
+					cui.CreateText(container, parent: $"{PanelId}main", id: null,
 						color: "1 1 1 0.8",
 						text: "<b>Admin Settings</b>", 18,
 						xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
@@ -1036,13 +1036,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						font: CUI.Handler.FontTypes.RobotoCondensedBold);
 
 					#endregion
-				}
 
-				if (!tab.Fullscreen)
-				{
 					#region Tabs
 
-					cui.CreatePanel(container, parent: "main", id: "tab_buttons",
+					cui.CreatePanel(container, parent: $"{PanelId}main", id: "tab_buttons",
 						color: "0 0 0 0.6",
 						xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
 
@@ -1069,7 +1066,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using (TimeMeasure.New($"{Name}.Panels/Overrides"))
 			{
-				var panels = cui.CreatePanel(container, "main", "panels",
+				var panels = cui.CreatePanel(container, $"{PanelId}main", "panels",
 					color: "0 0 0 0",
 					xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: tab.Fullscreen ? 0.98f : 0.86f);
 
@@ -1218,7 +1215,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using (TimeMeasure.New($"{Name}.Exit"))
 			{
-				cui.CreateProtectedButton(container, parent: "main", id: null,
+				cui.CreateProtectedButton(container, parent: $"{PanelId}main", id: null,
 					color: "0.6 0.2 0.2 0.9",
 					textColor: "1 0.5 0.5 1",
 					text: "X", 9,
