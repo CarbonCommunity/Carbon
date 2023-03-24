@@ -1024,51 +1024,47 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					color: "0 0 0 0.5",
 					blur: true);
 
-				#region Title
-
-				cui.CreateText(container, parent: "main", id: null,
-					color: "1 1 1 0.8",
-					text: "<b>Admin Settings</b>", 18,
-					xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
-					align: TextAnchor.UpperLeft,
-					font: CUI.Handler.FontTypes.RobotoCondensedBold);
-
-				#endregion
-
-				#region Exit
-
-				cui.CreateProtectedButton(container, parent: "main", id: null,
-					color: "0.6 0.2 0.2 0.9",
-					textColor: "1 0.5 0.5 1",
-					text: "X", 10,
-					xMin: 0.97f, xMax: 0.99f, yMin: 0.96f, yMax: 0.99f,
-					command: PanelId + ".close",
-					font: CUI.Handler.FontTypes.DroidSansMono);
-
-				#endregion
-
-				#region Tabs
-
-				cui.CreatePanel(container, parent: "main", id: "tab_buttons",
-					color: "0 0 0 0.6",
-					xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
-
-				TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
-				TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
-
-				var tabIndex = 0.03f;
-				var amount = Tabs.Count;
-				var tabWidth = amount == 0 ? 0f : 0.94f / amount;
-
-				for (int i = ap.TabSkip; i < amount; i++)
+				if (!tab.Fullscreen)
 				{
-					var _tab = Tabs[ap.TabSkip + i];
-					var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
-					TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i);
-					tabIndex += tabWidth;
+					#region Title
+
+					cui.CreateText(container, parent: "main", id: null,
+						color: "1 1 1 0.8",
+						text: "<b>Admin Settings</b>", 18,
+						xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
+						align: TextAnchor.UpperLeft,
+						font: CUI.Handler.FontTypes.RobotoCondensedBold);
+
+					#endregion
 				}
 
-				#endregion
+
+
+				if (!tab.Fullscreen)
+				{
+					#region Tabs
+
+					cui.CreatePanel(container, parent: "main", id: "tab_buttons",
+						color: "0 0 0 0.6",
+						xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
+
+					TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
+					TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
+
+					var tabIndex = 0.03f;
+					var amount = Tabs.Count;
+					var tabWidth = amount == 0 ? 0f : 0.94f / amount;
+
+					for (int i = ap.TabSkip; i < amount; i++)
+					{
+						var _tab = Tabs[ap.TabSkip + i];
+						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
+						TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i);
+						tabIndex += tabWidth;
+					}
+
+					#endregion
+				}
 			}
 
 			#region Panels
@@ -1077,7 +1073,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				var panels = cui.CreatePanel(container, "main", "panels",
 					color: "0 0 0 0",
-					xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: 0.86f);
+					xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: tab.Fullscreen ? 0.98f : 0.86f);
 
 				if (tab != null)
 				{
@@ -1216,6 +1212,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
 					}
 				}
+			}
+
+			#endregion
+
+			#region Exit
+
+			using (TimeMeasure.New($"{Name}.Exit"))
+			{
+				cui.CreateProtectedButton(container, parent: "main", id: null,
+					color: "0.6 0.2 0.2 0.9",
+					textColor: "1 0.5 0.5 1",
+					text: "X", 8,
+					xMin: 0.96f, xMax: 0.99f, yMin: 0.95f, yMax: 0.99f,
+					command: PanelId + ".close",
+					font: CUI.Handler.FontTypes.DroidSansMono);
 			}
 
 			#endregion
@@ -1640,6 +1651,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public Action<AdminPlayer, Tab> OnChange;
 		public Dictionary<string, Radio> Radios = new();
 		public TabDialog Dialog;
+		public bool Fullscreen;
 
 		public Tab(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null)
 		{
