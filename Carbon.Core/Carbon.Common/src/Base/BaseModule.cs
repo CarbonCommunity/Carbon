@@ -122,6 +122,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			catch (Exception exception) { Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 		}
 
+		if (IsCoreModule) ModuleConfiguration.Enabled = true;
 		ConfigInstance = ModuleConfiguration.Config;
 
 		if (typeof(D) != typeof(EmptyModuleData))
