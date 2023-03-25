@@ -1,14 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using API.Assembly;
 using API.Contracts;
 using API.Hooks;
-using API.Logger;
-using API.Plugins;
 using Loaders;
 using Utility;
 
@@ -368,7 +365,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, false)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<Patch>(asm, out types))
@@ -394,7 +391,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading hooks from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
