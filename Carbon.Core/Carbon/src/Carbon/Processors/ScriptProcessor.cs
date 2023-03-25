@@ -114,6 +114,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		internal const string Quote = "\\\"";
 		internal const string NewLineReplacer = "[CARBONNEWLINE]";
 		internal const string NewLine = "\\n";
+		internal const string Harmony = "Harmony";
 
 		public override void Process(string input, out string output)
 		{
@@ -130,6 +131,11 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 					// else output = input;
 
 					#endregion
+
+					if (input.Contains(Harmony) && !Community.Runtime.Config.HarmonyReference)
+					{
+						Logger.Warn($" This plugin requires Harmony Reference to be enabled for it to work. Enabling it can cause instability, use at your own discretion!");
+					}
 
 					output = input.Replace("PluginTimers", "Timers");
 
