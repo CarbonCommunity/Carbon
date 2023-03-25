@@ -1000,9 +1000,10 @@ public class CorePlugin : CarbonPlugin
 	#region Mod & Plugin Loading
 
 	[ConsoleCommand("reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything.")]
+	[AuthLevel(2)]
 	private void Reload(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
+		if (!arg.HasArgs(1)) return;
 
 		RefreshOrderedFiles();
 
@@ -1053,11 +1054,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("load", "Loads all mods and/or plugins. E.g 'c.load *' to load everything you've unloaded.")]
+	[AuthLevel(2)]
 	private void LoadPlugin(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin())
-			return;
-
 		if (!arg.HasArgs(1))
 		{
 			Logger.Warn("You must provide the name of a plugin or use * to load all plugins.");
@@ -1113,11 +1112,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("unload", "Unloads all mods and/or plugins. E.g 'c.unload *' to unload everything. They'll be marked as 'ignored'.")]
+	[AuthLevel(2)]
 	private void UnloadPlugin(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin())
-			return;
-
 		if (!arg.HasArgs(1))
 		{
 			Logger.Warn("You must provide the name of a plugin or use * to unload all plugins.");
@@ -1189,6 +1186,70 @@ public class CorePlugin : CarbonPlugin
 							{
 								plugin._processor_instance.Dispose();
 								mod.Plugins.Remove(plugin);
+								pluginFound = true;
+							}
+						}
+
+						Pool.FreeList(ref plugins);
+					}
+
+					if (!pluginFound)
+					{
+						Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+					}
+					break;
+				}
+		}
+	}
+
+	[ConsoleCommand("reloadconfig", "Reloads a plugin's config file. This might have unexpected results, use cautiously.")]
+	[AuthLevel(2)]
+	private void ReloadConfig(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a plugin or use * to reload all plugin configs.");
+			return;
+		}
+
+		RefreshOrderedFiles();
+
+		var name = arg.Args[0];
+		switch (name)
+		{
+			case "*":
+				{
+
+					foreach (var package in Loader.LoadedMods)
+					{
+						foreach(var plugin in package.Plugins)
+						{
+							plugin.ILoadConfig();
+							plugin.Load();
+							plugin.Puts($"Reloaded plugin's config.");
+						}
+					}
+
+					break;
+				}
+
+			default:
+				{
+					var path = GetPluginPath(name);
+					var pluginFound = false;
+
+					foreach (var mod in Loader.LoadedMods)
+					{
+						var plugins = Pool.GetList<RustPlugin>();
+						plugins.AddRange(mod.Plugins);
+						
+						foreach (var plugin in plugins)
+						{
+							if (plugin.Name == name)
+							{
+								plugin.ILoadConfig();
+								plugin.Load();
+								plugin.Puts($"Reloaded plugin's config.");
 								pluginFound = true;
 							}
 						}
