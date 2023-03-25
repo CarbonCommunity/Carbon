@@ -544,10 +544,9 @@ public class CorePlugin : CarbonPlugin
 	#region Conditionals
 
 	[ConsoleCommand("addconditional", "Adds a new conditional compilation symbol to the compiler.")]
+	[AuthLevel(2)]
 	private void AddConditional(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		var value = arg.Args[0];
 
 		if (!Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
@@ -581,10 +580,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("remconditional", "Removes an existent conditional compilation symbol from the compiler.")]
+	[AuthLevel(2)]
 	private void RemoveConditional(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		var value = arg.Args[0];
 
 		if (Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
@@ -618,10 +616,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("conditionals", "Prints a list of all conditional compilation symbols used by the compiler.")]
+	[AuthLevel(2)]
 	private void Conditionals(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		Reply($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}", arg);
 	}
 
@@ -630,15 +627,14 @@ public class CorePlugin : CarbonPlugin
 	#region Hooks
 
 	[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
+	[AuthLevel(2)]
 	private void HookInfo(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
-		StringTable body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
+		var body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
 		int count = 0, success = 0, warning = 0, failure = 0;
 
-		string option1 = arg.GetString(0, null);
-		string option2 = arg.GetString(1, null);
+		var option1 = arg.GetString(0, null);
+		var option2 = arg.GetString(1, null);
 
 		switch (option1)
 		{
@@ -747,9 +743,10 @@ public class CorePlugin : CarbonPlugin
 	#region Config
 
 	[ConsoleCommand("loadconfig", "Loads Carbon config from file.")]
+	[AuthLevel(2)]
 	private void CarbonLoadConfig(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || Community.Runtime == null) return;
+		if (Community.Runtime == null) return;
 
 		Community.Runtime.LoadConfig();
 
@@ -757,34 +754,42 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("saveconfig", "Saves Carbon config to file.")]
+	[AuthLevel(2)]
 	private void CarbonSaveConfig(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || Community.Runtime == null) return;
+		if (Community.Runtime == null) return;
 
 		Community.Runtime.SaveConfig();
 
 		Reply("Saved Carbon config.", arg);
 	}
 
-	[CommandVar("autoupdate", "Updates carbon hooks on boot.", true)]
+	[CommandVar("autoupdate", "Updates carbon hooks on boot.")]
+	[AuthLevel(2)]
 	private bool AutoUpdate { get { return Community.Runtime.Config.AutoUpdate; } set { Community.Runtime.Config.AutoUpdate = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("modding", "Mark this server as modded or not.", true)]
+	[CommandVar("modding", "Mark this server as modded or not.")]
+	[AuthLevel(2)]
 	private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("higherpriorityhookwarns", "Print warns if hooks with higher priority conflict with other hooks. Best to keep this disabled. Same-priority hooks will be printed.", true)]
+	[CommandVar("higherpriorityhookwarns", "Print warns if hooks with higher priority conflict with other hooks. Best to keep this disabled. Same-priority hooks will be printed.")]
+	[AuthLevel(2)]
 	private bool HigherPriorityHookWarns { get { return Community.Runtime.Config.HigherPriorityHookWarns; } set { Community.Runtime.Config.HigherPriorityHookWarns = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.", true)]
+	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.")]
+	[AuthLevel(2)]
 	private bool HarmonyReference { get { return Community.Runtime.Config.HarmonyReference; } set { Community.Runtime.Config.HarmonyReference = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)", true)]
+	[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)")]
+	[AuthLevel(2)]
 	private int CarbonDebug { get { return Community.Runtime.Config.LogVerbosity; } set { Community.Runtime.Config.LogVerbosity = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("logfiletype", "The mode for writing the log to file. (0=disabled, 1=saves updates every 5 seconds, 2=saves immediately)", true)]
+	[CommandVar("logfiletype", "The mode for writing the log to file. (0=disabled, 1=saves updates every 5 seconds, 2=saves immediately)")]
+	[AuthLevel(2)]
 	private int LogFileType { get { return Community.Runtime.Config.LogFileMode; } set { Community.Runtime.Config.LogFileMode = Mathf.Clamp(value, 0, 2); Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("unitystacktrace", "Enables a big chunk of detail of Unity's default stacktrace. Recommended to be disabled as a lot of it is internal and unnecessary for the average user.", true)]
+	[CommandVar("unitystacktrace", "Enables a big chunk of detail of Unity's default stacktrace. Recommended to be disabled as a lot of it is internal and unnecessary for the average user.")]
+	[AuthLevel(2)]
 	private bool UnityStacktrace
 	{
 		get { return Community.Runtime.Config.UnityStacktrace; }
@@ -796,23 +801,29 @@ public class CorePlugin : CarbonPlugin
 		}
 	}
 
-	[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.", true)]
+	[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.")]
+	[AuthLevel(2)]
 	private bool HookTimeTracker { get { return Community.Runtime.Config.HookTimeTracker; } set { Community.Runtime.Config.HookTimeTracker = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.", true)]
+	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.")]
+	[AuthLevel(2)]
 	private bool HookValidation { get { return Community.Runtime.Config.HookValidation; } set { Community.Runtime.Config.HookValidation = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("filenamecheck", "It checks if the file name and the plugin name matches. (only applies to scripts)", true)]
+	[CommandVar("filenamecheck", "It checks if the file name and the plugin name matches. (only applies to scripts)")]
+	[AuthLevel(2)]
 	private bool FileNameCheck { get { return Community.Runtime.Config.FileNameCheck; } set { Community.Runtime.Config.FileNameCheck = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.", true)]
+	[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.")]
+	[AuthLevel(2)]
 	private int EntityMapBufferSize { get { return Community.Runtime.Config.EntityMapBufferSize; } set { Community.Runtime.Config.EntityMapBufferSize = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("language", "Server language used by the Language API.", true)]
+	[CommandVar("language", "Server language used by the Language API.")]
+	[AuthLevel(2)]
 	private string Language { get { return Community.Runtime.Config.Language; } set { Community.Runtime.Config.Language = value; Community.Runtime.SaveConfig(); } }
 
 #if WIN
-	[CommandVar("consoleinfo", "Show the Windows-only Carbon information at the bottom of the console.", true)]
+	[CommandVar("consoleinfo", "Show the Windows-only Carbon information at the bottom of the console.")]
+	[AuthLevel(2)]
 	private bool ConsoleInfo
 	{
 		get { return Community.Runtime.Config.ShowConsoleInfo; }
@@ -840,10 +851,9 @@ public class CorePlugin : CarbonPlugin
 	#region Commands
 
 	[ConsoleCommand("find", "Searches through Carbon-processed console commands.")]
+	[AuthLevel(2)]
 	private void Find(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		var body = new StringTable("Command", "Value", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
@@ -866,10 +876,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("findchat", "Searches through Carbon-processed chat commands.")]
+	[AuthLevel(2)]
 	private void FindChat(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		var body = new StringTable("Command", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
@@ -888,10 +897,9 @@ public class CorePlugin : CarbonPlugin
 	#region Report
 
 	[ConsoleCommand("report", "Reloads all current plugins, and returns a report based on them at the output path.")]
+	[AuthLevel(2)]
 	private void Report(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		new Carbon.Components.Report().Init();
 	}
 
@@ -900,9 +908,10 @@ public class CorePlugin : CarbonPlugin
 	#region Modules
 
 	[ConsoleCommand("setmodule", "Enables or disables Carbon modules. Visit root/carbon/modules and use the config file names as IDs.")]
+	[AuthLevel(2)]
 	private void SetModule(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(2)) return;
+		if (!arg.HasArgs(2)) return;
 
 		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
 		var module = hookable?.To<IModule>();
@@ -926,10 +935,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("saveallmodules", "Saves the configs and data files of all available modules.")]
+	[AuthLevel(2)]
 	private void SaveAllModules(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
 		{
 			var module = hookable.To<IModule>();
@@ -940,9 +948,10 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("savemoduleconfig", "Saves Carbon module config & data file.")]
+	[AuthLevel(2)]
 	private void SaveModuleConfig(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
+		if (!arg.HasArgs(1)) return;
 
 		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
 		var module = hookable.To<IModule>();
@@ -959,9 +968,10 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("loadmoduleconfig", "Loads Carbon module config & data file.")]
+	[AuthLevel(2)]
 	private void LoadModuleConfig(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin() || !arg.HasArgs(1)) return;
+		if (!arg.HasArgs(1)) return;
 
 		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
 		var module = hookable.To<IModule>();
@@ -980,10 +990,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("modules", "Prints a list of all available modules.")]
+	[AuthLevel(2)]
 	private void Modules(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		using var print = new StringTable("Name", "Is Enabled", "Quick Command");
 		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
 		{
@@ -1235,7 +1244,6 @@ public class CorePlugin : CarbonPlugin
 
 			default:
 				{
-					var path = GetPluginPath(name);
 					var pluginFound = false;
 
 					foreach (var mod in Loader.LoadedMods)
@@ -1271,10 +1279,9 @@ public class CorePlugin : CarbonPlugin
 	#region Permissions
 
 	[ConsoleCommand("grant", "Grant one or more permissions to users or groups. Do 'c.grant' for syntax info.")]
+	[AuthLevel(2)]
 	private void Grant(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		void PrintWarn()
 		{
 			Reply($"Syntax: c.grant <user|group> <name|id> <perm>", arg);
@@ -1314,10 +1321,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("revoke", "Revoke one or more permissions from users or groups. Do 'c.revoke' for syntax info.")]
+	[AuthLevel(2)]
 	private void Revoke(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		void PrintWarn()
 		{
 			Reply($"Syntax: c.revoke <user|group> <name|id> <perm>", arg);
@@ -1357,10 +1363,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("show", "Displays information about a specific player or group (incl. permissions, groups and user list). Do 'c.show' for syntax info.")]
+	[AuthLevel(2)]
 	private void Show(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		void PrintWarn()
 		{
 			Reply($"Syntax: c.show <groups|perms>", arg);
@@ -1440,10 +1445,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("usergroup", "Adds or removes a player from a group. Do 'c.usergroup' for syntax info.")]
+	[AuthLevel(2)]
 	private void UserGroup(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		void PrintWarn()
 		{
 			Reply($"Syntax: c.usergroup <add|remove> <player> <group>", arg);
@@ -1504,10 +1508,9 @@ public class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("group", "Adds or removes a group. Do 'c.group' for syntax info.")]
+	[AuthLevel(2)]
 	private void Group(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		void PrintWarn()
 		{
 			Reply($"Syntax: c.group add <group> [<displayName>] [<rank>]", arg);

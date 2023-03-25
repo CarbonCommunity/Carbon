@@ -142,18 +142,15 @@ public class CommandVarAttribute : Attribute
 {
 	public string Name { get; }
 	public string Help { get; }
-	public bool AdminOnly { get; set; }
 
-	public CommandVarAttribute(string name, bool adminOnly = false)
+	public CommandVarAttribute(string name)
 	{
 		Name = name;
-		AdminOnly = adminOnly;
 	}
-	public CommandVarAttribute(string name, string help, bool adminOnly = false)
+	public CommandVarAttribute(string name, string help)
 	{
 		Name = name;
 		Help = help;
-		AdminOnly = adminOnly;
 	}
 }
 
@@ -192,7 +189,7 @@ public class GroupAttribute : Attribute
 	}
 }
 
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
 public class AuthLevelAttribute : Attribute
 {
 	public int AuthLevel { get; }
