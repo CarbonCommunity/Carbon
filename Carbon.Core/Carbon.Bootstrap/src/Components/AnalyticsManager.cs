@@ -4,8 +4,6 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using API.Analytics;
 using HarmonyLib;
 using Newtonsoft.Json;
