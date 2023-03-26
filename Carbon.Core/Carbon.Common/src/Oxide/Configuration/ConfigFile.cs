@@ -23,10 +23,7 @@ public abstract class ConfigFile
 
 	public static T Load<T>(string filename) where T : ConfigFile
 	{
-		T t = (T)((object)Activator.CreateInstance(typeof(T), new object[]
-		{
-			filename
-		}));
+		var t = (T)Activator.CreateInstance(typeof(T), filename);
 		t.Load(null);
 		return t;
 	}

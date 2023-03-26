@@ -93,7 +93,6 @@ public class DynamicConfigFile : ConfigFile, IEnumerable<KeyValuePair<string, ob
 		string fullPath = Path.GetFullPath(filename);
 		if (!fullPath.StartsWith(_chroot, StringComparison.Ordinal))
 		{
-			Logger.Log($"{filename} ||| {fullPath}");
 			throw new Exception("Only access to Carbon directory!\nPath: " + fullPath);
 		}
 		return fullPath;

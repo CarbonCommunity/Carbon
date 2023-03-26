@@ -50,5 +50,6 @@ public interface IPlayer
 	void Reply(string message);
 	void RevokePermission(string perm);
 	void Teleport(float x, float y, float z);
+	void Teleport(GenericPosition position);
 	void Unban();
 }

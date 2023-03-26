@@ -64,6 +64,23 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			}
 		}
 	}
+	public void OnServerSave()
+	{
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module)
+			{
+				try
+				{
+					module.OnServerSaved();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnServerSave for '{hookable.Name}'", ex);
+				}
+			}
+		}
+	}
 	public void Setup(BaseHookable hookable)
 	{
 		if (hookable is IModule module)

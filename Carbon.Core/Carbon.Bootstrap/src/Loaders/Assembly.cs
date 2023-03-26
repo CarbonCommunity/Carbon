@@ -33,7 +33,7 @@ internal sealed class AssemblyLoader : IDisposable
 		Context.CarbonExtensions,
 	};
 
-	internal IAssemblyCache Load(string file, string requester = "unknown", string[] directories = null)
+	internal IAssemblyCache Load(string file, string requester = "unknown", string[] directories = null, bool restricted = false)
 	{
 		// normalize filename
 		file = Path.GetFileName(file);
@@ -53,6 +53,18 @@ internal sealed class AssemblyLoader : IDisposable
 		{
 			Logger.Debug($"Unable to load assembly: '{file}'");
 			return default;
+		}
+
+		if (restricted)
+		{
+			using Sandbox<AssemblyValidator> sandbox = new Sandbox<AssemblyValidator>();
+			sandbox.Proxy.Whitelist = Carbon.Bootstrap.AssemblyEx.References;
+
+			if (!sandbox.Proxy.Validate(path))
+			{
+				Logger.Warn($" >> Validation failed for '{file}'");
+				return default;
+			}
 		}
 
 		byte[] raw = File.ReadAllBytes(path);

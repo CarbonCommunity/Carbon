@@ -50,7 +50,7 @@ public class RustPlugin : Plugin
 	}
 	public virtual void Setup(string name, string author, VersionNumber version, string description)
 	{
-		Name = Title = name;
+		Name = Title = name.Replace(":", string.Empty);
 		Version = version;
 		Author = author;
 		Description = description;
@@ -267,11 +267,10 @@ public class RustPlugin : Plugin
 		if (!Config.Exists(null))
 		{
 			LoadDefaultConfig();
-			SaveConfig();
 		}
 		try
 		{
-			Config.Load(null);
+			if(Config.Exists(null)) Config.Load(null);
 		}
 		catch (Exception ex)
 		{

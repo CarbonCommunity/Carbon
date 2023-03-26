@@ -316,12 +316,6 @@ public static class Loader
 			{
 				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
 				{
-					if (player != null && var.AdminOnly && !player.IsAdmin)
-					{
-						Community.LogCommand($"You don't have permission to set this value", player);
-						return;
-					}
-
 					var value = field.GetValue(hookable);
 
 					if (args != null && args.Length > 0)
@@ -377,12 +371,6 @@ public static class Loader
 			{
 				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
 				{
-					if (player != null && var.AdminOnly && !player.IsAdmin)
-					{
-						Community.LogCommand($"You don't have permission to set this value", player);
-						return;
-					}
-
 					var value = property.GetValue(hookable);
 
 					if (args != null && args.Length > 0)

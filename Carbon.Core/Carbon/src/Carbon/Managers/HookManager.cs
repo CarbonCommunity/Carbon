@@ -234,7 +234,7 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 			if (hooks == null)
 			{
 				Logger.Error($"Error while loading hooks from '{fileName}'.");
-				Logger.Error($"Either the file is corrupt or has an unsuported format/version.");
+				Logger.Error($"Either the file is corrupt or has an unsupported format/version.");
 				return;
 			}
 

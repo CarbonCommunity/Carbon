@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using API.Analytics;
 using HarmonyLib;
 using Newtonsoft.Json;
-using UnityEngine.Networking;
 using Utility;
 
 /*
@@ -22,10 +20,11 @@ namespace Components;
 #pragma warning disable IDE0051
 internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsManager
 {
-	private static bool _first;
+	private bool _first;
+	private float _lastUpdate;
+	private float _lastEngagement;
 	private static string _location;
-	private static float _lastUpdate;
-	private static float _lastEngagement;
+
 	private const string MeasurementID = "G-M7ZBRYS3X7";
 	private const string MeasurementSecret = "edBQH3_wRCWxZSzx5Y2IWA";
 
@@ -109,7 +108,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			string identity = (string)AccessTools.TypeByName("ConVar.Server")
 				?.GetField("identity", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
 
-			_first = false;
+
 			_location = Path.Combine(Context.Game, "server", identity, "carbon.id");
 
 			if (File.Exists(_location))
@@ -119,14 +118,12 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 				if (!_serverInfo.Equals(default(Identity))) return info;
 			}
 
-			_first = true;
 			info = new Identity { UID = $"{Guid.NewGuid()}" };
 			Logger.Warn($"A new server identity was generated.");
 			File.WriteAllText(_location, JsonConvert.SerializeObject(info, Formatting.Indented));
 		}
 		catch (Exception e)
 		{
-			_first = false;
 			Logger.Error("Unable to process server identity", e);
 		}
 
@@ -135,9 +132,10 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 	public void Awake()
 	{
-		SessionID = Util.GetRandomNumber(10);
-		_lastEngagement = -1;
+		_first = false;
 		_lastUpdate = 0;
+		_lastEngagement = -1;
+		SessionID = Util.GetRandomNumber(10);
 	}
 
 	private void Update()
@@ -153,12 +151,12 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		=> LogEvent(_first ? "first_visit" : "user_engagement");
 
 	public void LogEvent(string eventName)
-		=> StartCoroutine(SendEvent(eventName));
+		=> SendEvent(eventName);
 
 	public void LogEvent(string eventName, IDictionary<string, object> parameters)
-		=> StartCoroutine(SendMPEvent(eventName, parameters));
+		=> SendMPEvent(eventName, parameters);
 
-	public IEnumerator SendEvent(string eventName)
+	public void SendEvent(string eventName)
 	{
 		float delta = 1; bool newsession = true;
 		if (_lastEngagement >= 0 && _lastEngagement <= 1800)
@@ -176,40 +174,16 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		query += "&_dbg=1";
 #endif
 
-		using UnityWebRequest request = new UnityWebRequest($"{url}?{query}", "POST");
-		request.SetRequestHeader("User-Agent", UserAgent);
-		request.SetRequestHeader("Content-Type", "application/json");
-		request.uploadHandler = new UploadHandlerRaw(default);
-		request.downloadHandler = new DownloadHandlerBuffer();
-
-		yield return request.SendWebRequest();
-
-#if DEBUG_VERBOSE
-		if (request.isNetworkError || request.isHttpError)
-		{
-			Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
-			Logger.Debug($" > {url}?{query}");
-		}
-		else
-		{
-			Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
-			Logger.Debug($" > {url}?{query}");
-		}
-#endif
+		SendRequest($"{url}?{query}");
 	}
 
-	private IEnumerator SendMPEvent(string eventName, IDictionary<string, object> properties = null)
+	private void SendMPEvent(string eventName, IDictionary<string, object> properties = null)
 	{
 		float delta = (UnityEngine.Time.realtimeSinceStartup - _lastEngagement) * 1000;
 		_lastEngagement = UnityEngine.Time.realtimeSinceStartup;
 
 		string url = "https://www.google-analytics.com/mp/collect";
 		string query = $"api_secret={MeasurementSecret}&measurement_id={MeasurementID}";
-
-		using UnityWebRequest request = new UnityWebRequest($"{url}?{query}", "POST");
-		request.SetRequestHeader("User-Agent", UserAgent);
-		request.SetRequestHeader("Content-Type", "application/json");
-		request.downloadHandler = new DownloadHandlerBuffer();
 
 		Dictionary<string, object> parameters = new() {
 #if DEBUG_VERBOSE
@@ -245,22 +219,53 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			body.Add("user_properties", user_properties);
 		}
 
-		string json = JsonConvert.SerializeObject(body);
-		request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
-		yield return request.SendWebRequest();
+		SendRequest($"{url}?{query}", JsonConvert.SerializeObject(body));
+	}
+
+	private void SendRequest(string url, string body = null)
+	{
+		try
+		{
+			using WebClient webClient = new WebClient();
+			webClient.Headers.Add(HttpRequestHeader.UserAgent, UserAgent);
+			webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+			webClient.UploadStringCompleted += UploadStringCompleted;
+			webClient.UploadStringAsync(new Uri(url), "POST", body, url);
 
 #if DEBUG_VERBOSE
-		if (request.isNetworkError || request.isHttpError)
-		{
-			Logger.Warn($"Failed to event '{eventName}' to Google Analytics: {request.error}");
-			Logger.Debug($" > {url}?{query}");
-		}
-
-		else
-		{
-			Logger.Debug($"Sent event '{eventName}' to Google Analytics ({request.responseCode})");
-			Logger.Debug($" > {url}?{query}");
-		}
+			Logger.Debug($"Request sent to Google Analytics");
+			Logger.Debug($" > {url}");
 #endif
+		}
+		catch (System.Exception)
+		{
+#if DEBUG_VERBOSE
+			Logger.Warn($"Failed to send request to Google Analytics");
+			Logger.Debug($" > {url}");
+#endif
+		}
+	}
+
+	private void UploadStringCompleted(object sender, UploadStringCompletedEventArgs e)
+	{
+		WebClient webClient = (WebClient)sender;
+		string url = (string)e.UserState;
+
+		try
+		{
+			if (e.Error != null) throw new Exception(e.Error.Message);
+			if (e.Cancelled) throw new Exception("Job was cancelled");
+		}
+		catch (System.Exception)
+		{
+#if DEBUG_VERBOSE
+			Logger.Warn($"Failed to send request to Google Analytics");
+			Logger.Debug($" > {url}");
+#endif
+		}
+		finally
+		{
+			webClient.Dispose();
+		}
 	}
 }
