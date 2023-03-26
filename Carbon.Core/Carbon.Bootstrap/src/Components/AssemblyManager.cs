@@ -179,7 +179,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading component from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
@@ -256,7 +256,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading module from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
@@ -332,7 +332,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading extension from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
@@ -481,7 +481,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading plugin from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
