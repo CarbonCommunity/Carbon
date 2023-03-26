@@ -26,9 +26,6 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 	{
 		_identifier = $"sandbox_{Guid.NewGuid():N}";
 
-		Evidence evidence = new Evidence(null, null);
-		PermissionSet permissions = new PermissionSet(PermissionState.None);
-
 		AppDomainSetup setup = new AppDomainSetup
 		{
 			PrivateBinPath = string.Empty,
@@ -36,8 +33,10 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 			LoaderOptimization = LoaderOptimization.MultiDomainHost,
 		};
 
+		PermissionSet permissions = new PermissionSet(PermissionState.None);
+
 		Type type = typeof(T);
-		_domain = AppDomain.CreateDomain(_identifier, evidence, setup, permissions);
+		_domain = AppDomain.CreateDomain(_identifier, null, setup, permissions);
 		_proxy = (T)_domain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
 
 		Logger.Log($"Created a new AppDomain '{_identifier}' with a proxy to '{type.Name}'");
