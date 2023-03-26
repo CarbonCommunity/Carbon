@@ -226,6 +226,8 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	{
 		try
 		{
+			body ??= string.Empty;
+
 			using WebClient webClient = new WebClient();
 			webClient.Headers.Add(HttpRequestHeader.UserAgent, UserAgent);
 			webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
@@ -237,10 +239,10 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			Logger.Debug($" > {url}");
 #endif
 		}
-		catch (System.Exception)
+		catch (System.Exception e)
 		{
 #if DEBUG_VERBOSE
-			Logger.Warn($"Failed to send request to Google Analytics");
+			Logger.Warn($"Failed to send request to Google Analytics ({e.Message})");
 			Logger.Debug($" > {url}");
 #endif
 		}
@@ -256,10 +258,10 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			if (e.Error != null) throw new Exception(e.Error.Message);
 			if (e.Cancelled) throw new Exception("Job was cancelled");
 		}
-		catch (System.Exception)
+		catch (System.Exception ex)
 		{
 #if DEBUG_VERBOSE
-			Logger.Warn($"Failed to send request to Google Analytics");
+			Logger.Warn($"Failed to send request to Google Analytics ({ex.Message})");
 			Logger.Debug($" > {url}");
 #endif
 		}
