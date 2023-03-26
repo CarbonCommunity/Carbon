@@ -138,7 +138,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public bool HasPermission(string perm)
 		{
-			return perms.UserHasPermission(Id, perm);
+			return IsServer ? true : perms.UserHasPermission(Id, perm);
 		}
 
 		public void Heal(float amount)
@@ -300,6 +300,11 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 					BasePlayer.SetServerFall(false);
 				}
 			}
+		}
+
+		public void Teleport(GenericPosition position)
+		{
+			Teleport(position.X, position.Y, position.Z);
 		}
 
 		public void Unban()

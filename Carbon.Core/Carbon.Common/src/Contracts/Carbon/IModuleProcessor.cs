@@ -12,6 +12,7 @@ namespace Carbon.Contracts
 	{
 		void Init();
 		void OnServerInit();
+		void OnServerSave();
 		List<BaseHookable> Modules { get; }
 	}
 }

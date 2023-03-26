@@ -47,7 +47,7 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
 			},
 		},
-
+#if EXPERIMENTAL
 		new Item
 		{
 			Extension = "*.dll",
@@ -60,6 +60,7 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
 			},
 		}
+#endif
 	};
 
 	internal void Awake()

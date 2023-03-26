@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +6,6 @@ using System.Reflection;
 using API.Assembly;
 using API.Contracts;
 using API.Hooks;
-using API.Plugins;
 using Loaders;
 using Utility;
 
@@ -51,16 +50,19 @@ namespace Components;
 
 internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 {
-	public List<string> LoadedModules
+	public List<string> LoadedComponents
 	{ get; private set; } = new();
 
-	public List<string> LoadedComponents
+	public List<string> LoadedModules
 	{ get; private set; } = new();
 
 	public List<string> LoadedExtensions
 	{ get; private set; } = new();
 
-	public string[] References
+	public List<string> LoadedPlugins
+	{ get; private set; } = new();
+
+	public IReadOnlyList<string> References
 	{ get => _knownLibs; }
 
 
@@ -177,7 +179,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading component from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
@@ -254,7 +256,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading module from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
@@ -287,7 +289,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<ICarbonExtension>(asm, out types))
@@ -330,7 +332,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading extension from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
@@ -363,7 +365,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, false)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<Patch>(asm, out types))
@@ -389,7 +391,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading hooks from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
@@ -409,6 +411,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #endif
 	}
 
+#if EXPERIMENTAL
 	public Assembly LoadPlugin(string file, string requester = "unknown")
 	{
 		try
@@ -422,7 +425,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<ICarbonPlugin>(asm, out types))
@@ -434,8 +437,20 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 							try
 							{
 								if (Activator.CreateInstance(type) is not ICarbonPlugin plugin)
-									throw new NullReferenceException();
-								Logger.Debug($"A new instance of '{plugin}' created");
+									throw new Exception($"Failed to create an 'ICarbonPlugin' instance from '{type}'");
+
+								Logger.Debug($"A new instance of '{plugin}' was created");
+
+								// Carbon.Plugins.PluginBase.Logger
+								PropertyInfo b = plugin.GetType().GetProperty("Logger",
+									BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy)
+									?? throw new Exception("Logger field not found on assembly");
+
+								// Carbon.Logger
+								Type c = HarmonyLib.AccessTools.TypeByName("Carbon.Logger")
+									?? throw new Exception("Logger type not found");
+
+								b.SetValue(plugin, Activator.CreateInstance(c));
 
 								plugin.Initialize("nothing for now");
 								plugin.OnLoaded(args: new EventArgs());
@@ -452,7 +467,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 						throw new Exception("Unsupported assembly type");
 					}
 
-					LoadedExtensions.Add(file);
+					LoadedPlugins.Add(file);
 					return asm;
 
 				// case ".drm"
@@ -466,7 +481,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		catch (ReflectionTypeLoadException)
 		{
 			Logger.Error($"Error while loading plugin from '{file}'.");
-			Logger.Error($"Either the file is corrupt or has an unsuported version.");
+			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
@@ -485,6 +500,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		}
 #endif
 	}
+#endif
 
 	private bool IsType<T>(Assembly assembly, out IEnumerable<Type> output)
 	{
@@ -501,7 +517,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		}
 	}
 
-	private static readonly string[] _knownLibs = {
+	private static readonly IReadOnlyList<string> _knownLibs = new List<string>() {
 		"mscorlib",
 		"netstandard",
 
@@ -512,6 +528,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"System.Net.Http",
 		"System.Runtime",
 		"System.Xml.Linq",
+		"System.Xml.Serialization",
 		"System.Xml",
 		"System",
 
@@ -524,6 +541,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
+
 		"Facepunch.Console",
 		"Facepunch.Network",
 		"Facepunch.Rcon",
@@ -531,17 +549,19 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Facepunch.System",
 		"Facepunch.Unity",
 		"Facepunch.UnityEngine",
-		"Fleck",
+
+		"Fleck", // websocket server
 		"Newtonsoft.Json",
+
 		"Rust.Data",
 		"Rust.FileSystem",
 		"Rust.Global",
-		// "Rust.Harmony",
 		"Rust.Localization",
 		"Rust.Platform.Common",
 		"Rust.Platform",
 		"Rust.Workshop",
 		"Rust.World",
+
 		"UnityEngine.AIModule",
 		"UnityEngine.CoreModule",
 		"UnityEngine.ImageConversionModule",

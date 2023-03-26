@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
@@ -24,6 +25,7 @@ public abstract class BaseModule : BaseHookable
 
 	public abstract void OnPostServerInit();
 	public abstract void OnServerInit();
+	public abstract void OnServerSaved();
 	public abstract void Load();
 	public abstract void Save();
 	public abstract bool GetEnabled();
@@ -37,6 +39,10 @@ public abstract class BaseModule : BaseHookable
 		}
 
 		return default;
+	}
+	public static BaseModule FindModule(string name)
+	{
+		return Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Type.Name == name) as BaseModule;
 	}
 }
 
@@ -103,6 +109,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override void Load()
 	{
+		if(Disabled) return;
+
 		var shouldSave = false;
 
 		if (!Config.Exists())
@@ -117,6 +125,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			catch (Exception exception) { Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 		}
 
+		if (IsCoreModule) ModuleConfiguration.Enabled = true;
 		ConfigInstance = ModuleConfiguration.Config;
 
 		if (typeof(D) != typeof(EmptyModuleData))
@@ -143,6 +152,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override void Save()
 	{
+		if (Disabled) return;
+
 		if (ModuleConfiguration == null)
 		{
 			ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
@@ -203,7 +214,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}
 
-	private void OnServerSave()
+	public override void OnServerSaved()
 	{
 		try { Save(); }
 		catch(Exception ex)

@@ -57,7 +57,8 @@ public class Permission : Library
 	private Func<string, bool> validate;
 
 	private static FieldInfo _iPlayerFieldCache;
-	public static FieldInfo iPlayerField => _iPlayerFieldCache ??= typeof(BasePlayer).GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
+	public static FieldInfo iPlayerField
+		=> _iPlayerFieldCache ??= typeof(BasePlayer).GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
 
 	public virtual void LoadFromDatafile()
 	{

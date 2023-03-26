@@ -16,7 +16,7 @@ public interface IAssemblyManager
 	public List<string> LoadedComponents { get; }
 	public List<string> LoadedExtensions { get; }
 
-	public string[] References { get; }
+	public IReadOnlyList<string> References { get; }
 
 	public byte[] Read(string file, string requester);
 	public System.Reflection.Assembly LoadComponent(string file, string requester);
