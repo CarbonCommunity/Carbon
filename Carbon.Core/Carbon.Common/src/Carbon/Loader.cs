@@ -222,8 +222,8 @@ public static class Loader
 
 		preInit?.Invoke(plugin);
 
-		plugin.ILoadConfig();
 		plugin.ILoadDefaultMessages();
+		plugin.ILoadConfig();
 		plugin.IInit();
 		plugin.Load();
 
