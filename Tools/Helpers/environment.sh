@@ -1,29 +1,21 @@
 #!/usr/bin/env bash
 
 ###
-### Copyright (c) 2022 Carbon Community
+### Copyright (c) 2022-2023 Carbon Community
 ### All rights reserved
 ###
 
-set -e
-
 # Get the directory of the executable
 SCRIPT=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-BASEDIR="${SCRIPT}/../../"
+BASEDIR=$(realpath "${SCRIPT}/../../")
 
-# Prepare the environment
+# Docker workaround
 export TERM=xterm
+
+# Prepare unity doorstop
 export DOORSTOP_ENABLED=1
 export DOORSTOP_TARGET_ASSEMBLY="${BASEDIR}/carbon/managed/Carbon.Preloader.dll"
 
-if [ -z "${LD_LIBRARY_PATH}" ]; then
-    export LD_LIBRARY_PATH="${BASEDIR}:${BASEDIR}/RustDedicated_Data/Plugins/x86_64"
-else
-    export LD_LIBRARY_PATH="${BASEDIR}:${BASEDIR}/RustDedicated_Data/Plugins/x86_64:${LD_LIBRARY_PATH}"
-fi
-
-if [ -z "${LD_PRELOAD}" ]; then
-    export LD_PRELOAD="${BASEDIR}/libdoorstop.so"
-else
-    export LD_PRELOAD="${BASEDIR}/libdoorstop.so:${LD_PRELOAD}"
-fi
+# Prepare the environment
+export LD_PRELOAD="${BASEDIR}/libdoorstop.so"
+export LD_LIBRARY_PATH="${BASEDIR}:${BASEDIR}/RustDedicated_Data/Plugins/x86_64"
