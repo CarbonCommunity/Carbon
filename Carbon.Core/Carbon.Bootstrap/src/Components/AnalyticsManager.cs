@@ -239,13 +239,15 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			Logger.Debug($" > {url}");
 #endif
 		}
+#if DEBUG_VERBOSE
 		catch (System.Exception e)
 		{
-#if DEBUG_VERBOSE
 			Logger.Warn($"Failed to send request to Google Analytics ({e.Message})");
 			Logger.Debug($" > {url}");
-#endif
 		}
+#else
+		catch (System.Exception) { }
+#endif
 	}
 
 	private void UploadStringCompleted(object sender, UploadStringCompletedEventArgs e)
@@ -258,13 +260,15 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			if (e.Error != null) throw new Exception(e.Error.Message);
 			if (e.Cancelled) throw new Exception("Job was cancelled");
 		}
+#if DEBUG_VERBOSE
 		catch (System.Exception ex)
 		{
-#if DEBUG_VERBOSE
 			Logger.Warn($"Failed to send request to Google Analytics ({ex.Message})");
 			Logger.Debug($" > {url}");
-#endif
 		}
+#else
+		catch (System.Exception) { }
+#endif
 		finally
 		{
 			webClient.Dispose();
