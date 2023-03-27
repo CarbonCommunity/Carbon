@@ -147,6 +147,7 @@ public class Lang : Library
 		}
 		else
 		{
+			plugin.ILoadDefaultMessages();
 			messages = GetMessageFile(plugin.Name, lang);
 			SaveMessageFile(plugin.Name, lang);
 

@@ -6,5 +6,5 @@
 ###
 
 SCRIPT=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source ${SCRIPT}/carbon/tools/environment.sh
-${SCRIPT}/RustDedicated "$@"
+source "${SCRIPT}/carbon/tools/environment.sh"
+"${SCRIPT}/RustDedicated" "$@"
