@@ -45,6 +45,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 	{
 		base.Load();
 
+		UnregisterPermissions();
 		RegisterPermission(ConfigInstance.BypassPermission);
 	}
 	public override Dictionary<string, Dictionary<string, string>> GetDefaultPhrases()

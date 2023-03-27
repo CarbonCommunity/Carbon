@@ -358,6 +358,7 @@ public static class Loader
 						catch { }
 					}
 
+					value = field.GetValue(hookable);
 					if (value != null && var.Protected) value = new string('*', value.ToString().Length);
 
 					Community.LogCommand($"{command}: \"{value}\"", player);
@@ -423,6 +424,7 @@ public static class Loader
 						catch { }
 					}
 
+					value = property.GetValue(hookable);
 					if (value != null && var.Protected) value = new string('*', value.ToString().Length);
 
 					Community.LogCommand($"{command}: \"{value}\"", player);
