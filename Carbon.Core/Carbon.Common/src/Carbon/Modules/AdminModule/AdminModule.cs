@@ -1675,11 +1675,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			}
 		}
-		public void ClearAfter(int index)
+		public void ClearAfter(int index, bool erase = false)
 		{
-			for (int i = 0; i < Columns.Count; i++)
+			var count = Columns.Count;
+
+			for (int i = 0; i < count; i++)
 			{
-				if (i >= index) ClearColumn(i);
+				if (i >= index) ClearColumn(i, erase);
 			}
 		}
 		public Tab AddColumn(int column)
