@@ -73,6 +73,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 	#endregion
 
 	[CommandVar("whitelist.password", Protected = true)]
+	[AuthLevel(2)]
 	private string Password { get { return ConfigInstance.Password; } set { if (value.Length > 32) { PutsWarn($"The password must not be more than 32 characters."); return; } ConfigInstance.Password = value; Save(); } }
 
 	public IEnumerator Run(Connection connection)
