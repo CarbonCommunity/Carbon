@@ -4692,6 +4692,173 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	#endregion
+
+	#region Custom Tabs
+
+	public class ConfigEditor : Tab
+	{
+		internal JObject Entry { get; set; }
+		internal Action<AdminPlayer, JObject> OnSave, OnSaveAndReload;
+		internal const string Spacing = " ";
+
+		public ConfigEditor(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null) : base(id, name, plugin, onChange)
+		{
+		}
+
+		public static ConfigEditor Make(string json, Action<AdminPlayer, JObject> onSave, Action<AdminPlayer, JObject> onSaveAndReload)
+		{
+			var tab = new ConfigEditor("configeditor", "Config Editor", Community.Runtime.CorePlugin)
+			{
+				Entry = JObject.Parse(json),
+				OnSave = onSave,
+				OnSaveAndReload = onSaveAndReload
+			};
+
+			tab._draw();
+			return tab;
+		}
+
+		internal void _draw()
+		{
+			AddColumn(0);
+			AddColumn(1);
+
+			var list = Pool.GetList<OptionButton>();
+			if (OnSave != null) list.Add(new OptionButton("Save", ap => { OnSave?.Invoke(ap, Entry); }));
+			if (OnSaveAndReload != null) list.Add(new OptionButton("Save & Reload", ap => { OnSaveAndReload?.Invoke(ap, Entry); }));
+
+			AddButtonArray(0, list.ToArray());
+			Pool.FreeList(ref list);
+
+			foreach (var token in Entry)
+			{
+				if (token.Value is JObject) AddName(0, $"{token.Key}");
+
+				_recurseBuild(token.Key, token.Value, 0, 0);
+			}
+		}
+		internal void _recurseBuild(string name, JToken token, int level, int column)
+		{
+			switch (token)
+			{
+				case JArray array:
+					{
+						AddName(column, $"{Extensions.StringEx.SpacedString(Spacing, level, false)}{name}");
+						AddButton(column, $"Edit", ap =>
+						{
+							var index = 0;
+							var subColumn = 1;
+							ClearAfter(subColumn, true);
+							AddName(subColumn, $"Editing '{name}'");
+							foreach (var element in array)
+							{
+								_recurseBuild($"{Carbon.Extensions.StringEx.SpacedString(Spacing, level, false)}{index:n0}", element, 0, subColumn);
+
+								// AddButton(subColumn, $"Add", ap2 =>
+								// {
+								// 
+								// }, ap2 => OptionButton.Types.Warned);
+
+								index++;
+							}
+							if (array.Count == 0) AddText(subColumn, $"{Extensions.StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+
+						});
+					}
+					break;
+
+				default:
+					var usableToken = token is JProperty property ? property.Value : token;
+					switch (usableToken?.Type)
+					{
+						case JTokenType.String:
+							var value = usableToken.ToObject<string>();
+							var valueSplit = value.Split(' ');
+							if (value.StartsWith("#") || (valueSplit.Length >= 3 && valueSplit.All(x => float.TryParse(x, out _))))
+							{
+								AddColor(column, name, () => value.StartsWith("#") ? CUI.Color(value) : usableToken.ToObject<string>(), (ap, hex, rust) => { usableToken.Replace(usableToken = value = value.StartsWith("#") ? hex : rust); }, tooltip: $"The color value of the '{name.Trim()}' property.");
+							}
+							else AddInput(column, name, ap => usableToken.ToObject<string>(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ")); });
+							Array.Clear(valueSplit, 0, valueSplit.Length);
+							valueSplit = null;
+							break;
+
+						case JTokenType.Integer:
+							AddInput(column, name, ap => usableToken.ToObject<int>().ToString("n0"), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToInt()); });
+							break;
+
+						case JTokenType.Float:
+							AddInput(column, name, ap => usableToken.ToObject<float>().ToString(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToFloat()); });
+							break;
+
+						case JTokenType.Boolean:
+							AddToggle(column, name,
+								ap => { usableToken.Replace(usableToken = !usableToken.ToObject<bool>()); },
+								ap => usableToken.ToObject<bool>());
+							break;
+
+						case JTokenType.Array:
+							{
+								var array2 = usableToken as JArray;
+								AddName(column, $"{Extensions.StringEx.SpacedString(Spacing, level, false)}{name}");
+								AddButton(column, $"Edit", ap =>
+								{
+									var index = 0;
+									var subColumn = column + 1;
+									ClearAfter(subColumn, true);
+									AddName(subColumn, $"Editing '{name.Trim()}'");
+									foreach (var element in array2)
+									{
+										_recurseBuild($"{Carbon.Extensions.StringEx.SpacedString(Spacing, level, false)}{index:n0}", element, 0, subColumn);
+
+										// AddButton(subColumn, $"Add", ap2 =>
+										// {
+										// 
+										// }, ap2 => OptionButton.Types.Warned);
+
+										index++;
+									}
+									if (array2.Count == 0) AddText(subColumn, $"{Extensions.StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+								});
+							}
+							break;
+
+						case JTokenType.Object:
+							var newLevel = level + 1;
+							if (token.Parent is JArray array) AddInputButton(column, null, 0.2f,
+								new OptionInput(null, ap => $"{array.IndexOf(token)}", 0, true, null),
+								new OptionButton("Remove", TextAnchor.MiddleCenter, ap =>
+								{
+									array.Remove(token);
+									ClearColumn(column);
+									DrawArray(name, array, 0, true);
+								}, ap => Tab.OptionButton.Types.Important));
+
+							DrawArray(name, token, newLevel);
+
+							break;
+					}
+					break;
+			}
+
+			void DrawArray(string title, JToken tok, int ulevel, bool editRefresh = false)
+			{
+				if (editRefresh)
+				{
+					AddName(column, $"Editing '{(tok.Parent as JProperty)?.Name}'");
+				}
+
+				foreach (var subToken in tok)
+				{
+					if (subToken is JObject && !editRefresh)
+						AddName(column, $"{Extensions.StringEx.SpacedString(Spacing, ulevel, false)}{(subToken.Parent as JProperty)?.Name}");
+					_recurseBuild($"{Extensions.StringEx.SpacedString(Spacing, ulevel + 1, false)}{(subToken as JProperty)?.Name}", subToken, ulevel + 1, column);
+				}
+			}
+		}
+	}
+
+	#endregion
 }
 
 public class AdminConfig
