@@ -207,7 +207,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 public class WhitelistConfig
 {
-	public string Password;
+	public string Password = "";
 	public int Timeout = 30;
 	public string BypassPermission = "whitelist.bypass";
 }
