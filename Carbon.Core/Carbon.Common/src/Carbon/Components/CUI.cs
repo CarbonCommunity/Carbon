@@ -144,14 +144,14 @@ public struct CUI : IDisposable
 		return Manager.Image(container, parent, id, null, url, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
 
-	public static string Color(string hexColor, float? alpha = null)
+	public static string Color(string hexColor, float? alpha = null, bool includeAlpha = true)
 	{
 		if (!ColorUtility.TryParseHtmlString(hexColor, out var color))
 		{
 			return $"1 1 1 {alpha.GetValueOrDefault(1)}";
 		}
 
-		return $"{color.r} {color.g} {color.b} {alpha ?? color.a}";
+		return $"{color.r} {color.g} {color.b}{(includeAlpha ? $" {alpha ?? color.a}" : "")}";
 	}
 
 	#endregion
@@ -231,8 +231,15 @@ public struct CUI : IDisposable
 
 	public class Handler
 	{
+		internal string Identifier { get; set; }
+
 		public int Pooled => _containerPool.Count + _elements.Count + _images.Count + _rawImages.Count + _texts.Count + _buttons.Count + _inputFields.Count + _rects.Count + _needsCursors.Count + _needsKeyboards.Count;
 		public int Used => _queue.Count;
+
+		public Handler()
+		{
+			Identifier = RandomEx.GetRandomString(4);
+		}
 
 		#region Properties
 
@@ -270,7 +277,7 @@ public struct CUI : IDisposable
 		internal string AppendId()
 		{
 			_currentId++;
-			return _currentId.ToString();
+			return $"{Identifier}_{_currentId}";
 		}
 		internal void SendToPool<T>(T element) where T : ICuiComponent
 		{
