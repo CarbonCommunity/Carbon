@@ -30,7 +30,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 	public override string Name => "Whitelist";
 	public override Type Type => typeof(WhitelistModule);
-	public override bool ForceModded => true;
+	public override bool ForceModded => false;
 
 	public override void Init()
 	{
