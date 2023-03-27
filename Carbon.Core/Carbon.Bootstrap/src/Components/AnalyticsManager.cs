@@ -159,7 +159,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	public void SendEvent(string eventName)
 	{
 		float delta = 1; bool newsession = true;
-		if (_lastEngagement >= 0 && _lastEngagement <= 1800)
+		if (_lastEngagement >= 0f && _lastEngagement <= 1800f)
 		{
 			newsession = false;
 			delta = (UnityEngine.Time.realtimeSinceStartup - _lastEngagement) * 1000;
@@ -167,8 +167,15 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		_lastEngagement = UnityEngine.Time.realtimeSinceStartup;
 
 		string url = "https://www.google-analytics.com/g/collect";
-		string query = $"v=2&tid={MeasurementID}&cid={ClientID}&en={eventName}"
-			+ $"{(newsession ? "&_ss=1" : string.Empty)}&seg=1&_et={Math.Round(delta)}";
+		string query = $"v=2&tid={MeasurementID}&cid={ClientID}&en={eventName}&";
+
+		if (newsession)
+		{
+			SessionID = Util.GetRandomNumber(10);
+			query += $"&_ss=1";
+		}
+
+		query += $"&seg=1&_et={Math.Round(delta)}&sid={SessionID}";
 
 #if DEBUG_VERBOSE
 		query += "&_dbg=1";
