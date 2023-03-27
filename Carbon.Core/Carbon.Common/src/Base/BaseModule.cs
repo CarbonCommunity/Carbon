@@ -259,6 +259,14 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		return HasPermission(player.UserIDString, permission);
 	}
+	public virtual bool HasGroup(string userId, string group)
+	{
+		return Community.Runtime.CorePlugin.permission.UserHasGroup(userId, group);
+	}
+	public virtual bool HasGroup(BasePlayer player, string group)
+	{
+		return HasGroup(player.UserIDString, group);
+	}
 
 	#endregion
 
