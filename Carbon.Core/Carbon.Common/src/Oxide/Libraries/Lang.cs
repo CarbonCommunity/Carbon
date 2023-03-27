@@ -138,9 +138,9 @@ public class Lang : Library
 		if (newPhrases == phrases || save) SaveMessageFile(plugin.Name, lang);
 	}
 
-	public string GetMessage(string key, BaseHookable hookable, string player = null)
+	public string GetMessage(string key, BaseHookable hookable, string player = null, string lang = null)
 	{
-		var lang = GetLanguage(player);
+		if (string.IsNullOrEmpty(lang)) lang = GetLanguage(player);
 
 		if (Phrases.TryGetValue(lang, out var messages) && messages.TryGetValue(key, out var phrase))
 		{
@@ -162,7 +162,7 @@ public class Lang : Library
 			catch { }
 		}
 
-		return key;
+		return lang == "en" ? key : GetMessage(key, hookable, player, "en");
 	}
 	public Dictionary<string, string> GetMessages(string lang, RustPlugin plugin)
 	{
