@@ -148,14 +148,18 @@ public class Lang : Library
 		}
 		else
 		{
-			if (hookable is RustPlugin rustPlugin) rustPlugin.ILoadDefaultMessages();
-			messages = GetMessageFile(hookable.Name, lang);
-			SaveMessageFile(hookable.Name, lang);
-
-			if (messages.TryGetValue(key, out phrase))
+			try
 			{
-				return phrase;
+				if (hookable is RustPlugin rustPlugin) rustPlugin.ILoadDefaultMessages();
+				messages = GetMessageFile(hookable.Name, lang);
+				SaveMessageFile(hookable.Name, lang);
+
+				if (messages.TryGetValue(key, out phrase))
+				{
+					return phrase;
+				}
 			}
+			catch { }
 		}
 
 		return key;
