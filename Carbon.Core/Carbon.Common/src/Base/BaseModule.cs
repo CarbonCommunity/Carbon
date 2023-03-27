@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
+using Network;
 using Oxide.Core.Configuration;
+using Defines = Carbon.Core.Defines;
 
 /*
  *
@@ -232,6 +235,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		
 	}
 
+	#region Permission
+
 	public virtual bool PermissionExists(string permission)
 	{
 		return Community.Runtime.CorePlugin.permission.PermissionExists(permission, Community.Runtime.CorePlugin);
@@ -254,6 +259,27 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	{
 		return HasPermission(player.UserIDString, permission);
 	}
+
+	#endregion
+
+	#region Localisation
+
+	public virtual Dictionary<string, Dictionary<string, string>> GetDefaultPhrases() => null;
+
+	public virtual string GetPhrase(string key)
+	{
+		return Community.Runtime.CorePlugin.lang.GetMessage(key, this);
+	}
+	public virtual string GetPhrase(string key, string playerId)
+	{
+		return Community.Runtime.CorePlugin.lang.GetMessage(key, this, playerId);
+	}
+	public virtual string GetPhrase(string key, ulong playerId)
+	{
+		return Community.Runtime.CorePlugin.lang.GetMessage(key, this, playerId == 0 ? string.Empty : playerId.ToString());
+	}
+
+	#endregion
 
 	public class Configuration : IModuleConfig
 	{

@@ -326,23 +326,31 @@ public static class Loader
 						{
 							if (field.FieldType == typeof(string))
 							{
-								value = rawString.ToFloat();
+								value = rawString;
+							}
+							else if (field.FieldType == typeof(bool))
+							{
+								value = rawString.ToBool();
 							}
 							if (field.FieldType == typeof(int))
 							{
 								value = rawString.ToInt();
 							}
+							if (field.FieldType == typeof(uint))
+							{
+								value = rawString.ToUint();
+							}
 							else if (field.FieldType == typeof(float))
 							{
 								value = rawString.ToFloat();
 							}
+							else if (field.FieldType == typeof(long))
+							{
+								value = rawString.ToLong();
+							}
 							else if (field.FieldType == typeof(ulong))
 							{
 								value = rawString.ToUlong();
-							}
-							else if (field.FieldType == typeof(bool))
-							{
-								value = rawString.ToBool();
 							}
 
 							field.SetValue(hookable, value);
@@ -350,8 +358,10 @@ public static class Loader
 						catch { }
 					}
 
+					if (value != null && var.Protected) value = new string('*', value.ToString().Length);
+
 					Community.LogCommand($"{command}: \"{value}\"", player);
-				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected);
 			}
 		}
 
@@ -381,23 +391,31 @@ public static class Loader
 						{
 							if (property.PropertyType == typeof(string))
 							{
-								value = rawString.ToFloat();
+								value = rawString;
+							}
+							else if (property.PropertyType == typeof(bool))
+							{
+								value = rawString.ToBool();
 							}
 							if (property.PropertyType == typeof(int))
 							{
 								value = rawString.ToInt();
 							}
+							if (property.PropertyType == typeof(uint))
+							{
+								value = rawString.ToUint();
+							}
 							else if (property.PropertyType == typeof(float))
 							{
 								value = rawString.ToFloat();
 							}
+							else if (property.PropertyType == typeof(long))
+							{
+								value = rawString.ToLong();
+							}
 							else if (property.PropertyType == typeof(ulong))
 							{
 								value = rawString.ToUlong();
-							}
-							else if (property.PropertyType == typeof(bool))
-							{
-								value = rawString.ToBool();
 							}
 
 							property.SetValue(hookable, value);
@@ -405,8 +423,10 @@ public static class Loader
 						catch { }
 					}
 
+					if (value != null && var.Protected) value = new string('*', value.ToString().Length);
+
 					Community.LogCommand($"{command}: \"{value}\"", player);
-				}, help: var.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				}, help: var.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected);
 			}
 		}
 

@@ -869,6 +869,11 @@ public class CorePlugin : CarbonPlugin
 				else if (command.Reference is PropertyInfo property) value = property.GetValue(command.Plugin)?.ToString();
 			}
 
+			if (command.Protected)
+			{
+				value = new string('*', value.Length);
+			}
+
 			body.AddRow(command.Command, value, command.Help);
 		}
 

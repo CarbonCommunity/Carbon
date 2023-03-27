@@ -22,4 +22,5 @@ public class OxideCommand
 	public string Help { get; set; }
 	public bool IsHidden { get; set; }
 	public object Reference { get; set; }
+	public bool Protected { get; set; }
 }
