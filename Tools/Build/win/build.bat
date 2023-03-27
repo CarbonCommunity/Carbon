@@ -29,8 +29,9 @@ dotnet   build "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --no-restore -
 
 echo ** Copy operating system specific files
 echo "%TARGET%" | findstr /C:"Unix" >NUL && (
+	copy /y "%ROOT%\Tools\Helpers\carbon.sh"                      "%ROOT%\Release\.tmp\%TARGET%\carbon.sh"
 	copy /y "%ROOT%\Tools\Helpers\environment.sh"                 "%ROOT%\Release\.tmp\%TARGET%\carbon\tools\"
-	copy /y "%ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" "%ROOT%\Release\.tmp\%TARGET%"
+	copy /y "%ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" "%ROOT%\Release\.tmp\%TARGET%\libdoorstop.so"
 	(CALL )
 ) || (                                                                                                                          
 	copy /y "%ROOT%\Tools\Helpers\doorstop_config.ini"            "%ROOT%\Release\.tmp\%TARGET%"                                

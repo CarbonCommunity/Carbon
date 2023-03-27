@@ -159,7 +159,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	public void SendEvent(string eventName)
 	{
 		float delta = 1; bool newsession = true;
-		if (_lastEngagement >= 0 && _lastEngagement <= 1800)
+		if (_lastEngagement >= 0f && _lastEngagement <= 1800f)
 		{
 			newsession = false;
 			delta = (UnityEngine.Time.realtimeSinceStartup - _lastEngagement) * 1000;
@@ -167,8 +167,15 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		_lastEngagement = UnityEngine.Time.realtimeSinceStartup;
 
 		string url = "https://www.google-analytics.com/g/collect";
-		string query = $"v=2&tid={MeasurementID}&cid={ClientID}&en={eventName}"
-			+ $"{(newsession ? "&_ss=1" : string.Empty)}&seg=1&_et={Math.Round(delta)}";
+		string query = $"v=2&tid={MeasurementID}&cid={ClientID}&en={eventName}&";
+
+		if (newsession)
+		{
+			SessionID = Util.GetRandomNumber(10);
+			query += $"&_ss=1";
+		}
+
+		query += $"&seg=1&_et={Math.Round(delta)}&sid={SessionID}";
 
 #if DEBUG_VERBOSE
 		query += "&_dbg=1";
@@ -226,6 +233,8 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	{
 		try
 		{
+			body ??= string.Empty;
+
 			using WebClient webClient = new WebClient();
 			webClient.Headers.Add(HttpRequestHeader.UserAgent, UserAgent);
 			webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
@@ -237,13 +246,15 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			Logger.Debug($" > {url}");
 #endif
 		}
-		catch (System.Exception)
-		{
 #if DEBUG_VERBOSE
-			Logger.Warn($"Failed to send request to Google Analytics");
+		catch (System.Exception e)
+		{
+			Logger.Warn($"Failed to send request to Google Analytics ({e.Message})");
 			Logger.Debug($" > {url}");
-#endif
 		}
+#else
+		catch (System.Exception) { }
+#endif
 	}
 
 	private void UploadStringCompleted(object sender, UploadStringCompletedEventArgs e)
@@ -256,13 +267,15 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			if (e.Error != null) throw new Exception(e.Error.Message);
 			if (e.Cancelled) throw new Exception("Job was cancelled");
 		}
-		catch (System.Exception)
-		{
 #if DEBUG_VERBOSE
-			Logger.Warn($"Failed to send request to Google Analytics");
+		catch (System.Exception ex)
+		{
+			Logger.Warn($"Failed to send request to Google Analytics ({ex.Message})");
 			Logger.Debug($" > {url}");
-#endif
 		}
+#else
+		catch (System.Exception) { }
+#endif
 		finally
 		{
 			webClient.Dispose();
