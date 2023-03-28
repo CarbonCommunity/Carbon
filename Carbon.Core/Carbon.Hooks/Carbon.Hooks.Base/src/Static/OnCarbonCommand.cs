@@ -39,7 +39,7 @@ public partial class Category_Static
 				try
 				{
 					var split = strCommand.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
-					var command = split[0].Trim();
+					var command = split.Length == 0 ? string.Empty : split[0].Trim();
 					var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 					Facepunch.Pool.Free(ref split);
 
@@ -126,7 +126,7 @@ public partial class Category_Static
 						}
 					}
 				}
-				catch { }
+				catch(Exception exception) { Logger.Error($"Failed ConsoleSystem.Run [{strCommand}] [{string.Join(" ", args)}]", exception); }
 
 				return true;
 			}

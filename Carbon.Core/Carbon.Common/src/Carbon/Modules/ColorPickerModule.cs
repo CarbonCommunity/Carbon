@@ -71,14 +71,14 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 			xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 			needsCursor: true, destroyUi: PanelId);
 
-		cui.CreatePanel(container, parent: PanelId, id: PanelId + ".color",
+		var color = cui.CreatePanel(container, parent: PanelId, id: PanelId + ".color",
 			color: "0 0 0 0.6",
 			xMin: 0.3f, xMax: 0.7f, yMin: 0.275f, yMax: 0.825f);
-		cui.CreatePanel(container, PanelId + ".color", PanelId + ".main",
+		var main = cui.CreatePanel(container, parent: PanelId + ".color", id: PanelId + ".main",
 			color: "0 0 0 0.5",
 			blur: true);
 
-		cui.CreateText(container, parent: PanelId + ".main", id: null,
+		cui.CreateText(container, parent: main, id: null,
 			color: "1 1 1 0.8",
 			text: "<b>Color Picker</b>", 18,
 			xMin: 0f, yMin: 0.8f, xMax: 1f, yMax: 0.98f,
@@ -96,33 +96,38 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		var topLeftColor = Color.red;
 		var bottomLeftColor = Color.yellow;
 
-		cui.CreateText(container, parent: PanelId + ".main", id: null,
+		cui.CreateText(container, parent: main, id: null,
 			color: "1 1 1 0.3",
 			text: "------------------------------------------------------------------------------------------------------------------------------------- BRIGHTNESS", 8,
 			xMin: 0f, xMax: 0.775f, yMin: 0.01f, yMax: 0.98f,
 			align: TextAnchor.LowerRight,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
-		cui.CreateText(container, parent: PanelId + ".main", id: null,
+		cui.CreateText(container, parent: main, id: null,
 			color: "1 1 1 0.3",
 			text: "SHADES ---------------", 8,
 			xMin: 0.805f, xMax: 1, yMin: 0.085f, yMax: 1f,
 			align: TextAnchor.LowerLeft,
 			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
 
-		cui.CreatePanel(container, PanelId + ".main", PanelId + ".picker",
+		var input = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
+			xMin: 0.805f, xMax: 0.94f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
+		cui.CreateProtectedInputField(container, input, null, "1 1 1 1", "#", 10, 0, false,
+			xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: true);
+
+		var picker = cui.CreatePanel(container, parent: main, id: PanelId + ".picker",
 			color: "0 0 0 0",
 			xMin: 0.175f, xMax: 0.8f, yMin: 0.1f, yMax: 0.9f);
 
-		for (float y = 0; y < scale; y += 1f)
+		for (var y = 0f; y < scale; y += 1f)
 		{
 			var heightColor = Color.Lerp(topRightColor, bottomRightColor, y.Scale(0f, scale, 0f, 1f));
 
 			for (float x = 0; x < scale; x += 1f)
 			{
 				var widthColor = Color.Lerp(topLeftColor, bottomLeftColor, (x + y).Scale(0f, total, 0f, 1f));
-				var color = Color.Lerp(widthColor, heightColor, x.Scale(0f, scale, 0f, 1f)) * Brightness;
-				DrawColor(cui, container, scale, color, PanelId + ".picker", offset * x, -(offset * y), fade: !FirstOpen ? CurrentAnimation : 0);
+				var _color = Color.Lerp(widthColor, heightColor, x.Scale(0f, scale, 0f, 1f)) * Brightness;
+				DrawColor(cui, container, scale, _color, picker, offset * x, -(offset * y), fade: !FirstOpen ? CurrentAnimation : 0);
 
 				CurrentAnimation += AnimationLength;
 			}
@@ -132,10 +137,10 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		// Brightness
 		//
 		var counter = 0;
-		for (float x = 0; x < scale; x += 1f)
+		for (var y = 0f; y < scale; y += 1f)
 		{
-			var color = Color.Lerp(Color.black, Color.white, x.Scale(0f, scale, 0f, 1f));
-			DrawColor(cui, container, scale, color, PanelId + ".picker", offset * x, -(offset * (scale + 1f)), "brightness", fade: !FirstOpen ? CurrentAnimation : 0, index: counter);
+			var _color = Color.Lerp(Color.black, Color.white, y.Scale(0f, scale, 0f, 1f));
+			DrawColor(cui, container, scale, _color, picker, offset * y, -(offset * (scale + 1f)), "brightness", fade: !FirstOpen ? CurrentAnimation : 0, index: counter);
 
 			CurrentAnimation += AnimationLength;
 			counter++;
@@ -144,17 +149,17 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		//
 		// Saturation
 		//
-		for (float y = 0; y < scale; y += 1f)
+		for (var y = 0f; y < scale; y += 1f)
 		{
-			var color = Color.Lerp(Color.white, Color.black, y.Scale(0f, scale, 0f, 1f));
-			DrawColor(cui, container, scale, color, PanelId + ".picker", offset * (scale + 1f), -(offset * y), fade: !FirstOpen ? CurrentAnimation : 0);
+			var _color = Color.Lerp(Color.white, Color.black, y.Scale(0f, scale, 0f, 1f));
+			DrawColor(cui, container, scale, _color, picker, offset * (scale + 1f), -(offset * y), fade: !FirstOpen ? CurrentAnimation : 0);
 
 			CurrentAnimation += AnimationLength;
 		}
 
 		#endregion
 
-		cui.CreateProtectedButton(container, parent: PanelId + ".main", id: null,
+		cui.CreateProtectedButton(container, parent: main, id: null,
 			color: "0.6 0.2 0.2 0.9",
 			textColor: "1 0.5 0.5 1",
 			text: "X", 8,
@@ -222,6 +227,24 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 				return;
 		}
 
+		OnColorPicked?.Invoke(hex, rawColor);
+		OnColorPicked = null;
+		Close(args.Player());
+	}
+
+	[UiCommand(PanelId + ".pickhexcolor")]
+	private void PickHexColorUI(Arg args)
+	{
+		var player = args.Player();
+		var hex = args.Args[0];
+
+		if (args.Args.Length == 0 || string.IsNullOrEmpty(hex) || hex == "#")
+		{
+			return;
+		}
+
+		if(!hex.StartsWith("#")) hex = $"#{hex}";
+		var rawColor = CUI.Color(hex, includeAlpha: false);
 		OnColorPicked?.Invoke(hex, rawColor);
 		OnColorPicked = null;
 		Close(args.Player());

@@ -42,7 +42,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		base.OnEnabled(initialized);
 
-		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish));
+		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), authLevel: ConfigInstance.MinimumVanishAuthLevel);
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -138,8 +138,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 	private void Vanish(BasePlayer player, string cmd, string[] args)
 	{
-		if (player.net.connection.authLevel < ConfigInstance.MinimumVanishAuthLevel) return;
-
 		var wants = false;
 
 		if (_vanishedPlayers.TryGetValue(player.userID, out var originalPosition))

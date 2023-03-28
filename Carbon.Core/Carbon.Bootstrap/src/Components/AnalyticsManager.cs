@@ -136,6 +136,20 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		_lastUpdate = 0;
 		_lastEngagement = -1;
 		SessionID = Util.GetRandomNumber(10);
+
+		if (File.Exists(Path.Combine(Context.Carbon, ".nostats")))
+		{
+			Logger.Warn("You have opted out from analytics data collection");
+			enabled = false;
+		}
+		else
+		{
+			Logger.Warn("We use Google Analytics to collect basic data about Carbon such as"
+				+ " Carbon version, platform, branch and plug-in count.");
+			Logger.Warn("We have no access to any personal identifiable data such as"
+				+ " steamids, server name, ip:port, title or description.");
+			Logger.Warn("If you'd like to opt-out create an empty '.nostats' file at the Carbon root folder.");
+		}
 	}
 
 	private void Update()
@@ -158,6 +172,8 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 	public void SendEvent(string eventName)
 	{
+		if (!enabled) return;
+
 		float delta = 1; bool newsession = true;
 		if (_lastEngagement >= 0f && _lastEngagement <= 1800f)
 		{
@@ -186,6 +202,8 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 	private void SendMPEvent(string eventName, IDictionary<string, object> properties = null)
 	{
+		if (!enabled) return;
+
 		float delta = (UnityEngine.Time.realtimeSinceStartup - _lastEngagement) * 1000;
 		_lastEngagement = UnityEngine.Time.realtimeSinceStartup;
 
