@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -159,7 +160,6 @@ namespace Oxide.Game.Rust.Libraries
 						var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer)));
 						var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer)));
 						var methodInfo = covalenceMethod ?? consoleMethod;
-
 						var parameters = methodInfo.GetParameters();
 
 						if (parameters.Length > 0)
@@ -192,11 +192,34 @@ namespace Oxide.Game.Rust.Libraries
 							}
 							else
 							{
-								arguments.Add(arg);
+								var primaryParameter = parameters[0].ParameterType;
 
-								for (int i = 1; i < parameters.Length; i++)
+								arguments.Add(primaryParameter == typeof(BasePlayer) ? player : arg);
+
+								if (primaryParameter == typeof(BasePlayer))
 								{
-									arguments.Add(null);
+									switch (parameters.Length)
+									{
+										case 2:
+											{
+												arguments.Add(cmd);
+												break;
+											}
+
+										case 3:
+											{
+												arguments.Add(cmd);
+												arguments.Add(args);
+												break;
+											}
+									}
+								}
+								else
+								{
+									for (int i = 1; i < parameters.Length; i++)
+									{
+										arguments.Add(null);
+									}
 								}
 							}
 						}
@@ -208,12 +231,17 @@ namespace Oxide.Game.Rust.Libraries
 							methodInfo?.Invoke(plugin, result);
 
 							if (!string.IsNullOrEmpty(arg.Reply))
-							{							
+							{
 								if (player != null) player.ConsoleMessage(arg.Reply); else Logger.Log(arg.Reply);
 							}
 						}
 					}
-					catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
+					catch (Exception ex)
+					{
+						if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex);
+						else if (plugin is BaseHookable hookable)
+							Logger.Error($"[{hookable.Name}] Error", ex.InnerException ?? ex);
+					}
 				}
 				catch (TargetParameterCountException) { }
 				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
