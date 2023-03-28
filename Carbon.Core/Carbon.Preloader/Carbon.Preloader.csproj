@@ -11,7 +11,7 @@
 		<PackageReference Include="Mono.Cecil" Version="0.11.4" />
 	</ItemGroup>
 
-	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
 </Project>
