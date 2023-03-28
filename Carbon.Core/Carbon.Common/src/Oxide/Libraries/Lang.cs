@@ -5,6 +5,7 @@ using Carbon.Extensions;
 using Carbon.Core;
 using Newtonsoft.Json;
 using Oxide.Plugins;
+using Carbon.Base;
 
 /*
  *
@@ -111,7 +112,7 @@ public class Lang : Library
 		}
 	}
 
-	public void RegisterMessages(Dictionary<string, string> newPhrases, Plugin plugin, string lang = "en")
+	public void RegisterMessages(Dictionary<string, string> newPhrases, BaseHookable plugin, string lang = "en")
 	{
 		if (!Phrases.TryGetValue(lang, out var phrases))
 		{
@@ -137,9 +138,9 @@ public class Lang : Library
 		if (newPhrases == phrases || save) SaveMessageFile(plugin.Name, lang);
 	}
 
-	public string GetMessage(string key, RustPlugin plugin, string player = null)
+	public string GetMessage(string key, BaseHookable hookable, string player = null, string lang = null)
 	{
-		var lang = GetLanguage(player);
+		if (string.IsNullOrEmpty(lang)) lang = GetLanguage(player);
 
 		if (Phrases.TryGetValue(lang, out var messages) && messages.TryGetValue(key, out var phrase))
 		{
@@ -147,17 +148,21 @@ public class Lang : Library
 		}
 		else
 		{
-			plugin.ILoadDefaultMessages();
-			messages = GetMessageFile(plugin.Name, lang);
-			SaveMessageFile(plugin.Name, lang);
-
-			if (messages.TryGetValue(key, out phrase))
+			try
 			{
-				return phrase;
+				if (hookable is RustPlugin rustPlugin) rustPlugin.ILoadDefaultMessages();
+				messages = GetMessageFile(hookable.Name, lang);
+				SaveMessageFile(hookable.Name, lang);
+
+				if (messages.TryGetValue(key, out phrase))
+				{
+					return phrase;
+				}
 			}
+			catch { }
 		}
 
-		return key;
+		return lang == "en" ? key : GetMessage(key, hookable, player, "en");
 	}
 	public Dictionary<string, string> GetMessages(string lang, RustPlugin plugin)
 	{

@@ -88,6 +88,16 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			try
 			{
 				module.Init();
+
+				var phrases = module.GetDefaultPhrases();
+
+				if (phrases != null)
+				{
+					foreach (var language in phrases)
+					{
+						Community.Runtime.CorePlugin.lang.RegisterMessages(language.Value, hookable, language.Key);
+					}
+				}
 			}
 			catch (Exception ex)
 			{

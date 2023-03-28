@@ -14,7 +14,7 @@
 		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
 	</ItemGroup>
 
-	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_hooks)" />
 	</Target>
 </Project>

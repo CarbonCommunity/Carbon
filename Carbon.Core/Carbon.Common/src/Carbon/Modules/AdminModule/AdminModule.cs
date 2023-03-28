@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
 using Network;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
@@ -95,7 +94,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (initialized)
 		{
-			UnityEngine.Application.logMessageReceived += OnLog;
+			Application.logMessageReceived += OnLog;
 		}
 
 		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
@@ -126,7 +125,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			});
 
-			UnityEngine.Application.logMessageReceived -= OnLog;
+			Application.logMessageReceived -= OnLog;
 		}
 
 		base.OnDisabled(initialized);
@@ -980,7 +979,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	[UiCommand(PanelId + ".dialogaction")]
-	private void Dialog_Action(ConsoleSystem.Arg args)
+	private void Dialog_Action(Arg args)
 	{
 		var player = args.Player();
 		var admin = GetOrCreateAdminPlayer(player);
@@ -1013,6 +1012,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var ap = GetOrCreateAdminPlayer(player);
 			var tab = GetTab(player);
 			ap.IsInMenu = true;
+
+			if (CanAccess(player) && !DataInstance.ShowedWizard
+				&& tab.Id != "setupwizard"
+				&& tab.Id != "configeditor")
+			{
+				tab = ap.SelectedTab = SetupWizard.Make();
+			}
 
 			using var cui = new CUI(Handler);
 
@@ -1336,7 +1342,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = Tabs.FirstOrDefault(x => x.Id == id);
 		if (tab != null)
 		{
-			tab.Over = tab.Under = null;
 			ap.Tooltip = null;
 			ap.SelectedTab = tab;
 			try { tab?.OnChange?.Invoke(ap, tab); } catch { }
@@ -1352,7 +1357,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = Tabs[index];
 		if (tab != null)
 		{
-			tab.Over = tab.Under = null;
 			ap.Tooltip = null;
 			ap.SelectedTab = tab;
 			try { tab?.OnChange?.Invoke(ap, tab); } catch { }
@@ -1367,7 +1371,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (tab != null)
 		{
-			tab.Over = tab.Under = null;
 			ap.Tooltip = null;
 			ap.SelectedTab = tab;
 			try { tab?.OnChange?.Invoke(ap, tab); } catch { }
@@ -1380,7 +1383,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (Tabs.Count == 0) return null;
 
 		var ap = GetOrCreateAdminPlayer(player);
-		if (ap.SelectedTab  == null) return null;
+		if (ap.SelectedTab == null) return null;
 
 		return ap.SelectedTab;
 	}
@@ -1519,6 +1522,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		return false;
+	}
+
+	#endregion
+
+	#region Hooks
+
+	private void OnNewSave(string filename)
+	{
+		DataInstance.ShowedWizard = false;
 	}
 
 	#endregion
@@ -1675,11 +1687,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			}
 		}
-		public void ClearAfter(int index)
+		public void ClearAfter(int index, bool erase = false)
 		{
-			for (int i = 0; i < Columns.Count; i++)
+			var count = Columns.Count;
+
+			for (int i = 0; i < count; i++)
 			{
-				if (i >= index) ClearColumn(i);
+				if (i >= index) ClearColumn(i, erase);
 			}
 		}
 		public Tab AddColumn(int column)
@@ -2530,7 +2544,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				new Tab.OptionInput(null, ap => ap.GetStorage<string>(tab, "filter", string.Empty), 0, false, (ap, args) => { ap.SetStorage(tab, "filter", args.ToString(" ")); DrawEntities(tab, ap); }),
 				new Tab.OptionButton($"Refresh", ap => { DrawEntities(tab, ap); }));
 
-			var pool = Facepunch.Pool.GetList<BaseEntity>();
+			var pool = Pool.GetList<BaseEntity>();
 			EntityCount = 0;
 
 			var usedFilter = ap3.GetStorage<string>(tab, "filter", string.Empty)?.ToLower()?.Trim();
@@ -2855,7 +2869,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		internal static void DrawEntityFlags(Tab tab, BaseEntity entity, int column = 1)
 		{
 			var counter = 0;
-			var currentButtons = Facepunch.Pool.GetList<Tab.OptionButton>();
+			var currentButtons = Pool.GetList<Tab.OptionButton>();
 
 			tab.ClearColumn(column);
 
@@ -2876,7 +2890,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			}
 
-			Facepunch.Pool.FreeList(ref currentButtons);
+			Pool.FreeList(ref currentButtons);
 		}
 
 		internal static void ViewCamera(BasePlayer player, ComputerStation station, CCTV_RC camera)
@@ -2907,7 +2921,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			++connection.validate.entityUpdates;
 
-			netWrite.PacketID(Network.Message.Type.Entities);
+			netWrite.PacketID(Message.Type.Entities);
 			netWrite.UInt32(connection.validate.entityUpdates);
 
 			entity.ToStreamForNetwork(netWrite, new BaseNetworkable.SaveInfo() { forConnection = connection, forDisk = false });
@@ -3019,7 +3033,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static Tab Get()
 		{
-			OsEx.Folder.Create(Path.Combine(Carbon.Core.Defines.GetScriptFolder(), "backups"));
+			OsEx.Folder.Create(Path.Combine(Core.Defines.GetScriptFolder(), "backups"));
 
 			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) => { ap.SetStorage(t, "selectedplugin", (Plugin)null); })
 			{
@@ -3550,7 +3564,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			void CheckMetadata(string id, Action callback);
 		}
 
-		[ProtoBuf.ProtoContract]
+		[ProtoContract]
 		public class Codefling : IVendorDownloader, IVendorAuthenticated
 		{
 			public string Type => "Codefling";
@@ -3573,10 +3587,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public string ListEndpoint => "https://codefling.com/capi/category-2/?do=apicall";
 			public string DownloadEndpoint => "https://codefling.com/files/file/[ID]-a?do=download";
 
-			[ProtoBuf.ProtoMember(1)]
+			[ProtoMember(1)]
 			public List<Plugin> FetchedPlugins { get; set; } = new();
 
-			[ProtoBuf.ProtoMember(2)]
+			[ProtoMember(2)]
 			public long LastTick { get; set; }
 
 			public void Refresh()
@@ -3714,7 +3728,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Carbon.Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
 				plugin.ExistentPlugin = null;
 			}
 			public void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -3764,7 +3778,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 
-		[ProtoBuf.ProtoContract]
+		[ProtoContract]
 		public class uMod : IVendorDownloader
 		{
 			public string Type => "uMod";
@@ -3788,10 +3802,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public string DownloadEndpoint => "https://umod.org/plugins/[ID].cs";
 			public string PluginLookupEndpoint => "https://umod.org/plugins/[ID]/latest.json";
 
-			[ProtoBuf.ProtoMember(1)]
+			[ProtoMember(1)]
 			public List<Plugin> FetchedPlugins { get; set; } = new();
 
-			[ProtoBuf.ProtoMember(2)]
+			[ProtoMember(2)]
 			public long LastTick { get; set; }
 
 			public void Refresh()
@@ -3886,7 +3900,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Carbon.Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
 				plugin.ExistentPlugin = null;
 			}
 			public void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -4022,7 +4036,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 
-		[ProtoBuf.ProtoContract]
+		[ProtoContract]
 		public class Lone_Design : IVendorDownloader, IVendorAuthenticated
 		{
 			public string Type => "Lone.Design";
@@ -4045,10 +4059,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public string ListEndpoint => "https://api.lone.design/carbon.json";
 			public string DownloadEndpoint => "https://codefling.com/files/file/[ID]-a?do=download";
 
-			[ProtoBuf.ProtoMember(1)]
+			[ProtoMember(1)]
 			public List<Plugin> FetchedPlugins { get; set; } = new();
 
-			[ProtoBuf.ProtoMember(2)]
+			[ProtoMember(2)]
 			public long LastTick { get; set; }
 
 			public void Refresh()
@@ -4179,7 +4193,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Carbon.Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
 				plugin.ExistentPlugin = null;
 			}
 			public void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -4229,7 +4243,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 
-		[ProtoBuf.ProtoContract]
+		[ProtoContract]
 		public class ServerOwner
 		{
 			public static ServerOwner Singleton { get; internal set; } = new ServerOwner();
@@ -4241,7 +4255,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var path = Path.Combine(Carbon.Core.Defines.GetDataFolder(), "vendordata_owner.db");
+					var path = Path.Combine(Core.Defines.GetDataFolder(), "vendordata_owner.db");
 					if (!OsEx.File.Exists(path))
 					{
 						Save();
@@ -4272,7 +4286,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 
-		[ProtoBuf.ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+		[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 		public class Plugin
 		{
 			public string Id { get; set; }
@@ -4331,7 +4345,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	#region Administration - Custom Commands
 
 	[UiCommand("carbongg.endspectate")]
-	private void EndSpectate(ConsoleSystem.Arg arg)
+	private void EndSpectate(Arg arg)
 	{
 		StopSpectating(arg.Player());
 	}
@@ -4372,7 +4386,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	[UiCommand("pluginbrowser.changetab")]
-	private void PluginBrowserChange(ConsoleSystem.Arg args)
+	private void PluginBrowserChange(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4386,7 +4400,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.interact")]
-	private void PluginBrowserInteract(ConsoleSystem.Arg args)
+	private void PluginBrowserInteract(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4418,7 +4432,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.page")]
-	private void PluginBrowserPage(ConsoleSystem.Arg args)
+	private void PluginBrowserPage(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4453,7 +4467,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.filter")]
-	private void PluginBrowserFilter(ConsoleSystem.Arg args)
+	private void PluginBrowserFilter(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4473,7 +4487,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.tagfilter")]
-	private void PluginBrowserTagFilter(ConsoleSystem.Arg args)
+	private void PluginBrowserTagFilter(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4491,7 +4505,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.search")]
-	private void PluginBrowserSearch(ConsoleSystem.Arg args)
+	private void PluginBrowserSearch(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4509,7 +4523,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.selectplugin")]
-	private void PluginBrowserSelectPlugin(ConsoleSystem.Arg args)
+	private void PluginBrowserSelectPlugin(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4522,7 +4536,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.deselectplugin")]
-	private void PluginBrowserDeselectPlugin(ConsoleSystem.Arg args)
+	private void PluginBrowserDeselectPlugin(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4535,7 +4549,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.changeselectedplugin")]
-	private void PluginBrowserChangeSelected(ConsoleSystem.Arg args)
+	private void PluginBrowserChangeSelected(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4553,7 +4567,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[UiCommand("pluginbrowser.changesetting")]
-	private void PluginBrowserChangeSetting(ConsoleSystem.Arg args)
+	private void PluginBrowserChangeSetting(Arg args)
 	{
 		var ap = GetOrCreateAdminPlayer(args.Player());
 		var tab = GetTab(ap.Player);
@@ -4690,6 +4704,452 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	#endregion
+
+	#region Custom Tabs
+
+	public class ConfigEditor : Tab
+	{
+		internal JObject Entry { get; set; }
+		internal Action<AdminPlayer, JObject> OnSave, OnSaveAndReload;
+		internal const string Spacing = " ";
+
+		public ConfigEditor(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null) : base(id, name, plugin, onChange)
+		{
+		}
+
+		public static ConfigEditor Make(string json, Action<AdminPlayer, JObject> onSave, Action<AdminPlayer, JObject> onSaveAndReload)
+		{
+			var tab = new ConfigEditor("configeditor", "Config Editor", Community.Runtime.CorePlugin)
+			{
+				Entry = JObject.Parse(json),
+				OnSave = onSave,
+				OnSaveAndReload = onSaveAndReload
+			};
+
+			tab._draw();
+			return tab;
+		}
+
+		internal void _draw()
+		{
+			AddColumn(0);
+			AddColumn(1);
+
+			var list = Pool.GetList<OptionButton>();
+			if (OnSave != null) list.Add(new OptionButton("Save", ap => { OnSave?.Invoke(ap, Entry); }));
+			if (OnSaveAndReload != null) list.Add(new OptionButton("Save & Reload", ap => { OnSaveAndReload?.Invoke(ap, Entry); }));
+
+			AddButtonArray(0, list.ToArray());
+			Pool.FreeList(ref list);
+
+			foreach (var token in Entry)
+			{
+				if (token.Value is JObject) AddName(0, $"{token.Key}");
+
+				_recurseBuild(token.Key, token.Value, 0, 0);
+			}
+		}
+		internal void _recurseBuild(string name, JToken token, int level, int column)
+		{
+			switch (token)
+			{
+				case JArray array:
+					{
+						AddName(column, $"{StringEx.SpacedString(Spacing, level, false)}{name}");
+						AddButton(column, $"Edit", ap =>
+						{
+							var index = 0;
+							var subColumn = 1;
+							ClearAfter(subColumn, true);
+							AddName(subColumn, $"Editing '{name}'");
+							foreach (var element in array)
+							{
+								_recurseBuild($"{StringEx.SpacedString(Spacing, level, false)}{index:n0}", element, 0, subColumn);
+
+								// AddButton(subColumn, $"Add", ap2 =>
+								// {
+								// 
+								// }, ap2 => OptionButton.Types.Warned);
+
+								index++;
+							}
+							if (array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+
+						});
+					}
+					break;
+
+				default:
+					var usableToken = token is JProperty property ? property.Value : token;
+					switch (usableToken?.Type)
+					{
+						case JTokenType.String:
+							var value = usableToken.ToObject<string>();
+							var valueSplit = value.Split(' ');
+							if (value.StartsWith("#") || (valueSplit.Length >= 3 && valueSplit.All(x => float.TryParse(x, out _))))
+							{
+								AddColor(column, name, () => value.StartsWith("#") ? CUI.Color(value) : usableToken.ToObject<string>(), (ap, hex, rust) => { usableToken.Replace(usableToken = value = value.StartsWith("#") ? hex : rust); }, tooltip: $"The color value of the '{name.Trim()}' property.");
+							}
+							else AddInput(column, name, ap => usableToken.ToObject<string>(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ")); });
+							Array.Clear(valueSplit, 0, valueSplit.Length);
+							valueSplit = null;
+							break;
+
+						case JTokenType.Integer:
+							AddInput(column, name, ap => usableToken.ToObject<int>().ToString("n0"), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToInt()); });
+							break;
+
+						case JTokenType.Float:
+							AddInput(column, name, ap => usableToken.ToObject<float>().ToString(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToFloat()); });
+							break;
+
+						case JTokenType.Boolean:
+							AddToggle(column, name,
+								ap => { usableToken.Replace(usableToken = !usableToken.ToObject<bool>()); },
+								ap => usableToken.ToObject<bool>());
+							break;
+
+						case JTokenType.Array:
+							{
+								var array2 = usableToken as JArray;
+								AddName(column, $"{StringEx.SpacedString(Spacing, level, false)}{name}");
+								AddButton(column, $"Edit", ap =>
+								{
+									var index = 0;
+									var subColumn = column + 1;
+									ClearAfter(subColumn, true);
+									AddName(subColumn, $"Editing '{name.Trim()}'");
+									foreach (var element in array2)
+									{
+										_recurseBuild($"{StringEx.SpacedString(Spacing, level, false)}{index:n0}", element, 0, subColumn);
+
+										// AddButton(subColumn, $"Add", ap2 =>
+										// {
+										// 
+										// }, ap2 => OptionButton.Types.Warned);
+
+										index++;
+									}
+									if (array2.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+								});
+							}
+							break;
+
+						case JTokenType.Object:
+							var newLevel = level + 1;
+							if (token.Parent is JArray array) AddInputButton(column, null, 0.2f,
+								new OptionInput(null, ap => $"{array.IndexOf(token)}", 0, true, null),
+								new OptionButton("Remove", TextAnchor.MiddleCenter, ap =>
+								{
+									array.Remove(token);
+									ClearColumn(column);
+									DrawArray(name, array, 0, true);
+								}, ap => OptionButton.Types.Important));
+
+							DrawArray(name, token, newLevel);
+
+							break;
+					}
+					break;
+			}
+
+			void DrawArray(string title, JToken tok, int ulevel, bool editRefresh = false)
+			{
+				if (editRefresh)
+				{
+					AddName(column, $"Editing '{(tok.Parent as JProperty)?.Name}'");
+				}
+
+				foreach (var subToken in tok)
+				{
+					if (subToken is JObject && !editRefresh)
+						AddName(column, $"{StringEx.SpacedString(Spacing, ulevel, false)}{(subToken.Parent as JProperty)?.Name}");
+					_recurseBuild($"{StringEx.SpacedString(Spacing, ulevel + 1, false)}{(subToken as JProperty)?.Name}", subToken, ulevel + 1, column);
+				}
+			}
+		}
+	}
+
+	public class SetupWizard : Tab
+	{
+		internal List<Page> Pages = new();
+
+		public SetupWizard(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null) : base(id, name, plugin, onChange)
+		{
+		}
+
+		public static SetupWizard Make()
+		{
+			var pluginsTab = Singleton.FindTab("plugins");
+
+			var tab = new SetupWizard("setupwizard", "Setup Wizard", Community.Runtime.CorePlugin) { Fullscreen = true };
+			tab.Override = tab.Draw;
+
+			tab.Pages.Add(new Page("Main", (cui, t, container, panel, ap) =>
+			{
+				cui.CreateImage(container, panel, null, "carbonws", "1 1 1 0.7", 0.2f, 0.8f, yMin: 0.52f, yMax: 0.71f, OyMin: -20, OyMax: -20);
+				cui.CreateText(container, panel, null, "1 1 1 0.5", "Welcome to <b>Carbon</b> setup wizard!", 13, yMax: 0.495f, OyMin: -20, OyMax: -20, align: TextAnchor.UpperCenter);
+				tab.DisplayArrows(cui, tab, container, panel, ap, true);
+			}));
+
+			tab.Pages.Add(new Page("Getting Started", (cui, t, container, panel, ap) =>
+			{
+				tab.InfoTemplate(cui, t, container, panel, ap, "What is Carbon?",
+					$"Carbon is a robust self-updating framework designed with performance and stability in mind. It has complete backward compatibility with all Oxide plugins and uses the <b>latest C#</b> and <b>Harmony</b> libraries to give developers the tools to let their creativity flourish!\n\n" +
+					$"<b>AUTO-UPDATES</b>" +
+					$"\nCarbon updates itself and all dynamic hook DLLs at runtime, so you do not need to restart your Rust server when new builds come out.\n\n" +
+					$"<b>C# 10</b>" +
+					$"\nCarbon natively supports the latest C# version, with many improvements and optimizations. All plugins get compiled to the latest C# version.\n\n" +
+					$"<b>HIGH PERFORMANCE</b>" +
+					$"\nThe goal is to make the servers as performant as possible, learn from the community about new ways to do things, and high profiling for tracking any hiccups.\n\n" +
+					$"<b>DYNAMIC HOOKS</b>" +
+					$"\nA crucial distinction that makes Carbon so much different from other frameworks is that although we support all Oxide hooks (appx. +600), they are not called unless a plugin subscribes to them.\n\n" +
+					$"<b>HARMONY 2.0</b>" +
+					$"\nCarbon runs on Harmony v2.0, which introduces higher performance Pre-&-Post-fixes and even faster transpiler calls, which 99% of running hooks use.", "");
+			}));
+			tab.Pages.Add(new Page("Modules", (cui, t, container, panel, ap) =>
+			{
+				tab.InfoTemplate(cui, t, container, panel, ap,
+					"Modules",
+					"Modules are built-in and out of the box ready-to-use systems that are useful for most servers." +
+					"\nThey're heavily inspired by public free plugins on the Rust modding market providing convenience and maintenance for your most important needs.", "");
+			}));
+			tab.Pages.Add(new Page("Gather Manager", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"Gather Manager Module",
+					"The module allows you to modify the processing modifiers of Quarries, Excavators, Pickup and Gather amounts, globally set or item-specific. This module comes with a variety of useful tools, including custom recycler speed.", "", FindModule("GatherManagerModule"));
+			}));
+			tab.Pages.Add(new Page("Stack Manager", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"Stack Manager Module",
+					"High performance will allow to set custom item stacks based on:\n" +
+					"\n• Item name" +
+					"\n• Item category" +
+					"\n• Blacklisted items (useful when using categories)", "", FindModule("StackManagerModule"));
+			}));
+			tab.Pages.Add(new Page("Vanish", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"Vanish Module",
+					"A very lightweight auth-level based system allowing you to become invisible, with various settings in the config file.", "", FindModule("VanishModule"));
+			}));
+			tab.Pages.Add(new Page("Moderation Tools", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"Moderation Tools Module",
+					"", "", FindModule("ModerationToolsModule"));
+
+			}));
+			tab.Pages.Add(new Page("Optimisations", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"Optimisations Module",
+					"", "", FindModule("OptimisationsModule"));
+
+			}));
+			tab.Pages.Add(new Page("RustEdit.Ext", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"RustEdit.Ext Module",
+					"An extension to allow further customisation in Rust maps.\n" +
+					"\n<b>Features</b>" +
+					"\n• Establishes IO connections made in the editor" +
+					"\n• Populates custom loot containers and ensures they respawn/refresh loot at the rates set in the associated loot profile" +
+					"\n• Creates spawn handlers for all loot containers placed in the editor without a loot profile so they respawn/refresh loot at default rates" +
+					"\n• Creates spawn handlers for all resource entities placed in the editor so manually placed resources will respawn" +
+					"\n• Creates spawn handlers for all junk piles placed in the editor so manually placed junk piles will respawn" +
+					"\n• Creates spawn handlers for NPC Spawners placed in the editor" +
+					"\n• Creates spawn handlers for vehicles placed in the editor" +
+					"\n• Populates custom vending machines using the vending profile associated with them in the editor" +
+					"\n• Overrides OceanPatrolPath generation with a custom path created in the editor" +
+					"\n• Creates and manages custom APC paths created in the editor" +
+					"\n• Fixes the spawn point prefab and ensures players will only spawn on them" +
+					"\n• Fixes the rotation of the excavator arm on map placed excavator monuments that have been rotated" +
+					"\n• Ensures desk keycard spawners actually respawn keycards" +
+					"\n• Disables damage and decay on all editor placed entities" +
+					"\n• Prevents deployable entities from killing themselves" +
+					"\n• Updates itself automatically", "", FindModule("RustEditModule"));
+			}));
+			tab.Pages.Add(new Page("Plugin Browser", (cui, t, container, panel, ap) =>
+			{
+				tab.InfoTemplate(cui, t, container, panel, ap,
+					"Plugin Browser",
+					"", "");
+			}));
+			tab.Pages.Add(new Page("Color Picker", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"Color Picker Module",
+					"", "", FindModule("ColorPickerModule"));
+
+			}));
+
+			tab.Pages.Add(new Page("SUPER TEST YAYAA", (cui, t, container, panel, ap) =>
+			{
+
+				Singleton.SetTab(ap.Player, tab);
+				tab.InfoTemplate(cui, t, container, panel, ap, "SUPER TEST YAYAA", "module explanation", "");
+			}));
+
+			tab.Pages.Add(new Page("Finalize", (cui, t, container, panel, ap) =>
+			{
+				Singleton.DataInstance.ShowedWizard = true;
+				Community.Runtime.CorePlugin.NextTick(() => Singleton.SetTab(ap.Player, 0));
+			}));
+
+			return tab;
+		}
+
+		internal void Draw(Tab tab, CUI cui, CuiElementContainer container, string panel, AdminPlayer ap)
+		{
+			var page = ap.GetStorage<int>(tab, "page", 0);
+			Pages[page].Draw?.Invoke(cui, tab, container, panel, ap);
+		}
+
+		internal void InfoTemplate(CUI cui, Tab tab, CuiElementContainer container, string panel, AdminPlayer ap, string title, string content, string hint)
+		{
+			cui.CreateImage(container, panel, null, "carbonws", "0 0 0 0.01", xMin: 0.75f, xMax: 0.95f, yMin: 0.875f, yMax: 0.95f);
+
+			var mainTitle = cui.CreatePanel(container, panel, null, "0 0 0 0.5", xMin: 0.05f, xMax: ((float)title.Length).Scale(0, 7, 0.075f, 0.18f), yMin: 0.875f, yMax: 0.95f);
+			cui.CreateText(container, mainTitle, null, "1 1 1 1", $"<b>{title.ToUpper()}</b>", 25, align: TextAnchor.MiddleCenter, fadeIn: 2f);
+
+			// cui.CreatePanel(container, panel, null, "0 0 0 0.5", xMin: 0.05f, xMax: 0.875f, yMin: 0.1f, yMax: 0.86f);
+			cui.CreateText(container, panel, null, "1 1 1 0.5", content, 12, xMin: 0.06f, xMax: 0.85f, yMax: 0.84f, align: TextAnchor.UpperLeft);
+
+			DisplayArrows(cui, tab, container, panel, ap);
+		}
+		internal void ModuleInfoTemplate(CUI cui, Tab tab, CuiElementContainer container, string panel, AdminPlayer player, string title, string content, string hint, BaseModule module)
+		{
+			var consoleCommandCount = Community.Runtime.AllConsoleCommands.Count(x => x.Plugin == module);
+			var chatCommandCount = Community.Runtime.AllChatCommands.Count(x => x.Plugin == module);
+
+			content = $"The <b>{module.Name}</b> uses <b>{module.Hooks.Count:n0}</b> total {module.Hooks.Count.Plural("hook", "hooks")}, with currently <b>{module.IgnoredHooks.Count:n0}</b> ignored {module.IgnoredHooks.Count.Plural("hook", "hooks")}, " +
+				$"and so far has used {module.TotalHookTime:0.000}ms of server time during those hook calls. " +
+				$"This module is {(module.EnabledByDefault ? "enabled" : "disabled")} by default. " +
+				$"This module has <b>{consoleCommandCount:n0}</b> console and <b>{chatCommandCount:n0}</b> chat {(consoleCommandCount == 1 && chatCommandCount == 1 ? "command" : "commands")}." +
+				$"\n\n{content}";
+
+			InfoTemplate(cui, tab, container, panel, player, title, content, hint);
+
+			cui.CreateProtectedButton(container, panel, null, "0.3 0.3 0.3 0.5", "1 1 1 1", "OPEN FOLDER".SpacedString(1), 10,
+				xMin: 0.9f, yMin: 0.075f, yMax: 0.125f, OyMin: 60, OyMax: 60, OxMin: 8, OxMax: 8, command: $"wizard.openmodulefolder {module.Type.Name}");
+
+			cui.CreateProtectedButton(container, panel, null, "0.3 0.3 0.3 0.5", "1 1 1 1", "EDIT CONFIG".SpacedString(1), 10,
+				xMin: 0.9f, yMin: 0.075f, yMax: 0.125f, OyMin: 30, OyMax: 30, OxMin: 8, OxMax: 8, command: $"wizard.editmoduleconfig {module.Type.Name}");
+
+			if (!module.IsCoreModule)
+			{
+				cui.CreateProtectedButton(container, panel, null, module.GetEnabled() ? "0.4 0.9 0.3 0.5" : "0.1 0.1 0.1 0.5", "1 1 1 1", module.GetEnabled() ? "ENABLED".SpacedString(1) : "DISABLED".SpacedString(1), 10,
+					xMin: 0.9f, yMin: 0.075f, yMax: 0.125f, OxMin: 8, OxMax: 8, command: $"wizard.togglemodule {module.Type.Name}");
+			}
+		}
+		internal void DisplayArrows(CUI cui, Tab tab, CuiElementContainer container, string panel, AdminPlayer ap, bool centerNext = false)
+		{
+			var page = ap.GetStorage<int>(tab, "page", 0);
+
+			if (page < Pages.Count - 1)
+			{
+				var nextPage = Pages[page + 1];
+
+				if (centerNext)
+				{
+					cui.CreateProtectedButton(container, panel, null, "#7d8f32", "1 1 1 1", $"{nextPage.Title} ▶", 9,
+						xMin: 0.9f, yMin: 0f, yMax: 0.055f, OxMin: -395, OxMax: -395, OyMin: 145f, OyMax: 145f, command: $"wizard.changepage 1");
+				}
+				else
+				{
+					cui.CreateProtectedButton(container, panel, null, "#7d8f32", "1 1 1 1", $"{nextPage.Title} ▶", 9,
+						xMin: 0.9f, yMin: 0f, yMax: 0.055f, OxMin: 8, OxMax: 8, command: $"wizard.changepage 1");
+				}
+			}
+
+			if (page >= 1)
+			{
+				var backPage = Pages[page - 1];
+				cui.CreateProtectedButton(container, panel, null, "#7d8f32", "1 1 1 1", $"◀ {backPage.Title}", 9,
+					xMin: 0, xMax: 0.1f, yMin: 0f, yMax: 0.055f, OxMin: -9, OxMax: -9, command: $"wizard.changepage -1");
+			}
+		}
+
+		public class Page
+		{
+			public string Title;
+			public Action<CUI, Tab, CuiElementContainer, string, AdminPlayer> Draw;
+
+			public Page() { }
+			public Page(string title, Action<CUI, Tab, CuiElementContainer, string, AdminPlayer> draw)
+			{
+				Title = title;
+				Draw = draw;
+			}
+		}
+	}
+
+	#region Setup Wizard - Custom Commands
+
+	[UiCommand("wizard.changepage")]
+	private void ChangePage(Arg arg)
+	{
+		var ap = GetOrCreateAdminPlayer(arg.Player());
+		var tab = GetTab(ap.Player);
+
+		var currentPage = ap.GetStorage<int>(tab, "page", 0);
+		currentPage += arg.Args[0].ToInt();
+		ap.SetStorage(tab, "page", currentPage);
+
+		Community.Runtime.CorePlugin.NextFrame(() => Draw(ap.Player));
+	}
+
+	[UiCommand("wizard.togglemodule")]
+	private void ToggleModule(Arg arg)
+	{
+		var ap = GetOrCreateAdminPlayer(arg.Player());
+		var tab = GetTab(ap.Player) as SetupWizard;
+
+		var module = FindModule(arg.Args[0]);
+		var enabled = module.GetEnabled();
+		module.SetEnabled(!enabled);
+
+		Draw(ap.Player);
+	}
+
+	[UiCommand("wizard.editmoduleconfig")]
+	private void EditModuleConfig(Arg arg)
+	{
+		var ap = GetOrCreateAdminPlayer(arg.Player());
+		var tab = GetTab(ap.Player) as SetupWizard;
+
+		var module = FindModule(arg.Args[0]);
+		var moduleConfigFile = Path.Combine(Core.Defines.GetModulesFolder(), module.Name, "config.json");
+		ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
+			(ap2, jobject) =>
+			{
+				OsEx.File.Create(moduleConfigFile, jobject.ToString(Newtonsoft.Json.Formatting.Indented));
+				module.Load();
+				SetTab(ap2.Player, SetupWizard.Make());
+				Draw(ap.Player);
+			}, null);
+
+		Draw(ap.Player);
+	}
+
+	[UiCommand("wizard.openmodulefolder")]
+	private void OpenModuleFolder(Arg arg)
+	{
+		var ap = GetOrCreateAdminPlayer(arg.Player());
+		var tab = GetTab(ap.Player) as SetupWizard;
+
+		var module = FindModule(arg.Args[0]);
+		Application.OpenURL(Path.Combine(Carbon.Core.Defines.GetModulesFolder(), module.Name));
+
+		Draw(ap.Player);
+	}
+
+	#endregion
+
+	#endregion
 }
 
 public class AdminConfig
@@ -4701,7 +5161,9 @@ public class AdminConfig
 }
 public class AdminData
 {
-	public DataColors Colors = new DataColors();
+	[JsonProperty("ShowedWizard v1")]
+	public bool ShowedWizard = true;
+	public DataColors Colors = new();
 
 	public class DataColors
 	{
