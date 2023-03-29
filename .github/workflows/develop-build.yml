@@ -25,10 +25,11 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      date:  ${{ steps.step1.outputs.date }}
-      clock: ${{ steps.step1.outputs.clock }}
-      tag:   ${{ steps.step1.outputs.tag }}
-      ref:   ${{ steps.step1.outputs.ref }}
+      date:    ${{ steps.step1.outputs.date }}
+      clock:   ${{ steps.step1.outputs.clock }}
+      tag:     ${{ steps.step1.outputs.tag }}
+      ref:     ${{ steps.step1.outputs.ref }}
+      version: ${{ steps.step1.outputs.version }}
 
     steps:
       #- name: 🪵 Log environment
@@ -44,6 +45,7 @@ jobs:
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "version=$(date +'0.%Y.%q%j.%M%S')" >> $GITHUB_OUTPUT
 
   # BUILD LINUX ----------------------------------------------------------------
   build-linux:
@@ -65,7 +67,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: 🪚 Setup the Carbon build environment
+    - name: 🔨 Setup the Carbon build environment
       shell: bash
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
@@ -73,6 +75,7 @@ jobs:
     - name: 🐧 Built Carbon on Linux
       shell: bash
       run: |
+        export VERSION=${{ needs.bootstrap.outputs.version }}
         ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix
 
     - name: ⬆️ Upload the artifacts
@@ -99,14 +102,15 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: 🪚 Setup the Carbon build environment
+    - name: 🔨 Setup the Carbon build environment
       shell: cmd
       run: |
         %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
 
-    - name: 🪟 Built Carbon on Windows
+    - name: 🔨 Built Carbon on Windows
       shell: cmd
       run: |
+        set VERSION=${{ needs.bootstrap.outputs.version }}
         %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
 
     - name: ⬆️ Upload the artifacts
@@ -120,7 +124,7 @@ jobs:
   # RELEASE --------------------------------------------------------------------
   release:
     name: 💾 Release
-    needs: [ "build-linux", "build-windows" ]
+    needs: [ "bootstrap", "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     # only release if triggered by the scheduler
@@ -134,6 +138,10 @@ jobs:
         tag_name: develop_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 💤 Sleep for 30 seconds
+      run: sleep 30s
+      shell: bash
 
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
@@ -150,9 +158,9 @@ jobs:
         draft: false
         prerelease: true
         tag_name: develop_build
-        name: 'Carbon Build (develop)'
+        name: 'Develop Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
-          This is a development build of Carbon based on the `develop` branch.
+          This is a daily development build of Carbon based on the `develop` branch.
           
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.
@@ -174,7 +182,7 @@ jobs:
   # RELEASE --------------------------------------------------------------------
   release-on-commit:
     name: 💾 Commit Release
-    needs: [ "build-linux", "build-windows" ]
+    needs: [ "bootstrap", "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
 
     steps:
@@ -185,6 +193,10 @@ jobs:
         tag_name: commit_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 💤 Sleep for 30 seconds
+      run: sleep 30s
+      shell: bash
 
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
@@ -201,7 +213,7 @@ jobs:
         draft: false
         prerelease: true
         tag_name: commit_build
-        name: 'Carbon Commit Build (develop)'
+        name: 'Commit Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
           This is a development build of Carbon based on the latest commit pushed to the repository.
           Commit info bellow.

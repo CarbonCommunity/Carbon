@@ -2,8 +2,16 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup>
 		<OutputPath>bin\$(Configuration)\</OutputPath>
+		<!--
+			Default version schema: 2023.3.28.1542
 
+			We expect the github released files to force the following version schema:
+			0.(year).(quarter)(doty).(minute)(second)
+			0.(20xx).(1..4)(001..366).(00..59)(00..59)
+		-->
+		<Version>$([System.DateTime]::UtcNow.ToString('yyyy.MM.dd.HHmm'))</Version>
 	</PropertyGroup>
+
 	<Choose>
 		<When Condition="$(Configuration.Contains('Release'))">
 			<PropertyGroup>
@@ -12,9 +20,6 @@
 				<DefineConstants>$(DefineConstants)</DefineConstants>
 				<Optimize>true</Optimize>
 				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-
-				<!-- Release version schema: 0.2023.3.2815 -->
-				<Version>0.$([System.DateTime]::UtcNow.ToString('yyyy.MM.ddHH'))</Version>
 
 				<!-- We want to override corelib to have the new lang features -->
 				<WarningsNotAsErrors>CS1685</WarningsNotAsErrors>
@@ -29,9 +34,6 @@
 				<DefineConstants>DEBUG;UNITY_ASSERTIONS;$(DefineConstants)</DefineConstants>
 				<Optimize>false</Optimize>
 				<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-
-				<!-- Debug version schema: 2023.3.28.1542 -->
-				<Version>$([System.DateTime]::UtcNow.ToString('yyyy.MM.dd.HHmm'))</Version>
 
 				<!-- We want to override corelib to have the new lang features -->
 				<NoWarn>CS1685</NoWarn>
