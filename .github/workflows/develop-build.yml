@@ -124,7 +124,7 @@ jobs:
   # RELEASE --------------------------------------------------------------------
   release:
     name: 💾 Release
-    needs: [ "build-linux", "build-windows" ]
+    needs: [ "bootstrap", "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     # only release if triggered by the scheduler
@@ -138,6 +138,10 @@ jobs:
         tag_name: develop_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 💤 Sleep for 30 seconds
+      run: sleep 30s
+      shell: bash
 
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
@@ -154,9 +158,9 @@ jobs:
         draft: false
         prerelease: true
         tag_name: develop_build
-        name: 'Carbon Build (develop)'
+        name: 'Development Carbon Build (v${{ needs.bootstrap.outputs.version }})'
         body: |
-          This is a development build of Carbon based on the `develop` branch.
+          This is a daily development build of Carbon based on the `develop` branch.
           
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.
@@ -178,7 +182,7 @@ jobs:
   # RELEASE --------------------------------------------------------------------
   release-on-commit:
     name: 💾 Commit Release
-    needs: [ "build-linux", "build-windows" ]
+    needs: [ "bootstrap", "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
 
     steps:
@@ -189,6 +193,10 @@ jobs:
         tag_name: commit_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 💤 Sleep for 30 seconds
+      run: sleep 30s
+      shell: bash
 
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
@@ -205,7 +213,7 @@ jobs:
         draft: false
         prerelease: true
         tag_name: commit_build
-        name: 'Carbon Commit Build (develop)'
+        name: 'Latest Commit Carbon Build (v${{ needs.bootstrap.outputs.version }})'
         body: |
           This is a development build of Carbon based on the latest commit pushed to the repository.
           Commit info bellow.
