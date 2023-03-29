@@ -4435,6 +4435,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
 				var path = Path.Combine(Carbon.Core.Defines.GetConfigsFolder(), plugin.Config.Filename);
 				Singleton.SetTab(ap.Player, ConfigEditor.Make(OsEx.File.ReadText(path),
+					(ap) =>
+					{
+						Community.Runtime.CorePlugin.NextTick(() => SetTab(ap.Player, "plugins", false));
+					},
 					(ap, jobject) =>
 					{
 						OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
@@ -4737,20 +4741,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public class ConfigEditor : Tab
 	{
 		internal JObject Entry { get; set; }
-		internal Action<AdminPlayer, JObject> OnSave, OnSaveAndReload;
+		internal Action<AdminPlayer, JObject> OnSave, OnSaveAndReload, OnCancel;
 		internal const string Spacing = " ";
 
 		public ConfigEditor(string id, string name, RustPlugin plugin, Action<AdminPlayer, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
 		}
 
-		public static ConfigEditor Make(string json, Action<AdminPlayer, JObject> onSave, Action<AdminPlayer, JObject> onSaveAndReload)
+		public static ConfigEditor Make(string json, Action<AdminPlayer> onCancel, Action<AdminPlayer, JObject> onSave, Action<AdminPlayer, JObject> onSaveAndReload)
 		{
 			var tab = new ConfigEditor("configeditor", "Config Editor", Community.Runtime.CorePlugin)
 			{
 				Entry = JObject.Parse(json),
 				OnSave = onSave,
-				OnSaveAndReload = onSaveAndReload
+				OnSaveAndReload = onSaveAndReload,
+				OnCancel = (ap, jobject) => onCancel?.Invoke(ap)
 			};
 
 			tab._draw();
@@ -4763,6 +4768,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			AddColumn(1);
 
 			var list = Pool.GetList<OptionButton>();
+			if (OnCancel != null) list.Add(new OptionButton("Cancel", ap => { OnCancel?.Invoke(ap, Entry); }));
 			if (OnSave != null) list.Add(new OptionButton("Save", ap => { OnSave?.Invoke(ap, Entry); }));
 			if (OnSaveAndReload != null) list.Add(new OptionButton("Save & Reload", ap => { OnSaveAndReload?.Invoke(ap, Entry); }));
 
@@ -5185,11 +5191,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var module = FindModule(arg.Args[0]);
 		var moduleConfigFile = Path.Combine(Core.Defines.GetModulesFolder(), module.Name, "config.json");
 		ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
-			(ap2, jobject) =>
+			(ap) =>
+			{
+				SetTab(ap.Player, SetupWizard.Make());
+				Draw(ap.Player);
+			},
+			(ap, jobject) =>
 			{
 				OsEx.File.Create(moduleConfigFile, jobject.ToString(Newtonsoft.Json.Formatting.Indented));
 				module.Load();
-				SetTab(ap2.Player, SetupWizard.Make());
+				SetTab(ap.Player, SetupWizard.Make());
 				Draw(ap.Player);
 			}, null);
 
