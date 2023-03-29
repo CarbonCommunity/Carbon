@@ -4415,8 +4415,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		switch (args.Args[0])
 		{
 			case "0":
-			case "1":
 				vendor.Download(args.Args[1], () => Singleton.Draw(args.Player()));
+				break;
+			case "1":
+				tab.CreateDialog($"Are you sure you want to update '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
+				{
+					vendor.Download(args.Args[1], () => Singleton.Draw(args.Player()));
+				}, null);
 				break;
 
 			case "2":
