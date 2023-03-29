@@ -162,7 +162,7 @@ jobs:
         draft: false
         prerelease: false
         tag_name: production_build
-        name: 'Production Carbon Build (v${{ needs.bootstrap.outputs.version }})'
+        name: 'Production Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
           This is a release build of Carbon based on the `production` branch.
           This build is targeted at the general public.
