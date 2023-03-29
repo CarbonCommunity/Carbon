@@ -158,7 +158,7 @@ jobs:
         draft: false
         prerelease: true
         tag_name: develop_build
-        name: 'Development Carbon Build (v${{ needs.bootstrap.outputs.version }})'
+        name: 'Develop Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
           This is a daily development build of Carbon based on the `develop` branch.
           
@@ -213,7 +213,7 @@ jobs:
         draft: false
         prerelease: true
         tag_name: commit_build
-        name: 'Latest Commit Carbon Build (v${{ needs.bootstrap.outputs.version }})'
+        name: 'Commit Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
           This is a development build of Carbon based on the latest commit pushed to the repository.
           Commit info bellow.
