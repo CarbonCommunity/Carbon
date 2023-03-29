@@ -3,8 +3,8 @@
 	<!-- 
 		Sets the version based on the env context
 	-->
-	<PropertyGroup Condition="'$(ForceVersion)' != ''">
-		<Version>$(ForceVersion)</Version>
+	<PropertyGroup Condition="'$(UserVersion)' != ''">
+		<Version>$(UserVersion)</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
