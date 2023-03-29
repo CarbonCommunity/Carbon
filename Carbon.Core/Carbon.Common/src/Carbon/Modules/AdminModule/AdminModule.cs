@@ -3519,9 +3519,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					cui.CreateImage(container, button, null, icon, elementColor, xMin: 0.1f, xMax: 0.3f, yMin: 0.2f, yMax: 0.8f);
 				}
 
+
 				if (selectedPlugin.IsInstalled())
 				{
-					cui.CreateProtectedButton(container, mainPanel, null, "0.1 0.1 0.1 0.8", "1 1 1 0.7", "EDIT CONFIG", 11, xMin: 0.48f, xMax: 0.564f, yMin: 0.175f, yMax: 0.235f, OyMin: 35, OyMax: 35, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 3 {selectedPlugin.Id}");
+					var path = Path.Combine(Carbon.Core.Defines.GetConfigsFolder(), selectedPlugin.ExistentPlugin.Config.Filename);
+
+					if (OsEx.File.Exists(path)) cui.CreateProtectedButton(container, mainPanel, null, "0.1 0.1 0.1 0.8", "1 1 1 0.7", "EDIT CONFIG", 11, xMin: 0.48f, xMax: 0.564f, yMin: 0.175f, yMax: 0.235f, OyMin: 35, OyMax: 35, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 3 {selectedPlugin.Id}");
 				}
 			}
 
@@ -4435,7 +4438,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
 				var path = Path.Combine(Carbon.Core.Defines.GetConfigsFolder(), plugin.Config.Filename);
 				Singleton.SetTab(ap.Player, ConfigEditor.Make(OsEx.File.ReadText(path),
-					(ap) =>
+					(ap, jobject) =>
 					{
 						Community.Runtime.CorePlugin.NextTick(() => SetTab(ap.Player, "plugins", false));
 					},
@@ -4748,14 +4751,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 		}
 
-		public static ConfigEditor Make(string json, Action<AdminPlayer> onCancel, Action<AdminPlayer, JObject> onSave, Action<AdminPlayer, JObject> onSaveAndReload)
+		public static ConfigEditor Make(string json, Action<AdminPlayer, JObject> onCancel, Action<AdminPlayer, JObject> onSave, Action<AdminPlayer, JObject> onSaveAndReload)
 		{
 			var tab = new ConfigEditor("configeditor", "Config Editor", Community.Runtime.CorePlugin)
 			{
 				Entry = JObject.Parse(json),
 				OnSave = onSave,
 				OnSaveAndReload = onSaveAndReload,
-				OnCancel = (ap, jobject) => onCancel?.Invoke(ap)
+				OnCancel = onCancel
 			};
 
 			tab._draw();
@@ -4825,7 +4828,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							var valueSplit = value.Split(' ');
 							if (value.StartsWith("#") || (valueSplit.Length >= 3 && valueSplit.All(x => float.TryParse(x, out _))))
 							{
-								AddColor(column, name, () => value.StartsWith("#") ? CUI.Color(value) : usableToken.ToObject<string>(), (ap, hex, rust) => { usableToken.Replace(usableToken = value = value.StartsWith("#") ? hex : rust); }, tooltip: $"The color value of the '{name.Trim()}' property.");
+								AddColor(column, name, () => value.StartsWith("#") ? CUI.Color(value) : value, (ap, hex, rust) =>
+								{
+									value = value.StartsWith("#") ? hex : rust;
+									usableToken.Replace(usableToken = value);
+									Community.Runtime.CorePlugin.NextFrame(() => Singleton.SetTab(ap.Player, Make(Entry.ToString(), OnCancel, OnSave, OnSaveAndReload), false));
+								}, tooltip: $"The color value of the '{name.Trim()}' property.");
 							}
 							else AddInput(column, name, ap => usableToken.ToObject<string>(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ")); });
 							Array.Clear(valueSplit, 0, valueSplit.Length);
@@ -4833,17 +4841,17 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							break;
 
 						case JTokenType.Integer:
-							AddInput(column, name, ap => usableToken.ToObject<int>().ToString("n0"), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToInt()); });
+							AddInput(column, name, ap => usableToken.ToObject<int>().ToString("n0"), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToInt()); }, tooltip: $"The integer value of the '{name.Trim()}' property.");
 							break;
 
 						case JTokenType.Float:
-							AddInput(column, name, ap => usableToken.ToObject<float>().ToString(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToFloat()); });
+							AddInput(column, name, ap => usableToken.ToObject<float>().ToString(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToFloat()); }, tooltip: $"The float value of the '{name.Trim()}' property.");
 							break;
 
 						case JTokenType.Boolean:
 							AddToggle(column, name,
 								ap => { usableToken.Replace(usableToken = !usableToken.ToObject<bool>()); },
-								ap => usableToken.ToObject<bool>());
+								ap => usableToken.ToObject<bool>(), tooltip: $"The boolean value of the '{name.Trim()}' property.");
 							break;
 
 						case JTokenType.Array:
@@ -5191,7 +5199,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var module = FindModule(arg.Args[0]);
 		var moduleConfigFile = Path.Combine(Core.Defines.GetModulesFolder(), module.Name, "config.json");
 		ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
-			(ap) =>
+			(ap, jobject) =>
 			{
 				SetTab(ap.Player, SetupWizard.Make());
 				Draw(ap.Player);
