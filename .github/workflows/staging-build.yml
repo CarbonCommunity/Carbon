@@ -21,10 +21,11 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      date:  ${{ steps.step1.outputs.date }}
-      clock: ${{ steps.step1.outputs.clock }}
-      tag:   ${{ steps.step1.outputs.tag }}
-      ref:   ${{ steps.step1.outputs.ref }}
+      date:    ${{ steps.step1.outputs.date }}
+      clock:   ${{ steps.step1.outputs.clock }}
+      tag:     ${{ steps.step1.outputs.tag }}
+      ref:     ${{ steps.step1.outputs.ref }}
+      version: ${{ steps.step1.outputs.version }}
 
     steps:
       #- name: 🪵 Log environment
@@ -42,6 +43,7 @@ jobs:
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "version=$(date +'0.%Y.%q%j.%M%S')" >> $GITHUB_OUTPUT
 
   # BUILD LINUX ----------------------------------------------------------------
   build-linux:
@@ -73,6 +75,7 @@ jobs:
     - name: 🐧 Built Carbon on Linux
       shell: bash
       run: |
+        export VERSION=${{ needs.bootstrap.outputs.version }}
         ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix
         
     - name: ⬆️ Upload the artifacts
@@ -108,6 +111,7 @@ jobs:
     - name: 🪟 Built Carbon on Windows
       shell: cmd
       run: |
+        set VERSION=${{ needs.bootstrap.outputs.version }}
         %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
 
     - name: ⬆️ Upload the artifacts
