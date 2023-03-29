@@ -67,7 +67,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: 🪚 Setup the Carbon build environment
+    - name: 🔨 Setup the Carbon build environment
       shell: bash
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
@@ -102,12 +102,12 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: 🪚 Setup the Carbon build environment
+    - name: 🔨 Setup the Carbon build environment
       shell: cmd
       run: |
         %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
 
-    - name: 🪟 Built Carbon on Windows
+    - name: 🔨 Built Carbon on Windows
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}

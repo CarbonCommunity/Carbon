@@ -70,7 +70,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: 🪚 Setup the Carbon build environment
+    - name: 🔨 Setup the Carbon build environment
       shell: bash
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
@@ -107,12 +107,12 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: 🪚 Setup the Carbon build environment
+    - name: 🔨 Setup the Carbon build environment
       shell: cmd
       run: |
         %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
 
-    - name: 🪟 Built Carbon on Windows
+    - name: 🔨 Built Carbon on Windows
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
@@ -129,7 +129,7 @@ jobs:
   # RELEASE --------------------------------------------------------------------
   release:
     name: 💾 Release
-    needs: [ "build-linux", "build-windows" ]
+    needs: [ "bootstrap", "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
 
     if: ${{ (github.event_name == 'push') || (github.event_name == 'workflow_dispatch') || (github.event_name == 'schedule' && needs.build-linux.outputs.wipe == 'true') }}
@@ -142,6 +142,10 @@ jobs:
         tag_name: production_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 💤 Sleep for 30 seconds
+      run: sleep 30s
+      shell: bash
 
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
@@ -158,7 +162,7 @@ jobs:
         draft: false
         prerelease: false
         tag_name: production_build
-        name: 'Carbon Build (production)'
+        name: 'Production Carbon Build (v${{ needs.bootstrap.outputs.version }})'
         body: |
           This is a release build of Carbon based on the `production` branch.
           This build is targeted at the general public.
