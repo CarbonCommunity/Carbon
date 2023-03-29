@@ -2879,7 +2879,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var flagValue = (BaseEntity.Flags)Enum.Parse(typeof(BaseEntity.Flags), flag);
 				var hasFlag = entity.HasFlag(flagValue);
 
-				currentButtons.Add(new Tab.OptionButton(flag, ap => { entity.SetFlag(flagValue, !hasFlag); DrawEntitySettings(tab, entity, 0); DrawEntityFlags(tab, entity, column); }, ap => hasFlag ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+				currentButtons.Add(new Tab.OptionButton(flag, ap =>
+				{
+					entity.SetFlag(flagValue, !hasFlag);
+					DrawEntitySettings(tab, entity, 0, ap);
+					DrawEntityFlags(tab, entity, column);
+				}, ap => hasFlag ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 				counter++;
 
 				if (counter >= 5)
