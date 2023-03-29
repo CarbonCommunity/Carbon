@@ -29,17 +29,17 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 	{
 		base.OnEnabled(initialized);
 
-		RegisterPermission(ConfigInstance.Cmod.Cmod1Permission);
-		RegisterPermission(ConfigInstance.Cmod.Cmod2Permission);
+		RegisterPermission(ConfigInstance.Moderation.Cmod1Permission);
+		RegisterPermission(ConfigInstance.Moderation.Cmod2Permission);
 
-		var cmod1Permissions = new string[] { ConfigInstance.Cmod.Cmod1Permission };
-		var cmod2Permissions = new string[] { ConfigInstance.Cmod.Cmod2Permission };
-		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.Cmod.CmodCommand, this, nameof(ToggleCmod), permissions: cmod1Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.mute", this, nameof(Mute), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.unmute", this, nameof(Unmute), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.mutelist", this, nameof(MuteList), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.kick", this, nameof(Kick), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("c.ban", this, nameof(Ban), permissions: cmod2Permissions, cooldown: ConfigInstance.Cmod.CmodCommandCooldown, silent: true);
+		var cmod1Permissions = new string[] { ConfigInstance.Moderation.Cmod1Permission };
+		var cmod2Permissions = new string[] { ConfigInstance.Moderation.Cmod2Permission };
+		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.Moderation.CmodCommand, this, nameof(ToggleCadmin), permissions: cmod1Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.mute", this, nameof(Mute), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.unmute", this, nameof(Unmute), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.mutelist", this, nameof(MuteList), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.kick", this, nameof(Kick), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
+		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.ban", this, nameof(Ban), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
 	}
 
 	private object IDisallowSkinnedItemsFromBeingCraftable()
@@ -50,7 +50,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 	}
 	private object INoteAdminHack(BasePlayer player)
 	{
-		if(HasPermission(player, ConfigInstance.Cmod.Cmod1Permission))
+		if(HasPermission(player, ConfigInstance.Moderation.Cmod1Permission))
 		{
 			return false;
 		}
@@ -178,11 +178,11 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		return name == "SERVER" && message.Contains("gave");
 	}
 
-	private void ToggleCmod(BasePlayer player, string cmd, string[] args)
+	private void ToggleCadmin(BasePlayer player, string cmd, string[] args)
 	{
 		var value = player.HasPlayerFlag(BasePlayer.PlayerFlags.IsDeveloper);
 		player.SetPlayerFlag(BasePlayer.PlayerFlags.IsDeveloper, !value);
-		player.ChatMessage($"You've {(!value ? "enabled" : "disabled")} <color=orange>cmod</color> mode.");
+		player.ChatMessage($"You've {(!value ? "enabled" : "disabled")} <color=orange>cadmin</color> mode.");
 	}
 }
 
@@ -197,20 +197,20 @@ public class ModerationToolsConfig
 	[JsonProperty("Show server event toasts")]
 	public bool ShowServerEventToasts = true;
 
-	public CmodSettings Cmod = new();
+	public ModerationSettings Moderation = new();
 
-	public class CmodSettings
+	public class ModerationSettings
 	{
-		[JsonProperty("/cmod command")]
-		public string CmodCommand = "cmod";
+		[JsonProperty("/cadmin command")]
+		public string CmodCommand = "cadmin";
 
-		[JsonProperty("/cmod command cooldown (ms)")]
+		[JsonProperty("/cadmin command cooldown (ms)")]
 		public int CmodCommandCooldown = 5000;
 
-		[JsonProperty("/cmod1 permission (developer)")]
-		public string Cmod1Permission = "carbon.cmod1";
+		[JsonProperty("/cadmin permission (developer)")]
+		public string Cmod1Permission = "carbon.cadmin";
 
-		[JsonProperty("/cmod2 permission (mute, kick, ban)")]
-		public string Cmod2Permission = "carbon.cmod2";
+		[JsonProperty("/cmod permission (mute, kick, ban)")]
+		public string Cmod2Permission = "carbon.cmod";
 	}
 }

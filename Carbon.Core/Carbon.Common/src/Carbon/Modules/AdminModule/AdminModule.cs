@@ -5234,7 +5234,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 public class AdminConfig
 {
-	public string OpenCommand = "cadmin";
+	[JsonProperty("OpenCommand v1")]
+	public string OpenCommand = "cpanel";
 	public int MinimumAuthLevel = 2;
 	public bool DisableEntitiesTab = false;
 	public bool DisablePluginsTab = true;
