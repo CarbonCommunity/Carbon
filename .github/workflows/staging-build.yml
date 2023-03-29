@@ -156,7 +156,7 @@ jobs:
         draft: false
         prerelease: true
         tag_name: staging_build
-        name: 'Staging Carbon Build (v${{ needs.bootstrap.outputs.version }})'
+        name: 'Staging Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
           This is a development build of Carbon based on the `staging` branch.
           
