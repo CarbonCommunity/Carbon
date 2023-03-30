@@ -24,7 +24,7 @@ public interface IAnalyticsManager
 	public string SessionID { get; }
 
 
-	public void StartSession();
+	public void SessionStart();
 	public void LogEvent(string eventName);
-	public void LogEvent(string eventName, IDictionary<string, object> parameters);
+	public void LogEvent(string eventName, IDictionary<string, object> segments = null, IDictionary<string, object> metrics = null);
 }

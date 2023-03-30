@@ -8,24 +8,26 @@ concurrency: merge-process-exec
 on:
   workflow_dispatch:
     inputs:
+
       source:
         description: 'From branch'
         required: true
         default: 'develop'
         type: choice
         options:
-        - develop
-        - staging
-        - production
+          - develop
+          - staging
+          - production
+
       target:
         description: 'Target branch'
         required: true
         default: 'staging'
         type: choice
         options:
-        - develop
-        - staging
-        - production
+          - develop
+          - staging
+          - production
 
 jobs:
   merge:
@@ -36,7 +38,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
 
-    - name: ⤵️ Merge staging with production
+    - name: ⤵️ Merge ${{ inputs.source }} into ${{ inputs.target }}
       uses: devmasx/merge-branch@master
       with:
         type: now
@@ -44,4 +46,4 @@ jobs:
         target_branch: ${{ inputs.target }}
         github_token: ${{ secrets.PAT_PUBLIC_REPO }}
         message: |
-          Merged from ${{ inputs.source }} -> ${{ inputs.target }}
+          Merge ${{ inputs.source }} into ${{ inputs.target }}

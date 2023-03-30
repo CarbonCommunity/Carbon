@@ -1,49 +1,73 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace Oxide.Ext.Discord.Entities.Activities
 {
-	// Token: 0x02000120 RID: 288
-	[Flags]
-	public enum ActivityFlags
-	{
-		// Token: 0x0400062F RID: 1583
-		[System.ComponentModel.Description("NONE")]
-		None = 0,
-		// Token: 0x04000630 RID: 1584
-		[System.ComponentModel.Description("INSTANCE")]
-		Instance = 1,
-		// Token: 0x04000631 RID: 1585
-		[System.ComponentModel.Description("JOIN")]
-		Join = 2,
-		// Token: 0x04000632 RID: 1586
-		[System.ComponentModel.Description("SPECTATE")]
-		Spectate = 4,
-		// Token: 0x04000633 RID: 1587
-		[System.ComponentModel.Description("JOIN_REQUEST")]
-		JoinRequest = 8,
-		// Token: 0x04000634 RID: 1588
-		[System.ComponentModel.Description("SYNC")]
-		Sync = 16,
-		// Token: 0x04000635 RID: 1589
-		[System.ComponentModel.Description("PLAY")]
-		Play = 32,
-		// Token: 0x04000636 RID: 1590
-		[System.ComponentModel.Description("PARTY_PRIVACY_FRIENDS")]
-		PartyPrivacyFriends = 64,
-		// Token: 0x04000637 RID: 1591
-		[System.ComponentModel.Description("PARTY_PRIVACY_VOICE_CHANNEL")]
-		PartyPrivacyVoiceChannel = 128,
-		// Token: 0x04000638 RID: 1592
-		[System.ComponentModel.Description("EMBEDDED")]
-		Embedded = 256
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/topics/gateway#activity-object-activity-flags">Activity Flags</a>
+    /// </summary>
+    [Flags]
+    public enum ActivityFlags
+    {
+        /// <summary>
+        /// No Actions can be done to this activity
+        /// </summary>
+        [System.ComponentModel.Description("NONE")]
+        None = 0,
+        
+        /// <summary>
+        /// No Actions can be done to this activity
+        /// </summary>
+        [System.ComponentModel.Description("INSTANCE")]
+        Instance = 1 << 0,
+        
+        /// <summary>
+        /// Activity can be joined
+        /// </summary>
+        [System.ComponentModel.Description ("JOIN")]
+        Join = 1 << 1,
+        
+        /// <summary>
+        /// Activity can be spectated
+        /// </summary>
+        [System.ComponentModel.Description ("SPECTATE")]
+        Spectate = 1 << 2,
+        
+        /// <summary>
+        /// User may request to join activity
+        /// </summary>
+        [System.ComponentModel.Description ("JOIN_REQUEST")]
+        JoinRequest = 1 << 3,
+        
+        /// <summary>
+        /// User can listen along in spotify
+        /// </summary>
+        [System.ComponentModel.Description ("SYNC")]
+        Sync = 1 << 4,
+        
+        /// <summary>
+        /// User can play this song
+        /// </summary>
+        [System.ComponentModel.Description ("PLAY")]
+        Play = 1 << 5,
+
+        /// <summary>
+        /// User is playing an activity in a voice channel with friends
+        /// </summary>
+        [System.ComponentModel.Description ("PARTY_PRIVACY_FRIENDS")]
+        PartyPrivacyFriends = 1 << 6,
+        
+        /// <summary>
+        /// User is playing an activity in a voice channel
+        /// </summary>
+        [System.ComponentModel.Description ("PARTY_PRIVACY_VOICE_CHANNEL")]
+        PartyPrivacyVoiceChannel = 1 << 7,
+        
+        /// <summary>
+        /// User is playing embedded activity
+        /// </summary>
+        [System.ComponentModel.Description ("EMBEDDED")]
+        Embedded = 1 << 8,
+    }
 }

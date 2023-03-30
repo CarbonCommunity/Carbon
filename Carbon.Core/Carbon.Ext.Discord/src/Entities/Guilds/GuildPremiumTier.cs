@@ -1,30 +1,35 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace Oxide.Ext.Discord.Entities.Guilds
 {
-	// Token: 0x020000AD RID: 173
-	public enum GuildPremiumTier
-	{
-		// Token: 0x040003F0 RID: 1008
-		[System.ComponentModel.Description("NONE")]
-		None,
-		// Token: 0x040003F1 RID: 1009
-		[System.ComponentModel.Description("TIER_1")]
-		Tier1,
-		// Token: 0x040003F2 RID: 1010
-		[System.ComponentModel.Description("TIER_2")]
-		Tier2,
-		// Token: 0x040003F3 RID: 1011
-		[System.ComponentModel.Description("TIER_3")]
-		Tier3
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/resources/guild#guild-object-verification-level">Verification Level</a>
+    /// </summary>
+    public enum GuildPremiumTier
+    {
+        /// <summary>
+        /// Guild does not have any premium tier
+        /// </summary>
+        [System.ComponentModel.Description ("NONE")]
+        None = 0,
+        
+        /// <summary>
+        /// Guild is premium tier 1
+        /// </summary>
+        [System.ComponentModel.Description ("TIER_1")]
+        Tier1 = 1,
+        
+        /// <summary>
+        /// Guild is premium tier 2
+        /// </summary>
+        [System.ComponentModel.Description ("TIER_2")]
+        Tier2 = 2,
+        
+        /// <summary>
+        /// Guild is premium tier 3
+        /// </summary>
+        [System.ComponentModel.Description ("TIER_3")]
+        Tier3 = 3
+    }
 }

@@ -441,7 +441,7 @@ public static class Loader
 		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == hookable);
 		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == hookable);
 	}
-	
+
 	public static void OnPluginProcessFinished()
 	{
 		var temp = Pool.GetList<string>();
@@ -520,10 +520,10 @@ public static class Loader
 			if (counter > 1)
 			{
 				Logger.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
-				Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
 			}
 
 			Report.OnProcessEnded?.Invoke();
+			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
 		}
 	}
 

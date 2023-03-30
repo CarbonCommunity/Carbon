@@ -1,27 +1,39 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
 namespace Oxide.Ext.Discord.Entities.Interactions.MessageComponents
 {
-	// Token: 0x02000088 RID: 136
-	public enum ButtonStyle
-	{
-		// Token: 0x040002F8 RID: 760
-		Primary = 1,
-		// Token: 0x040002F9 RID: 761
-		Secondary,
-		// Token: 0x040002FA RID: 762
-		Success,
-		// Token: 0x040002FB RID: 763
-		Danger,
-		// Token: 0x040002FC RID: 764
-		Link
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/interactions/message-components#buttons-button-styles">Button Styles</a> within Discord..
+    /// </summary>
+    public enum ButtonStyle
+    {
+        /// <summary>
+        /// Color blurple
+        /// Requires CustomId field
+        /// </summary>
+        Primary = 1,
+        
+        /// <summary>
+        /// Color grey
+        /// Requires CustomId field
+        /// </summary>
+        Secondary = 2,
+        
+        /// <summary>
+        /// Color green
+        /// Requires CustomId field
+        /// </summary>
+        Success = 3,
+        
+        /// <summary>
+        /// Color red
+        /// Requires CustomId field
+        /// </summary>
+        Danger = 4,
+        
+        /// <summary>
+        /// Color grey
+        /// Navigates to a URL
+        /// Requires Url field
+        /// </summary>
+        Link = 5
+    }
 }

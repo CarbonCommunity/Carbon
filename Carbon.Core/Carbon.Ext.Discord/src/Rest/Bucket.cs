@@ -1,197 +1,187 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using Oxide.Ext.Discord.Helpers;
 using Oxide.Ext.Discord.Logging;
-
 namespace Oxide.Ext.Discord.Rest
 {
-	// Token: 0x0200000D RID: 13
-	public class Bucket
-	{
-		// Token: 0x060000A6 RID: 166 RVA: 0x00008EAC File Offset: 0x000070AC
-		public Bucket(RestHandler handler, string bucketId, ILogger logger)
-		{
-			this.Handler = handler;
-			this.BucketId = bucketId;
-			this._logger = logger;
-			this._logger.Debug("New Bucket Created with id: " + bucketId);
-		}
+    /// <summary>
+    /// Represents a discord API bucket for a group of requests
+    /// </summary>
+    public class Bucket
+    {
+        /// <summary>
+        /// The ID of this bucket which is based on the route
+        /// </summary>
+        public readonly string BucketId;
+        
+        /// <summary>
+        /// The number of requests that can be made
+        /// </summary>
+        public int RateLimit;
 
-		// Token: 0x060000A7 RID: 167 RVA: 0x00008F03 File Offset: 0x00007103
-		public void Close()
-		{
-			Thread thread = this._thread;
-			if (thread != null)
-			{
-				thread.Abort();
-			}
-			this._thread = null;
-		}
+        /// <summary>
+        /// How many requests are remaining before hitting the rate limit for the bucket
+        /// </summary>
+        public int RateLimitRemaining;
 
-		// Token: 0x060000A8 RID: 168 RVA: 0x00008F1F File Offset: 0x0000711F
-		public bool ShouldCleanup()
-		{
-			return (this._thread == null || !this._thread.IsAlive) && (double)Time.TimeSinceEpoch() > this.RateLimitReset;
-		}
+        /// <summary>
+        /// How long until the rate limit resets
+        /// </summary>
+        public double RateLimitReset;
 
-		// Token: 0x060000A9 RID: 169 RVA: 0x00008F48 File Offset: 0x00007148
-		public void QueueRequest(Request request)
-		{
-			request.Bucket = this;
-			object syncRoot = this._syncRoot;
-			lock (syncRoot)
-			{
-				this._requests.Add(request);
-			}
-			bool flag2 = this._thread == null || !this._thread.IsAlive;
-			if (flag2)
-			{
-				this._thread = new Thread(new ThreadStart(this.RunThread))
-				{
-					IsBackground = true
-				};
-				this._thread.Start();
-			}
-		}
+        /// <summary>
+        /// How long to wait before retrying request since there was a web exception
+        /// </summary>
+        public double ErrorDelayUntil;
 
-		// Token: 0x060000AA RID: 170 RVA: 0x00008FE8 File Offset: 0x000071E8
-		public void DequeueRequest(Request request)
-		{
-			object syncRoot = this._syncRoot;
-			lock (syncRoot)
-			{
-				this._requests.Remove(request);
-			}
-		}
+        /// <summary>
+        /// Rest Handler for the bucket
+        /// </summary>
+        public readonly RestHandler Handler;
 
-		// Token: 0x060000AB RID: 171 RVA: 0x00009034 File Offset: 0x00007234
-		private void RunThread()
-		{
-			try
-			{
-				while (this.RequestCount() > 0)
-				{
-					this.FireRequests();
-				}
-			}
-			catch (ThreadAbortException)
-			{
-				this._logger.Debug("Bucket thread has been aborted.");
-			}
-		}
+        private readonly ILogger _logger;
+        private readonly List<Request> _requests = new List<Request>();
+        private readonly object _syncRoot = new object();
+        
+        private Thread _thread;
 
-		// Token: 0x060000AC RID: 172 RVA: 0x00009084 File Offset: 0x00007284
-		private void FireRequests()
-		{
-			double num = (double)Time.TimeSinceEpoch();
-			bool hasReachedRateLimit = this.Handler.RateLimit.HasReachedRateLimit;
-			if (hasReachedRateLimit)
-			{
-				int millisecondsTimeout = (int)(this.Handler.RateLimit.NextReset * 1000.0) + 1;
-				this._logger.Debug("Global Rate limit hit. Sleeping until Reset: " + millisecondsTimeout.ToString() + "ms");
-				Thread.Sleep(millisecondsTimeout);
-			}
-			else
-			{
-				bool flag = this.RateLimitRemaining == 0 && this.RateLimitReset > num;
-				if (flag)
-				{
-					int millisecondsTimeout2 = (int)((this.RateLimitReset - num) * 1000.0);
-					this._logger.Debug("Bucket Rate limit hit. Sleeping until Reset: " + millisecondsTimeout2.ToString() + "ms");
-					Thread.Sleep(millisecondsTimeout2);
-				}
-				else
-				{
-					bool flag2 = this.ErrorDelayUntil > num;
-					if (flag2)
-					{
-						int millisecondsTimeout3 = (int)((this.ErrorDelayUntil - num) * 1000.0);
-						this._logger.Debug("Web request error occured delaying next send until: " + millisecondsTimeout3.ToString() + "ms ");
-						Thread.Sleep(millisecondsTimeout3);
-					}
-					else
-					{
-						for (int i = 0; i < this.RequestCount(); i++)
-						{
-							Request request = this.GetRequest(i);
-							bool flag3 = request.HasTimedOut();
-							if (flag3)
-							{
-								request.Close(false);
-							}
-						}
-						bool flag4 = this.RequestCount() == 0;
-						if (!flag4)
-						{
-							this.Handler.RateLimit.FiredRequest();
-							this.GetRequest(0).Fire();
-						}
-					}
-				}
-			}
-		}
+        /// <summary>
+        /// Creates a new bucket for the given rest handler and bucket ID
+        /// </summary>
+        /// <param name="handler">Rest Handler for the bucket</param>
+        /// <param name="bucketId">ID of the bucket</param>
+        /// <param name="logger">Logger for the client</param>
+        public Bucket(RestHandler handler, string bucketId, ILogger logger)
+        {
+            Handler = handler;
+            BucketId = bucketId;
+            _logger = logger;
+            _logger.Debug($"New Bucket Created with id: {bucketId}");
+        }
 
-		// Token: 0x060000AD RID: 173 RVA: 0x00009218 File Offset: 0x00007418
-		private int RequestCount()
-		{
-			object syncRoot = this._syncRoot;
-			int count;
-			lock (syncRoot)
-			{
-				count = this._requests.Count;
-			}
-			return count;
-		}
+        /// <summary>
+        /// Close the bucket and abort the thread
+        /// </summary>
+        public void Close()
+        {
+            _thread?.Abort();
+            _thread = null;
+        }
 
-		// Token: 0x060000AE RID: 174 RVA: 0x00009264 File Offset: 0x00007464
-		private Request GetRequest(int index)
-		{
-			object syncRoot = this._syncRoot;
-			Request result;
-			lock (syncRoot)
-			{
-				result = this._requests[index];
-			}
-			return result;
-		}
+        /// <summary>
+        /// Returns if this bucket is ready to be cleaned up.
+        /// Should be cleaned up if the thread is not null and the RateLimitReset has expired
+        /// </summary>
+        /// <returns>True if we should cleanup the bucket; false otherwise</returns>
+        public bool ShouldCleanup() => (_thread == null || !_thread.IsAlive) && Time.TimeSinceEpoch() > RateLimitReset;
 
-		// Token: 0x04000093 RID: 147
-		public readonly string BucketId;
+        /// <summary>
+        /// Queues a new request for the buck
+        /// </summary>
+        /// <param name="request">Request to be queued</param>
+        public void QueueRequest(Request request)
+        {
+            request.Bucket = this;
+            lock (_syncRoot)
+            {
+                _requests.Add(request);
+            }
 
-		// Token: 0x04000094 RID: 148
-		public int RateLimit;
+            if (_thread == null || !_thread.IsAlive)
+            {
+                _thread = new Thread(RunThread) {IsBackground = true};
+                _thread.Start();
+            }
+        }
 
-		// Token: 0x04000095 RID: 149
-		public int RateLimitRemaining;
+        /// <summary>
+        /// Removes the request from the queue.
+        /// Either the request completed successfully or there was an error and failed to succeed after 3 attempts
+        /// </summary>
+        /// <param name="request">Request to remove</param>
+        public void DequeueRequest(Request request)
+        {
+            lock (_syncRoot)
+            {
+                _requests.Remove(request);
+            }
+        }
 
-		// Token: 0x04000096 RID: 150
-		public double RateLimitReset;
+        private void RunThread()
+        {
+            try
+            {
+                while (RequestCount() > 0)
+                {
+                    FireRequests();
+                }
+            }
+            catch (ThreadAbortException)
+            {
+                _logger.Debug("Bucket thread has been aborted.");
+            }
+        }
 
-		// Token: 0x04000097 RID: 151
-		public double ErrorDelayUntil;
+        private void FireRequests()
+        {
+            double timeSince = Time.TimeSinceEpoch();
+            if (Handler.RateLimit.HasReachedRateLimit)
+            {
+                int resetIn = (int)(Handler.RateLimit.NextReset * 1000) + 1;
+                _logger.Debug($"Global Rate limit hit. Sleeping until Reset: {resetIn.ToString()}ms");
+                Thread.Sleep(resetIn);
+                return;
+            }
+            
+            if (RateLimitRemaining == 0 && RateLimitReset > timeSince)
+            {
+                int resetIn = (int) ((RateLimitReset - timeSince) * 1000);
+                _logger.Debug($"Bucket Rate limit hit. Sleeping until Reset: {resetIn.ToString()}ms");
+                Thread.Sleep(resetIn);
+                return;
+            }
 
-		// Token: 0x04000098 RID: 152
-		public readonly RestHandler Handler;
+            if (ErrorDelayUntil > timeSince)
+            {
+                int resetIn = (int) ((ErrorDelayUntil - timeSince) * 1000);
+                _logger.Debug($"Web request error occured delaying next send until: {resetIn.ToString()}ms ");
+                Thread.Sleep(resetIn);
+                return;
+            }
 
-		// Token: 0x04000099 RID: 153
-		private readonly ILogger _logger;
+            for (int index = 0; index < RequestCount(); index++)
+            {
+                Request request = GetRequest(index);
+                if (request.HasTimedOut())
+                {
+                    request.Close(false);
+                }
+            }
 
-		// Token: 0x0400009A RID: 154
-		private readonly List<Request> _requests = new List<Request>();
+            //It's possible we removed a request that has timed out.
+            if (RequestCount() == 0)
+            {
+                return;
+            }
+            
+            Handler.RateLimit.FiredRequest();
+            GetRequest(0).Fire();
+        }
 
-		// Token: 0x0400009B RID: 155
-		private readonly object _syncRoot = new object();
+        private int RequestCount()
+        {
+            lock (_syncRoot)
+            {
+                return _requests.Count;
+            }
+        }
 
-		// Token: 0x0400009C RID: 156
-		private Thread _thread;
-	}
+        private Request GetRequest(int index)
+        {
+            lock (_syncRoot)
+            {
+                return _requests[index];
+            }
+        }
+    }
 }

@@ -1,207 +1,254 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 using Newtonsoft.Json;
-using Oxide.Ext.Discord.Helpers;
 using Oxide.Ext.Discord.Helpers.Converters;
+using Time = Oxide.Ext.Discord.Helpers.Time;
 
 namespace Oxide.Ext.Discord.Entities
 {
-	// Token: 0x02000041 RID: 65
-	[JsonConverter(typeof(SnowflakeConverter))]
-	public struct Snowflake : IComparable<Snowflake>, IEquatable<Snowflake>, IComparable<ulong>, IEquatable<ulong>
-	{
-		// Token: 0x060001BB RID: 443 RVA: 0x0000DB7D File Offset: 0x0000BD7D
-		public Snowflake(ulong id)
-		{
-			this.Id = id;
-		}
+    /// <summary>
+    /// Represents an ID in discord.
+    /// </summary>
+    [JsonConverter(typeof(SnowflakeConverter))]
+    public struct Snowflake : IComparable<Snowflake>, IEquatable<Snowflake>, IComparable<ulong>, IEquatable<ulong>
+    {
+        /// <summary>
+        /// Snowflake Value
+        /// </summary>
+        public readonly ulong Id;
 
-		// Token: 0x060001BC RID: 444 RVA: 0x0000DB87 File Offset: 0x0000BD87
-		public Snowflake(string id)
-		{
-			this.Id = ulong.Parse(id);
-		}
+        /// <summary>
+        /// Create a new snowflake from a ulong
+        /// </summary>
+        /// <param name="id"></param>
+        public Snowflake(ulong id)
+        {
+            Id = id;
+        }
+        
+        /// <summary>
+        /// Create a new snowflake from a string
+        /// </summary>
+        /// <param name="id"></param>
+        public Snowflake(string id)
+        {
+            Id = ulong.Parse(id);
+        }
 
-		// Token: 0x060001BD RID: 445 RVA: 0x0000DB98 File Offset: 0x0000BD98
-		public Snowflake(DateTimeOffset offset)
-		{
-			this.Id = (ulong)(Time.DiscordEpoch - offset).TotalMilliseconds << 22;
-		}
+        /// <summary>
+        /// Create a snowflake from a DateTimeOffset
+        /// </summary>
+        /// <param name="offset"></param>
+        public Snowflake(DateTimeOffset offset)
+        {
+            Id = (ulong)(Time.DiscordEpoch - offset).TotalMilliseconds << 22;
+        }   
 
-		// Token: 0x060001BE RID: 446 RVA: 0x0000DBC4 File Offset: 0x0000BDC4
-		public DateTimeOffset GetCreationDate()
-		{
-			return Time.DiscordEpoch + TimeSpan.FromMilliseconds(this.Id >> 22);
-		}
+        /// <summary>
+        /// Returns when the ID was created
+        /// </summary>
+        /// <returns></returns>
+        public DateTimeOffset GetCreationDate()
+        {
+            return Time.DiscordEpoch + TimeSpan.FromMilliseconds(Id >> 22);
+        }
+        
+        /// <summary>
+        /// Returns if the ID value is not 0
+        /// </summary>
+        /// <returns></returns>
+        public bool IsValid()
+        {
+            return Id != 0;
+        }
 
-		// Token: 0x060001BF RID: 447 RVA: 0x0000DBF0 File Offset: 0x0000BDF0
-		public bool IsValid()
-		{
-			return this.Id > 0UL;
-		}
+        /// <summary>
+        /// Try to parse the a string into a snowflake value
+        /// </summary>
+        /// <param name="value">String to parse</param>
+        /// <param name="snowflake">Snowflake to return</param>
+        /// <returns>True if parse succeeded; false otherwise</returns>
+        public static bool TryParse(string value, out Snowflake snowflake)
+        {
+            if(ulong.TryParse(value, out ulong id))
+            {
+                snowflake = new Snowflake(id);
+                return true;
+            }
 
-		// Token: 0x060001C0 RID: 448 RVA: 0x0000DC0C File Offset: 0x0000BE0C
-		public static bool TryParse(string value, out Snowflake snowflake)
-		{
-			ulong id;
-			bool flag = ulong.TryParse(value, out id);
-			bool result;
-			if (flag)
-			{
-				snowflake = new Snowflake(id);
-				result = true;
-			}
-			else
-			{
-				snowflake = default(Snowflake);
-				result = false;
-			}
-			return result;
-		}
+            snowflake = default(Snowflake);
+            return false;
+        }
 
-		// Token: 0x060001C1 RID: 449 RVA: 0x0000DC44 File Offset: 0x0000BE44
-		public bool Equals(Snowflake other)
-		{
-			return this.Id == other.Id;
-		}
+        /// <summary>
+        /// Returns if the two snowflakes are the same ID.
+        /// </summary>
+        /// <param name="other">Other snowflake to compare</param>
+        /// <returns>True if the snowflake IDs match; false otherwise.</returns>
+        public bool Equals(Snowflake other)
+        {
+            return Id == other.Id;
+        }
+        
+        /// <summary>
+        /// Returns if the obj is snowflake or ulong with matching ID.
+        /// </summary>
+        /// <param name="obj">Object to check</param>
+        /// <returns>True if equal; False otherwise</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj is Snowflake snowflake)
+            {
+                return Equals(snowflake);
+            }
 
-		// Token: 0x060001C2 RID: 450 RVA: 0x0000DC64 File Offset: 0x0000BE64
-		public override bool Equals(object obj)
-		{
-			Snowflake other = default;
-			bool flag;
-			if (obj is Snowflake)
-			{
-				other = (Snowflake)obj;
-				flag = true;
-			}
-			else
-			{
-				flag = false;
-			}
-			bool flag2 = flag;
-			bool result;
-			if (flag2)
-			{
-				result = this.Equals(other);
-			}
-			else
-			{
-				ulong other2 = default;
-				bool flag3;
-				if (obj is ulong)
-				{
-					other2 = (ulong)obj;
-					flag3 = true;
-				}
-				else
-				{
-					flag3 = false;
-				}
-				bool flag4 = flag3;
-				result = (flag4 && this.Equals(other2));
-			}
-			return result;
-		}
+            if (obj is ulong id)
+            {
+                return Equals(id);
+            }
 
-		// Token: 0x060001C3 RID: 451 RVA: 0x0000DCC0 File Offset: 0x0000BEC0
-		public bool Equals(ulong other)
-		{
-			return this.Id == other;
-		}
+            return false;
+        }
+        
+        /// <summary>
+        /// Returns if other equals our ID
+        /// </summary>
+        /// <param name="other">Other to compare against</param>
+        /// <returns>True if ID equals; False otherwise.</returns>
+        public bool Equals(ulong other)
+        {
+            return Id == other;
+        }
 
-		// Token: 0x060001C4 RID: 452 RVA: 0x0000DCDC File Offset: 0x0000BEDC
-		public override int GetHashCode()
-		{
-			return this.Id.GetHashCode();
-		}
+        /// <summary>
+        /// Returns the HashCode of the ID
+        /// </summary>
+        /// <returns>ID fields hashcode</returns>
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
 
-		// Token: 0x060001C5 RID: 453 RVA: 0x0000DCFC File Offset: 0x0000BEFC
-		public override string ToString()
-		{
-			return this.IsValid() ? this.Id.ToString() : string.Empty;
-		}
+        /// <summary>
+        /// Returns ID as a string
+        /// </summary>
+        /// <returns>ID as a string</returns>
+        public override string ToString()
+        {
+            return IsValid() ? Id.ToString() : string.Empty;
+        }
 
-		// Token: 0x060001C6 RID: 454 RVA: 0x0000DD2C File Offset: 0x0000BF2C
-		public int CompareTo(Snowflake num)
-		{
-			return this.Id.CompareTo(num.Id);
-		}
+        /// <summary>
+        /// Returns the ID field of num compared to this snowflakes ID field
+        /// </summary>
+        /// <param name="num">Value to compare ID to</param>
+        /// <returns>A value indication if the num is less than, equal to, or greater than our ID</returns>
+        public int CompareTo(Snowflake num)
+        {
+            return Id.CompareTo(num.Id);
+        }
+        
+        /// <summary>
+        /// Returns the ID field of num compared to this snowflakes ID field
+        /// </summary>
+        /// <param name="other">Value to compare ID to</param>
+        /// <returns>A value indication if the num is less than, equal to, or greater than our ID</returns>
+        public int CompareTo(ulong other)
+        {
+            return Id.CompareTo(other);
+        }
 
-		// Token: 0x060001C7 RID: 455 RVA: 0x0000DD54 File Offset: 0x0000BF54
-		public int CompareTo(ulong other)
-		{
-			return this.Id.CompareTo(other);
-		}
+        /// <summary>
+        /// Returns true if left and right are equal
+        /// </summary>
+        /// <param name="left">Snowflake to compare</param>
+        /// <param name="right">Snowflake to compare</param>
+        /// <returns>True if the snowflake ID's are equal; false otherwise</returns>
+        public static bool operator == (Snowflake left, Snowflake right)
+        {
+            return left.Id == right.Id;
+        }
 
-		// Token: 0x060001C8 RID: 456 RVA: 0x0000DD78 File Offset: 0x0000BF78
-		public static bool operator ==(Snowflake left, Snowflake right)
-		{
-			return left.Id == right.Id;
-		}
+        /// <summary>
+        /// Returns true if left and right are not equal
+        /// </summary>
+        /// <param name="left">Snowflake to compare</param>
+        /// <param name="right">Snowflake to compare</param>
+        /// <returns>True if the snowflake ID's are not equal; false otherwise</returns>
+        public static bool operator !=(Snowflake left, Snowflake right)
+        {
+            return !(left == right);
+        }
+        
+        /// <summary>
+        /// Returns true if left snowflake's ID is less than right's ID
+        /// </summary>
+        /// <param name="left">Snowflake to be less than</param>
+        /// <param name="right">Snowflake to be greater than</param>
+        /// <returns>True if left is less than right</returns>
+        public static bool operator <(Snowflake left, Snowflake right)
+        {
+            return left.CompareTo(right) < 0;
+        }
 
-		// Token: 0x060001C9 RID: 457 RVA: 0x0000DD98 File Offset: 0x0000BF98
-		public static bool operator !=(Snowflake left, Snowflake right)
-		{
-			return !(left == right);
-		}
+        /// <summary>
+        /// Returns true if left snowflake's ID is greater than right's ID
+        /// </summary>
+        /// <param name="left">Snowflake to be greater than</param>
+        /// <param name="right">Snowflake to be less than</param>
+        /// <returns>True if left is greater than right</returns>
+        public static bool operator >(Snowflake left, Snowflake right)
+        {
+            return left.CompareTo(right) > 0;
+        }
+        
+        /// <summary>
+        /// Returns true if left snowflake's ID is less than right's ID or equal
+        /// </summary>
+        /// <param name="left">Snowflake to be less than or equal</param>
+        /// <param name="right">Snowflake to be greater than or equal</param>
+        /// <returns>True if left is less than or equal to right</returns>
+        public static bool operator <=(Snowflake left, Snowflake right)
+        {
+            return left.CompareTo(right) <= 0;
+        }
 
-		// Token: 0x060001CA RID: 458 RVA: 0x0000DDB4 File Offset: 0x0000BFB4
-		public static bool operator <(Snowflake left, Snowflake right)
-		{
-			return left.CompareTo(right) < 0;
-		}
+        /// <summary>
+        /// Returns true if left snowflake's ID is greater or equal to right's ID
+        /// </summary>
+        /// <param name="left">Snowflake to be greater than or equal</param>
+        /// <param name="right">Snowflake to be less than or equal</param>
+        /// <returns>True if left is greater or equal to right</returns>
+        public static bool operator >=(Snowflake left, Snowflake right)
+        {
+            return left.CompareTo(right) >= 0;
+        }
 
-		// Token: 0x060001CB RID: 459 RVA: 0x0000DDD4 File Offset: 0x0000BFD4
-		public static bool operator >(Snowflake left, Snowflake right)
-		{
-			return left.CompareTo(right) > 0;
-		}
-
-		// Token: 0x060001CC RID: 460 RVA: 0x0000DDF4 File Offset: 0x0000BFF4
-		public static bool operator <=(Snowflake left, Snowflake right)
-		{
-			return left.CompareTo(right) <= 0;
-		}
-
-		// Token: 0x060001CD RID: 461 RVA: 0x0000DE14 File Offset: 0x0000C014
-		public static bool operator >=(Snowflake left, Snowflake right)
-		{
-			return left.CompareTo(right) >= 0;
-		}
-
-		// Token: 0x060001CE RID: 462 RVA: 0x0000DE34 File Offset: 0x0000C034
-		public static implicit operator ulong(Snowflake snowflake)
-		{
-			return snowflake.Id;
-		}
-
-		// Token: 0x060001CF RID: 463 RVA: 0x0000DE3C File Offset: 0x0000C03C
-		public static explicit operator Snowflake(ulong id)
-		{
-			return new Snowflake(id);
-		}
-
-		// Token: 0x060001D0 RID: 464 RVA: 0x0000DE44 File Offset: 0x0000C044
-		public static implicit operator string(Snowflake snowflake)
-		{
-			return snowflake.Id.ToString();
-		}
-
-		// Token: 0x060001D1 RID: 465 RVA: 0x0000DE5F File Offset: 0x0000C05F
-		public static explicit operator Snowflake(string id)
-		{
-			return new Snowflake(id);
-		}
-
-		// Token: 0x04000107 RID: 263
-		public readonly ulong Id;
-	}
+        /// <summary>
+        /// Converts snowflake to a ulong
+        /// </summary>
+        /// <param name="snowflake">Snowflake to be converted to ulong</param>
+        /// <returns>Snowflake ID as ulong</returns>
+        public static implicit operator ulong(Snowflake snowflake) => snowflake.Id;
+        
+        /// <summary>
+        /// Converts a ulong to a snowflake
+        /// </summary>
+        /// <param name="id">Id to be converted to snowflake</param>
+        /// <returns>ID converted to a snowflake</returns>
+        public static explicit operator Snowflake(ulong id) => new Snowflake(id);
+        
+        /// <summary>
+        /// Converts snowflake to a string
+        /// </summary>
+        /// <param name="snowflake">Snowflake to be converted to string</param>
+        /// <returns>Snowflake ID as string</returns>
+        public static implicit operator string(Snowflake snowflake) => snowflake.Id.ToString();
+        
+        /// <summary>
+        /// Converts a string to a snowflake
+        /// </summary>
+        /// <param name="id">Id to be converted to snowflake</param>
+        /// <returns>ID converted to a snowflake</returns>
+        public static explicit operator Snowflake(string id) => new Snowflake(id);
+    }
 }

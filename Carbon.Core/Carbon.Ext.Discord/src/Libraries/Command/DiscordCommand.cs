@@ -1,18 +1,14 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using Carbon.Core;
 using Oxide.Core;
+using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
 using Oxide.Core.Plugins;
 using Oxide.Ext.Discord.Attributes;
+using Oxide.Ext.Discord.Configuration;
 using Oxide.Ext.Discord.Entities;
 using Oxide.Ext.Discord.Entities.Channels;
 using Oxide.Ext.Discord.Entities.Messages;
@@ -20,347 +16,367 @@ using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord.Libraries.Command
 {
-	// Token: 0x02000020 RID: 32
-	public class DiscordCommand : Library
-	{
-		// Token: 0x1700002E RID: 46
-		// (get) Token: 0x0600013A RID: 314 RVA: 0x0000B664 File Offset: 0x00009864
-		private Lang Lang
+    /// <summary>
+    /// Represents a library for discord commands
+    /// </summary>
+    public class DiscordCommand : Library
+    {
+        /// <summary>
+        /// Available command prefixes used by the extension
+        /// </summary>
+        public readonly char[] CommandPrefixes;
+
+        private readonly Hash<string, DirectMessageCommand> _directMessageCommands = new Hash<string, DirectMessageCommand>();
+        private readonly Hash<string, GuildCommand> _guildCommands = new Hash<string, GuildCommand>();
+
+        private Lang _lang;
+
+        private Lang Lang
+        {
+            get
+            {
+                if (_lang != null)
+                {
+                    return _lang;
+                }
+
+                return _lang = Interface.Oxide.GetLibrary<Lang>();
+            }
+        }
+
+		public DiscordCommand()
 		{
-			get
-			{
-				bool flag = this._lang != null;
-				Lang result;
-				if (flag)
-				{
-					result = this._lang;
-				}
-				else
-				{
-					result = (this._lang = Interface.Oxide.GetLibrary<Lang>(null));
-				}
-				return result;
-			}
+			var config = ConfigFile.Load<DiscordConfig>(Path.Combine(Defines.GetConfigsFolder(), "discord.config.json"));
+			CommandPrefixes = config.Commands.CommandPrefixes;
 		}
 
-		// Token: 0x0600013B RID: 315 RVA: 0x0000B6A1 File Offset: 0x000098A1
-		public DiscordCommand(char[] prefixes)
-		{
-			this.CommandPrefixes = prefixes;
-		}
+        /// <summary>
+        /// Discord Commands Constructor
+        /// </summary>
+        /// <param name="prefixes">Command prefixes used by the extension</param>
+        public DiscordCommand(char[] prefixes)
+        {
+            CommandPrefixes = prefixes;
+        }
+        
+        /// <summary>
+        /// Returns if there are any guild discord commands are registered
+        /// </summary>
+        /// <returns></returns>
+        public bool HasCommands()
+        {
+            return HasDirectMessageCommands() || HasGuildCommands();
+        }
+        
+        /// <summary>
+        /// Returns if there are any guild discord commands are registered
+        /// </summary>
+        /// <returns></returns>
+        public bool HasDirectMessageCommands()
+        {
+            return _directMessageCommands.Count != 0;
+        }
+        
+        /// <summary>
+        /// Returns if there are any guild discord commands are registered
+        /// </summary>
+        /// <returns></returns>
+        public bool HasGuildCommands()
+        {
+            return _guildCommands.Count != 0;
+        }
 
-		// Token: 0x0600013C RID: 316 RVA: 0x0000B6C8 File Offset: 0x000098C8
-		public bool HasCommands()
-		{
-			return this.HasDirectMessageCommands() || this.HasGuildCommands();
-		}
+        /// <summary>
+        /// Adds a discord direct message command
+        /// Sourced from Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L123)
+        /// </summary>
+        /// <param name="name">Name of the command</param>
+        /// <param name="plugin">Plugin to add the command for</param>
+        /// <param name="callback">Method name of the callback</param>
+        public void AddDirectMessageCommand(string name, Plugin plugin, string callback)
+        {
+            AddDirectMessageCommand(name, plugin, (message, command, args) => plugin.CallHook(callback, message, command, args));
+        }
+        
+        /// <summary>
+        /// Adds a localized discord direct message command
+        /// Sourced from Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L123)
+        /// </summary>
+        /// <param name="langKey">Lang Key on the plugin that contains the command</param>
+        /// <param name="plugin">Plugin to add the localized command for</param>
+        /// <param name="callback">Method name of the callback</param>
+        public void AddDirectMessageLocalizedCommand(string langKey, Plugin plugin, string callback)
+        {
+            foreach (string langType in Lang.GetLanguages(plugin))
+            {
+                Dictionary<string, string> langKeys = Lang.GetMessages(langType, plugin as RustPlugin);
+                if (langKeys.TryGetValue(langKey, out string command) && !string.IsNullOrEmpty(command))
+                {
+                    AddDirectMessageCommand(command, plugin, callback);
+                }
+            }
+        }
 
-		// Token: 0x0600013D RID: 317 RVA: 0x0000B6EC File Offset: 0x000098EC
-		public bool HasDirectMessageCommands()
-		{
-			return this._directMessageCommands.Count != 0;
-		}
+        /// <summary>
+        /// Adds a discord direct message command
+        /// Sourced From Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L134)
+        /// </summary>
+        /// <param name="command">Command to add</param>
+        /// <param name="plugin">Plugin to add the command for</param>
+        /// <param name="callback">Method name of the callback</param>
+        public void AddDirectMessageCommand(string command, Plugin plugin, Action<DiscordMessage, string, string[]> callback)
+        {
+            string commandName = command.ToLowerInvariant();
 
-		// Token: 0x0600013E RID: 318 RVA: 0x0000B70C File Offset: 0x0000990C
-		public bool HasGuildCommands()
-		{
-			return this._guildCommands.Count != 0;
-		}
+            if (_directMessageCommands.TryGetValue(commandName, out DirectMessageCommand cmd))
+            {
+                string previousPluginName = cmd.Plugin?.Name ?? "an unknown plugin";
+                string newPluginName = plugin?.Name ?? "An unknown plugin";
+                DiscordExtension.GlobalLogger.Warning($"{newPluginName} has replaced the '{commandName}' discord direct message command previously registered by {previousPluginName}");
+            }
 
-		// Token: 0x0600013F RID: 319 RVA: 0x0000B72C File Offset: 0x0000992C
-		public void AddDirectMessageCommand(string name, Plugin plugin, string callback)
-		{
-			this.AddDirectMessageCommand(name, plugin, delegate(DiscordMessage message, string command, string[] args)
-			{
-				plugin.Call(callback, new object[]
-				{
-					message,
-					command,
-					args
-				});
-			});
-		}
+            cmd = new DirectMessageCommand(commandName, plugin, callback);
 
-		// Token: 0x06000140 RID: 320 RVA: 0x0000B768 File Offset: 0x00009968
-		public void AddDirectMessageLocalizedCommand(string langKey, RustPlugin plugin, string callback)
-		{
-			foreach (string text in this.Lang.GetLanguages(plugin))
-			{
-				Dictionary<string, string> messages = this.Lang.GetMessages(text, plugin);
-				string text2;
-				bool flag = messages.TryGetValue(langKey, out text2) && !string.IsNullOrEmpty(text2);
-				if (flag)
-				{
-					this.AddDirectMessageCommand(text2, plugin, callback);
-				}
-			}
-		}
+            // Add the new command to collections
+            _directMessageCommands[commandName] = cmd;
+        }
 
-		// Token: 0x06000141 RID: 321 RVA: 0x0000B7D4 File Offset: 0x000099D4
-		public void AddDirectMessageCommand(string command, Plugin plugin, Action<DiscordMessage, string, string[]> callback)
-		{
-			string text = command.ToLowerInvariant();
-			DirectMessageCommand directMessageCommand;
-			bool flag = this._directMessageCommands.TryGetValue(text, out directMessageCommand);
-			if (flag)
-			{
-				Plugin plugin2 = directMessageCommand.Plugin;
-				string text2 = ((plugin2 != null) ? plugin2.Name : null) ?? "an unknown plugin";
-				string text3 = ((plugin != null) ? plugin.Name : null) ?? "An unknown plugin";
-				DiscordExtension.GlobalLogger.Warning(string.Concat(new string[]
-				{
-					text3,
-					" has replaced the '",
-					text,
-					"' discord direct message command previously registered by ",
-					text2
-				}));
-			}
-			directMessageCommand = new DirectMessageCommand(text, plugin, callback);
-			this._directMessageCommands[text] = directMessageCommand;
-		}
+        /// <summary>
+        /// Adds a discord guild command
+        /// Sourced from Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L123)
+        /// </summary>
+        /// <param name="name">The name of the command</param>
+        /// <param name="plugin">Plugin to add the command for</param>
+        /// <param name="allowedChannels">Channel or Category Id's this command is allowed in</param>
+        /// <param name="callback">Method name of the callback</param>
+        public void AddGuildCommand(string name, Plugin plugin, List<Snowflake> allowedChannels, string callback)
+        {
+            AddGuildCommand(name, plugin, allowedChannels, (message, command, args) => plugin.CallHook(callback, message, command, args));
+        }
 
-		// Token: 0x06000142 RID: 322 RVA: 0x0000B87C File Offset: 0x00009A7C
-		public void AddGuildCommand(string name, Plugin plugin, List<Snowflake> allowedChannels, string callback)
-		{
-			this.AddGuildCommand(name, plugin, allowedChannels, delegate(DiscordMessage message, string command, string[] args)
-			{
-				plugin.Call (callback, new object[]
-				{
-					message,
-					command,
-					args
-				});
-			});
-		}
+        /// <summary>
+        /// Adds a localized discord guild command
+        /// Sourced from Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L123)
+        /// </summary>
+        /// <param name="langKey">Lang Key on the plugin that contains the command</param>
+        /// <param name="plugin">Plugin to add the localized command for</param>
+        /// <param name="allowedChannels">Channel or Category Id's this command is allowed in</param>
+        /// <param name="callback">Method name of the callback</param>
+        public void AddGuildLocalizedCommand(string langKey, Plugin plugin, List<Snowflake> allowedChannels, string callback)
+        {
+            foreach (string langType in Lang.GetLanguages(plugin))
+            {
+                Dictionary<string, string> langKeys = Lang.GetMessages(langType, plugin as RustPlugin );
+                if (langKeys.TryGetValue(langKey, out string command) && !string.IsNullOrEmpty(command))
+                {
+                    AddGuildCommand(command, plugin, allowedChannels, callback);
+                }
+            }
+        }
 
-		// Token: 0x06000143 RID: 323 RVA: 0x0000B8BC File Offset: 0x00009ABC
-		public void AddGuildLocalizedCommand(string langKey, RustPlugin plugin, List<Snowflake> allowedChannels, string callback)
-		{
-			foreach (string text in this.Lang.GetLanguages(plugin))
-			{
-				Dictionary<string, string> messages = this.Lang.GetMessages(text, plugin);
-				string text2;
-				bool flag = messages.TryGetValue(langKey, out text2) && !string.IsNullOrEmpty(text2);
-				if (flag)
-				{
-					this.AddGuildCommand(text2, plugin, allowedChannels, callback);
-				}
-			}
-		}
+        /// <summary>
+        /// Adds a discord guild command
+        /// Sourced From Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L134)
+        /// </summary>
+        /// <param name="command">Name of the command</param>
+        /// <param name="plugin">Plugin to add the localized command for</param>
+        /// <param name="allowedChannels">Channel or Category Id's this command is allowed in</param>
+        /// <param name="callback">Method name of the callback</param>
+        public void AddGuildCommand(string command, Plugin plugin, List<Snowflake> allowedChannels, Action<DiscordMessage, string, string[]> callback)
+        {
+            string commandName = command.ToLowerInvariant();
 
-		// Token: 0x06000144 RID: 324 RVA: 0x0000B928 File Offset: 0x00009B28
-		public void AddGuildCommand(string command, Plugin plugin, List<Snowflake> allowedChannels, Action<DiscordMessage, string, string[]> callback)
-		{
-			string text = command.ToLowerInvariant();
-			GuildCommand guildCommand;
-			bool flag = this._guildCommands.TryGetValue(text, out guildCommand);
-			if (flag)
-			{
-				Plugin plugin2 = guildCommand.Plugin;
-				string text2 = ((plugin2 != null) ? plugin2.Name : null) ?? "an unknown plugin";
-				string text3 = ((plugin != null) ? plugin.Name : null) ?? "An unknown plugin";
-				DiscordExtension.GlobalLogger.Warning(string.Concat(new string[]
-				{
-					text3,
-					" has replaced the '",
-					text,
-					"' discord guild command previously registered by ",
-					text2
-				}));
-			}
-			guildCommand = new GuildCommand(text, plugin, allowedChannels, callback);
-			this._guildCommands[text] = guildCommand;
-		}
+            if (_guildCommands.TryGetValue(commandName, out GuildCommand cmd))
+            {
+                string previousPluginName = cmd.Plugin?.Name ?? "an unknown plugin";
+                string newPluginName = plugin?.Name ?? "An unknown plugin";
+                DiscordExtension.GlobalLogger.Warning($"{newPluginName} has replaced the '{commandName}' discord guild command previously registered by {previousPluginName}");
+            }
 
-		// Token: 0x06000145 RID: 325 RVA: 0x0000B9D0 File Offset: 0x00009BD0
-		public void RemoveDiscordCommand(string command, Plugin plugin)
-		{
-			DirectMessageCommand directMessageCommand = this._directMessageCommands[command];
-			bool flag = directMessageCommand != null && directMessageCommand.Plugin == plugin;
-			if (flag)
-			{
-				this.RemoveDmCommand(directMessageCommand);
-			}
-			GuildCommand guildCommand = this._guildCommands[command];
-			bool flag2 = guildCommand != null && guildCommand.Plugin == plugin;
-			if (flag2)
-			{
-				this.RemoveGuildCommand(guildCommand);
-			}
-		}
+            cmd = new GuildCommand(commandName, plugin, allowedChannels, callback);
 
-		// Token: 0x06000146 RID: 326 RVA: 0x0000BA34 File Offset: 0x00009C34
-		private void RemoveDmCommand(DirectMessageCommand command)
-		{
-			DirectMessageCommand directMessageCommand = this._directMessageCommands[command.Name];
-			directMessageCommand.OnRemoved();
-			this._directMessageCommands.Remove(command.Name);
-		}
+            // Add the new command to collections
+            _guildCommands[commandName] = cmd;
+        }
 
-		// Token: 0x06000147 RID: 327 RVA: 0x0000BA70 File Offset: 0x00009C70
-		private void RemoveGuildCommand(GuildCommand command)
-		{
-			GuildCommand guildCommand = this._guildCommands[command.Name];
-			guildCommand.OnRemoved();
-			this._guildCommands.Remove(command.Name);
-		}
+        /// <summary>
+        /// Removes a previously registered discord command
+        /// Sourced From Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L286)
+        /// </summary>
+        /// <param name="command">Command to remove</param>
+        /// <param name="plugin">Plugin the command is for</param>
+        public void RemoveDiscordCommand(string command, Plugin plugin)
+        {
+            DirectMessageCommand dmCommand = _directMessageCommands[command];
+            if (dmCommand != null && dmCommand.Plugin == plugin)
+            {
+                RemoveDmCommand(dmCommand);
+            }
+            
+            GuildCommand guildCommand = _guildCommands[command];
+            if (guildCommand != null && guildCommand.Plugin == plugin)
+            {
+                RemoveGuildCommand(guildCommand);
+            }
+        }
 
-		// Token: 0x06000148 RID: 328 RVA: 0x0000BAAC File Offset: 0x00009CAC
-		internal void OnPluginUnloaded(Plugin sender)
-		{
-			List<DirectMessageCommand> list = new List<DirectMessageCommand>();
-			List<GuildCommand> list2 = new List<GuildCommand>();
-			foreach (DirectMessageCommand directMessageCommand in this._directMessageCommands.Values)
-			{
-				bool flag = directMessageCommand.Plugin.Name == sender.Name;
-				if (flag)
-				{
-					list.Add(directMessageCommand);
-				}
-			}
-			foreach (GuildCommand guildCommand in this._guildCommands.Values)
-			{
-				bool flag2 = guildCommand.Plugin.Name == sender.Name;
-				if (flag2)
-				{
-					list2.Add(guildCommand);
-				}
-			}
-			for (int i = 0; i < list.Count; i++)
-			{
-				DirectMessageCommand command = list[i];
-				this.RemoveDmCommand(command);
-			}
-			for (int j = 0; j < list2.Count; j++)
-			{
-				GuildCommand command2 = list2[j];
-				this.RemoveGuildCommand(command2);
-			}
-		}
+        /// <summary>
+        /// Removes a discord command
+        /// Sourced from Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L314)
+        /// </summary>
+        /// <param name="command"></param>
+        private void RemoveDmCommand(DirectMessageCommand command)
+        {
+            DirectMessageCommand dmCommand = _directMessageCommands[command.Name];
+            dmCommand.OnRemoved();
+            _directMessageCommands.Remove(command.Name);
+        }
 
-		// Token: 0x06000149 RID: 329 RVA: 0x0000BBFC File Offset: 0x00009DFC
-		internal bool HandleDirectMessageCommand(BotClient client, DiscordMessage message, DiscordChannel channel, string name, string[] args)
-		{
-			DirectMessageCommand directMessageCommand = this._directMessageCommands[name];
-			bool flag = directMessageCommand == null || !directMessageCommand.CanRun(client) || !directMessageCommand.CanHandle(message, channel);
-			bool result;
-			if (flag)
-			{
-				result = false;
-			}
-			else
-			{
-				bool flag2 = !directMessageCommand.Plugin.IsLoaded;
-				if (flag2)
-				{
-					this._directMessageCommands.Remove(name);
-					result = false;
-				}
-				else
-				{
-					bool flag3 = !client.IsPluginRegistered(directMessageCommand.Plugin);
-					if (flag3)
-					{
-						result = false;
-					}
-					else
-					{
-						directMessageCommand.HandleCommand(message, name, args);
-						result = true;
-					}
-				}
-			}
-			return result;
-		}
+        private void RemoveGuildCommand(GuildCommand command)
+        {
+            GuildCommand guildCommand = _guildCommands[command.Name];
+            guildCommand.OnRemoved();
+            _guildCommands.Remove(command.Name);
+        }
 
-		// Token: 0x0600014A RID: 330 RVA: 0x0000BC8C File Offset: 0x00009E8C
-		internal bool HandleGuildCommand(BotClient client, DiscordMessage message, DiscordChannel channel, string name, string[] args)
-		{
-			GuildCommand guildCommand = this._guildCommands[name];
-			bool flag = guildCommand == null || !guildCommand.CanRun(client) || !guildCommand.CanHandle(message, channel);
-			bool result;
-			if (flag)
-			{
-				result = false;
-			}
-			else
-			{
-				bool flag2 = !guildCommand.Plugin.IsLoaded;
-				if (flag2)
-				{
-					this._guildCommands.Remove(name);
-					result = false;
-				}
-				else
-				{
-					bool flag3 = !client.IsPluginRegistered(guildCommand.Plugin);
-					if (flag3)
-					{
-						result = false;
-					}
-					else
-					{
-						guildCommand.HandleCommand(message, name, args);
-						result = true;
-					}
-				}
-			}
-			return result;
-		}
+        /// <summary>
+        /// Called when a plugin has been unloaded
+        /// </summary>
+        /// <param name="sender"></param>
+        internal void OnPluginUnloaded(Plugin sender)
+        {
+            List<DirectMessageCommand> dmCommands = new List<DirectMessageCommand>();
+            List<GuildCommand> guildCommands = new List<GuildCommand>();
+            // Remove all discord commands which were registered by the plugin
+            foreach (DirectMessageCommand cmd in _directMessageCommands.Values)
+            {
+                if (cmd.Plugin.Name == sender.Name)
+                {
+                    dmCommands.Add(cmd);
+                }
+            }
+            
+            foreach (GuildCommand cmd in _guildCommands.Values)
+            {
+                if (cmd.Plugin.Name == sender.Name)
+                {
+                    guildCommands.Add(cmd);
+                }
+            }
 
-		// Token: 0x0600014B RID: 331 RVA: 0x0000BD1C File Offset: 0x00009F1C
-		internal void ProcessPluginCommands(RustPlugin plugin)
-		{
-			foreach (MethodInfo methodInfo in plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic))
-			{
-				object[] customAttributes = methodInfo.GetCustomAttributes(typeof(DirectMessageCommandAttribute), true);
-				bool flag = customAttributes.Length != 0;
-				if (flag)
-				{
-					DirectMessageCommandAttribute directMessageCommandAttribute = (DirectMessageCommandAttribute)customAttributes[0];
-					bool isLocalized = directMessageCommandAttribute.IsLocalized;
-					if (isLocalized)
-					{
-						DiscordExtension.DiscordCommand.AddDirectMessageLocalizedCommand(directMessageCommandAttribute.Name, plugin, methodInfo.Name);
-						DiscordExtension.GlobalLogger.Debug("Adding Localized Direct Message Command " + directMessageCommandAttribute.Name + " Method: " + methodInfo.Name);
-					}
-					else
-					{
-						DiscordExtension.DiscordCommand.AddDirectMessageCommand(directMessageCommandAttribute.Name, plugin, methodInfo.Name);
-						DiscordExtension.GlobalLogger.Debug("Adding Direct Message Command " + directMessageCommandAttribute.Name + " Method: " + methodInfo.Name);
-					}
-				}
-				customAttributes = methodInfo.GetCustomAttributes(typeof(GuildCommandAttribute), true);
-				bool flag2 = customAttributes.Length != 0;
-				if (flag2)
-				{
-					GuildCommandAttribute guildCommandAttribute = (GuildCommandAttribute)customAttributes[0];
-					bool isLocalized2 = guildCommandAttribute.IsLocalized;
-					if (isLocalized2)
-					{
-						DiscordExtension.DiscordCommand.AddGuildLocalizedCommand(guildCommandAttribute.Name, plugin, null, methodInfo.Name);
-						DiscordExtension.GlobalLogger.Debug("Adding Localized Guild Command " + guildCommandAttribute.Name + " Method: " + methodInfo.Name);
-					}
-					else
-					{
-						DiscordExtension.DiscordCommand.AddGuildCommand(guildCommandAttribute.Name, plugin, null, methodInfo.Name);
-						DiscordExtension.GlobalLogger.Debug("Adding Guild Command " + guildCommandAttribute.Name + " Method: " + methodInfo.Name);
-					}
-				}
-			}
-		}
+            for (int index = 0; index < dmCommands.Count; index++)
+            {
+                DirectMessageCommand cmd = dmCommands[index];
+                RemoveDmCommand(cmd);
+            }
+            
+            for (int index = 0; index < guildCommands.Count; index++)
+            {
+                GuildCommand cmd = guildCommands[index];
+                RemoveGuildCommand(cmd);
+            }
+        }
 
-		// Token: 0x040000E8 RID: 232
-		public readonly char[] CommandPrefixes;
+        /// <summary>
+        /// Handles the specified direct message command
+        /// Sourced from Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L361)
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="channel"></param>
+        /// <param name="name"></param>
+        /// <param name="args"></param>
+        /// <param name="message"></param>
+        internal bool HandleDirectMessageCommand(BotClient client, DiscordMessage message, DiscordChannel channel, string name, string[] args)
+        {
+            DirectMessageCommand command = _directMessageCommands[name];
+            if (command == null || !command.CanRun(client) || !command.CanHandle(message, channel))
+            {
+                return false;
+            }
+            
+            if (!command.Plugin.IsLoaded)
+            {
+                _directMessageCommands.Remove(name);
+                return false;
+            }
 
-		// Token: 0x040000E9 RID: 233
-		private readonly Hash<string, DirectMessageCommand> _directMessageCommands = new Hash<string, DirectMessageCommand>();
+            if (!client.IsPluginRegistered(command.Plugin))
+            {
+                return false;
+            }
 
-		// Token: 0x040000EA RID: 234
-		private readonly Hash<string, GuildCommand> _guildCommands = new Hash<string, GuildCommand>();
+            command.HandleCommand(message, name, args);
+            return true;
+        }
 
-		// Token: 0x040000EB RID: 235
-		private Lang _lang;
-	}
+        /// <summary>
+        /// Handles the specified direct message command
+        /// Sourced from Command.cs of OxideMod (https://github.com/OxideMod/Oxide.Rust/blob/develop/src/Libraries/Command.cs#L361)
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="channel"></param>
+        /// <param name="name"></param>
+        /// <param name="args"></param>
+        /// <param name="message"></param>
+        internal bool HandleGuildCommand(BotClient client, DiscordMessage message, DiscordChannel channel, string name, string[] args)
+        {
+            GuildCommand command = _guildCommands[name];
+            if (command == null || !command.CanRun(client) || !command.CanHandle(message, channel))
+            {
+                return false;
+            }
+            
+            if (!command.Plugin.IsLoaded)
+            {
+                _guildCommands.Remove(name);
+                return false;
+            }
+
+            if (!client.IsPluginRegistered(command.Plugin))
+            {
+                return false;
+            }
+
+            command.HandleCommand(message, name, args);
+            return true;
+        }
+        
+        internal void ProcessPluginCommands(Plugin plugin)
+        {
+            foreach (MethodInfo method in plugin.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                object[] customAttributes = method.GetCustomAttributes(typeof(DirectMessageCommandAttribute), true);
+                if (customAttributes.Length != 0)
+                {
+                    DirectMessageCommandAttribute command = (DirectMessageCommandAttribute)customAttributes[0];
+                    if (command.IsLocalized)
+                    {
+                        DiscordExtension.DiscordCommand.AddDirectMessageLocalizedCommand(command.Name, plugin, method.Name);
+                        DiscordExtension.GlobalLogger.Debug($"Adding Localized Direct Message Command {command.Name} Method: {method.Name}");
+                    }
+                    else
+                    {
+                        DiscordExtension.DiscordCommand.AddDirectMessageCommand(command.Name, plugin, method.Name);
+                        DiscordExtension.GlobalLogger.Debug($"Adding Direct Message Command {command.Name} Method: {method.Name}");
+                    }
+                }
+                
+                customAttributes = method.GetCustomAttributes(typeof(GuildCommandAttribute), true);
+                if (customAttributes.Length != 0)
+                {
+                    GuildCommandAttribute command = (GuildCommandAttribute)customAttributes[0];
+                    if (command.IsLocalized)
+                    {
+                        DiscordExtension.DiscordCommand.AddGuildLocalizedCommand(command.Name, plugin, null, method.Name);
+                        DiscordExtension.GlobalLogger.Debug($"Adding Localized Guild Command {command.Name} Method: {method.Name}");
+                    }
+                    else
+                    {
+                        DiscordExtension.DiscordCommand.AddGuildCommand(command.Name, plugin, null, method.Name);
+                        DiscordExtension.GlobalLogger.Debug($"Adding Guild Command {command.Name} Method: {method.Name}");
+                    }
+                }
+            }
+        }
+    }
 }

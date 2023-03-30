@@ -1,36 +1,56 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 
 namespace Oxide.Ext.Discord.Entities.Applications
 {
-	// Token: 0x02000117 RID: 279
-	[Flags]
-	public enum ApplicationFlags
-	{
-		// Token: 0x040005F9 RID: 1529
-		None = 0,
-		// Token: 0x040005FA RID: 1530
-		GatewayPresence = 4096,
-		// Token: 0x040005FB RID: 1531
-		GatewayPresenceLimited = 8192,
-		// Token: 0x040005FC RID: 1532
-		GatewayGuildMembers = 16384,
-		// Token: 0x040005FD RID: 1533
-		GatewayGuildMembersLimited = 32768,
-		// Token: 0x040005FE RID: 1534
-		VerificationPendingGuildLimit = 65536,
-		// Token: 0x040005FF RID: 1535
-		Embedded = 131072,
-		// Token: 0x04000600 RID: 1536
-		GatewayMessageContent = 262144,
-		// Token: 0x04000601 RID: 1537
-		GatewayMessageContentLimited = 524288
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/resources/application#application-object-application-flags">Application Flags</a>
+    /// </summary>
+    [Flags]
+    public enum ApplicationFlags
+    {
+        /// <summary>
+        /// This application has no flags
+        /// </summary>
+        None = 0,
+        
+        /// <summary>
+        /// The application is verified and can use the GUILD_PRESENCES intent
+        /// </summary>
+        GatewayPresence = 1 << 12,
+        
+        /// <summary>
+        /// The application has the GUILD_PRESENCES intent enabled on the bot
+        /// </summary>
+        GatewayPresenceLimited = 1 << 13,
+        
+        /// <summary>
+        /// The application is verified and can use the GUILD_MEMBERS intent
+        /// </summary>
+        GatewayGuildMembers = 1 << 14,
+        
+        /// <summary>
+        /// The application has the GUILD_MEMBERS intent enabled on the bot
+        /// </summary>
+        GatewayGuildMembersLimited = 1 << 15,
+        
+        /// <summary>
+        /// The application is currently pending verification
+        /// </summary>
+        VerificationPendingGuildLimit = 1 << 16,
+        
+        /// <summary>
+        /// The application has functionality that is specific to the discord client app.
+        /// </summary>
+        Embedded = 1 << 17,
+        
+        /// <summary>
+        /// The application is verified and can use the Gateway Message intent
+        /// </summary>
+        GatewayMessageContent = 1 << 18,
+        
+        /// <summary>
+        /// The application has the Gateway Message intent enabled on the bot
+        /// </summary>
+        GatewayMessageContentLimited = 1 << 19,
+    }
 }

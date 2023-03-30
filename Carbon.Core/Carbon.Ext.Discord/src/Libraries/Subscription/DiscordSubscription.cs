@@ -1,84 +1,70 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using Oxide.Core;
+using Oxide.Core.Libraries;
 using Oxide.Core.Plugins;
 using Oxide.Ext.Discord.Entities;
 using Oxide.Ext.Discord.Entities.Messages;
-using Oxide.Ext.Discord.Logging;
 using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord.Libraries.Subscription
 {
-	// Token: 0x0200001A RID: 26
-	public class DiscordSubscription
-	{
-		// Token: 0x0600010B RID: 267 RVA: 0x0000A91E File Offset: 0x00008B1E
-		public DiscordSubscription(Snowflake channelId, Plugin plugin, Action<DiscordMessage> callback)
-		{
-			this._channelId = channelId;
-			this._plugin = plugin;
-			this._callback = callback;
-		}
+    /// <summary>
+    /// Represents a channel subscription for a plugin
+    /// </summary>
+    public class DiscordSubscription
+    {
+        private Plugin _plugin;
+        private readonly Action<DiscordMessage> _callback;
+        private readonly Snowflake _channelId;
 
-		// Token: 0x0600010C RID: 268 RVA: 0x0000A940 File Offset: 0x00008B40
-		public bool CanRun(BotClient client)
-		{
-			bool result;
-			if (client != null)
-			{
-				DiscordClient discordClient = DiscordClient.Clients[this._plugin.Name];
-				result = (((discordClient != null) ? discordClient.Bot : null) == client);
-			}
-			else
-			{
-				result = false;
-			}
-			return result;
-		}
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="channelId">ID of the channel</param>
+        /// <param name="plugin">Plugin the subscription is for</param>
+        /// <param name="callback">Callback when the channel message is sent</param>
+        public DiscordSubscription(Snowflake channelId, Plugin plugin, Action<DiscordMessage> callback)
+        {
+            _channelId = channelId;
+            _plugin = plugin;
+            _callback = callback;
+        }
 
-		// Token: 0x0600010D RID: 269 RVA: 0x0000A97C File Offset: 0x00008B7C
-		public void Invoke(DiscordMessage message)
-		{
-			Interface.Oxide.NextTick(delegate()
-			{
-				try
-				{
-					this._plugin.TrackStart();
-					this._callback(message);
-					this._plugin.TrackEnd();
-				}
-				catch (Exception ex)
-				{
-					ILogger globalLogger = DiscordExtension.GlobalLogger;
-					string str = "An exception occured for discord subscription in channel ";
-					string str2 = this._channelId.ToString();
-					string str3 = " for plugin ";
-					Plugin plugin = this._plugin;
-					globalLogger.Exception(str + str2 + str3 + ((plugin != null) ? plugin.Name : null), ex);
-				}
-			});
-		}
+        /// <summary>
+        /// Returns if a subscription can run.
+        /// They can only run for the client that they were created for.
+        /// </summary>
+        /// <param name="client">Client to compare against</param>
+        /// <returns>True if same bot client; false otherwise</returns>
+        public bool CanRun(BotClient client)
+        {
+            return client != null && DiscordClient.Clients[_plugin.Name]?.Bot == client;
+        }
 
-		// Token: 0x0600010E RID: 270 RVA: 0x0000A9B5 File Offset: 0x00008BB5
-		internal void OnRemoved()
-		{
-			this._plugin = null;
-		}
+        /// <summary>
+        /// Invokes the callback with the message
+        /// </summary>
+        /// <param name="message">Message that was sent in the given channel</param>
+        public void Invoke(DiscordMessage message)
+        {
+            Interface.Oxide.NextTick(() =>
+            {
+                try
+                {
+                    _plugin.TrackStart();
+                    _callback.Invoke(message);
+                    _plugin.TrackEnd();
+                }
+                catch(Exception ex)
+                {
+                    DiscordExtension.GlobalLogger.Exception($"An exception occured for discord subscription in channel {_channelId.ToString()} for plugin {_plugin?.Name}", ex);   
+                }
+            });
+        }
 
-		// Token: 0x040000D8 RID: 216
-		private Plugin _plugin;
-
-		// Token: 0x040000D9 RID: 217
-		private readonly Action<DiscordMessage> _callback;
-
-		// Token: 0x040000DA RID: 218
-		private readonly Snowflake _channelId;
-	}
+        internal void OnRemoved()
+        {
+            _plugin = null;
+        }
+    }
 }

@@ -75,34 +75,34 @@ public class Community
 			Events.Subscribe(CarbonEvent.CarbonStartup, args =>
 			{
 				Logger.Log($"Carbon fingerprint: {Analytics.ClientID}");
-				Analytics.StartSession();
+				Analytics.SessionStart();
 			});
 
 			Events.Subscribe(CarbonEvent.CarbonStartupComplete, args =>
 			{
-				Analytics.LogEvent("on_server_startup", new Dictionary<string, object>
-				{
-					{ "branch", Analytics.Branch },
-					{ "platform", Analytics.Platform },
-					{ "short_version", Analytics.Version },
-					{ "full_version", Analytics.InformationalVersion },
-				});
+				Analytics.LogEvent("on_server_startup",
+					segments: new Dictionary<string, object> {
+						{ "branch", Analytics.Branch },
+						{ "platform", Analytics.Platform },
+					},
+					metrics: new Dictionary<string, object> {
+						{ "version", Analytics.Version },
+						{ "protocol", Analytics.Protocol },
+					}
+				);
 			});
 
 			Events.Subscribe(CarbonEvent.AllPluginsLoaded, args =>
 			{
-				Analytics.LogEvent("on_server_initialized", new Dictionary<string, object>
-				{
-					{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) },
-				});
-			});
-
-			Events.Subscribe(CarbonEvent.OnServerSave, args =>
-			{
-				Analytics.LogEvent("on_server_save", new Dictionary<string, object>
-				{
-					{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) },
-				});
+				Analytics.LogEvent("on_server_initialized",
+					segments: new Dictionary<string, object> {
+						{ "branch", Analytics.Branch },
+						{ "platform", Analytics.Platform },
+					},
+					metrics: new Dictionary<string, object> {
+						{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) }
+					}
+				);
 			});
 		}
 		catch (Exception ex)

@@ -1,49 +1,81 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Oxide.Ext.Discord.Entities.Gatway.Commands
 {
-	// Token: 0x020000EF RID: 239
-	[JsonObject(MemberSerialization = (MemberSerialization)1)]
-	public class IdentifyCommand
-	{
-		// Token: 0x170002E1 RID: 737
-		// (get) Token: 0x0600086E RID: 2158 RVA: 0x00015968 File Offset: 0x00013B68
-		// (set) Token: 0x0600086F RID: 2159 RVA: 0x00015970 File Offset: 0x00013B70
-		[JsonProperty("intents")]
-		public GatewayIntents Intents { get; set; }
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/topics/gateway#identify">Identify</a> Command
+    /// </summary>
+    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    public class IdentifyCommand
+    {
+        /// <summary>
+        /// Authentication token
+        /// </summary>
+        [JsonProperty("token")]
+        public string Token;
 
-		// Token: 0x040004F4 RID: 1268
-		[JsonProperty("token")]
-		public string Token;
+        /// <summary>
+        /// Connection properties
+        /// </summary>
+        [JsonProperty("properties")]
+        public Properties Properties;
 
-		// Token: 0x040004F5 RID: 1269
-		[JsonProperty("properties")]
-		public Properties Properties;
+        /// <summary>
+        /// Whether this connection supports compression of packets
+        /// </summary>
+        [JsonProperty("compress")]
+        public bool? Compress;
 
-		// Token: 0x040004F6 RID: 1270
-		[JsonProperty("compress")]
-		public bool? Compress;
+        /// <summary>
+        /// Value between 50 and 250, total number of members where the gateway will stop sending offline members in the guild member list
+        /// </summary>
+        [JsonProperty("large_threshold")]
+        public int? LargeThreshold;
 
-		// Token: 0x040004F7 RID: 1271
-		[JsonProperty("large_threshold")]
-		public int? LargeThreshold;
+        /// <summary>
+        /// Used for Guild Sharding
+        /// See <a href="https://discord.com/developers/docs/topics/gateway#sharding">Guild Sharding</a>
+        /// </summary>
+        [JsonProperty("shard")]
+        public List<int> Shard;
 
-		// Token: 0x040004F8 RID: 1272
-		[JsonProperty("shard")]
-		public List<int> Shard;
+        /// <summary>
+        /// Presence structure for initial presence information
+        /// </summary>
+        [JsonProperty("presence")]
+        public UpdatePresenceCommand PresenceUpdate;
 
-		// Token: 0x040004F9 RID: 1273
-		[JsonProperty("presence")]
-		public UpdatePresenceCommand PresenceUpdate;
-	}
+        /// <summary>
+        /// The Gateway Intents you wish to receive
+        /// See <a href="https://discord.com/developers/docs/topics/gateway#gateway-intents">Gateway Intents</a>
+        /// See <see cref="GatewayIntents"/>
+        /// </summary>
+        [JsonProperty("intents")]
+        public GatewayIntents Intents { get; set; }
+    }
+
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/topics/gateway#identify-identify-connection-properties">Identify Connection Properties</a>
+    /// </summary>
+    public class Properties
+    {
+        /// <summary>
+        /// Your operating system
+        /// </summary>
+        [JsonProperty("$os")]
+        public string OS;
+
+        /// <summary>
+        /// Your library name
+        /// </summary>
+        [JsonProperty("$browser")]
+        public string Browser;
+
+        /// <summary>
+        /// Your library name
+        /// </summary>
+        [JsonProperty("$device")]
+        public string Device;
+    }
 }

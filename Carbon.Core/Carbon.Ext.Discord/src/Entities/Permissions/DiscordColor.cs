@@ -1,11 +1,3 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 using System.Globalization;
 using Newtonsoft.Json;
@@ -13,170 +5,299 @@ using Oxide.Ext.Discord.Exceptions;
 
 namespace Oxide.Ext.Discord.Entities.Permissions
 {
-	// Token: 0x0200005B RID: 91
-	[JsonConverter(typeof(DiscordColorConverter))]
-	public struct DiscordColor
-	{
-		// Token: 0x1700009C RID: 156
-		// (get) Token: 0x060002DC RID: 732 RVA: 0x0000F7BB File Offset: 0x0000D9BB
-		public uint Color { get; }
+    /// <summary>
+    /// Represents a Discord Color
+    /// </summary>
+    [JsonConverter(typeof(DiscordColorConverter))]
+    public struct DiscordColor
+    {
+        /// <summary>
+        /// Default Role Color
+        /// </summary>
+        public static readonly DiscordColor Default = new DiscordColor(0);
+        
+        /// <summary>
+        /// Teal Role Color
+        /// </summary>
+        public static readonly DiscordColor Teal = new DiscordColor(0x1ABC9C);
+        
+        /// <summary>
+        /// Dark Teal Role Color
+        /// </summary>
+        public static readonly DiscordColor DarkTeal = new DiscordColor(0x11806A);
+        
+        /// <summary>
+        /// Green Role Color
+        /// </summary>
+        public static readonly DiscordColor Green = new DiscordColor(0x2ECC71);
+        
+        /// <summary>
+        /// Dark Green Role Color
+        /// </summary>
+        public static readonly DiscordColor DarkGreen = new DiscordColor(0x1F8B4C);
+        
+        /// <summary>
+        /// Blue Role Color
+        /// </summary>
+        public static readonly DiscordColor Blue = new DiscordColor(0x3498DB);
+        
+        /// <summary>
+        /// Dark Blue Role Color
+        /// </summary>
+        public static readonly DiscordColor DarkBlue = new DiscordColor(0x206694);
+        
+        /// <summary>
+        /// Purple Role Color
+        /// </summary>
+        public static readonly DiscordColor Purple = new DiscordColor(0x9B59B6);
+        
+        /// <summary>
+        /// Dark Purple Role Color
+        /// </summary>
+        public static readonly DiscordColor DarkPurple = new DiscordColor(0x71368A);
+        
+        /// <summary>
+        /// Magenta Role Color
+        /// </summary>
+        public static readonly DiscordColor Magenta = new DiscordColor(0xE91E63);
+        
+        /// <summary>
+        /// Dark Magenta Role Color
+        /// </summary>
+        public static readonly DiscordColor DarkMagenta = new DiscordColor(0xAD1457);
+        
+        /// <summary>
+        /// Gold Role Color
+        /// </summary>
+        public static readonly DiscordColor Gold = new DiscordColor(0xF1C40F);
+        
+        /// <summary>
+        /// Light Orange Role Color
+        /// </summary>
+        public static readonly DiscordColor LightOrange = new DiscordColor(0xC27C0E);
+        
+        /// <summary>
+        /// Orange Role Color
+        /// </summary>
+        public static readonly DiscordColor Orange = new DiscordColor(0xE67E22);
+        
+        /// <summary>
+        /// Dark Orange Role Color
+        /// </summary>
+        public static readonly DiscordColor DarkOrange = new DiscordColor(0xA84300);
+        
+        /// <summary>
+        /// Red Role Color
+        /// </summary>
+        public static readonly DiscordColor Red = new DiscordColor(0xE74C3C);
+        
+        /// <summary>
+        /// Dark Red Role Color
+        /// </summary>
+        public static readonly DiscordColor DarkRed = new DiscordColor(0x992D22);
+        
+        /// <summary>
+        /// Light Gray Role Color
+        /// </summary>
+        public static readonly DiscordColor LightGrey = new DiscordColor(0x979C9F);
+        
+        /// <summary>
+        /// Lighter Gray Role Color
+        /// </summary>
+        public static readonly DiscordColor LighterGrey = new DiscordColor(0x95A5A6);
+        
+        /// <summary>
+        /// Dark Gray Role Color
+        /// </summary>
+        public static readonly DiscordColor DarkGrey = new DiscordColor(0x607D8B);
+        
+        /// <summary>
+        /// Darker Gray Role Color
+        /// </summary>
+        public static readonly DiscordColor DarkerGrey = new DiscordColor(0x546E7A);
+        
+        /// <summary>
+        /// uint value of the hex color code
+        /// </summary>
+        public uint Color { get; }
 
-		// Token: 0x060002DD RID: 733 RVA: 0x0000F7C4 File Offset: 0x0000D9C4
-		public DiscordColor(uint color)
-		{
-			bool flag = color > 16777215U;
-			if (flag)
-			{
-				throw new InvalidDiscordColorException(string.Format("Color '{0}' is greater than the max color of 0xFFFFFF", color));
-			}
-			Color = color;
-		}
+        /// <summary>
+        /// DiscordColor Constructor
+        /// </summary>
+        /// <param name="color">uint value of hex color code</param>
+        public DiscordColor(uint color)
+        {
+            if (color > 0xFFFFFF)
+            {
+                throw new InvalidDiscordColorException($"Color '{color}' is greater than the max color of 0xFFFFFF");
+            }
+            
+            Color = color;
+        }
 
-		// Token: 0x060002DE RID: 734 RVA: 0x0000F7FC File Offset: 0x0000D9FC
-		public DiscordColor(string color)
-		{
-			this = new DiscordColor(uint.Parse(color.TrimStart(new char[]
-			{
-				'#'
-			}), NumberStyles.AllowHexSpecifier));
-		}
+        /// <summary>
+        /// DiscordColor Constructor
+        /// </summary>
+        /// <param name="color">string hex color code</param>
+        /// <exception cref="Exception">Throw if color is greater than #FFFFFF</exception>
+        public DiscordColor(string color) : this(uint.Parse(color.TrimStart('#'), NumberStyles.AllowHexSpecifier))
+        {
 
-		// Token: 0x060002DF RID: 735 RVA: 0x0000F821 File Offset: 0x0000DA21
-		public DiscordColor(byte red, byte green, byte blue)
-		{
-			Color = (uint)(((int)red << 16) + ((int)green << 8) + (int)blue);
-		}
+        }
 
-		// Token: 0x060002E0 RID: 736 RVA: 0x0000F834 File Offset: 0x0000DA34
-		public DiscordColor(int red, int green, int blue)
-		{
-			bool flag = red < 0 || red > 255;
-			if (flag)
-			{
-				throw new ArgumentOutOfRangeException("red", "Value must be between 0 - 255");
-			}
-			bool flag2 = green < 0 || green > 255;
-			if (flag2)
-			{
-				throw new ArgumentOutOfRangeException("green", "Value must be between 0 - 255");
-			}
-			bool flag3 = blue < 0 || blue > 255;
-			if (flag3)
-			{
-				throw new ArgumentOutOfRangeException("blue", "Value must be between 0 - 255");
-			}
-			Color = (uint)((red << 16) + (green << 8) + blue);
-		}
+        /// <summary>
+        /// DiscordColor Constructor
+        /// </summary>
+        /// <param name="red">Red color (0-255)</param>
+        /// <param name="green">Green color (0-255)</param>
+        /// <param name="blue">Blue color (0-255)</param>
+        public DiscordColor(byte red, byte green, byte blue)
+        {
+            Color = (uint)((red << 16) + (green << 8) + blue);
+        }
+        
+        /// <summary>
+        /// DiscordColor Constructor
+        /// </summary>
+        /// <param name="red">Red color (0-255)</param>
+        /// <param name="green">Green color (0-255)</param>
+        /// <param name="blue">Blue color (0-255)</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if any of the colors are &lt; 0 or &gt; 255</exception>
+        public DiscordColor(int red, int green, int blue)
+        {
+            if (red < 0 || red > byte.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(red), "Value must be between 0 - 255");
+            }
+            
+            if (green < 0 || green > byte.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(green), "Value must be between 0 - 255");
+            }
+            
+            if (blue < 0 || blue > byte.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(blue), "Value must be between 0 - 255");
+            }
 
-		// Token: 0x060002E1 RID: 737 RVA: 0x0000F8C0 File Offset: 0x0000DAC0
-		public DiscordColor(uint red, uint green, uint blue)
-		{
-			bool flag = red > 255U;
-			if (flag)
-			{
-				throw new ArgumentOutOfRangeException("red", "Value must be < 255");
-			}
-			bool flag2 = green > 255U;
-			if (flag2)
-			{
-				throw new ArgumentOutOfRangeException("green", "Value must be < 255");
-			}
-			bool flag3 = blue > 255U;
-			if (flag3)
-			{
-				throw new ArgumentOutOfRangeException("blue", "Value must be < 255");
-			}
-			Color = (red << 16) + (green << 8) + blue;
-		}
+            Color = (uint)((red << 16) + (green << 8) + blue);
+        }
+        
+        /// <summary>
+        /// DiscordColor Constructor
+        /// </summary>
+        /// <param name="red">Red color (0-255)</param>
+        /// <param name="green">Green color (0-255)</param>
+        /// <param name="blue">Blue color (0-255)</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if any of the colors are &gt; 255</exception>
+        public DiscordColor(uint red, uint green, uint blue)
+        {
+            if (red > byte.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(red), "Value must be < 255");
+            }
+            
+            if (green > byte.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(green), "Value must be < 255");
+            }
+            
+            if (blue > byte.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(nameof(blue), "Value must be < 255");
+            }
 
-		// Token: 0x060002E2 RID: 738 RVA: 0x0000F938 File Offset: 0x0000DB38
-		public DiscordColor(float red, float green, float blue)
-		{
-			bool flag = red < 0f || red > 1f;
-			if (flag)
-			{
-				throw new ArgumentOutOfRangeException("red", "Value must be between 0 - 1");
-			}
-			bool flag2 = green < 0f || green > 1f;
-			if (flag2)
-			{
-				throw new ArgumentOutOfRangeException("green", "Value must be between 0 - 1");
-			}
-			bool flag3 = blue < 0f || blue > 1f;
-			if (flag3)
-			{
-				throw new ArgumentOutOfRangeException("blue", "Value must be between 0 - 1");
-			}
-			Color = ((uint)(red * 255f) << 16) + ((uint)(green * 255f) << 8) + (uint)(blue * 255f);
-		}
+            Color = (red << 16) + (green << 8) + blue;
+        }
 
-		// Token: 0x060002E3 RID: 739 RVA: 0x0000F9E3 File Offset: 0x0000DBE3
-		public DiscordColor(double red, double green, double blue)
-		{
-			this = new DiscordColor((float)red, (float)green, (float)blue);
-		}
+        /// <summary>
+        /// DiscordColor Constructor
+        /// </summary>
+        /// <param name="red">Red color (0.0 - 1.0)</param>
+        /// <param name="green">Green color (0.0 - 1.0)</param>
+        /// <param name="blue">Blue color (0.0 - 1.0)</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if any of the colors are &lt; 0.0 or &gt; 1.0</exception>
+        public DiscordColor(float red, float green, float blue)
+        {
+            if (red < 0f || red > 1f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(red), "Value must be between 0 - 1");
+            }
+            
+            if (green < 0f || green > 1f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(green), "Value must be between 0 - 1");
+            }
+            
+            if (blue < 0f || blue > 1f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(blue), "Value must be between 0 - 1");
+            }
+            
+            Color = ((uint)(red * 255) << 16) + ((uint)(green * 255)  << 8) + (uint)(blue * 255);
+        }
+        
+        /// <summary>
+        /// DiscordColor Constructor
+        /// </summary>
+        /// <param name="red">Red color (0.0 - 1.0)</param>
+        /// <param name="green">Green color (0.0 - 1.0)</param>
+        /// <param name="blue">Blue color (0.0 - 1.0)</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if any of the colors are &lt; 0.0 or &gt; 1.0</exception>
+        public DiscordColor(double red, double green, double blue) : this((float)red, (float)green, (float)blue)
+        {
 
-		// Token: 0x040001A5 RID: 421
-		public static readonly DiscordColor Default = new DiscordColor(0U);
+        }
+    }
 
-		// Token: 0x040001A6 RID: 422
-		public static readonly DiscordColor Teal = new DiscordColor(1752220U);
+    /// <summary>
+    /// Handles the JSON Serialization / Deserialization for DiscordColor
+    /// </summary>
+    public class DiscordColorConverter : JsonConverter
+    {
+        /// <summary>
+        /// Writes to JSON
+        /// </summary>
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            DiscordColor color = (DiscordColor) value;
+            writer.WriteValue(color.Color);
+        }
 
-		// Token: 0x040001A7 RID: 423
-		public static readonly DiscordColor DarkTeal = new DiscordColor(1146986U);
+        /// <summary>
+        /// Reads from JSON
+        /// </summary>
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            if (reader.TokenType == JsonToken.Null)
+            {
+                if (!IsNullable(objectType))
+                {
+                    throw new JsonException($"Cannot convert null value to {objectType}. Path: {reader.Path}");
+                }
 
-		// Token: 0x040001A8 RID: 424
-		public static readonly DiscordColor Green = new DiscordColor(3066993U);
+                return null;
+            }
 
-		// Token: 0x040001A9 RID: 425
-		public static readonly DiscordColor DarkGreen = new DiscordColor(2067276U);
+            if (reader.TokenType == JsonToken.Integer)
+            {
+                return new DiscordColor(uint.Parse(reader.Value.ToString()));
+            }
+            
+            throw new JsonException($"Unexpected token {reader.TokenType} when parsing discord color. Path: {reader.Path}");
+        }
 
-		// Token: 0x040001AA RID: 426
-		public static readonly DiscordColor Blue = new DiscordColor(3447003U);
-
-		// Token: 0x040001AB RID: 427
-		public static readonly DiscordColor DarkBlue = new DiscordColor(2123412U);
-
-		// Token: 0x040001AC RID: 428
-		public static readonly DiscordColor Purple = new DiscordColor(10181046U);
-
-		// Token: 0x040001AD RID: 429
-		public static readonly DiscordColor DarkPurple = new DiscordColor(7419530U);
-
-		// Token: 0x040001AE RID: 430
-		public static readonly DiscordColor Magenta = new DiscordColor(15277667U);
-
-		// Token: 0x040001AF RID: 431
-		public static readonly DiscordColor DarkMagenta = new DiscordColor(11342935U);
-
-		// Token: 0x040001B0 RID: 432
-		public static readonly DiscordColor Gold = new DiscordColor(15844367U);
-
-		// Token: 0x040001B1 RID: 433
-		public static readonly DiscordColor LightOrange = new DiscordColor(12745742U);
-
-		// Token: 0x040001B2 RID: 434
-		public static readonly DiscordColor Orange = new DiscordColor(15105570U);
-
-		// Token: 0x040001B3 RID: 435
-		public static readonly DiscordColor DarkOrange = new DiscordColor(11027200U);
-
-		// Token: 0x040001B4 RID: 436
-		public static readonly DiscordColor Red = new DiscordColor(15158332U);
-
-		// Token: 0x040001B5 RID: 437
-		public static readonly DiscordColor DarkRed = new DiscordColor(10038562U);
-
-		// Token: 0x040001B6 RID: 438
-		public static readonly DiscordColor LightGrey = new DiscordColor(9936031U);
-
-		// Token: 0x040001B7 RID: 439
-		public static readonly DiscordColor LighterGrey = new DiscordColor(9807270U);
-
-		// Token: 0x040001B8 RID: 440
-		public static readonly DiscordColor DarkGrey = new DiscordColor(6323595U);
-
-		// Token: 0x040001B9 RID: 441
-		public static readonly DiscordColor DarkerGrey = new DiscordColor(5533306U);
-	}
+        /// <summary>
+        /// Check if can convert
+        /// </summary>
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType != null && (IsNullable(objectType) ? Nullable.GetUnderlyingType(objectType) : objectType) == typeof(DiscordColor);
+        }
+        
+        private bool IsNullable(Type objectType)
+        {
+            return objectType.IsGenericType && objectType.GetGenericTypeDefinition() == typeof(Nullable<>);
+        }
+    }
 }

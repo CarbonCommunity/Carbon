@@ -1,160 +1,144 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
 using System.Timers;
 using Oxide.Core;
+using Oxide.Ext.Discord.Constants;
 using Oxide.Ext.Discord.Logging;
-using Random = Oxide.Core.Random;
 
 namespace Oxide.Ext.Discord.WebSockets.Handlers
 {
-	// Token: 0x0200000B RID: 11
-	public class HeartbeatHandler
-	{
-		// Token: 0x06000099 RID: 153 RVA: 0x00008707 File Offset: 0x00006907
-		public HeartbeatHandler(BotClient client, Socket socket, SocketListener listener, ILogger logger)
-		{
-			this._client = client;
-			this._socket = socket;
-			this._listener = listener;
-			this._logger = logger;
-		}
+    /// <summary>
+    /// Handles the heartbeating for the websocket connection
+    /// </summary>
+    public class HeartbeatHandler
+    {
+        /// <summary>
+        /// Discord Acknowledged our heartbeat successfully 
+        /// </summary>
+        public bool HeartbeatAcknowledged;
+        
+        private readonly BotClient _client;
+        private readonly Socket _socket;
+        private readonly SocketListener _listener;
+        private readonly ILogger _logger;
+        private Timer _timer;
+        private float _interval;
+        private bool _initial;
 
-		// Token: 0x0600009A RID: 154 RVA: 0x00008730 File Offset: 0x00006930
-		internal void SetupHeartbeat(float interval)
-		{
-			bool flag = this._timer != null;
-			if (flag)
-			{
-				this._logger.Debug("HeartbeatHandler.SetupHeartbeat Previous heartbeat timer exists.");
-				this.DestroyHeartbeat();
-			}
-			this.HeartbeatAcknowledged = true;
-			this._interval = interval;
-			this._initial = true;
-			this._timer = new Timer((double)(this._interval * Random.Range(0f, 1f)));
-			this._timer.Elapsed += this.HeartbeatElapsed;
-			this._timer.Start();
-			this._logger.Debug("HeartbeatHandler.SetupHeartbeat Creating heartbeat with interval " + interval.ToString() + "ms.");
-			this._client.CallHook("OnDiscordSetupHeartbeat", new object[]
-			{
-				interval
-			});
-		}
+        /// <summary>
+        /// Constructor for Heartbeat Handler
+        /// </summary>
+        /// <param name="client">Client for the handler</param>
+        /// <param name="socket">Socket for the heartbeat</param>
+        /// <param name="listener">Socket Listener for the client</param>
+        /// <param name="logger">Logger for the bot</param>
+        public HeartbeatHandler(BotClient client, Socket socket,  SocketListener listener, ILogger logger)
+        {
+            _client = client;
+            _socket = socket;
+            _listener = listener;
+            _logger = logger;
+        }
+        
+        #region Heartbeat
+        /// <summary>
+        /// Setup a heartbeat for this bot with the given interval
+        /// </summary>
+        /// <param name="interval"></param>
+        internal void SetupHeartbeat(float interval)
+        {
+            if (_timer != null)
+            {
+                _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(SetupHeartbeat)} Previous heartbeat timer exists.");
+                DestroyHeartbeat();
+            }
+            
+            HeartbeatAcknowledged = true;
+            _interval = interval;
+            _initial = true;
+            _timer = new Timer(_interval * Random.Range(0f, 1f));
+            _timer.Elapsed += HeartbeatElapsed;
+            _timer.Start();
+            _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(SetupHeartbeat)} Creating heartbeat with interval {interval.ToString()}ms.");
+            _client.CallHook(DiscordExtHooks.OnDiscordSetupHeartbeat, interval);
+        }
 
-		// Token: 0x0600009B RID: 155 RVA: 0x00008804 File Offset: 0x00006A04
-		public void DestroyHeartbeat()
-		{
-			bool flag = this._timer != null;
-			if (flag)
-			{
-				this._logger.Debug("HeartbeatHandler.DestroyHeartbeat Destroy Heartbeat");
-				this._timer.Dispose();
-				this._timer = null;
-			}
-		}
+        /// <summary>
+        /// Destroy the heartbeat on this bot
+        /// </summary>
+        public void DestroyHeartbeat()
+        {
+            if(_timer != null)
+            {
+                _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(DestroyHeartbeat)} Destroy Heartbeat");
+                _timer.Dispose();
+                _timer = null;
+            }
+        }
 
-		// Token: 0x0600009C RID: 156 RVA: 0x00008848 File Offset: 0x00006A48
-		private void HeartbeatElapsed(object sender, ElapsedEventArgs e)
-		{
-			this._logger.Debug("HeartbeatHandler.HeartbeatElapsed Heartbeat Elapsed");
-			bool initial = this._initial;
-			if (initial)
-			{
-				this._timer.Interval = (double)this._interval;
-				this._initial = false;
-			}
-			bool flag = !this._listener.SocketHasConnected;
-			if (flag)
-			{
-				this._logger.Debug("HeartbeatHandler.HeartbeatElapsed Websocket has not yet connected successfully. Skipping Heartbeat.");
-			}
-			else
-			{
-				bool flag2 = this._socket.IsPendingReconnect();
-				if (flag2)
-				{
-					this._logger.Debug("HeartbeatHandler.HeartbeatElapsed Websocket is offline and is waiting to connect.");
-				}
-				else
-				{
-					bool flag3 = this._socket.IsDisconnected();
-					if (flag3)
-					{
-						this._logger.Debug("HeartbeatHandler.HeartbeatElapsed Websocket is offline and is NOT connecting. Attempt Reconnect.");
-						this._socket.Reconnect();
-					}
-					else
-					{
-						bool flag4 = !this.HeartbeatAcknowledged;
-						if (flag4)
-						{
-							bool flag5 = this._socket.IsConnected();
-							if (flag5)
-							{
-								this._logger.Debug("HeartbeatHandler.HeartbeatElapsed Heartbeat Elapsed and WebSocket is connected. Forcing reconnect.");
-								this._socket.Disconnect(true, true, true);
-							}
-							else
-							{
-								bool flag6 = !this._socket.IsConnecting() && !this._socket.IsPendingReconnect();
-								if (flag6)
-								{
-									this._logger.Debug("HeartbeatHandler.HeartbeatElapsed Heartbeat Elapsed and bot is not online or connecting.");
-									this._socket.Reconnect();
-								}
-								else
-								{
-									this._logger.Debug("HeartbeatHandler.HeartbeatElapsed Heartbeat Elapsed and bot is not online but is waiting to connecting or waiting to reconnect.");
-								}
-							}
-						}
-						else
-						{
-							this.SendHeartbeat();
-						}
-					}
-				}
-			}
-		}
+        private void HeartbeatElapsed(object sender, ElapsedEventArgs e)
+        {
+            _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(HeartbeatElapsed)} Heartbeat Elapsed");
 
-		// Token: 0x0600009D RID: 157 RVA: 0x000089B4 File Offset: 0x00006BB4
-		public void SendHeartbeat()
-		{
-			this.HeartbeatAcknowledged = false;
-			this._listener.SendHeartbeat();
-			this._client.CallHook("OnDiscordHeartbeatSent", Array.Empty<object>());
-			this._logger.Debug("HeartbeatHandler.SendHeartbeat Heartbeat sent - " + this._timer.Interval.ToString() + "ms interval.");
-		}
+            if (_initial)
+            {
+                _timer.Interval = _interval;
+                _initial = false;
+            }
 
-		// Token: 0x04000084 RID: 132
-		public bool HeartbeatAcknowledged;
+            if (!_listener.SocketHasConnected)
+            {
+                _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(HeartbeatElapsed)} Websocket has not yet connected successfully. Skipping Heartbeat.");
+                return;
+            }
+            
+            if (_socket.IsPendingReconnect())
+            {
+                _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(HeartbeatElapsed)} Websocket is offline and is waiting to connect.");
+                return;
+            }
 
-		// Token: 0x04000085 RID: 133
-		private readonly BotClient _client;
+            if (_socket.IsDisconnected())
+            {
+                _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(HeartbeatElapsed)} Websocket is offline and is NOT connecting. Attempt Reconnect.");
+                _socket.Reconnect();
+                return;
+            }
+            
+            if(!HeartbeatAcknowledged)
+            {
+                //Discord did not acknowledge our last sent heartbeat. This is a zombie connection we should reconnect with non 1000 close code.
+                if (_socket.IsConnected())
+                {
+                    _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(HeartbeatElapsed)} Heartbeat Elapsed and WebSocket is connected. Forcing reconnect.");
+                    _socket.Disconnect(true, true, true);
+                    return;
+                }
 
-		// Token: 0x04000086 RID: 134
-		private readonly Socket _socket;
+                //Websocket isn't connected or waiting to reconnect. We should reconnect.
+                if (!_socket.IsConnecting() && !_socket.IsPendingReconnect())
+                {
+                    _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(HeartbeatElapsed)} Heartbeat Elapsed and bot is not online or connecting.");
+                    _socket.Reconnect();
+                    return;
+                }
 
-		// Token: 0x04000087 RID: 135
-		private readonly SocketListener _listener;
-
-		// Token: 0x04000088 RID: 136
-		private readonly ILogger _logger;
-
-		// Token: 0x04000089 RID: 137
-		private Timer _timer;
-
-		// Token: 0x0400008A RID: 138
-		private float _interval;
-
-		// Token: 0x0400008B RID: 139
-		private bool _initial;
-	}
+                _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(HeartbeatElapsed)} Heartbeat Elapsed and bot is not online but is waiting to connecting or waiting to reconnect.");
+                return;
+            }
+            
+            SendHeartbeat();
+        }
+        
+        /// <summary>
+        /// Sends a heartbeat to discord.
+        /// If the previous heartbeat wasn't acknowledged then we will attempt to reconnect
+        /// </summary>
+        public void SendHeartbeat()
+        {
+            HeartbeatAcknowledged = false;
+            _listener.SendHeartbeat();
+            _client.CallHook(DiscordExtHooks.OnDiscordHeartbeatSent);
+            _logger.Debug($"{nameof(HeartbeatHandler)}.{nameof(SendHeartbeat)} Heartbeat sent - {_timer.Interval.ToString()}ms interval.");
+        }
+        #endregion
+    }
 }

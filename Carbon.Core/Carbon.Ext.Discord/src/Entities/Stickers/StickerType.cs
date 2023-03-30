@@ -1,21 +1,18 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
 namespace Oxide.Ext.Discord.Entities.Stickers
 {
-	// Token: 0x0200005A RID: 90
-	public enum StickerType
-	{
-		// Token: 0x040001A3 RID: 419
-		Standard = 1,
-		// Token: 0x040001A4 RID: 420
-		Guild
-	}
+    /// <summary>
+    /// Represents a <a href="https://discord.com/developers/docs/resources/sticker#sticker-types">Sticker Types</a>
+    /// </summary>
+    public enum StickerType
+    {
+        /// <summary>
+        /// An official sticker in a pack, part of Nitro or in a removed purchasable pack
+        /// </summary>
+        Standard = 1,
+        
+        /// <summary>
+        /// A sticker uploaded to a Boosted guild for the guild's members
+        /// </summary>
+        Guild = 2
+    }
 }

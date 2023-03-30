@@ -1,29 +1,38 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
 namespace Oxide.Ext.Discord.Entities.Gatway.Events
 {
-	// Token: 0x020000C9 RID: 201
-	public enum GatewayEventCode
-	{
-		// Token: 0x04000478 RID: 1144
-		Dispatch,
-		// Token: 0x04000479 RID: 1145
-		Heartbeat,
-		// Token: 0x0400047A RID: 1146
-		Reconnect = 7,
-		// Token: 0x0400047B RID: 1147
-		InvalidSession = 9,
-		// Token: 0x0400047C RID: 1148
-		Hello,
-		// Token: 0x0400047D RID: 1149
-		HeartbeatAcknowledge
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes">Gateway Opcodes</a>
+    /// </summary>
+    public enum GatewayEventCode
+    {
+        /// <summary>
+        /// An event was dispatched.
+        /// </summary>
+        Dispatch = 0,
+        
+        /// <summary>
+        /// Fired periodically by the client to keep the connection alive.
+        /// </summary>
+        Heartbeat = 1,
+        
+        /// <summary>
+        /// You should attempt to reconnect and resume immediately.
+        /// </summary>
+        Reconnect = 7,
+        
+        /// <summary>
+        /// The session has been invalidated. You should reconnect and identify/resume accordingly.
+        /// </summary>
+        InvalidSession = 9,
+        
+        /// <summary>
+        /// Sent immediately after connecting, contains the heartbeat_interval to use.
+        /// </summary>
+        Hello = 10,
+        
+        /// <summary>
+        /// Sent in response to receiving a heartbeat to acknowledge that it has been received.
+        /// </summary>
+        HeartbeatAcknowledge = 11
+    }
 }

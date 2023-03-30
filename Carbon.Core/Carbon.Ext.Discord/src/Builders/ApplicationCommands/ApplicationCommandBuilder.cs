@@ -1,11 +1,3 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 using System.Collections.Generic;
 using Oxide.Ext.Discord.Entities.Interactions.ApplicationCommands;
@@ -13,143 +5,133 @@ using Oxide.Ext.Discord.Exceptions;
 
 namespace Oxide.Ext.Discord.Builders.ApplicationCommands
 {
-	// Token: 0x0200012E RID: 302
-	public class ApplicationCommandBuilder : IApplicationCommandBuilder
-	{
-		// Token: 0x06000B04 RID: 2820 RVA: 0x00018BF4 File Offset: 0x00016DF4
-		public ApplicationCommandBuilder(string name, string description, ApplicationCommandType type)
-		{
-			bool flag = string.IsNullOrEmpty(name);
-			if (flag)
-			{
-				throw new ArgumentException("Value cannot be null or empty.", "name");
-			}
-			bool flag2 = string.IsNullOrEmpty(description);
-			if (flag2)
-			{
-				throw new ArgumentException("Value cannot be null or empty.", "description");
-			}
-			this._options = new List<CommandOption>();
-			this.Command = new CommandCreate
-			{
-				Name = name,
-				Description = description,
-				Type = new ApplicationCommandType?(type),
-				Options = this._options
-			};
-		}
+    /// <summary>
+    /// Builder to use when building application commands
+    /// </summary>
+    public class ApplicationCommandBuilder : IApplicationCommandBuilder
+    {
+        internal readonly CommandCreate Command;
+        private readonly List<CommandOption> _options;
+        private CommandOptionType? _chosenType;
 
-		// Token: 0x06000B05 RID: 2821 RVA: 0x00018C80 File Offset: 0x00016E80
-		public ApplicationCommandBuilder SetEnabled(bool enabled)
-		{
-			this.Command.DefaultPermissions = new bool?(enabled);
-			return this;
-		}
+        /// <summary>
+        /// Creates a new Application Command Builder
+        /// </summary>
+        /// <param name="name">Name of the command</param>
+        /// <param name="description">Description of the command</param>
+        /// <param name="type">Command type</param>
+        public ApplicationCommandBuilder(string name, string description, ApplicationCommandType type)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Value cannot be null or empty.", nameof(name));
+            if (string.IsNullOrEmpty(description))
+                throw new ArgumentException("Value cannot be null or empty.", nameof(description));
 
-		// Token: 0x06000B06 RID: 2822 RVA: 0x00018CA8 File Offset: 0x00016EA8
-		public SubCommandGroupBuilder AddSubCommandGroup(string name, string description)
-		{
-			bool flag = string.IsNullOrEmpty(name);
-			if (flag)
-			{
-				throw new ArgumentException("Value cannot be null or empty.", "name");
-			}
-			bool flag2 = string.IsNullOrEmpty(description);
-			if (flag2)
-			{
-				throw new ArgumentException("Value cannot be null or empty.", "description");
-			}
-			bool flag3 = this._chosenType != null && this._chosenType.Value != CommandOptionType.SubCommandGroup && this._chosenType.Value != CommandOptionType.SubCommand;
-			if (flag3)
-			{
-				throw new InvalidApplicationCommandException("Cannot mix sub command / sub command groups with command options");
-			}
-			ApplicationCommandType? type = this.Command.Type;
-			ApplicationCommandType applicationCommandType = ApplicationCommandType.Message;
-			bool flag4;
-			if (!(type.GetValueOrDefault() == applicationCommandType & type != null))
-			{
-				type = this.Command.Type;
-				applicationCommandType = ApplicationCommandType.User;
-				flag4 = (type.GetValueOrDefault() == applicationCommandType & type != null);
-			}
-			else
-			{
-				flag4 = true;
-			}
-			bool flag5 = flag4;
-			if (flag5)
-			{
-				throw new InvalidApplicationCommandException("Message and User commands cannot have sub command groups");
-			}
-			this._chosenType = new CommandOptionType?(CommandOptionType.SubCommandGroup);
-			return new SubCommandGroupBuilder(name, description, this);
-		}
+            _options = new List<CommandOption>();
+            Command = new CommandCreate
+            {
+                Name = name,
+                Description = description,
+                Type = type,
+                Options = _options
+            };
+        }
 
-		// Token: 0x06000B07 RID: 2823 RVA: 0x00018DA0 File Offset: 0x00016FA0
-		public SubCommandBuilder AddSubCommand(string name, string description)
-		{
-			bool flag = string.IsNullOrEmpty(name);
-			if (flag)
-			{
-				throw new ArgumentException("Value cannot be null or empty.", "name");
-			}
-			bool flag2 = string.IsNullOrEmpty(description);
-			if (flag2)
-			{
-				throw new ArgumentException("Value cannot be null or empty.", "description");
-			}
-			bool flag3 = this._chosenType != null && this._chosenType.Value != CommandOptionType.SubCommandGroup && this._chosenType.Value != CommandOptionType.SubCommand;
-			if (flag3)
-			{
-				throw new InvalidApplicationCommandException("Cannot mix sub command / sub command groups with command options");
-			}
-			ApplicationCommandType? type = this.Command.Type;
-			ApplicationCommandType applicationCommandType = ApplicationCommandType.Message;
-			bool flag4;
-			if (!(type.GetValueOrDefault() == applicationCommandType & type != null))
-			{
-				type = this.Command.Type;
-				applicationCommandType = ApplicationCommandType.User;
-				flag4 = (type.GetValueOrDefault() == applicationCommandType & type != null);
-			}
-			else
-			{
-				flag4 = true;
-			}
-			bool flag5 = flag4;
-			if (flag5)
-			{
-				throw new InvalidApplicationCommandException("Message and User commands cannot have sub commands");
-			}
-			this._chosenType = new CommandOptionType?(CommandOptionType.SubCommand);
-			return new SubCommandBuilder(this._options, name, description, this);
-		}
+        /// <summary>
+        /// Set whether the command is enabled by default when the app is added to a guild
+        /// </summary>
+        /// <param name="enabled">If the command is enabled</param>
+        /// <returns>This</returns>
+        public ApplicationCommandBuilder SetEnabled(bool enabled)
+        {
+            Command.DefaultPermissions = enabled;
+            return this;
+        }
 
-		// Token: 0x06000B08 RID: 2824 RVA: 0x00018E9C File Offset: 0x0001709C
-		public CommandOptionBuilder AddOption(CommandOptionType type, string name, string description)
-		{
-			bool flag = this._chosenType != null && (this._chosenType.Value == CommandOptionType.SubCommandGroup || this._chosenType.Value == CommandOptionType.SubCommand);
-			if (flag)
-			{
-				throw new InvalidApplicationCommandException("Cannot mix sub command / sub command groups with command options");
-			}
-			return new CommandOptionBuilder(this._options, type, name, description, this);
-		}
+        /// <summary>
+        /// Creates a new SubCommandGroup
+        /// SubCommandGroups contain subcommands
+        /// Your root command can only contain 
+        /// </summary>
+        /// <param name="name">Name of the command</param>
+        /// <param name="description">Description of the command</param>
+        /// <returns><see cref="SubCommandGroupBuilder"/></returns>
+        /// <exception cref="Exception">Thrown if trying to add a subcommand group to</exception>
+        public SubCommandGroupBuilder AddSubCommandGroup(string name, string description)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Value cannot be null or empty.", nameof(name));
+            if (string.IsNullOrEmpty(description))
+                throw new ArgumentException("Value cannot be null or empty.", nameof(description));
 
-		// Token: 0x06000B09 RID: 2825 RVA: 0x00018EFC File Offset: 0x000170FC
-		public CommandCreate Build()
-		{
-			return this.Command;
-		}
+            if (_chosenType.HasValue && _chosenType.Value != CommandOptionType.SubCommandGroup && _chosenType.Value != CommandOptionType.SubCommand)
+            {
+                throw new InvalidApplicationCommandException("Cannot mix sub command / sub command groups with command options");
+            }
 
-		// Token: 0x04000703 RID: 1795
-		internal readonly CommandCreate Command;
+            if (Command.Type == ApplicationCommandType.Message || Command.Type == ApplicationCommandType.User)
+            {
+                throw new InvalidApplicationCommandException("Message and User commands cannot have sub command groups");
+            }
 
-		// Token: 0x04000704 RID: 1796
-		private readonly List<CommandOption> _options;
+            _chosenType = CommandOptionType.SubCommandGroup;
 
-		// Token: 0x04000705 RID: 1797
-		private CommandOptionType? _chosenType;
-	}
+            return new SubCommandGroupBuilder(name, description, this);
+        }
+
+        /// <summary>
+        /// Adds a sub command to the root command
+        /// </summary>
+        /// <param name="name">Name of the sub command</param>
+        /// <param name="description">Description for the sub command</param>
+        /// <returns><see cref="SubCommandBuilder"/></returns>
+        /// <exception cref="Exception">Thrown if previous type was not SubCommand or Creation type is not ChatInput</exception>
+        public SubCommandBuilder AddSubCommand(string name, string description)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Value cannot be null or empty.", nameof(name));
+            if (string.IsNullOrEmpty(description))
+                throw new ArgumentException("Value cannot be null or empty.", nameof(description));
+
+            if (_chosenType.HasValue && _chosenType.Value != CommandOptionType.SubCommandGroup && _chosenType.Value != CommandOptionType.SubCommand)
+            {
+                throw new InvalidApplicationCommandException("Cannot mix sub command / sub command groups with command options");
+            }
+
+            if (Command.Type == ApplicationCommandType.Message || Command.Type == ApplicationCommandType.User)
+            {
+                throw new InvalidApplicationCommandException("Message and User commands cannot have sub commands");
+            }
+
+            _chosenType = CommandOptionType.SubCommand;
+
+            return new SubCommandBuilder(_options, name, description, this);
+        }
+
+        /// <summary>
+        /// Adds a command option.
+        /// </summary>
+        /// <param name="type">The type of option. Cannot be SubCommand or SubCommandGroup</param>
+        /// <param name="name">Name of the option</param>
+        /// <param name="description">Description for the option</param>
+        /// <returns><see cref="CommandOptionBuilder"/></returns>
+        public CommandOptionBuilder AddOption(CommandOptionType type, string name, string description)
+        {
+            if (_chosenType.HasValue && (_chosenType.Value == CommandOptionType.SubCommandGroup || _chosenType.Value == CommandOptionType.SubCommand))
+            {
+                throw new InvalidApplicationCommandException("Cannot mix sub command / sub command groups with command options");
+            }
+
+            return new CommandOptionBuilder(_options, type, name, description, this);
+        }
+
+        /// <summary>
+        /// Returns the created command
+        /// </summary>
+        /// <returns></returns>
+        public CommandCreate Build()
+        {
+            return Command;
+        }
+    }
 }
