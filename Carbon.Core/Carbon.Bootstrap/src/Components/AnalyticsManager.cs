@@ -163,10 +163,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	}
 
 	public void SessionStart()
-	{
-		Logger.Warn(">> SESSION START");
-		LogEvent(_first ? "first_visit" : "user_engagement");
-	}
+		=> LogEvent(_first ? "first_visit" : "user_engagement");
 
 	public void LogEvent(string eventName)
 		=> SendEvent(eventName);
