@@ -187,9 +187,30 @@ namespace Oxide.Core
 			return HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 		}
 
+		public static object Call<T>(string hook, params object[] args)
+		{
+			return args.Length switch
+			{
+				1 =>  HookCaller.CallStaticHook(hook, args[0]),
+				2 =>  HookCaller.CallStaticHook(hook, args[0], args[1]),
+				3 =>  HookCaller.CallStaticHook(hook, args[0], args[1], args[2]),
+				4 =>  HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3]),
+				5 =>  HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3], args[4]),
+				6 =>  HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3], args[4], args[5]),
+				7 =>  HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+				8 =>  HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+				9 =>  HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+				10 => HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+				11 => HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+				12 => HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+				13 => HookCaller.CallStaticHook(hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[13]),
+				_ =>  HookCaller.CallStaticHook(hook),
+			};
+		}
+
 		public static object Call(string hook, params object[] args)
 		{
-			return HookCaller.CallStaticHook(hook, args);
+			return Call<object>(hook, args);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -157,7 +157,7 @@ namespace Oxide.Ext.Discord
                 for (int index = 0; index < RegisteredForHooks.Count; index++)
                 {
                     Plugin plugin = RegisteredForHooks[index];
-                    plugin.CallHook(hookName, args);
+                    plugin.Call(hookName, args);
                 }
             });
         }
