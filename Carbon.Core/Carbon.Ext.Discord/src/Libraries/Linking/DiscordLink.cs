@@ -30,6 +30,11 @@ namespace Oxide.Ext.Discord.Libraries.Linking
 
         private readonly ILogger _logger;
 
+		public DiscordLink()
+		{
+			_logger = DiscordExtension.GlobalLogger;
+		}
+
         /// <summary>
         /// DiscordLink Constructor
         /// </summary>
