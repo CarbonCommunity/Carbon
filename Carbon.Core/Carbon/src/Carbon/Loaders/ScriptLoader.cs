@@ -77,7 +77,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 	public static void LoadAll()
 	{
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
-		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: SearchOption.AllDirectories);
+		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: SearchOption.TopDirectoryOnly);
 
 		Community.Runtime.ScriptProcessor.Clear();
 		Community.Runtime.ScriptProcessor.IgnoreList.Clear();

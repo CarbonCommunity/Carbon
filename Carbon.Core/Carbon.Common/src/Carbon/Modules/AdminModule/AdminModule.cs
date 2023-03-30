@@ -3402,7 +3402,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				vendor.CheckMetadata(selectedPlugin.Id, () => { Singleton.Draw(ap.Player); });
 
 				var mainPanel = cui.CreatePanel(container, parent, null, "0.15 0.15 0.15 0.35", blur: true);
-				cui.CreatePanel(container, mainPanel, null, "0.1 0.1 0.1 0.9");
+				cui.CreatePanel(container, mainPanel, null, "0 0 0 0.9");
 
 				var image = cui.CreatePanel(container, parent, null, "0 0 0 0.5", xMin: 0.08f, xMax: 0.45f, yMin: 0.15f, yMax: 0.85f);
 
