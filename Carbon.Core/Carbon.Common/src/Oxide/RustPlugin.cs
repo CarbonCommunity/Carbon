@@ -7,6 +7,7 @@ using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Libraries;
 using UnityEngine;
+using System.Linq;
 
 /*
  *
@@ -267,6 +268,11 @@ public class RustPlugin : Plugin
 		if (!Config.Exists(null))
 		{
 			LoadDefaultConfig();
+
+			if(Config.Count() > 0)
+			{
+				SaveConfig();
+			}
 		}
 		try
 		{
