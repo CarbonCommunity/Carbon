@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using Carbon.Core;
 using Oxide.Core;
+using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
 using Oxide.Core.Plugins;
 using Oxide.Ext.Discord.Attributes;
+using Oxide.Ext.Discord.Configuration;
 using Oxide.Ext.Discord.Entities;
 using Oxide.Ext.Discord.Entities.Channels;
 using Oxide.Ext.Discord.Entities.Messages;
@@ -39,6 +43,12 @@ namespace Oxide.Ext.Discord.Libraries.Command
                 return _lang = Interface.Oxide.GetLibrary<Lang>();
             }
         }
+
+		public DiscordCommand()
+		{
+			var config = ConfigFile.Load<DiscordConfig>(Path.Combine(Defines.GetConfigsFolder(), "discord.config.json"));
+			CommandPrefixes = config.Commands.CommandPrefixes;
+		}
 
         /// <summary>
         /// Discord Commands Constructor
