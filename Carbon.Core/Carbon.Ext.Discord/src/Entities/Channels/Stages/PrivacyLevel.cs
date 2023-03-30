@@ -1,25 +1,24 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.ComponentModel;
 
 namespace Oxide.Ext.Discord.Entities.Channels.Stages
 {
-	// Token: 0x02000109 RID: 265
-	public enum PrivacyLevel
-	{
-		// Token: 0x04000587 RID: 1415
-		[Obsolete("Deprecated by Discord")]
-		[System.ComponentModel.Description("PUBLIC")]
-		Public = 1,
-		// Token: 0x04000588 RID: 1416
-		[System.ComponentModel.Description("GUILD_ONLY")]
-		GuildOnly
-	}
+    /// <summary>
+    /// Represents a <a href="https://discord.com/developers/docs/resources/stage-instance#stage-instance-object-privacy-level">Stage Privacy Level</a> within Discord.
+    /// </summary>
+    public enum PrivacyLevel
+    {
+        /// <summary>
+        /// The Stage instance is visible publicly. (deprecated)
+        /// </summary>
+        [Obsolete("Deprecated by Discord")]
+        [System.ComponentModel.Description ("PUBLIC")]
+        Public = 1,
+        
+        /// <summary>
+        /// The Stage instance is visible to only guild members.
+        /// </summary>
+        [System.ComponentModel.Description ("GUILD_ONLY")]
+        GuildOnly = 2
+    }
 }

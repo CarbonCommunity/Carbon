@@ -4,7 +4,7 @@
 		Deep cleaning task
 	-->
 	<Target Name="CarbonCustomClean" AfterTargets="Clean">
-		<Message Text="[$(AssemblyName)] &gt;&gt; Removing directory '$(OutputPath)'" Importance="high" />
+		<Message Text="[$(AssemblyName)] Removing directory '$(OutputPath)'" Importance="high" />
 		<RemoveDir Directories="$(OutputPath)" />
 	</Target>
 
@@ -18,7 +18,7 @@
 		</PropertyGroup>
 
 		<ItemGroup Condition="!Exists('$(MSBuildProjectDirectory)\bin\.version')">
-			<Message Text="[$(AssemblyName)] &gt;&gt; Saving build version metadata to disk" Importance="high" />
+			<Message Text="[$(AssemblyName)] Saving build version metadata to disk" Importance="high" />
 			<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.version" Overwrite="true" Lines="$(BuildVersion)" />
 		</ItemGroup>
 	</Target>
@@ -39,7 +39,7 @@
 			<Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
 		</PropertyGroup>
 
-		<Message Text="[$(AssemblyName)] &gt;&gt; Saving git metadata to disk" Importance="high" />
+		<Message Text="[$(AssemblyName)] Saving git metadata to disk" Importance="high" />
 		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitag" Overwrite="true" Lines="$(Gitag)" />
 	</Target>
 
@@ -48,6 +48,7 @@
 	-->
 	<Target Name="CarbonPreBuildEvent" BeforeTargets="PreBuildEvent">
 		<Message Text="[$(AssemblyName)] &gt;&gt; Product: $(Product) ($(OperatingSystem))" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Protocol: $(CarbonProtocol)" Importance="high" />
 		<Message Text="[$(AssemblyName)] &gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
 		<Message Text="[$(AssemblyName)] &gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />
 		<Message Text="[$(AssemblyName)] &gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
@@ -58,7 +59,7 @@
 		Rename the generated assembly to the product name
 	-->
 	<Target Name="RenameAssembly" AfterTargets="PostBuildEvent" Condition="'$(TargetName).dll' != '$(Product).dll'">
-		<Message Text="[$(AssemblyName)] &gt;&gt; Rename the build artifact from '$(OutputPath)$(TargetName).dll' to '$(OutputPath)$(Product).dll'" Importance="high" />
+		<Message Text="[$(AssemblyName)] Rename the build artifact from '$(OutputPath)$(TargetName).dll' to '$(OutputPath)$(Product).dll'" Importance="high" />
 		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)$(Product).dll" />
 	</Target>
 
@@ -70,7 +71,7 @@
 			<RustManaged Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" Exclude="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\0Harmony.dll" />
 		</ItemGroup>
 
-		<Message Text="[$(AssemblyName)] &gt;&gt; Removing rust managed libs" Importance="high" />
+		<Message Text="[$(AssemblyName)] Removing rust managed libs" Importance="high" />
 		<Delete Files="$(OutputPath)%(RustManaged.Filename).dll" />
 	</Target>
 
@@ -78,7 +79,7 @@
 		Creates all the sub folders on the release folder
 	-->
 	<Target Name="PrepareRelease" AfterTargets="PostBuildEvent">
-		<Message Text="[$(AssemblyName)] &gt;&gt; Preparing the release folder ($(OperatingSystem))" Importance="high" />
+		<Message Text="[$(AssemblyName)] Preparing the release folder ($(OperatingSystem))" Importance="high" />
 		<PropertyGroup>
 			<CarbonBaseDir>$(SolutionDir)..\Release\.tmp\$(Configuration)</CarbonBaseDir>
 			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
@@ -90,7 +91,7 @@
 			<c_data>$(CarbonBaseDir)\carbon\data</c_data>
 		</PropertyGroup>
 
-		<Message Text="[$(AssemblyName)] &gt;&gt; Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
+		<Message Text="[$(AssemblyName)] Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
 		<MakeDir Directories="$(CarbonBaseDir);$(c_managed);$(c_lib);$(c_hooks);$(c_tools);$(c_plugins);$(c_harmony);$(c_ext);$(c_data)" />
 	</Target>
 
@@ -102,7 +103,7 @@
 			<FilesToCopy Include="$(OutputPath)**\*.dll" Exclude="$(OutputPath)$(Product).dll" />
 		</ItemGroup>
 
-		<Message Text="[$(AssemblyName)] &gt;&gt; Copy files to release folder" Importance="high" />
+		<Message Text="[$(AssemblyName)] Copy files to release folder" Importance="high" />
 		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
 
 		<ItemGroup>
@@ -110,7 +111,7 @@
 			<FilesToClean Include="$(c_lib)\*.pdb" />
 		</ItemGroup>
 
-		<Message Text="[$(AssemblyName)] &gt;&gt; Cleanup carbon stuff from lib folder" Importance="high" />
+		<Message Text="[$(AssemblyName)] Cleanup carbon stuff from lib folder" Importance="high" />
 		<Delete Files="@(FilesToClean)" />
 	</Target>
 </Project>

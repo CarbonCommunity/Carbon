@@ -81,8 +81,11 @@ namespace Oxide.Plugins
 			{
 				Community.Runtime.CorePlugin.cmd.RemoveConsoleCommand(command, plugin);
 			}
-		}
 
+			public uint ClientAppId { get; } = 252490U;
+
+			public string Game { get; } = "Rust";
+		}
 	}
 }
 

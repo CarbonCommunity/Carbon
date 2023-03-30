@@ -1,21 +1,18 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
 namespace Oxide.Ext.Discord.Entities.Guilds.ScheduledEvents
 {
-	// Token: 0x020000BE RID: 190
-	public enum ScheduledEventPrivacyLevel
-	{
-		// Token: 0x0400043F RID: 1087
-		None,
-		// Token: 0x04000440 RID: 1088
-		GuildOnly = 2
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-privacy-level">Guild Scheduled Event Privacy Level</a>
+    /// </summary>
+    public enum ScheduledEventPrivacyLevel
+    {
+        /// <summary>
+        /// No Privacy Level
+        /// </summary>
+        None = 0,
+        
+        /// <summary>
+        /// The scheduled event is only accessible to guild members
+        /// </summary>
+        GuildOnly = 2
+    }
 }

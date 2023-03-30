@@ -1,45 +1,65 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.ComponentModel;
 
 namespace Oxide.Ext.Discord.Entities.Messages
 {
-	// Token: 0x02000066 RID: 102
-	[Flags]
-	public enum MessageFlags
-	{
-		// Token: 0x04000234 RID: 564
-		None = 0,
-		// Token: 0x04000235 RID: 565
-		[System.ComponentModel.Description("CROSSPOSTED")]
-		CrossPosted = 1,
-		// Token: 0x04000236 RID: 566
-		[System.ComponentModel.Description("IS_CROSSPOST")]
-		IsCrossPost = 2,
-		// Token: 0x04000237 RID: 567
-		[System.ComponentModel.Description("SUPPRESS_EMBEDS")]
-		SuppressEmbeds = 4,
-		// Token: 0x04000238 RID: 568
-		[System.ComponentModel.Description("SOURCE_MESSAGE_DELETED")]
-		SourceMessageDeleted = 8,
-		// Token: 0x04000239 RID: 569
-		[System.ComponentModel.Description("URGENT")]
-		Urgent = 16,
-		// Token: 0x0400023A RID: 570
-		[System.ComponentModel.Description("HAS_THREAD")]
-		HasThread = 32,
-		// Token: 0x0400023B RID: 571
-		[System.ComponentModel.Description("EPHEMERAL")]
-		Ephemeral = 64,
-		// Token: 0x0400023C RID: 572
-		[System.ComponentModel.Description("LOADING")]
-		Loading = 128
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/resources/channel#message-object-message-flags">Message Flags</a> for a message
+    /// </summary>
+    [Flags]
+    public enum MessageFlags
+    {
+        /// <summary>
+        /// This message has no flags
+        /// </summary>
+        None = 0,
+        
+        /// <summary>
+        /// This message has been published to subscribed channels (via Channel Following)
+        /// </summary>
+        [System.ComponentModel.Description("CROSSPOSTED")]
+        CrossPosted = 1 << 0,
+
+        /// <summary>
+        /// This message originated from a message in another channel (via Channel Following)
+        /// </summary>
+        [System.ComponentModel.Description("IS_CROSSPOST")]
+        IsCrossPost = 1 << 1,
+
+        /// <summary>
+        /// Do not include any embeds when serializing this message
+        /// </summary>
+        [System.ComponentModel.Description("SUPPRESS_EMBEDS")]
+        SuppressEmbeds = 1 << 2,
+
+        /// <summary>
+        /// The source message for this crosspost has been deleted (via Channel Following)
+        /// </summary>
+        [System.ComponentModel.Description("SOURCE_MESSAGE_DELETED")]
+        SourceMessageDeleted = 1 << 3,
+
+        /// <summary>
+        /// This message came from the urgent message system
+        /// </summary>
+        [System.ComponentModel.Description("URGENT")]
+        Urgent = 1 << 4,
+
+        /// <summary>
+        /// This message has an associated thread, with the same id as the message
+        /// </summary>
+        [System.ComponentModel.Description("HAS_THREAD")]
+        HasThread = 1 << 5,
+        
+        /// <summary>
+        /// This message is only visible to the user who invoked the Interaction
+        /// </summary>
+        [System.ComponentModel.Description("EPHEMERAL")]
+        Ephemeral = 1 << 6,
+
+        /// <summary>
+        /// This message is an Interaction Response and the bot is "thinking"
+        /// </summary>
+        [System.ComponentModel.Description("LOADING")]
+        Loading = 1 << 7
+    }
 }

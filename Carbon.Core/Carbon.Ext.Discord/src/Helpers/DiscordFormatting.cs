@@ -1,192 +1,183 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 using Oxide.Ext.Discord.Entities;
 
 namespace Oxide.Ext.Discord.Helpers
 {
-	// Token: 0x02000024 RID: 36
-	public class DiscordFormatting
-	{
-		// Token: 0x06000151 RID: 337 RVA: 0x0000BF7C File Offset: 0x0000A17C
-		public static string MentionUser(Snowflake userId)
-		{
-			return "<@" + userId.ToString() + ">";
-		}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/reference#message-formatting-formats">Message text formatting options</a>
+    /// </summary>
+    public class DiscordFormatting
+    {
+        /// <summary>
+        /// Mention the user with the given user ID
+        /// </summary>
+        /// <param name="userId">User ID to mention</param>
+        /// <returns>Mention user formatted string</returns>
+        public static string MentionUser(Snowflake userId) => $"<@{userId.ToString()}>";
+        
+        /// <summary>
+        /// Mention the user displaying their user name
+        /// </summary>
+        /// <param name="userId">User ID to mention</param>
+        /// <returns>Ping user formatted string</returns>
+        public static string MentionUserNickname(Snowflake userId) => $"<@!{userId.ToString()}>";
+        
+        /// <summary>
+        /// Mention the the channel with the given ID
+        /// </summary>
+        /// <param name="channelId">Channel ID to mention</param>
+        /// <returns>Mention channel formatted string</returns>
+        public static string MentionChannel(Snowflake channelId) => $"<#{channelId.ToString()}>";
 
-		// Token: 0x06000152 RID: 338 RVA: 0x0000BF9A File Offset: 0x0000A19A
-		public static string MentionUserNickname(Snowflake userId)
-		{
-			return "<@!" + userId.ToString() + ">";
-		}
+        /// <summary>
+        /// Mention the the role with the given ID
+        /// </summary>
+        /// <param name="roleId">Role ID to mention</param>
+        /// <returns>Mention role formatted string</returns>
+        public static string MentionRole(Snowflake roleId) => $"<@&{roleId.ToString()}>";
 
-		// Token: 0x06000153 RID: 339 RVA: 0x0000BFB8 File Offset: 0x0000A1B8
-		public static string MentionChannel(Snowflake channelId)
-		{
-			return "<#" + channelId.ToString() + ">";
-		}
+        /// <summary>
+        /// Returns formatting string for custom emoji to be used in a message
+        /// </summary>
+        /// <param name="name">Name of the custom emoji</param>
+        /// <param name="id">ID of the custom emoji</param>
+        /// <param name="animated">If the emoji is animated</param>
+        /// <returns>Custom emoji formatted string</returns>
+        public static string CustomEmojiMessageString(Snowflake id, string name, bool animated) => $"<{CustomEmojiDataString(id, name, animated)}>";
+        
+        /// <summary>
+        /// Returns formatting string for custom emoji to be used in a url
+        /// </summary>
+        /// <param name="name">Name of the custom emoji</param>
+        /// <param name="id">ID of the custom emoji</param>
+        /// <param name="animated">If the emoji is animated</param>
+        /// <returns>Custom emoji formatted string</returns>
+        public static string CustomEmojiDataString(Snowflake id, string name, bool animated) => $"{(animated ? "a" : "")}:{name}:{id.ToString()}";
 
-		// Token: 0x06000154 RID: 340 RVA: 0x0000BFD6 File Offset: 0x0000A1D6
-		public static string MentionRole(Snowflake roleId)
-		{
-			return "<@&" + roleId.ToString() + ">";
-		}
+        /// <summary>
+        /// Displays a timestamp 
+        /// </summary>
+        /// <param name="timestamp">UNIX Timestamp</param>
+        /// <param name="style">Display style for the timestamp</param>
+        /// <returns></returns>
+        public static string UnixTimestamp(int timestamp, TimestampStyles style = TimestampStyles.ShortDateTime)
+        {
+            return $"<t:{timestamp.ToString()}:{GetTimestampFlag(style)}>";
+        }
 
-		// Token: 0x06000155 RID: 341 RVA: 0x0000BFF4 File Offset: 0x0000A1F4
-		public static string CustomEmojiMessageString(Snowflake id, string name, bool animated)
-		{
-			return "<" + DiscordFormatting.CustomEmojiDataString(id, name, animated) + ">";
-		}
+        private static string GetTimestampFlag(TimestampStyles style)
+        {
+            switch (style)
+            {
+                case TimestampStyles.ShortTime:
+                    return "t";
+                case TimestampStyles.LongTime:
+                    return "T";
+                case TimestampStyles.ShortDate:
+                    return "d";
+                case TimestampStyles.LongDate:
+                    return "D";
+                case TimestampStyles.ShortDateTime:
+                    return "f";
+                case TimestampStyles.LongDateTime:
+                    return "F";
+                case TimestampStyles.RelativeTime:
+                    return "R";
+            }
 
-		// Token: 0x06000156 RID: 342 RVA: 0x0000C010 File Offset: 0x0000A210
-		public static string CustomEmojiDataString(Snowflake id, string name, bool animated)
-		{
-			return string.Concat(new string[]
-			{
-				animated ? "a" : "",
-				":",
-				name,
-				":",
-				id.ToString()
-			});
-		}
+            return "f";
+        }
+        
+        /// <summary>
+        /// Will display the message in italics
+        /// </summary>
+        /// <param name="message">Message to make italics</param>
+        /// <returns>Italics formatted message</returns>
+        public static string Italics(string message) => $"*{message}*";
+        
+        /// <summary>
+        /// Will display the message in bold
+        /// </summary>
+        /// <param name="message">Message to make bold</param>
+        /// <returns>Bold formatted message</returns>
+        public static string Bold(string message) => $"**{message}**";
+        
+        /// <summary>
+        /// Will display the message in italics and bold
+        /// </summary>
+        /// <param name="message">Message to make italics and bold</param>
+        /// <returns>Bold and Italics formatted message</returns>
+        public static string ItalicsBold(string message) => $"***{message}***";
+        
+        /// <summary>
+        /// Will display the message in underline
+        /// </summary>
+        /// <param name="message">Message to make underline</param>
+        /// <returns>Underline formatted message</returns>
+        public static string Underline(string message) => $"__{message}__";
+        
+        /// <summary>
+        /// Will display the message in underline and italics
+        /// </summary>
+        /// <param name="message">Message to make underline and italics</param>
+        /// <returns>Underline and Italics formatted message</returns>
+        public static string UnderlineItalics(string message) => $"__*{message}*__";
+        
+        /// <summary>
+        /// Will display the message in underline and bold
+        /// </summary>
+        /// <param name="message">Message to make underline and bold</param>
+        /// <returns>Underline and bold formatted message</returns>
+        public static string UnderlineBold(string message) => $"__**{message}**__";
+        
+        /// <summary>
+        /// Will display the message in underline and bold and italics
+        /// </summary>
+        /// <param name="message">Message to make underline and bold and italics</param>
+        /// <returns>Underline and Bold and Italics formatted message</returns>
+        public static string UnderlineBoldItalics(string message) => $"__***{message}***__";
+        
+        /// <summary>
+        /// Will display the message with a strikethrough
+        /// </summary>
+        /// <param name="message">Message to make strikethrough</param>
+        /// <returns>Strikethrough formatted message</returns>
+        public static string Strikethrough(string message) => $"~~{message}~~";
+        
+        /// <summary>
+        /// Will display the message as a one line code block
+        /// </summary>
+        /// <param name="message">Message to make code block</param>
+        /// <returns>Code block formatted message</returns>
+        public static string CodeBlockOneLine(string message) => $"`{message}`";
+        
+        /// <summary>
+        /// Will display the message as a multiline code block
+        /// </summary>
+        /// <param name="message">Message to make multiline code block</param>
+        /// <returns>Code block formatted message</returns>
+        public static string CodeBlockMultiLine(string message) => $"```\n{message}\n```";
 
-		// Token: 0x06000157 RID: 343 RVA: 0x0000C060 File Offset: 0x0000A260
-		public static string UnixTimestamp(int timestamp, TimestampStyles style = TimestampStyles.ShortDateTime)
-		{
-			return string.Concat(new string[]
-			{
-				"<t:",
-				timestamp.ToString(),
-				":",
-				DiscordFormatting.GetTimestampFlag(style),
-				">"
-			});
-		}
-
-		// Token: 0x06000158 RID: 344 RVA: 0x0000C0A8 File Offset: 0x0000A2A8
-		private static string GetTimestampFlag(TimestampStyles style)
-		{
-			string result;
-			switch (style)
-			{
-			case TimestampStyles.ShortTime:
-				result = "t";
-				break;
-			case TimestampStyles.LongTime:
-				result = "T";
-				break;
-			case TimestampStyles.ShortDate:
-				result = "d";
-				break;
-			case TimestampStyles.LongDate:
-				result = "D";
-				break;
-			case TimestampStyles.ShortDateTime:
-				result = "f";
-				break;
-			case TimestampStyles.LongDateTime:
-				result = "F";
-				break;
-			case TimestampStyles.RelativeTime:
-				result = "R";
-				break;
-			default:
-				result = "f";
-				break;
-			}
-			return result;
-		}
-
-		// Token: 0x06000159 RID: 345 RVA: 0x0000C11F File Offset: 0x0000A31F
-		public static string Italics(string message)
-		{
-			return "*" + message + "*";
-		}
-
-		// Token: 0x0600015A RID: 346 RVA: 0x0000C131 File Offset: 0x0000A331
-		public static string Bold(string message)
-		{
-			return "**" + message + "**";
-		}
-
-		// Token: 0x0600015B RID: 347 RVA: 0x0000C143 File Offset: 0x0000A343
-		public static string ItalicsBold(string message)
-		{
-			return "***" + message + "***";
-		}
-
-		// Token: 0x0600015C RID: 348 RVA: 0x0000C155 File Offset: 0x0000A355
-		public static string Underline(string message)
-		{
-			return "__" + message + "__";
-		}
-
-		// Token: 0x0600015D RID: 349 RVA: 0x0000C167 File Offset: 0x0000A367
-		public static string UnderlineItalics(string message)
-		{
-			return "__*" + message + "*__";
-		}
-
-		// Token: 0x0600015E RID: 350 RVA: 0x0000C179 File Offset: 0x0000A379
-		public static string UnderlineBold(string message)
-		{
-			return "__**" + message + "**__";
-		}
-
-		// Token: 0x0600015F RID: 351 RVA: 0x0000C18B File Offset: 0x0000A38B
-		public static string UnderlineBoldItalics(string message)
-		{
-			return "__***" + message + "***__";
-		}
-
-		// Token: 0x06000160 RID: 352 RVA: 0x0000C19D File Offset: 0x0000A39D
-		public static string Strikethrough(string message)
-		{
-			return "~~" + message + "~~";
-		}
-
-		// Token: 0x06000161 RID: 353 RVA: 0x0000C1AF File Offset: 0x0000A3AF
-		public static string CodeBlockOneLine(string message)
-		{
-			return "`" + message + "`";
-		}
-
-		// Token: 0x06000162 RID: 354 RVA: 0x0000C1C1 File Offset: 0x0000A3C1
-		public static string CodeBlockMultiLine(string message)
-		{
-			return "```\n" + message + "\n```";
-		}
-
-		// Token: 0x06000163 RID: 355 RVA: 0x0000C1D3 File Offset: 0x0000A3D3
-		public static string CodeBlockLanguage(string message, string language)
-		{
-			return string.Concat(new string[]
-			{
-				"```",
-				language,
-				"\n",
-				message,
-				"\n```"
-			});
-		}
-
-		// Token: 0x06000164 RID: 356 RVA: 0x0000C200 File Offset: 0x0000A400
-		public static string BlockQuoteSingleLine(string message)
-		{
-			return "> " + message;
-		}
-
-		// Token: 0x06000165 RID: 357 RVA: 0x0000C20D File Offset: 0x0000A40D
-		public static string BlockQuoteMultiLine(string message)
-		{
-			return ">>> " + message;
-		}
-	}
+        /// <summary>
+        /// Will display a multiline code bloc with the specified language
+        /// </summary>
+        /// <param name="message">Message to make code block with language</param>
+        /// <param name="language">Language to display the code block as</param>
+        /// <returns>Language code block formatted message</returns>
+        public static string CodeBlockLanguage(string message, string language) => $"```{language}\n{message}\n```";
+        
+        /// <summary>
+        /// Will display the message in single line block quote
+        /// </summary>
+        /// <param name="message">Message to make block quote</param>
+        /// <returns>Block Quote formatted message</returns>
+        public static string BlockQuoteSingleLine(string message) => $"> {message}";
+        
+        /// <summary>
+        /// Will display the message in multiline block quote
+        /// </summary>
+        /// <param name="message">Message to make block quote</param>
+        /// <returns>Multiline block quote formatted message</returns>
+        public static string BlockQuoteMultiLine(string message) => $">>> {message}";
+    }
 }

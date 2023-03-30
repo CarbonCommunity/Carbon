@@ -1,32 +1,36 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Newtonsoft.Json;
 using Oxide.Ext.Discord.Helpers.Converters;
 
 namespace Oxide.Ext.Discord.Entities.Messages.AllowedMentions
 {
-	// Token: 0x02000074 RID: 116
-	[JsonConverter(typeof(DiscordEnumConverter))]
-	public enum AllowedMentionTypes
-	{
-		// Token: 0x0400028A RID: 650
-		Unknown,
-		// Token: 0x0400028B RID: 651
-		[System.ComponentModel.Description("roles")]
-		Roles,
-		// Token: 0x0400028C RID: 652
-		[System.ComponentModel.Description("users")]
-		Users,
-		// Token: 0x0400028D RID: 653
-		[System.ComponentModel.Description("everyone")]
-		Everyone
-	}
+    /// <summary>
+    ///  Represents a <a href="https://discord.com/developers/docs/resources/channel#allowed-mentions-object-allowed-mention-types">Allowed Mention Types</a> for a message
+    /// </summary>
+    [JsonConverter(typeof(DiscordEnumConverter))]
+    public enum AllowedMentionTypes
+    {
+        /// <summary>
+        /// Discord Extension doesn't currently support this allowed mention type.
+        /// </summary>
+        Unknown,
+        
+        /// <summary>
+        /// Controls role mentions
+        /// </summary>
+        [System.ComponentModel.Description ("roles")] 
+        Roles,
+        
+        /// <summary>
+        /// 	Controls user mentions
+        /// </summary>
+        [System.ComponentModel.Description ("users")] 
+        Users,
+        
+        /// <summary>
+        /// Controls @everyone and @here mentions
+        /// </summary>
+        [System.ComponentModel.Description ("everyone")] 
+        Everyone,
+    }
 }

@@ -1,21 +1,18 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
 namespace Oxide.Ext.Discord.Entities.Channels
 {
-	// Token: 0x02000101 RID: 257
-	public enum PermissionType
-	{
-		// Token: 0x04000568 RID: 1384
-		Role,
-		// Token: 0x04000569 RID: 1385
-		Member
-	}
+    /// <summary>
+    /// Represents the type of a permission
+    /// </summary>
+    public enum PermissionType
+    {
+        /// <summary>
+        /// This permission belongs to a role
+        /// </summary>
+        Role = 0,
+        
+        /// <summary>
+        /// This permission belongs to a member
+        /// </summary>
+        Member = 1
+    }
 }

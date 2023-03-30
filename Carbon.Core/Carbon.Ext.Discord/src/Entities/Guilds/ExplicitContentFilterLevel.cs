@@ -1,27 +1,28 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace Oxide.Ext.Discord.Entities.Guilds
 {
-	// Token: 0x020000A2 RID: 162
-	public enum ExplicitContentFilterLevel
-	{
-		// Token: 0x040003A4 RID: 932
-		[System.ComponentModel.Description("DISABLED")]
-		Disabled,
-		// Token: 0x040003A5 RID: 933
-		[System.ComponentModel.Description("MEMBERS_WITHOUT_ROLES")]
-		MembersWithoutRoles,
-		// Token: 0x040003A6 RID: 934
-		[System.ComponentModel.Description("ALL_MEMBERS")]
-		AllMembers
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/resources/guild#guild-object-explicit-content-filter-level">Explicit Content Filter Level</a>
+    /// </summary>
+    public enum ExplicitContentFilterLevel
+    {
+        /// <summary>
+        /// Disable explicit content filter
+        /// </summary>
+        [System.ComponentModel.Description ("DISABLED")]
+        Disabled = 0,
+        
+        /// <summary>
+        /// Filter for only members without roles
+        /// </summary>
+        [System.ComponentModel.Description ("MEMBERS_WITHOUT_ROLES")]
+        MembersWithoutRoles = 1,
+        
+        /// <summary>
+        /// Filter for all members
+        /// </summary>
+        [System.ComponentModel.Description ("ALL_MEMBERS")]
+        AllMembers = 2
+    }
 }

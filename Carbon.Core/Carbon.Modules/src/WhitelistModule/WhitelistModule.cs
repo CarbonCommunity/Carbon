@@ -79,7 +79,12 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 			return null;
 		}
 
-		return GetPhrase("denied", id);
+		var connection = Net.sv.connections.FirstOrDefault(x => x.userid.ToString() == id);
+
+		ConsoleNetwork.SendClientCommand(connection, $"echo {GetPhrase("denied", id)}");
+		Community.Runtime.CorePlugin.NextTick(() => ConnectionAuth.Reject(connection, GetPhrase("denied", id), null));
+
+		return null;
 	}
 
 	#endregion

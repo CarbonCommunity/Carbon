@@ -1,22 +1,21 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 
 namespace Oxide.Ext.Discord.Attributes
 {
-	// Token: 0x02000134 RID: 308
-	[AttributeUsage(AttributeTargets.Method)]
-	public class DirectMessageCommandAttribute : BaseCommandAttribute
-	{
-		// Token: 0x06000B21 RID: 2849 RVA: 0x00019545 File Offset: 0x00017745
-		public DirectMessageCommandAttribute(string name, bool isLocalized = false) : base(name, isLocalized)
-		{
-		}
-	}
+    /// <summary>
+    /// Used to identify direct message bot commands
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class DirectMessageCommandAttribute : BaseCommandAttribute
+    {
+        /// <summary>
+        /// Creates a discord command to be used in direct messages to the bot
+        /// </summary>
+        /// <param name="name">Name of the command</param>
+        /// <param name="isLocalized">If the command name is the localization key for the command</param>
+        public DirectMessageCommandAttribute(string name, bool isLocalized = false) : base(name, isLocalized)
+        {
+
+        }
+    }
 }

@@ -1,39 +1,63 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
-namespace Oxide.Ext.Discord.Entities.Channels
+﻿namespace Oxide.Ext.Discord.Entities.Channels
 {
-	// Token: 0x020000FB RID: 251
-	public enum ChannelType
-	{
-		// Token: 0x0400052C RID: 1324
-		GuildText,
-		// Token: 0x0400052D RID: 1325
-		Dm,
-		// Token: 0x0400052E RID: 1326
-		GuildVoice,
-		// Token: 0x0400052F RID: 1327
-		GroupDm,
-		// Token: 0x04000530 RID: 1328
-		GuildCategory,
-		// Token: 0x04000531 RID: 1329
-		GuildNews,
-		// Token: 0x04000532 RID: 1330
-		GuildStore,
-		// Token: 0x04000533 RID: 1331
-		GuildNewsThread = 10,
-		// Token: 0x04000534 RID: 1332
-		GuildPublicThread,
-		// Token: 0x04000535 RID: 1333
-		GuildPrivateThread,
-		// Token: 0x04000536 RID: 1334
-		GuildStageVoice
-	}
+    /// <summary>
+    /// Represents a <a href="https://discord.com/developers/docs/resources/channel#channel-object-channel-types">Types of Channels</a>
+    /// </summary>
+    public enum ChannelType
+    {
+        /// <summary>
+        /// A text channel within a server
+        /// </summary>
+        GuildText = 0,
+        
+        /// <summary>
+        /// A direct message between users
+        /// </summary>
+        Dm = 1,
+        
+        /// <summary>
+        /// A voice channel within a server
+        /// </summary>
+        GuildVoice = 2,
+        
+        /// <summary>
+        /// A direct message between multiple users
+        /// </summary>
+        GroupDm = 3,
+        
+        /// <summary>
+        /// An organizational category that contains up to 50 channels
+        /// </summary>
+        GuildCategory = 4,
+        
+        /// <summary>
+        /// A channel that users can follow and crosspost into their own server
+        /// </summary>
+        GuildNews = 5,
+        
+        /// <summary>
+        /// A channel in which game developers can sell their game on Discord
+        /// </summary>
+        GuildStore = 6,
+        
+        /// <summary>
+        /// A temporary sub-channel within a GUILD_NEWS channel
+        /// </summary>
+        GuildNewsThread = 10,
+        
+        /// <summary>
+        /// A temporary sub-channel within a GUILD_TEXT channel
+        /// </summary>
+        GuildPublicThread = 11,
+        
+        /// <summary>
+        /// A temporary sub-channel within a GUILD_TEXT channel that is only viewable by those invited and those with the MANAGE_THREADS permission
+        /// </summary>
+        GuildPrivateThread = 12,
+        
+        /// <summary>
+        /// A voice channel for <a href="https://support.discord.com/hc/en-us/articles/1500005513722">hosting events with an audience</a>
+        /// </summary>
+        GuildStageVoice = 13,
+    }
 }

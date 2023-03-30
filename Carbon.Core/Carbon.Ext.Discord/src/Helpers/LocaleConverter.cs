@@ -1,77 +1,74 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
 using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord.Helpers
 {
-	// Token: 0x02000025 RID: 37
-	public static class LocaleConverter
-	{
-		// Token: 0x06000167 RID: 359 RVA: 0x0000C224 File Offset: 0x0000A424
-		static LocaleConverter()
-		{
-			LocaleConverter.AddLocale("en", "en-US");
-			LocaleConverter.AddLocale("bg-", "bg");
-			LocaleConverter.AddLocale("zh", "zh-CN");
-			LocaleConverter.AddLocale("hr", "hr");
-			LocaleConverter.AddLocale("cs", "cs");
-			LocaleConverter.AddLocale("da", "da");
-			LocaleConverter.AddLocale("nl", "nl");
-			LocaleConverter.AddLocale("fi", "fi");
-			LocaleConverter.AddLocale("fr", "fr");
-			LocaleConverter.AddLocale("de", "de");
-			LocaleConverter.AddLocale("el", "el");
-			LocaleConverter.AddLocale("hi", "hi");
-			LocaleConverter.AddLocale("hu", "hu");
-			LocaleConverter.AddLocale("it", "it");
-			LocaleConverter.AddLocale("ja", "ja");
-			LocaleConverter.AddLocale("ko", "ko");
-			LocaleConverter.AddLocale("lt", "lt");
-			LocaleConverter.AddLocale("no", "no");
-			LocaleConverter.AddLocale("pl", "pl");
-			LocaleConverter.AddLocale("pt", "pt-BR");
-			LocaleConverter.AddLocale("ro", "ro");
-			LocaleConverter.AddLocale("ru", "ru");
-			LocaleConverter.AddLocale("es", "es-ES");
-			LocaleConverter.AddLocale("sv", "sv-SE");
-			LocaleConverter.AddLocale("th", "th");
-			LocaleConverter.AddLocale("tr", "tr");
-			LocaleConverter.AddLocale("uk", "uk");
-			LocaleConverter.AddLocale("vi", "vi");
-			LocaleConverter.DiscordToOxide["en-GB"] = "en";
-			LocaleConverter.DiscordToOxide["zh-TW"] = "zh";
-		}
+    /// <summary>
+    /// Converts discord locale codes into oxide locale codes
+    /// </summary>
+    public static class LocaleConverter
+    {
+        private static readonly Hash<string, string> DiscordToOxide = new Hash<string, string>();
+        private static readonly Hash<string, string> OxideToDiscord = new Hash<string, string>();
+        
+        static LocaleConverter()
+        {
+            AddLocale("en","en-US");
+            AddLocale("bg-","bg");
+            AddLocale("zh","zh-CN");
+            AddLocale("hr","hr");
+            AddLocale("cs","cs");
+            AddLocale("da","da");
+            AddLocale("nl","nl");
+            AddLocale("fi","fi");
+            AddLocale("fr","fr");
+            AddLocale("de","de");
+            AddLocale("el","el");
+            AddLocale("hi","hi");
+            AddLocale("hu","hu");
+            AddLocale("it","it");
+            AddLocale("ja","ja");
+            AddLocale("ko","ko");
+            AddLocale("lt","lt");
+            AddLocale("no","no");
+            AddLocale("pl","pl");
+            AddLocale("pt","pt-BR");
+            AddLocale("ro","ro");
+            AddLocale("ru","ru");
+            AddLocale("es","es-ES");
+            AddLocale("sv","sv-SE");
+            AddLocale("th","th");
+            AddLocale("tr","tr");
+            AddLocale("uk","uk");
+            AddLocale("vi","vi");
+            
+            DiscordToOxide["en-GB"] = "en";
+            DiscordToOxide["zh-TW"] = "zh";
+        }
 
-		// Token: 0x06000168 RID: 360 RVA: 0x0000C430 File Offset: 0x0000A630
-		private static void AddLocale(string oxide, string discord)
-		{
-			LocaleConverter.DiscordToOxide[discord] = oxide;
-			LocaleConverter.OxideToDiscord[oxide] = discord;
-		}
+        private static void AddLocale(string oxide, string discord)
+        {
+            DiscordToOxide[discord] = oxide;
+            OxideToDiscord[oxide] = discord;
+        }
 
-		// Token: 0x06000169 RID: 361 RVA: 0x0000C450 File Offset: 0x0000A650
-		public static string GetOxideLocale(string discordLocale)
-		{
-			return (!string.IsNullOrEmpty(discordLocale)) ? LocaleConverter.DiscordToOxide[discordLocale] : string.Empty;
-		}
-
-		// Token: 0x0600016A RID: 362 RVA: 0x0000C47C File Offset: 0x0000A67C
-		public static string GetDiscordLocale(string oxideLocale)
-		{
-			return (!string.IsNullOrEmpty(oxideLocale)) ? LocaleConverter.OxideToDiscord[oxideLocale] : string.Empty;
-		}
-
-		// Token: 0x040000ED RID: 237
-		private static readonly Hash<string, string> DiscordToOxide = new Hash<string, string>();
-
-		// Token: 0x040000EE RID: 238
-		private static readonly Hash<string, string> OxideToDiscord = new Hash<string, string>();
-	}
+        /// <summary>
+        /// Returns the oxide locale for a given discord locale
+        /// </summary>
+        /// <param name="discordLocale">Discord locale to get oxide locale for</param>
+        /// <returns>Oxide locale if it exists; null otherwise</returns>
+        public static string GetOxideLocale(string discordLocale)
+        {
+            return !string.IsNullOrEmpty(discordLocale) ? DiscordToOxide[discordLocale] : string.Empty;
+        }
+        
+        /// <summary>
+        /// Returns the discord locale for a given oxide locale
+        /// </summary>
+        /// <param name="oxideLocale">oxide locale to get discord locale for</param>
+        /// <returns>Discord locale if it exists; null otherwise</returns>
+        public static string GetDiscordLocale(string oxideLocale)
+        {
+            return !string.IsNullOrEmpty(oxideLocale) ? OxideToDiscord[oxideLocale] : string.Empty;
+        }
+    }
 }

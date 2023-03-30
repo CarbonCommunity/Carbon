@@ -1,89 +1,82 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Oxide.Ext.Discord.Extensions
 {
-	// Token: 0x02000035 RID: 53
-	public static class StringExt
-	{
-		// Token: 0x060001AF RID: 431 RVA: 0x0000D9C4 File Offset: 0x0000BBC4
-		public static void ParseCommand(this string argStr, out string command, out string[] args)
-		{
-			List<string> list = new List<string>();
-			StringBuilder stringBuilder = new StringBuilder();
-			bool flag = false;
-			foreach (char c in argStr)
-			{
-				bool flag2 = c == '"';
-				if (flag2)
-				{
-					bool flag3 = flag;
-					if (flag3)
-					{
-						string text = stringBuilder.ToString().Trim();
-						bool flag4 = !string.IsNullOrEmpty(text);
-						if (flag4)
-						{
-							list.Add(text);
-						}
-						stringBuilder.Length = 0;
-						flag = false;
-					}
-					else
-					{
-						flag = true;
-					}
-				}
-				else
-				{
-					bool flag5 = char.IsWhiteSpace(c) && !flag;
-					if (flag5)
-					{
-						string text2 = stringBuilder.ToString().Trim();
-						bool flag6 = !string.IsNullOrEmpty(text2);
-						if (flag6)
-						{
-							list.Add(text2);
-						}
-						stringBuilder.Length = 0;
-					}
-					else
-					{
-						stringBuilder.Append(c);
-					}
-				}
-			}
-			bool flag7 = stringBuilder.Length > 0;
-			if (flag7)
-			{
-				string text3 = stringBuilder.ToString().Trim();
-				bool flag8 = !string.IsNullOrEmpty(text3);
-				if (flag8)
-				{
-					list.Add(text3);
-				}
-			}
-			bool flag9 = list.Count == 0;
-			if (flag9)
-			{
-				command = null;
-				args = null;
-			}
-			else
-			{
-				command = list[0].ToLower();
-				list.RemoveAt(0);
-				args = list.ToArray();
-			}
-		}
-	}
+    /// <summary>
+    /// String Extension methods
+    /// </summary>
+    public static class StringExt
+    {
+        /// <summary>
+        /// Parses the specified command into uMod command format
+        /// Sourced from CommandHandler.cs of uMod (https://gitlab.com/umod/core/core/-/blob/develop/src/Command/CommandHandler.cs)
+        /// </summary>
+        /// <param name="argStr"></param>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
+        public static void ParseCommand(this string argStr, out string command, out string[] args)
+        {
+            List<string> argList = new List<string>();
+            StringBuilder stringBuilder  = new StringBuilder();
+            bool inLongArg = false;
+
+            for (int index = 0; index < argStr.Length; index++)
+            {
+                char c = argStr[index];
+                if (c == '"')
+                {
+                    if (inLongArg)
+                    {
+                        string arg = stringBuilder.ToString().Trim();
+                        if (!string.IsNullOrEmpty(arg))
+                        {
+                            argList.Add(arg);
+                        }
+
+                        stringBuilder.Length = 0;
+                        inLongArg = false;
+                    }
+                    else
+                    {
+                        inLongArg = true;
+                    }
+                }
+                else if (char.IsWhiteSpace(c) && !inLongArg)
+                {
+                    string arg = stringBuilder.ToString().Trim();
+                    if (!string.IsNullOrEmpty(arg))
+                    {
+                        argList.Add(arg);
+                    }
+
+                    stringBuilder.Length = 0;
+                }
+                else
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            if (stringBuilder.Length > 0)
+            {
+                string arg = stringBuilder.ToString().Trim();
+                if (!string.IsNullOrEmpty(arg))
+                {
+                    argList.Add(arg);
+                }
+            }
+
+            if (argList.Count == 0)
+            {
+                command = null;
+                args = null;
+                return;
+            }
+
+            command = argList[0].ToLower();
+            argList.RemoveAt(0);
+            args = argList.ToArray();
+        }
+    }
 }

@@ -1,40 +1,60 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 
 namespace Oxide.Ext.Discord.Logging
 {
-	// Token: 0x02000018 RID: 24
-	public interface ILogger
-	{
-		// Token: 0x060000F9 RID: 249
-		void Verbose(string message);
+    /// <summary>
+    /// Represents an interface for a logger
+    /// </summary>
+    public interface ILogger
+    {
+        /// <summary>
+        /// Log a verbose message
+        /// </summary>
+        /// <param name="message">Message to log</param>
+        void Verbose(string message);
+        
+        /// <summary>
+        /// Log a Debug message
+        /// </summary>
+        /// <param name="message">Message to log</param>
+        void Debug(string message);
+        
+        /// <summary>
+        /// Log a Info message
+        /// </summary>
+        /// <param name="message">Message to log</param>
+        void Info(string message);
+        
+        /// <summary>
+        /// Log a Warning message
+        /// </summary>
+        /// <param name="message">Message to log</param>
+        void Warning(string message);
+        
+        /// <summary>
+        /// Log a Error message
+        /// </summary>
+        /// <param name="message">Message to log</param>
+        void Error(string message);
 
-		// Token: 0x060000FA RID: 250
-		void Debug(string message);
+        /// <summary>
+        /// Log a Exception message
+        /// </summary>
+        /// <param name="message">Message to log</param>
+        /// <param name="ex">Exception to log</param>
+        void Exception(string message, Exception ex);
 
-		// Token: 0x060000FB RID: 251
-		void Info(string message);
+        /// <summary>
+        /// Updates the log level for the current logger
+        /// </summary>
+        /// <param name="level">Level to update the logger to</param>
+        void UpdateLogLevel(DiscordLogLevel level);
 
-		// Token: 0x060000FC RID: 252
-		void Warning(string message);
-
-		// Token: 0x060000FD RID: 253
-		void Error(string message);
-
-		// Token: 0x060000FE RID: 254
-		void Exception(string message, Exception ex);
-
-		// Token: 0x060000FF RID: 255
-		void UpdateLogLevel(DiscordLogLevel level);
-
-		// Token: 0x06000100 RID: 256
-		bool IsLogging(DiscordLogLevel level);
-	}
+        /// <summary>
+        /// Returns true if the logger is logging for the passed log level
+        /// </summary>
+        /// <param name="level">Log Level to check</param>
+        /// <returns>True if the logger is logging for the given log level</returns>
+        bool IsLogging(DiscordLogLevel level);
+    }
 }

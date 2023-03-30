@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.Serialization;
 using Carbon;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Oxide;
 using Oxide.Core.Libraries;
+using static ConsoleSystem;
 
 /*
  *
@@ -161,7 +163,14 @@ public class OxideMod
 		else if (type == typeof(Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
 		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 
-		return Activator.CreateInstance<T>();
+		try { return Activator.CreateInstance<T>(); }
+		catch
+		{
+			try { return FormatterServices.GetUninitializedObject(typeof(T)) as T; }
+			catch { }
+		}
+
+		return null;
 	}
 
 	public static readonly VersionNumber Version = new(_assemblyVersion.Major, _assemblyVersion.Minor, _assemblyVersion.Build);

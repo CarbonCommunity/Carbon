@@ -1,53 +1,63 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
 using Oxide.Core.Libraries.Covalence;
 using Oxide.Ext.Discord.Entities.Users;
 
 namespace Oxide.Ext.Discord.Extensions
 {
-	// Token: 0x02000031 RID: 49
-	public static class DiscordUserExt
-	{
-		// Token: 0x060001A0 RID: 416 RVA: 0x0000D628 File Offset: 0x0000B828
-		public static void SendChatMessage(this DiscordUser user, string message)
-		{
-			IPlayer player = user.Player;
-			bool flag = player != null && player.IsConnected;
-			if (flag)
-			{
-				player.Message(message);
-			}
-		}
+    /// <summary>
+    /// Adds extension methods to Discord User to allow sending server chat commands to the player
+    /// </summary>
+    public static class DiscordUserExt
+    {
+        /// <summary>
+        /// Send chat message to the user if they're connected
+        /// </summary>
+        /// <param name="user">User to send the message to on the server</param>
+        /// <param name="message">Message to send</param>
+        public static void SendChatMessage(this DiscordUser user, string message)
+        {
+            IPlayer player = user.Player;
+            if (player != null && player.IsConnected)
+            {
+                player.Message(message);
+            }
+        }
 
-		// Token: 0x060001A1 RID: 417 RVA: 0x0000D658 File Offset: 0x0000B858
-		public static void SendChatMessage(this DiscordUser user, string message, string prefix, params object[] args)
-		{
-			IPlayer player = user.Player;
-			bool flag = player != null && player.IsConnected;
-			if (flag)
-			{
-				player.Message(message, prefix, args);
-			}
-		}
+        /// <summary>
+        /// Send chat message to the user if they're connected
+        /// </summary>
+        /// <param name="user">User to send the message to on the server</param>
+        /// <param name="message">Message to send</param>
+        /// <param name="prefix">Message Prefix</param>
+        /// <param name="args">Message Args</param>
+        public static void SendChatMessage(this DiscordUser user, string message, string prefix, params object[] args)
+        {
+            IPlayer player = user.Player;
+            if (player != null && player.IsConnected)
+            {
+                player.Message(message, prefix, args);
+            }
+        }
 
-		// Token: 0x060001A2 RID: 418 RVA: 0x0000D68C File Offset: 0x0000B88C
-		public static bool HasPermission(this DiscordUser user, string permission)
-		{
-			IPlayer player = user.Player;
-			return player != null && player.HasPermission(permission);
-		}
-
-		// Token: 0x060001A3 RID: 419 RVA: 0x0000D6B4 File Offset: 0x0000B8B4
-		public static bool IsLinked(this DiscordUser user)
-		{
-			return DiscordExtension.DiscordLink.IsLinked(user.Id);
-		}
-	}
+        /// <summary>
+        /// Return if the discord user has the given oxide permission.
+        /// If the user is not linked this will return false
+        /// </summary>
+        /// <param name="user">User to check for permission</param>
+        /// <param name="permission">Permission to check for</param>
+        /// <returns>True if use is linked and has permission; False otherwise</returns>
+        public static bool HasPermission(this DiscordUser user, string permission)
+        {
+            return user.Player?.HasPermission(permission) ?? false;
+        }
+        
+        /// <summary>
+        /// Returns true if the player is linked
+        /// </summary>
+        /// <param name="user">Discord user to check if they're linked</param>
+        /// <returns>True if linked; False otherwise</returns>
+        public static bool IsLinked(this DiscordUser user)
+        {
+            return DiscordExtension.DiscordLink.IsLinked(user.Id);
+        }
+    }
 }

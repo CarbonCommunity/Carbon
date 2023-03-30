@@ -1,25 +1,28 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
 namespace Oxide.Ext.Discord.WebSockets
 {
-	// Token: 0x0200000A RID: 10
-	public enum SocketState
-	{
-		// Token: 0x04000080 RID: 128
-		Disconnected,
-		// Token: 0x04000081 RID: 129
-		Connected,
-		// Token: 0x04000082 RID: 130
-		Connecting,
-		// Token: 0x04000083 RID: 131
-		PendingReconnect
-	}
+    /// <summary>
+    /// Represents our current state for the websocket
+    /// </summary>
+    public enum SocketState
+    {
+        /// <summary>
+        /// Websocket is currently disconnect and not waiting to connect
+        /// </summary>
+        Disconnected,
+        
+        /// <summary>
+        /// Socket is connect and functioning normally
+        /// </summary>
+        Connected,
+        
+        /// <summary>
+        /// Socket is in the process of connecting
+        /// </summary>
+        Connecting,
+        
+        /// <summary>
+        /// Socket is waiting to reconnect to the websocket
+        /// </summary>
+        PendingReconnect
+    }
 }

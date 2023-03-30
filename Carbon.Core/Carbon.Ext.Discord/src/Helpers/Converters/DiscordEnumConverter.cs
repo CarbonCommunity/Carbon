@@ -1,128 +1,107 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 using Newtonsoft.Json;
 using Oxide.Ext.Discord.Helpers.Utilities;
 
 namespace Oxide.Ext.Discord.Helpers.Converters
 {
-	// Token: 0x0200002B RID: 43
-	public class DiscordEnumConverter : JsonConverter
-	{
-		// Token: 0x0600017B RID: 379 RVA: 0x0000C8AC File Offset: 0x0000AAAC
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			bool flag = value == null;
-			if (flag)
-			{
-				writer.WriteNull();
-			}
-			else
-			{
-				Enum @enum = (Enum)value;
-				string text = @enum.ToString("G");
-				bool flag2 = char.IsNumber(text[0]) || text[0] == '-';
-				if (flag2)
-				{
-					writer.WriteValue(value);
-				}
-				else
-				{
-					string text2 = JsonEnumUtils.ToEnumName(@enum.GetType(), text);
-					bool flag3 = !string.IsNullOrEmpty(text2);
-					if (flag3)
-					{
-						writer.WriteValue(text2);
-					}
-				}
-			}
-		}
+    /// <summary>
+    /// Handles deserializing JSON values as strings. If they value doesn't exist return the default value.
+    /// </summary>
+    public class DiscordEnumConverter : JsonConverter
+    {
+        /// <summary>
+        /// Write Enum value to Discord Enum String
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="value"></param>
+        /// <param name="serializer"></param>
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            if (value == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+            
+            Enum enumValue = (Enum) value;
+            string enumText = enumValue.ToString("G");
+            if (char.IsNumber(enumText[0]) || enumText[0] == '-')
+            {
+                writer.WriteValue(value);
+                return;
+            }
 
-		// Token: 0x0600017C RID: 380 RVA: 0x0000C934 File Offset: 0x0000AB34
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			bool flag = this.IsNullable(objectType);
-			bool flag2 = reader.TokenType == (JsonToken)11;
-			object result;
-			if (flag2)
-			{
-				bool flag3 = !flag;
-				if (flag3)
-				{
-					throw new JsonException(string.Format("Cannot convert null value to {0}.", objectType));
-				}
-				result = null;
-			}
-			else
-			{
-				bool flag4 = reader.TokenType == (JsonToken)7;
-				if (flag4)
-				{
-					bool flag5 = Enum.IsDefined(objectType, reader.Value.ToString());
-					if (flag5)
-					{
-						result = Enum.Parse(objectType, reader.Value.ToString());
-					}
-					else
-					{
-						result = this.GetDefault(objectType);
-					}
-				}
-				else
-				{
-					bool flag6 = reader.TokenType == (JsonToken)9;
-					if (!flag6)
-					{
-						throw new JsonException(string.Format("Unexpected token {0} when parsing enum.", reader.TokenType));
-					}
-					string text = reader.Value.ToString();
-					string value = JsonEnumUtils.FromEnumName(objectType, text) ?? text;
-					bool flag7 = Enum.IsDefined(objectType, value);
-					if (flag7)
-					{
-						result = Enum.Parse(objectType, value);
-					}
-					else
-					{
-						result = this.GetDefault(objectType);
-					}
-				}
-			}
-			return result;
-		}
+            string enumName = JsonEnumUtils.ToEnumName(enumValue.GetType(), enumText);
+            if (!string.IsNullOrEmpty(enumName))
+            {
+                writer.WriteValue(enumName);
+            }
+        }
 
-		// Token: 0x0600017D RID: 381 RVA: 0x0000CA30 File Offset: 0x0000AC30
-		public override bool CanConvert(Type objectType)
-		{
-			bool result;
-			if (objectType != null)
-			{
-				Type type = this.IsNullable(objectType) ? Nullable.GetUnderlyingType(objectType) : objectType;
-				result = (type != null && type.IsEnum);
-			}
-			else
-			{
-				result = false;
-			}
-			return result;
-		}
+        /// <summary>
+        /// Read enum value from Discord Enum String
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="objectType"></param>
+        /// <param name="existingValue"></param>
+        /// <param name="serializer"></param>
+        /// <returns></returns>
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            bool isNullable = IsNullable(objectType);
+            if (reader.TokenType == JsonToken.Null)
+            {
+                if (!isNullable)
+                {
+                    throw new JsonException($"Cannot convert null value to {objectType}.");
+                }
 
-		// Token: 0x0600017E RID: 382 RVA: 0x0000CA6C File Offset: 0x0000AC6C
-		private object GetDefault(Type type)
-		{
-			return type.IsValueType ? Activator.CreateInstance(type) : null;
-		}
+                return null;
+            }
 
-		// Token: 0x0600017F RID: 383 RVA: 0x0000CA90 File Offset: 0x0000AC90
-		private bool IsNullable(Type objectType)
-		{
-			return objectType.IsGenericType && objectType.GetGenericTypeDefinition() == typeof(Nullable<>);
-		}
-	}
+            if (reader.TokenType == JsonToken.Integer)
+            {
+                if (Enum.IsDefined(objectType, reader.Value.ToString()))
+                {
+                    return Enum.Parse(objectType, reader.Value.ToString());
+                }
+
+                return GetDefault(objectType);
+            }
+
+            if (reader.TokenType == JsonToken.String)
+            {
+                string enumValue = reader.Value.ToString();
+                string enumName = JsonEnumUtils.FromEnumName(objectType, enumValue) ?? enumValue;
+                if (Enum.IsDefined(objectType, enumName))
+                {
+                    return Enum.Parse(objectType, enumName);
+                }
+                
+                return GetDefault(objectType);
+            }
+
+            throw new JsonException($"Unexpected token {reader.TokenType} when parsing enum.");
+        }
+        
+        /// <summary>
+        /// Checks if this type is enum or nullable enum
+        /// </summary>
+        /// <param name="objectType"></param>
+        /// <returns></returns>
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType != null && ((IsNullable(objectType) ? Nullable.GetUnderlyingType(objectType) : objectType)?.IsEnum ?? false);
+        }
+
+        private object GetDefault(Type type)
+        {
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
+        }
+        
+        private bool IsNullable(Type objectType)
+        {
+            return objectType.IsGenericType && objectType.GetGenericTypeDefinition() == typeof(Nullable<>);
+        }
+    }
 }

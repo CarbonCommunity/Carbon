@@ -1,12 +1,4 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Oxide.Ext.Discord.Entities.Api;
@@ -14,275 +6,352 @@ using Oxide.Ext.Discord.Entities.Guilds;
 using Oxide.Ext.Discord.Entities.Messages;
 using Oxide.Ext.Discord.Entities.Users;
 using Oxide.Ext.Discord.Exceptions;
-
 namespace Oxide.Ext.Discord.Entities.Webhooks
 {
-	// Token: 0x02000042 RID: 66
-	[JsonObject(MemberSerialization = (MemberSerialization)1)]
-	public class DiscordWebhook
-	{
-		// Token: 0x17000032 RID: 50
-		// (get) Token: 0x060001D2 RID: 466 RVA: 0x0000DE67 File Offset: 0x0000C067
-		// (set) Token: 0x060001D3 RID: 467 RVA: 0x0000DE6F File Offset: 0x0000C06F
-		[JsonProperty("id")]
-		public Snowflake Id { get; set; }
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/resources/webhook#webhook-object">Webhook Structure</a>
+    /// </summary>
+    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    public class DiscordWebhook
+    {
+        /// <summary>
+        /// The id of the webhook
+        /// </summary>
+        [JsonProperty("id")]
+        public Snowflake Id { get; set; }
+        
+        /// <summary>
+        /// The type of the webhook
+        /// See <see cref="WebhookType"/>
+        /// </summary>
+        [JsonProperty("type")]
+        public WebhookType Type { get; set; }
+        
+        /// <summary>
+        /// The guild id this webhook is for, if any
+        /// </summary>
+        [JsonProperty("guild_id")]
+        public Snowflake? GuildId { get; set; }
+        
+        /// <summary>
+        /// The channel id this webhook is for, if any
+        /// </summary>
+        [JsonProperty("channel_id")]
+        public Snowflake? ChannelId { get; set; }
+        
+        /// <summary>
+        /// The user this webhook was created by
+        /// not returned when getting a webhook with its token
+        /// </summary>
+        [JsonProperty("user")]
+        public DiscordUser User { get; set; }
+        
+        /// <summary>
+        /// The default name of the webhook
+        /// </summary>
+        [JsonProperty("name")]
+        public string Name { get; set; }
+        
+        /// <summary>
+        /// the default user avatar hash of the webhook
+        /// </summary>
+        [JsonProperty("avatar")]
+        public string Avatar { get; set; }
+        
+        /// <summary>
+        /// The secure token of the webhook
+        /// returned for Incoming Webhooks
+        /// </summary>
+        [JsonProperty("token")]
+        public string Token { get; set; }
+        
+        /// <summary>
+        /// The bot/OAuth2 application that created this webhook
+        /// </summary>
+        [JsonProperty("application_id")]
+        public Snowflake ApplicationId { get; set; }
+        
+        /// <summary>
+        /// The guild of the channel that this webhook is following (returned for Channel Follower Webhooks)
+        /// </summary>
+        [JsonProperty("source_guild")]
+        public DiscordGuild SourceGuild { get; set; }
+        
+        /// <summary>
+        /// The channel that this webhook is following (returned for Channel Follower Webhooks)
+        /// </summary>
+        [JsonProperty("source_channel")]
+        public Snowflake SourceChannel { get; set; }
 
-		// Token: 0x17000033 RID: 51
-		// (get) Token: 0x060001D4 RID: 468 RVA: 0x0000DE78 File Offset: 0x0000C078
-		// (set) Token: 0x060001D5 RID: 469 RVA: 0x0000DE80 File Offset: 0x0000C080
-		[JsonProperty("type")]
-		public WebhookType Type { get; set; }
+        /// <summary>
+        /// Create a new webhook.
+        /// Requires the MANAGE_WEBHOOKS permission.
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#create-webhook">Create Webhook</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="channelId">Channel ID for the webhook</param>
+        /// <param name="name">Name of the webhook (1-80 characters)</param>
+        /// <param name="avatar">Image for the default webhook avatar</param>
+        /// <param name="callback">Callback with the completed webhook</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public static void CreateWebhook(DiscordClient client, Snowflake channelId, string name, string avatar = null, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
+        {
+            if (!channelId.IsValid()) throw new InvalidSnowflakeException(nameof(channelId));
+            Dictionary<string, string> data = new Dictionary<string, string>
+            {
+                ["name"] = name,
+                ["avatar"] = avatar
+            };
 
-		// Token: 0x17000034 RID: 52
-		// (get) Token: 0x060001D6 RID: 470 RVA: 0x0000DE89 File Offset: 0x0000C089
-		// (set) Token: 0x060001D7 RID: 471 RVA: 0x0000DE91 File Offset: 0x0000C091
-		[JsonProperty("guild_id")]
-		public Snowflake? GuildId { get; set; }
+            client.Bot.Rest.DoRequest($"/channels/{channelId}/webhooks", RequestMethod.POST, data, callback, error);
+        }
 
-		// Token: 0x17000035 RID: 53
-		// (get) Token: 0x060001D8 RID: 472 RVA: 0x0000DE9A File Offset: 0x0000C09A
-		// (set) Token: 0x060001D9 RID: 473 RVA: 0x0000DEA2 File Offset: 0x0000C0A2
-		[JsonProperty("channel_id")]
-		public Snowflake? ChannelId { get; set; }
+        /// <summary>
+        /// Returns a list of channel webhook.
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#get-channel-webhooks">Get Channel Webhooks</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="channelId">Channel ID to get webhooks for</param>
+        /// <param name="callback">Callback with a list of channel webhooks</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public static void GetChannelWebhooks(DiscordClient client, Snowflake channelId, Action<List<DiscordWebhook>> callback = null, Action<RestError> error = null)
+        {
+            if (!channelId.IsValid()) throw new InvalidSnowflakeException(nameof(channelId));
+            client.Bot.Rest.DoRequest($"/channels/{channelId}/webhooks", RequestMethod.GET, null, callback, error);
+        }
 
-		// Token: 0x17000036 RID: 54
-		// (get) Token: 0x060001DA RID: 474 RVA: 0x0000DEAB File Offset: 0x0000C0AB
-		// (set) Token: 0x060001DB RID: 475 RVA: 0x0000DEB3 File Offset: 0x0000C0B3
-		[JsonProperty("user")]
-		public DiscordUser User { get; set; }
+        /// <summary>
+        /// Returns a list of guild webhooks
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#get-guild-webhooks">Get Guild Webhooks</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="guildId">Guild ID to get webhooks for</param>
+        /// <param name="callback">Callback with the list of guild webhooks</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public static void GetGuildWebhooks(DiscordClient client, Snowflake guildId, Action<List<DiscordWebhook>> callback = null, Action<RestError> error = null)
+        {
+            if (!guildId.IsValid()) throw new InvalidSnowflakeException(nameof(guildId));
+            client.Bot.Rest.DoRequest($"/guilds/{guildId}/webhooks", RequestMethod.GET, null, callback, error);
+        }
 
-		// Token: 0x17000037 RID: 55
-		// (get) Token: 0x060001DC RID: 476 RVA: 0x0000DEBC File Offset: 0x0000C0BC
-		// (set) Token: 0x060001DD RID: 477 RVA: 0x0000DEC4 File Offset: 0x0000C0C4
-		[JsonProperty("name")]
-		public string Name { get; set; }
+        /// <summary>
+        /// Returns the webhook with the given webhook ID
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#get-webhook">Get Webhook</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="webhookId">Webhook ID to get</param>
+        /// <param name="callback">Callback with the webhook</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public static void GetWebhook(DiscordClient client, Snowflake webhookId, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
+        {
+            if (!webhookId.IsValid()) throw new InvalidSnowflakeException(nameof(webhookId));
+            client.Bot.Rest.DoRequest($"/webhooks/{webhookId}", RequestMethod.GET, null, callback, error);
+        }
 
-		// Token: 0x17000038 RID: 56
-		// (get) Token: 0x060001DE RID: 478 RVA: 0x0000DECD File Offset: 0x0000C0CD
-		// (set) Token: 0x060001DF RID: 479 RVA: 0x0000DED5 File Offset: 0x0000C0D5
-		[JsonProperty("avatar")]
-		public string Avatar { get; set; }
+        /// <summary>
+        /// Returns the webhook with the given ID &amp; Token
+        /// This call does not required authentication
+        /// No user is returned in webhook object
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#get-webhook-with-token">Get Webhook with Token</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="webhookId">Webhook ID to get</param>
+        /// <param name="webhookToken">Webhook Token</param>
+        /// <param name="callback">Callback with the webhook</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public static void GetWebhookWithToken(DiscordClient client, Snowflake webhookId, string webhookToken, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
+        {
+            if (!webhookId.IsValid()) throw new InvalidSnowflakeException(nameof(webhookId));
+            client.Bot.Rest.DoRequest($"/webhooks/{webhookId}/{webhookToken}", RequestMethod.GET, null, callback, error);
+        }
 
-		// Token: 0x17000039 RID: 57
-		// (get) Token: 0x060001E0 RID: 480 RVA: 0x0000DEDE File Offset: 0x0000C0DE
-		// (set) Token: 0x060001E1 RID: 481 RVA: 0x0000DEE6 File Offset: 0x0000C0E6
-		[JsonProperty("token")]
-		public string Token { get; set; }
+        /// <summary>
+        /// Returns the webhook with the given ID &amp; Token
+        /// This call does not required authentication
+        /// No user is returned in webhook object
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#get-webhook-with-token">Get Webhook with Token</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="webhookUrl">Returns the webhook for the specified URL</param>
+        /// <param name="callback">Callback with the webhook</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public static void GetWebhookWithUrl(DiscordClient client, string webhookUrl, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
+        {
+            string[] webhookInfo = webhookUrl.Split('/');
+            string id = webhookInfo[webhookInfo.Length - 2];
+            string token = webhookInfo[webhookInfo.Length - 1];
+            
+            client.Bot.Rest.DoRequest($"/webhooks/{id}/{token}", RequestMethod.GET, null, callback, error);
+        }
 
-		// Token: 0x1700003A RID: 58
-		// (get) Token: 0x060001E2 RID: 482 RVA: 0x0000DEEF File Offset: 0x0000C0EF
-		// (set) Token: 0x060001E3 RID: 483 RVA: 0x0000DEF7 File Offset: 0x0000C0F7
-		[JsonProperty("application_id")]
-		public Snowflake ApplicationId { get; set; }
+        /// <summary>
+        /// Modify a webhook.
+        /// Requires the MANAGE_WEBHOOKS permission.
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#modify-webhook">Modify Webhook</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="name">New webhook name</param>
+        /// <param name="avatar">New avatar image</param>
+        /// <param name="channelId">Channel to move the webhook to</param>
+        /// <param name="callback">Callback with the updated webhook</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public void ModifyWebhook(DiscordClient client, string name = null, string avatar = null, Snowflake? channelId = null, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
+        {
+            if (channelId.HasValue && !channelId.Value.IsValid()) throw new InvalidSnowflakeException(nameof(channelId));
+            
+            Dictionary<string, object> data = new Dictionary<string, object>
+            {
+                ["name"] = name ,
+                ["avatar"] = avatar,
+                ["channel_id"] = channelId
+            };
 
-		// Token: 0x1700003B RID: 59
-		// (get) Token: 0x060001E4 RID: 484 RVA: 0x0000DF00 File Offset: 0x0000C100
-		// (set) Token: 0x060001E5 RID: 485 RVA: 0x0000DF08 File Offset: 0x0000C108
-		[JsonProperty("source_guild")]
-		public DiscordGuild SourceGuild { get; set; }
+            client.Bot.Rest.DoRequest($"/webhooks/{Id}", RequestMethod.PATCH, data, callback, error);
+        }
 
-		// Token: 0x1700003C RID: 60
-		// (get) Token: 0x060001E6 RID: 486 RVA: 0x0000DF11 File Offset: 0x0000C111
-		// (set) Token: 0x060001E7 RID: 487 RVA: 0x0000DF19 File Offset: 0x0000C119
-		[JsonProperty("source_channel")]
-		public Snowflake SourceChannel { get; set; }
+        /// <summary>
+        /// Modify a webhook.
+        /// Requires the MANAGE_WEBHOOKS permission.
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#modify-webhook-with-token">Modify Webhook with Token</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="name">New webhook name</param>
+        /// <param name="avatar">New avatar image</param>
+        /// <param name="callback">Callback with the updated webhook</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public void ModifyWebhookWithToken(DiscordClient client, string name = null, string avatar = null, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
+        {
+            Dictionary<string, object> data = new Dictionary<string, object>
+            {
+                ["name"] = name,
+                ["avatar"] = avatar
+            };
 
-		// Token: 0x060001E8 RID: 488 RVA: 0x0000DF24 File Offset: 0x0000C124
-		public static void CreateWebhook(DiscordClient client, Snowflake channelId, string name, string avatar = null, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
-		{
-			bool flag = !channelId.IsValid();
-			if (flag)
-			{
-				throw new InvalidSnowflakeException("channelId");
-			}
-			Dictionary<string, string> dictionary = new Dictionary<string, string>();
-			dictionary["name"] = name;
-			dictionary["avatar"] = avatar;
-			Dictionary<string, string> data = dictionary;
-			client.Bot.Rest.DoRequest<DiscordWebhook>(string.Format("/channels/{0}/webhooks", channelId), RequestMethod.POST, data, callback, error);
-		}
+            client.Bot.Rest.DoRequest($"/webhooks/{Id}/{Token}", RequestMethod.PATCH, data, callback, error);
+        }
 
-		// Token: 0x060001E9 RID: 489 RVA: 0x0000DF94 File Offset: 0x0000C194
-		public static void GetChannelWebhooks(DiscordClient client, Snowflake channelId, Action<List<DiscordWebhook>> callback = null, Action<RestError> error = null)
-		{
-			bool flag = !channelId.IsValid();
-			if (flag)
-			{
-				throw new InvalidSnowflakeException("channelId");
-			}
-			client.Bot.Rest.DoRequest<List<DiscordWebhook>>(string.Format("/channels/{0}/webhooks", channelId), RequestMethod.GET, null, callback, error);
-		}
+        /// <summary>
+        /// Delete a webhook permanently.
+        /// Requires the MANAGE_WEBHOOKS permission.
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#delete-webhook">Delete Webhook</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="callback">Callback once the action is completed</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public void DeleteWebhook(DiscordClient client, Action callback = null, Action<RestError> error = null)
+        {
+            client.Bot.Rest.DoRequest($"/webhooks/{Id}", RequestMethod.DELETE, null, callback, error);
+        }
 
-		// Token: 0x060001EA RID: 490 RVA: 0x0000DFE0 File Offset: 0x0000C1E0
-		public static void GetGuildWebhooks(DiscordClient client, Snowflake guildId, Action<List<DiscordWebhook>> callback = null, Action<RestError> error = null)
-		{
-			bool flag = !guildId.IsValid();
-			if (flag)
-			{
-				throw new InvalidSnowflakeException("guildId");
-			}
-			client.Bot.Rest.DoRequest<List<DiscordWebhook>>(string.Format("/guilds/{0}/webhooks", guildId), RequestMethod.GET, null, callback, error);
-		}
+        /// <summary>
+        /// Delete a webhook permanently.
+        /// Does not require authentication.
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#delete-webhook-with-token">Delete Webhook with Token</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="callback">Callback once the action is completed</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public void DeleteWebhookWithToken(DiscordClient client, Action callback = null, Action<RestError> error = null)
+        {
+            client.Bot.Rest.DoRequest($"/webhooks/{Id}/{Token}", RequestMethod.DELETE, null, callback, error);
+        }
 
-		// Token: 0x060001EB RID: 491 RVA: 0x0000E02C File Offset: 0x0000C22C
-		public static void GetWebhook(DiscordClient client, Snowflake webhookId, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
-		{
-			bool flag = !webhookId.IsValid();
-			if (flag)
-			{
-				throw new InvalidSnowflakeException("webhookId");
-			}
-			client.Bot.Rest.DoRequest<DiscordWebhook>(string.Format("/webhooks/{0}", webhookId), RequestMethod.GET, null, callback, error);
-		}
+        /// <summary>
+        /// Executes a webhook
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#execute-webhook">Execute Webhook</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="message">Message data</param>
+        /// <param name="executeParams">Webhook execution parameters</param>
+        /// <param name="callback">Callback once the action is completed</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public void ExecuteWebhook(DiscordClient client, WebhookCreateMessage message, WebhookExecuteParams executeParams = null, Action callback = null, Action<RestError> error = null)
+        {
+            if (executeParams == null)
+            {
+                executeParams = new WebhookExecuteParams();
+            }
+            
+            message.Validate();
+            message.ValidateWebhookMessage();
+            
+            client.Bot.Rest.DoRequest($"/webhooks/{Id}/{Token}{executeParams.GetWebhookFormat()}{executeParams.ToQueryString()}", RequestMethod.POST, message, callback, error);
+        }
 
-		// Token: 0x060001EC RID: 492 RVA: 0x0000E078 File Offset: 0x0000C278
-		public static void GetWebhookWithToken(DiscordClient client, Snowflake webhookId, string webhookToken, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
-		{
-			bool flag = !webhookId.IsValid();
-			if (flag)
-			{
-				throw new InvalidSnowflakeException("webhookId");
-			}
-			client.Bot.Rest.DoRequest<DiscordWebhook>(string.Format("/webhooks/{0}/{1}", webhookId, webhookToken), RequestMethod.GET, null, callback, error);
-		}
+        /// <summary>
+        /// Executes a webhook
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#execute-webhook">Execute Webhook</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="message">Message data</param>
+        /// <param name="executeParams">Webhook execution parameters</param>
+        /// <param name="callback">Callback with the created message</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public void ExecuteWebhook(DiscordClient client, WebhookCreateMessage message, WebhookExecuteParams executeParams = null, Action<DiscordMessage> callback = null, Action<RestError> error = null)
+        {
+            if (executeParams == null)
+            {
+                executeParams = new WebhookExecuteParams();
+            }
 
-		// Token: 0x060001ED RID: 493 RVA: 0x0000E0C8 File Offset: 0x0000C2C8
-		public static void GetWebhookWithUrl(DiscordClient client, string webhookUrl, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
-		{
-			string[] array = webhookUrl.Split(new char[]
-			{
-				'/'
-			});
-			string str = array[array.Length - 2];
-			string str2 = array[array.Length - 1];
-			client.Bot.Rest.DoRequest<DiscordWebhook>("/webhooks/" + str + "/" + str2, RequestMethod.GET, null, callback, error);
-		}
+            executeParams.Wait = true;
+            message.Validate();
+            message.ValidateWebhookMessage();
+            
+            client.Bot.Rest.DoRequest($"/webhooks/{Id}/{Token}{executeParams.GetWebhookFormat()}{executeParams.ToQueryString()}", RequestMethod.POST, message, callback, error);
+        }
 
-		// Token: 0x060001EE RID: 494 RVA: 0x0000E120 File Offset: 0x0000C320
-		public void ModifyWebhook(DiscordClient client, string name = null, string avatar = null, Snowflake? channelId = null, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
-		{
-			bool flag = channelId != null && !channelId.Value.IsValid();
-			if (flag)
-			{
-				throw new InvalidSnowflakeException("channelId");
-			}
-			Dictionary<string, object> dictionary = new Dictionary<string, object>();
-			dictionary["name"] = name;
-			dictionary["avatar"] = avatar;
-			dictionary["channel_id"] = channelId;
-			Dictionary<string, object> data = dictionary;
-			client.Bot.Rest.DoRequest<DiscordWebhook>(string.Format("/webhooks/{0}", this.Id), RequestMethod.PATCH, data, callback, error);
-		}
-
-		// Token: 0x060001EF RID: 495 RVA: 0x0000E1BC File Offset: 0x0000C3BC
-		public void ModifyWebhookWithToken(DiscordClient client, string name = null, string avatar = null, Action<DiscordWebhook> callback = null, Action<RestError> error = null)
-		{
-			Dictionary<string, object> dictionary = new Dictionary<string, object>();
-			dictionary["name"] = name;
-			dictionary["avatar"] = avatar;
-			Dictionary<string, object> data = dictionary;
-			client.Bot.Rest.DoRequest<DiscordWebhook>(string.Format("/webhooks/{0}/{1}", this.Id, this.Token), RequestMethod.PATCH, data, callback, error);
-		}
-
-		// Token: 0x060001F0 RID: 496 RVA: 0x0000E21C File Offset: 0x0000C41C
-		public void DeleteWebhook(DiscordClient client, Action callback = null, Action<RestError> error = null)
-		{
-			client.Bot.Rest.DoRequest(string.Format("/webhooks/{0}", this.Id), RequestMethod.DELETE, null, callback, error);
-		}
-
-		// Token: 0x060001F1 RID: 497 RVA: 0x0000E249 File Offset: 0x0000C449
-		public void DeleteWebhookWithToken(DiscordClient client, Action callback = null, Action<RestError> error = null)
-		{
-			client.Bot.Rest.DoRequest(string.Format("/webhooks/{0}/{1}", this.Id, this.Token), RequestMethod.DELETE, null, callback, error);
-		}
-
-		// Token: 0x060001F2 RID: 498 RVA: 0x0000E27C File Offset: 0x0000C47C
-		public void ExecuteWebhook(DiscordClient client, WebhookCreateMessage message, WebhookExecuteParams executeParams = null, Action callback = null, Action<RestError> error = null)
-		{
-			bool flag = executeParams == null;
-			if (flag)
-			{
-				executeParams = new WebhookExecuteParams();
-			}
-			message.Validate();
-			message.ValidateWebhookMessage();
-			client.Bot.Rest.DoRequest(string.Format("/webhooks/{0}/{1}{2}{3}", new object[]
-			{
-				this.Id,
-				this.Token,
-				executeParams.GetWebhookFormat(),
-				executeParams.ToQueryString()
-			}), RequestMethod.POST, message, callback, error);
-		}
-
-		// Token: 0x060001F3 RID: 499 RVA: 0x0000E2FC File Offset: 0x0000C4FC
-		public void ExecuteWebhook(DiscordClient client, WebhookCreateMessage message, WebhookExecuteParams executeParams = null, Action<DiscordMessage> callback = null, Action<RestError> error = null)
-		{
-			bool flag = executeParams == null;
-			if (flag)
-			{
-				executeParams = new WebhookExecuteParams();
-			}
-			executeParams.Wait = true;
-			message.Validate();
-			message.ValidateWebhookMessage();
-			client.Bot.Rest.DoRequest<DiscordMessage>(string.Format("/webhooks/{0}/{1}{2}{3}", new object[]
-			{
-				this.Id,
-				this.Token,
-				executeParams.GetWebhookFormat(),
-				executeParams.ToQueryString()
-			}), RequestMethod.POST, message, callback, error);
-		}
-
-		// Token: 0x060001F4 RID: 500 RVA: 0x0000E384 File Offset: 0x0000C584
-		public void GetWebhookMessage(DiscordClient client, Snowflake messageId, WebhookMessageParams messageParams = null, Action<DiscordMessage> callback = null, Action<RestError> error = null)
-		{
-			bool flag = !messageId.IsValid();
-			if (flag)
-			{
-				throw new InvalidSnowflakeException("messageId");
-			}
-			bool flag2 = messageParams == null;
-			if (flag2)
-			{
-				messageParams = new WebhookMessageParams();
-			}
-			client.Bot.Rest.DoRequest<DiscordMessage>(string.Format("/webhooks/{0}/{1}/messages/{2}{3}", new object[]
-			{
-				this.Id,
-				this.Token,
-				messageId,
-				messageParams.ToQueryString()
-			}), RequestMethod.GET, null, callback, error);
-		}
-
-		// Token: 0x060001F5 RID: 501 RVA: 0x0000E40C File Offset: 0x0000C60C
-		public void EditWebhookMessage(DiscordClient client, Snowflake messageId, DiscordMessage message, WebhookMessageParams messageParams = null, Action<DiscordMessage> callback = null, Action<RestError> error = null)
-		{
-			bool flag = messageParams == null;
-			if (flag)
-			{
-				messageParams = new WebhookMessageParams();
-			}
-			client.Bot.Rest.DoRequest<DiscordMessage>(string.Format("/webhooks/{0}/{1}/messages/{2}{3}", new object[]
-			{
-				this.Id,
-				this.Token,
-				messageId,
-				messageParams.ToQueryString()
-			}), RequestMethod.PATCH, message, callback, error);
-		}
-
-		// Token: 0x060001F6 RID: 502 RVA: 0x0000E480 File Offset: 0x0000C680
-		public void DeleteWebhookMessage(DiscordClient client, Snowflake messageId, Action callback = null, Action<RestError> error = null)
-		{
-			bool flag = !messageId.IsValid();
-			if (flag)
-			{
-				throw new InvalidSnowflakeException("messageId");
-			}
-			client.Bot.Rest.DoRequest(string.Format("/webhooks/{0}/{1}/messages/{2}", this.Id, this.Token, messageId), RequestMethod.DELETE, null, callback, error);
-		}
-	}
+        /// <summary>
+        /// Gets a previously-sent webhook message from the same token.
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#get-webhook-message">Edit Webhook Message</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="messageId">Message ID to get</param>
+        /// <param name="messageParams">Message Params</param>
+        /// <param name="callback">Callback with the message</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public void GetWebhookMessage(DiscordClient client, Snowflake messageId, WebhookMessageParams messageParams = null, Action<DiscordMessage> callback = null, Action<RestError> error = null)
+        {
+            if (!messageId.IsValid()) throw new InvalidSnowflakeException(nameof(messageId));
+            if (messageParams == null)
+            {
+                messageParams = new WebhookMessageParams();
+            }
+            
+            client.Bot.Rest.DoRequest($"/webhooks/{Id}/{Token}/messages/{messageId}{messageParams.ToQueryString()}", RequestMethod.GET, null, callback, error);
+        }
+        
+        /// <summary>
+        /// Edits a previously-sent webhook message from the same token.
+        /// See <a href="https://discord.com/developers/docs/resources/webhook#edit-webhook-message">Edit Webhook Message</a>
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="messageId">Message ID to edit</param>
+        /// <param name="messageParams">Message Params</param>
+        /// <param name="message">The updated message</param>
+        /// <param name="callback">Callback with the edited message</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public void EditWebhookMessage(DiscordClient client, Snowflake messageId, DiscordMessage message, WebhookMessageParams messageParams = null, Action<DiscordMessage> callback = null, Action<RestError> error = null)
+        {
+            if (messageParams == null)
+            {
+                messageParams = new WebhookMessageParams();
+            }
+            
+            client.Bot.Rest.DoRequest($"/webhooks/{Id}/{Token}/messages/{messageId}{messageParams.ToQueryString()}", RequestMethod.PATCH, message, callback, error);
+        }
+        
+        /// <summary>
+        /// Deletes a message that was created by the webhook.
+        /// </summary>
+        /// <param name="client">Client to use</param>
+        /// <param name="messageId">Message ID to delete</param>
+        /// <param name="callback">Callback once the action is completed</param>
+        /// <param name="error">Callback when an error occurs with error information</param>
+        public void DeleteWebhookMessage(DiscordClient client, Snowflake messageId, Action callback = null, Action<RestError> error = null)
+        {
+            if (!messageId.IsValid()) throw new InvalidSnowflakeException(nameof(messageId));
+            client.Bot.Rest.DoRequest($"/webhooks/{Id}/{Token}/messages/{messageId}", RequestMethod.DELETE, null, callback, error);
+        }
+    }
 }

@@ -39,7 +39,7 @@ public class CorePlugin : CarbonPlugin
 	{
 		OrderedFiles.Clear();
 
-		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", SearchOption.TopDirectoryOnly))
+		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", SearchOption.AllDirectories))
 		{
 			OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
 		}

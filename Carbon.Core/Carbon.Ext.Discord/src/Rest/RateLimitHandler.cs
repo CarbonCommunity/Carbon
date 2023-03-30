@@ -1,111 +1,93 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 using System.Timers;
 using Oxide.Ext.Discord.Helpers;
 
 namespace Oxide.Ext.Discord.Rest
 {
-	// Token: 0x0200000E RID: 14
-	public class RateLimitHandler
-	{
-		// Token: 0x060000AF RID: 175 RVA: 0x000092B0 File Offset: 0x000074B0
-		public RateLimitHandler()
-		{
-			this._timer = new Timer(60000000.0);
-			this._timer.Elapsed += this.ResetGlobal;
-			this._timer.Start();
-			this._lastReset = (double)Time.TimeSinceEpoch();
-		}
+    /// <summary>
+    /// Represents a global rate limit handler for a bot
+    /// </summary>
+    public class RateLimitHandler
+    {
+        /// <summary>
+        /// How many requests have been made globally for the bot since the last 60 second period wiped it
+        /// </summary>
+        private int _global;
 
-		// Token: 0x060000B0 RID: 176 RVA: 0x00009314 File Offset: 0x00007514
-		private void ResetGlobal(object sender, ElapsedEventArgs e)
-		{
-			object syncRoot = this._syncRoot;
-			lock (syncRoot)
-			{
-				this._global = 0;
-				this._lastReset = (double)Time.TimeSinceEpoch();
-			}
-		}
+        private Timer _timer;
+        private double _lastReset;
+        private double _retryAfter;
 
-		// Token: 0x060000B1 RID: 177 RVA: 0x00009368 File Offset: 0x00007568
-		public void FiredRequest()
-		{
-			object syncRoot = this._syncRoot;
-			lock (syncRoot)
-			{
-				this._global++;
-			}
-		}
+        private const int MaxRequestsPerMinute = 110;
+        private const int ResetInterval = ResetIntervalSeconds * 1000;
+        private const int ResetIntervalSeconds = 60;
 
-		// Token: 0x060000B2 RID: 178 RVA: 0x000093B8 File Offset: 0x000075B8
-		public void ReachedRateLimit(double retryAfter)
-		{
-			this._global = 110;
-			this._retryAfter = retryAfter;
-		}
+        private readonly object _syncRoot = new object();
+        
+        /// <summary>
+        /// Creates a new global rate limit for a bot
+        /// </summary>
+        public RateLimitHandler()
+        {
+            _timer = new Timer(ResetInterval * 1000);
+            _timer.Elapsed += ResetGlobal;
+            _timer.Start();
+            _lastReset = Time.TimeSinceEpoch();
+        }
 
-		// Token: 0x1700000E RID: 14
-		// (get) Token: 0x060000B3 RID: 179 RVA: 0x000093CA File Offset: 0x000075CA
-		public bool HasReachedRateLimit
-		{
-			get
-			{
-				return this._global >= 110;
-			}
-		}
+        private void ResetGlobal(object sender, ElapsedEventArgs e)
+        {
+            lock (_syncRoot)
+            {
+                _global = 0;
+                _lastReset = Time.TimeSinceEpoch();
+            }
+        }
 
-		// Token: 0x1700000F RID: 15
-		// (get) Token: 0x060000B4 RID: 180 RVA: 0x000093D9 File Offset: 0x000075D9
-		public double NextBucketReset
-		{
-			get
-			{
-				return Math.Max(this._lastReset + 60.0, (double)Time.TimeSinceEpoch() + this._retryAfter);
-			}
-		}
+        /// <summary>
+        /// Called when an API request is fired
+        /// </summary>
+        public void FiredRequest()
+        {
+            lock (_syncRoot)
+            {
+                _global += 1;
+            }
+        }
 
-		// Token: 0x060000B5 RID: 181 RVA: 0x00009400 File Offset: 0x00007600
-		public void Shutdown()
-		{
-			bool flag = this._timer == null;
-			if (!flag)
-			{
-				this._timer.Stop();
-				this._timer.Dispose();
-				this._timer = null;
-			}
-		}
+        /// <summary>
+        /// Called if we receive a header notifying us of hitting the rate limit
+        /// </summary>
+        /// <param name="retryAfter">How long until we should retry API request again</param>
+        public void ReachedRateLimit(double retryAfter)
+        {
+            _global = MaxRequestsPerMinute;
+            _retryAfter = retryAfter;
+        }
 
-		// Token: 0x0400009D RID: 157
-		private int _global;
+        /// <summary>
+        /// Returns true if we have reached the global rate limit 
+        /// </summary>
+        public bool HasReachedRateLimit => _global >= MaxRequestsPerMinute;
 
-		// Token: 0x0400009E RID: 158
-		private Timer _timer;
+        /// <summary>
+        /// Returns how long until the current rate limit period will expire
+        /// </summary>
+        public double NextBucketReset => Math.Max(_lastReset + ResetIntervalSeconds, Time.TimeSinceEpoch() + _retryAfter) ;
 
-		// Token: 0x0400009F RID: 159
-		private double _lastReset;
-
-		// Token: 0x040000A0 RID: 160
-		private double _retryAfter;
-
-		// Token: 0x040000A1 RID: 161
-		private const int MaxRequestsPerMinute = 110;
-
-		// Token: 0x040000A2 RID: 162
-		private const int ResetInterval = 60000;
-
-		// Token: 0x040000A3 RID: 163
-		private const int ResetIntervalSeconds = 60;
-
-		// Token: 0x040000A4 RID: 164
-		private readonly object _syncRoot = new object();
-	}
+        /// <summary>
+        /// Called when a bot is shutting down
+        /// </summary>
+        public void Shutdown()
+        {
+            if (_timer == null)
+            {
+                return;
+            }
+            
+            _timer.Stop();
+            _timer.Dispose();
+            _timer = null;
+        }
+    }
 }
