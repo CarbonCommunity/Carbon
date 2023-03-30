@@ -20,7 +20,12 @@ namespace Oxide.Ext.Discord.Libraries.Subscription
         private readonly Hash<Snowflake, Hash<string, DiscordSubscription>> _subscriptions = new Hash<Snowflake, Hash<string, DiscordSubscription>>();
 
         private readonly ILogger _logger;
-        
+
+		public DiscordSubscriptions()
+		{
+			_logger = DiscordExtension.GlobalLogger;
+		}
+
         /// <summary>
         /// DiscordSubscriptions Constructor
         /// </summary>
