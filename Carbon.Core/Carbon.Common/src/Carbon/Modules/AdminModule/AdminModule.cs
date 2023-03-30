@@ -3417,7 +3417,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				cui.CreateProtectedButton(container, mainPanel, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, align: TextAnchor.MiddleCenter, command: "pluginbrowser.deselectplugin");
 
-				var favouriteButton = cui.CreateProtectedButton(container, mainPanel, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: 0.495f, yMin: 0.755f, yMax: 0.79f, command: $"pluginbrowser.interact 10 {selectedPlugin.File}");
+				var favouriteButton = cui.CreateProtectedButton(container, mainPanel, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: 0.495f, yMin: 0.755f, yMax: 0.78f, command: $"pluginbrowser.interact 10 {selectedPlugin.File}");
 				cui.CreateImage(container, favouriteButton, null, "star", ServerOwner.Singleton.FavouritePlugins.Contains(selectedPlugin.File) ? "0.9 0.8 0.4 0.95" : "0.2 0.2 0.2 0.4");
 
 				#region Tags
