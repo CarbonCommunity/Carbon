@@ -125,7 +125,18 @@ public class WebRequests
 							catch { }
 						};
 
-						try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }
+						try
+						{
+							if (RequestHeaders != null && RequestHeaders.Count > 0)
+							{
+								foreach (var header in RequestHeaders)
+								{
+									_client.Headers.Add(header.Key, header.Value);
+								}
+							}
+							_client.DownloadStringAsync(_uri);
+						}
+						catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 						break;
 
 					case "PUT":
@@ -157,7 +168,17 @@ public class WebRequests
 
 						try
 						{
-							_client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+							if (RequestHeaders != null && RequestHeaders.Count > 0)
+							{
+								foreach (var header in RequestHeaders)
+								{
+									_client.Headers.Add(header.Key, header.Value);
+								}
+							}
+							else
+							{
+								_client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+							}
 							_client.UploadStringAsync(_uri, Body);
 						}
 						catch (Exception ex) { ResponseError = ex; OnComplete(true); }
