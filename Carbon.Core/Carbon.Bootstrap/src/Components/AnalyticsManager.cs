@@ -21,6 +21,7 @@ namespace Components;
 internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsManager
 {
 	private bool _first;
+	private int _sessions;
 	private float _lastUpdate;
 	private float _lastEngagement;
 	private static string _location;
@@ -134,7 +135,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	{
 		_first = false;
 		_lastUpdate = 0;
-		_lastEngagement = -1;
+		_lastEngagement = float.MinValue;
 		SessionID = Util.GetRandomNumber(10);
 
 		if (File.Exists(Path.Combine(Context.Carbon, ".nostats")))
@@ -157,65 +158,67 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		_lastUpdate += UnityEngine.Time.deltaTime;
 		if (_lastUpdate < 300) return;
 
-		LogEvent("user_engagement");
 		_lastUpdate = 0;
+		LogEvent("user_engagement");
 	}
 
-	public void StartSession()
-		=> LogEvent(_first ? "first_visit" : "user_engagement");
+	public void SessionStart()
+	{
+		Logger.Warn(">> SESSION START");
+		LogEvent(_first ? "first_visit" : "user_engagement");
+	}
 
 	public void LogEvent(string eventName)
 		=> SendEvent(eventName);
 
-	public void LogEvent(string eventName, IDictionary<string, object> parameters)
-		=> SendMPEvent(eventName, parameters);
+	public void LogEvent(string eventName, IDictionary<string, object> segments = null, IDictionary<string, object> metrics = null)
+		=> SendMPEvent(eventName, segments, metrics);
 
 	public void SendEvent(string eventName)
 	{
 		if (!enabled) return;
 
-		float delta = 1; bool newsession = true;
-		if (_lastEngagement >= 0f && _lastEngagement <= 1800f)
-		{
-			newsession = false;
-			delta = (UnityEngine.Time.realtimeSinceStartup - _lastEngagement) * 1000;
-		}
+		float delta = Math.Min(Math.Max(
+			UnityEngine.Time.realtimeSinceStartup - _lastEngagement, 0f), float.MaxValue);
 		_lastEngagement = UnityEngine.Time.realtimeSinceStartup;
 
 		string url = "https://www.google-analytics.com/g/collect";
-		string query = $"v=2&tid={MeasurementID}&cid={ClientID}&en={eventName}&";
+		string query = $"v=2&tid={MeasurementID}&cid={ClientID}&en={eventName}";
 
-		if (newsession)
+		if (delta >= 1800f)
 		{
+			if (delta == float.MaxValue) delta = 0;
 			SessionID = Util.GetRandomNumber(10);
 			query += $"&_ss=1";
+			_sessions++;
 		}
 
-		query += $"&seg=1&_et={Math.Round(delta)}&sid={SessionID}";
+		query += $"&seg=1&_et={Math.Round(delta * 1000f)}&sid={SessionID}&sct={_sessions}";
 
 #if DEBUG_VERBOSE
 		query += "&_dbg=1";
 #endif
 
-		SendRequest($"{url}?{query}");
+		SendRequest($"{url}?{query}&_z={Util.GetRandomNumber(10)}");
 	}
 
-	private void SendMPEvent(string eventName, IDictionary<string, object> properties = null)
+	private void SendMPEvent(string eventName, IDictionary<string, object> segments, IDictionary<string, object> metrics)
 	{
 		if (!enabled) return;
 
-		float delta = (UnityEngine.Time.realtimeSinceStartup - _lastEngagement) * 1000;
+		float delta = Math.Min(Math.Max(
+			UnityEngine.Time.realtimeSinceStartup - _lastEngagement, 0f), 1800f);
 		_lastEngagement = UnityEngine.Time.realtimeSinceStartup;
 
 		string url = "https://www.google-analytics.com/mp/collect";
 		string query = $"api_secret={MeasurementSecret}&measurement_id={MeasurementID}";
 
-		Dictionary<string, object> parameters = new() {
+		Dictionary<string, object> event_parameters = new() {
 #if DEBUG_VERBOSE
 			{ "debug_mode", 1 },
 #endif
 			{ "session_id", SessionID },
-			{ "engagement_time_msec", Math.Round(delta) },
+			{ "engagement_time_msec", Math.Round(delta * 1000f) },
 		};
 
 		Dictionary<string, object> body = new Dictionary<string, object>
@@ -224,21 +227,27 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			{ "non_personalized_ads", true },
 		};
 
+		if (metrics != null)
+		{
+			foreach (var metric in metrics)
+				event_parameters.Add(metric.Key, metric.Value);
+		}
+
 		body.Add("events", value: new List<Dictionary<string, object>> {
 			new Dictionary<string, object> {
 				{ "name", eventName },
-				{ "params", parameters }
+				{ "params", event_parameters }
 			}
 		});
 
-		if (properties != null)
+		if (segments != null)
 		{
 			Dictionary<string, object> user_properties = new();
 
-			foreach (var property in properties)
+			foreach (var segment in segments)
 			{
-				user_properties.Add(property.Key, new Dictionary<string, object> {
-					{"value", property.Value}
+				user_properties.Add(segment.Key, new Dictionary<string, object> {
+					{"value", segment.Value}
 				});
 			}
 			body.Add("user_properties", user_properties);
