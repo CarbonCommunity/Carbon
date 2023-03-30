@@ -1,37 +1,40 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Oxide.Ext.Discord.Entities.Gatway;
 using Oxide.Ext.Discord.Logging;
 
 namespace Oxide.Ext.Discord
 {
-	// Token: 0x02000005 RID: 5
-	public class DiscordSettings
-	{
-		// Token: 0x0600003B RID: 59 RVA: 0x00003244 File Offset: 0x00001444
-		public string GetHiddenToken()
-		{
-			return "\"" + DiscordSettings.HideTokenRegex.Replace(this.ApiToken, "#") + "\"";
-		}
+    /// <summary>
+    /// Represents settings used to connect to discord
+    /// </summary>
+    public class DiscordSettings
+    {
+        /// <summary>
+        /// API token for the bot
+        /// </summary>
+        public string ApiToken;
 
-		// Token: 0x0400001D RID: 29
-		public string ApiToken;
+        /// <summary>
+        /// Discord Extension Logging Level.
+        /// See <see cref="LogLevel"/>
+        /// </summary>
+        public DiscordLogLevel LogLevel = DiscordLogLevel.Info;
+        
+        /// <summary>
+        /// Intents that your bot needs to work
+        /// See <see cref="GatewayIntents"/>
+        /// </summary>
+        public GatewayIntents Intents = GatewayIntents.None;
 
-		// Token: 0x0400001E RID: 30
-		public DiscordLogLevel LogLevel = DiscordLogLevel.Info;
-
-		// Token: 0x0400001F RID: 31
-		public GatewayIntents Intents = GatewayIntents.None;
-
-		// Token: 0x04000020 RID: 32
-		private static readonly Regex HideTokenRegex = new Regex("\\w|-", RegexOptions.Compiled);
-	}
+        private static readonly Regex HideTokenRegex = new Regex("\\w|-", RegexOptions.Compiled);
+        
+        /// <summary>
+        /// Hides the token but keeps the format to allow for debugging token issues without showing the token.
+        /// </summary>
+        /// <returns></returns>
+        public string GetHiddenToken()
+        {
+            return $"\"{HideTokenRegex.Replace(ApiToken, "#")}\"";
+        }
+    }
 }

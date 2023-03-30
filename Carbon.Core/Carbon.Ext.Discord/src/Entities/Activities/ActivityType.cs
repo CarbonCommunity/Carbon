@@ -1,29 +1,26 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
-namespace Oxide.Ext.Discord.Entities.Activities
+﻿namespace Oxide.Ext.Discord.Entities.Activities
 {
-	// Token: 0x02000124 RID: 292
-	public enum ActivityType
-	{
-		// Token: 0x04000641 RID: 1601
-		Game,
-		// Token: 0x04000642 RID: 1602
-		Streaming,
-		// Token: 0x04000643 RID: 1603
-		Listening,
-		// Token: 0x04000644 RID: 1604
-		Watching,
-		// Token: 0x04000645 RID: 1605
-		Custom,
-		// Token: 0x04000646 RID: 1606
-		Competing
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/topics/gateway#activity-object-activity-types">Activity Types</a>
+    /// </summary>
+    public enum ActivityType
+    {
+        /// Playing {name}
+        Game = 0,       
+        
+        /// Streaming {name}
+        Streaming = 1,  
+        
+        /// Listening {name}
+        Listening = 2,  
+        
+        /// Watching {name}
+        Watching = 3,   
+        
+        ///{emoji} {name} EX: ":smiley: I am cool"
+        Custom = 4,     
+        
+        /// Competing in {name}
+        Competing = 5   
+    }
 }

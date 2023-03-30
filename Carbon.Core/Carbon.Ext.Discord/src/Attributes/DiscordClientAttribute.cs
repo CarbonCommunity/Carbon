@@ -1,18 +1,12 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 
 namespace Oxide.Ext.Discord.Attributes
 {
-	// Token: 0x02000135 RID: 309
-	[AttributeUsage(AttributeTargets.Field)]
-	public class DiscordClientAttribute : Attribute
-	{
-	}
+    /// <summary>
+    /// Used to identify which field in a plugin to create a discord client for and set the client to.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field)]
+    public class DiscordClientAttribute : Attribute
+    {
+    }
 }

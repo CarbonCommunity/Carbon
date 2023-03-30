@@ -1,56 +1,61 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 using System.Collections.Generic;
 using Oxide.Ext.Discord.Entities.Interactions.ApplicationCommands;
-
 namespace Oxide.Ext.Discord.Builders.ApplicationCommands
 {
-	// Token: 0x02000131 RID: 305
-	public class SubCommandBuilder : IApplicationCommandBuilder
-	{
-		// Token: 0x06000B18 RID: 2840 RVA: 0x000193DC File Offset: 0x000175DC
-		internal SubCommandBuilder(List<CommandOption> parent, string name, string description, IApplicationCommandBuilder builder)
-		{
-			this._builder = builder;
-			this._options = new List<CommandOption>();
-			parent.Add(new CommandOption
-			{
-				Name = name,
-				Description = description,
-				Type = CommandOptionType.SubCommand,
-				Options = this._options
-			});
-		}
+    /// <summary>
+    /// Base Sub Command builder
+    /// </summary>
+    public class SubCommandBuilder : IApplicationCommandBuilder
+    {
+        private readonly IApplicationCommandBuilder _builder;
+        /// <summary>
+        /// Options list to have options added to
+        /// </summary>
+        private readonly List<CommandOption> _options;
 
-		// Token: 0x06000B19 RID: 2841 RVA: 0x00019438 File Offset: 0x00017638
-		public CommandOptionBuilder AddOption(CommandOptionType type, string name, string description)
-		{
-			return new CommandOptionBuilder(this._options, type, name, description, this);
-		}
+        internal SubCommandBuilder(List<CommandOption> parent, string name, string description, IApplicationCommandBuilder builder)
+        {
+            _builder = builder;
+            _options = new List<CommandOption>();
+            parent.Add(new CommandOption
+            {
+                Name = name,
+                Description = description,
+                Type = CommandOptionType.SubCommand,
+                Options = _options
+            });
+        }
 
-		// Token: 0x06000B1A RID: 2842 RVA: 0x0001945C File Offset: 0x0001765C
-		public ApplicationCommandBuilder BuildForApplicationCommand()
-		{
-			return (ApplicationCommandBuilder)this._builder;
-		}
+        /// <summary>
+        /// Adds a new option
+        /// </summary>
+        /// <param name="type">Option data type (Cannot be SubCommand or SubCommandGroup)</param>
+        /// <param name="name">Name of the option</param>
+        /// <param name="description">Description of the option</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public CommandOptionBuilder AddOption(CommandOptionType type, string name, string description)
+        {
+            return new CommandOptionBuilder(_options, type, name, description, this);
+        }
 
-		// Token: 0x06000B1B RID: 2843 RVA: 0x0001947C File Offset: 0x0001767C
-		public SubCommandGroupBuilder BuildForSubCommandGroup()
-		{
-			return (SubCommandGroupBuilder)this._builder;
-		}
-
-		// Token: 0x04000708 RID: 1800
-		private readonly IApplicationCommandBuilder _builder;
-
-		// Token: 0x04000709 RID: 1801
-		private readonly List<CommandOption> _options;
-	}
+        /// <summary>
+        /// Returns the built sub command
+        /// </summary>
+        /// <returns></returns>
+        public ApplicationCommandBuilder BuildForApplicationCommand()
+        {
+            return (ApplicationCommandBuilder)_builder;
+        }
+        
+        /// <summary>
+        /// Returns the built sub command
+        /// </summary>
+        /// <returns></returns>
+        public SubCommandGroupBuilder BuildForSubCommandGroup()
+        {
+            return (SubCommandGroupBuilder)_builder;
+        }
+    }
 }

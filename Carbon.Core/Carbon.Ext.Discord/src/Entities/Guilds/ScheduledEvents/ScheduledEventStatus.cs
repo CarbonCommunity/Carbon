@@ -1,25 +1,28 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
 namespace Oxide.Ext.Discord.Entities.Guilds.ScheduledEvents
 {
-	// Token: 0x020000BF RID: 191
-	public enum ScheduledEventStatus
-	{
-		// Token: 0x04000442 RID: 1090
-		Scheduled = 1,
-		// Token: 0x04000443 RID: 1091
-		Active,
-		// Token: 0x04000444 RID: 1092
-		Completed,
-		// Token: 0x04000445 RID: 1093
-		Canceled
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-status">Guild Scheduled Event Status</a>
+    /// </summary>
+    public enum ScheduledEventStatus
+    {
+        /// <summary>
+        /// Scheduled Event is scheduled and has not happened yet.
+        /// </summary>
+        Scheduled = 1,
+        
+        /// <summary>
+        /// Scheduled event is currently occuring
+        /// </summary>
+        Active = 2,
+        
+        /// <summary>
+        /// Scheduled event has completed
+        /// </summary>
+        Completed = 3,
+        
+        /// <summary>
+        /// Scheduled event was canceled.
+        /// </summary>
+        Canceled = 4,
+    }
 }

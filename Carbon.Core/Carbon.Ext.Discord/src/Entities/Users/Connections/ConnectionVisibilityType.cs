@@ -1,21 +1,18 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
 namespace Oxide.Ext.Discord.Entities.Users.Connections
 {
-	// Token: 0x02000052 RID: 82
-	public enum ConnectionVisibilityType
-	{
-		// Token: 0x0400017A RID: 378
-		None,
-		// Token: 0x0400017B RID: 379
-		Everyone
-	}
+    /// <summary>
+    /// Represents connection <a href="https://discord.com/developers/docs/resources/user#connection-object-visibility-types">Visibility Types</a>
+    /// </summary>
+    public enum ConnectionVisibilityType
+    {
+        /// <summary>
+        /// Invisible to everyone except the user themselves
+        /// </summary>
+        None = 0,
+        
+        /// <summary>
+        /// Visible to everyone
+        /// </summary>
+        Everyone = 1
+    }
 }

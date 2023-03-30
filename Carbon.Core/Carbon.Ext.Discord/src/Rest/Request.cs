@@ -1,481 +1,440 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using Carbon;
 using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Ext.Discord.Entities.Api;
 using Oxide.Ext.Discord.Entities.Messages;
-using Oxide.Ext.Discord.Helpers;
 using Oxide.Ext.Discord.Interfaces;
 using Oxide.Ext.Discord.Logging;
 using Oxide.Ext.Discord.Rest.Multipart;
+using RequestMethod = Oxide.Ext.Discord.Entities.Api.RequestMethod;
+using Time = Oxide.Ext.Discord.Helpers.Time;
 
 namespace Oxide.Ext.Discord.Rest
 {
-	// Token: 0x0200000F RID: 15
-	public class Request
-	{
-		// Token: 0x17000010 RID: 16
-		// (get) Token: 0x060000B6 RID: 182 RVA: 0x0000943D File Offset: 0x0000763D
-		public RequestMethod Method { get; }
+    /// <summary>
+    /// Represent a Discord API request
+    /// </summary>
+    public class Request
+    {
+        /// <summary>
+        /// HTTP request method
+        /// </summary>
+        public RequestMethod Method { get; }
 
-		// Token: 0x17000011 RID: 17
-		// (get) Token: 0x060000B7 RID: 183 RVA: 0x00009445 File Offset: 0x00007645
-		public string Route { get; }
+        /// <summary>
+        /// Route on the API
+        /// </summary>
+        public string Route { get; }
 
-		// Token: 0x17000012 RID: 18
-		// (get) Token: 0x060000B8 RID: 184 RVA: 0x0000944D File Offset: 0x0000764D
-		public string RequestUrl
-		{
-			get
-			{
-				return "https://discord.com/api/v9" + this.Route;
-			}
-		}
+        /// <summary>
+        /// Full Request URl to the API
+        /// </summary>
+        public string RequestUrl => UrlBase + "/" + ApiVersion + Route;
 
-		// Token: 0x17000013 RID: 19
-		// (get) Token: 0x060000B9 RID: 185 RVA: 0x0000945F File Offset: 0x0000765F
-		public object Data { get; }
+        /// <summary>
+        /// Data to be sent with the request
+        /// </summary>
+        public object Data { get; }
+        
+        /// <summary>
+        /// Data serialized to bytes 
+        /// </summary>
+        public byte[] Contents { get; set; }
 
-		// Token: 0x17000014 RID: 20
-		// (get) Token: 0x060000BA RID: 186 RVA: 0x00009467 File Offset: 0x00007667
-		// (set) Token: 0x060000BB RID: 187 RVA: 0x0000946F File Offset: 0x0000766F
-		public byte[] Contents { get; set; }
+        /// <summary>
+        /// Attachments for a request
+        /// </summary>
+        internal List<IMultipartSection> MultipartSections { get; set; }
+        
+        /// <summary>
+        /// Required If Multipart Form Request
+        /// </summary>
+        public bool MultipartRequest { get; }
 
-		// Token: 0x17000015 RID: 21
-		// (get) Token: 0x060000BC RID: 188 RVA: 0x00009478 File Offset: 0x00007678
-		// (set) Token: 0x060000BD RID: 189 RVA: 0x00009480 File Offset: 0x00007680
-		internal List<IMultipartSection> MultipartSections { get; set; }
+        /// <summary>
+        /// Multipart Boundary
+        /// </summary>
+        public string Boundary { get; set; }
 
-		// Token: 0x17000016 RID: 22
-		// (get) Token: 0x060000BE RID: 190 RVA: 0x00009489 File Offset: 0x00007689
-		public bool MultipartRequest { get; }
+        /// <summary>
+        /// Response from the request
+        /// </summary>
+        public RestResponse Response { get; private set; }
 
-		// Token: 0x17000017 RID: 23
-		// (get) Token: 0x060000BF RID: 191 RVA: 0x00009491 File Offset: 0x00007691
-		// (set) Token: 0x060000C0 RID: 192 RVA: 0x00009499 File Offset: 0x00007699
-		public string Boundary { get; set; }
+        /// <summary>
+        /// Callback to call if the request completed successfully
+        /// </summary>
+        public Action<RestResponse> Callback { get; }
+        
+        /// <summary>
+        /// Callback to call if the request errored with the last error message
+        /// </summary>
+        public Action<RestError> OnError { get; }
 
-		// Token: 0x17000018 RID: 24
-		// (get) Token: 0x060000C1 RID: 193 RVA: 0x000094A2 File Offset: 0x000076A2
-		// (set) Token: 0x060000C2 RID: 194 RVA: 0x000094AA File Offset: 0x000076AA
-		public RestResponse Response { get; private set; }
+        /// <summary>
+        /// The DateTime the request was started
+        /// Used for request timeout
+        /// </summary>
+        public DateTime? StartTime { get; private set; }
 
-		// Token: 0x17000019 RID: 25
-		// (get) Token: 0x060000C3 RID: 195 RVA: 0x000094B3 File Offset: 0x000076B3
-		public Action<RestResponse> Callback { get; }
+        /// <summary>
+        /// Returns if the request is currently in progress
+        /// </summary>
+        public bool InProgress { get; set; }
 
-		// Token: 0x1700001A RID: 26
-		// (get) Token: 0x060000C4 RID: 196 RVA: 0x000094BB File Offset: 0x000076BB
-		public Action<RestError> OnError { get; }
+        internal Bucket Bucket;
+        
+        /// <summary>
+        /// Base URL for Discord
+        /// </summary>
+        public const string UrlBase = "https://discord.com/api";
+        
+        /// <summary>
+        /// API Version for Rest requests
+        /// </summary>
+        public const string ApiVersion = "v9";
+        
+        private const int TimeoutDuration = 15;
 
-		// Token: 0x1700001B RID: 27
-		// (get) Token: 0x060000C5 RID: 197 RVA: 0x000094C3 File Offset: 0x000076C3
-		// (set) Token: 0x060000C6 RID: 198 RVA: 0x000094CB File Offset: 0x000076CB
-		public DateTime? StartTime { get; private set; }
+        private readonly string _authHeader;
+        private byte _retries;
+        
+        private readonly ILogger _logger;
+        private RestError _lastError;
+        private bool _success;
+        
+        private static readonly byte[] NewLine = Encoding.UTF8.GetBytes("\r\n");
+        private static readonly byte[] Separator = Encoding.UTF8.GetBytes("--");
 
-		// Token: 0x1700001C RID: 28
-		// (get) Token: 0x060000C7 RID: 199 RVA: 0x000094D4 File Offset: 0x000076D4
-		// (set) Token: 0x060000C8 RID: 200 RVA: 0x000094DC File Offset: 0x000076DC
-		public bool InProgress { get; set; }
+        /// <summary>
+        /// Creates a new request
+        /// </summary>
+        /// <param name="method">HTTP method to call</param>
+        /// <param name="route">Route to call on the API</param>
+        /// <param name="data">Data for the request</param>
+        /// <param name="authHeader">Authorization Header</param>
+        /// <param name="callback">Callback once the request completes successfully</param>
+        /// <param name="onError">Callback when the request errors</param>
+        /// <param name="logger">Logger for the request</param>
+        public Request(RequestMethod method, string route, object data, string authHeader, Action<RestResponse> callback, Action<RestError> onError, ILogger logger)
+        {
+            Method = method;
+            Route = route;
+            Data = data;
+            _authHeader = authHeader;
+            Callback = callback;
+            OnError = onError;
+            _logger = logger;
+            MultipartRequest = Data is IFileAttachments attachments && attachments.FileAttachments != null && attachments.FileAttachments.Count != 0;
+        }
 
-		// Token: 0x060000C9 RID: 201 RVA: 0x000094E8 File Offset: 0x000076E8
-		public Request(RequestMethod method, string route, object data, string authHeader, Action<RestResponse> callback, Action<RestError> onError, ILogger logger)
-		{
-			this.Method = method;
-			this.Route = route;
-			this.Data = data;
-			this._authHeader = authHeader;
-			this.Callback = callback;
-			this.OnError = onError;
-			this._logger = logger;
-			IFileAttachments fileAttachments = this.Data as IFileAttachments;
-			this.MultipartRequest = (fileAttachments != null && fileAttachments.FileAttachments != null && fileAttachments.FileAttachments.Count != 0);
-		}
+        /// <summary>
+        /// Fires the request off
+        /// </summary>
+        public void Fire()
+        {
+            InProgress = true;
+            StartTime = DateTime.UtcNow;
 
-		// Token: 0x060000CA RID: 202 RVA: 0x00009560 File Offset: 0x00007760
-		public void Fire()
-		{
-			this.InProgress = true;
-			this.StartTime = new DateTime?(DateTime.UtcNow);
-			HttpWebRequest httpWebRequest = this.CreateRequest();
-			try
-			{
-				this.WriteRequestData(httpWebRequest);
-				using (HttpWebResponse httpWebResponse = httpWebRequest.GetResponse() as HttpWebResponse)
-				{
-					bool flag = httpWebResponse != null;
-					if (flag)
-					{
-						this.ParseResponse(httpWebResponse);
-					}
-				}
-				this._success = true;
-				Interface.Oxide.NextTick(delegate()
-				{
-					Action<RestResponse> callback = this.Callback;
-					if (callback != null)
-					{
-						callback(this.Response);
-					}
-				});
-				this.Close(true);
-			}
-			catch (WebException ex)
-			{
-				using (HttpWebResponse httpWebResponse2 = ex.Response as HttpWebResponse)
-				{
-					this._lastError = new RestError(ex, httpWebRequest.RequestUri, this.Method, this.Data);
-					bool flag2 = httpWebResponse2 == null;
-					if (flag2)
-					{
-						this.Bucket.ErrorDelayUntil = (double)(Time.TimeSinceEpoch() + 1);
-						this.Close(false);
-						this._logger.Exception(string.Format("A web request exception occured (internal error) [RETRY={0}/3].\nRequest URL: [{1}] {2}", this._retries.ToString(), httpWebRequest.Method, httpWebRequest.RequestUri), ex);
-					}
-					else
-					{
-						int statusCode = (int)httpWebResponse2.StatusCode;
-						this._lastError.HttpStatusCode = statusCode;
-						string text = this.ParseResponse(ex.Response);
-						this._lastError.Message = text;
-						bool flag3 = statusCode == 429;
-						bool flag4 = flag3;
-						if (flag4)
-						{
-							this._logger.Warning(string.Format("Discord rate limit reached. (Rate limit info: remaining: [{0}] Route: {1} Content-Type: {2} Remaining: {3} Limit: {4}, Reset In: {5}, Current Time: {6}", new object[]
-							{
-								httpWebRequest.Method,
-								httpWebRequest.RequestUri,
-								httpWebRequest.ContentType,
-								this.Bucket.RateLimitRemaining.ToString(),
-								this.Bucket.RateLimit.ToString(),
-								this.Bucket.RateLimitReset.ToString(),
-								Time.TimeSinceEpoch().ToString()
-							}));
-							this.Close(false);
-						}
-						else
-						{
-							DiscordApiError discordApiError = this.Response.ParseData<DiscordApiError>();
-							this._lastError.DiscordError = discordApiError;
-							bool flag5 = discordApiError != null && discordApiError.Code != 0;
-							if (flag5)
-							{
-								this._logger.Error(string.Format("Discord API has returned error Discord Code: {0} Discord Error: {1} Request: [{2}] {3} (Response Code: {4}) Content-Type: {5}", new object[]
-								{
-									discordApiError.Code.ToString(),
-									discordApiError.Message,
-									httpWebRequest.Method,
-									httpWebRequest.RequestUri,
-									httpWebResponse2.StatusCode.ToString(),
-									httpWebRequest.ContentType
-								}) + string.Format("\nDiscord Errors: {0}", discordApiError.Errors) + "\nRequest Body:\n" + ((this.Contents != null) ? Encoding.UTF8.GetString(this.Contents) : "Contents is null"));
-							}
-							else
-							{
-								this._logger.Error(string.Format("An error occured whilst submitting a request: Exception Status: {0} Request: [{1}] {2} (Response Code: {3}): {4}", new object[]
-								{
-									ex.Status.ToString(),
-									httpWebRequest.Method,
-									httpWebRequest.RequestUri,
-									httpWebResponse2.StatusCode.ToString(),
-									text
-								}));
-							}
-							this.Close(true);
-						}
-					}
-				}
-			}
-			catch (Exception ex2)
-			{
-				this._logger.Exception(string.Format("An exception occured for request: [{0}] {1}", httpWebRequest.Method, httpWebRequest.RequestUri), ex2);
-				this.Close(true);
-			}
-		}
+            HttpWebRequest req = CreateRequest();
+            
+            try
+            {
+                //Can timeout while writing request data
+                WriteRequestData(req);
 
-		// Token: 0x060000CB RID: 203 RVA: 0x00009948 File Offset: 0x00007B48
-		private HttpWebRequest CreateRequest()
-		{
-			this.SetRequestBody();
-			HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(this.RequestUrl);
-			httpWebRequest.Method = this.Method.ToString();
-			httpWebRequest.UserAgent = "DiscordBot (https://github.com/Kirollos/Oxide.Ext.Discord, 2.1.9)";
-			httpWebRequest.Timeout = 15000;
-			httpWebRequest.ContentLength = 0L;
-			httpWebRequest.Headers.Set("Authorization", this._authHeader);
-			httpWebRequest.ContentType = (this.MultipartRequest ? ("multipart/form-data;boundary=\"" + this.Boundary + "\"") : "application/json");
-			return httpWebRequest;
-		}
+                using (HttpWebResponse response = req.GetResponse() as HttpWebResponse)
+                {
+                    if (response != null)
+                    {
+                        ParseResponse(response);
+                    }
+                }
 
-		// Token: 0x060000CC RID: 204 RVA: 0x00009A00 File Offset: 0x00007C00
-		private byte[] GetMultipartFormData()
-		{
-			StringBuilder sb = new StringBuilder();
-			byte[] bytes = Encoding.UTF8.GetBytes(this.Boundary);
-			List<byte> list = new List<byte>();
-			foreach (IMultipartSection section in this.MultipartSections)
-			{
-				this.AddMultipartSection(sb, section, list, bytes);
-			}
-			list.AddRange(Request.NewLine);
-			list.AddRange(Request.Separator);
-			list.AddRange(bytes);
-			list.AddRange(Request.Separator);
-			list.AddRange(Request.NewLine);
-			return list.ToArray();
-		}
+                _success = true;
+                Interface.Oxide.NextTick(() =>
+                {
+                    Callback?.Invoke(Response);
+                });
+                Close();
+            }
+            catch (WebException ex)
+            {
+                using (HttpWebResponse httpResponse = ex.Response as HttpWebResponse)
+                {
+                    _lastError = new RestError(ex, req.RequestUri, Method, Data);
+                    if (httpResponse == null)
+                    {
+                        Bucket.ErrorDelayUntil = Time.TimeSinceEpoch() + 1;
+                        Close(false);
+                        _logger.Exception($"A web request exception occured (internal error) [RETRY={_retries.ToString()}/3].\nRequest URL: [{req.Method}] {req.RequestUri}", ex);
+                        return;
+                    }
 
-		// Token: 0x060000CD RID: 205 RVA: 0x00009AC0 File Offset: 0x00007CC0
-		private void AddMultipartSection(StringBuilder sb, IMultipartSection section, List<byte> data, byte[] boundary)
-		{
-			sb.Length = 0;
-			sb.Append("Content-Disposition: form-data; name=\"");
-			sb.Append(section.SectionName);
-			sb.Append("\"");
-			bool flag = section.FileName != null;
-			if (flag)
-			{
-				sb.Append("; filename=\"");
-				sb.Append(section.FileName);
-				sb.Append("\"");
-			}
-			bool flag2 = !string.IsNullOrEmpty(section.ContentType);
-			if (flag2)
-			{
-				sb.AppendLine();
-				sb.Append("Content-Type: ");
-				sb.Append(section.ContentType);
-			}
-			sb.AppendLine();
-			data.AddRange(Request.NewLine);
-			data.AddRange(Request.Separator);
-			data.AddRange(boundary);
-			data.AddRange(Request.NewLine);
-			data.AddRange(Encoding.UTF8.GetBytes(sb.ToString()));
-			data.AddRange(Request.NewLine);
-			data.AddRange(section.Data);
-		}
+                    int statusCode = (int) httpResponse.StatusCode;
+                    _lastError.HttpStatusCode = statusCode;
+                        
+                    string message = ParseResponse(ex.Response);
+                    _lastError.Message = message;
+                        
+                    bool isRateLimit = statusCode == 429;
+                    if (isRateLimit)
+                    {
+                        _logger.Warning($"Discord rate limit reached. (Rate limit info: remaining: [{req.Method}] Route: {req.RequestUri} Content-Type: {req.ContentType} Remaining: {Bucket.RateLimitRemaining.ToString()} Limit: {Bucket.RateLimit.ToString()}, Reset In: {Bucket.RateLimitReset.ToString()}, Current Time: {Time.TimeSinceEpoch().ToString()}");
+                        Close(false);
+                        return;
+                    }
 
-		// Token: 0x060000CE RID: 206 RVA: 0x00009BC8 File Offset: 0x00007DC8
-		private void SetRequestBody()
-		{
-			bool flag = this.Data == null || this.Contents != null;
-			if (!flag)
-			{
-				bool multipartRequest = this.MultipartRequest;
-				if (multipartRequest)
-				{
-					IFileAttachments fileAttachments = (IFileAttachments)this.Data;
-					this.MultipartSections = new List<IMultipartSection>
-					{
-						new MultipartFormSection("payload_json", this.Data, "application/json")
-					};
-					for (int i = 0; i < fileAttachments.FileAttachments.Count; i++)
-					{
-						MessageFileAttachment messageFileAttachment = fileAttachments.FileAttachments[i];
-						this.MultipartSections.Add(new MultipartFileSection("files[" + (i + 1).ToString() + "]", messageFileAttachment.FileName, messageFileAttachment.Data, messageFileAttachment.ContentType));
-					}
-					this.Boundary = Guid.NewGuid().ToString().Replace("-", "");
-					this.Contents = this.GetMultipartFormData();
-				}
-				else
-				{
-					this.Contents = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(this.Data, DiscordExtension.ExtensionSerializeSettings));
-				}
-			}
-		}
+                    DiscordApiError apiError = Response.ParseData<DiscordApiError>();
+                    _lastError.DiscordError = apiError;
+                    if (apiError != null && apiError.Code != 0)
+                    {
+                        _logger.Error($"Discord API has returned error Discord Code: {apiError.Code.ToString()} Discord Error: {apiError.Message} Request: [{req.Method}] {req.RequestUri} (Response Code: {httpResponse.StatusCode.ToString()}) Content-Type: {req.ContentType}" +
+                                      $"\nDiscord Errors: {apiError.Errors}" +
+                                      $"\nRequest Body:\n{(Contents != null ? Encoding.UTF8.GetString(Contents) : "Contents is null")}");
+                    }
+                    else
+                    {
+                        _logger.Error($"An error occured whilst submitting a request: Exception Status: {ex.Status.ToString()} Request: [{req.Method}] {req.RequestUri} (Response Code: {httpResponse.StatusCode.ToString()}): {message}");
+                    }
 
-		// Token: 0x060000CF RID: 207 RVA: 0x00009D00 File Offset: 0x00007F00
-		public void Close(bool remove = true)
-		{
-			this._retries += 1;
-			bool flag = remove || this._retries >= 3;
-			if (flag)
-			{
-				bool flag2 = !this._success;
-				if (flag2)
-				{
-					try
-					{
-						Interface.Oxide.NextTick(delegate()
-						{
-							Action<RestError> onError = this.OnError;
-							if (onError != null)
-							{
-								onError(this._lastError);
-							}
-						});
-					}
-					catch (Exception ex)
-					{
-						this._logger.Exception("An exception occured during OnError callback for request: [" + this.Method.ToString() + "] " + this.RequestUrl, ex);
-					}
-				}
-				this.Bucket.DequeueRequest(this);
-			}
-			else
-			{
-				this.InProgress = false;
-				this.StartTime = null;
-			}
-		}
+                    Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Exception($"An exception occured for request: [{req.Method}] {req.RequestUri}", ex);
+                Close();
+            }
+        }
 
-		// Token: 0x060000D0 RID: 208 RVA: 0x00009DD4 File Offset: 0x00007FD4
-		public bool HasTimedOut()
-		{
-			bool flag = !this.InProgress || this.StartTime == null;
-			return !flag && (DateTime.UtcNow - this.StartTime.Value).TotalSeconds > 15.0;
-		}
+        private HttpWebRequest CreateRequest()
+        {
+            SetRequestBody();
+            
+            HttpWebRequest req = (HttpWebRequest) WebRequest.Create(RequestUrl);
+            req.Method = Method.ToString();
+            req.UserAgent = $"DiscordBot (https://github.com/Kirollos/Oxide.Ext.Discord, {DiscordExtension.GetExtensionVersion})";
+            req.Timeout = TimeoutDuration * 1000;
+            req.ContentLength = 0;
+            req.Headers.Set("Authorization", _authHeader);
+            req.ContentType = MultipartRequest ? $"multipart/form-data;boundary=\"{Boundary}\"" : "application/json" ;
 
-		// Token: 0x060000D1 RID: 209 RVA: 0x00009E38 File Offset: 0x00008038
-		private void WriteRequestData(WebRequest request)
-		{
-			bool flag = this.Contents == null || this.Contents.Length == 0;
-			if (!flag)
-			{
-				request.ContentLength = (long)this.Contents.Length;
-				using (Stream requestStream = request.GetRequestStream())
-				{
-					requestStream.Write(this.Contents, 0, this.Contents.Length);
-				}
-			}
-		}
+            return req;
+        }
 
-		// Token: 0x060000D2 RID: 210 RVA: 0x00009EB0 File Offset: 0x000080B0
-		private string ParseResponse(WebResponse response)
-		{
-			string result;
-			using (Stream responseStream = response.GetResponseStream())
-			{
-				bool flag = responseStream == null;
-				if (flag)
-				{
-					result = null;
-				}
-				else
-				{
-					using (StreamReader streamReader = new StreamReader(responseStream))
-					{
-						string text = streamReader.ReadToEnd().Trim();
-						this.Response = new RestResponse(text);
-						this.ParseHeaders(response.Headers, this.Response);
-						result = text;
-					}
-				}
-			}
-			return result;
-		}
+        private byte[] GetMultipartFormData()
+        {
+            StringBuilder sb = new StringBuilder();
+            byte[] boundary = Encoding.UTF8.GetBytes(Boundary);
 
-		// Token: 0x060000D3 RID: 211 RVA: 0x00009F44 File Offset: 0x00008144
-		private void ParseHeaders(WebHeaderCollection headers, RestResponse response)
-		{
-			string text = headers.Get("Retry-After");
-			string value = headers.Get("X-RateLimit-Global");
-			int num = 0;
-			bool flag2;
-			bool flag = !string.IsNullOrEmpty(text) && !string.IsNullOrEmpty(value) && int.TryParse(text, out num) && bool.TryParse(value, out flag2) && flag2;
-			if (flag)
-			{
-				RateLimit rateLimit = response.ParseData<RateLimit>();
-				bool global = rateLimit.Global;
-				if (global)
-				{
-					this.Bucket.Handler.RateLimit.ReachedRateLimit((double)num);
-				}
-			}
-			string text2 = headers.Get("X-RateLimit-Limit");
-			string text3 = headers.Get("X-RateLimit-Remaining");
-			string text4 = headers.Get("X-RateLimit-Reset-After");
-			string text5 = headers.Get("X-RateLimit-Bucket");
-			int rateLimit2 = 0;
-			bool flag3 = !string.IsNullOrEmpty(text2) && int.TryParse(text2, out rateLimit2);
-			if (flag3)
-			{
-				this.Bucket.RateLimit = rateLimit2;
-			}
-			int rateLimitRemaining = 0;
-			bool flag4 = !string.IsNullOrEmpty(text3) && int.TryParse(text3, out rateLimitRemaining);
-			if (flag4)
-			{
-				this.Bucket.RateLimitRemaining = rateLimitRemaining;
-			}
-			double num2 = (double)Time.TimeSinceEpoch();
-			double num3 = 0;
-			bool flag5 = !string.IsNullOrEmpty(text4) && double.TryParse(text4, out num3);
-			if (flag5)
-			{
-				double num4 = num2 + num3;
-				bool flag6 = num4 > this.Bucket.RateLimitReset;
-				if (flag6)
-				{
-					this.Bucket.RateLimitReset = num4;
-				}
-			}
-			this._logger.Debug(string.Concat(new string[]
-			{
-				"Method: ",
-				this.Method.ToString(),
-				" Route: ",
-				this.Route,
-				" Internal Bucket Id: ",
-				this.Bucket.BucketId,
-				" Limit: ",
-				this.Bucket.RateLimit.ToString(),
-				" Remaining: ",
-				this.Bucket.RateLimitRemaining.ToString(),
-				" Reset: ",
-				this.Bucket.RateLimitReset.ToString(),
-				" Time: ",
-				Time.TimeSinceEpoch().ToString(),
-				" Bucket: ",
-				text5
-			}));
-		}
+            List<byte> data = new List<byte>();
 
-		// Token: 0x040000B1 RID: 177
-		internal Bucket Bucket;
+            foreach (IMultipartSection section in MultipartSections)
+            {
+                AddMultipartSection(sb, section, data, boundary);
+            }
 
-		// Token: 0x040000B2 RID: 178
-		public const string UrlBase = "https://discord.com/api";
+            data.AddRange(NewLine);
+            data.AddRange(Separator);
+            data.AddRange(boundary);
+            data.AddRange(Separator);
+            data.AddRange(NewLine);
+            
+            return data.ToArray();
+        }
 
-		// Token: 0x040000B3 RID: 179
-		public const string ApiVersion = "v9";
+        private void AddMultipartSection(StringBuilder sb, IMultipartSection section, List<byte> data, byte[] boundary)
+        {
+            sb.Length = 0;
+            sb.Append("Content-Disposition: form-data; name=\"");
+            sb.Append(section.SectionName);
+            sb.Append("\"");
+            if (section.FileName != null)
+            {
+                sb.Append("; filename=\"");
+                sb.Append(section.FileName);
+                sb.Append("\"");
+            }
 
-		// Token: 0x040000B4 RID: 180
-		private const int TimeoutDuration = 15;
+            if (!string.IsNullOrEmpty(section.ContentType))
+            {
+                sb.AppendLine();
+                sb.Append("Content-Type: ");
+                sb.Append(section.ContentType);
+            }
 
-		// Token: 0x040000B5 RID: 181
-		private readonly string _authHeader;
+            sb.AppendLine();
+            
+            data.AddRange(NewLine);
+            data.AddRange(Separator);
+            data.AddRange(boundary);
+            data.AddRange(NewLine);
+            data.AddRange(Encoding.UTF8.GetBytes(sb.ToString()));
+            data.AddRange(NewLine);
+            data.AddRange(section.Data);
+        }
+        
+        private void SetRequestBody()
+        {
+            if (Data == null || Contents != null)
+            {
+                return;
+            }
+            
+            if (MultipartRequest)
+            {
+                IFileAttachments attachments = (IFileAttachments)Data;
+                MultipartSections = new List<IMultipartSection> {new MultipartFormSection("payload_json", Data, "application/json")};
+                for (int index = 0; index < attachments.FileAttachments.Count; index++)
+                {
+                    MessageFileAttachment fileAttachment = attachments.FileAttachments[index];
+                    MultipartSections.Add(new MultipartFileSection($"files[{(index + 1).ToString()}]", fileAttachment.FileName, fileAttachment.Data, fileAttachment.ContentType));
+                }
 
-		// Token: 0x040000B6 RID: 182
-		private byte _retries;
+                Boundary = Guid.NewGuid().ToString().Replace("-", "");
+                Contents = GetMultipartFormData();
+            }
+            else
+            {
+                Contents = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Data, DiscordExtension.ExtensionSerializeSettings));
+            }
+        }
 
-		// Token: 0x040000B7 RID: 183
-		private readonly ILogger _logger;
+        /// <summary>
+        /// Closes the request and removes it from the bucket
+        /// </summary>
+        /// <param name="remove"></param>
+        public void Close(bool remove = true)
+        {
+            _retries += 1;
+            if (remove || _retries >= 3)
+            {
+                if (!_success)
+                {
+                    try
+                    {
+                        Interface.Oxide.NextTick(() =>
+                        {
+                            OnError?.Invoke(_lastError);
+                        });
+                    }
+                    catch(Exception ex)
+                    {
+                        _logger.Exception($"An exception occured during OnError callback for request: [{Method.ToString()}] {RequestUrl}", ex);
+                    }
+                }
 
-		// Token: 0x040000B8 RID: 184
-		private RestError _lastError;
+                Bucket.DequeueRequest(this);
+            }
+            else
+            {
+                InProgress = false;
+                StartTime = null;
+            }
+        }
 
-		// Token: 0x040000B9 RID: 185
-		private bool _success;
+        /// <summary>
+        /// Returns true if the request has timed out
+        /// </summary>
+        /// <returns></returns>
+        public bool HasTimedOut()
+        {
+            if (!InProgress || StartTime == null)
+            {
+                return false;
+            }
 
-		// Token: 0x040000BA RID: 186
-		private static readonly byte[] NewLine = Encoding.UTF8.GetBytes("\r\n");
+            return (DateTime.UtcNow - StartTime.Value).TotalSeconds > TimeoutDuration;
+        }
 
-		// Token: 0x040000BB RID: 187
-		private static readonly byte[] Separator = Encoding.UTF8.GetBytes("--");
-	}
+        private void WriteRequestData(WebRequest request)
+        {
+            if (Contents == null || Contents.Length == 0)
+            {
+                return;
+            }
+
+            request.ContentLength = Contents.Length;
+
+            using (Stream stream = request.GetRequestStream())
+            {
+                stream.Write(Contents, 0, Contents.Length);
+            }
+        }
+
+        private string ParseResponse(WebResponse response)
+        {
+            using (Stream stream = response.GetResponseStream())
+            {
+                if (stream == null)
+                {
+                    return null;
+                }
+
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string message = reader.ReadToEnd().Trim();
+                    Response = new RestResponse(message);
+
+                    ParseHeaders(response.Headers, Response);
+
+                    return message;
+                }
+            }
+        }
+
+        private void ParseHeaders(WebHeaderCollection headers, RestResponse response)
+        {
+            string globalRetryAfterHeader = headers.Get("Retry-After");
+            string isGlobalRateLimitHeader = headers.Get("X-RateLimit-Global");
+
+            if (!string.IsNullOrEmpty(globalRetryAfterHeader) &&
+                !string.IsNullOrEmpty(isGlobalRateLimitHeader) &&
+                int.TryParse(globalRetryAfterHeader, out int globalRetryAfter) &&
+                bool.TryParse(isGlobalRateLimitHeader, out bool isGlobalRateLimit) &&
+                isGlobalRateLimit)
+            {
+                RateLimit limit = response.ParseData<RateLimit>();
+                if (limit.Global)
+                {
+                    Bucket.Handler.RateLimit.ReachedRateLimit(globalRetryAfter);
+                }
+            }
+
+            string bucketLimitHeader = headers.Get("X-RateLimit-Limit");
+            string bucketRemainingHeader = headers.Get("X-RateLimit-Remaining");
+            string bucketResetAfterHeader = headers.Get("X-RateLimit-Reset-After");
+            string bucketNameHeader = headers.Get("X-RateLimit-Bucket");
+
+            if (!string.IsNullOrEmpty(bucketLimitHeader) &&
+                int.TryParse(bucketLimitHeader, out int bucketLimit))
+            {
+                Bucket.RateLimit = bucketLimit;
+            }
+
+            if (!string.IsNullOrEmpty(bucketRemainingHeader) &&
+                int.TryParse(bucketRemainingHeader, out int bucketRemaining))
+            {
+                Bucket.RateLimitRemaining = bucketRemaining;
+            }
+
+            double timeSince = Time.TimeSinceEpoch();
+            if (!string.IsNullOrEmpty(bucketResetAfterHeader) &&
+                double.TryParse(bucketResetAfterHeader, out double bucketResetAfter))
+            {
+                double resetTime = timeSince + bucketResetAfter;
+                if (resetTime > Bucket.RateLimitReset)
+                {
+                    Bucket.RateLimitReset = resetTime;
+                }
+            }
+            
+            _logger.Debug($"Method: {Method.ToString()} Route: {Route} Internal Bucket Id: {Bucket.BucketId} Limit: {Bucket.RateLimit.ToString()} Remaining: {Bucket.RateLimitRemaining.ToString()} Reset: {Bucket.RateLimitReset.ToString()} Time: {Time.TimeSinceEpoch().ToString()} Bucket: {bucketNameHeader}");
+        }
+    }
 }

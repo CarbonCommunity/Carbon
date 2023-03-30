@@ -29,8 +29,13 @@ namespace Oxide.Ext.Discord
 	// Token: 0x02000004 RID: 4
 	public class DiscordExtension : ICarbonExtension
 	{
+		internal static bool HasInit = false;
+
 		public void OnLoaded(EventArgs args)
 		{
+			if (HasInit) return;
+			HasInit = true;
+
 			GlobalLogger = (string.IsNullOrEmpty("") ? new Logger(DiscordLogLevel.Warning) : new Logger(DiscordLogLevel.Debug));
 			// AppDomain.CurrentDomain.UnhandledException += delegate (object sender, UnhandledExceptionEventArgs exception)
 			// {
@@ -54,6 +59,9 @@ namespace Oxide.Ext.Discord
 
 		public void OnUnloaded(EventArgs args)
 		{
+			if (!HasInit) return;
+			HasInit = false;
+
 			foreach (DiscordClient client in DiscordClient.Clients.Values.ToList())
 			{
 				DiscordClient.CloseClient(client);
@@ -89,6 +97,8 @@ namespace Oxide.Ext.Discord
 
 		// Token: 0x04000017 RID: 23
 		private static readonly VersionNumber ExtensionVersion = new VersionNumber(2, 1, 9);
+
+		public static string GetExtensionVersion => ExtensionVersion.ToString() + TestVersion;
 
 		// Token: 0x04000018 RID: 24
 		public static ILogger GlobalLogger;

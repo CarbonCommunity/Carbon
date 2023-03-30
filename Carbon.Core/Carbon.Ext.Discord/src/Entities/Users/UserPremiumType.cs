@@ -1,23 +1,23 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
-namespace Oxide.Ext.Discord.Entities.Users
+﻿namespace Oxide.Ext.Discord.Entities.Users
 {
-	// Token: 0x0200004E RID: 78
-	public enum UserPremiumType
-	{
-		// Token: 0x04000163 RID: 355
-		None,
-		// Token: 0x04000164 RID: 356
-		NitroClassic,
-		// Token: 0x04000165 RID: 357
-		Nitro
-	}
+    /// <summary>
+    /// Represents Discord User <a href="https://discord.com/developers/docs/resources/user#user-object-premium-types">Premium Types</a>
+    /// </summary>
+    public enum UserPremiumType
+    {
+        /// <summary>
+        /// User has no premium
+        /// </summary>
+        None = 0,
+        
+        /// <summary>
+        /// User has nitro classic premium
+        /// </summary>
+        NitroClassic = 1,
+        
+        /// <summary>
+        /// User has nitro premium
+        /// </summary>
+        Nitro = 2
+    }
 }

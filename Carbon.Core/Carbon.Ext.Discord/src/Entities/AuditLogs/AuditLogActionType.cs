@@ -1,87 +1,184 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
-
 namespace Oxide.Ext.Discord.Entities.AuditLogs
 {
-	// Token: 0x0200010C RID: 268
-	public enum AuditLogActionType
-	{
-		// Token: 0x04000594 RID: 1428
-		GuildUpdate = 1,
-		// Token: 0x04000595 RID: 1429
-		ChannelCreate = 10,
-		// Token: 0x04000596 RID: 1430
-		ChannelUpdate,
-		// Token: 0x04000597 RID: 1431
-		ChannelDelete,
-		// Token: 0x04000598 RID: 1432
-		OverwriteCreate,
-		// Token: 0x04000599 RID: 1433
-		OverwriteUpdate,
-		// Token: 0x0400059A RID: 1434
-		OverwriteDelete,
-		// Token: 0x0400059B RID: 1435
-		Kick = 20,
-		// Token: 0x0400059C RID: 1436
-		Prune,
-		// Token: 0x0400059D RID: 1437
-		Ban,
-		// Token: 0x0400059E RID: 1438
-		Unban,
-		// Token: 0x0400059F RID: 1439
-		MemberUpdate,
-		// Token: 0x040005A0 RID: 1440
-		MemberRoleUpdate,
-		// Token: 0x040005A1 RID: 1441
-		MemberMove,
-		// Token: 0x040005A2 RID: 1442
-		MemberDisconnect,
-		// Token: 0x040005A3 RID: 1443
-		BotAdd,
-		// Token: 0x040005A4 RID: 1444
-		RoleCreate = 30,
-		// Token: 0x040005A5 RID: 1445
-		RoleUpdate,
-		// Token: 0x040005A6 RID: 1446
-		RoleDelete,
-		// Token: 0x040005A7 RID: 1447
-		InviteCreate = 40,
-		// Token: 0x040005A8 RID: 1448
-		InviteUpdate,
-		// Token: 0x040005A9 RID: 1449
-		InviteDelete,
-		// Token: 0x040005AA RID: 1450
-		WebhookCreate = 50,
-		// Token: 0x040005AB RID: 1451
-		WebhookUpdate,
-		// Token: 0x040005AC RID: 1452
-		WebhookDelete,
-		// Token: 0x040005AD RID: 1453
-		EmojiCreate = 60,
-		// Token: 0x040005AE RID: 1454
-		EmojiUpdate,
-		// Token: 0x040005AF RID: 1455
-		EmojiDelete,
-		// Token: 0x040005B0 RID: 1456
-		MessageDelete = 72,
-		// Token: 0x040005B1 RID: 1457
-		MessageBulkDelete,
-		// Token: 0x040005B2 RID: 1458
-		MessagePin,
-		// Token: 0x040005B3 RID: 1459
-		MessageUnpin,
-		// Token: 0x040005B4 RID: 1460
-		IntegrationCreate = 80,
-		// Token: 0x040005B5 RID: 1461
-		IntegrationUpdate,
-		// Token: 0x040005B6 RID: 1462
-		IntegrationDelete
-	}
+    /// <summary>
+    /// Represents type of the action that was taken in given audit log event.
+    /// Originally Sourced from https://github.com/DSharpPlus/DSharpPlus/blob/master/DSharpPlus/Entities/DiscordAuditLogObjects.cs#L517
+    /// </summary>
+    public enum AuditLogActionType
+    {
+        /// <summary>
+        /// Indicates that the guild was updated.
+        /// </summary>
+        GuildUpdate = 1,
+
+        /// <summary>
+        /// Indicates that the channel was created.
+        /// </summary>
+        ChannelCreate = 10,
+
+        /// <summary>
+        /// Indicates that the channel was updated.
+        /// </summary>
+        ChannelUpdate = 11,
+
+        /// <summary>
+        /// Indicates that the channel was deleted.
+        /// </summary>
+        ChannelDelete = 12,
+
+        /// <summary>
+        /// Indicates that the channel permission overwrite was created.
+        /// </summary>
+        OverwriteCreate = 13,
+
+        /// <summary>
+        /// Indicates that the channel permission overwrite was updated.
+        /// </summary>
+        OverwriteUpdate = 14,
+
+        /// <summary>
+        /// Indicates that the channel permission overwrite was deleted.
+        /// </summary>
+        OverwriteDelete = 15,
+
+        /// <summary>
+        /// Indicates that the user was kicked.
+        /// </summary>
+        Kick = 20,
+
+        /// <summary>
+        /// Indicates that users were pruned.
+        /// </summary>
+        Prune = 21,
+
+        /// <summary>
+        /// Indicates that the user was banned.
+        /// </summary>
+        Ban = 22,
+
+        /// <summary>
+        /// Indicates that the user was unbanned.
+        /// </summary>
+        Unban = 23,
+
+        /// <summary>
+        /// Indicates that the member was updated.
+        /// </summary>
+        MemberUpdate = 24,
+
+        /// <summary>
+        /// Indicates that the member's roles were updated.
+        /// </summary>
+        MemberRoleUpdate = 25,
+
+        /// <summary>
+        /// Indicates that the member has moved to another voice channel.
+        /// </summary>
+        MemberMove = 26,
+
+        /// <summary>
+        /// Indicates that the member has disconnected from a voice channel.
+        /// </summary>
+        MemberDisconnect = 27,
+
+        /// <summary>
+        /// Indicates that a bot was added to the guild.
+        /// </summary>
+        BotAdd = 28,
+
+        /// <summary>
+        /// Indicates that the role was created.
+        /// </summary>
+        RoleCreate = 30,
+
+        /// <summary>
+        /// Indicates that the role was updated.
+        /// </summary>
+        RoleUpdate = 31,
+
+        /// <summary>
+        /// Indicates that the role was deleted.
+        /// </summary>
+        RoleDelete = 32,
+
+        /// <summary>
+        /// Indicates that the invite was created.
+        /// </summary>
+        InviteCreate = 40,
+
+        /// <summary>
+        /// Indicates that the invite was updated.
+        /// </summary>
+        InviteUpdate = 41,
+
+        /// <summary>
+        /// Indicates that the invite was deleted.
+        /// </summary>
+        InviteDelete = 42,
+
+        /// <summary>
+        /// Indicates that the webhook was created.
+        /// </summary>
+        WebhookCreate = 50,
+
+        /// <summary>
+        /// Indicates that the webook was updated.
+        /// </summary>
+        WebhookUpdate = 51,
+
+        /// <summary>
+        /// Indicates that the webhook was deleted.
+        /// </summary>
+        WebhookDelete = 52,
+
+        /// <summary>
+        /// Indicates that the emoji was created.
+        /// </summary>
+        EmojiCreate = 60,
+
+        /// <summary>
+        /// Indicates that the emoji was updated.
+        /// </summary>
+        EmojiUpdate = 61,
+
+        /// <summary>
+        /// Indicates that the emoji was deleted.
+        /// </summary>
+        EmojiDelete = 62,
+
+        /// <summary>
+        /// Indicates that the message was deleted.
+        /// </summary>
+        MessageDelete = 72,
+
+        /// <summary>
+        /// Indicates that messages were bulk-deleted.
+        /// </summary>
+        MessageBulkDelete = 73,
+
+        /// <summary>
+        /// Indicates that a message was pinned.
+        /// </summary>
+        MessagePin = 74,
+
+        /// <summary>
+        /// Indicates that a message was unpinned.
+        /// </summary>
+        MessageUnpin = 75,
+
+        /// <summary>
+        /// Indicates that an integration was created.
+        /// </summary>
+        IntegrationCreate = 80,
+
+        /// <summary>
+        /// Indicates that an integration was updated.
+        /// </summary>
+        IntegrationUpdate = 81,
+
+        /// <summary>
+        /// Indicates that an integration was deleted.
+        /// </summary>
+        IntegrationDelete = 82
+    }
 }

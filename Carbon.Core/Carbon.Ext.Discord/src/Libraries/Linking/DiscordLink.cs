@@ -1,355 +1,383 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Carbon.Extensions;
+using Carbon.Oxide;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
 using Oxide.Core.Plugins;
+using Oxide.Ext.Discord.Constants;
 using Oxide.Ext.Discord.Entities;
 using Oxide.Ext.Discord.Entities.Guilds;
 using Oxide.Ext.Discord.Entities.Users;
 using Oxide.Ext.Discord.Logging;
 using Oxide.Plugins;
+using static Oxide.Plugins.CovalencePlugin;
 
 namespace Oxide.Ext.Discord.Libraries.Linking
 {
-	// Token: 0x0200001C RID: 28
-	public class DiscordLink : Library
-	{
-		// Token: 0x06000118 RID: 280 RVA: 0x0000ADBC File Offset: 0x00008FBC
-		public DiscordLink(ILogger logger)
-		{
-			this._logger = logger;
-		}
+    /// <summary>
+    /// Represents a library for discord linking
+    /// </summary>
+    public class DiscordLink : Library
+    {
+        private readonly Hash<string, Snowflake> _steamIdToDiscordId = new Hash<string, Snowflake>();
+        private readonly Hash<Snowflake, string> _discordIdToSteamId = new Hash<Snowflake, string>();
+        private readonly HashSet<string> _steamIds = new HashSet<string>();
+        private readonly HashSet<Snowflake> _discordIds = new HashSet<Snowflake>();
+        private readonly Hash<string, IDictionary<string, Snowflake>> _pluginLinks = new Hash<string, IDictionary<string, Snowflake>>();
 
-		// Token: 0x06000119 RID: 281 RVA: 0x0000AE1C File Offset: 0x0000901C
-		public bool IsEnabled()
-		{
-			return this._linkPlugins.Count != 0;
-		}
+        private readonly List<IDiscordLinkPlugin> _linkPlugins = new List<IDiscordLinkPlugin>();
 
-		// Token: 0x0600011A RID: 282 RVA: 0x0000AE3C File Offset: 0x0000903C
-		public void AddLinkPlugin(IDiscordLinkPlugin plugin)
-		{
-			bool flag = plugin == null;
-			if (flag)
-			{
-				throw new ArgumentNullException("plugin");
-			}
-			bool flag2 = !this._linkPlugins.Contains(plugin);
-			if (flag2)
-			{
-				this._linkPlugins.Add(plugin);
-			}
-			IDictionary<string, Snowflake> steamToDiscordIds = plugin.GetSteamToDiscordIds();
-			bool flag3 = steamToDiscordIds == null;
-			if (flag3)
-			{
-				this._logger.Error(plugin.Title + " returned null when GetSteamToDiscordIds was called");
-			}
-			else
-			{
-				this._pluginLinks[plugin.Title] = steamToDiscordIds;
-				foreach (KeyValuePair<string, Snowflake> keyValuePair in steamToDiscordIds)
-				{
-					this._steamIdToDiscordId[keyValuePair.Key] = keyValuePair.Value;
-					this._discordIdToSteamId[keyValuePair.Value] = keyValuePair.Key;
-					this._steamIds.Add(keyValuePair.Key);
-					this._discordIds.Add(keyValuePair.Value);
-				}
-				this._logger.Debug(plugin.Title + " registered as a DiscordLink plugin");
-			}
-		}
+        private readonly ILogger _logger;
 
-		// Token: 0x0600011B RID: 283 RVA: 0x0000AF78 File Offset: 0x00009178
-		public void RemoveLinkPlugin(IDiscordLinkPlugin plugin)
-		{
-			bool flag = plugin == null;
-			if (flag)
-			{
-				throw new ArgumentNullException("plugin");
-			}
-			IDictionary<string, Snowflake> dictionary = this._pluginLinks[plugin.Title];
-			bool flag2 = dictionary != null;
-			if (flag2)
-			{
-				foreach (KeyValuePair<string, Snowflake> keyValuePair in dictionary)
-				{
-					this._steamIdToDiscordId.Remove(keyValuePair.Key);
-					this._discordIdToSteamId.Remove(keyValuePair.Value);
-					this._steamIds.Remove(keyValuePair.Key);
-					this._discordIds.Remove(keyValuePair.Value);
-				}
-			}
-			this._linkPlugins.Remove(plugin);
-		}
+        /// <summary>
+        /// DiscordLink Constructor
+        /// </summary>
+        /// <param name="logger">Logger for Discord Link</param>
+        public DiscordLink(ILogger logger)
+        {
+            _logger = logger;
+        }
 
-		// Token: 0x0600011C RID: 284 RVA: 0x0000B048 File Offset: 0x00009248
-		internal void OnPluginUnloaded(Plugin plugin)
-		{
-			IDiscordLinkPlugin discordLinkPlugin = plugin as IDiscordLinkPlugin;
-			bool flag = discordLinkPlugin != null;
-			if (flag)
-			{
-				this.RemoveLinkPlugin(discordLinkPlugin);
-			}
-		}
+        /// <summary>
+        /// Returns if there is a registered link plugin
+        /// </summary>
+        /// <returns></returns>
+        public bool IsEnabled()
+        {
+            return _linkPlugins.Count != 0;
+        }
 
-		// Token: 0x0600011D RID: 285 RVA: 0x0000B070 File Offset: 0x00009270
-		public bool IsLinked(string steamId)
-		{
-			Hash<string, Snowflake> steamToDiscordIds = this.GetSteamToDiscordIds();
-			return steamToDiscordIds != null && steamToDiscordIds.ContainsKey(steamId);
-		}
+        /// <summary>
+        /// Adds a link plugin to be the plugin used with the Discord Link library
+        /// </summary>
+        /// <param name="plugin"></param>
+        public void AddLinkPlugin(IDiscordLinkPlugin plugin)
+        {
+            if (plugin == null) throw new ArgumentNullException(nameof(plugin));
 
-		// Token: 0x0600011E RID: 286 RVA: 0x0000B098 File Offset: 0x00009298
-		public bool IsLinked(Snowflake discordId)
-		{
-			Hash<Snowflake, string> discordToSteamIds = this.GetDiscordToSteamIds();
-			return discordToSteamIds != null && discordToSteamIds.ContainsKey(discordId);
-		}
+            if (!_linkPlugins.Contains(plugin))
+            {
+                _linkPlugins.Add(plugin);
+            }
 
-		// Token: 0x0600011F RID: 287 RVA: 0x0000B0C0 File Offset: 0x000092C0
-		public bool IsLinked(IPlayer player)
-		{
-			return this.IsLinked(player.Id);
-		}
+            IDictionary<string, Snowflake> data = plugin.GetSteamToDiscordIds();
+            if (data == null)
+            {
+                _logger.Error($"{plugin.Title} returned null when {nameof(plugin.GetSteamToDiscordIds)} was called");
+                return;
+            }
 
-		// Token: 0x06000120 RID: 288 RVA: 0x0000B0E0 File Offset: 0x000092E0
-		public bool IsLinked(DiscordUser user)
-		{
-			return this.IsLinked(user.Id);
-		}
+            _pluginLinks[plugin.Title] = data;
 
-		// Token: 0x06000121 RID: 289 RVA: 0x0000B100 File Offset: 0x00009300
-		public string GetSteamId(Snowflake discordId)
-		{
-			Hash<Snowflake, string> discordToSteamIds = this.GetDiscordToSteamIds();
-			return (discordToSteamIds != null) ? discordToSteamIds[discordId] : null;
-		}
+            foreach (KeyValuePair<string,Snowflake> pair in data)
+            {
+                _steamIdToDiscordId[pair.Key] = pair.Value;
+                _discordIdToSteamId[pair.Value] = pair.Key;
+                _steamIds.Add(pair.Key);
+                _discordIds.Add(pair.Value);
+            }
+            
+            _logger.Debug($"{plugin.Title} registered as a DiscordLink plugin");
+        }
 
-		// Token: 0x06000122 RID: 290 RVA: 0x0000B128 File Offset: 0x00009328
-		public string GetSteamId(DiscordUser user)
-		{
-			return this.GetSteamId(user.Id);
-		}
+        /// <summary>
+        /// Removes a link plugin from the Discord Link library
+        /// </summary>
+        /// <param name="plugin"></param>
+        public void RemoveLinkPlugin(IDiscordLinkPlugin plugin)
+        {
+            if (plugin == null) throw new ArgumentNullException(nameof(plugin));
 
-		// Token: 0x06000123 RID: 291 RVA: 0x0000B148 File Offset: 0x00009348
-		public IPlayer GetPlayer(Snowflake discordId)
-		{
-			string steamId = this.GetSteamId(discordId);
-			bool flag = string.IsNullOrEmpty(steamId);
-			IPlayer result;
-			if (flag)
-			{
-				result = null;
-			}
-			else
-			{
-				result = BasePlayer.FindByID(steamId.ToUlong()).AsIPlayer();
-			}
-			return result;
-		}
+            IDictionary<string, Snowflake> pluginData = _pluginLinks[plugin.Title];
+            if (pluginData != null)
+            {
+                foreach (KeyValuePair<string,Snowflake> linkData in pluginData)
+                {
+                    _steamIdToDiscordId.Remove(linkData.Key);
+                    _discordIdToSteamId.Remove(linkData.Value);
+                    _steamIds.Remove(linkData.Key);
+                    _discordIds.Remove(linkData.Value);
+                }
+            }
+            
+            _linkPlugins.Remove(plugin);
+        }
 
-		// Token: 0x06000124 RID: 292 RVA: 0x0000B180 File Offset: 0x00009380
-		public Snowflake? GetDiscordId(string steamId)
-		{
-			Hash<string, Snowflake> steamToDiscordIds = this.GetSteamToDiscordIds();
-			return (steamToDiscordIds != null) ? new Snowflake?(steamToDiscordIds[steamId]) : null;
-		}
+        internal void OnPluginUnloaded(Plugin plugin)
+        {
+            if (plugin is IDiscordLinkPlugin link)
+            {
+                RemoveLinkPlugin(link);
+            }
+        }
 
-		// Token: 0x06000125 RID: 293 RVA: 0x0000B1B4 File Offset: 0x000093B4
-		public Snowflake? GetDiscordId(IPlayer player)
-		{
-			return this.GetDiscordId(player.Id);
-		}
+        /// <summary>
+        /// Returns if the specified ID is linked
+        /// </summary>
+        /// <param name="steamId">Steam ID of the player</param>
+        /// <returns>True if the ID is linked; false otherwise</returns>
+        public bool IsLinked(string steamId)
+        {
+            return GetSteamToDiscordIds()?.ContainsKey(steamId) ?? false;
+        }
+        
+        /// <summary>
+        /// Returns if the specified ID is linked
+        /// </summary>
+        /// <param name="discordId">Discord ID of the player</param>
+        /// <returns>True if the ID is linked; false otherwise</returns>
+        public bool IsLinked(Snowflake discordId)
+        {
+            return GetDiscordToSteamIds()?.ContainsKey(discordId) ?? false;
+        }
+        
+        /// <summary>
+        /// Returns if the specified ID is linked
+        /// </summary>
+        /// <param name="player">Player to check if linked</param>
+        /// <returns>True if the player is linked; false otherwise</returns>
+        public bool IsLinked(IPlayer player)
+        {
+            return IsLinked(player.Id);
+        }
+        
+        /// <summary>
+        /// Returns if the specified ID is linked
+        /// </summary>
+        /// <param name="user">Discord user to check</param>
+        /// <returns>True if the user is linked; false otherwise</returns>
+        public bool IsLinked(DiscordUser user)
+        {
+            return IsLinked(user.Id);
+        }
 
-		// Token: 0x06000126 RID: 294 RVA: 0x0000B1D4 File Offset: 0x000093D4
-		public DiscordUser GetDiscordUser(string steamId)
-		{
-			Snowflake? discordId = this.GetDiscordId(steamId);
-			bool flag = discordId == null;
-			DiscordUser result;
-			if (flag)
-			{
-				result = null;
-			}
-			else
-			{
-				result = new DiscordUser
-				{
-					Id = discordId.Value,
-					Bot = new bool?(false)
-				};
-			}
-			return result;
-		}
+        /// <summary>
+        /// Returns the Steam ID of the given Discord ID if there is a link
+        /// </summary>
+        /// <param name="discordId">Discord ID to get steam ID for</param>
+        /// <returns>Steam ID of the given given discord ID if linked; null otherwise</returns>
+        public string GetSteamId(Snowflake discordId)
+        {
+            return GetDiscordToSteamIds()?[discordId];
+        }
+        
+        /// <summary>
+        /// Returns the Steam ID of the given Discord ID if there is a link
+        /// </summary>
+        /// <param name="user"><see cref="DiscordUser"/> to get steam Id for</param>
+        /// <returns>Steam ID of the given given discord ID if linked; null otherwise</returns>
+        public string GetSteamId(DiscordUser user)
+        {
+            return GetSteamId(user.Id);
+        }
 
-		// Token: 0x06000127 RID: 295 RVA: 0x0000B224 File Offset: 0x00009424
-		public DiscordUser GetDiscordUser(IPlayer player)
-		{
-			return this.GetDiscordUser(player.Id);
-		}
+        /// <summary>
+        /// Returns the IPlayer for the given Discord ID
+        /// </summary>
+        /// <param name="discordId">Discord ID to get IPlayer for</param>
+        /// <returns>IPlayer for the given Discord ID; null otherwise</returns>
+        public IPlayer GetPlayer(Snowflake discordId)
+        {
+            string id = GetSteamId(discordId);
+            if (string.IsNullOrEmpty(id))
+            {
+                return null;
+            }
 
-		// Token: 0x06000128 RID: 296 RVA: 0x0000B244 File Offset: 0x00009444
-		public GuildMember GetLinkedMember(string steamId, DiscordGuild guild)
-		{
-			Snowflake? discordId = this.GetDiscordId(steamId);
-			bool flag = discordId == null || !guild.IsAvailable;
-			GuildMember result;
-			if (flag)
-			{
-				result = null;
-			}
-			else
-			{
-				result = guild.Members[discordId.Value];
-			}
-			return result;
-		}
+            return BasePlayer.FindAwakeOrSleeping(id).AsIPlayer();
+        }
 
-		// Token: 0x06000129 RID: 297 RVA: 0x0000B290 File Offset: 0x00009490
-		public GuildMember GetLinkedMember(IPlayer player, DiscordGuild guild)
-		{
-			return this.GetLinkedMember(player.Id, guild);
-		}
+        /// <summary>
+        /// Returns the Discord ID for the given Steam ID
+        /// </summary>
+        /// <param name="steamId">Steam ID to get Discord ID for</param>
+        /// <returns>Discord ID for the given Steam ID; null otherwise</returns>
+        public Snowflake? GetDiscordId(string steamId)
+        {
+            return GetSteamToDiscordIds()?[steamId];
+        }
 
-		// Token: 0x0600012A RID: 298 RVA: 0x0000B2B0 File Offset: 0x000094B0
-		public int GetLinkedCount()
-		{
-			Hash<string, Snowflake> steamToDiscordIds = this.GetSteamToDiscordIds();
-			return (steamToDiscordIds != null) ? steamToDiscordIds.Count : 0;
-		}
+        /// <summary>
+        /// Returns the Discord ID for the given IPlayer
+        /// </summary>
+        /// <param name="player">Player to get Discord ID for</param>
+        /// <returns>Discord ID for the given Steam ID; null otherwise</returns>
+        public Snowflake? GetDiscordId(IPlayer player)
+        {
+            return GetDiscordId(player.Id);
+        }
 
-		// Token: 0x0600012B RID: 299 RVA: 0x0000B2D4 File Offset: 0x000094D4
-		public HashSet<string> GetSteamIds()
-		{
-			return this._steamIds;
-		}
+        /// <summary>
+        /// Returns a minimal Discord User
+        /// </summary>
+        /// <param name="steamId">ID of the in game player</param>
+        /// <returns>Discord ID for the given Steam ID; null otherwise</returns>
+        public DiscordUser GetDiscordUser(string steamId)
+        {
+            Snowflake? discordId = GetDiscordId(steamId);
+            if (!discordId.HasValue)
+            {
+                return null;
+            }
 
-		// Token: 0x0600012C RID: 300 RVA: 0x0000B2EC File Offset: 0x000094EC
-		public HashSet<Snowflake> GetDiscordIds()
-		{
-			return this._discordIds;
-		}
+            return new DiscordUser
+            {
+                Id = discordId.Value,
+                Bot = false,
+            };
+        }
+        
+        /// <summary>
+        /// Returns a minimal Discord User
+        /// </summary>
+        /// <param name="player">Player to get the Discord User for</param>
+        /// <returns>Discord ID for the given Steam ID; null otherwise</returns>
+        public DiscordUser GetDiscordUser(IPlayer player)
+        {
+            return GetDiscordUser(player.Id);
+        }
 
-		// Token: 0x0600012D RID: 301 RVA: 0x0000B304 File Offset: 0x00009504
-		public Hash<string, Snowflake> GetSteamToDiscordIds()
-		{
-			return this._steamIdToDiscordId;
-		}
+        /// <summary>
+        /// Returns a linked guild member for the matching steam id in the given guild
+        /// </summary>
+        /// <param name="steamId">ID of the in game player</param>
+        /// <param name="guild">Guild the member is in</param>
+        /// <returns>Discord ID for the given Steam ID; null otherwise</returns>
+        public GuildMember GetLinkedMember(string steamId, DiscordGuild guild)
+        {
+            Snowflake? discordId = GetDiscordId(steamId);
+            if (!discordId.HasValue || !guild.IsAvailable)
+            {
+                return null;
+            }
 
-		// Token: 0x0600012E RID: 302 RVA: 0x0000B31C File Offset: 0x0000951C
-		public Hash<Snowflake, string> GetDiscordToSteamIds()
-		{
-			return this._discordIdToSteamId;
-		}
+            return guild.Members[discordId.Value];
+        }
 
-		// Token: 0x0600012F RID: 303 RVA: 0x0000B334 File Offset: 0x00009534
-		public void OnLinked(Plugin plugin, IPlayer player, DiscordUser discord)
-		{
-			bool flag = player == null;
-			if (flag)
-			{
-				throw new ArgumentNullException("player");
-			}
-			bool flag2 = discord == null;
-			if (flag2)
-			{
-				throw new ArgumentNullException("discord");
-			}
-			IDiscordLinkPlugin discordLinkPlugin = plugin as IDiscordLinkPlugin;
-			bool flag3 = discordLinkPlugin == null;
-			if (flag3)
-			{
-				this._logger.Error(plugin.Name + " tried to link but is not registered as a link plugin");
-			}
-			bool flag4 = !this._linkPlugins.Contains(discordLinkPlugin);
-			if (flag4)
-			{
-				this._logger.Error(plugin.Name + " has not been added as a link plugin and cannot set a link");
-			}
-			else
-			{
-				this._pluginLinks[plugin.Title][player.Id] = discord.Id;
-				this._discordIdToSteamId[discord.Id] = player.Id;
-				this._steamIdToDiscordId[player.Id] = discord.Id;
-				this._steamIds.Add(player.Id);
-				this._discordIds.Add(discord.Id);
-				Interface.Oxide.CallHook("OnDiscordPlayerLinked", new object[]
-				{
-					player,
-					discord
-				});
-			}
-		}
+        /// <summary>
+        /// Returns a linked guild member for the matching <see cref="IPlayer"/> in the given guild
+        /// </summary>
+        /// <param name="player">Player to get the Discord User for</param>
+        /// <param name="guild">Guild the member is in</param>
+        /// <returns>Discord ID for the given Steam ID; null otherwise</returns>
+        public GuildMember GetLinkedMember(IPlayer player, DiscordGuild guild)
+        {
+            return GetLinkedMember(player.Id, guild);
+        }
 
-		// Token: 0x06000130 RID: 304 RVA: 0x0000B464 File Offset: 0x00009664
-		public void OnUnlinked(Plugin plugin, IPlayer player, DiscordUser discord)
-		{
-			bool flag = player == null;
-			if (flag)
-			{
-				throw new ArgumentNullException("player");
-			}
-			bool flag2 = discord == null;
-			if (flag2)
-			{
-				throw new ArgumentNullException("discord");
-			}
-			IDiscordLinkPlugin discordLinkPlugin = plugin as IDiscordLinkPlugin;
-			bool flag3 = discordLinkPlugin == null;
-			if (flag3)
-			{
-				this._logger.Error(plugin.Name + " tried to unlink but is not registered as a link plugin");
-			}
-			bool flag4 = !this._linkPlugins.Contains(discordLinkPlugin);
-			if (flag4)
-			{
-				this._logger.Error(plugin.Name + " has not been added as a link plugin and cannot unlink");
-			}
-			else
-			{
-				this._pluginLinks[plugin.Title].Remove(player.Id);
-				this._discordIdToSteamId.Remove(discord.Id);
-				this._steamIdToDiscordId.Remove(player.Id);
-				this._steamIds.Remove(player.Id);
-				this._discordIds.Remove(discord.Id);
-				Interface.Oxide.CallHook("OnDiscordPlayerUnlinked", new object[]
-				{
-					player,
-					discord
-				});
-			}
-		}
+        /// <summary>
+        /// Returns the number of linked players
+        /// </summary>
+        /// <returns></returns>
+        public int GetLinkedCount()
+        {
+            return GetSteamToDiscordIds()?.Count ?? 0;
+        }
 
-		// Token: 0x040000DE RID: 222
-		private readonly Hash<string, Snowflake> _steamIdToDiscordId = new Hash<string, Snowflake>();
+        /// <summary>
+        /// Returns Steam ID's for all linked players
+        /// </summary>
+        /// <returns></returns>
+        public HashSet<string> GetSteamIds()
+        {
+            return _steamIds;
+        }
 
-		// Token: 0x040000DF RID: 223
-		private readonly Hash<Snowflake, string> _discordIdToSteamId = new Hash<Snowflake, string>();
+        /// <summary>
+        /// Returns Discord ID's for all linked players
+        /// </summary>
+        /// <returns></returns>
+        public HashSet<Snowflake> GetDiscordIds()
+        {
+            return _discordIds;
+        }
 
-		// Token: 0x040000E0 RID: 224
-		private readonly HashSet<string> _steamIds = new HashSet<string>();
+        /// <summary>
+        /// Returns a Hash with a Steam ID key and Discord ID value
+        /// </summary>
+        /// <returns></returns>
+        public Hash<string, Snowflake> GetSteamToDiscordIds()
+        {
+            return _steamIdToDiscordId;
+        }
 
-		// Token: 0x040000E1 RID: 225
-		private readonly HashSet<Snowflake> _discordIds = new HashSet<Snowflake>();
+        /// <summary>
+        /// Returns a Hash with a Discord ID key and Steam ID value
+        /// </summary>
+        /// <returns></returns>
+        public Hash<Snowflake, string> GetDiscordToSteamIds()
+        {
+            return _discordIdToSteamId;
+        }
 
-		// Token: 0x040000E2 RID: 226
-		private readonly Hash<string, IDictionary<string, Snowflake>> _pluginLinks = new Hash<string, IDictionary<string, Snowflake>>();
+        /// <summary>
+        /// Called by a link plugin when a link occured
+        /// </summary>
+        /// <param name="plugin">Plugin that initiated the link</param>
+        /// <param name="player">Player being linked</param>
+        /// <param name="discord">DiscordUser being linked</param>
+        public void OnLinked(Plugin plugin, IPlayer player, DiscordUser discord)
+        {
+            if (player == null)
+                throw new ArgumentNullException(nameof(player));
+            if (discord == null)
+                throw new ArgumentNullException(nameof(discord));
+            
+            IDiscordLinkPlugin link = plugin as IDiscordLinkPlugin;
+            if (link == null)
+            {
+                _logger.Error($"{plugin.Name} tried to link but is not registered as a link plugin");
+            }
+            
+            if (!_linkPlugins.Contains(link))
+            {
+                _logger.Error($"{plugin.Name} has not been added as a link plugin and cannot set a link");
+                return;
+            }
+            
+            _pluginLinks[plugin.Title][player.Id] = discord.Id;
+            
+            
+            _discordIdToSteamId[discord.Id] = player.Id;
+            _steamIdToDiscordId[player.Id] = discord.Id;
+            _steamIds.Add(player.Id);
+            _discordIds.Add(discord.Id);
+            Interface.Oxide.CallHook(DiscordExtHooks.OnDiscordPlayerLinked, player, discord);
+        }
 
-		// Token: 0x040000E3 RID: 227
-		private readonly List<IDiscordLinkPlugin> _linkPlugins = new List<IDiscordLinkPlugin>();
+        /// <summary>
+        /// Called by a link plugin when an unlink occured
+        /// </summary>
+        /// <param name="plugin">Plugin that is unlinking</param>
+        /// <param name="player">Player being unlinked</param>
+        /// <param name="discord">DiscordUser being unlinked</param>
+        public void OnUnlinked(Plugin plugin, IPlayer player, DiscordUser discord)
+        {
+            if (player == null)
+                throw new ArgumentNullException(nameof(player));
+            if (discord == null)
+                throw new ArgumentNullException(nameof(discord));
+            
+            IDiscordLinkPlugin link = plugin as IDiscordLinkPlugin;
+            if (link == null)
+            {
+                _logger.Error($"{plugin.Name} tried to unlink but is not registered as a link plugin");
+            }
+            
+            if (!_linkPlugins.Contains(link))
+            {
+                _logger.Error($"{plugin.Name} has not been added as a link plugin and cannot unlink");
+                return;
+            }
 
-		// Token: 0x040000E4 RID: 228
-		private readonly ILogger _logger;
-	}
+            _pluginLinks[plugin.Title].Remove(player.Id);
+            
+            _discordIdToSteamId.Remove(discord.Id);
+            _steamIdToDiscordId.Remove(player.Id);
+            _steamIds.Remove(player.Id);
+            _discordIds.Remove(discord.Id);
+            Interface.Oxide.CallHook(DiscordExtHooks.OnDiscordPlayerUnlinked, player, discord);
+        }
+    }
 }

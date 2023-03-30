@@ -1,12 +1,3 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 Oxide, uMod
- * All rights reserved.
- *
- */
-
-using System;
 using System.Collections.Generic;
 using System.Timers;
 using Newtonsoft.Json;
@@ -17,185 +8,157 @@ using Oxide.Ext.Discord.RateLimits;
 
 namespace Oxide.Ext.Discord.WebSockets.Handlers
 {
-	// Token: 0x0200000C RID: 12
-	public class SocketCommandHandler
-	{
-		// Token: 0x0600009E RID: 158 RVA: 0x00008A1C File Offset: 0x00006C1C
-		public SocketCommandHandler(Socket webSocket, ILogger logger)
-		{
-			this._webSocket = webSocket;
-			this._logger = logger;
-			this._rateLimitTimer = new Timer(1000.0);
-			this._rateLimitTimer.AutoReset = false;
-			this._rateLimitTimer.Elapsed += this.RateLimitElapsed;
-		}
+    /// <summary>
+    /// Handles command queueing when the websocket is down
+    /// </summary>
+    public class SocketCommandHandler
+    {
+        private readonly Socket _webSocket;
+        private readonly ILogger _logger;
+        private readonly List<CommandPayload> _pendingCommands = new List<CommandPayload>();
+        private readonly WebsocketRateLimit _rateLimit = new WebsocketRateLimit();
+        private readonly Timer _rateLimitTimer;
+        private readonly object _syncRoot = new object();
+        private bool _socketCanSendCommands;
 
-		// Token: 0x0600009F RID: 159 RVA: 0x00008A9C File Offset: 0x00006C9C
-		public void Enqueue(CommandPayload command)
-		{
-			bool flag = this._logger.IsLogging(DiscordLogLevel.Debug);
-			if (flag)
-			{
-				this._logger.Debug("SocketCommandHandler.Enqueue Queuing command " + command.OpCode.ToString());
-			}
-			bool flag2 = this._webSocket.IsConnected() && (command.OpCode == GatewayCommandCode.Identify || command.OpCode == GatewayCommandCode.Resume);
-			if (flag2)
-			{
-				this._webSocket.Send(command);
-			}
-			else
-			{
-				bool flag3 = !this._socketCanSendCommands;
-				if (flag3)
-				{
-					bool flag4 = command.OpCode == GatewayCommandCode.PresenceUpdate;
-					if (flag4)
-					{
-						this.RemoveByType(GatewayCommandCode.PresenceUpdate);
-					}
-					else
-					{
-						bool flag5 = command.OpCode == GatewayCommandCode.VoiceStateUpdate;
-						if (flag5)
-						{
-							this.RemoveByType(GatewayCommandCode.VoiceStateUpdate);
-						}
-					}
-					this.AddCommand(command);
-				}
-				else
-				{
-					this.AddCommand(command);
-					this.SendCommands();
-				}
-			}
-		}
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="webSocket">Websocket to handle commands for</param>
+        /// <param name="logger">Logger for this handler</param>
+        public SocketCommandHandler(Socket webSocket, ILogger logger)
+        {
+            _webSocket = webSocket;
+            _logger = logger;
+            
+            _rateLimitTimer = new Timer(1000);
+            _rateLimitTimer.AutoReset = false;
+            _rateLimitTimer.Elapsed += RateLimitElapsed;
+        }
 
-		// Token: 0x060000A0 RID: 160 RVA: 0x00008B75 File Offset: 0x00006D75
-		internal void OnSocketConnected()
-		{
-			this._logger.Debug("SocketCommandHandler.OnSocketConnected Socket Connected. Sending queued commands.");
-			this._socketCanSendCommands = true;
-			this.SendCommands();
-		}
+        /// <summary>
+        /// Enqueue a payload to be sent over the websocket
+        /// If the websocket is connected it will be sent immediately
+        /// If the websocket is not connected it will be queued until it is back online
+        /// </summary>
+        /// <param name="command">Command to send over the websocket</param>
+        public void Enqueue(CommandPayload command)
+        {
+            if (_logger.IsLogging(DiscordLogLevel.Debug))
+            {
+                _logger.Debug($"{nameof(SocketCommandHandler)}.{nameof(Enqueue)} Queuing command {command.OpCode.ToString()}");
+            }
 
-		// Token: 0x060000A1 RID: 161 RVA: 0x00008B97 File Offset: 0x00006D97
-		internal void OnSocketDisconnected()
-		{
-			this._logger.Debug("SocketCommandHandler.OnSocketConnected Socket Disconnected. Queuing Commands.");
-			this._socketCanSendCommands = false;
-		}
+            //If websocket has connect and we need to identify or resume send those payloads right away
+            if (_webSocket.IsConnected() && (command.OpCode == GatewayCommandCode.Identify || command.OpCode == GatewayCommandCode.Resume))
+            {
+                _webSocket.Send(command);
+                return;
+            }
+            
+            //If the websocket isn't fully connect enqueue the command until it is ready
+            if (!_socketCanSendCommands)
+            {
+                if (command.OpCode == GatewayCommandCode.PresenceUpdate)
+                {
+                    RemoveByType(GatewayCommandCode.PresenceUpdate);
+                }
+                else if (command.OpCode == GatewayCommandCode.VoiceStateUpdate)
+                {
+                    RemoveByType(GatewayCommandCode.VoiceStateUpdate);
+                }
 
-		// Token: 0x060000A2 RID: 162 RVA: 0x00008BB4 File Offset: 0x00006DB4
-		private void RateLimitElapsed(object sender, ElapsedEventArgs e)
-		{
-			this._logger.Debug("SocketCommandHandler.RateLimitElapsed Rate Limit has elapsed. Send Queued Commands");
-			this._rateLimitTimer.Stop();
-			bool flag = !this._socketCanSendCommands;
-			if (flag)
-			{
-				this._rateLimitTimer.Interval = 1000.0;
-				this._logger.Debug("SocketCommandHandler.RateLimitElapsed Can't send commands right now. Trying again in 1 second");
-				this._rateLimitTimer.Start();
-			}
-			else
-			{
-				this.SendCommands();
-			}
-		}
+                AddCommand(command);
+                return;
+            }
+            
+            AddCommand(command);
+            SendCommands();
+        }
 
-		// Token: 0x060000A3 RID: 163 RVA: 0x00008C28 File Offset: 0x00006E28
-		private void SendCommands()
-		{
-			object syncRoot = this._syncRoot;
-			lock (syncRoot)
-			{
-				while (this._pendingCommands.Count != 0)
-				{
-					CommandPayload commandPayload = this._pendingCommands[0];
-					bool hasReachedRateLimit = this._rateLimit.HasReachedRateLimit;
-					if (hasReachedRateLimit)
-					{
-						bool flag2 = !this._rateLimitTimer.Enabled;
-						if (flag2)
-						{
-							this._rateLimitTimer.Interval = this._rateLimit.NextReset;
-							this._rateLimitTimer.Stop();
-							this._rateLimitTimer.Start();
-							this._logger.Warning(string.Format("{0}.{1} Rate Limit Hit! Retrying in {2} seconds\nOpcode: {3}\nPayload: {4}", new object[]
-							{
-								"SocketCommandHandler",
-								"SendCommands",
-								this._rateLimit.NextReset.ToString(),
-								commandPayload.OpCode,
-								JsonConvert.SerializeObject(commandPayload.Payload, DiscordExtension.ExtensionSerializeSettings)
-							}));
-						}
-						break;
-					}
-					bool flag3 = this._logger.IsLogging(DiscordLogLevel.Debug);
-					if (flag3)
-					{
-						this._logger.Debug("SocketCommandHandler.SendCommands Sending Command " + commandPayload.OpCode.ToString());
-					}
-					bool flag4 = !this._webSocket.Send(commandPayload);
-					if (flag4)
-					{
-						break;
-					}
-					this._pendingCommands.RemoveAt(0);
-					this._rateLimit.FiredRequest();
-				}
-			}
-		}
+        internal void OnSocketConnected()
+        {
+            _logger.Debug($"{nameof(SocketCommandHandler)}.{nameof(OnSocketConnected)} Socket Connected. Sending queued commands.");
+            _socketCanSendCommands = true;
+            SendCommands();
+        }
 
-		// Token: 0x060000A4 RID: 164 RVA: 0x00008DD0 File Offset: 0x00006FD0
-		private void AddCommand(CommandPayload command)
-		{
-			object syncRoot = this._syncRoot;
-			lock (syncRoot)
-			{
-				bool flag2 = command.OpCode == GatewayCommandCode.Identify || command.OpCode == GatewayCommandCode.Resume;
-				if (flag2)
-				{
-					this._pendingCommands.Insert(0, command);
-				}
-				else
-				{
-					this._pendingCommands.Add(command);
-				}
-			}
-		}
+        internal void OnSocketDisconnected()
+        {
+            _logger.Debug($"{nameof(SocketCommandHandler)}.{nameof(OnSocketConnected)} Socket Disconnected. Queuing Commands.");
+            _socketCanSendCommands = false;
+        }
 
-		// Token: 0x060000A5 RID: 165 RVA: 0x00008E48 File Offset: 0x00007048
-		private void RemoveByType(GatewayCommandCode code)
-		{
-			object syncRoot = this._syncRoot;
-			lock (syncRoot)
-			{
-				this._pendingCommands.RemoveAll((CommandPayload c) => c.OpCode == code);
-			}
-		}
+        private void RateLimitElapsed(object sender, ElapsedEventArgs e)
+        {
+            _logger.Debug($"{nameof(SocketCommandHandler)}.{nameof(RateLimitElapsed)} Rate Limit has elapsed. Send Queued Commands");
+            _rateLimitTimer.Stop();
+            if (!_socketCanSendCommands)
+            {
+                _rateLimitTimer.Interval = 1000;
+                _logger.Debug($"{nameof(SocketCommandHandler)}.{nameof(RateLimitElapsed)} Can't send commands right now. Trying again in 1 second");
+                _rateLimitTimer.Start();
+                return;
+            }
 
-		// Token: 0x0400008C RID: 140
-		private readonly Socket _webSocket;
+            SendCommands();
+        }
+        
+        private void SendCommands()
+        {
+            lock (_syncRoot)
+            {
+                while (_pendingCommands.Count != 0)
+                {
+                    CommandPayload payload = _pendingCommands[0];
+                    if (_rateLimit.HasReachedRateLimit)
+                    {
+                        if (!_rateLimitTimer.Enabled)
+                        {
+                            _rateLimitTimer.Interval = _rateLimit.NextReset;
+                            _rateLimitTimer.Stop();
+                            _rateLimitTimer.Start();
+                            _logger.Warning($"{nameof(SocketCommandHandler)}.{nameof(SendCommands)} Rate Limit Hit! Retrying in {_rateLimit.NextReset.ToString()} seconds\nOpcode: {payload.OpCode}\nPayload: {JsonConvert.SerializeObject(payload.Payload, DiscordExtension.ExtensionSerializeSettings)}");
+                        }
 
-		// Token: 0x0400008D RID: 141
-		private readonly ILogger _logger;
+                        return;
+                    }
+                
+                    if (_logger.IsLogging(DiscordLogLevel.Debug))
+                    {
+                        _logger.Debug($"{nameof(SocketCommandHandler)}.{nameof(SendCommands)} Sending Command {payload.OpCode.ToString()}");
+                    }
 
-		// Token: 0x0400008E RID: 142
-		private readonly List<CommandPayload> _pendingCommands = new List<CommandPayload>();
+                    if (!_webSocket.Send(payload))
+                    {
+                        return;
+                    }
+                
+                    _pendingCommands.RemoveAt(0);
+                    _rateLimit.FiredRequest();
+                }
+            }
+        }
 
-		// Token: 0x0400008F RID: 143
-		private readonly WebsocketRateLimit _rateLimit = new WebsocketRateLimit();
-
-		// Token: 0x04000090 RID: 144
-		private readonly Timer _rateLimitTimer;
-
-		// Token: 0x04000091 RID: 145
-		private readonly object _syncRoot = new object();
-
-		// Token: 0x04000092 RID: 146
-		private bool _socketCanSendCommands;
-	}
+        private void AddCommand(CommandPayload command)
+        {
+            lock (_syncRoot)
+            {
+                if (command.OpCode == GatewayCommandCode.Identify || command.OpCode == GatewayCommandCode.Resume)
+                {
+                    _pendingCommands.Insert(0, command);
+                    return;
+                }
+                _pendingCommands.Add(command);
+            }
+        }
+        
+        private void RemoveByType(GatewayCommandCode code)
+        {
+            lock (_syncRoot)
+            {
+                _pendingCommands.RemoveAll(c => c.OpCode == code);
+            }
+        }
+    }
 }

@@ -1,13 +1,18 @@
-﻿using System;
-
 namespace Oxide.Ext.Discord.Entities.Webhooks
 {
-	// Token: 0x02000048 RID: 72
-	public enum WebhookType
-	{
-		// Token: 0x04000121 RID: 289
-		Incoming = 1,
-		// Token: 0x04000122 RID: 290
-		ChannelFollower
-	}
+    /// <summary>
+    /// Represents <a href="https://discord.com/developers/docs/resources/webhook#webhook-object-webhook-types">Webhook Types</a>
+    /// </summary>
+    public enum WebhookType
+    {
+        /// <summary>
+        /// Incoming Webhooks can post messages to channels with a generated token
+        /// </summary>
+        Incoming = 1,
+        
+        /// <summary>
+        /// Channel Follower Webhooks are internal webhooks used with Channel Following to post new messages into channels
+        /// </summary>
+        ChannelFollower = 2
+    }
 }
