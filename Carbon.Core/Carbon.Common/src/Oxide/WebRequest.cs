@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Text;
 using Carbon;
 using Oxide.Plugins;
 
@@ -118,6 +117,7 @@ public class WebRequests
 									return;
 								}
 
+								ResponseCode = _client.StatusCode;
 								ResponseText = e.Result;
 
 								OnComplete(false);
@@ -159,6 +159,7 @@ public class WebRequests
 									return;
 								}
 
+								ResponseCode = _client.StatusCode;
 								ResponseText = e.Result;
 
 								OnComplete(false);
@@ -225,6 +226,25 @@ public class WebRequests
 
 		public class Client : WebClient
 		{
+			public int StatusCode { get; private set; }
+
+			protected override WebResponse GetWebResponse(System.Net.WebRequest request, IAsyncResult result)
+			{
+				var response = base.GetWebResponse(request, result);
+
+				StatusCode = (int)(request.GetResponse() as HttpWebResponse).StatusCode;
+
+				return response;
+			}
+			protected override WebResponse GetWebResponse(System.Net.WebRequest request)
+			{
+				var response = base.GetWebResponse(request);
+
+				StatusCode = (int)(request.GetResponse() as HttpWebResponse).StatusCode;
+
+				return response;
+			}
+
 			protected override System.Net.WebRequest GetWebRequest(Uri address)
 			{
 				if (!Community.IsConfigReady || string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))
