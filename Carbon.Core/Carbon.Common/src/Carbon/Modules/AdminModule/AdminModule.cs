@@ -3417,7 +3417,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				cui.CreateProtectedButton(container, mainPanel, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, align: TextAnchor.MiddleCenter, command: "pluginbrowser.deselectplugin");
 
-				var favouriteButton = cui.CreateProtectedButton(container, mainPanel, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: 0.5f, yMin: 0.75f, yMax: 0.79f, command: $"pluginbrowser.interact 10 {selectedPlugin.File}");
+				var favouriteButton = cui.CreateProtectedButton(container, mainPanel, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: 0.495f, yMin: 0.755f, yMax: 0.79f, command: $"pluginbrowser.interact 10 {selectedPlugin.File}");
 				cui.CreateImage(container, favouriteButton, null, "star", ServerOwner.Singleton.FavouritePlugins.Contains(selectedPlugin.File) ? "0.9 0.8 0.4 0.95" : "0.2 0.2 0.2 0.4");
 
 				#region Tags
@@ -3455,6 +3455,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				cui.CreateProtectedButton(container, mainPanel, null, "#2f802f", "1 1 1 1", "<", 10, align: TextAnchor.MiddleCenter, command: "pluginbrowser.changeselectedplugin -1", xMin: 0f, xMax: 0.02f, yMin: 0.45f, yMax: 0.55f);
 				cui.CreateProtectedButton(container, mainPanel, null, "#2f802f", "1 1 1 1", ">", 10, align: TextAnchor.MiddleCenter, command: "pluginbrowser.changeselectedplugin 1", xMin: 0.98f, xMax: 1f, yMin: 0.45f, yMax: 0.55f);
+
+				cui.CreateProtectedButton(container, parent: mainPanel, id: null,
+					color: "0.6 0.2 0.2 0.9",
+					textColor: "1 0.5 0.5 1",
+					text: "X", 9,
+					xMin: 0.965f, xMax: 0.99f, yMin: 0.955f, yMax: 0.99f,
+					command: "pluginbrowser.deselectplugin",
+					font: CUI.Handler.FontTypes.DroidSansMono);
 
 				var buttonColor = string.Empty;
 				var elementColor = string.Empty;
@@ -4790,7 +4798,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				_recurseBuild(token.Key, token.Value, 0, 0);
 			}
 		}
-		internal void _recurseBuild(string name, JToken token, int level, int column)
+		internal void _recurseBuild(string name, JToken token, int level, int column, bool removeButtons = false)
 		{
 			switch (token)
 			{
@@ -4799,27 +4807,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						AddName(column, $"{StringEx.SpacedString(Spacing, level, false)}{name}");
 						AddButton(column, $"Edit", ap =>
 						{
-							var index = 0;
-							var subColumn = 1;
-							ClearAfter(subColumn, true);
-							AddName(subColumn, $"Editing '{name}'");
-							foreach (var element in array)
-							{
-								_recurseBuild($"{StringEx.SpacedString(Spacing, level, false)}{index:n0}", element, 0, subColumn);
-
-								// AddButton(subColumn, $"Add", ap2 =>
-								// {
-								// 
-								// }, ap2 => OptionButton.Types.Warned);
-
-								index++;
-							}
-							if (array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
-
-							AddButton(subColumn, $"Add", ap2 =>
-							{
-
-							}, ap2 => OptionButton.Types.Selected);
+							_drawArray(name, array, level, ap);
 						});
 					}
 					break;
@@ -4865,37 +4853,26 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								AddName(column, $"{StringEx.SpacedString(Spacing, level, false)}{name}");
 								AddButton(column, $"Edit", ap =>
 								{
-									var index = 0;
-									var subColumn = column + 1;
-									ClearAfter(subColumn, true);
-									AddName(subColumn, $"Editing '{name.Trim()}'");
-									foreach (var element in array2)
-									{
-										_recurseBuild($"{StringEx.SpacedString(Spacing, level, false)}{index:n0}", element, 0, subColumn);
-
-										// AddButton(subColumn, $"Add", ap2 =>
-										// {
-										// 
-										// }, ap2 => OptionButton.Types.Warned);
-
-										index++;
-									}
-									if (array2.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+									_drawArray(name, array2, level, ap);
 								});
 							}
 							break;
 
 						case JTokenType.Object:
 							var newLevel = level + 1;
-							if (token.Parent is JArray array) AddInputButton(column, null, 0.2f,
-								new OptionInput(null, ap => $"{array.IndexOf(token)}", 0, true, null),
-								new OptionButton("Remove", TextAnchor.MiddleCenter, ap =>
-								{
-									array.Remove(token);
-									ClearColumn(column);
-									DrawArray(name, array, 0, true);
-								}, ap => OptionButton.Types.Important));
+							if (token.Parent is JArray array)
+							{
+								AddInputButton(column, null, 0.2f,
+									new OptionInput(null, ap => $"{array.IndexOf(token)}", 0, true, null),
+									new OptionButton("Remove", TextAnchor.MiddleCenter, ap =>
+									{
+										array.Remove(token);
+										ClearColumn(column);
+										// DrawArray(name, array, 0, true);
+										_drawArray(name, array, level, ap);
+									}, ap => OptionButton.Types.Important));
 
+							}
 							DrawArray(name, token, newLevel);
 
 							break;
@@ -4915,7 +4892,65 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					if (subToken is JObject && !editRefresh)
 						AddName(column, $"{StringEx.SpacedString(Spacing, ulevel, false)}{(subToken.Parent as JProperty)?.Name}");
 					_recurseBuild($"{StringEx.SpacedString(Spacing, ulevel + 1, false)}{(subToken as JProperty)?.Name}", subToken, ulevel + 1, column);
+
+					if (removeButtons)
+					{
+						var jproperty = (subToken as JProperty);
+						AddButton(column, $"Remove '{jproperty?.Name.Trim()}'", ap2 =>
+						{
+							(tok as JObject).Remove(jproperty.Name);
+							_drawArray(name, tok.Parent as JArray, ulevel, ap2);
+						}, ap2 => OptionButton.Types.Important);
+					}
 				}
+			}
+		}
+		internal void _drawArray(string name, JArray array, int level, AdminPlayer ap)
+		{
+			var index = 0;
+			var subColumn = 1;
+			ClearAfter(subColumn, true);
+			AddName(subColumn, $"Editing '{name.Trim()}'");
+			foreach (var element in array)
+			{
+				_recurseBuild($"{StringEx.SpacedString(Spacing, level, false)}{index:n0}", element, 0, subColumn, array.Count == 1);
+
+				AddButton(subColumn, $"Remove", ap2 =>
+				{
+					array.Remove(element);
+					_drawArray(name, array, level, ap);
+				}, ap2 => OptionButton.Types.Important);
+
+				index++;
+			}
+			if (array.Count <= 1)
+			{
+				var sample = array.FirstOrDefault() as JObject;
+				var newPropertyName = ap.GetStorage<string>(this, "jsonprop", "New Property");
+				AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+
+				if (array.Count == 1)
+				{
+					AddButton(subColumn, $"Duplicate", ap2 =>
+					{
+						array.Add(array.LastOrDefault());
+						_drawArray(name, array, level, ap);
+					}, ap2 => OptionButton.Types.Warned);
+				}
+				AddInput(subColumn, "Property Name", ap => ap.GetStorage<string>(this, "jsonprop", "New Property"), (ap, args) => { ap.SetStorage(this, "jsonprop", newPropertyName = args.ToString(" ")); });
+				AddButtonArray(subColumn, 0.01f,
+					new OptionButton("Add Label", ap => { if (sample == null) array.Add(sample = JObject.Parse("{ }")); if (!(sample as IDictionary<string, JToken>).ContainsKey(newPropertyName)) { sample.Add(newPropertyName, string.Empty); _drawArray(name, array, level, ap); } }),
+					new OptionButton("Add Toggle", ap => { if (sample == null) array.Add(sample = JObject.Parse("{ }")); if (!(sample as IDictionary<string, JToken>).ContainsKey(newPropertyName)) { sample.Add(newPropertyName, false); _drawArray(name, array, level, ap); } }),
+					new OptionButton("Add Int", ap => { if (sample == null) array.Add(sample = JObject.Parse("{ }")); if (!(sample as IDictionary<string, JToken>).ContainsKey(newPropertyName)) { sample.Add(newPropertyName, 0); _drawArray(name, array, level, ap); } }),
+					new OptionButton("Add Float", ap => { if (sample == null) array.Add(sample = JObject.Parse("{ }")); if (!(sample as IDictionary<string, JToken>).ContainsKey(newPropertyName)) { sample.Add(newPropertyName, 0.0f); _drawArray(name, array, level, ap); } }));
+			}
+			else
+			{
+				AddButton(subColumn, $"Duplicate", ap2 =>
+				{
+					array.Add(array.LastOrDefault());
+					_drawArray(name, array, level, ap);
+				}, ap2 => OptionButton.Types.Selected);
 			}
 		}
 	}
