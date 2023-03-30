@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Oxide.Core.Plugins;
 using Oxide.Ext.Discord.Entities;
 using Oxide.Ext.Discord.Entities.Channels;
 using Oxide.Ext.Discord.Entities.Messages;
@@ -8,7 +7,7 @@ using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord.Libraries.Command
 {
-    internal class GuildCommand : BaseCommand
+	internal class GuildCommand : BaseCommand
     {
         private readonly List<Snowflake> _allowedChannels;
 

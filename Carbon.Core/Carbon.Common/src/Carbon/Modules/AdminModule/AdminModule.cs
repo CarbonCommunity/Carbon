@@ -4927,7 +4927,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				var sample = array.FirstOrDefault() as JObject;
 				var newPropertyName = ap.GetStorage<string>(this, "jsonprop", "New Property");
-				AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
 
 				if (array.Count == 1)
 				{
@@ -4937,6 +4936,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						_drawArray(name, array, level, ap);
 					}, ap2 => OptionButton.Types.Warned);
 				}
+				else if(array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+
 				AddInput(subColumn, "Property Name", ap => ap.GetStorage<string>(this, "jsonprop", "New Property"), (ap, args) => { ap.SetStorage(this, "jsonprop", newPropertyName = args.ToString(" ")); });
 				AddButtonArray(subColumn, 0.01f,
 					new OptionButton("Add Label", ap => { if (sample == null) array.Add(sample = JObject.Parse("{ }")); if (!(sample as IDictionary<string, JToken>).ContainsKey(newPropertyName)) { sample.Add(newPropertyName, string.Empty); _drawArray(name, array, level, ap); } }),
