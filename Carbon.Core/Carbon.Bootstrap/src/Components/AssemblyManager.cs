@@ -292,8 +292,11 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
-					if (IsType<ICarbonExtension>(asm, out types))
+					Logger.Log($"{file} {requester} {asm == null}");
+					if (IsExtensionAssembly<ICarbonExtension>(asm, out types))
 					{
+						Logger.Log($"  IS EXTENSION");
+
 						Logger.Debug($"Loading extension from file '{file}'");
 
 						foreach (Type type in types)
@@ -517,6 +520,36 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #endif
 			output = new List<Type>();
 			return false;
+		}
+	}
+	private bool IsExtensionAssembly<T>(Assembly assembly, out IEnumerable<Type> output) where T : ICarbonExtension
+	{
+		try
+		{
+			Type @base = typeof(T) ?? throw new Exception();
+			output = GetTypesFromAssembly(assembly).Where(x => x.GetInterfaces().Contains(typeof(T)));
+			return output.Count() > 0;
+		}
+		catch (Exception ex)
+		{
+#if DEBUG
+			Logger.Error($"Failed IsExtensionAssembly<{typeof(T).FullName}>", ex);
+#endif
+			output = new List<Type>();
+			return false;
+		}
+	}
+
+	public static Type[] GetTypesFromAssembly(Assembly assembly)
+	{
+		try
+		{
+			return assembly.GetTypes();
+		}
+		catch (ReflectionTypeLoadException ex)
+		{
+			Logger.Debug($"AccessTools.GetTypesFromAssembly: assembly {assembly} => {ex}");
+			return ex.Types.Where((Type type) => (object)type != null).ToArray();
 		}
 	}
 

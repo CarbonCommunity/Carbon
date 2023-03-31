@@ -1,5 +1,6 @@
 ﻿using System;
 using Carbon.Core;
+using Oxide.Plugins;
 
 /*
  *
@@ -10,8 +11,7 @@ using Carbon.Core;
 
 namespace Oxide.Core.Plugins
 {
-	public class PluginLoader
+	public class CSPlugin : RustPlugin
 	{
-		public virtual Type[] CorePlugins { get; }
 	}
 }

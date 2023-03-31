@@ -21,8 +21,6 @@ namespace Oxide.Plugins;
 
 public class RustPlugin : Plugin
 {
-	public PluginManager Manager { get; set; }
-
 	public bool IsExtension { get; set; }
 
 	public Permission permission { get; set; }
@@ -255,58 +253,18 @@ public class RustPlugin : Plugin
 
 	public void ILoadConfig()
 	{
-		LoadConfig();
+		try
+		{
+			LoadConfig();
+		}
+		catch(Exception ex)
+		{
+			LogError($"Failed ILoadConfig", ex);
+		}
 	}
 	public void ILoadDefaultMessages()
 	{
 		CallHook("LoadDefaultMessages");
-	}
-
-	protected virtual void LoadConfig()
-	{
-		Config = new DynamicConfigFile(Path.Combine(Manager.ConfigPath, Name + ".json"));
-
-		if (!Config.Exists(null))
-		{
-			LoadDefaultConfig();
-
-			if(Config.Count() > 0)
-			{
-				SaveConfig();
-			}
-		}
-		try
-		{
-			if(Config.Exists(null)) Config.Load(null);
-		}
-		catch (Exception ex)
-		{
-			Carbon.Logger.Error("Failed to load config file (is the config file corrupt?) (" + ex.Message + ")");
-		}
-	}
-	protected virtual void LoadDefaultConfig()
-	{
-		//CallHook ( "LoadDefaultConfig" );
-	}
-	protected virtual void SaveConfig()
-	{
-		if (Config == null)
-		{
-			return;
-		}
-		try
-		{
-			Config.Save(null);
-		}
-		catch (Exception ex)
-		{
-			Carbon.Logger.Error("Failed to save config file (does the config have illegal objects in it?) (" + ex.Message + ")", ex);
-		}
-	}
-
-	protected virtual void LoadDefaultMessages()
-	{
-
 	}
 
 	public new string ToString()
@@ -315,6 +273,15 @@ public class RustPlugin : Plugin
 	}
 
 	#region Printing
+
+	protected void PrintWarning(object message)
+	{
+		LogWarning(message);
+	}
+	protected void PrintWarning(string format, params object[] args)
+	{
+		LogWarning(format, args);
+	}
 
 	protected void PrintToConsole(BasePlayer player, string format, params object[] args)
 	{

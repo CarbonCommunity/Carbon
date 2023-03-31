@@ -1,6 +1,6 @@
 ﻿using System;
 using Carbon.Core;
-using Oxide.Game.Rust;
+using Oxide.Core.Plugins;
 
 /*
  *
@@ -9,7 +9,7 @@ using Oxide.Game.Rust;
  *
  */
 
-namespace Oxide.Core.Plugins
+namespace Oxide.Game.Rust
 {
 	public class RustPluginLoader : PluginLoader
 	{

@@ -1,5 +1,6 @@
 ﻿using System;
 using Carbon.Core;
+using Oxide.Core.Plugins;
 
 /*
  *
@@ -8,10 +9,9 @@ using Carbon.Core;
  *
  */
 
-namespace Oxide.Core.Plugins
+namespace Oxide.Plugins
 {
-	public class PluginLoader
+	public class CSharpPlugin : CSPlugin
 	{
-		public virtual Type[] CorePlugins { get; }
 	}
 }

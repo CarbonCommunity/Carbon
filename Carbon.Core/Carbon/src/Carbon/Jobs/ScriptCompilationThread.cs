@@ -120,7 +120,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		if (_extensionReferenceCache.TryGetValue(name, out var reference))
 		{
-			Logger.Debug(id, $"Added common Extension references from cache '{name}'", 4);
 			references.Add(reference);
 		}
 		else
@@ -133,7 +132,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			references.Add(processedReference);
 			_extensionReferenceCache.Add(name, processedReference);
-			Logger.Debug(id, $"Added common Extension reference '{name}'", 4);
 		}
 	}
 
@@ -161,10 +159,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		foreach (var item in Community.Runtime.AssemblyEx.LoadedExtensions)
 		{
-			_injectExtensionReference(id, item, references);
+			try { _injectExtensionReference(id, item, references); }
+			catch { }
 		}
-
-		Logger.Debug(id, $"Compiler will use {references.Count} assembly references", 1);
 		return references;
 	}
 
@@ -216,6 +213,15 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 					using var dllStream = new MemoryStream(requiredPlugin);
 					references.Add(MetadataReference.CreateFromStream(dllStream));
+				}
+				catch { /* do nothing */ }
+			}
+
+			foreach (var reference in References)
+			{
+				try
+				{
+					_injectExtensionReference(reference, Path.Combine(Defines.GetExtensionsFolder(), $"{reference}.dll"), references);
 				}
 				catch { /* do nothing */ }
 			}
