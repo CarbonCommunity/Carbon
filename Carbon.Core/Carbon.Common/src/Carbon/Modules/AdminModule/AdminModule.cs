@@ -13,6 +13,7 @@ using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using ProtoBuf;
 using UnityEngine;
+using static Carbon.Components.CUI;
 using static ConsoleSystem;
 using Color = UnityEngine.Color;
 using Pool = Facepunch.Pool;
@@ -5191,10 +5192,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 	}
-	public class Modal
-	{
-
-	}
 
 	#region Setup Wizard - Custom Commands
 
@@ -5264,6 +5261,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	#endregion
 
 	#endregion
+
+	#region Color Picker
 
 	internal class ColorPicker
 	{
@@ -5454,8 +5453,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 	}
 
-	#region Color Picker
-
 	public void OpenColorPicker(BasePlayer player, Action<string, string> onColorPicked)
 	{
 		ColorPicker.Draw(player, onColorPicked);
@@ -5515,6 +5512,359 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var rawColor = CUI.HexToRustColor(hex, includeAlpha: false);
 		onColorPicked?.Invoke(hex,rawColor);
 		ColorPicker.Close(args.Player());
+	}
+
+	#endregion
+
+	#endregion
+
+	#region Modal
+
+	public class Modal
+	{
+		public string Title;
+		public Dictionary<string, Field> Fields;
+		public Action OnCancel;
+		public Action<BasePlayer, Modal> OnConfirm;
+		public int Page;
+
+		internal Handler Handler { get; set; }
+		internal const string PanelId = "carbonmodalui";
+
+		public static void Open(BasePlayer player, string title, Dictionary<string, Field> fields, Action onCancel = null, Action<BasePlayer, Modal> onConfirm = null)
+		{
+			var tab = new Modal()
+			{
+				Title = title,
+				Fields = fields,
+				OnCancel = onCancel,
+				OnConfirm = onConfirm,
+				Handler = new ()
+			};
+
+			tab.Draw(player);
+		}
+		public static void Close(BasePlayer player)
+		{
+			using var cui = new CUI(Singleton.Handler);
+			cui.Destroy(PanelId, player);
+		}
+
+		public bool IsValid()
+		{
+			foreach (var field in Fields)
+			{
+				if (!field.Value.IsRequired) continue;
+
+				if (field.Value.IsInvalid()) return false;
+			}
+
+			return true;
+		}
+		public int Pages => Fields.Count > 4 ? (Fields.Count - 1) / 4 : 0;
+
+		public void Draw(BasePlayer player)
+		{
+			var ap = Singleton.GetPlayerSession(player);
+
+			using var cui = new CUI(Handler);
+			var container = cui.CreateContainer(PanelId,
+				color: "0 0 0 0.99",
+				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
+				needsCursor: true, destroyUi: PanelId);
+
+			var color = cui.CreatePanel(container, parent: PanelId, id: PanelId + ".color",
+				color: "0.1 0.1 0.1 0.6",
+				xMin: 0.3f, xMax: 0.7f, yMin: 0.275f, yMax: 0.825f);
+			var main = cui.CreatePanel(container, parent: PanelId + ".color", id: PanelId + ".main",
+				color: "0 0 0 0.5",
+			blur: true);
+
+			_drawInternal(cui, container, main);
+
+			ap.SetStorage(null, "modal", this);
+			cui.Send(container, player);
+		}
+		public void _drawInternal(CUI cui, CuiElementContainer container, string panel)
+		{
+			cui.CreateText(container, panel, null, "1 1 1 1",
+				$"<b><color=red>*</color></b>  {"Assign all required field values.".ToUpper().SpacedString(1)}" +
+				$"\n    {(IsValid() ? $"<b><color=green>{"The modal is valid.".ToUpper().SpacedString(1)}</color></b>" : $"<b><color=red>{"The modal has invalid fields.".ToUpper().SpacedString(1)}</color></b>")}",
+				9, align: TextAnchor.LowerLeft, xMin: 0.05f, yMin: 0.05f);
+
+			var main = cui.CreatePanel(container, panel, null, "0 0 0 0", xMin: 0.1f, xMax: 0.9f, yMin: 0.2f, yMax: 0.9f);
+			cui.CreateText(container, main, null, "1 1 1 0.7", Title, 20, xMin: 0.025f, yMax: 0.985f, align: TextAnchor.UpperLeft);
+
+			var offset = 0f;
+			var spacing = 60f;
+
+			var content = cui.CreatePanel(container, main, null, "0 0 0 0", xMin: 0, yMin: 0, OyMin: -35, OyMax: -35);
+
+			var pageContent = Fields.Skip(Page * 4).Take(4);
+			foreach (var field in pageContent)
+			{
+				var fieldPanel = cui.CreatePanel(container, content, null, "0 0 0 0.5", yMin: 0.8f, OyMin: offset, OyMax: offset);
+				cui.CreateText(container, fieldPanel, null, "1 1 1 1", $"<b>{field.Value.DisplayName.ToUpper().SpacedString(1)}</b>{(field.Value.IsRequired ? "  <b><color=red>*</color></b>" : "")}", 11, xMin: 0.03f, yMax: 0.85f, align: TextAnchor.UpperLeft);
+
+				var option = cui.CreatePanel(container, fieldPanel, null, "0.1 0.1 0.1 0.75", yMax: 0.55f);
+
+				if (field.Value.IsInvalid())
+				{
+					cui.CreatePanel(container, option, null, CUI.HexToRustColor("#b8302e", 0.5f));
+				}
+
+				switch (field.Value.Type)
+				{
+					case Field.FieldTypes.String:
+					case Field.FieldTypes.Float:
+					case Field.FieldTypes.Integer:
+						var value = field.Value.Value != null ? (field.Value.Type == Field.FieldTypes.Float ? $"{field.Value.Value:0.0}" : $"{field.Value.Value:0}") : field.Value.Value?.ToString();
+						cui.CreateProtectedInputField(container, option, null, "1 1 1 1", value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: true);
+						break;
+
+					case Field.FieldTypes.Boolean:
+						cui.CreateProtectedButton(container, option, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, command: $"modal.action {field.Key} {field.Value.Value}");
+						var toggle = cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.8", "0 0 0 0", string.Empty, 0, xMin: 0.025f, xMax: 0.085f, yMin: 0.1f, yMax: 0.9f, command: $"modal.action {field.Key} {field.Value.Value}");
+						if (field.Value.Value is bool booleanValue && booleanValue)
+						{
+							cui.CreateImage(container, toggle, null, "checkmark", "1 1 1 1", 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
+						}
+						break;
+
+					case Field.FieldTypes.RustColor:
+					case Field.FieldTypes.HexColor:
+						var originalColor = field.Value.Value == null || (string.IsNullOrEmpty(field.Value.Value.ToString())) ? (field.Value.Type == Field.FieldTypes.RustColor ? "1 1 1" : "#ffffff") : field.Value.Value.ToString();
+						var hexColor = field.Value.Type == Field.FieldTypes.RustColor ? CUI.RustToHexColor(originalColor, includeAlpha: false) : originalColor;
+						var rustColor = field.Value.Type == Field.FieldTypes.HexColor ? CUI.HexToRustColor(originalColor, includeAlpha: false) : originalColor;
+						var rustColorSplit = rustColor.Split(' ');
+						rustColor = $"R:{rustColorSplit[0].ToFloat() * 255:0}   G:{rustColorSplit[1].ToFloat() * 255:0}   B:{rustColorSplit[2].ToFloat() * 255:0}";
+						Array.Clear(rustColorSplit, 0, rustColorSplit.Length);
+
+						cui.CreateText(container, option, null, "1 1 1 1", $"<b>{"HEX".SpacedString(1)}:</b>  {hexColor}", 12, xMin: 0.7f, align: TextAnchor.MiddleLeft);
+						cui.CreateText(container, option, null, "1 1 1 1", $"<b>{"RUST".SpacedString(1)}:</b>  {rustColor}", 12, xMin: 0.115f, align: TextAnchor.MiddleLeft);
+						var color = cui.CreateProtectedButton(container, option, null, hexColor, "0 0 0 0", string.Empty, 0, xMin: 0.025f, xMax: 0.085f, yMin: 0.1f, yMax: 0.9f, command: $"modal.action {field.Key}");
+						break;
+
+					case Field.FieldTypes.Enum:
+						var @enum = field.Value as EnumField;
+						cui.CreateText(container, option, null, "1 1 1 1", @enum.Options[@enum.Value == null ? 0 : @enum.Value.ToString().ToInt()], 12, align: TextAnchor.MiddleCenter);
+
+						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.75", "1 1 1 0.7", "<", 10, xMin: 0f, xMax: 0.5f, command: $"modal.action {field.Key} -");
+						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.75", "1 1 1 0.7", ">", 10, xMin: 0.5f, xMax: 1f, command: $"modal.action {field.Key} +");
+
+						break;
+				}
+
+				offset -= spacing;
+			}
+
+			var buttons = cui.CreatePanel(container, panel, null, "0 0 0 0", xMin: 0.075f, xMax: 0.925f, yMin: 0.025f, yMax: 0.1f);
+			cui.CreateProtectedButton(container, buttons, null, "0.1 0.1 0.1 0.85", "1 1 1 0.7", "CANCEL".SpacedString(1), 10, xMin: 0.7f, xMax: 0.84f, command: "modal.cancel");
+			cui.CreateProtectedButton(container, buttons, null, IsValid() ? CUI.HexToRustColor("#7ebf37", 0.6f) : "0.1 0.1 0.1 0.85", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10, xMin: 0.85f, command: "modal.confirm");
+
+			if (Pages > 0)
+			{
+				var pages = cui.CreatePanel(container, panel, null, "0 0 0 0", xMin: 0.1f, xMax: 0.9f, yMin: 0.15f, yMax: 0.2f);
+				cui.CreateText(container, pages, null, "1 1 1 0.7", $"{Page + 1:n0} / {Pages + 1:n0}", 10, xMin: 0.82f, xMax: 0.92f);
+				cui.CreateProtectedButton(container, pages, null, Page == 0 ? "0.2 0.2 0.2 0.6" : CUI.HexToRustColor("#7ebf37", 0.6f), "1 1 1 0.7", "<", 10, xMin: 0.82f, xMax: 0.90f, OxMin: -30, OxMax: -30, command: "modal.page -");
+				cui.CreateProtectedButton(container, pages, null, Page == Pages ? "0.2 0.2 0.2 0.6" : CUI.HexToRustColor("#7ebf37", 0.6f), "1 1 1 0.7", ">", 10, xMin: 0.92f, command: "modal.page +");
+			}
+		}
+
+		public T Get<T>(string key)
+		{
+			if (Fields.TryGetValue(key, out var field)) return (T)field.Value;
+			return default;
+		}
+
+		public class Field : IDisposable
+		{
+			public string DisplayName { get; set; }
+			public object Value { get; set; }
+			public FieldTypes Type { get; set; }
+			public bool IsRequired { get; set; }
+
+			public bool IsInvalid()
+			{
+				return IsRequired && (Value == null || string.IsNullOrEmpty(Value.ToString()));
+			}
+
+			public enum FieldTypes
+			{
+				String,
+				Integer,
+				Float,
+				Boolean,
+				Enum,
+				RustColor,
+				HexColor
+			}
+
+			public static Field Make(string displayName, FieldTypes type, bool required = false, object @default = null)
+			{
+				return new Field
+				{
+					DisplayName = displayName,
+					Type = type,
+					IsRequired = required,
+					Value = @default
+				};
+			}
+			public static Field Make(string displayName, FieldTypes type, object @default)
+			{
+				return Make(displayName, type, false, @default);
+			}
+			public static Field Make(string displayName, FieldTypes type, bool required)
+			{
+				return Make(displayName, type, required, null);
+			}
+
+			public void Dispose()
+			{
+				DisplayName = null;
+				Value = null;
+			}
+		}
+		public class EnumField : Field
+		{
+			public string[] Options { get; set; }
+
+			public static EnumField MakeEnum(string displayName, string[] options, bool required = false, object @default = null)
+			{
+				return new EnumField
+				{
+					DisplayName = displayName,
+					Type = FieldTypes.Enum,
+					IsRequired = required,
+					Value = @default,
+					Options = options
+				};
+			}
+			public static EnumField MakeEnum(string displayName, string[] options, object @default)
+			{
+				return MakeEnum(displayName, options, false, @default);
+			}
+			public static EnumField MakeEnum(string displayName, string[] options, bool required)
+			{
+				return MakeEnum(displayName, options, required, null);
+			}
+
+		}
+	}
+
+	#region Custom Commands
+
+	[UiCommand("modal.action")]
+	private void ModalAction(ConsoleSystem.Arg arg)
+	{
+		var ap = GetPlayerSession(arg.Player());
+		var modal = ap.GetStorage<Modal>(null, "modal");
+
+		var field = modal.Fields[arg.Args[0]];
+		var value = arg.Args.Skip(1).ToArray().ToString(" ");
+
+		switch (field.Type)
+		{
+			case Modal.Field.FieldTypes.String:
+				field.Value = value;
+				break;
+
+			case Modal.Field.FieldTypes.Integer:
+				field.Value = value.ToInt();
+				break;
+
+			case Modal.Field.FieldTypes.Float:
+				field.Value = value.ToFloat();
+				break;
+
+			case Modal.Field.FieldTypes.Boolean:
+				field.Value = !value.ToBool(false);
+				break;
+
+			case Modal.Field.FieldTypes.RustColor:
+			case Modal.Field.FieldTypes.HexColor:
+				Community.Runtime.CorePlugin.NextFrame(() =>
+				{
+					OpenColorPicker(ap.Player, (hexColor, rustColor) =>
+					{
+						if (field.Type == Modal.Field.FieldTypes.RustColor) field.Value = rustColor;
+						else field.Value = $"#{hexColor}";
+
+						modal.Draw(ap.Player);
+					});
+				});
+				break;
+
+			case Modal.Field.FieldTypes.Enum:
+				var @enum = field as Modal.EnumField;
+				var enumValue = field.Value == null ? 0 : field.Value.ToString().ToInt();
+				switch (value)
+				{
+					case "+":
+						enumValue++;
+						break;
+
+					case "-":
+						enumValue--;
+						field.Value = enumValue - 1;
+						break;
+				}
+
+				if (enumValue > @enum.Options.Length - 1) enumValue = 0;
+				else if (enumValue < 0) enumValue = @enum.Options.Length - 1;
+
+				field.Value = enumValue;
+				break;
+		}
+
+		modal.Draw(ap.Player);
+	}
+
+	[UiCommand("modal.confirm")]
+	private void ModalConfirm(ConsoleSystem.Arg arg)
+	{
+		var ap = GetPlayerSession(arg.Player());
+		var modal = ap.GetStorage<Modal>(null, "modal");
+
+		if (!modal.IsValid())
+		{
+			modal.Draw(ap.Player);
+			return;
+		}
+
+		modal.OnConfirm?.Invoke(ap.Player, modal);
+		Modal.Close(ap.Player);
+	}
+
+	[UiCommand("modal.cancel")]
+	private void ModalCancel(ConsoleSystem.Arg arg)
+	{
+		var ap = GetPlayerSession(arg.Player());
+		var modal = ap.GetStorage<Modal>(null, "modal");
+		modal?.OnCancel?.Invoke();
+		Modal.Close(ap.Player);
+	}
+
+	[UiCommand("modal.page")]
+	private void ModalPage(ConsoleSystem.Arg arg)
+	{
+		var ap = GetPlayerSession(arg.Player());
+		var modal = ap.GetStorage<Modal>(null, "modal");
+		switch (arg.Args[0])
+		{
+			case "+":
+				modal.Page++;
+				break;
+
+			case "-":
+				modal.Page--;
+				break;
+		}
+
+		if (modal.Page > modal.Pages) modal.Page = 0;
+		else if (modal.Page < 0) modal.Page = modal.Pages;
+
+		modal.Draw(ap.Player);
 	}
 
 	#endregion
