@@ -10,6 +10,7 @@ using Carbon.Core;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Core.Configuration;
+using Oxide.Plugins;
 
 /*
  *
@@ -18,7 +19,7 @@ using Oxide.Core.Configuration;
  *
  */
 
-namespace Oxide.Plugins
+namespace Oxide.Core.Plugins
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Plugin : BaseHookable, IDisposable

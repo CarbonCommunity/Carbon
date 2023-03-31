@@ -11,6 +11,7 @@ using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
 using Newtonsoft.Json;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 using Report = Carbon.Components.Report;
 

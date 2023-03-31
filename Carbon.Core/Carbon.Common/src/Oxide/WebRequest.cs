@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using Carbon;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 /*

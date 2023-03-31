@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Oxide.Core.Plugins;
 using Oxide.Ext.Discord.Entities;
 using Oxide.Ext.Discord.Entities.Channels;
 using Oxide.Ext.Discord.Entities.Messages;

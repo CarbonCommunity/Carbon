@@ -2,6 +2,7 @@
 using System.Linq;
 using Carbon;
 using Carbon.Core;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 /*

@@ -15,6 +15,7 @@ using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries;
 using Oxide.Plugins;
 using UnityEngine;

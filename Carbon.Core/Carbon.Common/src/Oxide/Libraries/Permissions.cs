@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Carbon;
 using Carbon.Base;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
 
