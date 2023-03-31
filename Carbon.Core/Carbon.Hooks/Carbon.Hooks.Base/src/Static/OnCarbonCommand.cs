@@ -41,14 +41,14 @@ public partial class Category_Static
 					var split = strCommand.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 					var command = split.Length == 0 ? string.Empty : split[0].Trim();
 					var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
-					Facepunch.Pool.Free(ref split);
+					Facepunch.Pool.FreeDynamic(ref split);
 
 					if (command.StartsWith("o.") || command.StartsWith("oxide."))
 					{
 						Logger.Warn($"Oxide commands (o.* or oxide.*) don't work in Carbon. Please use 'c.find c.' to list all available Carbon commands.");
 						return false;
 					}
-
+				
 					var player = options.Connection?.player as BasePlayer;
 
 					foreach (var cmd in Community.Runtime.AllConsoleCommands)

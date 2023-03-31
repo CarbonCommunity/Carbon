@@ -226,7 +226,7 @@ public class CorePlugin : CarbonPlugin
 			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 			var command = split[0].Trim();
 			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
-			Pool.Free(ref split);
+			Pool.FreeDynamic(ref split);
 
 			if (HookCaller.CallStaticHook("OnPlayerCommand", player, command, args) != null)
 			{

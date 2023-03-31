@@ -1295,7 +1295,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var index = Tabs.IndexOf(existentTab);
 			Tabs.RemoveAt(index);
-			Pool.Free(ref existentTab);
+			Pool.FreeDynamic(ref existentTab);
 
 			Tabs.Insert(insert ?? index, tab);
 		}

@@ -174,7 +174,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			}
 		}
 
-		Pool.Free(ref lines);
+		Pool.FreeDynamic(ref lines);
 		if (AsyncLoader != null)
 		{
 			AsyncLoader.FilePath = File;

@@ -431,9 +431,9 @@ public static class Loader
 			}
 		}
 
-		Facepunch.Pool.Free(ref methods);
-		Facepunch.Pool.Free(ref fields);
-		Facepunch.Pool.Free(ref properties);
+		Facepunch.Pool.FreeDynamic(ref methods);
+		Facepunch.Pool.FreeDynamic(ref fields);
+		Facepunch.Pool.FreeDynamic(ref properties);
 	}
 	public static void RemoveCommands(BaseHookable hookable)
 	{
