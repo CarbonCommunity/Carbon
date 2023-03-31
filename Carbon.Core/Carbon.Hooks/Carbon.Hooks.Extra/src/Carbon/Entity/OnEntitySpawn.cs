@@ -8,17 +8,18 @@
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Entity
 {
 	public partial class Entity_BaseNetworkable
 	{
-		[HookAttribute.Patch("OnEntitySpawn", typeof(BaseNetworkable), "Spawn", new System.Type[] { })]
+		[HookAttribute.Patch("OnEntitySpawn", "OnEntitySpawn", typeof(BaseNetworkable), "Spawn", new System.Type[] { })]
 		[HookAttribute.Identifier("c7d1643393324307bdaa4c11df129a66")]
 
 		// Called before any networked entity has spawned (including trees).
 
-		public class Entity_BaseNetworkable_c7d1643393324307bdaa4c11df129a66 : API.Hooks.Patch
+		public class Entity_BaseNetworkable_c7d1643393324307bdaa4c11df129a66 : Patch
 		{
 			public static void Prefix(ref BaseNetworkable __instance)
 				=> HookCaller.CallStaticHook("OnEntitySpawn", __instance);

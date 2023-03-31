@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using API.Contracts;
 using API.Events;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
+using Facepunch;
 using Newtonsoft.Json;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
+using Report = Carbon.Components.Report;
 
 /*
  *
@@ -22,9 +24,11 @@ namespace Carbon.Core;
 
 public static class Loader
 {
-	public static List<Assembly> AssemblyCache { get; } = new List<Assembly>();
-	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new Dictionary<string, Assembly>();
-	public static Dictionary<string, List<string>> PendingRequirees { get; } = new Dictionary<string, List<string>>();
+	public static List<Assembly> AssemblyCache { get; } = new();
+	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new();
+	public static Dictionary<string, List<string>> PendingRequirees { get; } = new();
+	public static bool IsBatchComplete { get; set; }
+	public static List<string> PostBatchFailedRequirees { get; } = new();
 
 	static Loader()
 	{
@@ -116,20 +120,21 @@ public static class Loader
 			return false;
 		}
 
-		foreach (var hook in mod.Hooks)
-		{
-			try
-			{
-				var type = hook.GetType();
-				if (type.Name.Equals("CarbonInitializer")) continue;
+		//FIXMENOW
+		// foreach (var hook in mod.Hooks)
+		// {
+		// 	try
+		// 	{
+		// 		var type = hook.GetType();
+		// 		if (type.Name.Equals("CarbonInitializer")) continue;
 
-				hook.OnUnloaded(new EventArgs());
-			}
-			catch (Exception arg)
-			{
-				LogError(mod.Name, $"Failed to call hook 'OnLoaded' {arg}");
-			}
-		}
+		// 		hook.OnUnloaded(new EventArgs());
+		// 	}
+		// 	catch (Exception arg)
+		// 	{
+		// 		LogError(mod.Name, $"Failed to call hook 'OnLoaded' {arg}");
+		// 	}
+		// }
 
 		UninitializePlugins(mod);
 		return true;
@@ -145,7 +150,7 @@ public static class Loader
 		{
 			try
 			{
-				if (!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) return;
+				if (!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) continue;
 
 				if (!IsValidPlugin(type)) continue;
 
@@ -178,7 +183,10 @@ public static class Loader
 	}
 	public static void UninitializePlugins(CarbonMod mod)
 	{
-		foreach (var plugin in mod.Plugins)
+		var plugins = Pool.GetList<RustPlugin>();
+		plugins.AddRange(mod.Plugins);
+
+		foreach (var plugin in plugins)
 		{
 			try
 			{
@@ -186,6 +194,8 @@ public static class Loader
 			}
 			catch (Exception ex) { Logger.Error($"Failed unloading '{mod.Name}'", ex); }
 		}
+
+		Pool.FreeList(ref plugins);
 	}
 
 	public static bool InitializePlugin(Type type, out RustPlugin plugin, CarbonMod mod = null, Action<RustPlugin> preInit = null)
@@ -215,13 +225,11 @@ public static class Loader
 		plugin.ILoadDefaultMessages();
 		plugin.IInit();
 		plugin.Load();
-		HookCaller.CallStaticHook("OnPluginLoaded", plugin);
 
-		if (mod != null) mod.Plugins.Add(plugin);
+		mod?.Plugins.Add(plugin);
 		ProcessCommands(type, plugin);
 
-		Logger.Log($"Loaded plugin {plugin.ToString()}");
-
+		Logger.Log($"Loaded plugin {plugin.ToString()} [{plugin.CompileTime:0}ms]");
 		return true;
 	}
 	public static bool UninitializePlugin(RustPlugin plugin)
@@ -229,8 +237,9 @@ public static class Loader
 		plugin.CallHook("Unload");
 		plugin.IUnload();
 
-		RemoveCommands(plugin);
 		HookCaller.CallStaticHook("OnPluginUnloaded", plugin);
+
+		RemoveCommands(plugin);
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
 
@@ -260,7 +269,7 @@ public static class Loader
 			var groups = method.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = method.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = method.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -269,8 +278,8 @@ public static class Loader
 			{
 				foreach (var commandName in command.Names)
 				{
-					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
-					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: command.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 				}
 			}
 
@@ -286,7 +295,7 @@ public static class Loader
 
 			if (uiCommand != null)
 			{
-				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(UiCommandAttribute.Uniquify(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(CUI.UniquifyCommand(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true);
 			}
 		}
 
@@ -297,7 +306,7 @@ public static class Loader
 			var groups = field.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = field.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = field.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -306,12 +315,6 @@ public static class Loader
 			{
 				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
 				{
-					if (player != null && var.AdminOnly && !player.IsAdmin)
-					{
-						Community.LogCommand($"You don't have permission to set this value", player);
-						return;
-					}
-
 					var value = field.GetValue(hookable);
 
 					if (args != null && args.Length > 0)
@@ -322,23 +325,31 @@ public static class Loader
 						{
 							if (field.FieldType == typeof(string))
 							{
-								value = rawString.ToFloat();
+								value = rawString;
+							}
+							else if (field.FieldType == typeof(bool))
+							{
+								value = rawString.ToBool();
 							}
 							if (field.FieldType == typeof(int))
 							{
 								value = rawString.ToInt();
 							}
+							if (field.FieldType == typeof(uint))
+							{
+								value = rawString.ToUint();
+							}
 							else if (field.FieldType == typeof(float))
 							{
 								value = rawString.ToFloat();
 							}
+							else if (field.FieldType == typeof(long))
+							{
+								value = rawString.ToLong();
+							}
 							else if (field.FieldType == typeof(ulong))
 							{
 								value = rawString.ToUlong();
-							}
-							else if (field.FieldType == typeof(bool))
-							{
-								value = rawString.ToBool();
 							}
 
 							field.SetValue(hookable, value);
@@ -346,8 +357,11 @@ public static class Loader
 						catch { }
 					}
 
+					value = field.GetValue(hookable);
+					if (value != null && var.Protected) value = new string('*', value.ToString().Length);
+
 					Community.LogCommand($"{command}: \"{value}\"", player);
-				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				}, help: var.Help, reference: field, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected);
 			}
 		}
 
@@ -358,7 +372,7 @@ public static class Loader
 			var groups = property.GetCustomAttributes<GroupAttribute>();
 			var authLevelAttribute = property.GetCustomAttribute<AuthLevelAttribute>();
 			var cooldown = property.GetCustomAttribute<CooldownAttribute>();
-			var authLevel = authLevelAttribute == null ? -1 : (int)authLevelAttribute.Group;
+			var authLevel = authLevelAttribute == null ? -1 : authLevelAttribute.AuthLevel;
 			var ps = permissions.Count() == 0 ? null : permissions?.Select(x => x.Name).ToArray();
 			var gs = groups.Count() == 0 ? null : groups?.Select(x => x.Name).ToArray();
 			var cooldownTime = cooldown == null ? 0 : cooldown.Miliseconds;
@@ -367,12 +381,6 @@ public static class Loader
 			{
 				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? var.Name : $"{prefix}.{var.Name}", hookable, (player, command, args) =>
 				{
-					if (player != null && var.AdminOnly && !player.IsAdmin)
-					{
-						Community.LogCommand($"You don't have permission to set this value", player);
-						return;
-					}
-
 					var value = property.GetValue(hookable);
 
 					if (args != null && args.Length > 0)
@@ -383,23 +391,31 @@ public static class Loader
 						{
 							if (property.PropertyType == typeof(string))
 							{
-								value = rawString.ToFloat();
+								value = rawString;
+							}
+							else if (property.PropertyType == typeof(bool))
+							{
+								value = rawString.ToBool();
 							}
 							if (property.PropertyType == typeof(int))
 							{
 								value = rawString.ToInt();
 							}
+							if (property.PropertyType == typeof(uint))
+							{
+								value = rawString.ToUint();
+							}
 							else if (property.PropertyType == typeof(float))
 							{
 								value = rawString.ToFloat();
 							}
+							else if (property.PropertyType == typeof(long))
+							{
+								value = rawString.ToLong();
+							}
 							else if (property.PropertyType == typeof(ulong))
 							{
 								value = rawString.ToUlong();
-							}
-							else if (property.PropertyType == typeof(bool))
-							{
-								value = rawString.ToBool();
 							}
 
 							property.SetValue(hookable, value);
@@ -407,8 +423,11 @@ public static class Loader
 						catch { }
 					}
 
+					value = property.GetValue(hookable);
+					if (value != null && var.Protected) value = new string('*', value.ToString().Length);
+
 					Community.LogCommand($"{command}: \"{value}\"", player);
-				}, help: var.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+				}, help: var.Help, reference: property, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, @protected: var.Protected);
 			}
 		}
 
@@ -416,45 +435,70 @@ public static class Loader
 		Facepunch.Pool.Free(ref fields);
 		Facepunch.Pool.Free(ref properties);
 	}
-	public static void RemoveCommands(RustPlugin plugin)
+	public static void RemoveCommands(BaseHookable hookable)
 	{
-		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == plugin);
-		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == plugin);
+		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == hookable);
+		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == hookable);
 	}
 
 	public static void OnPluginProcessFinished()
 	{
+		var temp = Pool.GetList<string>();
+		temp.AddRange(PostBatchFailedRequirees);
+
+		foreach (var plugin in temp)
+		{
+			var file = System.IO.Path.GetFileNameWithoutExtension(plugin);
+			Community.Runtime.ScriptProcessor.ClearIgnore(file);
+			Community.Runtime.ScriptProcessor.Prepare(file, plugin);
+		}
+
+		PostBatchFailedRequirees.Clear();
+
+		if (PostBatchFailedRequirees.Count == 0)
+		{
+			IsBatchComplete = true;
+		}
+
+		temp.Clear();
+		Pool.FreeList(ref temp);
+
 		if (Community.IsServerFullyInitialized)
 		{
 			var counter = 0;
+			var plugins = Pool.GetList<RustPlugin>();
 
 			foreach (var mod in LoadedMods)
 			{
 				foreach (var plugin in mod.Plugins)
 				{
-					try { plugin.InternalApplyPluginReferences(); } catch { }
+					plugins.Add(plugin);
 				}
 			}
 
-			foreach (var mod in LoadedMods)
+			foreach (var plugin in plugins)
 			{
-				foreach (var plugin in mod.Plugins)
-				{
-					if (plugin.HasInitialized) continue;
-					counter++;
-
-					try
-					{
-						plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
-					}
-					catch (Exception initException)
-					{
-						plugin.LogError($"Failed OnServerInitialized.", initException);
-					}
-
-					plugin.HasInitialized = true;
-				}
+				try { plugin.InternalApplyPluginReferences(); } catch { }
 			}
+
+			foreach (var plugin in plugins)
+			{
+				if (plugin.HasInitialized) continue;
+				counter++;
+
+				try
+				{
+					plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
+				}
+				catch (Exception initException)
+				{
+					plugin.LogError($"Failed OnServerInitialized.", initException);
+				}
+
+				plugin.HasInitialized = true;
+			}
+
+			Pool.FreeList(ref plugins);
 
 			foreach (var plugin in Community.Runtime.ModuleProcessor.Modules)
 			{
@@ -475,10 +519,10 @@ public static class Loader
 			if (counter > 1)
 			{
 				Logger.Log($" Batch completed! OSI on {counter:n0} {counter.Plural("plugin", "plugins")}.");
-				Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
 			}
 
 			Report.OnProcessEnded?.Invoke();
+			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
 		}
 	}
 
@@ -558,7 +602,7 @@ public static class Loader
 		public bool IsCoreMod { get; set; } = false;
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }
-		public List<IHarmonyMod> Hooks { get; } = new List<IHarmonyMod>();
+		//public List<IHarmonyMod> Hooks { get; } = new List<IHarmonyMod>();
 
 		[JsonProperty]
 		public List<RustPlugin> Plugins { get; set; } = new List<RustPlugin>();

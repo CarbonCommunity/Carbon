@@ -1,4 +1,8 @@
 using System;
+using System.Reflection;
+using System.Security;
+using System.Security.Permissions;
+using System.Security.Policy;
 
 /*
  *
@@ -12,47 +16,54 @@ namespace Utility;
 [Serializable]
 public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 {
-
 	private AppDomain _domain;
-	private string _identifier;
-	private T _proxy;
+	private readonly T _proxy;
+	private readonly string _identifier;
 
-	public T Do
-	{ get => _proxy; }
+	public T Proxy { get => _proxy; }
 
 	public Sandbox()
 	{
 		_identifier = $"sandbox_{Guid.NewGuid():N}";
-		AppDomainSetup domaininfo = new AppDomainSetup();
 
-		// this is still not perfect but it let's run with it for now.. ideally
-		// the sandbox should be able to resolve their load requests using the 
-		// domain assembly resolver event
-		domaininfo.ApplicationBase = Context.CarbonManaged;
+		AppDomainSetup setup = new AppDomainSetup
+		{
+			PrivateBinPath = string.Empty,
+			ApplicationBase = Context.Carbon,
+			LoaderOptimization = LoaderOptimization.MultiDomainHost,
+		};
 
-		_domain = AppDomain.CreateDomain(_identifier, null, domaininfo);
-
-#if DEBUG
-		Logger.Log($"Created a new AppDomain '{_identifier}'");
-#endif
+		PermissionSet permissions = new PermissionSet(PermissionState.None);
 
 		Type type = typeof(T);
+		_domain = AppDomain.CreateDomain(_identifier, null, setup, permissions);
 		_proxy = (T)_domain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
 
-#if DEBUG
-		Logger.Debug($" - The proxy to '{type.Name}' was created");
-#endif
+		Logger.Log($"Created a new AppDomain '{_identifier}' with a proxy to '{type.Name}'");
+	}
+
+	private bool _disposing;
+
+	private void Dispose(bool disposing)
+	{
+		if (!_disposing)
+		{
+			if (disposing)
+			{
+				if (_domain != null)
+				{
+					Logger.Log($"Unloading AppDomain '{_identifier}'");
+					AppDomain.Unload(_domain);
+					_domain = default;
+				}
+			}
+			_disposing = true;
+		}
 	}
 
 	public void Dispose()
 	{
-		if (_domain != null)
-		{
-#if DEBUG
-			Logger.Log($"Unloading AppDomain '{_identifier}'");
-#endif
-			AppDomain.Unload(_domain);
-			_domain = default;
-		}
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

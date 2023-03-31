@@ -17,15 +17,18 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<AssemblyName>$(Product)</AssemblyName>
-		<AssemblyVersion>$(Version)</AssemblyVersion>
-		<FileVersion>$(VersionPrefix)</FileVersion>
-		<Version>0.$([System.DateTime]::UtcNow.ToString('yy.MMdd')).$([System.DateTime]::UtcNow.ToString('HHmm'))</Version>
-		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yyyy.MM.dd.HHmm"))</VersionPrefix>
-		<VersionSuffix>$(Configuration)</VersionSuffix>
-
 		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
 		<Platform Condition="'$(Platform)' == ''">x64</Platform>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!--
+			THIS IS AN IMPORTANT FEATURE
+			This property should change everytime there are breaking changes on
+			carbon that forces the users to update all the compontents at the
+			same time, like updating core and hooks in one shot.
+		-->
+		<CarbonProtocol>2023.03.22.0</CarbonProtocol>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -38,8 +41,6 @@
 
 	<Import Project="Configurations.props" />
 	<Import Project="Metadata.props" />
-	<Import Project="Clean.targets" />
-	<Import Project="Metadata.targets" />
-	<Import Project="Release.targets" />
 	<Import Project="References.props" />
+	<Import Project="Tasks.targets" />
 </Project>

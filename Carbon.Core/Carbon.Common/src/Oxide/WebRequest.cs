@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using Carbon;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 /*
@@ -92,7 +93,7 @@ public class WebRequests
 		{
 			using (_client = new Client())
 			{
-				_client.Headers.Add("User-Agent", $"Carbon Mod (v{Community.Version}); https://github.com/Carbon-Modding/Carbon.Core");
+				_client.Headers.Add("User-Agent", Community.Runtime.Analytics.UserAgent);
 				_client.Credentials = CredentialCache.DefaultCredentials;
 				_client.Proxy = null;
 
@@ -117,6 +118,7 @@ public class WebRequests
 									return;
 								}
 
+								ResponseCode = _client.StatusCode;
 								ResponseText = e.Result;
 
 								OnComplete(false);
@@ -124,7 +126,18 @@ public class WebRequests
 							catch { }
 						};
 
-						try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }
+						try
+						{
+							if (RequestHeaders != null && RequestHeaders.Count > 0)
+							{
+								foreach (var header in RequestHeaders)
+								{
+									_client.Headers.Add(header.Key, header.Value);
+								}
+							}
+							_client.DownloadStringAsync(_uri);
+						}
+						catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 						break;
 
 					case "PUT":
@@ -147,6 +160,7 @@ public class WebRequests
 									return;
 								}
 
+								ResponseCode = _client.StatusCode;
 								ResponseText = e.Result;
 
 								OnComplete(false);
@@ -154,7 +168,22 @@ public class WebRequests
 							catch { }
 						};
 
-						try { _client.DownloadStringAsync(_uri); } catch (Exception ex) { ResponseError = ex; OnComplete(true); }
+						try
+						{
+							if (RequestHeaders != null && RequestHeaders.Count > 0)
+							{
+								foreach (var header in RequestHeaders)
+								{
+									_client.Headers.Add(header.Key, header.Value);
+								}
+							}
+							else
+							{
+								_client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+							}
+							_client.UploadStringAsync(_uri, Body);
+						}
+						catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 						break;
 				}
 			}
@@ -198,6 +227,25 @@ public class WebRequests
 
 		public class Client : WebClient
 		{
+			public int StatusCode { get; private set; }
+
+			protected override WebResponse GetWebResponse(System.Net.WebRequest request, IAsyncResult result)
+			{
+				var response = base.GetWebResponse(request, result);
+
+				StatusCode = (int)(request.GetResponse() as HttpWebResponse).StatusCode;
+
+				return response;
+			}
+			protected override WebResponse GetWebResponse(System.Net.WebRequest request)
+			{
+				var response = base.GetWebResponse(request);
+
+				StatusCode = (int)(request.GetResponse() as HttpWebResponse).StatusCode;
+
+				return response;
+			}
+
 			protected override System.Net.WebRequest GetWebRequest(Uri address)
 			{
 				if (!Community.IsConfigReady || string.IsNullOrEmpty(Community.Runtime.Config.WebRequestIp))

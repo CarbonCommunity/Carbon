@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using API.Hooks;
 using Carbon.Contracts;
+using Carbon.Extensions;
 using HarmonyLib;
 
 /*
@@ -19,7 +21,9 @@ namespace Carbon.Hooks;
 public class HookEx : IDisposable, IHook
 {
 	private HookRuntime _runtime;
+	private string _originalChecksum;
 	private readonly TypeInfo _patchMethod;
+
 
 	public string HookName
 	{ get; }
@@ -34,6 +38,9 @@ public class HookEx : IDisposable, IHook
 	{ get; }
 
 	public string TargetMethod
+	{ get; }
+
+	private List<MethodBase> TargetMethods
 	{ get; }
 
 	public Type[] TargetMethodArgs
@@ -91,10 +98,13 @@ public class HookEx : IDisposable, IHook
 	public Exception LastError
 	{ get => _runtime.LastError; set => _runtime.LastError = value; }
 
+
 	public HookEx(TypeInfo type)
 	{
 		try
 		{
+			Harmony.DEBUG = false;
+
 			if (type == null || !Attribute.IsDefined(type, typeof(HookAttribute.Patch), false))
 				throw new Exception($"Type is null or metadata not defined");
 
@@ -108,6 +118,7 @@ public class HookEx : IDisposable, IHook
 			HookName = metadata.Name;
 			TargetMethod = metadata.Method;
 			TargetMethodArgs = metadata.MethodArgs;
+			TargetMethods = new();
 			TargetType = metadata.Target;
 
 			if (Attribute.IsDefined(type, typeof(HookAttribute.Identifier), false))
@@ -131,59 +142,82 @@ public class HookEx : IDisposable, IHook
 			_runtime.Postfix = AccessTools.Method(type, "Postfix") ?? null;
 			_runtime.Transpiler = AccessTools.Method(type, "Transpiler") ?? null;
 
-			if (_runtime.Prefix is null && _runtime.Postfix is null && _runtime.Transpiler is null)
-				throw new Exception($"No patch method found (prefix, postfix, transpiler)");
+			// Type generics need to handled differently from a standard type.
+			// Harmony/Mono.Cecil will not allow the patching of the generic type
+			// which means we need to find each type matching the constrain and
+			// then patch each one of them idividually.
+			if (TargetType.IsGenericType)
+			{
+				Type generic = typeof(VehicleEngineController<>);
+				List<Type> constrains = AccessToolsEx.GetConstraints(generic);
+
+				foreach (Type item in AccessToolsEx.MatchConstrains(constrains))
+				{
+					Logger.Debug($"Unrolling generic {generic}[{item}] requested by {type}", 3);
+					Type constructed = generic.MakeGenericType(new Type[] { item });
+					MethodInfo method = AccessTools.Method(constructed, TargetMethod) ?? null;
+					if (method != null) TargetMethods.Add(method);
+				}
+			}
+			else
+			{
+				MethodBase method = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
+				if (method != null) TargetMethods.Add(method);
+			}
 		}
-		catch (System.Exception e)
+		catch (Exception e)
 		{
 			Logger.Error($"Error while parsing '{type.Name}'", e);
-			return;
+		}
+		finally
+		{
+			Harmony.DEBUG = true;
 		}
 	}
 
 	public bool ApplyPatch()
 	{
+		if (IsInstalled) return true;
+
+		HarmonyMethod
+			prefix = null, postfix = null, transpiler = null;
+
 		try
 		{
-			if (IsInstalled) return true;
+			if (_runtime.Prefix != null)
+				prefix = new HarmonyMethod(_runtime.Prefix);
 
-			MethodBase original;
-			if (TargetMethod == null)
+			if (_runtime.Postfix != null)
+				postfix = new HarmonyMethod(_runtime.Postfix);
+
+			if (_runtime.Transpiler != null)
+				transpiler = new HarmonyMethod(_runtime.Transpiler);
+
+			if (prefix is null && postfix is null && transpiler is null)
+				throw new Exception($"(prefix, postfix, transpiler not found");
+
+			if (TargetMethod is null || TargetMethod.Count() == 0)
+				throw new Exception($"target method not found");
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error($"Error while patching hook '{this}'", e);
+			_runtime.Status = HookState.Failure;
+			_runtime.LastError = e;
+			return false;
+		}
+
+		try
+		{
+			foreach (MethodBase method in TargetMethods)
 			{
-				original = AccessTools.Constructor(TargetType, TargetMethodArgs);
+				MethodInfo current = (_runtime.HarmonyHandler.Patch(method,
+					prefix: prefix, postfix: postfix, transpiler: transpiler
+				) ?? null) ?? throw new Exception($"HarmonyLib failed to patch '{method}'");
+
+				_runtime.Status = HookState.Success;
+				Logger.Debug($"Hook '{this}' patched '[{method.DeclaringType}] {method}'", 2);
 			}
-			else
-			{
-				original = AccessTools.Method(
-					TargetType, TargetMethod, TargetMethodArgs) ?? null;
-			}
-
-			if (original is null)
-				throw new Exception($"Target method not found");
-
-			bool hasValidChecksum = (IsChecksumIgnored) || IsChecksumValid(original, Checksum);
-
-			MethodInfo current = (_runtime.HarmonyHandler.Patch(original,
-				prefix: _runtime.Prefix == null ? null : new HarmonyMethod(_runtime.Prefix),
-				postfix: _runtime.Postfix == null ? null : new HarmonyMethod(_runtime.Postfix),
-				transpiler: _runtime.Transpiler == null ? null : new HarmonyMethod(_runtime.Transpiler)
-			) ?? null) ?? throw new Exception($"Harmony failed to execute");
-
-			// the checksum system needs some lovin..
-			// for now let's mark them all as valid
-			_runtime.Status = HookState.Success;
-
-			// if (hasValidChecksum)
-			// {
-			// 	_runtime.Status = HookState.Success;
-			// }
-			// else
-			// {
-			// 	Logger.Warn($"Checksum validation failed for '{TargetType.Name}.{TargetMethod}'");
-			// 	_runtime.Status = HookState.Warning;
-			// }
-
-			Logger.Debug($"Hook '{this}' patched '{TargetType.Name}.{TargetMethod}'", 2);
 		}
 #if DEBUG
 		catch (HarmonyException e)
@@ -194,7 +228,7 @@ public class HookEx : IDisposable, IHook
 
 			int x = 0;
 			foreach (var instruction in e.GetInstructionsWithOffsets())
-				sb.AppendLine($"\t{x++:000} {instruction.Key.ToString("X4")}: {instruction.Value}");
+				sb.AppendLine($"\t{x++:000} {instruction.Key:X4}: {instruction.Value}");
 
 			Logger.Error(sb.ToString());
 			sb = default;
@@ -203,7 +237,7 @@ public class HookEx : IDisposable, IHook
 #endif
 		catch (System.Exception e)
 		{
-			Logger.Error($"Error while patching hook '{this}'", e);
+			Logger.Error($"Error while patching hook '{this}'", e.InnerException ?? e);
 			_runtime.Status = HookState.Failure;
 			_runtime.LastError = e;
 			return false;
@@ -232,12 +266,19 @@ public class HookEx : IDisposable, IHook
 		}
 	}
 
-	private static bool IsChecksumValid(MethodBase original, string checksum)
+	public string GetTargetMethodChecksum()
 	{
+		if (_originalChecksum != null) return _originalChecksum;
+		MethodBase original = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
+		if (original == null) return default;
+
 		using SHA1Managed sha1 = new SHA1Managed();
 		byte[] bytes = sha1.ComputeHash(original.GetMethodBody()?.GetILAsByteArray() ?? Array.Empty<byte>());
-		string hash = string.Concat(bytes.Select(b => b.ToString("x2")));
-		return hash.Equals(checksum, StringComparison.InvariantCultureIgnoreCase);
+		_originalChecksum = string.Concat(bytes.Select(b => b.ToString("x2")));
+		Logger.Debug($">> CALC: {_originalChecksum}");
+		Logger.Debug($">> HOOK: {Checksum}");
+
+		return _originalChecksum;
 	}
 
 	public void SetStatus(HookState Status, Exception e = null)
@@ -246,9 +287,27 @@ public class HookEx : IDisposable, IHook
 		_runtime.LastError = e;
 	}
 
+	private bool _disposing;
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_disposing)
+		{
+			// managed resources
+			if (disposing)
+			{
+				RemovePatch();
+			}
+
+			// unmanaged resources
+			_runtime.HarmonyHandler = null;
+			_disposing = true;
+		}
+	}
+
 	public void Dispose()
 	{
-		RemovePatch();
-		_runtime.HarmonyHandler = null;
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

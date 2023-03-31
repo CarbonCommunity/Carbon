@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using Carbon.Base;
+using Carbon.Extensions;
+using Facepunch;
 
 namespace Carbon.Hooks
 {
@@ -74,41 +74,79 @@ namespace Carbon.Hooks
 			}
 		}
 
-		public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args)
+		internal static Conflict _defaultConflict = new()
 		{
+			Priority = Priorities.Low
+		};
+		internal static string _getPriorityName(Priorities priority)
+		{
+			switch (priority)
+			{
+				case Priorities.Low:
+					return "lower";
+
+				case Priorities.Normal:
+					return "normal";
+
+				case Priorities.High:
+					return "higher";
+
+				case Priorities.Highest:
+					return "highest";
+			}
+
+			return "normal";
+		}
+
+		public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority)
+		{
+			priority = Priorities.Normal;
+
 			if (plugin.IsHookIgnored(hookName)) return null;
 
 			var id = $"{hookName}[{(args == null ? 0 : args.Length)}]";
 			var result = (object)null;
+			var conflicts = Pool.GetList<Conflict>();
 
 			if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks))
 			{
-				foreach (var method in hooks)
+				foreach (var cachedHook in hooks)
 				{
-					var methodResult = DoCall(method);
-					if (methodResult != null) result = methodResult;
+					var methodResult = DoCall( cachedHook.Method, cachedHook.Delegate);
+					if (methodResult != null)
+					{
+						priority = cachedHook.Priority;
+						result = methodResult;
+						ResultOverride(plugin, priority);
+					}
 				}
-				return result;
 			}
 
 			if (!plugin.HookCache.TryGetValue(id, out hooks))
 			{
-				plugin.HookCache.Add(id, hooks = new List<MethodInfo>());
+				plugin.HookCache.Add(id, hooks = new());
 
 				foreach (var method in plugin.Type.GetMethods(flags))
 				{
 					if (method.Name != hookName) continue;
 
-					hooks.Add(method);
+					var methodPriority = method.GetCustomAttribute<HookPriority>();
+					hooks.Add(BaseHookable.CachedHook.Make(method, CreateDelegate(method, plugin), methodPriority == null ? Priorities.Normal : methodPriority.Priority));
 				}
 			}
 
-			foreach (var method in hooks)
+			foreach (var cachedHook in hooks)
 			{
 				try
 				{
-					var methodResult = DoCall(method);
-					if (methodResult != null) result = methodResult;
+					var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate);
+
+					if (methodResult != null)
+					{
+						priority = cachedHook.Priority;
+						result = methodResult;
+						ResultOverride(plugin, priority);
+					}
 				}
 				catch (ArgumentException) { }
 				catch (TargetParameterCountException) { }
@@ -122,13 +160,16 @@ namespace Carbon.Hooks
 				}
 			}
 
-			object DoCall(MethodInfo method)
+			object DoCall(MethodInfo info, Delegate @delegate)
 			{
-				if (method == null) return null;
+				if (@delegate == null)
+				{
+					return null;
+				}
 
 				if (args != null)
 				{
-					var actualLength = method.GetParameters().Length;
+					var actualLength = info.GetParameters().Length;
 					if (actualLength != args.Length)
 					{
 						args = RescaleBuffer(args, actualLength);
@@ -137,7 +178,7 @@ namespace Carbon.Hooks
 
 				var beforeTicks = Environment.TickCount;
 				plugin.TrackStart();
-				result = method?.Invoke(plugin, args);
+				var result2 = @delegate.DynamicInvoke(args);
 				plugin.TrackEnd();
 				var afterTicks = Environment.TickCount;
 				var totalTicks = afterTicks - beforeTicks;
@@ -149,12 +190,72 @@ namespace Carbon.Hooks
 					Carbon.Logger.Warn($" {plugin?.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
 				}
 
-				return result;
+				return result2;
+			}
+
+			ConflictCheck();
+
+			Pool.FreeList(ref conflicts);
+
+			void ResultOverride(BaseHookable hookable, Priorities priority)
+			{
+				conflicts.Add(Conflict.Make(hookable, hookName, result, priority));
+			}
+			void ConflictCheck()
+			{
+				var differentResults = false;
+
+				if (conflicts.Count > 1)
+				{
+					var localResult = conflicts[0].Result;
+
+					switch (conflicts.Count)
+					{
+						case 1:
+							{
+								foreach (var conflict in conflicts)
+								{
+									if (conflict.Result?.ToString() != localResult?.ToString())
+									{
+										differentResults = true;
+									}
+									else localResult = conflict.Result;
+								}
+
+								if (differentResults) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}': {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToArray().ToString(", ", " and ")}");
+
+								break;
+							}
+
+						default:
+							var priorityConflict = _defaultConflict;
+
+							foreach (var conflict in conflicts)
+							{
+								if (conflict.Result?.ToString() != localResult?.ToString())
+								{
+									differentResults = true;
+								}
+
+								if (conflict.Priority > priorityConflict.Priority)
+								{
+									priorityConflict = conflict;
+								}
+							}
+
+							localResult = priorityConflict.Result;
+							if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+
+							break;
+					}
+
+					result = localResult;
+				}
 			}
 
 			return result;
 		}
-		public override object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args)
+		public override object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority)
 		{
 			if (expireDate < DateTime.Now)
 			{
@@ -170,7 +271,7 @@ namespace Carbon.Hooks
 				Carbon.Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 			}
 
-			return CallDeprecatedHook(plugin, oldHook, newHook, expireDate, flags, args);
+			return CallHook(plugin, newHook, flags, args, ref priority);
 		}
 	}
 }

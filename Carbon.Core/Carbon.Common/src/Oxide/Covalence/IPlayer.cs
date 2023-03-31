@@ -26,6 +26,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			Id = player.UserIDString;
 			Name = player.displayName.Sanitize();
 			LastCommand = 0;
+			IsServer = true;
 			perms = Interface.Oxide.GetLibrary<Permission>();
 		}
 
@@ -43,15 +44,15 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public CultureInfo Language => CultureInfo.GetCultureInfo(BasePlayer.net.connection.info.GetString("global.language", "") ?? "en");
 
-		public bool IsConnected => BasePlayer.IsConnected;
+		public bool IsConnected => BasePlayer != null && BasePlayer.IsConnected;
 
-		public bool IsSleeping => BasePlayer.IsSleeping();
+		public bool IsSleeping => BasePlayer != null && BasePlayer.IsSleeping();
 
-		public bool IsServer => true;
+		public bool IsServer { get; set; }
 
-		public bool IsAdmin => !ulong.TryParse(Id, out var id) ? false : ServerUsers.Is(id, ServerUsers.UserGroup.Owner);
+		public bool IsAdmin => ulong.TryParse(Id, out var id) && ServerUsers.Is(id, ServerUsers.UserGroup.Owner);
 
-		public bool IsBanned => !ulong.TryParse(Id, out var id) ? false : ServerUsers.Is(id, ServerUsers.UserGroup.Banned);
+		public bool IsBanned => ulong.TryParse(Id, out var id) && ServerUsers.Is(id, ServerUsers.UserGroup.Banned);
 
 		public TimeSpan BanTimeRemaining
 		{
@@ -137,7 +138,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public bool HasPermission(string perm)
 		{
-			return perms.UserHasPermission(Id, perm);
+			return IsServer ? true : perms.UserHasPermission(Id, perm);
 		}
 
 		public void Heal(float amount)
@@ -169,7 +170,9 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 			message = ((args.Length != 0) ? string.Format(Formatter.ToUnity(message), args) : Formatter.ToUnity(message));
 			var text = (prefix != null) ? (prefix + " " + message) : message;
-			BasePlayer.SendConsoleCommand("chat.add", 2, Id, text);
+
+			if (BasePlayer == null) Carbon.Logger.Log(text);
+			else BasePlayer.SendConsoleCommand("chat.add", 2, Id, text);
 		}
 
 		public void Message(string message)
@@ -299,6 +302,11 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			}
 		}
 
+		public void Teleport(GenericPosition position)
+		{
+			Teleport(position.X, position.Y, position.Z);
+		}
+
 		public void Unban()
 		{
 			if (!IsBanned)
@@ -365,9 +373,9 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public void Message(string message, string prefix, params object[] args)
 		{
-			message = (args.Length != 0) ? string.Format(message, args) : message;
+			message = (args != null && args.Length != 0) ? string.Format(message, args) : message;
 			var format = (prefix != null) ? (prefix + " " + message) : message;
-			Message(format);
+			Carbon.Logger.Log(format);
 		}
 		public void Message(string message)
 		{
@@ -379,7 +387,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 		}
 		public void Reply(string message)
 		{
-			Message(message, null, Array.Empty<object>());
+			Message(message, null, null);
 		}
 		public void Command(string command, params object[] args)
 		{

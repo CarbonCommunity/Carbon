@@ -1,6 +1,4 @@
-﻿// #define DEBUG_VERBOSE
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -16,7 +14,7 @@ namespace Utility;
 
 internal sealed class Logger
 {
-	private static string logFile
+	private static readonly string logFile
 		= Path.Combine(Context.CarbonLogs, $"{Assembly.GetExecutingAssembly().GetName().Name}.log");
 
 	internal enum Severity
@@ -24,7 +22,7 @@ internal sealed class Logger
 		Error, Warning, Notice, Debug, None
 	}
 
-	public static List<int> Lock = new List<int>();
+	public static List<int> Lock = new();
 
 	static Logger()
 	{
@@ -43,7 +41,7 @@ internal sealed class Logger
 			{
 				case Severity.Error:
 					formatted = $"[e] {message}";
-					formatted += (ex != null) ? $"({ex?.Message})\n{ex?.StackTrace}" : null;
+					formatted += (ex != null) ? $" ({ex?.Message})\n{ex?.StackTrace}" : null;
 					break;
 
 				case Severity.Warning:
@@ -70,7 +68,7 @@ internal sealed class Logger
 			UnityEngine.Debug.Log(formatted);
 #endif
 			System.IO.File.AppendAllText(logFile,
-				$"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {formatted}" + Environment.NewLine);
+				$"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {formatted}" + Environment.NewLine);
 		}
 	}
 

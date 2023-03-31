@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using Carbon.Base;
+using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Core;
 
@@ -16,6 +19,7 @@ namespace Carbon.Processors;
 
 public class ScriptProcessor : BaseProcessor, IScriptProcessor
 {
+	public override string Name => "Script Processor";
 	public override bool EnableWatcher => Community.IsConfigReady ? Community.Runtime.Config.ScriptWatchers : true;
 	public override string Folder => Defines.GetScriptFolder();
 	public override string Extension => ".cs";
@@ -40,6 +44,18 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			if (instance.Value is Script script)
 			{
 				if (script.Loader != null && !script.Loader.HasRequires && !script.Loader.HasFinished) return false;
+			}
+		}
+
+		return true;
+	}
+	public bool AllExtensionsComplete()
+	{
+		foreach (var instance in InstanceBuffer)
+		{
+			if (instance.Value is Script script)
+			{
+				if (script.Loader != null && !script.Loader.IsExtension && !script.Loader.HasFinished) return false;
 			}
 		}
 
@@ -76,11 +92,13 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			{
 				Carbon.Core.Loader.FailedMods.RemoveAll(x => x.File == File);
 
-				Loader = new ScriptLoader();
-				Loader.Parser = Parser;
-				Loader.File = File;
-				Loader.Mod = Community.Runtime.Plugins;
-				Loader.Instance = this;
+				Loader = new ScriptLoader
+				{
+					Parser = Parser,
+					File = File,
+					Mod = Community.Runtime.Plugins,
+					Instance = this
+				};
 				Loader.Load();
 			}
 			catch (Exception ex)
@@ -92,33 +110,52 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 	public class ScriptParser : Parser, IBaseProcessor.IParser
 	{
-		public bool IsLineValid(string line)
-		{
-			return !line.Contains("using WebSocketSharp;");
-		}
+		internal const string QuoteReplacer = "[CARBONQUOTE]";
+		internal const string Quote = "\\\"";
+		internal const string NewLineReplacer = "[CARBONNEWLINE]";
+		internal const string NewLine = "\\n";
+		internal const string Harmony = "Harmony";
 
 		public override void Process(string input, out string output)
-		{	
-			output = input
-				.Replace("using Harmony;", "using HarmonyLib;")
-				.Replace("HarmonyInstance.Create", "new HarmonyLib.Harmony")
-				.Replace("HarmonyInstance", "HarmonyLib.Harmony")
-
-				.Replace("PluginTimers", "Timers");
-
-			var newOutput = string.Empty;
-			var split = output.Split('\n');
-
-			foreach (var line in split)
+		{
+			using (TimeMeasure.New("ScriptParser.Process"))
 			{
-				if (!IsLineValid(line)) continue;
+				try
+				{
+					#region Handle Unicode & Quote Escaping
 
-				newOutput += line + "\n";
+					// if (input.Contains("\\u"))
+					// {
+					// 	output = Regex.Unescape(input.Replace(Quote, QuoteReplacer).Replace(NewLine, NewLineReplacer)).Replace(QuoteReplacer, Quote).Replace(NewLineReplacer, NewLine);
+					// }
+					// else output = input;
+
+					#endregion
+
+					if (input.Contains(Harmony) && !Community.Runtime.Config.HarmonyReference)
+					{
+						Logger.Warn($" This plugin requires Harmony Reference to be enabled for it to work. Enabling it can cause instability, use at your own discretion!");
+					}
+
+					output = input.Replace("PluginTimers", "Timers");
+
+					var newOutput = string.Empty;
+					var split = output.Split('\n');
+
+					foreach (var line in split)
+					{
+						newOutput += line + "\n";
+					}
+
+					output = newOutput;
+					Array.Clear(split, 0, split.Length);
+					split = null;
+				}
+				catch
+				{
+					output = input;
+				}
 			}
-
-			output = newOutput;
-			Array.Clear(split, 0, split.Length);
-			split = null;
 		}
 	}
 }

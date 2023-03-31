@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using API.Logger;
 using Facepunch;
 
 /*
@@ -12,14 +12,9 @@ using Facepunch;
 
 namespace Carbon;
 
-public class Logger
+public class Logger : ILogger
 {
 	public static FileLogger _file { get; set; } = new FileLogger("Carbon.Core");
-
-	public enum Severity
-	{
-		Error, Warning, Notice, Debug
-	}
 
 	internal static string GetDate()
 	{
@@ -100,7 +95,7 @@ public class Logger
 	/// <param name="message"></param>
 	/// <param name="verbosity"></param>
 	public static void Debug(object header, object message, int verbosity)
-		=> Write(Logger.Severity.Debug, $"[CRBN.{header}] {message}", null, verbosity);
+		=> Write(Severity.Debug, $"[CRBN.{header}] {message}", null, verbosity);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'DEBUG'.
@@ -108,7 +103,7 @@ public class Logger
 	/// <param name="message"></param>
 	/// <param name="verbosity"></param>
 	public static void Debug(object message, int verbosity)
-		=> Write(Logger.Severity.Debug, $"[CRBN] {message}", null, verbosity);
+		=> Write(Severity.Debug, $"[CRBN] {message}", null, verbosity);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'DEBUG'.
@@ -116,21 +111,21 @@ public class Logger
 	/// <param name="header"></param>
 	/// <param name="message"></param>
 	public static void Debug(object header, object message)
-		=> Write(Logger.Severity.Debug, $"[CRBN.{header}] {message}");
+		=> Write(Severity.Debug, $"[CRBN.{header}] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'DEBUG'.
 	/// </summary>
 	/// <param name="message"></param>
 	public static void Debug(object message)
-		=> Write(Logger.Severity.Debug, $"[CRBN] {message}");
+		=> Write(Severity.Debug, $"[CRBN] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
 	/// </summary>
 	/// <param name="message"></param>
 	public static void Log(object message)
-		=> Write(Logger.Severity.Notice, message);
+		=> Write(Severity.Notice, message);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
@@ -138,7 +133,7 @@ public class Logger
 	/// </summary>
 	/// <param name="message"></param>
 	public static void Warn(object message)
-		=> Write(Logger.Severity.Warning, message);
+		=> Write(Severity.Warning, message);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -158,10 +153,33 @@ public class Logger
 			message = $"{message}\n" +
 					  $" [file: {_getFileNameEx(path)}, method: {method}, line: {line}]";
 
-		Write(Logger.Severity.Error, message, ex);
+		Write(Severity.Error, message, ex);
 	}
 #else
         public static void Error(object message, Exception ex = null)
-            => Write(Logger.Severity.Error, message, ex);
+            => Write(Severity.Error, message, ex);
 #endif
+
+	// Interface implementation workaround for static methods.
+	void ILogger.Console(string message, Severity severity, Exception exception)
+	{
+		switch (severity)
+		{
+			case Severity.Error:
+				Logger.Error(message, exception);
+				break;
+
+			case Severity.Warning:
+				Logger.Warn(message);
+				break;
+
+			case Severity.Debug:
+				Logger.Debug(message);
+				break;
+
+			default:
+				Logger.Log(message);
+				break;
+		}
+	}
 }

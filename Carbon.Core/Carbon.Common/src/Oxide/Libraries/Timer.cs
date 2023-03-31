@@ -62,6 +62,13 @@ public class Timers
 
 		timer.Delay = time;
 		timer.Callback = activity;
+
+		if (!Community.IsServerFullyInitialized)
+		{
+			Community.Runtime.CorePlugin.NextTick(activity);
+			return timer;
+		}
+
 		Persistence.Invoke(activity, time);
 		return timer;
 	}
@@ -125,6 +132,15 @@ public class Timers
 		timer.Callback = activity;
 		Persistence.InvokeRepeating(activity, time, time);
 		return timer;
+	}
+	public void Destroy(ref Timer timer)
+	{
+		if (timer != null)
+		{
+			timer.Destroy();
+		}
+
+		timer = null;
 	}
 }
 

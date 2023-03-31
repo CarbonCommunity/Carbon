@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 /*
  *
@@ -18,9 +19,14 @@ public interface IModule : IHookableModule, IDisposable
 	void Save();
 	void Load();
 
+	void OnPostServerInit();
+	void OnServerInit();
+	void OnServerSaved();
 	void SetEnabled(bool enabled);
 	bool GetEnabled();
 	void OnEnableStatus();
+
+	Dictionary<string, Dictionary<string, string>> GetDefaultPhrases();
 
 	void OnEnabled(bool initialized);
 	void OnDisabled(bool initialized);

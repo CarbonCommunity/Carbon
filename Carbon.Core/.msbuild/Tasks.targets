@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<!-- 
+		Deep cleaning task
+	-->
+	<Target Name="CarbonCustomClean" AfterTargets="Clean">
+		<Message Text="[$(AssemblyName)] Removing directory '$(OutputPath)'" Importance="high" />
+		<RemoveDir Directories="$(OutputPath)" />
+	</Target>
+
+	<!--
+		If .version filed does not exist then create it.
+		0.2023.328.1512
+	-->
+	<Target Name="BuildVersionMetadata" AfterTargets="_GenerateRestoreProjectSpec">
+		<PropertyGroup>
+			<BuildVersion>0.$([System.DateTime]::UtcNow.ToString('yyyy.MM)).$([System.DateTime]::UtcNow.ToString('ddHHmm'))</BuildVersion>
+		</PropertyGroup>
+
+		<ItemGroup Condition="!Exists('$(MSBuildProjectDirectory)\bin\.version')">
+			<Message Text="[$(AssemblyName)] Saving build version metadata to disk" Importance="high" />
+			<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.version" Overwrite="true" Lines="$(BuildVersion)" />
+		</ItemGroup>
+	</Target>
+
+	<!--
+		Generate the git metadata
+	-->
+	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec">
+		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+		</Exec>
+
+		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+		</Exec>
+
+		<PropertyGroup>
+			<Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
+		</PropertyGroup>
+
+		<Message Text="[$(AssemblyName)] Saving git metadata to disk" Importance="high" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitag" Overwrite="true" Lines="$(Gitag)" />
+	</Target>
+
+	<!--
+		Outputs basic information about the build
+	-->
+	<Target Name="CarbonPreBuildEvent" BeforeTargets="PreBuildEvent">
+		<Message Text="[$(AssemblyName)] &gt;&gt; Product: $(Product) ($(OperatingSystem))" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Protocol: $(CarbonProtocol)" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build ID: $(InformationalVersion)" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
+	</Target>
+
+	<!--
+		Rename the generated assembly to the product name
+	-->
+	<Target Name="RenameAssembly" AfterTargets="PostBuildEvent" Condition="'$(TargetName).dll' != '$(Product).dll'">
+		<Message Text="[$(AssemblyName)] Rename the build artifact from '$(OutputPath)$(TargetName).dll' to '$(OutputPath)$(Product).dll'" Importance="high" />
+		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)$(Product).dll" />
+	</Target>
+
+	<!-- 
+		Clean any rust managed files from the output folder
+	-->
+	<Target Name="CleanupRustManaged" AfterTargets="PostBuildEvent">
+		<ItemGroup>
+			<RustManaged Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\*.dll" Exclude="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\0Harmony.dll" />
+		</ItemGroup>
+
+		<Message Text="[$(AssemblyName)] Removing rust managed libs" Importance="high" />
+		<Delete Files="$(OutputPath)%(RustManaged.Filename).dll" />
+	</Target>
+
+	<!-- 
+		Creates all the sub folders on the release folder
+	-->
+	<Target Name="PrepareRelease" AfterTargets="PostBuildEvent">
+		<Message Text="[$(AssemblyName)] Preparing the release folder ($(OperatingSystem))" Importance="high" />
+		<PropertyGroup>
+			<CarbonBaseDir>$(SolutionDir)..\Release\.tmp\$(Configuration)</CarbonBaseDir>
+			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
+			<c_hooks>$(CarbonBaseDir)\carbon\managed\hooks</c_hooks>
+			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
+			<c_ext>$(CarbonBaseDir)\carbon\extensions</c_ext>
+			<c_plugins>$(CarbonBaseDir)\carbon\plugins</c_plugins>
+			<c_tools>$(CarbonBaseDir)\carbon\tools</c_tools>
+			<c_data>$(CarbonBaseDir)\carbon\data</c_data>
+		</PropertyGroup>
+
+		<Message Text="[$(AssemblyName)] Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
+		<MakeDir Directories="$(CarbonBaseDir);$(c_managed);$(c_lib);$(c_hooks);$(c_tools);$(c_plugins);$(c_harmony);$(c_ext);$(c_data)" />
+	</Target>
+
+	<!--
+		Copy all files from the output folder into the release folder
+	-->
+	<Target Name="Release" AfterTargets="Build" DependsOnTargets="PrepareRelease">
+		<ItemGroup>
+			<FilesToCopy Include="$(OutputPath)**\*.dll" Exclude="$(OutputPath)$(Product).dll" />
+		</ItemGroup>
+
+		<Message Text="[$(AssemblyName)] Copy files to release folder" Importance="high" />
+		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(c_lib)\%(RecursiveDir)" />
+
+		<ItemGroup>
+			<FilesToClean Include="$(c_lib)\Carbon*.dll" />
+			<FilesToClean Include="$(c_lib)\*.pdb" />
+		</ItemGroup>
+
+		<Message Text="[$(AssemblyName)] Cleanup carbon stuff from lib folder" Importance="high" />
+		<Delete Files="@(FilesToClean)" />
+	</Target>
+</Project>

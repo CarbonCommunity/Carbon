@@ -16,13 +16,30 @@ namespace Carbon.Base;
 
 public class BaseHookable
 {
-	public List<string> Hooks { get; set; }
+	public Dictionary<string, Priorities> Hooks { get; set; }
 	public List<HookMethodAttribute> HookMethods { get; set; }
 	public List<PluginReferenceAttribute> PluginReferences { get; set; }
 
-	public Dictionary<string, List<MethodInfo>> HookCache { get; set; } = new Dictionary<string, List<MethodInfo>>();
-	public Dictionary<string, List<MethodInfo>> HookMethodAttributeCache { get; set; } = new Dictionary<string, List<MethodInfo>>();
+	public Dictionary<string, List<CachedHook>> HookCache { get; set; } = new();
+	public Dictionary<string, List<CachedHook>> HookMethodAttributeCache { get; set; } = new();
 	public List<string> IgnoredHooks { get; set; } = new List<string>();
+
+	public struct CachedHook
+	{
+		public MethodInfo Method;
+		public Delegate Delegate;
+		public Priorities Priority;
+
+		public static CachedHook Make(MethodInfo method, Delegate @delegate, Priorities priority)
+		{
+			return new CachedHook
+			{
+				Method = method,
+				Delegate = @delegate,
+				Priority = priority
+			};
+		}
+	}
 
 	[JsonProperty]
 	public string Name { get; set; }
@@ -38,7 +55,7 @@ public class BaseHookable
 
 	#region Tracking
 
-	internal Stopwatch _trackStopwatch = new Stopwatch();
+	internal Stopwatch _trackStopwatch = new();
 
 	public virtual void TrackStart()
 	{
@@ -88,6 +105,25 @@ public class BaseHookable
 	public bool IsHookIgnored(string hook)
 	{
 		return IgnoredHooks == null || IgnoredHooks.Contains(hook);
+	}
+
+	public void SubscribeAll(Func<string, bool> condition = null)
+	{
+		foreach (var hook in Hooks)
+		{
+			if (condition != null && !condition(hook.Key)) continue;
+
+			Subscribe(hook.Key);
+		}
+	}
+	public void UnsubscribeAll(Func<string, bool> condition = null)
+	{
+		foreach (var hook in Hooks)
+		{
+			if (condition != null && !condition(hook.Key)) continue;
+
+			Unsubscribe(hook.Key);
+		}
 	}
 
 	public T To<T>()

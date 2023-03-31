@@ -7,6 +7,7 @@ using Carbon;
 using Mono.Data.Sqlite;
 using Oxide.Core.Database;
 using Oxide.Core.Libraries;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 namespace Oxide.Core.SQLite.Libraries

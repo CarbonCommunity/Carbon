@@ -20,16 +20,7 @@ public class OxideCommand
 	public int Cooldown { get; set; } = 0;
 	public bool SkipOriginal { get; set; }
 	public string Help { get; set; }
+	public bool IsHidden { get; set; }
 	public object Reference { get; set; }
-
-	public OxideCommand() { }
-	public OxideCommand(string command, Action<BasePlayer, string, string[]> callback, bool skipOriginal, string[] permissions = null, string[] groups = null)
-	{
-		Command = command;
-		Plugin = Community.Runtime.CorePlugin;
-		Callback = callback;
-		SkipOriginal = skipOriginal;
-		Permissions = permissions;
-		Groups = groups;
-	}
+	public bool Protected { get; set; }
 }

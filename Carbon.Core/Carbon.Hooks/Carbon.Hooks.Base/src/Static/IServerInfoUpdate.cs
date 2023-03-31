@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using API.Hooks;
+using Carbon.Base;
 using Carbon.Extensions;
 
 /*
@@ -10,33 +12,29 @@ using Carbon.Extensions;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Static
 {
 	public partial class Static_ServerMgr
 	{
-		[HookAttribute.Patch("IServerInfoUpdate", typeof(ServerMgr), "UpdateServerInformation", new System.Type[] { })]
+		[HookAttribute.Patch("IServerInfoUpdate", "IServerInfoUpdate", typeof(ServerMgr), "UpdateServerInformation", new System.Type[] { })]
 		[HookAttribute.Identifier("aaa38191cc9f4f6f911df9742d552a99")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.Hidden | HookFlags.IgnoreChecksum)]
 
-		public class Static_ServerMgr_aaa38191cc9f4f6f911df9742d552a99 : API.Hooks.Patch
+		public class Static_ServerMgr_aaa38191cc9f4f6f911df9742d552a99 : Patch
 		{
+			public static bool ForceModded => Community.Runtime.ModuleProcessor.Modules.Any(x => x is BaseModule module && module.GetEnabled() && module.ForceModded);
+
 			public static void Postfix()
 			{
 				if (Community.Runtime == null || Community.Runtime.Config == null) return;
 
 				try
 				{
-					if (Community.Runtime.Config.CarbonTag)
-					{
-						ServerTagEx.SetRequiredTag("carbon");
-					}
-					else
-					{
-						ServerTagEx.UnsetRequiredTag("carbon");
-					}
+					ServerTagEx.SetRequiredTag("carbon");
 
-					if (Community.Runtime.Config.IsModded)
+					if (Community.Runtime.Config.IsModded || ForceModded)
 					{
 						ServerTagEx.SetRequiredTag("modded");
 					}

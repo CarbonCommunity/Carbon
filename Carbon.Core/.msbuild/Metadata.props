@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<!-- 
+		Sets the version based on the env context
+	-->
+	<PropertyGroup Condition="'$(UserVersion)' != ''">
+		<Version>$(UserVersion)</Version>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<AssemblyName>$(Product)</AssemblyName>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(CarbonProtocol)</FileVersion>
+		<VersionPrefix>$(Version)</VersionPrefix>
+		<VersionSuffix>$(Configuration)</VersionSuffix>
+	</PropertyGroup>
+
+	<!-- 
+		Uses the git metadata from the .gittag file if it exists
+		otherwise use nothing.
+	-->
 	<Choose>
 		<When Condition="Exists('$(MSBuildProjectDirectory)\bin\.gitag')">
 			<PropertyGroup>

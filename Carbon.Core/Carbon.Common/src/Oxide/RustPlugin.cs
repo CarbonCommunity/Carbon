@@ -7,6 +7,8 @@ using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Libraries;
 using UnityEngine;
+using System.Linq;
+using Oxide.Core.Plugins;
 
 /*
  *
@@ -19,7 +21,7 @@ namespace Oxide.Plugins;
 
 public class RustPlugin : Plugin
 {
-	public PluginManager Manager { get; set; }
+	public bool IsExtension { get; set; }
 
 	public Permission permission { get; set; }
 	public Lang lang { get; set; }
@@ -32,8 +34,6 @@ public class RustPlugin : Plugin
 	public Oxide.Game.Rust.Libraries.Rust rust { get; set; }
 	public Persistence persistence { get; set; }
 	public CovalencePlugin.Covalence covalence { get; set; }
-
-	public DynamicConfigFile Config { get; private set; }
 
 	public Player Player { get { return rust.Player; } private set { } }
 	public Server Server { get { return rust.Server; } private set { } }
@@ -50,7 +50,7 @@ public class RustPlugin : Plugin
 	}
 	public virtual void Setup(string name, string author, VersionNumber version, string description)
 	{
-		Name = name;
+		Name = Title = name.Replace(":", string.Empty);
 		Version = version;
 		Author = author;
 		Description = description;
@@ -84,9 +84,25 @@ public class RustPlugin : Plugin
 			var go = persistence.gameObject;
 			UnityEngine.Object.DestroyImmediate(persistence);
 			UnityEngine.Object.Destroy(go);
-		}
+		}	
 
 		base.Dispose();
+	}
+
+	public static T Singleton<T>()
+	{
+		foreach(var mod in Loader.LoadedMods)
+		{
+			foreach(var plugin in mod.Plugins)
+			{
+				if(plugin is T result)
+				{
+					return result;
+				}
+			}
+		}
+
+		return default;
 	}
 
 	#region Logging
@@ -117,12 +133,28 @@ public class RustPlugin : Plugin
 		=> Carbon.Logger.Log($"[{Name}] {message}");
 
 	/// <summary>
+	/// Outputs to the game's console a message with severity level 'NOTICE'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	public void Log(object message, params object[] args)
+		=> Carbon.Logger.Log($"[{Name}] {string.Format(message.ToString(), args)}");
+
+	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
 	public void LogWarning(object message)
 		=> Carbon.Logger.Warn($"[{Name}] {message}");
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'WARNING'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	public void LogWarning(object message, params object[] args)
+		=> Carbon.Logger.Warn($"[{Name}] {string.Format(message.ToString(), args)}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -138,8 +170,25 @@ public class RustPlugin : Plugin
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
+	/// <param name="ex"></param>
+	public void LogError(object message, Exception ex, params object[] args)
+		=> Carbon.Logger.Error($"[{Name}] {string.Format(message.ToString(), args)}", ex);
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'ERROR'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
 	public void LogError(object message)
 		=> Carbon.Logger.Error($"[{Name}] {message}", null);
+
+	/// <summary>
+	/// Outputs to the game's console a message with severity level 'ERROR'.
+	/// NOTE: Oxide compatibility layer.
+	/// </summary>
+	/// <param name="message"></param>
+	public void LogError(object message, params object[] args)
+		=> Carbon.Logger.Error($"[{Name}] {string.Format(message.ToString(), args)}", null);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
@@ -167,7 +216,7 @@ public class RustPlugin : Plugin
 	public void RaiseError(object message)
 		=> Carbon.Logger.Error($"[{Name}] {message}", null);
 
-	protected void LogToFile(string filename, string text, Plugin plugin = null, bool timeStamp = true)
+	protected void LogToFile(string filename, string text, Plugin plugin = null, bool timeStamp = true, bool anotherBool = false)
 	{
 		string logFolder;
 
@@ -204,54 +253,18 @@ public class RustPlugin : Plugin
 
 	public void ILoadConfig()
 	{
-		LoadConfig();
+		try
+		{
+			LoadConfig();
+		}
+		catch(Exception ex)
+		{
+			LogError($"Failed ILoadConfig", ex);
+		}
 	}
 	public void ILoadDefaultMessages()
 	{
 		CallHook("LoadDefaultMessages");
-	}
-
-	protected virtual void LoadConfig()
-	{
-		Config = new DynamicConfigFile(Path.Combine(Manager.ConfigPath, Name + ".json"));
-
-		if (!Config.Exists(null))
-		{
-			LoadDefaultConfig();
-			SaveConfig();
-		}
-		try
-		{
-			Config.Load(null);
-		}
-		catch (Exception ex)
-		{
-			Carbon.Logger.Error("Failed to load config file (is the config file corrupt?) (" + ex.Message + ")");
-		}
-	}
-	protected virtual void LoadDefaultConfig()
-	{
-		//CallHook ( "LoadDefaultConfig" );
-	}
-	protected virtual void SaveConfig()
-	{
-		if (Config == null)
-		{
-			return;
-		}
-		try
-		{
-			Config.Save(null);
-		}
-		catch (Exception ex)
-		{
-			Carbon.Logger.Error("Failed to save config file (does the config have illegal objects in it?) (" + ex.Message + ")", ex);
-		}
-	}
-
-	protected virtual void LoadDefaultMessages()
-	{
-
 	}
 
 	public new string ToString()
@@ -260,6 +273,15 @@ public class RustPlugin : Plugin
 	}
 
 	#region Printing
+
+	protected void PrintWarning(object message)
+	{
+		LogWarning(message);
+	}
+	protected void PrintWarning(string format, params object[] args)
+	{
+		LogWarning(format, args);
+	}
 
 	protected void PrintToConsole(BasePlayer player, string format, params object[] args)
 	{
@@ -292,14 +314,18 @@ public class RustPlugin : Plugin
 
 	protected void SendReply(ConsoleSystem.Arg arg, string format, params object[] args)
 	{
-		var connection = arg.Connection;
-		var basePlayer = connection?.player as BasePlayer;
 		var text = (args != null && args.Length != 0) ? string.Format(format, args) : format;
 
-		if (((basePlayer != null) ? basePlayer.net : null) != null)
+		if (arg != null || arg.Connection != null)
 		{
-			basePlayer.SendConsoleCommand($"echo {text}");
-			return;
+			var connection = arg.Connection;
+			var basePlayer = connection?.player as BasePlayer;
+
+			if (((basePlayer != null) ? basePlayer.net : null) != null)
+			{
+				basePlayer.SendConsoleCommand($"echo {text}");
+				return;
+			}
 		}
 
 		Puts(text, null);

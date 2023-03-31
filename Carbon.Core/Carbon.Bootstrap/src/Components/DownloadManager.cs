@@ -14,6 +14,7 @@ using UnityEngine;
  */
 
 namespace Components;
+#pragma warning disable IDE0051
 
 internal sealed class DownloadManager : MonoBehaviour, IDownloadManager
 {

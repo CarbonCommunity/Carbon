@@ -38,16 +38,19 @@ public class CommunityInternal : Community
 	internal void _installDefaultCommands()
 	{
 		CorePlugin = new CorePlugin { Name = "Core", IsCorePlugin = true };
-		Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = true };
+		Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = false };
 		CorePlugin.IInit();
 
 		Loader.LoadedMods.Add(new Loader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
 		Loader.LoadedMods.Add(Plugins);
 
 		Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
+		Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon");
 	}
 
 	#region Processors
+
+	internal ExtensionProcessor ExtensionProcessor { get; set; }
 
 	internal void _installProcessors()
 	{
@@ -59,6 +62,7 @@ public class CommunityInternal : Community
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
+			ExtensionProcessor = gameObject.AddComponent<ExtensionProcessor>();
 			HookManager = gameObject.AddComponent<HookManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
@@ -84,6 +88,7 @@ public class CommunityInternal : Community
 			if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
 			if (ModuleProcessor != null) ModuleProcessor?.Dispose();
 			if (CarbonProcessor != null) CarbonProcessor?.Dispose();
+			if (ExtensionProcessor != null) ExtensionProcessor?.Dispose();
 		}
 		catch { }
 
@@ -103,15 +108,6 @@ public class CommunityInternal : Community
 		HookCaller.Caller = new HookCallerInternal();
 
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
-
-		#region Handle Versions
-
-		var assembly = typeof(Community).Assembly;
-
-		try { InformationalVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion; } catch { }
-		try { Version = assembly.GetName().Version.ToString(); } catch { }
-
-		#endregion
 
 		LoadConfig();
 		Carbon.Logger.Log("Loaded config");
@@ -176,63 +172,4 @@ public class CommunityInternal : Community
 			Events.Trigger(CarbonEvent.CarbonShutdownFailed, EventArgs.Empty);
 		}
 	}
-
-	internal static readonly IReadOnlyList<string> CompilerReferenceList = new List<string>
-	{
-		"mscorlib",
-		"netstandard",
-
-		"System.Core",
-		"System.Data",
-		"System.Drawing",
-		"System.Memory",
-		"System.Runtime",
-		"System.Xml",
-		"System",
-
-		"Carbon.Common",
-		"protobuf-net",
-		"protobuf-net.Core",
-
-		"Assembly-CSharp-firstpass",
-		"Assembly-CSharp",
-		"Facepunch.Console",
-		"Facepunch.Network",
-		"Facepunch.Rcon",
-		"Facepunch.Sqlite",
-		"Facepunch.System",
-		"Facepunch.Unity",
-		"Facepunch.UnityEngine",
-#if WIN
-		"Facepunch.Steamworks.Win64",
-#elif UNIX
-		"Facepunch.Steamworks.Posix",
-#endif
-		"Fleck",
-		"Newtonsoft.Json",
-		"Rust.Data",
-		"Rust.Global",
-		"Rust.Harmony",
-		"Rust.Localization",
-		"Rust.Platform",
-		"Rust.Platform.Common",
-		"Rust.Workshop",
-		"Rust.World",
-		"Rust.FileSystem",
-		"UnityEngine.AIModule",
-		"UnityEngine.CoreModule",
-		"UnityEngine",
-		"UnityEngine.ImageConversionModule",
-		"UnityEngine.PhysicsModule",
-		"UnityEngine.SharedInternalsModule",
-		"UnityEngine.TerrainModule",
-		"UnityEngine.TerrainPhysicsModule",
-		"UnityEngine.TextRenderingModule",
-		"UnityEngine.UI",
-		"UnityEngine.UnityWebRequestAssetBundleModule",
-		"UnityEngine.UnityWebRequestAudioModule",
-		"UnityEngine.UnityWebRequestModule",
-		"UnityEngine.UnityWebRequestTextureModule",
-		"UnityEngine.UnityWebRequestWWWModule",
-	};
 }

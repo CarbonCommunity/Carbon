@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
+using Carbon.Extensions;
+using Network;
 using Oxide.Core.Configuration;
+using Defines = Carbon.Core.Defines;
 
 /*
  *
@@ -14,9 +19,20 @@ using Oxide.Core.Configuration;
 
 namespace Carbon.Base;
 
-public class BaseModule : BaseHookable
+public abstract class BaseModule : BaseHookable
 {
 	public virtual bool EnabledByDefault => false;
+	public virtual bool ForceModded => false;
+	public virtual bool Disabled => false;
+	public virtual bool IsCoreModule => false;
+
+	public abstract void OnPostServerInit();
+	public abstract void OnServerInit();
+	public abstract void OnServerSaved();
+	public abstract void Load();
+	public abstract void Save();
+	public abstract bool GetEnabled();
+	public abstract void SetEnabled(bool enable);
 
 	public static T GetModule<T>()
 	{
@@ -27,18 +43,25 @@ public class BaseModule : BaseHookable
 
 		return default;
 	}
+	public static BaseModule FindModule(string name)
+	{
+		return Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Type.Name == name) as BaseModule;
+	}
 }
-public class CarbonModule<C, D> : BaseModule, IModule
+
+public class EmptyModuleConfig { }
+public class EmptyModuleData { }
+
+public abstract class CarbonModule<C, D> : BaseModule, IModule
 {
-	public DynamicConfigFile File { get; private set; }
+	public Configuration ModuleConfiguration { get; set; }
+	public DynamicConfigFile Config { get; private set; }
 	public DynamicConfigFile Data { get; private set; }
 
 	public new virtual Type Type => default;
 
-	public Configuration ConfigInstance { get; set; }
 	public D DataInstance { get; private set; }
-
-	public C Config { get; private set; }
+	public C ConfigInstance { get; private set; }
 
 	public new virtual string Name => "Not set";
 
@@ -51,8 +74,8 @@ public class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual void Dispose()
 	{
-		File = null;
-		ConfigInstance = null;
+		Config = null;
+		ModuleConfiguration = null;
 	}
 
 	public virtual void Init()
@@ -60,51 +83,66 @@ public class CarbonModule<C, D> : BaseModule, IModule
 		base.Name = Name;
 		base.Type = Type;
 
+		if (Disabled) return;
+
+		Hooks = new();
+
+		Community.Runtime.HookManager.LoadHooksFromType(Type);
+
 		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 		{
 			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+			{
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
+
+				var priority = method.GetCustomAttribute<HookPriority>();
+				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+			}
 		}
 
-		Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-		File = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
+		Config = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
 		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 		Load();
-		if (ConfigInstance.Enabled) OnEnableStatus();
+		OnEnableStatus();
 	}
 	public virtual void InitEnd()
 	{
-		Puts($"Initialized.");
+		Puts(Disabled ? "Disabled." : $"Initialized.");
 	}
-	public virtual void Load()
+	public override void Load()
 	{
+		if(Disabled) return;
+
 		var shouldSave = false;
 
-		if (!File.Exists())
+		if (!Config.Exists())
 		{
-			ConfigInstance = new Configuration { Config = Activator.CreateInstance<C>() };
-			if (EnabledByDefault) ConfigInstance.Enabled = true;
+			ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
+			if (EnabledByDefault) ModuleConfiguration.Enabled = true;
 			shouldSave = true;
 		}
 		else
 		{
-			try { ConfigInstance = File.ReadObject<Configuration>(); }
+			try { ModuleConfiguration = Config.ReadObject<Configuration>(); }
 			catch (Exception exception) { Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 		}
 
-		Config = ConfigInstance.Config;
+		if (IsCoreModule) ModuleConfiguration.Enabled = true;
+		ConfigInstance = ModuleConfiguration.Config;
 
-		if (!Data.Exists())
+		if (typeof(D) != typeof(EmptyModuleData))
 		{
-			DataInstance = Activator.CreateInstance<D>();
-			shouldSave = true;
-		}
-		else
-		{
-			try { DataInstance = Data.ReadObject<D>(); }
-			catch (Exception exception) { Logger.Error($"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
+			if (!Data.Exists())
+			{
+				DataInstance = Activator.CreateInstance<D>();
+				shouldSave = true;
+			}
+			else
+			{
+				try { DataInstance = Data.ReadObject<D>(); }
+				catch (Exception exception) { Logger.Error($"Failed loading data. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
+			}
 		}
 
 		if (PreLoadShouldSave()) shouldSave = true;
@@ -115,52 +153,141 @@ public class CarbonModule<C, D> : BaseModule, IModule
 	{
 		return false;
 	}
-	public virtual void Save()
+	public override void Save()
 	{
-		if (ConfigInstance == null)
+		if (Disabled) return;
+
+		if (ModuleConfiguration == null)
 		{
-			ConfigInstance = new Configuration { Config = Activator.CreateInstance<C>() };
-			Config = ConfigInstance.Config;
+			ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
+			ConfigInstance = ModuleConfiguration.Config;
 		}
 
-		if (DataInstance == null)
+		if (DataInstance == null && typeof(D) != typeof(EmptyModuleData))
 		{
 			DataInstance = Activator.CreateInstance<D>();
 		}
 
-		File.WriteObject(ConfigInstance);
-		Data.WriteObject(DataInstance);
+		Config.WriteObject(ModuleConfiguration);
+		if (DataInstance != null) Data.WriteObject(DataInstance);
 	}
 
-	public void SetEnabled(bool enable)
+	public override void SetEnabled(bool enable)
 	{
-		if (ConfigInstance != null)
+		if (Disabled) return;
+
+		if (ModuleConfiguration != null)
 		{
-			ConfigInstance.Enabled = enable;
+			ModuleConfiguration.Enabled = enable;
 			OnEnableStatus();
 		}
 	}
-	public bool GetEnabled()
+	public override bool GetEnabled()
 	{
-		return ConfigInstance.Enabled;
+		return IsCoreModule || (!Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled);
 	}
 
-	public virtual void OnDisabled(bool initialized) { }
-	public virtual void OnEnabled(bool initialized) { }
+	public virtual void OnDisabled(bool initialized)
+	{
+		if (initialized) Loader.RemoveCommands(this);
+
+		UnsubscribeAll();
+		UnregisterPermissions();
+
+		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
+	}
+	public virtual void OnEnabled(bool initialized)
+	{
+		if(initialized) Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+		SubscribeAll();
+
+		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
+	}
 
 	public void OnEnableStatus()
 	{
 		try
 		{
-			if (ConfigInstance.Enabled) OnEnabled(Community.IsServerFullyInitialized); else OnDisabled(Community.IsServerFullyInitialized);
+			if (ModuleConfiguration == null) return;
+
+			if (ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized);
+			else OnDisabled(Community.IsServerFullyInitialized);
 		}
-		catch (Exception ex) { Logger.Error($"Failed {(ConfigInstance.Enabled ? "Enable" : "Disable")} initialization.", ex); }
+		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}
 
-	private void OnServerInitialized()
+	public override void OnServerSaved()
 	{
-		if (GetEnabled()) OnEnableStatus();
+		try { Save(); }
+		catch(Exception ex)
+		{
+			Logger.Error($"Couldn't save '{Name}'", ex);
+		}
 	}
+
+	public override void OnServerInit()
+	{
+		OnEnableStatus();
+	}
+	public override void OnPostServerInit()
+	{
+		
+	}
+
+	#region Permission
+
+	public virtual bool PermissionExists(string permission)
+	{
+		return Community.Runtime.CorePlugin.permission.PermissionExists(permission, Community.Runtime.CorePlugin);
+	}
+	public virtual void RegisterPermission(string permission)
+	{
+		if (PermissionExists(permission)) return;
+
+		Community.Runtime.CorePlugin.permission.RegisterPermission(permission, Community.Runtime.CorePlugin);
+	}
+	public virtual void UnregisterPermissions()
+	{
+		Community.Runtime.CorePlugin.permission.UnregisterPermissions(this);
+	}
+	public virtual bool HasPermission(string userId, string permission)
+	{
+		return Community.Runtime.CorePlugin.permission.UserHasPermission(userId, permission);
+	}
+	public virtual bool HasPermission(BasePlayer player, string permission)
+	{
+		return HasPermission(player.UserIDString, permission);
+	}
+	public virtual bool HasGroup(string userId, string group)
+	{
+		return Community.Runtime.CorePlugin.permission.UserHasGroup(userId, group);
+	}
+	public virtual bool HasGroup(BasePlayer player, string group)
+	{
+		return HasGroup(player.UserIDString, group);
+	}
+
+	#endregion
+
+	#region Localisation
+
+	public virtual Dictionary<string, Dictionary<string, string>> GetDefaultPhrases() => null;
+
+	public virtual string GetPhrase(string key)
+	{
+		return Community.Runtime.CorePlugin.lang.GetMessage(key, this);
+	}
+	public virtual string GetPhrase(string key, string playerId)
+	{
+		return Community.Runtime.CorePlugin.lang.GetMessage(key, this, playerId);
+	}
+	public virtual string GetPhrase(string key, ulong playerId)
+	{
+		return Community.Runtime.CorePlugin.lang.GetMessage(key, this, playerId == 0 ? string.Empty : playerId.ToString());
+	}
+
+	#endregion
 
 	public class Configuration : IModuleConfig
 	{

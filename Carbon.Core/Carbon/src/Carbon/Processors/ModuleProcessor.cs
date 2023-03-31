@@ -15,8 +15,10 @@ using Carbon.Extensions;
 
 namespace Carbon.Processors;
 
-public class ModuleProcessor : IDisposable, IModuleProcessor
+public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 {
+	public override string Name => "Module Processor";
+
 	List<BaseHookable> IModuleProcessor.Modules { get => _modules; }
 
 	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(50);
@@ -30,13 +32,80 @@ public class ModuleProcessor : IDisposable, IModuleProcessor
 			Setup(Activator.CreateInstance(type) as BaseHookable);
 		}
 	}
-	public void Setup(BaseHookable module)
+	public void OnServerInit()
 	{
-		if (module is IModule hookable)
+		foreach(var hookable in _modules)
 		{
-			hookable.Init();
-			_modules.Add(module);
-			hookable.InitEnd();
+			if (hookable is IModule module)
+			{
+				try
+				{
+					module.OnServerInit();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnServerInit for '{hookable.Name}'", ex);
+				}
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module)
+			{
+				try
+				{
+					module.OnPostServerInit();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnPostServerInit for '{hookable.Name}'", ex);
+				}
+			}
+		}
+	}
+	public void OnServerSave()
+	{
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module)
+			{
+				try
+				{
+					module.OnServerSaved();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnServerSave for '{hookable.Name}'", ex);
+				}
+			}
+		}
+	}
+	public void Setup(BaseHookable hookable)
+	{
+		if (hookable is IModule module)
+		{
+			try
+			{
+				module.Init();
+
+				var phrases = module.GetDefaultPhrases();
+
+				if (phrases != null)
+				{
+					foreach (var language in phrases)
+					{
+						Community.Runtime.CorePlugin.lang.RegisterMessages(language.Value, hookable, language.Key);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"[ModuleProcessor] Failed initializing '{hookable.Name}'.", ex);
+			}
+
+			_modules.Add(hookable);
+			module.InitEnd();
 		}
 	}
 
@@ -56,11 +125,10 @@ public class ModuleProcessor : IDisposable, IModuleProcessor
 			var module = hookable.To<IModule>();
 
 			module.Load();
-			module.OnEnableStatus();
 		}
 	}
 
-	public void Dispose()
+	public override void Dispose()
 	{
 		foreach (var hookable in _modules)
 		{

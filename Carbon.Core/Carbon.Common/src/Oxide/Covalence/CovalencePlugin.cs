@@ -3,6 +3,7 @@ using System.Linq;
 using Carbon;
 using Carbon.Oxide;
 using Oxide.Core.Libraries.Covalence;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries.Covalence;
 
 /*
@@ -32,17 +33,27 @@ namespace Oxide.Plugins
 
 			public IPlayer FindPlayer(string partialNameOrId)
 			{
-				return BasePlayer.FindAwakeOrSleeping(partialNameOrId).AsIPlayer();
+				var player = BasePlayer.FindAwakeOrSleeping(partialNameOrId);
+				if (player == null) return new RustPlayer { Id = partialNameOrId };
+
+				return player.AsIPlayer();
 			}
 
 			public IPlayer FindPlayerById(string id)
 			{
-				return BasePlayer.FindAwakeOrSleeping(id).AsIPlayer();
+				var player = BasePlayer.FindAwakeOrSleeping(id);
+				if (player == null) return new RustPlayer { Id = id };
+
+				return player.AsIPlayer();
 			}
 
 			public IPlayer FindPlayerByObj(object obj)
 			{
-				return BasePlayer.FindAwakeOrSleeping(obj.ToString()).AsIPlayer();
+				var value = obj.ToString();
+				var player = BasePlayer.FindAwakeOrSleeping(value);
+				if (player == null) return new RustPlayer { Id = value };
+
+				return player.AsIPlayer();
 			}
 
 			public IEnumerable<IPlayer> FindPlayers(string partialNameOrId)
@@ -71,8 +82,11 @@ namespace Oxide.Plugins
 			{
 				Community.Runtime.CorePlugin.cmd.RemoveConsoleCommand(command, plugin);
 			}
-		}
 
+			public uint ClientAppId { get; } = 252490U;
+
+			public string Game { get; } = "Rust";
+		}
 	}
 }
 

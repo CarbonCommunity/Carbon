@@ -10,12 +10,13 @@ using Carbon.Modules;
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Fixes
 {
 	public partial class Fixes_ItemContainer
 	{
-		[HookAttribute.Patch("IDisallowSkinnedItemsFromBeingCraftable", typeof(ItemContainer), "GetAmount", new System.Type[] { typeof(int), typeof(bool) })]
+		[HookAttribute.Patch("IDisallowSkinnedItemsFromBeingCraftable", "IDisallowSkinnedItemsFromBeingCraftable", typeof(ItemContainer), "GetAmount", new System.Type[] { typeof(int), typeof(bool) })]
 		[HookAttribute.Identifier("14c9a1716b4248d4b707fbced49641fd")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 

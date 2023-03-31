@@ -8,16 +8,17 @@
  */
 
 namespace Carbon.Hooks;
+#pragma warning disable IDE0051
 
 public partial class Category_Fixes
 {
 	public partial class Fixes_MixingTable
 	{
-		[HookAttribute.Patch("IMixingSpeedMultiplier", typeof(MixingTable), "set_RemainingMixTime", new System.Type[] { typeof(float) })]
+		[HookAttribute.Patch("IMixingSpeedMultiplier", "IMixingSpeedMultiplier", typeof(MixingTable), "set_RemainingMixTime", new System.Type[] { typeof(float) })]
 		[HookAttribute.Identifier("0ad5ad2cc4224102be7e9ab434815462")]
 		[HookAttribute.Options(HookFlags.Hidden)]
 
-		public class Fixes_MixingTable_set_RemainingMixTime_0ad5ad2cc4224102be7e9ab434815462 : API.Hooks.Patch
+		public class Fixes_MixingTable_set_RemainingMixTime_0ad5ad2cc4224102be7e9ab434815462 : Patch
 		{
 			public static void Prefix(ref float value, ref MixingTable __instance)
 			{

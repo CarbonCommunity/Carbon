@@ -5,15 +5,14 @@
 		<ProjectGuid>{50B851B5-BF90-4856-91D7-FDB4848AC8F7}</ProjectGuid>
 	</PropertyGroup>
 
-	<Import Project="..\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
 
 	<ItemGroup>
-		<Folder Include="src\Contracts\" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
 	</ItemGroup>
 
-	<!--
-	<Target Name="CarbonRelease" AfterTargets="CarbonPrepareRelease">
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
-	-->
 </Project>

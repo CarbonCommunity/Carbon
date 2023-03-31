@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Carbon;
+using Carbon.Base;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
 
@@ -36,7 +38,7 @@ public class Permission : Library
 
 	public Permission()
 	{
-		permset = new Dictionary<Plugin, HashSet<string>>();
+		permset = new Dictionary<BaseHookable, HashSet<string>>();
 
 		RegisterValidate(delegate (string value)
 		{
@@ -50,13 +52,14 @@ public class Permission : Library
 	public static char[] Star = new char[] { '*' };
 	public static string[] EmptyStringArray = new string[0];
 
-	private readonly Dictionary<Plugin, HashSet<string>> permset;
+	private readonly Dictionary<BaseHookable, HashSet<string>> permset;
 	private Dictionary<string, UserData> userdata = new();
 	private Dictionary<string, GroupData> groupdata = new();
 	private Func<string, bool> validate;
 
 	private static FieldInfo _iPlayerFieldCache;
-	public static FieldInfo iPlayerField => _iPlayerFieldCache ??= typeof(BasePlayer).GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
+	public static FieldInfo iPlayerField
+		=> _iPlayerFieldCache ??= typeof(BasePlayer).GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
 
 	public virtual void LoadFromDatafile()
 	{
@@ -235,7 +238,7 @@ public class Permission : Library
 		}
 	}
 
-	public virtual void RegisterPermission(string name, Plugin owner)
+	public virtual void RegisterPermission(string name, BaseHookable owner)
 	{
 		if (string.IsNullOrEmpty(name)) return;
 
@@ -255,7 +258,7 @@ public class Permission : Library
 		Interface.CallHook("OnPermissionRegistered", name, owner);
 	}
 
-	public virtual void UnregisterPermissions(Plugin owner)
+	public virtual void UnregisterPermissions(BaseHookable owner)
 	{
 		if (owner == null) return;
 
@@ -337,9 +340,12 @@ public class Permission : Library
 	{
 		id = id.ToLower().Trim();
 
+		if (id.IsSteamId()) GetUserData(id);
+
 		foreach (var user in userdata)
 		{
-			if (user.Value != null && user.Key == id || (!string.IsNullOrEmpty(user.Value.LastSeenNickname) && user.Value.LastSeenNickname.ToLower().Trim().Contains(id))) return new KeyValuePair<string, UserData>(user.Key, user.Value);
+			if (user.Value != null && user.Key == id || (!string.IsNullOrEmpty(user.Value.LastSeenNickname) && user.Value.LastSeenNickname.ToLower().Trim().Contains(id)))
+				return new KeyValuePair<string, UserData>(user.Key, user.Value);
 		}
 
 		return default;
