@@ -233,7 +233,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: text, 11,
 			xMin: offset, xMax: offset + width, yMin: 0, yMax: 1,
 			command: command,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		if (highlight)
 		{
@@ -257,7 +257,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: $" / {page.TotalPages + 1:n0}", 9,
 			xMin: 0.5f, xMax: 1f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateProtectedInputField(container, parent: id, id: null,
 			color: "1 1 1 1",
@@ -267,7 +267,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			command: PanelId + $".changecolumnpage {column} 4 ",
 			characterLimit: 0,
 			readOnly: false,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		#region Left
 
@@ -277,7 +277,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: "<<", 8,
 			xMin: 0, xMax: 0.1f, yMin: 0f, yMax: 1f,
 			command: page.CurrentPage > 0 ? PanelId + $".changecolumnpage {column} 2" : "",
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateProtectedButton(container, parent: id, id: null,
 			color: "0.4 0.7 0.2 0.7",
@@ -285,7 +285,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: "<", 8,
 			xMin: 0.1f, xMax: 0.2f, yMin: 0f, yMax: 1f,
 			command: PanelId + $".changecolumnpage {column} 0",
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		#endregion
 
@@ -297,7 +297,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: ">>", 8,
 			xMin: 0.9f, xMax: 1f, yMin: 0f, yMax: 1f,
 			command: page.CurrentPage < page.TotalPages ? PanelId + $".changecolumnpage {column} 3" : "",
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateProtectedButton(container, parent: id, id: null,
 			color: "0.4 0.7 0.2 0.7",
@@ -305,7 +305,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: ">", 8,
 			xMin: 0.8f, xMax: 0.9f, yMin: 0f, yMax: 1f,
 			command: PanelId + $".changecolumnpage {column} 1",
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		#endregion
 	}
@@ -316,7 +316,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: text?.ToUpper(), 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: offset, yMax: offset + height,
 			align: align,
-			font: CUI.Handler.FontTypes.RobotoCondensedBold);
+			font: Handler.FontTypes.RobotoCondensedBold);
 
 		if (!string.IsNullOrEmpty(text))
 		{
@@ -363,7 +363,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0.015f, xMax: 0.985f, yMin: offset, yMax: offset + height,
 			command: command,
 			align: align,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 	}
 	public void TabPanelToggle(CUI cui, CuiElementContainer container, string parent, string text, string command, float height, float offset, bool isOn)
 	{
@@ -380,7 +380,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				text: $"{text}:", 12,
 				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 				align: TextAnchor.MiddleLeft,
-				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+				font: Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreatePanel(container, $"{parent}panel", null,
 				color: "0.2 0.2 0.2 0.5",
@@ -393,7 +393,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: string.Empty, 11,
 			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
 			command: command,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		if (isOn)
 		{
@@ -424,7 +424,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreatePanel(container, $"{parent}panel", null,
 				color: color,
@@ -444,7 +444,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			characterLimit: characterLimit,
 			readOnly: readOnly,
 			needsKeyboard: true,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		if (!readOnly)
 		{
@@ -475,7 +475,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreatePanel(container, $"{parent}panel", null,
 				color: "0.2 0.2 0.2 0.5",
@@ -491,7 +491,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		text: value, 11,
 		xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 		align: TextAnchor.MiddleCenter,
-		font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+		font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
 			color: color,
@@ -500,7 +500,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0f, xMax: 0.15f, yMin: 0, yMax: 1,
 			command: $"{command} true",
 			align: TextAnchor.MiddleCenter,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateProtectedButton(container, parent: $"{parent}inppanel", id: null,
 			color: color,
@@ -509,7 +509,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0.85f, xMax: 1f, yMin: 0, yMax: 1,
 			command: $"{command} false",
 			align: TextAnchor.MiddleCenter,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 	}
 	public void TabPanelRadio(CUI cui, CuiElementContainer container, string parent, string text, bool isOn, string command, float height, float offset)
 	{
@@ -526,7 +526,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreatePanel(container, $"{parent}panel", null,
 				color: "0.2 0.2 0.2 0.5",
@@ -539,7 +539,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: string.Empty, 11,
 			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
 			command: command,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		if (isOn)
 		{
@@ -569,7 +569,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				text: $"{text}:", 12,
 				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 				align: TextAnchor.MiddleLeft,
-				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+				font: Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreatePanel(container, $"{parent}panel", null,
 				color: "0.2 0.2 0.2 0.5",
@@ -593,7 +593,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 0f, xMax: 1f, yMin: 0, yMax: 1,
 			command: $"{command} false",
 			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateText(container, parent: button, null, "1 1 1 0.7", options[index], 10,
 			xMin: string.IsNullOrEmpty(icon) ? 0.02f : 0.085f, xMax: 1f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleLeft);
@@ -632,7 +632,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					OxMin: shiftOffset,
 					command: $"{command} true call {actualI}",
 					align: TextAnchor.MiddleLeft,
-					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+					font: Handler.FontTypes.RobotoCondensedRegular);
 
 				cui.CreateText(container, parent: subButton, null, isSelected ? "1 1 1 0.7" : "1 1 1 0.4", current, 10,
 					xMin: string.IsNullOrEmpty(subIcon) ? 0.035f : 0.085f, xMax: 1f, yMin: 0f, yMax: 1f, align: TextAnchor.MiddleLeft);
@@ -661,7 +661,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					text: $"{page.CurrentPage + 1:n0} / {page.TotalPages + 1:n0}", 9,
 					xMin: 0.5f, xMax: 1f, yMin: 0, yMax: 1,
 					align: TextAnchor.MiddleLeft,
-					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+					font: Handler.FontTypes.RobotoCondensedRegular);
 
 				#region Left
 
@@ -671,7 +671,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					text: "<<", 8,
 					xMin: 0, xMax: 0.1f, yMin: 0f, yMax: 1f,
 					command: $"{command} true --",
-					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+					font: Handler.FontTypes.RobotoCondensedRegular);
 
 				cui.CreateProtectedButton(container, parent: id, id: null,
 					color: "0.4 0.7 0.2 0.7",
@@ -679,7 +679,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					text: "<", 8,
 					xMin: 0.1f, xMax: 0.2f, yMin: 0f, yMax: 1f,
 					command: $"{command} true -1",
-					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+					font: Handler.FontTypes.RobotoCondensedRegular);
 
 				#endregion
 
@@ -691,7 +691,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					text: ">>", 8,
 					xMin: 0.9f, xMax: 1f, yMin: 0f, yMax: 1f,
 					command: $"{command} true ++",
-					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+					font: Handler.FontTypes.RobotoCondensedRegular);
 
 				cui.CreateProtectedButton(container, parent: id, id: null,
 					color: "0.4 0.7 0.2 0.7",
@@ -699,7 +699,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					text: ">", 8,
 					xMin: 0.8f, xMax: 0.9f, yMin: 0f, yMax: 1f,
 					command: $"{command} true 1",
-					font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+					font: Handler.FontTypes.RobotoCondensedRegular);
 
 				#endregion
 			}
@@ -726,7 +726,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreatePanel(container, $"{parent}panel", null,
 				color: color,
@@ -738,7 +738,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: OptionWidth, xMax: 0.985f, yMin: 0, yMax: 1);
 
 		cui.CreatePanel(container, panel, null,
-			color: CUI.HexToRustColor("#f54242", 0.8f),
+			color: HexToRustColor("#f54242", 0.8f),
 			xMin: 0, xMax: value.Scale(min, max, 0f, 1f), yMin: 0, yMax: 1);
 
 		cui.CreateText(container, panel, null, "1 1 1 1", valueText, 8);
@@ -804,7 +804,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				text: $"{text}:", 12,
 				xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 				align: TextAnchor.MiddleLeft,
-				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+				font: Handler.FontTypes.RobotoCondensedRegular);
 		}
 
 		var inPanel = cui.CreatePanel(container, $"{parent}panel", $"{parent}inppanel",
@@ -824,7 +824,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			characterLimit: input.CharacterLimit,
 			readOnly: input.ReadOnly,
 			needsKeyboard: true,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateProtectedButton(container, parent: inPanel, id: null,
 			color: buttonColor,
@@ -833,7 +833,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			xMin: 1f - buttonPriority, xMax: 1f, yMin: 0f, yMax: 1f,
 			command: $"{command} button",
 			align: button.Align,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		if (!input.ReadOnly)
 		{
@@ -858,7 +858,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: $"{text}:", 12,
 			xMin: 0.025f, xMax: 0.98f, yMin: 0, yMax: 1,
 			align: TextAnchor.MiddleLeft,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreatePanel(container, $"{parent}panel", null,
 				color: "0.2 0.2 0.2 0.5",
@@ -872,7 +872,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			text: split.Length > 1 ? $"#{ColorUtility.ToHtmlStringRGB(new Color(split[0].ToFloat(), split[1].ToFloat(), split[2].ToFloat(), 1))}" : string.Empty, 10,
 			xMin: toggleButtonScale, xMax: 0.985f, yMin: offset, yMax: offset + height,
 			command: command,
-			font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+			font: Handler.FontTypes.RobotoCondensedRegular);
 		Array.Clear(split, 0, split.Length);
 		split = null;
 	}
@@ -1024,7 +1024,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var container = cui.CreateContainer(PanelId,
 				color: "0 0 0 0.75",
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
-				needsCursor: true, destroyUi: PanelId, parent: CUI.ClientPanels.HudMenu);
+				needsCursor: true, destroyUi: PanelId, parent: ClientPanels.HudMenu);
 
 			using (TimeMeasure.New($"{Name}.Main"))
 			{
@@ -1044,7 +1044,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						text: "<b>Admin Settings</b>", 18,
 						xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
 						align: TextAnchor.UpperLeft,
-						font: CUI.Handler.FontTypes.RobotoCondensedBold);
+						font: Handler.FontTypes.RobotoCondensedBold);
 
 					#endregion
 
@@ -1232,7 +1232,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					text: "X", 9,
 					xMin: 0.965f, xMax: 0.99f, yMin: 0.955f, yMax: 0.99f,
 					command: PanelId + ".close",
-					font: CUI.Handler.FontTypes.DroidSansMono);
+					font: Handler.FontTypes.DroidSansMono);
 			}
 
 			#endregion
@@ -1727,7 +1727,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			return AddRow(column, new OptionToggle(name, callback, ap => { try { return (isOn?.Invoke(ap)).GetValueOrDefault(false); } catch (Exception ex) { Logger.Error($"AddToggle[{column}][{name}] failed", ex); } return false; }, tooltip));
 		}
-		public Tab AddText(int column, string name, int size, string color, TextAnchor align = TextAnchor.MiddleCenter, CUI.Handler.FontTypes font = CUI.Handler.FontTypes.RobotoCondensedRegular, bool isInput = false)
+		public Tab AddText(int column, string name, int size, string color, TextAnchor align = TextAnchor.MiddleCenter, CUI.Handler.FontTypes font = Handler.FontTypes.RobotoCondensedRegular, bool isInput = false)
 		{
 			return AddRow(column, new OptionText(name, size, color, align, font, isInput));
 		}
@@ -1789,7 +1789,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			Dialog = new TabDialog(title, onConfirm, onDecline);
 		}
-
+		public void CreateModal(BasePlayer player, string title, Dictionary<string, Modal.Field> fields, Action<BasePlayer, Modal> onConfirm = null, Action onCancel = null)
+		{
+			Modal.Open(player, title, fields, onConfirm, onCancel);
+		}
+		
 		public void Dispose()
 		{
 			foreach (var column in Columns)
@@ -2076,7 +2080,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddName(0, "Console", TextAnchor.MiddleLeft);
 				foreach (var log in _logQueue)
 				{
-					tab.AddText(0, log, 10, "1 1 1 0.85", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular, isInput: true);
+					tab.AddText(0, log, 10, "1 1 1 0.85", TextAnchor.MiddleLeft, Handler.FontTypes.RobotoCondensedRegular, isInput: true);
 				}
 				tab.AddInputButton(0, "Execute Server Command", 0.2f, new Tab.OptionInput(null, null, 0, false, (ap, args) =>
 				{
@@ -2316,6 +2320,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddRange(1, "Thirst", 0, player.metabolism.hydration.max, ap => player.metabolism.hydration.value, (ap, value) => player.metabolism.hydration.SetValue(value), ap => $"{player.metabolism.hydration.value:0}");
 				tab.AddRange(1, "Hunger", 0, player.metabolism.calories.max, ap => player.metabolism.calories.value, (ap, value) => player.metabolism.calories.SetValue(value), ap => $"{player.metabolism.calories.value:0}");
 				tab.AddRange(1, "Radiation", 0, player.metabolism.radiation_poison.max, ap => player.metabolism.radiation_poison.value, (ap, value) => player.metabolism.radiation_poison.SetValue(value), ap => $"{player.metabolism.radiation_poison.value:0}");
+				tab.AddRange(1, "Bleeding", 0, player.metabolism.bleeding.max, ap => player.metabolism.bleeding.value, (ap, value) => player.metabolism.bleeding.SetValue(value), ap => $"{player.metabolism.bleeding.value:0}");
 			}
 		}
 	}
@@ -2424,14 +2429,66 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			});
 
 			tab.ClearColumn(2);
-			tab.AddButton(2, "Select", ap2 =>
+			if (string.IsNullOrEmpty(selectedGroup))
 			{
-				Singleton.SetTab(ap.Player, "players");
-				var tab = Singleton.GetTab(ap.Player);
-				ap.SetStorage(tab, "playerfilterpl", player);
-				PlayersTab.RefreshPlayers(tab, ap);
-				PlayersTab.ShowInfo(tab, ap, player);
-			});
+				tab.AddButton(2, "Select", ap2 =>
+				{
+					Singleton.SetTab(ap.Player, "players");
+					var tab = Singleton.GetTab(ap.Player);
+					ap.SetStorage(tab, "playerfilterpl", player);
+					PlayersTab.RefreshPlayers(tab, ap);
+					PlayersTab.ShowInfo(tab, ap, player);
+				});
+			}
+			else
+			{
+				tab.AddName(2, $"Group '{selectedGroup}' Permissions");
+				tab.AddButtonArray(2, new Tab.OptionButton("Delete", ap =>
+				{
+					tab.CreateDialog($"Are you sure you want to delete the '{selectedGroup}' group?", ap2 =>
+					{
+						permission.RemoveGroup(selectedGroup);
+
+						tab.ClearColumn(1);
+						tab.ClearColumn(2);
+						tab.ClearColumn(3);
+						GenerateGroups(tab, permission, ap);
+					}, null);
+				}, (ap) => Tab.OptionButton.Types.Important), new Tab.OptionButton("Edit", ap =>
+				{
+					var temp = Pool.GetList<string>();
+					var groups = Community.Runtime.CorePlugin.permission.GetGroups();
+					temp.Add("None");
+					temp.AddRange(groups);
+					temp.Remove(selectedGroup);
+
+					var array = temp.ToArray();
+					Pool.FreeList(ref temp);
+
+					var parent = permission.GetGroupParent(selectedGroup);
+					var parentIndex = Array.IndexOf(array, parent);
+					tab.CreateModal(ap.Player, $"Editing '{selectedGroup}'", new Dictionary<string, Modal.Field>()
+					{
+						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true, selectedGroup, true),
+						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, permission.GetGroupTitle(selectedGroup)),
+						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, permission.GetGroupRank(selectedGroup)),
+						["parent"] = Modal.EnumField.MakeEnum("Parent", array, @default: string.IsNullOrEmpty(parent) ? 0 : Array.IndexOf(array, parent), customIsInvalid: field => permission.GetGroupParent(array[field.Get<int>()]) == selectedGroup ? $"Circular parenting detected with '{array[field.Get<int>()]}'." : null)
+					}, (ap2, modal) =>
+					{
+						var parentIndex = modal.Get<int>("parent");
+						permission.SetGroupTitle(selectedGroup, modal.Get<string>("dname"));
+						permission.SetGroupRank(selectedGroup, modal.Get<int>("rank"));
+						if (parentIndex != 0) permission.SetGroupParent(selectedGroup, array[parentIndex]);
+						else permission.SetGroupParent(selectedGroup, null);
+
+						tab.ClearColumn(1);
+						tab.ClearColumn(2);
+						tab.ClearColumn(3);
+						GenerateGroups(tab, permission, ap);
+						GeneratePlugins(tab, ap, permission, ap.Player, selectedGroup);
+					});
+				}));
+			}
 			tab.AddName(2, "Plugins", TextAnchor.MiddleLeft);
 			{
 				tab.AddInput(2, "Search", ap => ap.GetStorage<string>(tab, "pluginfilter", string.Empty), (ap, args) =>
@@ -2480,7 +2537,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if (isInherited)
 					{
-						tab.AddText(3, $"Inherited by the following groups: {list.TrimEnd(',', ' ')}", 8, "1 1 1 0.6", TextAnchor.UpperLeft, CUI.Handler.FontTypes.RobotoCondensedRegular);
+						tab.AddText(3, $"Inherited by the following groups: {list.TrimEnd(',', ' ')}", 8, "1 1 1 0.6", TextAnchor.UpperLeft, Handler.FontTypes.RobotoCondensedRegular);
 					}
 				}
 				else
@@ -2504,7 +2561,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.AddRow(1, new Tab.OptionButton($"{group}", instance2 =>
 					{
 						ap.SetStorage(tab, "group", group);
-
 						ap.ClearStorage(tab, "plugin");
 
 						tab.ClearColumn(2);
@@ -2514,8 +2570,34 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}, type: (_instance) => ap.GetStorage<string>(tab, "group", string.Empty) == group ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 				}
 			}
-			tab.AddRow(1, new Tab.OptionButton("Add Group", null, (_instance) => Tab.OptionButton.Types.Warned));
+			tab.AddRow(1, new Tab.OptionButton("Add Group", ap =>
+			{
+				var temp = Pool.GetList<string>();
+				var groups = Community.Runtime.CorePlugin.permission.GetGroups();
+				temp.Add("None");
+				temp.AddRange(groups);
 
+				var array = temp.ToArray();
+				Pool.FreeList(ref temp);
+
+				Modal.Open(ap.Player, "Create Group", new Dictionary<string, Modal.Field>()
+				{
+					["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true),
+					["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String),
+					["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer),
+					["parent"] = Modal.EnumField.MakeEnum("Parent", array)
+				}, onConfirm: (player, modal) =>
+				{
+					var parentIndex = modal.Get<int>("parent");
+					Community.Runtime.CorePlugin.permission.CreateGroup(modal.Get<string>("name"), modal.Get<string>("dname"), modal.Get<int>("rank"));
+					if (parentIndex != 0) Community.Runtime.CorePlugin.permission.SetGroupParent(modal.Get<string>("name"), array[parentIndex]);
+
+					tab.ClearColumn(1);
+					tab.ClearColumn(2);
+					tab.ClearColumn(3);
+					GenerateGroups(tab, perms,  ap);
+				});
+			}, (_instance) => Tab.OptionButton.Types.Warned));
 		}
 	}
 	public class EntitiesTab
@@ -2611,7 +2693,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			if (EntityCount == 0)
 			{
-				tab.AddText(0, "No entities found with that filter", 9, "1 1 1 0.2", TextAnchor.MiddleCenter, CUI.Handler.FontTypes.RobotoCondensedRegular);
+				tab.AddText(0, "No entities found with that filter", 9, "1 1 1 0.2", TextAnchor.MiddleCenter, Handler.FontTypes.RobotoCondensedRegular);
 			}
 		}
 		internal static void DrawEntitySettings(Tab tab, BaseEntity entity, int column = 1, PlayerSession ap3 = null)
@@ -2856,6 +2938,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.AddRange(column, "Thirst", 0, player.metabolism.hydration.max, ap => player.metabolism.hydration.value, (ap, value) => player.metabolism.hydration.SetValue(value), ap => $"{player.metabolism.hydration.value:0}");
 						tab.AddRange(column, "Hunger", 0, player.metabolism.calories.max, ap => player.metabolism.calories.value, (ap, value) => player.metabolism.calories.SetValue(value), ap => $"{player.metabolism.calories.value:0}");
 						tab.AddRange(column, "Radiation", 0, player.metabolism.radiation_poison.max, ap => player.metabolism.radiation_poison.value, (ap, value) => player.metabolism.radiation_poison.SetValue(value), ap => $"{player.metabolism.radiation_poison.value:0}");
+						tab.AddRange(column, "Bleeding", 0, player.metabolism.bleeding.max, ap => player.metabolism.bleeding.value, (ap, value) => player.metabolism.bleeding.SetValue(value), ap => $"{player.metabolism.bleeding.value:0}");
 					}
 				}
 			}
@@ -2916,7 +2999,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				return;
 			}
 
-			var netWrite = Network.Net.sv.StartWrite();
+			var netWrite = Net.sv.StartWrite();
 
 			if (netWrite == null)
 			{
@@ -3410,7 +3493,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					if (Singleton.ImageDatabase.GetImage(selectedPlugin.Image) == 0) cui.CreateClientImage(container, image, null, selectedPlugin.Image, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 					else cui.CreateImage(container, image, null, selectedPlugin.Image, selectedPlugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 				}
-				cui.CreateText(container, mainPanel, null, "1 1 1 1", selectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
+				cui.CreateText(container, mainPanel, null, "1 1 1 1", selectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: Handler.FontTypes.RobotoCondensedBold);
 				cui.CreateText(container, mainPanel, null, "1 1 1 0.5", $"by <b>{selectedPlugin.Author}</b>  <b>•</b>  v{selectedPlugin.Version}  <b>•</b>  Updated on {selectedPlugin.UpdateDate}  <b>•</b>  {selectedPlugin.DownloadCount:n0} downloads", 11, xMin: 0.48f, yMax: 0.74f, align: TextAnchor.UpperLeft);
 				cui.CreateText(container, mainPanel, null, "1 1 1 0.3", $"{(string.IsNullOrEmpty(selectedPlugin.Description) ? "Fetching metdata..." : $"{selectedPlugin.Description}")}", 11, xMin: 0.48f, xMax: 0.85f, yMax: 0.635f, align: TextAnchor.UpperLeft);
 
@@ -3461,7 +3544,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					text: "X", 9,
 					xMin: 0.965f, xMax: 0.99f, yMin: 0.955f, yMax: 0.99f,
 					command: "pluginbrowser.deselectplugin",
-					font: CUI.Handler.FontTypes.DroidSansMono);
+					font: Handler.FontTypes.DroidSansMono);
 
 				var buttonColor = string.Empty;
 				var elementColor = string.Empty;
@@ -3534,7 +3617,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (selectedPlugin.IsInstalled())
 				{
-					var path = Path.Combine(Carbon.Core.Defines.GetConfigsFolder(), selectedPlugin.ExistentPlugin.Config.Filename);
+					var path = Path.Combine(Core.Defines.GetConfigsFolder(), selectedPlugin.ExistentPlugin.Config.Filename);
 
 					if (OsEx.File.Exists(path)) cui.CreateProtectedButton(container, mainPanel, null, "0.1 0.1 0.1 0.8", "1 1 1 0.7", "EDIT CONFIG", 11, xMin: 0.48f, xMax: 0.564f, yMin: 0.175f, yMax: 0.235f, OyMin: 35, OyMax: 35, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 3 {selectedPlugin.Id}");
 				}
@@ -4448,7 +4531,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			case "3":
 				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
-				var path = Path.Combine(Carbon.Core.Defines.GetConfigsFolder(), plugin.Config.Filename);
+				var path = Path.Combine(Core.Defines.GetConfigsFolder(), plugin.Config.Filename);
 				Singleton.SetTab(ap.Player, ConfigEditor.Make(OsEx.File.ReadText(path),
 					(ap, jobject) =>
 					{
@@ -4714,7 +4797,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
 
 		using var cui = new CUI(Singleton.Handler);
-		var container = cui.CreateContainer(SpectatePanelId, color: "0.1 0.1 0.1 0.8", needsCursor: true, parent: CUI.ClientPanels.Overlay);
+		var container = cui.CreateContainer(SpectatePanelId, color: "0.1 0.1 0.1 0.8", needsCursor: true, parent: ClientPanels.Overlay);
 		var panel = cui.CreatePanel(container, SpectatePanelId, null, "0 0 0 0");
 		cui.CreatePanel(container, panel, null, "0 0 0 1", yMax: 0.075f);
 		cui.CreatePanel(container, panel, null, "0 0 0 1", yMin: 0.925f);
@@ -4820,7 +4903,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							var valueSplit = value.Split(' ');
 							if (value.StartsWith("#") || (valueSplit.Length >= 3 && valueSplit.All(x => float.TryParse(x, out _))))
 							{
-								AddColor(column, name, () => value.StartsWith("#") ? CUI.HexToRustColor(value) : value, (ap, hex, rust) =>
+								AddColor(column, name, () => value.StartsWith("#") ? HexToRustColor(value) : value, (ap, hex, rust) =>
 								{
 									value = value.StartsWith("#") ? hex : rust;
 									usableToken.Replace(usableToken = value);
@@ -5237,7 +5320,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			},
 			(ap, jobject) =>
 			{
-				OsEx.File.Create(moduleConfigFile, jobject.ToString(Newtonsoft.Json.Formatting.Indented));
+				OsEx.File.Create(moduleConfigFile, jobject.ToString(Formatting.Indented));
 				module.Load();
 				SetTab(ap.Player, SetupWizard.Make());
 				Draw(ap.Player);
@@ -5253,7 +5336,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = GetTab(ap.Player) as SetupWizard;
 
 		var module = FindModule(arg.Args[0]);
-		Application.OpenURL(Path.Combine(Carbon.Core.Defines.GetModulesFolder(), module.Name));
+		Application.OpenURL(Path.Combine(Core.Defines.GetModulesFolder(), module.Name));
 
 		Draw(ap.Player);
 	}
@@ -5332,7 +5415,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				text: "<b>Color Picker</b>", 18,
 				xMin: 0f, yMin: 0.8f, xMax: 1f, yMax: 0.98f,
 				align: TextAnchor.UpperCenter,
-				font: CUI.Handler.FontTypes.RobotoCondensedBold);
+				font: Handler.FontTypes.RobotoCondensedBold);
 
 			#region Main
 
@@ -5350,14 +5433,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				text: "------------------------------------------------------------------------------------------------------------------------------------- BRIGHTNESS", 8,
 				xMin: 0f, xMax: 0.775f, yMin: 0.01f, yMax: 0.98f,
 				align: TextAnchor.LowerRight,
-				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+				font: Handler.FontTypes.RobotoCondensedRegular);
 
 			cui.CreateText(container, parent: main, id: null,
 				color: "1 1 1 0.3",
 				text: "SHADES ---------------", 8,
 				xMin: 0.805f, xMax: 1, yMin: 0.085f, yMax: 1f,
 				align: TextAnchor.LowerLeft,
-				font: CUI.Handler.FontTypes.RobotoCondensedRegular);
+				font: Handler.FontTypes.RobotoCondensedRegular);
 
 			var input = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
 				xMin: 0.805f, xMax: 0.94f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
@@ -5414,7 +5497,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				text: "X", 8,
 				xMin: 0.96f, xMax: 0.99f, yMin: 0.95f, yMax: 0.99f,
 				command: PanelId + ".close",
-				font: CUI.Handler.FontTypes.DroidSansMono);
+				font: Handler.FontTypes.DroidSansMono);
 
 			cui.Send(container, player);
 
@@ -5423,7 +5506,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		internal static void DrawColor(CUI cui, CuiElementContainer container, PlayerSession ap, float scale, Color color, string parent, float xOffset, float yOffset, string mode = "color", float fade = 0f, int index = -1)
 		{
-			var size = Carbon.Extensions.MathEx.Scale(1f, 0, scale, 0f, 1f);
+			var size = Extensions.MathEx.Scale(1f, 0, scale, 0f, 1f);
 
 			var id = cui.CreateProtectedButton(container, parent, null,
 				color: $"{color.r} {color.g} {color.b} 1",
@@ -5509,7 +5592,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var onColorPicked = ap.GetStorage<Action<string, string>>(ap.SelectedTab, ColorPicker.OnColorPicked);
 
 		if (!hex.StartsWith("#")) hex = $"#{hex}";
-		var rawColor = CUI.HexToRustColor(hex, includeAlpha: false);
+		var rawColor = HexToRustColor(hex, includeAlpha: false);
 		onColorPicked?.Invoke(hex,rawColor);
 		ColorPicker.Close(args.Player());
 	}
@@ -5531,7 +5614,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		internal Handler Handler { get; set; }
 		internal const string PanelId = "carbonmodalui";
 
-		public static void Open(BasePlayer player, string title, Dictionary<string, Field> fields, Action onCancel = null, Action<BasePlayer, Modal> onConfirm = null)
+		public static void Open(BasePlayer player, string title,  Dictionary<string, Field> fields, Action<BasePlayer, Modal> onConfirm = null, Action onCancel = null)
 		{
 			var tab = new Modal()
 			{
@@ -5554,14 +5637,23 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			foreach (var field in Fields)
 			{
-				if (!field.Value.IsRequired) continue;
-
 				if (field.Value.IsInvalid()) return false;
 			}
 
 			return true;
 		}
 		public int Pages => Fields.Count > 4 ? (Fields.Count - 1) / 4 : 0;
+		public string[] InvalidMessages => Fields.Where(x => x.Value.Value != null && x.Value.CustomIsInvalid != null).Select(x =>
+		{
+			try
+			{
+				var value = x.Value?.CustomIsInvalid?.Invoke(x.Value);
+				return $"    <color=red>{value?.ToUpper()?.SpacedString(1)}</color>";
+			}
+			catch { }
+
+			return string.Empty;
+		}).ToArray();
 
 		public void Draw(BasePlayer player)
 		{
@@ -5587,10 +5679,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public void _drawInternal(CUI cui, CuiElementContainer container, string panel)
 		{
-			cui.CreateText(container, panel, null, "1 1 1 1",
-				$"<b><color=red>*</color></b>  {"Assign all required field values.".ToUpper().SpacedString(1)}" +
-				$"\n    {(IsValid() ? $"<b><color=green>{"The modal is valid.".ToUpper().SpacedString(1)}</color></b>" : $"<b><color=red>{"The modal has invalid fields.".ToUpper().SpacedString(1)}</color></b>")}",
-				9, align: TextAnchor.LowerLeft, xMin: 0.05f, yMin: 0.05f);
+			var subText= $"<b><color=red>*</color></b>  {"Assign all required field values.".ToUpper().SpacedString(1)}" +
+				$"\n    {(IsValid() ? $"<b><color=green>{"The modal is valid.".ToUpper().SpacedString(1)}</color></b>" : $"<b><color=red>{"The modal has invalid fields.".ToUpper().SpacedString(1)}</color></b>")}" +
+				$"{(InvalidMessages != null ? $"\n{InvalidMessages.ToString("\n")}" : "")}";
+			cui.CreateText(container, panel, null, "1 1 1 1", subText.Trim(), 9, align: TextAnchor.LowerLeft, xMin: 0.05f, yMin: 0.05f);
 
 			var main = cui.CreatePanel(container, panel, null, "0 0 0 0", xMin: 0.1f, xMax: 0.9f, yMin: 0.2f, yMax: 0.9f);
 			cui.CreateText(container, main, null, "1 1 1 0.7", Title, 20, xMin: 0.025f, yMax: 0.985f, align: TextAnchor.UpperLeft);
@@ -5606,11 +5698,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var fieldPanel = cui.CreatePanel(container, content, null, "0 0 0 0.5", yMin: 0.8f, OyMin: offset, OyMax: offset);
 				cui.CreateText(container, fieldPanel, null, "1 1 1 1", $"<b>{field.Value.DisplayName.ToUpper().SpacedString(1)}</b>{(field.Value.IsRequired ? "  <b><color=red>*</color></b>" : "")}", 11, xMin: 0.03f, yMax: 0.85f, align: TextAnchor.UpperLeft);
 
-				var option = cui.CreatePanel(container, fieldPanel, null, "0.1 0.1 0.1 0.75", yMax: 0.55f);
+				var option = cui.CreatePanel(container, fieldPanel, null, $"0.1 0.1 0.1 {(field.Value.IsReadOnly ? "0.45" : "0.75")}", yMax: 0.55f);
+				var textColor = field.Value.IsReadOnly ? "1 1 1 0.15" : "1 1 1 1";
 
 				if (field.Value.IsInvalid())
 				{
-					cui.CreatePanel(container, option, null, CUI.HexToRustColor("#b8302e", 0.5f));
+					cui.CreatePanel(container, option, null, HexToRustColor("#b8302e", 0.5f));
 				}
 
 				switch (field.Value.Type)
@@ -5619,7 +5712,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					case Field.FieldTypes.Float:
 					case Field.FieldTypes.Integer:
 						var value = field.Value.Value != null ? (field.Value.Type == Field.FieldTypes.Float ? $"{field.Value.Value:0.0}" : $"{field.Value.Value:0}") : field.Value.Value?.ToString();
-						cui.CreateProtectedInputField(container, option, null, "1 1 1 1", value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: true);
+						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: true);
 						break;
 
 					case Field.FieldTypes.Boolean:
@@ -5627,27 +5720,27 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						var toggle = cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.8", "0 0 0 0", string.Empty, 0, xMin: 0.025f, xMax: 0.085f, yMin: 0.1f, yMax: 0.9f, command: $"modal.action {field.Key} {field.Value.Value}");
 						if (field.Value.Value is bool booleanValue && booleanValue)
 						{
-							cui.CreateImage(container, toggle, null, "checkmark", "1 1 1 1", 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
+							cui.CreateImage(container, toggle, null, "checkmark", textColor, 0.2f, xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
 						}
 						break;
 
 					case Field.FieldTypes.RustColor:
 					case Field.FieldTypes.HexColor:
 						var originalColor = field.Value.Value == null || (string.IsNullOrEmpty(field.Value.Value.ToString())) ? (field.Value.Type == Field.FieldTypes.RustColor ? "1 1 1" : "#ffffff") : field.Value.Value.ToString();
-						var hexColor = field.Value.Type == Field.FieldTypes.RustColor ? CUI.RustToHexColor(originalColor, includeAlpha: false) : originalColor;
-						var rustColor = field.Value.Type == Field.FieldTypes.HexColor ? CUI.HexToRustColor(originalColor, includeAlpha: false) : originalColor;
+						var hexColor = field.Value.Type == Field.FieldTypes.RustColor ? RustToHexColor(originalColor, includeAlpha: false) : originalColor;
+						var rustColor = field.Value.Type == Field.FieldTypes.HexColor ? HexToRustColor(originalColor, includeAlpha: false) : originalColor;
 						var rustColorSplit = rustColor.Split(' ');
 						rustColor = $"R:{rustColorSplit[0].ToFloat() * 255:0}   G:{rustColorSplit[1].ToFloat() * 255:0}   B:{rustColorSplit[2].ToFloat() * 255:0}";
 						Array.Clear(rustColorSplit, 0, rustColorSplit.Length);
 
-						cui.CreateText(container, option, null, "1 1 1 1", $"<b>{"HEX".SpacedString(1)}:</b>  {hexColor}", 12, xMin: 0.7f, align: TextAnchor.MiddleLeft);
-						cui.CreateText(container, option, null, "1 1 1 1", $"<b>{"RUST".SpacedString(1)}:</b>  {rustColor}", 12, xMin: 0.115f, align: TextAnchor.MiddleLeft);
+						cui.CreateText(container, option, null, textColor, $"<b>{"HEX".SpacedString(1)}:</b>  {hexColor}", 12, xMin: 0.7f, align: TextAnchor.MiddleLeft);
+						cui.CreateText(container, option, null, textColor, $"<b>{"RUST".SpacedString(1)}:</b>  {rustColor}", 12, xMin: 0.115f, align: TextAnchor.MiddleLeft);
 						var color = cui.CreateProtectedButton(container, option, null, hexColor, "0 0 0 0", string.Empty, 0, xMin: 0.025f, xMax: 0.085f, yMin: 0.1f, yMax: 0.9f, command: $"modal.action {field.Key}");
 						break;
 
 					case Field.FieldTypes.Enum:
 						var @enum = field.Value as EnumField;
-						cui.CreateText(container, option, null, "1 1 1 1", @enum.Options[@enum.Value == null ? 0 : @enum.Value.ToString().ToInt()], 12, align: TextAnchor.MiddleCenter);
+						cui.CreateText(container, option, null, textColor, @enum.Options[@enum.Value == null ? 0 : @enum.Value.ToString().ToInt()], 12, align: TextAnchor.MiddleCenter);
 
 						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.75", "1 1 1 0.7", "<", 10, xMin: 0f, xMax: 0.5f, command: $"modal.action {field.Key} -");
 						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.75", "1 1 1 0.7", ">", 10, xMin: 0.5f, xMax: 1f, command: $"modal.action {field.Key} +");
@@ -5655,19 +5748,24 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						break;
 				}
 
+				if (field.Value.IsReadOnly)
+				{
+					cui.CreatePanel(container, option, null, "0 0 0 0");
+				}
+
 				offset -= spacing;
 			}
 
 			var buttons = cui.CreatePanel(container, panel, null, "0 0 0 0", xMin: 0.075f, xMax: 0.925f, yMin: 0.025f, yMax: 0.1f);
 			cui.CreateProtectedButton(container, buttons, null, "0.1 0.1 0.1 0.85", "1 1 1 0.7", "CANCEL".SpacedString(1), 10, xMin: 0.7f, xMax: 0.84f, command: "modal.cancel");
-			cui.CreateProtectedButton(container, buttons, null, IsValid() ? CUI.HexToRustColor("#7ebf37", 0.6f) : "0.1 0.1 0.1 0.85", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10, xMin: 0.85f, command: "modal.confirm");
+			cui.CreateProtectedButton(container, buttons, null, IsValid() ? HexToRustColor("#7ebf37", 0.6f) : "0.1 0.1 0.1 0.85", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10, xMin: 0.85f, command: "modal.confirm");
 
 			if (Pages > 0)
 			{
 				var pages = cui.CreatePanel(container, panel, null, "0 0 0 0", xMin: 0.1f, xMax: 0.9f, yMin: 0.15f, yMax: 0.2f);
 				cui.CreateText(container, pages, null, "1 1 1 0.7", $"{Page + 1:n0} / {Pages + 1:n0}", 10, xMin: 0.82f, xMax: 0.92f);
-				cui.CreateProtectedButton(container, pages, null, Page == 0 ? "0.2 0.2 0.2 0.6" : CUI.HexToRustColor("#7ebf37", 0.6f), "1 1 1 0.7", "<", 10, xMin: 0.82f, xMax: 0.90f, OxMin: -30, OxMax: -30, command: "modal.page -");
-				cui.CreateProtectedButton(container, pages, null, Page == Pages ? "0.2 0.2 0.2 0.6" : CUI.HexToRustColor("#7ebf37", 0.6f), "1 1 1 0.7", ">", 10, xMin: 0.92f, command: "modal.page +");
+				cui.CreateProtectedButton(container, pages, null, Page == 0 ? "0.2 0.2 0.2 0.6" : HexToRustColor("#7ebf37", 0.6f), "1 1 1 0.7", "<", 10, xMin: 0.82f, xMax: 0.90f, OxMin: -30, OxMax: -30, command: "modal.page -");
+				cui.CreateProtectedButton(container, pages, null, Page == Pages ? "0.2 0.2 0.2 0.6" : HexToRustColor("#7ebf37", 0.6f), "1 1 1 0.7", ">", 10, xMin: 0.92f, command: "modal.page +");
 			}
 		}
 
@@ -5683,10 +5781,18 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public object Value { get; set; }
 			public FieldTypes Type { get; set; }
 			public bool IsRequired { get; set; }
+			public bool IsReadOnly { get; set; }
+
+			public T Get<T>()
+			{
+				return (T)Value;
+			}
+
+			public Func<Field, string> CustomIsInvalid { get; set; }
 
 			public bool IsInvalid()
 			{
-				return IsRequired && (Value == null || string.IsNullOrEmpty(Value.ToString()));
+				return IsRequired && (Value == null || string.IsNullOrEmpty(Value.ToString())) || !string.IsNullOrEmpty(CustomIsInvalid?.Invoke(this));
 			}
 
 			public enum FieldTypes
@@ -5700,14 +5806,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				HexColor
 			}
 
-			public static Field Make(string displayName, FieldTypes type, bool required = false, object @default = null)
+			public static Field Make(string displayName, FieldTypes type, bool required = false, object @default = null, bool isReadOnly = false, Func<Field, string> customIsInvalid = null)
 			{
 				return new Field
 				{
 					DisplayName = displayName,
 					Type = type,
 					IsRequired = required,
-					Value = @default
+					Value = @default,
+					IsReadOnly = isReadOnly,
+					CustomIsInvalid = customIsInvalid
 				};
 			}
 			public static Field Make(string displayName, FieldTypes type, object @default)
@@ -5729,7 +5837,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			public string[] Options { get; set; }
 
-			public static EnumField MakeEnum(string displayName, string[] options, bool required = false, object @default = null)
+			public static EnumField MakeEnum(string displayName, string[] options, bool required = false, object @default = null, bool isReadOnly = false, Func<Field, string> customIsInvalid = null)
 			{
 				return new EnumField
 				{
@@ -5737,7 +5845,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Type = FieldTypes.Enum,
 					IsRequired = required,
 					Value = @default,
-					Options = options
+					Options = options,
+					IsReadOnly = isReadOnly,
+					CustomIsInvalid = customIsInvalid
 				};
 			}
 			public static EnumField MakeEnum(string displayName, string[] options, object @default)
@@ -5761,60 +5871,64 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var modal = ap.GetStorage<Modal>(null, "modal");
 
 		var field = modal.Fields[arg.Args[0]];
-		var value = arg.Args.Skip(1).ToArray().ToString(" ");
 
-		switch (field.Type)
+		if (!field.IsReadOnly)
 		{
-			case Modal.Field.FieldTypes.String:
-				field.Value = value;
-				break;
+			var value = arg.Args.Skip(1).ToArray().ToString(" ");
 
-			case Modal.Field.FieldTypes.Integer:
-				field.Value = value.ToInt();
-				break;
+			switch (field.Type)
+			{
+				case Modal.Field.FieldTypes.String:
+					field.Value = value;
+					break;
 
-			case Modal.Field.FieldTypes.Float:
-				field.Value = value.ToFloat();
-				break;
+				case Modal.Field.FieldTypes.Integer:
+					field.Value = value.ToInt();
+					break;
 
-			case Modal.Field.FieldTypes.Boolean:
-				field.Value = !value.ToBool(false);
-				break;
+				case Modal.Field.FieldTypes.Float:
+					field.Value = value.ToFloat();
+					break;
 
-			case Modal.Field.FieldTypes.RustColor:
-			case Modal.Field.FieldTypes.HexColor:
-				Community.Runtime.CorePlugin.NextFrame(() =>
-				{
-					OpenColorPicker(ap.Player, (hexColor, rustColor) =>
+				case Modal.Field.FieldTypes.Boolean:
+					field.Value = !value.ToBool(false);
+					break;
+
+				case Modal.Field.FieldTypes.RustColor:
+				case Modal.Field.FieldTypes.HexColor:
+					Community.Runtime.CorePlugin.NextFrame(() =>
 					{
-						if (field.Type == Modal.Field.FieldTypes.RustColor) field.Value = rustColor;
-						else field.Value = $"#{hexColor}";
+						OpenColorPicker(ap.Player, (hexColor, rustColor) =>
+						{
+							if (field.Type == Modal.Field.FieldTypes.RustColor) field.Value = rustColor;
+							else field.Value = $"#{hexColor}";
 
-						modal.Draw(ap.Player);
+							modal.Draw(ap.Player);
+						});
 					});
-				});
-				break;
+					break;
 
-			case Modal.Field.FieldTypes.Enum:
-				var @enum = field as Modal.EnumField;
-				var enumValue = field.Value == null ? 0 : field.Value.ToString().ToInt();
-				switch (value)
-				{
-					case "+":
-						enumValue++;
-						break;
+				case Modal.Field.FieldTypes.Enum:
+					var @enum = field as Modal.EnumField;
+					var enumValue = field.Value == null ? 0 : field.Value.ToString().ToInt();
+					switch (value)
+					{
+						case "+":
+							enumValue++;
+							break;
 
-					case "-":
-						enumValue--;
-						field.Value = enumValue - 1;
-						break;
-				}
+						case "-":
+							enumValue--;
+							field.Value = enumValue - 1;
+							break;
+					}
 
-				if (enumValue > @enum.Options.Length - 1) enumValue = 0;
-				else if (enumValue < 0) enumValue = @enum.Options.Length - 1;
+					if (enumValue > @enum.Options.Length - 1) enumValue = 0;
+					else if (enumValue < 0) enumValue = @enum.Options.Length - 1;
 
-				field.Value = enumValue;
-				break;
+					field.Value = enumValue;
+					break;
+			}
 		}
 
 		modal.Draw(ap.Player);

@@ -169,7 +169,6 @@ namespace Carbon
 					{
 						case 1:
 							{
-
 								foreach (var conflict in conflicts)
 								{
 									if (conflict.Result?.ToString() != localResult?.ToString())
