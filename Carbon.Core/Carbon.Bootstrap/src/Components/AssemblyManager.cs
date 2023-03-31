@@ -510,8 +510,11 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
 			return output.Count() > 0;
 		}
-		catch (System.Exception)
+		catch (Exception ex)
 		{
+#if DEBUG
+			Logger.Error($"Failed IsType<{typeof(T).FullName}>", ex);
+#endif
 			output = new List<Type>();
 			return false;
 		}
@@ -561,6 +564,8 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Rust.Platform",
 		"Rust.Workshop",
 		"Rust.World",
+
+		"Unity.Mathematics",
 
 		"UnityEngine.AIModule",
 		"UnityEngine.CoreModule",
