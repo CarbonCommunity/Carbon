@@ -513,10 +513,13 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
 			return output.Count() > 0;
 		}
-		catch (Exception ex)
-		{
+		catch
 #if DEBUG
+		(Exception ex)
+		{
 			Logger.Error($"Failed IsType<{typeof(T).FullName}>", ex);
+#else
+		{
 #endif
 			output = new List<Type>();
 			return false;
@@ -530,10 +533,13 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			output = GetTypesFromAssembly(assembly).Where(x => x.GetInterfaces().Contains(typeof(T)));
 			return output.Count() > 0;
 		}
-		catch (Exception ex)
-		{
+		catch
 #if DEBUG
+		(Exception ex)
+		{
 			Logger.Error($"Failed IsExtensionAssembly<{typeof(T).FullName}>", ex);
+#else
+		{
 #endif
 			output = new List<Type>();
 			return false;
