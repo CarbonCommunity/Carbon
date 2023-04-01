@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Carbon.Base;
 using Carbon.Contracts;
 using Carbon.Core;
@@ -17,6 +18,7 @@ using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
+using SharpCompress.Common;
 using UnityEngine;
 using static UnityEngine.UI.GridLayoutGroup;
 
@@ -46,26 +48,12 @@ public class ScriptLoader : IDisposable, IScriptLoader
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
 
-	internal WaitForSeconds _serverExhale = new(0.1f);
-
 	public void Load()
 	{
 		try
 		{
 			var directory = Path.GetDirectoryName(File);
 			IsExtension = directory.EndsWith("extensions");
-
-			if (!string.IsNullOrEmpty(File) && OsEx.File.Exists(File)) Source = OsEx.File.ReadText(File);
-
-			if (Parser != null)
-			{
-				Parser.Process(Source, out var newSource);
-
-				if (!string.IsNullOrEmpty(newSource))
-				{
-					Source = newSource;
-				}
-			}
 
 			Community.Runtime.ScriptProcessor.StartCoroutine(Compile());
 		}
@@ -133,8 +121,42 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		}
 	}
 
+	IEnumerator ReadFileAsync(string filePath, Action<string> onRead)
+	{
+		var task = Task.Run(async () =>
+		{
+			using var reader = new StreamReader(filePath, encoding: Encoding.UTF8);
+			return await reader.ReadToEndAsync();
+		});
+
+		while (!task.IsCompleted)
+		{
+			yield return null;
+		}
+
+		var unicodePass = Encoding.UTF8.GetBytes(task.Result);
+		var utf8Pass = Encoding.UTF8.GetString(unicodePass);
+
+		onRead?.Invoke(utf8Pass);
+	}
+
 	public IEnumerator Compile()
 	{
+		if (string.IsNullOrEmpty(Source) && !string.IsNullOrEmpty(File) && OsEx.File.Exists(File))
+			yield return ReadFileAsync(File, content => Source = content);
+
+		if (Parser != null)
+		{
+			Parser.Process(Source, out var newSource);
+
+			yield return null;
+
+			if (!string.IsNullOrEmpty(newSource))
+			{
+				Source = newSource;
+			}
+		}
+
 		if (string.IsNullOrEmpty(Source))
 		{
 			HasFinished = true;
@@ -171,8 +193,12 @@ public class ScriptLoader : IDisposable, IScriptLoader
 					}
 				}
 				catch { }
+
+				yield return null;
 			}
 		}
+
+		yield return null;
 
 		Pool.Free(ref lines);
 		if (AsyncLoader != null)
@@ -188,9 +214,10 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 		HasRequires = AsyncLoader.Requires.Length > 0;
 
+		yield return null;
+
 		while (HasRequires && !Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete() && !IsExtension && !Community.Runtime.ScriptProcessor.AllExtensionsComplete())
 		{
-			yield return _serverExhale;
 			yield return null;
 		}
 
@@ -207,6 +234,8 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			else requires.Add(plugin);
 		}
 
+		yield return null;
+
 		if (noRequiresFound)
 		{
 			Loader.PostBatchFailedRequirees.Add(File);
@@ -214,6 +243,8 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			Pool.FreeList(ref requires);
 			yield break;
 		}
+
+		yield return null;
 
 		Carbon.Components.Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
 
@@ -226,13 +257,18 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		AsyncLoader.Start();
 #endif
 
-		while (AsyncLoader != null && !AsyncLoader.IsDone) { yield return null; }
+		while (AsyncLoader != null && !AsyncLoader.IsDone)
+		{
+			yield return null;
+		}
 
 		if (AsyncLoader == null)
 		{
 			HasFinished = true;
 			yield break;
 		}
+
+		yield return null;
 
 		if (AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0)
 		{
@@ -266,6 +302,8 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 		var assembly = AsyncLoader.Assembly;
 		var firstPlugin = true;
+
+		yield return null;
 
 		foreach (var type in assembly.GetTypes())
 		{
@@ -355,7 +393,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 				Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}': ", exception);
 			}
 
-			yield return _serverExhale;
+			yield return null;
 		}
 
 		foreach (var uhList in AsyncLoader.UnsupportedHooks)
