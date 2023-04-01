@@ -134,10 +134,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			yield return null;
 		}
 
-		var unicodePass = Encoding.UTF8.GetBytes(task.Result);
-		var utf8Pass = Encoding.UTF8.GetString(unicodePass);
-
-		onRead?.Invoke(utf8Pass);
+		onRead?.Invoke(task.Result);
 	}
 
 	public IEnumerator Compile()
