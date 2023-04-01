@@ -335,6 +335,15 @@ public class Permission : Library
 
 		return result;
 	}
+	public virtual GroupData GetGroupData(string id)
+	{
+		if (groupdata.TryGetValue(id, out var result))
+		{
+			return result;
+		}
+
+		return null;
+	}
 
 	public virtual KeyValuePair<string, UserData> FindUser(string id)
 	{
