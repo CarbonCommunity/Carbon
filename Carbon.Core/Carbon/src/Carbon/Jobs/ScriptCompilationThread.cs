@@ -111,7 +111,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var processedReference = MetadataReference.CreateFromStream(mem);
 
 			references.Add(processedReference);
-			_referenceCache.Add(name, processedReference);
+			if(!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
