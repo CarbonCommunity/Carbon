@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
+using Carbon.Core;
 using Carbon.Extensions;
 using Network;
 using Newtonsoft.Json;
@@ -1575,6 +1576,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Player = player;
 		}
 
+		public void SetPage(int column, int page)
+		{
+			if(ColumnPages.TryGetValue(column, out var pageInstance))
+			{
+				pageInstance.CurrentPage = page;
+				pageInstance.Check();
+			}
+		}
 		public T GetStorage<T>(Tab tab, string id, object @default = null)
 		{
 			try
@@ -2342,22 +2351,26 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(0, "Options", TextAnchor.MiddleLeft);
 
-			tab.AddButton(0, "Players", instance =>
+			tab.AddButton(0, "Players", ap =>
 			{
+				ap.SetStorage(tab, "groupedit", false);
+
 				tab.ClearColumn(1);
 				tab.ClearColumn(2);
 				tab.ClearColumn(3);
-				instance.Clear();
+				ap.Clear();
 
-				instance.SetStorage(tab, "option", 0);
+				ap.SetStorage(tab, "option", 0);
 
-				GeneratePlayers(tab, permission, instance);
+				GeneratePlayers(tab, permission, ap);
 			}, type: (ap) => ap.GetStorage<int>(tab, "option", 0) == 0 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 
 			GeneratePlayers(tab, permission, PlayerSession.Blank);
 
 			tab.AddButton(0, "Groups", ap =>
 			{
+				ap.SetStorage(tab, "groupedit", false);
+
 				tab.ClearColumn(1);
 				tab.ClearColumn(2);
 				tab.ClearColumn(3);
@@ -2417,8 +2430,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public static void GeneratePlugins(Tab tab, PlayerSession ap, Permission permission, BasePlayer player, string selectedGroup)
 		{
+			var groupEdit = ap.GetStorage<bool>(tab, "groupedit");
 			var filter = ap.GetStorage<string>(tab, "pluginfilter", string.Empty)?.Trim().ToLower();
-			var plugins = Community.Runtime.Plugins.Plugins.Where(x =>
+			var plugins = Loader.LoadedMods.SelectMany(x => x.Plugins).Where(x =>
 			{
 				if (!string.IsNullOrEmpty(filter))
 				{
@@ -2431,18 +2445,23 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.ClearColumn(2);
 			if (string.IsNullOrEmpty(selectedGroup))
 			{
-				tab.AddButton(2, "Select", ap2 =>
+				tab.AddName(2, $"{player.displayName}");
+				tab.AddButtonArray(2, new Tab.OptionButton("Select Player", (ap2) =>
 				{
 					Singleton.SetTab(ap.Player, "players");
 					var tab = Singleton.GetTab(ap.Player);
 					ap.SetStorage(tab, "playerfilterpl", player);
 					PlayersTab.RefreshPlayers(tab, ap);
 					PlayersTab.ShowInfo(tab, ap, player);
-				});
+				}, ap => Tab.OptionButton.Types.Warned), new Tab.OptionButton(groupEdit ? "Edit Plugins" : "Edit Groups", (ap2) =>
+				{
+					ap.SetStorage(tab, "groupedit", !groupEdit);
+					GeneratePlugins(tab, ap, permission, player, null);
+				}));
 			}
 			else
 			{
-				tab.AddName(2, $"Group '{selectedGroup}' Permissions");
+				tab.AddName(2, $"{selectedGroup}");
 				tab.AddButtonArray(2, new Tab.OptionButton("Delete", ap =>
 				{
 					tab.CreateDialog($"Are you sure you want to delete the '{selectedGroup}' group?", ap2 =>
@@ -2489,24 +2508,59 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					});
 				}));
 			}
-			tab.AddName(2, "Plugins", TextAnchor.MiddleLeft);
+
+			if (groupEdit)
 			{
-				tab.AddInput(2, "Search", ap => ap.GetStorage<string>(tab, "pluginfilter", string.Empty), (ap, args) =>
-				{
-					ap.SetStorage(tab, "pluginfilter", args.ToString(" "));
-					GeneratePlugins(tab, ap, permission, player, selectedGroup);
-				});
+				tab.ClearColumn(3);
 
-				foreach (var plugin in plugins)
+				tab.AddName(2, "Groups", TextAnchor.MiddleLeft);
 				{
-					tab.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
+					tab.AddInput(2, "Search", ap => ap.GetStorage<string>(tab, "groupfilter", string.Empty), (ap, args) =>
 					{
-						ap.SetStorage(tab, "plugin", plugin);
-						ap.SetStorage(tab, "pluginr", instance3.LastPressedRow);
-						ap.SetStorage(tab, "pluginc", instance3.LastPressedColumn);
+						ap.SetStorage(tab, "groupfilter", args.ToString(" "));
+						GeneratePlugins(tab, ap, permission, player, selectedGroup);
+					});
 
-						GeneratePermissions(tab, permission, plugin, player, selectedGroup);
-					}, type: (_instance) => ap.GetStorage<RustPlugin>(tab, "plugin", null) == plugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+					var groupFilter = ap.GetStorage<string>(tab, "groupfilter");
+
+					foreach (var group in permission.GetGroups())
+					{
+						if (!string.IsNullOrEmpty(groupFilter) && !group.Contains(groupFilter)) continue;
+
+						tab.AddButton(2, $"{group}", ap =>
+						{
+							if (permission.UserHasGroup(player.UserIDString, group))
+							{
+								permission.RemoveUserGroup(player.UserIDString, group);
+							}
+							else permission.AddUserGroup(player.UserIDString, group);
+
+							GeneratePlugins(tab, ap, permission, player, selectedGroup);
+						}, type: (_instance) => permission.UserHasGroup(player.UserIDString, group) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
+					}
+				}
+			}
+			else
+			{
+				tab.AddName(2, "Plugins", TextAnchor.MiddleLeft);
+				{
+					tab.AddInput(2, "Search", ap => ap.GetStorage<string>(tab, "pluginfilter", string.Empty), (ap, args) =>
+					{
+						ap.SetStorage(tab, "pluginfilter", args.ToString(" "));
+						GeneratePlugins(tab, ap, permission, player, selectedGroup);
+					});
+
+					foreach (var plugin in plugins)
+					{
+						tab.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
+						{
+							ap.SetStorage(tab, "plugin", plugin);
+							ap.SetStorage(tab, "pluginr", instance3.LastPressedRow);
+							ap.SetStorage(tab, "pluginc", instance3.LastPressedColumn);
+
+							GeneratePermissions(tab, permission, plugin, player, selectedGroup);
+						}, type: (_instance) => ap.GetStorage<RustPlugin>(tab, "plugin", null) == plugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+					}
 				}
 			}
 		}
@@ -2554,11 +2608,51 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public static void GenerateGroups(Tab tab, Permission perms, PlayerSession ap)
 		{
+			tab.ClearColumn(1);
 			tab.AddName(1, "Groups", TextAnchor.MiddleLeft);
 			{
-				foreach (var group in perms.GetGroups())
+				tab.AddInput(1, "Search", ap => ap.GetStorage<string>(tab, "groupfilter", string.Empty), (ap, args) =>
 				{
-					tab.AddRow(1, new Tab.OptionButton($"{group}", instance2 =>
+					ap.SetStorage(tab, "groupfilter", args.ToString(" "));
+					GenerateGroups(tab, perms, ap);
+				});
+
+				var groupFilter = ap.GetStorage<string>(tab, "groupfilter");
+
+				tab.AddButton(1, "Add Group", ap =>
+				{
+					var temp = Pool.GetList<string>();
+					var groups = Community.Runtime.CorePlugin.permission.GetGroups();
+					temp.Add("None");
+					temp.AddRange(groups);
+
+					var array = temp.ToArray();
+					Pool.FreeList(ref temp);
+
+					Modal.Open(ap.Player, "Create Group", new Dictionary<string, Modal.Field>()
+					{
+						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true),
+						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String),
+						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer),
+						["parent"] = Modal.EnumField.MakeEnum("Parent", array)
+					}, onConfirm: (player, modal) =>
+					{
+						var parentIndex = modal.Get<int>("parent");
+						Community.Runtime.CorePlugin.permission.CreateGroup(modal.Get<string>("name"), modal.Get<string>("dname"), modal.Get<int>("rank"));
+						if (parentIndex != 0) Community.Runtime.CorePlugin.permission.SetGroupParent(modal.Get<string>("name"), array[parentIndex]);
+
+						tab.ClearColumn(1);
+						tab.ClearColumn(2);
+						tab.ClearColumn(3);
+						GenerateGroups(tab, perms, ap);
+					});
+				}, (_instance) => Tab.OptionButton.Types.Warned);
+
+				foreach (var group in permission.GetGroups())
+				{
+					if (!string.IsNullOrEmpty(groupFilter) && !group.Contains(groupFilter)) continue;
+
+					tab.AddButton(1, $"{group}", instance2 =>
 					{
 						ap.SetStorage(tab, "group", group);
 						ap.ClearStorage(tab, "plugin");
@@ -2567,37 +2661,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.ClearColumn(3);
 
 						GeneratePlugins(tab, ap, permission, ap.Player, group);
-					}, type: (_instance) => ap.GetStorage<string>(tab, "group", string.Empty) == group ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+					}, type: (_instance) => ap.GetStorage<string>(tab, "group", string.Empty) == group ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 				}
 			}
-			tab.AddRow(1, new Tab.OptionButton("Add Group", ap =>
-			{
-				var temp = Pool.GetList<string>();
-				var groups = Community.Runtime.CorePlugin.permission.GetGroups();
-				temp.Add("None");
-				temp.AddRange(groups);
-
-				var array = temp.ToArray();
-				Pool.FreeList(ref temp);
-
-				Modal.Open(ap.Player, "Create Group", new Dictionary<string, Modal.Field>()
-				{
-					["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true),
-					["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String),
-					["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer),
-					["parent"] = Modal.EnumField.MakeEnum("Parent", array)
-				}, onConfirm: (player, modal) =>
-				{
-					var parentIndex = modal.Get<int>("parent");
-					Community.Runtime.CorePlugin.permission.CreateGroup(modal.Get<string>("name"), modal.Get<string>("dname"), modal.Get<int>("rank"));
-					if (parentIndex != 0) Community.Runtime.CorePlugin.permission.SetGroupParent(modal.Get<string>("name"), array[parentIndex]);
-
-					tab.ClearColumn(1);
-					tab.ClearColumn(2);
-					tab.ClearColumn(3);
-					GenerateGroups(tab, perms,  ap);
-				});
-			}, (_instance) => Tab.OptionButton.Types.Warned));
 		}
 	}
 	public class EntitiesTab
