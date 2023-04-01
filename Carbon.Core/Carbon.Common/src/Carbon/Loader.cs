@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml.Linq;
-using API.Contracts;
 using API.Events;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
 using Newtonsoft.Json;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 using Report = Carbon.Components.Report;
 
@@ -151,7 +150,7 @@ public static class Loader
 		{
 			try
 			{
-				if (!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) return;
+				if (!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) continue;
 
 				if (!IsValidPlugin(type)) continue;
 

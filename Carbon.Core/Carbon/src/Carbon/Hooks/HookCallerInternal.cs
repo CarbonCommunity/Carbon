@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using Carbon.Base;
+using Carbon.Extensions;
 using Facepunch;
 
 namespace Carbon.Hooks
@@ -72,6 +74,30 @@ namespace Carbon.Hooks
 			}
 		}
 
+		internal static Conflict _defaultConflict = new()
+		{
+			Priority = Priorities.Low
+		};
+		internal static string _getPriorityName(Priorities priority)
+		{
+			switch (priority)
+			{
+				case Priorities.Low:
+					return "lower";
+
+				case Priorities.Normal:
+					return "normal";
+
+				case Priorities.High:
+					return "higher";
+
+				case Priorities.Highest:
+					return "highest";
+			}
+
+			return "normal";
+		}
+
 		public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority)
 		{
 			priority = Priorities.Normal;
@@ -91,6 +117,7 @@ namespace Carbon.Hooks
 					{
 						priority = cachedHook.Priority;
 						result = methodResult;
+						ResultOverride(plugin, priority);
 					}
 				}
 			}
@@ -118,6 +145,7 @@ namespace Carbon.Hooks
 					{
 						priority = cachedHook.Priority;
 						result = methodResult;
+						ResultOverride(plugin, priority);
 					}
 				}
 				catch (ArgumentException) { }
@@ -165,7 +193,66 @@ namespace Carbon.Hooks
 				return result2;
 			}
 
+			ConflictCheck();
+
 			Pool.FreeList(ref conflicts);
+
+			void ResultOverride(BaseHookable hookable, Priorities priority)
+			{
+				conflicts.Add(Conflict.Make(hookable, hookName, result, priority));
+			}
+			void ConflictCheck()
+			{
+				var differentResults = false;
+
+				if (conflicts.Count > 1)
+				{
+					var localResult = conflicts[0].Result;
+
+					switch (conflicts.Count)
+					{
+						case 1:
+							{
+								foreach (var conflict in conflicts)
+								{
+									if (conflict.Result?.ToString() != localResult?.ToString())
+									{
+										differentResults = true;
+									}
+									else localResult = conflict.Result;
+								}
+
+								if (differentResults) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}': {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToArray().ToString(", ", " and ")}");
+
+								break;
+							}
+
+						default:
+							var priorityConflict = _defaultConflict;
+
+							foreach (var conflict in conflicts)
+							{
+								if (conflict.Result?.ToString() != localResult?.ToString())
+								{
+									differentResults = true;
+								}
+
+								if (conflict.Priority > priorityConflict.Priority)
+								{
+									priorityConflict = conflict;
+								}
+							}
+
+							localResult = priorityConflict.Result;
+							if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+
+							break;
+					}
+
+					result = localResult;
+				}
+			}
+
 			return result;
 		}
 		public override object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority)

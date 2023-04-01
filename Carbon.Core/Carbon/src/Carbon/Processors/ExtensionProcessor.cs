@@ -33,9 +33,18 @@ public class ExtensionProcessor : BaseProcessor
 		foreach (var type in AccessToolsEx.AllTypes().Where(x => x.GetInterfaces().Contains(typeof(ICarbonExtension))))
 		{
 			var ext = Activator.CreateInstance(type) as ICarbonExtension;
-			if (init) ext.OnLoaded(EventArgs.Empty); else ext.OnUnloaded(EventArgs.Empty);
+			try
+			{
+				if (init) ext.OnLoaded(EventArgs.Empty);
+				else ext.OnUnloaded(EventArgs.Empty);
 
-			Logger.Log($"{(init ? "Installed" : "Uninstalled")} Carbon extension '{type.FullName}'");
+				Logger.Log($" {(init ? "Installed" : "Uninstalled")} Carbon extension '{type.FullName}'");
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed {(init ? "loading" : "unloading")} Carbon extension '{type.FullName}'", ex);
+			}
+
 			count++;
 		}
 	}

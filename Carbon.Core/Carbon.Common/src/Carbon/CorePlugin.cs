@@ -15,6 +15,7 @@ using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries;
 using Oxide.Plugins;
 using UnityEngine;
@@ -161,6 +162,7 @@ public class CorePlugin : CarbonPlugin
 
 		return null;
 	}
+
 	private object IOnBasePlayerAttacked(BasePlayer basePlayer, HitInfo hitInfo)
 	{
 		if (!Community.IsServerFullyInitializedCache || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
@@ -191,7 +193,7 @@ public class CorePlugin : CarbonPlugin
 		}
 		catch { }
 
-		return true;
+		return null;
 	}
 	private object IOnBasePlayerHurt(BasePlayer basePlayer, HitInfo hitInfo)
 	{

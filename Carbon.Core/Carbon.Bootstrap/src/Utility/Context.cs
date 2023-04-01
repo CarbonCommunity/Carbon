@@ -18,7 +18,8 @@ internal sealed class Context
 	internal static readonly string
 		Game, GameManaged,
 
-		Carbon, CarbonManaged, CarbonLib, CarbonHarmony, CarbonHooks, CarbonModules, CarbonExtensions, CarbonPlugins, CarbonLogs;
+		Carbon, CarbonData, CarbonExtensions, CarbonHarmony, CarbonHooks,
+		CarbonLib, CarbonLogs, CarbonManaged, CarbonModules, CarbonPlugins;
 
 	static Context()
 	{
@@ -42,11 +43,11 @@ internal sealed class Context
 			Carbon = Path.GetFullPath(Path.Combine(Game, "carbon"));
 			if (!Directory.Exists(Carbon)) throw new Exception("Carbon folder is missing");
 
-			CarbonManaged = Path.Combine(Carbon, "managed");
-			if (!Directory.Exists(CarbonManaged)) Directory.CreateDirectory(CarbonManaged);
+			CarbonData = Path.Combine(Carbon, "data");
+			if (!Directory.Exists(CarbonData)) Directory.CreateDirectory(CarbonData);
 
-			CarbonLib = Path.Combine(Carbon, "managed", "lib");
-			if (!Directory.Exists(CarbonLib)) Directory.CreateDirectory(CarbonLib);
+			CarbonExtensions = Path.Combine(Carbon, "extensions");
+			if (!Directory.Exists(CarbonExtensions)) Directory.CreateDirectory(CarbonExtensions);
 
 			CarbonHarmony = Path.Combine(Carbon, "harmony");
 			if (!Directory.Exists(CarbonHarmony)) Directory.CreateDirectory(CarbonHarmony);
@@ -54,17 +55,20 @@ internal sealed class Context
 			CarbonHooks = Path.Combine(Carbon, "managed", "hooks");
 			if (!Directory.Exists(CarbonHooks)) Directory.CreateDirectory(CarbonHooks);
 
-			CarbonModules = Path.Combine(Carbon, "managed", "modules");
-			if (!Directory.Exists(CarbonModules)) Directory.CreateDirectory(CarbonModules);
-
-			CarbonExtensions = Path.Combine(Carbon, "extensions");
-			if (!Directory.Exists(CarbonExtensions)) Directory.CreateDirectory(CarbonExtensions);
-
-			CarbonPlugins = Path.Combine(Carbon, "plugins");
-			if (!Directory.Exists(CarbonPlugins)) Directory.CreateDirectory(CarbonPlugins);
+			CarbonLib = Path.Combine(Carbon, "managed", "lib");
+			if (!Directory.Exists(CarbonLib)) Directory.CreateDirectory(CarbonLib);
 
 			CarbonLogs = Path.Combine(Carbon, "logs");
 			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonLogs);
+
+			CarbonManaged = Path.Combine(Carbon, "managed");
+			if (!Directory.Exists(CarbonManaged)) Directory.CreateDirectory(CarbonManaged);
+
+			CarbonModules = Path.Combine(Carbon, "managed", "modules");
+			if (!Directory.Exists(CarbonModules)) Directory.CreateDirectory(CarbonModules);
+
+			CarbonPlugins = Path.Combine(Carbon, "plugins");
+			if (!Directory.Exists(CarbonPlugins)) Directory.CreateDirectory(CarbonPlugins);
 		}
 		catch (System.Exception e)
 		{

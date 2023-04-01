@@ -5,6 +5,7 @@ using System.Linq;
 using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 /*

@@ -34,15 +34,15 @@ namespace Components;
 	A HOOK is a set of harmony patche which trigger events.
 
 	4) Module - API.Contracts.ICarbonModule
-	A MODULE is an optional feature for Carbon which is not required for the core
-	functionality of the framework. Modules CAN access sensitive parts of the
-	Carbon framework.
+	A MODULE is an optional part of Carbon, they can provide new functionality
+	and/or are able to interact with the game directly. MODULES should only be
+	created by the Carbon team as they CAN access sensitive parts of the framework.
 
 	5) Extensions - API.Contracts.ICarbonExtension
-	An EXTENSION is an assembly just like a plugin with the difference that it will
-	be passed as a reference to the Rosylin compiler so plugins can use them. Note
-	that another huge difference to MODULES is that wxtensions CANNOT access
-	sensitive parts of the Carbon framework.
+	An EXTENSION are userland code that extend the framework with additional
+	functionality but, for most cases EXTENSIONS shoulld not interact with the
+	game directly. EXTENSIONS will also be passed by reference to the Rosylin
+	compiler so plugins can use their feature set.
 
 	6) Plugins
 	Not applicable for now.
@@ -292,8 +292,11 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
-					if (IsType<ICarbonExtension>(asm, out types))
+					Logger.Log($"{file} {requester} {asm == null}");
+					if (IsExtensionAssembly<ICarbonExtension>(asm, out types))
 					{
+						Logger.Log($"  IS EXTENSION");
+
 						Logger.Debug($"Loading extension from file '{file}'");
 
 						foreach (Type type in types)
@@ -510,10 +513,49 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
 			return output.Count() > 0;
 		}
-		catch (System.Exception)
+		catch
+#if DEBUG
+		(Exception ex)
 		{
+			Logger.Error($"Failed IsType<{typeof(T).FullName}>", ex);
+#else
+		{
+#endif
 			output = new List<Type>();
 			return false;
+		}
+	}
+	private bool IsExtensionAssembly<T>(Assembly assembly, out IEnumerable<Type> output) where T : ICarbonExtension
+	{
+		try
+		{
+			Type @base = typeof(T) ?? throw new Exception();
+			output = GetTypesFromAssembly(assembly).Where(x => x.GetInterfaces().Contains(typeof(T)));
+			return output.Count() > 0;
+		}
+		catch
+#if DEBUG
+		(Exception ex)
+		{
+			Logger.Error($"Failed IsExtensionAssembly<{typeof(T).FullName}>", ex);
+#else
+		{
+#endif
+			output = new List<Type>();
+			return false;
+		}
+	}
+
+	public static Type[] GetTypesFromAssembly(Assembly assembly)
+	{
+		try
+		{
+			return assembly.GetTypes();
+		}
+		catch (ReflectionTypeLoadException ex)
+		{
+			Logger.Debug($"AccessTools.GetTypesFromAssembly: assembly {assembly} => {ex}");
+			return ex.Types.Where((Type type) => (object)type != null).ToArray();
 		}
 	}
 
@@ -561,6 +603,8 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Rust.Platform",
 		"Rust.Workshop",
 		"Rust.World",
+
+		"Unity.Mathematics",
 
 		"UnityEngine.AIModule",
 		"UnityEngine.CoreModule",

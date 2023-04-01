@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Carbon;
 using Carbon.Base;
@@ -10,6 +10,7 @@ using Carbon.Core;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Core.Configuration;
+using Oxide.Plugins;
 
 /*
  *
@@ -18,11 +19,13 @@ using Oxide.Core.Configuration;
  *
  */
 
-namespace Oxide.Plugins
+namespace Oxide.Core.Plugins
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Plugin : BaseHookable, IDisposable
 	{
+		public PluginManager Manager { get; set; }
+
 		public bool IsCorePlugin { get; set; }
 
 		[JsonProperty]
@@ -519,6 +522,53 @@ namespace Oxide.Plugins
 		public DynamicConfigFile Config { get; internal set; }
 
 		public bool IsLoaded { get; set; }
+
+		protected virtual void LoadConfig()
+		{
+			Config = new DynamicConfigFile(Path.Combine(Manager.ConfigPath, Name + ".json"));
+
+			if (!Config.Exists(null))
+			{
+				LoadDefaultConfig();
+
+				if (Config.Count() > 0)
+				{
+					SaveConfig();
+				}
+			}
+			try
+			{
+				if (Config.Exists(null)) Config.Load(null);
+			}
+			catch (Exception ex)
+			{
+				Carbon.Logger.Error("Failed to load config file (is the config file corrupt?) (" + ex.Message + ")");
+			}
+		}
+		protected virtual void LoadDefaultConfig()
+		{
+			//CallHook ( "LoadDefaultConfig" );
+		}
+		protected virtual void SaveConfig()
+		{
+			if (Config == null)
+			{
+				return;
+			}
+			try
+			{
+				Config.Save(null);
+			}
+			catch (Exception ex)
+			{
+				Carbon.Logger.Error("Failed to save config file (does the config have illegal objects in it?) (" + ex.Message + ")", ex);
+			}
+		}
+
+		protected virtual void LoadDefaultMessages()
+		{
+
+		}
 
 		public new string ToString()
 		{
