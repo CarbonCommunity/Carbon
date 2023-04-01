@@ -111,7 +111,7 @@ namespace Oxide.Game.Rust.Libraries
 				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 				if (arguments != null) Pool.FreeList(ref arguments);
-				if (result != null) Pool.FreeDynamic(ref result);
+				if (result != null) Array.Clear(result, 0, result.Length);
 			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
 		}
 		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
@@ -247,7 +247,7 @@ namespace Oxide.Game.Rust.Libraries
 				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 				Pool.FreeList(ref arguments);
-				if (result != null) Pool.FreeDynamic(ref result);
+				if (result != null) Array.Clear(result, 0, result.Length);
 			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
 		}
 		public void AddConsoleCommand(string command, BaseHookable plugin, Func<Arg, bool> callback, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
@@ -285,7 +285,7 @@ namespace Oxide.Game.Rust.Libraries
 				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 				Pool.FreeList(ref arguments);
-				if (result != null) Pool.FreeDynamic(ref result);
+				if (result != null) Array.Clear(result, 0, result.Length);
 			}, skipOriginal, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
 		}
 		public void AddCovalenceCommand(string command, BaseHookable plugin, string method, bool skipOriginal = true, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = true)

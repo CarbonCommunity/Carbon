@@ -41,7 +41,7 @@ public partial class Category_Static
 					var split = strCommand.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 					var command = split.Length == 0 ? string.Empty : split[0].Trim();
 					var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
-					Facepunch.Pool.FreeDynamic(ref split);
+					Array.Clear(split, 0, split.Length);
 
 					if (command.StartsWith("o.") || command.StartsWith("oxide."))
 					{

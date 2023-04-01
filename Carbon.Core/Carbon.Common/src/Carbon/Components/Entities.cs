@@ -37,8 +37,8 @@ public class Entities : IDisposable
 
 					type.Value.AddRange(p2);
 
-					Pool.FreeDynamic(ref p1);
-					Pool.FreeDynamic(ref p2);
+					p1 = null;
+					p2 = null;
 				}
 			}
 
@@ -140,8 +140,6 @@ public class Entities : IDisposable
 				callback.Invoke(drop);
 			}
 
-			Facepunch.Pool.FreeDynamic(ref callback);
-			Facepunch.Pool.FreeDynamic(ref condition);
 			return this;
 		}
 		public T Pick(int index)

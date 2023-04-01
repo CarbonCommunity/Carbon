@@ -151,7 +151,7 @@ namespace Carbon
 
 			Pool.FreeList(ref plugins);
 
-			if (array != null) Pool.FreeDynamic(ref array);
+			if (array != null) Array.Clear(array, 0, array.Length);
 
 			void ResultOverride(BaseHookable hookable, Priorities priority)
 			{

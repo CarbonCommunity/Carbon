@@ -212,7 +212,6 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 	public virtual void Clear(string id, IBaseProcessor.IInstance instance)
 	{
 		instance?.Dispose();
-		Pool.FreeDynamic(ref instance);
 		Remove(id);
 	}
 	public virtual void Process(string id, IBaseProcessor.IInstance instance)
