@@ -144,7 +144,7 @@ namespace Carbon
 						ResultOverride(plugin, priority);
 					}
 				}
-				catch (Exception ex) { Logger.Error("Fuck:", ex); }
+				catch (Exception ex) { Logger.Error($"Major issue with caching the '{hookName}' hook called in {plugin}", ex); }
 			}
 
 			ConflictCheck();
