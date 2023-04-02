@@ -137,7 +137,7 @@ public partial class CorePlugin : CarbonPlugin
 			_isPlayerTakingDamage = false;
 		}
 
-		return null;
+		return true;
 	}
 	private object IOnBasePlayerHurt(BasePlayer basePlayer, HitInfo hitInfo)
 	{
