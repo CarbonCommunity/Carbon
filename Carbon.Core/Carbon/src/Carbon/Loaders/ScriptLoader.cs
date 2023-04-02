@@ -31,7 +31,7 @@ using static UnityEngine.UI.GridLayoutGroup;
 
 namespace Carbon.Processors;
 
-public class ScriptLoader : IDisposable, IScriptLoader
+public class ScriptLoader : IScriptLoader
 {
 	public List<IScript> Scripts { get; set; } = new List<IScript>();
 
@@ -119,6 +119,8 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		{
 			Scripts.RemoveAll(x => !x.IsCore);
 		}
+
+		Dispose();
 	}
 
 	IEnumerator ReadFileAsync(string filePath, Action<string> onRead)
@@ -190,8 +192,6 @@ public class ScriptLoader : IDisposable, IScriptLoader
 					}
 				}
 				catch { }
-
-				yield return null;
 			}
 		}
 
@@ -209,7 +209,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		Pool.FreeList(ref resultReferences);
 		Pool.FreeList(ref resultRequires);
 
-		HasRequires = AsyncLoader.Requires.Length > 0;
+		if (AsyncLoader != null) HasRequires = AsyncLoader.Requires.Length > 0;
 
 		yield return null;
 
@@ -220,15 +220,18 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 		var requires = Pool.GetList<Plugin>();
 		var noRequiresFound = false;
-		foreach (var require in AsyncLoader.Requires)
+		if (AsyncLoader != null)
 		{
-			var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
-			if (plugin == null)
+			foreach (var require in AsyncLoader.Requires)
 			{
-				Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
-				noRequiresFound = true;
+				var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
+				if (plugin == null)
+				{
+					Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
+					noRequiresFound = true;
+				}
+				else requires.Add(plugin);
 			}
-			else requires.Add(plugin);
 		}
 
 		yield return null;
@@ -243,15 +246,15 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 		yield return null;
 
-		Carbon.Components.Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
-
+		if (AsyncLoader != null) Carbon.Components.Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
+	
 		var requiresResult = requires.ToArray();
 
 #if DISABLE_ASYNC_LOADING
 		AsyncLoader.ThreadFunction();
 		AsyncLoader.IsDone = true;
 #else
-		AsyncLoader.Start();
+		AsyncLoader?.Start();
 #endif
 
 		while (AsyncLoader != null && !AsyncLoader.IsDone)
@@ -421,7 +424,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 	public void Dispose()
 	{
-
+		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
 	}
 
 	[Serializable]

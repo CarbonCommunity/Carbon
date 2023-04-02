@@ -19,6 +19,7 @@ namespace Carbon.Contracts
 		bool AllExtensionsComplete();
 
 		void StartCoroutine(IEnumerator coroutine);
+		void StopCoroutine(IEnumerator coroutine);
 
 		void Remove(string name);
 
