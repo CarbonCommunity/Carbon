@@ -63,6 +63,12 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 		return false;
 	}
+	private object CanUnlockTechTreeNode()
+	{
+		if (ConfigInstance.NoTechTreeUnlock) return false;
+
+		return null;
+	}
 
 	public void Mute(ConsoleSystem.Arg arg)
 	{
@@ -193,6 +199,9 @@ public class ModerationToolsConfig
 
 	[JsonProperty("No give notices")]
 	public bool NoGiveNotices = true;
+
+	[JsonProperty("No TechTree unlock")]
+	public bool NoTechTreeUnlock = false;
 
 	[JsonProperty("Show server event toasts")]
 	public bool ShowServerEventToasts = true;
