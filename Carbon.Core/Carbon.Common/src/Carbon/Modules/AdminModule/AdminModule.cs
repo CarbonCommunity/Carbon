@@ -59,6 +59,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		[LogType.Warning] = "#dbbe2a",
 		[LogType.Error] = "#db2a2a"
 	};
+	internal bool HandleEnableNeedsKeyboard(PlayerSession ap)
+	{
+		return ap.SelectedTab.Dialog == null;
+	}
+	internal bool HandleEnableNeedsKeyboard(BasePlayer player)
+	{
+		return HandleEnableNeedsKeyboard(GetPlayerSession(player));
+	}
 
 	public override void Init()
 	{
@@ -408,7 +416,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0.15f, xMax: 0.85f, yMin: 0.15f, yMax: 0.85f);
 		}
 	}
-	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, int characterLimit, bool readOnly, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
+	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, int characterLimit, bool readOnly, float height, float offset, PlayerSession session, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
 	{
 		var color = type switch
 		{
@@ -448,7 +456,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			align: TextAnchor.MiddleLeft,
 			characterLimit: characterLimit,
 			readOnly: readOnly,
-			needsKeyboard: true,
+			needsKeyboard: Singleton.HandleEnableNeedsKeyboard(session),
 			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		if (!readOnly)
@@ -828,7 +836,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			align: TextAnchor.MiddleLeft,
 			characterLimit: input.CharacterLimit,
 			readOnly: input.ReadOnly,
-			needsKeyboard: true,
+			needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap),
 			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateProtectedButton(container, parent: inPanel, id: null,
@@ -1146,7 +1154,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 										break;
 
 									case Tab.OptionInput input:
-										TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(ap), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
+										TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(ap), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex, ap);
 										break;
 
 									case Tab.OptionEnum @enum:
@@ -1207,20 +1215,41 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if (tab.Dialog != null)
 					{
-						var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
-						cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
+						if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
+						{
+							tab.Dialog.OnConfirm?.Invoke(ap);
+						}
+						else
+						{
+							var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
+							cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
 
-						cui.CreateText(container, dialog, null,
-							"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
+							cui.CreateText(container, dialog, null,
+								"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
 
-						cui.CreateText(container, dialog, null,
-							"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
+							cui.CreateText(container, dialog, null,
+								"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
 
-						cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
-							xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
+							cui.CreateText(container, dialog, null,
+								"1 1 1 0.2", "<color=red><b>*</b></color> Holding <b>[SPRINT]</b> next time you open this panel will automatically confirm & close this panel.", 8, xMin: 0.02f, yMin: 0.03f, align: TextAnchor.LowerLeft);
 
-						cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
-							xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
+							cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
+								xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
+
+							cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
+								xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
+
+							Community.Runtime.CorePlugin.timer.In(0.2f, () =>
+							{
+								if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
+								{
+									try { tab.Dialog.OnConfirm?.Invoke(ap); } catch { }
+									tab.Dialog = null;
+
+									Draw(player);
+								}
+							});
+						}
 					}
 				}
 			}
@@ -2305,7 +2334,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 						{
 							using var cui = new CUI(Singleton.Handler);
-							var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+							var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 							cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 							cui.Send(container, player);
 							BlindedPlayers.Add(player);
@@ -2906,7 +2935,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 								{
 									using var cui = new CUI(Singleton.Handler);
-									var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+									var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 									cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 									cui.Send(container, player);
 									PlayersTab.BlindedPlayers.Add(player);
@@ -3541,7 +3570,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var searchQuery = ap.GetStorage<string>(tab, "search");
 			var search = cui.CreatePanel(container, topbar, null, "0 0 0 0", xMin: 0.6f, xMax: 0.855f, yMin: 0f, OyMax: -0.5f);
-			cui.CreateProtectedInputField(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.8 0.8 0.8 0.6" : "1 1 1 1", string.IsNullOrEmpty(searchQuery) ? "Search..." : searchQuery, 10, 20, false, xMin: 0.06f, align: TextAnchor.MiddleLeft, needsKeyboard: true, command: "pluginbrowser.search  ");
+			cui.CreateProtectedInputField(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.8 0.8 0.8 0.6" : "1 1 1 1", string.IsNullOrEmpty(searchQuery) ? "Search..." : searchQuery, 10, 20, false, xMin: 0.06f, align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap), command: "pluginbrowser.search  ");
 			cui.CreateProtectedButton(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.2 0.2 0.2 0.8" : "#d43131", "1 1 1 0.6", "X", 10, xMin: 0.9f, xMax: 1, yMax: 0.96f, command: "pluginbrowser.search  ");
 
 			if (TagFilter.Contains("peanus")) cui.CreateClientImage(container, grid, null, "https://media.discordapp.net/attachments/1078801277565272104/1085062151221293066/15ox1d_1.jpg?width=827&height=675", "1 1 1 1", xMax: 0.8f);
@@ -5515,7 +5544,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var input = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
 				xMin: 0.805f, xMax: 0.94f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
 			cui.CreateProtectedInputField(container, input, null, "1 1 1 1", "#", 10, 0, false,
-				xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: true);
+				xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 
 			var picker = cui.CreatePanel(container, parent: main, id: PanelId + ".picker",
 				color: "0 0 0 0",
@@ -5683,6 +5712,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		internal Handler Handler { get; set; }
 		internal const string PanelId = "carbonmodalui";
+		internal BasePlayer Player { get; set; }
 
 		public static void Open(BasePlayer player, string title,  Dictionary<string, Field> fields, Action<BasePlayer, Modal> onConfirm = null, Action onCancel = null)
 		{
@@ -5692,6 +5722,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Fields = fields,
 				OnCancel = onCancel,
 				OnConfirm = onConfirm,
+				Player = player,
 				Handler = new ()
 			};
 
@@ -5782,7 +5813,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					case Field.FieldTypes.Float:
 					case Field.FieldTypes.Integer:
 						var value = field.Value.Value != null ? (field.Value.Type == Field.FieldTypes.Float ? $"{field.Value.Value:0.0}" : $"{field.Value.Value:0}") : field.Value.Value?.ToString();
-						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: true);
+						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: Singleton.HandleEnableNeedsKeyboard(Player));
 						break;
 
 					case Field.FieldTypes.Boolean:

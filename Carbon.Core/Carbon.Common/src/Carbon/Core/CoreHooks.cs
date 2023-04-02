@@ -132,10 +132,9 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			basePlayer.OnAttacked(hitInfo);
 		}
-		finally
-		{
-			_isPlayerTakingDamage = false;
-		}
+		finally { }
+
+		_isPlayerTakingDamage = false;
 
 		return true;
 	}
