@@ -295,8 +295,6 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 					Logger.Log($"{file} {requester} {asm == null}");
 					if (IsExtensionAssembly<ICarbonExtension>(asm, out types))
 					{
-						Logger.Log($"  IS EXTENSION");
-
 						Logger.Debug($"Loading extension from file '{file}'");
 
 						foreach (Type type in types)
@@ -594,6 +592,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 
 		"Fleck", // websocket server
 		"Newtonsoft.Json",
+		"MySql.Data",
 
 		"Rust.Data",
 		"Rust.FileSystem",
