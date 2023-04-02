@@ -41,7 +41,11 @@ internal sealed class Logger
 			{
 				case Severity.Error:
 					formatted = $"[e] {message}";
+#if DEBUG
 					formatted += (ex != null) ? $" ({ex?.Message})\n{ex?.StackTrace}" : null;
+#else
+					formatted += (ex != null) ? $" ({ex?.Message})" : null;
+#endif
 					break;
 
 				case Severity.Warning:
