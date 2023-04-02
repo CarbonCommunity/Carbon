@@ -66,6 +66,10 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		StartCoroutine(coroutine);
 	}
+	void IScriptProcessor.StopCoroutine(System.Collections.IEnumerator coroutine)
+	{
+		StopCoroutine(coroutine);
+	}
 
 	public class Script : Instance, IScriptProcessor.IScript
 	{

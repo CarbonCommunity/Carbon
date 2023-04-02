@@ -11,10 +11,19 @@ using Oxide.Core.Plugins;
  *
  */
 
-namespace Oxide.Plugins;
+namespace Oxide.Core.Libraries;
 
-public class Plugins
+public class Plugins : Library
 {
+	public PluginManager PluginManager { get; private set; } = new();
+
+	public bool IsGlobal => true;
+
+	public Plugins(PluginManager pluginmanager)
+	{
+		PluginManager = pluginmanager ?? new();
+	}
+
 	public bool Exists(string name)
 	{
 		return Community.Runtime.Plugins.Plugins.Any(x => x.Name == name);

@@ -111,7 +111,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var processedReference = MetadataReference.CreateFromStream(mem);
 
 			references.Add(processedReference);
-			_referenceCache.Add(name, processedReference);
+			if(!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
@@ -320,6 +320,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (Exceptions.Count > 0) throw null;
 		}
-		catch (Exception ex) { Logger.Error($"Threading compilation failed for '{FileName}'", ex); }
+		catch (Exception ex) { Console.WriteLine($"Threading compilation failed for '{FileName}': {ex}"); }
 	}
 }

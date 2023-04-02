@@ -37,31 +37,31 @@ public class Logger : ILogger
 
 				if (dex != null)
 				{
-					UnityEngine.Debug.LogError($"{message} ({dex?.Message})\n{dex?.StackTrace}");
 					_file._queueLog($"[ERRO] {message} ({dex?.Message})\n{dex?.StackTrace}");
+					UnityEngine.Debug.LogError($"{message} ({dex?.Message})\n{dex?.StackTrace}");
 				}
 				else
 				{
-					UnityEngine.Debug.LogError(message);
 					_file._queueLog($"[ERRO] {message}");
+					UnityEngine.Debug.LogError(message);
 				}
 				break;
 
 			case Severity.Warning:
-				UnityEngine.Debug.LogWarning($"{message}");
 				_file._queueLog($"[WARN] {message}");
+				UnityEngine.Debug.LogWarning($"{message}");
 				break;
 
 			case Severity.Notice:
-				UnityEngine.Debug.Log($"{message}");
 				_file._queueLog($"[INFO] {message}");
+				UnityEngine.Debug.Log($"{message}");
 				break;
 
 			case Severity.Debug:
 				int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 				if (verbosity > minVerbosity) break;
-				UnityEngine.Debug.Log($"{message}");
 				_file._queueLog($"[INFO] {message}");
+				UnityEngine.Debug.Log($"{message}");
 				break;
 
 			default:

@@ -189,7 +189,7 @@ public class CorePlugin : CarbonPlugin
 				basePlayer.Hurt(hitInfo);
 			}
 
-			_isPlayerTakingDamage = false;
+			NextFrame(() => _isPlayerTakingDamage = false);
 		}
 		catch { }
 
