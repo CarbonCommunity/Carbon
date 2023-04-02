@@ -1231,7 +1231,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
 
 							cui.CreateText(container, dialog, null,
-								"1 1 1 0.2", "<color=red><b>*</b></color> Holding <b>[SPRINT]</b> next time you open this panel will automatically confirm & close this panel.", 8, xMin: 0.02f, yMin: 0.03f, align: TextAnchor.LowerLeft);
+								"1 1 1 0.2", "<color=red><b>*</b></color> Holding <b>[SPRINT]</b> next time you open this panel will automatically confirm it.", 8, xMin: 0.02f, yMin: 0.03f, align: TextAnchor.LowerLeft);
 
 							cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
 								xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
