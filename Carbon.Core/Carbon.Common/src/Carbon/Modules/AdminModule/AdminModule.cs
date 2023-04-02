@@ -145,12 +145,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private void OnLog(string condition, string stackTrace, LogType type)
 	{
-		try { if (_logQueue.Count >= 7) _logQueue.RemoveAt(0); } catch { }
+		try
+		{
+			if (_logQueue.Count >= 7) _logQueue.RemoveAt(0);
 
-		var log = condition.Split('\n');
-		var result = log[0];
-		Array.Clear(log, 0, log.Length);
-		_logQueue.Add($"<color={_logColor[type]}>{result}</color>");
+			var log = condition.Split('\n');
+			var result = log[0];
+			Array.Clear(log, 0, log.Length);
+			_logQueue.Add($"<color={_logColor[type]}>{result}</color>");
+		}
+		catch { }
 	}
 
 	public void GenerateTabs()

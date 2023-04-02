@@ -240,6 +240,10 @@ public class Timer : Library, IDisposable
 			Callback = null;
 		}
 	}
+	public void DestroyToPool()
+	{
+		Destroy();
+	}
 	public override void Dispose()
 	{
 		Destroy();
