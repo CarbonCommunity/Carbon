@@ -48,6 +48,8 @@ public class ScriptLoader : IScriptLoader
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
 
+	internal const int ReaderBufferSize = 8 * 1024;
+
 	public void Load()
 	{
 		try
@@ -127,7 +129,7 @@ public class ScriptLoader : IScriptLoader
 	{
 		var task = Task.Run(async () =>
 		{
-			using var reader = new StreamReader(filePath, encoding: Encoding.UTF8);
+			using var reader = new StreamReader(filePath, Encoding.UTF8, true, ReaderBufferSize);
 			return await reader.ReadToEndAsync();
 		});
 
