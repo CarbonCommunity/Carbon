@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon.Preloader</Product>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{6F8322EF-79DA-478B-B39C-EAC40771A46F}</ProjectGuid>
+	</PropertyGroup>
+
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+
+	<ItemGroup>
+		<PackageReference Include="Mono.Cecil" Version="0.11.4" />
+	</ItemGroup>
+
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+	</Target>
+</Project>

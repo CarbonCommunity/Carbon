@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Deterministic>true</Deterministic>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<FileAlignment>512</FileAlignment>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<LangVersion>latest</LangVersion>
+		<Platforms>x64</Platforms>
+		<PlatformTarget></PlatformTarget>
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+		<TargetFramework>net48</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+		<Platform Condition="'$(Platform)' == ''">x64</Platform>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!--
+			THIS IS AN IMPORTANT FEATURE
+			This property should change everytime there are breaking changes on
+			carbon that forces the users to update all the compontents at the
+			same time, like updating core and hooks in one shot.
+		-->
+		<CarbonProtocol>2023.04.02.0</CarbonProtocol>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Authors>Carbon Community</Authors>
+		<Copyright>Copyright © 2022-$([System.DateTime]::Now.Year) $(Authors)</Copyright>
+		<PackageProjectUrl>https://discord.gg/eXPcNKK4yd</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Carbon-Modding/Carbon.Core</RepositoryUrl>
+		<Description>A very lightweight and modular Harmony-based modding framework</Description>
+	</PropertyGroup>
+
+	<Import Project="Configurations.props" />
+	<Import Project="Metadata.props" />
+	<Import Project="References.props" />
+	<Import Project="Tasks.targets" />
+</Project>

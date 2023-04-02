@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###
-### Copyright (c) 2022 Carbon Community 
+### Copyright (c) 2022-2023 Carbon Community 
 ### All rights reserved
 ###
 set -e
@@ -12,14 +12,11 @@ ROOT="$(realpath "${BASE}/../../../")"
 # Get the target depot argument
 TARGET=${1:-public}
 
-# Cleans the exiting files
-# git clean -fx "${ROOT}/Rust"
-
 for OS in windows linux; do
 	# Download rust binary libs
 	"${ROOT}/Tools/DepotDownloader/DepotDownloader/bin/Release/net6.0/DepotDownloader" \
 		-os ${OS} -validate -app 258550 -branch ${TARGET} -filelist \
-		"${ROOT}/Tools/Helpers/258550_258551_refs.txt" -dir "${ROOT}/Rust/${OS}"
+		"${ROOT}/Tools/Helpers/258550_refs.txt" -dir "${ROOT}/Rust/${OS}"
 
 	# Show me all you've got baby
 	mono "${ROOT}/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe" \
