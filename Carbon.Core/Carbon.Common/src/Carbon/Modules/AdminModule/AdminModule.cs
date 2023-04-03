@@ -3143,10 +3143,33 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var carbonModule = module.GetType();
 			tab.AddInput(1, "Name", ap => module.Name, null);
-			tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
-			tab.AddButtonArray(1,
-				new Tab.OptionButton("Save", ap => { module.Save(); }),
-				new Tab.OptionButton("Load", ap => { module.Load(); }));
+			tab.AddToggle(1, "Is Core", null, ap => module.IsCoreModule);
+			tab.AddToggle(1, "Is Disabled", null, ap => module.Disabled);
+
+			if (!module.Disabled)
+			{
+				tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
+
+				tab.AddButtonArray(1,
+					new Tab.OptionButton("Save", ap => { module.Save(); }),
+					new Tab.OptionButton("Load", ap => { module.Load(); }));
+
+				tab.AddButton(1, "Edit Config", ap =>
+				{
+					var moduleConfigFile = Path.Combine(Core.Defines.GetModulesFolder(), module.Name, "config.json");
+					ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
+						(ap, jobject) =>
+						{
+							Singleton.Draw(ap.Player);
+						},
+						(ap, jobject) =>
+						{
+							OsEx.File.Create(moduleConfigFile, jobject.ToString(Formatting.Indented));
+							module.Load();
+							Singleton.Draw(ap.Player);
+						}, null);
+				});
+			}
 		}
 	}
 	public class PluginsTab
@@ -4923,7 +4946,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: false);
 		player.InvokeRepeating(player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
 		player.gameObject.SetLayerRecursive(17);
-		player.Teleport(spectated.transform.position);
+		if (spectated != null) player.Teleport(spectated.transform.position);
 		player.spectateFilter = string.Empty;
 
 		var ap = Singleton.GetPlayerSession(player);
