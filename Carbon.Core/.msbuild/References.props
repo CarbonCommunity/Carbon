@@ -15,5 +15,11 @@
 
 		<!-- Carbon API -->
 		<ProjectReference Include="$(SolutionDir)\Carbon.SDK\Carbon.SDK.csproj" Private="false" Condition="!$(Product.Contains('Carbon.SDK'))" />
+
+		<!-- Unity code analyzers -->
+		<PackageReference Include="Microsoft.Unity.Analyzers" Version="1.16.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 </Project>
