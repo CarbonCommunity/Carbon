@@ -292,7 +292,6 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
-					Logger.Log($"{file} {requester} {asm == null}");
 					if (IsExtensionAssembly<ICarbonExtension>(asm, out types))
 					{
 						Logger.Debug($"Loading extension from file '{file}'");
@@ -564,6 +563,8 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"System.Core",
 		"System.Data",
 		"System.Drawing",
+		"System.Globalization",
+		"System.Management",
 		"System.Memory",
 		"System.Net.Http",
 		"System.Runtime",
@@ -575,9 +576,13 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Carbon.Common",
 		"Carbon.SDK",
 
-		"protobuf-net",
+		// "0Harmony",
+		"Fleck", // websocket server
+		"MySql.Data", // v6.9.5.0
+		"Newtonsoft.Json", // bundled with rust
 		"protobuf-net.Core",
-		"websocket-sharp",
+		"protobuf-net",
+		"websocket-sharp", // websocket server/client
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
@@ -590,10 +595,6 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Facepunch.Unity",
 		"Facepunch.UnityEngine",
 
-		"Fleck", // websocket server
-		"Newtonsoft.Json",
-		"MySql.Data",
-
 		"Rust.Data",
 		"Rust.FileSystem",
 		"Rust.Global",
@@ -604,7 +605,6 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Rust.World",
 
 		"Unity.Mathematics",
-
 		"UnityEngine.AIModule",
 		"UnityEngine.CoreModule",
 		"UnityEngine.ImageConversionModule",

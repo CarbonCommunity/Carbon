@@ -82,17 +82,24 @@
 		<Message Text="[$(AssemblyName)] Preparing the release folder ($(OperatingSystem))" Importance="high" />
 		<PropertyGroup>
 			<CarbonBaseDir>$(SolutionDir)..\Release\.tmp\$(Configuration)</CarbonBaseDir>
+
+			<c_tools>$(CarbonBaseDir)\carbon\tools</c_tools>
+			<c_ext>$(CarbonBaseDir)\carbon\extensions</c_ext>
+
 			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
 			<c_hooks>$(CarbonBaseDir)\carbon\managed\hooks</c_hooks>
 			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
-			<c_ext>$(CarbonBaseDir)\carbon\extensions</c_ext>
+
 			<c_plugins>$(CarbonBaseDir)\carbon\plugins</c_plugins>
-			<c_tools>$(CarbonBaseDir)\carbon\tools</c_tools>
 			<c_data>$(CarbonBaseDir)\carbon\data</c_data>
+			<c_cfg>$(CarbonBaseDir)\carbon\configs</c_cfg>
 		</PropertyGroup>
 
 		<Message Text="[$(AssemblyName)] Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
-		<MakeDir Directories="$(CarbonBaseDir);$(c_managed);$(c_lib);$(c_hooks);$(c_tools);$(c_plugins);$(c_harmony);$(c_ext);$(c_data)" />
+		<MakeDir Directories="$(CarbonBaseDir);" />
+		<MakeDir Directories="$(c_tools);$(c_ext);" />
+		<MakeDir Directories="$(c_managed);$(c_hooks);$(c_lib);" />
+		<MakeDir Directories="$(c_plugins);$(c_data);$(c_cfg)" />
 	</Target>
 
 	<!--
