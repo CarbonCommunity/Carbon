@@ -3,9 +3,7 @@ using API.Hooks;
 using Carbon.Extensions;
 using Carbon.Plugins;
 using Facepunch.Extend;
-using Org.BouncyCastle.Crypto.Engines;
 using Oxide.Game.Rust.Libraries;
-using Oxide.Plugins;
 
 /*
  *
@@ -126,7 +124,7 @@ public partial class Category_Static
 						}
 					}
 				}
-				catch(Exception exception) { Logger.Error($"Failed ConsoleSystem.Run [{strCommand}] [{string.Join(" ", args)}]", exception); }
+				catch (Exception exception) { Logger.Error($"Failed ConsoleSystem.Run [{strCommand}] [{string.Join(" ", args)}]", exception); }
 
 				return true;
 			}
