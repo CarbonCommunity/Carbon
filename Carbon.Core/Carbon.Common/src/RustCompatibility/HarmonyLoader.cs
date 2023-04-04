@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using ConVar;
 
@@ -15,8 +16,10 @@ public static class HarmonyLoader
 	{
 		public string Name { get; set; }
 		public string HarmonyId { get; set; }
-		public Harmony Harmony { get; set; }
+		public HarmonyLib.Harmony Harmony { get; set; }
 		public Assembly Assembly { get; set; }
+		public Type[] AllTypes { get; set; }
+		public List<IHarmonyModHooks> Hooks { get; } = new();
 	}
 
 	public static List<HarmonyMod> loadedMods = new();
