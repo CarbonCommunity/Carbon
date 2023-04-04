@@ -30,8 +30,8 @@ public class Community
 	public static GameObject GameObject { get => _gameObject.Value; }
 	private static readonly Lazy<GameObject> _gameObject = new(() =>
 	{
-		GameObject gameObject = GameObject.Find("Carbon")
-			?? throw new Exception("Carbon GameObject not found");
+		GameObject gameObject = GameObject.Find("Carbon");
+		if (gameObject == null) throw new Exception("Carbon GameObject not found");
 		return gameObject;
 	});
 
