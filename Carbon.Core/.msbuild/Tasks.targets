@@ -131,8 +131,8 @@
 			<InfoContents>
 {
 	"Version": "$(InformationalVersion)",
-	"OperatingSystem": "$(OperatingSystemCapitalized)",
 	"Protocol": "$(CarbonProtocol)",
+	"Platform": "$(OperatingSystemCapitalized)"
 }
 			</InfoContents>
 		</PropertyGroup>
