@@ -4,6 +4,7 @@
   <a href="https://github.com/CarbonCommunity/Carbon.Core/releases/tag/develop_build"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg" /></a>
   <a href="https://github.com/CarbonCommunity/Carbon.Core/releases/tag/staging_build"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml/badge.svg" /></a>
   <a href="https://github.com/CarbonCommunity/Carbon.Core/releases/latest"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml/badge.svg" /></a>
+  <br>
   <a href="https://github.com/CarbonCommunity/Carbon.Core/blob/develop/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/CarbonCommunity/Carbon.Core" /></a>
   <a href="https://github.com/GameServerManagers/LinuxGSM/releases/latest"><img src="https://img.shields.io/badge/LinuxGSM-v23.2.0-informational" /></a>
   <hr />
