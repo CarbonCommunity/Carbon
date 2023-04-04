@@ -44,6 +44,9 @@ public sealed class Bootstrap
 	internal static FileWatcherManager Watcher
 	{ get => _gameObject.GetComponent<FileWatcherManager>(); }
 
+	internal static PermissionManager Permissions
+	{ get => _gameObject.GetComponent<PermissionManager>(); }
+
 	static Bootstrap()
 	{
 		identifier = $"{Guid.NewGuid():N}";
@@ -70,6 +73,51 @@ public sealed class Bootstrap
 		_gameObject.AddComponent<DownloadManager>();
 		_gameObject.AddComponent<EventManager>();
 		_gameObject.AddComponent<FileWatcherManager>();
+		//_gameObject.AddComponent<PermissionManager>();
+
+
+		// Permissions.Users.Insert("10", null, null);
+		// Permissions.Users.Insert("20", "manel", null);
+		// Permissions.Users.Insert("30", null, "pt");
+		// Permissions.Users.Insert("40", "jose", "fr");
+
+		// Permissions.Groups.Insert("test1", "This is test 1", 50, null);
+		// Permissions.Groups.Insert("test2", "This is test 2", 10, null);
+		// Permissions.Groups.Insert("test3", "This is test 3", 60, "test1");
+
+		// Permissions.Groups.Insert("test4", "This is test 4", default, null);
+		// Permissions.Groups.Remove("test4");
+
+		// Permissions.Groups.AddGroupPermission("test1", "foo.bar");
+		// Permissions.Groups.AddGroupPermission("test1", "bar.foo");
+
+		// Permissions.Groups.AddGroupPermission("test2", "poop.foo");
+		// Permissions.Groups.AddGroupPermission("test2", "poop.bar");
+		// Permissions.Groups.AddGroupPermission("test2", "poop.oops");
+
+		// Permissions.Groups.AddGroupPermission("test4", "poop.oops");
+
+		// Permissions.Groups.Remove("test1");
+
+		// Permissions.Groups.RemoveGroupPermission("test2", "poop.oops");
+
+
+		// Permissions.Groups.AddGroupPermission("test2", "poop.dupe");
+		// Permissions.Groups.AddGroupPermission("test2", "poop.dupe");
+
+		// Permissions.Users.AddUserPermission("10", "foo.1");
+		// Permissions.Users.AddUserPermission("10", "foo.1");
+		// Permissions.Users.AddUserPermission("10", "foo.2");
+
+		// Permissions.Users.AddUserPermission("20", "foo.3");
+		// Permissions.Users.AddUserPermission("20", "foo.4");
+		// Permissions.Users.AddUserPermission("20", "foo.5");
+		// Permissions.Users.RemoveUserPermission("20", "foo.5");
+
+		// Permissions.Users.AddUserPermission("30", "foo.3");
+		// Permissions.Users.AddUserPermission("30", "foo.4");
+		// Permissions.Users.AddUserPermission("30", "foo.5");
+		// Permissions.Users.ResetPermissions("30");
 
 		Events.Subscribe(CarbonEvent.StartupShared, x =>
 		{
