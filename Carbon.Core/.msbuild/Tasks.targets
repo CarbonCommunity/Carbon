@@ -137,6 +137,6 @@
 			</InfoContents>
 		</PropertyGroup>
 
-		<WriteLinesToFile File="$(SolutionDir)\..\Release\Carbon.$(OperatingSystemCapitalized).$(Configuration).info" Overwrite="true" Lines="$(InfoContents)" Condition="$(Product.Contains('Carbon.SDK'))" />
+		<WriteLinesToFile File="$(SolutionDir)\..\Release\Carbon.$(OperatingSystemCapitalized).$(ConfigurationNormalized).info" Overwrite="true" Lines="$(InfoContents)" Condition="$(Product.Contains('Carbon.SDK'))" />
 	</Target>
 </Project>
