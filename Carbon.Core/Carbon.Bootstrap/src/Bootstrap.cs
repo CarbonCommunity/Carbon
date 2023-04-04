@@ -79,7 +79,6 @@ public sealed class Bootstrap
 		Events.Subscribe(CarbonEvent.CarbonStartupComplete, x =>
 		{
 			Watcher.enabled = true;
-			AssemblyEx.LoadModule("Carbon.Modules.dll", "CarbonEvent.CarbonStartupComplete");
 		});
 
 		try
