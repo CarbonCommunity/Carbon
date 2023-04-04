@@ -199,7 +199,7 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		Pool.Free(ref lines);
+		Array.Clear ( lines, 0, lines.Length );
 		if (AsyncLoader != null)
 		{
 			AsyncLoader.FilePath = File;
