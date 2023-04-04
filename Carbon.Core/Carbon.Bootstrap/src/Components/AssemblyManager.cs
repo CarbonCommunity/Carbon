@@ -362,8 +362,8 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 				Context.CarbonHooks,
 			};
 
-			// TO ME: Packed files will not work on the sandbox
-			// It will fail when trying to validate them
+			// Packed files will not work with the sandbox as they will fail
+			// to be read when doing the validation process.
 
 			switch (Path.GetExtension(file))
 			{
@@ -424,8 +424,6 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				Context.CarbonPlugins,
 			};
-
-			Readonlylis
 
 			switch (Path.GetExtension(file))
 			{

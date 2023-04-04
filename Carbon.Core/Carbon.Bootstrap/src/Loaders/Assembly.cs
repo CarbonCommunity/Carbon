@@ -59,7 +59,7 @@ internal sealed class AssemblyLoader : IDisposable
 		if (restricted is not null)
 		{
 			using Sandbox<AssemblyValidator> sandbox = new Sandbox<AssemblyValidator>();
-			sandbox.Proxy.Whitelist = restricted; //Carbon.Bootstrap.AssemblyEx.References;
+			sandbox.Proxy.Whitelist = restricted;
 
 			if (!sandbox.Proxy.Validate(path))
 			{
