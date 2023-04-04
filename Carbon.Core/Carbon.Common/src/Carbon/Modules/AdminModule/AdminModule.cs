@@ -1082,7 +1082,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					for (int i = ap.TabSkip; i < amount; i++)
 					{
 						var _tab = Tabs[ap.TabSkip + i];
-						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
+						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
 						TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i);
 						tabIndex += tabWidth;
 					}

@@ -590,6 +590,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Facepunch.Console",
 		"Facepunch.Network",
 		"Facepunch.Rcon",
+		"Facepunch.Raknet",
 		"Facepunch.Sqlite",
 		"Facepunch.System",
 		"Facepunch.Unity",
