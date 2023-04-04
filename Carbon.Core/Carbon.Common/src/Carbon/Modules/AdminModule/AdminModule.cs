@@ -225,6 +225,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
+		if(HookCaller.CallHook(this, "CanAccessAdminModule", player) is bool result)
+		{
+			return result;
+		}
+
 		var minLevel = ConfigInstance.MinimumAuthLevel;
 		var userLevel = ServerUsers.Is(player.userID, ServerUsers.UserGroup.Moderator) ? 1 : ServerUsers.Is(player.userID, ServerUsers.UserGroup.Owner) ? 2 : 0;
 
