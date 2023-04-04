@@ -75,7 +75,7 @@ internal sealed class LibraryLoader : IDisposable
 
 			if (String.IsNullOrEmpty(path))
 			{
-				Logger.Debug($"Unresolved library: '{name}'");
+				Logger.Warn($"Unresolved library: '{name}'");
 				return default;
 			}
 
