@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using Carbon.Base;
-using Carbon.Components;
 using Carbon.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -40,7 +39,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
-	internal const string HarmonyReference = "0Harmony";
 
 	internal static byte[] _getPlugin(string name)
 	{
@@ -112,7 +110,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var processedReference = MetadataReference.CreateFromStream(mem);
 
 			references.Add(processedReference);
-			if(!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
+			if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
@@ -141,15 +139,15 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var references = new List<MetadataReference>();
 		var id = Path.GetFileNameWithoutExtension(FilePath);
 
+		if (Community.Runtime.Config.HarmonyReference)
+		{
+			_injectReference(id, "0Harmony", references);
+		}
+
 		foreach (var item in Community.Runtime.AssemblyEx.References)
 		{
 			try
 			{
-				if (item == HarmonyReference && !Community.Runtime.Config.HarmonyReference)
-				{
-					continue;
-				}
-
 				_injectReference(id, item, references);
 			}
 			catch (System.Exception)

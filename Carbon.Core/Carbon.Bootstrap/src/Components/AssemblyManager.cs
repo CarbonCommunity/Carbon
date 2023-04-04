@@ -31,7 +31,8 @@ namespace Components;
 	for Carbon to work. Examples are Preloader, Bootstrap, Common and API.
 
 	3) Hooks - API.Hooks.Patch
-	A HOOK is a set of harmony patche which trigger events.
+	A HOOK is a set of harmony patches which trigger events and can be subscribed
+	by plugins so they can react to world events.
 
 	4) Module - API.Contracts.ICarbonModule
 	A MODULE is an optional part of Carbon, they can provide new functionality
@@ -39,10 +40,10 @@ namespace Components;
 	created by the Carbon team as they CAN access sensitive parts of the framework.
 
 	5) Extensions - API.Contracts.ICarbonExtension
-	An EXTENSION are userland code that extend the framework with additional
-	functionality but, for most cases EXTENSIONS shoulld not interact with the
-	game directly. EXTENSIONS will also be passed by reference to the Rosylin
-	compiler so plugins can use their feature set.
+	An EXTENSION is userland code that extend the framework with additional
+	functionality but, for most cases EXTENSIONS should not be allowed to
+	interact with the game directly. EXTENSIONS will also be passed by reference
+	to the Rosylin compiler so plugins can use their additional features.
 
 	6) Plugins
 	Not applicable for now.
@@ -205,7 +206,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		{
 			string[] directories =
 			{
-				Context.CarbonManaged,
+				Context.CarbonModules,
 			};
 
 			switch (Path.GetExtension(file))
@@ -285,14 +286,18 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 				Context.CarbonExtensions,
 			};
 
+			IReadOnlyList<string> references = _knownLibs.Union(new List<string> {
+				"websocket-sharp"
+			}).ToList();
+
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, references)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
-					if (IsExtensionAssembly<ICarbonExtension>(asm, out types))
+					if (IsType<ICarbonExtension>(asm, out types))
 					{
 						Logger.Debug($"Loading extension from file '{file}'");
 
@@ -361,11 +366,15 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 				Context.CarbonHooks,
 			};
 
+			IReadOnlyList<string> references = _knownLibs.Union(new List<string> {
+				"0Harmony"
+			}).ToList();
+
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories, false)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, references)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<Patch>(asm, out types))
@@ -421,11 +430,13 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 				Context.CarbonPlugins,
 			};
 
+			Readonlylis
+
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories, true)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, _knownLibs)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<ICarbonPlugin>(asm, out types))
@@ -508,6 +519,17 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		{
 			Type @base = typeof(T) ?? throw new Exception();
 			output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
+
+			// NOTE: If we have issues with IsType<> test the following implementation:
+			// if(@base.IsInterface)
+			// {
+			// 	output = assembly.GetTypes().Where(type => type.GetInterfaces().Contains(@base));
+			// }
+			// else
+			// {
+			// 	output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
+			// }
+
 			return output.Count() > 0;
 		}
 		catch
@@ -520,39 +542,6 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 #endif
 			output = new List<Type>();
 			return false;
-		}
-	}
-	private bool IsExtensionAssembly<T>(Assembly assembly, out IEnumerable<Type> output) where T : ICarbonExtension
-	{
-		try
-		{
-			Type @base = typeof(T) ?? throw new Exception();
-			output = GetTypesFromAssembly(assembly).Where(x => x.GetInterfaces().Contains(typeof(T)));
-			return output.Count() > 0;
-		}
-		catch
-#if DEBUG
-		(Exception ex)
-		{
-			Logger.Error($"Failed IsExtensionAssembly<{typeof(T).FullName}>", ex);
-#else
-		{
-#endif
-			output = new List<Type>();
-			return false;
-		}
-	}
-
-	public static Type[] GetTypesFromAssembly(Assembly assembly)
-	{
-		try
-		{
-			return assembly.GetTypes();
-		}
-		catch (ReflectionTypeLoadException ex)
-		{
-			Logger.Debug($"AccessTools.GetTypesFromAssembly: assembly {assembly} => {ex}");
-			return ex.Types.Where((Type type) => (object)type != null).ToArray();
 		}
 	}
 
@@ -576,17 +565,17 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Carbon.Common",
 		"Carbon.SDK",
 
-		"0Harmony",
-		"Fleck", // websocket server
 		"MySql.Data", // v6.9.5.0
-		"Newtonsoft.Json", // bundled with rust
 		"protobuf-net.Core",
 		"protobuf-net",
-		"websocket-sharp", // websocket server/client
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
 
+		"Fleck", // bundled with rust (websocket server)
+		"Newtonsoft.Json", // bundled with rust 
+
+		"Facepunch.BurstCloth",
 		"Facepunch.Console",
 		"Facepunch.Network",
 		"Facepunch.Rcon",
@@ -599,22 +588,28 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Rust.Data",
 		"Rust.FileSystem",
 		"Rust.Global",
+		"Rust.Harmony",
 		"Rust.Localization",
 		"Rust.Platform.Common",
 		"Rust.Platform",
+		"Rust.UI",
 		"Rust.Workshop",
 		"Rust.World",
 
 		"Unity.Mathematics",
+		"Unity.Timeline",
 		"UnityEngine.AIModule",
+		"UnityEngine.AnimationModule",
 		"UnityEngine.CoreModule",
 		"UnityEngine.ImageConversionModule",
+		"UnityEngine.ParticleSystemModule",
 		"UnityEngine.PhysicsModule",
 		"UnityEngine.SharedInternalsModule",
 		"UnityEngine.TerrainModule",
 		"UnityEngine.TerrainPhysicsModule",
 		"UnityEngine.TextRenderingModule",
 		"UnityEngine.UI",
+		"UnityEngine.UIModule",
 		"UnityEngine.UnityWebRequestAssetBundleModule",
 		"UnityEngine.UnityWebRequestAudioModule",
 		"UnityEngine.UnityWebRequestModule",

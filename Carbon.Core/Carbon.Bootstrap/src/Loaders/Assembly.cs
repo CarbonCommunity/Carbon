@@ -33,7 +33,8 @@ internal sealed class AssemblyLoader : IDisposable
 		Context.CarbonExtensions,
 	};
 
-	internal IAssemblyCache Load(string file, string requester = "unknown", string[] directories = null, bool restricted = false)
+	internal IAssemblyCache Load(string file, string requester = "unknown",
+		string[] directories = null, IReadOnlyList<string> restricted = null)
 	{
 		// normalize filename
 		file = Path.GetFileName(file);
@@ -55,10 +56,10 @@ internal sealed class AssemblyLoader : IDisposable
 			return default;
 		}
 
-		if (restricted)
+		if (restricted is not null)
 		{
 			using Sandbox<AssemblyValidator> sandbox = new Sandbox<AssemblyValidator>();
-			sandbox.Proxy.Whitelist = Carbon.Bootstrap.AssemblyEx.References;
+			sandbox.Proxy.Whitelist = restricted; //Carbon.Bootstrap.AssemblyEx.References;
 
 			if (!sandbox.Proxy.Validate(path))
 			{
