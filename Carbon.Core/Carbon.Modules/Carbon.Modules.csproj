@@ -14,6 +14,6 @@
 	</ItemGroup>
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
-		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_modules)" />
 	</Target>
 </Project>

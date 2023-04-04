@@ -89,6 +89,7 @@
 			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
 			<c_hooks>$(CarbonBaseDir)\carbon\managed\hooks</c_hooks>
 			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
+			<c_modules>$(CarbonBaseDir)\carbon\managed\modules</c_modules>
 
 			<c_plugins>$(CarbonBaseDir)\carbon\plugins</c_plugins>
 			<c_data>$(CarbonBaseDir)\carbon\data</c_data>
@@ -96,9 +97,9 @@
 		</PropertyGroup>
 
 		<Message Text="[$(AssemblyName)] Create the release folders at '$(CarbonBaseDir)'" Importance="high" />
-		<MakeDir Directories="$(CarbonBaseDir);" />
-		<MakeDir Directories="$(c_tools);$(c_ext);" />
-		<MakeDir Directories="$(c_managed);$(c_hooks);$(c_lib);" />
+		<MakeDir Directories="$(CarbonBaseDir)" />
+		<MakeDir Directories="$(c_tools);$(c_ext)" />
+		<MakeDir Directories="$(c_managed);$(c_hooks);$(c_lib);$(c_modules)" />
 		<MakeDir Directories="$(c_plugins);$(c_data);$(c_cfg)" />
 	</Target>
 
