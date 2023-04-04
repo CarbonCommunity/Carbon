@@ -225,7 +225,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
-		if(HookCaller.CallHook(this, "CanAccessAdminModule", player) is bool result)
+		if(HookCaller.CallStaticHook("CanAccessAdminModule", player) is bool result)
 		{
 			return result;
 		}

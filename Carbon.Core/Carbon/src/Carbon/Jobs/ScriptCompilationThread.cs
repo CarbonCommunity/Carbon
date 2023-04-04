@@ -40,6 +40,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
+	internal const string HarmonyReference = "0Harmony";
 
 	internal static byte[] _getPlugin(string name)
 	{
@@ -144,17 +145,17 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
+				if (item == HarmonyReference && !Community.Runtime.Config.HarmonyReference)
+				{
+					continue;
+				}
+
 				_injectReference(id, item, references);
 			}
 			catch (System.Exception)
 			{
 				Logger.Debug(id, $"Error loading common reference '{item}'", 4);
 			}
-		}
-
-		if (Community.Runtime.Config.HarmonyReference)
-		{
-			_injectReference(id, "0Harmony", references);
 		}
 
 		foreach (var item in Community.Runtime.AssemblyEx.LoadedExtensions)
