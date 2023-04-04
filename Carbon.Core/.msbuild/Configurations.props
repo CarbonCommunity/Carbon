@@ -45,12 +45,14 @@
 		<When Condition="$(Configuration.Contains('Unix'))">
 			<PropertyGroup>
 				<DefineConstants>UNIX;$(DefineConstants);$(UserConstants)</DefineConstants>
+				<OperatingSystemCapitalized>Linux</OperatingSystemCapitalized>
 				<OperatingSystem>linux</OperatingSystem>
 			</PropertyGroup>
 		</When>
 		<Otherwise>
 			<PropertyGroup>
 				<DefineConstants>WIN;$(DefineConstants);$(UserConstants)</DefineConstants>
+				<OperatingSystemCapitalized>Windows</OperatingSystemCapitalized>
 				<OperatingSystem>windows</OperatingSystem>
 			</PropertyGroup>
 		</Otherwise>

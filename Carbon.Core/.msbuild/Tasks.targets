@@ -122,4 +122,21 @@
 		<Message Text="[$(AssemblyName)] Cleanup carbon stuff from lib folder" Importance="high" />
 		<Delete Files="@(FilesToClean)" />
 	</Target>
+
+	<!--
+		Outputs the build info to a file
+	-->
+	<Target Name="BuildVersionMetadata" AfterTargets="Release">
+		<PropertyGroup>
+			<InfoContents>
+{
+	"Version": "$(InformationalVersion)",
+	"OperatingSystem": "$(OperatingSystemCapitalized)",
+	"Protocol": "$(CarbonProtocol)",
+}
+			</InfoContents>
+		</PropertyGroup>
+
+		<WriteLinesToFile File="$(SolutionDir)\..\Release\Carbon.$(OperatingSystemCapitalized).$(Configuration).info" Overwrite="true" Lines="$(InfoContents)" Condition="$(Product.Contains('Carbon.SDK'))" />
+	</Target>
 </Project>

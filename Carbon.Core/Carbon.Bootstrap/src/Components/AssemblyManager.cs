@@ -366,6 +366,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 				Context.CarbonHooks,
 			};
 
+			// TO ME: This will not work on the sandbox
 			// IReadOnlyList<string> references = _knownLibs.Union(new List<string> {
 			// 	"0Harmony"
 			// }).ToList();

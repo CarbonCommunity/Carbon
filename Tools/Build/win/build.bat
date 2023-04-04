@@ -67,5 +67,4 @@ echo "%TARGET%" | findstr /C:"Unix" >NUL && (
 if "%2" NEQ "--no-archive" (
 	echo ** Create the compressed archive 'Carbon.%TOS%.%TAG%.zip'
 	powershell -Command "Compress-Archive -Update -Path '%ROOT%\Release\.tmp\%TARGET%\*' -DestinationPath '%ROOT%\Release\Carbon.%TOS%.%TAG%.zip'"
-	"%ROOT%\Tools\BuildInfo\Carbon.BuildInfo.exe" -carbon "%ROOT%\Release\.tmp\%TARGET%\carbon\managed" -o "%ROOT%\Release\Carbon.%TOS%.%TAG%.info"
 )
