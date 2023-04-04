@@ -28,7 +28,7 @@
 			carbon that forces the users to update all the compontents at the
 			same time, like updating core and hooks in one shot.
 		-->
-		<CarbonProtocol>2023.03.22.0</CarbonProtocol>
+		<CarbonProtocol>2023.04.04.0</CarbonProtocol>
 	</PropertyGroup>
 
 	<PropertyGroup>

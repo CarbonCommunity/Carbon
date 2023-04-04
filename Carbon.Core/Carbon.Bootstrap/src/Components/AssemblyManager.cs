@@ -576,7 +576,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Carbon.Common",
 		"Carbon.SDK",
 
-		// "0Harmony",
+		"0Harmony",
 		"Fleck", // websocket server
 		"MySql.Data", // v6.9.5.0
 		"Newtonsoft.Json", // bundled with rust
@@ -590,6 +590,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Facepunch.Console",
 		"Facepunch.Network",
 		"Facepunch.Rcon",
+		"Facepunch.Raknet",
 		"Facepunch.Sqlite",
 		"Facepunch.System",
 		"Facepunch.Unity",

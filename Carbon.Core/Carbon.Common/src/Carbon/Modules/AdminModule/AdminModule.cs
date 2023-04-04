@@ -225,6 +225,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
+		if(HookCaller.CallStaticHook("CanAccessAdminModule", player) is bool result)
+		{
+			return result;
+		}
+
 		var minLevel = ConfigInstance.MinimumAuthLevel;
 		var userLevel = ServerUsers.Is(player.userID, ServerUsers.UserGroup.Moderator) ? 1 : ServerUsers.Is(player.userID, ServerUsers.UserGroup.Owner) ? 2 : 0;
 
@@ -1077,7 +1082,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					for (int i = ap.TabSkip; i < amount; i++)
 					{
 						var _tab = Tabs[ap.TabSkip + i];
-						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
+						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
 						TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i);
 						tabIndex += tabWidth;
 					}
@@ -1329,7 +1334,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var index = Tabs.IndexOf(existentTab);
 			Tabs.RemoveAt(index);
-			Pool.Free(ref existentTab);
+			existentTab = null;
 
 			Tabs.Insert(insert ?? index, tab);
 		}

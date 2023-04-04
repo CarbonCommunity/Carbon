@@ -93,7 +93,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		DoVanish(player, true);
 	}
 
-	public void DoVanish(BasePlayer player, bool wants)
+	public void DoVanish(BasePlayer player, bool wants, bool withUI = true)
 	{
 		if (wants)
 		{
@@ -109,7 +109,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.OnNetworkSubscribersLeave(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player).ToList());
 			SimpleAIMemory.AddIgnorePlayer(player);
 
-			_drawUI(player);
+			if (withUI) _drawUI(player);
 
 			if (ConfigInstance.EnableLogs) Puts($"{player} just vanished at {player.transform.position}");
 		}
