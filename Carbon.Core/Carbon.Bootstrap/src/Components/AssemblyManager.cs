@@ -213,7 +213,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, _knownLibs)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<ICarbonModule>(asm, out types))
@@ -286,15 +286,11 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 				Context.CarbonExtensions,
 			};
 
-			IReadOnlyList<string> references = _knownLibs.Union(new List<string> {
-				"websocket-sharp" // required for discord extension
-			}).ToList();
-
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories, references)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories, _knownLibs)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<ICarbonExtension>(asm, out types))
@@ -366,10 +362,8 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 				Context.CarbonHooks,
 			};
 
-			// TO ME: This will not work on the sandbox
-			// IReadOnlyList<string> references = _knownLibs.Union(new List<string> {
-			// 	"0Harmony"
-			// }).ToList();
+			// TO ME: Packed files will not work on the sandbox
+			// It will fail when trying to validate them
 
 			switch (Path.GetExtension(file))
 			{
@@ -566,15 +560,19 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 		"Carbon.Common",
 		"Carbon.SDK",
 
+		"0Harmony", // this needs to be injected only when
+					// IHarmony is defined
+					
 		"MySql.Data", // v6.9.5.0
 		"protobuf-net.Core",
 		"protobuf-net",
+		"websocket-sharp", // ws client/server
 
 		"Assembly-CSharp-firstpass",
 		"Assembly-CSharp",
 
 		"Fleck", // bundled with rust (websocket server)
-		"Newtonsoft.Json", // bundled with rust 
+		"Newtonsoft.Json", // bundled with rust
 
 		"Facepunch.BurstCloth",
 		"Facepunch.Console",
