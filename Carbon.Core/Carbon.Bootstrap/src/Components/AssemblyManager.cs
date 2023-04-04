@@ -287,7 +287,7 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 			};
 
 			IReadOnlyList<string> references = _knownLibs.Union(new List<string> {
-				"websocket-sharp"
+				"websocket-sharp" // required for discord extension
 			}).ToList();
 
 			switch (Path.GetExtension(file))
@@ -366,15 +366,15 @@ internal sealed class AssemblyManagerEx : BaseMonoBehaviour, IAssemblyManager
 				Context.CarbonHooks,
 			};
 
-			IReadOnlyList<string> references = _knownLibs.Union(new List<string> {
-				"0Harmony"
-			}).ToList();
+			// IReadOnlyList<string> references = _knownLibs.Union(new List<string> {
+			// 	"0Harmony"
+			// }).ToList();
 
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, directories, references)?.Assembly
+					Assembly asm = _loader.Load(file, requester, directories)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (IsType<Patch>(asm, out types))
