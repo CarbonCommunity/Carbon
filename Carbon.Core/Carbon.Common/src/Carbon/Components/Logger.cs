@@ -83,7 +83,6 @@ public class Logger : ILogger
 		string ret = arr[arr.Length - 1];
 
 		Array.Clear(arr, 0, arr.Length);
-		Pool.Free(ref arr);
 		return ret;
 	}
 #endif

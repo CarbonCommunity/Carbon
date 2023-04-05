@@ -575,22 +575,26 @@ public struct CUI : IDisposable
 
 		public enum FontTypes
 		{
+			Arial,
 			RobotoCondensedBold, RobotoCondensedRegular,
-			Daubmark, DroidSansMono
+			PermanentMarker, DroidSansMono
 		}
 
 		public string GetFont(FontTypes type)
 		{
 			switch (type)
 			{
+				case FontTypes.Arial:
+					return "arial.ttf";
+
 				case FontTypes.RobotoCondensedBold:
 					return "robotocondensed-bold.ttf";
 
 				case FontTypes.RobotoCondensedRegular:
 					return "robotocondensed-regular.ttf";
 
-				case FontTypes.Daubmark:
-					return "daubmark.ttf";
+				case FontTypes.PermanentMarker:
+					return "permanentmarker.ttf";
 
 				case FontTypes.DroidSansMono:
 					return "droidsansmono.ttf";
