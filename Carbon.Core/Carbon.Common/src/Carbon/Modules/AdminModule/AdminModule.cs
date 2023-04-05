@@ -61,7 +61,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	};
 	internal bool HandleEnableNeedsKeyboard(PlayerSession ap)
 	{
-		return ap.SelectedTab.Dialog == null;
+		return ap.SelectedTab == null || ap.SelectedTab.Dialog == null;
 	}
 	internal bool HandleEnableNeedsKeyboard(BasePlayer player)
 	{
