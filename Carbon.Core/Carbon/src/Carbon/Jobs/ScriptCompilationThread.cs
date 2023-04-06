@@ -319,6 +319,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (Exceptions.Count > 0) throw null;
 		}
-		catch (Exception ex) { Console.WriteLine($"Threading compilation failed for '{FileName}': {ex}"); }
+		catch (Exception ex) { System.Console.WriteLine($"Threading compilation failed for '{FileName}': {ex}"); }
 	}
 }

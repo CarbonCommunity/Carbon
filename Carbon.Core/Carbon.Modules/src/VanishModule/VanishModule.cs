@@ -158,8 +158,21 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		using var cui = new CUI(Handler);
 		var container = cui.CreateContainer("vanishui", parent: CUI.ClientPanels.Hud);
-		cui.CreateText(container, "vanishui", null, color: "#8bba49", ConfigInstance.InvisibleText, 10,
-			yMax: 0.025f, align: UnityEngine.TextAnchor.LowerCenter);
+		if (!string.IsNullOrEmpty(ConfigInstance.InvisibleText))
+		{
+			var textX = ConfigInstance.InvisibleTextAnchorX;
+			var textY = ConfigInstance.InvisibleTextAnchorY;
+			cui.CreateText(container, "vanishui", null, color: ConfigInstance.InvisibleTextColor, ConfigInstance.InvisibleText, ConfigInstance.InvisibleTextSize,
+				xMin: textX[0], xMax: textX[1], yMin: textY[0], yMax: textY[1], align: ConfigInstance.InvisibleTextAnchor);
+		}
+
+		if (!string.IsNullOrEmpty(ConfigInstance.InvisibleIconUrl))
+		{
+			var iconX = ConfigInstance.InvisibleIconAnchorX;
+			var iconY = ConfigInstance.InvisibleIconAnchorY;
+			cui.CreateClientImage(container, "vanishui", null, ConfigInstance.InvisibleIconUrl, ConfigInstance.InvisibleIconColor,
+				xMin: iconX[0], xMax: iconX[1], yMin: iconY[0], yMax: iconY[1]);
+		}
 
 		cui.Send(container, player);
 	}
@@ -167,10 +180,26 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 public class VanishConfig
 {
+	[JsonProperty("[Anchor] Legend")]
+	public string AnchorLegend => "(0=UpperLeft, 1=UpperCenter, 2=UpperRight, 3=MiddleLeft, 4=MiddleCenter, 5=MiddleRight, 6=LowerLeft, 7=LowerCenter, 8=LowerRight)";
+
 	public int MinimumVanishAuthLevel = 2;
 	public int MinimumAuthLevelUnlockWhileVanished = 2;
 	public string VanishCommand = "vanish";
+
 	public string InvisibleText = "You are currently invisible.";
+	public int InvisibleTextSize = 10;
+	public string InvisibleTextColor = "#8bba49";
+	[JsonProperty("InvisibleTextAnchor [Anchor]")]
+	public TextAnchor InvisibleTextAnchor = TextAnchor.LowerCenter;
+	public float[] InvisibleTextAnchorX = new float[] { 0, 1 };
+	public float[] InvisibleTextAnchorY = new float[] { 0, 0.025f };
+
+	public string InvisibleIconUrl = "";
+	public string InvisibleIconColor = "1 1 1 0.3";
+	public float[] InvisibleIconAnchorX = new float[] { 0.175f, 0.22f };
+	public float[] InvisibleIconAnchorY = new float[] { 0.017f, 0.08f };
+
 	public bool GutshotScreamOnUnvanish = true;
 	public bool EnableLogs = true;
 	public bool TeleportBackOnUnvanish = false;

@@ -105,21 +105,24 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Application.logMessageReceived += OnLog;
 		}
 
-		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
+		foreach(var command in ConfigInstance.OpenCommands)
 		{
-			if (!CanAccess(player)) return;
+			Community.Runtime.CorePlugin.cmd.AddChatCommand(command, this, (player, cmd, args) =>
+			{
+				if (!CanAccess(player)) return;
 
-			var ap = GetPlayerSession(player);
-			ap.SelectedTab = Tabs[0];
+				var ap = GetPlayerSession(player);
+				ap.SelectedTab = Tabs[0];
 
-			var tab = GetTab(player);
-			tab?.OnChange?.Invoke(ap, tab);
+				var tab = GetTab(player);
+				tab?.OnChange?.Invoke(ap, tab);
 
-			ap.Clear();
+				ap.Clear();
 
-			DrawCursorLocker(player);
-			Draw(player);
-		}, silent: true);
+				DrawCursorLocker(player);
+				Draw(player);
+			}, silent: true);
+		}
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -3165,12 +3168,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
 						(ap, jobject) =>
 						{
+							Singleton.SetTab(ap.Player, "modules");
 							Singleton.Draw(ap.Player);
 						},
 						(ap, jobject) =>
 						{
 							OsEx.File.Create(moduleConfigFile, jobject.ToString(Formatting.Indented));
 							module.Load();
+
+							Singleton.SetTab(ap.Player, "modules");
 							Singleton.Draw(ap.Player);
 						}, null);
 				});
@@ -6118,8 +6124,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 public class AdminConfig
 {
-	[JsonProperty("OpenCommand v1")]
-	public string OpenCommand = "cpanel";
+	[JsonProperty("OpenCommands")]
+	public string[] OpenCommands = new string[] { "cp", "cpanel" };
 	public int MinimumAuthLevel = 2;
 	public bool DisableEntitiesTab = false;
 	public bool DisablePluginsTab = true;
