@@ -50,9 +50,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 	{
 		if (!args.IsPlayerCalledAndAdmin() || !args.HasArgs(1)) return;
 
-		CorePlugin.Reply($"{JsonConvert.SerializeObject(new DownloadResponse()
-			.WithFileType(DownloadResponse.FileTypes.Script)
-			.WithDataFile(args.Args[0]), Formatting.Indented)}", args);
+		CorePlugin.Reply($"{JsonConvert.SerializeObject(new DownloadResponse().WithFileType(DownloadResponse.FileTypes.Script).WithDataFile(args.Args[0]), Formatting.Indented)}", args);
 	}
 
 	[ConsoleCommand("drmreboot")]
