@@ -5,7 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using Carbon.Base;
-using Carbon.Components;
 using Carbon.Core;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -111,7 +110,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var processedReference = MetadataReference.CreateFromStream(mem);
 
 			references.Add(processedReference);
-			_referenceCache.Add(name, processedReference);
+			if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
@@ -140,6 +139,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var references = new List<MetadataReference>();
 		var id = Path.GetFileNameWithoutExtension(FilePath);
 
+		if (Community.Runtime.Config.HarmonyReference)
+		{
+			_injectReference(id, "0Harmony", references);
+		}
+
 		foreach (var item in Community.Runtime.AssemblyEx.References)
 		{
 			try
@@ -150,11 +154,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				Logger.Debug(id, $"Error loading common reference '{item}'", 4);
 			}
-		}
-
-		if (Community.Runtime.Config.HarmonyReference)
-		{
-			_injectReference(id, "0Harmony", references);
 		}
 
 		foreach (var item in Community.Runtime.AssemblyEx.LoadedExtensions)
@@ -320,6 +319,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (Exceptions.Count > 0) throw null;
 		}
-		catch (Exception ex) { Logger.Error($"Threading compilation failed for '{FileName}'", ex); }
+		catch (Exception ex) { System.Console.WriteLine($"Threading compilation failed for '{FileName}': {ex}"); }
 	}
 }

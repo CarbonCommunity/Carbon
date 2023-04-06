@@ -1,5 +1,4 @@
 ﻿using System;
-using Utility;
 
 /*
  *
@@ -8,7 +7,7 @@ using Utility;
  *
  */
 
-namespace Contracts;
+namespace API.Abstracts;
 
 public abstract class Singleton<T> where T : class
 {
@@ -19,8 +18,5 @@ public abstract class Singleton<T> where T : class
 		=> Instance.Value;
 
 	private static T CreateInstance()
-	{
-		Logger.Debug($"A singleton of {typeof(T)} was created");
-		return Activator.CreateInstance(typeof(T), true) as T;
-	}
+		=> Activator.CreateInstance(typeof(T), true) as T;
 }

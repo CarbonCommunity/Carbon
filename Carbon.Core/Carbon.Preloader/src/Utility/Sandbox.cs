@@ -14,8 +14,8 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 {
 
 	private AppDomain _domain;
-	private string _identifier;
-	private T _proxy;
+	private readonly string _identifier;
+	private readonly T _proxy;
 
 	public T Do
 	{ get => _proxy; }
@@ -23,12 +23,13 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 	public Sandbox()
 	{
 		_identifier = $"sandbox_{Guid.NewGuid():N}";
-		AppDomainSetup domaininfo = new AppDomainSetup();
-
-		// this is still not perfect but it let's run with it for now.. ideally
-		// the sandbox should be able to resolve their load requests using the 
-		// domain assembly resolver event
-		domaininfo.ApplicationBase = Context.CarbonManaged;
+		AppDomainSetup domaininfo = new AppDomainSetup
+		{
+			// this is still not perfect but it let's run with it for now.. ideally
+			// the sandbox should be able to resolve their load requests using the 
+			// domain assembly resolver event
+			ApplicationBase = Context.CarbonManaged
+		};
 
 		_domain = AppDomain.CreateDomain(_identifier, null, domaininfo);
 

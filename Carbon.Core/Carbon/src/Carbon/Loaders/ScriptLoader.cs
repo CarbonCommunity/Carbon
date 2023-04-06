@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Carbon.Base;
 using Carbon.Contracts;
 using Carbon.Core;
@@ -17,6 +18,7 @@ using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
+using SharpCompress.Common;
 using UnityEngine;
 using static UnityEngine.UI.GridLayoutGroup;
 
@@ -29,7 +31,7 @@ using static UnityEngine.UI.GridLayoutGroup;
 
 namespace Carbon.Processors;
 
-public class ScriptLoader : IDisposable, IScriptLoader
+public class ScriptLoader : IScriptLoader
 {
 	public List<IScript> Scripts { get; set; } = new List<IScript>();
 
@@ -46,7 +48,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
 
-	internal WaitForSeconds _serverExhale = new(0.1f);
+	internal const int ReaderBufferSize = 8 * 1024;
 
 	public void Load()
 	{
@@ -54,18 +56,6 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		{
 			var directory = Path.GetDirectoryName(File);
 			IsExtension = directory.EndsWith("extensions");
-
-			if (!string.IsNullOrEmpty(File) && OsEx.File.Exists(File)) Source = OsEx.File.ReadText(File);
-
-			if (Parser != null)
-			{
-				Parser.Process(Source, out var newSource);
-
-				if (!string.IsNullOrEmpty(newSource))
-				{
-					Source = newSource;
-				}
-			}
 
 			Community.Runtime.ScriptProcessor.StartCoroutine(Compile());
 		}
@@ -131,10 +121,43 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		{
 			Scripts.RemoveAll(x => !x.IsCore);
 		}
+
+		Dispose();
+	}
+
+	IEnumerator ReadFileAsync(string filePath, Action<string> onRead)
+	{
+		var task = Task.Run(async () =>
+		{
+			using var reader = new StreamReader(filePath, Encoding.UTF8, true, ReaderBufferSize);
+			return await reader.ReadToEndAsync();
+		});
+
+		while (!task.IsCompleted)
+		{
+			yield return null;
+		}
+
+		onRead?.Invoke(task.Result);
 	}
 
 	public IEnumerator Compile()
 	{
+		if (string.IsNullOrEmpty(Source) && !string.IsNullOrEmpty(File) && OsEx.File.Exists(File))
+			yield return ReadFileAsync(File, content => Source = content);
+
+		if (Parser != null)
+		{
+			Parser.Process(Source, out var newSource);
+
+			yield return null;
+
+			if (!string.IsNullOrEmpty(newSource))
+			{
+				Source = newSource;
+			}
+		}
+
 		if (string.IsNullOrEmpty(Source))
 		{
 			HasFinished = true;
@@ -174,7 +197,9 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			}
 		}
 
-		Pool.Free(ref lines);
+		yield return null;
+
+		Array.Clear ( lines, 0, lines.Length );
 		if (AsyncLoader != null)
 		{
 			AsyncLoader.FilePath = File;
@@ -186,26 +211,32 @@ public class ScriptLoader : IDisposable, IScriptLoader
 		Pool.FreeList(ref resultReferences);
 		Pool.FreeList(ref resultRequires);
 
-		HasRequires = AsyncLoader.Requires.Length > 0;
+		if (AsyncLoader != null) HasRequires = AsyncLoader.Requires.Length > 0;
+
+		yield return null;
 
 		while (HasRequires && !Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete() && !IsExtension && !Community.Runtime.ScriptProcessor.AllExtensionsComplete())
 		{
-			yield return _serverExhale;
 			yield return null;
 		}
 
 		var requires = Pool.GetList<Plugin>();
 		var noRequiresFound = false;
-		foreach (var require in AsyncLoader.Requires)
+		if (AsyncLoader != null)
 		{
-			var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
-			if (plugin == null)
+			foreach (var require in AsyncLoader.Requires)
 			{
-				Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
-				noRequiresFound = true;
+				var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
+				if (plugin == null)
+				{
+					Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
+					noRequiresFound = true;
+				}
+				else requires.Add(plugin);
 			}
-			else requires.Add(plugin);
 		}
+
+		yield return null;
 
 		if (noRequiresFound)
 		{
@@ -215,24 +246,31 @@ public class ScriptLoader : IDisposable, IScriptLoader
 			yield break;
 		}
 
-		Carbon.Components.Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
+		yield return null;
 
+		if (AsyncLoader != null) Carbon.Components.Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
+	
 		var requiresResult = requires.ToArray();
 
 #if DISABLE_ASYNC_LOADING
 		AsyncLoader.ThreadFunction();
 		AsyncLoader.IsDone = true;
 #else
-		AsyncLoader.Start();
+		AsyncLoader?.Start();
 #endif
 
-		while (AsyncLoader != null && !AsyncLoader.IsDone) { yield return null; }
+		while (AsyncLoader != null && !AsyncLoader.IsDone)
+		{
+			yield return null;
+		}
 
 		if (AsyncLoader == null)
 		{
 			HasFinished = true;
 			yield break;
 		}
+
+		yield return null;
 
 		if (AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0)
 		{
@@ -266,6 +304,8 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 		var assembly = AsyncLoader.Assembly;
 		var firstPlugin = true;
+
+		yield return null;
 
 		foreach (var type in assembly.GetTypes())
 		{
@@ -355,7 +395,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 				Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}': ", exception);
 			}
 
-			yield return _serverExhale;
+			yield return null;
 		}
 
 		foreach (var uhList in AsyncLoader.UnsupportedHooks)
@@ -386,7 +426,7 @@ public class ScriptLoader : IDisposable, IScriptLoader
 
 	public void Dispose()
 	{
-
+		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
 	}
 
 	[Serializable]

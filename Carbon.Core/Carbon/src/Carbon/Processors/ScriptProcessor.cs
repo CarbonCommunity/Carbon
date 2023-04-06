@@ -66,6 +66,10 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		StartCoroutine(coroutine);
 	}
+	void IScriptProcessor.StopCoroutine(System.Collections.IEnumerator coroutine)
+	{
+		StopCoroutine(coroutine);
+	}
 
 	public class Script : Instance, IScriptProcessor.IScript
 	{
@@ -137,7 +141,10 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 						Logger.Warn($" This plugin requires Harmony Reference to be enabled for it to work. Enabling it can cause instability, use at your own discretion!");
 					}
 
-					output = input.Replace("PluginTimers", "Timers");
+					output = input.Replace("PluginTimers", "Timers")
+						.Replace("using Harmony;", "using HarmonyLib;")
+						.Replace("HarmonyInstance.Create", "new Harmony")
+						.Replace("HarmonyInstance", "Harmony");
 
 					var newOutput = string.Empty;
 					var split = output.Split('\n');

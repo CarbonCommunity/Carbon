@@ -24,6 +24,9 @@
 				<!-- We want to override corelib to have the new lang features -->
 				<WarningsNotAsErrors>CS1685</WarningsNotAsErrors>
 				<NoWarn>CS1685</NoWarn>
+
+				<!-- -->
+				<ConfigurationNormalized>Release</ConfigurationNormalized>
 			</PropertyGroup>
 		</When>
 		<Otherwise>
@@ -37,6 +40,9 @@
 
 				<!-- We want to override corelib to have the new lang features -->
 				<NoWarn>CS1685</NoWarn>
+
+				<!-- -->
+				<ConfigurationNormalized>Debug</ConfigurationNormalized>
 			</PropertyGroup>
 		</Otherwise>
 	</Choose>
@@ -45,12 +51,14 @@
 		<When Condition="$(Configuration.Contains('Unix'))">
 			<PropertyGroup>
 				<DefineConstants>UNIX;$(DefineConstants);$(UserConstants)</DefineConstants>
+				<OperatingSystemCapitalized>Linux</OperatingSystemCapitalized>
 				<OperatingSystem>linux</OperatingSystem>
 			</PropertyGroup>
 		</When>
 		<Otherwise>
 			<PropertyGroup>
 				<DefineConstants>WIN;$(DefineConstants);$(UserConstants)</DefineConstants>
+				<OperatingSystemCapitalized>Windows</OperatingSystemCapitalized>
 				<OperatingSystem>windows</OperatingSystem>
 			</PropertyGroup>
 		</Otherwise>

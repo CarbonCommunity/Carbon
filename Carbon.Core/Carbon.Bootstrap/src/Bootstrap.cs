@@ -3,7 +3,6 @@ using System.IO;
 using System.Reflection;
 using API.Events;
 using Components;
-using Contracts;
 using Utility;
 
 /*
@@ -44,6 +43,9 @@ public sealed class Bootstrap
 	internal static FileWatcherManager Watcher
 	{ get => _gameObject.GetComponent<FileWatcherManager>(); }
 
+	internal static PermissionManager Permissions
+	{ get => _gameObject.GetComponent<PermissionManager>(); }
+
 	static Bootstrap()
 	{
 		identifier = $"{Guid.NewGuid():N}";
@@ -71,6 +73,13 @@ public sealed class Bootstrap
 		_gameObject.AddComponent<EventManager>();
 		_gameObject.AddComponent<FileWatcherManager>();
 
+		//_gameObject.AddComponent<PermissionManager>();
+		// Test2 test2 = new Test2();
+		// test2.DoStuff(Permissions);
+
+		ITestInterface foo = Test1.GetInstance();
+		foo.DoStuff();
+
 		Events.Subscribe(CarbonEvent.StartupShared, x =>
 		{
 			AssemblyEx.LoadComponent("Carbon.dll", "CarbonEvent.StartupShared");
@@ -79,7 +88,6 @@ public sealed class Bootstrap
 		Events.Subscribe(CarbonEvent.CarbonStartupComplete, x =>
 		{
 			Watcher.enabled = true;
-			AssemblyEx.LoadModule("Carbon.Modules.dll", "CarbonEvent.CarbonStartupComplete");
 		});
 
 		try

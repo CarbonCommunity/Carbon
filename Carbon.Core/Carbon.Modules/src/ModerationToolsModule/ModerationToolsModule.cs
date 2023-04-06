@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Drawing;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Extensions;
 using ConVar;
-using Mysqlx.Expr;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -50,7 +48,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 	}
 	private object INoteAdminHack(BasePlayer player)
 	{
-		if(HasPermission(player, ConfigInstance.Moderation.Cmod1Permission))
+		if (HasPermission(player, ConfigInstance.Moderation.Cmod1Permission))
 		{
 			return false;
 		}
@@ -62,6 +60,12 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		if (ConfigInstance.ShowServerEventToasts) return null;
 
 		return false;
+	}
+	private object CanUnlockTechTreeNode()
+	{
+		if (ConfigInstance.NoTechTreeUnlock) return false;
+
+		return null;
 	}
 
 	public void Mute(ConsoleSystem.Arg arg)
@@ -91,7 +95,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		var player = arg.Player();
 		if (player == null) return;
 
-		var playerName = arg.Args [0];
+		var playerName = arg.Args[0];
 
 		var targetPlayer = BasePlayer.FindAwakeOrSleeping(playerName);
 		if (targetPlayer == null)
@@ -129,7 +133,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		var player = arg.Player();
 		if (player == null) return;
 
-		var targetPlayer = BasePlayer.FindAwakeOrSleeping(arg.Args [0]);
+		var targetPlayer = BasePlayer.FindAwakeOrSleeping(arg.Args[0]);
 		if (targetPlayer == null)
 		{
 			player.ConsoleMessage($"Couldn't find that player.");
@@ -147,7 +151,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		var player = arg.Player();
 		if (player == null) return;
 
-		var targetPlayer = BasePlayer.FindAwakeOrSleeping(arg.Args [0]);
+		var targetPlayer = BasePlayer.FindAwakeOrSleeping(arg.Args[0]);
 		if (targetPlayer == null)
 		{
 			player.ConsoleMessage($"Couldn't find that player.");
@@ -193,6 +197,9 @@ public class ModerationToolsConfig
 
 	[JsonProperty("No give notices")]
 	public bool NoGiveNotices = true;
+
+	[JsonProperty("No TechTree unlock")]
+	public bool NoTechTreeUnlock = false;
 
 	[JsonProperty("Show server event toasts")]
 	public bool ShowServerEventToasts = true;

@@ -144,14 +144,14 @@ namespace Carbon
 						ResultOverride(plugin, priority);
 					}
 				}
-				catch (Exception ex) { Logger.Error("Fuck:", ex); }
+				catch (Exception ex) { Logger.Error($"Major issue with caching the '{hookName}' hook called in {plugin}", ex); }
 			}
 
 			ConflictCheck();
 
 			Pool.FreeList(ref plugins);
 
-			if (array != null) Pool.Free(ref array);
+			if (array != null) Array.Clear(array, 0, array.Length);
 
 			void ResultOverride(BaseHookable hookable, Priorities priority)
 			{

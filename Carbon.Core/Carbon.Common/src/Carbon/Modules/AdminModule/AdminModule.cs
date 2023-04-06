@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
+using Carbon.Core;
 using Carbon.Extensions;
 using Network;
 using Newtonsoft.Json;
@@ -58,6 +59,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		[LogType.Warning] = "#dbbe2a",
 		[LogType.Error] = "#db2a2a"
 	};
+	internal bool HandleEnableNeedsKeyboard(PlayerSession ap)
+	{
+		return ap.SelectedTab == null || ap.SelectedTab.Dialog == null;
+	}
+	internal bool HandleEnableNeedsKeyboard(BasePlayer player)
+	{
+		return HandleEnableNeedsKeyboard(GetPlayerSession(player));
+	}
 
 	public override void Init()
 	{
@@ -96,21 +105,24 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Application.logMessageReceived += OnLog;
 		}
 
-		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
+		foreach(var command in ConfigInstance.OpenCommands)
 		{
-			if (!CanAccess(player)) return;
+			Community.Runtime.CorePlugin.cmd.AddChatCommand(command, this, (player, cmd, args) =>
+			{
+				if (!CanAccess(player)) return;
 
-			var ap = GetPlayerSession(player);
-			ap.SelectedTab = Tabs[0];
+				var ap = GetPlayerSession(player);
+				ap.SelectedTab = Tabs[0];
 
-			var tab = GetTab(player);
-			tab?.OnChange?.Invoke(ap, tab);
+				var tab = GetTab(player);
+				tab?.OnChange?.Invoke(ap, tab);
 
-			ap.Clear();
+				ap.Clear();
 
-			DrawCursorLocker(player);
-			Draw(player);
-		}, silent: true);
+				DrawCursorLocker(player);
+				Draw(player);
+			}, silent: true);
+		}
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -144,12 +156,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private void OnLog(string condition, string stackTrace, LogType type)
 	{
-		try { if (_logQueue.Count >= 7) _logQueue.RemoveAt(0); } catch { }
+		try
+		{
+			if (_logQueue.Count >= 7) _logQueue.RemoveAt(0);
 
-		var log = condition.Split('\n');
-		var result = log[0];
-		Array.Clear(log, 0, log.Length);
-		_logQueue.Add($"<color={_logColor[type]}>{result}</color>");
+			var log = condition.Split('\n');
+			var result = log[0];
+			Array.Clear(log, 0, log.Length);
+			_logQueue.Add($"<color={_logColor[type]}>{result}</color>");
+		}
+		catch { }
 	}
 
 	public void GenerateTabs()
@@ -212,6 +228,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
+		if(HookCaller.CallStaticHook("CanAccessAdminModule", player) is bool result)
+		{
+			return result;
+		}
+
 		var minLevel = ConfigInstance.MinimumAuthLevel;
 		var userLevel = ServerUsers.Is(player.userID, ServerUsers.UserGroup.Moderator) ? 1 : ServerUsers.Is(player.userID, ServerUsers.UserGroup.Owner) ? 2 : 0;
 
@@ -403,7 +424,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0.15f, xMax: 0.85f, yMin: 0.15f, yMax: 0.85f);
 		}
 	}
-	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, int characterLimit, bool readOnly, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
+	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, int characterLimit, bool readOnly, float height, float offset, PlayerSession session, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
 	{
 		var color = type switch
 		{
@@ -443,7 +464,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			align: TextAnchor.MiddleLeft,
 			characterLimit: characterLimit,
 			readOnly: readOnly,
-			needsKeyboard: true,
+			needsKeyboard: Singleton.HandleEnableNeedsKeyboard(session),
 			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		if (!readOnly)
@@ -823,7 +844,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			align: TextAnchor.MiddleLeft,
 			characterLimit: input.CharacterLimit,
 			readOnly: input.ReadOnly,
-			needsKeyboard: true,
+			needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap),
 			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateProtectedButton(container, parent: inPanel, id: null,
@@ -1064,7 +1085,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					for (int i = ap.TabSkip; i < amount; i++)
 					{
 						var _tab = Tabs[ap.TabSkip + i];
-						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
+						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
 						TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i);
 						tabIndex += tabWidth;
 					}
@@ -1141,7 +1162,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 										break;
 
 									case Tab.OptionInput input:
-										TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(ap), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
+										TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(ap), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex, ap);
 										break;
 
 									case Tab.OptionEnum @enum:
@@ -1202,20 +1223,41 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if (tab.Dialog != null)
 					{
-						var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
-						cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
+						if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
+						{
+							tab.Dialog.OnConfirm?.Invoke(ap);
+						}
+						else
+						{
+							var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
+							cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
 
-						cui.CreateText(container, dialog, null,
-							"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
+							cui.CreateText(container, dialog, null,
+								"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
 
-						cui.CreateText(container, dialog, null,
-							"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
+							cui.CreateText(container, dialog, null,
+								"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
 
-						cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
-							xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
+							cui.CreateText(container, dialog, null,
+								"1 1 1 0.2", "<color=red><b>*</b></color> Holding <b>[SPRINT]</b> next time you open this panel will automatically confirm it.", 8, xMin: 0.02f, yMin: 0.03f, align: TextAnchor.LowerLeft);
 
-						cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
-							xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
+							cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
+								xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
+
+							cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
+								xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
+
+							Community.Runtime.CorePlugin.timer.In(0.2f, () =>
+							{
+								if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
+								{
+									try { tab.Dialog.OnConfirm?.Invoke(ap); } catch { }
+									tab.Dialog = null;
+
+									Draw(player);
+								}
+							});
+						}
 					}
 				}
 			}
@@ -1295,7 +1337,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var index = Tabs.IndexOf(existentTab);
 			Tabs.RemoveAt(index);
-			Pool.Free(ref existentTab);
+			existentTab = null;
 
 			Tabs.Insert(insert ?? index, tab);
 		}
@@ -1575,6 +1617,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Player = player;
 		}
 
+		public void SetPage(int column, int page)
+		{
+			if(ColumnPages.TryGetValue(column, out var pageInstance))
+			{
+				pageInstance.CurrentPage = page;
+				pageInstance.Check();
+			}
+		}
 		public T GetStorage<T>(Tab tab, string id, object @default = null)
 		{
 			try
@@ -2292,7 +2342,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 						{
 							using var cui = new CUI(Singleton.Handler);
-							var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+							var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 							cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 							cui.Send(container, player);
 							BlindedPlayers.Add(player);
@@ -2342,22 +2392,26 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			tab.AddName(0, "Options", TextAnchor.MiddleLeft);
 
-			tab.AddButton(0, "Players", instance =>
+			tab.AddButton(0, "Players", ap =>
 			{
+				ap.SetStorage(tab, "groupedit", false);
+
 				tab.ClearColumn(1);
 				tab.ClearColumn(2);
 				tab.ClearColumn(3);
-				instance.Clear();
+				ap.Clear();
 
-				instance.SetStorage(tab, "option", 0);
+				ap.SetStorage(tab, "option", 0);
 
-				GeneratePlayers(tab, permission, instance);
+				GeneratePlayers(tab, permission, ap);
 			}, type: (ap) => ap.GetStorage<int>(tab, "option", 0) == 0 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 
 			GeneratePlayers(tab, permission, PlayerSession.Blank);
 
 			tab.AddButton(0, "Groups", ap =>
 			{
+				ap.SetStorage(tab, "groupedit", false);
+
 				tab.ClearColumn(1);
 				tab.ClearColumn(2);
 				tab.ClearColumn(3);
@@ -2417,8 +2471,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public static void GeneratePlugins(Tab tab, PlayerSession ap, Permission permission, BasePlayer player, string selectedGroup)
 		{
+			var groupEdit = ap.GetStorage<bool>(tab, "groupedit");
 			var filter = ap.GetStorage<string>(tab, "pluginfilter", string.Empty)?.Trim().ToLower();
-			var plugins = Community.Runtime.Plugins.Plugins.Where(x =>
+			var plugins = Loader.LoadedMods.SelectMany(x => x.Plugins).Where(x =>
 			{
 				if (!string.IsNullOrEmpty(filter))
 				{
@@ -2431,18 +2486,23 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.ClearColumn(2);
 			if (string.IsNullOrEmpty(selectedGroup))
 			{
-				tab.AddButton(2, "Select", ap2 =>
+				tab.AddName(2, $"{player.displayName}");
+				tab.AddButtonArray(2, new Tab.OptionButton("Select Player", (ap2) =>
 				{
 					Singleton.SetTab(ap.Player, "players");
 					var tab = Singleton.GetTab(ap.Player);
 					ap.SetStorage(tab, "playerfilterpl", player);
 					PlayersTab.RefreshPlayers(tab, ap);
 					PlayersTab.ShowInfo(tab, ap, player);
-				});
+				}, ap => Tab.OptionButton.Types.Warned), new Tab.OptionButton(groupEdit ? "Edit Plugins" : "Edit Groups", (ap2) =>
+				{
+					ap.SetStorage(tab, "groupedit", !groupEdit);
+					GeneratePlugins(tab, ap, permission, player, null);
+				}));
 			}
 			else
 			{
-				tab.AddName(2, $"Group '{selectedGroup}' Permissions");
+				tab.AddName(2, $"{selectedGroup}");
 				tab.AddButtonArray(2, new Tab.OptionButton("Delete", ap =>
 				{
 					tab.CreateDialog($"Are you sure you want to delete the '{selectedGroup}' group?", ap2 =>
@@ -2489,24 +2549,59 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					});
 				}));
 			}
-			tab.AddName(2, "Plugins", TextAnchor.MiddleLeft);
+
+			if (groupEdit)
 			{
-				tab.AddInput(2, "Search", ap => ap.GetStorage<string>(tab, "pluginfilter", string.Empty), (ap, args) =>
-				{
-					ap.SetStorage(tab, "pluginfilter", args.ToString(" "));
-					GeneratePlugins(tab, ap, permission, player, selectedGroup);
-				});
+				tab.ClearColumn(3);
 
-				foreach (var plugin in plugins)
+				tab.AddName(2, "Groups", TextAnchor.MiddleLeft);
 				{
-					tab.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
+					tab.AddInput(2, "Search", ap => ap.GetStorage<string>(tab, "groupfilter", string.Empty), (ap, args) =>
 					{
-						ap.SetStorage(tab, "plugin", plugin);
-						ap.SetStorage(tab, "pluginr", instance3.LastPressedRow);
-						ap.SetStorage(tab, "pluginc", instance3.LastPressedColumn);
+						ap.SetStorage(tab, "groupfilter", args.ToString(" "));
+						GeneratePlugins(tab, ap, permission, player, selectedGroup);
+					});
 
-						GeneratePermissions(tab, permission, plugin, player, selectedGroup);
-					}, type: (_instance) => ap.GetStorage<RustPlugin>(tab, "plugin", null) == plugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+					var groupFilter = ap.GetStorage<string>(tab, "groupfilter");
+
+					foreach (var group in permission.GetGroups())
+					{
+						if (!string.IsNullOrEmpty(groupFilter) && !group.Contains(groupFilter)) continue;
+
+						tab.AddButton(2, $"{group}", ap =>
+						{
+							if (permission.UserHasGroup(player.UserIDString, group))
+							{
+								permission.RemoveUserGroup(player.UserIDString, group);
+							}
+							else permission.AddUserGroup(player.UserIDString, group);
+
+							GeneratePlugins(tab, ap, permission, player, selectedGroup);
+						}, type: (_instance) => permission.UserHasGroup(player.UserIDString, group) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
+					}
+				}
+			}
+			else
+			{
+				tab.AddName(2, "Plugins", TextAnchor.MiddleLeft);
+				{
+					tab.AddInput(2, "Search", ap => ap.GetStorage<string>(tab, "pluginfilter", string.Empty), (ap, args) =>
+					{
+						ap.SetStorage(tab, "pluginfilter", args.ToString(" "));
+						GeneratePlugins(tab, ap, permission, player, selectedGroup);
+					});
+
+					foreach (var plugin in plugins)
+					{
+						tab.AddRow(2, new Tab.OptionButton($"{plugin.Name} ({plugin.Version})", instance3 =>
+						{
+							ap.SetStorage(tab, "plugin", plugin);
+							ap.SetStorage(tab, "pluginr", instance3.LastPressedRow);
+							ap.SetStorage(tab, "pluginc", instance3.LastPressedColumn);
+
+							GeneratePermissions(tab, permission, plugin, player, selectedGroup);
+						}, type: (_instance) => ap.GetStorage<RustPlugin>(tab, "plugin", null) == plugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+					}
 				}
 			}
 		}
@@ -2554,11 +2649,51 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public static void GenerateGroups(Tab tab, Permission perms, PlayerSession ap)
 		{
+			tab.ClearColumn(1);
 			tab.AddName(1, "Groups", TextAnchor.MiddleLeft);
 			{
-				foreach (var group in perms.GetGroups())
+				tab.AddInput(1, "Search", ap => ap.GetStorage<string>(tab, "groupfilter", string.Empty), (ap, args) =>
 				{
-					tab.AddRow(1, new Tab.OptionButton($"{group}", instance2 =>
+					ap.SetStorage(tab, "groupfilter", args.ToString(" "));
+					GenerateGroups(tab, perms, ap);
+				});
+
+				var groupFilter = ap.GetStorage<string>(tab, "groupfilter");
+
+				tab.AddButton(1, "Add Group", ap =>
+				{
+					var temp = Pool.GetList<string>();
+					var groups = Community.Runtime.CorePlugin.permission.GetGroups();
+					temp.Add("None");
+					temp.AddRange(groups);
+
+					var array = temp.ToArray();
+					Pool.FreeList(ref temp);
+
+					Modal.Open(ap.Player, "Create Group", new Dictionary<string, Modal.Field>()
+					{
+						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true),
+						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String),
+						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer),
+						["parent"] = Modal.EnumField.MakeEnum("Parent", array)
+					}, onConfirm: (player, modal) =>
+					{
+						var parentIndex = modal.Get<int>("parent");
+						Community.Runtime.CorePlugin.permission.CreateGroup(modal.Get<string>("name"), modal.Get<string>("dname"), modal.Get<int>("rank"));
+						if (parentIndex != 0) Community.Runtime.CorePlugin.permission.SetGroupParent(modal.Get<string>("name"), array[parentIndex]);
+
+						tab.ClearColumn(1);
+						tab.ClearColumn(2);
+						tab.ClearColumn(3);
+						GenerateGroups(tab, perms, ap);
+					});
+				}, (_instance) => Tab.OptionButton.Types.Warned);
+
+				foreach (var group in permission.GetGroups())
+				{
+					if (!string.IsNullOrEmpty(groupFilter) && !group.Contains(groupFilter)) continue;
+
+					tab.AddButton(1, $"{group}", instance2 =>
 					{
 						ap.SetStorage(tab, "group", group);
 						ap.ClearStorage(tab, "plugin");
@@ -2567,37 +2702,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.ClearColumn(3);
 
 						GeneratePlugins(tab, ap, permission, ap.Player, group);
-					}, type: (_instance) => ap.GetStorage<string>(tab, "group", string.Empty) == group ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+					}, type: (_instance) => ap.GetStorage<string>(tab, "group", string.Empty) == group ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 				}
 			}
-			tab.AddRow(1, new Tab.OptionButton("Add Group", ap =>
-			{
-				var temp = Pool.GetList<string>();
-				var groups = Community.Runtime.CorePlugin.permission.GetGroups();
-				temp.Add("None");
-				temp.AddRange(groups);
-
-				var array = temp.ToArray();
-				Pool.FreeList(ref temp);
-
-				Modal.Open(ap.Player, "Create Group", new Dictionary<string, Modal.Field>()
-				{
-					["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true),
-					["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String),
-					["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer),
-					["parent"] = Modal.EnumField.MakeEnum("Parent", array)
-				}, onConfirm: (player, modal) =>
-				{
-					var parentIndex = modal.Get<int>("parent");
-					Community.Runtime.CorePlugin.permission.CreateGroup(modal.Get<string>("name"), modal.Get<string>("dname"), modal.Get<int>("rank"));
-					if (parentIndex != 0) Community.Runtime.CorePlugin.permission.SetGroupParent(modal.Get<string>("name"), array[parentIndex]);
-
-					tab.ClearColumn(1);
-					tab.ClearColumn(2);
-					tab.ClearColumn(3);
-					GenerateGroups(tab, perms,  ap);
-				});
-			}, (_instance) => Tab.OptionButton.Types.Warned));
 		}
 	}
 	public class EntitiesTab
@@ -2836,7 +2943,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 								{
 									using var cui = new CUI(Singleton.Handler);
-									var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+									var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 									cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 									cui.Send(container, player);
 									PlayersTab.BlindedPlayers.Add(player);
@@ -3044,10 +3151,36 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var carbonModule = module.GetType();
 			tab.AddInput(1, "Name", ap => module.Name, null);
-			tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
-			tab.AddButtonArray(1,
-				new Tab.OptionButton("Save", ap => { module.Save(); }),
-				new Tab.OptionButton("Load", ap => { module.Load(); }));
+			tab.AddToggle(1, "Is Core", null, ap => module.IsCoreModule);
+			tab.AddToggle(1, "Is Disabled", null, ap => module.Disabled);
+
+			if (!module.Disabled)
+			{
+				tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
+
+				tab.AddButtonArray(1,
+					new Tab.OptionButton("Save", ap => { module.Save(); }),
+					new Tab.OptionButton("Load", ap => { module.Load(); }));
+
+				tab.AddButton(1, "Edit Config", ap =>
+				{
+					var moduleConfigFile = Path.Combine(Core.Defines.GetModulesFolder(), module.Name, "config.json");
+					ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
+						(ap, jobject) =>
+						{
+							Singleton.SetTab(ap.Player, "modules");
+							Singleton.Draw(ap.Player);
+						},
+						(ap, jobject) =>
+						{
+							OsEx.File.Create(moduleConfigFile, jobject.ToString(Formatting.Indented));
+							module.Load();
+
+							Singleton.SetTab(ap.Player, "modules");
+							Singleton.Draw(ap.Player);
+						}, null);
+				});
+			}
 		}
 	}
 	public class PluginsTab
@@ -3471,7 +3604,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var searchQuery = ap.GetStorage<string>(tab, "search");
 			var search = cui.CreatePanel(container, topbar, null, "0 0 0 0", xMin: 0.6f, xMax: 0.855f, yMin: 0f, OyMax: -0.5f);
-			cui.CreateProtectedInputField(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.8 0.8 0.8 0.6" : "1 1 1 1", string.IsNullOrEmpty(searchQuery) ? "Search..." : searchQuery, 10, 20, false, xMin: 0.06f, align: TextAnchor.MiddleLeft, needsKeyboard: true, command: "pluginbrowser.search  ");
+			cui.CreateProtectedInputField(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.8 0.8 0.8 0.6" : "1 1 1 1", string.IsNullOrEmpty(searchQuery) ? "Search..." : searchQuery, 10, 20, false, xMin: 0.06f, align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap), command: "pluginbrowser.search  ");
 			cui.CreateProtectedButton(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.2 0.2 0.2 0.8" : "#d43131", "1 1 1 0.6", "X", 10, xMin: 0.9f, xMax: 1, yMax: 0.96f, command: "pluginbrowser.search  ");
 
 			if (TagFilter.Contains("peanus")) cui.CreateClientImage(container, grid, null, "https://media.discordapp.net/attachments/1078801277565272104/1085062151221293066/15ox1d_1.jpg?width=827&height=675", "1 1 1 1", xMax: 0.8f);
@@ -4792,7 +4925,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.SendEntitySnapshot(target);
 		player.gameObject.Identity();
 		player.SetParent(target);
-		player.viewAngles = Vector3.one;
+		player.viewAngles = target.transform.rotation.eulerAngles;
+		player.eyes.NetworkUpdate(target.transform.rotation);
 		player.SendNetworkUpdate();
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
 
@@ -4824,7 +4958,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: false);
 		player.InvokeRepeating(player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
 		player.gameObject.SetLayerRecursive(17);
-		player.Teleport(spectated.transform.position);
+		if (spectated != null) player.Teleport(spectated.transform.position);
 		player.spectateFilter = string.Empty;
 
 		var ap = Singleton.GetPlayerSession(player);
@@ -5445,7 +5579,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var input = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
 				xMin: 0.805f, xMax: 0.94f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
 			cui.CreateProtectedInputField(container, input, null, "1 1 1 1", "#", 10, 0, false,
-				xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: true);
+				xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 
 			var picker = cui.CreatePanel(container, parent: main, id: PanelId + ".picker",
 				color: "0 0 0 0",
@@ -5613,6 +5747,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		internal Handler Handler { get; set; }
 		internal const string PanelId = "carbonmodalui";
+		internal BasePlayer Player { get; set; }
 
 		public static void Open(BasePlayer player, string title,  Dictionary<string, Field> fields, Action<BasePlayer, Modal> onConfirm = null, Action onCancel = null)
 		{
@@ -5622,6 +5757,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Fields = fields,
 				OnCancel = onCancel,
 				OnConfirm = onConfirm,
+				Player = player,
 				Handler = new ()
 			};
 
@@ -5712,7 +5848,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					case Field.FieldTypes.Float:
 					case Field.FieldTypes.Integer:
 						var value = field.Value.Value != null ? (field.Value.Type == Field.FieldTypes.Float ? $"{field.Value.Value:0.0}" : $"{field.Value.Value:0}") : field.Value.Value?.ToString();
-						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: true);
+						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: Singleton.HandleEnableNeedsKeyboard(Player));
 						break;
 
 					case Field.FieldTypes.Boolean:
@@ -5988,8 +6124,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 public class AdminConfig
 {
-	[JsonProperty("OpenCommand v1")]
-	public string OpenCommand = "cpanel";
+	[JsonProperty("OpenCommands")]
+	public string[] OpenCommands = new string[] { "cp", "cpanel" };
 	public int MinimumAuthLevel = 2;
 	public bool DisableEntitiesTab = false;
 	public bool DisablePluginsTab = true;
