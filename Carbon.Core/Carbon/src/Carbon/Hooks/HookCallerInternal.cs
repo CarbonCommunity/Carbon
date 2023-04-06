@@ -237,7 +237,8 @@ namespace Carbon.Hooks
 									differentResults = true;
 								}
 
-								if (conflict.Priority > priorityConflict.Priority)
+								if (conflict.Result == null &&
+									conflict.Priority > priorityConflict.Priority)
 								{
 									priorityConflict = conflict;
 								}
@@ -245,7 +246,6 @@ namespace Carbon.Hooks
 
 							localResult = priorityConflict.Result;
 							if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
-
 							break;
 					}
 
