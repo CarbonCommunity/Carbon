@@ -1,18 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using Carbon.Base;
-using Carbon.Extensions;
-using ConVar;
-using Mysqlx.Expr;
-using Network;
-using Newtonsoft.Json;
-using UnityEngine;
 using Net = Network.Net;
-using TimeEx = Carbon.Extensions.TimeEx;
 
 /*
  *
@@ -63,7 +53,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 	{
 		return new Dictionary<string, Dictionary<string, string>>
 		{
-			["en"] = new ()
+			["en"] = new()
 			{
 				["denied"] = "Not whitelisted",
 			}

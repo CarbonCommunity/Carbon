@@ -144,7 +144,7 @@ public struct CUI : IDisposable
 		return Manager.Image(container, parent, id, null, url, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard);
 	}
 
-	public static string Color(string hexColor, float? alpha = null, bool includeAlpha = true)
+	public static string HexToRustColor(string hexColor, float? alpha = null, bool includeAlpha = true)
 	{
 		if (!ColorUtility.TryParseHtmlString(hexColor, out var color))
 		{
@@ -152,6 +152,14 @@ public struct CUI : IDisposable
 		}
 
 		return $"{color.r} {color.g} {color.b}{(includeAlpha ? $" {alpha ?? color.a}" : "")}";
+	}
+	public static string RustToHexColor(string rustColor, float? alpha = null, bool includeAlpha = true)
+	{
+		var colors = rustColor.Split(' ');
+		var color = new Color(colors[0].ToFloat(), colors[1].ToFloat(), colors[2].ToFloat(), includeAlpha ? alpha ?? (colors.Length > 2 ? colors[3].ToFloat() : 1f) : 1);
+		var result = includeAlpha ? ColorUtility.ToHtmlStringRGBA(color) : ColorUtility.ToHtmlStringRGB(color);
+		Array.Clear(colors, 0, colors.Length);
+		return $"#{result}";
 	}
 
 	#endregion
@@ -567,22 +575,26 @@ public struct CUI : IDisposable
 
 		public enum FontTypes
 		{
+			Arial,
 			RobotoCondensedBold, RobotoCondensedRegular,
-			Daubmark, DroidSansMono
+			PermanentMarker, DroidSansMono
 		}
 
 		public string GetFont(FontTypes type)
 		{
 			switch (type)
 			{
+				case FontTypes.Arial:
+					return "arial.ttf";
+
 				case FontTypes.RobotoCondensedBold:
 					return "robotocondensed-bold.ttf";
 
 				case FontTypes.RobotoCondensedRegular:
 					return "robotocondensed-regular.ttf";
 
-				case FontTypes.Daubmark:
-					return "daubmark.ttf";
+				case FontTypes.PermanentMarker:
+					return "permanentmarker.ttf";
 
 				case FontTypes.DroidSansMono:
 					return "droidsansmono.ttf";
@@ -616,7 +628,7 @@ public static class CUIStatics
 {
 	internal static string ProcessColor(string color)
 	{
-		if (color.StartsWith("#")) return CUI.Color(color);
+		if (color.StartsWith("#")) return CUI.HexToRustColor(color);
 
 		return color;
 	}

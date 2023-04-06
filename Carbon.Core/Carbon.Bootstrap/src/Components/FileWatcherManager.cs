@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Legacy;
 using UnityEngine;
 
 /*
@@ -39,6 +38,19 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 		{
 			Extension = "*.dll",
 			IncludeSubFolders = false,
+			Directory = Utility.Context.CarbonModules,
+
+			OnFileCreated = (sender, file) =>
+			{
+				Carbon.Bootstrap.AssemblyEx.LoadModule(
+					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
+			},
+		},
+
+		new Item
+		{
+			Extension = "*.dll",
+			IncludeSubFolders = false,
 			Directory = Utility.Context.CarbonExtensions,
 
 			OnFileCreated = (sender, file) =>
@@ -47,6 +59,7 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
 			},
 		},
+
 #if EXPERIMENTAL
 		new Item
 		{

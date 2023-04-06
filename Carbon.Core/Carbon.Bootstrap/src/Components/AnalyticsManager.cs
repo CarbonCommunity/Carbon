@@ -20,10 +20,10 @@ namespace Components;
 #pragma warning disable IDE0051
 internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsManager
 {
-	private bool _first;
 	private int _sessions;
 	private float _lastUpdate;
 	private float _lastEngagement;
+	private static bool _first;
 	private static string _location;
 
 	private const string MeasurementID = "G-M7ZBRYS3X7";
@@ -119,6 +119,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 				if (!_serverInfo.Equals(default(Identity))) return info;
 			}
 
+			_first = true;
 			info = new Identity { UID = $"{Guid.NewGuid()}" };
 			Logger.Warn($"A new server identity was generated.");
 			File.WriteAllText(_location, JsonConvert.SerializeObject(info, Formatting.Indented));
@@ -163,10 +164,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 	}
 
 	public void SessionStart()
-	{
-		Logger.Warn(">> SESSION START");
-		LogEvent(_first ? "first_visit" : "user_engagement");
-	}
+		=> LogEvent(_first ? "first_visit" : "user_engagement");
 
 	public void LogEvent(string eventName)
 		=> SendEvent(eventName);

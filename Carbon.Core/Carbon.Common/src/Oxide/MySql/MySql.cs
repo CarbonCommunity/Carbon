@@ -7,7 +7,7 @@ using Carbon;
 using MySql.Data.MySqlClient;
 using Oxide.Core.Database;
 using Oxide.Core.Libraries;
-using Oxide.Plugins;
+using Oxide.Core.Plugins;
 
 /*
  *
@@ -69,21 +69,18 @@ public class MySql : Library, IDatabaseProvider
 	}
 
 	public Connection OpenDb(string host, int port, string database, string user, string password, Plugin plugin, bool persistent = false)
-	{
-		return OpenDb($"Server={host};Port={port};Database={database};User={user};Password={password};Pooling=false;default command timeout=120;Allow Zero Datetime=true;", plugin, persistent);
-	}
+		=> OpenDb($"Server={host};Port={port};Database={database};User={user};Password={password};Pooling=false;default command timeout=120;Allow Zero Datetime=true;", plugin, persistent);
+
 	public Connection OpenDb(string conStr, Plugin plugin, bool persistent = false)
 	{
-		if (!_connections.TryGetValue(((plugin != null) ? plugin.Name : null) ?? "null", out var dictionary))
+		if (!_connections.TryGetValue((plugin?.Name) ?? "null", out var dictionary))
 		{
-			dictionary = (_connections[((plugin != null) ? plugin.Name : null) ?? "null"] = new Dictionary<string, Connection>());
+			dictionary = _connections[(plugin?.Name) ?? "null"] = new Dictionary<string, Connection>();
 		}
-
 		if (dictionary.TryGetValue(conStr, out var connection))
 		{
-			OxideMod oxide = Interface.Oxide;
 			DbConnection con = connection.Con;
-			Logger.Warn($"Already open connection ({((con != null) ? con.ConnectionString : null)}), using existing instead...");
+			Logger.Warn($"Already open connection ({con?.ConnectionString}), using existing instead...");
 		}
 		else
 		{
@@ -94,7 +91,6 @@ public class MySql : Library, IDatabaseProvider
 			};
 			dictionary[conStr] = connection;
 		}
-
 		return connection;
 	}
 
@@ -105,18 +101,18 @@ public class MySql : Library, IDatabaseProvider
 		var connections = _connections;
 		var plugin = db.Plugin;
 
-		if (connections.TryGetValue(((plugin != null) ? plugin.Name : null) ?? "null", out var dictionary))
+		if (connections.TryGetValue((plugin?.Name) ?? "null", out var dictionary))
 		{
 			dictionary.Remove(db.ConnectionString);
 			if (dictionary.Count == 0)
 			{
 				var connections2 = _connections;
 				var plugin2 = db.Plugin;
-				connections2.Remove(((plugin2 != null) ? plugin2.Name : null) ?? "null");
+				connections2.Remove((plugin2?.Name) ?? "null");
 			}
 		}
 
-		if (db.Con != null) db.Con.Close();
+		db.Con?.Close();
 		db.Plugin = null;
 	}
 
@@ -177,14 +173,14 @@ public class MySql : Library, IDatabaseProvider
 		_worker.Join();
 	}
 
-	private readonly Queue<MySql.MySqlQuery> _queue = new Queue<MySql.MySqlQuery>();
-	private readonly object _syncroot = new object();
-	private readonly AutoResetEvent _workevent = new AutoResetEvent(false);
-	private readonly HashSet<Connection> _runningConnections = new HashSet<Connection>();
+	private readonly Queue<MySql.MySqlQuery> _queue = new();
+	private readonly object _syncroot = new();
+	private readonly AutoResetEvent _workevent = new(false);
+	private readonly HashSet<Connection> _runningConnections = new();
 
 	private bool _running = true;
 
-	private readonly Dictionary<string, Dictionary<string, Connection>> _connections = new Dictionary<string, Dictionary<string, Connection>>();
+	private readonly Dictionary<string, Dictionary<string, Connection>> _connections = new();
 	private readonly Thread _worker;
 
 	public class MySqlQuery
@@ -248,18 +244,16 @@ public class MySql : Library, IDatabaseProvider
 				}
 				else
 				{
-					using (var mySqlDataReader = _cmd().EndExecuteReader(_result))
+					using var mySqlDataReader = _cmd().EndExecuteReader(_result);
+					list = new List<Dictionary<string, object>>();
+					while (mySqlDataReader.Read() && (!Connection.ConnectionPersistent || (Connection.Con.State != ConnectionState.Closed && Connection.Con.State != ConnectionState.Broken)))
 					{
-						list = new List<Dictionary<string, object>>();
-						while (mySqlDataReader.Read() && (!Connection.ConnectionPersistent || (Connection.Con.State != ConnectionState.Closed && Connection.Con.State != ConnectionState.Broken)))
+						Dictionary<string, object> dictionary = new Dictionary<string, object>();
+						for (int i = 0; i < mySqlDataReader.FieldCount; i++)
 						{
-							Dictionary<string, object> dictionary = new Dictionary<string, object>();
-							for (int i = 0; i < mySqlDataReader.FieldCount; i++)
-							{
-								dictionary.Add(mySqlDataReader.GetName(i), mySqlDataReader.GetValue(i));
-							}
-							list.Add(dictionary);
+							dictionary.Add(mySqlDataReader.GetName(i), mySqlDataReader.GetValue(i));
 						}
+						list.Add(dictionary);
 					}
 				}
 				lastInsertRowId = _cmd().LastInsertedId;
@@ -270,7 +264,7 @@ public class MySql : Library, IDatabaseProvider
 				var text = "MySql handle raised an exception";
 				var connection = Connection;
 
-				if (((connection != null) ? connection.Plugin : null) != null)
+				if ((connection?.Plugin) != null)
 				{
 					text += string.Format(" in '{0} v{1}' plugin", Connection.Plugin.Name, Connection.Plugin.Version);
 				}
@@ -280,10 +274,7 @@ public class MySql : Library, IDatabaseProvider
 			}
 			Interface.Oxide.NextTick(delegate
 			{
-				if (Connection != null)
-				{
-					if (Connection.Plugin != null) Connection.Plugin.TrackStart();
-				}
+				Connection?.Plugin?.TrackStart();
 				try
 				{
 					if (Connection != null)
@@ -296,17 +287,13 @@ public class MySql : Library, IDatabaseProvider
 					}
 					else
 					{
-						var callbackNonQuery = CallbackNonQuery;
-						if (callbackNonQuery != null)
-						{
-							callbackNonQuery(nonQueryResult);
-						}
+						CallbackNonQuery?.Invoke(nonQueryResult);
 					}
 				}
 				catch (Exception ex2)
 				{
 					var text2 = "MySql command callback raised an exception";
-					if (((Connection != null) ? Connection.Plugin : null) != null)
+					if ((Connection?.Plugin) != null)
 					{
 						text2 += $" in '{Connection.Plugin.Name} v{Connection.Plugin.Version}' plugin";
 					}

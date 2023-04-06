@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using Carbon;
+using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
 /*
@@ -140,6 +141,7 @@ public class WebRequests
 						break;
 
 					case "PUT":
+					case "PATCH":
 					case "POST":
 						_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
 						{
@@ -180,7 +182,7 @@ public class WebRequests
 							{
 								_client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
 							}
-							_client.UploadStringAsync(_uri, Body);
+							_client.UploadStringAsync(_uri, Method, Body);
 						}
 						catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 						break;

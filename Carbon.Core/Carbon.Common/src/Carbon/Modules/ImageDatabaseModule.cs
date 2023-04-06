@@ -526,7 +526,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex);
+				System.Console.WriteLine(ex);
 				_processed++;
 			}
 		}

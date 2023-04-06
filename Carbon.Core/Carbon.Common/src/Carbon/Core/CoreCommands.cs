@@ -1,402 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using API.Events;
-using API.Hooks;
-using Carbon.Base.Interfaces;
-using Carbon.Components;
-using Carbon.Extensions;
-using Carbon.Plugins;
-using ConVar;
-using Facepunch;
-using Network;
-using Newtonsoft.Json;
-using Oxide.Core;
-using Oxide.Game.Rust.Libraries;
-using Oxide.Plugins;
-using UnityEngine;
-using Application = UnityEngine.Application;
-using Pool = Facepunch.Pool;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
 
+using Carbon.Extensions;
+using System;
+using Carbon.Plugins;
+using API.Hooks;
+using Carbon.Base.Interfaces;
+using Carbon.Components;
+using Newtonsoft.Json;
+using Oxide.Plugins;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+using Facepunch;
+using System.IO;
+
 namespace Carbon.Core;
 #pragma warning disable IDE0051
 
-public class CorePlugin : CarbonPlugin
+public partial class CorePlugin : CarbonPlugin
 {
-	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
-
-	public static void RefreshOrderedFiles()
-	{
-		OrderedFiles.Clear();
-
-		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", SearchOption.TopDirectoryOnly))
-		{
-			OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
-		}
-	}
-
-	public static string GetPluginPath(string shortName)
-	{
-		foreach (var file in OrderedFiles)
-		{
-			if (file.Key == shortName) return file.Value;
-		}
-
-		return null;
-	}
-
-	public override void IInit()
-	{
-		ApplyStacktrace();
-
-		Type = GetType();
-		Hooks = new();
-
-		foreach (var method in Type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
-		{
-			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
-			{
-				Community.Runtime.HookManager.Subscribe(method.Name, Name);
-
-				var priority = method.GetCustomAttribute<HookPriority>();
-				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
-			}
-		}
-
-		base.IInit();
-
-		foreach (var player in BasePlayer.activePlayerList)
-		{
-			permission.RefreshUser(player);
-		}
-
-		timer.Every(5f, () =>
-		{
-			if (!Logger._file._hasInit || Logger._file._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
-			Logger._file._flush();
-		});
-	}
-
-	private void OnServerInitialized()
-	{
-		Community.Runtime.ModuleProcessor.OnServerInit();
-	}
-
-	private void OnPlayerDisconnected(BasePlayer player, string reason)
-	{
-		Logger.Log($"{player.net.connection} left: {reason}");
-	}
-	private void OnPluginLoaded(Plugin plugin)
-	{
-		Community.Runtime.Events.Trigger(CarbonEvent.PluginLoaded, new CarbonEventArgs(plugin));
-	}
-	private void OnPluginUnloaded(Plugin plugin)
-	{
-		Community.Runtime.Events.Trigger(CarbonEvent.PluginUnloaded, new CarbonEventArgs(plugin));
-	}
-	private void OnEntitySpawned(BaseEntity entity)
-	{
-		Entities.AddMap(entity);
-	}
-	private void OnEntityDeath(BaseCombatEntity entity, HitInfo info)
-	{
-		Entities.RemoveMap(entity);
-	}
-	private void OnEntityKill(BaseEntity entity)
-	{
-		Entities.RemoveMap(entity);
-	}
-
-	private void OnServerSave()
-	{
-		Logger.Debug($"Saving Carbon state..", 1);
-		Interface.Oxide.Permission.SaveData();
-		Community.Runtime.ModuleProcessor.OnServerSave();
-
-		Community.Runtime.Events
-			.Trigger(CarbonEvent.OnServerSave, EventArgs.Empty);
-	}
-
-	#region Internal Hooks
-
-	internal static bool _isPlayerTakingDamage = false;
-
-	private void IOnPlayerConnected(BasePlayer player)
-	{
-		lang.SetLanguage(player.net.connection.info.GetString("global.language", "en"), player.UserIDString);
-		player.SendEntitySnapshot(CommunityEntity.ServerInstance);
-
-		permission.RefreshUser(player);
-		Interface.CallHook("OnPlayerConnected", player);
-	}
-	private object IOnUserApprove(Connection connection)
-	{
-		var username = connection.username;
-		var text = connection.userid.ToString();
-		var obj = Regex.Replace(connection.ipaddress, global::Oxide.Game.Rust.Libraries.Player.ipPattern, "");
-		var authLevel = connection.authLevel;
-
-		var canClient = Interface.CallHook("CanClientLogin", connection);
-		var canUser = Interface.CallHook("CanUserLogin", username, text, obj);
-
-		var obj4 = (canClient == null) ? canUser : canClient;
-		if (obj4 is string || (obj4 is bool && !(bool)obj4))
-		{
-			ConnectionAuth.Reject(connection, (obj4 is string) ? obj4.ToString() : "Connection was rejected", null);
-			return true;
-		}
-
-		if (Interface.CallHook("OnUserApprove", connection) != null)
-			return Interface.CallHook("OnUserApproved", username, text, obj);
-
-		return null;
-	}
-	private object IOnBasePlayerAttacked(BasePlayer basePlayer, HitInfo hitInfo)
-	{
-		if (!Community.IsServerFullyInitializedCache || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
-		{
-			return null;
-		}
-
-		if (Interface.CallHook("OnEntityTakeDamage", basePlayer, hitInfo) != null)
-		{
-			return true;
-		}
-
-		try
-		{
-			_isPlayerTakingDamage = true;
-
-			if (!basePlayer.IsDead())
-			{
-				basePlayer.DoHitNotify(hitInfo);
-			}
-
-			if (basePlayer.isServer)
-			{
-				basePlayer.Hurt(hitInfo);
-			}
-
-			_isPlayerTakingDamage = false;
-		}
-		catch { }
-
-		return true;
-	}
-	private object IOnBasePlayerHurt(BasePlayer basePlayer, HitInfo hitInfo)
-	{
-		if (!_isPlayerTakingDamage)
-		{
-			return Interface.CallHook("OnEntityTakeDamage", basePlayer, hitInfo);
-		}
-
-		return null;
-	}
-	private object IOnBaseCombatEntityHurt(BaseCombatEntity entity, HitInfo hitInfo)
-	{
-		if (entity is not BasePlayer)
-		{
-			return Interface.CallHook("OnEntityTakeDamage", entity, hitInfo);
-		}
-
-		return null;
-	}
-
-	internal readonly string[] _emptyStringArray = new string[0];
-
-	private object IOnPlayerCommand(BasePlayer player, string message)
-	{
-		if (Community.Runtime == null) return true;
-
-		try
-		{
-			var fullString = message.Substring(1);
-			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
-			var command = split[0].Trim();
-			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
-			Pool.Free(ref split);
-
-			if (HookCaller.CallStaticHook("OnPlayerCommand", player, command, args) != null)
-			{
-				return false;
-			}
-
-			foreach (var cmd in Community.Runtime?.AllChatCommands)
-			{
-				if (cmd.Command == command)
-				{
-					if (player != null)
-					{
-						if (cmd.Permissions != null)
-						{
-							var hasPerm = cmd.Permissions.Length == 0;
-							foreach (var permission in cmd.Permissions)
-							{
-								if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasPermission(player.UserIDString, permission))
-								{
-									hasPerm = true;
-									break;
-								}
-							}
-
-							if (!hasPerm)
-							{
-								player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
-								continue;
-							}
-						}
-
-						if (cmd.Groups != null)
-						{
-							var hasGroup = cmd.Groups.Length == 0;
-							foreach (var group in cmd.Groups)
-							{
-								if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasGroup(player.UserIDString, group))
-								{
-									hasGroup = true;
-									break;
-								}
-							}
-
-							if (!hasGroup)
-							{
-								player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
-								continue;
-							}
-						}
-
-						if (cmd.AuthLevel != -1)
-						{
-							var hasAuth = player.Connection.authLevel >= cmd.AuthLevel;
-
-							if (!hasAuth)
-							{
-								player?.ConsoleMessage($"You don't have the minimum auth level [{cmd.AuthLevel}] required to execute this command [your level: {player.Connection.authLevel}].");
-								continue;
-							}
-						}
-
-						if (CarbonPlugin.IsCommandCooledDown(player, cmd.Command, cmd.Cooldown, true))
-						{
-							continue;
-						}
-					}
-
-					try
-					{
-						cmd.Callback?.Invoke(player, command, args);
-					}
-					catch (Exception ex)
-					{
-						Logger.Error("IOnPlayerCommand", ex);
-					}
-
-					return false;
-				}
-			}
-
-			if (HookCaller.CallStaticHook("OnUnknownPlayerCommand", player, command, args) != null)
-			{
-				return false;
-			}
-		}
-		catch (Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }
-
-		return true;
-	}
-	private object IOnServerCommand(ConsoleSystem.Arg arg)
-	{
-		if (arg != null && arg.cmd != null && arg.cmd.FullName == "chat.say") return null;
-
-		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
-		{
-			return null;
-		}
-
-		return true;
-	}
-	private object IOnPlayerChat(ulong playerId, string playerName, string message, Chat.ChatChannel channel, BasePlayer basePlayer)
-	{
-		if (string.IsNullOrEmpty(message) || message.Equals("text"))
-		{
-			return true;
-		}
-		if (basePlayer == null || !basePlayer.IsConnected)
-		{
-			return Interface.CallHook("OnPlayerOfflineChat", playerId, playerName, message, channel);
-		}
-
-		var hook1 = Interface.CallHook("OnPlayerChat", basePlayer, message, channel);
-		var hook2 = Interface.CallHook("OnUserChat", basePlayer.AsIPlayer(), message);
-
-		if (hook1 != null)
-		{
-			return hook1;
-		}
-
-		return hook2;
-	}
-	private void IOnServerShutdown()
-	{
-		Logger.Log($"Saving plugin configuration and data..");
-		HookCaller.CallStaticHook("OnServerSave");
-
-		Logger.Log($"Shutting down Carbon..");
-		Interface.Oxide.OnShutdown();
-		Community.Runtime.ScriptProcessor.Clear();
-	}
-
-	#endregion
-
-	public static void Reply(object message, ConsoleSystem.Arg arg)
-	{
-		if (arg != null && arg.Player() != null)
-		{
-			arg.Player().SendConsoleCommand($"echo {message}");
-			return;
-		}
-
-		if (message is string) arg.ReplyWith(message.ToString());
-		else arg.ReplyWith(message);
-	}
-
-	internal static StackTraceLogType _defaultLogTrace = Application.GetStackTraceLogType(LogType.Log);
-	internal static StackTraceLogType _defaultWarningTrace = Application.GetStackTraceLogType(LogType.Warning);
-	internal static StackTraceLogType _defaultErrorTrace = Application.GetStackTraceLogType(LogType.Error);
-	internal static StackTraceLogType _defaultAssertTrace = Application.GetStackTraceLogType(LogType.Assert);
-	internal static StackTraceLogType _defaultExceptionTrace = Application.GetStackTraceLogType(LogType.Exception);
-
-	public static void ApplyStacktrace()
-	{
-		if (Community.Runtime.Config.UnityStacktrace)
-		{
-			Application.SetStackTraceLogType(LogType.Log, _defaultLogTrace);
-			Application.SetStackTraceLogType(LogType.Warning, _defaultWarningTrace);
-			Application.SetStackTraceLogType(LogType.Error, _defaultErrorTrace);
-			Application.SetStackTraceLogType(LogType.Assert, _defaultAssertTrace);
-			Application.SetStackTraceLogType(LogType.Exception, _defaultExceptionTrace);
-		}
-		else
-		{
-			Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
-			Application.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
-			Application.SetStackTraceLogType(LogType.Error, StackTraceLogType.None);
-			Application.SetStackTraceLogType(LogType.Assert, StackTraceLogType.None);
-			Application.SetStackTraceLogType(LogType.Exception, StackTraceLogType.None);
-		}
-	}
-
-	#region Commands
 
 	#region App
 
@@ -1236,7 +864,7 @@ public class CorePlugin : CarbonPlugin
 
 					foreach (var package in Loader.LoadedMods)
 					{
-						foreach(var plugin in package.Plugins)
+						foreach (var plugin in package.Plugins)
 						{
 							plugin.ILoadConfig();
 							plugin.Load();
@@ -1255,7 +883,7 @@ public class CorePlugin : CarbonPlugin
 					{
 						var plugins = Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
-						
+
 						foreach (var plugin in plugins)
 						{
 							if (plugin.Name == name)
@@ -1607,8 +1235,6 @@ public class CorePlugin : CarbonPlugin
 				break;
 		}
 	}
-
-	#endregion
 
 	#endregion
 }

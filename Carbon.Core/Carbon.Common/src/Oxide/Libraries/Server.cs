@@ -1,4 +1,5 @@
-﻿using Oxide.Core.Libraries.Covalence;
+﻿using Oxide.Core.Libraries;
+using Oxide.Core.Libraries.Covalence;
 
 /*
  *
@@ -9,7 +10,7 @@
 
 namespace Oxide.Game.Rust.Libraries;
 
-public class Server
+public class Server : Library
 {
 	public void Broadcast(string message, string prefix, ulong userId = 0uL, params object[] args)
 	{

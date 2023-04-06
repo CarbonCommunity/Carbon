@@ -1,4 +1,5 @@
 using System;
+using API.Contracts;
 using API.Logger;
 
 /*
@@ -13,6 +14,7 @@ namespace API.Plugins;
 public abstract class CarbonPlugin : ICarbonPlugin
 {
 	public ILogger Logger { get; internal set; }
+	public ICarbonInterface Interface { get; internal set; }
 
 	public abstract void Initialize(string identifier);
 	public abstract void OnLoaded(EventArgs args);

@@ -5,6 +5,7 @@ regex:EZhex1991.EZSoftBone.dll
 regex:Facepunch.BurstCloth.dll
 regex:Facepunch.Console.dll
 regex:Facepunch.Network.dll
+regex:Facepunch.Raknet.dll
 regex:Facepunch.Rcon.dll
 regex:Facepunch.Sqlite.dll
 regex:Facepunch.Steamworks
@@ -15,6 +16,7 @@ regex:Fleck.dll
 regex:Mono.Data.Sqlite.dll
 regex:Newtonsoft.Json.dll
 regex:Rust.Data.dll
+regex:Rust.FileSystem.dll
 regex:Rust.Global.dll
 regex:Rust.Harmony.dll
 regex:Rust.Localization.dll
@@ -23,6 +25,7 @@ regex:Rust.Platform.dll
 regex:Rust.UI.dll
 regex:Rust.Workshop.dll
 regex:Rust.World.dll
+regex:Unity.Mathematics.dll
 regex:Unity.Timeline.dll
 regex:UnityEngine.AIModule.dll
 regex:UnityEngine.AnimationModule.dll
@@ -33,6 +36,7 @@ regex:UnityEngine.ParticleSystemModule.dll
 regex:UnityEngine.PhysicsModule.dll
 regex:UnityEngine.SharedInternalsModule.dll
 regex:UnityEngine.TerrainModule.dll
+regex:UnityEngine.TerrainPhysicsModule.dll
 regex:UnityEngine.TextRenderingModule.dll
 regex:UnityEngine.UI.dll
 regex:UnityEngine.UIModule.dll

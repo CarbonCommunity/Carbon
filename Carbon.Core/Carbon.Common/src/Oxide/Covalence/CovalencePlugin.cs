@@ -3,6 +3,7 @@ using System.Linq;
 using Carbon;
 using Carbon.Oxide;
 using Oxide.Core.Libraries.Covalence;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries.Covalence;
 
 /*

@@ -289,6 +289,11 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	#endregion
 
+	public void NextFrame(Action callback)
+	{
+		Community.Runtime.CorePlugin.NextFrame(callback);
+	}
+
 	public class Configuration : IModuleConfig
 	{
 		public bool Enabled { get; set; }

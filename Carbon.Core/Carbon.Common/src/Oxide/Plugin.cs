@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Carbon;
 using Carbon.Base;
@@ -10,6 +10,7 @@ using Carbon.Core;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Core.Configuration;
+using Oxide.Plugins;
 
 /*
  *
@@ -18,11 +19,13 @@ using Oxide.Core.Configuration;
  *
  */
 
-namespace Oxide.Plugins
+namespace Oxide.Core.Plugins
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Plugin : BaseHookable, IDisposable
 	{
+		public PluginManager Manager { get; set; }
+
 		public bool IsCorePlugin { get; set; }
 
 		[JsonProperty]
@@ -84,7 +87,7 @@ namespace Oxide.Plugins
 						var name = (string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length;
 						if (!HookMethodAttributeCache.TryGetValue(name, out var list))
 						{
-							HookMethodAttributeCache.Add(name, new () { CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority) });
+							HookMethodAttributeCache.Add(name, new() { CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority) });
 						}
 						else list.Add(CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority));
 					}
@@ -225,9 +228,9 @@ namespace Oxide.Plugins
 
 		public static void InternalApplyAllPluginReferences()
 		{
-			foreach(var package in Loader.LoadedMods)
+			foreach (var package in Loader.LoadedMods)
 			{
-				foreach(var plugin in package.Plugins)
+				foreach (var plugin in package.Plugins)
 				{
 					plugin.InternalApplyPluginReferences();
 				}
@@ -241,26 +244,6 @@ namespace Oxide.Plugins
 
 		#region Calls
 
-		public T Call<T>(string hook, params object[] args)
-		{
-			return args.Length switch
-			{
-				1 => HookCaller.CallHook<T>(this, hook, args[0]),
-				2 => HookCaller.CallHook<T>(this, hook, args[0], args[1]),
-				3 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2]),
-				4 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3]),
-				5 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4]),
-				6 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
-				7 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
-				8 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
-				9 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
-				10 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
-				11 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
-				12 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
-				13 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[13]),
-				_ => HookCaller.CallHook<T>(this, hook),
-			};
-		}
 		public T Call<T>(string hook)
 		{
 			return HookCaller.CallHook<T>(this, hook);
@@ -313,27 +296,27 @@ namespace Oxide.Plugins
 		{
 			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 		}
-
-		public object Call(string hook, params object[] args)
+		public T Call<T>(string hook, object[] args)
 		{
-			return args?.Length switch
+			return args.Length switch
 			{
-				1 => HookCaller.CallHook(this, hook, args[0]),
-				2 => HookCaller.CallHook(this, hook, args[0], args[1]),
-				3 => HookCaller.CallHook(this, hook, args[0], args[1], args[2]),
-				4 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3]),
-				5 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4]),
-				6 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
-				7 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
-				8 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
-				9 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
-				10 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
-				11 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
-				12 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
-				13 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
-				_ => HookCaller.CallHook(this, hook),
+				1 => HookCaller.CallHook<T>(this, hook, args[0]),
+				2 => HookCaller.CallHook<T>(this, hook, args[0], args[1]),
+				3 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2]),
+				4 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3]),
+				5 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4]),
+				6 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
+				7 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+				8 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+				9 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+				10 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+				11 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+				12 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+				13 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[13]),
+				_ => HookCaller.CallHook<T>(this, hook),
 			};
 		}
+
 		public object Call(string hook)
 		{
 			return HookCaller.CallHook(this, hook);
@@ -389,6 +372,26 @@ namespace Oxide.Plugins
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
 		{
 			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
+		}
+		public object Call(string hook, object[] args)
+		{
+			return args?.Length switch
+			{
+				1 => HookCaller.CallHook(this, hook, args[0]),
+				2 => HookCaller.CallHook(this, hook, args[0], args[1]),
+				3 => HookCaller.CallHook(this, hook, args[0], args[1], args[2]),
+				4 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3]),
+				5 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4]),
+				6 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
+				7 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+				8 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+				9 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+				10 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+				11 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+				12 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+				13 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
+				_ => HookCaller.CallHook(this, hook),
+			};
 		}
 
 		public T CallHook<T>(string hook)
@@ -447,6 +450,26 @@ namespace Oxide.Plugins
 		{
 			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
 		}
+		public T CallHook<T>(string hook, object[] args)
+		{
+			return args.Length switch
+			{
+				1 => HookCaller.CallHook<T>(this, hook, args[0]),
+				2 => HookCaller.CallHook<T>(this, hook, args[0], args[1]),
+				3 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2]),
+				4 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3]),
+				5 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4]),
+				6 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
+				7 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+				8 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+				9 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+				10 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+				11 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+				12 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+				13 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[13]),
+				_ => HookCaller.CallHook<T>(this, hook),
+			};
+		}
 
 		public object CallHook(string hook)
 		{
@@ -504,6 +527,33 @@ namespace Oxide.Plugins
 		{
 			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
 		}
+		public object CallHook(string hook, object[] args)
+		{
+			return args?.Length switch
+			{
+				1 => HookCaller.CallHook(this, hook, args[0]),
+				2 => HookCaller.CallHook(this, hook, args[0], args[1]),
+				3 => HookCaller.CallHook(this, hook, args[0], args[1], args[2]),
+				4 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3]),
+				5 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4]),
+				6 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
+				7 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+				8 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+				9 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+				10 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+				11 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+				12 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+				13 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
+				_ => HookCaller.CallHook(this, hook),
+			};
+		}
+
+		#endregion
+
+		#region Compatibility
+
+		public virtual void HandleAddedToManager(PluginManager manager) { }
+		public virtual void HandleRemovedFromManager(PluginManager manager) { }
 
 		#endregion
 
@@ -519,6 +569,53 @@ namespace Oxide.Plugins
 		public DynamicConfigFile Config { get; internal set; }
 
 		public bool IsLoaded { get; set; }
+
+		protected virtual void LoadConfig()
+		{
+			Config = new DynamicConfigFile(Path.Combine(Manager.ConfigPath, Name + ".json"));
+
+			if (!Config.Exists(null))
+			{
+				LoadDefaultConfig();
+
+				if (Config.Count() > 0)
+				{
+					SaveConfig();
+				}
+			}
+			try
+			{
+				if (Config.Exists(null)) Config.Load(null);
+			}
+			catch (Exception ex)
+			{
+				Carbon.Logger.Error("Failed to load config file (is the config file corrupt?) (" + ex.Message + ")");
+			}
+		}
+		protected virtual void LoadDefaultConfig()
+		{
+			//CallHook ( "LoadDefaultConfig" );
+		}
+		protected virtual void SaveConfig()
+		{
+			if (Config == null)
+			{
+				return;
+			}
+			try
+			{
+				Config.Save(null);
+			}
+			catch (Exception ex)
+			{
+				Carbon.Logger.Error("Failed to save config file (does the config have illegal objects in it?) (" + ex.Message + ")", ex);
+			}
+		}
+
+		protected virtual void LoadDefaultMessages()
+		{
+
+		}
 
 		public new string ToString()
 		{

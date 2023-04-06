@@ -8,6 +8,7 @@ using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Libraries;
 using UnityEngine;
 using System.Linq;
+using Oxide.Core.Plugins;
 
 /*
  *
@@ -20,15 +21,13 @@ namespace Oxide.Plugins;
 
 public class RustPlugin : Plugin
 {
-	public PluginManager Manager { get; set; }
-
 	public bool IsExtension { get; set; }
 
 	public Permission permission { get; set; }
 	public Lang lang { get; set; }
 	public Command cmd { get; set; }
 	public Server server { get; set; }
-	public Plugins plugins { get; set; }
+	public Oxide.Core.Libraries.Plugins plugins { get; set; }
 	public Timers timer { get; set; }
 	public OxideMod mod { get; set; }
 	public WebRequests webrequest { get; set; }
@@ -60,7 +59,7 @@ public class RustPlugin : Plugin
 		cmd = new Command();
 		server = new Server();
 		Manager = new PluginManager();
-		plugins = new Plugins();
+		plugins = new Oxide.Core.Libraries.Plugins(Manager);
 		timer = new Timers(this);
 		lang = new Lang(this);
 		mod = new OxideMod();
@@ -254,58 +253,18 @@ public class RustPlugin : Plugin
 
 	public void ILoadConfig()
 	{
-		LoadConfig();
+		try
+		{
+			LoadConfig();
+		}
+		catch(Exception ex)
+		{
+			LogError($"Failed ILoadConfig", ex);
+		}
 	}
 	public void ILoadDefaultMessages()
 	{
 		CallHook("LoadDefaultMessages");
-	}
-
-	protected virtual void LoadConfig()
-	{
-		Config = new DynamicConfigFile(Path.Combine(Manager.ConfigPath, Name + ".json"));
-
-		if (!Config.Exists(null))
-		{
-			LoadDefaultConfig();
-
-			if(Config.Count() > 0)
-			{
-				SaveConfig();
-			}
-		}
-		try
-		{
-			if(Config.Exists(null)) Config.Load(null);
-		}
-		catch (Exception ex)
-		{
-			Carbon.Logger.Error("Failed to load config file (is the config file corrupt?) (" + ex.Message + ")");
-		}
-	}
-	protected virtual void LoadDefaultConfig()
-	{
-		//CallHook ( "LoadDefaultConfig" );
-	}
-	protected virtual void SaveConfig()
-	{
-		if (Config == null)
-		{
-			return;
-		}
-		try
-		{
-			Config.Save(null);
-		}
-		catch (Exception ex)
-		{
-			Carbon.Logger.Error("Failed to save config file (does the config have illegal objects in it?) (" + ex.Message + ")", ex);
-		}
-	}
-
-	protected virtual void LoadDefaultMessages()
-	{
-
 	}
 
 	public new string ToString()
@@ -314,6 +273,15 @@ public class RustPlugin : Plugin
 	}
 
 	#region Printing
+
+	protected void PrintWarning(object message)
+	{
+		LogWarning(message);
+	}
+	protected void PrintWarning(string format, params object[] args)
+	{
+		LogWarning(format, args);
+	}
 
 	protected void PrintToConsole(BasePlayer player, string format, params object[] args)
 	{

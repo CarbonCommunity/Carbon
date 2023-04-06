@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Carbon;
 using Carbon.Base;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
 
@@ -333,6 +334,15 @@ public class Permission : Library
 		}
 
 		return result;
+	}
+	public virtual GroupData GetGroupData(string id)
+	{
+		if (groupdata.TryGetValue(id, out var result))
+		{
+			return result;
+		}
+
+		return null;
 	}
 
 	public virtual KeyValuePair<string, UserData> FindUser(string id)
