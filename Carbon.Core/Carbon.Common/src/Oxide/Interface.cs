@@ -82,6 +82,64 @@ namespace Oxide.Core
 			return (T)HookCaller.CallStaticHook(hookName, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 		}
 
+
+		public static object Call(string hook)
+		{
+			return HookCaller.CallStaticHook(hook);
+		}
+		public static object Call(string hook, object arg1)
+		{
+			return HookCaller.CallStaticHook( hook, arg1);
+		}
+		public static object Call(string hook, object arg1, object arg2)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4, arg5);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4, arg5, arg6);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
+		}
+		public static object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
+		{
+			return HookCaller.CallStaticHook( hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
+		}
+
 		public static object CallHook(string hookName)
 		{
 			return HookCaller.CallStaticHook(hookName);
@@ -187,7 +245,7 @@ namespace Oxide.Core
 			return HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 		}
 
-		public static object Call<T>(string hook, params object[] args)
+		public static object Call<T>(string hook, object[] args)
 		{
 			return args.Length switch
 			{
@@ -207,8 +265,11 @@ namespace Oxide.Core
 				_ =>  HookCaller.CallStaticHook(hook),
 			};
 		}
-
-		public static object Call(string hook, params object[] args)
+		public static object Call(string hook, object[] args)
+		{
+			return Call<object>(hook, args);
+		}
+		public static object CallHook(string hook, object[] args)
 		{
 			return Call<object>(hook, args);
 		}
