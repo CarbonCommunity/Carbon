@@ -5884,7 +5884,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					case Field.FieldTypes.Button:
 						var button = field.Value as ButtonField;
-						cui.CreateButton(container, option, null, "0.1 0.1 0.1 0.85", "1 1 1 0.7", button.ButtonName, 10, command: $"modal.action {field.Key}");
+						cui.CreateButton(container, option, null, "0.1 0.1 0.1 0.85", "1 1 1 0.7", button.ButtonName?.ToUpper().SpacedString(1), 10, command: $"modal.action {field.Key}");
 						break;
 				}
 
@@ -5989,13 +5989,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public string ButtonName { get; set; }
 			public Action<Modal> Callback { get; set; }
 
-			public static ButtonField MakeEnum(string displayName, string buttonName, Action<Modal> callback, bool isReadOnly = false)
+			public static ButtonField MakeButton(string displayName, string buttonName, Action<Modal> callback, bool isReadOnly = false)
 			{
 				return new ButtonField
 				{
 					DisplayName = displayName,
 					ButtonName = buttonName,
-					Type = FieldTypes.Enum,
+					Type = FieldTypes.Button,
 					IsRequired = false,
 					Callback = callback,
 					IsReadOnly = isReadOnly,
