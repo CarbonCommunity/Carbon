@@ -2530,8 +2530,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.CreateModal(ap.Player, $"Editing '{selectedGroup}'", new Dictionary<string, Modal.Field>()
 					{
 						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true, selectedGroup, true),
-						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, permission.GetGroupTitle(selectedGroup)),
-						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, permission.GetGroupRank(selectedGroup)),
+						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, @default: permission.GetGroupTitle(selectedGroup)),
+						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, @default: permission.GetGroupRank(selectedGroup)),
 						["parent"] = Modal.EnumField.MakeEnum("Parent", array, @default: string.IsNullOrEmpty(parent) ? 0 : Array.IndexOf(array, parent), customIsInvalid: field => permission.GetGroupParent(array[field.Get<int>()]) == selectedGroup ? $"Circular parenting detected with '{array[field.Get<int>()]}'." : null)
 					}, (ap2, modal) =>
 					{
@@ -5749,7 +5749,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		internal const string PanelId = "carbonmodalui";
 		internal BasePlayer Player { get; set; }
 
-		public static void Open(BasePlayer player, string title,  Dictionary<string, Field> fields, Action<BasePlayer, Modal> onConfirm = null, Action onCancel = null)
+		public static void Open(BasePlayer player, string title, Dictionary<string, Field> fields, Action<BasePlayer, Modal> onConfirm = null, Action onCancel = null)
 		{
 			var tab = new Modal()
 			{
@@ -5758,7 +5758,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				OnCancel = onCancel,
 				OnConfirm = onConfirm,
 				Player = player,
-				Handler = new ()
+				Handler = new()
 			};
 
 			tab.Draw(player);
@@ -5815,7 +5815,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public void _drawInternal(CUI cui, CuiElementContainer container, string panel)
 		{
-			var subText= $"<b><color=red>*</color></b>  {"Assign all required field values.".ToUpper().SpacedString(1)}" +
+			var subText = $"<b><color=red>*</color></b>  {"Assign all required field values.".ToUpper().SpacedString(1)}" +
 				$"\n    {(IsValid() ? $"<b><color=green>{"The modal is valid.".ToUpper().SpacedString(1)}</color></b>" : $"<b><color=red>{"The modal has invalid fields.".ToUpper().SpacedString(1)}</color></b>")}" +
 				$"{(InvalidMessages != null ? $"\n{InvalidMessages.ToString("\n")}" : "")}";
 			cui.CreateText(container, panel, null, "1 1 1 1", subText.Trim(), 9, align: TextAnchor.LowerLeft, xMin: 0.05f, yMin: 0.05f);
@@ -5880,7 +5880,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.75", "1 1 1 0.7", "<", 10, xMin: 0f, xMax: 0.5f, command: $"modal.action {field.Key} -");
 						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.75", "1 1 1 0.7", ">", 10, xMin: 0.5f, xMax: 1f, command: $"modal.action {field.Key} +");
+						break;
 
+					case Field.FieldTypes.Button:
+						var button = field.Value as ButtonField;
+						cui.CreateButton(container, option, null, "0.1 0.1 0.1 0.85", "1 1 1 0.7", button.ButtonName?.ToUpper().SpacedString(1), 10, command: $"modal.action {field.Key}");
 						break;
 				}
 
@@ -5939,7 +5943,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Boolean,
 				Enum,
 				RustColor,
-				HexColor
+				HexColor,
+				Button
 			}
 
 			public static Field Make(string displayName, FieldTypes type, bool required = false, object @default = null, bool isReadOnly = false, Func<Field, string> customIsInvalid = null)
@@ -5953,14 +5958,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					IsReadOnly = isReadOnly,
 					CustomIsInvalid = customIsInvalid
 				};
-			}
-			public static Field Make(string displayName, FieldTypes type, object @default)
-			{
-				return Make(displayName, type, false, @default);
-			}
-			public static Field Make(string displayName, FieldTypes type, bool required)
-			{
-				return Make(displayName, type, required, null);
 			}
 
 			public void Dispose()
@@ -5986,15 +5983,25 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					CustomIsInvalid = customIsInvalid
 				};
 			}
-			public static EnumField MakeEnum(string displayName, string[] options, object @default)
-			{
-				return MakeEnum(displayName, options, false, @default);
-			}
-			public static EnumField MakeEnum(string displayName, string[] options, bool required)
-			{
-				return MakeEnum(displayName, options, required, null);
-			}
+		}
+		public class ButtonField : Field
+		{
+			public string ButtonName { get; set; }
+			public Action<Modal> Callback { get; set; }
 
+			public static ButtonField MakeButton(string displayName, string buttonName, Action<Modal> callback, bool isReadOnly = false)
+			{
+				return new ButtonField
+				{
+					DisplayName = displayName,
+					ButtonName = buttonName,
+					Type = FieldTypes.Button,
+					IsRequired = false,
+					Callback = callback,
+					IsReadOnly = isReadOnly,
+					CustomIsInvalid = null
+				};
+			}
 		}
 	}
 
@@ -6063,6 +6070,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					else if (enumValue < 0) enumValue = @enum.Options.Length - 1;
 
 					field.Value = enumValue;
+					break;
+
+				case Modal.Field.FieldTypes.Button:
+					var button = field as Modal.ButtonField;
+					button.Callback?.Invoke(modal);
 					break;
 			}
 		}

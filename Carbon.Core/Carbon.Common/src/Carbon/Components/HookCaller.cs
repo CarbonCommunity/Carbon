@@ -193,7 +193,8 @@ namespace Carbon
 									differentResults = true;
 								}
 
-								if (conflict.Priority > priorityConflict.Priority)
+								if (conflict.Result != null &&
+									conflict.Priority > priorityConflict.Priority)
 								{
 									priorityConflict = conflict;
 								}
