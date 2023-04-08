@@ -25,7 +25,6 @@ namespace Carbon.Core;
 
 public partial class CorePlugin : CarbonPlugin
 {
-
 	#region App
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
@@ -57,6 +56,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 
 	[ConsoleCommand("plugins", "Prints the list of mods and their loaded plugins.")]
+	[AuthLevel(2)]
 	private void Plugins(ConsoleSystem.Arg arg)
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
@@ -95,11 +95,40 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
+	[ConsoleCommand("pluginsunloaded", "Prints the list of unloaded plugins.")]
+	[AuthLevel(2)]
+	private void PluginsUnloaded(ConsoleSystem.Arg arg)
+	{
+		var mode = arg.HasArgs(1) ? arg.Args[0] : null;
+
+		switch (mode)
+		{
+			case "-j":
+			case "--j":
+			case "-json":
+			case "--json":
+				Reply(JsonConvert.SerializeObject(Community.Runtime.ScriptProcessor.IgnoreList, Formatting.Indented), arg);
+				break;
+
+			default:
+				var body = new StringTable("#", "File");
+				var count = 1;
+
+				foreach (var ignored in Community.Runtime.ScriptProcessor.IgnoreList)
+				{
+					body.AddRow($"{count:n0}", $"{ignored}");
+					count++;
+				}
+
+				Reply(body.ToStringMinimal(), arg);
+				break;
+		}
+	}
+
 	[ConsoleCommand("pluginsfailed", "Prints the list of plugins that failed to load (most likely due to compilation issues).")]
+	[AuthLevel(2)]
 	private void PluginsFailed(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		var mode = arg.HasArgs(1) ? arg.Args[0] : null;
 
 		switch (mode)
@@ -157,10 +186,9 @@ public partial class CorePlugin : CarbonPlugin
 
 #if DEBUG
 	[ConsoleCommand("assembly", "Debug stuff.")]
+	[AuthLevel(2)]
 	private void AssemblyInfo(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		int count = 0;
 		StringTable body = new StringTable("#", "Assembly", "Version", "Dynamic", "Location");
 		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())

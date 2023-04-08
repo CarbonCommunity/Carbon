@@ -5884,7 +5884,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					case Field.FieldTypes.Button:
 						var button = field.Value as ButtonField;
-						cui.CreateButton(container, option, null, "0.1 0.1 0.1 0.85", "1 1 1 0.7", button.ButtonName?.ToUpper().SpacedString(1), 10, command: $"modal.action {field.Key}");
+						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.85", "1 1 1 0.7", button.ButtonName?.ToUpper().SpacedString(1), 10, command: $"modal.action {field.Key}");
 						break;
 				}
 
