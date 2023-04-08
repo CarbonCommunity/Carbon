@@ -20,6 +20,7 @@ using Oxide.Game.Rust.Libraries;
 using Oxide.Plugins;
 using UnityEngine;
 using Application = UnityEngine.Application;
+using CommandLine = Carbon.Components.CommandLine;
 using Pool = Facepunch.Pool;
 
 /*
@@ -91,6 +92,7 @@ public partial class CorePlugin : CarbonPlugin
 	private void OnServerInitialized()
 	{
 		Community.Runtime.ModuleProcessor.OnServerInit();
+		CommandLine.ExecuteCommands("+carbon.onserverinit");
 	}
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using API.Events;
+using Carbon.Components;
 using Carbon.Core;
 using Carbon.Hooks;
 using Carbon.Processors;
@@ -114,6 +115,9 @@ public class CommunityInternal : Community
 			ClearCommands();
 			_installDefaultCommands();
 			ModuleProcessor.Init();
+
+			CommandLine.ExecuteCommands("+carbon.onboot");
+
 			ReloadPlugins();
 		});
 

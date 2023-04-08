@@ -865,7 +865,8 @@ public partial class CorePlugin : CarbonPlugin
 
 					if (!pluginFound)
 					{
-						Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						if(string.IsNullOrEmpty(path)) Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						else Logger.Warn($"Plugin {name} was not loaded but was marked as ignored.");
 					}
 					break;
 				}
