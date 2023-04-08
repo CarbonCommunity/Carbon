@@ -93,7 +93,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		DoVanish(player, true);
 	}
 
-	public void DoVanish(BasePlayer player, bool wants, bool withUI = true)
+	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool enableNoclip = true)
 	{
 		if (wants)
 		{
@@ -112,6 +112,11 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			if (withUI) _drawUI(player);
 
 			if (ConfigInstance.EnableLogs) Puts($"{player} just vanished at {player.transform.position}");
+
+			if (ConfigInstance.ToggleNoclipOnVanish && enableNoclip && player.net.connection.authLevel > 0 && !player.IsFlying)
+			{
+				player.SendConsoleCommand("noclip");
+			}
 		}
 		else
 		{
@@ -133,6 +138,11 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			cui.Destroy("vanishui", player);
 
 			if (ConfigInstance.EnableLogs) Puts($"{player} unvanished at {player.transform.position}");
+
+			if (ConfigInstance.ToggleNoclipOnUnvanish && enableNoclip && player.net.connection.authLevel > 0 && player.IsFlying)
+			{
+				player.SendConsoleCommand("noclip");
+			}
 		}
 	}
 
@@ -186,6 +196,8 @@ public class VanishConfig
 	public int MinimumVanishAuthLevel = 2;
 	public int MinimumAuthLevelUnlockWhileVanished = 2;
 	public string VanishCommand = "vanish";
+	public bool ToggleNoclipOnVanish = true;
+	public bool ToggleNoclipOnUnvanish = false;
 
 	public string InvisibleText = "You are currently invisible.";
 	public int InvisibleTextSize = 10;
