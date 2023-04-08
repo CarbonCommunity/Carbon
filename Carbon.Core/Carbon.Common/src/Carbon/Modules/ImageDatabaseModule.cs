@@ -98,8 +98,10 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		Pool.FreeList(ref toDelete);
 	}
 
-	private void OnServerInitialized()
+	public override void OnServerInit()
 	{
+		base.OnServerInit();
+
 		if (Validate())
 		{
 			Save();
