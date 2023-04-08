@@ -129,11 +129,6 @@ public class Lang : Library
 				phrases.Add(phrase.Key, phrase.Value);
 				save = true;
 			}
-			else if (phrase.Value != value)
-			{
-				phrases[phrase.Key] = phrase.Value;
-				save = true;
-			}
 		}
 
 		if (newPhrases == phrases || save) SaveMessageFile(plugin.Name, lang);
@@ -153,7 +148,6 @@ public class Lang : Library
 			{
 				if (hookable is RustPlugin rustPlugin) rustPlugin.ILoadDefaultMessages();
 				messages = GetMessageFile(hookable.Name, lang);
-				SaveMessageFile(hookable.Name, lang);
 
 				if (messages.TryGetValue(key, out phrase))
 				{
