@@ -12,6 +12,7 @@ using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
 using Facepunch;
+using Facepunch.Utility;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
@@ -92,7 +93,15 @@ public partial class CorePlugin : CarbonPlugin
 	private void OnServerInitialized()
 	{
 		Community.Runtime.ModuleProcessor.OnServerInit();
-		CommandLine.ExecuteCommands("+carbon.onserverinit");
+		CommandLine.ExecuteCommands("+carbon.onserverinit", "OnServerInitialized");
+
+		var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
+		var lines = OsEx.File.Exists(serverConfigPath) ? OsEx.File.ReadTextLines(serverConfigPath) : null; if (lines != null)
+		{
+			CommandLine.ExecuteCommands("+carbon.onserverinit", "cfg/server.cfg", lines);
+			Array.Clear(lines, 0, lines.Length);
+			lines = null;
+		}
 	}
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)

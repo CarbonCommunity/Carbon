@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.IO;
 using API.Events;
 using Carbon.Components;
 using Carbon.Core;
+using Carbon.Extensions;
 using Carbon.Hooks;
 using Carbon.Processors;
 using Oxide.Core;
@@ -116,7 +117,16 @@ public class CommunityInternal : Community
 			_installDefaultCommands();
 			ModuleProcessor.Init();
 
-			CommandLine.ExecuteCommands("+carbon.onboot");
+			CommandLine.ExecuteCommands("+carbon.onboot", "Carbon boot");
+
+			var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
+			var lines = OsEx.File.Exists(serverConfigPath) ? OsEx.File.ReadTextLines(serverConfigPath) : null;
+			if (lines != null)
+			{
+				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
+				Array.Clear(lines, 0, lines.Length);
+				lines = null;
+			}
 
 			ReloadPlugins();
 		});

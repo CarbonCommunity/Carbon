@@ -12,12 +12,12 @@ namespace Carbon.Components;
 
 public static class CommandLine
 {
-	public static void ExecuteCommands(string @switch)
+	public static void ExecuteCommands(string @switch, string context, string[] lines = null)
 	{
-		var arg = CommandLineEx.GetArgumentResult(@switch, string.Empty);
+		var arg = CommandLineEx.GetArgumentResult(lines ?? Environment.GetCommandLineArgs(), @switch, string.Empty);
 		var commands = arg.Split('|');
 
-		Logger.Log($" Executing {commands.Length:n0} {commands.Length.Plural("command", "commands")} for the '{@switch}' switch:");
+		if(commands.Length > 0 ) Logger.Log($" Executing {commands.Length:n0} {commands.Length.Plural("command", "commands")} for the '{@switch}' switch ({context}):");
 
 		ExecuteCommands(commands);
 
@@ -29,7 +29,7 @@ public static class CommandLine
 	{
 		foreach(var command in commands)
 		{
-			ConsoleSystem.Run(ConsoleSystem.Option.Unrestricted, command);
+			try { ConsoleSystem.Run(ConsoleSystem.Option.Unrestricted, command); } catch (Exception ex) { Logger.Error($"Failed executing '{command}'", ex); }
 		}
 	}
 }
