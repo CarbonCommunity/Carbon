@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Core;
 using UnityEngine;
@@ -16,10 +18,36 @@ namespace Oxide.Game.Rust.Cui;
 
 public static class CuiHelper
 {
+	public static Dictionary<BasePlayer, List<string>> ActivePanels { get; internal set; } = new();
+
 	internal static JsonSerializerSettings _cuiSettings = new()
 	{
 		DefaultValueHandling = DefaultValueHandling.Ignore
 	};
+
+	public static List<string> GetActivePanelList(BasePlayer player)
+	{
+		if(!ActivePanels.TryGetValue(player, out var panels))
+		{
+			ActivePanels[player] = panels = new ();
+		}
+
+		return panels;
+	}
+
+	public static void DestroyActivePanelList(BasePlayer player, string[] except = null )
+	{
+		var list = GetActivePanelList(player);
+		var cui = Pool.GetList<string>();
+		cui.AddRange(GetActivePanelList(player).Where(x => except == null || except.Length == 0 ? true : !except.Any(y => x.StartsWith(y))));
+
+		foreach (var element in cui)
+		{
+			DestroyUi(player, element);
+		}
+
+		Pool.FreeList(ref cui);
+	}
 
 	public static string ToJson(List<CuiElement> elements, bool format = false)
 	{
@@ -30,7 +58,17 @@ public static class CuiHelper
 
 	public static string GetGuid() => $"{Guid.NewGuid():N}";
 
-	public static bool AddUi(BasePlayer player, List<CuiElement> elements) => AddUi(player, ToJson(elements));
+	public static bool AddUi(BasePlayer player, List<CuiElement> elements)
+	{
+		if(elements != null && elements.Count > 0)
+		{
+			var element = elements[0].Name;
+			var panelList = GetActivePanelList(player);
+			if (!panelList.Contains(element)) panelList.Add(element);
+		}
+
+		return AddUi(player, ToJson(elements));
+	}
 
 	public static bool AddUi(BasePlayer player, string json)
 	{
@@ -47,6 +85,9 @@ public static class CuiHelper
 	{
 		if (player?.net != null)
 		{
+			var panelList = GetActivePanelList(player);
+			if (panelList.Contains(name)) panelList.Remove(name);
+
 			Interface.CallHook("OnDestroyUI", player, name);
 			CommunityEntity.ServerInstance.ClientRPCEx(new Network.SendInfo { connection = player.net.connection }, null, "DestroyUI", name);
 			return true;

@@ -19,6 +19,7 @@ using System.Reflection;
 using UnityEngine;
 using Facepunch;
 using System.IO;
+using Oxide.Game.Rust.Cui;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -1267,6 +1268,17 @@ public partial class CorePlugin : CarbonPlugin
 				PrintWarn();
 				break;
 		}
+	}
+
+	#endregion
+
+	#region CUI
+
+	[ConsoleCommand("wipeui", "Clears the entire CUI containers and their elements from the caller's client.")]
+	[AuthLevel(2)]
+	private void WipeUI(ConsoleSystem.Arg arg)
+	{
+		CuiHelper.DestroyActivePanelList(arg.Player());
 	}
 
 	#endregion
