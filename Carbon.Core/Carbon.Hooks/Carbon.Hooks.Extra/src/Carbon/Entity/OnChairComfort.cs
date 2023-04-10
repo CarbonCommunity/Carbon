@@ -19,6 +19,7 @@ public partial class Category_Entity
 
 		[MetadataAttribute.Info("Overrides the amount of comfort chairs give to players.")]
 		[MetadataAttribute.Parameter("chair", typeof(BaseChair))]
+		[MetadataAttribute.Return(typeof(float))]
 
 		public class Entity_BaseChair_738d3070f2414abb9edec591cdef6538 : Patch
 		{

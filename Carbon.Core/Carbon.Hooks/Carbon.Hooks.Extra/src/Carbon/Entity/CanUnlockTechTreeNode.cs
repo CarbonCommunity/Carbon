@@ -20,6 +20,7 @@ public partial class ModerationToolsModule
 	[MetadataAttribute.Parameter("workbench", typeof(Workbench))]
 	[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 	[MetadataAttribute.Parameter("node", typeof(TechTreeData.NodeInstance))]
+	[MetadataAttribute.Return(typeof(bool))]
 
 	public class Workbench_CanUnlockTechTreeNode_7e5b2f14e42c4943bdcdb502d1efb0a0 : API.Hooks.Patch
 	{
