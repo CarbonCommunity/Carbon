@@ -5744,12 +5744,23 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public Action OnCancel;
 		public Action<BasePlayer, Modal> OnConfirm;
 		public int Page;
+		public string BackgroundColor = "0 0 0 0.99";
+		public float PositionXMin = 0.3f;
+		public float PositionXMax = 0.7f;
+		public float PositionYMin = 0.275f;
+		public float PositionYMax = 0.825f;
 
-		internal Handler Handler { get; set; }
+		internal Handler Handler;
 		internal const string PanelId = "carbonmodalui";
-		internal BasePlayer Player { get; set; }
+		internal BasePlayer Player;
+		internal Action<Modal, string, Field, object, object> OnFieldChanged;
 
-		public static void Open(BasePlayer player, string title, Dictionary<string, Field> fields, Action<BasePlayer, Modal> onConfirm = null, Action onCancel = null)
+		public static Modal Open(BasePlayer player,
+			string title,
+			Dictionary<string, Field> fields,
+			Action<BasePlayer, Modal> onConfirm = null,
+			Action onCancel = null,
+			Action<Modal, string, Field, object, object> onFieldChanged = null)
 		{
 			var tab = new Modal()
 			{
@@ -5758,10 +5769,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				OnCancel = onCancel,
 				OnConfirm = onConfirm,
 				Player = player,
+				OnFieldChanged = onFieldChanged,
 				Handler = new()
 			};
 
-			tab.Draw(player);
+			Singleton.NextFrame(() => tab.Draw(player));
+
+			return tab;
 		}
 		public static void Close(BasePlayer player)
 		{
@@ -5797,16 +5811,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using var cui = new CUI(Handler);
 			var container = cui.CreateContainer(PanelId,
-				color: "0 0 0 0.99",
+				color: BackgroundColor,
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				needsCursor: true, destroyUi: PanelId);
 
 			var color = cui.CreatePanel(container, parent: PanelId, id: PanelId + ".color",
-				color: "0.1 0.1 0.1 0.6",
-				xMin: 0.3f, xMax: 0.7f, yMin: 0.275f, yMax: 0.825f);
+				color: "0 0 0 0.6",
+				xMin: PositionXMin, xMax: PositionXMax, yMin: PositionYMin, yMax: PositionYMax);
 			var main = cui.CreatePanel(container, parent: PanelId + ".color", id: PanelId + ".main",
-				color: "0 0 0 0.5",
-			blur: true);
+				color: "0 0 0 0.5", blur: true);
 
 			_drawInternal(cui, container, main);
 
@@ -6013,7 +6026,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(arg.Player());
 		var modal = ap.GetStorage<Modal>(null, "modal");
 
-		var field = modal.Fields[arg.Args[0]];
+		var fieldName = arg.Args[0];
+		var field = modal.Fields[fieldName];
+		var oldValue = field.Value;
 
 		if (!field.IsReadOnly)
 		{
@@ -6023,18 +6038,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				case Modal.Field.FieldTypes.String:
 					field.Value = value;
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 					break;
 
 				case Modal.Field.FieldTypes.Integer:
 					field.Value = value.ToInt();
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 					break;
 
 				case Modal.Field.FieldTypes.Float:
 					field.Value = value.ToFloat();
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 					break;
 
 				case Modal.Field.FieldTypes.Boolean:
 					field.Value = !value.ToBool(false);
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 					break;
 
 				case Modal.Field.FieldTypes.RustColor:
@@ -6046,6 +6065,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							if (field.Type == Modal.Field.FieldTypes.RustColor) field.Value = rustColor;
 							else field.Value = $"#{hexColor}";
 
+							modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 							modal.Draw(ap.Player);
 						});
 					});
@@ -6070,6 +6090,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					else if (enumValue < 0) enumValue = @enum.Options.Length - 1;
 
 					field.Value = enumValue;
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, field.Value);
 					break;
 
 				case Modal.Field.FieldTypes.Button:
