@@ -502,6 +502,10 @@ public partial class CorePlugin : CarbonPlugin
 	}
 #endif
 
+	[CommandVar("ocommandchecks", "Prints a reminding warning if RCON/console attempts at calling an o.* command.")]
+	[AuthLevel(2)]
+	private bool oCommandChecks { get { return Community.Runtime.Config.oCommandChecks; } set { Community.Runtime.Config.oCommandChecks = value; Community.Runtime.SaveConfig(); } }
+
 	#endregion
 
 	#region Commands
