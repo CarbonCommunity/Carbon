@@ -17,6 +17,9 @@ public partial class Category_Entity
 		[HookAttribute.Patch("OnChairComfort", "OnChairComfort", typeof(BaseChair), "GetComfort", new System.Type[] { })]
 		[HookAttribute.Identifier("738d3070f2414abb9edec591cdef6538")]
 
+		[MetadataAttribute.Info("Overrides the amount of comfort chairs give to players.")]
+		[MetadataAttribute.Parameter("chair", typeof(BaseChair))]
+
 		public class Entity_BaseChair_738d3070f2414abb9edec591cdef6538 : Patch
 		{
 			public static bool Prefix(ref BaseChair __instance, ref float __result)

@@ -16,6 +16,11 @@ public partial class ModerationToolsModule
 	[HookAttribute.Identifier("7e5b2f14e42c4943bdcdb502d1efb0a0")]
 	[HookAttribute.Options(HookFlags.Hidden)]
 
+	[MetadataAttribute.Info("Allow or disallow players from unlocking one or more Tech Tree nodes.")]
+	[MetadataAttribute.Parameter("workbench", typeof(Workbench))]
+	[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
+	[MetadataAttribute.Parameter("node", typeof(TechTreeData.NodeInstance))]
+
 	public class Workbench_CanUnlockTechTreeNode_7e5b2f14e42c4943bdcdb502d1efb0a0 : API.Hooks.Patch
 	{
 		public static bool Prefix(RPCMessage msg, ref Workbench __instance)
