@@ -19,6 +19,7 @@ public partial class Category_Player
 
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
 		[MetadataAttribute.Info("Overrides the IsSpectating check, overriding the result.")]
+		[MetadataAttribute.Return(typeof(bool))]
 
 		public class Player_BasePlayer_48bb4d3aad3847ed8146d2595631410a : Patch
 		{
