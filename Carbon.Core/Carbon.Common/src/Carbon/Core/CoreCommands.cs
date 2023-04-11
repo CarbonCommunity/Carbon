@@ -45,12 +45,14 @@ public partial class CorePlugin : CarbonPlugin
 	// }
 
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
+	[AuthLevel(2)]
 	private void GetVersion(ConsoleSystem.Arg arg)
 	{
 		Reply($"Carbon v{Community.Runtime.Analytics.Version}", arg);
 	}
 
 	[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
+	[AuthLevel(2)]
 	private void GetBuild(ConsoleSystem.Arg arg)
 	{
 		Reply($"{Community.Runtime.Analytics.InformationalVersion}", arg);

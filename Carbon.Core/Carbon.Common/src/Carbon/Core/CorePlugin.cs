@@ -60,6 +60,12 @@ public partial class CorePlugin : CarbonPlugin
 
 	public override void IInit()
 	{
+		_defaultLogTrace = Application.GetStackTraceLogType(LogType.Log);
+		_defaultWarningTrace = Application.GetStackTraceLogType(LogType.Warning);
+		_defaultErrorTrace = Application.GetStackTraceLogType(LogType.Error);
+		_defaultAssertTrace = Application.GetStackTraceLogType(LogType.Assert);
+		_defaultExceptionTrace = Application.GetStackTraceLogType(LogType.Exception);
+
 		ApplyStacktrace();
 
 		Type = GetType();
@@ -151,11 +157,11 @@ public partial class CorePlugin : CarbonPlugin
 		else arg.ReplyWith(message);
 	}
 
-	internal static StackTraceLogType _defaultLogTrace = Application.GetStackTraceLogType(LogType.Log);
-	internal static StackTraceLogType _defaultWarningTrace = Application.GetStackTraceLogType(LogType.Warning);
-	internal static StackTraceLogType _defaultErrorTrace = Application.GetStackTraceLogType(LogType.Error);
-	internal static StackTraceLogType _defaultAssertTrace = Application.GetStackTraceLogType(LogType.Assert);
-	internal static StackTraceLogType _defaultExceptionTrace = Application.GetStackTraceLogType(LogType.Exception);
+	internal static StackTraceLogType _defaultLogTrace;
+	internal static StackTraceLogType _defaultWarningTrace;
+	internal static StackTraceLogType _defaultErrorTrace;
+	internal static StackTraceLogType _defaultAssertTrace;
+	internal static StackTraceLogType _defaultExceptionTrace;
 
 	public static void ApplyStacktrace()
 	{
