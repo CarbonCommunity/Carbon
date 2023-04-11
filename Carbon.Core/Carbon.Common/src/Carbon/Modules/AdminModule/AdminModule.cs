@@ -5280,9 +5280,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				cui.CreateClientImage(container, panel, null, "https://i.imgur.com/mFxaU99.png", "1 1 1 0.7",
 					xMin: 0.35f, xMax: 0.65f, yMin: 0.1f, yMax: 0.425f, fadeIn: 1f);
 
-				var cfPaidPluginCount = PluginsTab.CodeflingInstance.FetchedPlugins.Count(x => x.IsPaid());
-				var cfFreePluginCount = PluginsTab.CodeflingInstance.FetchedPlugins.Count(x => !x.IsPaid());
-				var uModFreePluginCount = PluginsTab.uModInstance.FetchedPlugins.Count(x => !x.IsPaid());
+				var cfPaidPluginCount = PluginsTab.CodeflingInstance?.FetchedPlugins.Count(x => x.IsPaid());
+				var cfFreePluginCount = PluginsTab.CodeflingInstance?.FetchedPlugins.Count(x => !x.IsPaid());
+				var uModFreePluginCount = PluginsTab.uModInstance?.FetchedPlugins.Count(x => !x.IsPaid());
 
 				tab.InfoTemplate(cui, t, container, panel, ap,
 					"Plugin Browser",
