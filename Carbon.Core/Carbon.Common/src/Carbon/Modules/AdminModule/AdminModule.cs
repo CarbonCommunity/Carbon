@@ -9,6 +9,7 @@ using Carbon.Extensions;
 using Network;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
@@ -34,6 +35,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal static AdminModule Singleton { get; set; }
 
 	public override string Name => "Admin";
+	public override VersionNumber Version => new(1, 7, 0);
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
 	public override bool IsCoreModule => true;
@@ -2477,10 +2479,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				if (!string.IsNullOrEmpty(filter))
 				{
-					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(filter));
+					return x.IsCorePlugin || x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(filter));
 				}
 
-				return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
+				return x.IsCorePlugin || x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
 			});
 
 			tab.ClearColumn(2);
@@ -2609,7 +2611,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			tab.ClearColumn(3);
 			tab.AddName(3, "Permissions", TextAnchor.MiddleLeft);
-			foreach (var perm in perms.GetPermissions().Where(x => x.StartsWith(plugin.Name.ToLower())))
+			foreach (var perm in perms.GetPermissions(plugin))
 			{
 				if (string.IsNullOrEmpty(selectedGroup))
 				{

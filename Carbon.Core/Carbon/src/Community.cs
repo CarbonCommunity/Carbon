@@ -128,8 +128,18 @@ public class CommunityInternal : Community
 				lines = null;
 			}
 
-			ReloadPlugins();
+			if (!ConVar.Global.skipAssetWarmup_crashes)
+			{
+				ReloadPlugins();
+			}
 		});
+		if (ConVar.Global.skipAssetWarmup_crashes)
+		{
+			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>
+			{
+				ReloadPlugins();
+			});
+		}
 
 		Carbon.Logger.Log($"Loading...");
 		{

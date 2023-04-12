@@ -6,7 +6,6 @@ using System.Reflection;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
-using Network;
 using Oxide.Core.Configuration;
 using Defines = Carbon.Core.Defines;
 
