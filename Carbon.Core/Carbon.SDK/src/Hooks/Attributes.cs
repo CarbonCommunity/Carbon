@@ -106,18 +106,36 @@ public class HookAttribute : Attribute
 public class MetadataAttribute : Attribute
 {
 	[AttributeUsage(AttributeTargets.Class)]
-	public class Parameter : Attribute
+	public class Category : Attribute
 	{
 		public string Name { get; }
 
-		public Parameter(string name) { Name = name; }
+		public Category(string name) { Name = name; }
 	}
 
-	[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+	public class Parameter : Attribute
+	{
+		public string Name { get; }
+		public Type Type { get; }
+		public bool Optional { get; }
+
+		public Parameter(string name, Type type, bool optional = false) { Name = name; Type = type; Optional = optional; }
+	}
+
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 	public class Info : Attribute
 	{
 		public string Name { get; }
 
 		public Info(string name) { Name = name; }
+	}
+
+	[AttributeUsage(AttributeTargets.Class)]
+	public class Return : Attribute
+	{
+		public Type Type { get; }
+
+		public Return(Type type) { Type = type; }
 	}
 }

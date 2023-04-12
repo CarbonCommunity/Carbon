@@ -12,6 +12,7 @@ using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
 using Facepunch;
+using Facepunch.Utility;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
@@ -20,6 +21,7 @@ using Oxide.Game.Rust.Libraries;
 using Oxide.Plugins;
 using UnityEngine;
 using Application = UnityEngine.Application;
+using CommandLine = Carbon.Components.CommandLine;
 using Pool = Facepunch.Pool;
 
 /*
@@ -58,6 +60,12 @@ public partial class CorePlugin : CarbonPlugin
 
 	public override void IInit()
 	{
+		_defaultLogTrace = Application.GetStackTraceLogType(LogType.Log);
+		_defaultWarningTrace = Application.GetStackTraceLogType(LogType.Warning);
+		_defaultErrorTrace = Application.GetStackTraceLogType(LogType.Error);
+		_defaultAssertTrace = Application.GetStackTraceLogType(LogType.Assert);
+		_defaultExceptionTrace = Application.GetStackTraceLogType(LogType.Exception);
+
 		ApplyStacktrace();
 
 		Type = GetType();
@@ -91,6 +99,15 @@ public partial class CorePlugin : CarbonPlugin
 	private void OnServerInitialized()
 	{
 		Community.Runtime.ModuleProcessor.OnServerInit();
+		CommandLine.ExecuteCommands("+carbon.onserverinit", "OnServerInitialized");
+
+		var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
+		var lines = OsEx.File.Exists(serverConfigPath) ? OsEx.File.ReadTextLines(serverConfigPath) : null; if (lines != null)
+		{
+			CommandLine.ExecuteCommands("+carbon.onserverinit", "cfg/server.cfg", lines);
+			Array.Clear(lines, 0, lines.Length);
+			lines = null;
+		}
 	}
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)
@@ -140,11 +157,11 @@ public partial class CorePlugin : CarbonPlugin
 		else arg.ReplyWith(message);
 	}
 
-	internal static StackTraceLogType _defaultLogTrace = Application.GetStackTraceLogType(LogType.Log);
-	internal static StackTraceLogType _defaultWarningTrace = Application.GetStackTraceLogType(LogType.Warning);
-	internal static StackTraceLogType _defaultErrorTrace = Application.GetStackTraceLogType(LogType.Error);
-	internal static StackTraceLogType _defaultAssertTrace = Application.GetStackTraceLogType(LogType.Assert);
-	internal static StackTraceLogType _defaultExceptionTrace = Application.GetStackTraceLogType(LogType.Exception);
+	internal static StackTraceLogType _defaultLogTrace;
+	internal static StackTraceLogType _defaultWarningTrace;
+	internal static StackTraceLogType _defaultErrorTrace;
+	internal static StackTraceLogType _defaultAssertTrace;
+	internal static StackTraceLogType _defaultExceptionTrace;
 
 	public static void ApplyStacktrace()
 	{

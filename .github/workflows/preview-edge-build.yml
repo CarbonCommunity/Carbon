@@ -2,13 +2,10 @@
 ### Copyright (c) 2022 Carbon Community 
 ### All rights reserved
 ###
-name: Develop Build
+name: Preview and Edge Build
 concurrency: build-3-develop
 
 on:
-  schedule:
-    - cron: '0 5 * * *'
-
   push:
     branches:
       - develop
@@ -135,7 +132,7 @@ jobs:
       uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
       with:
         delete_release: true
-        tag_name: develop_build
+        tag_name: preview_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -157,13 +154,14 @@ jobs:
       with:
         draft: false
         prerelease: true
-        tag_name: develop_build
-        name: 'Develop Build — v${{ needs.bootstrap.outputs.version }}'
+        tag_name: preview_build
+        name: 'Preview Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
-          This is a daily development build of Carbon based on the `develop` branch.
-          
+          This is a manually triggered development build of Carbon based on the `develop` branch.
+                  
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.
+          Since it's manually triggered, we're confident you should use this build to test out the latest Carbon changes.
 
           ### How to install
           1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
@@ -181,7 +179,7 @@ jobs:
 
   # RELEASE --------------------------------------------------------------------
   release-on-commit:
-    name: 💾 Commit Release
+    name: 💾 Edge Release
     needs: [ "bootstrap", "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
 
@@ -190,7 +188,7 @@ jobs:
       uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
       with:
         delete_release: true
-        tag_name: commit_build
+        tag_name: edge_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -212,14 +210,14 @@ jobs:
       with:
         draft: false
         prerelease: true
-        tag_name: commit_build
-        name: 'Commit Build — v${{ needs.bootstrap.outputs.version }}'
+        tag_name: edge_build
+        name: 'Edge Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
           This is a development build of Carbon based on the latest commit pushed to the repository.
-          Commit info bellow.
+          This build is best used to test the very last changes that can be found in the commit history list, since the [preview] and [stable] builds.
           
           This build is targeted at developers.
-          The general public is advised to use one of the [stable] builds.
+          The general public is advised to use one of the [stable] or [preview] builds.
 
           ### How to install
           1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
@@ -229,6 +227,7 @@ jobs:
           ${{ needs.build-linux.outputs.build_info }}
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
+          [preview]: https://github.com/Carbon-Modding/Carbon.Core/releases/preview_build
         files: |
           Release/build-develop-linux/Carbon.Linux.Debug.info
           Release/build-develop-linux/Carbon.Linux.Debug.tar.gz

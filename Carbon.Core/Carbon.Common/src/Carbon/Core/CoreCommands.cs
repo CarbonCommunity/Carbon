@@ -19,13 +19,13 @@ using System.Reflection;
 using UnityEngine;
 using Facepunch;
 using System.IO;
+using Oxide.Game.Rust.Cui;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
 
 public partial class CorePlugin : CarbonPlugin
 {
-
 	#region App
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
@@ -45,18 +45,21 @@ public partial class CorePlugin : CarbonPlugin
 	// }
 
 	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
+	[AuthLevel(2)]
 	private void GetVersion(ConsoleSystem.Arg arg)
 	{
 		Reply($"Carbon v{Community.Runtime.Analytics.Version}", arg);
 	}
 
 	[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
+	[AuthLevel(2)]
 	private void GetBuild(ConsoleSystem.Arg arg)
 	{
 		Reply($"{Community.Runtime.Analytics.InformationalVersion}", arg);
 	}
 
 	[ConsoleCommand("plugins", "Prints the list of mods and their loaded plugins.")]
+	[AuthLevel(2)]
 	private void Plugins(ConsoleSystem.Arg arg)
 	{
 		if (!arg.IsPlayerCalledAndAdmin()) return;
@@ -95,11 +98,40 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
+	[ConsoleCommand("pluginsunloaded", "Prints the list of unloaded plugins.")]
+	[AuthLevel(2)]
+	private void PluginsUnloaded(ConsoleSystem.Arg arg)
+	{
+		var mode = arg.HasArgs(1) ? arg.Args[0] : null;
+
+		switch (mode)
+		{
+			case "-j":
+			case "--j":
+			case "-json":
+			case "--json":
+				Reply(JsonConvert.SerializeObject(Community.Runtime.ScriptProcessor.IgnoreList, Formatting.Indented), arg);
+				break;
+
+			default:
+				var body = new StringTable("#", "File");
+				var count = 1;
+
+				foreach (var ignored in Community.Runtime.ScriptProcessor.IgnoreList)
+				{
+					body.AddRow($"{count:n0}", $"{ignored}");
+					count++;
+				}
+
+				Reply(body.ToStringMinimal(), arg);
+				break;
+		}
+	}
+
 	[ConsoleCommand("pluginsfailed", "Prints the list of plugins that failed to load (most likely due to compilation issues).")]
+	[AuthLevel(2)]
 	private void PluginsFailed(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		var mode = arg.HasArgs(1) ? arg.Args[0] : null;
 
 		switch (mode)
@@ -157,10 +189,9 @@ public partial class CorePlugin : CarbonPlugin
 
 #if DEBUG
 	[ConsoleCommand("assembly", "Debug stuff.")]
+	[AuthLevel(2)]
 	private void AssemblyInfo(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
-
 		int count = 0;
 		StringTable body = new StringTable("#", "Assembly", "Version", "Dynamic", "Location");
 		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -473,6 +504,10 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 #endif
+
+	[CommandVar("ocommandchecks", "Prints a reminding warning if RCON/console attempts at calling an o.* command.")]
+	[AuthLevel(2)]
+	private bool oCommandChecks { get { return Community.Runtime.Config.oCommandChecks; } set { Community.Runtime.Config.oCommandChecks = value; Community.Runtime.SaveConfig(); } }
 
 	#endregion
 
@@ -837,7 +872,8 @@ public partial class CorePlugin : CarbonPlugin
 
 					if (!pluginFound)
 					{
-						Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						if(string.IsNullOrEmpty(path)) Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						else Logger.Warn($"Plugin {name} was not loaded but was marked as ignored.");
 					}
 					break;
 				}
@@ -1234,6 +1270,17 @@ public partial class CorePlugin : CarbonPlugin
 				PrintWarn();
 				break;
 		}
+	}
+
+	#endregion
+
+	#region CUI
+
+	[ConsoleCommand("wipeui", "Clears the entire CUI containers and their elements from the caller's client.")]
+	[AuthLevel(2)]
+	private void WipeUI(ConsoleSystem.Arg arg)
+	{
+		CuiHelper.DestroyActivePanelList(arg.Player());
 	}
 
 	#endregion

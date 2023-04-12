@@ -30,47 +30,68 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 	{
 		base.Init();
 
-		foreach (var processor in ConfigInstance.DRMs)
+		foreach (var processor in ConfigInstance.Processors)
 		{
-			processor.Initialize();
+			processor.Value.Initialize();
 		}
 	}
 	public override void Dispose()
 	{
-		foreach (var processor in ConfigInstance.DRMs)
+		foreach (var processor in ConfigInstance.Processors)
 		{
-			processor.Uninitialize();
+			processor.Value.Uninitialize();
 		}
 
 		base.Dispose();
 	}
 
-	[ConsoleCommand("drmtest")]
-	private void GenerateTest(ConsoleSystem.Arg args)
+	[ConsoleCommand("drm.request", "Requests the downloading ")]
+	[AuthLevel(2)]
+	private void RequestEntry(ConsoleSystem.Arg arg)
 	{
-		if (!args.IsPlayerCalledAndAdmin() || !args.HasArgs(1)) return;
+		if (!arg.HasArgs(2))
+		{
+			arg.ReplyWith("Invalid syntax: drm.request <drm_id> <entry_id>");
+			return;
+		}
 
-		CorePlugin.Reply($"{JsonConvert.SerializeObject(new DownloadResponse().WithFileType(DownloadResponse.FileTypes.Script).WithDataFile(args.Args[0]), Formatting.Indented)}", args);
+		var drm = ConfigInstance.Processors[arg.Args[0]];
+
+		if (drm == null)
+		{
+			arg.ReplyWith($"Couldn't find that DRM processing configuration.");
+			return;
+		}
+
+		var entry = drm.Entries.FirstOrDefault(x => x.Id == ConfigInstance.Processors.FirstOrDefault(x => x.Key == arg.Args[1]).Key);
+
+		if (entry == null)
+		{
+			arg.ReplyWith($"Couldn't find that DRM processing configuration.");
+			return;
+		}
+
+		drm.Validate(() => drm.RequestEntry(entry));
 	}
 
-	[ConsoleCommand("drmreboot")]
+	[ConsoleCommand("drm.reboot")]
+	[AuthLevel(2)]
 	private void Reboot(ConsoleSystem.Arg args)
 	{
-		if (!args.IsPlayerCalledAndAdmin()) return;
-
-		foreach (var processor in ConfigInstance.DRMs)
+		foreach (var processor in ConfigInstance.Processors)
 		{
-			processor.Uninitialize();
-			processor.Initialize();
+			processor.Value.Uninitialize();
+			processor.Value.Initialize();
 		}
 	}
 
-	public class Processor
+	public class Provider
 	{
 		public string Name { get; set; }
 		public string ValidationEndpoint { get; set; }
 		public string DownloadEndpoint { get; set; }
 		public string PublicKey { get; set; }
+		public bool Disabled { get; set; } = false;
 		public List<Entry> Entries { get; set; } = new List<Entry>();
 
 		[JsonIgnore]
@@ -106,7 +127,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 			}.Start();
 		}
 
-		public void Validate()
+		public void Validate(Action callback = null, bool launch = false)
 		{
 			if (string.IsNullOrEmpty(ValidationEndpoint))
 			{
@@ -124,7 +145,8 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 				{
 					Puts($"Success!");
 
-					Launch();
+					if(launch) Launch();
+					callback?.Invoke();
 				}
 				else PutsError($"Failed to validate.");
 			}, onException: (code, data, exception) =>
@@ -135,7 +157,13 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 		public void Initialize()
 		{
-			Validate();
+			if (Disabled)
+			{
+				PutsWarn($"The DRM provider is disabled.");
+				return;
+			}
+
+			Validate(launch: true);
 
 			Mod.Name = $"{Name} DRM";
 			Loader.LoadedMods.Add(Mod);
@@ -278,7 +306,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 		}
 		public DownloadResponse WithData(string source)
 		{
-			Data = Processor.EncodeBase64(source);
+			Data = Provider.EncodeBase64(source);
 			return this;
 		}
 		public DownloadResponse WithDataFile(string file)
@@ -296,5 +324,23 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 public class DRMConfig
 {
-	public List<DRMModule.Processor> DRMs { get; set; } = new List<DRMModule.Processor>();
+	public Dictionary<string, DRMModule.Provider> Processors { get; set; } = new ()
+	{
+		["my_drm"] = new()
+		{
+			Name = "My DRM",
+			ValidationEndpoint = "https://my.endpoint/{0:Public Key}",
+			DownloadEndpoint = "https://my.endpoint/{0}:Public Key}?id={1:Entry Id}&pk={2:Private Key}",
+			PublicKey = "Public Key",
+			Entries = new()
+			{
+				new()
+				{
+					Id = "entry_id",
+					PrivateKey = "Private Key"
+				}
+			},
+			Disabled = true
+		}
+	};
 }
