@@ -33,7 +33,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	public override bool IsCoreModule => true;
 	public override bool EnabledByDefault => true;
 
-	internal List<QueuedThread> _queue = new List<QueuedThread>();
+	internal List<QueuedThread> _queue = new();
 	internal ImageDatabaseDataProto _protoData { get; set; }
 
 	internal Dictionary<string, string> DefaultImages = new()
@@ -570,7 +570,6 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			_finishedProcessing = true;
 		}
 	}
-
 	public class QueuedThreadResult : IDisposable
 	{
 		public string Url { get; set; }

@@ -174,7 +174,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public override void SetEnabled(bool enable)
 	{
-		if (Disabled) return;
+		if (Disabled && !IsCoreModule) return;
 
 		if (ModuleConfiguration != null)
 		{

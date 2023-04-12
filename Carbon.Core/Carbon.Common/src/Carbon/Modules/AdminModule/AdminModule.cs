@@ -3156,7 +3156,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			if (!module.Disabled)
 			{
-				tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
+				if (!module.IsCoreModule) tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
 
 				tab.AddButtonArray(1,
 					new Tab.OptionButton("Save", ap => { module.Save(); }),

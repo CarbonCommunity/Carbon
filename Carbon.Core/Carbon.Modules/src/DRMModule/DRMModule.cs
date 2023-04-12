@@ -85,15 +85,14 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 		}
 	}
 
-	public class Processor
+	public class Provider
 	{
 		public string Name { get; set; }
 		public string ValidationEndpoint { get; set; }
 		public string DownloadEndpoint { get; set; }
 		public string PublicKey { get; set; }
-		public List<Entry> Entries { get; set; } = new List<Entry>();
-
 		public bool Disabled { get; set; } = false;
+		public List<Entry> Entries { get; set; } = new List<Entry>();
 
 		[JsonIgnore]
 		public bool IsOnline { get; internal set; }
@@ -158,6 +157,12 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 		public void Initialize()
 		{
+			if (Disabled)
+			{
+				PutsWarn($"The DRM provider is disabled.");
+				return;
+			}
+
 			Validate(launch: true);
 
 			Mod.Name = $"{Name} DRM";
@@ -301,7 +306,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 		}
 		public DownloadResponse WithData(string source)
 		{
-			Data = Processor.EncodeBase64(source);
+			Data = Provider.EncodeBase64(source);
 			return this;
 		}
 		public DownloadResponse WithDataFile(string file)
@@ -319,7 +324,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 public class DRMConfig
 {
-	public Dictionary<string, DRMModule.Processor> Processors { get; set; } = new ()
+	public Dictionary<string, DRMModule.Provider> Processors { get; set; } = new ()
 	{
 		["my_drm"] = new()
 		{
