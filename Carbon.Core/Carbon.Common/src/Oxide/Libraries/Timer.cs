@@ -109,7 +109,7 @@ public class Timers
 				action?.Invoke();
 				timer.TimesTriggered++;
 
-				if (timer.TimesTriggered >= times)
+				if (times != 0 && timer.TimesTriggered >= times)
 				{
 					timer.Dispose();
 					Pool.Free(ref timer);
