@@ -39,7 +39,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 	{
 		foreach (var processor in ConfigInstance.Processors)
 		{
-			processor.Uninitialize();
+			processor.Value.Uninitialize();
 		}
 
 		base.Dispose();

@@ -5242,14 +5242,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
 					"Moderation Tools Module",
-					"", "", FindModule("ModerationToolsModule"));
-
+					"This module is a bundle of very helpful and often usable moderation tools that can grant the ability to players with regular authority level to use noclip and god-mode and nothing else (use the 'carbon.admin' permission to allow the use of the '/cadmin' command).\n" +
+					"There's also a permission ('carbon.cmod') that allows players to kick, ban or mute players with defined reasons.", "", FindModule("ModerationToolsModule"));
 			}));
 			tab.Pages.Add(new Page("Optimisations", (cui, t, container, panel, ap) =>
 			{
 				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
 					"Optimisations Module",
-					"", "", FindModule("OptimisationsModule"));
+					"A Carbon built-in version of the Circular Network Distance from Codefling.", "", FindModule("OptimisationsModule"));
 
 			}));
 			tab.Pages.Add(new Page("RustEdit.Ext", (cui, t, container, panel, ap) =>
@@ -5293,6 +5293,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					$"\n\n{Header("uMod", 1)} ({uModFreePluginCount:n0} free)" +
 					$"\nBrowse the 1.5K catalogue full of free, Rust- and covalence supported plugins.",
 					"A very minimum amount of plugins currently are not compatible, due to them being out of date (on Oxide too) or requiring external DLLs that are Oxide-only compatible; meaning that it's the author's responsability to add Carbon support.");
+			}));
+			tab.Pages.Add(new Page("Whitelist", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"Whitelist Module",
+					"A very basic system that only grants players access to a server based on the 'whitelist.bypass' permission or 'whitelisted' group.", "",
+					FindModule("WhitelistModule"));
+			}));
+			tab.Pages.Add(new Page("DRM", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"DRM Module",
+					"A system that allows server hosts to bind endpoints that deliver plugin information with respect to the public and private keys.\n" +
+					"For more information, check out the documentation page over on https://docs.carbonmod.gg.", "",
+					FindModule("DRMModule"));
 			}));
 
 			tab.Pages.Add(new Page("Finalize", (cui, t, container, panel, ap) =>
@@ -6165,7 +6180,7 @@ public class AdminConfig
 }
 public class AdminData
 {
-	[JsonProperty("ShowedWizard v2")]
+	[JsonProperty("ShowedWizard v3")]
 	public bool ShowedWizard = false;
 	public DataColors Colors = new();
 
