@@ -61,6 +61,13 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith($"Carbon v{Community.Runtime.Analytics.Version}");
 	}
 
+	[ConsoleCommand("protocol", "Returns currently loaded protocol of Carbon.")]
+	[AuthLevel(2)]
+	private void GetProtocol(ConsoleSystem.Arg arg)
+	{
+		arg.ReplyWith(Community.Runtime.Analytics.Protocol);
+	}
+
 	[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
 	[AuthLevel(2)]
 	private void GetBuild(ConsoleSystem.Arg arg)
