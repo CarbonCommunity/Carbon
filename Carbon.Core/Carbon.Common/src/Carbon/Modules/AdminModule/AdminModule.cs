@@ -3153,8 +3153,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var carbonModule = module.GetType();
 			tab.AddInput(1, "Name", ap => module.Name, null);
-			tab.AddToggle(1, "Is Core", null, ap => module.IsCoreModule);
-			tab.AddToggle(1, "Is Disabled", null, ap => module.Disabled);
 
 			if (!module.Disabled)
 			{
