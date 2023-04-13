@@ -103,7 +103,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name, "ScriptCompilationThread._injectReference");
+			var raw = Community.Runtime.AssemblyEx.Read(name);
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -123,7 +123,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name, "ScriptCompilationThread._injectReference");
+			var raw = Community.Runtime.AssemblyEx.Read(name);
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -156,7 +156,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 		}
 
-		foreach (var item in Community.Runtime.AssemblyEx.LoadedExtensions)
+		foreach (var item in Community.Runtime.AssemblyEx.Extensions.Loaded)
 		{
 			try { _injectExtensionReference(id, item, references); }
 			catch { }

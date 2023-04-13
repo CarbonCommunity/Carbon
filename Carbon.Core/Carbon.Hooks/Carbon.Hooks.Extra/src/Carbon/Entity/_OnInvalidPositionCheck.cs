@@ -15,11 +15,14 @@ public partial class Category_Entity
 {
 	public partial class Entity_BaseEntity
 	{
-		[HookAttribute.Patch("OnInvalidPositionCheck", "OnInvalidPositionCheck", typeof(ValidBounds), "Test", new System.Type[] { typeof(Vector3) })]
-		[HookAttribute.Identifier("3ced6bf35f8f48a7ab43f972219abbf6")]
+		// [HookAttribute.Patch("OnInvalidPositionCheck", "OnInvalidPositionCheck", typeof(ValidBounds), "Test", new System.Type[] { typeof(Vector3) })]
+		// [HookAttribute.Identifier("3ced6bf35f8f48a7ab43f972219abbf6")]
+		// 
+		// [MetadataAttribute.Parameter("player", typeof(BasePlayer))]
+		// [MetadataAttribute.Info("Checks if player that connected is Jackie Chan.")]
 
-		public class Entity_BaseEntity_OnInvalidPosition_3ced6bf35f8f48a7ab43f972219abbf6 : Patch
-		{
+		// public class Entity_BaseEntity_OnInvalidPosition_3ced6bf35f8f48a7ab43f972219abbf6 : Patch
+		// {
 			public static bool Prefix(Vector3 vPos, ref bool __result)
 			{
 				if (HookCaller.CallStaticHook("OnInvalidPositionCheck", vPos) is bool hookValue)
@@ -30,6 +33,6 @@ public partial class Category_Entity
 
 				return true;
 			}
-		}
+		// }
 	}
 }

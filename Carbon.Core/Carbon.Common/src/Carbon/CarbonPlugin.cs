@@ -64,7 +64,7 @@ public class CarbonPlugin : RustPlugin
 			return false;
 		}
 
-		var log = $"You're cooled down. Please wait {TimeEx.Format(time - timePassed.TotalSeconds).ToLower()}.";
+		var log = $"You're cooled down. Please wait {TimeEx.Format((time - timePassed.TotalMilliseconds) * 0.001).ToLower()}.";
 		player.ChatMessage(log);
 		player.ConsoleMessage(log);
 		return true;

@@ -12,15 +12,16 @@ namespace API.Assembly;
 
 public interface IAssemblyManager
 {
-	public List<string> LoadedModules { get; }
-	public List<string> LoadedComponents { get; }
-	public List<string> LoadedExtensions { get; }
+	public IAssemblyTypeManager Components { get; }
+	public IAssemblyTypeManager Extensions { get; }
+	public IAssemblyTypeManager Hooks { get; }
+	public IAssemblyTypeManager Modules { get; }
 
+#if EXPERIMENTAL
+	public IAssemblyTypeManager Plugins { get; }
+#endif
+
+	public byte[] Read(string file);
 	public IReadOnlyList<string> References { get; }
-
-	public byte[] Read(string file, string requester);
-	public System.Reflection.Assembly LoadComponent(string file, string requester);
-	public System.Reflection.Assembly LoadModule(string file, string requester);
-	public System.Reflection.Assembly LoadExtension(string file, string requester);
-	public System.Reflection.Assembly LoadHook(string file, string requester);
+	public bool IsType<T>(System.Reflection.Assembly assembly, out IEnumerable<Type> output);
 }

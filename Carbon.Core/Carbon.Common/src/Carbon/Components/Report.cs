@@ -54,7 +54,7 @@ public class Report : IDisposable
 				{
 					var result = value.Value;
 
-					builder.AddRow($"{counter:n0}", result.Plugin.Name, result.Plugin.Author, result.Plugin.Version, result.FileName, $"{result.Plugin.CompileTime:0}ms", $"{result.Plugin.Hooks.Select(x => x.Key).ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.HookMethods.Select(x => $"{x.Name}").ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.PluginReferences.Select(x => $"{x.Field.FieldType.Name} {x.Field.Name}").ToArray().ToString(", ", " and ").Trim()}", $"{result.IncompatibleHooks.ToString(", ", " and ").Trim()}");
+					builder.AddRow($"{counter:n0}", result.Plugin.Name, result.Plugin.Author, result.Plugin.Version, result.FileName, $"{result.Plugin.CompileTime:0}ms", $"{result.Plugin.Hooks.Where(x => !string.IsNullOrEmpty(x.Key)).Select(x => x.Key).ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.HookMethods.Select(x => $"{x.Name}").ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.PluginReferences.Select(x => $"{x.Field.FieldType.Name} {x.Field.Name}").ToArray().ToString(", ", " and ").Trim()}", $"{result.IncompatibleHooks.ToString(", ", " and ").Trim()}");
 					counter++;
 				}
 
@@ -69,7 +69,7 @@ public class Report : IDisposable
 
 				foreach (var hook in hooks)
 				{
-					builder.AddRow($"{counter:n0}", hook, $"{Results.Count(x => x.Value.IncompatibleHooks.Contains(hook)):n0}", $"{Results.Where(x => x.Value.IncompatibleHooks.Contains(hook)).Select(x => $"{x.Value.FileName}").ToArray().ToString(", ", " and ")}");
+					builder.AddRow($"{counter:n0}", hook, $"{Results.Count(x => x.Value.IncompatibleHooks.Contains(hook)):n0}", $"{Results.Where(x => x.Value.IncompatibleHooks.Contains(hook)).Where(x => !string.IsNullOrEmpty(x.Key)).Select(x => $"{x.Value.FileName}").ToArray().ToString(", ", " and ")}");
 					counter++;
 				}
 

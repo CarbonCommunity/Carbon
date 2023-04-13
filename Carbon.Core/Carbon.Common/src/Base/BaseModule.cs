@@ -6,7 +6,6 @@ using System.Reflection;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
-using Network;
 using Oxide.Core.Configuration;
 using Defines = Carbon.Core.Defines;
 
@@ -174,7 +173,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public override void SetEnabled(bool enable)
 	{
-		if (Disabled) return;
+		if (Disabled && !IsCoreModule) return;
 
 		if (ModuleConfiguration != null)
 		{

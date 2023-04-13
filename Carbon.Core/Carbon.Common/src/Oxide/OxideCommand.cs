@@ -18,7 +18,6 @@ public class OxideCommand
 	public string[] Groups { get; set; }
 	public int AuthLevel { get; set; } = 0;
 	public int Cooldown { get; set; } = 0;
-	public bool SkipOriginal { get; set; }
 	public string Help { get; set; }
 	public bool IsHidden { get; set; }
 	public object Reference { get; set; }

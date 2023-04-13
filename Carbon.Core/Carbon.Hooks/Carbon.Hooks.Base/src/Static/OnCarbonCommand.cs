@@ -41,7 +41,7 @@ public partial class Category_Static
 					var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 					Array.Clear(split, 0, split.Length);
 
-					if (command.StartsWith("o.") || command.StartsWith("oxide."))
+					if (Community.Runtime.Config.oCommandChecks && command.StartsWith("o.") || command.StartsWith("oxide."))
 					{
 						Logger.Warn($"Oxide commands (o.* or oxide.*) don't work in Carbon. Please use 'c.find c.' to list all available Carbon commands.");
 						return false;

@@ -576,12 +576,9 @@ namespace Oxide.Core.Plugins
 
 			if (!Config.Exists(null))
 			{
-				LoadDefaultConfig();
+				CallHook("LoadDefaultConfig");
 
-				if (Config.Count() > 0)
-				{
-					SaveConfig();
-				}
+				SaveConfig();
 			}
 			try
 			{
@@ -604,7 +601,7 @@ namespace Oxide.Core.Plugins
 			}
 			try
 			{
-				Config.Save(null);
+				if (Config.Count() > 0) Config.Save(null);
 			}
 			catch (Exception ex)
 			{

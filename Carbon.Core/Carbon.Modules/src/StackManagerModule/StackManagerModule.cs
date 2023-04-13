@@ -49,7 +49,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 			DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
-			if (originalStack > 0) item.stackable = Mathf.Clamp((int)(value * ConfigInstance.GlobalMultiplier), 1, int.MaxValue);
+			if (originalStack > 0) item.stackable = Mathf.Clamp((int)(value * ConfigInstance.GlobalItemsMultiplier), 1, int.MaxValue);
 		}
 	}
 	public override void OnDisabled(bool initialized)
@@ -82,6 +82,13 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		}
 	}
 
+	public override void Load()
+	{
+		base.Load();
+
+		OnEnableStatus();
+	}
+
 	public override void OnServerInit()
 	{
 		var hasChanged = false;
@@ -104,6 +111,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 public class StackManagerConfig
 {
 	public float GlobalMultiplier = 1f;
+	public float GlobalItemsMultiplier = 1f;
 
 	public HashSet<string> Blacklist = new()
 	{

@@ -19,5 +19,5 @@ public interface ICarbonInterface
 	public IAssemblyManager Assembly { get; }
 	public IDownloadManager Downloader { get; }
 	public IEventManager Events { get; }
-	public IHookManager HookManager { get; }
+	public IPatchManager HookManager { get; }
 }

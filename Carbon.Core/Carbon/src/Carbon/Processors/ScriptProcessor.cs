@@ -145,18 +145,6 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 						.Replace("using Harmony;", "using HarmonyLib;")
 						.Replace("HarmonyInstance.Create", "new Harmony")
 						.Replace("HarmonyInstance", "Harmony");
-
-					var newOutput = string.Empty;
-					var split = output.Split('\n');
-
-					foreach (var line in split)
-					{
-						newOutput += line + "\n";
-					}
-
-					output = newOutput;
-					Array.Clear(split, 0, split.Length);
-					split = null;
 				}
 				catch
 				{

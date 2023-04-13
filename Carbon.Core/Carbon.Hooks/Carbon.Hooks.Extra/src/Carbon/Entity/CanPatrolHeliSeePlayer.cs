@@ -17,7 +17,10 @@ public partial class Category_Entity
 		[HookAttribute.Patch("CanPatrolHeliSeePlayer", "CanPatrolHeliSeePlayer", typeof(PatrolHelicopterAI), "PlayerVisible", new System.Type[] { typeof(BasePlayer) })]
 		[HookAttribute.Identifier("d3849557c0c84c4c9248b5252f4c7db2")]
 
-		// Can the Patrol Helicopter see the player.
+		[MetadataAttribute.Info("Can the Patrol Helicopter see the player.")]
+		[MetadataAttribute.Parameter("heli", typeof(PatrolHelicopterAI))]
+		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
+		[MetadataAttribute.Return(typeof(bool))]
 
 		public class Entity_PatrolHelicopterAI_d3849557c0c84c4c9248b5252f4c7db2 : Patch
 		{

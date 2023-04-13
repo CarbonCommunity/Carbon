@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace API.Hooks
 {
-	public interface IHookManager
+	public interface IPatchManager
 	{
 		IEnumerable<IHook> LoadedPatches { get; }
 		IEnumerable<IHook> LoadedStaticHooks { get; }

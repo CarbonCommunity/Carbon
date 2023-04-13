@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Contracts;
-using Carbon.Extensions;
+using Facepunch;
 
 /*
  *
@@ -25,7 +25,19 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 	public void Init()
 	{
-		foreach (var type in AccessToolsEx.AllTypes())
+		var types = typeof(Community).Assembly.GetExportedTypes().AsEnumerable();
+		var modules = Pool.GetList<string>();
+		modules.AddRange(Community.Runtime.AssemblyEx.Modules.Loaded);
+
+		foreach (var module in modules)
+		{
+			var assembly = Community.Runtime.AssemblyEx.Modules.Load(module, "ModuleProcessor.Init");
+			types = types.Concat(assembly.GetExportedTypes());
+		}
+
+		Pool.FreeList(ref modules);
+
+		foreach (var type in types)
 		{
 			if (type.BaseType == null || !type.BaseType.Name.Contains("CarbonModule")) continue;
 
@@ -34,7 +46,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	}
 	public void OnServerInit()
 	{
-		foreach(var hookable in _modules)
+		foreach (var hookable in _modules)
 		{
 			if (hookable is IModule module)
 			{

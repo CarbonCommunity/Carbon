@@ -45,7 +45,7 @@ public class BaseHookable
 	public string Name { get; set; }
 
 	[JsonProperty]
-	public VersionNumber Version { get; set; }
+	public virtual VersionNumber Version { get; set; }
 
 	[JsonProperty]
 	public double TotalHookTime { get; internal set; }
@@ -93,7 +93,7 @@ public class BaseHookable
 	public void Unsubscribe(string hook)
 	{
 		if (IgnoredHooks.Contains(hook)) return;
-
+		
 		IgnoredHooks.Add(hook);
 	}
 	public void Subscribe(string hook)

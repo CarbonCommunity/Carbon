@@ -33,7 +33,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	public override bool IsCoreModule => true;
 	public override bool EnabledByDefault => true;
 
-	internal List<QueuedThread> _queue = new List<QueuedThread>();
+	internal List<QueuedThread> _queue = new();
 	internal ImageDatabaseDataProto _protoData { get; set; }
 
 	internal Dictionary<string, string> DefaultImages = new()
@@ -98,8 +98,10 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		Pool.FreeList(ref toDelete);
 	}
 
-	private void OnServerInitialized()
+	public override void OnServerInit()
 	{
+		base.OnServerInit();
+
 		if (Validate())
 		{
 			Save();
@@ -364,6 +366,8 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 	public uint GetImage(string keyOrUrl, float scale = 0, bool silent = false)
 	{
+		if (string.IsNullOrEmpty(keyOrUrl)) return default;
+
 		if (_protoData.CustomMap.TryGetValue(keyOrUrl, out var realUrl))
 		{
 			keyOrUrl = realUrl;
@@ -568,7 +572,6 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			_finishedProcessing = true;
 		}
 	}
-
 	public class QueuedThreadResult : IDisposable
 	{
 		public string Url { get; set; }

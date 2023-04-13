@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Windows.Media.Converters;
 using System.Xml.Serialization;
 using Carbon.Base;
 using Carbon.Extensions;
@@ -21,7 +20,7 @@ using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using VLB;
 using static BasePlayer;
-using static UnityEngine.UI.GridLayoutGroup;
+using static MeshCache;
 using Color = UnityEngine.Color;
 using Object = UnityEngine.Object;
 using Pool = Facepunch.Pool;
@@ -301,6 +300,25 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		return Spawn_RespawnPlayer();
 	}
 
+	void OnHammerHit(BasePlayer player, HitInfo hitInfo)
+	{
+		var entity = hitInfo.HitEntity;
+
+		if (!player.IsAdmin || entity == null ||
+			!Deployables_SpawnPoints.Any(x => x.position == entity.transform.position)) return;
+
+		if (Deployables_ProtectedList.Contains(entity.transform.position))
+		{
+			Deployables_ProtectedList.Remove(entity.transform.position);
+			player.ChatMessage($"Disabled protection on entity: {entity} at {entity.transform.position}");
+		}
+		else
+		{
+			Deployables_ProtectedList.Add(entity.transform.position);
+			player.ChatMessage($"Enabled protection on entity: {entity} at {entity.transform.position}");
+		}
+	}
+
 	[HookPriority(Priorities.Highest)]
 	private object OnEntityTakeDamage(BaseCombatEntity entity)
 	{
@@ -411,12 +429,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	private object ICanWorldPrefabSpawn(string category, Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
 	{
-		#region IO
-
-
-
-		#endregion
-
 		#region Cargo Paths
 		try
 		{
@@ -2160,20 +2172,20 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		for (int i = 1; i < serializedIOEntity.floors; i++)
 		{
-			var elevator2 = GameManager.server.CreateEntity(baseElevator.PrefabName, baseElevator.transform.position + baseElevator.transform.up * (3f * (float)i), baseElevator.transform.rotation, true) as Elevator;
-			elevator2.pickup.enabled = false;
-			elevator2.EnableSaving(false);
-			elevator2.Spawn();
-			elevator2.RefreshEntityLinks();
-			elevator2.OnDeployed(null, null, null);
-			IO_Protection.Add(elevator2.transform.position);
-			elevator2.SetFlag(BaseEntity.Flags.Reserved2, true, false, false);
-			top = elevator2;
+			var instance = GameManager.server.CreateEntity(baseElevator.PrefabName, baseElevator.transform.position + baseElevator.transform.up * (3f * (float)i), baseElevator.transform.rotation, true) as Elevator;
+			instance.pickup.enabled = false;
+			instance.EnableSaving(false);
+			instance.Spawn();
+			instance.RefreshEntityLinks();
+			instance.OnDeployed(null, null, null);
+			IO_Protection.Add(instance.transform.position);
+			instance.SetFlag(BaseEntity.Flags.Reserved2, true, false, false);
+			top = instance;
 		}
 		top.SetFlag(BaseEntity.Flags.Reserved1, true, false, false);
 
 		var elevatorLift = top.liftEntity;
-		if (top.liftEntity != null)
+		if (top.liftEntity == null)
 		{
 			elevatorLift = IO_FindLift(top);
 			if (elevatorLift == null)
@@ -2640,12 +2652,13 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	internal static Coroutine Deployables_PrefabSpawnerThread;
 	internal static Dictionary<string, byte[]> Deployables_CachedDownloads = new();
 	internal static Dictionary<uint, uint> Deployables_PaintedSigns = new();
+	internal static List<Vector3> Deployables_ProtectedList = new();
 
 	#region Commands
 
 	[ChatCommand("rusteditext.deployables.showanimalspawns")]
 	[AuthLevel(2)]
-	private void Deployables_ShowAnimalSpawns(BasePlayer player)
+	private void Deployables_ShowAnimalSpawns(BasePlayer player, string cmd, string[] args)
 	{
 		foreach (var pd in Deployables_AnimalsSpawners)
 		{
@@ -2659,7 +2672,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	[ChatCommand("rusteditext.deployables.showlootspawns")]
 	[AuthLevel(2)]
-	private void Deployables_ShowLootSpawns(BasePlayer player)
+	private void Deployables_ShowLootSpawns(BasePlayer player, string cmd, string[] args)
 	{
 		foreach (var pd in Deployables_AnimalsSpawners)
 		{
@@ -2673,7 +2686,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	[ChatCommand("rusteditext.deployables.showvendingspawns")]
 	[AuthLevel(2)]
-	private void Deployables_ShowVendingSpawns(BasePlayer player)
+	private void Deployables_ShowVendingSpawns(BasePlayer player, string cmd, string[] args)
 	{
 		foreach (var pd in Deployables_customVendingMachine)
 		{
@@ -2685,7 +2698,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	[ChatCommand("rusteditext.deployables.showentityspawns")]
 	[AuthLevel(2)]
-	private void Deployables_ShowEntitySpawns(BasePlayer player)
+	private void Deployables_ShowEntitySpawns(BasePlayer player, string cmd, string[] args)
 	{
 		foreach (var pd in Deployables_SpawnPoints)
 		{
@@ -2734,6 +2747,35 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 
 	#endregion
+
+	internal static char[] DelimiterCache { get; } = new char[] { ',' };
+	internal static char[] ValueSplittingCache { get; } = new char[] { '=' };
+	internal static char[] SecondaryCache { get; } = new char[] { ':' };
+	internal static string[] EmptyStringArrayCache { get; } = new string[0];
+
+	internal static string Deployables_GetParameter(string value, string key)
+	{
+		var parameters = value.ToLower().Split(DelimiterCache, StringSplitOptions.RemoveEmptyEntries);
+		foreach(var parameter in parameters)
+		{
+			var split = parameter.Split(ValueSplittingCache);
+			var paramName = split[0].Replace(":\\", string.Empty);
+			var splitValue = split.Length > 1 ? split[1].Split(SecondaryCache) : EmptyStringArrayCache;
+			var paramValue = splitValue.Length > 0 ? splitValue[0] : string.Empty;
+
+			Array.Clear(split, 0, split.Length);
+			Array.Clear(splitValue, 0, splitValue.Length);
+
+			if (paramName == key)
+			{
+				Array.Clear(parameters, 0, parameters.Length);
+				return paramValue;
+			}
+		}
+
+		Array.Clear(parameters, 0, parameters.Length);
+		return null;
+	}
 
 	internal static bool Deployables_ShutdownHook()
 	{
@@ -2815,8 +2857,16 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	internal static bool Deployables_KillHook(BaseNetworkable __instance)
 	{
 		if (__instance == null) { return true; }
-		if (__instance is SprayCanSpray_Decal) { return !(__instance as SprayCanSpray_Decal).HasFlag(BaseEntity.Flags.Placeholder); }
-		if (__instance is Signage) { return !(__instance as Signage).HasFlag(BaseEntity.Flags.Placeholder); }
+
+		switch (__instance)
+		{
+			case SprayCanSpray_Decal spray:
+				return !(__instance as SprayCanSpray_Decal).HasFlag(BaseEntity.Flags.Placeholder);
+
+			case Signage signage:
+				return !(__instance as Signage).HasFlag(BaseEntity.Flags.Placeholder);
+		}
+
 		return true;
 	}
 	internal static void Deployables_BuildPrefabList()
@@ -2830,9 +2880,11 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		if (Deployables_serializedVehicleData != null) { Deployables_SpawnPoints.AddRange(Deployables_serializedVehicleData.vehicles); }
 		for (int i = 0; i < World.Serialization.world.prefabs.Count; i++)
 		{
-			if (Singleton.ConfigInstance.Deployables.ManagedPrefabs.Contains(StringPool.Get(World.Serialization.world.prefabs[i].id)))
+			var prefab = World.Serialization.world.prefabs[i];
+
+			if (Singleton.ConfigInstance.Deployables.ManagedPrefabs.Contains(StringPool.Get(prefab.id)))
 			{
-				Deployables_SpawnPoints.Add(World.Serialization.world.prefabs[i]);
+				Deployables_SpawnPoints.Add(prefab);
 			}
 		}
 		Singleton.PutsWarn($"Managed prefab list with {Deployables_SpawnPoints.Count:n0} spawners.");
@@ -2897,7 +2949,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	{
 		//Logic to stop pickup and decay.
 		if (__instance == null) { return false; }
-		if (__instance.OwnerID == 0 && Singleton.ConfigInstance.Deployables.ManagedPrefabs.Contains(__instance.PrefabName))
+		if (__instance.OwnerID == 0 && Deployables_ProtectedList.Contains(__instance.transform.position))
 		{
 			if (Singleton.ConfigInstance.Deployables.DisableDamageLikeRE)
 			{
@@ -3031,7 +3083,10 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			int num = UnityEngine.Random.Range(lootableContainerData.spawnAmountMin, lootableContainerData.spawnAmountMax);
 			lootContainer.inventory.ServerInitialize(null, num);
 			lootContainer.inventory.GiveUID();
-			List<LootableItemData> list = new List<LootableItemData>(lootableContainerData.items);
+
+			var list = Pool.GetList<LootableItemData>();
+			list.AddRange(lootableContainerData.items);
+
 			for (int i = 0; i < num; i++)
 			{
 				LootableItemData lootableItemData = list.GetRandom<LootableItemData>();
@@ -3057,6 +3112,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 					list.Remove(lootableItemData);
 				}
 			}
+			Pool.FreeList(ref list);
 		}
 	}
 	internal static void Deployables_StockVending(CustomVendingMachines vendingm)
@@ -3286,14 +3342,13 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 	internal static IEnumerator Deployables_SpawnManagerPrefabs()
 	{
-		bool HangerDoorsDone = false;
-		bool FoundCoalings = false;
-		bool DoneSigns = false;
-		//Loop while there is a spawn list
-		while (Deployables_SpawnPoints != null && Deployables_SpawnPoints.Count != 0)
+		var HangerDoorsDone = false;
+		var FoundCoalings = false;
+		var DoneSigns = false;
+
+		while(Deployables_SpawnPoints != null && Deployables_SpawnPoints.Count != 0)
 		{
-			//Do all in list
-			foreach (PrefabData pd in Deployables_SpawnPoints)
+			foreach (var pd in Deployables_SpawnPoints)
 			{
 				try
 				{
@@ -3370,6 +3425,8 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 						//Nothing found so spawn it.
 						try
 						{
+							// if (!Deployables_GetParameter(pd.category, "respawn").ToBool()) continue;
+
 							if (prefab.Contains("cassetterecorder")) { continue; }
 							if (!Deployables_AnyPlayersNearby(pd.position, Singleton.ConfigInstance.Deployables.PlayerDistanceBlock))
 							{
@@ -3449,19 +3506,23 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 							}
 						}
 						catch { }
+
+						if (!Deployables_GetParameter(pd.category, "damage").ToBool(false))
+						{
+							if (!Deployables_ProtectedList.Contains(be.transform.position))
+								Deployables_ProtectedList.Add(be.transform.position);
+						}
 					}
 					if (be != null)
 					{
 						//Apply Skins
 						if (Singleton.ConfigInstance.Deployables.EnableMapSkins)
 						{
-							if (be.skinID == 0 && pd.category.Contains("skinid="))
+							if (be.skinID == 0)
 							{
 								try
 								{
-									string[] settings = pd.category.Split(new string[] { "skinid=" }, System.StringSplitOptions.RemoveEmptyEntries);
-									string _skinid = settings[1].Split(':')[0];
-									be.skinID = ulong.Parse(_skinid);
+									be.skinID = Deployables_GetParameter(pd.category, "skinid").ToUlong(be.skinID);
 									be.SendNetworkUpdateImmediate();
 									if (be is SprayCanSpray_Decal)
 									{
@@ -3473,6 +3534,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 								}
 							}
 						}
+
 						//Apply Images
 						if (Singleton.ConfigInstance.Deployables.EnableImages)
 						{
@@ -3521,18 +3583,131 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 								bce.health += 5;
 							}
 						}
+
+						Deployables_ApplyEntity(pd, be);
 					}
 				}
-				catch { }
+				catch(Exception ex) { Logger.Error($"Failed creating entity {pd.id}", ex); }
+
 				//delay between next object to ease load on servers.
 				yield return CoroutineEx.waitForSeconds(0.01f);
 			}
+
 			//Reduces load by only scanning hanger doors once.
 			HangerDoorsDone = true;
 			FoundCoalings = true;
 			DoneSigns = true;
-			//Recheck after X seconds.
-			yield return CoroutineEx.waitForSeconds(Singleton.ConfigInstance.Deployables.RecheckerSeconds);
+
+			yield return RecheckerCache;
+			RecheckerCurrentTime = 0f;
+		}
+	}
+	internal static float RecheckerCurrentTime = 0f;
+	internal static WaitUntil RecheckerCache = new(() =>
+	{
+		RecheckerCurrentTime += Time.deltaTime;
+		return RecheckerCurrentTime >= Singleton.ConfigInstance.Deployables.RecheckerSeconds;
+	});
+
+	internal static void Deployables_InitializeEntity(PrefabData data, BaseEntity entity)
+	{
+		if (Singleton.ConfigInstance.Deployables.LogManagedSpawns)
+		{
+			Singleton.PutsWarn($"Spawned {entity} @ {entity.transform.position}");
+		}
+		//Ground doos so they dont fall apart.
+		if (entity is StabilityEntity) { (entity as StabilityEntity).grounded = true; }
+		UnityEngine.Object.Destroy(entity.GetComponent<GroundWatch>());
+		if (entity is NeonSign)
+		{
+			foreach (var mesh in entity.GetComponentsInChildren<MeshCollider>()) { UnityEngine.Object.DestroyImmediate(mesh); }
+			NeonSign neon = entity as NeonSign;
+			if (neon != null)
+			{
+				neon.pickup.enabled = false;
+				neon.currentFrame = 0;
+				neon.animationSpeed = 1;
+				byte[] Blank = Convert.FromBase64String(Singleton.ConfigInstance.Deployables.DefaultSignImage);
+				if (neon.prefabID == 708840119)
+				{
+					Deployables_ApplySignage(neon, null, Blank, 0);
+					Deployables_ApplySignage(neon, null, Blank, 1);
+					Deployables_ApplySignage(neon, null, Blank, 2);
+					Deployables_ApplySignage(neon, null, Blank, 3);
+					Deployables_ApplySignage(neon, null, Blank, 4);
+				}
+				else if (neon.prefabID == 3591916872)
+				{
+					Deployables_ApplySignage(neon, null, Blank, 0);
+					Deployables_ApplySignage(neon, null, Blank, 1);
+					Deployables_ApplySignage(neon, null, Blank, 2);
+				}
+				else
+				{
+					Deployables_ApplySignage(neon, null, Blank, 0);
+				}
+				neon.UpdateHasPower(100, 1);
+				neon.SendNetworkUpdateImmediate(true);
+			}
+		}
+		if (entity.PrefabName.Contains("vehicles") || entity.PrefabName.Contains("ch47.entity"))
+		{
+			TakenV tv = new TakenV();
+			tv.baseent = entity;
+			tv.spawndata = data;
+			Deployables_TakenVehicles.Add(tv);
+		}
+		if (entity is Door)
+		{
+			Door door = entity as Door;
+			//Pair Any Door Controllers
+			door.canTakeLock = false;
+			door.Invoke(() => { if (door != null) { Deployables_PairDoor(door); } }, 5f);
+		}
+		if (entity.gameObject.GetComponent<NavMeshObstacle>() == null)
+		{
+			NavMeshObstacle nmo = entity.gameObject.AddComponent<NavMeshObstacle>();
+			nmo.carving = true;
+		}
+	}
+	internal static void Deployables_ApplyEntity(PrefabData data, BaseEntity entity)
+	{
+		switch (entity)
+		{
+			case Door door:
+				{
+					var @lock = Deployables_GetParameter(data.category, "lock");
+
+					if (door.GetSlot(BaseEntity.Slot.Lock) == null)
+					{
+						switch (@lock)
+						{
+							case "code":
+								{
+									var lockEntity = GameManager.server.CreateEntity("assets/prefabs/locks/keypad/lock.code.prefab", door.transform.position, door.transform.rotation) as CodeLock;
+									lockEntity.Spawn();
+									lockEntity.gameObject.Identity();
+									lockEntity.SetParent(door, door.GetSlotAnchorName(BaseEntity.Slot.Lock));
+									door.SetSlot(BaseEntity.Slot.Lock, lockEntity);
+									lockEntity.code = Deployables_GetParameter(data.category, "code");
+									lockEntity.SetFlag(BaseEntity.Flags.Locked, Deployables_GetParameter(data.category, "locked").ToBool(true));
+								}
+								break;
+
+							case "key":
+								{
+									var lockEntity = GameManager.server.CreateEntity("assets/prefabs/locks/keylock/lock.key.prefab", door.transform.position, door.transform.rotation) as KeyLock;
+									lockEntity.gameObject.Identity();
+									lockEntity.SetParent(door, door.GetSlotAnchorName(BaseEntity.Slot.Lock));
+									lockEntity.Spawn();
+									door.SetSlot(BaseEntity.Slot.Lock, lockEntity);
+									lockEntity.SetFlag(BaseEntity.Flags.Locked, Deployables_GetParameter(data.category, "locked").ToBool(true));
+								}
+								break;
+						}
+					}
+				}
+				break;
 		}
 	}
 	internal static void Deployables_ProcessImages(BaseEntity sign, PrefabData pd, bool DoneSigns)
