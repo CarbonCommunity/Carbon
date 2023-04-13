@@ -3190,7 +3190,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public enum VendorTypes
 		{
 			Codefling,
-			uMod
+			uMod,
+			Local
 		}
 		public enum FilterTypes
 		{
@@ -3235,6 +3236,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public static IVendorDownloader CodeflingInstance { get; set; }
 		public static IVendorDownloader uModInstance { get; set; }
 		public static IVendorDownloader Lone_DesignInstance { get; set; }
+		public static IVendorDownloader LocalInstance { get; set; }
 
 		public static IVendorDownloader GetVendor(VendorTypes vendor)
 		{
@@ -3246,8 +3248,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				case VendorTypes.uMod:
 					return uModInstance;
 
-					// case VendorTypes.Lone_Design:
-					// 	return Lone_DesignInstance;
+				// case VendorTypes.Lone_Design:
+				// 	return Lone_DesignInstance;
+
+				case VendorTypes.Local:
+					return LocalInstance;
 			}
 
 			return default;
@@ -3282,6 +3287,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			// 	Lone_DesignInstance.FetchList();
 			// 	Lone_DesignInstance.Refresh();
 			// }
+
+			LocalInstance = new Local();
+			LocalInstance.Refresh();
 
 			ServerOwner.Load();
 
@@ -4478,6 +4486,93 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Singleton.Puts($"Stored {Type} to file: {path}");
 				}
 				catch { }
+			}
+		}
+
+		[ProtoContract]
+		public class Local : IVendorDownloader
+		{
+			public string Type => "All";
+			public string Url => "none";
+			public string Logo => "carbonw";
+
+			public float LogoRatio => 0.23f;
+			public string ListEndpoint => string.Empty;
+			public string DownloadEndpoint => string.Empty;
+			public string BarInfo => $"{FetchedPlugins.Count:n0} loaded";
+			public float IconScale => 0.4f;
+			public float SafeIconScale => 0.2f;
+
+			public List<Plugin> FetchedPlugins { get; set; } = new();
+
+			internal string[] _defaultTags = new string[] { "carbon", "oxide" }; 
+
+			public Plugin[] PriceData { get; set; }
+			public Plugin[] AuthorData { get; set; }
+			public Plugin[] InstalledData { get; set; }
+			public Plugin[] OutOfDateData { get; set; }
+			public Plugin[] OwnedData { get; set; }
+			public string[] PopularTags { get; set; }
+
+			public void CheckMetadata(string id, Action callback)
+			{
+			}
+
+			public void Download(string id, Action onTimeout = null)
+			{
+			}
+
+			public void FetchList(Action<IVendorDownloader> callback = null)
+			{
+			}
+
+			public bool Load()
+			{
+				return true;
+			}
+
+			public void Refresh()
+			{
+				FetchedPlugins.Clear();
+
+				foreach (var package in Loader.LoadedMods)
+				{
+					foreach(var plugin in package.Plugins)
+					{
+						if (plugin.IsCorePlugin) continue;
+
+						var existent = FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
+
+						if (existent == null) FetchedPlugins.Add(CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin) ??
+							uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin)
+							?? (existent = new Plugin
+						{
+							Name= plugin.Name,
+							Author = plugin.Author,
+							Version = plugin.Version.ToString(),
+							ExistentPlugin = plugin,
+							Description = "This is an unlisted plugin.",
+							Tags = _defaultTags,
+							File = plugin.FileName,
+							Id = plugin.Name,
+							UpdateDate = DateTime.UtcNow.ToString()
+						}));
+					}
+				}
+
+				FetchedPlugins = FetchedPlugins.OrderBy(x => x.Name).ToList();
+				PriceData = FetchedPlugins.OrderBy(x => x.OriginalPrice).ToArray();
+				AuthorData = FetchedPlugins.OrderBy(x => x.Author).ToArray();
+				InstalledData = FetchedPlugins.Where(x => x.IsInstalled()).ToArray();
+				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate()).ToArray();
+			}
+
+			public void Save()
+			{
+			}
+
+			public void Uninstall(string id)
+			{
 			}
 		}
 
