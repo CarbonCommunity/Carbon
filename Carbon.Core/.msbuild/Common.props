@@ -21,15 +21,7 @@
 		<Platform Condition="'$(Platform)' == ''">x64</Platform>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<!--
-			THIS IS AN IMPORTANT FEATURE
-			This property should change everytime there are breaking changes on
-			carbon that forces the users to update all the compontents at the
-			same time, like updating core and hooks in one shot.
-		-->
-		<CarbonProtocol>2023.04.06.0</CarbonProtocol>
-	</PropertyGroup>
+	<Import Project="Protocol.props" />
 
 	<PropertyGroup>
 		<Authors>Carbon Community</Authors>
