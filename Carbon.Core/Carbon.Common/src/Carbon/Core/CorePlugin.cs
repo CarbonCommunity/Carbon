@@ -94,6 +94,8 @@ public partial class CorePlugin : CarbonPlugin
 			if (!Logger._file._hasInit || Logger._file._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
 			Logger._file._flush();
 		});
+
+		cmd.AddConsoleCommand("help", this, nameof(Help), authLevel: 2);
 	}
 
 	private void OnServerInitialized()
@@ -143,18 +145,6 @@ public partial class CorePlugin : CarbonPlugin
 
 		Community.Runtime.Events
 			.Trigger(CarbonEvent.OnServerSave, EventArgs.Empty);
-	}
-
-	public static void Reply(object message, ConsoleSystem.Arg arg)
-	{
-		if (arg != null && arg.Player() != null)
-		{
-			arg.Player().SendConsoleCommand($"echo {message}");
-			return;
-		}
-
-		if (message is string) arg.ReplyWith(message.ToString());
-		else arg.ReplyWith(message);
 	}
 
 	internal static StackTraceLogType _defaultLogTrace;

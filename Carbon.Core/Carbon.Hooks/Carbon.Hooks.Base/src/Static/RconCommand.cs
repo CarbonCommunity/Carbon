@@ -66,7 +66,7 @@ public partial class Category_Static
 							{
 								Command.FromRcon = true;
 								carbonCommand.Callback?.Invoke(null, command, arguments);
-								return !carbonCommand.SkipOriginal;
+								return false;
 							}
 							catch (Exception ex)
 							{
