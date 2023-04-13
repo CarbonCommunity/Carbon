@@ -8,11 +8,8 @@ using Carbon.Hooks;
 
 namespace Carbon.Contracts;
 
-public interface IModuleProcessor : IDisposable
+public interface ICommandProcessor : IDisposable
 {
-	void Init();
-	void OnServerInit();
-	void OnServerSave();
-	void Setup(BaseHookable hookable);
-	List<BaseHookable> Modules { get; }
+	bool RegisterCommand(BaseCommand command, out string reason);
+	bool UnregisterCommand(string command, out string reason);
 }

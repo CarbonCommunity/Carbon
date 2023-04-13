@@ -7,24 +7,23 @@ using Carbon.Base;
 using Carbon.Core;
 using Carbon.Hooks;
 
-namespace Carbon.Contracts
+namespace Carbon.Contracts;
+
+public interface IScriptLoader : IDisposable
 {
-	public interface IScriptLoader : IDisposable
-	{
-		List<IScript> Scripts { get; set; }
-		void Clear();
-		void Load();
+	List<IScript> Scripts { get; set; }
+	void Clear();
+	void Load();
 
-		string File { get; set; }
-		string Source { get; set; }
-		bool IsCore { get; set; }
-		bool IsExtension { get; set; }
+	string File { get; set; }
+	string Source { get; set; }
+	bool IsCore { get; set; }
+	bool IsExtension { get; set; }
 
-		bool HasFinished { get; set; }
-		bool HasRequires { get; set; }
+	bool HasFinished { get; set; }
+	bool HasRequires { get; set; }
 
-		Loader.CarbonMod Mod { get; set; }
-		IBaseProcessor.IInstance Instance { get; set; }
-		IBaseProcessor.IParser Parser { get; set; }
-	}
+	Loader.CarbonMod Mod { get; set; }
+	IBaseProcessor.IInstance Instance { get; set; }
+	IBaseProcessor.IParser Parser { get; set; }
 }
