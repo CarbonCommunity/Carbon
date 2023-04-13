@@ -18,7 +18,7 @@ using Carbon.Contracts;
 namespace Carbon.Hooks;
 #pragma warning disable IDE0051
 
-public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
+public sealed class PatchManager : FacepunchBehaviour, IPatchManager, IDisposable
 {
 	internal List<HookEx> _patches { get; set; }
 	internal List<HookEx> _staticHooks { get; set; }
@@ -229,7 +229,7 @@ public sealed class HookManager : FacepunchBehaviour, IHookManager, IDisposable
 		try
 		{
 			// delegates asm loading to Carbon.Loader 
-			Assembly hooks = Community.Runtime.AssemblyEx.LoadHook(fileName, "HookManager.LoadHooksFromFile");
+			Assembly hooks = Community.Runtime.AssemblyEx.Hooks.Load(fileName, "HookManager.LoadHooksFromFile");
 
 			if (hooks == null)
 			{
