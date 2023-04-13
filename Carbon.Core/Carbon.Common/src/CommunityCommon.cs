@@ -51,7 +51,7 @@ public class Community
 		= new(GameObject.GetComponent<IEventManager>);
 
 
-	public IHookManager HookManager { get; set; }
+	public IPatchManager HookManager { get; set; }
 	public IScriptProcessor ScriptProcessor { get; set; }
 	public IModuleProcessor ModuleProcessor { get; set; }
 	public IWebScriptProcessor WebScriptProcessor { get; set; }

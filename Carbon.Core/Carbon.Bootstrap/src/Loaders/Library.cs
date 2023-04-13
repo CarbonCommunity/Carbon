@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Abstracts;
 using API.Assembly;
 using Utility;
 
@@ -15,8 +16,12 @@ using Utility;
 
 namespace Loaders;
 
-internal sealed class LibraryLoader : IDisposable
+internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 {
+	// Singleton pattern needs a private ctor
+	private LibraryLoader()
+		=> RegisterDomain(AppDomain.CurrentDomain);
+
 	private class Item : IAssemblyCache
 	{
 		public string Name { get; internal set; }
