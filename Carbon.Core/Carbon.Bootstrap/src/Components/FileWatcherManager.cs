@@ -42,7 +42,7 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 
 			OnFileCreated = (sender, file) =>
 			{
-				Carbon.Bootstrap.AssemblyEx.LoadModule(
+				Carbon.Bootstrap.AssemblyEx.Modules.Load(
 					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
 			},
 		},
@@ -55,7 +55,7 @@ internal sealed class FileWatcherManager : MonoBehaviour, IDisposable
 
 			OnFileCreated = (sender, file) =>
 			{
-				Carbon.Bootstrap.AssemblyEx.LoadExtension(
+				Carbon.Bootstrap.AssemblyEx.Extensions.Load(
 					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
 			},
 		},

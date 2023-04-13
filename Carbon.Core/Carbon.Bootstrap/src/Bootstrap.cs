@@ -31,8 +31,8 @@ public sealed class Bootstrap
 	internal static AnalyticsManager Analytics
 	{ get => _gameObject.GetComponent<AnalyticsManager>(); }
 
-	internal static AssemblyManagerEx AssemblyEx
-	{ get => _gameObject.GetComponent<AssemblyManagerEx>(); }
+	internal static AssemblyManager AssemblyEx
+	{ get => _gameObject.GetComponent<AssemblyManager>(); }
 
 	internal static DownloadManager Downloader
 	{ get => _gameObject.GetComponent<DownloadManager>(); }
@@ -68,7 +68,7 @@ public sealed class Bootstrap
 		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
 
 		_gameObject.AddComponent<AnalyticsManager>();
-		_gameObject.AddComponent<AssemblyManagerEx>();
+		_gameObject.AddComponent<AssemblyManager>();
 		_gameObject.AddComponent<DownloadManager>();
 		_gameObject.AddComponent<EventManager>();
 		_gameObject.AddComponent<FileWatcherManager>();
@@ -82,7 +82,7 @@ public sealed class Bootstrap
 
 		Events.Subscribe(CarbonEvent.StartupShared, x =>
 		{
-			AssemblyEx.LoadComponent("Carbon.dll", "CarbonEvent.StartupShared");
+			AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
 		});
 
 		Events.Subscribe(CarbonEvent.CarbonStartupComplete, x =>

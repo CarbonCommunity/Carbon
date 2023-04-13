@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Contracts;
-using Carbon.Extensions;
 using Facepunch;
 
 /*
@@ -29,11 +27,11 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		var types = typeof(Community).Assembly.GetExportedTypes().AsEnumerable();
 		var modules = Pool.GetList<string>();
-		modules.AddRange(Community.Runtime.AssemblyEx.LoadedModules);
+		modules.AddRange(Community.Runtime.AssemblyEx.Modules.Loaded);
 
-		foreach(var module in modules)
+		foreach (var module in modules)
 		{
-			var assembly = Community.Runtime.AssemblyEx.LoadModule(module, "ModuleProcessor.Init");
+			var assembly = Community.Runtime.AssemblyEx.Modules.Load(module, "ModuleProcessor.Init");
 			types = types.Concat(assembly.GetExportedTypes());
 		}
 
@@ -48,7 +46,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	}
 	public void OnServerInit()
 	{
-		foreach(var hookable in _modules)
+		foreach (var hookable in _modules)
 		{
 			if (hookable is IModule module)
 			{

@@ -63,7 +63,7 @@ public class CommunityInternal : Community
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-			HookManager = gameObject.AddComponent<HookManager>();
+			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
 		}

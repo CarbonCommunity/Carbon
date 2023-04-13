@@ -5,21 +5,21 @@
  *
  */
 
-using Carbon.Extensions;
 using System;
-using Carbon.Plugins;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using API.Hooks;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
-using Newtonsoft.Json;
-using Oxide.Plugins;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using UnityEngine;
+using Carbon.Extensions;
+using Carbon.Plugins;
 using Facepunch;
-using System.IO;
+using Newtonsoft.Json;
 using Oxide.Game.Rust.Cui;
+using Oxide.Plugins;
+using UnityEngine;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -150,7 +150,7 @@ public partial class CorePlugin : CarbonPlugin
 			case "--j":
 			case "-json":
 			case "--json":
-				arg.ReplyWith (Loader.FailedMods);
+				arg.ReplyWith(Loader.FailedMods);
 				break;
 
 			default:
@@ -170,7 +170,7 @@ public partial class CorePlugin : CarbonPlugin
 					count++;
 				}
 
-				arg.ReplyWith ( result );
+				arg.ReplyWith(result);
 				break;
 		}
 	}
@@ -222,11 +222,11 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			Community.Runtime.Config.ConditionalCompilationSymbols.Add(value);
 			Community.Runtime.SaveConfig();
-			arg.ReplyWith ( $"Added conditional '{value}'." );
+			arg.ReplyWith($"Added conditional '{value}'.");
 		}
 		else
 		{
-			arg.ReplyWith ( $"Conditional '{value}' already exists." );
+			arg.ReplyWith($"Conditional '{value}' already exists.");
 		}
 
 		foreach (var mod in Loader.LoadedMods)
@@ -258,11 +258,11 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			Community.Runtime.Config.ConditionalCompilationSymbols.Remove(value);
 			Community.Runtime.SaveConfig();
-			arg.ReplyWith ( $"Removed conditional '{value}'." );
+			arg.ReplyWith($"Removed conditional '{value}'.");
 		}
 		else
 		{
-			arg.ReplyWith ( $"Conditional '{value}' does not exist." );
+			arg.ReplyWith($"Conditional '{value}' does not exist.");
 		}
 
 		foreach (var mod in Loader.LoadedMods)
@@ -288,7 +288,7 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void Conditionals(ConsoleSystem.Arg arg)
 	{
-		arg.ReplyWith ( $"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray ().ToString ( ", ", " and " )}" );
+		arg.ReplyWith($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}");
 	}
 
 	#endregion
@@ -351,7 +351,7 @@ public partial class CorePlugin : CarbonPlugin
 						);
 					}
 
-					arg.ReplyWith ( $"total:{count} success:{success} warning:{warning} failed:{failure}" + Environment.NewLine + Environment.NewLine + body.ToStringMinimal () );
+					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}" + Environment.NewLine + Environment.NewLine + body.ToStringMinimal());
 					break;
 				}
 
@@ -399,7 +399,7 @@ public partial class CorePlugin : CarbonPlugin
 						);
 					}
 
-					arg.ReplyWith ( $"total:{count} success:{success} warning:{warning} failed:{failure}" + Environment.NewLine + Environment.NewLine + body.ToStringMinimal () );
+					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}" + Environment.NewLine + Environment.NewLine + body.ToStringMinimal());
 					break;
 				}
 		}
@@ -417,7 +417,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		Community.Runtime.LoadConfig();
 
-		arg.ReplyWith ( "Loaded Carbon config." );
+		arg.ReplyWith("Loaded Carbon config.");
 	}
 
 	[ConsoleCommand("saveconfig", "Saves Carbon config to file.")]
@@ -428,7 +428,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		Community.Runtime.SaveConfig();
 
-		arg.ReplyWith ( "Saved Carbon config." );
+		arg.ReplyWith("Saved Carbon config.");
 	}
 
 	[CommandVar("autoupdate", "Updates carbon hooks on boot.")]
@@ -548,7 +548,7 @@ public partial class CorePlugin : CarbonPlugin
 			body.AddRow(command.Command, value, command.Help);
 		}
 
-		arg.ReplyWith ( $"Console Commands:\n{body.ToStringMinimal ()}" );
+		arg.ReplyWith($"Console Commands:\n{body.ToStringMinimal()}");
 	}
 
 	[ConsoleCommand("findchat", "Searches through Carbon-processed chat commands.")]
@@ -565,7 +565,7 @@ public partial class CorePlugin : CarbonPlugin
 			body.AddRow(command.Command, command.Help);
 		}
 
-		arg.ReplyWith ( $"Chat Commands:\n{body.ToStringMinimal ()}" );
+		arg.ReplyWith($"Chat Commands:\n{body.ToStringMinimal()}");
 	}
 
 	#endregion
@@ -594,7 +594,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		if (module == null)
 		{
-			arg.ReplyWith ( $"Couldn't find that module. Try 'c.modules' to print them all." );
+			arg.ReplyWith($"Couldn't find that module. Try 'c.modules' to print them all.");
 			return;
 		}
 
@@ -607,7 +607,7 @@ public partial class CorePlugin : CarbonPlugin
 			module.Save();
 		}
 
-		arg.ReplyWith ( $"{module.Name} marked {( module.GetEnabled () ? "enabled" : "disabled" )}." );
+		arg.ReplyWith($"{module.Name} marked {(module.GetEnabled() ? "enabled" : "disabled")}.");
 	}
 
 	[ConsoleCommand("saveallmodules", "Saves the configs and data files of all available modules.")]
@@ -620,7 +620,7 @@ public partial class CorePlugin : CarbonPlugin
 			module.Save();
 		}
 
-		arg.ReplyWith ( $"Saved {Community.Runtime.ModuleProcessor.Modules.Count:n0} module configs and data files." );
+		arg.ReplyWith($"Saved {Community.Runtime.ModuleProcessor.Modules.Count:n0} module configs and data files.");
 	}
 
 	[ConsoleCommand("savemoduleconfig", "Saves Carbon module config & data file.")]
@@ -634,13 +634,13 @@ public partial class CorePlugin : CarbonPlugin
 
 		if (module == null)
 		{
-			arg.ReplyWith ( $"Couldn't find that module." );
+			arg.ReplyWith($"Couldn't find that module.");
 			return;
 		}
 
 		module.Save();
 
-		arg.ReplyWith ( $"Saved '{module.Name}' module config & data file." );
+		arg.ReplyWith($"Saved '{module.Name}' module config & data file.");
 	}
 
 	[ConsoleCommand("loadmoduleconfig", "Loads Carbon module config & data file.")]
@@ -654,7 +654,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		if (module == null)
 		{
-			arg.ReplyWith ( $"Couldn't find that module." );
+			arg.ReplyWith($"Couldn't find that module.");
 			return;
 		}
 
@@ -662,7 +662,7 @@ public partial class CorePlugin : CarbonPlugin
 		module.Load();
 		if (module.GetEnabled()) module.OnEnableStatus();
 
-		arg.ReplyWith ( $"Reloaded '{module.Name}' module config." );
+		arg.ReplyWith($"Reloaded '{module.Name}' module config.");
 	}
 
 	[ConsoleCommand("modules", "Prints a list of all available modules.")]
@@ -677,7 +677,7 @@ public partial class CorePlugin : CarbonPlugin
 			print.AddRow(hookable.Name, module.GetEnabled() ? "Yes" : "No", $"c.setmodule \"{hookable.Name}\" 0/1");
 		}
 
-		arg.ReplyWith ( print.ToStringMinimal () );
+		arg.ReplyWith(print.ToStringMinimal());
 	}
 
 	#endregion
@@ -880,7 +880,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					if (!pluginFound)
 					{
-						if(string.IsNullOrEmpty(path)) Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						if (string.IsNullOrEmpty(path)) Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
 						else Logger.Warn($"Plugin {name} was not loaded but was marked as ignored.");
 					}
 					break;
@@ -961,7 +961,7 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		void PrintWarn()
 		{
-			arg.ReplyWith ( $"Syntax: c.grant <user|group> <name|id> <perm>" );
+			arg.ReplyWith($"Syntax: c.grant <user|group> <name|id> <perm>");
 		}
 
 		if (!arg.HasArgs(3))
@@ -980,14 +980,14 @@ public partial class CorePlugin : CarbonPlugin
 			case "user":
 				if (permission.GrantUserPermission(user.Key, perm, null))
 				{
-					arg.ReplyWith ( $"Granted user '{user.Value.LastSeenNickname}' permission '{perm}'" );
+					arg.ReplyWith($"Granted user '{user.Value.LastSeenNickname}' permission '{perm}'");
 				}
 				break;
 
 			case "group":
 				if (permission.GrantGroupPermission(name, perm, null))
 				{
-					arg.ReplyWith ( $"Granted group '{name}' permission '{perm}'" );
+					arg.ReplyWith($"Granted group '{name}' permission '{perm}'");
 				}
 				break;
 
@@ -1003,7 +1003,7 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		void PrintWarn()
 		{
-			arg.ReplyWith ( $"Syntax: c.revoke <user|group> <name|id> <perm>" );
+			arg.ReplyWith($"Syntax: c.revoke <user|group> <name|id> <perm>");
 		}
 
 		if (!arg.HasArgs(3))
@@ -1022,14 +1022,14 @@ public partial class CorePlugin : CarbonPlugin
 			case "user":
 				if (permission.RevokeUserPermission(user.Key, perm))
 				{
-					arg.ReplyWith ( $"Revoked user '{user.Value?.LastSeenNickname}' permission '{perm}'" );
+					arg.ReplyWith($"Revoked user '{user.Value?.LastSeenNickname}' permission '{perm}'");
 				}
 				break;
 
 			case "group":
 				if (permission.RevokeGroupPermission(name, perm))
 				{
-					arg.ReplyWith ( $"Revoked group '{name}' permission '{perm}'" );
+					arg.ReplyWith($"Revoked group '{name}' permission '{perm}'");
 				}
 				break;
 
@@ -1045,7 +1045,7 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		void PrintWarn()
 		{
-			arg.ReplyWith ( $"Syntax: c.show <groups|perms>\n" +
+			arg.ReplyWith($"Syntax: c.show <groups|perms>\n" +
 				$"Syntax: c.show <group|user> <name|id>");
 		}
 
@@ -1064,12 +1064,12 @@ public partial class CorePlugin : CarbonPlugin
 
 					if (user.Value == null)
 					{
-						arg.ReplyWith ( $"Couldn't find that user." );
+						arg.ReplyWith($"Couldn't find that user.");
 						return;
 					}
 
-					arg.ReplyWith ( $"User {user.Value.LastSeenNickname}[{user.Key}] found in {user.Value.Groups.Count:n0} groups:\n  {user.Value.Groups.Select ( x => x ).ToArray ().ToString ( ", ", " and " )}\n" +
-						$"and has {user.Value.Perms.Count:n0} permissions:\n  {user.Value.Perms.Select ( x => x ).ToArray ().ToString ( ", ", " and " )}" );
+					arg.ReplyWith($"User {user.Value.LastSeenNickname}[{user.Key}] found in {user.Value.Groups.Count:n0} groups:\n  {user.Value.Groups.Select(x => x).ToArray().ToString(", ", " and ")}\n" +
+						$"and has {user.Value.Perms.Count:n0} permissions:\n  {user.Value.Perms.Select(x => x).ToArray().ToString(", ", " and ")}");
 					break;
 				}
 			case "group":
@@ -1080,14 +1080,14 @@ public partial class CorePlugin : CarbonPlugin
 
 					if (!permission.GroupExists(name))
 					{
-						arg.ReplyWith ( $"Couldn't find that group." );
+						arg.ReplyWith($"Couldn't find that group.");
 						return;
 					}
 
 					var users = permission.GetUsersInGroup(name);
 					var permissions = permission.GetGroupPermissions(name, false);
-					arg.ReplyWith ( $"Group {name} has {users.Length:n0} users:\n  {users.Select ( x => x ).ToArray ().ToString ( ", ", " and " )}\n" +
-						$"and has {permissions.Length:n0} permissions:\n  {permissions.Select ( x => x ).ToArray ().ToString ( ", ", " and " )}" );
+					arg.ReplyWith($"Group {name} has {users.Length:n0} users:\n  {users.Select(x => x).ToArray().ToString(", ", " and ")}\n" +
+						$"and has {permissions.Length:n0} permissions:\n  {permissions.Select(x => x).ToArray().ToString(", ", " and ")}");
 					break;
 				}
 			case "groups":
@@ -1095,11 +1095,11 @@ public partial class CorePlugin : CarbonPlugin
 					var groups = permission.GetGroups();
 					if (groups.Count() == 0)
 					{
-						arg.ReplyWith ( $"Couldn't find any group." );
+						arg.ReplyWith($"Couldn't find any group.");
 						return;
 					}
 
-					arg.ReplyWith ( $"Groups:\n {String.Join ( ", ", groups )}" );
+					arg.ReplyWith($"Groups:\n {String.Join(", ", groups)}");
 					break;
 				}
 			case "perms":
@@ -1107,10 +1107,10 @@ public partial class CorePlugin : CarbonPlugin
 					var perms = permission.GetPermissions();
 					if (perms.Count() == 0)
 					{
-						arg.ReplyWith ( $"Couldn't find any permission." );
+						arg.ReplyWith($"Couldn't find any permission.");
 					}
 
-					arg.ReplyWith ( $"Permissions:\n {String.Join ( ", ", perms )}" );
+					arg.ReplyWith($"Permissions:\n {String.Join(", ", perms)}");
 
 					break;
 				}
@@ -1127,7 +1127,7 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		void PrintWarn()
 		{
-			arg.ReplyWith ( $"Syntax: c.usergroup <add|remove> <player> <group>" );
+			arg.ReplyWith($"Syntax: c.usergroup <add|remove> <player> <group>");
 		}
 
 		if (!arg.HasArgs(3))
@@ -1144,13 +1144,13 @@ public partial class CorePlugin : CarbonPlugin
 
 		if (user.Value == null)
 		{
-			arg.ReplyWith ( $"Couldn't find that player." );
+			arg.ReplyWith($"Couldn't find that player.");
 			return;
 		}
 
 		if (!permission.GroupExists(group))
 		{
-			arg.ReplyWith ( $"Group '{group}' could not be found." );
+			arg.ReplyWith($"Group '{group}' could not be found.");
 			return;
 		}
 
@@ -1159,23 +1159,23 @@ public partial class CorePlugin : CarbonPlugin
 			case "add":
 				if (permission.UserHasGroup(user.Key, group))
 				{
-					arg.ReplyWith ( $"{user.Value.LastSeenNickname}[{user.Key}] is already in '{group}' group." );
+					arg.ReplyWith($"{user.Value.LastSeenNickname}[{user.Key}] is already in '{group}' group.");
 					return;
 				}
 
 				permission.AddUserGroup(user.Key, group);
-				arg.ReplyWith ( $"Added {user.Value.LastSeenNickname}[{user.Key}] to '{group}' group." );
+				arg.ReplyWith($"Added {user.Value.LastSeenNickname}[{user.Key}] to '{group}' group.");
 				break;
 
 			case "remove":
 				if (!permission.UserHasGroup(user.Key, group))
 				{
-					arg.ReplyWith ( $"{user.Value.LastSeenNickname}[{user.Key}] isn't in '{group}' group." );
+					arg.ReplyWith($"{user.Value.LastSeenNickname}[{user.Key}] isn't in '{group}' group.");
 					return;
 				}
 
 				permission.RemoveUserGroup(user.Key, group);
-				arg.ReplyWith ( $"Removed {user.Value.LastSeenNickname}[{user.Key}] from '{group}' group." );
+				arg.ReplyWith($"Removed {user.Value.LastSeenNickname}[{user.Key}] from '{group}' group.");
 				break;
 
 			default:
@@ -1190,7 +1190,7 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		void PrintWarn()
 		{
-			arg.ReplyWith ( $"Syntax: c.group add <group> [<displayName>] [<rank>]\n" +
+			arg.ReplyWith($"Syntax: c.group add <group> [<displayName>] [<rank>]\n" +
 				$"Syntax: c.group remove <group>\n" +
 				$"Syntax: c.group set <group> <title|rank> <value>\n" +
 				$"Syntax: c.group parent <group> [<parent>]");
@@ -1210,13 +1210,13 @@ public partial class CorePlugin : CarbonPlugin
 
 					if (permission.GroupExists(group))
 					{
-						arg.ReplyWith ( $"Group '{group}' already exists. To set any values for this group, use 'c.group set'." );
+						arg.ReplyWith($"Group '{group}' already exists. To set any values for this group, use 'c.group set'.");
 						return;
 					}
 
 					if (permission.CreateGroup(group, arg.HasArgs(3) ? arg.Args[2] : group, arg.HasArgs(4) ? arg.Args[3].ToInt() : 0))
 					{
-						arg.ReplyWith ( $"Created '{group}' group." );
+						arg.ReplyWith($"Created '{group}' group.");
 					}
 				}
 				break;
@@ -1229,7 +1229,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					if (!permission.GroupExists(group))
 					{
-						arg.ReplyWith ( $"Group '{group}' does not exists." );
+						arg.ReplyWith($"Group '{group}' does not exists.");
 						return;
 					}
 
@@ -1247,7 +1247,7 @@ public partial class CorePlugin : CarbonPlugin
 							break;
 					}
 
-					arg.ReplyWith ( $"Set '{group}' group." );
+					arg.ReplyWith($"Set '{group}' group.");
 				}
 				break;
 
@@ -1257,8 +1257,8 @@ public partial class CorePlugin : CarbonPlugin
 
 					var group = arg.Args[1];
 
-					if (permission.RemoveGroup(group)) arg.ReplyWith ( $"Removed '{group}' group." );
-					else arg.ReplyWith ( $"Couldn't remove '{group}' group." );
+					if (permission.RemoveGroup(group)) arg.ReplyWith($"Removed '{group}' group.");
+					else arg.ReplyWith($"Couldn't remove '{group}' group.");
 				}
 				break;
 
@@ -1269,8 +1269,8 @@ public partial class CorePlugin : CarbonPlugin
 					var group = arg.Args[1];
 					var parent = arg.Args[2];
 
-					if (permission.SetGroupParent(group, parent)) arg.ReplyWith ( $"Changed '{group}' group's parent to '{parent}'." );
-					else arg.ReplyWith ( $"Couldn't change '{group}' group's parent to '{parent}'." );
+					if (permission.SetGroupParent(group, parent)) arg.ReplyWith($"Changed '{group}' group's parent to '{parent}'.");
+					else arg.ReplyWith($"Couldn't change '{group}' group's parent to '{parent}'.");
 				}
 				break;
 
