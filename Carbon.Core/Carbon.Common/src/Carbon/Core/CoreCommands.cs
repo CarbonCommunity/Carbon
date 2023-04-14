@@ -10,8 +10,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Commands;
 using API.Hooks;
-using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -541,7 +541,7 @@ public partial class CorePlugin : CarbonPlugin
 			if (command.HasFlag(CommandFlags.Hidden) || (!string.IsNullOrEmpty(filter) && !command.Name.Contains(filter))) continue;
 
 			var value = " ";
-			
+
 			if (command.Token != null)
 			{
 				if (command.Token is FieldInfo field) value = field.GetValue(command.Reference as RustPlugin)?.ToString();

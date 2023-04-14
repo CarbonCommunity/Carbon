@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using API.Commands;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Core;
@@ -107,7 +108,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Application.logMessageReceived += OnLog;
 		}
 
-		foreach(var command in ConfigInstance.OpenCommands)
+		foreach (var command in ConfigInstance.OpenCommands)
 		{
 			Community.Runtime.CorePlugin.cmd.AddChatCommand(command, this, (player, cmd, args) =>
 			{
@@ -230,7 +231,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
-		if(HookCaller.CallStaticHook("CanAccessAdminModule", player) is bool result)
+		if (HookCaller.CallStaticHook("CanAccessAdminModule", player) is bool result)
 		{
 			return result;
 		}
@@ -1621,7 +1622,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public void SetPage(int column, int page)
 		{
-			if(ColumnPages.TryGetValue(column, out var pageInstance))
+			if (ColumnPages.TryGetValue(column, out var pageInstance))
 			{
 				pageInstance.CurrentPage = page;
 				pageInstance.Check();
@@ -1845,7 +1846,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			Modal.Open(player, title, fields, onConfirm, onCancel);
 		}
-		
+
 		public void Dispose()
 		{
 			foreach (var column in Columns)
@@ -4503,7 +4504,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			public List<Plugin> FetchedPlugins { get; set; } = new();
 
-			internal string[] _defaultTags = new string[] { "carbon", "oxide" }; 
+			internal string[] _defaultTags = new string[] { "carbon", "oxide" };
 
 			public Plugin[] PriceData { get; set; }
 			public Plugin[] AuthorData { get; set; }
@@ -4535,7 +4536,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				foreach (var package in Loader.LoadedMods)
 				{
-					foreach(var plugin in package.Plugins)
+					foreach (var plugin in package.Plugins)
 					{
 						if (plugin.IsCorePlugin) continue;
 
@@ -4544,17 +4545,17 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						if (existent == null) FetchedPlugins.Add(CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin) ??
 							uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin)
 							?? (existent = new Plugin
-						{
-							Name= plugin.Name,
-							Author = plugin.Author,
-							Version = plugin.Version.ToString(),
-							ExistentPlugin = plugin,
-							Description = "This is an unlisted plugin.",
-							Tags = _defaultTags,
-							File = plugin.FileName,
-							Id = plugin.Name,
-							UpdateDate = DateTime.UtcNow.ToString()
-						}));
+							{
+								Name = plugin.Name,
+								Author = plugin.Author,
+								Version = plugin.Version.ToString(),
+								ExistentPlugin = plugin,
+								Description = "This is an unlisted plugin.",
+								Tags = _defaultTags,
+								File = plugin.FileName,
+								Id = plugin.Name,
+								UpdateDate = DateTime.UtcNow.ToString()
+							}));
 					}
 				}
 
@@ -5247,7 +5248,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						_drawArray(name, array, level, column, ap);
 					}, ap2 => OptionButton.Types.Warned);
 				}
-				else if(array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+				else if (array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
 
 				AddInput(subColumn, "Property Name", ap => ap.GetStorage<string>(this, "jsonprop", "New Property"), (ap, args) => { ap.SetStorage(this, "jsonprop", newPropertyName = args.ToString(" ")); });
 				AddButtonArray(subColumn, 0.01f,
@@ -5837,7 +5838,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (!hex.StartsWith("#")) hex = $"#{hex}";
 		var rawColor = HexToRustColor(hex, includeAlpha: false);
-		onColorPicked?.Invoke(hex,rawColor);
+		onColorPicked?.Invoke(hex, rawColor);
 		ColorPicker.Close(args.Player());
 	}
 

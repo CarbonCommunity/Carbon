@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Carbon.Base;
 
-namespace Carbon.Contracts;
+namespace API.Commands;
 
 public interface ICommandManager
 {

@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using API.Commands;
 using Carbon;
 using Carbon.Base;
 using Carbon.Extensions;
 using Carbon.Plugins;
-using ConVar;
-using Facepunch;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
 using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
-using static Carbon.Base.Command;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
 
@@ -31,7 +28,7 @@ namespace Oxide.Game.Rust.Libraries
 	{
 		public static bool FromRcon { get; set; }
 
-		internal readonly Func<Carbon.Base.Command, Args, bool> _playerExecute = (cmd, args) =>
+		internal readonly Func<API.Commands.Command, API.Commands.Command.Args, bool> _playerExecute = (cmd, args) =>
 		{
 			if (args is PlayerArgs playerArgs && playerArgs != null)
 			{
@@ -102,7 +99,7 @@ namespace Oxide.Game.Rust.Libraries
 
 		public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 		{
-			var cmd = new Carbon.Base.Command.Chat
+			var cmd = new API.Commands.Command.Chat
 			{
 				Name = command,
 				Reference = plugin,
@@ -117,7 +114,7 @@ namespace Oxide.Game.Rust.Libraries
 					}
 				},
 				Help = help,
-				Auth = new Authentication
+				Auth = new API.Commands.Command.Authentication
 				{
 					AuthLevel = authLevel,
 					Permissions = permissions,
@@ -167,7 +164,7 @@ namespace Oxide.Game.Rust.Libraries
 								}
 
 							case 3:
-						 		{
+								{
 									arguments.Add(cmd);
 									arguments.Add(args);
 									break;
@@ -195,9 +192,9 @@ namespace Oxide.Game.Rust.Libraries
 				if (result != null) Array.Clear(result, 0, result.Length);
 			}, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
 		}
-		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback,  string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
+		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 		{
-			var cmd = new Carbon.Base.Command.Console
+			var cmd = new API.Commands.Command.Console
 			{
 				Name = command,
 				Reference = plugin,
@@ -211,7 +208,7 @@ namespace Oxide.Game.Rust.Libraries
 					}
 				},
 				Help = help,
-				Auth = new Authentication
+				Auth = new API.Commands.Command.Authentication
 				{
 					AuthLevel = authLevel,
 					Permissions = permissions,

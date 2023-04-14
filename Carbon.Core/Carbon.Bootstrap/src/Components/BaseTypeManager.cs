@@ -13,7 +13,7 @@ using Loaders;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal abstract class BaseAssemblyType : BaseMonoBehaviour, IAssemblyTypeManager
+internal abstract class BaseTypeManager : BaseMonoBehaviour, IAssemblyTypeManager
 {
 	internal readonly AssemblyLoader _loader = new();
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Commands;
 using API.Events;
 using Carbon.Base;
 using Carbon.Components;
@@ -305,9 +306,9 @@ public static class Loader
 				var cmd = new Command.RCon
 				{
 					Name = rconCommand.Name,
-					Help  = rconCommand.Help
+					Help = rconCommand.Help
 				};
-				if(!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason))
+				if (!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason))
 				{
 					Logger.Warn($"Couldn't register RCon command: {reason}");
 				}

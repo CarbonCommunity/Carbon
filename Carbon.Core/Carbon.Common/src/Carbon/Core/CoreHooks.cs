@@ -5,17 +5,14 @@
  *
  */
 
-using Carbon.Extensions;
-using System.Text.RegularExpressions;
 using System;
+using System.Text.RegularExpressions;
+using API.Commands;
+using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
-using Oxide.Core;
 using Network;
-using Oxide.Core.Libraries.Covalence;
-using static Oxide.Plugins.CovalencePlugin;
-using Oxide.Game.Rust.Libraries;
-using Carbon.Base;
+using Oxide.Core;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -159,7 +156,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 	private object ICanPickupEntity(BasePlayer basePlayer, DoorCloser entity)
 	{
-		if(Interface.CallHook("CanPickupEntity", basePlayer, entity) is bool result)
+		if (Interface.CallHook("CanPickupEntity", basePlayer, entity) is bool result)
 		{
 			return result;
 		}
