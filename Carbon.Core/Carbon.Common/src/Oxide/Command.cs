@@ -33,7 +33,7 @@ namespace Oxide.Game.Rust.Libraries
 
 		internal readonly Func<Carbon.Base.Command, Args, bool> _playerExecute = (cmd, args) =>
 		{
-			if (args is PlayerArgs playerArgs)
+			if (args is PlayerArgs playerArgs && playerArgs != null)
 			{
 				var player = playerArgs.Player as BasePlayer;
 				var authenticatedCommand = cmd as AuthenticatedCommand;

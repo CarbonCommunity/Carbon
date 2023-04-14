@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Carbon.Contracts;
 using Facepunch;
-using static ConsoleSystem;
 
 /*
  *
@@ -13,7 +11,7 @@ using static ConsoleSystem;
  *
  */
 
-namespace Carbon.Processors;
+namespace Carbon.Managers;
 
 public class CommandManager : FacepunchBehaviour, ICommandManager
 {
@@ -101,8 +99,16 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 	}
 	public bool Execute(Base.Command command, Base.Command.Args args)
 	{
-		if (!command.CanExecute(command, args))
+		try
 		{
+			if (!command.CanExecute(command, args))
+			{
+				return false;
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Failed command execution authentication for command '{command}'", ex);
 			return false;
 		}
 

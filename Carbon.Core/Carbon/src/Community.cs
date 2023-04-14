@@ -6,7 +6,7 @@ using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Hooks;
-using Carbon.Processors;
+using Carbon.Managers;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;

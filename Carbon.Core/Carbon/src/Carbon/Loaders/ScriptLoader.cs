@@ -29,7 +29,7 @@ using static UnityEngine.UI.GridLayoutGroup;
  *
  */
 
-namespace Carbon.Processors;
+namespace Carbon.Managers;
 
 public class ScriptLoader : IScriptLoader
 {
