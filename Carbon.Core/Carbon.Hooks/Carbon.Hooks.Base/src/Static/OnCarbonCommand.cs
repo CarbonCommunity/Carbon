@@ -1,9 +1,8 @@
 ﻿using System;
 using API.Hooks;
+using Carbon.Base;
 using Carbon.Extensions;
-using Carbon.Plugins;
 using Facepunch.Extend;
-using Oxide.Game.Rust.Libraries;
 
 /*
  *
@@ -49,80 +48,15 @@ public partial class Category_Static
 
 					var player = options.Connection?.player as BasePlayer;
 
-					foreach (var cmd in Community.Runtime.AllConsoleCommands)
-					{
-						if (cmd.Command == command)
-						{
-							if (player != null)
-							{
-								if (cmd.Permissions != null)
-								{
-									var hasPerm = cmd.Permissions.Length == 0;
-									foreach (var permission in cmd.Permissions)
-									{
-										if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasPermission(player.UserIDString, permission))
-										{
-											hasPerm = true;
-											break;
-										}
-									}
+					var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+					commandArgs.Arguments = args2;
+					commandArgs.Player = player;
 
-									if (!hasPerm)
-									{
-										player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
-										continue;
-									}
-								}
+					Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Console, command, out var cmd);
 
-								if (cmd.Groups != null)
-								{
-									var hasGroup = cmd.Groups.Length == 0;
-									foreach (var group in cmd.Groups)
-									{
-										if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasGroup(player.UserIDString, group))
-										{
-											hasGroup = true;
-											break;
-										}
-									}
-
-									if (!hasGroup)
-									{
-										player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
-										continue;
-									}
-								}
-
-								if (cmd.AuthLevel != -1)
-								{
-									var hasAuth = player.Connection.authLevel >= cmd.AuthLevel;
-
-									if (!hasAuth)
-									{
-										player?.ConsoleMessage($"You don't have the minimum auth level [{cmd.AuthLevel}] required to execute this command [your level: {player.Connection.authLevel}].");
-										continue;
-									}
-								}
-
-								if (CarbonPlugin.IsCommandCooledDown(player, cmd.Command, cmd.Cooldown, true))
-								{
-									continue;
-								}
-							}
-
-							try
-							{
-								Command.FromRcon = false;
-								cmd.Callback?.Invoke(player, command, args2);
-							}
-							catch (Exception ex)
-							{
-								Logger.Error("ConsoleSystem_Run", ex);
-							}
-
-							return false;
-						}
-					}
+					Command.FromRcon = false;
+					Community.Runtime.CommandManager.Execute(cmd, commandArgs);
+					Facepunch.Pool.Free(ref commandArgs);
 				}
 				catch (Exception exception) { Logger.Error($"Failed ConsoleSystem.Run [{strCommand}] [{string.Join(" ", args)}]", exception); }
 

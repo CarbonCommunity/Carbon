@@ -263,6 +263,7 @@ public static class Loader
 		{
 			var chatCommand = method.GetCustomAttribute<ChatCommandAttribute>();
 			var consoleCommand = method.GetCustomAttribute<ConsoleCommandAttribute>();
+			var rconCommand = method.GetCustomAttribute<RConCommandAttribute>();
 			var uiCommand = method.GetCustomAttribute<UiCommandAttribute>();
 			var command = method.GetCustomAttribute<CommandAttribute>();
 			var permissions = method.GetCustomAttributes<PermissionAttribute>();
@@ -278,8 +279,9 @@ public static class Loader
 			{
 				foreach (var commandName in command.Names)
 				{
-					Community.Runtime.CorePlugin.cmd.AddChatCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
-					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}", hookable, method.Name, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+					var name = string.IsNullOrEmpty(prefix) ? commandName : $"{prefix}.{commandName}";
+					Community.Runtime.CorePlugin.cmd.AddChatCommand(name, hookable, method.Name, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
+					Community.Runtime.CorePlugin.cmd.AddConsoleCommand(name, hookable, method.Name, help: string.Empty, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 				}
 			}
 
@@ -296,6 +298,19 @@ public static class Loader
 			if (uiCommand != null)
 			{
 				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(CUI.UniquifyCommand(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true);
+			}
+
+			if (rconCommand != null)
+			{
+				var cmd = new Command.RCon
+				{
+					Name = rconCommand.Name,
+					Help  = rconCommand.Help
+				};
+				if(!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason))
+				{
+					Logger.Warn($"Couldn't register RCon command: {reason}");
+				}
 			}
 		}
 
@@ -437,8 +452,9 @@ public static class Loader
 	}
 	public static void RemoveCommands(BaseHookable hookable)
 	{
-		Community.Runtime.AllChatCommands.RemoveAll(x => x.Plugin == hookable);
-		Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Plugin == hookable);
+		if (hookable == null) return;
+
+		Community.Runtime.CommandManager.ClearCommands(command => command.Reference == hookable);
 	}
 
 	public static void OnPluginProcessFinished()

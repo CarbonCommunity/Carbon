@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Runtime.Serialization;
 using API.Hooks;
+using Carbon.Base;
 using Carbon.Extensions;
 using Facepunch;
 using Facepunch.Extend;
@@ -58,23 +59,25 @@ public partial class Category_Static
 						return false;
 					}
 
-					foreach (var carbonCommand in Community.Runtime.AllConsoleCommands)
-					{
-						if (carbonCommand.Command == command)
-						{
-							try
-							{
-								Command.FromRcon = true;
-								carbonCommand.Callback?.Invoke(null, command, arguments);
-								return false;
-							}
-							catch (Exception ex)
-							{
-								Logger.Error("RconCommand_OnCommand", ex);
-							}
+					var commandArgs = Facepunch.Pool.Get<Base.Command.Args>();
+					commandArgs.Arguments = arguments;
 
-							break;
+					Command.FromRcon = true;
+
+					try
+					{
+						if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.RCon, command, out var outCommand))
+						{
+							Community.Runtime.CommandManager.Execute(outCommand, commandArgs);
 						}
+						else if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Console, command, out var outCommand2))
+						{
+							Community.Runtime.CommandManager.Execute(outCommand2, commandArgs);
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.Error("RconCommand_OnCommand", ex);
 					}
 				}
 				catch { }

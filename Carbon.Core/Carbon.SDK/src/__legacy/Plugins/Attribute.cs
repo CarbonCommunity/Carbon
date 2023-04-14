@@ -120,6 +120,19 @@ public class ConsoleCommandAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public class RConCommandAttribute : Attribute
+{
+	public string Name { get; }
+	public string Help { get; }
+
+	public RConCommandAttribute(string name, string help = null)
+	{
+		Name = name;
+		Help = help;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class UiCommandAttribute : Attribute
 {
 	public string Name { get; }
