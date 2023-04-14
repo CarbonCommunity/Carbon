@@ -22,7 +22,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 {
 	public override string Name => "Vanish";
 	public override Type Type => typeof(VanishModule);
-	public override bool ForceModded => true;
+	public override bool ForceModded => false;
 	public override bool EnabledByDefault => false;
 	public CUI.Handler Handler { get; internal set; }
 
