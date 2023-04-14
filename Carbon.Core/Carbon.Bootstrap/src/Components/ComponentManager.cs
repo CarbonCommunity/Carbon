@@ -37,13 +37,13 @@ internal sealed class ComponentManager : BaseAssemblyType
 	};
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
-	public override Assembly Load(string file, string requester = null)
+	public override Assembly Load(string file, string requester = "unknown")
 	{
-		if (requester is null)
-		{
-			MethodBase caller = new StackFrame(1).GetMethod();
-			requester = $"{caller.DeclaringType}.{caller.Name}";
-		}
+		// if (requester is null)
+		// {
+		// 	MethodBase caller = new StackFrame(1).GetMethod();
+		// 	requester = $"{caller.DeclaringType}.{caller.Name}";
+		// }
 
 		try
 		{
