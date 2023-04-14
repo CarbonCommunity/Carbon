@@ -6,6 +6,7 @@ using API.Assembly;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
+using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Contracts;
 using Carbon.Core;
@@ -52,6 +53,7 @@ public class Community
 
 
 	public IPatchManager HookManager { get; set; }
+	public ICommandManager CommandManager { get; set; }
 	public IScriptProcessor ScriptProcessor { get; set; }
 	public IModuleProcessor ModuleProcessor { get; set; }
 	public IWebScriptProcessor WebScriptProcessor { get; set; }
@@ -112,16 +114,7 @@ public class Community
 
 	public void ClearCommands(bool all = false)
 	{
-		if (all)
-		{
-			AllChatCommands.Clear();
-			AllConsoleCommands.Clear();
-		}
-		else
-		{
-			AllChatCommands.RemoveAll(x => x.Plugin is not IModule && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
-			AllConsoleCommands.RemoveAll(x => x.Plugin is not IModule && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
-		}
+		CommandManager.ClearCommands(command => all || command.Reference is RustPlugin plugin && !plugin.IsCorePlugin);
 	}
 
 	#region Config
@@ -197,13 +190,6 @@ public class Community
 		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader.LoadedMods.Count:n0} mods, {Loader.LoadedMods.Sum(x => x.Plugins.Count):n0} plgs";
 #endif
 	}
-
-	#region Commands
-
-	public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand>();
-	public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand>();
-
-	#endregion
 
 	#region Logging
 

@@ -5436,8 +5436,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		internal void ModuleInfoTemplate(CUI cui, Tab tab, CuiElementContainer container, string panel, PlayerSession player, string title, string content, string hint, BaseModule module)
 		{
-			var consoleCommands = Community.Runtime.AllConsoleCommands.Where(x => x.Plugin == module && !x.IsHidden);
-			var chatCommands = Community.Runtime.AllChatCommands.Where(x => x.Plugin == module && !x.IsHidden);
+			var consoleCommands = Community.Runtime.CommandManager.Console.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
+			var chatCommands = Community.Runtime.CommandManager.Chat.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
 			var consoleCommandCount = consoleCommands.Count();
 			var chatCommandCount = chatCommands.Count();
 
@@ -5445,8 +5445,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				$"and so far has used {module.TotalHookTime:0.000}ms of server time during those hook calls. " +
 				$"This module is {(module.EnabledByDefault ? "enabled" : "disabled")} by default. " +
 				$"This module has <b>{consoleCommandCount:n0}</b> console and <b>{chatCommandCount:n0}</b> chat {(consoleCommandCount == 1 && chatCommandCount == 1 ? "command" : "commands")} and will{(!module.ForceModded ? " <b>not</b>" : "")} enforce this server to modded when enabled.{((consoleCommandCount + chatCommandCount) == 0 ? "" : "\n\n")}" +
-				((consoleCommandCount > 0 ? $"<b>Console commands:</b> {consoleCommands.Select(x => $"{x.Command}").ToArray().ToString(", ")}\n" : "") +
-				(chatCommandCount > 0 ? $"<b>Chat commands:</b> {chatCommands.Select(x => $"{x.Command}").ToArray().ToString(", ")}\n" : "") +
+				((consoleCommandCount > 0 ? $"<b>Console commands:</b> {consoleCommands.Select(x => $"{x.Name}").ToArray().ToString(", ")}\n" : "") +
+				(chatCommandCount > 0 ? $"<b>Chat commands:</b> {chatCommands.Select(x => $"{x.Name}").ToArray().ToString(", ")}\n" : "") +
 				$"\n\n{(string.IsNullOrEmpty(content) ? "" : Header("About", 1))}" +
 				$"\n{content}");
 

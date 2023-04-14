@@ -5,12 +5,16 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using Carbon;
 using Carbon.Base;
+using Carbon.Extensions;
+using Carbon.Plugins;
+using ConVar;
 using Facepunch;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
 using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
+using static Carbon.Base.Command;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
 
@@ -27,30 +31,108 @@ namespace Oxide.Game.Rust.Libraries
 	{
 		public static bool FromRcon { get; set; }
 
+		internal readonly Func<Carbon.Base.Command, Args, bool> _playerExecute = (cmd, args) =>
+		{
+			if (args is PlayerArgs playerArgs)
+			{
+				var player = playerArgs.Player as BasePlayer;
+				var authenticatedCommand = cmd as AuthenticatedCommand;
+
+				if (player != null && authenticatedCommand != null)
+				{
+					if (authenticatedCommand.Auth.Permissions != null)
+					{
+						var hasPerm = authenticatedCommand.Auth.Permissions.Length == 0;
+						foreach (var permission in authenticatedCommand.Auth.Permissions)
+						{
+							if (Community.Runtime.CorePlugin.permission.UserHasPermission(player.UserIDString, permission))
+							{
+								hasPerm = true;
+								break;
+							}
+						}
+
+						if (!hasPerm)
+						{
+							player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
+							return false;
+						}
+					}
+
+					if (authenticatedCommand.Auth.Groups != null)
+					{
+						var hasGroup = authenticatedCommand.Auth.Groups.Length == 0;
+						foreach (var group in authenticatedCommand.Auth.Groups)
+						{
+							if (Community.Runtime.CorePlugin.permission.UserHasGroup(player.UserIDString, group))
+							{
+								hasGroup = true;
+								break;
+							}
+						}
+
+						if (!hasGroup)
+						{
+							player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
+							return false;
+						}
+					}
+
+					if (authenticatedCommand.Auth.AuthLevel != -1)
+					{
+						var hasAuth = player.Connection.authLevel >= authenticatedCommand.Auth.AuthLevel;
+
+						if (!hasAuth)
+						{
+							player?.ConsoleMessage($"You don't have the minimum auth level [{authenticatedCommand.Auth.AuthLevel}] required to execute this command [your level: {player.Connection.authLevel}].");
+							return false;
+						}
+					}
+
+					if (CarbonPlugin.IsCommandCooledDown(player, cmd.Name, authenticatedCommand.Auth.Cooldown, out var timeLeft, true))
+					{
+						player.ChatMessage($"You're cooled down. Please wait {TimeEx.Format(timeLeft).ToLower()}.");
+						return false;
+					}
+				}
+			}
+
+			return true;
+		};
+
 		public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 		{
-			if (Community.Runtime.AllChatCommands.Count(x => x.Command == command) == 0)
+			var cmd = new Carbon.Base.Command.Chat
 			{
-				Community.Runtime.AllChatCommands.Add(new OxideCommand
+				Name = command,
+				Reference = plugin,
+				Callback = arg =>
 				{
-					Command = command,
-					Plugin = plugin,
-					Callback = (player, cmd, args) =>
+					switch (arg)
 					{
-						try { callback.Invoke(player, cmd, args); }
-						catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
-					},
-					Help = help,
-					Reference = reference,
+						case PlayerArgs playerArgs:
+							try { callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments); }
+							catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
+							break;
+					}
+				},
+				Help = help,
+				Auth = new Authentication
+				{
+					AuthLevel = authLevel,
 					Permissions = permissions,
 					Groups = groups,
-					AuthLevel = authLevel,
 					Cooldown = cooldown,
-					IsHidden = isHidden,
-					Protected = @protected
-				});
+				},
+				CanExecute = _playerExecute
+			};
+			cmd.SetFlag(CommandFlags.Hidden, isHidden);
+			cmd.SetFlag(CommandFlags.Protected, @protected);
+
+			if (!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason) && !silent)
+			{
+				Logger.Warn(reason);
 			}
-			else if(!silent) Logger.Warn($"Chat command '{command}' already exists.");
 		}
 		public void AddChatCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 		{
@@ -115,24 +197,36 @@ namespace Oxide.Game.Rust.Libraries
 		}
 		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback,  string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 		{
-			if (Community.Runtime.AllConsoleCommands.Count(x => x.Command == command) == 0)
+			var cmd = new Carbon.Base.Command.Console
 			{
-				Community.Runtime.AllConsoleCommands.Add(new OxideCommand
+				Name = command,
+				Reference = plugin,
+				Callback = arg =>
 				{
-					Command = command,
-					Plugin = plugin,
-					Callback = callback,
-					Help = help,
-					Reference = reference,
+					switch (arg)
+					{
+						case PlayerArgs playerArgs:
+							callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments);
+							break;
+					}
+				},
+				Help = help,
+				Auth = new Authentication
+				{
+					AuthLevel = authLevel,
 					Permissions = permissions,
 					Groups = groups,
-					AuthLevel = authLevel,
 					Cooldown = cooldown,
-					IsHidden = isHidden,
-					Protected = @protected
-				});
+				},
+				CanExecute = _playerExecute
+			};
+			cmd.SetFlag(CommandFlags.Hidden, isHidden);
+			cmd.SetFlag(CommandFlags.Protected, @protected);
+
+			if (!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason) && !silent)
+			{
+				Logger.Warn(reason);
 			}
-			else if(!silent) Logger.Warn($"Console command '{command}' already exists.");
 		}
 		public void AddConsoleCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 		{
@@ -299,11 +393,11 @@ namespace Oxide.Game.Rust.Libraries
 
 		public void RemoveChatCommand(string command, BaseHookable plugin = null)
 		{
-			Community.Runtime.AllChatCommands.RemoveAll(x => x.Command == command && (plugin == null || x.Plugin == plugin));
+			Community.Runtime.CommandManager.ClearCommands(cmd => cmd.Name == command && (plugin == null || cmd.Reference == plugin));
 		}
 		public void RemoveConsoleCommand(string command, BaseHookable plugin = null)
 		{
-			Community.Runtime.AllConsoleCommands.RemoveAll(x => x.Command == command && (plugin == null || x.Plugin == plugin));
+			Community.Runtime.CommandManager.ClearCommands(cmd => cmd.Name == command && (plugin == null || cmd.Reference == plugin));
 		}
 	}
 }

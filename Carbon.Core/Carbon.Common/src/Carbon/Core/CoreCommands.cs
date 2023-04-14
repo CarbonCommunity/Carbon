@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using API.Hooks;
+using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -535,24 +536,24 @@ public partial class CorePlugin : CarbonPlugin
 		var body = new StringTable("Command", "Value", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
-		foreach (var command in Community.Runtime.AllConsoleCommands)
+		foreach (var command in Community.Runtime.CommandManager.Console)
 		{
-			if (command.IsHidden || (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter))) continue;
+			if (command.HasFlag(CommandFlags.Hidden) || (!string.IsNullOrEmpty(filter) && !command.Name.Contains(filter))) continue;
 
 			var value = " ";
-
-			if (command.Reference != null)
+			
+			if (command.Token != null)
 			{
-				if (command.Reference is FieldInfo field) value = field.GetValue(command.Plugin)?.ToString();
-				else if (command.Reference is PropertyInfo property) value = property.GetValue(command.Plugin)?.ToString();
+				if (command.Token is FieldInfo field) value = field.GetValue(command.Reference as RustPlugin)?.ToString();
+				else if (command.Token is PropertyInfo property) value = property.GetValue(command.Reference as RustPlugin)?.ToString();
 			}
 
-			if (command.Protected)
+			if (command.HasFlag(CommandFlags.Protected))
 			{
 				value = new string('*', value.Length);
 			}
 
-			body.AddRow(command.Command, value, command.Help);
+			body.AddRow(command.Name, value, command.Help);
 		}
 
 		arg.ReplyWith($"Console Commands:\n{body.ToStringMinimal()}");
@@ -565,11 +566,11 @@ public partial class CorePlugin : CarbonPlugin
 		var body = new StringTable("Command", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
-		foreach (var command in Community.Runtime.AllChatCommands)
+		foreach (var command in Community.Runtime.CommandManager.Chat)
 		{
-			if (command.IsHidden || (!string.IsNullOrEmpty(filter) && !command.Command.Contains(filter))) continue;
+			if (command.HasFlag(CommandFlags.Hidden) || (!string.IsNullOrEmpty(filter) && !command.Name.Contains(filter))) continue;
 
-			body.AddRow(command.Command, command.Help);
+			body.AddRow(command.Name, command.Help);
 		}
 
 		arg.ReplyWith($"Chat Commands:\n{body.ToStringMinimal()}");
