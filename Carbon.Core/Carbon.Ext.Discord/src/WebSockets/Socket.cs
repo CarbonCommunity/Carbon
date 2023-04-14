@@ -11,306 +11,306 @@ using WebSocketSharp;
 
 namespace Oxide.Ext.Discord.WebSockets
 {
-    /// <summary>
-    /// Represents a websocket that connects to discord
-    /// </summary>
-    public class Socket
-    {
-        /// <summary>
-        /// If we should attempt to reconnect to discord on disconnect
-        /// </summary>
-        public bool RequestedReconnect;
-        
-        /// <summary>
-        /// If we should attempt to resume our previous session after connecting
-        /// </summary>
-        public bool ShouldAttemptResume;
-        
-        internal SocketState SocketState = SocketState.Disconnected;
-        
-        /// <summary>
-        /// Timer to use when attempting to reconnect to discord due to an error
-        /// </summary>
-        private Timer _reconnectTimer;
-        private int _reconnectRetries;
+	/// <summary>
+	/// Represents a websocket that connects to discord
+	/// </summary>
+	public class Socket
+	{
+		/// <summary>
+		/// If we should attempt to reconnect to discord on disconnect
+		/// </summary>
+		public bool RequestedReconnect;
 
-        private readonly BotClient _client;
-        private WebSocket _socket;
-        private SocketListener _listener;
-        private readonly SocketCommandHandler _commands;
-        private readonly ILogger _logger;
+		/// <summary>
+		/// If we should attempt to resume our previous session after connecting
+		/// </summary>
+		public bool ShouldAttemptResume;
 
-        private readonly object _lock = new object();
+		internal SocketState SocketState = SocketState.Disconnected;
 
-        /// <summary>
-        /// Socket used by the BotClient
-        /// </summary>
-        /// <param name="client">Client using the socket</param>
-        /// <param name="logger">Logger for the bot client</param>
-        public Socket(BotClient client, ILogger logger)
-        {
-            _client = client;
-            _logger = logger;
-            _commands = new SocketCommandHandler(this, logger);
-            _listener = new SocketListener(_client, this, _logger, _commands);
-        }
+		/// <summary>
+		/// Timer to use when attempting to reconnect to discord due to an error
+		/// </summary>
+		private Timer _reconnectTimer;
+		private int _reconnectRetries;
 
-        /// <summary>
-        /// Connect to the websocket
-        /// </summary>
-        /// <exception cref="Exception">Thrown if the socket still exists. Must call disconnect before trying to connect</exception>
-        public void Connect()
-        {
-            string url = Gateway.WebsocketUrl;
-            
-            //We haven't gotten the websocket url. Get url then attempt to connect.
-            if (string.IsNullOrEmpty(url))
-            {
-                Gateway.UpdateGatewayUrl(_client, Connect, _ => Reconnect());
-                return;
-            }
+		private readonly BotClient _client;
+		private WebSocket _socket;
+		private SocketListener _listener;
+		private readonly SocketCommandHandler _commands;
+		private readonly ILogger _logger;
 
-            lock (_lock)
-            {
-                if (IsConnected() || IsConnecting())
-                {
-                    throw new Exception("Socket is already running. Please disconnect before attempting to connect.");
-                }
+		private readonly object _lock = new object();
 
-                SocketState = SocketState.Connecting;
-            }
+		/// <summary>
+		/// Socket used by the BotClient
+		/// </summary>
+		/// <param name="client">Client using the socket</param>
+		/// <param name="logger">Logger for the bot client</param>
+		public Socket(BotClient client, ILogger logger)
+		{
+			_client = client;
+			_logger = logger;
+			_commands = new SocketCommandHandler(this, logger);
+			_listener = new SocketListener(_client, this, _logger, _commands);
+		}
 
-            RequestedReconnect = false;
-            ShouldAttemptResume = false;
+		/// <summary>
+		/// Connect to the websocket
+		/// </summary>
+		/// <exception cref="Exception">Thrown if the socket still exists. Must call disconnect before trying to connect</exception>
+		public void Connect()
+		{
+			string url = Gateway.WebsocketUrl;
 
-            _socket = new WebSocket(url);
+			//We haven't gotten the websocket url. Get url then attempt to connect.
+			if (string.IsNullOrEmpty(url))
+			{
+				Gateway.UpdateGatewayUrl(_client, Connect, _ => Reconnect());
+				return;
+			}
 
-            _socket.SslConfiguration.EnabledSslProtocols |= SslProtocols.Tls12;
-            _socket.OnOpen += _listener.SocketOpened;
-            _socket.OnClose += _listener.SocketClosed;
-            _socket.OnError += _listener.SocketErrored;
-            _socket.OnMessage += _listener.SocketMessage;
-            _socket.ConnectAsync();
-        }
+			lock (_lock)
+			{
+				if (IsConnected() || IsConnecting())
+				{
+					throw new Exception("Socket is already running. Please disconnect before attempting to connect.");
+				}
 
-        /// <summary>
-        /// Disconnects the websocket from discord
-        /// </summary>
-        /// <param name="attemptReconnect">Should we attempt to reconnect to discord after disconnecting</param>
-        /// <param name="shouldResume">Should we attempt to resume our previous session</param>
-        /// <param name="requested">If discord requested that we reconnect to discord</param>
-        public void Disconnect(bool attemptReconnect, bool shouldResume, bool requested = false)
-        {
-            RequestedReconnect = attemptReconnect;
-            ShouldAttemptResume = shouldResume;
-            _commands.OnSocketDisconnected();
+				SocketState = SocketState.Connecting;
+			}
 
-            if (_reconnectTimer != null)
-            {
-                _reconnectTimer.Stop();
-                _reconnectTimer.Dispose();
-                _reconnectTimer = null;
-            }
-            
-            lock (_lock)
-            {
-                if (IsDisconnected())
-                {
-                    DisposeSocket();
-                    return;
-                }
+			RequestedReconnect = false;
+			ShouldAttemptResume = false;
 
-                if (requested)
-                {
-                    _socket.CloseAsync(4199, "Discord Requested Reconnect");
-                }
-                else
-                {
-                    _socket.CloseAsync(CloseStatusCode.Normal);
-                }
+			_socket = new WebSocket(url);
 
-                DisposeSocket();
-                SocketState = SocketState.Disconnected;
-            }
+			_socket.SslConfiguration.EnabledSslProtocols |= SslProtocols.Tls12;
+			_socket.OnOpen += _listener.SocketOpened;
+			_socket.OnClose += _listener.SocketClosed;
+			_socket.OnError += _listener.SocketErrored;
+			_socket.OnMessage += _listener.SocketMessage;
+			_socket.ConnectAsync();
+		}
 
-            if (RequestedReconnect)
-            {
-                Reconnect();
-            }
-        }
+		/// <summary>
+		/// Disconnects the websocket from discord
+		/// </summary>
+		/// <param name="attemptReconnect">Should we attempt to reconnect to discord after disconnecting</param>
+		/// <param name="shouldResume">Should we attempt to resume our previous session</param>
+		/// <param name="requested">If discord requested that we reconnect to discord</param>
+		public void Disconnect(bool attemptReconnect, bool shouldResume, bool requested = false)
+		{
+			RequestedReconnect = attemptReconnect;
+			ShouldAttemptResume = shouldResume;
+			_commands.OnSocketDisconnected();
 
-        /// <summary>
-        /// Returns if the given websocket matches our current websocket.
-        /// If socket is null we return false
-        /// </summary>
-        /// <param name="socket">Socket to compare</param>
-        /// <returns>True if current socket is not null and socket matches current socket; False otherwise.</returns>
-        internal bool IsCurrentSocket(WebSocket socket)
-        {
-            return _socket != null && _socket == socket;
-        }
+			if (_reconnectTimer != null)
+			{
+				_reconnectTimer.Stop();
+				_reconnectTimer.Dispose();
+				_reconnectTimer = null;
+			}
 
-        /// <summary>
-        /// Shutdowns the websocket completely. Used when bot is being shutdown
-        /// </summary>
-        public void Shutdown()
-        {
-            Disconnect(false, false);
+			lock (_lock)
+			{
+				if (IsDisconnected())
+				{
+					DisposeSocket();
+					return;
+				}
 
-            _listener?.Shutdown();
-            _listener = null;
-            _socket = null;
-        }
+				if (requested)
+				{
+					_socket.CloseAsync(4199, "Discord Requested Reconnect");
+				}
+				else
+				{
+					_socket.CloseAsync(CloseStatusCode.Normal);
+				}
 
-        /// <summary>
-        /// Called when a websocket is closed to remove previous socket
-        /// </summary>
-        public void DisposeSocket()
-        {
-            if (_socket != null)
-            {
-                _socket.OnOpen -= _listener.SocketOpened;
-                _socket.OnError -= _listener.SocketErrored;
-                _socket.OnMessage -= _listener.SocketMessage;
-                _socket = null;
-            }
-        }
+				DisposeSocket();
+				SocketState = SocketState.Disconnected;
+			}
 
-        /// <summary>
-        /// Send a command to discord over the websocket
-        /// </summary>
-        /// <param name="opCode">Command code to send</param>
-        /// <param name="data">Data to send</param>
-        public void Send(GatewayCommandCode opCode, object data)
-        {
-            CommandPayload payload = new CommandPayload
-            {
-                OpCode = opCode,
-                Payload = data
-            };
+			if (RequestedReconnect)
+			{
+				Reconnect();
+			}
+		}
 
-            _commands.Enqueue(payload);
-        }
-        
-        internal bool Send(CommandPayload payload)
-        {
-            string payloadData = JsonConvert.SerializeObject(payload, DiscordExtension.ExtensionSerializeSettings);
-            if (_logger.IsLogging(DiscordLogLevel.Verbose))
-            {
-                _logger.Verbose($"{nameof(Socket)}.{nameof(Send)} Payload: {payloadData}");
-            }
+		/// <summary>
+		/// Returns if the given websocket matches our current websocket.
+		/// If socket is null we return false
+		/// </summary>
+		/// <param name="socket">Socket to compare</param>
+		/// <returns>True if current socket is not null and socket matches current socket; False otherwise.</returns>
+		internal bool IsCurrentSocket(WebSocket socket)
+		{
+			return _socket != null && _socket == socket;
+		}
 
-            if (_socket == null)
-            {
-                return false;
-            }
-            
-            _socket.SendAsync(payloadData, null);
-            return true;
-        }
+		/// <summary>
+		/// Shutdowns the websocket completely. Used when bot is being shutdown
+		/// </summary>
+		public void Shutdown()
+		{
+			Disconnect(false, false);
 
-        /// <summary>
-        /// Returns if the websocket is in the open state
-        /// </summary>
-        /// <returns>Returns if the websocket is in open state</returns>
-        public bool IsConnected()
-        {
-            return SocketState == SocketState.Connected;
-        }
+			_listener?.Shutdown();
+			_listener = null;
+			_socket = null;
+		}
 
-        /// <summary>
-        /// Returns if the websocket is in the connecting state
-        /// </summary>
-        /// <returns>Returns if the websocket is in connecting state</returns>
-        public bool IsConnecting()
-        {
-            return SocketState == SocketState.Connecting;
-        }
-        
-        /// <summary>
-        /// Returns if the socket is waiting to reconnect
-        /// </summary>
-        /// <returns>Returns if the socket is waiting to reconnect</returns>
-        public bool IsPendingReconnect()
-        {
-            return SocketState == SocketState.PendingReconnect;
-        }
+		/// <summary>
+		/// Called when a websocket is closed to remove previous socket
+		/// </summary>
+		public void DisposeSocket()
+		{
+			if (_socket != null)
+			{
+				_socket.OnOpen -= _listener.SocketOpened;
+				_socket.OnError -= _listener.SocketErrored;
+				_socket.OnMessage -= _listener.SocketMessage;
+				_socket = null;
+			}
+		}
 
-        /// <summary>
-        /// Returns if the websocket is null or is currently closing / closed
-        /// </summary>
-        /// <returns>Returns if the websocket is null or is currently closing / closed</returns>
-        public bool IsDisconnected()
-        {
-            return SocketState == SocketState.Disconnected;
-        }
+		/// <summary>
+		/// Send a command to discord over the websocket
+		/// </summary>
+		/// <param name="opCode">Command code to send</param>
+		/// <param name="data">Data to send</param>
+		public void Send(GatewayCommandCode opCode, object data)
+		{
+			CommandPayload payload = new CommandPayload
+			{
+				OpCode = opCode,
+				Payload = data
+			};
 
-        /// <summary>
-        /// Reconnects the socket to the gateway.
-        /// </summary>
-        public void Reconnect()
-        {
-            if (!_client.Initialized)
-            {
-                return;
-            }
+			_commands.Enqueue(payload);
+		}
 
-            lock (_lock)
-            {
-                if (SocketState != SocketState.Disconnected)
-                {
-                    return;
-                }
+		internal bool Send(CommandPayload payload)
+		{
+			string payloadData = JsonConvert.SerializeObject(payload, DiscordExtension.ExtensionSerializeSettings);
+			if (_logger.IsLogging(DiscordLogLevel.Verbose))
+			{
+				_logger.Verbose($"{nameof(Socket)}.{nameof(Send)} Payload: {payloadData}");
+			}
 
-                SocketState = SocketState.PendingReconnect;
-            }
-            
-            _reconnectRetries++;
-            
-            //If we haven't had any errors reconnect to the gateway
-            if (_reconnectRetries == 1)
-            {
-                Interface.Oxide.NextTick(Connect);
-                return;
-            }
+			if (_socket == null)
+			{
+				return false;
+			}
 
-            //We had an error trying to reconnect. Perform Delayed Reconnects
-            _reconnectTimer = new Timer
-            {
-                Interval = GetReconnectDelay(),
-                AutoReset = false
-            };
+			_socket.SendAsync(payloadData, null);
+			return true;
+		}
 
-            _reconnectTimer.Elapsed += ReconnectWebsocket;
+		/// <summary>
+		/// Returns if the websocket is in the open state
+		/// </summary>
+		/// <returns>Returns if the websocket is in open state</returns>
+		public bool IsConnected()
+		{
+			return SocketState == SocketState.Connected;
+		}
 
-            _logger.Warning($"Attempting to reconnect to Discord... [Retry={_reconnectRetries.ToString()}]");
-            _reconnectTimer.Start();
-        }
+		/// <summary>
+		/// Returns if the websocket is in the connecting state
+		/// </summary>
+		/// <returns>Returns if the websocket is in connecting state</returns>
+		public bool IsConnecting()
+		{
+			return SocketState == SocketState.Connecting;
+		}
 
-        private void ReconnectWebsocket(object sender, ElapsedEventArgs e)
-        {
-            //There has been more than 3 tries to reconnect. Discord suggests trying to update gateway url.
-            if (_reconnectRetries > 3)
-            {
-                Gateway.UpdateGatewayUrl(_client, Connect, _ => Reconnect());
-            }
-            else
-            {
-                Connect();
-            }
-            _reconnectTimer = null;
-        }
+		/// <summary>
+		/// Returns if the socket is waiting to reconnect
+		/// </summary>
+		/// <returns>Returns if the socket is waiting to reconnect</returns>
+		public bool IsPendingReconnect()
+		{
+			return SocketState == SocketState.PendingReconnect;
+		}
 
-        internal void ResetRetries()
-        {
-            _reconnectRetries = 0;
-        }
-        
-        private int GetReconnectDelay()
-        {
-            if (_reconnectRetries <= 3) return 1 * 1000;
-            if (_reconnectRetries <= 25) return 15 * 1000;
-            return 60 * 1000;
-        }
-    }
+		/// <summary>
+		/// Returns if the websocket is null or is currently closing / closed
+		/// </summary>
+		/// <returns>Returns if the websocket is null or is currently closing / closed</returns>
+		public bool IsDisconnected()
+		{
+			return SocketState == SocketState.Disconnected;
+		}
+
+		/// <summary>
+		/// Reconnects the socket to the gateway.
+		/// </summary>
+		public void Reconnect()
+		{
+			if (!_client.Initialized)
+			{
+				return;
+			}
+
+			lock (_lock)
+			{
+				if (SocketState != SocketState.Disconnected)
+				{
+					return;
+				}
+
+				SocketState = SocketState.PendingReconnect;
+			}
+
+			_reconnectRetries++;
+
+			//If we haven't had any errors reconnect to the gateway
+			if (_reconnectRetries == 1)
+			{
+				Interface.Oxide.NextTick(Connect);
+				return;
+			}
+
+			//We had an error trying to reconnect. Perform Delayed Reconnects
+			_reconnectTimer = new Timer
+			{
+				Interval = GetReconnectDelay(),
+				AutoReset = false
+			};
+
+			_reconnectTimer.Elapsed += ReconnectWebsocket;
+
+			_logger.Warning($"Attempting to reconnect to Discord... [Retry={_reconnectRetries.ToString()}]");
+			_reconnectTimer.Start();
+		}
+
+		private void ReconnectWebsocket(object sender, ElapsedEventArgs e)
+		{
+			//There has been more than 3 tries to reconnect. Discord suggests trying to update gateway url.
+			if (_reconnectRetries > 3)
+			{
+				Gateway.UpdateGatewayUrl(_client, Connect, _ => Reconnect());
+			}
+			else
+			{
+				Connect();
+			}
+			_reconnectTimer = null;
+		}
+
+		internal void ResetRetries()
+		{
+			_reconnectRetries = 0;
+		}
+
+		private int GetReconnectDelay()
+		{
+			if (_reconnectRetries <= 3) return 1 * 1000;
+			if (_reconnectRetries <= 25) return 15 * 1000;
+			return 60 * 1000;
+		}
+	}
 }

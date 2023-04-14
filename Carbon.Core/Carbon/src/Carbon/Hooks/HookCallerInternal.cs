@@ -112,7 +112,7 @@ namespace Carbon.Hooks
 			{
 				foreach (var cachedHook in hooks)
 				{
-					var methodResult = DoCall( cachedHook.Method, cachedHook.Delegate);
+					var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate);
 					if (methodResult != null)
 					{
 						priority = cachedHook.Priority;

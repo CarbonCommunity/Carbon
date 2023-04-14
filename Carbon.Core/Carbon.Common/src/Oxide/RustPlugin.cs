@@ -1,14 +1,14 @@
 ﻿using System;
 using System.IO;
-using Carbon.Extensions;
+using System.Linq;
 using Carbon.Core;
+using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries;
 using UnityEngine;
-using System.Linq;
-using Oxide.Core.Plugins;
 
 /*
  *
@@ -84,18 +84,18 @@ public class RustPlugin : Plugin
 			var go = persistence.gameObject;
 			UnityEngine.Object.DestroyImmediate(persistence);
 			UnityEngine.Object.Destroy(go);
-		}	
+		}
 
 		base.Dispose();
 	}
 
 	public static T Singleton<T>()
 	{
-		foreach(var mod in Loader.LoadedMods)
+		foreach (var mod in Loader.LoadedMods)
 		{
-			foreach(var plugin in mod.Plugins)
+			foreach (var plugin in mod.Plugins)
 			{
-				if(plugin is T result)
+				if (plugin is T result)
 				{
 					return result;
 				}
@@ -257,7 +257,7 @@ public class RustPlugin : Plugin
 		{
 			LoadConfig();
 		}
-		catch(Exception ex)
+		catch (Exception ex)
 		{
 			LogError($"Failed ILoadConfig", ex);
 		}

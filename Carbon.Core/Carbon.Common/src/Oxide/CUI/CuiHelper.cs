@@ -28,15 +28,15 @@ public static class CuiHelper
 
 	public static List<string> GetActivePanelList(BasePlayer player)
 	{
-		if(!ActivePanels.TryGetValue(player, out var panels))
+		if (!ActivePanels.TryGetValue(player, out var panels))
 		{
-			ActivePanels[player] = panels = new ();
+			ActivePanels[player] = panels = new();
 		}
 
 		return panels;
 	}
 
-	public static void DestroyActivePanelList(BasePlayer player, string[] except = null )
+	public static void DestroyActivePanelList(BasePlayer player, string[] except = null)
 	{
 		var list = GetActivePanelList(player);
 		var cui = Pool.GetList<string>();

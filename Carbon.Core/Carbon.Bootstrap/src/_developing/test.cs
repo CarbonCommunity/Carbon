@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using API.Abstracts;
 using API.Permissions;
 

@@ -2756,7 +2756,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	internal static string Deployables_GetParameter(string value, string key)
 	{
 		var parameters = value.ToLower().Split(DelimiterCache, StringSplitOptions.RemoveEmptyEntries);
-		foreach(var parameter in parameters)
+		foreach (var parameter in parameters)
 		{
 			var split = parameter.Split(ValueSplittingCache);
 			var paramName = split[0].Replace(":\\", string.Empty);
@@ -3346,7 +3346,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		var FoundCoalings = false;
 		var DoneSigns = false;
 
-		while(Deployables_SpawnPoints != null && Deployables_SpawnPoints.Count != 0)
+		while (Deployables_SpawnPoints != null && Deployables_SpawnPoints.Count != 0)
 		{
 			foreach (var pd in Deployables_SpawnPoints)
 			{
@@ -3587,7 +3587,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 						Deployables_ApplyEntity(pd, be);
 					}
 				}
-				catch(Exception ex) { Logger.Error($"Failed creating entity {pd.id}", ex); }
+				catch (Exception ex) { Logger.Error($"Failed creating entity {pd.id}", ex); }
 
 				//delay between next object to ease load on servers.
 				yield return CoroutineEx.waitForSeconds(0.01f);

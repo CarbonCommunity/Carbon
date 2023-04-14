@@ -25,8 +25,8 @@ public class Extension
 	public virtual void OnModLoad() { }
 	public virtual void OnShutdown() { }
 
-	public ExtensionManager Manager { get; } = new ();
+	public ExtensionManager Manager { get; } = new();
 
 	public Extension() { }
-	public Extension(ExtensionManager manager) { Manager = manager ?? new (); }
+	public Extension(ExtensionManager manager) { Manager = manager ?? new(); }
 }

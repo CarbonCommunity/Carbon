@@ -1,4 +1,4 @@
-using API.Permissions;
+﻿using API.Permissions;
 using Facepunch.Sqlite;
 using Utility;
 

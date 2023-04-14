@@ -73,7 +73,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		if (hit == null || hit.Initiator == null || hit.HitEntity == null) return null;
 
-		if(hit.Initiator is BasePlayer attacker && hit.HitEntity.OwnerID != attacker.userID)
+		if (hit.Initiator is BasePlayer attacker && hit.HitEntity.OwnerID != attacker.userID)
 		{
 			if (!ConfigInstance.CanDamageWhenVanished && _vanishedPlayers.ContainsKey(attacker.userID))
 			{
