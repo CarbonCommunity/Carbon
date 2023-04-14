@@ -30,7 +30,7 @@ charset = utf-8-bom
 ###############################
 # .NET Coding Conventions     #
 ###############################
-[*.{cs,vb}]
+[*.cs]
 # Organize usings
 dotnet_sort_system_directives_first = true
 # this. preferences
@@ -140,7 +140,7 @@ csharp_space_between_empty_square_brackets = false
 csharp_space_between_square_brackets = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
-csharp_preserve_single_line_blocks = true
+csharp_preserve_single_line_blocks = false
 
 # Shell scripts
 [*.sh]

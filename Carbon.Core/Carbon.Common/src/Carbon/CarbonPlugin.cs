@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Carbon.Components;
+using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Plugins;
-using Carbon.Extensions;
-using System.Linq;
 
 /*
  *
@@ -39,9 +39,13 @@ public class CarbonPlugin : RustPlugin
 
 	internal static Dictionary<BasePlayer, List<CooldownInstance>> _commandCooldownBuffer = new();
 
-	public static bool IsCommandCooledDown(BasePlayer player, string command, int time, bool doCooldownIfNot = true)
+	public static bool IsCommandCooledDown(BasePlayer player, string command, int time, out float timeLeft, bool doCooldownIfNot = true)
 	{
-		if (time == 0 || player == null) return false;
+		if (time == 0 || player == null)
+		{
+			timeLeft = -1;
+			return false;
+		}
 
 		if (!_commandCooldownBuffer.TryGetValue(player, out var pairs))
 		{
@@ -61,12 +65,12 @@ public class CarbonPlugin : RustPlugin
 			{
 				lookupCommand.LastCall = DateTime.Now;
 			}
+
+			timeLeft = -1;
 			return false;
 		}
 
-		var log = $"You're cooled down. Please wait {TimeEx.Format((time - timePassed.TotalMilliseconds) * 0.001).ToLower()}.";
-		player.ChatMessage(log);
-		player.ConsoleMessage(log);
+		timeLeft = (float)((time - timePassed.TotalMilliseconds) * 0.001f);
 		return true;
 	}
 

@@ -6,7 +6,7 @@ using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Hooks;
-using Carbon.Processors;
+using Carbon.Managers;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
@@ -63,7 +63,8 @@ public class CommunityInternal : Community
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-			HookManager = gameObject.AddComponent<HookManager>();
+			CommandManager = gameObject.AddComponent<CommandManager>();
+			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
 		}
@@ -128,8 +129,18 @@ public class CommunityInternal : Community
 				lines = null;
 			}
 
-			ReloadPlugins();
+			if (!ConVar.Global.skipAssetWarmup_crashes)
+			{
+				ReloadPlugins();
+			}
 		});
+		if (ConVar.Global.skipAssetWarmup_crashes)
+		{
+			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>
+			{
+				ReloadPlugins();
+			});
+		}
 
 		Carbon.Logger.Log($"Loading...");
 		{

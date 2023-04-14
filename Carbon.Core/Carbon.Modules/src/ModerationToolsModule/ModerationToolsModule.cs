@@ -19,7 +19,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 {
 	public override string Name => "ModerationTools";
 	public override Type Type => typeof(ModerationToolsModule);
-	public override bool ForceModded => true;
+	public override bool ForceModded => false;
 
 	public override bool EnabledByDefault => false;
 

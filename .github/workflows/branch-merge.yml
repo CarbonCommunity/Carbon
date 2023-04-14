@@ -16,7 +16,6 @@ on:
         type: choice
         options:
           - develop
-          - staging
           - production
 
       target:
@@ -26,7 +25,6 @@ on:
         type: choice
         options:
           - develop
-          - staging
           - production
 
 jobs:

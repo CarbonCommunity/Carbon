@@ -5,16 +5,14 @@
  *
  */
 
-using Carbon.Extensions;
-using System.Text.RegularExpressions;
 using System;
+using System.Text.RegularExpressions;
+using API.Commands;
+using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
-using Oxide.Core;
 using Network;
-using Oxide.Core.Libraries.Covalence;
-using static Oxide.Plugins.CovalencePlugin;
-using Oxide.Game.Rust.Libraries;
+using Oxide.Core;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -158,7 +156,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 	private object ICanPickupEntity(BasePlayer basePlayer, DoorCloser entity)
 	{
-		if(Interface.CallHook("CanPickupEntity", basePlayer, entity) is bool result)
+		if (Interface.CallHook("CanPickupEntity", basePlayer, entity) is bool result)
 		{
 			return result;
 		}
@@ -251,78 +249,16 @@ public partial class CorePlugin : CarbonPlugin
 				return false;
 			}
 
-			foreach (var cmd in Community.Runtime?.AllChatCommands)
+			var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+			commandArgs.Arguments = args;
+			commandArgs.Player = player;
+
+			Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd);
+
+			if (Community.Runtime.CommandManager.Execute(cmd, commandArgs))
 			{
-				if (cmd.Command == command)
-				{
-					if (player != null)
-					{
-						if (cmd.Permissions != null)
-						{
-							var hasPerm = cmd.Permissions.Length == 0;
-							foreach (var permission in cmd.Permissions)
-							{
-								if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasPermission(player.UserIDString, permission))
-								{
-									hasPerm = true;
-									break;
-								}
-							}
-
-							if (!hasPerm)
-							{
-								player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
-								continue;
-							}
-						}
-
-						if (cmd.Groups != null)
-						{
-							var hasGroup = cmd.Groups.Length == 0;
-							foreach (var group in cmd.Groups)
-							{
-								if (cmd.Plugin != null && Community.Runtime.CorePlugin.permission.UserHasGroup(player.UserIDString, group))
-								{
-									hasGroup = true;
-									break;
-								}
-							}
-
-							if (!hasGroup)
-							{
-								player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
-								continue;
-							}
-						}
-
-						if (cmd.AuthLevel != -1)
-						{
-							var hasAuth = player.Connection.authLevel >= cmd.AuthLevel;
-
-							if (!hasAuth)
-							{
-								player?.ConsoleMessage($"You don't have the minimum auth level [{cmd.AuthLevel}] required to execute this command [your level: {player.Connection.authLevel}].");
-								continue;
-							}
-						}
-
-						if (CarbonPlugin.IsCommandCooledDown(player, cmd.Command, cmd.Cooldown, true))
-						{
-							continue;
-						}
-					}
-
-					try
-					{
-						cmd.Callback?.Invoke(player, command, args);
-					}
-					catch (Exception ex)
-					{
-						Logger.Error("IOnPlayerCommand", ex);
-					}
-
-					return false;
-				}
+				Facepunch.Pool.Free(ref commandArgs);
+				return false;
 			}
 
 			if (HookCaller.CallStaticHook("OnUnknownPlayerCommand", player, command, args) != null)

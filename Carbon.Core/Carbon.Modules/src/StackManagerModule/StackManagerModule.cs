@@ -82,6 +82,13 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		}
 	}
 
+	public override void Load()
+	{
+		base.Load();
+
+		OnEnableStatus();
+	}
+
 	public override void OnServerInit()
 	{
 		var hasChanged = false;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
@@ -90,6 +90,7 @@ internal sealed class RustHarmony : MarshalByRefObject
 	private void Deep_Cleanup()
 	{
 		string[] whitelist = {
+			"HarmonyModInfo",
 			"IHarmonyModHooks",
 			"OnHarmonyModLoadedArgs",
 			"OnHarmonyModUnloadedArgs"

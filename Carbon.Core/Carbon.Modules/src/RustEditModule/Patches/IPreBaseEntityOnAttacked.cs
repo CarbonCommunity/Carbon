@@ -17,7 +17,7 @@ public partial class RustEditModule
 
 	public class BaseEntity_OnAttacked_25cb3d11502d4da29aea9bfb5c53a661 : API.Hooks.Patch
 	{
-		public static bool Prefix( BaseEntity __instance)
+		public static bool Prefix(BaseEntity __instance)
 		{
 			if (HookCaller.CallStaticHook("IPreBaseEntityOnAttacked", __instance) != null)
 			{

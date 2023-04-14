@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using API.Commands;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Core;
@@ -9,6 +10,7 @@ using Carbon.Extensions;
 using Network;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
@@ -34,6 +36,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal static AdminModule Singleton { get; set; }
 
 	public override string Name => "Admin";
+	public override VersionNumber Version => new(1, 7, 0);
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
 	public override bool IsCoreModule => true;
@@ -105,7 +108,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Application.logMessageReceived += OnLog;
 		}
 
-		foreach(var command in ConfigInstance.OpenCommands)
+		foreach (var command in ConfigInstance.OpenCommands)
 		{
 			Community.Runtime.CorePlugin.cmd.AddChatCommand(command, this, (player, cmd, args) =>
 			{
@@ -228,7 +231,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
-		if(HookCaller.CallStaticHook("CanAccessAdminModule", player) is bool result)
+		if (HookCaller.CallStaticHook("CanAccessAdminModule", player) is bool result)
 		{
 			return result;
 		}
@@ -1619,7 +1622,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public void SetPage(int column, int page)
 		{
-			if(ColumnPages.TryGetValue(column, out var pageInstance))
+			if (ColumnPages.TryGetValue(column, out var pageInstance))
 			{
 				pageInstance.CurrentPage = page;
 				pageInstance.Check();
@@ -1843,7 +1846,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			Modal.Open(player, title, fields, onConfirm, onCancel);
 		}
-		
+
 		public void Dispose()
 		{
 			foreach (var column in Columns)
@@ -2477,10 +2480,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				if (!string.IsNullOrEmpty(filter))
 				{
-					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(filter));
+					return x.IsCorePlugin || x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(filter));
 				}
 
-				return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
+				return x.IsCorePlugin || x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
 			});
 
 			tab.ClearColumn(2);
@@ -2609,7 +2612,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			tab.ClearColumn(3);
 			tab.AddName(3, "Permissions", TextAnchor.MiddleLeft);
-			foreach (var perm in perms.GetPermissions().Where(x => x.StartsWith(plugin.Name.ToLower())))
+			foreach (var perm in perms.GetPermissions(plugin))
 			{
 				if (string.IsNullOrEmpty(selectedGroup))
 				{
@@ -3151,8 +3154,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var carbonModule = module.GetType();
 			tab.AddInput(1, "Name", ap => module.Name, null);
-			tab.AddToggle(1, "Is Core", null, ap => module.IsCoreModule);
-			tab.AddToggle(1, "Is Disabled", null, ap => module.Disabled);
 
 			if (!module.Disabled)
 			{
@@ -3188,7 +3189,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public enum VendorTypes
 		{
 			Codefling,
-			uMod
+			uMod,
+			Local
 		}
 		public enum FilterTypes
 		{
@@ -3233,6 +3235,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public static IVendorDownloader CodeflingInstance { get; set; }
 		public static IVendorDownloader uModInstance { get; set; }
 		public static IVendorDownloader Lone_DesignInstance { get; set; }
+		public static IVendorDownloader LocalInstance { get; set; }
 
 		public static IVendorDownloader GetVendor(VendorTypes vendor)
 		{
@@ -3244,8 +3247,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				case VendorTypes.uMod:
 					return uModInstance;
 
-					// case VendorTypes.Lone_Design:
-					// 	return Lone_DesignInstance;
+				// case VendorTypes.Lone_Design:
+				// 	return Lone_DesignInstance;
+
+				case VendorTypes.Local:
+					return LocalInstance;
 			}
 
 			return default;
@@ -3280,6 +3286,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			// 	Lone_DesignInstance.FetchList();
 			// 	Lone_DesignInstance.Refresh();
 			// }
+
+			LocalInstance = new Local();
+			LocalInstance.Refresh();
 
 			ServerOwner.Load();
 
@@ -4480,6 +4489,93 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		[ProtoContract]
+		public class Local : IVendorDownloader
+		{
+			public string Type => "All";
+			public string Url => "none";
+			public string Logo => "carbonw";
+
+			public float LogoRatio => 0.23f;
+			public string ListEndpoint => string.Empty;
+			public string DownloadEndpoint => string.Empty;
+			public string BarInfo => $"{FetchedPlugins.Count:n0} loaded";
+			public float IconScale => 0.4f;
+			public float SafeIconScale => 0.2f;
+
+			public List<Plugin> FetchedPlugins { get; set; } = new();
+
+			internal string[] _defaultTags = new string[] { "carbon", "oxide" };
+
+			public Plugin[] PriceData { get; set; }
+			public Plugin[] AuthorData { get; set; }
+			public Plugin[] InstalledData { get; set; }
+			public Plugin[] OutOfDateData { get; set; }
+			public Plugin[] OwnedData { get; set; }
+			public string[] PopularTags { get; set; }
+
+			public void CheckMetadata(string id, Action callback)
+			{
+			}
+
+			public void Download(string id, Action onTimeout = null)
+			{
+			}
+
+			public void FetchList(Action<IVendorDownloader> callback = null)
+			{
+			}
+
+			public bool Load()
+			{
+				return true;
+			}
+
+			public void Refresh()
+			{
+				FetchedPlugins.Clear();
+
+				foreach (var package in Loader.LoadedMods)
+				{
+					foreach (var plugin in package.Plugins)
+					{
+						if (plugin.IsCorePlugin) continue;
+
+						var existent = FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
+
+						if (existent == null) FetchedPlugins.Add(CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin) ??
+							uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin)
+							?? (existent = new Plugin
+							{
+								Name = plugin.Name,
+								Author = plugin.Author,
+								Version = plugin.Version.ToString(),
+								ExistentPlugin = plugin,
+								Description = "This is an unlisted plugin.",
+								Tags = _defaultTags,
+								File = plugin.FileName,
+								Id = plugin.Name,
+								UpdateDate = DateTime.UtcNow.ToString()
+							}));
+					}
+				}
+
+				FetchedPlugins = FetchedPlugins.OrderBy(x => x.Name).ToList();
+				PriceData = FetchedPlugins.OrderBy(x => x.OriginalPrice).ToArray();
+				AuthorData = FetchedPlugins.OrderBy(x => x.Author).ToArray();
+				InstalledData = FetchedPlugins.Where(x => x.IsInstalled()).ToArray();
+				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate()).ToArray();
+			}
+
+			public void Save()
+			{
+			}
+
+			public void Uninstall(string id)
+			{
+			}
+		}
+
+		[ProtoContract]
 		public class ServerOwner
 		{
 			public static ServerOwner Singleton { get; internal set; } = new ServerOwner();
@@ -5152,7 +5248,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						_drawArray(name, array, level, column, ap);
 					}, ap2 => OptionButton.Types.Warned);
 				}
-				else if(array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+				else if (array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
 
 				AddInput(subColumn, "Property Name", ap => ap.GetStorage<string>(this, "jsonprop", "New Property"), (ap, args) => { ap.SetStorage(this, "jsonprop", newPropertyName = args.ToString(" ")); });
 				AddButtonArray(subColumn, 0.01f,
@@ -5341,8 +5437,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		internal void ModuleInfoTemplate(CUI cui, Tab tab, CuiElementContainer container, string panel, PlayerSession player, string title, string content, string hint, BaseModule module)
 		{
-			var consoleCommands = Community.Runtime.AllConsoleCommands.Where(x => x.Plugin == module && !x.IsHidden);
-			var chatCommands = Community.Runtime.AllChatCommands.Where(x => x.Plugin == module && !x.IsHidden);
+			var consoleCommands = Community.Runtime.CommandManager.Console.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
+			var chatCommands = Community.Runtime.CommandManager.Chat.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
 			var consoleCommandCount = consoleCommands.Count();
 			var chatCommandCount = chatCommands.Count();
 
@@ -5350,8 +5446,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				$"and so far has used {module.TotalHookTime:0.000}ms of server time during those hook calls. " +
 				$"This module is {(module.EnabledByDefault ? "enabled" : "disabled")} by default. " +
 				$"This module has <b>{consoleCommandCount:n0}</b> console and <b>{chatCommandCount:n0}</b> chat {(consoleCommandCount == 1 && chatCommandCount == 1 ? "command" : "commands")} and will{(!module.ForceModded ? " <b>not</b>" : "")} enforce this server to modded when enabled.{((consoleCommandCount + chatCommandCount) == 0 ? "" : "\n\n")}" +
-				((consoleCommandCount > 0 ? $"<b>Console commands:</b> {consoleCommands.Select(x => $"{x.Command}").ToArray().ToString(", ")}\n" : "") +
-				(chatCommandCount > 0 ? $"<b>Chat commands:</b> {chatCommands.Select(x => $"{x.Command}").ToArray().ToString(", ")}\n" : "") +
+				((consoleCommandCount > 0 ? $"<b>Console commands:</b> {consoleCommands.Select(x => $"{x.Name}").ToArray().ToString(", ")}\n" : "") +
+				(chatCommandCount > 0 ? $"<b>Chat commands:</b> {chatCommands.Select(x => $"{x.Name}").ToArray().ToString(", ")}\n" : "") +
 				$"\n\n{(string.IsNullOrEmpty(content) ? "" : Header("About", 1))}" +
 				$"\n{content}");
 
@@ -5742,7 +5838,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (!hex.StartsWith("#")) hex = $"#{hex}";
 		var rawColor = HexToRustColor(hex, includeAlpha: false);
-		onColorPicked?.Invoke(hex,rawColor);
+		onColorPicked?.Invoke(hex, rawColor);
 		ColorPicker.Close(args.Player());
 	}
 

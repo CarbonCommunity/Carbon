@@ -455,6 +455,10 @@ public class Permission : Library
 	{
 		return new HashSet<string>(permset.Values.SelectMany((HashSet<string> v) => v)).ToArray();
 	}
+	public virtual string[] GetPermissions(BaseHookable hookable)
+	{
+		return new HashSet<string>(permset.Where(x => x.Key == hookable).SelectMany(v => v.Value)).ToArray();
+	}
 	public virtual string[] GetPermissionUsers(string perm)
 	{
 		if (string.IsNullOrEmpty(perm)) return EmptyStringArray;

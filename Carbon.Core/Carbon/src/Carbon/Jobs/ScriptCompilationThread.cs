@@ -103,7 +103,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name, "ScriptCompilationThread._injectReference");
+			var raw = Community.Runtime.AssemblyEx.Read(name);
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -123,7 +123,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name, "ScriptCompilationThread._injectReference");
+			var raw = Community.Runtime.AssemblyEx.Read(name);
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -156,7 +156,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 		}
 
-		foreach (var item in Community.Runtime.AssemblyEx.LoadedExtensions)
+		foreach (var item in Community.Runtime.AssemblyEx.Extensions.Loaded)
 		{
 			try { _injectExtensionReference(id, item, references); }
 			catch { }
@@ -176,8 +176,33 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 	}
 
+	private List<MetadataReference> references;
+
 	public override void Start()
 	{
+		references = _addReferences();
+
+		foreach (var require in Requires)
+		{
+			try
+			{
+				var requiredPlugin = _getPlugin(require);
+
+				using var dllStream = new MemoryStream(requiredPlugin);
+				references.Add(MetadataReference.CreateFromStream(dllStream));
+			}
+			catch { /* do nothing */ }
+		}
+
+		foreach (var reference in References)
+		{
+			try
+			{
+				_injectExtensionReference(reference, Path.Combine(Defines.GetExtensionsFolder(), $"{reference}.dll"), references);
+			}
+			catch { /* do nothing */ }
+		}
+
 		base.Start();
 	}
 
@@ -201,29 +226,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			foreach (var element in root.Usings)
 				Usings.Add($"{element.Name}");
-
-			var references = _addReferences();
-
-			foreach (var require in Requires)
-			{
-				try
-				{
-					var requiredPlugin = _getPlugin(require);
-
-					using var dllStream = new MemoryStream(requiredPlugin);
-					references.Add(MetadataReference.CreateFromStream(dllStream));
-				}
-				catch { /* do nothing */ }
-			}
-
-			foreach (var reference in References)
-			{
-				try
-				{
-					_injectExtensionReference(reference, Path.Combine(Defines.GetExtensionsFolder(), $"{reference}.dll"), references);
-				}
-				catch { /* do nothing */ }
-			}
 
 			var options = new CSharpCompilationOptions(
 				OutputKind.DynamicallyLinkedLibrary,

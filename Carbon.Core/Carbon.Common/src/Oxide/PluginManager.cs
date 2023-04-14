@@ -28,7 +28,7 @@ public class PluginManager
 	}
 	public bool RemovePlugin(RustPlugin plugin)
 	{
-		if(Community.Runtime.Plugins.Plugins.Any(x => x == plugin))
+		if (Community.Runtime.Plugins.Plugins.Any(x => x == plugin))
 		{
 			Community.Runtime.Plugins.Plugins.Remove(plugin);
 			return true;

@@ -366,6 +366,8 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 	public uint GetImage(string keyOrUrl, float scale = 0, bool silent = false)
 	{
+		if (string.IsNullOrEmpty(keyOrUrl)) return default;
+
 		if (_protoData.CustomMap.TryGetValue(keyOrUrl, out var realUrl))
 		{
 			keyOrUrl = realUrl;
