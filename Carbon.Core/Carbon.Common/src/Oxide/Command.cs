@@ -26,7 +26,10 @@ namespace Oxide.Game.Rust.Libraries
 {
 	public class Command : Library
 	{
-		public static bool FromRcon { get; set; }
+		public static bool FromRcon
+		{
+			get; set;
+		}
 
 		internal readonly Func<API.Commands.Command, API.Commands.Command.Args, bool> _playerExecute = (cmd, args) =>
 		{
@@ -315,7 +318,7 @@ namespace Oxide.Game.Rust.Libraries
 
 						result = arguments.ToArray();
 
-						if (Interface.CallHook("OnCarbonCommand", arg) == null)
+						if (Interface.CallHook("OnConsoleCommand", arg) == null)
 						{
 							methodInfo?.Invoke(plugin, result);
 
@@ -360,7 +363,7 @@ namespace Oxide.Game.Rust.Libraries
 					arguments.Add(arg);
 					result = arguments.ToArray();
 
-					if (Interface.CallHook("OnCarbonCommand", arg) == null)
+					if (Interface.CallHook("OnConsoleCommand", arg) == null)
 					{
 						callback.Invoke(arg);
 
