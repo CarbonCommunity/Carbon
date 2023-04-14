@@ -2,8 +2,8 @@
 ### Copyright (c) 2022 Carbon Community 
 ### All rights reserved
 ###
-name: Preview and Edge Build
-concurrency: build-3-develop
+name: Edge Build
+concurrency: build-3-edge
 
 on:
   push:
@@ -13,8 +13,6 @@ on:
   pull_request:
     branches:
       - develop
-
-  workflow_dispatch:
 
 jobs:
   bootstrap:
@@ -29,7 +27,7 @@ jobs:
       version: ${{ steps.step1.outputs.version }}
 
     steps:
-      #- name: 🪵 Log environment
+      #- name: Log environment
       #  uses: crazy-max/ghaction-dump-context@v1
         
       - name: 🔗 Checkout source code from github
@@ -85,7 +83,7 @@ jobs:
 
   # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
-    name: 🪟 Windows
+    name: 💻 Windows
     needs: bootstrap
     runs-on: windows-latest
     continue-on-error: false
@@ -117,65 +115,6 @@ jobs:
         path: |
           Release/Carbon.Windows.Debug.zip
           Release/Carbon.Windows.Debug.info
-
-  # RELEASE --------------------------------------------------------------------
-  release:
-    name: 💾 Release
-    needs: [ "bootstrap", "build-linux", "build-windows" ]
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-    # only release if triggered by the scheduler
-    # or if manually triggered by a developer
-
-    steps:
-    - name: 🗑️ Delete existing release tag
-      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
-      with:
-        delete_release: true
-        tag_name: preview_build
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: 💤 Sleep for 30 seconds
-      run: sleep 30s
-      shell: bash
-
-    - name: ⬇️ Download artifacts
-      uses: actions/download-artifact@v3
-      with:
-        path: Release
-
-    - name: Display structure of downloaded files
-      run: ls -R
-      working-directory: Release
-
-    - name: 🏷️ Update release tag
-      uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
-      with:
-        draft: false
-        prerelease: true
-        tag_name: preview_build
-        name: 'Preview Build — v${{ needs.bootstrap.outputs.version }}'
-        body: |
-          This is a manually triggered development build of Carbon based on the `develop` branch.
-                  
-          This build is targeted at developers.
-          The general public is advised to use one of the [stable] builds.
-          Since it's manually triggered, we're confident you should use this build to test out the latest Carbon changes.
-
-          ### How to install
-          1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
-          2. Unzip the archive to the root of your Rust Dedicated Server.
-          3. Restart the server and enjoy.
-          
-          ${{ needs.build-linux.outputs.build_info }}
-
-          [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
-        files: |
-          Release/build-develop-linux/Carbon.Linux.Debug.info
-          Release/build-develop-linux/Carbon.Linux.Debug.tar.gz
-          Release/build-develop-windows/Carbon.Windows.Debug.info
-          Release/build-develop-windows/Carbon.Windows.Debug.zip
 
   # RELEASE --------------------------------------------------------------------
   release-on-commit:

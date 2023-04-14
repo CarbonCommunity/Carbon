@@ -21,7 +21,7 @@ on:
       target:
         description: 'Target branch'
         required: true
-        default: 'staging'
+        default: 'production'
         type: choice
         options:
           - develop
