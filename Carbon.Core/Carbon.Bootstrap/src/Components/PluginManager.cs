@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using API.Assembly;
 using API.Plugins;
 using Utility;
 
@@ -23,6 +24,24 @@ internal sealed class PluginManager : BaseAssemblyType
 	{
 		Context.CarbonPlugins,
 	};
+
+#if EXPERIMENTAL
+	internal void Awake()
+	{
+		Carbon.Bootstrap.Watcher.Watch(new WatchItem
+		{
+			Extension = "*.dll",
+			IncludeSubFolders = false,
+			Directory = Utility.Context.CarbonPlugins,
+
+			OnFileCreated = (sender, file) =>
+			{
+				Carbon.Bootstrap.AssemblyEx.Plugins.Load(
+					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
+			},
+		});
+	}
+#endif
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public override Assembly Load(string file, string requester = null)

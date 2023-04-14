@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
+using API.Contracts;
 using Utility;
 
 /*
@@ -37,6 +38,22 @@ internal sealed class ExtensionManager : BaseAssemblyType
 	{
 		Context.CarbonExtensions,
 	};
+
+	internal void Awake()
+	{
+		Carbon.Bootstrap.Watcher.Watch(new WatchFolder
+		{
+			Extension = "*.dll",
+			IncludeSubFolders = false,
+			Directory = Utility.Context.CarbonExtensions,
+
+			OnFileCreated = (sender, file) =>
+			{
+				Carbon.Bootstrap.AssemblyEx.Extensions.Load(
+					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
+			},
+		});
+	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public override Assembly Load(string file, string requester = null)
