@@ -7,11 +7,10 @@ using System;
  *
  */
 
-namespace API.Contracts;
+namespace API.Assembly;
 
-public interface ICarbonComponent
+public interface ICarbonExtension
 {
-	public void Initialize(string identifier);
 	public void OnLoaded(EventArgs args);
 	public void OnUnloaded(EventArgs args);
 }

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using API.Assembly;
 using API.Contracts;
 using Utility;
 
@@ -37,6 +38,22 @@ internal sealed class ModuleManager : BaseAssemblyType
 	{
 		Context.CarbonModules,
 	};
+
+	internal void Awake()
+	{
+		Carbon.Bootstrap.Watcher.Watch(new WatchFolder
+		{
+			Extension = "*.dll",
+			IncludeSubFolders = false,
+			Directory = Utility.Context.CarbonModules,
+
+			OnFileCreated = (sender, file) =>
+			{
+				Carbon.Bootstrap.AssemblyEx.Modules.Load(
+					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
+			},
+		});
+	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public override Assembly Load(string file, string requester = null)

@@ -7,7 +7,7 @@ using System;
  *
  */
 
-namespace API.Contracts;
+namespace API.Assembly;
 
 public interface ICarbonModule
 {

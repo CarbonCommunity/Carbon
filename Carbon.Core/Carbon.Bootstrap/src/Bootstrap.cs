@@ -67,11 +67,14 @@ public sealed class Bootstrap
 		_gameObject = new UnityEngine.GameObject("Carbon");
 		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
 
+		// top priority
+		_gameObject.AddComponent<EventManager>();
+		_gameObject.AddComponent<FileWatcherManager>();
+
+		// standard priority
 		_gameObject.AddComponent<AnalyticsManager>();
 		_gameObject.AddComponent<AssemblyManager>();
 		_gameObject.AddComponent<DownloadManager>();
-		_gameObject.AddComponent<EventManager>();
-		_gameObject.AddComponent<FileWatcherManager>();
 
 		//_gameObject.AddComponent<PermissionManager>();
 		// Test2 test2 = new Test2();
