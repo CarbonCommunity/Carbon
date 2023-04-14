@@ -99,6 +99,8 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 	}
 	public bool Execute(Base.Command command, Base.Command.Args args)
 	{
+		if (command == null) return false;
+
 		try
 		{
 			if (!command.CanExecute(command, args))
