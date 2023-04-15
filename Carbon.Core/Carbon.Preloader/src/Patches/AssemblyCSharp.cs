@@ -143,7 +143,6 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 		try
 		{
 			Override_Harmony_Methods();
-			Remove_RustHarmony_Reference();
 			Add_Bootstrap_Tier0_Hook();
 			Add_the_Fucking_IPlayer_shit();
 		}
@@ -185,18 +184,6 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 			}
 
 			processor.Append(processor.Create(OpCodes.Ret));
-		}
-	}
-
-	internal void Remove_RustHarmony_Reference()
-	{
-		Logger.Debug($" - Remove reference to Rust.Harmony");
-
-		if (_assembly.MainModule.AssemblyReferences.Any(x => x.Name == "Rust.Harmony"))
-		{
-			_assembly.MainModule.AssemblyReferences.Remove(
-				_assembly.MainModule.AssemblyReferences.Single(x => x.Name == "Rust.Harmony")
-			);
 		}
 	}
 

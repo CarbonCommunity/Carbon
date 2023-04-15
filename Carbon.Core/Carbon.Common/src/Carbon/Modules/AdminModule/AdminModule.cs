@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using API.Commands;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Core;
@@ -9,6 +10,7 @@ using Carbon.Extensions;
 using Network;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
@@ -34,6 +36,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal static AdminModule Singleton { get; set; }
 
 	public override string Name => "Admin";
+	public override VersionNumber Version => new(1, 7, 0);
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
 	public override bool IsCoreModule => true;
@@ -59,6 +62,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		[LogType.Warning] = "#dbbe2a",
 		[LogType.Error] = "#db2a2a"
 	};
+	internal bool HandleEnableNeedsKeyboard(PlayerSession ap)
+	{
+		return ap.SelectedTab == null || ap.SelectedTab.Dialog == null;
+	}
+	internal bool HandleEnableNeedsKeyboard(BasePlayer player)
+	{
+		return HandleEnableNeedsKeyboard(GetPlayerSession(player));
+	}
 
 	public override void Init()
 	{
@@ -97,21 +108,24 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Application.logMessageReceived += OnLog;
 		}
 
-		Community.Runtime.CorePlugin.cmd.AddChatCommand(ConfigInstance.OpenCommand, this, (player, cmd, args) =>
+		foreach (var command in ConfigInstance.OpenCommands)
 		{
-			if (!CanAccess(player)) return;
+			Community.Runtime.CorePlugin.cmd.AddChatCommand(command, this, (player, cmd, args) =>
+			{
+				if (!CanAccess(player)) return;
 
-			var ap = GetPlayerSession(player);
-			ap.SelectedTab = Tabs[0];
+				var ap = GetPlayerSession(player);
+				ap.SelectedTab = Tabs[0];
 
-			var tab = GetTab(player);
-			tab?.OnChange?.Invoke(ap, tab);
+				var tab = GetTab(player);
+				tab?.OnChange?.Invoke(ap, tab);
 
-			ap.Clear();
+				ap.Clear();
 
-			DrawCursorLocker(player);
-			Draw(player);
-		}, silent: true);
+				DrawCursorLocker(player);
+				Draw(player);
+			}, silent: true);
+		}
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -217,6 +231,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
+		if (HookCaller.CallStaticHook("CanAccessAdminModule", player) is bool result)
+		{
+			return result;
+		}
+
 		var minLevel = ConfigInstance.MinimumAuthLevel;
 		var userLevel = ServerUsers.Is(player.userID, ServerUsers.UserGroup.Moderator) ? 1 : ServerUsers.Is(player.userID, ServerUsers.UserGroup.Owner) ? 2 : 0;
 
@@ -408,7 +427,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0.15f, xMax: 0.85f, yMin: 0.15f, yMax: 0.85f);
 		}
 	}
-	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, int characterLimit, bool readOnly, float height, float offset, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
+	public void TabPanelInput(CUI cui, CuiElementContainer container, string parent, string text, string placeholder, string command, int characterLimit, bool readOnly, float height, float offset, PlayerSession session, Tab.OptionButton.Types type = Tab.OptionButton.Types.None)
 	{
 		var color = type switch
 		{
@@ -448,7 +467,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			align: TextAnchor.MiddleLeft,
 			characterLimit: characterLimit,
 			readOnly: readOnly,
-			needsKeyboard: true,
+			needsKeyboard: Singleton.HandleEnableNeedsKeyboard(session),
 			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		if (!readOnly)
@@ -828,7 +847,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			align: TextAnchor.MiddleLeft,
 			characterLimit: input.CharacterLimit,
 			readOnly: input.ReadOnly,
-			needsKeyboard: true,
+			needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap),
 			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		cui.CreateProtectedButton(container, parent: inPanel, id: null,
@@ -1069,7 +1088,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					for (int i = ap.TabSkip; i < amount; i++)
 					{
 						var _tab = Tabs[ap.TabSkip + i];
-						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\n{_tab.Plugin?.Name} ({_tab.Plugin?.Version}) by {_tab.Plugin?.Author}";
+						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
 						TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i);
 						tabIndex += tabWidth;
 					}
@@ -1146,7 +1165,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 										break;
 
 									case Tab.OptionInput input:
-										TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(ap), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex);
+										TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(ap), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex, ap);
 										break;
 
 									case Tab.OptionEnum @enum:
@@ -1207,20 +1226,41 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if (tab.Dialog != null)
 					{
-						var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
-						cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
+						if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
+						{
+							tab.Dialog.OnConfirm?.Invoke(ap);
+						}
+						else
+						{
+							var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
+							cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
 
-						cui.CreateText(container, dialog, null,
-							"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
+							cui.CreateText(container, dialog, null,
+								"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
 
-						cui.CreateText(container, dialog, null,
-							"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
+							cui.CreateText(container, dialog, null,
+								"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
 
-						cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
-							xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
+							cui.CreateText(container, dialog, null,
+								"1 1 1 0.2", "<color=red><b>*</b></color> Holding <b>[SPRINT]</b> next time you open this panel will automatically confirm it.", 8, xMin: 0.02f, yMin: 0.03f, align: TextAnchor.LowerLeft);
 
-						cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
-							xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
+							cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
+								xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
+
+							cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
+								xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
+
+							Community.Runtime.CorePlugin.timer.In(0.2f, () =>
+							{
+								if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
+								{
+									try { tab.Dialog.OnConfirm?.Invoke(ap); } catch { }
+									tab.Dialog = null;
+
+									Draw(player);
+								}
+							});
+						}
 					}
 				}
 			}
@@ -1582,7 +1622,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public void SetPage(int column, int page)
 		{
-			if(ColumnPages.TryGetValue(column, out var pageInstance))
+			if (ColumnPages.TryGetValue(column, out var pageInstance))
 			{
 				pageInstance.CurrentPage = page;
 				pageInstance.Check();
@@ -1806,7 +1846,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			Modal.Open(player, title, fields, onConfirm, onCancel);
 		}
-		
+
 		public void Dispose()
 		{
 			foreach (var column in Columns)
@@ -2305,7 +2345,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 						{
 							using var cui = new CUI(Singleton.Handler);
-							var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+							var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 							cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 							cui.Send(container, player);
 							BlindedPlayers.Add(player);
@@ -2440,10 +2480,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				if (!string.IsNullOrEmpty(filter))
 				{
-					return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(filter));
+					return x.IsCorePlugin || x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()) && x.Name.Trim().ToLower().Contains(filter));
 				}
 
-				return x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
+				return x.IsCorePlugin || x.permission.GetPermissions().Any(y => y.StartsWith(x.Name.ToLower()));
 			});
 
 			tab.ClearColumn(2);
@@ -2493,8 +2533,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.CreateModal(ap.Player, $"Editing '{selectedGroup}'", new Dictionary<string, Modal.Field>()
 					{
 						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true, selectedGroup, true),
-						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, permission.GetGroupTitle(selectedGroup)),
-						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, permission.GetGroupRank(selectedGroup)),
+						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, @default: permission.GetGroupTitle(selectedGroup)),
+						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, @default: permission.GetGroupRank(selectedGroup)),
 						["parent"] = Modal.EnumField.MakeEnum("Parent", array, @default: string.IsNullOrEmpty(parent) ? 0 : Array.IndexOf(array, parent), customIsInvalid: field => permission.GetGroupParent(array[field.Get<int>()]) == selectedGroup ? $"Circular parenting detected with '{array[field.Get<int>()]}'." : null)
 					}, (ap2, modal) =>
 					{
@@ -2572,7 +2612,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			tab.ClearColumn(3);
 			tab.AddName(3, "Permissions", TextAnchor.MiddleLeft);
-			foreach (var perm in perms.GetPermissions().Where(x => x.StartsWith(plugin.Name.ToLower())))
+			foreach (var perm in perms.GetPermissions(plugin))
 			{
 				if (string.IsNullOrEmpty(selectedGroup))
 				{
@@ -2906,7 +2946,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								tab.CreateDialog("Are you sure you want to blind the player?", ap =>
 								{
 									using var cui = new CUI(Singleton.Handler);
-									var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: true);
+									var container = cui.CreateContainer("blindingpanel", "0 0 0 1", needsCursor: true, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 									cui.CreateClientImage(container, "blindingpanel", null, "https://carbonmod.gg/assets/media/cui/bsod.png", "1 1 1 1");
 									cui.Send(container, player);
 									PlayersTab.BlindedPlayers.Add(player);
@@ -3114,16 +3154,41 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var carbonModule = module.GetType();
 			tab.AddInput(1, "Name", ap => module.Name, null);
-			tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
-			tab.AddButtonArray(1,
-				new Tab.OptionButton("Save", ap => { module.Save(); }),
-				new Tab.OptionButton("Load", ap => { module.Load(); }));
+
+			if (!module.Disabled)
+			{
+				if (!module.IsCoreModule) tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
+
+				tab.AddButtonArray(1,
+					new Tab.OptionButton("Save", ap => { module.Save(); }),
+					new Tab.OptionButton("Load", ap => { module.Load(); }));
+
+				tab.AddButton(1, "Edit Config", ap =>
+				{
+					var moduleConfigFile = Path.Combine(Core.Defines.GetModulesFolder(), module.Name, "config.json");
+					ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
+						(ap, jobject) =>
+						{
+							Singleton.SetTab(ap.Player, "modules");
+							Singleton.Draw(ap.Player);
+						},
+						(ap, jobject) =>
+						{
+							OsEx.File.Create(moduleConfigFile, jobject.ToString(Formatting.Indented));
+							module.Load();
+
+							Singleton.SetTab(ap.Player, "modules");
+							Singleton.Draw(ap.Player);
+						}, null);
+				});
+			}
 		}
 	}
 	public class PluginsTab
 	{
 		public enum VendorTypes
 		{
+			Local,
 			Codefling,
 			uMod
 		}
@@ -3170,6 +3235,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public static IVendorDownloader CodeflingInstance { get; set; }
 		public static IVendorDownloader uModInstance { get; set; }
 		public static IVendorDownloader Lone_DesignInstance { get; set; }
+		public static IVendorDownloader LocalInstance { get; set; }
 
 		public static IVendorDownloader GetVendor(VendorTypes vendor)
 		{
@@ -3181,8 +3247,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				case VendorTypes.uMod:
 					return uModInstance;
 
-					// case VendorTypes.Lone_Design:
-					// 	return Lone_DesignInstance;
+				// case VendorTypes.Lone_Design:
+				// 	return Lone_DesignInstance;
+
+				case VendorTypes.Local:
+					return LocalInstance;
 			}
 
 			return default;
@@ -3217,6 +3286,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			// 	Lone_DesignInstance.FetchList();
 			// 	Lone_DesignInstance.Refresh();
 			// }
+
+			LocalInstance = new Local();
+			LocalInstance.Refresh();
 
 			ServerOwner.Load();
 
@@ -3541,7 +3613,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var searchQuery = ap.GetStorage<string>(tab, "search");
 			var search = cui.CreatePanel(container, topbar, null, "0 0 0 0", xMin: 0.6f, xMax: 0.855f, yMin: 0f, OyMax: -0.5f);
-			cui.CreateProtectedInputField(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.8 0.8 0.8 0.6" : "1 1 1 1", string.IsNullOrEmpty(searchQuery) ? "Search..." : searchQuery, 10, 20, false, xMin: 0.06f, align: TextAnchor.MiddleLeft, needsKeyboard: true, command: "pluginbrowser.search  ");
+			cui.CreateProtectedInputField(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.8 0.8 0.8 0.6" : "1 1 1 1", string.IsNullOrEmpty(searchQuery) ? "Search..." : searchQuery, 10, 20, false, xMin: 0.06f, align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap), command: "pluginbrowser.search  ");
 			cui.CreateProtectedButton(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.2 0.2 0.2 0.8" : "#d43131", "1 1 1 0.6", "X", 10, xMin: 0.9f, xMax: 1, yMax: 0.96f, command: "pluginbrowser.search  ");
 
 			if (TagFilter.Contains("peanus")) cui.CreateClientImage(container, grid, null, "https://media.discordapp.net/attachments/1078801277565272104/1085062151221293066/15ox1d_1.jpg?width=827&height=675", "1 1 1 1", xMax: 0.8f);
@@ -4417,6 +4489,93 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		[ProtoContract]
+		public class Local : IVendorDownloader
+		{
+			public string Type => "All";
+			public string Url => "none";
+			public string Logo => "carbonw";
+
+			public float LogoRatio => 0.23f;
+			public string ListEndpoint => string.Empty;
+			public string DownloadEndpoint => string.Empty;
+			public string BarInfo => $"{FetchedPlugins.Count:n0} loaded";
+			public float IconScale => 0.4f;
+			public float SafeIconScale => 0.2f;
+
+			public List<Plugin> FetchedPlugins { get; set; } = new();
+
+			internal string[] _defaultTags = new string[] { "carbon", "oxide" };
+
+			public Plugin[] PriceData { get; set; }
+			public Plugin[] AuthorData { get; set; }
+			public Plugin[] InstalledData { get; set; }
+			public Plugin[] OutOfDateData { get; set; }
+			public Plugin[] OwnedData { get; set; }
+			public string[] PopularTags { get; set; }
+
+			public void CheckMetadata(string id, Action callback)
+			{
+			}
+
+			public void Download(string id, Action onTimeout = null)
+			{
+			}
+
+			public void FetchList(Action<IVendorDownloader> callback = null)
+			{
+			}
+
+			public bool Load()
+			{
+				return true;
+			}
+
+			public void Refresh()
+			{
+				FetchedPlugins.Clear();
+
+				foreach (var package in Loader.LoadedMods)
+				{
+					foreach (var plugin in package.Plugins)
+					{
+						if (plugin.IsCorePlugin) continue;
+
+						var existent = FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
+
+						if (existent == null) FetchedPlugins.Add(CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin) ??
+							uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin)
+							?? (existent = new Plugin
+							{
+								Name = plugin.Name,
+								Author = plugin.Author,
+								Version = plugin.Version.ToString(),
+								ExistentPlugin = plugin,
+								Description = "This is an unlisted plugin.",
+								Tags = _defaultTags,
+								File = plugin.FileName,
+								Id = plugin.Name,
+								UpdateDate = DateTime.UtcNow.ToString()
+							}));
+					}
+				}
+
+				FetchedPlugins = FetchedPlugins.OrderBy(x => x.Name).ToList();
+				PriceData = FetchedPlugins.OrderBy(x => x.OriginalPrice).ToArray();
+				AuthorData = FetchedPlugins.OrderBy(x => x.Author).ToArray();
+				InstalledData = FetchedPlugins.Where(x => x.IsInstalled()).ToArray();
+				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate()).ToArray();
+			}
+
+			public void Save()
+			{
+			}
+
+			public void Uninstall(string id)
+			{
+			}
+		}
+
+		[ProtoContract]
 		public class ServerOwner
 		{
 			public static ServerOwner Singleton { get; internal set; } = new ServerOwner();
@@ -4862,7 +5021,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.SendEntitySnapshot(target);
 		player.gameObject.Identity();
 		player.SetParent(target);
-		player.viewAngles = Vector3.one;
+		player.viewAngles = target.transform.rotation.eulerAngles;
+		player.eyes.NetworkUpdate(target.transform.rotation);
 		player.SendNetworkUpdate();
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
 
@@ -4894,7 +5054,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.SetPlayerFlag(BasePlayer.PlayerFlags.Spectating, b: false);
 		player.InvokeRepeating(player.InventoryUpdate, 1f, 0.1f * UnityEngine.Random.Range(0.99f, 1.01f));
 		player.gameObject.SetLayerRecursive(17);
-		player.Teleport(spectated.transform.position);
+		if (spectated != null) player.Teleport(spectated.transform.position);
 		player.spectateFilter = string.Empty;
 
 		var ap = Singleton.GetPlayerSession(player);
@@ -5088,7 +5248,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						_drawArray(name, array, level, column, ap);
 					}, ap2 => OptionButton.Types.Warned);
 				}
-				else if(array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
+				else if (array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
 
 				AddInput(subColumn, "Property Name", ap => ap.GetStorage<string>(this, "jsonprop", "New Property"), (ap, args) => { ap.SetStorage(this, "jsonprop", newPropertyName = args.ToString(" ")); });
 				AddButtonArray(subColumn, 0.01f,
@@ -5178,14 +5338,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
 					"Moderation Tools Module",
-					"", "", FindModule("ModerationToolsModule"));
-
+					"This module is a bundle of very helpful and often usable moderation tools that can grant the ability to players with regular authority level to use noclip and god-mode and nothing else (use the 'carbon.admin' permission to allow the use of the '/cadmin' command).\n" +
+					"There's also a permission ('carbon.cmod') that allows players to kick, ban or mute players with defined reasons.", "", FindModule("ModerationToolsModule"));
 			}));
 			tab.Pages.Add(new Page("Optimisations", (cui, t, container, panel, ap) =>
 			{
 				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
 					"Optimisations Module",
-					"", "", FindModule("OptimisationsModule"));
+					"A Carbon built-in version of the Circular Network Distance from Codefling.", "", FindModule("OptimisationsModule"));
 
 			}));
 			tab.Pages.Add(new Page("RustEdit.Ext", (cui, t, container, panel, ap) =>
@@ -5216,9 +5376,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				cui.CreateClientImage(container, panel, null, "https://i.imgur.com/mFxaU99.png", "1 1 1 0.7",
 					xMin: 0.35f, xMax: 0.65f, yMin: 0.1f, yMax: 0.425f, fadeIn: 1f);
 
-				var cfPaidPluginCount = PluginsTab.CodeflingInstance.FetchedPlugins.Count(x => x.IsPaid());
-				var cfFreePluginCount = PluginsTab.CodeflingInstance.FetchedPlugins.Count(x => !x.IsPaid());
-				var uModFreePluginCount = PluginsTab.uModInstance.FetchedPlugins.Count(x => !x.IsPaid());
+				var cfPaidPluginCount = PluginsTab.CodeflingInstance?.FetchedPlugins.Count(x => x.IsPaid());
+				var cfFreePluginCount = PluginsTab.CodeflingInstance?.FetchedPlugins.Count(x => !x.IsPaid());
+				var uModFreePluginCount = PluginsTab.uModInstance?.FetchedPlugins.Count(x => !x.IsPaid());
 
 				tab.InfoTemplate(cui, t, container, panel, ap,
 					"Plugin Browser",
@@ -5229,6 +5389,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					$"\n\n{Header("uMod", 1)} ({uModFreePluginCount:n0} free)" +
 					$"\nBrowse the 1.5K catalogue full of free, Rust- and covalence supported plugins.",
 					"A very minimum amount of plugins currently are not compatible, due to them being out of date (on Oxide too) or requiring external DLLs that are Oxide-only compatible; meaning that it's the author's responsability to add Carbon support.");
+			}));
+			tab.Pages.Add(new Page("Whitelist", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"Whitelist Module",
+					"A very basic system that only grants players access to a server based on the 'whitelist.bypass' permission or 'whitelisted' group.", "",
+					FindModule("WhitelistModule"));
+			}));
+			tab.Pages.Add(new Page("DRM", (cui, t, container, panel, ap) =>
+			{
+				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
+					"DRM Module",
+					"A system that allows server hosts to bind endpoints that deliver plugin information with respect to the public and private keys.\n" +
+					"For more information, check out the documentation page over on https://docs.carbonmod.gg.", "",
+					FindModule("DRMModule"));
 			}));
 
 			tab.Pages.Add(new Page("Finalize", (cui, t, container, panel, ap) =>
@@ -5262,8 +5437,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		internal void ModuleInfoTemplate(CUI cui, Tab tab, CuiElementContainer container, string panel, PlayerSession player, string title, string content, string hint, BaseModule module)
 		{
-			var consoleCommands = Community.Runtime.AllConsoleCommands.Where(x => x.Plugin == module && !x.IsHidden);
-			var chatCommands = Community.Runtime.AllChatCommands.Where(x => x.Plugin == module && !x.IsHidden);
+			var consoleCommands = Community.Runtime.CommandManager.Console.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
+			var chatCommands = Community.Runtime.CommandManager.Chat.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
 			var consoleCommandCount = consoleCommands.Count();
 			var chatCommandCount = chatCommands.Count();
 
@@ -5271,8 +5446,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				$"and so far has used {module.TotalHookTime:0.000}ms of server time during those hook calls. " +
 				$"This module is {(module.EnabledByDefault ? "enabled" : "disabled")} by default. " +
 				$"This module has <b>{consoleCommandCount:n0}</b> console and <b>{chatCommandCount:n0}</b> chat {(consoleCommandCount == 1 && chatCommandCount == 1 ? "command" : "commands")} and will{(!module.ForceModded ? " <b>not</b>" : "")} enforce this server to modded when enabled.{((consoleCommandCount + chatCommandCount) == 0 ? "" : "\n\n")}" +
-				((consoleCommandCount > 0 ? $"<b>Console commands:</b> {consoleCommands.Select(x => $"{x.Command}").ToArray().ToString(", ")}\n" : "") +
-				(chatCommandCount > 0 ? $"<b>Chat commands:</b> {chatCommands.Select(x => $"{x.Command}").ToArray().ToString(", ")}\n" : "") +
+				((consoleCommandCount > 0 ? $"<b>Console commands:</b> {consoleCommands.Select(x => $"{x.Name}").ToArray().ToString(", ")}\n" : "") +
+				(chatCommandCount > 0 ? $"<b>Chat commands:</b> {chatCommands.Select(x => $"{x.Name}").ToArray().ToString(", ")}\n" : "") +
 				$"\n\n{(string.IsNullOrEmpty(content) ? "" : Header("About", 1))}" +
 				$"\n{content}");
 
@@ -5515,7 +5690,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var input = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
 				xMin: 0.805f, xMax: 0.94f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
 			cui.CreateProtectedInputField(container, input, null, "1 1 1 1", "#", 10, 0, false,
-				xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: true);
+				xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 
 			var picker = cui.CreatePanel(container, parent: main, id: PanelId + ".picker",
 				color: "0 0 0 0",
@@ -5663,7 +5838,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (!hex.StartsWith("#")) hex = $"#{hex}";
 		var rawColor = HexToRustColor(hex, includeAlpha: false);
-		onColorPicked?.Invoke(hex,rawColor);
+		onColorPicked?.Invoke(hex, rawColor);
 		ColorPicker.Close(args.Player());
 	}
 
@@ -5680,11 +5855,23 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public Action OnCancel;
 		public Action<BasePlayer, Modal> OnConfirm;
 		public int Page;
+		public string BackgroundColor = "0 0 0 0.99";
+		public float PositionXMin = 0.3f;
+		public float PositionXMax = 0.7f;
+		public float PositionYMin = 0.275f;
+		public float PositionYMax = 0.825f;
 
-		internal Handler Handler { get; set; }
+		internal Handler Handler;
 		internal const string PanelId = "carbonmodalui";
+		internal BasePlayer Player;
+		internal Action<Modal, string, Field, object, object> OnFieldChanged;
 
-		public static void Open(BasePlayer player, string title,  Dictionary<string, Field> fields, Action<BasePlayer, Modal> onConfirm = null, Action onCancel = null)
+		public static Modal Open(BasePlayer player,
+			string title,
+			Dictionary<string, Field> fields,
+			Action<BasePlayer, Modal> onConfirm = null,
+			Action onCancel = null,
+			Action<Modal, string, Field, object, object> onFieldChanged = null)
 		{
 			var tab = new Modal()
 			{
@@ -5692,10 +5879,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Fields = fields,
 				OnCancel = onCancel,
 				OnConfirm = onConfirm,
-				Handler = new ()
+				Player = player,
+				OnFieldChanged = onFieldChanged,
+				Handler = new()
 			};
 
-			tab.Draw(player);
+			Singleton.NextFrame(() => tab.Draw(player));
+
+			return tab;
 		}
 		public static void Close(BasePlayer player)
 		{
@@ -5731,16 +5922,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using var cui = new CUI(Handler);
 			var container = cui.CreateContainer(PanelId,
-				color: "0 0 0 0.99",
+				color: BackgroundColor,
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				needsCursor: true, destroyUi: PanelId);
 
 			var color = cui.CreatePanel(container, parent: PanelId, id: PanelId + ".color",
-				color: "0.1 0.1 0.1 0.6",
-				xMin: 0.3f, xMax: 0.7f, yMin: 0.275f, yMax: 0.825f);
+				color: "0 0 0 0.6",
+				xMin: PositionXMin, xMax: PositionXMax, yMin: PositionYMin, yMax: PositionYMax);
 			var main = cui.CreatePanel(container, parent: PanelId + ".color", id: PanelId + ".main",
-				color: "0 0 0 0.5",
-			blur: true);
+				color: "0 0 0 0.5", blur: true);
 
 			_drawInternal(cui, container, main);
 
@@ -5749,7 +5939,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public void _drawInternal(CUI cui, CuiElementContainer container, string panel)
 		{
-			var subText= $"<b><color=red>*</color></b>  {"Assign all required field values.".ToUpper().SpacedString(1)}" +
+			var subText = $"<b><color=red>*</color></b>  {"Assign all required field values.".ToUpper().SpacedString(1)}" +
 				$"\n    {(IsValid() ? $"<b><color=green>{"The modal is valid.".ToUpper().SpacedString(1)}</color></b>" : $"<b><color=red>{"The modal has invalid fields.".ToUpper().SpacedString(1)}</color></b>")}" +
 				$"{(InvalidMessages != null ? $"\n{InvalidMessages.ToString("\n")}" : "")}";
 			cui.CreateText(container, panel, null, "1 1 1 1", subText.Trim(), 9, align: TextAnchor.LowerLeft, xMin: 0.05f, yMin: 0.05f);
@@ -5782,7 +5972,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					case Field.FieldTypes.Float:
 					case Field.FieldTypes.Integer:
 						var value = field.Value.Value != null ? (field.Value.Type == Field.FieldTypes.Float ? $"{field.Value.Value:0.0}" : $"{field.Value.Value:0}") : field.Value.Value?.ToString();
-						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: true);
+						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: Singleton.HandleEnableNeedsKeyboard(Player));
 						break;
 
 					case Field.FieldTypes.Boolean:
@@ -5814,7 +6004,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.75", "1 1 1 0.7", "<", 10, xMin: 0f, xMax: 0.5f, command: $"modal.action {field.Key} -");
 						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.75", "1 1 1 0.7", ">", 10, xMin: 0.5f, xMax: 1f, command: $"modal.action {field.Key} +");
+						break;
 
+					case Field.FieldTypes.Button:
+						var button = field.Value as ButtonField;
+						cui.CreateProtectedButton(container, option, null, "0.1 0.1 0.1 0.85", "1 1 1 0.7", button.ButtonName?.ToUpper().SpacedString(1), 10, command: $"modal.action {field.Key}");
 						break;
 				}
 
@@ -5873,7 +6067,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				Boolean,
 				Enum,
 				RustColor,
-				HexColor
+				HexColor,
+				Button
 			}
 
 			public static Field Make(string displayName, FieldTypes type, bool required = false, object @default = null, bool isReadOnly = false, Func<Field, string> customIsInvalid = null)
@@ -5887,14 +6082,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					IsReadOnly = isReadOnly,
 					CustomIsInvalid = customIsInvalid
 				};
-			}
-			public static Field Make(string displayName, FieldTypes type, object @default)
-			{
-				return Make(displayName, type, false, @default);
-			}
-			public static Field Make(string displayName, FieldTypes type, bool required)
-			{
-				return Make(displayName, type, required, null);
 			}
 
 			public void Dispose()
@@ -5920,15 +6107,25 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					CustomIsInvalid = customIsInvalid
 				};
 			}
-			public static EnumField MakeEnum(string displayName, string[] options, object @default)
-			{
-				return MakeEnum(displayName, options, false, @default);
-			}
-			public static EnumField MakeEnum(string displayName, string[] options, bool required)
-			{
-				return MakeEnum(displayName, options, required, null);
-			}
+		}
+		public class ButtonField : Field
+		{
+			public string ButtonName { get; set; }
+			public Action<Modal> Callback { get; set; }
 
+			public static ButtonField MakeButton(string displayName, string buttonName, Action<Modal> callback, bool isReadOnly = false)
+			{
+				return new ButtonField
+				{
+					DisplayName = displayName,
+					ButtonName = buttonName,
+					Type = FieldTypes.Button,
+					IsRequired = false,
+					Callback = callback,
+					IsReadOnly = isReadOnly,
+					CustomIsInvalid = null
+				};
+			}
 		}
 	}
 
@@ -5940,7 +6137,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(arg.Player());
 		var modal = ap.GetStorage<Modal>(null, "modal");
 
-		var field = modal.Fields[arg.Args[0]];
+		var fieldName = arg.Args[0];
+		var field = modal.Fields[fieldName];
+		var oldValue = field.Value;
 
 		if (!field.IsReadOnly)
 		{
@@ -5950,18 +6149,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				case Modal.Field.FieldTypes.String:
 					field.Value = value;
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 					break;
 
 				case Modal.Field.FieldTypes.Integer:
 					field.Value = value.ToInt();
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 					break;
 
 				case Modal.Field.FieldTypes.Float:
 					field.Value = value.ToFloat();
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 					break;
 
 				case Modal.Field.FieldTypes.Boolean:
 					field.Value = !value.ToBool(false);
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 					break;
 
 				case Modal.Field.FieldTypes.RustColor:
@@ -5973,6 +6176,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							if (field.Type == Modal.Field.FieldTypes.RustColor) field.Value = rustColor;
 							else field.Value = $"#{hexColor}";
 
+							modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 							modal.Draw(ap.Player);
 						});
 					});
@@ -5997,6 +6201,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					else if (enumValue < 0) enumValue = @enum.Options.Length - 1;
 
 					field.Value = enumValue;
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, field.Value);
+					break;
+
+				case Modal.Field.FieldTypes.Button:
+					var button = field as Modal.ButtonField;
+					button.Callback?.Invoke(modal);
 					break;
 			}
 		}
@@ -6058,15 +6268,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 public class AdminConfig
 {
-	[JsonProperty("OpenCommand v1")]
-	public string OpenCommand = "cpanel";
+	[JsonProperty("OpenCommands")]
+	public string[] OpenCommands = new string[] { "cp", "cpanel" };
 	public int MinimumAuthLevel = 2;
 	public bool DisableEntitiesTab = false;
 	public bool DisablePluginsTab = true;
 }
 public class AdminData
 {
-	[JsonProperty("ShowedWizard v2")]
+	[JsonProperty("ShowedWizard v3")]
 	public bool ShowedWizard = false;
 	public DataColors Colors = new();
 

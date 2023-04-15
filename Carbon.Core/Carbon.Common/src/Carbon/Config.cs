@@ -32,8 +32,13 @@ public class Config
 	public Permission.SerializationMode PermissionSerialization { get; set; } = Permission.SerializationMode.Protobuf;
 	public string Language { get; set; } = "en";
 	public string WebRequestIp { get; set; }
+	public bool oCommandChecks { get; set; } = true;
 
 #if WIN
 	public bool ShowConsoleInfo { get; set; } = true;
+#endif
+
+#if DEBUG
+	public bool WipeHarmonyLogOnBoot { get; set; } = true;
 #endif
 }

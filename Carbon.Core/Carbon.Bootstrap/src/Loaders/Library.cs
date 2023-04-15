@@ -1,8 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using API.Abstracts;
 using API.Assembly;
 using Utility;
 
@@ -15,8 +17,20 @@ using Utility;
 
 namespace Loaders;
 
-internal sealed class LibraryLoader : IDisposable
+internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 {
+	private static readonly string[] _blacklist = {
+		@"^.+\.XmlSerializers$",
+		@"^Oxide\..+$",
+		@"^System.Globalization$",
+		@"^System.Management$",
+		@"^System.Xml.Serialization$",
+	};
+
+	// Singleton pattern needs a private ctor
+	private LibraryLoader()
+		=> RegisterDomain(AppDomain.CurrentDomain);
+
 	private class Item : IAssemblyCache
 	{
 		public string Name { get; internal set; }
@@ -59,51 +73,69 @@ internal sealed class LibraryLoader : IDisposable
 
 	internal IAssemblyCache ResolveAssembly(string name, string requester)
 	{
-		string path = default;
+		try
+		{
+			if (IsBlacklisted(name)) return default;
+			string path = default;
 
 #if DEBUG_VERBOSE
 		Logger.Debug($"Resolve library '{name}' requested by '{requester}'");
 #endif
 
-		foreach (string directory in _directoryList)
-		{
-			if (!File.Exists(Path.Combine(directory, $"{name}.dll"))) continue;
-			path = Path.Combine(directory, $"{name}.dll");
-		}
+			foreach (string directory in _directoryList)
+			{
+				if (!File.Exists(Path.Combine(directory, $"{name}.dll"))) continue;
+				path = Path.Combine(directory, $"{name}.dll");
+			}
 
-		if (String.IsNullOrEmpty(path))
-		{
-			Logger.Debug($"Unresolved library: '{name}'");
-			return default;
-		}
+			if (String.IsNullOrEmpty(path))
+			{
+#if DEBUG
+				Logger.Error($"Unresolved library: '{name}'");
+#endif
+				return default;
+			}
 
-		byte[] raw = File.ReadAllBytes(path);
-		string sha1 = Util.SHA1(raw);
+			byte[] raw = File.ReadAllBytes(path);
+			string sha1 = Util.SHA1(raw);
 
-		if (_cache.TryGetValue(sha1, out Item cache))
-		{
+			if (_cache.TryGetValue(sha1, out Item cache))
+			{
 #if DEBUG_VERBOSE
 			Logger.Debug($"Resolved library from cache: "
 				+ $"'{cache.Assembly.GetName().Name}' v{cache.Assembly.GetName().Version}");
 #endif
-			return cache;
-		}
+				return cache;
+			}
 
-		Assembly asm = Assembly.LoadFile(path);
-		cache = new Item { Name = name, Raw = raw, Assembly = asm };
-		_cache.Add(sha1, cache);
+			Assembly asm = Assembly.LoadFile(path);
+			cache = new Item { Name = name, Raw = raw, Assembly = asm };
+			_cache.Add(sha1, cache);
 
 #if DEBUG_VERBOSE
 		Logger.Debug($"Resolved library: '{asm.GetName().Name}' v{asm.GetName().Version}");
 #endif
 
-		return cache;
+			return cache;
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error($"Unresolved library: '{name}'", e);
+			return default;
+		}
 	}
 
 	internal IAssemblyCache ReadFromCache(string name)
 	{
 		Item item = _cache.Select(x => x.Value).Last(x => x.Name == name);
 		return item ?? default;
+	}
+
+	internal static bool IsBlacklisted(string Name)
+	{
+		foreach (string Item in _blacklist)
+			if (Regex.IsMatch(Name, Item)) return true;
+		return false;
 	}
 
 	private bool _disposing;

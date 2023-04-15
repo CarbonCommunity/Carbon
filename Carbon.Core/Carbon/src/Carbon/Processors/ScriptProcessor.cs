@@ -15,7 +15,7 @@ using Carbon.Core;
  *
  */
 
-namespace Carbon.Processors;
+namespace Carbon.Managers;
 
 public class ScriptProcessor : BaseProcessor, IScriptProcessor
 {
@@ -141,19 +141,10 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 						Logger.Warn($" This plugin requires Harmony Reference to be enabled for it to work. Enabling it can cause instability, use at your own discretion!");
 					}
 
-					output = input.Replace("PluginTimers", "Timers");
-
-					var newOutput = string.Empty;
-					var split = output.Split('\n');
-
-					foreach (var line in split)
-					{
-						newOutput += line + "\n";
-					}
-
-					output = newOutput;
-					Array.Clear(split, 0, split.Length);
-					split = null;
+					output = input.Replace("PluginTimers", "Timers")
+						.Replace("using Harmony;", "using HarmonyLib;")
+						.Replace("HarmonyInstance.Create", "new Harmony")
+						.Replace("HarmonyInstance", "Harmony");
 				}
 				catch
 				{

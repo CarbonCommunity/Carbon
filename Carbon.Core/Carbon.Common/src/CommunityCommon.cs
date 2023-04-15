@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Analytics;
 using API.Assembly;
+using API.Commands;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
-using Carbon.Base.Interfaces;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -25,48 +25,82 @@ namespace Carbon;
 
 public class Community
 {
-	public static Community Runtime { get; set; }
+	public static Community Runtime
+	{ get; set; }
 
-	public static GameObject GameObject { get => _gameObject.Value; }
+	public static GameObject GameObject
+	{ get => _gameObject.Value; }
+
 	private static readonly Lazy<GameObject> _gameObject = new(() =>
 	{
-		GameObject gameObject = GameObject.Find("Carbon")
-			?? throw new Exception("Carbon GameObject not found");
-		return gameObject;
+		GameObject gameObject = GameObject.Find("Carbon");
+		return gameObject == null ? throw new Exception("Carbon GameObject not found") : gameObject;
 	});
 
-	public IAnalyticsManager Analytics { get => _analyticsManager.Value; }
+	public IAnalyticsManager Analytics
+	{ get => _analyticsManager.Value; }
+
+	public IAssemblyManager AssemblyEx
+	{ get => _assemblyEx.Value; }
+
+	public ICommandManager CommandManager
+	{ get => _commandManager.Value; }
+
+	public IDownloadManager Downloader
+	{ get => _downloadManager.Value; }
+
+	public IEventManager Events
+	{ get => _eventManager.Value; }
+
 	private readonly Lazy<IAnalyticsManager> _analyticsManager
 		= new(GameObject.GetComponent<IAnalyticsManager>);
 
-	public IAssemblyManager AssemblyEx { get => _assemblyEx.Value; }
 	private readonly Lazy<IAssemblyManager> _assemblyEx
 		= new(GameObject.GetComponent<IAssemblyManager>);
 
-	public IDownloadManager Downloader { get => _downloadManager.Value; }
+	private readonly Lazy<ICommandManager> _commandManager
+		= new(GameObject.GetComponent<ICommandManager>);
+
 	private readonly Lazy<IDownloadManager> _downloadManager
 		= new(GameObject.GetComponent<IDownloadManager>);
 
-	public IEventManager Events { get => _eventManager.Value; }
 	private readonly Lazy<IEventManager> _eventManager
 		= new(GameObject.GetComponent<IEventManager>);
 
 
-	public IHookManager HookManager { get; set; }
-	public IScriptProcessor ScriptProcessor { get; set; }
-	public IModuleProcessor ModuleProcessor { get; set; }
-	public IWebScriptProcessor WebScriptProcessor { get; set; }
-	public ICarbonProcessor CarbonProcessor { get; set; }
+	public IPatchManager HookManager
+	{ get; set; }
+
+	public IScriptProcessor ScriptProcessor
+	{ get; set; }
+
+	public IModuleProcessor ModuleProcessor
+	{ get; set; }
+
+	public IWebScriptProcessor WebScriptProcessor
+	{ get; set; }
+
+	public ICarbonProcessor CarbonProcessor
+	{ get; set; }
 
 	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
-	public static bool IsServerFullyInitializedCache { get; internal set; }
+
+	public static bool IsServerFullyInitializedCache
+	{ get; internal set; }
 
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
 
-	public Config Config { get; set; }
-	public RustPlugin CorePlugin { get; set; }
-	public Loader.CarbonMod Plugins { get; set; }
-	public Entities Entities { get; set; }
+	public Config Config
+	{ get; set; }
+
+	public RustPlugin CorePlugin
+	{ get; set; }
+
+	public Loader.CarbonMod Plugins
+	{ get; set; }
+
+	public Entities Entities
+	{ get; set; }
 
 	public Community()
 	{
@@ -75,6 +109,7 @@ public class Community
 			Events.Subscribe(CarbonEvent.CarbonStartup, args =>
 			{
 				Logger.Log($"Carbon fingerprint: {Analytics.ClientID}");
+				Logger.Log($"System fingerprint: {Analytics.SystemID}");
 				Analytics.SessionStart();
 			});
 
@@ -113,16 +148,7 @@ public class Community
 
 	public void ClearCommands(bool all = false)
 	{
-		if (all)
-		{
-			AllChatCommands.Clear();
-			AllConsoleCommands.Clear();
-		}
-		else
-		{
-			AllChatCommands.RemoveAll(x => x.Plugin is not IModule && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
-			AllConsoleCommands.RemoveAll(x => x.Plugin is not IModule && (x.Plugin is RustPlugin && !(x.Plugin as RustPlugin).IsCorePlugin));
-		}
+		CommandManager.ClearCommands(command => all || command.Reference is RustPlugin plugin && !plugin.IsCorePlugin);
 	}
 
 	#region Config
@@ -198,13 +224,6 @@ public class Community
 		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader.LoadedMods.Count:n0} mods, {Loader.LoadedMods.Sum(x => x.Plugins.Count):n0} plgs";
 #endif
 	}
-
-	#region Commands
-
-	public List<OxideCommand> AllChatCommands { get; } = new List<OxideCommand>();
-	public List<OxideCommand> AllConsoleCommands { get; } = new List<OxideCommand>();
-
-	#endregion
 
 	#region Logging
 

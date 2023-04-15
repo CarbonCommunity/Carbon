@@ -1,9 +1,13 @@
-![Carbon](https://codefling.com/uploads/monthly_2023_03/image.thumb.png.276343ad1b15a658368a7ae6e252172f.png)
-
 <p align="center">
-  <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/develop-build.yml/badge.svg"></a>
-  <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/staging-build.yml/badge.svg"></a>
-  <a href="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml/badge.svg?branch=production"></a>
+  <img src="https://codefling.com/uploads/monthly_2023_03/image.thumb.png.276343ad1b15a658368a7ae6e252172f.png" />
+</p><p align="center">
+  <a href="https://github.com/CarbonCommunity/Carbon.Core/releases/tag/edge_build"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/edge-build.yml/badge.svg" /></a>
+  <a href="https://github.com/CarbonCommunity/Carbon.Core/releases/tag/preview_build"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/preview-build.yml/badge.svg" /></a>
+  <a href="https://github.com/CarbonCommunity/Carbon.Core/releases/latest"><img src="https://github.com/Carbon-Modding/Carbon.Core/actions/workflows/production-build.yml/badge.svg" /></a>
+  <br />
+  <a href="https://github.com/CarbonCommunity/Carbon.Core/blob/develop/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/CarbonCommunity/Carbon.Core" /></a>
+  <a href="https://github.com/GameServerManagers/LinuxGSM/releases/latest"><img src="https://img.shields.io/badge/LinuxGSM-v23.2.0-informational" /></a>
+  <hr />
 </p>
 
 Carbon is a self-updating, lightweight, intelligent mod loader for Rust utilizing the latest C# and Harmony for the best performance and stability possible. Its robust framework and backward compatibility with Oxide plugins make it the ultimate replacement for those wanting better functionality and performance from their plugins!

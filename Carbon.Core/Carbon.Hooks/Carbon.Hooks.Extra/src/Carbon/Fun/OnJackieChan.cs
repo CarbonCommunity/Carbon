@@ -17,7 +17,8 @@ public partial class Category_Fun
 		[HookAttribute.Patch("OnJackieChan", "OnJackieChan", typeof(BasePlayer), "PlayerInit", new System.Type[] { typeof(Network.Connection) })]
 		[HookAttribute.Identifier("98afa60bc10945799214031b1c017ac5")]
 
-		// Checks if player that connected is Jackie Chan.
+		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
+		[MetadataAttribute.Info("Checks if player that connected is Jackie Chan.")]
 
 		public class Fun_BasePlayer_98afa60bc10945799214031b1c017ac5 : Patch
 		{

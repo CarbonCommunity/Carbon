@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.IO;
 using API.Events;
+using Carbon.Components;
 using Carbon.Core;
+using Carbon.Extensions;
 using Carbon.Hooks;
-using Carbon.Processors;
+using Carbon.Managers;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
@@ -24,9 +26,22 @@ namespace Carbon;
 
 public class CommunityInternal : Community
 {
-	public static CommunityInternal InternalRuntime { get { return Runtime as CommunityInternal; } set { Runtime = value; } }
+	public static CommunityInternal InternalRuntime
+	{
+		get
+		{
+			return Runtime as CommunityInternal;
+		}
+		set
+		{
+			Runtime = value;
+		}
+	}
 
-	public bool IsInitialized { get; set; }
+	public bool IsInitialized
+	{
+		get; set;
+	}
 
 	public override void ReloadPlugins()
 	{
@@ -50,7 +65,6 @@ public class CommunityInternal : Community
 
 	#region Processors
 
-	internal ExtensionProcessor ExtensionProcessor { get; set; }
 
 	internal void _installProcessors()
 	{
@@ -62,8 +76,7 @@ public class CommunityInternal : Community
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-			ExtensionProcessor = gameObject.AddComponent<ExtensionProcessor>();
-			HookManager = gameObject.AddComponent<HookManager>();
+			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
 		}
@@ -88,7 +101,6 @@ public class CommunityInternal : Community
 			if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
 			if (ModuleProcessor != null) ModuleProcessor?.Dispose();
 			if (CarbonProcessor != null) CarbonProcessor?.Dispose();
-			if (ExtensionProcessor != null) ExtensionProcessor?.Dispose();
 		}
 		catch { }
 
@@ -112,13 +124,43 @@ public class CommunityInternal : Community
 		LoadConfig();
 		Carbon.Logger.Log("Loaded config");
 
+#if DEBUG
+		if (Config.WipeHarmonyLogOnBoot)
+		{
+			var harmonyLogPath = Path.Combine(Defines.GetLogsFolder(), "harmony.log");
+			OsEx.File.Delete(harmonyLogPath);
+		}
+#endif
+
 		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
 		{
 			ClearCommands();
 			_installDefaultCommands();
 			ModuleProcessor.Init();
-			ReloadPlugins();
+
+			CommandLine.ExecuteCommands("+carbon.onboot", "Carbon boot");
+
+			var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
+			var lines = OsEx.File.Exists(serverConfigPath) ? OsEx.File.ReadTextLines(serverConfigPath) : null;
+			if (lines != null)
+			{
+				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
+				Array.Clear(lines, 0, lines.Length);
+				lines = null;
+			}
+
+			if (!ConVar.Global.skipAssetWarmup_crashes)
+			{
+				ReloadPlugins();
+			}
 		});
+		if (ConVar.Global.skipAssetWarmup_crashes)
+		{
+			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>
+			{
+				ReloadPlugins();
+			});
+		}
 
 		Carbon.Logger.Log($"Loading...");
 		{

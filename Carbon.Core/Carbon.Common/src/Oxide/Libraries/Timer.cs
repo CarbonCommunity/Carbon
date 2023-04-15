@@ -44,6 +44,8 @@ public class Timers
 
 	public Timer In(float time, Action action)
 	{
+		if (!Community.IsServerFullyInitialized) return null;
+
 		if (!IsValid()) return null;
 
 		var timer = new Timer(Persistence, action, Plugin);
@@ -62,12 +64,6 @@ public class Timers
 
 		timer.Delay = time;
 		timer.Callback = activity;
-
-		if (!Community.IsServerFullyInitialized)
-		{
-			Community.Runtime.CorePlugin.NextTick(activity);
-			return timer;
-		}
 
 		Persistence.Invoke(activity, time);
 		return timer;
@@ -113,7 +109,7 @@ public class Timers
 				action?.Invoke();
 				timer.TimesTriggered++;
 
-				if (timer.TimesTriggered >= times)
+				if (times != 0 && timer.TimesTriggered >= times)
 				{
 					timer.Dispose();
 					Pool.Free(ref timer);

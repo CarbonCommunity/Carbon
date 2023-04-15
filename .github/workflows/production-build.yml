@@ -1,5 +1,5 @@
 ###
-### Copyright (c) 2022 Carbon Community 
+### Copyright (c) 2023 Carbon Community 
 ### All rights reserved
 ###
 name: Production Build
@@ -29,7 +29,7 @@ jobs:
       version: ${{ steps.step1.outputs.version }}
 
     steps:
-      #- name: 🪵 Log environment
+      #- name: Log environment
       #  uses: crazy-max/ghaction-dump-context@v1
 
       - name: 🔗 Checkout source code from github
@@ -91,7 +91,7 @@ jobs:
 
   # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
-    name: 🪟 Windows
+    name: 💻 Windows
     needs: bootstrap
     runs-on: windows-latest
     continue-on-error: false
@@ -127,11 +127,10 @@ jobs:
           Release/Carbon.Windows.Release.info
 
   # RELEASE --------------------------------------------------------------------
-  release:
-    name: 💾 Release
+  release-on-schedule:
+    name: 💾 Production Release
     needs: [ "bootstrap", "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
-
     if: ${{ (github.event_name == 'push') || (github.event_name == 'workflow_dispatch') || (github.event_name == 'schedule' && needs.build-linux.outputs.wipe == 'true') }}
 
     steps:

@@ -17,7 +17,9 @@ public partial class Category_Fun
 		[HookAttribute.Patch("OnChickenScared", "OnChickenScared", typeof(AnimalBrain.FleeState), "StateEnter", new System.Type[] { typeof(BaseAIBrain), typeof(BaseEntity) })]
 		[HookAttribute.Identifier("4af63eb71cfc44f7a66cb1c16974a5c7")]
 
-		// Gets triggered when a chicken gets scared by something.
+		[MetadataAttribute.Info("Gets called whenever a chicken gets scared due to the presence of another potential threat.")]
+		[MetadataAttribute.Parameter("chicken", typeof(Chicken))]
+		[MetadataAttribute.Parameter("threat", typeof(BaseEntity))]
 
 		public class Fun_AnimalBrain_4af63eb71cfc44f7a66cb1c16974a5c7 : Patch
 		{

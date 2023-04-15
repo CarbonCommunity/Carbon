@@ -26,7 +26,10 @@ public class Entities : IDisposable
 				Mapping.Add(type, new List<BaseEntity>(Community.Runtime.Config.EntityMapBufferSize));
 			}
 
-			Carbon.Logger.Warn($"Mapping {BaseNetworkable.serverEntities.Count:n0} entities... This will take a while.");
+			if (Community.IsServerFullyInitialized)
+			{
+				Carbon.Logger.Warn($"Mapping {BaseNetworkable.serverEntities.Count:n0} entities... This will take a while.");
+			}
 
 			using (TimeMeasure.New("Entity mapping"))
 			{
@@ -42,7 +45,10 @@ public class Entities : IDisposable
 				}
 			}
 
-			Carbon.Logger.Warn($"Done mapping.");
+			if (Community.IsServerFullyInitialized)
+			{
+				Carbon.Logger.Warn($"Done mapping.");
+			}
 		}
 		catch (Exception ex) { Carbon.Logger.Error($"Failed Entities.Init()", ex); }
 	}
@@ -140,6 +146,8 @@ public class Entities : IDisposable
 				callback.Invoke(drop);
 			}
 
+			callback = null;
+			condition = null;
 			return this;
 		}
 		public T Pick(int index)

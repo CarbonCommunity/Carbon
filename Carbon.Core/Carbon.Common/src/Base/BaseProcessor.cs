@@ -2,11 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Carbon.Extensions;
+using Carbon.Contracts;
 using Carbon.Core;
+using Carbon.Extensions;
 using Facepunch;
 using UnityEngine;
-using Carbon.Contracts;
 
 /*
  *
@@ -212,6 +212,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 	public virtual void Clear(string id, IBaseProcessor.IInstance instance)
 	{
 		instance?.Dispose();
+		instance = null;
 		Remove(id);
 	}
 	public virtual void Process(string id, IBaseProcessor.IInstance instance)

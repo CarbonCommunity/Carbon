@@ -1,8 +1,6 @@
-using System;
-using System.Threading.Tasks;
+﻿using System;
 using API.Events;
 using HarmonyLib;
-using Legacy;
 
 /*
  *

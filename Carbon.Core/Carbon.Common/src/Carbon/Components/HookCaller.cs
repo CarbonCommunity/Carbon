@@ -144,7 +144,7 @@ namespace Carbon
 						ResultOverride(plugin, priority);
 					}
 				}
-				catch (Exception ex) { Logger.Error("Fuck:", ex); }
+				catch (Exception ex) { Logger.Error($"Major issue with caching the '{hookName}' hook called in {plugin}", ex); }
 			}
 
 			ConflictCheck();
@@ -193,7 +193,8 @@ namespace Carbon
 									differentResults = true;
 								}
 
-								if (conflict.Priority > priorityConflict.Priority)
+								if (conflict.Result != null &&
+									conflict.Priority > priorityConflict.Priority)
 								{
 									priorityConflict = conflict;
 								}
@@ -231,7 +232,7 @@ namespace Carbon
 		}
 
 		internal static Priorities _priorityCatcher;
-		internal static Conflict _defaultConflict = new ()
+		internal static Conflict _defaultConflict = new()
 		{
 			Priority = Priorities.Low
 		};

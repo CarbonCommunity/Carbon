@@ -88,7 +88,7 @@ public class CuiButtonComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.Button";
 
-	[JsonProperty( "command", NullValueHandling = NullValueHandling.Ignore)]
+	[JsonProperty("command", NullValueHandling = NullValueHandling.Ignore)]
 	public string Command { get; set; }
 
 	[JsonProperty("close", NullValueHandling = NullValueHandling.Ignore)]

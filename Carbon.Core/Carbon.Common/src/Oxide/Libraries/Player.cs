@@ -113,19 +113,19 @@ public class Player : Library
 
 	public void Ban(ulong id, string reason = "")
 	{
-		if (IsBanned (id))
+		if (IsBanned(id))
 		{
 			return;
 		}
 
-		var basePlayer = FindById (id);
+		var basePlayer = FindById(id);
 
 		ServerUsers.Set(id, ServerUsers.UserGroup.Banned, ((basePlayer != null) ? basePlayer.displayName : null) ?? "Unknown", reason, -1L);
 		ServerUsers.Save();
 
-		if (basePlayer != null && IsConnected (basePlayer))
+		if (basePlayer != null && IsConnected(basePlayer))
 		{
-			Kick (basePlayer, reason);
+			Kick(basePlayer, reason);
 		}
 	}
 	public void Ban(string id, string reason = "")
@@ -186,7 +186,7 @@ public class Player : Library
 	}
 	public void Teleport(BasePlayer player, BasePlayer target)
 	{
-		Teleport (player, Position (target));
+		Teleport(player, Position(target));
 	}
 	public void Teleport(BasePlayer player, float x, float y, float z)
 	{

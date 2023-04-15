@@ -270,7 +270,7 @@ public class Permission : Library
 		}
 	}
 
-	public virtual bool PermissionExists(string name, Plugin owner = null)
+	public virtual bool PermissionExists(string name, BaseHookable owner = null)
 	{
 		if (string.IsNullOrEmpty(name))
 		{
@@ -455,6 +455,10 @@ public class Permission : Library
 	{
 		return new HashSet<string>(permset.Values.SelectMany((HashSet<string> v) => v)).ToArray();
 	}
+	public virtual string[] GetPermissions(BaseHookable hookable)
+	{
+		return new HashSet<string>(permset.Where(x => x.Key == hookable).SelectMany(v => v.Value)).ToArray();
+	}
 	public virtual string[] GetPermissionUsers(string perm)
 	{
 		if (string.IsNullOrEmpty(perm)) return EmptyStringArray;
@@ -554,7 +558,7 @@ public class Permission : Library
 		return groupData.Rank;
 	}
 
-	public virtual bool GrantUserPermission(string id, string perm, Plugin owner)
+	public virtual bool GrantUserPermission(string id, string perm, RustPlugin owner)
 	{
 		if (!PermissionExists(perm, owner)) return false;
 
@@ -616,7 +620,7 @@ public class Permission : Library
 			return true;
 		}
 	}
-	public virtual bool GrantGroupPermission(string name, string perm, Plugin owner)
+	public virtual bool GrantGroupPermission(string name, string perm, BaseHookable owner)
 	{
 		if (!PermissionExists(perm, owner) || !GroupExists(name)) return false;
 

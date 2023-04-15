@@ -29,7 +29,7 @@ using static UnityEngine.UI.GridLayoutGroup;
  *
  */
 
-namespace Carbon.Processors;
+namespace Carbon.Managers;
 
 public class ScriptLoader : IScriptLoader
 {
@@ -47,6 +47,8 @@ public class ScriptLoader : IScriptLoader
 	public Loader.CarbonMod Mod { get; set; }
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
+
+	internal const int ReaderBufferSize = 8 * 1024;
 
 	public void Load()
 	{
@@ -69,7 +71,6 @@ public class ScriptLoader : IScriptLoader
 		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: SearchOption.TopDirectoryOnly);
 
 		Community.Runtime.ScriptProcessor.Clear();
-		Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
 		foreach (var file in extensionPlugins)
 		{
@@ -127,7 +128,7 @@ public class ScriptLoader : IScriptLoader
 	{
 		var task = Task.Run(async () =>
 		{
-			using var reader = new StreamReader(filePath, encoding: Encoding.UTF8);
+			using var reader = new StreamReader(filePath, Encoding.UTF8, true, ReaderBufferSize);
 			return await reader.ReadToEndAsync();
 		});
 
@@ -247,7 +248,7 @@ public class ScriptLoader : IScriptLoader
 		yield return null;
 
 		if (AsyncLoader != null) Carbon.Components.Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
-	
+
 		var requiresResult = requires.ToArray();
 
 #if DISABLE_ASYNC_LOADING

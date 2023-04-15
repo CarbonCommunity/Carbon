@@ -10,7 +10,7 @@ using Carbon.Contracts;
  *
  */
 
-namespace Carbon.Processors;
+namespace Carbon.Managers;
 
 public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 {

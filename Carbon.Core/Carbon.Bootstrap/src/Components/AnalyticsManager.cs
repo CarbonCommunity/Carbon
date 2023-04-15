@@ -18,17 +18,17 @@ using Utility;
 
 namespace Components;
 #pragma warning disable IDE0051
+
 internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsManager
 {
-	private bool _first;
 	private int _sessions;
 	private float _lastUpdate;
 	private float _lastEngagement;
+	private static bool _first;
 	private static string _location;
 
 	private const string MeasurementID = "G-M7ZBRYS3X7";
 	private const string MeasurementSecret = "edBQH3_wRCWxZSzx5Y2IWA";
-
 
 	public string Branch
 	{ get => _branch.Value; }
@@ -92,13 +92,8 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			.Assembly.GetName().Version.ToString();
 	});
 
-
-	public string SessionID
-	{ get; private set; }
-
 	public string ClientID
 	{ get => _serverInfo.Value.UID; }
-
 
 	private static readonly Lazy<Identity> _serverInfo = new(() =>
 	{
@@ -109,7 +104,6 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			string identity = (string)AccessTools.TypeByName("ConVar.Server")
 				?.GetField("identity", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
 
-
 			_location = Path.Combine(Context.Game, "server", identity, "carbon.id");
 
 			if (File.Exists(_location))
@@ -119,6 +113,7 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 				if (!_serverInfo.Equals(default(Identity))) return info;
 			}
 
+			_first = true;
 			info = new Identity { UID = $"{Guid.NewGuid()}" };
 			Logger.Warn($"A new server identity was generated.");
 			File.WriteAllText(_location, JsonConvert.SerializeObject(info, Formatting.Indented));
@@ -130,6 +125,12 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 		return info;
 	});
+
+	public string SessionID
+	{ get; private set; }
+
+	public string SystemID
+	{ get => UnityEngine.SystemInfo.deviceUniqueIdentifier; }
 
 	public void Awake()
 	{

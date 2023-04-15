@@ -22,7 +22,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 {
 	public override string Name => "Vanish";
 	public override Type Type => typeof(VanishModule);
-	public override bool ForceModded => true;
+	public override bool ForceModded => false;
 	public override bool EnabledByDefault => false;
 	public CUI.Handler Handler { get; internal set; }
 
@@ -73,7 +73,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		if (hit == null || hit.Initiator == null || hit.HitEntity == null) return null;
 
-		if(hit.Initiator is BasePlayer attacker && hit.HitEntity.OwnerID != attacker.userID)
+		if (hit.Initiator is BasePlayer attacker && hit.HitEntity.OwnerID != attacker.userID)
 		{
 			if (!ConfigInstance.CanDamageWhenVanished && _vanishedPlayers.ContainsKey(attacker.userID))
 			{
@@ -93,7 +93,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		DoVanish(player, true);
 	}
 
-	public void DoVanish(BasePlayer player, bool wants)
+	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool enableNoclip = true)
 	{
 		if (wants)
 		{
@@ -109,9 +109,14 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.OnNetworkSubscribersLeave(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player).ToList());
 			SimpleAIMemory.AddIgnorePlayer(player);
 
-			_drawUI(player);
+			if (withUI) _drawUI(player);
 
 			if (ConfigInstance.EnableLogs) Puts($"{player} just vanished at {player.transform.position}");
+
+			if (ConfigInstance.ToggleNoclipOnVanish && enableNoclip && player.net.connection.authLevel > 0 && !player.IsFlying)
+			{
+				player.SendConsoleCommand("noclip");
+			}
 		}
 		else
 		{
@@ -133,6 +138,11 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			cui.Destroy("vanishui", player);
 
 			if (ConfigInstance.EnableLogs) Puts($"{player} unvanished at {player.transform.position}");
+
+			if (ConfigInstance.ToggleNoclipOnUnvanish && enableNoclip && player.net.connection.authLevel > 0 && player.IsFlying)
+			{
+				player.SendConsoleCommand("noclip");
+			}
 		}
 	}
 
@@ -158,8 +168,21 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		using var cui = new CUI(Handler);
 		var container = cui.CreateContainer("vanishui", parent: CUI.ClientPanels.Hud);
-		cui.CreateText(container, "vanishui", null, color: "#8bba49", ConfigInstance.InvisibleText, 10,
-			yMax: 0.025f, align: UnityEngine.TextAnchor.LowerCenter);
+		if (!string.IsNullOrEmpty(ConfigInstance.InvisibleText))
+		{
+			var textX = ConfigInstance.InvisibleTextAnchorX;
+			var textY = ConfigInstance.InvisibleTextAnchorY;
+			cui.CreateText(container, "vanishui", null, color: ConfigInstance.InvisibleTextColor, ConfigInstance.InvisibleText, ConfigInstance.InvisibleTextSize,
+				xMin: textX[0], xMax: textX[1], yMin: textY[0], yMax: textY[1], align: ConfigInstance.InvisibleTextAnchor);
+		}
+
+		if (!string.IsNullOrEmpty(ConfigInstance.InvisibleIconUrl))
+		{
+			var iconX = ConfigInstance.InvisibleIconAnchorX;
+			var iconY = ConfigInstance.InvisibleIconAnchorY;
+			cui.CreateClientImage(container, "vanishui", null, ConfigInstance.InvisibleIconUrl, ConfigInstance.InvisibleIconColor,
+				xMin: iconX[0], xMax: iconX[1], yMin: iconY[0], yMax: iconY[1]);
+		}
 
 		cui.Send(container, player);
 	}
@@ -167,10 +190,28 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 public class VanishConfig
 {
+	[JsonProperty("[Anchor] Legend")]
+	public string AnchorLegend => "(0=UpperLeft, 1=UpperCenter, 2=UpperRight, 3=MiddleLeft, 4=MiddleCenter, 5=MiddleRight, 6=LowerLeft, 7=LowerCenter, 8=LowerRight)";
+
 	public int MinimumVanishAuthLevel = 2;
 	public int MinimumAuthLevelUnlockWhileVanished = 2;
 	public string VanishCommand = "vanish";
+	public bool ToggleNoclipOnVanish = true;
+	public bool ToggleNoclipOnUnvanish = false;
+
 	public string InvisibleText = "You are currently invisible.";
+	public int InvisibleTextSize = 10;
+	public string InvisibleTextColor = "#8bba49";
+	[JsonProperty("InvisibleTextAnchor [Anchor]")]
+	public TextAnchor InvisibleTextAnchor = TextAnchor.LowerCenter;
+	public float[] InvisibleTextAnchorX = new float[] { 0, 1 };
+	public float[] InvisibleTextAnchorY = new float[] { 0, 0.025f };
+
+	public string InvisibleIconUrl = "";
+	public string InvisibleIconColor = "1 1 1 0.3";
+	public float[] InvisibleIconAnchorX = new float[] { 0.175f, 0.22f };
+	public float[] InvisibleIconAnchorY = new float[] { 0.017f, 0.08f };
+
 	public bool GutshotScreamOnUnvanish = true;
 	public bool EnableLogs = true;
 	public bool TeleportBackOnUnvanish = false;

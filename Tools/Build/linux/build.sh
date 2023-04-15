@@ -53,5 +53,4 @@ fi
 if [ "${2}" != "--no-archive" ]; then
 	echo "** Create the compressed archive"
 	tar -zcvf "${ROOT}/Release/Carbon.${TOS}.${TAG}.tar.gz" -C "${ROOT}/Release/.tmp/${TARGET}" $(ls -A ${ROOT}/Release/.tmp/${TARGET})
-	mono "${ROOT}/Tools/BuildInfo/Carbon.BuildInfo.exe" -carbon "${ROOT}/Release/.tmp/${TARGET}/carbon/managed/Carbon" -o "${ROOT}/Release/Carbon.${TOS}.${TAG}.info"
 fi
