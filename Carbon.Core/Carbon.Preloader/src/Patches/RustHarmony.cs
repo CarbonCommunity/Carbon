@@ -45,6 +45,7 @@ internal sealed class RustHarmony : MarshalByRefObject
 		try
 		{
 			Deep_Cleanup();
+			Override_HarmonyLoader_Methods();
 		}
 		catch (System.Exception ex)
 		{
@@ -56,7 +57,7 @@ internal sealed class RustHarmony : MarshalByRefObject
 	private void Override_HarmonyLoader_Methods()
 	{
 		TypeDefinition type = _assembly.MainModule.GetType("HarmonyLoader");
-		string[] Items = { "LoadHarmonyMods", "TryLoadMod", "TryUnloadMod", "LoadAssembly", "UnloadMod" };
+		string[] Items = { "LoadHarmonyMods", "TryLoadMod", "TryUnloadMod", "LoadAssembly", "UnloadMod", "GetHarmonyMods" };
 
 		foreach (string Item in Items)
 		{
@@ -90,6 +91,7 @@ internal sealed class RustHarmony : MarshalByRefObject
 	private void Deep_Cleanup()
 	{
 		string[] whitelist = {
+			"HarmonyLoader",
 			"HarmonyModInfo",
 			"IHarmonyModHooks",
 			"OnHarmonyModLoadedArgs",
