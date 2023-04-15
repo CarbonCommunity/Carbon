@@ -13,12 +13,13 @@ using Utility;
  */
 
 namespace Patches;
+#pragma warning disable IDE0051
 
 internal sealed class RustHarmony : MarshalByRefObject
 {
 	private static readonly DefaultAssemblyResolver _resolver;
-	private AssemblyDefinition _assembly;
-	private string _filename;
+	private readonly AssemblyDefinition _assembly;
+	private readonly string _filename;
 
 	static RustHarmony()
 	{
@@ -44,8 +45,9 @@ internal sealed class RustHarmony : MarshalByRefObject
 	{
 		try
 		{
-			Deep_Cleanup();
-			Override_HarmonyLoader_Methods();
+			//Nuke_them_all();
+			Clean_HarmonyLoader_Methods();
+			Clean_HarmonyLoader_HarmonyMod();
 		}
 		catch (System.Exception ex)
 		{
@@ -54,10 +56,10 @@ internal sealed class RustHarmony : MarshalByRefObject
 		}
 	}
 
-	private void Override_HarmonyLoader_Methods()
+	private void Clean_HarmonyLoader_Methods()
 	{
 		TypeDefinition type = _assembly.MainModule.GetType("HarmonyLoader");
-		string[] Items = { "LoadHarmonyMods", "TryLoadMod", "TryUnloadMod", "LoadAssembly", "UnloadMod", "GetHarmonyMods" };
+		string[] Items = { "LoadHarmonyMods", "TryLoadMod", "TryUnloadMod", "LoadAssembly", "UnloadMod" };
 
 		foreach (string Item in Items)
 		{
@@ -88,10 +90,37 @@ internal sealed class RustHarmony : MarshalByRefObject
 		}
 	}
 
-	private void Deep_Cleanup()
+	private void Clean_HarmonyLoader_HarmonyMod()
+	{
+		TypeDefinition parent = _assembly.MainModule.GetType("HarmonyLoader");
+		TypeDefinition child = parent.NestedTypes.First(x => x.Name == "HarmonyMod");
+
+		string[] Items = { "Harmony" };
+
+		foreach (string Item in Items)
+		{
+			try
+			{
+				PropertyDefinition prop = child.Properties.First(x => x.Name == Item);
+				Logger.Debug($" - Patching {prop}");
+
+				child.Methods.Remove(prop.GetMethod);
+				child.Methods.Remove(prop.SetMethod);
+				child.Properties.Remove(prop);
+
+				FieldDefinition backingField = child.Fields.First(x => x.Name == $"<{Item}>k__BackingField");
+				child.Fields.Remove(backingField);
+			}
+			catch (System.Exception)
+			{
+				Logger.Debug($" - Patching failed");
+			}
+		}
+	}
+
+	private void Nuke_them_all()
 	{
 		string[] whitelist = {
-			"HarmonyLoader",
 			"HarmonyModInfo",
 			"IHarmonyModHooks",
 			"OnHarmonyModLoadedArgs",
