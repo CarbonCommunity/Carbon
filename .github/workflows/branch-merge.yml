@@ -8,7 +8,6 @@ concurrency: merge-process-exec
 on:
   workflow_dispatch:
     inputs:
-
       source:
         description: 'From branch'
         required: true
@@ -16,15 +15,13 @@ on:
         type: choice
         options:
           - develop
-          - production
 
       target:
         description: 'Target branch'
         required: true
-        default: 'staging'
+        default: 'production'
         type: choice
         options:
-          - develop
           - production
 
 jobs:

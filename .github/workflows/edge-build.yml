@@ -2,18 +2,17 @@
 ### Copyright (c) 2022 Carbon Community 
 ### All rights reserved
 ###
-name: Production Build
-concurrency: build-1-production
+name: Edge Build
+concurrency: build-3-edge
 
 on:
-  schedule:
-    - cron: '30 18 * * 4'
-    
   push:
     branches:
-      - production
-
-  workflow_dispatch:
+      - develop
+    
+  pull_request:
+    branches:
+      - develop
 
 jobs:
   bootstrap:
@@ -25,17 +24,14 @@ jobs:
       clock:   ${{ steps.step1.outputs.clock }}
       tag:     ${{ steps.step1.outputs.tag }}
       ref:     ${{ steps.step1.outputs.ref }}
-      wipe:    ${{ steps.step1.outputs.wipe }}
       version: ${{ steps.step1.outputs.version }}
 
     steps:
       #- name: Log environment
       #  uses: crazy-max/ghaction-dump-context@v1
-
+        
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
-        with:
-          ref: production
 
       - name: 📅 Prepare the environment
         id: step1
@@ -44,7 +40,6 @@ jobs:
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "wipe=$( [ $(date +%u) -eq 4 ] && [ $(date +%d) -le 7 ] && echo true || echo false )" >> $GITHUB_OUTPUT
           echo "version=$(date +'0.%Y.%q%j.%M%S')" >> $GITHUB_OUTPUT
 
   # BUILD LINUX ----------------------------------------------------------------
@@ -55,15 +50,12 @@ jobs:
     continue-on-error: false
 
     outputs:
-      wipe: ${{ needs.bootstrap.outputs.wipe }}
-      artifact: build-production-${{ needs.bootstrap.outputs.ref }}-linux
+      artifact: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
       build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
     
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
-      with:
-        ref: production
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
@@ -79,15 +71,15 @@ jobs:
       shell: bash
       run: |
         export VERSION=${{ needs.bootstrap.outputs.version }}
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix
-        
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix
+
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-production-linux
+        name: build-develop-linux
         path: |
-          Release/Carbon.Linux.Release.tar.gz
-          Release/Carbon.Linux.Release.info
+          Release/Carbon.Linux.Debug.tar.gz
+          Release/Carbon.Linux.Debug.info
 
   # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
@@ -99,8 +91,6 @@ jobs:
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
-      with:
-        ref: production
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
@@ -116,29 +106,28 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release
+        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-production-windows
+        name: build-develop-windows
         path: |
-          Release/Carbon.Windows.Release.zip
-          Release/Carbon.Windows.Release.info
+          Release/Carbon.Windows.Debug.zip
+          Release/Carbon.Windows.Debug.info
 
   # RELEASE --------------------------------------------------------------------
-  release-on-schedule:
-    name: 💾 Production Release
+  release-on-commit:
+    name: 💾 Edge Release
     needs: [ "bootstrap", "build-linux", "build-windows" ]
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name == 'push') || (github.event_name == 'workflow_dispatch') || (github.event_name == 'schedule' && needs.build-linux.outputs.wipe == 'true') }}
 
     steps:
     - name: 🗑️ Delete existing release tag
       uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
       with:
         delete_release: true
-        tag_name: production_build
+        tag_name: edge_build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -149,8 +138,8 @@ jobs:
     - name: ⬇️ Download artifacts
       uses: actions/download-artifact@v3
       with:
-        path: Release/
-        
+        path: Release
+
     - name: Display structure of downloaded files
       run: ls -R
       working-directory: Release
@@ -159,21 +148,27 @@ jobs:
       uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
       with:
         draft: false
-        prerelease: false
-        tag_name: production_build
-        name: 'Production Build — v${{ needs.bootstrap.outputs.version }}'
+        prerelease: true
+        tag_name: edge_build
+        name: 'Edge Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
-          This is a release build of Carbon based on the `production` branch.
-          This build is targeted at the general public.
+          This is a development build of Carbon based on the latest commit pushed to the repository.
+          This build is best used to test the very last changes that can be found in the commit history list, since the [preview] and [stable] builds.
+          
+          This build is targeted at developers.
+          The general public is advised to use one of the [stable] or [preview] builds.
 
           ### How to install
-          1. Download the `Carbon.[Windows|Linux].Release` archive from the attachments below.
+          1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
           2. Unzip the archive to the root of your Rust Dedicated Server.
           3. Restart the server and enjoy.
           
           ${{ needs.build-linux.outputs.build_info }}
+
+          [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
+          [preview]: https://github.com/Carbon-Modding/Carbon.Core/releases/preview_build
         files: |
-          Release/build-production-linux/Carbon.Linux.Release.info
-          Release/build-production-linux/Carbon.Linux.Release.tar.gz
-          Release/build-production-windows/Carbon.Windows.Release.info
-          Release/build-production-windows/Carbon.Windows.Release.zip
+          Release/build-develop-linux/Carbon.Linux.Debug.info
+          Release/build-develop-linux/Carbon.Linux.Debug.tar.gz
+          Release/build-develop-windows/Carbon.Windows.Debug.info
+          Release/build-develop-windows/Carbon.Windows.Debug.zip
