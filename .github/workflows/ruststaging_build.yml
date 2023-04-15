@@ -68,7 +68,7 @@ jobs:
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
 
-    - name: 🔨 Setup the Carbon build environment
+    - name: 🔨 Setup the Carbon build environment (Staging)
       shell: bash
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/update_staging.sh
@@ -110,7 +110,7 @@ jobs:
       run: |
         %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
 
-    - name: 🔨 Setup the Carbon build environment (staging)
+    - name: 🔨 Setup the Carbon build environment (Staging)
       shell: cmd
       run: |
         %GITHUB_WORKSPACE%\Tools\Build\win\update_staging.bat
