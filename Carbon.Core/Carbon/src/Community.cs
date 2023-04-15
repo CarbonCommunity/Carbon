@@ -26,9 +26,22 @@ namespace Carbon;
 
 public class CommunityInternal : Community
 {
-	public static CommunityInternal InternalRuntime { get { return Runtime as CommunityInternal; } set { Runtime = value; } }
+	public static CommunityInternal InternalRuntime
+	{
+		get
+		{
+			return Runtime as CommunityInternal;
+		}
+		set
+		{
+			Runtime = value;
+		}
+	}
 
-	public bool IsInitialized { get; set; }
+	public bool IsInitialized
+	{
+		get; set;
+	}
 
 	public override void ReloadPlugins()
 	{
@@ -63,7 +76,6 @@ public class CommunityInternal : Community
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-			CommandManager = gameObject.AddComponent<CommandManager>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();

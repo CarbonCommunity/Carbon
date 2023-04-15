@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using API.Assembly;
+using API.Commands;
 using Loaders;
 using Utility;
 
@@ -22,19 +23,29 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 	private LibraryLoader _library;
 
 	public IReadOnlyList<string> References
-	{ get => _knownLibs; }
+	{
+		get => _knownLibs;
+	}
 
 	public IAssemblyTypeManager Components
-	{ get => gameObject.GetComponent<ComponentManager>(); }
+	{
+		get => gameObject.GetComponent<ComponentManager>();
+	}
 
 	public IAssemblyTypeManager Extensions
-	{ get => gameObject.GetComponent<ExtensionManager>(); }
+	{
+		get => gameObject.GetComponent<ExtensionManager>();
+	}
 
 	public IAssemblyTypeManager Hooks
-	{ get => gameObject.GetComponent<HookManager>(); }
+	{
+		get => gameObject.GetComponent<HookManager>();
+	}
 
 	public IAssemblyTypeManager Modules
-	{ get => gameObject.GetComponent<ModuleManager>(); }
+	{
+		get => gameObject.GetComponent<ModuleManager>();
+	}
 
 #if EXPERIMENTAL
 	public IAssemblyTypeManager Plugins
@@ -49,9 +60,28 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 		gameObject.AddComponent<ExtensionManager>();
 		gameObject.AddComponent<HookManager>();
 		gameObject.AddComponent<ModuleManager>();
+
 #if EXPERIMENTAL
 		gameObject.AddComponent<PluginManager>();
 #endif
+
+		try
+		{
+			Carbon.Bootstrap.Commands.RegisterCommand(new Command.Console
+			{
+				Name = "test.foobar",
+				Callback = (arg) =>
+				{
+					Logger.Log("foobar");
+				},
+			}, out string reason);
+
+			if (!string.IsNullOrEmpty(reason)) throw new Exception(reason);
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error($"Unable to register command", e);
+		}
 	}
 
 	public byte[] Read(string file)

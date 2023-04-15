@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using API.Commands;
-using Carbon.Contracts;
 using Facepunch;
+using Utility;
 
 /*
  *
@@ -12,9 +12,9 @@ using Facepunch;
  *
  */
 
-namespace Carbon.Managers;
+namespace Components;
 
-public class CommandManager : FacepunchBehaviour, ICommandManager
+public sealed class CommandManager : FacepunchBehaviour, ICommandManager
 {
 	public List<Command> RCon { get; set; } = new();
 	public List<Command> Console { get; set; } = new();
@@ -39,6 +39,7 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 		outCommand = default;
 		return false;
 	}
+
 	public List<T> GetFactory<T>() where T : Command
 	{
 		if (typeof(T) == typeof(Command.RCon)) return RCon as List<T>;
@@ -47,6 +48,7 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 
 		return default;
 	}
+
 	public List<Command> GetFactory(Command command)
 	{
 		switch (command)
@@ -98,13 +100,14 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 			Pool.FreeList(ref list);
 		}
 	}
+
 	public bool Execute(Command command, Command.Args args)
 	{
 		if (command == null) return false;
 
 		try
 		{
-			if (!command.CanExecute(command, args))
+			if (command.CanExecute != null && !command.CanExecute(command, args))
 			{
 				return false;
 			}
@@ -148,6 +151,7 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 		reason = "Successfully added command.";
 		return true;
 	}
+
 	public bool UnregisterCommand(Command command, out string reason)
 	{
 		var factory = GetFactory(command);

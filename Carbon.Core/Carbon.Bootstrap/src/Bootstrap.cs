@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using API.Commands;
 using API.Events;
 using Components;
 using Utility;
@@ -23,28 +24,49 @@ public sealed class Bootstrap
 	private static HarmonyLib.Harmony _harmonyInstance;
 
 	public static string Name
-	{ get => assemblyName; }
+	{
+		get => assemblyName;
+	}
 
 	internal static HarmonyLib.Harmony Harmony
-	{ get => _harmonyInstance; }
+	{
+		get => _harmonyInstance;
+	}
 
 	internal static AnalyticsManager Analytics
-	{ get => _gameObject.GetComponent<AnalyticsManager>(); }
+	{
+		get => _gameObject.GetComponent<AnalyticsManager>();
+	}
 
 	internal static AssemblyManager AssemblyEx
-	{ get => _gameObject.GetComponent<AssemblyManager>(); }
+	{
+		get => _gameObject.GetComponent<AssemblyManager>();
+	}
 
 	internal static DownloadManager Downloader
-	{ get => _gameObject.GetComponent<DownloadManager>(); }
+	{
+		get => _gameObject.GetComponent<DownloadManager>();
+	}
 
 	internal static EventManager Events
-	{ get => _gameObject.GetComponent<EventManager>(); }
+	{
+		get => _gameObject.GetComponent<EventManager>();
+	}
 
 	internal static FileWatcherManager Watcher
-	{ get => _gameObject.GetComponent<FileWatcherManager>(); }
+	{
+		get => _gameObject.GetComponent<FileWatcherManager>();
+	}
 
 	internal static PermissionManager Permissions
-	{ get => _gameObject.GetComponent<PermissionManager>(); }
+	{
+		get => _gameObject.GetComponent<PermissionManager>();
+	}
+
+	internal static CommandManager Commands
+	{
+		get => _gameObject.GetComponent<CommandManager>();
+	}
 
 	static Bootstrap()
 	{
@@ -70,6 +92,7 @@ public sealed class Bootstrap
 		// top priority
 		_gameObject.AddComponent<EventManager>();
 		_gameObject.AddComponent<FileWatcherManager>();
+		_gameObject.AddComponent<CommandManager>();
 
 		// standard priority
 		_gameObject.AddComponent<AnalyticsManager>();
