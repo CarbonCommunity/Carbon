@@ -101,7 +101,9 @@ internal sealed class RustHarmony : MarshalByRefObject
 		{
 			try
 			{
-				PropertyDefinition prop = child.Properties.First(x => x.Name == Item);
+				PropertyDefinition prop = child.Properties.FirstOrDefault(x => x.Name == Item);
+				if (prop is null) return;
+
 				Logger.Debug($" - Patching {prop}");
 
 				child.Methods.Remove(prop.GetMethod);
