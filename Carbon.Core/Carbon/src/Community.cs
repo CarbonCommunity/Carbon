@@ -112,6 +112,12 @@ public class CommunityInternal : Community
 		LoadConfig();
 		Carbon.Logger.Log("Loaded config");
 
+		if (Config.WipeHarmonyLogOnBoot)
+		{
+			var harmonyLogPath = Path.Combine(Defines.GetLogsFolder(), "harmony.log");
+			OsEx.File.Delete(harmonyLogPath);
+		}
+
 		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
 		{
 			ClearCommands();

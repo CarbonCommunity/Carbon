@@ -183,6 +183,10 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
+	[CommandVar("wipeharmonylogonboot")]
+	[AuthLevel(2)]
+	private bool WipeHarmonyLogOnBoot { get { return Community.Runtime.Config.WipeHarmonyLogOnBoot; } set { Community.Runtime.Config.WipeHarmonyLogOnBoot = value; } }
+
 	// DISABLED UNTIL FULLY FUNCTIONAL
 	// [ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
 	// private void Update(ConsoleSystem.Arg arg)
