@@ -3188,9 +3188,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		public enum VendorTypes
 		{
+			Local,
 			Codefling,
-			uMod,
-			Local
+			uMod
 		}
 		public enum FilterTypes
 		{
