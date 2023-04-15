@@ -183,9 +183,11 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
+#if DEBUG
 	[CommandVar("wipeharmonylogonboot")]
 	[AuthLevel(2)]
 	private bool WipeHarmonyLogOnBoot { get { return Community.Runtime.Config.WipeHarmonyLogOnBoot; } set { Community.Runtime.Config.WipeHarmonyLogOnBoot = value; } }
+#endif
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
 	// [ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
@@ -207,7 +209,7 @@ public partial class CorePlugin : CarbonPlugin
 	// 	});
 	// }
 
-	#endregion
+#endregion
 
 #if DEBUG
 	[ConsoleCommand("assembly", "Debug stuff.")]
@@ -222,7 +224,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 #endif
 
-	#region Conditionals
+#region Conditionals
 
 	[ConsoleCommand("addconditional", "Adds a new conditional compilation symbol to the compiler.")]
 	[AuthLevel(2)]
@@ -303,9 +305,9 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}");
 	}
 
-	#endregion
+#endregion
 
-	#region Hooks
+#region Hooks
 
 	[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
 	[AuthLevel(2)]
@@ -417,9 +419,9 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-	#endregion
+#endregion
 
-	#region Config
+#region Config
 
 	[ConsoleCommand("loadconfig", "Loads Carbon config from file.")]
 	[AuthLevel(2)]
@@ -529,9 +531,9 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private bool oCommandChecks { get { return Community.Runtime.Config.oCommandChecks; } set { Community.Runtime.Config.oCommandChecks = value; Community.Runtime.SaveConfig(); } }
 
-	#endregion
+#endregion
 
-	#region Commands
+#region Commands
 
 	[ConsoleCommand("find", "Searches through Carbon-processed console commands.")]
 	[AuthLevel(2)]
@@ -580,9 +582,9 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith($"Chat Commands:\n{body.ToStringMinimal()}");
 	}
 
-	#endregion
+#endregion
 
-	#region Report
+#region Report
 
 	[ConsoleCommand("report", "Reloads all current plugins, and returns a report based on them at the output path.")]
 	[AuthLevel(2)]
@@ -591,9 +593,9 @@ public partial class CorePlugin : CarbonPlugin
 		new Carbon.Components.Report().Init();
 	}
 
-	#endregion
+#endregion
 
-	#region Modules
+#region Modules
 
 	[ConsoleCommand("setmodule", "Enables or disables Carbon modules. Visit root/carbon/modules and use the config file names as IDs.")]
 	[AuthLevel(2)]
@@ -692,9 +694,9 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith(print.ToStringMinimal());
 	}
 
-	#endregion
+#endregion
 
-	#region Mod & Plugin Loading
+#region Mod & Plugin Loading
 
 	[ConsoleCommand("reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything.")]
 	[AuthLevel(2)]
@@ -963,9 +965,9 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-	#endregion
+#endregion
 
-	#region Permissions
+#region Permissions
 
 	[ConsoleCommand("grant", "Grant one or more permissions to users or groups. Do 'c.grant' for syntax info.")]
 	[AuthLevel(2)]
@@ -1292,9 +1294,9 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-	#endregion
+#endregion
 
-	#region CUI
+#region CUI
 
 	[ConsoleCommand("wipeui", "Clears the entire CUI containers and their elements from the caller's client.")]
 	[AuthLevel(2)]
@@ -1303,9 +1305,9 @@ public partial class CorePlugin : CarbonPlugin
 		CuiHelper.DestroyActivePanelList(arg.Player());
 	}
 
-	#endregion
+#endregion
 
-	#region Markers
+#region Markers
 
 	[ConsoleCommand("wipemarkers", "Removes all markers of the calling player or argument filter.")]
 	[AuthLevel(2)]
@@ -1331,5 +1333,5 @@ public partial class CorePlugin : CarbonPlugin
 		player.SendNetworkUpdate();
 	}
 
-	#endregion
+#endregion
 }
