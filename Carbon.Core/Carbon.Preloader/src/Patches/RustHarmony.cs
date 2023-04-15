@@ -90,6 +90,7 @@ internal sealed class RustHarmony : MarshalByRefObject
 	private void Deep_Cleanup()
 	{
 		string[] whitelist = {
+			"HarmonyModInfo",
 			"IHarmonyModHooks",
 			"OnHarmonyModLoadedArgs",
 			"OnHarmonyModUnloadedArgs"

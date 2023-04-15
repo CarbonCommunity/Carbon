@@ -52,11 +52,13 @@ public partial class Category_Static
 					commandArgs.Arguments = args2;
 					commandArgs.Player = player;
 
-					Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Console, command, out var cmd);
-
-					Command.FromRcon = false;
-					Community.Runtime.CommandManager.Execute(cmd, commandArgs);
-					Facepunch.Pool.Free(ref commandArgs);
+					if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Console, command, out var cmd))
+					{
+						Command.FromRcon = false;
+						Community.Runtime.CommandManager.Execute(cmd, commandArgs);
+						Facepunch.Pool.Free(ref commandArgs);
+						return false;
+					}
 				}
 				catch (Exception exception) { Logger.Error($"Failed ConsoleSystem.Run [{strCommand}] [{string.Join(" ", args)}]", exception); }
 

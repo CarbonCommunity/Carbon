@@ -22,6 +22,7 @@ public interface IAnalyticsManager
 
 	public string ClientID { get; }
 	public string SessionID { get; }
+	public string SystemID { get; }
 
 
 	public void SessionStart();

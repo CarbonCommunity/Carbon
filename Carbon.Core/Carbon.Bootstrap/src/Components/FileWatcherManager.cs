@@ -16,12 +16,11 @@ namespace Components;
 
 internal sealed class FileWatcherManager : MonoBehaviour, IFileWatcherManager, IDisposable
 {
-	private List<WatchFolder> _watchlist;
+	private readonly List<WatchFolder> _watchlist = new();
 
 	internal void Awake()
 	{
 		enabled = false; // by default disable the behaviour
-		_watchlist = new();
 	}
 
 	internal void OnEnable()

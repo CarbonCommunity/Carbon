@@ -18,6 +18,7 @@ using Utility;
 
 namespace Components;
 #pragma warning disable IDE0051
+
 internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsManager
 {
 	private int _sessions;
@@ -28,7 +29,6 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 	private const string MeasurementID = "G-M7ZBRYS3X7";
 	private const string MeasurementSecret = "edBQH3_wRCWxZSzx5Y2IWA";
-
 
 	public string Branch
 	{ get => _branch.Value; }
@@ -92,13 +92,8 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 			.Assembly.GetName().Version.ToString();
 	});
 
-
-	public string SessionID
-	{ get; private set; }
-
 	public string ClientID
 	{ get => _serverInfo.Value.UID; }
-
 
 	private static readonly Lazy<Identity> _serverInfo = new(() =>
 	{
@@ -108,7 +103,6 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 		{
 			string identity = (string)AccessTools.TypeByName("ConVar.Server")
 				?.GetField("identity", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
-
 
 			_location = Path.Combine(Context.Game, "server", identity, "carbon.id");
 
@@ -131,6 +125,12 @@ internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsMa
 
 		return info;
 	});
+
+	public string SessionID
+	{ get; private set; }
+
+	public string SystemID
+	{ get => UnityEngine.SystemInfo.deviceUniqueIdentifier; }
 
 	public void Awake()
 	{
