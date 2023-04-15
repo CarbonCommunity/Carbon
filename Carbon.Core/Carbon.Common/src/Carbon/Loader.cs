@@ -305,7 +305,7 @@ public static class Loader
 			{
 				foreach (var permission in ps)
 				{
-					if (hookable is RustPlugin plugin)
+					if (hookable is RustPlugin plugin && !plugin.permission.PermissionExists(permission, hookable))
 					{
 						plugin.permission.RegisterPermission(permission, hookable);
 					}

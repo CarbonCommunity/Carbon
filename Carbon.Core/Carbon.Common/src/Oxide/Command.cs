@@ -156,7 +156,10 @@ namespace Oxide.Game.Rust.Libraries
 							iplayer.IsServer = player == null;
 							arguments.Add(iplayer);
 						}
-						else arguments.Add(player);
+						else
+						{
+							arguments.Add(player);
+						}
 
 						switch (parameters.Length)
 						{
@@ -258,7 +261,10 @@ namespace Oxide.Game.Rust.Libraries
 						{
 							if (methodInfo == covalenceMethod)
 							{
-								if (player == null) arguments.Add(new RustPlayer { IsServer = true });
+								if (player == null)
+								{
+									arguments.Add(new RustPlayer { IsServer = true });
+								}
 								else
 								{
 									var iplayer = player.AsIPlayer();

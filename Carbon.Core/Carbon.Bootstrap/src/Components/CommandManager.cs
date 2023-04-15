@@ -142,7 +142,7 @@ public sealed class CommandManager : FacepunchBehaviour, ICommandManager
 
 		if (Contains(factory, command.Name, out _))
 		{
-			reason = "Command already exists.";
+			reason = $"Command '{command.Name}' already exists.";
 			return false;
 		}
 

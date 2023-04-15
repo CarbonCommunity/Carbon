@@ -249,14 +249,13 @@ public partial class CorePlugin : CarbonPlugin
 				return false;
 			}
 
-			var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
-			commandArgs.Arguments = args;
-			commandArgs.Player = player;
-
-			Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd);
-
-			if (Community.Runtime.CommandManager.Execute(cmd, commandArgs))
+			if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd))
 			{
+				var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+				commandArgs.Arguments = args;
+				commandArgs.Player = player;
+
+				Community.Runtime.CommandManager.Execute(cmd, commandArgs);
 				Facepunch.Pool.Free(ref commandArgs);
 				return false;
 			}
