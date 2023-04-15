@@ -2,7 +2,7 @@
 ### Copyright (c) 2023 Carbon Community 
 ### All rights reserved
 ###
-name: rust_beta/staging Build
+name: Rust (Staging) Build
 concurrency: build-1-staging
 
 on:
