@@ -68,19 +68,24 @@ jobs:
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
 
+    - name: 🔨 Setup the Carbon build environment
+      shell: bash
+      run: |
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/update_staging.sh
+        
     - name: 🐧 Built Carbon on Linux
       shell: bash
       run: |
         export VERSION=${{ needs.bootstrap.outputs.version }}
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix
         
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
         name: build-staging-linux
         path: |
-          Release/Carbon.Linux.Release.tar.gz
-          Release/Carbon.Linux.Release.info
+          Release/Carbon.Linux.Debug.tar.gz
+          Release/Carbon.Linux.Debug.info
 
   # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
@@ -105,16 +110,21 @@ jobs:
       run: |
         %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
 
+    - name: 🔨 Setup the Carbon build environment (staging)
+      shell: cmd
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\win\update_staging.bat
+        
     - name: 🔨 Built Carbon on Windows
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release
+        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
         name: build-staging-windows
         path: |
-          Release/Carbon.Windows.Release.zip
-          Release/Carbon.Windows.Release.info
+          Release/Carbon.Windows.Debug.zip
+          Release/Carbon.Windows.Debug.info
