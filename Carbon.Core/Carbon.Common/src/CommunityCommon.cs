@@ -26,14 +26,11 @@ namespace Carbon;
 public class Community
 {
 	public static Community Runtime
-	{
-		get; set;
-	}
+	{ get; set; }
 
 	public static GameObject GameObject
-	{
-		get => _gameObject.Value;
-	}
+	{ get => _gameObject.Value; }
+
 	private static readonly Lazy<GameObject> _gameObject = new(() =>
 	{
 		GameObject gameObject = GameObject.Find("Carbon");
@@ -41,86 +38,69 @@ public class Community
 	});
 
 	public IAnalyticsManager Analytics
-	{
-		get => _analyticsManager.Value;
-	}
+	{ get => _analyticsManager.Value; }
+
+	public IAssemblyManager AssemblyEx
+	{ get => _assemblyEx.Value; }
+
+	public ICommandManager CommandManager
+	{ get => _commandManager.Value; }
+
+	public IDownloadManager Downloader
+	{ get => _downloadManager.Value; }
+
+	public IEventManager Events
+	{ get => _eventManager.Value; }
+
 	private readonly Lazy<IAnalyticsManager> _analyticsManager
 		= new(GameObject.GetComponent<IAnalyticsManager>);
 
-	public IAssemblyManager AssemblyEx
-	{
-		get => _assemblyEx.Value;
-	}
 	private readonly Lazy<IAssemblyManager> _assemblyEx
 		= new(GameObject.GetComponent<IAssemblyManager>);
 
-	public IDownloadManager Downloader
-	{
-		get => _downloadManager.Value;
-	}
-	private readonly Lazy<IDownloadManager> _downloadManager
-		= new(GameObject.GetComponent<IDownloadManager>);
-
-	public IEventManager Events
-	{
-		get => _eventManager.Value;
-	}
-	private readonly Lazy<IEventManager> _eventManager
-		= new(GameObject.GetComponent<IEventManager>);
-
-	public ICommandManager CommandManager
-	{
-		get => _commandManager.Value;
-	}
 	private readonly Lazy<ICommandManager> _commandManager
 		= new(GameObject.GetComponent<ICommandManager>);
 
+	private readonly Lazy<IDownloadManager> _downloadManager
+		= new(GameObject.GetComponent<IDownloadManager>);
+
+	private readonly Lazy<IEventManager> _eventManager
+		= new(GameObject.GetComponent<IEventManager>);
+
 
 	public IPatchManager HookManager
-	{
-		get; set;
-	}
+	{ get; set; }
+
 	public IScriptProcessor ScriptProcessor
-	{
-		get; set;
-	}
+	{ get; set; }
+
 	public IModuleProcessor ModuleProcessor
-	{
-		get; set;
-	}
+	{ get; set; }
+
 	public IWebScriptProcessor WebScriptProcessor
-	{
-		get; set;
-	}
+	{ get; set; }
+
 	public ICarbonProcessor CarbonProcessor
-	{
-		get; set;
-	}
+	{ get; set; }
 
 	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
+
 	public static bool IsServerFullyInitializedCache
-	{
-		get; internal set;
-	}
+	{ get; internal set; }
 
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
 
 	public Config Config
-	{
-		get; set;
-	}
+	{ get; set; }
+
 	public RustPlugin CorePlugin
-	{
-		get; set;
-	}
+	{ get; set; }
+
 	public Loader.CarbonMod Plugins
-	{
-		get; set;
-	}
+	{ get; set; }
+
 	public Entities Entities
-	{
-		get; set;
-	}
+	{ get; set; }
 
 	public Community()
 	{
@@ -129,6 +109,7 @@ public class Community
 			Events.Subscribe(CarbonEvent.CarbonStartup, args =>
 			{
 				Logger.Log($"Carbon fingerprint: {Analytics.ClientID}");
+				Logger.Log($"System fingerprint: {Analytics.SystemID}");
 				Analytics.SessionStart();
 			});
 
