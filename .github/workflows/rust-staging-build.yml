@@ -135,6 +135,8 @@ jobs:
   # BUILD WINDOWS --------------------------------------------------------------
   artifacts-windows:
     runs-on: windows-latest
+    needs: bootstrap
+    continue-on-error: true
     steps:
       - name: Install Jekyll
         run: gem install jekyll
