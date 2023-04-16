@@ -2,7 +2,7 @@
 ### Copyright (c) 2023 Carbon Community 
 ### All rights reserved
 ###
-name: Rust (aux01) Build
+name: Rust (aux02) Build
 concurrency: build-1-aux02
 
 on:
