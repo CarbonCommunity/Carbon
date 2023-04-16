@@ -132,10 +132,10 @@ jobs:
           Release/Carbon.Windows.Debug.zip
           Release/Carbon.Windows.Debug.info
 
-  # BUILD WINDOWS --------------------------------------------------------------
-  artifacts-windows:
+  # ARTIFACTS WINDOWS --------------------------------------------------------------
+  artifacts:
     runs-on: windows-latest
-    needs: build-windows
+    needs: [ "bootstrap", "build-linux", "build-windows" ]
     continue-on-error: true
     steps:
       - name: Install Jekyll
