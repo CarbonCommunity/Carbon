@@ -23,7 +23,7 @@ public class Initializer : ICarbonComponent
 	{
 		try
 		{
-			if (File.Exists(Path.Combine(Defines.GetRustManagedFolder(), "Oxide.Core.dll")))
+			if (Type.GetType("Oxide.Core.Interface, Oxide.Core") is not null)
 			{
 				Logger.Log(Environment.NewLine +
 					@"                                                          " + Environment.NewLine +
@@ -32,14 +32,19 @@ public class Initializer : ICarbonComponent
 					@" |  |  |  |       |      <       |_|   |_|       |    |  |" + Environment.NewLine +
 					@" |________|___|___|___|__|__|____|_______|__|____|_______|" + Environment.NewLine +
 					@"                                                          " + Environment.NewLine +
-					@"   OXIDE  IS  CURRENTLY  LOADED  IN  YOUR  GAME  FOLDER   " + Environment.NewLine +
-					@"   DIRECTORY: RUSTDEDICATED_DATA/MANAGED. PLEASE DELETE   " + Environment.NewLine +
-					@"   ALL OXIDE-RELATED DLLS  IN  ORDER FOR CARBON TO WORK   " + Environment.NewLine +
-					@"   PROPERLY.                       THANK YOU VERY MUCH!   " + Environment.NewLine +
+					@"    WE HAVE DETECTED YOUR SERVER IS STILL USING OXIDE.    " + Environment.NewLine +
+					@"    CARBON WILL NOT WORK PROPERLY.                        " + Environment.NewLine +
+					@"                                                          " + Environment.NewLine +
+					@"    REMOVE THE 'RustDedicated_Data\Managed' FOLDER AND    " + Environment.NewLine +
+					@"    EXECUTE YOUR STEAMCMD UPDATE PROCESS AGAIN.           " + Environment.NewLine +
+					@"                                                          " + Environment.NewLine +
+					@"    THIS SERVER WILL BE TERMINATED IN 60 SECONDS.         " + Environment.NewLine +
+					@"    THANK YOU <3                                          " + Environment.NewLine +
 					@"                                                          " + Environment.NewLine
 				);
 
-				Thread.Sleep(15000);
+				Thread.Sleep(60000);
+				UnityEngine.Application.Quit();
 				return;
 			}
 		}
@@ -63,14 +68,20 @@ public class Initializer : ICarbonComponent
 					@" |  |  |  |       |      <       |_|   |_|       |    |  |" + Environment.NewLine +
 					@" |________|___|___|___|__|__|____|_______|__|____|_______|" + Environment.NewLine +
 					@"                                                          " + Environment.NewLine +
-					@"   THE ASSEMBLER CODE IS NOT PUBLICIZED, CARBON WILL NOT  " + Environment.NewLine +
-					@"   WORK AS EXPECTED.  PLEASE MAKE SURE UNITY DOORSTOP IS  " + Environment.NewLine +
-					@"   BEING EXECUTED.  IF THE PROBLEM PRESIST PLEASE OPEN A  " + Environment.NewLine +
-					@"   NEW ISSUE AT GITHUB OR ASK FOR SUPPORT ON OUR DISCORD  " + Environment.NewLine +
+					@"    THE SERVER ASSEMBLY CODE IS NOT PUBLICIZED.           " + Environment.NewLine +
+					@"    CARBON WILL NOT WORK PROPERLY.                        " + Environment.NewLine +
+					@"                                                          " + Environment.NewLine +
+					@"    PLEASE MAKE SURE UNITY DOORSTOP IS BEING EXECUTED.    " + Environment.NewLine +
+					@"    IF THE PROBLEM PRESIST PLEASE OPEN A NEW ISSUE AT     " + Environment.NewLine +
+					@"    GITHUB OR ASK FOR SUPPORT ON OUR DISCORD.             " + Environment.NewLine +
+					@"                                                          " + Environment.NewLine +
+					@"    THIS SERVER WILL BE TERMINATED IN 60 SECONDS.         " + Environment.NewLine +
+					@"    THANK YOU <3                                          " + Environment.NewLine +
 					@"                                                          " + Environment.NewLine
 				);
 
-				Thread.Sleep(15000);
+				Thread.Sleep(60000);
+				UnityEngine.Application.Quit();
 				return;
 			}
 		}

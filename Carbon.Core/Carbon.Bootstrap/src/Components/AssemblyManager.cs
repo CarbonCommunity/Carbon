@@ -57,16 +57,14 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 
 		try
 		{
-			Carbon.Bootstrap.Commands.RegisterCommand(new Command.Console
+			if (!Carbon.Bootstrap.Commands.RegisterCommand(new Command.Console
 			{
 				Name = "test.foobar",
 				Callback = (arg) =>
 				{
 					Logger.Log("foobar");
 				},
-			}, out string reason);
-
-			if (!string.IsNullOrEmpty(reason)) throw new Exception(reason);
+			}, out string reason)) throw new Exception(reason);
 		}
 		catch (System.Exception e)
 		{
