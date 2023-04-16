@@ -108,8 +108,7 @@ internal sealed class GroupManager : IGroupManagement
 	{
 		try
 		{
-			string query = "SELECT `Title` FROM `Group` WHERE `GroupID` = ?";
-			return _database.QueryString(query, groupID);
+			return _database.Query<string>($"SELECT `Title` FROM `Group` WHERE `GroupID` = {groupID}");
 		}
 		catch (System.Exception e)
 		{
@@ -122,8 +121,7 @@ internal sealed class GroupManager : IGroupManagement
 	{
 		try
 		{
-			string query = "SELECT `Rank` FROM `Group` WHERE `GroupID` = ?";
-			return _database.QueryInt(query, groupID);
+			return _database.Query<int>($"SELECT `Rank` FROM `Group` WHERE `GroupID` = {groupID}");
 		}
 		catch (System.Exception e)
 		{
@@ -136,8 +134,7 @@ internal sealed class GroupManager : IGroupManagement
 	{
 		try
 		{
-			string query = "SELECT `ParentGroup` FROM `Group` WHERE `GroupID` = ?";
-			return _database.QueryString(query, groupID);
+			return _database.Query<string>($"SELECT `ParentGroup` FROM `Group` WHERE `GroupID` = {groupID}");
 		}
 		catch (System.Exception e)
 		{

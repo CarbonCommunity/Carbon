@@ -42,7 +42,7 @@ namespace Oxide.Game.Rust.Libraries
 				{
 					if (authenticatedCommand.Auth.Permissions != null)
 					{
-						var hasPerm = authenticatedCommand.Auth.Permissions.Length == 0;
+						var hasPerm = authenticatedCommand.Auth.Permissions.Count(x => !string.IsNullOrEmpty(x)) == 0;
 						foreach (var permission in authenticatedCommand.Auth.Permissions)
 						{
 							if (Community.Runtime.CorePlugin.permission.UserHasPermission(player.UserIDString, permission))
@@ -61,7 +61,7 @@ namespace Oxide.Game.Rust.Libraries
 
 					if (authenticatedCommand.Auth.Groups != null)
 					{
-						var hasGroup = authenticatedCommand.Auth.Groups.Length == 0;
+						var hasGroup = authenticatedCommand.Auth.Groups.Count(x => !string.IsNullOrEmpty(x)) == 0;
 						foreach (var group in authenticatedCommand.Auth.Groups)
 						{
 							if (Community.Runtime.CorePlugin.permission.UserHasGroup(player.UserIDString, group))
@@ -117,6 +117,7 @@ namespace Oxide.Game.Rust.Libraries
 					}
 				},
 				Help = help,
+				Token = reference,
 				Auth = new API.Commands.Command.Authentication
 				{
 					AuthLevel = authLevel,
@@ -214,6 +215,7 @@ namespace Oxide.Game.Rust.Libraries
 					}
 				},
 				Help = help,
+				Token = reference,
 				Auth = new API.Commands.Command.Authentication
 				{
 					AuthLevel = authLevel,
