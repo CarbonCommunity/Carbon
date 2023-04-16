@@ -131,3 +131,23 @@ jobs:
         path: |
           Release/Carbon.Windows.Debug.zip
           Release/Carbon.Windows.Debug.info
+
+  # BUILD WINDOWS --------------------------------------------------------------
+  artifacts-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Install Jekyll
+        run: gem install jekyll
+        
+      - name: Build Jekyll site
+        run: bundle exec jekyll build
+        
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ruststaging
+          path: |
+            Release/Carbon.Windows.Debug.info
+            Release/Carbon.Windows.Debug.zip
+            Release/Carbon.Linux.Debug.info
+            Release/Carbon.Linux.Debug.tar.gz
