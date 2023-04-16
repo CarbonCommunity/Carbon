@@ -132,8 +132,7 @@ internal sealed class UserManager : IUserManagement
 	{
 		try
 		{
-			string query = "SELECT `LastSeenNickname` FROM `User` WHERE `SteamID` = ?";
-			return _database.QueryString(query, steamID);
+			return _database.Query<string>($"SELECT `LastSeenNickname` FROM `User` WHERE `SteamID` = {steamID}");
 		}
 		catch (System.Exception e)
 		{
@@ -149,8 +148,7 @@ internal sealed class UserManager : IUserManagement
 	{
 		try
 		{
-			string query = "SELECT `Language` FROM `User` WHERE `SteamID` = ?";
-			return _database.QueryString(query, steamID);
+			return _database.Query<string>($"SELECT `Language` FROM `User` WHERE `SteamID` = {steamID}");
 		}
 		catch (System.Exception e)
 		{
