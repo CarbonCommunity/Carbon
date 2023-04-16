@@ -21,6 +21,12 @@ public class Command
 	public Action<Args> Callback { get; set; }
 	public Func<Command, Args, bool> CanExecute { get; set; }
 
+	public void Normalize()
+	{
+		Name = Name?.ToLower().Trim();
+		Help = Help?.Trim();
+	}
+
 	public class Args
 	{
 		public string[] Arguments { get; set; }
@@ -51,7 +57,6 @@ public class Command
 	{
 		return (Flags & flag) != 0;
 	}
-
 	public void SetFlag(CommandFlags flag, bool wants)
 	{
 		switch (wants)

@@ -138,6 +138,8 @@ public sealed class CommandManager : FacepunchBehaviour, ICommandManager
 			return false;
 		}
 
+		command.Normalize();
+
 		var factory = GetFactory(command);
 
 		if (Contains(factory, command.Name, out _))
