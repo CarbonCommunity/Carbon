@@ -3,10 +3,13 @@
 ### All rights reserved
 ###
 name: Rust (aux01) Build
-concurrency: build-1-aux01
+concurrency: build-rust-aux01
 
 on:
   workflow_dispatch:
+
+  schedule:
+    - cron: '00 19 * * *'
 
 jobs:
   bootstrap:
@@ -45,7 +48,7 @@ jobs:
     name: 🐧 Linux
     needs: bootstrap
     runs-on: ubuntu-latest
-    continue-on-error: false
+    continue-on-error: true
 
     outputs:
       wipe: ${{ needs.bootstrap.outputs.wipe }}
@@ -92,7 +95,7 @@ jobs:
     name: 💻 Windows
     needs: bootstrap
     runs-on: windows-latest
-    continue-on-error: false
+    continue-on-error: true
     
     steps:
     - name: 🔗 Checkout source code from github

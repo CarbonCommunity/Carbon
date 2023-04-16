@@ -2,11 +2,14 @@
 ### Copyright (c) 2023 Carbon Community 
 ### All rights reserved
 ###
-name: Rust (Staging) Build
-concurrency: build-1-staging
+name: Rust (aux02) Build
+concurrency: build-rust-aux02
 
 on:
   workflow_dispatch:
+
+  schedule:
+    - cron: '00 19 * * *'
 
 jobs:
   bootstrap:
@@ -28,7 +31,7 @@ jobs:
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
         with:
-          ref: rust_beta/staging
+          ref: rust_beta/aux02
 
       - name: 📅 Prepare the environment
         id: step1
@@ -45,18 +48,18 @@ jobs:
     name: 🐧 Linux
     needs: bootstrap
     runs-on: ubuntu-latest
-    continue-on-error: false
+    continue-on-error: true
 
     outputs:
       wipe: ${{ needs.bootstrap.outputs.wipe }}
-      artifact: build-staging-${{ needs.bootstrap.outputs.ref }}-linux
+      artifact: build-aux02-${{ needs.bootstrap.outputs.ref }}-linux
       build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
     
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: rust_beta/staging
+        ref: rust_beta/aux02
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
@@ -68,10 +71,10 @@ jobs:
       run: |
         ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
 
-    - name: 🔨 Setup the Carbon build environment (Staging)
+    - name: 🔨 Setup the Carbon build environment (aux02)
       shell: bash
       run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/update_staging.sh
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/update_aux02.sh
         
     - name: 🐧 Built Carbon on Linux
       shell: bash
@@ -82,7 +85,7 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-staging-linux
+        name: build-aux02-linux
         path: |
           Release/Carbon.Linux.Debug.tar.gz
           Release/Carbon.Linux.Debug.info
@@ -92,13 +95,13 @@ jobs:
     name: 💻 Windows
     needs: bootstrap
     runs-on: windows-latest
-    continue-on-error: false
+    continue-on-error: true
     
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: rust_beta/staging
+        ref: rust_beta/aux02
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
@@ -110,10 +113,10 @@ jobs:
       run: |
         %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
 
-    - name: 🔨 Setup the Carbon build environment (Staging)
+    - name: 🔨 Setup the Carbon build environment (aux02)
       shell: cmd
       run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\update_staging.bat
+        %GITHUB_WORKSPACE%\Tools\Build\win\update_aux02.bat
         
     - name: 🔨 Built Carbon on Windows
       shell: cmd
@@ -124,7 +127,7 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-staging-windows
+        name: build-aux02-windows
         path: |
           Release/Carbon.Windows.Debug.zip
           Release/Carbon.Windows.Debug.info
