@@ -24,6 +24,8 @@ public class Config
 	public bool IsModded { get; set; } = true;
 	public bool HigherPriorityHookWarns { get; set; } = false;
 	public int EntityMapBufferSize { get; set; } = 100000;
+	public string PlayerDefaultGroup { get; set; } = "default";
+	public string AdminDefaultGroup { get; set; } = "admin";
 	public int LogFileMode { get; set; } = 2;
 	public int LogVerbosity { get; set; } = 0;
 	public bool UnityStacktrace { get; set; } = false;

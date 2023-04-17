@@ -371,15 +371,15 @@ public class Permission : Library
 			user.Language = player.net.connection.info.GetString("global.language", "en");
 		else user.Language = "en";
 
-		AddUserGroup(player.UserIDString, "default");
+		AddUserGroup(player.UserIDString, Community.Runtime.Config.PlayerDefaultGroup);
 
 		if (player.IsAdmin)
 		{
-			AddUserGroup(player.UserIDString, "admin");
+			AddUserGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup);
 		}
-		else if (UserHasGroup(player.UserIDString, "admin"))
+		else if (UserHasGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup))
 		{
-			RemoveUserGroup(player.UserIDString, "admin");
+			RemoveUserGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup);
 		}
 
 		if (iPlayerField.GetValue(player) == null) iPlayerField.SetValue(player, new RustPlayer(player));
