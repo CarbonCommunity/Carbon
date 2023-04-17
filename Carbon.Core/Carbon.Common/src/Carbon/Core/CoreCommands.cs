@@ -10,8 +10,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Commands;
 using API.Hooks;
-using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -182,6 +182,12 @@ public partial class CorePlugin : CarbonPlugin
 				break;
 		}
 	}
+
+#if DEBUG
+	[CommandVar("wipeharmonylogonboot", "When enabled, the harmony.log file found in `carbon/logs` gets wiped on Carbon boot.")]
+	[AuthLevel(2)]
+	private bool WipeHarmonyLogOnBoot { get { return Community.Runtime.Config.WipeHarmonyLogOnBoot; } set { Community.Runtime.Config.WipeHarmonyLogOnBoot = value; } }
+#endif
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
 	// [ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
@@ -541,7 +547,7 @@ public partial class CorePlugin : CarbonPlugin
 			if (command.HasFlag(CommandFlags.Hidden) || (!string.IsNullOrEmpty(filter) && !command.Name.Contains(filter))) continue;
 
 			var value = " ";
-			
+
 			if (command.Token != null)
 			{
 				if (command.Token is FieldInfo field) value = field.GetValue(command.Reference as RustPlugin)?.ToString();
@@ -962,6 +968,14 @@ public partial class CorePlugin : CarbonPlugin
 	#endregion
 
 	#region Permissions
+
+	[CommandVar("defaultplayergroup", "The default group for any player with the regular authority level they get assigned to.")]
+	[AuthLevel(2)]
+	private string DefaultPlayerGroup { get { return Community.Runtime.Config.PlayerDefaultGroup; } set { Community.Runtime.Config.PlayerDefaultGroup = value; } }
+
+	[CommandVar("defaultadmingroup", "The default group players with the admin flag get assigned to.")]
+	[AuthLevel(2)]
+	private string DefaultAdminGroup { get { return Community.Runtime.Config.AdminDefaultGroup; } set { Community.Runtime.Config.AdminDefaultGroup = value; } }
 
 	[ConsoleCommand("grant", "Grant one or more permissions to users or groups. Do 'c.grant' for syntax info.")]
 	[AuthLevel(2)]

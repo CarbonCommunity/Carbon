@@ -145,7 +145,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 				{
 					Puts($"Success!");
 
-					if(launch) Launch();
+					if (launch) Launch();
 					callback?.Invoke();
 				}
 				else PutsError($"Failed to validate.");
@@ -324,7 +324,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 public class DRMConfig
 {
-	public Dictionary<string, DRMModule.Provider> Processors { get; set; } = new ()
+	public Dictionary<string, DRMModule.Provider> Processors { get; set; } = new()
 	{
 		["my_drm"] = new()
 		{

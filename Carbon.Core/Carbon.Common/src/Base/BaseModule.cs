@@ -111,7 +111,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override void Load()
 	{
-		if(Disabled) return;
+		if (Disabled) return;
 
 		var shouldSave = false;
 
@@ -197,7 +197,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
-		if(initialized) Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		if (initialized) Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
 		SubscribeAll();
 
@@ -219,7 +219,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	public override void OnServerSaved()
 	{
 		try { Save(); }
-		catch(Exception ex)
+		catch (Exception ex)
 		{
 			Logger.Error($"Couldn't save '{Name}'", ex);
 		}
@@ -231,7 +231,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override void OnPostServerInit()
 	{
-		
+
 	}
 
 	#region Permission

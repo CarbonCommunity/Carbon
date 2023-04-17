@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using API.Commands;
 using Carbon;
 using Carbon.Base;
 using Carbon.Extensions;
 using Carbon.Plugins;
-using ConVar;
-using Facepunch;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
 using Oxide.Game.Rust.Libraries.Covalence;
 using Oxide.Plugins;
-using static Carbon.Base.Command;
 using static ConsoleSystem;
 using Pool = Facepunch.Pool;
 
@@ -29,11 +26,14 @@ namespace Oxide.Game.Rust.Libraries
 {
 	public class Command : Library
 	{
-		public static bool FromRcon { get; set; }
-
-		internal readonly Func<Carbon.Base.Command, Args, bool> _playerExecute = (cmd, args) =>
+		public static bool FromRcon
 		{
-			if (args is PlayerArgs playerArgs)
+			get; set;
+		}
+
+		internal readonly Func<API.Commands.Command, API.Commands.Command.Args, bool> _playerExecute = (cmd, args) =>
+		{
+			if (args is PlayerArgs playerArgs && playerArgs != null)
 			{
 				var player = playerArgs.Player as BasePlayer;
 				var authenticatedCommand = cmd as AuthenticatedCommand;
@@ -42,7 +42,7 @@ namespace Oxide.Game.Rust.Libraries
 				{
 					if (authenticatedCommand.Auth.Permissions != null)
 					{
-						var hasPerm = authenticatedCommand.Auth.Permissions.Length == 0;
+						var hasPerm = authenticatedCommand.Auth.Permissions.Count(x => !string.IsNullOrEmpty(x)) == 0;
 						foreach (var permission in authenticatedCommand.Auth.Permissions)
 						{
 							if (Community.Runtime.CorePlugin.permission.UserHasPermission(player.UserIDString, permission))
@@ -61,7 +61,7 @@ namespace Oxide.Game.Rust.Libraries
 
 					if (authenticatedCommand.Auth.Groups != null)
 					{
-						var hasGroup = authenticatedCommand.Auth.Groups.Length == 0;
+						var hasGroup = authenticatedCommand.Auth.Groups.Count(x => !string.IsNullOrEmpty(x)) == 0;
 						foreach (var group in authenticatedCommand.Auth.Groups)
 						{
 							if (Community.Runtime.CorePlugin.permission.UserHasGroup(player.UserIDString, group))
@@ -102,7 +102,7 @@ namespace Oxide.Game.Rust.Libraries
 
 		public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 		{
-			var cmd = new Carbon.Base.Command.Chat
+			var cmd = new API.Commands.Command.Chat
 			{
 				Name = command,
 				Reference = plugin,
@@ -117,7 +117,8 @@ namespace Oxide.Game.Rust.Libraries
 					}
 				},
 				Help = help,
-				Auth = new Authentication
+				Token = reference,
+				Auth = new API.Commands.Command.Authentication
 				{
 					AuthLevel = authLevel,
 					Permissions = permissions,
@@ -156,7 +157,10 @@ namespace Oxide.Game.Rust.Libraries
 							iplayer.IsServer = player == null;
 							arguments.Add(iplayer);
 						}
-						else arguments.Add(player);
+						else
+						{
+							arguments.Add(player);
+						}
 
 						switch (parameters.Length)
 						{
@@ -167,7 +171,7 @@ namespace Oxide.Game.Rust.Libraries
 								}
 
 							case 3:
-						 		{
+								{
 									arguments.Add(cmd);
 									arguments.Add(args);
 									break;
@@ -195,9 +199,9 @@ namespace Oxide.Game.Rust.Libraries
 				if (result != null) Array.Clear(result, 0, result.Length);
 			}, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
 		}
-		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback,  string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
+		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 		{
-			var cmd = new Carbon.Base.Command.Console
+			var cmd = new API.Commands.Command.Console
 			{
 				Name = command,
 				Reference = plugin,
@@ -211,7 +215,8 @@ namespace Oxide.Game.Rust.Libraries
 					}
 				},
 				Help = help,
-				Auth = new Authentication
+				Token = reference,
+				Auth = new API.Commands.Command.Authentication
 				{
 					AuthLevel = authLevel,
 					Permissions = permissions,
@@ -258,7 +263,10 @@ namespace Oxide.Game.Rust.Libraries
 						{
 							if (methodInfo == covalenceMethod)
 							{
-								if (player == null) arguments.Add(new RustPlayer { IsServer = true });
+								if (player == null)
+								{
+									arguments.Add(new RustPlayer { IsServer = true });
+								}
 								else
 								{
 									var iplayer = player.AsIPlayer();
@@ -318,7 +326,7 @@ namespace Oxide.Game.Rust.Libraries
 
 						result = arguments.ToArray();
 
-						if (Interface.CallHook("OnCarbonCommand", arg) == null)
+						if (Interface.CallHook("OnConsoleCommand", arg) == null)
 						{
 							methodInfo?.Invoke(plugin, result);
 
@@ -363,7 +371,7 @@ namespace Oxide.Game.Rust.Libraries
 					arguments.Add(arg);
 					result = arguments.ToArray();
 
-					if (Interface.CallHook("OnCarbonCommand", arg) == null)
+					if (Interface.CallHook("OnConsoleCommand", arg) == null)
 					{
 						callback.Invoke(arg);
 

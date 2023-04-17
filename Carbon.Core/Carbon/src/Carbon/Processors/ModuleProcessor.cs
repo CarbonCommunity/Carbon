@@ -13,7 +13,7 @@ using Facepunch;
  *
  */
 
-namespace Carbon.Processors;
+namespace Carbon.Managers;
 
 public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 {

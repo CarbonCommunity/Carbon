@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using API.Abstracts;
 using API.Assembly;
 using Utility;
@@ -18,6 +19,14 @@ namespace Loaders;
 
 internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 {
+	private static readonly string[] _blacklist = {
+		@"^.+\.XmlSerializers$",
+		@"^Oxide\..+$",
+		@"^System.Globalization$",
+		@"^System.Management$",
+		@"^System.Xml.Serialization$",
+	};
+
 	// Singleton pattern needs a private ctor
 	private LibraryLoader()
 		=> RegisterDomain(AppDomain.CurrentDomain);
@@ -66,6 +75,7 @@ internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 	{
 		try
 		{
+			if (IsBlacklisted(name)) return default;
 			string path = default;
 
 #if DEBUG_VERBOSE
@@ -80,7 +90,9 @@ internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 
 			if (String.IsNullOrEmpty(path))
 			{
-				Logger.Warn($"Unresolved library: '{name}'");
+#if DEBUG
+				Logger.Error($"Unresolved library: '{name}'");
+#endif
 				return default;
 			}
 
@@ -117,6 +129,13 @@ internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 	{
 		Item item = _cache.Select(x => x.Value).Last(x => x.Name == name);
 		return item ?? default;
+	}
+
+	internal static bool IsBlacklisted(string Name)
+	{
+		foreach (string Item in _blacklist)
+			if (Regex.IsMatch(Name, Item)) return true;
+		return false;
 	}
 
 	private bool _disposing;

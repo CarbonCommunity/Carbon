@@ -93,7 +93,7 @@ public class BaseHookable
 	public void Unsubscribe(string hook)
 	{
 		if (IgnoredHooks.Contains(hook)) return;
-		
+
 		IgnoredHooks.Add(hook);
 	}
 	public void Subscribe(string hook)

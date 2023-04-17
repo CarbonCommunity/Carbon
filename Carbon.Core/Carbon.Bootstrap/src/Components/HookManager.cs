@@ -17,7 +17,7 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class HookManager : BaseAssemblyType
+internal sealed class HookManager : BaseTypeManager
 {
 	private readonly string[] _directories =
 	{

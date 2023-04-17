@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using API.Events;
 using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Hooks;
-using Carbon.Processors;
+using Carbon.Managers;
 using Oxide.Core;
 using Oxide.Plugins;
 using UnityEngine;
@@ -26,9 +27,22 @@ namespace Carbon;
 
 public class CommunityInternal : Community
 {
-	public static CommunityInternal InternalRuntime { get { return Runtime as CommunityInternal; } set { Runtime = value; } }
+	public static CommunityInternal InternalRuntime
+	{
+		get
+		{
+			return Runtime as CommunityInternal;
+		}
+		set
+		{
+			Runtime = value;
+		}
+	}
 
-	public bool IsInitialized { get; set; }
+	public bool IsInitialized
+	{
+		get; set;
+	}
 
 	public override void ReloadPlugins()
 	{
@@ -63,7 +77,6 @@ public class CommunityInternal : Community
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
-			CommandManager = gameObject.AddComponent<CommandManager>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = new ModuleProcessor();
 			Entities = new Entities();
@@ -111,6 +124,14 @@ public class CommunityInternal : Community
 
 		LoadConfig();
 		Carbon.Logger.Log("Loaded config");
+
+#if DEBUG
+		if (Config.WipeHarmonyLogOnBoot)
+		{
+			var harmonyLogPath = Path.Combine(Defines.GetLogsFolder(), "harmony.log");
+			OsEx.File.Delete(harmonyLogPath);
+		}
+#endif
 
 		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
 		{

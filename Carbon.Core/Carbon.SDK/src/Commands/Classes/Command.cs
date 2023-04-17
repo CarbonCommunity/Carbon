@@ -1,5 +1,4 @@
 ﻿using System;
-using static Carbon.Base.Command;
 
 /*
  *
@@ -8,15 +7,7 @@ using static Carbon.Base.Command;
  *
  */
 
-namespace Carbon.Base;
-
-[Flags]
-public enum CommandFlags
-{
-	None,
-	Hidden,
-	Protected
-}
+namespace API.Commands;
 
 public class Command
 {
@@ -28,7 +19,13 @@ public class Command
 	public object Reference { get; set; }
 	public CommandFlags Flags { get; set; } = CommandFlags.None;
 	public Action<Args> Callback { get; set; }
-	public Func<Command, Args, bool> CanExecute { get; set; } 
+	public Func<Command, Args, bool> CanExecute { get; set; }
+
+	public void Normalize()
+	{
+		Name = Name?.ToLower().Trim();
+		Help = Help?.Trim();
+	}
 
 	public class Args
 	{
@@ -84,7 +81,7 @@ public class AuthenticatedCommand : Command
 	public Authentication Auth { get; set; }
 }
 
-public class PlayerArgs : Args
+public class PlayerArgs : Command.Args
 {
 	public object Player { get; set; }
 }

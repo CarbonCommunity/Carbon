@@ -1,6 +1,6 @@
 ﻿using System;
+using API.Commands;
 using API.Hooks;
-using Carbon.Base;
 using Carbon.Extensions;
 using Facepunch.Extend;
 
@@ -19,7 +19,7 @@ public partial class Category_Static
 {
 	public partial class Static_ConsoleSystem
 	{
-		[HookAttribute.Patch("OnCarbonCommand", "OnCarbonCommand", typeof(ConsoleSystem), "Run", new System.Type[] { typeof(ConsoleSystem.Option), typeof(string), typeof(object[]) })]
+		[HookAttribute.Patch("OnConsoleCommand", "OnConsoleCommand", typeof(ConsoleSystem), "Run", new System.Type[] { typeof(ConsoleSystem.Option), typeof(string), typeof(object[]) })]
 		[HookAttribute.Identifier("4be71c5d077949cdb88438ec6dabac24")]
 		[HookAttribute.Options(HookFlags.Static | HookFlags.IgnoreChecksum)]
 
@@ -52,11 +52,13 @@ public partial class Category_Static
 					commandArgs.Arguments = args2;
 					commandArgs.Player = player;
 
-					Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Console, command, out var cmd);
-
-					Command.FromRcon = false;
-					Community.Runtime.CommandManager.Execute(cmd, commandArgs);
-					Facepunch.Pool.Free(ref commandArgs);
+					if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Console, command, out var cmd))
+					{
+						Command.FromRcon = false;
+						Community.Runtime.CommandManager.Execute(cmd, commandArgs);
+						Facepunch.Pool.Free(ref commandArgs);
+						return false;
+					}
 				}
 				catch (Exception exception) { Logger.Error($"Failed ConsoleSystem.Run [{strCommand}] [{string.Join(" ", args)}]", exception); }
 

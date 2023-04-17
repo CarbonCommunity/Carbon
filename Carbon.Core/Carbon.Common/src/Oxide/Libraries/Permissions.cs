@@ -270,7 +270,7 @@ public class Permission : Library
 		}
 	}
 
-	public virtual bool PermissionExists(string name, Plugin owner = null)
+	public virtual bool PermissionExists(string name, BaseHookable owner = null)
 	{
 		if (string.IsNullOrEmpty(name))
 		{
@@ -371,15 +371,19 @@ public class Permission : Library
 			user.Language = player.net.connection.info.GetString("global.language", "en");
 		else user.Language = "en";
 
-		AddUserGroup(player.UserIDString, "default");
+		if (!string.IsNullOrEmpty(Community.Runtime.Config.PlayerDefaultGroup))
+			AddUserGroup(player.UserIDString, Community.Runtime.Config.PlayerDefaultGroup);
 
-		if (player.IsAdmin)
+		if (!string.IsNullOrEmpty(Community.Runtime.Config.AdminDefaultGroup))
 		{
-			AddUserGroup(player.UserIDString, "admin");
-		}
-		else if (UserHasGroup(player.UserIDString, "admin"))
-		{
-			RemoveUserGroup(player.UserIDString, "admin");
+			if (player.IsAdmin)
+			{
+				AddUserGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup);
+			}
+			else if (UserHasGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup))
+			{
+				RemoveUserGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup);
+			}
 		}
 
 		if (iPlayerField.GetValue(player) == null) iPlayerField.SetValue(player, new RustPlayer(player));
@@ -558,7 +562,7 @@ public class Permission : Library
 		return groupData.Rank;
 	}
 
-	public virtual bool GrantUserPermission(string id, string perm, Plugin owner)
+	public virtual bool GrantUserPermission(string id, string perm, RustPlugin owner)
 	{
 		if (!PermissionExists(perm, owner)) return false;
 
@@ -620,7 +624,7 @@ public class Permission : Library
 			return true;
 		}
 	}
-	public virtual bool GrantGroupPermission(string name, string perm, Plugin owner)
+	public virtual bool GrantGroupPermission(string name, string perm, BaseHookable owner)
 	{
 		if (!PermissionExists(perm, owner) || !GroupExists(name)) return false;
 

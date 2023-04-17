@@ -23,16 +23,16 @@ public partial class Category_Entity
 
 		// public class Entity_BaseEntity_OnInvalidPosition_3ced6bf35f8f48a7ab43f972219abbf6 : Patch
 		// {
-			public static bool Prefix(Vector3 vPos, ref bool __result)
+		public static bool Prefix(Vector3 vPos, ref bool __result)
+		{
+			if (HookCaller.CallStaticHook("OnInvalidPositionCheck", vPos) is bool hookValue)
 			{
-				if (HookCaller.CallStaticHook("OnInvalidPositionCheck", vPos) is bool hookValue)
-				{
-					__result = !hookValue;
-					return false;
-				}
-
-				return true;
+				__result = !hookValue;
+				return false;
 			}
+
+			return true;
+		}
 		// }
 	}
 }

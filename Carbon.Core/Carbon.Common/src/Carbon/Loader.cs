@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Commands;
 using API.Events;
 using Carbon.Base;
 using Carbon.Components;
@@ -264,7 +265,7 @@ public static class Loader
 			var chatCommand = method.GetCustomAttribute<ChatCommandAttribute>();
 			var consoleCommand = method.GetCustomAttribute<ConsoleCommandAttribute>();
 			var rconCommand = method.GetCustomAttribute<RConCommandAttribute>();
-			var uiCommand = method.GetCustomAttribute<UiCommandAttribute>();
+			var protectedCommand = method.GetCustomAttribute<ProtectedCommandAttribute>();
 			var command = method.GetCustomAttribute<CommandAttribute>();
 			var permissions = method.GetCustomAttributes<PermissionAttribute>();
 			var groups = method.GetCustomAttributes<GroupAttribute>();
@@ -295,21 +296,19 @@ public static class Loader
 				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(string.IsNullOrEmpty(prefix) ? consoleCommand.Name : $"{prefix}.{consoleCommand.Name}", hookable, method.Name, help: consoleCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime);
 			}
 
-			if (uiCommand != null)
+			if (protectedCommand != null)
 			{
-				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(CUI.UniquifyCommand(string.IsNullOrEmpty(prefix) ? uiCommand.Name : $"{prefix}.{uiCommand.Name}"), hookable, method.Name, help: uiCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true);
+				Community.Runtime.CorePlugin.cmd.AddConsoleCommand(Community.Protect(string.IsNullOrEmpty(prefix) ? protectedCommand.Name : $"{prefix}.{protectedCommand.Name}"), hookable, method.Name, help: protectedCommand.Help, reference: method, permissions: ps, groups: gs, authLevel: authLevel, cooldown: cooldownTime, isHidden: true);
 			}
 
-			if (rconCommand != null)
+			if (ps != null && ps.Length > 0)
 			{
-				var cmd = new Command.RCon
+				foreach (var permission in ps)
 				{
-					Name = rconCommand.Name,
-					Help  = rconCommand.Help
-				};
-				if(!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason))
-				{
-					Logger.Warn($"Couldn't register RCon command: {reason}");
+					if (hookable is RustPlugin plugin && !plugin.permission.PermissionExists(permission, hookable))
+					{
+						plugin.permission.RegisterPermission(permission, hookable);
+					}
 				}
 			}
 		}

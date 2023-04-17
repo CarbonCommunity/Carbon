@@ -19,7 +19,7 @@ public static class CommandLine
 		var arg = CommandLineEx.GetArgumentResult(lines ?? Environment.GetCommandLineArgs(), @switch, string.Empty);
 		var commands = arg.Split(_delimiter, StringSplitOptions.RemoveEmptyEntries);
 
-		if(commands.Length > 0 ) Logger.Log($" Executing {commands.Length:n0} {commands.Length.Plural("command", "commands")} for the '{@switch}' switch ({context}):");
+		if (commands.Length > 0) Logger.Log($" Executing {commands.Length:n0} {commands.Length.Plural("command", "commands")} for the '{@switch}' switch ({context}):");
 
 		ExecuteCommands(commands);
 
@@ -29,7 +29,7 @@ public static class CommandLine
 
 	internal static void ExecuteCommands(string[] commands)
 	{
-		foreach(var command in commands)
+		foreach (var command in commands)
 		{
 			if (string.IsNullOrEmpty(command)) continue;
 

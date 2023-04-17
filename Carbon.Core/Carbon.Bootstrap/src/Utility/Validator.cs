@@ -1,4 +1,4 @@
-extern alias MonoCecilStandalone;
+﻿extern alias MonoCecilStandalone;
 
 using System;
 using System.Collections.Generic;

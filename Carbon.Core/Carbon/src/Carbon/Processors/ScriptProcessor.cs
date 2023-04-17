@@ -15,7 +15,7 @@ using Carbon.Core;
  *
  */
 
-namespace Carbon.Processors;
+namespace Carbon.Managers;
 
 public class ScriptProcessor : BaseProcessor, IScriptProcessor
 {

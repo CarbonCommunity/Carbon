@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Carbon.Contracts;
+using API.Commands;
 using Facepunch;
-using static ConsoleSystem;
+using Utility;
 
 /*
  *
@@ -13,17 +12,17 @@ using static ConsoleSystem;
  *
  */
 
-namespace Carbon.Processors;
+namespace Components;
 
-public class CommandManager : FacepunchBehaviour, ICommandManager
+public sealed class CommandManager : FacepunchBehaviour, ICommandManager
 {
-	public List<Base.Command> RCon { get; set; } = new();
-	public List<Base.Command> Console { get; set; } = new();
-	public List<Base.Command> Chat { get; set; } = new();
+	public List<Command> RCon { get; set; } = new();
+	public List<Command> Console { get; set; } = new();
+	public List<Command> Chat { get; set; } = new();
 
-	public bool Contains(IList<Base.Command> factory, string command, out Base.Command outCommand)
+	public bool Contains(IList<Command> factory, string command, out Command outCommand)
 	{
-		var list = Pool.GetList<Base.Command>();
+		var list = Pool.GetList<Command>();
 		list.AddRange(factory);
 
 		foreach (var cmd in list)
@@ -40,21 +39,23 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 		outCommand = default;
 		return false;
 	}
-	public List<T> GetFactory<T>() where T : Base.Command
+
+	public List<T> GetFactory<T>() where T : Command
 	{
-		if (typeof(T) == typeof(Base.Command.RCon)) return RCon as List<T>;
-		else if (typeof(T) == typeof(Base.Command.Console)) return Console as List<T>;
-		else if (typeof(T) == typeof(Base.Command.Chat)) return Chat as List<T>;
+		if (typeof(T) == typeof(Command.RCon)) return RCon as List<T>;
+		else if (typeof(T) == typeof(Command.Console)) return Console as List<T>;
+		else if (typeof(T) == typeof(Command.Chat)) return Chat as List<T>;
 
 		return default;
 	}
-	public List<Base.Command> GetFactory(Base.Command command)
+
+	public List<Command> GetFactory(Command command)
 	{
 		switch (command)
 		{
-			case Base.Command.RCon: return RCon;
-			case Base.Command.Console: return Console;
-			case Base.Command.Chat: return Chat;
+			case Command.RCon: return RCon;
+			case Command.Console: return Console;
+			case Command.Chat: return Chat;
 			default:
 				break;
 		}
@@ -62,16 +63,16 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 		return default;
 	}
 
-	public IEnumerable<T> GetCommands<T>() where T : Base.Command
+	public IEnumerable<T> GetCommands<T>() where T : Command
 	{
-		if (typeof(T) == typeof(Base.Command.RCon)) return RCon.Cast<T>();
-		else if (typeof(T) == typeof(Base.Command.Console)) return Console.Cast<T>();
-		else if (typeof(T) == typeof(Base.Command.Chat)) return Chat.Cast<T>();
+		if (typeof(T) == typeof(Command.RCon)) return RCon.Cast<T>();
+		else if (typeof(T) == typeof(Command.Console)) return Console.Cast<T>();
+		else if (typeof(T) == typeof(Command.Chat)) return Chat.Cast<T>();
 
 		return default;
 	}
 
-	public void ClearCommands(Func<Base.Command, bool> condition)
+	public void ClearCommands(Func<Command, bool> condition)
 	{
 		if (condition == null)
 		{
@@ -81,7 +82,7 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 		}
 		else
 		{
-			var list = Pool.GetList<Base.Command>();
+			var list = Pool.GetList<Command>();
 			list.AddRange(RCon);
 			list.AddRange(Console);
 			list.AddRange(Chat);
@@ -99,10 +100,21 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 			Pool.FreeList(ref list);
 		}
 	}
-	public bool Execute(Base.Command command, Base.Command.Args args)
+
+	public bool Execute(Command command, Command.Args args)
 	{
-		if (!command.CanExecute(command, args))
+		if (command == null) return false;
+
+		try
 		{
+			if (command.CanExecute != null && !command.CanExecute(command, args))
+			{
+				return false;
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Failed command execution authentication for command '{command}'", ex);
 			return false;
 		}
 
@@ -118,7 +130,7 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 		}
 	}
 
-	public bool RegisterCommand(Base.Command command, out string reason)
+	public bool RegisterCommand(Command command, out string reason)
 	{
 		if (command == null)
 		{
@@ -126,11 +138,13 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 			return false;
 		}
 
+		command.Normalize();
+
 		var factory = GetFactory(command);
 
 		if (Contains(factory, command.Name, out _))
 		{
-			reason = "Command already exists.";
+			reason = $"Command '{command.Name}' already exists.";
 			return false;
 		}
 
@@ -139,7 +153,8 @@ public class CommandManager : FacepunchBehaviour, ICommandManager
 		reason = "Successfully added command.";
 		return true;
 	}
-	public bool UnregisterCommand(Base.Command command, out string reason)
+
+	public bool UnregisterCommand(Command command, out string reason)
 	{
 		var factory = GetFactory(command);
 

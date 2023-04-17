@@ -1,5 +1,5 @@
 ###
-### Copyright (c) 2022 Carbon Community 
+### Copyright (c) 2023 Carbon Community 
 ### All rights reserved
 ###
 name: Branch Merge
@@ -8,7 +8,6 @@ concurrency: merge-process-exec
 on:
   workflow_dispatch:
     inputs:
-
       source:
         description: 'From branch'
         required: true
@@ -16,15 +15,13 @@ on:
         type: choice
         options:
           - develop
-          - production
 
       target:
         description: 'Target branch'
         required: true
-        default: 'staging'
+        default: 'production'
         type: choice
         options:
-          - develop
           - production
 
 jobs:

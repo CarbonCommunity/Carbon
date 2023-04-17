@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.Serialization;
+using API.Commands;
 using API.Hooks;
-using Carbon.Base;
 using Carbon.Extensions;
 using Facepunch;
 using Facepunch.Extend;
@@ -59,7 +58,7 @@ public partial class Category_Static
 						return false;
 					}
 
-					var commandArgs = Facepunch.Pool.Get<Base.Command.Args>();
+					var commandArgs = Facepunch.Pool.Get<API.Commands.Command.Args>();
 					commandArgs.Arguments = arguments;
 
 					Command.FromRcon = true;

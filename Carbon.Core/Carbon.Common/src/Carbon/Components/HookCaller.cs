@@ -232,7 +232,7 @@ namespace Carbon
 		}
 
 		internal static Priorities _priorityCatcher;
-		internal static Conflict _defaultConflict = new ()
+		internal static Conflict _defaultConflict = new()
 		{
 			Priority = Priorities.Low
 		};

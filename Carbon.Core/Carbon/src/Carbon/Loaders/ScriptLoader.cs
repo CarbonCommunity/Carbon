@@ -29,7 +29,7 @@ using static UnityEngine.UI.GridLayoutGroup;
  *
  */
 
-namespace Carbon.Processors;
+namespace Carbon.Managers;
 
 public class ScriptLoader : IScriptLoader
 {
@@ -198,7 +198,7 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		Array.Clear ( lines, 0, lines.Length );
+		Array.Clear(lines, 0, lines.Length);
 		if (AsyncLoader != null)
 		{
 			AsyncLoader.FilePath = File;
@@ -248,7 +248,7 @@ public class ScriptLoader : IScriptLoader
 		yield return null;
 
 		if (AsyncLoader != null) Carbon.Components.Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
-	
+
 		var requiresResult = requires.ToArray();
 
 #if DISABLE_ASYNC_LOADING

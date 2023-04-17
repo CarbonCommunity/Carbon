@@ -5,17 +5,14 @@
  *
  */
 
-using Carbon.Extensions;
-using System.Text.RegularExpressions;
 using System;
+using System.Text.RegularExpressions;
+using API.Commands;
+using Carbon.Extensions;
 using Carbon.Plugins;
 using ConVar;
-using Oxide.Core;
 using Network;
-using Oxide.Core.Libraries.Covalence;
-using static Oxide.Plugins.CovalencePlugin;
-using Oxide.Game.Rust.Libraries;
-using Carbon.Base;
+using Oxide.Core;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -159,7 +156,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 	private object ICanPickupEntity(BasePlayer basePlayer, DoorCloser entity)
 	{
-		if(Interface.CallHook("CanPickupEntity", basePlayer, entity) is bool result)
+		if (Interface.CallHook("CanPickupEntity", basePlayer, entity) is bool result)
 		{
 			return result;
 		}
@@ -252,14 +249,13 @@ public partial class CorePlugin : CarbonPlugin
 				return false;
 			}
 
-			var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
-			commandArgs.Arguments = args;
-			commandArgs.Player = player;
-
-			Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd);
-
-			if (Community.Runtime.CommandManager.Execute(cmd, commandArgs))
+			if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd))
 			{
+				var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+				commandArgs.Arguments = args;
+				commandArgs.Player = player;
+
+				Community.Runtime.CommandManager.Execute(cmd, commandArgs);
 				Facepunch.Pool.Free(ref commandArgs);
 				return false;
 			}

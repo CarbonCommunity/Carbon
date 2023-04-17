@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using API.Analytics;
 using API.Assembly;
+using API.Commands;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
-using Carbon.Base;
-using Carbon.Base.Interfaces;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -26,48 +25,99 @@ namespace Carbon;
 
 public class Community
 {
-	public static Community Runtime { get; set; }
+	public static Community Runtime
+	{ get; set; }
 
-	public static GameObject GameObject { get => _gameObject.Value; }
+	public static GameObject GameObject
+	{ get => _gameObject.Value; }
+
 	private static readonly Lazy<GameObject> _gameObject = new(() =>
 	{
 		GameObject gameObject = GameObject.Find("Carbon");
 		return gameObject == null ? throw new Exception("Carbon GameObject not found") : gameObject;
 	});
 
-	public IAnalyticsManager Analytics { get => _analyticsManager.Value; }
+	public IAnalyticsManager Analytics
+	{ get => _analyticsManager.Value; }
+
+	public IAssemblyManager AssemblyEx
+	{ get => _assemblyEx.Value; }
+
+	public ICommandManager CommandManager
+	{ get => _commandManager.Value; }
+
+	public IDownloadManager Downloader
+	{ get => _downloadManager.Value; }
+
+	public IEventManager Events
+	{ get => _eventManager.Value; }
+
 	private readonly Lazy<IAnalyticsManager> _analyticsManager
 		= new(GameObject.GetComponent<IAnalyticsManager>);
 
-	public IAssemblyManager AssemblyEx { get => _assemblyEx.Value; }
 	private readonly Lazy<IAssemblyManager> _assemblyEx
 		= new(GameObject.GetComponent<IAssemblyManager>);
 
-	public IDownloadManager Downloader { get => _downloadManager.Value; }
+	private readonly Lazy<ICommandManager> _commandManager
+		= new(GameObject.GetComponent<ICommandManager>);
+
 	private readonly Lazy<IDownloadManager> _downloadManager
 		= new(GameObject.GetComponent<IDownloadManager>);
 
-	public IEventManager Events { get => _eventManager.Value; }
 	private readonly Lazy<IEventManager> _eventManager
 		= new(GameObject.GetComponent<IEventManager>);
 
 
-	public IPatchManager HookManager { get; set; }
-	public ICommandManager CommandManager { get; set; }
-	public IScriptProcessor ScriptProcessor { get; set; }
-	public IModuleProcessor ModuleProcessor { get; set; }
-	public IWebScriptProcessor WebScriptProcessor { get; set; }
-	public ICarbonProcessor CarbonProcessor { get; set; }
+	public IPatchManager HookManager
+	{ get; set; }
+
+	public IScriptProcessor ScriptProcessor
+	{ get; set; }
+
+	public IModuleProcessor ModuleProcessor
+	{ get; set; }
+
+	public IWebScriptProcessor WebScriptProcessor
+	{ get; set; }
+
+	public ICarbonProcessor CarbonProcessor
+	{ get; set; }
 
 	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
-	public static bool IsServerFullyInitializedCache { get; internal set; }
+
+	public static bool IsServerFullyInitializedCache
+	{ get; internal set; }
 
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
 
-	public Config Config { get; set; }
-	public RustPlugin CorePlugin { get; set; }
-	public Loader.CarbonMod Plugins { get; set; }
-	public Entities Entities { get; set; }
+	public Config Config
+	{ get; set; }
+
+	public RustPlugin CorePlugin
+	{ get; set; }
+
+	public Loader.CarbonMod Plugins
+	{ get; set; }
+
+	public Entities Entities
+	{ get; set; }
+
+	internal static int Tick = DateTime.UtcNow.Year + DateTime.UtcNow.Month + DateTime.UtcNow.Day + DateTime.UtcNow.Hour + DateTime.UtcNow.Minute + DateTime.UtcNow.Second + DateTime.UtcNow.Month;
+
+	public static string Protect(string name)
+	{
+		if (string.IsNullOrEmpty(name)) return string.Empty;
+
+		var split = name.Split(' ');
+		var command = split[0];
+		var args = split.Skip(1).ToArray();
+		var arguments = args.ToString(" ");
+
+		Array.Clear(split, 0, split.Length);
+		Array.Clear(args, 0, args.Length);
+
+		return $"carbonprotecc_{RandomEx.GetRandomString(16, command + Tick.ToString(), command.Length + Tick)} {arguments}".TrimEnd();
+	}
 
 	public Community()
 	{
@@ -76,6 +126,7 @@ public class Community
 			Events.Subscribe(CarbonEvent.CarbonStartup, args =>
 			{
 				Logger.Log($"Carbon fingerprint: {Analytics.ClientID}");
+				Logger.Log($"System fingerprint: {Analytics.SystemID}");
 				Analytics.SessionStart();
 			});
 

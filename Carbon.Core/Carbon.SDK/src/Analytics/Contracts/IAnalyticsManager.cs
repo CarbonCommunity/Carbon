@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 /*
@@ -22,6 +22,7 @@ public interface IAnalyticsManager
 
 	public string ClientID { get; }
 	public string SessionID { get; }
+	public string SystemID { get; }
 
 
 	public void SessionStart();
