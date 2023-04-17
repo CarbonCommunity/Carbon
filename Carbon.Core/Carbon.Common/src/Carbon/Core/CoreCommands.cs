@@ -184,7 +184,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 
 #if DEBUG
-	[CommandVar("wipeharmonylogonboot")]
+	[CommandVar("wipeharmonylogonboot", "When enabled, the harmony.log file found in `carbon/logs` gets wiped on Carbon boot.")]
 	[AuthLevel(2)]
 	private bool WipeHarmonyLogOnBoot { get { return Community.Runtime.Config.WipeHarmonyLogOnBoot; } set { Community.Runtime.Config.WipeHarmonyLogOnBoot = value; } }
 #endif
@@ -969,11 +969,11 @@ public partial class CorePlugin : CarbonPlugin
 
 	#region Permissions
 
-	[CommandVar("defaultplayergroup")]
+	[CommandVar("defaultplayergroup", "The default group for any player with the regular authority level they get assigned to.")]
 	[AuthLevel(2)]
 	private string DefaultPlayerGroup { get { return Community.Runtime.Config.PlayerDefaultGroup; } set { Community.Runtime.Config.PlayerDefaultGroup = value; } }
 
-	[CommandVar("defaultadmingroup")]
+	[CommandVar("defaultadmingroup", "The default group players with the admin flag get assigned to.")]
 	[AuthLevel(2)]
 	private string DefaultAdminGroup { get { return Community.Runtime.Config.AdminDefaultGroup; } set { Community.Runtime.Config.AdminDefaultGroup = value; } }
 
