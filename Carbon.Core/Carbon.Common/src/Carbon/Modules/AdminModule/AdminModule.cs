@@ -91,6 +91,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Unsubscribe("OnEntityVisibilityCheck");
 		Unsubscribe("OnEntityDistanceCheck");
 
+		RegisterPermission("adminmodule.level1");
+		RegisterPermission("adminmodule.level2");
+		RegisterPermission("adminmodule.level3");
 	}
 	public override void OnPostServerInit()
 	{
@@ -171,6 +174,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		catch { }
 	}
 
+	public bool HasLevel(BasePlayer player, int level)
+	{
+		return HasPermission(player.UserIDString, $"adminmodule.level{level}");
+	}
 	public void GenerateTabs()
 	{
 		UnregisterAllTabs();
