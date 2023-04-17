@@ -25,6 +25,8 @@ public sealed class CommandManager : FacepunchBehaviour, ICommandManager
 		var list = Pool.GetList<Command>();
 		list.AddRange(factory);
 
+		command = command?.Trim().ToLower();
+
 		foreach (var cmd in list)
 		{
 			if (cmd.Name == command)

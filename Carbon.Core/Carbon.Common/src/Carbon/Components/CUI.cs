@@ -211,27 +211,6 @@ public struct CUI : IDisposable
 
 	#endregion
 
-	#region UI Command
-
-	internal static int Tick = DateTime.UtcNow.Year + DateTime.UtcNow.Month + DateTime.UtcNow.Day + DateTime.UtcNow.Hour + DateTime.UtcNow.Minute + DateTime.UtcNow.Second + DateTime.UtcNow.Month;
-
-	public static string UniquifyCommand(string name)
-	{
-		if (string.IsNullOrEmpty(name)) return string.Empty;
-
-		var split = name.Split(' ');
-		var command = split[0];
-		var args = split.Skip(1).ToArray();
-		var arguments = args.ToString(" ");
-
-		Array.Clear(split, 0, split.Length);
-		Array.Clear(args, 0, args.Length);
-
-		return $"carboncui_{RandomEx.GetRandomString(16, command + Tick.ToString(), command.Length + Tick)} {arguments}".TrimEnd();
-	}
-
-	#endregion
-
 	public void Dispose()
 	{
 		Manager.SendToPool();
@@ -693,7 +672,7 @@ public static class CUIStatics
 		var button = cui.TakeFromPoolButton();
 		button.FadeIn = fadeIn;
 		button.Color = ProcessColor(color);
-		button.Command = @protected ? CUI.UniquifyCommand(command) : command;
+		button.Command = @protected ? Community.Protect(command) : command;
 		buttonElement.Components.Add(button);
 
 		var rect = cui.TakeFromPoolRect();
@@ -743,7 +722,7 @@ public static class CUIStatics
 		inputField.Align = align;
 		inputField.CharsLimit = characterLimit;
 		inputField.ReadOnly = readOnly;
-		inputField.Command = @protected ? CUI.UniquifyCommand(command) : command;
+		inputField.Command = @protected ? Community.Protect(command) : command;
 		inputFieldElement.Components.Add(inputField);
 
 		if (needsCursor) inputFieldElement.Components.Add(cui.TakeFromPoolNeedsCursor());

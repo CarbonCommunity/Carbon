@@ -922,7 +922,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region UI Commands
 
-	[UiCommand(PanelId + ".changetab")]
+	[ProtectedCommand(PanelId + ".changetab")]
 	private void ChangeTab(Arg args)
 	{
 		var player = args.Player();
@@ -950,7 +950,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (ap.SelectedTab != previous) Draw(player);
 	}
 
-	[UiCommand(PanelId + ".callaction")]
+	[ProtectedCommand(PanelId + ".callaction")]
 	private void CallAction(Arg args)
 	{
 		var player = args.Player();
@@ -959,7 +959,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Draw(player);
 	}
 
-	[UiCommand(PanelId + ".changecolumnpage")]
+	[ProtectedCommand(PanelId + ".changecolumnpage")]
 	private void ChangeColumnPage(Arg args)
 	{
 		var player = args.Player();
@@ -995,13 +995,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Draw(player);
 	}
 
-	[UiCommand(PanelId + ".close")]
+	[ProtectedCommand(PanelId + ".close")]
 	private void CloseUI(Arg args)
 	{
 		Close(args.Player());
 	}
 
-	[UiCommand(PanelId + ".dialogaction")]
+	[ProtectedCommand(PanelId + ".dialogaction")]
 	private void Dialog_Action(Arg args)
 	{
 		var player = args.Player();
@@ -4676,7 +4676,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region Administration - Custom Commands
 
-	[UiCommand("carbongg.endspectate")]
+	[ProtectedCommand("carbongg.endspectate")]
 	private void EndSpectate(Arg arg)
 	{
 		StopSpectating(arg.Player());
@@ -4717,7 +4717,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		});
 	}
 
-	[UiCommand("pluginbrowser.changetab")]
+	[ProtectedCommand("pluginbrowser.changetab")]
 	private void PluginBrowserChange(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -4731,7 +4731,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 		Singleton.Draw(args.Player());
 	}
-	[UiCommand("pluginbrowser.interact")]
+	[ProtectedCommand("pluginbrowser.interact")]
 	private void PluginBrowserInteract(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -4789,7 +4789,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Singleton.Draw(args.Player());
 	}
-	[UiCommand("pluginbrowser.page")]
+	[ProtectedCommand("pluginbrowser.page")]
 	private void PluginBrowserPage(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -4824,7 +4824,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Singleton.Draw(args.Player());
 	}
-	[UiCommand("pluginbrowser.filter")]
+	[ProtectedCommand("pluginbrowser.filter")]
 	private void PluginBrowserFilter(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -4844,7 +4844,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Singleton.Draw(args.Player());
 	}
-	[UiCommand("pluginbrowser.tagfilter")]
+	[ProtectedCommand("pluginbrowser.tagfilter")]
 	private void PluginBrowserTagFilter(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -4862,7 +4862,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Singleton.Draw(args.Player());
 	}
-	[UiCommand("pluginbrowser.search")]
+	[ProtectedCommand("pluginbrowser.search")]
 	private void PluginBrowserSearch(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -4880,7 +4880,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Singleton.Draw(args.Player());
 	}
-	[UiCommand("pluginbrowser.selectplugin")]
+	[ProtectedCommand("pluginbrowser.selectplugin")]
 	private void PluginBrowserSelectPlugin(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -4893,7 +4893,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Singleton.Draw(args.Player());
 	}
-	[UiCommand("pluginbrowser.deselectplugin")]
+	[ProtectedCommand("pluginbrowser.deselectplugin")]
 	private void PluginBrowserDeselectPlugin(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -4906,7 +4906,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Singleton.Draw(args.Player());
 	}
-	[UiCommand("pluginbrowser.changeselectedplugin")]
+	[ProtectedCommand("pluginbrowser.changeselectedplugin")]
 	private void PluginBrowserChangeSelected(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -4924,7 +4924,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Singleton.Draw(args.Player());
 	}
-	[UiCommand("pluginbrowser.changesetting")]
+	[ProtectedCommand("pluginbrowser.changesetting")]
 	private void PluginBrowserChangeSetting(Arg args)
 	{
 		var ap = GetPlayerSession(args.Player());
@@ -5523,7 +5523,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region Setup Wizard - Custom Commands
 
-	[UiCommand("wizard.changepage")]
+	[ProtectedCommand("wizard.changepage")]
 	private void ChangePage(Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
@@ -5536,7 +5536,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Community.Runtime.CorePlugin.NextFrame(() => Draw(ap.Player));
 	}
 
-	[UiCommand("wizard.togglemodule")]
+	[ProtectedCommand("wizard.togglemodule")]
 	private void ToggleModule(Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
@@ -5549,7 +5549,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Draw(ap.Player);
 	}
 
-	[UiCommand("wizard.editmoduleconfig")]
+	[ProtectedCommand("wizard.editmoduleconfig")]
 	private void EditModuleConfig(Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
@@ -5574,7 +5574,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Draw(ap.Player);
 	}
 
-	[UiCommand("wizard.openmodulefolder")]
+	[ProtectedCommand("wizard.openmodulefolder")]
 	private void OpenModuleFolder(Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
@@ -5788,13 +5788,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region Custom Commands
 
-	[UiCommand(ColorPicker.PanelId + ".close")]
+	[ProtectedCommand(ColorPicker.PanelId + ".close")]
 	private void CloseColorPickerUI(Arg args)
 	{
 		ColorPicker.Close(args.Player());
 	}
 
-	[UiCommand(ColorPicker.PanelId + ".pickcolor")]
+	[ProtectedCommand(ColorPicker.PanelId + ".pickcolor")]
 	private void PickColorPickerUI(Arg args)
 	{
 		var player = args.Player();
@@ -5822,7 +5822,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		ColorPicker.Close(args.Player());
 	}
 
-	[UiCommand(ColorPicker.PanelId + ".pickhexcolor")]
+	[ProtectedCommand(ColorPicker.PanelId + ".pickhexcolor")]
 	private void PickHexColorPickerUI(Arg args)
 	{
 		var player = args.Player();
@@ -6131,7 +6131,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region Custom Commands
 
-	[UiCommand("modal.action")]
+	[ProtectedCommand("modal.action")]
 	private void ModalAction(ConsoleSystem.Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
@@ -6214,7 +6214,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		modal.Draw(ap.Player);
 	}
 
-	[UiCommand("modal.confirm")]
+	[ProtectedCommand("modal.confirm")]
 	private void ModalConfirm(ConsoleSystem.Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
@@ -6230,7 +6230,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Modal.Close(ap.Player);
 	}
 
-	[UiCommand("modal.cancel")]
+	[ProtectedCommand("modal.cancel")]
 	private void ModalCancel(ConsoleSystem.Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
@@ -6239,7 +6239,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Modal.Close(ap.Player);
 	}
 
-	[UiCommand("modal.page")]
+	[ProtectedCommand("modal.page")]
 	private void ModalPage(ConsoleSystem.Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());

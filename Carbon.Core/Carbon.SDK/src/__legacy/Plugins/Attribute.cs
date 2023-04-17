@@ -133,17 +133,17 @@ public class RConCommandAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-public class UiCommandAttribute : Attribute
+public class ProtectedCommandAttribute : Attribute
 {
 	public string Name { get; }
 	public string Help { get; }
 
-	public UiCommandAttribute(string name)
+	public ProtectedCommandAttribute(string name)
 	{
 		Name = name;
 	}
 
-	public UiCommandAttribute(string name, string help)
+	public ProtectedCommandAttribute(string name, string help)
 	{
 		Name = name;
 		Help = help;
