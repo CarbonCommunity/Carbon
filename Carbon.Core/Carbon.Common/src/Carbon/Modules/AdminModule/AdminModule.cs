@@ -2766,9 +2766,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Modal.Open(ap.Player, "Create Group", new Dictionary<string, Modal.Field>()
 					{
 						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true),
-						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String),
-						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer),
-						["parent"] = Modal.EnumField.MakeEnum("Parent", array)
+						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, @default: string.Empty),
+						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, @default: 0),
+						["parent"] = Modal.EnumField.MakeEnum("Parent", array, @default: 0)
 					}, onConfirm: (player, modal) =>
 					{
 						var parentIndex = modal.Get<int>("parent");
