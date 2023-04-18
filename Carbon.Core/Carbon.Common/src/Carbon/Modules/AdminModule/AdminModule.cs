@@ -54,6 +54,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
 	const string SpectatePanelId = "carbonmodularuispectate";
+	const int AccessLevels = 3;
 
 	internal static List<string> _logQueue { get; } = new();
 	internal static Dictionary<LogType, string> _logColor { get; } = new()
@@ -91,6 +92,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Unsubscribe("OnEntityVisibilityCheck");
 		Unsubscribe("OnEntityDistanceCheck");
 
+		for (int i = 1; i <= AccessLevels; i++)
+		{
+			RegisterPermission($"adminmodule.accesslevel{i}");
+		}
 	}
 	public override void OnPostServerInit()
 	{
@@ -115,7 +120,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				if (!CanAccess(player)) return;
 
 				var ap = GetPlayerSession(player);
-				ap.SelectedTab = Tabs[0];
+				ap.SelectedTab = Tabs.FirstOrDefault(x => HasAccessLevel(player, x.AccessLevel));
 
 				var tab = GetTab(player);
 				tab?.OnChange?.Invoke(ap, tab);
@@ -157,6 +162,55 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		PluginsTab.ServerOwner.Save();
 	}
 
+	public override Dictionary<string, Dictionary<string, string>> GetDefaultPhrases()
+	{
+		return new Dictionary<string, Dictionary<string, string>>
+		{
+			["en"] = new()
+			{
+				["hostname"] = "Host Name",
+				["level"] = "Level",
+				["info"] = "Info",
+				["version"] = "Version",
+				["version2"] = "Informational Version",
+				["hooks"] = "Hooks",
+				["statichooks"] = "Static Hooks",
+				["dynamichooks"] = "Dynamic Hooks",
+				["plugins"] = "Plugins",
+				["mods"] = "Mods",
+				["console"] = "Console",
+				["execservercmd"] = "Execute Server Command",
+				["config"] = "Config",
+				["ismodded"] = "Is Modded",
+				["ismodded_help"] = "When enabled, it marks the server as modded.",
+				["autoupdate"] = "Auto Update",
+				["autoupdate_help"] = "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.",
+				["general"] = "General",
+				["hooktimetracker"] = "Hook Time Tracker",
+				["hooktimetracker_help"] = "Tracks the time taken for hooks to be executed.",
+				["hookvalidation"] = "Hook Validation",
+				["hookvalidation_help"] = "Probably obsolete, but when enabled, it prints a list of hooks that are compatible in Oxide, but not Carbon.",
+				["entmapbuffersize"] = "Entity Map Buffer Size (restart required)",
+				["entmapbuffersize_help"] = "Only change if you're aware what this is used for. Developers-related option.",
+				["watchers"] = "Watchers",
+				["scriptwatchers"] = "Script Watchers",
+				["scriptwatchers_help"] = "When disabled, you must load/unload plugins manually with 'c.load' or 'c.unload'.",
+				["harmonyreference"] = "Harmony Reference (<color=red>!</color>)",
+				["harmonyreference_help"] = "Enabling this will allow plugins to patch Harmony patches at runtime. This might create instability and conflict if unmanaged.",
+				["filenamecheck"] = "File Name Check",
+				["filenamecheck_help"] = "Checks for file names. Otherwise will load the plugins regardless. Recommended to be enabled.",
+				["logging"] = "Logging",
+				["logfilemode"] = "Log File Mode",
+				["logverbosity"] = "Log Verbosity (Debug)",
+				["logseverity"] = "Log Severity",
+				["misc"] = "Miscellaneous",
+				["serverlang"] = "Server Language",
+				["webreqip"] = "WebRequest IP",
+				["permmode"] = "Permission Mode"
+			}
+		};
+	}
+
 	private void OnLog(string condition, string stackTrace, LogType type)
 	{
 		try
@@ -171,6 +225,20 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		catch { }
 	}
 
+	public bool HasAccessLevel(BasePlayer player, int accessLevel)
+	{
+		if (accessLevel == 0 || player.IsAdmin) return true;
+
+		for (int i = accessLevel; i <= AccessLevels; i++)
+		{
+			if (HasPermission(player.UserIDString, $"adminmodule.accesslevel{i}"))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
 	public void GenerateTabs()
 	{
 		UnregisterAllTabs();
@@ -249,14 +317,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region Option Elements
 
-	internal void TabButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float width, float offset, bool highlight = false)
+	internal void TabButton(CUI cui, CuiElementContainer container, string parent, string text, string command, float width, float offset, bool highlight = false, bool disabled = false)
 	{
 		var button = cui.CreateProtectedButton(container, parent: parent, id: null,
 			color: highlight ? $"{DataInstance.Colors.SelectedTabColor} 0.7" : "0.3 0.3 0.3 0.1",
-			textColor: "1 1 1 0.5",
+			textColor: $"1 1 1 {(disabled ? 0.15 : 0.5)}",
 			text: text, 11,
 			xMin: offset, xMax: offset + width, yMin: 0, yMax: 1,
-			command: command,
+			command: disabled ? string.Empty : command,
 			font: Handler.FontTypes.RobotoCondensedRegular);
 
 		if (highlight)
@@ -1037,8 +1105,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			ap.IsInMenu = true;
 
 			if (CanAccess(player) && !DataInstance.ShowedWizard
-				&& tab.Id != "setupwizard"
-				&& tab.Id != "configeditor")
+				&& (tab != null && tab.Id != "setupwizard" && tab.Id != "configeditor"))
 			{
 				tab = ap.SelectedTab = SetupWizard.Make();
 			}
@@ -1059,7 +1126,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					color: "0 0 0 0.5",
 					blur: true);
 
-				if (!tab.Fullscreen)
+				if (tab == null || !tab.Fullscreen)
 				{
 					#region Title
 
@@ -1073,198 +1140,206 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					#endregion
 
 					#region Tabs
-
-					cui.CreatePanel(container, parent: $"{PanelId}main", id: "tab_buttons",
-						color: "0 0 0 0.6",
-						xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
-
-					TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
-					TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
-
-					var tabIndex = 0.03f;
-					var amount = Tabs.Count;
-					var tabWidth = amount == 0 ? 0f : 0.94f / amount;
-
-					for (int i = ap.TabSkip; i < amount; i++)
+					try
 					{
-						var _tab = Tabs[ap.TabSkip + i];
-						var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
-						TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i);
-						tabIndex += tabWidth;
-					}
+						cui.CreatePanel(container, parent: $"{PanelId}main", id: "tab_buttons",
+							color: "0 0 0 0.6",
+							xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
 
+						TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
+						TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
+
+						var tabIndex = 0.03f;
+						var amount = Tabs.Count;
+						var tabWidth = amount == 0 ? 0f : 0.94f / amount;
+
+						for (int i = ap.TabSkip; i < amount; i++)
+						{
+							var _tab = Tabs[ap.TabSkip + i];
+							var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
+							TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccessLevel(player, _tab.AccessLevel));
+							tabIndex += tabWidth;
+						}
+					}
+					catch (Exception ex) { PutsError($"Draw({player}).Tabs", ex); }
 					#endregion
 				}
 			}
 
 			#region Panels
-
-			using (TimeMeasure.New($"{Name}.Panels/Overrides"))
+			try
 			{
-				var panels = cui.CreatePanel(container, $"{PanelId}main", "panels",
-					color: "0 0 0 0",
-					xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: tab.Fullscreen ? 0.98f : 0.86f);
-
-				if (tab != null)
+				using (TimeMeasure.New($"{Name}.Panels/Overrides"))
 				{
-					tab.Under?.Invoke(tab, cui, container, panels, ap);
+					var panels = cui.CreatePanel(container, $"{PanelId}main", "panels",
+						color: "0 0 0 0",
+						xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: tab != null && tab.Fullscreen ? 0.98f : 0.86f);
 
-					if (tab.Override == null)
+					if (tab != null)
 					{
-						#region Columns
+						tab.Under?.Invoke(tab, cui, container, panels, ap);
 
-						var panelIndex = 0f;
-						var spacing = 0.005f;
-						var panelWidth = (tab.Columns.Count == 0 ? 0f : 1f / tab.Columns.Count) - spacing;
-
-						for (int i = 0; i < tab.Columns.Count; i++)
+						if (tab.Override == null)
 						{
-							var panel = $"sub{i}";
-							var rows = tab.Columns[i];
+							#region Columns
 
-							cui.CreatePanel(container, "panels", panel,
-								color: "0 0 0 0.5",
-								xMin: panelIndex, xMax: panelIndex + panelWidth - spacing, yMin: 0, yMax: 1);
+							var panelIndex = 0f;
+							var spacing = 0.005f;
+							var panelWidth = (tab.Columns.Count == 0 ? 0f : 1f / tab.Columns.Count) - spacing;
 
-							#region Rows
-
-							var columnPage = ap.GetOrCreatePage(i);
-							var contentsPerPage = 19;
-							var rowSpacing = 0.01f;
-							var rowHeight = 0.04f;
-							var rowPage = rows.Skip(contentsPerPage * columnPage.CurrentPage).Take(contentsPerPage);
-							var rowPageCount = rowPage.Count();
-							columnPage.TotalPages = (int)Math.Ceiling(((double)rows.Count) / contentsPerPage - 1);
-							columnPage.Check();
-							var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - (columnPage.TotalPages > 0 ? 0 : 1)));
-
-							if (columnPage.TotalPages > 0)
+							for (int i = 0; i < tab.Columns.Count; i++)
 							{
-								TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+								var panel = $"sub{i}";
+								var rows = tab.Columns[i];
 
-								rowIndex += rowHeight + rowSpacing;
-							}
+								cui.CreatePanel(container, "panels", panel,
+									color: "0 0 0 0.5",
+									xMin: panelIndex, xMax: panelIndex + panelWidth - spacing, yMin: 0, yMax: 1);
 
-							for (int r = rowPageCount; r-- > 0;)
-							{
-								var actualI = r + (columnPage.CurrentPage * contentsPerPage);
-								var row = rows.ElementAt(actualI);
+								#region Rows
 
-								switch (row)
+								var columnPage = ap.GetOrCreatePage(i);
+								var contentsPerPage = 19;
+								var rowSpacing = 0.01f;
+								var rowHeight = 0.04f;
+								var rowPage = rows.Skip(contentsPerPage * columnPage.CurrentPage).Take(contentsPerPage);
+								var rowPageCount = rowPage.Count();
+								columnPage.TotalPages = (int)Math.Ceiling(((double)rows.Count) / contentsPerPage - 1);
+								columnPage.Check();
+								var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - (columnPage.TotalPages > 0 ? 0 : 1)));
+
+								if (columnPage.TotalPages > 0)
 								{
-									case Tab.OptionName name:
-										TabPanelName(cui, container, panel, name.Name, rowHeight, rowIndex, name.Align);
-										break;
+									TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
 
-									case Tab.OptionButton button:
-										TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap), button.Align);
-										break;
-
-									case Tab.OptionText text:
-										TabPanelText(cui, container, panel, text.Name, text.Size, text.Color, rowHeight, rowIndex, text.Align, text.Font, text.IsInput);
-										break;
-
-									case Tab.OptionInput input:
-										TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(ap), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex, ap);
-										break;
-
-									case Tab.OptionEnum @enum:
-										TabPanelEnum(cui, container, panel, @enum.Name, @enum.Text?.Invoke(ap), PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-										break;
-
-									case Tab.OptionToggle toggle:
-										TabPanelToggle(cui, container, panel, toggle.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, toggle.IsOn != null ? toggle.IsOn.Invoke(ap) : false);
-										break;
-
-									case Tab.OptionRadio radio:
-										TabPanelRadio(cui, container, panel, radio.Name, radio.Index == tab.Radios[radio.Id].Selected, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-										break;
-
-									case Tab.OptionDropdown dropdown:
-										TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(ap), dropdown.Options, dropdown.OptionsIcons, dropdown.OptionsIconScale, ap._selectedDropdown == dropdown);
-										break;
-
-									case Tab.OptionRange range:
-										TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(ap), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(ap), rowHeight, rowIndex);
-										break;
-
-									case Tab.OptionButtonArray array:
-										TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
-										break;
-
-									case Tab.OptionInputButton inputButton:
-										TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, ap, rowHeight, rowIndex);
-										break;
-
-									case Tab.OptionColor color:
-										TabPanelColor(cui, container, panel, color.Name, color.Color?.Invoke() ?? "0.1 0.1 0.1 0.5", PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-										break;
-
-									default:
-										break;
+									rowIndex += rowHeight + rowSpacing;
 								}
 
-								#region Tooltip
+								for (int r = rowPageCount; r-- > 0;)
+								{
+									var actualI = r + (columnPage.CurrentPage * contentsPerPage);
+									var row = rows.ElementAt(actualI);
 
-								TabTooltip(cui, container, panel, row, PanelId + $".callaction {i} {actualI}", ap, rowHeight, rowIndex);
+									switch (row)
+									{
+										case Tab.OptionName name:
+											TabPanelName(cui, container, panel, name.Name, rowHeight, rowIndex, name.Align);
+											break;
+
+										case Tab.OptionButton button:
+											TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap), button.Align);
+											break;
+
+										case Tab.OptionText text:
+											TabPanelText(cui, container, panel, text.Name, text.Size, text.Color, rowHeight, rowIndex, text.Align, text.Font, text.IsInput);
+											break;
+
+										case Tab.OptionInput input:
+											TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(ap), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex, ap);
+											break;
+
+										case Tab.OptionEnum @enum:
+											TabPanelEnum(cui, container, panel, @enum.Name, @enum.Text?.Invoke(ap), PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+											break;
+
+										case Tab.OptionToggle toggle:
+											TabPanelToggle(cui, container, panel, toggle.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, toggle.IsOn != null ? toggle.IsOn.Invoke(ap) : false);
+											break;
+
+										case Tab.OptionRadio radio:
+											TabPanelRadio(cui, container, panel, radio.Name, radio.Index == tab.Radios[radio.Id].Selected, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+											break;
+
+										case Tab.OptionDropdown dropdown:
+											TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(ap), dropdown.Options, dropdown.OptionsIcons, dropdown.OptionsIconScale, ap._selectedDropdown == dropdown);
+											break;
+
+										case Tab.OptionRange range:
+											TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(ap), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(ap), rowHeight, rowIndex);
+											break;
+
+										case Tab.OptionButtonArray array:
+											TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
+											break;
+
+										case Tab.OptionInputButton inputButton:
+											TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, ap, rowHeight, rowIndex);
+											break;
+
+										case Tab.OptionColor color:
+											TabPanelColor(cui, container, panel, color.Name, color.Color?.Invoke() ?? "0.1 0.1 0.1 0.5", PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
+											break;
+
+										default:
+											break;
+									}
+
+									#region Tooltip
+
+									TabTooltip(cui, container, panel, row, PanelId + $".callaction {i} {actualI}", ap, rowHeight, rowIndex);
+
+									#endregion
+
+									rowIndex += rowHeight + rowSpacing;
+								}
 
 								#endregion
 
-								rowIndex += rowHeight + rowSpacing;
+								panelIndex += panelWidth + spacing;
 							}
 
 							#endregion
-
-							panelIndex += panelWidth + spacing;
 						}
+						else tab.Override.Invoke(tab, cui, container, panels, ap);
 
-						#endregion
-					}
-					else tab.Override.Invoke(tab, cui, container, panels, ap);
+						tab.Over?.Invoke(tab, cui, container, panels, ap);
 
-					tab.Over?.Invoke(tab, cui, container, panels, ap);
-
-					if (tab.Dialog != null)
-					{
-						if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
+						if (tab.Dialog != null)
 						{
-							tab.Dialog.OnConfirm?.Invoke(ap);
-						}
-						else
-						{
-							var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
-							cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
-
-							cui.CreateText(container, dialog, null,
-								"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
-
-							cui.CreateText(container, dialog, null,
-								"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
-
-							cui.CreateText(container, dialog, null,
-								"1 1 1 0.2", "<color=red><b>*</b></color> Holding <b>[SPRINT]</b> next time you open this panel will automatically confirm it.", 8, xMin: 0.02f, yMin: 0.03f, align: TextAnchor.LowerLeft);
-
-							cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
-								xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
-
-							cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
-								xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
-
-							Community.Runtime.CorePlugin.timer.In(0.2f, () =>
+							if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
 							{
-								if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
-								{
-									try { tab.Dialog.OnConfirm?.Invoke(ap); } catch { }
-									tab.Dialog = null;
+								tab.Dialog.OnConfirm?.Invoke(ap);
+							}
+							else
+							{
+								var dialog = cui.CreatePanel(container, panels, null, "0.15 0.15 0.15 0.2", blur: true);
+								cui.CreatePanel(container, dialog, null, "0 0 0 0.9");
 
-									Draw(player);
-								}
-							});
+								cui.CreateText(container, dialog, null,
+									"1 1 1 1", tab.Dialog.Title, 20, yMin: 0.1f);
+
+								cui.CreateText(container, dialog, null,
+									"1 1 1 0.4", "Confirm action".ToUpper().SpacedString(3), 10, yMin: 0.2f);
+
+								cui.CreateText(container, dialog, null,
+									"1 1 1 0.2", "<color=red><b>*</b></color> Holding <b>[SPRINT]</b> next time you open this panel will automatically confirm it.", 8, xMin: 0.02f, yMin: 0.03f, align: TextAnchor.LowerLeft);
+
+								cui.CreateProtectedButton(container, dialog, null, "0.9 0.4 0.3 0.8", "1 1 1 0.7", "DECLINE".SpacedString(1), 10,
+									xMin: 0.4f, xMax: 0.49f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction decline");
+
+								cui.CreateProtectedButton(container, dialog, null, "0.4 0.9 0.3 0.8", "1 1 1 0.7", "CONFIRM".SpacedString(1), 10,
+									xMin: 0.51f, xMax: 0.6f, yMin: 0.425f, yMax: 0.475f, command: $"{PanelId}.dialogaction confirm");
+
+								Community.Runtime.CorePlugin.timer.In(0.2f, () =>
+								{
+									if (ap.Player.serverInput.IsDown(BUTTON.SPRINT))
+									{
+										try { tab.Dialog.OnConfirm?.Invoke(ap); } catch { }
+										tab.Dialog = null;
+
+										Draw(player);
+									}
+								});
+							}
 						}
+					}
+					else
+					{
+						cui.CreateText(container, panels, null, "1 1 1 0.4", "No tab selected.", 9);
 					}
 				}
 			}
-
+			catch (Exception ex) { PutsError($"Draw({player}).Panels", ex); }
 			#endregion
 
 			#region Exit
@@ -1706,6 +1781,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		public string Id;
 		public string Name;
+		public int AccessLevel = 0;
 		public RustPlugin Plugin;
 		public Action<Tab, CUI, CuiElementContainer, string, PlayerSession> Over, Under, Override;
 		public Dictionary<int, List<Option>> Columns = new();
@@ -1714,12 +1790,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public TabDialog Dialog;
 		public bool Fullscreen;
 
-		public Tab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null)
+		public Tab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null, int accessLevel = 0)
 		{
 			Id = id;
 			Name = name;
 			Plugin = plugin;
 			OnChange = onChange;
+			AccessLevel = accessLevel;
 		}
 
 		public void ClearColumn(int column, bool erase = false)
@@ -2100,75 +2177,83 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static Tab Get()
 		{
-			var tab = new Tab("carbon", "Carbon", Community.Runtime.CorePlugin, (ap, t) => { if (t.Id == "carbon") Refresh(t); });
+			var tab = new Tab("carbon", "Carbon", Community.Runtime.CorePlugin, (ap, t) => { Refresh(t, ap); }, 2);
+			tab.AddColumn(0);
 			tab.AddColumn(1);
-
-			Refresh(tab);
 
 			return tab;
 		}
 
-		public static void Refresh(Tab tab)
+		public static void Refresh(Tab tab, PlayerSession ap)
 		{
 			tab.ClearColumn(0);
 			tab.ClearColumn(1);
 
-			tab.AddInput(0, "Host Name", ap => $"{ConVar.Server.hostname}", (ap, args) => { ConVar.Server.hostname = args.ToString(" "); });
-			tab.AddInput(0, "Level", ap => $"{ConVar.Server.level}", null);
-
-			tab.AddName(0, "Info", TextAnchor.MiddleLeft);
+			if (Singleton.HasAccessLevel(ap.Player, 2))
 			{
-				tab.AddInput(0, "Version", ap => $"{Community.Runtime.Analytics.Version}", null);
-				tab.AddInput(0, "Informational Version", ap => $"{Community.Runtime.Analytics.InformationalVersion}", null);
+				tab.AddInput(0, Singleton.GetPhrase("hostname", ap.Player.UserIDString), ap => $"{ConVar.Server.hostname}", Singleton.HasAccessLevel(ap.Player, 3) ? (ap2, args) => { ConVar.Server.hostname = args.ToString(" "); } : null);
+				tab.AddInput(0, Singleton.GetPhrase("level", ap.Player.UserIDString), ap => $"{ConVar.Server.level}", null);
 
-				var loadedHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled);
-				var totalHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count() + Community.Runtime.HookManager.LoadedStaticHooks.Count();
-				tab.AddInput(0, "Hooks", ap => $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
-				tab.AddInput(0, "Static Hooks", ap => $"{Community.Runtime.HookManager.LoadedStaticHooks.Count():n0}", null);
-				tab.AddInput(0, "Dynamic Hooks", ap => $"{Community.Runtime.HookManager.LoadedDynamicHooks.Count():n0}", null);
-
-				tab.AddName(0, "Plugins", TextAnchor.MiddleLeft);
-				tab.AddInput(0, "Mods", ap => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
-
-				tab.AddName(0, "Console", TextAnchor.MiddleLeft);
-				foreach (var log in _logQueue)
+				tab.AddName(0, Singleton.GetPhrase("info", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 				{
-					tab.AddText(0, log, 10, "1 1 1 0.85", TextAnchor.MiddleLeft, Handler.FontTypes.RobotoCondensedRegular, isInput: true);
+					tab.AddInput(0, Singleton.GetPhrase("version", ap.Player.UserIDString), ap => $"{Community.Runtime.Analytics.Version}", null);
+					tab.AddInput(0, Singleton.GetPhrase("version2", ap.Player.UserIDString), ap => $"{Community.Runtime.Analytics.InformationalVersion}", null);
+
+					var loadedHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled);
+					var totalHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count() + Community.Runtime.HookManager.LoadedStaticHooks.Count();
+					tab.AddInput(0, Singleton.GetPhrase("hooks", ap.Player.UserIDString), ap => $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
+					tab.AddInput(0, Singleton.GetPhrase("statichooks", ap.Player.UserIDString), ap => $"{Community.Runtime.HookManager.LoadedStaticHooks.Count():n0}", null);
+					tab.AddInput(0, Singleton.GetPhrase("dynamichooks", ap.Player.UserIDString), ap => $"{Community.Runtime.HookManager.LoadedDynamicHooks.Count():n0}", null);
+
+					tab.AddName(0, Singleton.GetPhrase("plugins", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddInput(0, Singleton.GetPhrase("mods", ap.Player.UserIDString), ap => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
+
+					if (Singleton.HasAccessLevel(ap.Player, 3))
+					{
+						tab.AddName(0, Singleton.GetPhrase("console", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+						foreach (var log in _logQueue)
+						{
+							tab.AddText(0, log, 10, "1 1 1 0.85", TextAnchor.MiddleLeft, Handler.FontTypes.RobotoCondensedRegular, isInput: true);
+						}
+						tab.AddInputButton(0, Singleton.GetPhrase("execservercmd", ap.Player.UserIDString), 0.2f, new Tab.OptionInput(null, null, 0, false, (ap, args) =>
+						{
+							Run(Option.Server, args.ToString(" "), null);
+							Refresh(tab, ap);
+						}), new Tab.OptionButton("Refresh", ap =>
+						{
+							Refresh(tab, ap);
+						}));
+					}
 				}
-				tab.AddInputButton(0, "Execute Server Command", 0.2f, new Tab.OptionInput(null, null, 0, false, (ap, args) =>
-				{
-					Run(Option.Server, args.ToString(" "), null);
-					Refresh(tab);
-				}), new Tab.OptionButton("Refresh", ap =>
-				{
-					Refresh(tab);
-				}));
 			}
 
-			tab.AddName(1, "Config", TextAnchor.MiddleLeft);
+			if (Singleton.HasAccessLevel(ap.Player, 3))
 			{
-				tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded, "When enabled, it marks the server as modded.");
-				tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.");
+				tab.AddName(1, Singleton.GetPhrase("config", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+				{
+					tab.AddToggle(1, Singleton.GetPhrase("ismodded", ap.Player.UserIDString), ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded, Singleton.GetPhrase("ismodded_help", ap.Player.UserIDString));
+					tab.AddToggle(1, Singleton.GetPhrase("autoupdate", ap.Player.UserIDString), ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, Singleton.GetPhrase("autoupdate_help", ap.Player.UserIDString));
 
-				tab.AddName(1, "General", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker, "Tracks the time taken for hooks to be executed.");
-				tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation, "Probably obsolete, but when enabled, it prints a list of hooks that are compatible in Oxide, but not Carbon.");
-				tab.AddInput(1, "Entity Map Buffer Size (restart required)", ap => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, "Only change if you're aware what this is used for. Developers-related option.");
+					tab.AddName(1, Singleton.GetPhrase("general", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddToggle(1, Singleton.GetPhrase("hooktimetracker", ap.Player.UserIDString), ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker, Singleton.GetPhrase("hooktimetracker_help", ap.Player.UserIDString));
+					tab.AddToggle(1, Singleton.GetPhrase("hookvalidation", ap.Player.UserIDString), ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation, Singleton.GetPhrase("hookvalidation_help", ap.Player.UserIDString));
+					tab.AddInput(1, Singleton.GetPhrase("entmapbuffersize", ap.Player.UserIDString), ap => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, Singleton.GetPhrase("entmapbuffersize_help", ap.Player.UserIDString));
 
-				tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
-				tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers, "When disabled, you must load/unload plugins manually with 'c.load' or 'c.unload'.");
-				tab.AddToggle(1, "Harmony Reference (<color=red>!</color>)", ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference, "Enabling this will allow plugins to patch Harmony patches at runtime. This might create instability and conflict if unmanaged.");
-				tab.AddToggle(1, "File Name Check", ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck, "Checks for file names. Otherwise will load the plugins regardless. Recommended to be enabled.");
+					tab.AddName(1, Singleton.GetPhrase("watchers", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddToggle(1, Singleton.GetPhrase("scriptwatchers", ap.Player.UserIDString), ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers, Singleton.GetPhrase("scriptwatchers_help", ap.Player.UserIDString));
+					tab.AddToggle(1, Singleton.GetPhrase("harmonyreference", ap.Player.UserIDString), ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference, Singleton.GetPhrase("harmonyreference_help", ap.Player.UserIDString));
+					tab.AddToggle(1, Singleton.GetPhrase("filenamecheck", ap.Player.UserIDString), ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck, Singleton.GetPhrase("filenamecheck_help", ap.Player.UserIDString));
 
-				tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
-				tab.AddDropdown(1, "Log File Mode", ap => Config.LogFileMode, (ap, index) => { Config.LogFileMode = index; Community.Runtime.SaveConfig(); }, LogFileModes);
-				tab.AddDropdown(1, "Log Verbosity (Debug)", ap => Config.LogVerbosity, (ap, index) => { Config.LogVerbosity = index; Community.Runtime.SaveConfig(); }, LogVerbosity);
-				tab.AddDropdown(1, "Log Severity", ap => (int)Config.LogSeverity, (ap, index) => { Config.LogSeverity = (API.Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(API.Logger.Severity)));
+					tab.AddName(1, Singleton.GetPhrase("logging", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddDropdown(1, Singleton.GetPhrase("logfilemode", ap.Player.UserIDString), ap => Config.LogFileMode, (ap, index) => { Config.LogFileMode = index; Community.Runtime.SaveConfig(); }, LogFileModes);
+					tab.AddDropdown(1, Singleton.GetPhrase("logverbosity", ap.Player.UserIDString), ap => Config.LogVerbosity, (ap, index) => { Config.LogVerbosity = index; Community.Runtime.SaveConfig(); }, LogVerbosity);
+					tab.AddDropdown(1, Singleton.GetPhrase("logseverity", ap.Player.UserIDString), ap => (int)Config.LogSeverity, (ap, index) => { Config.LogSeverity = (API.Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(API.Logger.Severity)));
 
-				tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
-				tab.AddInput(1, "Server Language", ap => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
-				tab.AddInput(1, "WebRequest IP", ap => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
-				tab.AddEnum(1, "Permission Mode", (ap, back) => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, ap => Config.PermissionSerialization.ToString());
+					tab.AddName(1, Singleton.GetPhrase("misc", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddInput(1, Singleton.GetPhrase("serverlang", ap.Player.UserIDString), ap => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
+					tab.AddInput(1, Singleton.GetPhrase("webreqip", ap.Player.UserIDString), ap => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
+					tab.AddEnum(1, Singleton.GetPhrase("permmode", ap.Player.UserIDString), (ap, back) => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, ap => Config.PermissionSerialization.ToString());
+				}
 			}
 		}
 	}
@@ -2183,10 +2268,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.ClearColumn(1);
 				RefreshPlayers(tab, instance);
-			});
-			{
-				RefreshPlayers(players, null);
-			}
+			}, 1);
+
+			players.AddColumn(0);
 			players.AddColumn(1);
 
 			return players;
@@ -2196,23 +2280,26 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			tab.ClearColumn(0);
 
-			tab.AddInput(0, "Search", ap => ap?.GetStorage<string>(tab, "playerfilter"), (ap2, args) => { ap2.SetStorage(tab, "playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
-
-			tab.AddName(0, "Online");
-			var onlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && x.IsConnected);
-			foreach (var player in onlinePlayers)
+			if (Singleton.HasAccessLevel(ap.Player, 1))
 			{
-				AddPlayer(tab, ap, player);
-			}
-			if (onlinePlayers.Count() == 0) tab.AddText(0, "No online players found.", 10, "1 1 1 0.4");
+				tab.AddInput(0, "Search", ap => ap?.GetStorage<string>(tab, "playerfilter"), (ap2, args) => { ap2.SetStorage(tab, "playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
 
-			tab.AddName(0, "Offline");
-			var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
-			foreach (var player in offlinePlayers)
-			{
-				AddPlayer(tab, ap, player);
+				tab.AddName(0, "Online");
+				var onlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && x.IsConnected);
+				foreach (var player in onlinePlayers)
+				{
+					AddPlayer(tab, ap, player);
+				}
+				if (onlinePlayers.Count() == 0) tab.AddText(0, "No online players found.", 10, "1 1 1 0.4");
+
+				tab.AddName(0, "Offline");
+				var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
+				foreach (var player in offlinePlayers)
+				{
+					AddPlayer(tab, ap, player);
+				}
+				if (offlinePlayers.Count() == 0) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
 			}
-			if (offlinePlayers.Count() == 0) tab.AddText(0, "No offline players found.", 10, "1 1 1 0.4");
 		}
 		public static void AddPlayer(Tab tab, PlayerSession ap, BasePlayer player)
 		{
@@ -2245,18 +2332,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 			catch { }
 
-			tab.AddName(1, $"Permissions", TextAnchor.MiddleLeft);
+			if (Singleton.HasAccessLevel(aap.Player, 3))
 			{
-				tab.AddButton(1, "View Permissions", ap =>
+				tab.AddName(1, $"Permissions", TextAnchor.MiddleLeft);
 				{
-					var perms = Singleton.FindTab("permissions");
-					var permission = Community.Runtime.CorePlugin.permission;
-					Singleton.SetTab(ap.Player, "permissions");
+					tab.AddButton(1, "View Permissions", ap =>
+					{
+						var perms = Singleton.FindTab("permissions");
+						var permission = Community.Runtime.CorePlugin.permission;
+						Singleton.SetTab(ap.Player, "permissions");
 
-					ap.SetStorage(tab, "player", player);
-					PermissionsTab.GeneratePlayers(perms, permission, ap);
-					PermissionsTab.GeneratePlugins(perms, ap, permission, ap.Player, null);
-				}, (ap) => Tab.OptionButton.Types.Important);
+						ap.SetStorage(tab, "player", player);
+						PermissionsTab.GeneratePlayers(perms, permission, ap);
+						PermissionsTab.GeneratePlugins(perms, ap, permission, ap.Player, null);
+					}, (ap) => Singleton.HasAccessLevel(player, 3) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Important);
+				}
 			}
 
 			if (aap != null)
@@ -2391,7 +2481,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.ClearColumn(2);
 				tab.ClearColumn(3);
 				GeneratePlayers(tab, permission, ap);
-			});
+			}, 3);
 
 			tab.AddName(0, "Options", TextAnchor.MiddleLeft);
 
@@ -2720,7 +2810,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static Tab Get()
 		{
-			var tab = new Tab("entities", "Entities", Community.Runtime.CorePlugin, (ap, tab2) => { tab2.ClearColumn(1); ap.ClearStorage(tab2, "selectedent"); DrawEntities(tab2, ap); });
+			var tab = new Tab("entities", "Entities", Community.Runtime.CorePlugin, (ap, tab2) => { tab2.ClearColumn(1); ap.ClearStorage(tab2, "selectedent"); DrawEntities(tab2, ap); }, 2);
 			tab.AddColumn(0);
 			tab.AddColumn(1);
 
@@ -3129,7 +3219,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		public static Tab Get()
 		{
-			var tab = new Tab("modules", "Modules", Community.Runtime.CorePlugin);
+			var tab = new Tab("modules", "Modules", Community.Runtime.CorePlugin, accessLevel: 3);
 			tab.AddColumn(0);
 			tab.AddColumn(1);
 
@@ -3261,7 +3351,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			OsEx.Folder.Create(Path.Combine(Core.Defines.GetScriptFolder(), "backups"));
 
-			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) => { ap.SetStorage(t, "selectedplugin", (Plugin)null); })
+			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) => { ap.SetStorage(t, "selectedplugin", (Plugin)null); }, 2)
 			{
 				Override = (t, cui, container, parent, ap) => Draw(cui, container, parent, t, ap)
 			};
@@ -3688,80 +3778,82 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					command: "pluginbrowser.deselectplugin",
 					font: Handler.FontTypes.DroidSansMono);
 
-				var buttonColor = string.Empty;
-				var elementColor = string.Empty;
-				var icon = string.Empty;
-				var status = string.Empty;
-				var scale = 0f;
-				var callMode = 0;
 
-				if (!selectedPlugin.IsInstalled())
+				if (Singleton.HasAccessLevel(ap.Player, 3))
 				{
-					if (selectedPlugin.IsPaid())
+					var buttonColor = string.Empty;
+					var elementColor = string.Empty;
+					var icon = string.Empty;
+					var status = string.Empty;
+					var scale = 0f;
+					var callMode = 0;
+
+					if (!selectedPlugin.IsInstalled())
 					{
-						buttonColor = "#2f802f";
-						elementColor = "#75f475";
-						icon = "shopping";
-						status = "BUY NOW";
-						scale = 0.572f;
-						callMode = 3;
-					}
-					else
-					{
-						if (!selectedPlugin.IsBusy)
+						if (selectedPlugin.IsPaid())
 						{
 							buttonColor = "#2f802f";
 							elementColor = "#75f475";
-							status = "DOWNLOAD";
-							icon = "clouddl";
-							scale = 0.595f;
-							callMode = 0;
+							icon = "shopping";
+							status = "BUY NOW";
+							scale = 0.572f;
+							callMode = 3;
 						}
 						else
 						{
-							buttonColor = "#78772e";
-							elementColor = "#c3bd5b";
-							icon = "clouddl";
-							status = "IN PROGRESS";
-							scale = 0.595f;
+							if (!selectedPlugin.IsBusy)
+							{
+								buttonColor = "#2f802f";
+								elementColor = "#75f475";
+								status = "DOWNLOAD";
+								icon = "clouddl";
+								scale = 0.595f;
+								callMode = 0;
+							}
+							else
+							{
+								buttonColor = "#78772e";
+								elementColor = "#c3bd5b";
+								icon = "clouddl";
+								status = "IN PROGRESS";
+								scale = 0.595f;
+							}
 						}
-					}
-				}
-				else
-				{
-					if (selectedPlugin.IsUpToDate())
-					{
-						buttonColor = "#802f2f";
-						elementColor = "#c35b5b";
-						icon = "trashcan";
-						status = "REMOVE";
-						scale = 0.564f;
-						callMode = 2;
 					}
 					else
 					{
-						buttonColor = "#2f802f";
-						elementColor = "#75f475";
-						icon = "clouddl";
-						status = "UPDATE";
-						scale = 0.564f;
-						callMode = 1;
+						if (selectedPlugin.IsUpToDate())
+						{
+							buttonColor = "#802f2f";
+							elementColor = "#c35b5b";
+							icon = "trashcan";
+							status = "REMOVE";
+							scale = 0.564f;
+							callMode = 2;
+						}
+						else
+						{
+							buttonColor = "#2f802f";
+							elementColor = "#75f475";
+							icon = "clouddl";
+							status = "UPDATE";
+							scale = 0.564f;
+							callMode = 1;
+						}
 					}
-				}
 
-				if (!selectedPlugin.IsPaid() || selectedPlugin.IsInstalled())
-				{
-					var button = cui.CreateProtectedButton(container, mainPanel, null, buttonColor, "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: scale, yMin: 0.175f, yMax: 0.235f, align: TextAnchor.MiddleRight, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact {callMode} {selectedPlugin.Id}");
-					cui.CreateText(container, button, null, "1 1 1 0.7", status, 11, xMax: 0.88f, align: TextAnchor.MiddleRight);
-					cui.CreateImage(container, button, null, icon, elementColor, xMin: 0.1f, xMax: 0.3f, yMin: 0.2f, yMax: 0.8f);
-				}
+					if (!selectedPlugin.IsPaid() || selectedPlugin.IsInstalled())
+					{
+						var button = cui.CreateProtectedButton(container, mainPanel, null, buttonColor, "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: scale, yMin: 0.175f, yMax: 0.235f, align: TextAnchor.MiddleRight, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact {callMode} {selectedPlugin.Id}");
+						cui.CreateText(container, button, null, "1 1 1 0.7", status, 11, xMax: 0.88f, align: TextAnchor.MiddleRight);
+						cui.CreateImage(container, button, null, icon, elementColor, xMin: 0.1f, xMax: 0.3f, yMin: 0.2f, yMax: 0.8f);
+					}
+					if (selectedPlugin.IsInstalled())
+					{
+						var path = Path.Combine(Core.Defines.GetConfigsFolder(), selectedPlugin.ExistentPlugin.Config.Filename);
 
-
-				if (selectedPlugin.IsInstalled())
-				{
-					var path = Path.Combine(Core.Defines.GetConfigsFolder(), selectedPlugin.ExistentPlugin.Config.Filename);
-
-					if (OsEx.File.Exists(path)) cui.CreateProtectedButton(container, mainPanel, null, "0.1 0.1 0.1 0.8", "1 1 1 0.7", "EDIT CONFIG", 11, xMin: 0.48f, xMax: 0.564f, yMin: 0.175f, yMax: 0.235f, OyMin: 35, OyMax: 35, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 3 {selectedPlugin.Id}");
+						if (OsEx.File.Exists(path)) cui.CreateProtectedButton(container, mainPanel, null, "0.1 0.1 0.1 0.8", "1 1 1 0.7", "EDIT CONFIG", 11, xMin: 0.48f, xMax: 0.564f, yMin: 0.175f, yMax: 0.235f, OyMin: 35, OyMax: 35, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 3 {selectedPlugin.Id}");
+					}
 				}
 			}
 
