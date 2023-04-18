@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using API.Abstracts;
 using API.Assembly;
 using Loaders;
 
@@ -13,7 +14,7 @@ using Loaders;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal abstract class BaseTypeManager : BaseMonoBehaviour, IAssemblyTypeManager
+internal abstract class TypeManager : CarbonBehaviour, IAssemblyTypeManager
 {
 	internal readonly AssemblyLoader _loader = new();
 
