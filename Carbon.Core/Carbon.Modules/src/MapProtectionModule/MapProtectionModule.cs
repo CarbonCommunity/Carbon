@@ -19,12 +19,13 @@ using UnityEngine;
 namespace Carbon.Modules;
 #pragma warning disable IDE0051
 
-public class MapProtectionModule : CarbonModule<MapProtectionConfig, EmptyModuleData>
+public partial class MapProtectionModule : CarbonModule<MapProtectionConfig, EmptyModuleData>
 {
 	public override string Name => "Map Protection";
 	public override Type Type => typeof(MapProtectionModule);
 	public override bool EnabledByDefault => true;
 
+	private void IOnWorldSerializationLoad(string fileName, WorldSerialization serialization) { }
 	private void IOnWorldSerializationLoaded(string fileName, WorldSerialization serialization)
 	{
 		if (!OsEx.File.Exists(ConfigInstance.Key)) return;
