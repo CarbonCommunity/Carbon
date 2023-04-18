@@ -24,10 +24,8 @@ FOR %%O IN (windows linux) DO (
 		"%ROOT%\Tools\Helpers\258550_refs.txt" -dir "%ROOT%\Rust\%%O"
 
 	rem Show me all you've got baby
-	"%ROOT%\Tools\NStrip\NStrip\bin\Release\net452\NStrip.exe" ^
-		--public --include-compiler-generated --keep-resources --no-strip --overwrite ^
-		--unity-non-serialized "%ROOT%\Rust\%%O\RustDedicated_Data\Managed\Assembly-CSharp.dll" ^
-		-cg --cg-exclude-events
+	"%ROOT%\Tools\Helpers\Publicizer.exe" ^
+		--input "%ROOT%\Rust\%%O\RustDedicated_Data\Managed\Assembly-CSharp.dll"
 )
 
 dotnet restore "%ROOT%\Carbon.Core" --nologo
