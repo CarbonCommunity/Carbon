@@ -5238,7 +5238,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							break;
 
 						case JTokenType.Integer:
-							AddInput(column, name, ap => usableToken.ToObject<long>().ToString("n0"), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToLong()); }, tooltip: $"The integer/long value of the '{name.Trim()}' property.");
+							AddInput(column, name, ap => usableToken.ToObject<long>().ToString(), (ap, args) => { usableToken.Replace(usableToken = args.ToString(" ").ToLong()); }, tooltip: $"The integer/long value of the '{name.Trim()}' property.");
 							break;
 
 						case JTokenType.Float:
