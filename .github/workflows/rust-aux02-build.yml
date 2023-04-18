@@ -151,8 +151,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 💤 Sleep for 10 seconds
-      run: sleep 10s
+    - name: 💤 Sleep for 5 seconds
+      run: sleep 5s
       shell: bash
 
     - name: ⬇️ Download artifacts
