@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using API.Abstracts;
 using API.Assembly;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ using UnityEngine;
 
 namespace Components;
 
-internal sealed class FileWatcherManager : MonoBehaviour, IFileWatcherManager, IDisposable
+internal sealed class FileWatcherManager : CarbonBehaviour, IFileWatcherManager, IDisposable
 {
 	private readonly List<WatchFolder> _watchlist = new();
 

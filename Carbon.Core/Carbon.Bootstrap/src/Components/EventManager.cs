@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using API.Abstracts;
 using API.Contracts;
 using API.Events;
 using UnityEngine;
@@ -13,7 +14,7 @@ using UnityEngine;
 
 namespace Components;
 
-internal sealed class EventManager : MonoBehaviour, IEventManager
+internal sealed class EventManager : CarbonBehaviour, IEventManager
 {
 	private readonly Dictionary<CarbonEvent, Delegate> events = new();
 
