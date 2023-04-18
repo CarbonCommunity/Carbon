@@ -162,6 +162,55 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		PluginsTab.ServerOwner.Save();
 	}
 
+	public override Dictionary<string, Dictionary<string, string>> GetDefaultPhrases()
+	{
+		return new Dictionary<string, Dictionary<string, string>>
+		{
+			["en"] = new()
+			{
+				["hostname"] = "Host Name",
+				["level"] = "Level",
+				["info"] = "Info",
+				["version"] = "Version",
+				["version2"] = "Informational Version",
+				["hooks"] = "Hooks",
+				["statichooks"] = "Static Hooks",
+				["dynamichooks"] = "Dynamic Hooks",
+				["plugins"] = "Plugins",
+				["mods"] = "Mods",
+				["console"] = "Console",
+				["execservercmd"] = "Execute Server Command",
+				["config"] = "Config",
+				["ismodded"] = "Is Modded",
+				["ismodded_help"] = "When enabled, it marks the server as modded.",
+				["autoupdate"] = "Auto Update",
+				["autoupdate_help"] = "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.",
+				["general"] = "General",
+				["hooktimetracker"] = "Hook Time Tracker",
+				["hooktimetracker_help"] = "Tracks the time taken for hooks to be executed.",
+				["hookvalidation"] = "Hook Validation",
+				["hookvalidation_help"] = "Probably obsolete, but when enabled, it prints a list of hooks that are compatible in Oxide, but not Carbon.",
+				["entmapbuffersize"] = "Entity Map Buffer Size (restart required)",
+				["entmapbuffersize_help"] = "Only change if you're aware what this is used for. Developers-related option.",
+				["watchers"] = "Watchers",
+				["scriptwatchers"] = "Script Watchers",
+				["scriptwatchers_help"] = "When disabled, you must load/unload plugins manually with 'c.load' or 'c.unload'.",
+				["harmonyreference"] = "Harmony Reference (<color=red>!</color>)",
+				["harmonyreference_help"] = "Enabling this will allow plugins to patch Harmony patches at runtime. This might create instability and conflict if unmanaged.",
+				["filenamecheck"] = "File Name Check",
+				["filenamecheck_help"] = "Checks for file names. Otherwise will load the plugins regardless. Recommended to be enabled.",
+				["logging"] = "Logging",
+				["logfilemode"] = "Log File Mode",
+				["logverbosity"] = "Log Verbosity (Debug)",
+				["logseverity"] = "Log Severity",
+				["misc"] = "Miscellaneous",
+				["serverlang"] = "Server Language",
+				["webreqip"] = "WebRequest IP",
+				["permmode"] = "Permission Mode"
+			}
+		};
+	}
+
 	private void OnLog(string condition, string stackTrace, LogType type)
 	{
 		try
@@ -2142,31 +2191,31 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			if (Singleton.HasAccessLevel(ap.Player, 2))
 			{
-				tab.AddInput(0, "Host Name", ap => $"{ConVar.Server.hostname}", Singleton.HasAccessLevel(ap.Player, 3) ? (ap2, args) => { ConVar.Server.hostname = args.ToString(" "); } : null);
-				tab.AddInput(0, "Level", ap => $"{ConVar.Server.level}", null);
+				tab.AddInput(0, Singleton.GetPhrase("hostname", ap.Player.UserIDString), ap => $"{ConVar.Server.hostname}", Singleton.HasAccessLevel(ap.Player, 3) ? (ap2, args) => { ConVar.Server.hostname = args.ToString(" "); } : null);
+				tab.AddInput(0, Singleton.GetPhrase("level", ap.Player.UserIDString), ap => $"{ConVar.Server.level}", null);
 
-				tab.AddName(0, "Info", TextAnchor.MiddleLeft);
+				tab.AddName(0, Singleton.GetPhrase("info", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 				{
-					tab.AddInput(0, "Version", ap => $"{Community.Runtime.Analytics.Version}", null);
-					tab.AddInput(0, "Informational Version", ap => $"{Community.Runtime.Analytics.InformationalVersion}", null);
+					tab.AddInput(0, Singleton.GetPhrase("version", ap.Player.UserIDString), ap => $"{Community.Runtime.Analytics.Version}", null);
+					tab.AddInput(0, Singleton.GetPhrase("version2", ap.Player.UserIDString), ap => $"{Community.Runtime.Analytics.InformationalVersion}", null);
 
 					var loadedHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Community.Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled);
 					var totalHooks = Community.Runtime.HookManager.LoadedDynamicHooks.Count() + Community.Runtime.HookManager.LoadedStaticHooks.Count();
-					tab.AddInput(0, "Hooks", ap => $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
-					tab.AddInput(0, "Static Hooks", ap => $"{Community.Runtime.HookManager.LoadedStaticHooks.Count():n0}", null);
-					tab.AddInput(0, "Dynamic Hooks", ap => $"{Community.Runtime.HookManager.LoadedDynamicHooks.Count():n0}", null);
+					tab.AddInput(0, Singleton.GetPhrase("hooks", ap.Player.UserIDString), ap => $"<b>{loadedHooks:n0}</b> / {totalHooks:n0} loaded", null);
+					tab.AddInput(0, Singleton.GetPhrase("statichooks", ap.Player.UserIDString), ap => $"{Community.Runtime.HookManager.LoadedStaticHooks.Count():n0}", null);
+					tab.AddInput(0, Singleton.GetPhrase("dynamichooks", ap.Player.UserIDString), ap => $"{Community.Runtime.HookManager.LoadedDynamicHooks.Count():n0}", null);
 
-					tab.AddName(0, "Plugins", TextAnchor.MiddleLeft);
-					tab.AddInput(0, "Mods", ap => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
+					tab.AddName(0, Singleton.GetPhrase("plugins", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddInput(0, Singleton.GetPhrase("mods", ap.Player.UserIDString), ap => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
 
 					if (Singleton.HasAccessLevel(ap.Player, 3))
 					{
-						tab.AddName(0, "Console", TextAnchor.MiddleLeft);
+						tab.AddName(0, Singleton.GetPhrase("console", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 						foreach (var log in _logQueue)
 						{
 							tab.AddText(0, log, 10, "1 1 1 0.85", TextAnchor.MiddleLeft, Handler.FontTypes.RobotoCondensedRegular, isInput: true);
 						}
-						tab.AddInputButton(0, "Execute Server Command", 0.2f, new Tab.OptionInput(null, null, 0, false, (ap, args) =>
+						tab.AddInputButton(0, Singleton.GetPhrase("execservercmd", ap.Player.UserIDString), 0.2f, new Tab.OptionInput(null, null, 0, false, (ap, args) =>
 						{
 							Run(Option.Server, args.ToString(" "), null);
 							Refresh(tab, ap);
@@ -2180,30 +2229,30 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			if (Singleton.HasAccessLevel(ap.Player, 3))
 			{
-				tab.AddName(1, "Config", TextAnchor.MiddleLeft);
+				tab.AddName(1, Singleton.GetPhrase("config", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 				{
-					tab.AddToggle(1, "Is Modded", ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded, "When enabled, it marks the server as modded.");
-					tab.AddToggle(1, "Auto Update", ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.");
+					tab.AddToggle(1, Singleton.GetPhrase("ismodded", ap.Player.UserIDString), ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded, Singleton.GetPhrase("ismodded_help", ap.Player.UserIDString));
+					tab.AddToggle(1, Singleton.GetPhrase("autoupdate", ap.Player.UserIDString), ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, Singleton.GetPhrase("autoupdate_help", ap.Player.UserIDString));
 
-					tab.AddName(1, "General", TextAnchor.MiddleLeft);
-					tab.AddToggle(1, "Hook Time Tracker", ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker, "Tracks the time taken for hooks to be executed.");
-					tab.AddToggle(1, "Hook Validation", ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation, "Probably obsolete, but when enabled, it prints a list of hooks that are compatible in Oxide, but not Carbon.");
-					tab.AddInput(1, "Entity Map Buffer Size (restart required)", ap => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, "Only change if you're aware what this is used for. Developers-related option.");
+					tab.AddName(1, Singleton.GetPhrase("general", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddToggle(1, Singleton.GetPhrase("hooktimetracker", ap.Player.UserIDString), ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker, Singleton.GetPhrase("hooktimetracker_help", ap.Player.UserIDString));
+					tab.AddToggle(1, Singleton.GetPhrase("hookvalidation", ap.Player.UserIDString), ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation, Singleton.GetPhrase("hookvalidation_help", ap.Player.UserIDString));
+					tab.AddInput(1, Singleton.GetPhrase("entmapbuffersize", ap.Player.UserIDString), ap => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, Singleton.GetPhrase("entmapbuffersize_help", ap.Player.UserIDString));
 
-					tab.AddName(1, "Watchers", TextAnchor.MiddleLeft);
-					tab.AddToggle(1, "Script Watchers", ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers, "When disabled, you must load/unload plugins manually with 'c.load' or 'c.unload'.");
-					tab.AddToggle(1, "Harmony Reference (<color=red>!</color>)", ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference, "Enabling this will allow plugins to patch Harmony patches at runtime. This might create instability and conflict if unmanaged.");
-					tab.AddToggle(1, "File Name Check", ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck, "Checks for file names. Otherwise will load the plugins regardless. Recommended to be enabled.");
+					tab.AddName(1, Singleton.GetPhrase("watchers", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddToggle(1, Singleton.GetPhrase("scriptwatchers", ap.Player.UserIDString), ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers, Singleton.GetPhrase("scriptwatchers_help", ap.Player.UserIDString));
+					tab.AddToggle(1, Singleton.GetPhrase("harmonyreference", ap.Player.UserIDString), ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference, Singleton.GetPhrase("harmonyreference_help", ap.Player.UserIDString));
+					tab.AddToggle(1, Singleton.GetPhrase("filenamecheck", ap.Player.UserIDString), ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck, Singleton.GetPhrase("filenamecheck_help", ap.Player.UserIDString));
 
-					tab.AddName(1, "Logging", TextAnchor.MiddleLeft);
-					tab.AddDropdown(1, "Log File Mode", ap => Config.LogFileMode, (ap, index) => { Config.LogFileMode = index; Community.Runtime.SaveConfig(); }, LogFileModes);
-					tab.AddDropdown(1, "Log Verbosity (Debug)", ap => Config.LogVerbosity, (ap, index) => { Config.LogVerbosity = index; Community.Runtime.SaveConfig(); }, LogVerbosity);
-					tab.AddDropdown(1, "Log Severity", ap => (int)Config.LogSeverity, (ap, index) => { Config.LogSeverity = (API.Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(API.Logger.Severity)));
+					tab.AddName(1, Singleton.GetPhrase("logging", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddDropdown(1, Singleton.GetPhrase("logfilemode", ap.Player.UserIDString), ap => Config.LogFileMode, (ap, index) => { Config.LogFileMode = index; Community.Runtime.SaveConfig(); }, LogFileModes);
+					tab.AddDropdown(1, Singleton.GetPhrase("logverbosity", ap.Player.UserIDString), ap => Config.LogVerbosity, (ap, index) => { Config.LogVerbosity = index; Community.Runtime.SaveConfig(); }, LogVerbosity);
+					tab.AddDropdown(1, Singleton.GetPhrase("logseverity", ap.Player.UserIDString), ap => (int)Config.LogSeverity, (ap, index) => { Config.LogSeverity = (API.Logger.Severity)index; Community.Runtime.SaveConfig(); }, Enum.GetNames(typeof(API.Logger.Severity)));
 
-					tab.AddName(1, "Miscellaneous", TextAnchor.MiddleLeft);
-					tab.AddInput(1, "Server Language", ap => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
-					tab.AddInput(1, "WebRequest IP", ap => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
-					tab.AddEnum(1, "Permission Mode", (ap, back) => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, ap => Config.PermissionSerialization.ToString());
+					tab.AddName(1, Singleton.GetPhrase("misc", ap.Player.UserIDString), TextAnchor.MiddleLeft);
+					tab.AddInput(1, Singleton.GetPhrase("serverlang", ap.Player.UserIDString), ap => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
+					tab.AddInput(1, Singleton.GetPhrase("webreqip", ap.Player.UserIDString), ap => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
+					tab.AddEnum(1, Singleton.GetPhrase("permmode", ap.Player.UserIDString), (ap, back) => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, ap => Config.PermissionSerialization.ToString());
 				}
 			}
 		}
