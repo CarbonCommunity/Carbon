@@ -54,7 +54,7 @@ public partial class MapProtectionModule : CarbonModule<MapProtectionConfig, Emp
 						serialization.world.prefabs.Remove(prefab);
 						entitiesRemoved++;
 
-						if (i % logGuesstimate == 0)
+						if (i % logGuesstimate == 0 || i == 0 || i == key.points.Count - 1)
 						{
 							UnityEngine.Debug.Log($" Progress... {i.Scale(0, key.points.Count, 0, 100):n0}%");
 						}
