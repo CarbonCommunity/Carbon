@@ -22,11 +22,7 @@ ROOT="$(realpath "${BASE}/../../../")"
 git submodule init
 git submodule update
 
-## Changes the assembly name for HamonyLib
-#HARMONYDIR="${ROOT}/Tools/HarmonyLib/Harmony"
-#sed -i 's/0Harmony/1Harmony/' "${HARMONYDIR}/Harmony.csproj"
-
-for TOOL in DepotDownloader NStrip; do
+for TOOL in DepotDownloader; do
   dotnet restore "${ROOT}/Tools/${TOOL}" --verbosity quiet --nologo --force
   dotnet clean   "${ROOT}/Tools/${TOOL}" --verbosity quiet --configuration Release --nologo
   dotnet build   "${ROOT}/Tools/${TOOL}" --verbosity quiet --configuration Release --no-restore --no-incremental

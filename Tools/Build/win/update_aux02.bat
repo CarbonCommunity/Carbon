@@ -1,3 +1,2 @@
 @echo off
-set BASE=%~dp0
-call "%BASE%\update.bat" aux02
+call "%~dp0\update.bat" aux02
