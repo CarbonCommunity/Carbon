@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using API.Abstracts;
 using API.Commands;
 using Facepunch;
 using Utility;
@@ -14,7 +15,7 @@ using Utility;
 
 namespace Components;
 
-public sealed class CommandManager : FacepunchBehaviour, ICommandManager
+public sealed class CommandManager : CarbonBehaviour, ICommandManager
 {
 	public List<Command> RCon { get; set; } = new();
 	public List<Command> Console { get; set; } = new();
@@ -24,6 +25,8 @@ public sealed class CommandManager : FacepunchBehaviour, ICommandManager
 	{
 		var list = Pool.GetList<Command>();
 		list.AddRange(factory);
+
+		command = command?.Trim().ToLower();
 
 		foreach (var cmd in list)
 		{
@@ -137,6 +140,8 @@ public sealed class CommandManager : FacepunchBehaviour, ICommandManager
 			reason = "Command is null.";
 			return false;
 		}
+
+		command.Normalize();
 
 		var factory = GetFactory(command);
 

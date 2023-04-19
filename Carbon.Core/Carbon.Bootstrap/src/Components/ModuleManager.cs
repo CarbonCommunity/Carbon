@@ -18,7 +18,7 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class ModuleManager : BaseTypeManager
+internal sealed class ModuleManager : TypeManager
 {
 	/*
 	 * CARBON MODULES

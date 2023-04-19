@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using API.Abstracts;
 using API.Analytics;
 using HarmonyLib;
 using Newtonsoft.Json;
@@ -19,7 +20,7 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class AnalyticsManager : UnityEngine.MonoBehaviour, IAnalyticsManager
+internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 {
 	private int _sessions;
 	private float _lastUpdate;

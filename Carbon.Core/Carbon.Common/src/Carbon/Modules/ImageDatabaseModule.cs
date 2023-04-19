@@ -405,7 +405,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 	public uint GetQRCode(string text, int pixels = 20, bool transparent = false, bool quietZones = true, bool whiteMode = false)
 	{
-		if (_protoData.Map.TryGetValue($"qr_{CUI.UniquifyCommand(text)}_{pixels}_0", out uint uid)) return uid;
+		if (_protoData.Map.TryGetValue($"qr_{Community.Protect(text)}_{pixels}_0", out uint uid)) return uid;
 
 		if (text.StartsWith("http"))
 		{
@@ -425,7 +425,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 			var raw = output.ToArray();
 			uid = FileStorage.server.Store(raw, FileStorage.Type.png, _protoData.Identifier);
-			_protoData.Map.Add($"qr_{CUI.UniquifyCommand(text)}_{pixels}_0", uid);
+			_protoData.Map.Add($"qr_{Community.Protect(text)}_{pixels}_0", uid);
 			return uid;
 		};
 	}

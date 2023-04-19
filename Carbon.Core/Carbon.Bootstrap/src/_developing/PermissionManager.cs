@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using API.Abstracts;
 using API.Permissions;
 using Facepunch.Sqlite;
 using Utility;
@@ -13,7 +14,7 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class PermissionManager : UnityEngine.MonoBehaviour, IPermissionManager
+internal sealed class PermissionManager : CarbonBehaviour, IPermissionManager
 {
 	public static Database _database;
 

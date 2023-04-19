@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using API.Abstracts;
 using API.Assembly;
 using API.Commands;
 using Loaders;
@@ -18,7 +19,7 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
+internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 {
 	private LibraryLoader _library;
 
@@ -62,7 +63,7 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 				Name = "test.foobar",
 				Callback = (arg) =>
 				{
-					Logger.Log("foobar");
+					UnityEngine.Debug.Log($"test");
 				},
 			}, out string reason)) throw new Exception(reason);
 		}
