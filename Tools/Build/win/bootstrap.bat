@@ -16,17 +16,17 @@ set BOOTSTRAP_ROOT=%CD%
 popd
 
 rem Inits and downloads the submodules
-git submodule init
-git submodule update
+git -C "%BOOTSTRAP_ROOT%" submodule init
+git -C "%BOOTSTRAP_ROOT%" submodule update
 
 FOR %%O IN (DepotDownloader) DO (
 	dotnet restore "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --nologo --force 
 	dotnet clean   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --nologo
 	dotnet build   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --no-restore --no-incremental
-)
+) > NUL
 
 rem Download rust binary libs
 call "%~dp0\update.bat" public
 
 rem Don't track changes to this file
-git update-index --assume-unchanged "%BOOTSTRAP_ROOT%\Tools\Helpers\doorstop_config.ini"
+git -C "%BOOTSTRAP_ROOT%" update-index --assume-unchanged "%BOOTSTRAP_ROOT%\Tools\Helpers\doorstop_config.ini"
