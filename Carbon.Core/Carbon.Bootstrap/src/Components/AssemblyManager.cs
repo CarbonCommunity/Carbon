@@ -63,7 +63,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 				Name = "test.foobar",
 				Callback = (arg) =>
 				{
-					Logger.Log("foobar");
+					UnityEngine.Debug.Log($"test");
 				},
 			}, out string reason)) throw new Exception(reason);
 		}
