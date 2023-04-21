@@ -30,6 +30,7 @@ using StringEx = Carbon.Extensions.StringEx;
  */
 
 namespace Carbon.Modules;
+#pragma warning disable IDE0051
 
 public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 {

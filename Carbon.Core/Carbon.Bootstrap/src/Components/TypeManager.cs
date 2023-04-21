@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using API.Abstracts;
@@ -19,8 +20,9 @@ internal abstract class TypeManager : CarbonBehaviour, ITypeManager
 {
 	internal class Item : IAddonCache
 	{
-		public string File { get; set; }
-		public ICarbonAddon Addon { get; set; }
+		public ICarbonAddon Addon { get; internal set; }
+		public IReadOnlyList<Type> Types { get; internal set; }
+		public string File { get; internal set; }
 	}
 
 	internal readonly AssemblyLoader _loader = new();
@@ -31,8 +33,11 @@ internal abstract class TypeManager : CarbonBehaviour, ITypeManager
 	internal List<Item> _loaded
 	{ get; set; } = new();
 
-	public List<string> Loaded
+	public IReadOnlyList<string> Loaded
 	{ get => _loaded.Select(x => x.File).ToList(); }
+
+	public IReadOnlyList<Type> LoadedTypes
+	{ get => _loaded.SelectMany(x => x.Types).ToList(); }
 
 	public byte[] Read(string file)
 		=> _loader.ReadFromCache(file).Raw;

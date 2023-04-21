@@ -89,7 +89,7 @@ internal sealed class ModuleManager : TypeManager
 								module.OnLoaded(EventArgs.Empty);
 								Carbon.Bootstrap.Events
 									.Trigger(CarbonEvent.ModuleLoaded, new CarbonEventArgs(file));
-								_loaded.Add(new() { Addon = module, File = file });
+								_loaded.Add(new() { Addon = module, Types = asm.GetExportedTypes(), File = file });
 							}
 							catch (Exception e)
 							{

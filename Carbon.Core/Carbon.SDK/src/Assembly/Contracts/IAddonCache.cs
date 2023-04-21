@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 /*
  *
@@ -11,6 +12,7 @@ namespace API.Assembly;
 
 public interface IAddonCache
 {
-	public string File { get; }
 	public ICarbonAddon Addon { get; }
+	public IReadOnlyList<Type> Types { get; }
+	public string File { get; }
 }

@@ -12,7 +12,9 @@ namespace API.Assembly;
 
 public interface ITypeManager
 {
-	public List<string> Loaded { get; }
+	public IReadOnlyList<string> Loaded { get; }
+	public IReadOnlyList<Type> LoadedTypes { get; }
+
 	//public bool IsLoaded(string file);
 	//public void UnLoad(string file, string requester);
 
