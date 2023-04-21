@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace API.Assembly;
 
-public interface IAssemblyTypeManager
+public interface ITypeManager
 {
 	public List<string> Loaded { get; }
 	//public bool IsLoaded(string file);

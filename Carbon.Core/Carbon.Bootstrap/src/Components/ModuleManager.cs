@@ -5,7 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
-using API.Contracts;
+using API.Events;
 using Utility;
 
 /*
@@ -45,7 +45,7 @@ internal sealed class ModuleManager : TypeManager
 		{
 			Extension = "*.dll",
 			IncludeSubFolders = false,
-			Directory = Utility.Context.CarbonModules,
+			Directory = Context.CarbonModules,
 
 			OnFileCreated = (sender, file) =>
 			{
@@ -85,8 +85,11 @@ internal sealed class ModuleManager : TypeManager
 									throw new NullReferenceException();
 								Logger.Debug($"A new instance of '{module}' created");
 
-								module.Initialize("nothing for now");
-								module.OnLoaded(args: new EventArgs());
+								module.Awake(EventArgs.Empty);
+								module.OnLoaded(EventArgs.Empty);
+								Carbon.Bootstrap.Events
+									.Trigger(CarbonEvent.ModuleLoaded, new CarbonEventArgs(file));
+								_loaded.Add(new() { Addon = module, File = file });
 							}
 							catch (Exception e)
 							{
@@ -100,7 +103,6 @@ internal sealed class ModuleManager : TypeManager
 						throw new Exception("Unsupported assembly type");
 					}
 
-					Loaded.Add(file);
 					return asm;
 
 				// case ".drm"

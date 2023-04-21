@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
+using API.Events;
 using Utility;
 
 /*
@@ -66,8 +67,11 @@ internal sealed class ComponentManager : TypeManager
 									throw new NullReferenceException();
 								Logger.Debug($"A new instance of '{component}' created");
 
-								component.Initialize("nothing for now");
-								component.OnLoaded(args: new EventArgs());
+								component.Awake(EventArgs.Empty);
+								component.OnLoaded(EventArgs.Empty);
+								Carbon.Bootstrap.Events
+									.Trigger(CarbonEvent.ComponentLoaded, new CarbonEventArgs(file));
+								_loaded.Add(new() { Addon = component, File = file });
 							}
 							catch (Exception e)
 							{
@@ -80,8 +84,6 @@ internal sealed class ComponentManager : TypeManager
 					{
 						throw new Exception("Unsupported assembly type");
 					}
-
-					Loaded.Add(file);
 					return asm;
 
 				// case ".drm"

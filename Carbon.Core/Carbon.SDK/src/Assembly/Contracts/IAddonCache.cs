@@ -9,8 +9,8 @@
 
 namespace API.Assembly;
 
-public interface ICarbonComponent : ICarbonAddon
+public interface IAddonCache
 {
-	public void OnEnable(EventArgs args);
-	public void OnDisable(EventArgs args);
+	public string File { get; }
+	public ICarbonAddon Addon { get; }
 }
