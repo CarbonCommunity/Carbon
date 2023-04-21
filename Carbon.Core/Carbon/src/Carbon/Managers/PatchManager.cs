@@ -5,11 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Text;
 using API.Abstracts;
 using API.Events;
 using API.Hooks;
-using HarmonyLib;
 
 /*
  *
