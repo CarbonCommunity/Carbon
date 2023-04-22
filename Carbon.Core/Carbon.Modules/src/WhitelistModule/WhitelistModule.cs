@@ -16,22 +16,15 @@ namespace Carbon.Modules;
 
 public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModuleData>
 {
-	internal static WhitelistModule Instance { get; set; }
+	internal static WhitelistModule Singleton { get; set; }
 
 	public override string Name => "Whitelist";
 	public override Type Type => typeof(WhitelistModule);
 	public override bool ForceModded => false;
 
-	public override void Init()
+	public WhitelistModule()
 	{
-		base.Init();
-
-		Instance = this;
-	}
-	public override void Load()
-	{
-		base.Load();
-
+		Singleton = this;
 	}
 
 	public override void OnEnabled(bool initialized)

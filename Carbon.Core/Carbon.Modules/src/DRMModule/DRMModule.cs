@@ -25,13 +25,18 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 	public override string Name => "DRM";
 	public override Type Type => typeof(DRMModule);
 
-	public override void Init()
+	public override void Load()
 	{
-		base.Init();
+		base.Load();
 
-		foreach (var processor in ConfigInstance.Processors)
+		if (GetEnabled())
 		{
-			processor.Value.Initialize();
+			Dispose();
+
+			foreach (var processor in ConfigInstance.Processors)
+			{
+				processor.Value.Initialize();
+			}
 		}
 	}
 	public override void Dispose()

@@ -41,7 +41,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
 
-	public CUI.Handler Handler { get; internal set; }
+	public readonly CUI.Handler Handler = new();
 
 	internal const float OptionWidth = 0.475f;
 	internal const float TooltipOffset = 15;
@@ -55,6 +55,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	const string CursorPanelId = "carbonmodularuicur";
 	const string SpectatePanelId = "carbonmodularuispectate";
 	const int AccessLevels = 3;
+
+	public AdminModule()
+	{
+		Singleton = this;
+	}
 
 	internal static List<string> _logQueue { get; } = new();
 	internal static Dictionary<LogType, string> _logColor { get; } = new()
@@ -72,13 +77,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		return HandleEnableNeedsKeyboard(GetPlayerSession(player));
 	}
 
-	public override void Init()
-	{
-		base.Init();
-
-		Singleton = this;
-		Handler = new();
-	}
 	public override void OnServerInit()
 	{
 		base.OnServerInit();
