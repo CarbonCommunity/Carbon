@@ -85,6 +85,7 @@ internal sealed class ExtensionManager : AddonManager
 									throw new NullReferenceException();
 								Logger.Debug($"A new instance of '{extension}' created");
 
+								extension.Awake(EventArgs.Empty);
 								extension.OnLoaded(EventArgs.Empty);
 								Carbon.Bootstrap.Events
 									.Trigger(CarbonEvent.ExtensionLoaded, new CarbonEventArgs(file));
