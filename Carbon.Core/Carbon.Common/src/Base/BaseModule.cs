@@ -23,7 +23,6 @@ public abstract class BaseModule : BaseHookable
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
 	public virtual bool Disabled => false;
-	public virtual bool IsCoreModule => false;
 
 	public abstract void OnPostServerInit();
 	public abstract void OnServerInit();
@@ -79,12 +78,11 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual void Init()
 	{
-		base.Name = Name;
-		base.Type = Type;
+		if (HasInitialized) return;
+
+		HasInitialized = true;
 
 		if (Disabled) return;
-
-		Hooks = new();
 
 		Community.Runtime.HookManager.LoadHooksFromType(Type);
 
@@ -99,11 +97,15 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			}
 		}
 
-		Config = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
-		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
+		var phrases = GetDefaultPhrases();
 
-		Load();
-		OnEnableStatus();
+		if (phrases != null)
+		{
+			foreach (var language in phrases)
+			{
+				Community.Runtime.CorePlugin.lang.RegisterMessages(language.Value, this, language.Key);
+			}
+		}
 	}
 	public virtual void InitEnd()
 	{
@@ -114,6 +116,9 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		if (Disabled) return;
 
 		var shouldSave = false;
+
+		Config ??= new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
+		Data ??= new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 		if (!Config.Exists())
 		{
@@ -127,8 +132,11 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			catch (Exception exception) { Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 		}
 
-		if (IsCoreModule) ModuleConfiguration.Enabled = true;
 		ConfigInstance = ModuleConfiguration.Config;
+
+		Hooks ??= new();
+		base.Name ??= Name;
+		base.Type ??= Type;
 
 		if (typeof(D) != typeof(EmptyModuleData))
 		{
@@ -147,6 +155,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		if (PreLoadShouldSave()) shouldSave = true;
 
 		if (shouldSave) Save();
+
+		OnEnableStatus();
 	}
 	public virtual bool PreLoadShouldSave()
 	{
@@ -173,7 +183,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public override void SetEnabled(bool enable)
 	{
-		if (Disabled && !IsCoreModule) return;
+		if (Disabled) return;
 
 		if (ModuleConfiguration != null)
 		{
@@ -183,7 +193,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override bool GetEnabled()
 	{
-		return IsCoreModule || (!Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled);
+		return !Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled;
 	}
 
 	public virtual void OnDisabled(bool initialized)

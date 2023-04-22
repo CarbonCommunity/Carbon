@@ -32,8 +32,6 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 	{
 		base.Load();
 
-		UnregisterPermissions();
-		RegisterPermission(ConfigInstance.BypassPermission);
 	}
 
 	public override void OnEnabled(bool initialized)
@@ -41,6 +39,9 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 		base.OnEnabled(initialized);
 
 		Subscribe("CanUserLogin");
+
+		UnregisterPermissions();
+		RegisterPermission(ConfigInstance.BypassPermission);
 	}
 	public override void OnDisabled(bool initialized)
 	{

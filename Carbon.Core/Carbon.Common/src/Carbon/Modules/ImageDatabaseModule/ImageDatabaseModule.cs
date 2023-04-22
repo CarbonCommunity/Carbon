@@ -30,7 +30,6 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 {
 	public override string Name => "Image Database";
 	public override Type Type => typeof(ImageDatabaseModule);
-	public override bool IsCoreModule => true;
 	public override bool EnabledByDefault => true;
 
 	internal List<QueuedThread> _queue = new();

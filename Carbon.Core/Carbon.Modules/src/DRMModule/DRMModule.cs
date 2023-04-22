@@ -24,7 +24,6 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 {
 	public override string Name => "DRM";
 	public override Type Type => typeof(DRMModule);
-	public override bool EnabledByDefault => true;
 
 	public override void Init()
 	{

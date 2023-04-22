@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Carbon.Base;
+using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
@@ -109,15 +110,17 @@ namespace Carbon
 			var conflicts = Pool.GetList<Conflict>();
 			var array = args == null || args.Length == 0 ? null : args.ToArray();
 
-			foreach (var module in Community.Runtime.ModuleProcessor.Modules)
+			foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
 			{
+				if (hookable is IModule modules && !modules.GetEnabled()) continue;
+
 				var priority = (Priorities)default;
-				var methodResult = Caller.CallHook(module, hookName, flags: flag, args: array, ref priority);
+				var methodResult = Caller.CallHook(hookable, hookName, flags: flag, args: array, ref priority);
 
 				if (methodResult != null)
 				{
 					result = methodResult;
-					ResultOverride(module, priority);
+					ResultOverride(hookable, priority);
 				}
 			}
 

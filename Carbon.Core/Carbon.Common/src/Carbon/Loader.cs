@@ -6,6 +6,7 @@ using System.Reflection;
 using API.Commands;
 using API.Events;
 using Carbon.Base;
+using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
@@ -517,7 +518,7 @@ public static class Loader
 
 			foreach (var plugin in Community.Runtime.ModuleProcessor.Modules)
 			{
-				if (plugin.HasInitialized) continue;
+				if (plugin is IModule module && (!module.GetEnabled() || plugin.HasInitialized)) continue;
 
 				try
 				{

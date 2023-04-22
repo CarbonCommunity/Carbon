@@ -40,7 +40,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override VersionNumber Version => new(1, 7, 0);
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
-	public override bool IsCoreModule => true;
 
 	public CUI.Handler Handler { get; internal set; }
 
@@ -3248,7 +3247,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			if (!module.Disabled)
 			{
-				if (!module.IsCoreModule) tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
+				tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
 
 				tab.AddButtonArray(1,
 					new Tab.OptionButton("Save", ap => { module.Save(); }),
@@ -3266,6 +3265,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						(ap, jobject) =>
 						{
 							OsEx.File.Create(moduleConfigFile, jobject.ToString(Formatting.Indented));
+							module.SetEnabled(false);
 							module.Load();
 
 							Singleton.SetTab(ap.Player, "modules");
@@ -5552,11 +5552,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			cui.CreateProtectedButton(container, panel, null, "0.3 0.3 0.3 0.5", "1 1 1 1", "EDIT CONFIG".SpacedString(1), 10,
 				xMin: 0.9f, yMin: 0.075f, yMax: 0.125f, OyMin: 30, OyMax: 30, OxMin: 8, OxMax: 8, command: $"wizard.editmoduleconfig {module.Type.Name}");
 
-			if (!module.IsCoreModule)
-			{
-				cui.CreateProtectedButton(container, panel, null, module.GetEnabled() ? "0.4 0.9 0.3 0.5" : "0.1 0.1 0.1 0.5", "1 1 1 1", module.GetEnabled() ? "ENABLED".SpacedString(1) : "DISABLED".SpacedString(1), 10,
-					xMin: 0.9f, yMin: 0.075f, yMax: 0.125f, OxMin: 8, OxMax: 8, command: $"wizard.togglemodule {module.Type.Name}");
-			}
+			cui.CreateProtectedButton(container, panel, null, module.GetEnabled() ? "0.4 0.9 0.3 0.5" : "0.1 0.1 0.1 0.5", "1 1 1 1", module.GetEnabled() ? "ENABLED".SpacedString(1) : "DISABLED".SpacedString(1), 10,
+				xMin: 0.9f, yMin: 0.075f, yMax: 0.125f, OxMin: 8, OxMax: 8, command: $"wizard.togglemodule {module.Type.Name}");
 		}
 		internal void DisplayArrows(CUI cui, Tab tab, CuiElementContainer container, string panel, PlayerSession ap, bool centerNext = false)
 		{

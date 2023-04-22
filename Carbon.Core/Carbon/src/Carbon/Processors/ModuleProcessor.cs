@@ -39,12 +39,36 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			if (type.BaseType == null || !type.BaseType.Name.Contains("CarbonModule")) continue;
 			Setup(Activator.CreateInstance(type) as BaseHookable);
 		}
+
+		foreach(var hookable in _modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				module.Init();
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				module.OnEnableStatus();
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				module.InitEnd();
+			}
+		}
 	}
 	public void OnServerInit()
 	{
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module)
+			if (hookable is IModule module && module.GetEnabled())
 			{
 				try
 				{
@@ -59,7 +83,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module)
+			if (hookable is IModule module && module.GetEnabled())
 			{
 				try
 				{
@@ -76,7 +100,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module)
+			if (hookable is IModule module && module.GetEnabled())
 			{
 				try
 				{
@@ -93,27 +117,9 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		if (hookable is IModule module)
 		{
-			try
-			{
-				module.Init();
-
-				var phrases = module.GetDefaultPhrases();
-
-				if (phrases != null)
-				{
-					foreach (var language in phrases)
-					{
-						Community.Runtime.CorePlugin.lang.RegisterMessages(language.Value, hookable, language.Key);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"[ModuleProcessor] Failed initializing '{hookable.Name}'.", ex);
-			}
-
+			module.Load();
 			_modules.Add(hookable);
-			module.InitEnd();
+
 		}
 	}
 

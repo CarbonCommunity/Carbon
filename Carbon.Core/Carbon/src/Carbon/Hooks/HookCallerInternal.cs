@@ -187,7 +187,7 @@ namespace Carbon.Hooks
 
 				if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
 				{
-					Carbon.Logger.Warn($" {plugin?.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
+					Carbon.Logger.Warn($" {plugin.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
 				}
 
 				return result2;
