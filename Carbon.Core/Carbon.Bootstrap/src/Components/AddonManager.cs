@@ -16,9 +16,9 @@ using Loaders;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal abstract class TypeManager : CarbonBehaviour, ITypeManager
+internal abstract class AddonManager : CarbonBehaviour, IAddonManager
 {
-	internal class Item : IAddonCache
+	internal class Item
 	{
 		public ICarbonAddon Addon { get; internal set; }
 		public IReadOnlyList<Type> Types { get; internal set; }

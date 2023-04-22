@@ -12,10 +12,10 @@ namespace API.Assembly;
 
 public interface IAssemblyManager
 {
-	public ITypeManager Components { get; }
-	public ITypeManager Extensions { get; }
-	public ITypeManager Hooks { get; }
-	public ITypeManager Modules { get; }
+	public IAddonManager Components { get; }
+	public IAddonManager Extensions { get; }
+	public IAddonManager Hooks { get; }
+	public IAddonManager Modules { get; }
 
 #if EXPERIMENTAL
 	public IAssemblyTypeManager Plugins { get; }

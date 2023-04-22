@@ -19,7 +19,7 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class PluginManager : TypeManager
+internal sealed class PluginManager : AddonManager
 {
 	private readonly string[] _directories =
 	{
