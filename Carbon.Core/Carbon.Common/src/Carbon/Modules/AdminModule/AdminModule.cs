@@ -3243,34 +3243,32 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var carbonModule = module.GetType();
 			tab.AddInput(1, "Name", ap => module.Name, null);
 
-			if (!module.Disabled)
+
+			tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
+
+			tab.AddButtonArray(1,
+				new Tab.OptionButton("Save", ap => { module.Save(); }),
+				new Tab.OptionButton("Load", ap => { module.Load(); }));
+
+			tab.AddButton(1, "Edit Config", ap =>
 			{
-				tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
+				var moduleConfigFile = Path.Combine(Core.Defines.GetModulesFolder(), module.Name, "config.json");
+				ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
+					(ap, jobject) =>
+					{
+						Singleton.SetTab(ap.Player, "modules");
+						Singleton.Draw(ap.Player);
+					},
+					(ap, jobject) =>
+					{
+						OsEx.File.Create(moduleConfigFile, jobject.ToString(Formatting.Indented));
+						module.SetEnabled(false);
+						module.Load();
 
-				tab.AddButtonArray(1,
-					new Tab.OptionButton("Save", ap => { module.Save(); }),
-					new Tab.OptionButton("Load", ap => { module.Load(); }));
-
-				tab.AddButton(1, "Edit Config", ap =>
-				{
-					var moduleConfigFile = Path.Combine(Core.Defines.GetModulesFolder(), module.Name, "config.json");
-					ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
-						(ap, jobject) =>
-						{
-							Singleton.SetTab(ap.Player, "modules");
-							Singleton.Draw(ap.Player);
-						},
-						(ap, jobject) =>
-						{
-							OsEx.File.Create(moduleConfigFile, jobject.ToString(Formatting.Indented));
-							module.SetEnabled(false);
-							module.Load();
-
-							Singleton.SetTab(ap.Player, "modules");
-							Singleton.Draw(ap.Player);
-						}, null);
-				});
-			}
+						Singleton.SetTab(ap.Player, "modules");
+						Singleton.Draw(ap.Player);
+					}, null);
+			});
 		}
 	}
 	public class PluginsTab

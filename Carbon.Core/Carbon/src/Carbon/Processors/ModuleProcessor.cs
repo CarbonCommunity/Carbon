@@ -40,9 +40,9 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			Setup(Activator.CreateInstance(type) as BaseHookable);
 		}
 
-		foreach(var hookable in _modules)
+		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module && module.GetEnabled())
+			if (hookable is IModule module)
 			{
 				module.Init();
 			}
@@ -50,9 +50,9 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module && module.GetEnabled())
+			if (hookable is IModule module)
 			{
-				module.OnEnableStatus();
+				module.Load();
 			}
 		}
 
@@ -61,6 +61,14 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			if (hookable is IModule module && module.GetEnabled())
 			{
 				module.InitEnd();
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				module.OnEnableStatus();
 			}
 		}
 	}
@@ -117,9 +125,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		if (hookable is IModule module)
 		{
-			module.Load();
 			_modules.Add(hookable);
-
 		}
 	}
 

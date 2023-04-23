@@ -528,8 +528,6 @@ public static class Loader
 				{
 					Logger.Error($"[{plugin.Name}] Failed OnServerInitialized.", initException);
 				}
-
-				plugin.HasInitialized = true;
 			}
 
 			if (counter > 1)

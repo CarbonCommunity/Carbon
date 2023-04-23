@@ -22,7 +22,6 @@ public abstract class BaseModule : BaseHookable
 {
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
-	public virtual bool Disabled => false;
 
 	public abstract void OnPostServerInit();
 	public abstract void OnServerInit();
@@ -78,11 +77,13 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual void Init()
 	{
-		if (HasInitialized) return;
-
-		HasInitialized = true;
-
-		if (Disabled) return;
+		base.Hooks ??= new();
+		base.Name ??= Name;
+		base.Type ??= Type;
+	}
+	public virtual bool InitEnd()
+	{
+		if (HasInitialized) return false;
 
 		Community.Runtime.HookManager.LoadHooksFromType(Type);
 
@@ -106,15 +107,14 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 				Community.Runtime.CorePlugin.lang.RegisterMessages(language.Value, this, language.Key);
 			}
 		}
-	}
-	public virtual void InitEnd()
-	{
-		Puts(Disabled ? "Disabled." : $"Initialized.");
+
+		Puts("Initialized.");
+		HasInitialized = true;
+
+		return true;
 	}
 	public override void Load()
 	{
-		if (Disabled) return;
-
 		var shouldSave = false;
 
 		Config ??= new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
@@ -133,10 +133,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		}
 
 		ConfigInstance = ModuleConfiguration.Config;
-
-		Hooks ??= new();
-		base.Name ??= Name;
-		base.Type ??= Type;
 
 		if (typeof(D) != typeof(EmptyModuleData))
 		{
@@ -164,8 +160,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override void Save()
 	{
-		if (Disabled) return;
-
 		if (ModuleConfiguration == null)
 		{
 			ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
@@ -183,8 +177,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public override void SetEnabled(bool enable)
 	{
-		if (Disabled) return;
-
 		if (ModuleConfiguration != null)
 		{
 			ModuleConfiguration.Enabled = enable;
@@ -193,7 +185,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override bool GetEnabled()
 	{
-		return !Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled;
+		return ModuleConfiguration != null && ModuleConfiguration.Enabled;
 	}
 
 	public virtual void OnDisabled(bool initialized)
@@ -212,6 +204,11 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		SubscribeAll();
 
 		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
+
+		if (InitEnd())
+		{
+			if (initialized) OnServerInit();
+		}
 	}
 
 	public void OnEnableStatus()
