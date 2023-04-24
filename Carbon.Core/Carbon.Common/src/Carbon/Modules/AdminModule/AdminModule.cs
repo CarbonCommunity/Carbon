@@ -5225,7 +5225,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								AddColor(column, name, () => value.StartsWith("#") ? HexToRustColor(value) : value, (ap, hex, rust) =>
 								{
 									value = value.StartsWith("#") ? hex : rust;
-									usableToken.Replace(usableToken = value);
+									usableToken.Replace(usableToken = $"#{value}");
 									Community.Runtime.CorePlugin.NextFrame(() => Singleton.SetTab(ap.Player, Make(Entry.ToString(), OnCancel, OnSave, OnSaveAndReload), false));
 								}, tooltip: $"The color value of the '{name.Trim()}' property.");
 							}
@@ -5469,7 +5469,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var cfFreePluginCount = PluginsTab.CodeflingInstance?.FetchedPlugins.Count(x => !x.IsPaid());
 				var uModFreePluginCount = PluginsTab.uModInstance?.FetchedPlugins.Count(x => !x.IsPaid());
 
-				tab.InfoTemplate(cui, t, container, panel, ap,
+				tab.InternalFeatureInfoTemplate(cui, t, container, panel, ap,
 					"Plugin Browser",
 					"The plugin browser allows you to explore Codefling and uMod plugins all within the game. Manage, stay up-to-date and download new plugins in the very intuitive UI. Filter all plugins by searching, using tags or sort the lists based on your liking." +
 					$"\n\n{Header("Codefling", 1)} ({cfFreePluginCount:n0} free, {cfPaidPluginCount:n0} paid)" +
@@ -5477,7 +5477,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					$"\nPurchasing will not be available but you may browse new files you're interested in and add them to cart through the game as well." +
 					$"\n\n{Header("uMod", 1)} ({uModFreePluginCount:n0} free)" +
 					$"\nBrowse the 1.5K catalogue full of free, Rust- and covalence supported plugins.",
-					"A very minimum amount of plugins currently are not compatible, due to them being out of date (on Oxide too) or requiring external DLLs that are Oxide-only compatible; meaning that it's the author's responsability to add Carbon support.");
+					"A very minimum amount of plugins currently are not compatible, due to them being out of date (on Oxide too) or requiring external DLLs that are Oxide-only compatible; meaning that it's the author's responsability to add Carbon support.",
+					"plugins");
 			}));
 			tab.Pages.Add(new Page("Whitelist", (cui, t, container, panel, ap) =>
 			{
@@ -5498,6 +5499,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.Pages.Add(new Page("Finalize", (cui, t, container, panel, ap) =>
 			{
 				Singleton.DataInstance.ShowedWizard = true;
+				Singleton.GenerateTabs();
 				Community.Runtime.CorePlugin.NextTick(() => Singleton.SetTab(ap.Player, 0));
 			}));
 
@@ -5551,6 +5553,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			cui.CreateProtectedButton(container, panel, null, module.GetEnabled() ? "0.4 0.9 0.3 0.5" : "0.1 0.1 0.1 0.5", "1 1 1 1", module.GetEnabled() ? "ENABLED".SpacedString(1) : "DISABLED".SpacedString(1), 10,
 				xMin: 0.9f, yMin: 0.075f, yMax: 0.125f, OxMin: 8, OxMax: 8, command: $"wizard.togglemodule {module.Type.Name}");
 		}
+		internal void InternalFeatureInfoTemplate(CUI cui, Tab tab, CuiElementContainer container, string panel, PlayerSession player, string title, string content, string hint, string feature)
+		{
+			InfoTemplate(cui, tab, container, panel, player, title, content, hint);
+
+			var isEnabled = IsFeatureEnabled(feature);
+			cui.CreateProtectedButton(container, panel, null, isEnabled ? "0.4 0.9 0.3 0.5" : "0.1 0.1 0.1 0.5", "1 1 1 1", isEnabled ? "ENABLED".SpacedString(1) : "DISABLED".SpacedString(1), 10,
+				xMin: 0.9f, yMin: 0.075f, yMax: 0.125f, OxMin: 8, OxMax: 8, command: $"wizard.togglefeature {feature}");
+		}
 		internal void DisplayArrows(CUI cui, Tab tab, CuiElementContainer container, string panel, PlayerSession ap, bool centerNext = false)
 		{
 			var page = ap.GetStorage<int>(tab, "page", 0);
@@ -5593,6 +5603,17 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			return value;
 		}
 
+		internal bool IsFeatureEnabled(string feature)
+		{
+			switch (feature)
+			{
+				case "plugins":
+					return !Singleton.ConfigInstance.DisablePluginsTab;
+			}
+
+			return false;
+		}
+
 		public class Page
 		{
 			public string Title;
@@ -5631,6 +5652,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var module = FindModule(arg.Args[0]);
 		var enabled = module.GetEnabled();
 		module.SetEnabled(!enabled);
+
+		Draw(ap.Player);
+	}
+
+	[ProtectedCommand("wizard.togglefeature")]
+	private void ToggleFeature(Arg arg)
+	{
+		var ap = GetPlayerSession(arg.Player());
+
+		var feature = arg.Args[0];
+		switch (feature)
+		{
+			case "plugins":
+				ConfigInstance.DisablePluginsTab = !ConfigInstance.DisablePluginsTab;
+				break;
+		}
 
 		Draw(ap.Player);
 	}
@@ -6057,7 +6094,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					case Field.FieldTypes.String:
 					case Field.FieldTypes.Float:
 					case Field.FieldTypes.Integer:
-						var value = field.Value.Value != null ? (field.Value.Type == Field.FieldTypes.Float ? $"{field.Value.Value:0.0}" : $"{field.Value.Value:0}") : field.Value.Value?.ToString();
+						var value = field.Value.Value?.ToString();
 						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: Singleton.HandleEnableNeedsKeyboard(Player));
 						break;
 
