@@ -48,6 +48,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		["trashcan"] = "https://carbonmod.gg/assets/media/cui/trash-can.png",
 		["shopping"] = "https://carbonmod.gg/assets/media/cui/shopping-cart.png",
 		["installed"] = "https://carbonmod.gg/assets/media/cui/installed.png",
+		["reload"] = "https://carbonmod.gg/assets/media/cui/reload.png",
 		["update-pending"] = "https://carbonmod.gg/assets/media/cui/update-pending.png",
 		["magnifying-glass"] = "https://carbonmod.gg/assets/media/cui/magnifying-glass.png",
 		["star"] = "https://carbonmod.gg/assets/media/cui/star.png"

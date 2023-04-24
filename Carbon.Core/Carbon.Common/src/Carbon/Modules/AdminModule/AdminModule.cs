@@ -3698,11 +3698,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			}
 
+			var isLocal = vendor is Local;
 			var searchQuery = ap.GetStorage<string>(tab, "search");
 			var search = cui.CreatePanel(container, topbar, null, "0 0 0 0", xMin: 0.6f, xMax: 0.855f, yMin: 0f, OyMax: -0.5f);
 			cui.CreateProtectedInputField(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.8 0.8 0.8 0.6" : "1 1 1 1", string.IsNullOrEmpty(searchQuery) ? "Search..." : searchQuery, 10, 20, false, xMin: 0.06f, align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap), command: "pluginbrowser.search  ");
-			cui.CreateProtectedButton(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.2 0.2 0.2 0.8" : "#d43131", "1 1 1 0.6", "X", 10, xMin: 0.9f, xMax: 1, yMax: 0.96f, command: "pluginbrowser.search  ");
+			cui.CreateProtectedButton(container, search, null, string.IsNullOrEmpty(searchQuery) ? "0.2 0.2 0.2 0.8" : "#d43131", "1 1 1 0.6", "X", 10, xMin: 0.95f, yMin: 0.05f, yMax: 0.95f, OxMin: -30, OxMax: -22.5f, command: "pluginbrowser.search  ");
 
+				var reloadButton = cui.CreateProtectedButton(container, search, null, isLocal ? "0.2 0.2 0.2 0.4" : "0.2 0.2 0.2 0.8", "1 1 1 0.6", string.Empty, 0, xMin: 0.875f, xMax: 1, yMin: 0.075f, yMax: 0.925f, command: "pluginbrowser.refreshvendor");
+				cui.CreateImage(container, reloadButton, null, "reload", "1 1 1 0.4", xMin: 0.25f, xMax: 0.75f, yMin: 0.25f, yMax: 0.75f);
+			
 			if (TagFilter.Contains("peanus")) cui.CreateClientImage(container, grid, null, "https://media.discordapp.net/attachments/1078801277565272104/1085062151221293066/15ox1d_1.jpg?width=827&height=675", "1 1 1 1", xMax: 0.8f);
 			if (TagFilter.Contains("banan")) cui.CreateClientImage(container, grid, null, "https://cf-images.us-east-1.prod.boltdns.net/v1/static/507936866/2cd498e2-da08-4305-a86e-f9711ac41615/eac8316f-0061-40ed-b289-aac0bab35da0/1280x720/match/image.jpg", "1 1 1 1", xMax: 0.8f);
 
@@ -4661,6 +4665,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			public void Uninstall(string id)
 			{
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				plugin.ExistentPlugin = null;
 			}
 		}
 
@@ -4966,6 +4973,44 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		if (search == "Search...") ap.SetStorage(tab, "search", string.Empty);
 
 		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
+
+		Singleton.Draw(args.Player());
+	}
+	[ProtectedCommand("pluginbrowser.refreshvendor")]
+	private void PluginBrowserRefreshVendor(Arg args)
+	{
+		var ap = GetPlayerSession(args.Player());
+		var tab = GetTab(ap.Player);
+
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Codefling")));
+
+		if (vendor is PluginsTab.Local) return;
+
+		tab.CreateDialog("Are you sure you want to redownload the plugin list?\nThis might take a while.", ap =>
+		{
+			var id = string.Empty;
+			switch (vendor)
+			{
+				case PluginsTab.Codefling:
+					id = "cf";
+					break;
+
+				case PluginsTab.uMod:
+					id = "umod";
+					break;
+			}
+
+			var dataPath = Path.Combine(Core.Defines.GetDataFolder(), $"vendordata_{id}.db");
+			OsEx.File.Delete(dataPath);
+
+			if (!vendor.Load())
+			{
+				vendor.FetchList();
+				vendor.Refresh();
+			}
+
+			Singleton.Draw(args.Player());
+		}, null);
 
 		Singleton.Draw(args.Player());
 	}
