@@ -271,7 +271,7 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		if (AsyncLoader.Assembly == null || AsyncLoader.Exceptions.Count != 0)
+		if (AsyncLoader.Assembly == null)
 		{
 			var errors = Pool.GetList<string>();
 			Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
@@ -283,11 +283,31 @@ public class ScriptLoader : IScriptLoader
 				errors.Add(print);
 			}
 
-			Loader.FailedMods.Add(new Loader.FailedMod { File = File, Errors = errors.ToArray() });
+			Loader.FailedMods.Add(new Loader.FailedMod
+			{
+				File = File,
+				Errors = AsyncLoader.Exceptions.Select(x => new Loader.FailedMod.Error
+				{
+					Message = x.Error.ErrorText,
+					Number = x.Error.ErrorNumber,
+					Column = x.Error.Column,
+					Line = x.Error.Line
+				}).ToArray(),
+#if DEBUG
+				Warnings = AsyncLoader.Warnings.Select(x => new Loader.FailedMod.Error
+				{
+					Message = x.Error.ErrorText,
+					Number = x.Error.ErrorNumber,
+					Column = x.Error.Column,
+					Line = x.Error.Line
+				}).ToArray()
+#endif
+			});
 
 			Pool.FreeList(ref errors);
 			AsyncLoader.Exceptions.Clear();
-			AsyncLoader.Exceptions = null;
+			AsyncLoader.Warnings.Clear();
+			AsyncLoader.Exceptions = AsyncLoader.Warnings = null;
 			HasFinished = true;
 
 			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
@@ -375,6 +395,15 @@ public class ScriptLoader : IScriptLoader
 				{
 					rustPlugin.HasConditionals = Source.Contains("#if ");
 					rustPlugin.IsExtension = IsExtension;
+#if DEBUG
+					rustPlugin.CompileWarnings = AsyncLoader.Warnings.Select(x => new Loader.FailedMod.Error
+					{
+						Message = x.Error.ErrorText,
+						Number = x.Error.ErrorNumber,
+						Column = x.Error.Column,
+						Line = x.Error.Line
+					}).ToArray();
+#endif
 
 					plugin.Instance = rustPlugin;
 					plugin.IsCore = IsCore;
@@ -402,15 +431,7 @@ public class ScriptLoader : IScriptLoader
 			uhList.Value.Clear();
 		}
 
-		AsyncLoader.Hooks.Clear();
-		AsyncLoader.UnsupportedHooks.Clear();
-		AsyncLoader.HookMethods.Clear();
-		AsyncLoader.PluginReferences.Clear();
-
-		AsyncLoader.Hooks = null;
-		AsyncLoader.UnsupportedHooks = null;
-		AsyncLoader.HookMethods = null;
-		AsyncLoader.PluginReferences = null;
+		AsyncLoader.Dispose();
 
 		HasFinished = true;
 

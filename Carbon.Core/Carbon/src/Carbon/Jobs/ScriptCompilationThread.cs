@@ -34,6 +34,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public float CompileTime;
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new();
+	public List<CompilerException> Warnings = new();
 	internal DateTime TimeSinceCompile;
 	internal static Dictionary<string, byte[]> _compilationCache = new();
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
@@ -211,6 +212,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		try
 		{
 			Exceptions.Clear();
+			Warnings.Clear();
 			TimeSinceCompile = DateTime.Now;
 			FileName = Path.GetFileNameWithoutExtension(FilePath);
 
@@ -240,20 +242,34 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				var emit = compilation.Emit(dllStream);
 				var errors = new List<string>();
+				var warnings = new List<string>();
 
 				foreach (var error in emit.Diagnostics)
 				{
-					if (error.Severity != DiagnosticSeverity.Error) continue;
-					if (errors.Contains(error.Id)) continue;
-					errors.Add(error.Id);
+					if (errors.Contains(error.Id) || warnings.Contains(error.Id)) continue;
 
 					var span = error.Location.GetMappedLineSpan().Span;
 
-					Exceptions.Add(new CompilerException(FilePath,
-						new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+					switch (error.Severity)
+					{
+						case DiagnosticSeverity.Error:
+							errors.Add(error.Id);
+							Exceptions.Add(new CompilerException(FilePath,
+								new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+
+							break;
+
+						case DiagnosticSeverity.Warning:
+							errors.Add(error.Id);
+							Warnings.Add(new CompilerException(FilePath,
+								new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+							break;
+					}
 				}
 
 				errors.Clear();
+				warnings.Clear();
+				errors = warnings = null;
 
 				if (emit.Success)
 				{
@@ -322,5 +338,23 @@ public class ScriptCompilationThread : BaseThreadedJob
 			if (Exceptions.Count > 0) throw null;
 		}
 		catch (Exception ex) { System.Console.WriteLine($"Threading compilation failed for '{FileName}': {ex}"); }
+	}
+
+	public override void Dispose()
+	{
+		Exceptions.Clear();
+		Warnings.Clear();
+
+		Hooks.Clear();
+		UnsupportedHooks.Clear();
+		HookMethods.Clear();
+		PluginReferences.Clear();
+
+		Hooks = null;
+		UnsupportedHooks = null;
+		HookMethods = null;
+		PluginReferences = null;
+		Exceptions = null;
+		Warnings = null;
 	}
 }

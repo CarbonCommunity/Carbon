@@ -629,6 +629,25 @@ public static class Loader
 		public string File { get; set; } = string.Empty;
 
 		[JsonProperty]
-		public string[] Errors { get; set; }
+		public Error[] Errors { get; set; }
+
+		[JsonProperty]
+		public Error[] Warnings { get; set; }
+
+		[JsonObject(MemberSerialization.OptIn)]
+		public class Error
+		{
+			[JsonProperty]
+			public string Number { get; set; }
+
+			[JsonProperty]
+			public string Message { get; set; }
+
+			[JsonProperty]
+			public int Column { get; set; }
+
+			[JsonProperty]
+			public int Line { get; set; }
+		}
 	}
 }
