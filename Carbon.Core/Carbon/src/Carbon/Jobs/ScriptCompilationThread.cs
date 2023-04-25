@@ -243,7 +243,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 				var emit = compilation.Emit(dllStream);
 				var errors = new List<string>();
 				var warnings = new List<string>();
-				var passedFirst = false;
 
 				foreach (var error in emit.Diagnostics)
 				{
@@ -261,13 +260,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 							break;
 
 						case DiagnosticSeverity.Warning:
-							if (passedFirst)
-							{
-								errors.Add(error.Id);
-								Warnings.Add(new CompilerException(FilePath,
-									new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
-							}
-							passedFirst = true;
+							if (error.GetMessage(CultureInfo.InvariantCulture).Contains("Assuming assembly reference")) continue;
+
+							errors.Add(error.Id);
+							Warnings.Add(new CompilerException(FilePath,
+								new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 							break;
 					}
 				}

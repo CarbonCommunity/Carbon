@@ -261,13 +261,13 @@ public partial class CorePlugin : CarbonPlugin
 
 			if (plugin.CompileWarnings == null || plugin.CompileWarnings.Length == 0)
 			{
-				result += $"  No warnings available.";
+				result += $"  No warnings available.\n";
 			}
 			else
 			{
 				foreach (var warn in plugin.CompileWarnings)
 				{
-					result += $"  {count:n0}. [{warn.Number}] {warn.Message}\n     ({warn.Column} line {warn.Line})\n";
+					result += $"  {count:n0}. {warn.Message} [{warn.Number}]\n     ({warn.Column} line {warn.Line})\n";
 					count++;
 				}
 			}
