@@ -215,13 +215,17 @@ public partial class CorePlugin : CarbonPlugin
 
 		if (string.IsNullOrEmpty(filter))
 		{
-			foreach(var mod in Loader.LoadedMods)
+			var r = string.Empty;
+
+			foreach (var mod in Loader.LoadedMods)
 			{
 				foreach(var plugin in mod.Plugins)
 				{
-					Print(plugin);
+					r += $"{Print(plugin)}\n";
 				}
 			}
+
+			arg.ReplyWith(r);
 		}
 		else
 		{
@@ -245,10 +249,10 @@ public partial class CorePlugin : CarbonPlugin
 				return;
 			}
 
-			Print(plugin);
+			arg.ReplyWith(Print(plugin));
 		}
 
-		void Print(Plugin plugin)
+		static string Print(Plugin plugin)
 		{
 			var result = string.Empty;
 			var count = 1;
@@ -267,8 +271,8 @@ public partial class CorePlugin : CarbonPlugin
 					count++;
 				}
 			}
-			
-			arg.ReplyWith(result);
+
+			return result;
 		}
 	}
 

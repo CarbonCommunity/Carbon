@@ -273,14 +273,12 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader.Assembly == null)
 		{
-			var errors = Pool.GetList<string>();
 			Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
 			for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
 			{
 				var error = AsyncLoader.Exceptions[i];
-				var print = $"{error.Error.ErrorText}\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
+				var print = $"{error.Error.ErrorText} [{error.Error.ErrorNumber}]\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
 				Logger.Error($"  {i + 1:n0}. {print}");
-				errors.Add(print);
 			}
 
 			Loader.FailedMods.Add(new Loader.FailedMod
@@ -304,7 +302,6 @@ public class ScriptLoader : IScriptLoader
 #endif
 			});
 
-			Pool.FreeList(ref errors);
 			AsyncLoader.Exceptions.Clear();
 			AsyncLoader.Warnings.Clear();
 			AsyncLoader.Exceptions = AsyncLoader.Warnings = null;
