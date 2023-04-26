@@ -1103,7 +1103,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			ap.IsInMenu = true;
 
 			if (CanAccess(player) && !DataInstance.ShowedWizard
-				&& (tab != null && tab.Id != "setupwizard" && tab.Id != "configeditor"))
+				&& (tab != null && tab.Id != "setupwizard" && tab.Id != "configeditor") && HasAccessLevel(player, 3))
 			{
 				tab = ap.SelectedTab = SetupWizard.Make();
 			}
