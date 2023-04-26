@@ -1456,7 +1456,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var previous = ap.SelectedTab;
 
-		var tab = Tabs.FirstOrDefault(x => x.Id == id);
+		var tab = Tabs.FirstOrDefault(x => HasAccessLevel(player, x.AccessLevel) && x.Id == id);
 		if (tab != null)
 		{
 			ap.Tooltip = null;
@@ -1471,7 +1471,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var previous = ap.SelectedTab;
 
-		var tab = Tabs[index];
+		var lookupTab = Tabs[index];
+		var tab = HasAccessLevel(player, lookupTab.AccessLevel) ? lookupTab : Tabs.FirstOrDefault(x => HasAccessLevel(player, x.AccessLevel));
 		if (tab != null)
 		{
 			ap.Tooltip = null;
@@ -1486,6 +1487,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var previous = ap.SelectedTab;
 
+		tab = HasAccessLevel(player, tab.AccessLevel) ? tab : Tabs.FirstOrDefault(x => HasAccessLevel(player, x.AccessLevel));
 		if (tab != null)
 		{
 			ap.Tooltip = null;
