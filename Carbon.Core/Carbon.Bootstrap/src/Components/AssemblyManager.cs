@@ -26,16 +26,16 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 	public IReadOnlyList<string> References
 	{ get => _knownLibs; }
 
-	public IAssemblyTypeManager Components
+	public IAddonManager Components
 	{ get => gameObject.GetComponent<ComponentManager>(); }
 
-	public IAssemblyTypeManager Extensions
+	public IAddonManager Extensions
 	{ get => gameObject.GetComponent<ExtensionManager>(); }
 
-	public IAssemblyTypeManager Hooks
+	public IAddonManager Hooks
 	{ get => gameObject.GetComponent<HookManager>(); }
 
-	public IAssemblyTypeManager Modules
+	public IAddonManager Modules
 	{ get => gameObject.GetComponent<ModuleManager>(); }
 
 #if EXPERIMENTAL

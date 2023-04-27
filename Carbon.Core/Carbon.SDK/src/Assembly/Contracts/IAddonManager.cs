@@ -10,13 +10,13 @@ using System.Collections.Generic;
 
 namespace API.Assembly;
 
-public interface IAssemblyTypeManager
+public interface IAddonManager
 {
-	public List<string> Loaded { get; }
-	//public bool IsLoaded(string file);
-	//public void UnLoad(string file, string requester);
-
 	public byte[] Read(string file);
+	public IReadOnlyList<string> Loaded { get; }
+	public IReadOnlyList<Type> LoadedTypes { get; }
 	public System.Reflection.Assembly Load(string file, string requester);
 
+	//public bool IsLoaded(string file);
+	//public void UnLoad(string file, string requester);
 }

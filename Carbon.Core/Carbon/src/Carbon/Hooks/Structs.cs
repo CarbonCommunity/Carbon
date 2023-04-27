@@ -17,7 +17,7 @@ namespace Carbon.Hooks;
 
 public struct HookRuntime
 {
-	public Exception LastError;
+	public string LastError;
 	public HookState Status;
 
 	// Harmony

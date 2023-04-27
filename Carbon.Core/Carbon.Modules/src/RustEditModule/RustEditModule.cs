@@ -53,15 +53,18 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		Singleton = this;
 	}
 
-	public override void Init()
+	public override bool InitEnd()
 	{
-		base.Init();
-
-		if (ConfigInstance.AutoEnableOnCustomMap
-			&& !string.IsNullOrEmpty(ConVar.Server.levelurl))
+		if (base.InitEnd())
 		{
-			SetEnabled(true);
+			if (ConfigInstance.AutoEnableOnCustomMap
+				&& !string.IsNullOrEmpty(ConVar.Server.levelurl))
+			{
+				SetEnabled(true);
+			}
 		}
+
+		return true;
 	}
 	public override void OnServerInit()
 	{

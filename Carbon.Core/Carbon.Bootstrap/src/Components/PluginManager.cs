@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
+using API.Events;
 using API.Plugins;
 using Utility;
 
@@ -18,7 +19,7 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class PluginManager : TypeManager
+internal sealed class PluginManager : AddonManager
 {
 	private readonly string[] _directories =
 	{
@@ -32,7 +33,7 @@ internal sealed class PluginManager : TypeManager
 		{
 			Extension = "*.dll",
 			IncludeSubFolders = false,
-			Directory = Utility.Context.CarbonPlugins,
+			Directory = Context.CarbonPlugins,
 
 			OnFileCreated = (sender, file) =>
 			{
@@ -85,8 +86,11 @@ internal sealed class PluginManager : TypeManager
 
 								b.SetValue(plugin, Activator.CreateInstance(c));
 
-								plugin.Initialize("nothing for now");
-								plugin.OnLoaded(args: new EventArgs());
+								plugin.Awake(EventArgs.Empty);
+								plugin.OnLoaded(EventArgs.Empty);
+								Carbon.Bootstrap.Events
+									.Trigger(CarbonEvent.PluginLoaded, new CarbonEventArgs(file));
+								_loaded.Add(new() { Addon = plugin, File = file });
 							}
 							catch (Exception e)
 							{
@@ -100,7 +104,6 @@ internal sealed class PluginManager : TypeManager
 						throw new Exception("Unsupported assembly type");
 					}
 
-					Loaded.Add(file);
 					return asm;
 
 				// case ".drm"

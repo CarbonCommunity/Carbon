@@ -9,8 +9,7 @@
 
 namespace API.Assembly;
 
-public interface ICarbonExtension
+public interface ICarbonExtension : ICarbonAddon
 {
-	public void OnLoaded(EventArgs args);
-	public void OnUnloaded(EventArgs args);
+
 }

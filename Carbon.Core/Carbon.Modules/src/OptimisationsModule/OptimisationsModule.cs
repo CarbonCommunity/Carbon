@@ -21,11 +21,6 @@ public partial class OptimisationsModule : CarbonModule<EmptyModuleConfig, Empty
 	public override Type Type => typeof(OptimisationsModule);
 	public override bool EnabledByDefault => false;
 
-	public override void Init()
-	{
-		base.Init();
-	}
-
 	private void ae0577348a5140ea9aa861cd71c31e7c()
 	{
 		// FIXME:

@@ -30,7 +30,6 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 {
 	public override string Name => "Image Database";
 	public override Type Type => typeof(ImageDatabaseModule);
-	public override bool IsCoreModule => true;
 	public override bool EnabledByDefault => true;
 
 	internal List<QueuedThread> _queue = new();
@@ -49,6 +48,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		["trashcan"] = "https://carbonmod.gg/assets/media/cui/trash-can.png",
 		["shopping"] = "https://carbonmod.gg/assets/media/cui/shopping-cart.png",
 		["installed"] = "https://carbonmod.gg/assets/media/cui/installed.png",
+		["reload"] = "https://carbonmod.gg/assets/media/cui/reload.png",
 		["update-pending"] = "https://carbonmod.gg/assets/media/cui/update-pending.png",
 		["magnifying-glass"] = "https://carbonmod.gg/assets/media/cui/magnifying-glass.png",
 		["star"] = "https://carbonmod.gg/assets/media/cui/star.png"

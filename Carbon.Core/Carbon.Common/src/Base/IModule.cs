@@ -15,7 +15,7 @@ public interface IModule : IHookableModule, IDisposable
 	string Name { get; }
 
 	void Init();
-	void InitEnd();
+	bool InitEnd();
 	void Save();
 	void Load();
 

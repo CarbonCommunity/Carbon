@@ -26,7 +26,9 @@ public sealed class Entrypoint
 		using Sandbox<AssemblyCSharp> isolated1 = new Sandbox<AssemblyCSharp>();
 		{
 			if (!isolated1.Do.IsPublic("ServerMgr", "Shutdown"))
+			{
 				isolated1.Do.Publicize();
+			}
 
 			isolated1.Do.Patch();
 			isolated1.Do.Write();

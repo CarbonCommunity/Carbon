@@ -18,6 +18,15 @@ public enum CarbonEvent
 	// Hook related
 	HooksInstalled, HookValidatorRefreshed,
 
+	// Component related
+	ComponentLoaded, ComponentUnloaded, ComponentLoadFailed, ComponentUnloadFailed,
+
+	// Extension related
+	ExtensionLoaded, ExtensionUnloaded, ExtensionLoadFailed, ExtensionUnloadFailed,
+
+	// Module related
+	ModuleLoaded, ModuleUnloaded, ModuleLoadFailed, ModuleUnloadFailed,
+
 	// Plugin related
 	AllPluginsLoaded, PluginLoaded, PluginUnloaded,
 

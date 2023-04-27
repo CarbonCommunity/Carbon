@@ -4,7 +4,6 @@ using System.Linq;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Contracts;
-using Facepunch;
 
 /*
  *
@@ -25,30 +24,59 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 	public void Init()
 	{
-		var types = typeof(Community).Assembly.GetExportedTypes().AsEnumerable();
-		var modules = Pool.GetList<string>();
-		modules.AddRange(Community.Runtime.AssemblyEx.Modules.Loaded);
+		// TODO ---------------------------------------------------------------
+		// This needs to go into the ModuleManager. Each module must implement
+		// the ICarbonModule. Currently is just a workaround to be compatible
+		// with the single modules file we ship. After migrating this the 
+		// IAddonCache.Types and ITypeManager.LoadedTypes should no longer be
+		// required and will be removed.
 
-		foreach (var module in modules)
-		{
-			var assembly = Community.Runtime.AssemblyEx.Modules.Load(module, "ModuleProcessor.Init");
-			types = types.Concat(assembly.GetExportedTypes());
-		}
-
-		Pool.FreeList(ref modules);
+		var types = typeof(Community).Assembly.GetExportedTypes().ToList();
+		types.AddRange(Community.Runtime.AssemblyEx.Modules.LoadedTypes);
 
 		foreach (var type in types)
 		{
 			if (type.BaseType == null || !type.BaseType.Name.Contains("CarbonModule")) continue;
-
 			Setup(Activator.CreateInstance(type) as BaseHookable);
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module)
+			{
+				module.Init();
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module)
+			{
+				module.Load();
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				module.InitEnd();
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				module.OnEnableStatus();
+			}
 		}
 	}
 	public void OnServerInit()
 	{
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module)
+			if (hookable is IModule module && module.GetEnabled())
 			{
 				try
 				{
@@ -63,7 +91,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module)
+			if (hookable is IModule module && module.GetEnabled())
 			{
 				try
 				{
@@ -80,7 +108,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module)
+			if (hookable is IModule module && module.GetEnabled())
 			{
 				try
 				{
@@ -97,27 +125,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		if (hookable is IModule module)
 		{
-			try
-			{
-				module.Init();
-
-				var phrases = module.GetDefaultPhrases();
-
-				if (phrases != null)
-				{
-					foreach (var language in phrases)
-					{
-						Community.Runtime.CorePlugin.lang.RegisterMessages(language.Value, hookable, language.Key);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"[ModuleProcessor] Failed initializing '{hookable.Name}'.", ex);
-			}
-
 			_modules.Add(hookable);
-			module.InitEnd();
 		}
 	}
 

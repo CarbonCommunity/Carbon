@@ -6,6 +6,7 @@ using System.Reflection;
 using API.Commands;
 using API.Events;
 using Carbon.Base;
+using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
@@ -517,7 +518,7 @@ public static class Loader
 
 			foreach (var plugin in Community.Runtime.ModuleProcessor.Modules)
 			{
-				if (plugin.HasInitialized) continue;
+				if (plugin is IModule module && (!module.GetEnabled() || plugin.HasInitialized)) continue;
 
 				try
 				{
@@ -527,8 +528,6 @@ public static class Loader
 				{
 					Logger.Error($"[{plugin.Name}] Failed OnServerInitialized.", initException);
 				}
-
-				plugin.HasInitialized = true;
 			}
 
 			if (counter > 1)
@@ -630,6 +629,25 @@ public static class Loader
 		public string File { get; set; } = string.Empty;
 
 		[JsonProperty]
-		public string[] Errors { get; set; }
+		public Error[] Errors { get; set; }
+
+		[JsonProperty]
+		public Error[] Warnings { get; set; }
+
+		[JsonObject(MemberSerialization.OptIn)]
+		public class Error
+		{
+			[JsonProperty]
+			public string Number { get; set; }
+
+			[JsonProperty]
+			public string Message { get; set; }
+
+			[JsonProperty]
+			public int Column { get; set; }
+
+			[JsonProperty]
+			public int Line { get; set; }
+		}
 	}
 }

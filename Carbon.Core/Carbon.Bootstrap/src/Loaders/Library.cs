@@ -97,7 +97,7 @@ internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 			}
 
 			byte[] raw = File.ReadAllBytes(path);
-			string sha1 = Util.SHA1(raw);
+			string sha1 = Util.sha1(raw);
 
 			if (_cache.TryGetValue(sha1, out Item cache))
 			{
