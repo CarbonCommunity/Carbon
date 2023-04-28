@@ -86,7 +86,18 @@ public class ClientEntity : IDisposable
 	public uint Prefab
 	{
 		get => Proto.baseNetworkable.prefabID;
-		set { Proto.baseNetworkable.prefabID = value; SendNetworkUpdate(); }
+		set
+		{
+			Proto.baseNetworkable.prefabID = value;
+
+			var temporaryWatchers = Pool.GetList<Connection>();
+			temporaryWatchers.AddRange(watchers);
+
+			KillAll();
+			SpawnAll(temporaryWatchers);
+
+			Pool.FreeList(ref temporaryWatchers);
+		}
 	}
 	public uint ParentID
 	{
