@@ -111,8 +111,6 @@ public class ClientEntity : IDisposable
 
 	public virtual void SpawnFor(Connection connection)
 	{
-		if (!watchers.Contains(connection)) watchers.Add(connection);
-
 		_sendNetworkUpdateImmediate(connection);
 	}
 	public virtual void SpawnAll(IList<Connection> connections)
@@ -245,7 +243,7 @@ public class ClientEntity : IDisposable
 		writer.Write(data, 0, data.Length);
 		writer.Send(new SendInfo(connection));
 
-		watchers.Add(connection);
+		if (!watchers.Contains(connection)) watchers.Add(connection);
 	}
 
 	#endregion
