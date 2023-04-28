@@ -101,12 +101,12 @@ public class ClientEntity : IDisposable
 	public Vector3 Position
 	{
 		get => Proto.baseEntity.pos;
-		set { Proto.baseEntity.pos = value; SendNetworkUpdate_Position(); }
+		set => Proto.baseEntity.pos = value;
 	}
 	public Vector3 Rotation
 	{
 		get => Proto.baseEntity.rot;
-		set { Proto.baseEntity.rot = value; SendNetworkUpdate_Position(); }
+		set => Proto.baseEntity.rot = value;
 	}
 
 	public virtual void SpawnFor(Connection connection)
