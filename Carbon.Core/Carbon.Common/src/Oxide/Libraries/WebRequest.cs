@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using Carbon;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
@@ -11,6 +12,8 @@ using Oxide.Plugins;
  * All rights reserved.
  *
  */
+
+#pragma warning disable CS4014
 
 namespace Oxide.Core.Libraries;
 
@@ -23,7 +26,7 @@ public enum RequestMethod
 	PUT
 }
 
-public class WebRequests
+public class WebRequests : Library
 {
 	public WebRequests()
 	{
@@ -41,6 +44,31 @@ public class WebRequests
 			Timeout = timeout,
 			Body = body
 		}.Start();
+	}
+
+	public async Task<WebRequest> EnqueueAsync(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+	{
+		var request = new WebRequest(url, callback, owner)
+		{
+			Method = method.ToString(),
+			RequestHeaders = headers,
+			Timeout = timeout,
+			Body = body
+		}.Start();
+
+		var tcs = new TaskCompletionSource<bool>();
+
+		Task.Run(() =>
+		{
+			while (request._client != null) { }
+
+			tcs.SetResult(true);
+		});
+
+		await tcs.Task;
+		tcs = null;
+
+		return request;
 	}
 
 	[Obsolete("EnqueueGet is deprecated, use Enqueue instead")]
