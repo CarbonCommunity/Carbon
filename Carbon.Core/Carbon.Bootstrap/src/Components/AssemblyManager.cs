@@ -142,6 +142,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 
 		"System.Core",
 		"System.Data",
+		"System.Data.SQLite",
 		"System.Drawing",
 		"System.Globalization",
 		"System.Management",
