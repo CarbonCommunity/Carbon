@@ -142,6 +142,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 
 		"System.Core",
 		"System.Data",
+		"System.Data.SQLite",
 		"System.Drawing",
 		"System.Globalization",
 		"System.Management",
@@ -212,11 +213,12 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"UnityEngine.UnityWebRequestWWWModule",
 		"UnityEngine.VehiclesModule",
 		"UnityEngine",
-
 #if WIN
 		"Facepunch.Steamworks.Win64",
+		"x64/SQLite.Interop",
 #elif UNIX
 		"Facepunch.Steamworks.Posix",
+		"x86/SQLite.Interop",
 #endif
 	};
 }
