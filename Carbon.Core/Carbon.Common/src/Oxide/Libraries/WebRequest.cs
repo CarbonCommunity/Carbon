@@ -35,25 +35,27 @@ public class WebRequests : Library
 		ServicePointManager.DefaultConnectionLimit = 200;
 	}
 
-	public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+	public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, string, Exception> onException = null)
 	{
 		return new WebRequest(url, callback, owner)
 		{
 			Method = method.ToString(),
 			RequestHeaders = headers,
 			Timeout = timeout,
-			Body = body
+			Body = body,
+			ErrorCallback = onException
 		}.Start();
 	}
 
-	public async Task<WebRequest> EnqueueAsync(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+	public async Task<WebRequest> EnqueueAsync(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, string, Exception> onException = null)
 	{
 		var request = new WebRequest(url, callback, owner)
 		{
 			Method = method.ToString(),
 			RequestHeaders = headers,
 			Timeout = timeout,
-			Body = body
+			Body = body,
+			ErrorCallback = onException
 		}.Start();
 
 		var tcs = new TaskCompletionSource<bool>();
