@@ -23,6 +23,8 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 
 	public override bool EnabledByDefault => false;
 
+	internal Item _processedItem;
+
 	#region Hooks
 
 	private object OnCollectiblePickup(CollectibleEntity entity, BasePlayer reciever, bool eat)
@@ -92,10 +94,16 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 	}
 	private void OnDispenserGather(ResourceDispenser dispenser, BasePlayer player, Item item)
 	{
+		if (_processedItem == item) return;
+		_processedItem = item;
+
 		item.amount = GetAmount(item.info, item.amount, 1);
 	}
 	private void OnDispenserGather(ResourceDispenser dispenser, BaseEntity entity, Item item)
 	{
+		if (_processedItem == item) return;
+		_processedItem = item;
+
 		item.amount = GetAmount(item.info, item.amount, 1);
 	}
 
@@ -144,7 +152,7 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 			1 => ConfigInstance.Gather,
 			2 => ConfigInstance.Quarry,
 			3 => ConfigInstance.Excavator,
-			_ => throw new Exception("Invalid CreateItemEx kind"),
+			_ => throw new Exception("Invalid GetAmount kind"),
 		};
 
 		if (!dictionary.TryGetValue(itemDefinition.shortname, out var multiply) && !dictionary.TryGetValue("*", out multiply))
