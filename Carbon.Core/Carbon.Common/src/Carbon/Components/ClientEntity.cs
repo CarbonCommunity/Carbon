@@ -18,7 +18,7 @@ public class ClientEntity : IDisposable
 {
 	#region Statics
 
-	public static Dictionary<uint, ClientEntity> entities { get; private set; } = new();
+	public static Dictionary<ulong, ClientEntity> entities { get; private set; } = new();
 
 	public static ClientEntity Create(string prefabName, Vector3 position, Quaternion rotation, ProtoBuf.Entity proto = null, uint netId = 0, uint group = 0)
 	{
@@ -78,10 +78,10 @@ public class ClientEntity : IDisposable
 		get;
 		set;
 	}
-	public uint NetID
+	public ulong NetID
 	{
-		get => Proto.baseNetworkable.uid;
-		private set => Proto.baseNetworkable.uid = value;
+		get => Proto.baseNetworkable.uid.Value;
+		private set => Proto.baseNetworkable.uid = new NetworkableId(value);
 	}
 	public uint Prefab
 	{
@@ -134,7 +134,7 @@ public class ClientEntity : IDisposable
 
 		using var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.EntityDestroy);
-		writer.EntityID(NetID);
+		writer.EntityID(new NetworkableId(NetID));
 		writer.UInt8((byte)mode);
 		writer.Send(new SendInfo(connection));
 	}
@@ -142,7 +142,7 @@ public class ClientEntity : IDisposable
 	{
 		using var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.EntityDestroy);
-		writer.EntityID(NetID);
+		writer.EntityID(new NetworkableId(NetID));
 		writer.UInt8((byte)mode);
 		writer.Send(new SendInfo(watchers));
 
@@ -187,7 +187,7 @@ public class ClientEntity : IDisposable
 
 		using var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.EntityFlags);
-		writer.EntityID(NetID);
+		writer.EntityID(new NetworkableId ( NetID ) );
 		writer.Int32((int)Flags);
 		writer.Send(new SendInfo(watchers));
 	}
@@ -197,12 +197,12 @@ public class ClientEntity : IDisposable
 
 		using var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.EntityPosition);
-		writer.EntityID(NetID);
+		writer.EntityID(new NetworkableId ( NetID ) );
 		writer.Vector3(in Proto.baseEntity.pos);
 		writer.Vector3(in Proto.baseEntity.rot);
 		writer.Float(Time.time);
 
-		if (ParentID != 0) writer.EntityID(ParentID);
+		if (ParentID != 0) writer.EntityID(new NetworkableId(ParentID));
 
 		var sendInfo = new SendInfo(watchers)
 		{
@@ -265,7 +265,7 @@ public class ClientEntity : IDisposable
 	{
 		var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.RPCMessage);
-		writer.UInt32(NetID);
+		writer.UInt64(NetID);
 		writer.UInt32(StringPool.Get(funcName));
 		writer.UInt64(sourceConnection?.userid ?? 0);
 
