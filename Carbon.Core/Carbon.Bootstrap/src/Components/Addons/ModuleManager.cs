@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
@@ -64,13 +65,19 @@ internal sealed class ModuleManager : AddonManager
 			requester = $"{caller.DeclaringType}.{caller.Name}";
 		}
 
+		IReadOnlyList<string> blacklist = null;
+		IReadOnlyList<string> whitelist = AssemblyManager.RefWhitelist.Concat(new string[]
+		{
+			"0Harmony"
+		}).ToList();
+
 		try
 		{
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories, null, AssemblyManager.RefWhitelist)?.Assembly
+					Assembly asm = _loader.Load(file, requester, _directories, blacklist, whitelist)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (AssemblyManager.IsType<ICarbonModule>(asm, out types))
