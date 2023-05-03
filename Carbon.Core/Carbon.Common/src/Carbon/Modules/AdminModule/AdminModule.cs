@@ -2580,14 +2580,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (string.IsNullOrEmpty(selectedGroup))
 			{
 				tab.AddName(2, $"{player.displayName}");
-				tab.AddButtonArray(2, new Tab.OptionButton("Select Player", (ap2) =>
+				tab.AddButtonArray(2,
+					new Tab.OptionButton("Select Player", (ap2) =>
 				{
 					Singleton.SetTab(ap.Player, "players");
 					var tab = Singleton.GetTab(ap.Player);
 					ap.SetStorage(tab, "playerfilterpl", player);
 					PlayersTab.RefreshPlayers(tab, ap);
 					PlayersTab.ShowInfo(tab, ap, player);
-				}, ap => Tab.OptionButton.Types.Warned), new Tab.OptionButton(groupEdit ? "Edit Plugins" : "Edit Groups", (ap2) =>
+				}, ap => Tab.OptionButton.Types.Warned),
+					new Tab.OptionButton(groupEdit ? "Edit Plugins" : "Edit Groups", (ap2) =>
 				{
 					ap.SetStorage(tab, "groupedit", !groupEdit);
 					GeneratePlugins(tab, ap, permission, player, null);
@@ -2641,6 +2643,41 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						GeneratePlugins(tab, ap, permission, ap.Player, selectedGroup);
 					});
 				}));
+				tab.AddButton(2, "Duplicate Group", ap =>
+				{
+					var temp = Pool.GetList<string>();
+					var groups = Community.Runtime.CorePlugin.permission.GetGroups();
+					temp.Add("None");
+					temp.AddRange(groups);
+
+					var array = temp.ToArray();
+					Pool.FreeList(ref temp);
+
+					Modal.Open(player, "Duplicate Group", new Dictionary<string, Modal.Field>
+					{
+						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true, customIsInvalid: (field) => permission.GetGroups().Any(x => x == field.Get<string>()) ? "Group with that name already exists." : null),
+						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, @default: string.Empty),
+						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, @default: 0),
+						["parent"] = Modal.EnumField.MakeEnum("Parent", array, @default: 0)
+					}, onConfirm: (p, modal) =>
+					{
+						var name = modal.Get<string>("name");
+						var parentIndex = modal.Get<int>("parent");
+						permission.CreateGroup(name, modal.Get<string>("dname"), modal.Get<int>("rank"));
+						if (parentIndex != 0) permission.SetGroupParent(modal.Get<string>("name"), array[parentIndex]);
+
+						var perms = permission.GetGroupPermissions(selectedGroup);
+						foreach (var perm in perms)
+						{
+							permission.GrantGroupPermission(name, perm, null);
+						}
+
+						tab.ClearColumn(1);
+						tab.ClearColumn(2);
+						tab.ClearColumn(3);
+						GenerateGroups(tab, permission, ap);
+					});
+				}, ap => Tab.OptionButton.Types.None);
 			}
 
 			if (groupEdit)
@@ -2765,15 +2802,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					Modal.Open(ap.Player, "Create Group", new Dictionary<string, Modal.Field>()
 					{
-						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true),
+						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true, customIsInvalid: (field) => perms.GetGroups().Any(x => x == field.Get<string>()) ? "Group with that name already exists." : null),
 						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, @default: string.Empty),
 						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, @default: 0),
 						["parent"] = Modal.EnumField.MakeEnum("Parent", array, @default: 0)
 					}, onConfirm: (player, modal) =>
 					{
 						var parentIndex = modal.Get<int>("parent");
-						Community.Runtime.CorePlugin.permission.CreateGroup(modal.Get<string>("name"), modal.Get<string>("dname"), modal.Get<int>("rank"));
-						if (parentIndex != 0) Community.Runtime.CorePlugin.permission.SetGroupParent(modal.Get<string>("name"), array[parentIndex]);
+						perms.CreateGroup(modal.Get<string>("name"), modal.Get<string>("dname"), modal.Get<int>("rank"));
+						if (parentIndex != 0) perms.SetGroupParent(modal.Get<string>("name"), array[parentIndex]);
 
 						tab.ClearColumn(1);
 						tab.ClearColumn(2);
