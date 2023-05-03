@@ -7,11 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using Carbon.Base;
-using Carbon.Components;
-using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
-using Network;
 using Oxide.Core.Libraries;
 using ProtoBuf;
 using QRCoder;
@@ -28,7 +25,7 @@ namespace Carbon.Modules;
 
 public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModuleData>
 {
-	public override string Name => "Image Database";
+	public override string Name => "ImageDatabase";
 	public override Type Type => typeof(ImageDatabaseModule);
 	public override bool EnabledByDefault => true;
 
