@@ -145,7 +145,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			_injectReference(id, "0Harmony", references);
 		}
 
-		foreach (var item in Community.Runtime.AssemblyEx.References)
+		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
 		{
 			try
 			{

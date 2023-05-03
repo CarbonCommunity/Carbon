@@ -70,7 +70,7 @@ internal sealed class ExtensionManager : AddonManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories, AssemblyManager.References)?.Assembly
+					Assembly asm = _loader.Load(file, requester, _directories, AssemblyManager.RefBlacklist, null)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (AssemblyManager.IsType<ICarbonExtension>(asm, out types))

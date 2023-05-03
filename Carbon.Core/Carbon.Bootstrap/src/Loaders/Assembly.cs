@@ -34,8 +34,8 @@ internal sealed class AssemblyLoader : IDisposable
 		Context.CarbonExtensions,
 	};
 
-	internal IAssemblyCache Load(string file, string requester = "unknown",
-		string[] directories = null, IReadOnlyList<string> restricted = null)
+	internal IAssemblyCache Load(string file, string requester,
+		string[] directories, IReadOnlyList<string> blackList, IReadOnlyList<string> whiteList)
 	{
 		// normalize filename
 		file = Path.GetFileName(file);
@@ -57,10 +57,11 @@ internal sealed class AssemblyLoader : IDisposable
 			return default;
 		}
 
-		if (restricted is not null)
+		if (blackList is not null || whiteList is not null)
 		{
 			using Sandbox<AssemblyValidator> sandbox = new Sandbox<AssemblyValidator>();
-			sandbox.Proxy.Whitelist = restricted;
+			sandbox.Proxy.Blacklist = blackList;
+			sandbox.Proxy.Whitelist = whiteList;
 
 			if (!sandbox.Proxy.Validate(path))
 			{

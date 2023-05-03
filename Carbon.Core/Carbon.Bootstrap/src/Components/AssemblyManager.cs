@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using API.Abstracts;
 using API.Assembly;
 using API.Commands;
@@ -23,8 +24,11 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 {
 	private LibraryLoader _library;
 
-	public IReadOnlyList<string> References
-	{ get => _knownLibs; }
+	public IReadOnlyList<string> RefBlacklist
+	{ get => _blacklistLibs; }
+
+	public IReadOnlyList<string> RefWhitelist
+	{ get => _whitelistLibs; }
 
 	public IAddonManager Components
 	{ get => gameObject.GetComponent<ComponentManager>(); }
@@ -94,8 +98,15 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 			if (raw != null) return raw;
 		}
 
-		if (_knownLibs.Contains(file))
+		// if (_whitelistLibs.Contains(file))
+		// {
+		// 	IAssemblyCache result = _library.ResolveAssembly(file, $"{this}");
+		// 	if (result.Raw != null) return result.Raw;
+		// }
+
+		foreach (string expr in _blacklistLibs)
 		{
+			if (Regex.IsMatch(file, expr)) break;
 			IAssemblyCache result = _library.ResolveAssembly(file, $"{this}");
 			if (result.Raw != null) return result.Raw;
 		}
@@ -136,7 +147,13 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		}
 	}
 
-	private static readonly IReadOnlyList<string> _knownLibs = new List<string>() {
+	private static readonly IReadOnlyList<string> _blacklistLibs = new List<string>() {
+		@"^Carbon$",
+		@"^Carbon\.Bootstrap|Preloader$",
+		@"^Carbon\..+_\d{4}\.\d{2}\.\d{2}\.\d{4}$",
+	};
+
+	private static readonly IReadOnlyList<string> _whitelistLibs = new List<string>() {
 		"mscorlib",
 		"netstandard",
 
@@ -156,9 +173,6 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Carbon.Common",
 		"Carbon.SDK",
 
-		"0Harmony", // this needs to be injected only when
-					// IHarmony is defined
-					
 		"MySql.Data", // v6.9.5.0
 		"protobuf-net.Core",
 		"protobuf-net",

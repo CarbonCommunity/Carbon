@@ -53,7 +53,7 @@ internal sealed class ComponentManager : AddonManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories)?.Assembly
+					Assembly asm = _loader.Load(file, requester, _directories, null, null)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (AssemblyManager.IsType<ICarbonComponent>(asm, out types))

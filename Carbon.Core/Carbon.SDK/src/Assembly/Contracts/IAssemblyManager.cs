@@ -22,6 +22,7 @@ public interface IAssemblyManager
 #endif
 
 	public byte[] Read(string file);
-	public IReadOnlyList<string> References { get; }
+	public IReadOnlyList<string> RefBlacklist { get; }
+	public IReadOnlyList<string> RefWhitelist { get; }
 	public bool IsType<T>(System.Reflection.Assembly assembly, out IEnumerable<Type> output);
 }

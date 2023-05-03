@@ -59,7 +59,7 @@ internal sealed class PluginManager : AddonManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories, AssemblyManager.References)?.Assembly
+					Assembly asm = _loader.Load(file, requester, _directories, null, AssemblyManager.RefWhitelist)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (AssemblyManager.IsType<ICarbonPlugin>(asm, out types))
