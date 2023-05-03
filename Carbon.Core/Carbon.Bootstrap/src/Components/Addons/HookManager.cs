@@ -35,10 +35,7 @@ internal sealed class HookManager : AddonManager
 		}
 
 		IReadOnlyList<string> blacklist = null;
-		IReadOnlyList<string> whitelist = AssemblyManager.RefWhitelist.Concat(new string[]
-		{
-			"0Harmony"
-		}).ToList();
+		IReadOnlyList<string> whitelist = null;
 
 		try
 		{
@@ -49,8 +46,10 @@ internal sealed class HookManager : AddonManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
+					// before changing this line, look at the warning above..
 					Assembly asm = _loader.Load(file, requester, _directories, blacklist, whitelist)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
+					// -----------------------------------------------------------------------------
 
 					if (AssemblyManager.IsType<Patch>(asm, out types))
 					{

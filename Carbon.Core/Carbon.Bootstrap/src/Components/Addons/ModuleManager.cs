@@ -92,6 +92,17 @@ internal sealed class ModuleManager : AddonManager
 									throw new NullReferenceException();
 								Logger.Debug($"A new instance of '{module}' created");
 
+								PropertyInfo logger = module.GetType().GetProperty("Logger",
+									BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy) ?? null;
+
+								if (logger is not null)
+								{
+									Type carbonLogger = HarmonyLib.AccessTools.TypeByName("Carbon.Logger")
+										?? throw new Exception("Logger type not found");
+
+									logger.SetValue(module, Activator.CreateInstance(carbonLogger));
+								}
+
 								module.Awake(EventArgs.Empty);
 								module.OnLoaded(EventArgs.Empty);
 								Carbon.Bootstrap.Events
