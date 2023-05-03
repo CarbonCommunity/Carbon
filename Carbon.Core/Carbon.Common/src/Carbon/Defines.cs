@@ -24,7 +24,6 @@ public class Defines
 		GetDataFolder();
 		GetScriptFolder();
 		GetExtensionsFolder();
-		GetHarmonyFolder();
 		GetLogsFolder();
 		GetLangFolder();
 		GetReportsFolder();
@@ -107,14 +106,6 @@ public class Defines
 	{
 		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customExtensionsFolder) ? Path.Combine(GetRootFolder(), "extensions") : _customExtensionsFolder);
-		Directory.CreateDirectory(folder);
-
-		return folder;
-	}
-	public static string GetHarmonyFolder()
-	{
-		_initializeCommandLine();
-		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customHarmonyFolder) ? Path.Combine(GetRootFolder(), "harmony") : _customHarmonyFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;

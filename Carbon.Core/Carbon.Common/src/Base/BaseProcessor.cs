@@ -100,12 +100,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 				if (element.Value == null)
 				{
 					var instance = Activator.CreateInstance(IndexedType) as Instance;
-
-					var p = (Extension.Equals(".dll"))
-						? Defines.GetHarmonyFolder()
-						: Defines.GetScriptFolder();
-
-					instance.File = Path.Combine(p, $"{element.Key}{Extension}");
+					instance.File = Path.Combine(Defines.GetScriptFolder(), $"{element.Key}{Extension}");
 					instance.Execute();
 
 					InstanceBuffer[element.Key] = instance;
