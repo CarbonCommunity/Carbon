@@ -12,16 +12,17 @@ namespace API.Assembly;
 
 public interface IAssemblyManager
 {
-	public IAssemblyTypeManager Components { get; }
-	public IAssemblyTypeManager Extensions { get; }
-	public IAssemblyTypeManager Hooks { get; }
-	public IAssemblyTypeManager Modules { get; }
+	public IAddonManager Components { get; }
+	public IAddonManager Extensions { get; }
+	public IAddonManager Hooks { get; }
+	public IAddonManager Modules { get; }
 
 #if EXPERIMENTAL
 	public IAssemblyTypeManager Plugins { get; }
 #endif
 
 	public byte[] Read(string file);
-	public IReadOnlyList<string> References { get; }
+	public IReadOnlyList<string> RefBlacklist { get; }
+	public IReadOnlyList<string> RefWhitelist { get; }
 	public bool IsType<T>(System.Reflection.Assembly assembly, out IEnumerable<Type> output);
 }

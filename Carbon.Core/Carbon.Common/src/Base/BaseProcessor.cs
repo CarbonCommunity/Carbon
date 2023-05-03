@@ -91,12 +91,6 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 	{
 		while (true)
 		{
-			if (!EnableWatcher)
-			{
-				yield return null;
-				continue;
-			}
-
 			yield return _wfsInstance;
 
 			foreach (var element in InstanceBuffer) _runtimeCache.Add(element.Key, element.Value);
@@ -106,12 +100,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 				if (element.Value == null)
 				{
 					var instance = Activator.CreateInstance(IndexedType) as Instance;
-
-					var p = (Extension.Equals(".dll"))
-						? Defines.GetHarmonyFolder()
-						: Defines.GetScriptFolder();
-
-					instance.File = Path.Combine(p, $"{element.Key}{Extension}");
+					instance.File = Path.Combine(Defines.GetScriptFolder(), $"{element.Key}{Extension}");
 					instance.Execute();
 
 					InstanceBuffer[element.Key] = instance;
@@ -225,19 +214,27 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 
 	internal void _onCreated(object sender, FileSystemEventArgs e)
 	{
+		if (!EnableWatcher) return;
+
 		InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
 	}
 	internal void _onChanged(object sender, FileSystemEventArgs e)
 	{
+		if (!EnableWatcher) return;
+
 		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.SetDirty();
 	}
 	internal void _onRenamed(object sender, RenamedEventArgs e)
 	{
+		if (!EnableWatcher) return;
+
 		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.OldName), out var mod)) mod.MarkDeleted();
 		InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
 	}
 	internal void _onRemoved(object sender, FileSystemEventArgs e)
 	{
+		if (!EnableWatcher) return;
+
 		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.MarkDeleted();
 	}
 

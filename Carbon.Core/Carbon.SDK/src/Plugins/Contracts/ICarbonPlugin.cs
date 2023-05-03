@@ -1,4 +1,5 @@
 ﻿using System;
+using API.Assembly;
 using API.Contracts;
 using API.Logger;
 
@@ -11,12 +12,11 @@ using API.Logger;
 
 namespace API.Plugins;
 
-public interface ICarbonPlugin
+public interface ICarbonPlugin : ICarbonAddon
 {
 	public ILogger Logger { get; }
 	public ICarbonInterface Interface { get; }
 
-	public void Initialize(string identifier);
-	public void OnLoaded(EventArgs args);
-	public void OnUnloaded(EventArgs args);
+	public void OnEnable(EventArgs args);
+	public void OnDisable(EventArgs args);
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Hooks;
@@ -17,7 +18,7 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class HookManager : TypeManager
+internal sealed class HookManager : AddonManager
 {
 	private readonly string[] _directories =
 	{
@@ -33,6 +34,12 @@ internal sealed class HookManager : TypeManager
 			requester = $"{caller.DeclaringType}.{caller.Name}";
 		}
 
+		IReadOnlyList<string> blacklist = null;
+		IReadOnlyList<string> whitelist = AssemblyManager.RefWhitelist.Concat(new string[]
+		{
+			"0Harmony"
+		}).ToList();
+
 		try
 		{
 			// Packed files will not work with the sandbox as they will fail
@@ -42,7 +49,7 @@ internal sealed class HookManager : TypeManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories)?.Assembly
+					Assembly asm = _loader.Load(file, requester, _directories, blacklist, whitelist)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (AssemblyManager.IsType<Patch>(asm, out types))

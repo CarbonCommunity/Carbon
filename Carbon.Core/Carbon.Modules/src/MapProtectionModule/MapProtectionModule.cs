@@ -21,9 +21,8 @@ namespace Carbon.Modules;
 
 public partial class MapProtectionModule : CarbonModule<MapProtectionConfig, EmptyModuleData>
 {
-	public override string Name => "Map Protection";
+	public override string Name => "MapProtection";
 	public override Type Type => typeof(MapProtectionModule);
-	public override bool EnabledByDefault => true;
 
 	private void IOnWorldSerializationLoad(string fileName, WorldSerialization serialization) { }
 	private void IOnWorldSerializationLoaded(string fileName, WorldSerialization serialization)

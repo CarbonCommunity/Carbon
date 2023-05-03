@@ -24,7 +24,8 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	public override Type Type => typeof(VanishModule);
 	public override bool ForceModded => false;
 	public override bool EnabledByDefault => false;
-	public CUI.Handler Handler { get; internal set; }
+
+	public readonly CUI.Handler Handler = new();
 
 	internal Dictionary<ulong, Vector3> _vanishedPlayers = new(500);
 
@@ -32,12 +33,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	internal readonly GameObjectRef _fallDamageEffect = new() { guid = "ca14ed027d5924003b1c5d9e523a5fce" };
 	internal readonly GameObjectRef _emptyEffect = new();
 
-	public override void Init()
-	{
-		base.Init();
-
-		Handler = new();
-	}
 	public override void OnEnabled(bool initialized)
 	{
 		base.OnEnabled(initialized);

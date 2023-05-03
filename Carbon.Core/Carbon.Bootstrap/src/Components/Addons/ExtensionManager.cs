@@ -5,7 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
-using API.Contracts;
+using API.Events;
 using Utility;
 
 /*
@@ -18,25 +18,25 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class ModuleManager : TypeManager
+internal sealed class ExtensionManager : AddonManager
 {
 	/*
-	 * CARBON MODULES
-	 * API.Contracts.ICarbonModule
+	 * CARBON EXTENSIONS
+	 * API.Contracts.ICarbonExtension
 	 * 
-	 * An assembly to be considered as a Carbon Module must:
-	 *   1. Be optional
-	 *   2. Implement the ICarbonModule interface
+	 * An assembly to be considered as a Carbon Extension must:
+	 *   1. Implement the ICarbonExtension interface
+	 *   2. Must not change directly with the world
 	 *   3. Provide additional functionality such as new features or services
 	 *
-	 * Carbon modules can be compared to Oxide Extensions, they can be created
-	 * by anyone and can change and/or interact with the world as any other user
-	 * plugin can.
+	 * Carbon extensions are different from Oxide extensions, in Carbon extensions
+	 * are "libraries" and cannot access features such as hooks or change the
+	 * world, either directly or using reflection.
 	 *
 	 */
 	private readonly string[] _directories =
 	{
-		Context.CarbonModules,
+		Context.CarbonExtensions,
 	};
 
 	internal void Awake()
@@ -45,11 +45,11 @@ internal sealed class ModuleManager : TypeManager
 		{
 			Extension = "*.dll",
 			IncludeSubFolders = false,
-			Directory = Utility.Context.CarbonModules,
+			Directory = Context.CarbonExtensions,
 
 			OnFileCreated = (sender, file) =>
 			{
-				Carbon.Bootstrap.AssemblyEx.Modules.Load(
+				Carbon.Bootstrap.AssemblyEx.Extensions.Load(
 					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
 			},
 		});
@@ -70,27 +70,30 @@ internal sealed class ModuleManager : TypeManager
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories, AssemblyManager.References)?.Assembly
+					Assembly asm = _loader.Load(file, requester, _directories, AssemblyManager.RefBlacklist, null)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
-					if (AssemblyManager.IsType<ICarbonModule>(asm, out types))
+					if (AssemblyManager.IsType<ICarbonExtension>(asm, out types))
 					{
-						Logger.Debug($"Loading module from file '{file}'");
+						Logger.Debug($"Loading extension from file '{file}'");
 
 						foreach (Type type in types)
 						{
 							try
 							{
-								if (Activator.CreateInstance(type) is not ICarbonModule module)
+								if (Activator.CreateInstance(type) is not ICarbonExtension extension)
 									throw new NullReferenceException();
-								Logger.Debug($"A new instance of '{module}' created");
+								Logger.Debug($"A new instance of '{extension}' created");
 
-								module.Initialize("nothing for now");
-								module.OnLoaded(args: new EventArgs());
+								extension.Awake(EventArgs.Empty);
+								extension.OnLoaded(EventArgs.Empty);
+								Carbon.Bootstrap.Events
+									.Trigger(CarbonEvent.ExtensionLoaded, new CarbonEventArgs(file));
+								_loaded.Add(new() { Addon = extension, File = file });
 							}
 							catch (Exception e)
 							{
-								Logger.Error($"Failed to instantiate module from type '{type}'", e);
+								Logger.Error($"Failed to instantiate extension from type '{type}'", e);
 								continue;
 							}
 						}
@@ -100,7 +103,6 @@ internal sealed class ModuleManager : TypeManager
 						throw new Exception("Unsupported assembly type");
 					}
 
-					Loaded.Add(file);
 					return asm;
 
 				// case ".drm"
@@ -113,21 +115,21 @@ internal sealed class ModuleManager : TypeManager
 		}
 		catch (ReflectionTypeLoadException)
 		{
-			Logger.Error($"Error while loading module from '{file}'.");
+			Logger.Error($"Error while loading extension from '{file}'.");
 			Logger.Error($"Either the file is corrupt or has an unsupported version.");
 			return null;
 		}
 #if DEBUG
 		catch (System.Exception e)
 		{
-			Logger.Error($"Failed loading module '{file}'", e);
+			Logger.Error($"Failed loading extension '{file}'", e);
 
 			return null;
 		}
 #else
 		catch (System.Exception)
 		{
-			Logger.Error($"Failed loading module '{file}'");
+			Logger.Error($"Failed loading extension '{file}'");
 
 			return null;
 		}

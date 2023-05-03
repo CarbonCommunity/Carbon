@@ -18,15 +18,12 @@ public class Defines
 {
 	public static void Initialize()
 	{
-		_initializeCommandLine();
-
 		GetRootFolder();
 		GetConfigsFolder();
 		GetModulesFolder();
 		GetDataFolder();
 		GetScriptFolder();
 		GetExtensionsFolder();
-		GetHarmonyFolder();
 		GetLogsFolder();
 		GetLangFolder();
 		GetReportsFolder();
@@ -43,9 +40,13 @@ public class Defines
 	internal static string _customDataFolder;
 	internal static string _customModuleFolder;
 	internal static string _customExtensionsFolder;
+	internal static bool _commandLineInitialized;
 
 	internal static void _initializeCommandLine()
 	{
+		if (_commandLineInitialized) return;
+		_commandLineInitialized = true;
+
 		_customRootFolder = CommandLineEx.GetArgumentResult("-carbon.rootdir");
 		_customScriptFolder = CommandLineEx.GetArgumentResult("-carbon.scriptdir");
 		_customHarmonyFolder = CommandLineEx.GetArgumentResult("-carbon.harmonydir");
@@ -57,11 +58,13 @@ public class Defines
 
 	public static string GetConfigFile()
 	{
+		_initializeCommandLine();
 		return Path.Combine(GetRootFolder(), "config.json");
 	}
 
 	public static string GetRootFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customRootFolder) ? Path.Combine($"{Application.dataPath}/..", "carbon") : _customRootFolder);
 		Directory.CreateDirectory(folder);
 
@@ -69,6 +72,7 @@ public class Defines
 	}
 	public static string GetConfigsFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customConfigFolder) ? Path.Combine(GetRootFolder(), "configs") : _customConfigFolder);
 		Directory.CreateDirectory(folder);
 
@@ -76,6 +80,7 @@ public class Defines
 	}
 	public static string GetModulesFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customModuleFolder) ? Path.Combine(GetRootFolder(), "modules") : _customModuleFolder);
 		Directory.CreateDirectory(folder);
 
@@ -83,6 +88,7 @@ public class Defines
 	}
 	public static string GetDataFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customDataFolder) ? Path.Combine(GetRootFolder(), "data") : _customDataFolder);
 		Directory.CreateDirectory(folder);
 
@@ -90,6 +96,7 @@ public class Defines
 	}
 	public static string GetScriptFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customScriptFolder) ? Path.Combine(GetRootFolder(), "plugins") : _customScriptFolder);
 		Directory.CreateDirectory(folder);
 
@@ -97,20 +104,15 @@ public class Defines
 	}
 	public static string GetExtensionsFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customExtensionsFolder) ? Path.Combine(GetRootFolder(), "extensions") : _customExtensionsFolder);
-		Directory.CreateDirectory(folder);
-
-		return folder;
-	}
-	public static string GetHarmonyFolder()
-	{
-		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customHarmonyFolder) ? Path.Combine(GetRootFolder(), "harmony") : _customHarmonyFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;
 	}
 	public static string GetManagedFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.Combine($"{GetRootFolder()}", "managed");
 		Directory.CreateDirectory(folder);
 
@@ -118,6 +120,7 @@ public class Defines
 	}
 	public static string GetLogsFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.Combine($"{GetRootFolder()}", "logs");
 		Directory.CreateDirectory(folder);
 
@@ -125,6 +128,7 @@ public class Defines
 	}
 	public static string GetLangFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.Combine($"{GetRootFolder()}", "lang");
 		Directory.CreateDirectory(folder);
 
@@ -132,6 +136,7 @@ public class Defines
 	}
 	public static string GetTempFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.Combine($"{GetRootFolder()}", "temp");
 		Directory.CreateDirectory(folder);
 
@@ -139,6 +144,7 @@ public class Defines
 	}
 	public static string GetReportsFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.Combine($"{GetRootFolder()}", "reports");
 		Directory.CreateDirectory(folder);
 
@@ -146,12 +152,14 @@ public class Defines
 	}
 	public static string GetRustRootFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath)));
 
 		return folder;
 	}
 	public static string GetRustManagedFolder()
 	{
+		_initializeCommandLine();
 		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath, "Managed")));
 
 		return folder;

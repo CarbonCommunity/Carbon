@@ -41,6 +41,8 @@ namespace Oxide.Core.Plugins
 
 		[JsonProperty]
 		public double CompileTime { get; set; }
+		[JsonProperty]
+		public Loader.FailedMod.Error[] CompileWarnings { get; set; }
 
 		[JsonProperty]
 		public string FilePath { get; set; }
