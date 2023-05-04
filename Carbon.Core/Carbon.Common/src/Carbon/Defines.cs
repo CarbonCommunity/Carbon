@@ -35,7 +35,6 @@ public class Defines
 
 	internal static string _customRootFolder;
 	internal static string _customScriptFolder;
-	internal static string _customHarmonyFolder;
 	internal static string _customConfigFolder;
 	internal static string _customDataFolder;
 	internal static string _customModuleFolder;
