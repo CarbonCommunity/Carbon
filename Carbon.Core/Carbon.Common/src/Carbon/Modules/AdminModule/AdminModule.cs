@@ -3387,7 +3387,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			OsEx.Folder.Create(Path.Combine(Core.Defines.GetScriptFolder(), "backups"));
 
-			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) => { ap.SetStorage(t, "selectedplugin", (Plugin)null); }, 2)
+			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) =>
+			{
+				ap.SetStorage(t, "selectedplugin", (Plugin)null);
+				LocalInstance?.Refresh();
+			}, 2)
 			{
 				Override = (t, cui, container, parent, ap) => Draw(cui, container, parent, t, ap)
 			};
