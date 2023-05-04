@@ -18,8 +18,7 @@ internal sealed class Context
 
 	internal static readonly string
 		Game, GameManaged,
-
-		Carbon, CarbonData, CarbonExtensions, CarbonHarmony, CarbonHooks,
+		Carbon, CarbonData, CarbonExtensions, CarbonHooks,
 		CarbonLib, CarbonLogs, CarbonManaged, CarbonModules, CarbonPlugins;
 
 	static Context()
@@ -38,7 +37,6 @@ internal sealed class Context
 		try
 		{
 			if (Game == null) throw new Exception("Unable to find root folder");
-
 			GameManaged = Path.GetFullPath(Path.Combine(Game, "RustDedicated_Data", "Managed"));
 
 			Carbon = Path.GetFullPath(CommandLineEx.GetArgumentResult("-carbon.rootdir", Path.Combine(Game, "carbon")));
@@ -49,9 +47,6 @@ internal sealed class Context
 
 			CarbonExtensions = CommandLineEx.GetArgumentResult("-carbon.extdir", Path.Combine(Carbon, "extensions"));
 			if (!Directory.Exists(CarbonExtensions)) Directory.CreateDirectory(CarbonExtensions);
-
-			CarbonHarmony = CommandLineEx.GetArgumentResult("-carbon.harmonydir", Path.Combine(Carbon, "harmony"));
-			if (!Directory.Exists(CarbonHarmony)) Directory.CreateDirectory(CarbonHarmony);
 
 			CarbonHooks = Path.Combine(Carbon, "managed", "hooks");
 			if (!Directory.Exists(CarbonHooks)) Directory.CreateDirectory(CarbonHooks);

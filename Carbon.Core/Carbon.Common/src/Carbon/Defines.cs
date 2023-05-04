@@ -49,7 +49,6 @@ public class Defines
 
 		_customRootFolder = CommandLineEx.GetArgumentResult("-carbon.rootdir");
 		_customScriptFolder = CommandLineEx.GetArgumentResult("-carbon.scriptdir");
-		_customHarmonyFolder = CommandLineEx.GetArgumentResult("-carbon.harmonydir");
 		_customConfigFolder = CommandLineEx.GetArgumentResult("-carbon.configdir");
 		_customDataFolder = CommandLineEx.GetArgumentResult("-carbon.datadir");
 		_customModuleFolder = CommandLineEx.GetArgumentResult("-carbon.moduledir");
