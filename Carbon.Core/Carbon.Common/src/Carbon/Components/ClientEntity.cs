@@ -18,6 +18,8 @@ public class ClientEntity : IDisposable
 {
 	#region Statics
 
+	internal static bool _isPatched { get; set; }
+
 	public static Dictionary<ulong, ClientEntity> entities { get; private set; } = new();
 
 	public static ClientEntity Create(string prefabName, Vector3 position, Quaternion rotation, ProtoBuf.Entity proto = null, uint netId = 0, uint group = 0)
@@ -48,11 +50,25 @@ public class ClientEntity : IDisposable
 		return client;
 	}
 
-	internal static void ServerRPCUnknown(uint netID, uint rpcID, Message packet)
+	internal static void ServerRPCUnknown(NetworkableId netID, uint rpcID, Message packet)
 	{
-		if (entities.TryGetValue(netID, out var entity) && entity.watchers.Contains(packet.connection))
+		if (entities.TryGetValue(netID.Value, out var entity) && entity.watchers.Contains(packet.connection))
 		{
 			entity.OnRpc(StringPool.Get(rpcID), packet);
+		}
+	}
+
+	internal static void HookCheck()
+	{
+		if(!_isPatched && entities.Count > 0)
+		{
+			_isPatched = true;
+			Community.Runtime.HookManager.Subscribe("IServerMgrOnRPCMessage", "ClientEntity.HookCheck");
+		}
+		else if(_isPatched && entities.Count == 0)
+		{
+			_isPatched = false;
+			Community.Runtime.HookManager.Unsubscribe("IServerMgrOnRPCMessage", "ClientEntity.HookCheck");
 		}
 	}
 
@@ -60,17 +76,18 @@ public class ClientEntity : IDisposable
 
 	public ClientEntity(ProtoBuf.Entity proto = null, uint prefabId = 0, uint netId = 0, uint group = 0) : base()
 	{
-		this.Proto = proto ?? new();
-		this.Proto.baseNetworkable ??= new ProtoBuf.BaseNetworkable();
-		this.Proto.baseEntity ??= new ProtoBuf.BaseEntity();
+		Proto = proto ?? new();
+		Proto.baseNetworkable ??= new ProtoBuf.BaseNetworkable();
+		Proto.baseEntity ??= new ProtoBuf.BaseEntity();
 
 		NetID = netId == 0 ? Net.sv.TakeUID() : netId;
 
-		this.Proto.baseNetworkable.group = group;
+		Proto.baseNetworkable.group = group;
 
-		if (prefabId != 0) this.Proto.baseNetworkable.prefabID = prefabId;
+		if (prefabId != 0) Proto.baseNetworkable.prefabID = prefabId;
 
 		entities[NetID] = this;
+		HookCheck();
 	}
 
 	public ProtoBuf.Entity Proto
@@ -331,5 +348,7 @@ public class ClientEntity : IDisposable
 		Proto = null;
 		watchers?.Clear();
 		watchers = null;
+
+		HookCheck();
 	}
 }
