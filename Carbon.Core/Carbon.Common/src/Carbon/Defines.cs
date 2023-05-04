@@ -35,7 +35,6 @@ public class Defines
 
 	internal static string _customRootFolder;
 	internal static string _customScriptFolder;
-	internal static string _customHarmonyFolder;
 	internal static string _customConfigFolder;
 	internal static string _customDataFolder;
 	internal static string _customModuleFolder;
@@ -49,7 +48,6 @@ public class Defines
 
 		_customRootFolder = CommandLineEx.GetArgumentResult("-carbon.rootdir");
 		_customScriptFolder = CommandLineEx.GetArgumentResult("-carbon.scriptdir");
-		_customHarmonyFolder = CommandLineEx.GetArgumentResult("-carbon.harmonydir");
 		_customConfigFolder = CommandLineEx.GetArgumentResult("-carbon.configdir");
 		_customDataFolder = CommandLineEx.GetArgumentResult("-carbon.datadir");
 		_customModuleFolder = CommandLineEx.GetArgumentResult("-carbon.moduledir");
