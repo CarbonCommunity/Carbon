@@ -99,8 +99,11 @@ public class HookValidator
 
 			int count = 0;
 			foreach (var manifest in OxideHooks.Manifests)
+			{
 				foreach (var entry in manifest.Hooks)
 					count++;
+			}
+
 			return count;
 		}
 	}

@@ -6,6 +6,7 @@ using System.Reflection;
 using API.Commands;
 using API.Events;
 using Carbon.Base;
+using Carbon.Base.Interfaces;
 using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
@@ -79,7 +80,6 @@ public static class Loader
 
 		PendingRequirees.Clear();
 		requirees.Clear();
-		requirees = null;
 	}
 	public static void ClearAllErrored()
 	{
@@ -517,7 +517,7 @@ public static class Loader
 
 			foreach (var plugin in Community.Runtime.ModuleProcessor.Modules)
 			{
-				if (plugin.HasInitialized) continue;
+				if (plugin is IModule module && (!module.GetEnabled() || plugin.HasInitialized)) continue;
 
 				try
 				{
@@ -527,8 +527,6 @@ public static class Loader
 				{
 					Logger.Error($"[{plugin.Name}] Failed OnServerInitialized.", initException);
 				}
-
-				plugin.HasInitialized = true;
 			}
 
 			if (counter > 1)
@@ -552,56 +550,6 @@ public static class Loader
 
 		return null;
 	}
-	internal static Assembly LoadAssembly(string assemblyPath)
-	{
-		try
-		{
-			if (!File.Exists(assemblyPath))
-				throw new FileNotFoundException($"File not found '{assemblyPath}'");
-
-			var rawAssembly = File.ReadAllBytes(assemblyPath);
-			if (rawAssembly == null) throw new Exception("No bytes read from file");
-
-			return Assembly.Load(rawAssembly);
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"[LoadAssembly] Failed processing '{assemblyPath}'\n{ex}");
-		}
-
-		return null;
-	}
-	internal static bool IsKnownDependency(string assemblyName)
-	{
-		return assemblyName.StartsWith("System.", StringComparison.InvariantCultureIgnoreCase)
-			|| assemblyName.StartsWith("Microsoft.", StringComparison.InvariantCultureIgnoreCase)
-			|| assemblyName.StartsWith("Newtonsoft.", StringComparison.InvariantCultureIgnoreCase)
-			|| assemblyName.StartsWith("UnityEngine.", StringComparison.InvariantCultureIgnoreCase);
-	}
-
-	internal static void ReportException(string harmonyId, Exception e)
-	{
-		LogError(harmonyId, e);
-		ReflectionTypeLoadException ex;
-		if ((ex = e as ReflectionTypeLoadException) != null)
-		{
-			LogError(harmonyId, string.Format("Has {0} LoaderExceptions:", ex.LoaderExceptions));
-			foreach (var e2 in ex.LoaderExceptions)
-			{
-				ReportException(harmonyId, e2);
-			}
-		}
-		if (e.InnerException != null)
-		{
-			LogError(harmonyId, "Has InnerException:");
-			ReportException(harmonyId, e.InnerException);
-		}
-	}
-	internal static void Log(string harmonyId, object message)
-		=> Logger.Log($"[{harmonyId}] {message}");
-
-	internal static void LogError(string harmonyId, object message)
-		=> Logger.Error($"[{harmonyId}] {message}");
 
 	public static List<CarbonMod> LoadedMods = new();
 	public static List<FailedMod> FailedMods = new();
@@ -609,15 +557,17 @@ public static class Loader
 	[JsonObject(MemberSerialization.OptIn)]
 	public class CarbonMod
 	{
-		[JsonProperty]
-		public string Name { get; set; } = string.Empty;
-		[JsonProperty]
-		public string File { get; set; } = string.Empty;
-		[JsonProperty]
-		public bool IsCoreMod { get; set; } = false;
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }
-		//public List<IHarmonyMod> Hooks { get; } = new List<IHarmonyMod>();
+
+		[JsonProperty]
+		public string Name { get; set; } = string.Empty;
+
+		[JsonProperty]
+		public string File { get; set; } = string.Empty;
+
+		[JsonProperty]
+		public bool IsCoreMod { get; set; } = false;
 
 		[JsonProperty]
 		public List<RustPlugin> Plugins { get; set; } = new List<RustPlugin>();
@@ -630,6 +580,25 @@ public static class Loader
 		public string File { get; set; } = string.Empty;
 
 		[JsonProperty]
-		public string[] Errors { get; set; }
+		public Error[] Errors { get; set; }
+
+		[JsonProperty]
+		public Error[] Warnings { get; set; }
+
+		[JsonObject(MemberSerialization.OptIn)]
+		public class Error
+		{
+			[JsonProperty]
+			public string Number { get; set; }
+
+			[JsonProperty]
+			public string Message { get; set; }
+
+			[JsonProperty]
+			public int Column { get; set; }
+
+			[JsonProperty]
+			public int Line { get; set; }
+		}
 	}
 }

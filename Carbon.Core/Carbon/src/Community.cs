@@ -155,6 +155,7 @@ public class CommunityInternal : Community
 				ReloadPlugins();
 			}
 		});
+
 		if (ConVar.Global.skipAssetWarmup_crashes)
 		{
 			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>

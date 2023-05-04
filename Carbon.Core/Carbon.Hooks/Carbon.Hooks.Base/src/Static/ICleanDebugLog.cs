@@ -46,7 +46,8 @@ public partial class Category_Static
 		{
 			internal static string[] _filter = new string[]
 			{
-				"The referenced script on this Behaviour"
+				"The referenced script on this Behaviour",
+				"Calling kill - but already IsDestroyed!? vending_mapmarker[0]"
 			};
 
 			public static bool Prefix(object message)

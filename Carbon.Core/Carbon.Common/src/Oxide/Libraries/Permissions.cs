@@ -562,7 +562,7 @@ public class Permission : Library
 		return groupData.Rank;
 	}
 
-	public virtual bool GrantUserPermission(string id, string perm, RustPlugin owner)
+	public virtual bool GrantUserPermission(string id, string perm, BaseHookable owner)
 	{
 		if (!PermissionExists(perm, owner)) return false;
 

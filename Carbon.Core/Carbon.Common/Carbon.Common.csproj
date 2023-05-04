@@ -14,6 +14,7 @@
 		<PackageReference Include="protobuf-net" Version="3.1.17" />
 		<PackageReference Include="QRCoder" Version="1.4.3" />
 		<PackageReference Include="SharpCompress" Version="0.32.2" />
+		<PackageReference Include="System.Data.SQLite" Version="1.0.117" />
 	</ItemGroup>
 
 	<ItemGroup>

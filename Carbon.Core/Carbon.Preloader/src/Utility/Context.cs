@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Carbon.Extensions;
 
 /*
  *
@@ -16,9 +17,8 @@ internal sealed class Context
 		Needles = { ".", "..", "../.." };
 
 	internal static readonly string
-		Game, GameManaged, GameHarmony,
-
-		Carbon, CarbonManaged, CarbonHarmony, CarbonLib, CarbonHooks, CarbonModules, CarbonLogs;
+		Game, GameManaged,
+		Carbon, CarbonManaged, CarbonLib, CarbonHooks, CarbonModules, CarbonLogs;
 
 	static Context()
 	{
@@ -36,18 +36,13 @@ internal sealed class Context
 		try
 		{
 			if (Game == null) throw new System.Exception("Unable to find root folder");
-
 			GameManaged = Path.GetFullPath(Path.Combine(Game, "RustDedicated_Data", "Managed"));
-			GameHarmony = Path.GetFullPath(Path.Combine(Game, "HarmonyMods"));
 
-			Carbon = Path.GetFullPath(Path.Combine(Game, "carbon"));
+			Carbon = Path.GetFullPath(CommandLineEx.GetArgumentResult("-carbon.rootdir", Path.Combine(Game, "carbon")));
 			if (!Directory.Exists(Carbon)) throw new Exception("Carbon folder is missing");
 
 			CarbonLogs = Path.Combine(Carbon, "logs");
 			if (!Directory.Exists(CarbonLogs)) Directory.CreateDirectory(CarbonLogs);
-
-			CarbonHarmony = Path.Combine(Carbon, "harmony");
-			if (!Directory.Exists(CarbonHarmony)) Directory.CreateDirectory(CarbonHarmony);
 
 			CarbonManaged = Path.Combine(Carbon, "managed");
 			if (!Directory.Exists(CarbonManaged)) Directory.CreateDirectory(CarbonManaged);

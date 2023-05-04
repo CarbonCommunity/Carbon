@@ -53,15 +53,18 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		Singleton = this;
 	}
 
-	public override void Init()
+	public override bool InitEnd()
 	{
-		base.Init();
-
-		if (ConfigInstance.AutoEnableOnCustomMap
-			&& !string.IsNullOrEmpty(ConVar.Server.levelurl))
+		if (base.InitEnd())
 		{
-			SetEnabled(true);
+			if (ConfigInstance.AutoEnableOnCustomMap
+				&& !string.IsNullOrEmpty(ConVar.Server.levelurl))
+			{
+				SetEnabled(true);
+			}
 		}
+
+		return true;
 	}
 	public override void OnServerInit()
 	{
@@ -2651,7 +2654,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	internal static List<PrefabData> Deployables_LootProfiles = new();
 	internal static Coroutine Deployables_PrefabSpawnerThread;
 	internal static Dictionary<string, byte[]> Deployables_CachedDownloads = new();
-	internal static Dictionary<uint, uint> Deployables_PaintedSigns = new();
+	internal static Dictionary<uint, ulong> Deployables_PaintedSigns = new();
 	internal static List<Vector3> Deployables_ProtectedList = new();
 
 	#region Commands
@@ -2779,9 +2782,9 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	internal static bool Deployables_ShutdownHook()
 	{
-		foreach (KeyValuePair<uint, uint> oldsign in Deployables_PaintedSigns)
+		foreach (var oldsign in Deployables_PaintedSigns)
 		{
-			FileStorage.server.Remove(oldsign.Key, FileStorage.Type.png, oldsign.Value);
+			FileStorage.server.Remove(oldsign.Key, FileStorage.Type.png, new NetworkableId ( oldsign.Value ) );
 		}
 		Debug.LogWarning("Cleaning Sign Data");
 		return true;
@@ -3819,7 +3822,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			sign.textureIDs[index] = img;
 			if (!Deployables_PaintedSigns.ContainsKey(img))
 			{
-				Deployables_PaintedSigns.Add(img, sign.net.ID);
+				Deployables_PaintedSigns.Add(img, sign.net.ID.Value);
 			}
 			sign.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
 		}
@@ -3832,7 +3835,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			photoframe._overlayTextureCrc = img;
 			if (!Deployables_PaintedSigns.ContainsKey(img))
 			{
-				Deployables_PaintedSigns.Add(img, photoframe.net.ID);
+				Deployables_PaintedSigns.Add(img, photoframe.net.ID.Value);
 			}
 			photoframe.SendNetworkUpdate(BasePlayer.NetworkQueue.Update);
 		}
@@ -3908,7 +3911,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 				foreach (AnimatedGifFrame i in gif.Images)
 				{
 					uint img = FileStorage.server.Store(ImageToByteArray(i.Image), FileStorage.Type.png, sign.net.ID);
-					if (!Deployables_PaintedSigns.ContainsKey(img)) { Deployables_PaintedSigns.Add(img, sign.net.ID); }
+					if (!Deployables_PaintedSigns.ContainsKey(img)) { Deployables_PaintedSigns.Add(img, sign.net.ID.Value); }
 					Images.Add(img);
 				}
 			}

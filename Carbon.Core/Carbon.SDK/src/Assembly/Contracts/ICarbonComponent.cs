@@ -9,9 +9,8 @@
 
 namespace API.Assembly;
 
-public interface ICarbonComponent
+public interface ICarbonComponent : ICarbonAddon
 {
-	public void Initialize(string identifier);
-	public void OnLoaded(EventArgs args);
-	public void OnUnloaded(EventArgs args);
+	public void OnEnable(EventArgs args);
+	public void OnDisable(EventArgs args);
 }

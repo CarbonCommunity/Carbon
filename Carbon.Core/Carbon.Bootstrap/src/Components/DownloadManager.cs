@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
+using API.Abstracts;
 using API.Contracts;
 using UnityEngine;
 
@@ -16,7 +17,7 @@ using UnityEngine;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class DownloadManager : MonoBehaviour, IDownloadManager
+internal sealed class DownloadManager : CarbonBehaviour, IDownloadManager
 {
 	private struct DownloadItem
 	{

@@ -14,12 +14,13 @@ using UnityEngine;
 
 namespace Oxide.Game.Rust.Libraries.Covalence
 {
-	public struct RustPlayer : IPlayer
+	public class RustPlayer : IPlayer
 	{
 		public object Object { get; set; }
 
 		public BasePlayer BasePlayer => Object as BasePlayer;
 
+		public RustPlayer() { }
 		public RustPlayer(BasePlayer player)
 		{
 			Object = player;

@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
-using API.Contracts;
+using API.Events;
 using Utility;
 
 /*
@@ -18,7 +19,7 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class ModuleManager : BaseTypeManager
+internal sealed class ModuleManager : AddonManager
 {
 	/*
 	 * CARBON MODULES
@@ -45,7 +46,7 @@ internal sealed class ModuleManager : BaseTypeManager
 		{
 			Extension = "*.dll",
 			IncludeSubFolders = false,
-			Directory = Utility.Context.CarbonModules,
+			Directory = Context.CarbonModules,
 
 			OnFileCreated = (sender, file) =>
 			{
@@ -64,13 +65,19 @@ internal sealed class ModuleManager : BaseTypeManager
 			requester = $"{caller.DeclaringType}.{caller.Name}";
 		}
 
+		IReadOnlyList<string> blacklist = null;
+		IReadOnlyList<string> whitelist = AssemblyManager.RefWhitelist.Concat(new string[]
+		{
+			"0Harmony"
+		}).ToList();
+
 		try
 		{
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories, AssemblyManager.References)?.Assembly
+					Assembly asm = _loader.Load(file, requester, _directories, blacklist, whitelist)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (AssemblyManager.IsType<ICarbonModule>(asm, out types))
@@ -85,8 +92,17 @@ internal sealed class ModuleManager : BaseTypeManager
 									throw new NullReferenceException();
 								Logger.Debug($"A new instance of '{module}' created");
 
-								module.Initialize("nothing for now");
-								module.OnLoaded(args: new EventArgs());
+								BindingFlags flags = BindingFlags.Instance | BindingFlags.Public
+									| BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
+
+								module.GetType().GetProperty("Logger", flags)?.SetValue(module,
+									Activator.CreateInstance(HarmonyLib.AccessTools.TypeByName("Carbon.Logger") ?? null));
+
+								module.Awake(EventArgs.Empty);
+								module.OnLoaded(EventArgs.Empty);
+								Carbon.Bootstrap.Events
+									.Trigger(CarbonEvent.ModuleLoaded, new CarbonEventArgs(file));
+								_loaded.Add(new() { Addon = module, Types = asm.GetExportedTypes(), File = file });
 							}
 							catch (Exception e)
 							{
@@ -100,7 +116,6 @@ internal sealed class ModuleManager : BaseTypeManager
 						throw new Exception("Unsupported assembly type");
 					}
 
-					Loaded.Add(file);
 					return asm;
 
 				// case ".drm"

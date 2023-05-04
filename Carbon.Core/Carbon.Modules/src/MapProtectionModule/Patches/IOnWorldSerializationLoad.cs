@@ -9,7 +9,7 @@
 
 namespace Carbon.Modules;
 
-public partial class RustEditModule
+public partial class MapProtectionModule
 {
 	[HookAttribute.Patch("IOnWorldSerializationLoad", "IOnWorldSerializationLoad", typeof(WorldSerialization), "Load", new System.Type[] { typeof(string) })]
 	[HookAttribute.Identifier("46e7586c847e42b392ec0c14b75b9451")]

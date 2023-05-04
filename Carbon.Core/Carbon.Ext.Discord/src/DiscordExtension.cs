@@ -31,16 +31,17 @@ namespace Oxide.Ext.Discord
 	{
 		internal static bool HasInit = false;
 
+		public void Awake(EventArgs args)
+		{
+			GlobalLogger = (string.IsNullOrEmpty("") ? new Logger(DiscordLogLevel.Warning) : new Logger(DiscordLogLevel.Debug));
+			GlobalLogger.Debug($"A new instance of '{this}' created");
+		}
+
 		public void OnLoaded(EventArgs args)
 		{
 			if (HasInit) return;
 			HasInit = true;
 
-			GlobalLogger = (string.IsNullOrEmpty("") ? new Logger(DiscordLogLevel.Warning) : new Logger(DiscordLogLevel.Debug));
-			// AppDomain.CurrentDomain.UnhandledException += delegate (object sender, UnhandledExceptionEventArgs exception)
-			// {
-			// 	GlobalLogger.Exception("An exception was thrown!", exception.ExceptionObject as Exception);
-			// };
 			string text = Path.Combine(Defines.GetConfigsFolder(), "discord.config.json");
 			bool flag = !File.Exists(text);
 			if (flag)
@@ -53,8 +54,12 @@ namespace Oxide.Ext.Discord
 			DiscordLink = new DiscordLink(GlobalLogger);
 			DiscordCommand = new DiscordCommand(DiscordConfig.Commands.CommandPrefixes);
 			DiscordSubscriptions = new DiscordSubscriptions(GlobalLogger);
-			Community.Runtime.Events.Subscribe(CarbonEvent.PluginLoaded, arg => OnPluginLoaded(arg as CarbonEventArgs));
-			Community.Runtime.Events.Subscribe(CarbonEvent.PluginUnloaded, arg => OnPluginUnloaded(arg as CarbonEventArgs));
+
+			Community.Runtime.Events.Subscribe(
+				CarbonEvent.PluginLoaded, arg => OnPluginLoaded(arg as CarbonEventArgs));
+
+			Community.Runtime.Events.Subscribe(
+				CarbonEvent.PluginUnloaded, arg => OnPluginUnloaded(arg as CarbonEventArgs));
 		}
 
 		public void OnUnloaded(EventArgs args)
@@ -66,8 +71,13 @@ namespace Oxide.Ext.Discord
 			{
 				DiscordClient.CloseClient(client);
 			}
-			Community.Runtime.Events.Unsubscribe(CarbonEvent.PluginLoaded, arg => OnPluginLoaded(arg as CarbonEventArgs));
-			Community.Runtime.Events.Unsubscribe(CarbonEvent.PluginUnloaded, arg => OnPluginUnloaded(arg as CarbonEventArgs));
+
+			Community.Runtime.Events.Unsubscribe(
+				CarbonEvent.PluginLoaded, arg => OnPluginLoaded(arg as CarbonEventArgs));
+
+			Community.Runtime.Events.Unsubscribe(
+				CarbonEvent.PluginUnloaded, arg => OnPluginUnloaded(arg as CarbonEventArgs));
+
 			GlobalLogger.Info("Disconnected all clients - shutdown.");
 		}
 

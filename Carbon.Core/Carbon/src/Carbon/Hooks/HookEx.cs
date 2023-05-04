@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using API.Hooks;
-using Carbon.Contracts;
 using Carbon.Extensions;
 using HarmonyLib;
 
@@ -21,7 +19,6 @@ namespace Carbon.Hooks;
 public class HookEx : IDisposable, IHook
 {
 	private HookRuntime _runtime;
-	private string _originalChecksum;
 	private readonly TypeInfo _patchMethod;
 
 
@@ -50,7 +47,7 @@ public class HookEx : IDisposable, IHook
 	{ get; }
 
 	public string ShortIdentifier
-	{ get => Identifier.Substring(Identifier.Length - 6); }
+	{ get => Identifier[^6..]; }
 
 	public string Checksum
 	{ get; }
@@ -95,7 +92,7 @@ public class HookEx : IDisposable, IHook
 	public HookState Status
 	{ get => _runtime.Status; set => _runtime.Status = value; }
 
-	public Exception LastError
+	public string LastError
 	{ get => _runtime.LastError; set => _runtime.LastError = value; }
 
 
@@ -158,16 +155,21 @@ public class HookEx : IDisposable, IHook
 					MethodInfo method = AccessTools.Method(constructed, TargetMethod) ?? null;
 					if (method != null) TargetMethods.Add(method);
 				}
+
+				if (TargetMethods.Count == 0)
+					throw new Exception($"Signature for '{TargetType}.{TargetMethod}' not found");
 			}
 			else
 			{
-				MethodBase method = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
-				if (method != null) TargetMethods.Add(method);
+				MethodBase method = GetTargetMethodInfo()
+					?? throw new Exception($"Signature for '{TargetType}.{TargetMethod}' not found");
+				TargetMethods.Add(method);
 			}
 		}
-		catch (Exception e)
+		catch (System.Exception e)
 		{
 			Logger.Error($"Error while parsing '{type.Name}'", e);
+			SetStatus(HookState.Failure, e.Message);
 		}
 		finally
 		{
@@ -203,7 +205,7 @@ public class HookEx : IDisposable, IHook
 		{
 			Logger.Error($"Error while patching hook '{this}'", e);
 			_runtime.Status = HookState.Failure;
-			_runtime.LastError = e;
+			_runtime.LastError = e.Message;
 			return false;
 		}
 
@@ -239,7 +241,7 @@ public class HookEx : IDisposable, IHook
 		{
 			Logger.Error($"Error while patching hook '{this}'", e.InnerException ?? e);
 			_runtime.Status = HookState.Failure;
-			_runtime.LastError = e;
+			_runtime.LastError = e.Message;
 			return false;
 		}
 
@@ -261,30 +263,18 @@ public class HookEx : IDisposable, IHook
 		{
 			Logger.Error($"Error while unpatching hook '{HookName}'", e);
 			_runtime.Status = HookState.Failure;
-			_runtime.LastError = e;
+			_runtime.LastError = e.Message;
 			return false;
 		}
 	}
 
-	public string GetTargetMethodChecksum()
-	{
-		if (_originalChecksum != null) return _originalChecksum;
-		MethodBase original = AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
-		if (original == null) return default;
+	public MethodInfo GetTargetMethodInfo()
+		=> AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
 
-		using SHA1Managed sha1 = new SHA1Managed();
-		byte[] bytes = sha1.ComputeHash(original.GetMethodBody()?.GetILAsByteArray() ?? Array.Empty<byte>());
-		_originalChecksum = string.Concat(bytes.Select(b => b.ToString("x2")));
-		Logger.Debug($">> CALC: {_originalChecksum}");
-		Logger.Debug($">> HOOK: {Checksum}");
-
-		return _originalChecksum;
-	}
-
-	public void SetStatus(HookState Status, Exception e = null)
+	public void SetStatus(HookState Status, string error = null)
 	{
 		_runtime.Status = Status;
-		_runtime.LastError = e;
+		_runtime.LastError = error;
 	}
 
 	private bool _disposing;

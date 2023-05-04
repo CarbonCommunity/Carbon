@@ -19,9 +19,8 @@ for OS in windows linux; do
 		"${ROOT}/Tools/Helpers/258550_refs.txt" -dir "${ROOT}/Rust/${OS}"
 
 	# Show me all you've got baby
-	mono "${ROOT}/Tools/NStrip/NStrip/bin/Release/net452/NStrip.exe" \
-		--public --include-compiler-generated --cg-exclude-events --keep-resources --no-strip \
-		--unity-non-serialized --overwrite "${ROOT}/Rust/${OS}/RustDedicated_Data/Managed/Assembly-CSharp.dll"
+	mono "${ROOT}/Tools/Helpers/Publicizer.exe" \
+		--input "${ROOT}/Rust/${OS}/RustDedicated_Data/Managed/Assembly-CSharp.dll"
 done
 
 dotnet restore "${ROOT}/Carbon.Core" --nologo

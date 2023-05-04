@@ -35,7 +35,7 @@ public class HookAttribute : Attribute
 		/// Use one of the other only for specific purposes.
 		/// </summary>
 		public Patch(string name, string fullName, Type target, string method, Type[] args) : this(name, fullName, target, method)
-		 => MethodArgs = args;
+			=> MethodArgs = args;
 
 		/// <summary>
 		/// Short version of the standard patch declaration decorator.
@@ -48,7 +48,6 @@ public class HookAttribute : Attribute
 			Name = name;
 			Target = target;
 		}
-
 
 		/// <summary>
 		/// To be used to facilitate patching of generic methods
@@ -99,43 +98,5 @@ public class HookAttribute : Attribute
 
 		public Checksum(string value)
 			=> Value = value;
-	}
-}
-
-[AttributeUsage(AttributeTargets.Class)]
-public class MetadataAttribute : Attribute
-{
-	[AttributeUsage(AttributeTargets.Class)]
-	public class Category : Attribute
-	{
-		public string Name { get; }
-
-		public Category(string name) { Name = name; }
-	}
-
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-	public class Parameter : Attribute
-	{
-		public string Name { get; }
-		public Type Type { get; }
-		public bool Optional { get; }
-
-		public Parameter(string name, Type type, bool optional = false) { Name = name; Type = type; Optional = optional; }
-	}
-
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-	public class Info : Attribute
-	{
-		public string Name { get; }
-
-		public Info(string name) { Name = name; }
-	}
-
-	[AttributeUsage(AttributeTargets.Class)]
-	public class Return : Attribute
-	{
-		public Type Type { get; }
-
-		public Return(Type type) { Type = type; }
 	}
 }

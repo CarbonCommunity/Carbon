@@ -7,11 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using Carbon.Base;
-using Carbon.Components;
-using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
-using Network;
 using Oxide.Core.Libraries;
 using ProtoBuf;
 using QRCoder;
@@ -28,9 +25,8 @@ namespace Carbon.Modules;
 
 public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModuleData>
 {
-	public override string Name => "Image Database";
+	public override string Name => "ImageDatabase";
 	public override Type Type => typeof(ImageDatabaseModule);
-	public override bool IsCoreModule => true;
 	public override bool EnabledByDefault => true;
 
 	internal List<QueuedThread> _queue = new();
@@ -49,6 +45,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		["trashcan"] = "https://carbonmod.gg/assets/media/cui/trash-can.png",
 		["shopping"] = "https://carbonmod.gg/assets/media/cui/shopping-cart.png",
 		["installed"] = "https://carbonmod.gg/assets/media/cui/installed.png",
+		["reload"] = "https://carbonmod.gg/assets/media/cui/reload.png",
 		["update-pending"] = "https://carbonmod.gg/assets/media/cui/update-pending.png",
 		["magnifying-glass"] = "https://carbonmod.gg/assets/media/cui/magnifying-glass.png",
 		["star"] = "https://carbonmod.gg/assets/media/cui/star.png"
@@ -174,12 +171,11 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 	public bool Validate()
 	{
-		if (_protoData.Identifier != CommunityEntity.ServerInstance.net.ID)
+		if (_protoData.Identifier != CommunityEntity.ServerInstance.net.ID.Value)
 		{
-			PutsWarn($"The server identifier has changed. Wiping old image database.");
-			_protoData.Map.Clear();
+			PutsWarn($"The server identifier has changed. Wiping old image database.");_protoData.Map.Clear();
 			_protoData.CustomMap.Clear();
-			_protoData.Identifier = CommunityEntity.ServerInstance.net.ID;
+			_protoData.Identifier = CommunityEntity.ServerInstance.net.ID.Value;
 			return true;
 		}
 
@@ -187,7 +183,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 		foreach (var pointer in _protoData.Map)
 		{
-			if (FileStorage.server.Get(pointer.Value, FileStorage.Type.png, _protoData.Identifier) == null)
+			if (FileStorage.server.Get(pointer.Value, FileStorage.Type.png, new NetworkableId(_protoData.Identifier)) == null)
 			{
 				invalidations.Add(pointer.Key);
 			}
@@ -225,7 +221,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 					continue;
 				}
 
-				var id = FileStorage.server.Store(result.Data, FileStorage.Type.png, _protoData.Identifier);
+				var id = FileStorage.server.Store(result.Data, FileStorage.Type.png, new NetworkableId ( _protoData.Identifier ) );
 				if (id != 0) _protoData.Map[GetId(result.Url, scale)] = id;
 			}
 		}, urls);
@@ -309,7 +305,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 					continue;
 				}
 
-				var id = FileStorage.server.Store(result.Data, FileStorage.Type.png, _protoData.Identifier);
+				var id = FileStorage.server.Store(result.Data, FileStorage.Type.png, new NetworkableId ( _protoData.Identifier ) );
 				if (id != 0) _protoData.Map[GetId(result.Url, scale)] = id;
 			}
 
@@ -395,7 +391,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		{
 			if (ConfigInstance.PrintDeletedImageLogs) Puts($"Deleted image '{url}' (scale: {(scale == 0 ? "default" : $"{scale:0.0}")}).");
 
-			FileStorage.server.Remove(uid, FileStorage.Type.png, _protoData.Identifier);
+			FileStorage.server.Remove(uid, FileStorage.Type.png, new NetworkableId ( _protoData.Identifier ) );
 			_protoData.Map.Remove(id);
 			return true;
 		}
@@ -424,7 +420,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			qrCodeImage.Dispose();
 
 			var raw = output.ToArray();
-			uid = FileStorage.server.Store(raw, FileStorage.Type.png, _protoData.Identifier);
+			uid = FileStorage.server.Store(raw, FileStorage.Type.png, new NetworkableId ( _protoData.Identifier ) );
 			_protoData.Map.Add($"qr_{Community.Protect(text)}_{pixels}_0", uid);
 			return uid;
 		};
@@ -597,7 +593,7 @@ public class ImageDatabaseConfig
 public class ImageDatabaseDataProto
 {
 	[ProtoMember(1)]
-	public uint Identifier { get; set; }
+	public ulong Identifier { get; set; }
 
 	[ProtoMember(2)]
 	public Dictionary<string, uint> Map { get; set; }

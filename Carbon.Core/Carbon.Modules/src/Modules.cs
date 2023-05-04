@@ -12,15 +12,23 @@ namespace Carbon.Modules;
 
 public class Initializer : ICarbonModule
 {
-	public void Initialize(string identifier)
-	{
-	}
-
 	public void OnLoaded(EventArgs args)
 	{
 	}
 
 	public void OnUnloaded(EventArgs args)
+	{
+	}
+
+	public void Awake(EventArgs args)
+	{
+	}
+
+	public void OnEnable(EventArgs args)
+	{
+	}
+
+	public void OnDisable(EventArgs args)
 	{
 	}
 }

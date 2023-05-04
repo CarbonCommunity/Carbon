@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Facepunch.Extend;
 using MonoCecilStandalone::Mono.Cecil;
 
@@ -18,12 +19,13 @@ namespace Utility;
 
 public sealed class AssemblyValidator : MarshalByRefObject
 {
+	internal IReadOnlyList<string> Blacklist { get; set; }
 	internal IReadOnlyList<string> Whitelist { get; set; }
 
 	internal bool Validate(string file)
 	{
-		// no whitelist, no validation
-		if (Whitelist == null) return true;
+		// no blacklist, no whitelist, no validation
+		if (Blacklist == null && Whitelist == null) return true;
 
 		try
 		{
@@ -38,8 +40,20 @@ public sealed class AssemblyValidator : MarshalByRefObject
 			{
 				foreach (AssemblyNameReference reference in module.AssemblyReferences)
 				{
-					if (!Whitelist.Contains(reference.Name))
-						throw new Exception($" >> Reference '{reference.Name}' not allowed");
+					if (Blacklist is not null)
+					{
+						foreach (string expr in Blacklist)
+						{
+							if (Regex.IsMatch(reference.Name, expr))
+								throw new Exception($" >> Reference '{reference.Name}' not allowed by blacklisting");
+						}
+					}
+
+					if (Whitelist is not null)
+					{
+						if (!Whitelist.Contains(reference.Name))
+							throw new Exception($" >> Reference '{reference.Name}' not allowed by whitelisting");
+					}
 				}
 			}
 		}

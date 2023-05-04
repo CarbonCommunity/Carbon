@@ -4,9 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using API.Abstracts;
 using API.Events;
 using API.Hooks;
-using Carbon.Contracts;
 
 /*
  *
@@ -18,7 +19,7 @@ using Carbon.Contracts;
 namespace Carbon.Hooks;
 #pragma warning disable IDE0051
 
-public sealed class PatchManager : FacepunchBehaviour, IPatchManager, IDisposable
+public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 {
 	internal List<HookEx> _patches { get; set; }
 	internal List<HookEx> _staticHooks { get; set; }
@@ -43,8 +44,10 @@ public sealed class PatchManager : FacepunchBehaviour, IPatchManager, IDisposabl
 	private Stopwatch sw;
 	private bool _doReload;
 	private Queue<string> _workQueue;
-	//private Hashtable _cachedChecksums;
 	private List<Subscription> _subscribers;
+	private readonly Dictionary<string, string> _checksums = new();
+
+
 	private static readonly string[] Files =
 	{
 		"Carbon.Hooks.Base.dll",
@@ -54,11 +57,8 @@ public sealed class PatchManager : FacepunchBehaviour, IPatchManager, IDisposabl
 	private void Awake()
 	{
 		Logger.Log($"Initializing {this}..");
-
-		// 
 		sw = new Stopwatch();
 
-		//_cachedChecksums = new Hashtable();
 		_dynamicHooks = new List<HookEx>();
 		_installed = new List<HookEx>();
 		_patches = new List<HookEx>();
@@ -173,21 +173,24 @@ public sealed class PatchManager : FacepunchBehaviour, IPatchManager, IDisposabl
 
 				bool hasSubscribers = HookHasSubscribers(hook.Identifier);
 				bool isInstalled = hook.IsInstalled;
+				bool hasValidChecksum = true;
+				string checksum = null;
 
-				//bool hasValidChecksum = true;
-				//
-				// if (!isInstalled)
-				// {
-				// 	string id = $"{hook.TargetType}|{hook.TargetMethod}|{hook.TargetMethodArgs.Count()}";
-				// 	string checksum = null;
+				if (!isInstalled)
+				{
+					if (hook.Status == HookState.Failure)
+					{
+						Logger.Warn($"A hook request for '{hook}' received:");
+						Logger.Warn($" - The current status is FAILURE: {hook.LastError}");
+						Logger.Warn($" - Check for possible errors on the log file");
+					}
 
-				// 	// if (_cachedChecksums.ContainsKey(id))
-				// 	// 	checksum = (string)_cachedChecksums[id];
-				// 	checksum ??= hook.GetTargetMethodChecksum();
+					checksum = GetMethodMSILHash(hook.GetTargetMethodInfo());
 
-				// 	hasValidChecksum = (hook.IsChecksumIgnored || hook.Checksum == string.Empty)
-				// 		|| checksum.Equals(hook.Checksum, StringComparison.InvariantCultureIgnoreCase);
-				// }
+					hasValidChecksum =
+						hook.IsChecksumIgnored || string.IsNullOrEmpty(hook.Checksum)
+						|| string.IsNullOrEmpty(checksum) || checksum == hook.Checksum;
+				}
 
 				switch (hasSubscribers)
 				{
@@ -198,6 +201,7 @@ public sealed class PatchManager : FacepunchBehaviour, IPatchManager, IDisposabl
 						Logger.Debug($"Installed hook '{hook}'", 1);
 						_installed.Add(hook);
 						break;
+
 					// Installed but no subs found, uninstall
 					case false when isInstalled:
 						if (!hook.RemovePatch())
@@ -207,11 +211,12 @@ public sealed class PatchManager : FacepunchBehaviour, IPatchManager, IDisposabl
 						break;
 				}
 
-				// if (!hasValidChecksum)
-				// {
-				// 	Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}'");
-				// 	hook.SetStatus(HookState.Warning);
-				// }
+				if (!hasValidChecksum)
+				{
+					Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}'");
+					Logger.Debug($"live:{checksum} | expected:{hook.Checksum}");
+					hook.SetStatus(HookState.Warning, "Invalid checksum");
+				}
 			}
 		}
 		catch (System.ApplicationException e)
@@ -541,6 +546,17 @@ public sealed class PatchManager : FacepunchBehaviour, IPatchManager, IDisposabl
 			Logger.Error($"Error while unsubscribing hook '{hook}'", e);
 			return;
 		}
+	}
+
+	public static string GetMethodMSILHash(MethodInfo method)
+		=> sha1(method?.GetMethodBody()?.GetILAsByteArray());
+
+	public static string sha1(byte[] raw)
+	{
+		if (raw == null || raw.Length == 0) return null;
+		using SHA1Managed sha1 = new SHA1Managed();
+		byte[] bytes = sha1.ComputeHash(raw);
+		return string.Concat(bytes.Select(b => b.ToString("x2"))).ToLower();
 	}
 
 

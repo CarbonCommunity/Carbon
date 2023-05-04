@@ -18,6 +18,8 @@ using Carbon.Extensions;
 using Carbon.Plugins;
 using Facepunch;
 using Newtonsoft.Json;
+using Oxide.Core;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using UnityEngine;
@@ -94,24 +96,46 @@ public partial class CorePlugin : CarbonPlugin
 				break;
 
 			default:
-				var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
-				var count = 1;
+				var result = string.Empty;
 
-				foreach (var mod in Loader.LoadedMods)
+				// Loaded plugins
 				{
-					if (mod.IsCoreMod) continue;
+					var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
+					var count = 1;
 
-					body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "");
-
-					foreach (var plugin in mod.Plugins)
+					foreach (var mod in Loader.LoadedMods)
 					{
-						body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0.0}s", $"{plugin.CompileTime:0}ms");
+						if (mod.IsCoreMod) continue;
+
+						body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "");
+
+						foreach (var plugin in mod.Plugins)
+						{
+							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0.0}s", $"{plugin.CompileTime:0}ms");
+						}
+
+						count++;
 					}
 
-					count++;
+					result += $"{body.ToStringMinimal()}\n";
 				}
 
-				arg.ReplyWith(body.ToStringMinimal());
+				// Failed plugins
+				{
+					var body = new StringTable("#", "File", "Errors", "Stack");
+					var count = 1;
+
+					foreach (var mod in Loader.FailedMods)
+					{
+						body.AddRow($"{count:n0}", $"{Path.GetFileName(mod.File)}", $"{mod.Errors.Length:n0}", $"{mod.Errors.Select(x => x.Message).ToArray().ToString(", ").Truncate(150, "...")}");
+
+						count++;
+					}
+
+					result += $"Failed plugins:\n{body.ToStringMinimal()}\nTo list the full stack trace of failed plugins, run 'c.pluginsfailed'";
+				}
+
+				arg.ReplyWith(result);
 				break;
 		}
 	}
@@ -180,6 +204,75 @@ public partial class CorePlugin : CarbonPlugin
 
 				arg.ReplyWith(result);
 				break;
+		}
+	}
+
+	[ConsoleCommand("pluginwarns", "Prints the list of warnings of a specific plugin (or all if no arguments are set).")]
+	[AuthLevel(2)]
+	private void PluginWarns(ConsoleSystem.Arg arg)
+	{
+		var filter = arg.GetString(0);
+
+		if (string.IsNullOrEmpty(filter))
+		{
+			var r = string.Empty;
+
+			foreach (var mod in Loader.LoadedMods)
+			{
+				foreach(var plugin in mod.Plugins)
+				{
+					r += $"{Print(plugin)}\n";
+				}
+			}
+
+			arg.ReplyWith(r);
+		}
+		else
+		{
+			var plugin = (Plugin)null;
+
+			foreach (var mod in Loader.LoadedMods)
+			{
+				foreach (var p in mod.Plugins)
+				{
+					if (p.Name == filter)
+					{
+						plugin = p;
+						break;
+					}
+				}
+			}
+
+			if (plugin == null)
+			{
+				arg.ReplyWith($"Couldn't find a plugin with that name: '{filter}'");
+				return;
+			}
+
+			arg.ReplyWith(Print(plugin));
+		}
+
+		static string Print(Plugin plugin)
+		{
+			var result = string.Empty;
+			var count = 1;
+
+			result += $"{plugin.Name} v{plugin.Version} by {plugin.Author}:\n";
+
+			if (plugin.CompileWarnings == null || plugin.CompileWarnings.Length == 0)
+			{
+				result += $"  No warnings available.\n";
+			}
+			else
+			{
+				foreach (var warn in plugin.CompileWarnings)
+				{
+					result += $"  {count:n0}. {warn.Message} [{warn.Number}]\n     ({warn.Column} line {warn.Line})\n";
+					count++;
+				}
+			}
+
+			return result;
 		}
 	}
 
