@@ -22,7 +22,13 @@ public class ClientEntity : IDisposable
 
 	public static Dictionary<ulong, ClientEntity> entities { get; private set; } = new();
 
-	public static ClientEntity Create(string prefabName, Vector3 position, Quaternion rotation, ProtoBuf.Entity proto = null, uint netId = 0, uint group = 0)
+	public static ClientEntity Create(
+		string prefabName,
+		Vector3 position,
+		Quaternion rotation,
+		ProtoBuf.Entity proto = null,
+		ulong netId = 0,
+		uint group = 0)
 	{
 		var prefabId = (uint)default;
 
@@ -60,33 +66,28 @@ public class ClientEntity : IDisposable
 
 	internal static void HookCheck()
 	{
-		if(!_isPatched && entities.Count > 0)
+		if (!_isPatched && entities.Count > 0)
 		{
 			_isPatched = true;
 			Community.Runtime.HookManager.Subscribe("IServerMgrOnRPCMessage", "ClientEntity.HookCheck");
-		}
-		else if(_isPatched && entities.Count == 0)
-		{
-			_isPatched = false;
-			Community.Runtime.HookManager.Unsubscribe("IServerMgrOnRPCMessage", "ClientEntity.HookCheck");
 		}
 	}
 
 	#endregion
 
-	public ClientEntity(ProtoBuf.Entity proto = null, uint prefabId = 0, uint netId = 0, uint group = 0) : base()
+	public ClientEntity(ProtoBuf.Entity proto = null, uint prefabId = 0, ulong netId = 0, uint group = 0) : base()
 	{
 		Proto = proto ?? new();
 		Proto.baseNetworkable ??= new ProtoBuf.BaseNetworkable();
 		Proto.baseEntity ??= new ProtoBuf.BaseEntity();
 
-		NetID = netId == 0 ? Net.sv.TakeUID() : netId;
+		NetID = new(netId == 0 ? Net.sv.TakeUID() : netId);
 
 		Proto.baseNetworkable.group = group;
 
 		if (prefabId != 0) Proto.baseNetworkable.prefabID = prefabId;
 
-		entities[NetID] = this;
+		entities[NetID.Value] = this;
 		HookCheck();
 	}
 
@@ -95,10 +96,10 @@ public class ClientEntity : IDisposable
 		get;
 		set;
 	}
-	public ulong NetID
+	public NetworkableId NetID
 	{
-		get => Proto.baseNetworkable.uid.Value;
-		private set => Proto.baseNetworkable.uid = new NetworkableId(value);
+		get => Proto.baseNetworkable.uid;
+		private set => Proto.baseNetworkable.uid = value;
 	}
 	public uint Prefab
 	{
@@ -116,7 +117,7 @@ public class ClientEntity : IDisposable
 			Pool.FreeList(ref temporaryWatchers);
 		}
 	}
-	public uint ParentID
+	public NetworkableId ParentID
 	{
 		get => _parentId;
 		set { _parentId = value; SendNetworkUpdate(); }
@@ -151,7 +152,7 @@ public class ClientEntity : IDisposable
 
 		using var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.EntityDestroy);
-		writer.EntityID(new NetworkableId(NetID));
+		writer.EntityID(NetID);
 		writer.UInt8((byte)mode);
 		writer.Send(new SendInfo(connection));
 	}
@@ -159,7 +160,7 @@ public class ClientEntity : IDisposable
 	{
 		using var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.EntityDestroy);
-		writer.EntityID(new NetworkableId(NetID));
+		writer.EntityID(NetID);
 		writer.UInt8((byte)mode);
 		writer.Send(new SendInfo(watchers));
 
@@ -204,7 +205,7 @@ public class ClientEntity : IDisposable
 
 		using var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.EntityFlags);
-		writer.EntityID(new NetworkableId ( NetID ) );
+		writer.EntityID(NetID);
 		writer.Int32((int)Flags);
 		writer.Send(new SendInfo(watchers));
 	}
@@ -214,12 +215,12 @@ public class ClientEntity : IDisposable
 
 		using var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.EntityPosition);
-		writer.EntityID(new NetworkableId ( NetID ) );
+		writer.EntityID(NetID);
 		writer.Vector3(in Proto.baseEntity.pos);
 		writer.Vector3(in Proto.baseEntity.rot);
 		writer.Float(Time.time);
 
-		if (ParentID != 0) writer.EntityID(new NetworkableId(ParentID));
+		if (ParentID.IsValid) writer.EntityID(ParentID);
 
 		var sendInfo = new SendInfo(watchers)
 		{
@@ -238,7 +239,7 @@ public class ClientEntity : IDisposable
 	#region Internals
 
 	internal List<Connection> watchers = new();
-	internal uint _parentId;
+	internal NetworkableId _parentId;
 
 	internal void _sendNetworkUpdateImmediate(Connection connection)
 	{
@@ -253,7 +254,7 @@ public class ClientEntity : IDisposable
 	{
 		var data = Proto.ToProtoBytes();
 
-		foreach(var connection in connections)
+		foreach (var connection in connections)
 		{
 			if (connection.player is BasePlayer)
 			{
@@ -282,7 +283,7 @@ public class ClientEntity : IDisposable
 	{
 		var writer = Net.sv.StartWrite();
 		writer.PacketID(Message.Type.RPCMessage);
-		writer.UInt64(NetID);
+		writer.EntityID(NetID);
 		writer.UInt32(StringPool.Get(funcName));
 		writer.UInt64(sourceConnection?.userid ?? 0);
 
@@ -341,7 +342,7 @@ public class ClientEntity : IDisposable
 	{
 		if (Proto == null) return;
 
-		entities.Remove(NetID);
+		entities.Remove(NetID.Value);
 
 		KillAll(BaseNetworkable.DestroyMode.None);
 		Proto?.Dispose();
