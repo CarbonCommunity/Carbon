@@ -43,4 +43,6 @@ internal abstract class AddonManager : CarbonBehaviour, IAddonManager
 		=> _loader.ReadFromCache(file).Raw;
 
 	public abstract Assembly Load(string file, string requester);
+
+	internal virtual void Hydrate(Assembly assembly, ICarbonAddon addon) { }
 }

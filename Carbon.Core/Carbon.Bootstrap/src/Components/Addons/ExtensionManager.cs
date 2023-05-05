@@ -83,12 +83,15 @@ internal sealed class ExtensionManager : AddonManager
 							{
 								if (Activator.CreateInstance(type) is not ICarbonExtension extension)
 									throw new NullReferenceException();
+
 								Logger.Debug($"A new instance of '{extension}' created");
 
 								extension.Awake(EventArgs.Empty);
 								extension.OnLoaded(EventArgs.Empty);
+
 								Carbon.Bootstrap.Events
 									.Trigger(CarbonEvent.ExtensionLoaded, new CarbonEventArgs(file));
+
 								_loaded.Add(new() { Addon = extension, File = file });
 							}
 							catch (Exception e)
