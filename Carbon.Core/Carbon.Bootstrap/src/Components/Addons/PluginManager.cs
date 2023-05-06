@@ -131,6 +131,8 @@ internal sealed class PluginManager : AddonManager
 
 	internal override void Hydrate(Assembly assembly, ICarbonAddon addon)
 	{
+		base.Hydrate(assembly, addon);
+
 		BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
 		addon.GetType().GetProperty("Logger", flags)?.SetValue(addon,

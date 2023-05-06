@@ -152,6 +152,8 @@ internal sealed class ModuleManager : AddonManager
 
 	internal override void Hydrate(Assembly assembly, ICarbonAddon addon)
 	{
+		base.Hydrate(assembly, addon);
+
 		BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 		Type logger = typeof(API.Logger.ILogger) ?? throw new Exception();
 

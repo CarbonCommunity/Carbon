@@ -64,13 +64,16 @@ internal sealed class ExtensionManager : AddonManager
 			requester = $"{caller.DeclaringType}.{caller.Name}";
 		}
 
+		IReadOnlyList<string> blacklist = AssemblyManager.RefBlacklist;
+		IReadOnlyList<string> whitelist = null;
+
 		try
 		{
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories, AssemblyManager.RefBlacklist, null)?.Assembly
+					Assembly asm = _loader.Load(file, requester, _directories, blacklist, whitelist)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (AssemblyManager.IsType<ICarbonExtension>(asm, out types))
