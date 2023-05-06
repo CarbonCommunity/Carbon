@@ -137,7 +137,7 @@ public class Entities : IDisposable
 	{
 		public List<T> Pool;
 
-		public Map<T> Each(Action<T> callback, Func<T, bool> condition)
+		public Map<T> Each(Action<T> callback, Func<T, bool> condition = null)
 		{
 			foreach (var drop in Pool)
 			{
