@@ -4,7 +4,6 @@ using System.Linq;
 using Facepunch;
 using Newtonsoft.Json;
 using Oxide.Core;
-using TinyJSON;
 using UnityEngine;
 using Formatting = Newtonsoft.Json.Formatting;
 

@@ -12,7 +12,6 @@ using Carbon.Base;
 using Carbon.Extensions;
 using ConVar;
 using Facepunch;
-using Oxide.Game.Rust.Libraries;
 using ProtoBuf;
 using Rust;
 using UnityEngine;
@@ -20,7 +19,6 @@ using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using VLB;
 using static BasePlayer;
-using static MeshCache;
 using Color = UnityEngine.Color;
 using Object = UnityEngine.Object;
 using Pool = Facepunch.Pool;
@@ -2784,7 +2782,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	{
 		foreach (var oldsign in Deployables_PaintedSigns)
 		{
-			FileStorage.server.Remove(oldsign.Key, FileStorage.Type.png, new NetworkableId ( oldsign.Value ) );
+			FileStorage.server.Remove(oldsign.Key, FileStorage.Type.png, new NetworkableId(oldsign.Value));
 		}
 		Debug.LogWarning("Cleaning Sign Data");
 		return true;

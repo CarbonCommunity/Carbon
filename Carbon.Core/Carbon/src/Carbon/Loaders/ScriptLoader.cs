@@ -8,19 +8,14 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Carbon.Base;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Jobs;
 using Facepunch;
-using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
-using SharpCompress.Common;
-using UnityEngine;
-using static UnityEngine.UI.GridLayoutGroup;
 
 /*
  *

@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Carbon;
-using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Oxide;
 using Oxide.Core.Libraries;
-using static ConsoleSystem;
 
 /*
  *

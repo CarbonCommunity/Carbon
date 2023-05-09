@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
-using Epic.OnlineServices.Connect;
 using Network;
 using Newtonsoft.Json;
 using Rust.AI;
@@ -91,7 +90,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	[HookPriority(Priorities.Highest)]
 	private object CanBradleyApcTarget(BradleyAPC apc, BasePlayer player)
 	{
-		if(_vanishedPlayers.ContainsKey(player.userID))
+		if (_vanishedPlayers.ContainsKey(player.userID))
 		{
 			return false;
 		}

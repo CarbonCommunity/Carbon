@@ -3301,7 +3301,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.AddName(column, "Combat", TextAnchor.MiddleLeft);
 						tab.AddRange(column, "Health", 0, combat.MaxHealth(), ap => combat.health, (ap, value) =>
 						{
-							DoAll< BaseCombatEntity>(e => e.SetHealth(value));
+							DoAll<BaseCombatEntity>(e => e.SetHealth(value));
 						}, ap => $"{combat.health:0}");
 
 						if (entity is BasePlayer)
@@ -3322,7 +3322,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			void DoAll<T>(Action<T> callback) where T : BaseEntity
 			{
-				foreach(var selectedEntity in selectedEntitites)
+				foreach (var selectedEntity in selectedEntitites)
 				{
 					if (selectedEntity == null) continue;
 
@@ -3912,7 +3912,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var reloadButton = cui.CreateProtectedButton(container, search, null, isLocal ? "0.2 0.2 0.2 0.4" : "0.2 0.2 0.2 0.8", "1 1 1 0.6", string.Empty, 0, xMin: 0.875f, xMax: 1, yMin: 0.075f, yMax: 0.925f, command: "pluginbrowser.refreshvendor");
 			cui.CreateImage(container, reloadButton, null, "reload", "1 1 1 0.4", xMin: 0.25f, xMax: 0.75f, yMin: 0.25f, yMax: 0.75f);
-			
+
 			if (TagFilter.Contains("peanus")) cui.CreateClientImage(container, grid, null, "https://media.discordapp.net/attachments/1078801277565272104/1085062151221293066/15ox1d_1.jpg?width=827&height=675", "1 1 1 1", xMax: 0.8f);
 			if (TagFilter.Contains("banan")) cui.CreateClientImage(container, grid, null, "https://cf-images.us-east-1.prod.boltdns.net/v1/static/507936866/2cd498e2-da08-4305-a86e-f9711ac41615/eac8316f-0061-40ed-b289-aac0bab35da0/1280x720/match/image.jpg", "1 1 1 1", xMax: 0.8f);
 

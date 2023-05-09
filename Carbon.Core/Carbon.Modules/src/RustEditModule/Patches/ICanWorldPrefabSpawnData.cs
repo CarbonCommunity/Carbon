@@ -1,7 +1,5 @@
-﻿using System.Threading;
-using API.Hooks;
+﻿using API.Hooks;
 using ProtoBuf;
-using UnityEngine;
 
 /*
  *

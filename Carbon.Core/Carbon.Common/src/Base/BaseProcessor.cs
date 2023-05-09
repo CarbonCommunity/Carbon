@@ -5,7 +5,6 @@ using System.IO;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
-using Facepunch;
 using UnityEngine;
 
 /*

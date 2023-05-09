@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using Oxide.Plugins;
-using DescriptionAttribute = System.ComponentModel.DescriptionAttribute;
 
 namespace Oxide.Ext.Discord.Helpers.Utilities
 {

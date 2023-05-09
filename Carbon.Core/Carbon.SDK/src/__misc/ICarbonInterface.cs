@@ -1,5 +1,4 @@
-﻿using System;
-using API.Analytics;
+﻿using API.Analytics;
 using API.Assembly;
 using API.Events;
 using API.Hooks;
