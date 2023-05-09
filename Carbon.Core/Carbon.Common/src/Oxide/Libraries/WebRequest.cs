@@ -172,6 +172,7 @@ public class WebRequests : Library
 					case "PUT":
 					case "PATCH":
 					case "POST":
+					case "DELETE":
 						_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
 						{
 							try
