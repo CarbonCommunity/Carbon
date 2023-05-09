@@ -53,14 +53,14 @@ public class CommunityInternal : Community
 	internal void _installDefaultCommands()
 	{
 		CorePlugin = new CorePlugin { Name = "Core", IsCorePlugin = true };
-		Plugins = new Loader.CarbonMod { Name = "Scripts", IsCoreMod = false };
+		Plugins = new ModLoader.ModPackage { Name = "Scripts", IsCoreMod = false };
 		CorePlugin.IInit();
 
-		Loader.LoadedMods.Add(new Loader.CarbonMod { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
-		Loader.LoadedMods.Add(Plugins);
+		ModLoader.LoadedPackages.Add(new ModLoader.ModPackage { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
+		ModLoader.LoadedPackages.Add(Plugins);
 
-		Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
-		Loader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon");
+		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
+		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon");
 	}
 
 	#region Processors
@@ -191,7 +191,7 @@ public class CommunityInternal : Community
 			ClearCommands(all: true);
 
 			ClearPlugins();
-			Loader.LoadedMods.Clear();
+			ModLoader.LoadedPackages.Clear();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
 
 #if WIN

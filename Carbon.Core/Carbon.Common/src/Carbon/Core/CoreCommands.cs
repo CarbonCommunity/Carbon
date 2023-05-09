@@ -94,7 +94,7 @@ public partial class CorePlugin : CarbonPlugin
 			case "--j":
 			case "-json":
 			case "--json":
-				arg.ReplyWith(Loader.LoadedMods);
+				arg.ReplyWith(ModLoader.LoadedPackages);
 				break;
 
 			default:
@@ -105,7 +105,7 @@ public partial class CorePlugin : CarbonPlugin
 					var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
 					var count = 1;
 
-					foreach (var mod in Loader.LoadedMods)
+					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						if (mod.IsCoreMod) continue;
 
@@ -127,7 +127,7 @@ public partial class CorePlugin : CarbonPlugin
 					var body = new StringTable("#", "File", "Errors", "Stack");
 					var count = 1;
 
-					foreach (var mod in Loader.FailedMods)
+					foreach (var mod in ModLoader.FailedMods)
 					{
 						body.AddRow($"{count:n0}", $"{Path.GetFileName(mod.File)}", $"{mod.Errors.Length:n0}", $"{mod.Errors.Select(x => x.Message).ToArray().ToString(", ").Truncate(150, "...")}");
 
@@ -184,14 +184,14 @@ public partial class CorePlugin : CarbonPlugin
 			case "--j":
 			case "-json":
 			case "--json":
-				arg.ReplyWith(Loader.FailedMods);
+				arg.ReplyWith(ModLoader.FailedMods);
 				break;
 
 			default:
 				var result = string.Empty;
 				var count = 1;
 
-				foreach (var mod in Loader.FailedMods)
+				foreach (var mod in ModLoader.FailedMods)
 				{
 					result += $"{count:n0}. {mod.File}\n";
 
@@ -219,7 +219,7 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			var r = string.Empty;
 
-			foreach (var mod in Loader.LoadedMods)
+			foreach (var mod in ModLoader.LoadedPackages)
 			{
 				foreach (var plugin in mod.Plugins)
 				{
@@ -233,7 +233,7 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			var plugin = (Plugin)null;
 
-			foreach (var mod in Loader.LoadedMods)
+			foreach (var mod in ModLoader.LoadedPackages)
 			{
 				foreach (var p in mod.Plugins)
 				{
@@ -338,7 +338,7 @@ public partial class CorePlugin : CarbonPlugin
 			arg.ReplyWith($"Conditional '{value}' already exists.");
 		}
 
-		foreach (var mod in Loader.LoadedMods)
+		foreach (var mod in ModLoader.LoadedPackages)
 		{
 			var plugins = Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
@@ -347,8 +347,8 @@ public partial class CorePlugin : CarbonPlugin
 			{
 				if (plugin.HasConditionals)
 				{
-					plugin._processor_instance.Dispose();
-					plugin._processor_instance.Execute();
+					plugin.ProcessorInstance.Dispose();
+					plugin.ProcessorInstance.Execute();
 					mod.Plugins.Remove(plugin);
 				}
 			}
@@ -374,7 +374,7 @@ public partial class CorePlugin : CarbonPlugin
 			arg.ReplyWith($"Conditional '{value}' does not exist.");
 		}
 
-		foreach (var mod in Loader.LoadedMods)
+		foreach (var mod in ModLoader.LoadedPackages)
 		{
 			var plugins = Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
@@ -383,8 +383,8 @@ public partial class CorePlugin : CarbonPlugin
 			{
 				if (plugin.HasConditionals)
 				{
-					plugin._processor_instance.Dispose();
-					plugin._processor_instance.Execute();
+					plugin.ProcessorInstance.Dispose();
+					plugin.ProcessorInstance.Execute();
 					mod.Plugins.Remove(plugin);
 				}
 			}
@@ -820,7 +820,7 @@ public partial class CorePlugin : CarbonPlugin
 
 				var pluginFound = false;
 
-				foreach (var mod in Loader.LoadedMods)
+				foreach (var mod in ModLoader.LoadedPackages)
 				{
 					var plugins = Pool.GetList<RustPlugin>();
 					plugins.AddRange(mod.Plugins);
@@ -829,8 +829,8 @@ public partial class CorePlugin : CarbonPlugin
 					{
 						if (plugin.Name == name)
 						{
-							plugin._processor_instance.Dispose();
-							plugin._processor_instance.Execute();
+							plugin.ProcessorInstance.Dispose();
+							plugin.ProcessorInstance.Execute();
 							mod.Plugins.Remove(plugin);
 							pluginFound = true;
 						}
@@ -969,7 +969,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					var pluginFound = false;
 
-					foreach (var mod in Loader.LoadedMods)
+					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						var plugins = Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
@@ -978,7 +978,7 @@ public partial class CorePlugin : CarbonPlugin
 						{
 							if (plugin.Name == name)
 							{
-								plugin._processor_instance.Dispose();
+								plugin.ProcessorInstance.Dispose();
 								mod.Plugins.Remove(plugin);
 								pluginFound = true;
 							}
@@ -1015,7 +1015,7 @@ public partial class CorePlugin : CarbonPlugin
 			case "*":
 				{
 
-					foreach (var package in Loader.LoadedMods)
+					foreach (var package in ModLoader.LoadedPackages)
 					{
 						foreach (var plugin in package.Plugins)
 						{
@@ -1032,7 +1032,7 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					var pluginFound = false;
 
-					foreach (var mod in Loader.LoadedMods)
+					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						var plugins = Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);

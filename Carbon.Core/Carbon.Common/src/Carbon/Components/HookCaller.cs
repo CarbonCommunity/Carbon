@@ -126,7 +126,7 @@ namespace Carbon
 
 			var plugins = Pool.GetList<RustPlugin>();
 
-			foreach (var mod in Loader.LoadedMods)
+			foreach (var mod in ModLoader.LoadedPackages)
 			{
 				foreach (var plugin in mod.Plugins)
 				{

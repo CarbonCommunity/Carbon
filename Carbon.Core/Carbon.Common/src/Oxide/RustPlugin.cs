@@ -41,9 +41,9 @@ public class RustPlugin : Plugin
 		try { Setup($"Core Plugin {RandomEx.GetRandomString(5)}", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty); } catch { }
 	}
 
-	public virtual void SetupMod(Loader.CarbonMod mod, string name, string author, VersionNumber version, string description)
+	public virtual void SetupMod(ModLoader.ModPackage mod, string name, string author, VersionNumber version, string description)
 	{
-		_carbon = mod;
+		Package = mod;
 		Setup(name, author, version, description);
 	}
 	public virtual void Setup(string name, string author, VersionNumber version, string description)
@@ -87,7 +87,7 @@ public class RustPlugin : Plugin
 
 	public static T Singleton<T>()
 	{
-		foreach (var mod in Loader.LoadedMods)
+		foreach (var mod in ModLoader.LoadedPackages)
 		{
 			foreach (var plugin in mod.Plugins)
 			{

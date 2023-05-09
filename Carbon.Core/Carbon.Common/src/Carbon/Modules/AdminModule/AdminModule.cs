@@ -2573,7 +2573,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var groupEdit = ap.GetStorage<bool>(tab, "groupedit");
 			var filter = ap.GetStorage<string>(tab, "pluginfilter", string.Empty)?.Trim().ToLower();
-			var plugins = Loader.LoadedMods.SelectMany(x => x.Plugins).Where(x =>
+			var plugins = ModLoader.LoadedPackages.SelectMany(x => x.Plugins).Where(x =>
 			{
 				if (!string.IsNullOrEmpty(filter))
 				{
@@ -4833,7 +4833,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				FetchedPlugins.Clear();
 
-				foreach (var package in Loader.LoadedMods)
+				foreach (var package in ModLoader.LoadedPackages)
 				{
 					foreach (var plugin in package.Plugins)
 					{
@@ -5080,7 +5080,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					(ap, jobject) =>
 					{
 						OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
-						plugin._processor_instance.SetDirty();
+						plugin.ProcessorInstance.SetDirty();
 						Community.Runtime.CorePlugin.NextTick(() => SetTab(ap.Player, "plugins", false));
 					}));
 				break;

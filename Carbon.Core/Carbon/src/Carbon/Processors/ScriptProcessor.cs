@@ -92,7 +92,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		{
 			try
 			{
-				Carbon.Core.Loader.FailedMods.RemoveAll(x => x.File == File);
+				Carbon.Core.ModLoader.FailedMods.RemoveAll(x => x.File == File);
 
 				Loader = new ScriptLoader
 				{
