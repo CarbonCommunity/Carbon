@@ -74,22 +74,14 @@ internal sealed class PluginManager : AddonManager
 									throw new Exception($"Failed to create an 'ICarbonPlugin' instance from '{type}'");
 
 								Logger.Debug($"A new instance of '{plugin}' was created");
-
-								// Carbon.Plugins.PluginBase.Logger
-								PropertyInfo b = plugin.GetType().GetProperty("Logger",
-									BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy)
-									?? throw new Exception("Logger field not found on assembly");
-
-								// Carbon.Logger
-								Type c = HarmonyLib.AccessTools.TypeByName("Carbon.Logger")
-									?? throw new Exception("Logger type not found");
-
-								b.SetValue(plugin, Activator.CreateInstance(c));
+								Hydrate(asm, plugin);
 
 								plugin.Awake(EventArgs.Empty);
 								plugin.OnLoaded(EventArgs.Empty);
+
 								Carbon.Bootstrap.Events
 									.Trigger(CarbonEvent.PluginLoaded, new CarbonEventArgs(file));
+
 								_loaded.Add(new() { Addon = plugin, File = file });
 							}
 							catch (Exception e)
@@ -135,5 +127,15 @@ internal sealed class PluginManager : AddonManager
 			return null;
 		}
 #endif
+	}
+
+	internal override void Hydrate(Assembly assembly, ICarbonAddon addon)
+	{
+		base.Hydrate(assembly, addon);
+
+		BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+
+		addon.GetType().GetProperty("Logger", flags)?.SetValue(addon,
+			Activator.CreateInstance(HarmonyLib.AccessTools.TypeByName("Carbon.Logger") ?? null));
 	}
 }

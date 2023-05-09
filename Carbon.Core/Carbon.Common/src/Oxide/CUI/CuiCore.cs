@@ -361,7 +361,7 @@ public class CuiRectTransformComponent : ICuiComponent
 	[JsonProperty("offsetmin", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string OffsetMin { get; set; } = "0 0";
 
-	[DefaultValue("0 0")]
+	// [DefaultValue("0 0")]
 	[JsonProperty("offsetmax")]
 	public string OffsetMax { get; set; } = "0 0";
 }

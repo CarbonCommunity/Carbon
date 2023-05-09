@@ -80,10 +80,11 @@ public sealed class Bootstrap
 		Logger.Log($"{assemblyName} loaded.");
 		_harmonyInstance = new HarmonyLib.Harmony(identifier);
 
-#if DEBUG
-		HarmonyLib.Harmony.DEBUG = true;
 		Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", Path.Combine(Context.CarbonLogs, "harmony.log"));
 		typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
+
+#if DEBUG
+		HarmonyLib.Harmony.DEBUG = true;
 #endif
 
 		_gameObject = new UnityEngine.GameObject("Carbon");

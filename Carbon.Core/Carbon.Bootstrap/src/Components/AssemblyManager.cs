@@ -121,17 +121,6 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		{
 			Type @base = typeof(T) ?? throw new Exception();
 			output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
-
-			// NOTE: If we have issues with IsType<> test the following implementation:
-			// if(@base.IsInterface)
-			// {
-			// 	output = assembly.GetTypes().Where(type => type.GetInterfaces().Contains(@base));
-			// }
-			// else
-			// {
-			// 	output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
-			// }
-
 			return output.Count() > 0;
 		}
 		catch

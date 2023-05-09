@@ -88,6 +88,17 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		DoVanish(player, true);
 	}
 
+	[HookPriority(Priorities.Highest)]
+	private object CanBradleyApcTarget(BradleyAPC apc, BasePlayer player)
+	{
+		if(_vanishedPlayers.ContainsKey(player.userID))
+		{
+			return false;
+		}
+
+		return null;
+	}
+
 	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool enableNoclip = true)
 	{
 		if (wants)

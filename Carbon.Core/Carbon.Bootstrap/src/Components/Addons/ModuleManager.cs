@@ -90,18 +90,19 @@ internal sealed class ModuleManager : AddonManager
 							{
 								if (Activator.CreateInstance(type) is not ICarbonModule module)
 									throw new NullReferenceException();
+
 								Logger.Debug($"A new instance of '{module}' created");
-
-								BindingFlags flags = BindingFlags.Instance | BindingFlags.Public
-									| BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
-
-								module.GetType().GetProperty("Logger", flags)?.SetValue(module,
-									Activator.CreateInstance(HarmonyLib.AccessTools.TypeByName("Carbon.Logger") ?? null));
+								Hydrate(asm, module);
 
 								module.Awake(EventArgs.Empty);
 								module.OnLoaded(EventArgs.Empty);
+
+								// for now force all modules to be enabled when loaded
+								module.OnEnable(EventArgs.Empty);
+
 								Carbon.Bootstrap.Events
 									.Trigger(CarbonEvent.ModuleLoaded, new CarbonEventArgs(file));
+
 								_loaded.Add(new() { Addon = module, Types = asm.GetExportedTypes(), File = file });
 							}
 							catch (Exception e)
@@ -147,5 +148,23 @@ internal sealed class ModuleManager : AddonManager
 			return null;
 		}
 #endif
+	}
+
+	internal override void Hydrate(Assembly assembly, ICarbonAddon addon)
+	{
+		base.Hydrate(assembly, addon);
+
+		BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+		Type logger = typeof(API.Logger.ILogger) ?? throw new Exception();
+
+		foreach (Type type in assembly.GetTypes())
+		{
+			foreach (FieldInfo item in type.GetFields(flags)
+				.Where(x => logger.IsAssignableFrom(x.FieldType)))
+			{
+				item.SetValue(assembly,
+					Activator.CreateInstance(HarmonyLib.AccessTools.TypeByName("Carbon.Logger") ?? null));
+			}
+		}
 	}
 }

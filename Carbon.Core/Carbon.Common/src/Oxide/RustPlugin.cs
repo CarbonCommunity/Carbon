@@ -62,7 +62,7 @@ public class RustPlugin : Plugin
 		plugins = new Oxide.Core.Libraries.Plugins(Manager);
 		timer = new Timers(this);
 		lang = new Lang(this);
-		mod = new OxideMod();
+		mod = Interface.Oxide;
 		rust = new Game.Rust.Libraries.Rust();
 		webrequest = new WebRequests();
 		persistence = new GameObject($"Script_{name}").AddComponent<Persistence>();
@@ -70,8 +70,6 @@ public class RustPlugin : Plugin
 		covalence = new CovalencePlugin.Covalence();
 
 		Type = GetType();
-
-		mod.Load();
 	}
 	public override void Dispose()
 	{
