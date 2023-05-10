@@ -249,6 +249,11 @@ public partial class CorePlugin : CarbonPlugin
 				return false;
 			}
 
+			if (HookCaller.CallStaticHook("OnUserCommand", player.AsIPlayer(), command, args) != null)
+			{
+				return false;
+			}
+
 			if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd))
 			{
 				var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
