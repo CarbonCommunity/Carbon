@@ -257,6 +257,7 @@ public partial class CorePlugin : CarbonPlugin
 			if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd))
 			{
 				var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+				commandArgs.Type = cmd.Type;
 				commandArgs.Arguments = args;
 				commandArgs.Player = player;
 

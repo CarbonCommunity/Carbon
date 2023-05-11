@@ -48,12 +48,13 @@ public partial class Category_Static
 
 					var player = options.Connection?.player as BasePlayer;
 
-					var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
-					commandArgs.Arguments = args2;
-					commandArgs.Player = player;
-
 					if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Console, command, out var cmd))
 					{
+						var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+						commandArgs.Type = cmd.Type;
+						commandArgs.Arguments = args2;
+						commandArgs.Player = player;
+
 						Command.FromRcon = false;
 						Community.Runtime.CommandManager.Execute(cmd, commandArgs);
 						Facepunch.Pool.Free(ref commandArgs);

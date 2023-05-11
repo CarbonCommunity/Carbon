@@ -124,6 +124,24 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 		try
 		{
 			command.Callback?.Invoke(args);
+
+			if (!string.IsNullOrEmpty(args.Reply))
+			{
+				switch (args)
+				{
+					case PlayerArgs playerArgs:
+						if(playerArgs.GetPlayer<BasePlayer>(out var player))
+						{
+							player.ConsoleMessage(args.Reply);
+						}
+						break;
+
+					default:
+						Logger.Log(args.Reply);
+						break;
+				}
+			}
+
 			return true;
 		}
 		catch (Exception ex)
@@ -141,7 +159,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 			return false;
 		}
 
-		command.Normalize();
+		command.Fetch();
 
 		var factory = GetFactory(command);
 
