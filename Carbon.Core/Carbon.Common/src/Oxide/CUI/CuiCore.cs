@@ -250,7 +250,8 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.InputField";
 
-	[JsonProperty("text")]
+	[DefaultValue("")]
+	[JsonProperty("text", NullValueHandling = NullValueHandling.Ignore)]
 	public string Text { get; set; } = "";
 
 	[DefaultValue(14)]
@@ -387,7 +388,8 @@ public class CuiTextComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.Text";
 
-	[JsonProperty("text")]
+	[DefaultValue("")]
+	[JsonProperty("text", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string Text { get; set; } = "";
 
 	[DefaultValue(14)]
