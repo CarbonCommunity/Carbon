@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using API.Abstracts;
+using API.Commands;
 using API.Events;
 using API.Hooks;
 
@@ -65,6 +66,19 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		_staticHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 		_workQueue = new Queue<string>();
+
+		try
+		{
+			if (!Community.Runtime.CommandManager.RegisterCommand(new Command.Console
+			{
+				Name = "c.hooks",
+				Callback = (arg) => CMDHookInfo(arg)
+			}, out string reason)) throw new Exception(reason);
+		}
+		catch (System.Exception e)
+		{
+			Logger.Error($"Unable to register command", e);
+		}
 
 		if (Community.Runtime.Config.AutoUpdate)
 		{
@@ -557,6 +571,126 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		using SHA1Managed sha1 = new SHA1Managed();
 		byte[] bytes = sha1.ComputeHash(raw);
 		return string.Concat(bytes.Select(b => b.ToString("x2"))).ToLower();
+	}
+
+	private void CMDHookInfo(Command.Args arg)
+	{
+		if (arg.Token is not ConsoleSystem.Arg args) return;
+
+		args.ReplyWith("test");
+
+		TextTable table = new();
+		int count = 0, success = 0, warning = 0, failure = 0;
+
+		string option1 = args.GetString(0, null);
+		string option2 = args.GetString(1, null);
+
+		table.AddColumns("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
+
+		switch (option1)
+		{
+			case "loaded":
+				{
+					IEnumerable<IHook> hooks;
+
+					switch (option2)
+					{
+						case "--patch":
+							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
+							break;
+
+						case "--static":
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
+							break;
+
+						case "--dynamic":
+							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
+							break;
+
+						default:
+							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
+							break;
+					}
+
+					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
+					{
+						if (mod.Status == HookState.Failure) failure++;
+						if (mod.Status == HookState.Success) success++;
+						if (mod.Status == HookState.Warning) warning++;
+
+						table.AddRow(
+							$"{count++:n0}",
+							mod.HookFullName,
+							mod.HookName,
+							mod.Identifier[^6..],
+							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
+							$"{mod.Status}",
+							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							(mod.IsStaticHook)
+								? "N/A" :
+								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
+						);
+					}
+
+					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}"
+						+ Environment.NewLine + Environment.NewLine + table.ToString());
+					break;
+				}
+
+			default: // list installed
+				{
+					IEnumerable<IHook> hooks;
+
+					switch (option1)
+					{
+						case "--patch":
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							break;
+
+						case "--static":
+							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
+							break;
+
+						case "--dynamic":
+							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
+							break;
+
+						default:
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
+							break;
+					}
+
+					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
+					{
+						if (mod.Status == HookState.Failure) failure++;
+						if (mod.Status == HookState.Success) success++;
+						if (mod.Status == HookState.Warning) warning++;
+
+						table.AddRow(
+							$"{count++:n0}",
+							mod.HookFullName,
+							mod.HookName,
+							mod.Identifier[^6..],
+							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
+							$"{mod.Status}",
+							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							(mod.IsStaticHook)
+								? "N/A" :
+								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
+						);
+					}
+
+					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}"
+						+ Environment.NewLine + Environment.NewLine + table.ToString());
+					break;
+				}
+		}
 	}
 
 

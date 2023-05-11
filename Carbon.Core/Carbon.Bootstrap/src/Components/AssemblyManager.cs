@@ -64,11 +64,8 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		{
 			if (!Carbon.Bootstrap.Commands.RegisterCommand(new Command.Console
 			{
-				Name = "test.foobar",
-				Callback = (arg) =>
-				{
-					UnityEngine.Debug.Log($"test");
-				},
+				Name = "c.assembly",
+				Callback = (arg) => CMDAssemblyInfo(arg)
 			}, out string reason)) throw new Exception(reason);
 		}
 		catch (System.Exception e)
@@ -134,6 +131,27 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 			output = new List<Type>();
 			return false;
 		}
+	}
+
+	private void CMDAssemblyInfo(Command.Args arg)
+	{
+		int count = 0;
+		TextTable table = new();
+
+		table.AddColumns("#", "Assembly", "Version", "Dynamic", "Location");
+
+		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+		{
+			table.AddRow(
+				$"{count++:n0}",
+				assembly.GetName().Name,
+				$"{assembly.GetName().Version}",
+				$"{assembly.IsDynamic}",
+				(assembly.IsDynamic) ? string.Empty : assembly.Location
+			);
+		}
+
+		arg.ReplyWith(table.ToString());
 	}
 
 	private static readonly IReadOnlyList<string> _blacklistLibs = new List<string>() {
