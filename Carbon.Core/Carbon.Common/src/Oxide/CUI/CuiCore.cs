@@ -250,8 +250,7 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.InputField";
 
-	[DefaultValue("")]
-	[JsonProperty("text", NullValueHandling = NullValueHandling.Ignore)]
+	[JsonProperty("text")]
 	public string Text { get; set; } = "";
 
 	[DefaultValue(14)]
@@ -361,7 +360,7 @@ public class CuiRectTransformComponent : ICuiComponent
 	[JsonProperty("offsetmin", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string OffsetMin { get; set; } = "0 0";
 
-	// [DefaultValue("0 0")]
+	[DefaultValue("0 0")]
 	[JsonProperty("offsetmax")]
 	public string OffsetMax { get; set; } = "0 0";
 }
@@ -388,8 +387,7 @@ public class CuiTextComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.Text";
 
-	[DefaultValue("")]
-	[JsonProperty("text", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	[JsonProperty("text")]
 	public string Text { get; set; } = "";
 
 	[DefaultValue(14)]
