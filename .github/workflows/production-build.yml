@@ -121,7 +121,12 @@ jobs:
         name: build-production-windows
         path: |
           Release/Carbon.Windows.Release.zip
-          Release/Carbon.Windows.Release.info
+          Release/Carbon.Windows.Release.info#
+
+    - name: 🔨 Upload NuGet package
+      shell: cmd
+      run: | 
+        %GITHUB_WORKSPACE%\Tools\Build\win\publish_nuget.bat ${{ secrets.NUGET_API }} ${{ needs.bootstrap.outputs.version }}
 
   # RELEASE --------------------------------------------------------------------
   release-on-schedule:
