@@ -119,7 +119,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 		}
 		catch (Exception ex)
 		{
-			Logger.Error($"Failed command execution authentication for command '{command}'", ex);
+			Debug.LogError($"Failed command execution authentication for command '{command}': {ex}");
 			return false;
 		}
 
@@ -136,15 +136,16 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 						{
 							player.ConsoleMessage(args.Reply);
 						}
+						else Debug.Log(args.Reply);
 						break;
 
 					default:
-						Logger.Log(args.Reply);
+						Debug.Log(args.Reply);
 						break;
 				}
 			}
 
-			if (args.Token is ConsoleSystem.Arg arg)
+			if (args.Tokenize<ConsoleSystem.Arg>(out var arg))
 			{
 				Print(arg.Reply, arg.Player());
 			}
@@ -167,15 +168,16 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 				}
 				else
 				{
-					Logger.Log(args.Reply);
+					Debug.Log(args.Reply);
 				}
 			}
 
+			args.Dispose();
 			return true;
 		}
 		catch (Exception ex)
 		{
-			Logger.Error($"Failed executing command '{command}'", ex);
+			Debug.LogError($"Failed executing command '{command}': {ex}");
 			return false;
 		}
 	}

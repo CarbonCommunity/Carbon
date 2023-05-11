@@ -60,18 +60,13 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		gameObject.AddComponent<PluginManager>();
 #endif
 
-		try
+#if DEBUG
+		Carbon.Bootstrap.Commands.RegisterCommand(new Command.RCon
 		{
-			if (!Carbon.Bootstrap.Commands.RegisterCommand(new Command.ClientConsole
-			{
-				Name = "c.assembly",
-				Callback = (arg) => CMDAssemblyInfo(arg)
-			}, out string reason)) throw new Exception(reason);
-		}
-		catch (System.Exception e)
-		{
-			Logger.Error($"Unable to register command", e);
-		}
+			Name = "c.assembly",
+			Callback = (arg) => CMDAssemblyInfo(arg)
+		}, out string reason);
+#endif
 	}
 
 	public byte[] Read(string file)

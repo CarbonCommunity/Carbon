@@ -32,22 +32,21 @@ public partial class CorePlugin : CarbonPlugin
 	#region App
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
-	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
-	[AuthLevel(2)]
-	private void Exit(ConsoleSystem.Arg arg)
-	{
-		//FIXMENOW
-
-		Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
-	}
+	// [ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
+	// [AuthLevel(2)]
+	// private void Exit(ConsoleSystem.Arg arg)
+	// {
+	// 	//FIXMENOW
+	// 	Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
+	// }
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
-	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
-	private void Reboot(ConsoleSystem.Arg arg)
-	{
-		//FIXMENOW
-		Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
-	}
+	// [ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
+	// private void Reboot(ConsoleSystem.Arg arg)
+	// {
+	// 	//FIXMENOW
+	// 	Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
+	// }
 
 	[ConsoleCommand("help", "Returns a brief introduction to Carbon.")]
 	[AuthLevel(2)]
@@ -57,27 +56,6 @@ public partial class CorePlugin : CarbonPlugin
 			$"To list all currently loaded plugins, execute `c.plugins`.\n" +
 			$"For more information, please visit https://docs.carbonmod.gg or join the Discord server at https://discord.gg/carbonmod\n" +
 			$"You're currently running {Community.Runtime.Analytics.InformationalVersion}.");
-	}
-
-	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
-	[AuthLevel(2)]
-	private void GetVersion(ConsoleSystem.Arg arg)
-	{
-		arg.ReplyWith($"Carbon v{Community.Runtime.Analytics.Version}");
-	}
-
-	[ConsoleCommand("protocol", "Returns currently loaded protocol of Carbon.")]
-	[AuthLevel(2)]
-	private void GetProtocol(ConsoleSystem.Arg arg)
-	{
-		arg.ReplyWith(Community.Runtime.Analytics.Protocol);
-	}
-
-	[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
-	[AuthLevel(2)]
-	private void GetBuild(ConsoleSystem.Arg arg)
-	{
-		arg.ReplyWith($"{Community.Runtime.Analytics.InformationalVersion}");
 	}
 
 	[ConsoleCommand("plugins", "Prints the list of mods and their loaded plugins.")]
@@ -278,12 +256,6 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-#if DEBUG
-	[CommandVar("wipeharmonylogonboot", "When enabled, the harmony.log file found in `carbon/logs` gets wiped on Carbon boot.")]
-	[AuthLevel(2)]
-	private bool WipeHarmonyLogOnBoot { get { return Community.Runtime.Config.WipeHarmonyLogOnBoot; } set { Community.Runtime.Config.WipeHarmonyLogOnBoot = value; } }
-#endif
-
 	// DISABLED UNTIL FULLY FUNCTIONAL
 	// [ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
 	// private void Update(ConsoleSystem.Arg arg)
@@ -412,10 +384,6 @@ public partial class CorePlugin : CarbonPlugin
 
 		arg.ReplyWith("Saved Carbon config.");
 	}
-
-	[CommandVar("autoupdate", "Updates carbon hooks on boot.")]
-	[AuthLevel(2)]
-	private bool AutoUpdate { get { return Community.Runtime.Config.AutoUpdate; } set { Community.Runtime.Config.AutoUpdate = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("modding", "Mark this server as modded or not.")]
 	[AuthLevel(2)]

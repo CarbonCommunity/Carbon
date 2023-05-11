@@ -642,7 +642,7 @@ public static class CUIStatics
 		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi);
 
 		var label = cui.TakeFromPoolText();
-		label.Text = text;
+		label.Text = string.IsNullOrEmpty(text) ? string.Empty : text;
 		label.FontSize = size;
 		label.Align = align;
 		label.Font = cui.GetFont(font);
@@ -715,7 +715,7 @@ public static class CUIStatics
 
 		var inputField = cui.TakeFromPoolInputField();
 		inputField.Color = ProcessColor(color);
-		inputField.Text = text;
+		inputField.Text = string.IsNullOrEmpty(text) ? string.Empty : text;
 		inputField.FontSize = size;
 		inputField.Font = cui.GetFont(font);
 		inputField.Align = align;

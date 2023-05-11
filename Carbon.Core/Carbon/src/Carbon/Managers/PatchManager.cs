@@ -67,18 +67,17 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		_subscribers = new List<Subscription>();
 		_workQueue = new Queue<string>();
 
-		try
+		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
 		{
-			if (!Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
-			{
-				Name = "c.hooks",
-				Callback = (arg) => CMDHookInfo(arg)
-			}, out string reason)) throw new Exception(reason);
-		}
-		catch (System.Exception e)
+			Name = "c.autoupdate",
+			Callback = (arg) => CMDAutoUpdate(arg)
+		}, out string _);
+
+		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
 		{
-			Logger.Error($"Unable to register command", e);
-		}
+			Name = "c.hooks",
+			Callback = (arg) => CMDHookInfo(arg)
+		}, out string _);
 
 		if (Community.Runtime.Config.AutoUpdate)
 		{
@@ -573,14 +572,24 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		return string.Concat(bytes.Select(b => b.ToString("x2"))).ToLower();
 	}
 
+	private void CMDAutoUpdate(Command.Args arg)
+	{
+		if (!arg.Tokenize<ConsoleSystem.Arg>(out var args)) return;
+
+		bool value = args.GetBool(0, false);
+
+		if (args.HasArgs(1))
+		{
+			Community.Runtime.Config.AutoUpdate = value;
+			Community.Runtime.SaveConfig();
+		}
+
+		arg.ReplyWith($"c.autoupdate: {Community.Runtime.Config.AutoUpdate}");
+	}
+
 	private void CMDHookInfo(Command.Args arg)
 	{
-		Logger.Log($"Works? {arg.Token}");
-
-		if (arg.Token is not ConsoleSystem.Arg args) return;
-
-		Logger.Log($"Works?");
-		args.ReplyWith("test");
+		if (!arg.Tokenize<ConsoleSystem.Arg>(out var args)) return;
 
 		TextTable table = new();
 		int count = 0, success = 0, warning = 0, failure = 0;

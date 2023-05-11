@@ -52,13 +52,18 @@ public class Command
 		}
 	}
 
-	public class Args
+	public class Args : IDisposable
 	{
 		public Types Type { get; set; }
 		public string[] Arguments { get; set; }
 
 		public string Reply { get; set; }
 		public object Token { get; set; }
+
+		public bool Tokenize<T>(out T value)
+		{
+			return (value = (T)Token) != null;
+		}
 
 		public void ReplyWith(string message)
 		{
@@ -67,6 +72,15 @@ public class Command
 		public void ReplyWith<T>(T message)
 		{
 			Reply = JsonConvert.SerializeObject(message, Formatting.Indented);
+		}
+
+		public virtual void Dispose()
+		{
+			Type = Types.Generic;
+			Array.Clear(Arguments, 0, Arguments.Length);
+			Arguments = null;
+			Reply = null;
+			Token = null;
 		}
 	}
 
@@ -126,5 +140,11 @@ public class PlayerArgs : Command.Args
 	public bool GetPlayer<T>(out T value) where T : class
 	{
 		return (value = (T)Player) != null;
+	}
+
+	public override void Dispose()
+	{
+		Player = null;
+		base.Dispose();
 	}
 }
