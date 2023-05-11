@@ -277,7 +277,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 	private object IOnServerCommand(ConsoleSystem.Arg arg)
 	{
-		if (arg != null && arg.cmd != null && arg.cmd.FullName == "chat.say") return null;
+		if (arg != null && arg.cmd != null && arg.Player() != null && arg.cmd.FullName == "chat.say") return null;
 
 		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
 		{

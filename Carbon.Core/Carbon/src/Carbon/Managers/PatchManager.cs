@@ -69,7 +69,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		try
 		{
-			if (!Community.Runtime.CommandManager.RegisterCommand(new Command.Console
+			if (!Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
 			{
 				Name = "c.hooks",
 				Callback = (arg) => CMDHookInfo(arg)
@@ -575,8 +575,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private void CMDHookInfo(Command.Args arg)
 	{
+		Logger.Log($"Works? {arg.Token}");
+
 		if (arg.Token is not ConsoleSystem.Arg args) return;
 
+		Logger.Log($"Works?");
 		args.ReplyWith("test");
 
 		TextTable table = new();

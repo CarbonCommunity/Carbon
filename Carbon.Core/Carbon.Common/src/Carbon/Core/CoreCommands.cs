@@ -510,7 +510,7 @@ public partial class CorePlugin : CarbonPlugin
 		var body = new StringTable("Command", "Value", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
-		foreach (var command in Community.Runtime.CommandManager.Console)
+		foreach (var command in Community.Runtime.CommandManager.ClientConsole)
 		{
 			if (command.HasFlag(CommandFlags.Hidden) || (!string.IsNullOrEmpty(filter) && !command.Name.Contains(filter))) continue;
 

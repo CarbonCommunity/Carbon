@@ -62,7 +62,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 
 		try
 		{
-			if (!Carbon.Bootstrap.Commands.RegisterCommand(new Command.Console
+			if (!Carbon.Bootstrap.Commands.RegisterCommand(new Command.ClientConsole
 			{
 				Name = "c.assembly",
 				Callback = (arg) => CMDAssemblyInfo(arg)

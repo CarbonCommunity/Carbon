@@ -41,7 +41,7 @@ public class Command
 			case RCon:
 				Type = Types.Rcon;
 				break;
-			case Console:
+			case ClientConsole:
 				Type = Types.Console;
 				break;
 			case Chat:
@@ -78,7 +78,7 @@ public class Command
 	{
 
 	}
-	public class Console : AuthenticatedCommand
+	public class ClientConsole : AuthenticatedCommand
 	{
 
 	}
