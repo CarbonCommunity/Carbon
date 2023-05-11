@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Carbon.Community</id>
+    <version>1.0.0</version>
+    <title>Carbon</title>
+    <authors>Carbon Community</authors>
+    <owners></owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>https://raw.githubusercontent.com/CarbonCommunity/Carbon.Core/develop/LICENSE</licenseUrl>
+    <icon>NuGet-ICON.png</icon>
+    <readme>NuGet-README.md</readme>
+    <projectUrl>https://github.com/CarbonCommunity/Carbon.Core</projectUrl>
+    <description>Carbon is a self-updating, lightweight, intelligent mod loader for Rust utilizing the latest C# and Harmony for the best performance and stability possible, fully compatible with Oxide.</description>
+    <copyright>Copyright © 2022-2023 Carbon Community</copyright>
+  </metadata>
+  <files>
+    <file src="..\Release\.tmp\Debug\carbon\managed\Carbon.Common.dll" target="lib\netframework4.8\Carbon.Common.dll" />
+    <file src="..\Release\.tmp\Debug\carbon\managed\Carbon.SDK.dll" target="lib\netframework4.8\Carbon.SDK.dll" />
+    <file src="..\NuGet-ICON.png" target="NuGet-ICON.png" />
+    <file src="..\NuGet-README.md" target="NuGet-README.md" />
+  </files>
+</package>
