@@ -70,15 +70,6 @@ public partial class Category_Static
 
 							Community.Runtime.CommandManager.Execute(outCommand, commandArgs);
 						}
-						else if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.ClientConsole, command, out var outCommand2))
-						{
-							var commandArgs = Facepunch.Pool.Get<API.Commands.Command.Args>();
-							commandArgs.Token = consoleArg;
-							commandArgs.Type = outCommand2.Type;
-							commandArgs.Arguments = arguments;
-
-							Community.Runtime.CommandManager.Execute(outCommand2, commandArgs);
-						}
 					}
 					catch (Exception ex)
 					{
