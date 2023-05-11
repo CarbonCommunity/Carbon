@@ -64,13 +64,16 @@ internal sealed class ExtensionManager : AddonManager
 			requester = $"{caller.DeclaringType}.{caller.Name}";
 		}
 
+		IReadOnlyList<string> blacklist = AssemblyManager.RefBlacklist;
+		IReadOnlyList<string> whitelist = null;
+
 		try
 		{
 			switch (Path.GetExtension(file))
 			{
 				case ".dll":
 					IEnumerable<Type> types;
-					Assembly asm = _loader.Load(file, requester, _directories, AssemblyManager.RefBlacklist, null)?.Assembly
+					Assembly asm = _loader.Load(file, requester, _directories, blacklist, whitelist)?.Assembly
 						?? throw new ReflectionTypeLoadException(null, null, null);
 
 					if (AssemblyManager.IsType<ICarbonExtension>(asm, out types))
@@ -83,12 +86,15 @@ internal sealed class ExtensionManager : AddonManager
 							{
 								if (Activator.CreateInstance(type) is not ICarbonExtension extension)
 									throw new NullReferenceException();
+
 								Logger.Debug($"A new instance of '{extension}' created");
 
 								extension.Awake(EventArgs.Empty);
 								extension.OnLoaded(EventArgs.Empty);
+
 								Carbon.Bootstrap.Events
 									.Trigger(CarbonEvent.ExtensionLoaded, new CarbonEventArgs(file));
+
 								_loaded.Add(new() { Addon = extension, File = file });
 							}
 							catch (Exception e)

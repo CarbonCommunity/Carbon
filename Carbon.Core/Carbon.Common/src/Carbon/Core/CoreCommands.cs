@@ -32,20 +32,22 @@ public partial class CorePlugin : CarbonPlugin
 	#region App
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
-	// [ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
-	// private void Exit(ConsoleSystem.Arg arg)
-	// {
-	// 	//FIXMENOW
-	// 	//Supervisor.ASM.UnloadModule("Carbon.dll", false);
-	// }
+	[ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
+	[AuthLevel(2)]
+	private void Exit(ConsoleSystem.Arg arg)
+	{
+		//FIXMENOW
+
+		Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
+	}
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
-	// [ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
-	// private void Reboot(ConsoleSystem.Arg arg)
-	// {
-	// 	//FIXMENOW
-	// 	//Supervisor.ASM.UnloadModule("Carbon.dll", true);
-	// }
+	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
+	private void Reboot(ConsoleSystem.Arg arg)
+	{
+		//FIXMENOW
+		Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
+	}
 
 	[ConsoleCommand("help", "Returns a brief introduction to Carbon.")]
 	[AuthLevel(2)]
@@ -92,7 +94,7 @@ public partial class CorePlugin : CarbonPlugin
 			case "--j":
 			case "-json":
 			case "--json":
-				arg.ReplyWith(Loader.LoadedMods);
+				arg.ReplyWith(ModLoader.LoadedPackages);
 				break;
 
 			default:
@@ -103,7 +105,7 @@ public partial class CorePlugin : CarbonPlugin
 					var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
 					var count = 1;
 
-					foreach (var mod in Loader.LoadedMods)
+					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						if (mod.IsCoreMod) continue;
 
@@ -125,7 +127,7 @@ public partial class CorePlugin : CarbonPlugin
 					var body = new StringTable("#", "File", "Errors", "Stack");
 					var count = 1;
 
-					foreach (var mod in Loader.FailedMods)
+					foreach (var mod in ModLoader.FailedMods)
 					{
 						body.AddRow($"{count:n0}", $"{Path.GetFileName(mod.File)}", $"{mod.Errors.Length:n0}", $"{mod.Errors.Select(x => x.Message).ToArray().ToString(", ").Truncate(150, "...")}");
 
@@ -182,14 +184,14 @@ public partial class CorePlugin : CarbonPlugin
 			case "--j":
 			case "-json":
 			case "--json":
-				arg.ReplyWith(Loader.FailedMods);
+				arg.ReplyWith(ModLoader.FailedMods);
 				break;
 
 			default:
 				var result = string.Empty;
 				var count = 1;
 
-				foreach (var mod in Loader.FailedMods)
+				foreach (var mod in ModLoader.FailedMods)
 				{
 					result += $"{count:n0}. {mod.File}\n";
 
@@ -217,9 +219,9 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			var r = string.Empty;
 
-			foreach (var mod in Loader.LoadedMods)
+			foreach (var mod in ModLoader.LoadedPackages)
 			{
-				foreach(var plugin in mod.Plugins)
+				foreach (var plugin in mod.Plugins)
 				{
 					r += $"{Print(plugin)}\n";
 				}
@@ -231,7 +233,7 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			var plugin = (Plugin)null;
 
-			foreach (var mod in Loader.LoadedMods)
+			foreach (var mod in ModLoader.LoadedPackages)
 			{
 				foreach (var p in mod.Plugins)
 				{
@@ -304,19 +306,6 @@ public partial class CorePlugin : CarbonPlugin
 
 	#endregion
 
-#if DEBUG
-	[ConsoleCommand("assembly", "Debug stuff.")]
-	[AuthLevel(2)]
-	private void AssemblyInfo(ConsoleSystem.Arg arg)
-	{
-		int count = 0;
-		StringTable body = new StringTable("#", "Assembly", "Version", "Dynamic", "Location");
-		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-			body.AddRow($"{count++:n0}", assembly.GetName().Name, assembly.GetName().Version, assembly.IsDynamic, (assembly.IsDynamic) ? string.Empty : assembly.Location);
-		arg.ReplyWith(body.ToStringMinimal());
-	}
-#endif
-
 	#region Conditionals
 
 	[ConsoleCommand("addconditional", "Adds a new conditional compilation symbol to the compiler.")]
@@ -336,7 +325,7 @@ public partial class CorePlugin : CarbonPlugin
 			arg.ReplyWith($"Conditional '{value}' already exists.");
 		}
 
-		foreach (var mod in Loader.LoadedMods)
+		foreach (var mod in ModLoader.LoadedPackages)
 		{
 			var plugins = Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
@@ -345,8 +334,8 @@ public partial class CorePlugin : CarbonPlugin
 			{
 				if (plugin.HasConditionals)
 				{
-					plugin._processor_instance.Dispose();
-					plugin._processor_instance.Execute();
+					plugin.ProcessorInstance.Dispose();
+					plugin.ProcessorInstance.Execute();
 					mod.Plugins.Remove(plugin);
 				}
 			}
@@ -372,7 +361,7 @@ public partial class CorePlugin : CarbonPlugin
 			arg.ReplyWith($"Conditional '{value}' does not exist.");
 		}
 
-		foreach (var mod in Loader.LoadedMods)
+		foreach (var mod in ModLoader.LoadedPackages)
 		{
 			var plugins = Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
@@ -381,8 +370,8 @@ public partial class CorePlugin : CarbonPlugin
 			{
 				if (plugin.HasConditionals)
 				{
-					plugin._processor_instance.Dispose();
-					plugin._processor_instance.Execute();
+					plugin.ProcessorInstance.Dispose();
+					plugin.ProcessorInstance.Execute();
 					mod.Plugins.Remove(plugin);
 				}
 			}
@@ -396,120 +385,6 @@ public partial class CorePlugin : CarbonPlugin
 	private void Conditionals(ConsoleSystem.Arg arg)
 	{
 		arg.ReplyWith($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}");
-	}
-
-	#endregion
-
-	#region Hooks
-
-	[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
-	[AuthLevel(2)]
-	private void HookInfo(ConsoleSystem.Arg arg)
-	{
-		var body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
-		int count = 0, success = 0, warning = 0, failure = 0;
-
-		var option1 = arg.GetString(0, null);
-		var option2 = arg.GetString(1, null);
-
-		switch (option1)
-		{
-			case "loaded":
-				{
-					IEnumerable<IHook> hooks;
-
-					switch (option2)
-					{
-						case "--patch":
-							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
-							break;
-
-						case "--static":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--dynamic":
-							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
-							break;
-
-						default:
-							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
-							break;
-					}
-
-					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
-					{
-						if (mod.Status == HookState.Failure) failure++;
-						if (mod.Status == HookState.Success) success++;
-						if (mod.Status == HookState.Warning) warning++;
-
-						body.AddRow(
-							$"{count++:n0}",
-							mod.HookFullName,
-							mod.HookName,
-							mod.Identifier.Substring(mod.Identifier.Length - 6),
-							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
-							mod.Status,
-							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
-						);
-					}
-
-					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}" + Environment.NewLine + Environment.NewLine + body.ToStringMinimal());
-					break;
-				}
-
-			default: // list installed
-				{
-					IEnumerable<IHook> hooks;
-
-					switch (option1)
-					{
-						case "--patch":
-							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
-							break;
-
-						case "--static":
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--dynamic":
-							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
-							break;
-
-						default:
-							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
-							break;
-					}
-
-					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
-					{
-						if (mod.Status == HookState.Failure) failure++;
-						if (mod.Status == HookState.Success) success++;
-						if (mod.Status == HookState.Warning) warning++;
-
-						body.AddRow(
-							$"{count++:n0}",
-							mod.HookFullName,
-							mod.HookName,
-							mod.Identifier.Substring(mod.Identifier.Length - 6),
-							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
-							mod.Status,
-							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
-						);
-					}
-
-					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}" + Environment.NewLine + Environment.NewLine + body.ToStringMinimal());
-					break;
-				}
-		}
 	}
 
 	#endregion
@@ -635,7 +510,7 @@ public partial class CorePlugin : CarbonPlugin
 		var body = new StringTable("Command", "Value", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
-		foreach (var command in Community.Runtime.CommandManager.Console)
+		foreach (var command in Community.Runtime.CommandManager.ClientConsole)
 		{
 			if (command.HasFlag(CommandFlags.Hidden) || (!string.IsNullOrEmpty(filter) && !command.Name.Contains(filter))) continue;
 
@@ -818,7 +693,7 @@ public partial class CorePlugin : CarbonPlugin
 
 				var pluginFound = false;
 
-				foreach (var mod in Loader.LoadedMods)
+				foreach (var mod in ModLoader.LoadedPackages)
 				{
 					var plugins = Pool.GetList<RustPlugin>();
 					plugins.AddRange(mod.Plugins);
@@ -827,8 +702,8 @@ public partial class CorePlugin : CarbonPlugin
 					{
 						if (plugin.Name == name)
 						{
-							plugin._processor_instance.Dispose();
-							plugin._processor_instance.Execute();
+							plugin.ProcessorInstance.Dispose();
+							plugin.ProcessorInstance.Execute();
 							mod.Plugins.Remove(plugin);
 							pluginFound = true;
 						}
@@ -967,7 +842,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					var pluginFound = false;
 
-					foreach (var mod in Loader.LoadedMods)
+					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						var plugins = Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
@@ -976,7 +851,7 @@ public partial class CorePlugin : CarbonPlugin
 						{
 							if (plugin.Name == name)
 							{
-								plugin._processor_instance.Dispose();
+								plugin.ProcessorInstance.Dispose();
 								mod.Plugins.Remove(plugin);
 								pluginFound = true;
 							}
@@ -1013,7 +888,7 @@ public partial class CorePlugin : CarbonPlugin
 			case "*":
 				{
 
-					foreach (var package in Loader.LoadedMods)
+					foreach (var package in ModLoader.LoadedPackages)
 					{
 						foreach (var plugin in package.Plugins)
 						{
@@ -1030,7 +905,7 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					var pluginFound = false;
 
-					foreach (var mod in Loader.LoadedMods)
+					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						var plugins = Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);

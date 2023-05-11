@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Oxide.Ext.Discord.Entities.Emojis;
-using Oxide.Ext.Discord.Interfaces;
 
 namespace Oxide.Ext.Discord.Entities.Messages
 {

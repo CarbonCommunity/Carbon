@@ -6,7 +6,6 @@ using Oxide.Ext.Discord.Entities.Guilds;
 using Oxide.Ext.Discord.Entities.Messages;
 using Oxide.Ext.Discord.Entities.Messages.Embeds;
 using Oxide.Ext.Discord.Entities.Users;
-using Oxide.Ext.Discord.Entities.Webhooks;
 
 namespace Oxide.Ext.Discord.Extensions
 {

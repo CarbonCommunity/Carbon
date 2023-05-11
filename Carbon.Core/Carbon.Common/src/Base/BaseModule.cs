@@ -190,7 +190,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual void OnDisabled(bool initialized)
 	{
-		if (initialized) Loader.RemoveCommands(this);
+		if (initialized) ModLoader.RemoveCommands(this);
 
 		UnsubscribeAll();
 		UnregisterPermissions();
@@ -199,7 +199,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
-		if (initialized) Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		if (initialized) ModLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
 		SubscribeAll();
 

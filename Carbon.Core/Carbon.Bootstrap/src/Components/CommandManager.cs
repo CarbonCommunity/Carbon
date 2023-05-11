@@ -4,7 +4,9 @@ using System.Linq;
 using API.Abstracts;
 using API.Commands;
 using Facepunch;
+using UnityEngine;
 using Utility;
+using Logger = Utility.Logger;
 
 /*
  *
@@ -17,9 +19,9 @@ namespace Components;
 
 public sealed class CommandManager : CarbonBehaviour, ICommandManager
 {
-	public List<Command> RCon { get; set; } = new();
-	public List<Command> Console { get; set; } = new();
 	public List<Command> Chat { get; set; } = new();
+	public List<Command> ClientConsole { get; set; } = new();
+	public List<Command> RCon { get; set; } = new();
 
 	public bool Contains(IList<Command> factory, string command, out Command outCommand)
 	{
@@ -46,7 +48,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 	public List<T> GetFactory<T>() where T : Command
 	{
 		if (typeof(T) == typeof(Command.RCon)) return RCon as List<T>;
-		else if (typeof(T) == typeof(Command.Console)) return Console as List<T>;
+		else if (typeof(T) == typeof(Command.ClientConsole)) return ClientConsole as List<T>;
 		else if (typeof(T) == typeof(Command.Chat)) return Chat as List<T>;
 
 		return default;
@@ -57,7 +59,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 		switch (command)
 		{
 			case Command.RCon: return RCon;
-			case Command.Console: return Console;
+			case Command.ClientConsole: return ClientConsole;
 			case Command.Chat: return Chat;
 			default:
 				break;
@@ -69,7 +71,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 	public IEnumerable<T> GetCommands<T>() where T : Command
 	{
 		if (typeof(T) == typeof(Command.RCon)) return RCon.Cast<T>();
-		else if (typeof(T) == typeof(Command.Console)) return Console.Cast<T>();
+		else if (typeof(T) == typeof(Command.ClientConsole)) return ClientConsole.Cast<T>();
 		else if (typeof(T) == typeof(Command.Chat)) return Chat.Cast<T>();
 
 		return default;
@@ -80,14 +82,14 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 		if (condition == null)
 		{
 			RCon.Clear();
-			Console.Clear();
+			ClientConsole.Clear();
 			Chat.Clear();
 		}
 		else
 		{
 			var list = Pool.GetList<Command>();
 			list.AddRange(RCon);
-			list.AddRange(Console);
+			list.AddRange(ClientConsole);
 			list.AddRange(Chat);
 
 			foreach (var command in list)
@@ -95,7 +97,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 				if (condition(command))
 				{
 					if (RCon.Contains(command)) RCon.Remove(command);
-					else if (Console.Contains(command)) Console.Remove(command);
+					else if (ClientConsole.Contains(command)) ClientConsole.Remove(command);
 					else if (Chat.Contains(command)) Chat.Remove(command);
 				}
 			}
@@ -124,6 +126,51 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 		try
 		{
 			command.Callback?.Invoke(args);
+
+			if (!string.IsNullOrEmpty(args.Reply))
+			{
+				switch (args)
+				{
+					case PlayerArgs playerArgs:
+						if (playerArgs.GetPlayer<BasePlayer>(out var player))
+						{
+							player.ConsoleMessage(args.Reply);
+						}
+						break;
+
+					default:
+						Logger.Log(args.Reply);
+						break;
+				}
+			}
+
+			if (args.Token is ConsoleSystem.Arg arg)
+			{
+				Print(arg.Reply, arg.Player());
+			}
+			else
+			{
+				var player = (BasePlayer)null;
+				var playerArgs2 = args as PlayerArgs;
+				playerArgs2?.GetPlayer(out player);
+
+				Print(args.Reply, player);
+			}
+
+			void Print(string reply, BasePlayer player)
+			{
+				if (string.IsNullOrEmpty(reply)) return;
+
+				if (player != null)
+				{
+					player.ConsoleMessage(args.Reply);
+				}
+				else
+				{
+					Logger.Log(args.Reply);
+				}
+			}
+
 			return true;
 		}
 		catch (Exception ex)
@@ -141,7 +188,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 			return false;
 		}
 
-		command.Normalize();
+		command.Fetch();
 
 		var factory = GetFactory(command);
 

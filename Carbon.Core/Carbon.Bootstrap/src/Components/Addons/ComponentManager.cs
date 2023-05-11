@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
@@ -66,12 +65,15 @@ internal sealed class ComponentManager : AddonManager
 							{
 								if (Activator.CreateInstance(type) is not ICarbonComponent component)
 									throw new NullReferenceException();
+
 								Logger.Debug($"A new instance of '{component}' created");
 
 								component.Awake(EventArgs.Empty);
 								component.OnLoaded(EventArgs.Empty);
+
 								Carbon.Bootstrap.Events
 									.Trigger(CarbonEvent.ComponentLoaded, new CarbonEventArgs(file));
+
 								_loaded.Add(new() { Addon = component, File = file });
 							}
 							catch (Exception e)

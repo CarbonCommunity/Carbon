@@ -13,6 +13,7 @@ using Carbon.Plugins;
 using ConVar;
 using Network;
 using Oxide.Core;
+using UnityEngine;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -249,9 +250,15 @@ public partial class CorePlugin : CarbonPlugin
 				return false;
 			}
 
+			if (HookCaller.CallStaticHook("OnUserCommand", player.AsIPlayer(), command, args) != null)
+			{
+				return false;
+			}
+
 			if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd))
 			{
 				var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+				commandArgs.Type = cmd.Type;
 				commandArgs.Arguments = args;
 				commandArgs.Player = player;
 
@@ -271,7 +278,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 	private object IOnServerCommand(ConsoleSystem.Arg arg)
 	{
-		if (arg != null && arg.cmd != null && arg.cmd.FullName == "chat.say") return null;
+		if (arg != null && arg.cmd != null && arg.Player() != null && arg.cmd.FullName == "chat.say") return null;
 
 		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
 		{

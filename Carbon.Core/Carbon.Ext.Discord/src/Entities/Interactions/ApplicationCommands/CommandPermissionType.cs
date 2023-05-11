@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace Oxide.Ext.Discord.Entities.Interactions.ApplicationCommands
+﻿namespace Oxide.Ext.Discord.Entities.Interactions.ApplicationCommands
 {
 	/// <summary>
 	/// Represents <a href="https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permission-type">ApplicationCommandPermissionType</a>

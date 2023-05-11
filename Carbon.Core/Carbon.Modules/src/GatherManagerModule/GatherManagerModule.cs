@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Carbon.Base;
+using Newtonsoft.Json;
 using UnityEngine;
 using static BaseEntity;
 
@@ -15,7 +17,7 @@ using static BaseEntity;
 namespace Carbon.Modules;
 #pragma warning disable IDE0051
 
-public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
+public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
 {
 	public override string Name => "GatherManager";
 	public override bool ForceModded => true;
@@ -119,6 +121,16 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 	{
 		return ConfigInstance.VendingMachineBuyDuration;
 	}
+	private object IOvenSmeltSpeedOverride(BaseOven oven)
+	{
+		if (ConfigInstance.OvenSpeedOverrideBlacklist.Contains(oven.ShortPrefabName) ||
+			ConfigInstance.OvenSpeedOverrideBlacklist.Contains(oven.GetType().Name))
+		{
+			return ConfigInstance.OvenSpeedBlackistedOverride;
+		}
+
+		return ConfigInstance.OvenSpeedOverride;
+	}
 
 	private object IMixingSpeedMultiplier(MixingTable table, float originalValue)
 	{
@@ -173,6 +185,16 @@ public class GatherManagerConfig
 	public float VendingMachineBuyDuration = 2.5f;
 	public float CraftingSpeedMultiplier = 1f;
 	public float MixingSpeedMultiplier = 1f;
+	public float OvenSpeedOverride = 0.5f;
+	public float OvenSpeedBlackistedOverride = 0.5f;
+
+	[JsonProperty("OvenSpeedOverrideBlacklist (prefab shortname, type)")]
+	public string[] OvenSpeedOverrideBlacklist = new string[]
+	{
+		"lantern.deployed", 
+		"tunalight.deployed",
+		"chineselantern.deployed"
+	};
 
 	public Dictionary<string, float> Quarry = new()
 	{

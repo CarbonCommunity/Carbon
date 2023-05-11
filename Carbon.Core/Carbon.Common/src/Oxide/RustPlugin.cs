@@ -1,10 +1,8 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using Carbon.Core;
 using Carbon.Extensions;
 using Oxide.Core;
-using Oxide.Core.Configuration;
 using Oxide.Core.Libraries;
 using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries;
@@ -43,9 +41,9 @@ public class RustPlugin : Plugin
 		try { Setup($"Core Plugin {RandomEx.GetRandomString(5)}", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty); } catch { }
 	}
 
-	public virtual void SetupMod(Loader.CarbonMod mod, string name, string author, VersionNumber version, string description)
+	public virtual void SetupMod(ModLoader.ModPackage mod, string name, string author, VersionNumber version, string description)
 	{
-		_carbon = mod;
+		Package = mod;
 		Setup(name, author, version, description);
 	}
 	public virtual void Setup(string name, string author, VersionNumber version, string description)
@@ -62,7 +60,7 @@ public class RustPlugin : Plugin
 		plugins = new Oxide.Core.Libraries.Plugins(Manager);
 		timer = new Timers(this);
 		lang = new Lang(this);
-		mod = new OxideMod();
+		mod = Interface.Oxide;
 		rust = new Game.Rust.Libraries.Rust();
 		webrequest = new WebRequests();
 		persistence = new GameObject($"Script_{name}").AddComponent<Persistence>();
@@ -70,8 +68,6 @@ public class RustPlugin : Plugin
 		covalence = new CovalencePlugin.Covalence();
 
 		Type = GetType();
-
-		mod.Load();
 	}
 	public override void Dispose()
 	{
@@ -91,7 +87,7 @@ public class RustPlugin : Plugin
 
 	public static T Singleton<T>()
 	{
-		foreach (var mod in Loader.LoadedMods)
+		foreach (var mod in ModLoader.LoadedPackages)
 		{
 			foreach (var plugin in mod.Plugins)
 			{

@@ -4,6 +4,7 @@ using System.Linq;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Contracts;
+using Facepunch;
 
 /*
  *
@@ -33,44 +34,66 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		var types = typeof(Community).Assembly.GetExportedTypes().ToList();
 		types.AddRange(Community.Runtime.AssemblyEx.Modules.LoadedTypes);
+		var modules = Pool.GetList<BaseHookable>();
 
 		foreach (var type in types)
 		{
 			if (type.BaseType == null || !type.BaseType.Name.Contains("CarbonModule")) continue;
-			Setup(Activator.CreateInstance(type) as BaseHookable);
+
+			var module = Activator.CreateInstance(type) as BaseHookable;
+			Setup(module);
+			modules.Add(module);
 		}
 
-		foreach (var hookable in _modules)
+		foreach (var hookable in modules)
 		{
 			if (hookable is IModule module)
 			{
-				module.Init();
+				try
+				{
+					module.Init();
+				}
+				catch (Exception ex) { Logger.Error($"Failed module Init for {module?.GetType().FullName}", ex); }
 			}
 		}
 
-		foreach (var hookable in _modules)
+		foreach (var hookable in modules)
 		{
 			if (hookable is IModule module)
 			{
-				module.Load();
+				try
+				{
+					module.Load();
+				}
+				catch (Exception ex) { Logger.Error($"Failed module Load for {module?.GetType().FullName}", ex); }
 			}
 		}
 
-		foreach (var hookable in _modules)
+		foreach (var hookable in modules)
 		{
 			if (hookable is IModule module && module.GetEnabled())
 			{
-				module.InitEnd();
+				try
+				{
+					module.InitEnd();
+				}
+				catch (Exception ex) { Logger.Error($"Failed module InitEnd for {module?.GetType().FullName}", ex); }
 			}
 		}
 
-		foreach (var hookable in _modules)
+		foreach (var hookable in modules)
 		{
 			if (hookable is IModule module && module.GetEnabled())
 			{
-				module.OnEnableStatus();
+				try
+				{
+					module.OnEnableStatus();
+				}
+				catch (Exception ex) { Logger.Error($"Failed module OnEnableStatus [{module?.GetEnabled()}] for {module?.GetType().FullName}", ex); }
 			}
 		}
+
+		Pool.FreeList(ref modules);
 	}
 	public void OnServerInit()
 	{

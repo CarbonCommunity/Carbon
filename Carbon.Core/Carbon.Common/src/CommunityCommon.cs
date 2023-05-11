@@ -96,7 +96,7 @@ public class Community
 	public RustPlugin CorePlugin
 	{ get; set; }
 
-	public Loader.CarbonMod Plugins
+	public ModLoader.ModPackage Plugins
 	{ get; set; }
 
 	public Entities Entities
@@ -152,7 +152,7 @@ public class Community
 						{ "platform", Analytics.Platform },
 					},
 					metrics: new Dictionary<string, object> {
-						{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) }
+						{ "plugin_count", ModLoader.LoadedPackages.Sum(x => x.Plugins.Count) }
 					}
 				);
 			});
@@ -211,14 +211,14 @@ public class Community
 
 	public virtual void ReloadPlugins()
 	{
-		Loader.IsBatchComplete = false;
-		Loader.ClearAllErrored();
-		Loader.ClearAllRequirees();
+		ModLoader.IsBatchComplete = false;
+		ModLoader.ClearAllErrored();
+		ModLoader.ClearAllRequirees();
 	}
 	public void ClearPlugins()
 	{
 		Runtime.ClearCommands();
-		Loader.UnloadCarbonMods();
+		ModLoader.UnloadCarbonMods();
 	}
 
 	#endregion
@@ -238,7 +238,7 @@ public class Community
             Analytics.Version;
 #endif
 
-		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader.LoadedMods.Count:n0} mods, {Loader.LoadedMods.Sum(x => x.Plugins.Count):n0} plgs";
+		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {ModLoader.LoadedPackages.Count:n0} mods, {ModLoader.LoadedPackages.Sum(x => x.Plugins.Count):n0} plgs";
 #endif
 	}
 

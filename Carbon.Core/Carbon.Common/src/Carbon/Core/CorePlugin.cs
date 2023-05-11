@@ -1,28 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using API.Events;
-using API.Hooks;
-using Carbon.Base.Interfaces;
-using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Plugins;
-using ConVar;
-using Facepunch;
-using Facepunch.Utility;
-using Network;
-using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Plugins;
-using Oxide.Game.Rust.Libraries;
-using Oxide.Plugins;
 using UnityEngine;
 using Application = UnityEngine.Application;
 using CommandLine = Carbon.Components.CommandLine;
-using Pool = Facepunch.Pool;
 
 /*
  *

@@ -4,7 +4,6 @@ using Oxide.Core.Plugins;
 using Oxide.Ext.Discord.Entities;
 using Oxide.Ext.Discord.Entities.Channels;
 using Oxide.Ext.Discord.Entities.Messages;
-using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord.Libraries.Command
 {

@@ -14,7 +14,6 @@ using Oxide.Ext.Discord.Extensions;
 using Oxide.Ext.Discord.Logging;
 using Oxide.Ext.Discord.Rest;
 using Oxide.Ext.Discord.WebSockets;
-using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord
 {

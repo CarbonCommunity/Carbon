@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using API.Commands;
 using API.Events;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
-using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
 using Newtonsoft.Json;
@@ -24,7 +21,7 @@ using Report = Carbon.Components.Report;
 
 namespace Carbon.Core;
 
-public static class Loader
+public static class ModLoader
 {
 	public static List<Assembly> AssemblyCache { get; } = new();
 	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new();
@@ -32,7 +29,7 @@ public static class Loader
 	public static bool IsBatchComplete { get; set; }
 	public static List<string> PostBatchFailedRequirees { get; } = new();
 
-	static Loader()
+	static ModLoader()
 	{
 		Community.Runtime.Events.Subscribe(
 			CarbonEvent.OnServerInitialized,
@@ -101,8 +98,8 @@ public static class Loader
 	{
 		ClearAllRequirees();
 
-		var list = Facepunch.Pool.GetList<CarbonMod>();
-		list.AddRange(LoadedMods);
+		var list = Facepunch.Pool.GetList<ModPackage>();
+		list.AddRange(LoadedPackages);
 
 		foreach (var mod in list)
 		{
@@ -115,7 +112,7 @@ public static class Loader
 	}
 	public static bool UnloadCarbonMod(string name)
 	{
-		var mod = GetMod(name);
+		var mod = GetPackage(name);
 		if (mod == null)
 		{
 			return false;
@@ -143,7 +140,7 @@ public static class Loader
 
 	#region Carbon
 
-	public static void InitializePlugins(CarbonMod mod)
+	public static void InitializePlugins(ModPackage mod)
 	{
 		Logger.Warn($"Initializing mod '{mod.Name}'");
 
@@ -182,7 +179,7 @@ public static class Loader
 			catch (Exception ex) { Logger.Error($"Failed loading '{mod.Name}'", ex); }
 		}
 	}
-	public static void UninitializePlugins(CarbonMod mod)
+	public static void UninitializePlugins(ModPackage mod)
 	{
 		var plugins = Pool.GetList<RustPlugin>();
 		plugins.AddRange(mod.Plugins);
@@ -199,7 +196,7 @@ public static class Loader
 		Pool.FreeList(ref plugins);
 	}
 
-	public static bool InitializePlugin(Type type, out RustPlugin plugin, CarbonMod mod = null, Action<RustPlugin> preInit = null)
+	public static bool InitializePlugin(Type type, out RustPlugin plugin, ModPackage package = null, Action<RustPlugin> preInit = null)
 	{
 		var instance = Activator.CreateInstance(type, false);
 		plugin = instance as RustPlugin;
@@ -218,7 +215,7 @@ public static class Loader
 		var description = desc == null ? string.Empty : desc.Description;
 
 		plugin.SetProcessor(Community.Runtime.ScriptProcessor);
-		plugin.SetupMod(mod, title, author, version, description);
+		plugin.SetupMod(package, title, author, version, description);
 
 		preInit?.Invoke(plugin);
 
@@ -227,7 +224,7 @@ public static class Loader
 		plugin.IInit();
 		plugin.Load();
 
-		mod?.Plugins.Add(plugin);
+		package?.Plugins.Add(plugin);
 		ProcessCommands(type, plugin);
 
 		Logger.Log($"Loaded plugin {plugin.ToString()} [{plugin.CompileTime:0}ms]");
@@ -483,7 +480,7 @@ public static class Loader
 			var counter = 0;
 			var plugins = Pool.GetList<RustPlugin>();
 
-			foreach (var mod in LoadedMods)
+			foreach (var mod in LoadedPackages)
 			{
 				foreach (var plugin in mod.Plugins)
 				{
@@ -541,9 +538,9 @@ public static class Loader
 
 	#endregion
 
-	internal static CarbonMod GetMod(string name)
+	internal static ModPackage GetPackage(string name)
 	{
-		foreach (var mod in LoadedMods)
+		foreach (var mod in LoadedPackages)
 		{
 			if (mod.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase)) return mod;
 		}
@@ -551,11 +548,11 @@ public static class Loader
 		return null;
 	}
 
-	public static List<CarbonMod> LoadedMods = new();
+	public static List<ModPackage> LoadedPackages = new();
 	public static List<FailedMod> FailedMods = new();
 
 	[JsonObject(MemberSerialization.OptIn)]
-	public class CarbonMod
+	public class ModPackage
 	{
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }
