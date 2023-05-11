@@ -139,7 +139,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 						break;
 
 					default:
-						Logger.Log(args.Reply);
+						Logger.None(args.Reply);
 						break;
 				}
 			}
@@ -167,7 +167,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 				}
 				else
 				{
-					Logger.Log(args.Reply);
+					Logger.None(args.Reply);
 				}
 			}
 
