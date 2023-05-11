@@ -244,12 +244,7 @@ namespace Oxide.Game.Rust.Libraries
 					Reference = plugin,
 					Callback = arg =>
 					{
-						switch (arg)
-						{
-							case PlayerArgs playerArgs:
-								callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments);
-								break;
-						}
+						callback?.Invoke(null, command, arg.Arguments);
 					},
 					Help = help,
 					Token = reference,

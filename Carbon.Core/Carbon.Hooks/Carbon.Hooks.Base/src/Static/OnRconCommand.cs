@@ -45,19 +45,20 @@ public partial class Category_Static
 					var command = split[0].Trim();
 
 					var arguments = split.Length > 1 ? cmd.Message.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
-					var consoleArg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
-					var option = Option.Unrestricted;
-					option.FromRcon = true;
-					consoleArg.Option = option;
-					consoleArg.FullString = cmd.Message;
-					consoleArg.Args = arguments;
 
 					if (HookCaller.CallStaticHook("OnRconCommand", cmd.Ip, command, arguments) != null)
 					{
 						return false;
 					}
 
-					Command.FromRcon = true;
+					Command.FromRcon = API.Commands.Command.FromRcon = true;
+
+					var consoleArg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
+					var option = Option.Unrestricted;
+					option.FromRcon = true;
+					consoleArg.Option = option;
+					consoleArg.FullString = cmd.Message;
+					consoleArg.Args = arguments;
 
 					try
 					{
@@ -75,6 +76,8 @@ public partial class Category_Static
 					{
 						Logger.Error("RconCommand_OnCommand", ex);
 					}
+
+					Community.Runtime.CorePlugin.NextFrame(() => Command.FromRcon = API.Commands.Command.FromRcon = false);
 				}
 				catch { }
 
