@@ -578,9 +578,9 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		bool value = args.GetBool(0, false);
 
-		if (args.GetString(0, null) is not null)
+		if (args.HasArgs(1))
 		{
-			Community.Runtime.Config.AutoUpdate = args.GetBool(0, false);
+			Community.Runtime.Config.AutoUpdate = value;
 			Community.Runtime.SaveConfig();
 		}
 

@@ -172,6 +172,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 				}
 			}
 
+			args.Dispose();
 			return true;
 		}
 		catch (Exception ex)
