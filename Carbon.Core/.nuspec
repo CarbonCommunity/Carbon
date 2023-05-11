@@ -15,11 +15,11 @@
     <copyright>Copyright © 2022-2023 Carbon Community</copyright>
     <dependencies>
       <group targetFramework=".NETFramework4.8" />
-	</dependencies>
+    </dependencies>
   </metadata>
   <files>
-    <file src="..\Release\.tmp\Debug\carbon\managed\Carbon.Common.dll" target="lib\netframework4.8\Carbon.Common.dll" />
-    <file src="..\Release\.tmp\Debug\carbon\managed\Carbon.SDK.dll" target="lib\netframework4.8\Carbon.SDK.dll" />
+    <file src="..\Release\.tmp\Release\carbon\managed\Carbon.Common.dll" target="lib\netframework4.8\Carbon.Common.dll" />
+    <file src="..\Release\.tmp\Release\carbon\managed\Carbon.SDK.dll" target="lib\netframework4.8\Carbon.SDK.dll" />
     <file src="..\NuGet-ICON.png" target="NuGet-ICON.png" />
     <file src="..\NuGet-README.md" target="NuGet-README.md" />
   </files>
