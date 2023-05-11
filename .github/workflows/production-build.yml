@@ -121,7 +121,7 @@ jobs:
         name: build-production-windows
         path: |
           Release/Carbon.Windows.Release.zip
-          Release/Carbon.Windows.Release.info#
+          Release/Carbon.Windows.Release.info
 
     - name: 🔨 Upload NuGet package
       shell: cmd
