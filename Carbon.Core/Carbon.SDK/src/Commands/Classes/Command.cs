@@ -60,6 +60,11 @@ public class Command
 		public string Reply { get; set; }
 		public object Token { get; set; }
 
+		public bool Tokenize<T>(out T value)
+		{
+			return (value = (T)Token) != null;
+		}
+
 		public void ReplyWith(string message)
 		{
 			Reply = message;

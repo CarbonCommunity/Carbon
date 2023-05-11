@@ -136,10 +136,11 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 						{
 							player.ConsoleMessage(args.Reply);
 						}
+						else Logger.Log(args.Reply);
 						break;
 
 					default:
-						Logger.None(args.Reply);
+						Logger.Log(args.Reply);
 						break;
 				}
 			}
@@ -167,7 +168,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 				}
 				else
 				{
-					Logger.None(args.Reply);
+					Logger.Log(args.Reply);
 				}
 			}
 

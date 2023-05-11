@@ -574,7 +574,9 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private void CMDAutoUpdate(Command.Args arg)
 	{
-		if (arg.Token is not ConsoleSystem.Arg args) return;
+		Logger.Log($"called autoupdate {arg.Token}");
+		if (!arg.Tokenize<ConsoleSystem.Arg>(out var args)) return;
+		Logger.Log($"called autoupdate2 {arg.Token}");
 
 		bool value = args.GetBool(0, false);
 
@@ -589,7 +591,10 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private void CMDHookInfo(Command.Args arg)
 	{
-		if (arg.Token is not ConsoleSystem.Arg args) return;
+		Logger.Log($"called hook {arg.Token}");
+
+		if (!arg.Tokenize<ConsoleSystem.Arg>(out var args)) return;
+		Logger.Log($"called hook2 {arg.Token}");
 
 		TextTable table = new();
 		int count = 0, success = 0, warning = 0, failure = 0;
