@@ -13,6 +13,7 @@ using Carbon.Plugins;
 using ConVar;
 using Network;
 using Oxide.Core;
+using UnityEngine;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
