@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using API.Commands;
 using API.Events;
 using Components;
 using Utility;
@@ -84,6 +85,7 @@ public sealed class Bootstrap
 
 #if DEBUG
 		HarmonyLib.Harmony.DEBUG = true;
+		File.Delete(Path.Combine(Context.CarbonLogs, "harmony.log"));
 #endif
 
 		_gameObject = new UnityEngine.GameObject("Carbon");
@@ -102,9 +104,9 @@ public sealed class Bootstrap
 		//_gameObject.AddComponent<PermissionManager>();
 		// Test2 test2 = new Test2();
 		// test2.DoStuff(Permissions);
+		// ITestInterface foo = Test1.GetInstance();
+		// foo.DoStuff();
 
-		ITestInterface foo = Test1.GetInstance();
-		foo.DoStuff();
 
 		Events.Subscribe(CarbonEvent.StartupShared, x =>
 		{
@@ -115,6 +117,26 @@ public sealed class Bootstrap
 		{
 			Watcher.enabled = true;
 		});
+
+
+		Commands.RegisterCommand(new Command.RCon
+		{
+			Name = "c.build",
+			Callback = (arg) => arg.ReplyWith(Analytics.InformationalVersion)
+		}, out string _);
+
+		Commands.RegisterCommand(new Command.RCon
+		{
+			Name = "c.version",
+			Callback = (arg) => arg.ReplyWith($"Carbon v{Analytics.Version}")
+		}, out string _);
+
+		Commands.RegisterCommand(new Command.RCon
+		{
+			Name = "c.protocol",
+			Callback = (arg) => arg.ReplyWith(Analytics.Protocol)
+		}, out string _);
+
 
 		try
 		{
