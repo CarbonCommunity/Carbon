@@ -18,6 +18,7 @@ using ProtoBuf;
 using UnityEngine;
 using static Carbon.Components.CUI;
 using static ConsoleSystem;
+using static QRCoder.PayloadGenerator;
 using Color = UnityEngine.Color;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
@@ -1094,6 +1095,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region Methods
 
+	public const float OptionHeightOffset = 0.0035f;
+
 	public void Draw(BasePlayer player)
 	{
 		try
@@ -1115,20 +1118,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				needsCursor: true, destroyUi: PanelId, parent: ClientPanels.HudMenu);
 
+			var shade = cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
+				color: "0 0 0 0.6",
+				//xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f
+				xMin: 0.5f, xMax: 0.5f, yMin: 0.5f, yMax: 0.5f,
+				OxMin: -475, OxMax: 475, OyMin: -300, OyMax: 300);
+			var main = cui.CreatePanel(container, shade, $"{PanelId}main",
+				color: "0 0 0 0.5",
+				blur: true);
+
 			using (TimeMeasure.New($"{Name}.Main"))
 			{
-				cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
-					color: "0 0 0 0.6",
-					xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f);
-				cui.CreatePanel(container, $"{PanelId}color", $"{PanelId}main",
-					color: "0 0 0 0.5",
-					blur: true);
-
 				if (tab == null || !tab.Fullscreen)
 				{
 					#region Title
 
-					cui.CreateText(container, parent: $"{PanelId}main", id: null,
+					cui.CreateText(container, parent: main, id: null,
 						color: "1 1 1 0.8",
 						text: "<b>Admin Settings</b>", 18,
 						xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
@@ -1140,12 +1145,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					#region Tabs
 					try
 					{
-						cui.CreatePanel(container, parent: $"{PanelId}main", id: "tab_buttons",
+						var tabButtons = cui.CreatePanel(container, parent: main, id: null,
 							color: "0 0 0 0.6",
 							xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
 
-						TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
-						TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
+						TabButton(cui, container, tabButtons, "<", PanelId + ".changetab down", 0.03f, 0);
+						TabButton(cui, container, tabButtons, ">", PanelId + ".changetab up", 0.03f, 0.97f);
 
 						var tabIndex = 0.03f;
 						var amount = Tabs.Count;
@@ -1155,21 +1160,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							var _tab = Tabs[ap.TabSkip + i];
 							var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
-							TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccessLevel(player, _tab.AccessLevel));
+							TabButton(cui, container, tabButtons, $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccessLevel(player, _tab.AccessLevel));
 							tabIndex += tabWidth;
 						}
 					}
 					catch (Exception ex) { PutsError($"Draw({player}).Tabs", ex); }
 					#endregion
 				}
-			}
+			}			
 
 			#region Panels
 			try
 			{
 				using (TimeMeasure.New($"{Name}.Panels/Overrides"))
 				{
-					var panels = cui.CreatePanel(container, $"{PanelId}main", "panels",
+					var panels = cui.CreatePanel(container, main, "panels",
 						color: "0 0 0 0",
 						xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: tab != null && tab.Fullscreen ? 0.98f : 0.86f);
 
@@ -1208,7 +1213,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 								if (columnPage.TotalPages > 0)
 								{
+									rowHeight += OptionHeightOffset;
+
 									TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+
+									rowHeight -= OptionHeightOffset;
 
 									rowIndex += rowHeight + rowSpacing;
 								}
@@ -1217,6 +1226,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								{
 									var actualI = r + (columnPage.CurrentPage * contentsPerPage);
 									var row = rows.ElementAt(actualI);
+
+									rowHeight += OptionHeightOffset;
 
 									switch (row)
 									{
@@ -1277,6 +1288,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 									TabTooltip(cui, container, panel, row, PanelId + $".callaction {i} {actualI}", ap, rowHeight, rowIndex);
 
 									#endregion
+
+									rowHeight -= OptionHeightOffset;
 
 									rowIndex += rowHeight + rowSpacing;
 								}
