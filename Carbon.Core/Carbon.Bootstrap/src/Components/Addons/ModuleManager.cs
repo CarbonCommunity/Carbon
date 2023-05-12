@@ -65,11 +65,8 @@ internal sealed class ModuleManager : AddonManager
 			requester = $"{caller.DeclaringType}.{caller.Name}";
 		}
 
-		IReadOnlyList<string> blacklist = null;
-		IReadOnlyList<string> whitelist = AssemblyManager.RefWhitelist.Concat(new string[]
-		{
-			"0Harmony"
-		}).ToList();
+		IReadOnlyList<string> blacklist = AssemblyManager.RefBlacklist;
+		IReadOnlyList<string> whitelist = null;
 
 		try
 		{

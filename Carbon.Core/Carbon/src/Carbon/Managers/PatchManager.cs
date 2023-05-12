@@ -116,14 +116,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			// I don't like this, patching stuff that may not be used but for the
 			// sake of time I will let it go for now but this needs to be reviewed.
 			foreach (HookEx hook in _patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
-				Subscribe(hook.Identifier, "Carbon.Core");
+				Subscribe(hook.Identifier, "Carbon.Patch");
 		}
 
 		if (_staticHooks.Count > 0)
 		{
 			Logger.Debug($" - Installing static hooks");
 			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
-				Subscribe(hook.Identifier, "Carbon.Core");
+				Subscribe(hook.Identifier, "Carbon.Static");
 		}
 
 		// if (_dynamicHooks.Count > 0)
@@ -314,12 +314,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					retvar.Patch++;
 					_patches.Add(hook);
 					Logger.Debug($"Loaded patch '{hook}'", 4);
+					if (!hook.HasDependencies()) Subscribe(hook.Identifier, "Carbon.Patch");
 				}
 				else if (hook.IsStaticHook)
 				{
 					retvar.Static++;
 					_staticHooks.Add(hook);
 					Logger.Debug($"Loaded static hook '{hook}'", 4);
+					Subscribe(hook.Identifier, "Carbon.Static");
 				}
 				else
 				{
@@ -620,9 +622,15 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 							break;
 
 						default:
+#if DEBUG_VERBOSE
+							hooks = Community.Runtime.HookManager.LoadedPatches;
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks);
+#else
 							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
 							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
 							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
+#endif
 							break;
 					}
 
@@ -634,10 +642,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 						table.AddRow(
 							$"{count++:n0}",
-							mod.HookFullName,
+							mod.IsHidden
+								? $"{mod.HookFullName} (*)"
+								: mod.HookFullName,
 							mod.HookName,
 							mod.Identifier[^6..],
-							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
+							mod.IsStaticHook
+								? "Static"
+								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
@@ -671,9 +683,15 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 							break;
 
 						default:
+#if DEBUG_VERBOSE
+							hooks = Community.Runtime.HookManager.InstalledPatches;
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks);
+#else
 							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
 							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
 							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
+#endif
 							break;
 					}
 
@@ -685,10 +703,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 						table.AddRow(
 							$"{count++:n0}",
-							mod.HookFullName,
+							mod.IsHidden
+								? $"{mod.HookFullName} (*)"
+								: mod.HookFullName,
 							mod.HookName,
 							mod.Identifier[^6..],
-							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
+							mod.IsStaticHook
+								? "Static"
+								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
 							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
