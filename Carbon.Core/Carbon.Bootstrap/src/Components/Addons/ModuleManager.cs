@@ -152,7 +152,9 @@ internal sealed class ModuleManager : AddonManager
 		base.Hydrate(assembly, addon);
 
 		BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+
 		Type logger = typeof(API.Logger.ILogger) ?? throw new Exception();
+		Type events = typeof(API.Events.IEventManager) ?? throw new Exception();
 
 		foreach (Type type in assembly.GetTypes())
 		{
@@ -161,6 +163,12 @@ internal sealed class ModuleManager : AddonManager
 			{
 				item.SetValue(assembly,
 					Activator.CreateInstance(HarmonyLib.AccessTools.TypeByName("Carbon.Logger") ?? null));
+			}
+
+			foreach (FieldInfo item in type.GetFields(flags)
+				.Where(x => events.IsAssignableFrom(x.FieldType)))
+			{
+				item.SetValue(assembly, Carbon.Bootstrap.Events);
 			}
 		}
 	}
