@@ -18,7 +18,6 @@ using ProtoBuf;
 using UnityEngine;
 using static Carbon.Components.CUI;
 using static ConsoleSystem;
-using static QRCoder.PayloadGenerator;
 using Color = UnityEngine.Color;
 using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
