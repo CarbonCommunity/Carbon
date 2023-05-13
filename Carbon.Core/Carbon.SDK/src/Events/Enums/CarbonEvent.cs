@@ -11,6 +11,7 @@ public enum CarbonEvent
 {
 	// Startup events
 	StartupShared, StartupSharedComplete,
+	FileSystemWarmup, FileSystemWarmupComplete,
 
 	// Carbon related
 	CarbonStartup, CarbonStartupComplete, CarbonShutdown, CarbonShutdownFailed,
