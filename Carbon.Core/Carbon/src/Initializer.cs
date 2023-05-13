@@ -100,15 +100,14 @@ public class Initializer : ICarbonComponent
 			Logger.Error("Unable to assert assembly status.", e);
 			return;
 		}
-
 		Logger.Log(Environment.NewLine +
-			@"                                               " + Environment.NewLine +
-			@"  ______ _______ ______ ______ _______ _______ " + Environment.NewLine +
-			@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
-			@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
-			@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
-			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
-			@"                                               " + Environment.NewLine
+			@"                                                                      " + Environment.NewLine +
+			@"  ______ _______ ______ ______ _______ _______ _______ ______ _______ " + Environment.NewLine +
+			@" |      |   _   |   __ \   __ \       |    |  |   _   |   __ \   _   |" + Environment.NewLine +
+			@" |   ---|       |      <   __ <   -   |       |       |      <       |" + Environment.NewLine +
+			@" |______|___|___|___|__|______/_______|__|____|___|___|___|__|___|___|" + Environment.NewLine +
+			@"                                                discord.gg/eXPcNKK4yd " + Environment.NewLine +
+			@"                                                                      " + Environment.NewLine
 		);
 
 		try
