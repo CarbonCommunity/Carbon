@@ -533,6 +533,10 @@ public static class ModLoader
 
 			Report.OnProcessEnded?.Invoke();
 			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
+
+#if DEBUG
+			Logger.Error($"realtimeSinceStartup: {UnityEngine.Time.realtimeSinceStartup}");
+#endif
 		}
 	}
 

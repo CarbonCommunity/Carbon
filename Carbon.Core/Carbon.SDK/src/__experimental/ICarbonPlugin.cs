@@ -15,7 +15,6 @@ namespace API.Plugins;
 public interface ICarbonPlugin : ICarbonAddon
 {
 	public ILogger Logger { get; }
-	public ICarbonInterface Interface { get; }
 
 	public void OnEnable(EventArgs args);
 	public void OnDisable(EventArgs args);
