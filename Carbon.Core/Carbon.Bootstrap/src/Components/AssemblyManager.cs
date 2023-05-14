@@ -43,7 +43,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 	{ get => gameObject.GetComponent<ModuleManager>(); }
 
 #if EXPERIMENTAL
-	public IAssemblyTypeManager Plugins
+	public IAddonManager Plugins
 	{ get => gameObject.GetComponent<PluginManager>(); }
 #endif
 

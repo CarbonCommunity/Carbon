@@ -24,49 +24,38 @@ public sealed class Bootstrap
 	private static HarmonyLib.Harmony _harmonyInstance;
 
 	public static string Name
-	{
-		get => assemblyName;
-	}
+	{ get => assemblyName; }
 
 	internal static HarmonyLib.Harmony Harmony
-	{
-		get => _harmonyInstance;
-	}
+	{ get => _harmonyInstance; }
+
 
 	internal static AnalyticsManager Analytics
-	{
-		get => _gameObject.GetComponent<AnalyticsManager>();
-	}
+	{ get => _gameObject.GetComponent<AnalyticsManager>(); }
 
 	internal static AssemblyManager AssemblyEx
-	{
-		get => _gameObject.GetComponent<AssemblyManager>();
-	}
-
-	internal static DownloadManager Downloader
-	{
-		get => _gameObject.GetComponent<DownloadManager>();
-	}
-
-	internal static EventManager Events
-	{
-		get => _gameObject.GetComponent<EventManager>();
-	}
-
-	internal static FileWatcherManager Watcher
-	{
-		get => _gameObject.GetComponent<FileWatcherManager>();
-	}
-
-	internal static PermissionManager Permissions
-	{
-		get => _gameObject.GetComponent<PermissionManager>();
-	}
+	{ get => _gameObject.GetComponent<AssemblyManager>(); }
 
 	internal static CommandManager Commands
-	{
-		get => _gameObject.GetComponent<CommandManager>();
-	}
+	{ get => _gameObject.GetComponent<CommandManager>(); }
+
+	internal static DownloadManager Downloader
+	{ get => _gameObject.GetComponent<DownloadManager>(); }
+
+	internal static EventManager Events
+	{ get => _gameObject.GetComponent<EventManager>(); }
+
+	internal static PermissionManager Permissions
+	{ get => _gameObject.GetComponent<PermissionManager>(); }
+
+#if EXPERIMENTAL
+	internal static ThreadManager Threads
+	{ get => _gameObject.GetComponent<ThreadManager>(); }
+#endif
+
+	internal static FileWatcherManager Watcher
+	{ get => _gameObject.GetComponent<FileWatcherManager>(); }
+
 
 	static Bootstrap()
 	{
@@ -92,21 +81,29 @@ public sealed class Bootstrap
 		UnityEngine.Object.DontDestroyOnLoad(_gameObject);
 
 		// top priority
+		_gameObject.AddComponent<CommandManager>();
 		_gameObject.AddComponent<EventManager>();
 		_gameObject.AddComponent<FileWatcherManager>();
-		_gameObject.AddComponent<CommandManager>();
 
 		// standard priority
 		_gameObject.AddComponent<AnalyticsManager>();
 		_gameObject.AddComponent<AssemblyManager>();
 		_gameObject.AddComponent<DownloadManager>();
 
+#if EXPERIMENTAL
+		_gameObject.AddComponent<ThreadManager>();
+
+		Events.Subscribe(CarbonEvent.FileSystemWarmupComplete, x =>
+		{
+			Threads.enabled = true;
+		});
+#endif
+
 		//_gameObject.AddComponent<PermissionManager>();
 		// Test2 test2 = new Test2();
 		// test2.DoStuff(Permissions);
 		// ITestInterface foo = Test1.GetInstance();
 		// foo.DoStuff();
-
 
 		Events.Subscribe(CarbonEvent.StartupShared, x =>
 		{
