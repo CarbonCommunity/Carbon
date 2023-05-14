@@ -534,7 +534,7 @@ public static class ModLoader
 			Report.OnProcessEnded?.Invoke();
 			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
 
-#if DEBUG
+#if DEBUG_VERBOSE
 			Logger.Error($"realtimeSinceStartup: {UnityEngine.Time.realtimeSinceStartup}");
 #endif
 		}
