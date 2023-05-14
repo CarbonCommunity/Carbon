@@ -274,7 +274,7 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			var targetItem = target.ElementAtOrDefault(index);
 
-			if (targetItem != null && sourceItem != targetItem)
+			if (targetItem != null && sourceItem != targetItem && !targetItem.IsSubclassOf(sourceItem))
 			{
 				equal = false;
 				break;

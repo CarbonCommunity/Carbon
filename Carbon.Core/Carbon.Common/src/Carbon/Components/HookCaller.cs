@@ -79,7 +79,6 @@ public class HookCallerCommon
 			? Delegate.CreateDelegate(getType(types.ToArray()), target, methodInfo.Name)
 			: Delegate.CreateDelegate(getType(Array.Empty<Type>()), target, methodInfo.Name);
 	}
-
 }
 
 public static class HookCaller
