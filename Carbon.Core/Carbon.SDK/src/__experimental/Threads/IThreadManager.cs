@@ -12,5 +12,5 @@ namespace API.Threads;
 public interface IThreadManager
 {
 	public void Clear();
-	public void Execute(IThreadedJob job);
+	public void Queue(IThreadedJob job);
 }

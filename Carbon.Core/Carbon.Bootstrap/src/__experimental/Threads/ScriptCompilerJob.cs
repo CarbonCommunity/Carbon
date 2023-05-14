@@ -6,6 +6,7 @@ using API.Threads;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Utility;
 
 /*
  *
@@ -16,8 +17,20 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Threads;
 
-public class Compilation : IThreadedJob
+public class ScriptCompilerJob : IThreadedJob
 {
+	private bool _processing = true;
+	public bool IsDone { get => !_processing; }
+	public bool IsProcessing { get => _processing; }
+
+
+	public byte[] Output { get; private set; }
+	public string FileName { get; set; }
+	public string Input { get; set; }
+
+
+	private List<Diagnostic> _diagnostics = new();
+
 	private static readonly List<MetadataReference> _references = new();
 
 	private static readonly CSharpParseOptions _parse = new(
@@ -30,24 +43,13 @@ public class Compilation : IThreadedJob
 		outputKind: OutputKind.DynamicallyLinkedLibrary
 	);
 
-
-	public string FileName { get; set; }
-	public string Source { get; set; }
-	public byte[] Output { get; private set; }
-
-	public bool Result { get; private set; }
-	public bool IsDone { get; private set; }
-
-	private List<Diagnostic> _diagnostics = null;
-	public List<Diagnostic> Diagnostics { get => _diagnostics; }
-
-	static Compilation()
+	static ScriptCompilerJob()
 	{
-		foreach (string reference in Carbon.Community.Runtime.AssemblyEx.RefWhitelist)
+		foreach (string reference in Carbon.Bootstrap.AssemblyEx.RefWhitelist)
 		{
 			try
 			{
-				byte[] raw = Carbon.Community.Runtime.AssemblyEx.Read(reference)
+				byte[] raw = Carbon.Bootstrap.AssemblyEx.Read(reference)
 					?? throw new Exception();
 
 				using MemoryStream stream = new(raw);
@@ -55,16 +57,16 @@ public class Compilation : IThreadedJob
 			}
 			catch (System.Exception)
 			{
-				Carbon.Logger.Warn($"Error loading common reference '{reference}'");
+				Logger.Warn($"Error loading common reference '{reference}'");
 				continue;
 			}
 		}
 
-		foreach (string extension in Carbon.Community.Runtime.AssemblyEx.Extensions.Loaded)
+		foreach (string extension in Carbon.Bootstrap.AssemblyEx.Extensions.Loaded)
 		{
 			try
 			{
-				byte[] raw = Carbon.Community.Runtime.AssemblyEx.Read(extension)
+				byte[] raw = Carbon.Bootstrap.AssemblyEx.Read(extension)
 					?? throw new Exception();
 
 				using MemoryStream stream = new(raw);
@@ -72,22 +74,26 @@ public class Compilation : IThreadedJob
 			}
 			catch (System.Exception)
 			{
-				Carbon.Logger.Warn($"Error loading extension reference '{extension}'");
+				Logger.Warn($"Error loading extension reference '{extension}'");
 				continue;
 			}
 		}
 	}
 
-	public void Initialize()
+	public void Start()
 	{
-		//if (!File.Exists(Path.Combine(Context.Carbon, "test", FileName))) throw new Exception();
-		//Source = File.ReadAllText(Path.Combine(Context.Carbon, "test", FileName));
 	}
 
-	public void Process()
+	public void Awake()
+	{
+		if (!File.Exists(Path.Combine(Context.Carbon, "test", FileName))) throw new Exception();
+		Input = File.ReadAllText(Path.Combine(Context.Carbon, "test", FileName));
+	}
+
+	public void DoWork()
 	{
 		List<SyntaxTree> tree = new() {
-			CSharpSyntaxTree.ParseText(Source, _parse)
+			CSharpSyntaxTree.ParseText(Input, _parse)
 		};
 
 		CSharpCompilation compilation = CSharpCompilation.Create(
@@ -97,10 +103,15 @@ public class Compilation : IThreadedJob
 		EmitResult ilcode = compilation.Emit(stream);
 		_diagnostics = ilcode.Diagnostics.ToList();
 
-		if (!ilcode.Success) return;
-		Output = stream.ToArray();
+		if (ilcode.Success)
+		{
+			Output = stream.ToArray();
+			_processing = false;
+		}
+	}
 
-		Result = true;
-		IsDone = true;
+	public void Destroy()
+	{
+
 	}
 }

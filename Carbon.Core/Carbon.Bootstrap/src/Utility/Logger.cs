@@ -39,6 +39,15 @@ internal sealed class Logger
 
 			switch (severity)
 			{
+				case Severity.None:
+					formatted = $"{message}";
+					break;
+
+				case Severity.Notice:
+					formatted = $"[i] {message}";
+					UnityEngine.Debug.Log(formatted);
+					break;
+
 				case Severity.Error:
 					formatted = $"[e] {message}";
 #if DEBUG
@@ -46,31 +55,26 @@ internal sealed class Logger
 #else
 					formatted += (ex != null) ? $" ({ex?.Message})" : null;
 #endif
+					UnityEngine.Debug.Log(formatted);
 					break;
 
 				case Severity.Warning:
 					formatted = $"[w] {message}";
-					break;
-
-				case Severity.Notice:
-					formatted = $"[i] {message}";
+					UnityEngine.Debug.Log(formatted);
 					break;
 
 				case Severity.Debug:
 					formatted = $"[d] {message}";
 					break;
 
-				case Severity.None:
-					formatted = $"{message}";
-					break;
-
 				default:
 					throw new Exception($"Severity {severity} not implemented.");
 			}
 
-#if DEBUG_VERBOSE
-			UnityEngine.Debug.Log(formatted);
-#endif
+			// #if DEBUG_VERBOSE
+			// 			UnityEngine.Debug.Log(formatted);
+			// #endif
+
 			System.IO.File.AppendAllText(logFile,
 				$"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {formatted}" + Environment.NewLine);
 		}

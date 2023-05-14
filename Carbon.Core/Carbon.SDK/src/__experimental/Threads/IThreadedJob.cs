@@ -9,15 +9,9 @@
 
 namespace API.Threads;
 
-public interface IThreadedJob
+public interface IThreadedJob : IThreaded
 {
 	public string FileName { get; set; }
-	public string Source { get; set; }
+	public string Input { get; set; }
 	public byte[] Output { get; }
-
-	public bool Result { get; }
-	public bool IsDone { get; }
-
-	public void Initialize();
-	public void Process();
 }
