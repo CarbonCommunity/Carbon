@@ -187,6 +187,8 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Fleck", // bundled with rust (websocket server)
 		"Newtonsoft.Json", // bundled with rust
 
+		"Ionic.Zip.Reduced",
+
 		"Facepunch.BurstCloth",
 		"Facepunch.Console",
 		"Facepunch.Network",

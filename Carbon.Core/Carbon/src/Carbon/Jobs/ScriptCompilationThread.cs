@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
+using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -162,6 +163,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			try { _injectExtensionReference(id, item, references); }
 			catch { }
 		}
+
 		return references;
 	}
 
@@ -199,7 +201,19 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectExtensionReference(reference, Path.Combine(Defines.GetExtensionsFolder(), $"{reference}.dll"), references);
+				var extensionFile = Path.Combine(Defines.GetExtensionsFolder(), $"{reference}.dll");
+				if (OsEx.File.Exists(extensionFile))
+				{
+					_injectExtensionReference(reference, extensionFile, references);
+					continue;
+				}
+
+				var managedFile = Path.Combine(Defines.GetRustManagedFolder(), $"{reference}.dll");
+				if (OsEx.File.Exists(managedFile))
+				{
+					_injectReference(reference, managedFile, references);
+					continue;
+				}
 			}
 			catch { /* do nothing */ }
 		}
