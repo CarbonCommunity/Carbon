@@ -157,17 +157,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private void OnDestroy()
 	{
 		Logger.Log("Destroying hook processor...");
-
-		// make sure all patches are removed
-		List<HookEx> hooks = _staticHooks.Concat(_dynamicHooks).Concat(_patches).ToList();
-		foreach (HookEx hook in hooks) hook.Dispose();
-
-		_workQueue = default;
-		_subscribers = default;
-
-		_patches = default;
-		_staticHooks = default;
-		_dynamicHooks = default;
+		Dispose();
 	}
 
 	private void Update()
@@ -737,19 +727,22 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			if (disposing)
 			{
 				foreach (HookEx item in _dynamicHooks) item.Dispose();
-				_dynamicHooks.Clear();
+				_dynamicHooks = default;
 
 				foreach (HookEx item in _installed) item.Dispose();
-				_installed.Clear();
+				_installed = default;
 
 				foreach (HookEx item in _patches) item.Dispose();
-				_patches.Clear();
+				_patches = default;
 
 				foreach (HookEx item in _staticHooks) item.Dispose();
-				_staticHooks.Clear();
+				_staticHooks = default;
+
+				_workQueue = default;
+				_subscribers = default;
 			}
 
-			// no unmanaged resources
+			// unmanaged resources
 			_disposing = true;
 		}
 	}
