@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using API.Events;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -396,6 +397,8 @@ public class ScriptLoader : IScriptLoader
 						Line = x.Error.Line
 					}).ToArray();
 #endif
+
+					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, new CarbonEventArgs(rustPlugin));
 
 					plugin.Instance = rustPlugin;
 					plugin.IsCore = IsCore;
