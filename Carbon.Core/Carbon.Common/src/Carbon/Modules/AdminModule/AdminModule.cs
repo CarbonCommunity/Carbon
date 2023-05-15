@@ -1094,6 +1094,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region Methods
 
+	public const float OptionHeightOffset = 0.0035f;
+
 	public void Draw(BasePlayer player)
 	{
 		try
@@ -1115,20 +1117,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				needsCursor: true, destroyUi: PanelId, parent: ClientPanels.HudMenu);
 
+			var shade = cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
+				color: "0 0 0 0.6",
+				//xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f
+				xMin: 0.5f, xMax: 0.5f, yMin: 0.5f, yMax: 0.5f,
+				OxMin: -475, OxMax: 475, OyMin: -300, OyMax: 300);
+			var main = cui.CreatePanel(container, shade, $"{PanelId}main",
+				color: "0 0 0 0.5",
+				blur: true);
+
 			using (TimeMeasure.New($"{Name}.Main"))
 			{
-				cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
-					color: "0 0 0 0.6",
-					xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f);
-				cui.CreatePanel(container, $"{PanelId}color", $"{PanelId}main",
-					color: "0 0 0 0.5",
-					blur: true);
-
 				if (tab == null || !tab.Fullscreen)
 				{
 					#region Title
 
-					cui.CreateText(container, parent: $"{PanelId}main", id: null,
+					cui.CreateText(container, parent: main, id: null,
 						color: "1 1 1 0.8",
 						text: "<b>Admin Settings</b>", 18,
 						xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
@@ -1140,12 +1144,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					#region Tabs
 					try
 					{
-						cui.CreatePanel(container, parent: $"{PanelId}main", id: "tab_buttons",
+						var tabButtons = cui.CreatePanel(container, parent: main, id: null,
 							color: "0 0 0 0.6",
 							xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
 
-						TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
-						TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
+						TabButton(cui, container, tabButtons, "<", PanelId + ".changetab down", 0.03f, 0);
+						TabButton(cui, container, tabButtons, ">", PanelId + ".changetab up", 0.03f, 0.97f);
 
 						var tabIndex = 0.03f;
 						var amount = Tabs.Count;
@@ -1155,21 +1159,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							var _tab = Tabs[ap.TabSkip + i];
 							var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
-							TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccessLevel(player, _tab.AccessLevel));
+							TabButton(cui, container, tabButtons, $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccessLevel(player, _tab.AccessLevel));
 							tabIndex += tabWidth;
 						}
 					}
 					catch (Exception ex) { PutsError($"Draw({player}).Tabs", ex); }
 					#endregion
 				}
-			}
+			}			
 
 			#region Panels
 			try
 			{
 				using (TimeMeasure.New($"{Name}.Panels/Overrides"))
 				{
-					var panels = cui.CreatePanel(container, $"{PanelId}main", "panels",
+					var panels = cui.CreatePanel(container, main, "panels",
 						color: "0 0 0 0",
 						xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: tab != null && tab.Fullscreen ? 0.98f : 0.86f);
 
@@ -1208,7 +1212,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 								if (columnPage.TotalPages > 0)
 								{
+									rowHeight += OptionHeightOffset;
+
 									TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+
+									rowHeight -= OptionHeightOffset;
 
 									rowIndex += rowHeight + rowSpacing;
 								}
@@ -1217,6 +1225,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								{
 									var actualI = r + (columnPage.CurrentPage * contentsPerPage);
 									var row = rows.ElementAt(actualI);
+
+									rowHeight += OptionHeightOffset;
 
 									switch (row)
 									{
@@ -1277,6 +1287,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 									TabTooltip(cui, container, panel, row, PanelId + $".callaction {i} {actualI}", ap, rowHeight, rowIndex);
 
 									#endregion
+
+									rowHeight -= OptionHeightOffset;
 
 									rowIndex += rowHeight + rowSpacing;
 								}
@@ -2573,7 +2585,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var groupEdit = ap.GetStorage<bool>(tab, "groupedit");
 			var filter = ap.GetStorage<string>(tab, "pluginfilter", string.Empty)?.Trim().ToLower();
-			var plugins = Loader.LoadedMods.SelectMany(x => x.Plugins).Where(x =>
+			var plugins = ModLoader.LoadedPackages.SelectMany(x => x.Plugins).Where(x =>
 			{
 				if (!string.IsNullOrEmpty(filter))
 				{
@@ -3301,7 +3313,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.AddName(column, "Combat", TextAnchor.MiddleLeft);
 						tab.AddRange(column, "Health", 0, combat.MaxHealth(), ap => combat.health, (ap, value) =>
 						{
-							DoAll< BaseCombatEntity>(e => e.SetHealth(value));
+							DoAll<BaseCombatEntity>(e => e.SetHealth(value));
 						}, ap => $"{combat.health:0}");
 
 						if (entity is BasePlayer)
@@ -3322,7 +3334,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			void DoAll<T>(Action<T> callback) where T : BaseEntity
 			{
-				foreach(var selectedEntity in selectedEntitites)
+				foreach (var selectedEntity in selectedEntitites)
 				{
 					if (selectedEntity == null) continue;
 
@@ -3912,7 +3924,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var reloadButton = cui.CreateProtectedButton(container, search, null, isLocal ? "0.2 0.2 0.2 0.4" : "0.2 0.2 0.2 0.8", "1 1 1 0.6", string.Empty, 0, xMin: 0.875f, xMax: 1, yMin: 0.075f, yMax: 0.925f, command: "pluginbrowser.refreshvendor");
 			cui.CreateImage(container, reloadButton, null, "reload", "1 1 1 0.4", xMin: 0.25f, xMax: 0.75f, yMin: 0.25f, yMax: 0.75f);
-			
+
 			if (TagFilter.Contains("peanus")) cui.CreateClientImage(container, grid, null, "https://media.discordapp.net/attachments/1078801277565272104/1085062151221293066/15ox1d_1.jpg?width=827&height=675", "1 1 1 1", xMax: 0.8f);
 			if (TagFilter.Contains("banan")) cui.CreateClientImage(container, grid, null, "https://cf-images.us-east-1.prod.boltdns.net/v1/static/507936866/2cd498e2-da08-4305-a86e-f9711ac41615/eac8316f-0061-40ed-b289-aac0bab35da0/1280x720/match/image.jpg", "1 1 1 1", xMax: 0.8f);
 
@@ -4833,7 +4845,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				FetchedPlugins.Clear();
 
-				foreach (var package in Loader.LoadedMods)
+				foreach (var package in ModLoader.LoadedPackages)
 				{
 					foreach (var plugin in package.Plugins)
 					{
@@ -5080,7 +5092,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					(ap, jobject) =>
 					{
 						OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
-						plugin._processor_instance.SetDirty();
+						plugin.ProcessorInstance.SetDirty();
 						Community.Runtime.CorePlugin.NextTick(() => SetTab(ap.Player, "plugins", false));
 					}));
 				break;
@@ -5785,7 +5797,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		internal void ModuleInfoTemplate(CUI cui, Tab tab, CuiElementContainer container, string panel, PlayerSession player, string title, string content, string hint, BaseModule module)
 		{
-			var consoleCommands = Community.Runtime.CommandManager.Console.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
+			var consoleCommands = Community.Runtime.CommandManager.ClientConsole.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
 			var chatCommands = Community.Runtime.CommandManager.Chat.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
 			var consoleCommandCount = consoleCommands.Count();
 			var chatCommandCount = chatCommands.Count();

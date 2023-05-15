@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Contracts;
@@ -94,7 +92,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		{
 			try
 			{
-				Carbon.Core.Loader.FailedMods.RemoveAll(x => x.File == File);
+				Carbon.Core.ModLoader.FailedMods.RemoveAll(x => x.File == File);
 
 				Loader = new ScriptLoader
 				{

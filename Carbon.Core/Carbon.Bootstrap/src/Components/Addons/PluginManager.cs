@@ -26,23 +26,21 @@ internal sealed class PluginManager : AddonManager
 		Context.CarbonPlugins,
 	};
 
-#if EXPERIMENTAL
 	internal void Awake()
 	{
-		Carbon.Bootstrap.Watcher.Watch(new WatchItem
-		{
-			Extension = "*.dll",
-			IncludeSubFolders = false,
-			Directory = Context.CarbonPlugins,
+		// Carbon.Bootstrap.Watcher.Watch(new WatchItem
+		// {
+		// 	Extension = "*.dll",
+		// 	IncludeSubFolders = false,
+		// 	Directory = Context.CarbonPlugins,
 
-			OnFileCreated = (sender, file) =>
-			{
-				Carbon.Bootstrap.AssemblyEx.Plugins.Load(
-					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
-			},
-		});
+		// 	OnFileCreated = (sender, file) =>
+		// 	{
+		// 		Carbon.Bootstrap.AssemblyEx.Plugins.Load(
+		// 			Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
+		// 	},
+		// });
 	}
-#endif
 
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public override Assembly Load(string file, string requester = null)

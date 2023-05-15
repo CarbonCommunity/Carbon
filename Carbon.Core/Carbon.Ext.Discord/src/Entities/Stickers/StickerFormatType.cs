@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace Oxide.Ext.Discord.Entities.Stickers
+﻿namespace Oxide.Ext.Discord.Entities.Stickers
 {
 	/// <summary>
 	/// Represents <a href="https://discord.com/developers/docs/resources/sticker#sticker-format-types">Sticker Format Types</a>

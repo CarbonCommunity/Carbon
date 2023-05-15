@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using API.Abstracts;
+using API.Commands;
 using API.Events;
 using API.Hooks;
 
@@ -66,6 +67,18 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		_subscribers = new List<Subscription>();
 		_workQueue = new Queue<string>();
 
+		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
+		{
+			Name = "c.autoupdate",
+			Callback = (arg) => CMDAutoUpdate(arg)
+		}, out string _);
+
+		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
+		{
+			Name = "c.hooks",
+			Callback = (arg) => CMDHookInfo(arg)
+		}, out string _);
+
 		if (Community.Runtime.Config.AutoUpdate)
 		{
 			Logger.Log("Updating hooks...");
@@ -103,14 +116,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			// I don't like this, patching stuff that may not be used but for the
 			// sake of time I will let it go for now but this needs to be reviewed.
 			foreach (HookEx hook in _patches.Where(x => !x.IsInstalled && !x.HasDependencies()))
-				Subscribe(hook.Identifier, "Carbon.Core");
+				Subscribe(hook.Identifier, "Carbon.Patch");
 		}
 
 		if (_staticHooks.Count > 0)
 		{
 			Logger.Debug($" - Installing static hooks");
 			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
-				Subscribe(hook.Identifier, "Carbon.Core");
+				Subscribe(hook.Identifier, "Carbon.Static");
 		}
 
 		// if (_dynamicHooks.Count > 0)
@@ -144,17 +157,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private void OnDestroy()
 	{
 		Logger.Log("Destroying hook processor...");
-
-		// make sure all patches are removed
-		List<HookEx> hooks = _staticHooks.Concat(_dynamicHooks).Concat(_patches).ToList();
-		foreach (HookEx hook in hooks) hook.Dispose();
-
-		_workQueue = default;
-		_subscribers = default;
-
-		_patches = default;
-		_staticHooks = default;
-		_dynamicHooks = default;
+		Dispose();
 	}
 
 	private void Update()
@@ -301,12 +304,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					retvar.Patch++;
 					_patches.Add(hook);
 					Logger.Debug($"Loaded patch '{hook}'", 4);
+					if (!hook.HasDependencies()) Subscribe(hook.Identifier, "Carbon.Patch");
 				}
 				else if (hook.IsStaticHook)
 				{
 					retvar.Static++;
 					_staticHooks.Add(hook);
 					Logger.Debug($"Loaded static hook '{hook}'", 4);
+					Subscribe(hook.Identifier, "Carbon.Static");
 				}
 				else
 				{
@@ -559,6 +564,159 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		return string.Concat(bytes.Select(b => b.ToString("x2"))).ToLower();
 	}
 
+	private void CMDAutoUpdate(Command.Args arg)
+	{
+		if (!arg.Tokenize<ConsoleSystem.Arg>(out var args)) return;
+
+		bool value = args.GetBool(0, false);
+
+		if (args.HasArgs(1))
+		{
+			Community.Runtime.Config.AutoUpdate = value;
+			Community.Runtime.SaveConfig();
+		}
+
+		arg.ReplyWith($"c.autoupdate: {Community.Runtime.Config.AutoUpdate}");
+	}
+
+	private void CMDHookInfo(Command.Args arg)
+	{
+		if (!arg.Tokenize<ConsoleSystem.Arg>(out var args)) return;
+
+		TextTable table = new();
+		int count = 0, success = 0, warning = 0, failure = 0;
+
+		string option1 = args.GetString(0, null);
+		string option2 = args.GetString(1, null);
+
+		table.AddColumns("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
+
+		switch (option1)
+		{
+			case "loaded":
+				{
+					IEnumerable<IHook> hooks;
+
+					switch (option2)
+					{
+						case "--patch":
+							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
+							break;
+
+						case "--static":
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
+							break;
+
+						case "--dynamic":
+							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
+							break;
+
+						default:
+#if DEBUG_VERBOSE
+							hooks = Community.Runtime.HookManager.LoadedPatches;
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks);
+#else
+							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
+#endif
+							break;
+					}
+
+					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
+					{
+						if (mod.Status == HookState.Failure) failure++;
+						if (mod.Status == HookState.Success) success++;
+						if (mod.Status == HookState.Warning) warning++;
+
+						table.AddRow(
+							$"{count++:n0}",
+							mod.IsHidden
+								? $"{mod.HookFullName} (*)"
+								: mod.HookFullName,
+							mod.HookName,
+							mod.Identifier[^6..],
+							mod.IsStaticHook
+								? "Static"
+								: mod.IsPatch ? "Patch" : "Dynamic",
+							$"{mod.Status}",
+							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							(mod.IsStaticHook)
+								? "N/A" :
+								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
+						);
+					}
+
+					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}"
+						+ Environment.NewLine + Environment.NewLine + table.ToString());
+					break;
+				}
+
+			default: // list installed
+				{
+					IEnumerable<IHook> hooks;
+
+					switch (option1)
+					{
+						case "--patch":
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							break;
+
+						case "--static":
+							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
+							break;
+
+						case "--dynamic":
+							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
+							break;
+
+						default:
+#if DEBUG_VERBOSE
+							hooks = Community.Runtime.HookManager.InstalledPatches;
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks);
+#else
+							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
+							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
+#endif
+							break;
+					}
+
+					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
+					{
+						if (mod.Status == HookState.Failure) failure++;
+						if (mod.Status == HookState.Success) success++;
+						if (mod.Status == HookState.Warning) warning++;
+
+						table.AddRow(
+							$"{count++:n0}",
+							mod.IsHidden
+								? $"{mod.HookFullName} (*)"
+								: mod.HookFullName,
+							mod.HookName,
+							mod.Identifier[^6..],
+							mod.IsStaticHook
+								? "Static"
+								: mod.IsPatch ? "Patch" : "Dynamic",
+							$"{mod.Status}",
+							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							(mod.IsStaticHook)
+								? "N/A" :
+								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
+						);
+					}
+
+					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}"
+						+ Environment.NewLine + Environment.NewLine + table.ToString());
+					break;
+				}
+		}
+	}
+
 
 	private bool _disposing;
 
@@ -569,19 +727,22 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			if (disposing)
 			{
 				foreach (HookEx item in _dynamicHooks) item.Dispose();
-				_dynamicHooks.Clear();
+				_dynamicHooks = default;
 
 				foreach (HookEx item in _installed) item.Dispose();
-				_installed.Clear();
+				_installed = default;
 
 				foreach (HookEx item in _patches) item.Dispose();
-				_patches.Clear();
+				_patches = default;
 
 				foreach (HookEx item in _staticHooks) item.Dispose();
-				_staticHooks.Clear();
+				_staticHooks = default;
+
+				_workQueue = default;
+				_subscribers = default;
 			}
 
-			// no unmanaged resources
+			// unmanaged resources
 			_disposing = true;
 		}
 	}

@@ -191,9 +191,7 @@ public class GatherManagerConfig
 	[JsonProperty("OvenSpeedOverrideBlacklist (prefab shortname, type)")]
 	public string[] OvenSpeedOverrideBlacklist = new string[]
 	{
-		"campfire",
-		"skull_fire_pit",
-		"lantern.deployed",
+		"lantern.deployed", 
 		"tunalight.deployed",
 		"chineselantern.deployed"
 	};

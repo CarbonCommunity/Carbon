@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using API.Hooks;
-using UnityEngine;
+﻿using API.Hooks;
 
 /*
  *

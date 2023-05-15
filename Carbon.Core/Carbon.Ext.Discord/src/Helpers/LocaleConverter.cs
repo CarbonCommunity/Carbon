@@ -1,6 +1,4 @@
-﻿using Oxide.Plugins;
-
-namespace Oxide.Ext.Discord.Helpers
+﻿namespace Oxide.Ext.Discord.Helpers
 {
 	/// <summary>
 	/// Converts discord locale codes into oxide locale codes

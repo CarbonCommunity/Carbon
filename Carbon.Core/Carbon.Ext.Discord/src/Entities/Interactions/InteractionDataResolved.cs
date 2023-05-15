@@ -4,7 +4,6 @@ using Oxide.Ext.Discord.Entities.Guilds;
 using Oxide.Ext.Discord.Entities.Messages;
 using Oxide.Ext.Discord.Entities.Permissions;
 using Oxide.Ext.Discord.Entities.Users;
-using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord.Entities.Interactions
 {

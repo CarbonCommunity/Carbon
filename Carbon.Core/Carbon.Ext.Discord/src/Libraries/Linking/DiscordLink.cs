@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Carbon.Oxide;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
@@ -10,8 +9,6 @@ using Oxide.Ext.Discord.Entities;
 using Oxide.Ext.Discord.Entities.Guilds;
 using Oxide.Ext.Discord.Entities.Users;
 using Oxide.Ext.Discord.Logging;
-using Oxide.Plugins;
-using static Oxide.Plugins.CovalencePlugin;
 
 namespace Oxide.Ext.Discord.Libraries.Linking
 {

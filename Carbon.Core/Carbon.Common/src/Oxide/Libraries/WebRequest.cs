@@ -4,7 +4,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Carbon;
 using Oxide.Core.Plugins;
-using Oxide.Plugins;
 
 /*
  *
@@ -173,6 +172,7 @@ public class WebRequests : Library
 					case "PUT":
 					case "PATCH":
 					case "POST":
+					case "DELETE":
 						_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
 						{
 							try

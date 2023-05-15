@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Carbon.Base;
 using Carbon.Extensions;
 using Carbon.Modules;
@@ -252,7 +251,10 @@ public struct CUI : IDisposable
 		internal CuiRectPosition _defaultPosition = new(0f, 1f, 0f, 1f);
 		internal CuiImageComponent _defaultImage = new();
 		internal CuiRawImageComponent _defaultRawImage = new();
-		internal CuiRectTransformComponent _defaultRectTransform = new();
+		internal CuiRectTransformComponent _defaultRectTransform = new()
+		{
+			OffsetMax = "0 0"
+		};
 		internal CuiTextComponent _defaultText = new();
 		internal CuiButtonComponent _defaultButton = new();
 		internal CuiInputFieldComponent _defaultInputField = new();
@@ -643,7 +645,7 @@ public static class CUIStatics
 		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi);
 
 		var label = cui.TakeFromPoolText();
-		label.Text = text;
+		label.Text = string.IsNullOrEmpty(text) ? string.Empty : text;
 		label.FontSize = size;
 		label.Align = align;
 		label.Font = cui.GetFont(font);
@@ -716,7 +718,7 @@ public static class CUIStatics
 
 		var inputField = cui.TakeFromPoolInputField();
 		inputField.Color = ProcessColor(color);
-		inputField.Text = text;
+		inputField.Text = string.IsNullOrEmpty(text) ? string.Empty : text;
 		inputField.FontSize = size;
 		inputField.Font = cui.GetFont(font);
 		inputField.Align = align;

@@ -25,7 +25,7 @@ echo ** Build the solution
 dotnet restore "%BUILD_ROOT%\Carbon.Core" -v:m --nologo || exit /b
 dotnet   clean "%BUILD_ROOT%\Carbon.Core" -v:m --configuration %BUILD_TARGET% --nologo || exit /b
 dotnet   build "%BUILD_ROOT%\Carbon.Core" -v:m --configuration %BUILD_TARGET% --no-restore --no-incremental ^
-	/p:UserConstants="%DEFINES%" /p:UserVersion="%VERSION%" || exit /b
+	/p:UserConstants=\"%DEFINES%\" /p:UserVersion="%VERSION%" || exit /b
 
 echo ** Copy operating system specific files
 echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (

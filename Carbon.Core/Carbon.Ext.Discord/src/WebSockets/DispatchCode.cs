@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Oxide.Ext.Discord.Helpers.Converters;
 
 namespace Oxide.Ext.Discord.WebSockets

@@ -2,10 +2,8 @@
 using Newtonsoft.Json;
 using Oxide.Ext.Discord.Entities.Applications;
 using Oxide.Ext.Discord.Entities.Guilds;
-using Oxide.Ext.Discord.Entities.Interactions;
 using Oxide.Ext.Discord.Entities.Users;
 using Oxide.Ext.Discord.Helpers.Converters;
-using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord.Entities.Gatway.Events
 {

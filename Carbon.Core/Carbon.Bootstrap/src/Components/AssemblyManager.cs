@@ -43,7 +43,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 	{ get => gameObject.GetComponent<ModuleManager>(); }
 
 #if EXPERIMENTAL
-	public IAssemblyTypeManager Plugins
+	public IAddonManager Plugins
 	{ get => gameObject.GetComponent<PluginManager>(); }
 #endif
 
@@ -60,21 +60,13 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		gameObject.AddComponent<PluginManager>();
 #endif
 
-		try
+#if DEBUG
+		Carbon.Bootstrap.Commands.RegisterCommand(new Command.RCon
 		{
-			if (!Carbon.Bootstrap.Commands.RegisterCommand(new Command.Console
-			{
-				Name = "test.foobar",
-				Callback = (arg) =>
-				{
-					UnityEngine.Debug.Log($"test");
-				},
-			}, out string reason)) throw new Exception(reason);
-		}
-		catch (System.Exception e)
-		{
-			Logger.Error($"Unable to register command", e);
-		}
+			Name = "c.assembly",
+			Callback = (arg) => CMDAssemblyInfo(arg)
+		}, out string reason);
+#endif
 	}
 
 	public byte[] Read(string file)
@@ -136,6 +128,27 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		}
 	}
 
+	private void CMDAssemblyInfo(Command.Args arg)
+	{
+		int count = 0;
+		TextTable table = new();
+
+		table.AddColumns("#", "Assembly", "Version", "Dynamic", "Location");
+
+		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+		{
+			table.AddRow(
+				$"{count++:n0}",
+				assembly.GetName().Name,
+				$"{assembly.GetName().Version}",
+				$"{assembly.IsDynamic}",
+				(assembly.IsDynamic) ? string.Empty : assembly.Location
+			);
+		}
+
+		arg.ReplyWith(table.ToString());
+	}
+
 	private static readonly IReadOnlyList<string> _blacklistLibs = new List<string>() {
 		@"^Carbon$",
 		@"^Carbon\.Bootstrap|Preloader$",
@@ -154,6 +167,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"System.Memory",
 		"System.Net.Http",
 		"System.Runtime",
+		"System.Threading.Tasks.Extensions",
 		"System.Xml.Linq",
 		"System.Xml.Serialization",
 		"System.Xml",
@@ -172,6 +186,8 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 
 		"Fleck", // bundled with rust (websocket server)
 		"Newtonsoft.Json", // bundled with rust
+
+		"Ionic.Zip.Reduced",
 
 		"Facepunch.BurstCloth",
 		"Facepunch.Console",

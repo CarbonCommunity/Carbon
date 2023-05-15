@@ -26,7 +26,7 @@ internal sealed class ExtensionManager : AddonManager
 	 * 
 	 * An assembly to be considered as a Carbon Extension must:
 	 *   1. Implement the ICarbonExtension interface
-	 *   2. Must not change directly with the world
+	 *   2. Must not change directly the world
 	 *   3. Provide additional functionality such as new features or services
 	 *
 	 * Carbon extensions are different from Oxide extensions, in Carbon extensions

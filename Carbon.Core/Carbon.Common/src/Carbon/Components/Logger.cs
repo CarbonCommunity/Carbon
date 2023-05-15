@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using API.Logger;
-using Facepunch;
 
 /*
  *
