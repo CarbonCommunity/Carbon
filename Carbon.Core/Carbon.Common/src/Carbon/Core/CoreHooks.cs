@@ -183,14 +183,17 @@ public partial class CorePlugin : CarbonPlugin
 
 	#region Server
 
+	internal const string _blankZero = "0";
+	internal const string _blankUnnamed = "Unnamed";
+
 	private void OnServerUserSet(ulong steamId, ServerUsers.UserGroup group, string playerName, string reason, long expiry)
 	{
 		if (Community.IsServerFullyInitializedCache && group == ServerUsers.UserGroup.Banned)
 		{
 			var playerId = steamId.ToString();
-			var player = BasePlayer.FindByID(steamId).AsIPlayer();
-			Interface.CallHook("OnPlayerBanned", playerName, steamId, player.Address ?? "0", reason, expiry);
-			Interface.CallHook("OnUserBanned", playerName, playerId, player.Address ?? "0", reason, expiry);
+			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
+			Interface.CallHook("OnPlayerBanned", playerName, steamId, player == null ? _blankZero : player.Address, reason, expiry);
+			Interface.CallHook("OnUserBanned", playerName, playerId, player == null ? _blankZero : player.Address, reason, expiry);
 		}
 	}
 
@@ -201,8 +204,8 @@ public partial class CorePlugin : CarbonPlugin
 			ServerUsers.users[steamId].group == ServerUsers.UserGroup.Banned)
 		{
 			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
-			Interface.CallHook("OnPlayerUnbanned", player == null ? "Unnamed" : player.Name, steamId, player == null ? "0" : player.Address);
-			Interface.CallHook("OnUserUnbanned", player == null ? "Unnamed" : player.Name, steamId, player == null ? "0" : player.Address);
+			Interface.CallHook("OnPlayerUnbanned", player == null ? _blankUnnamed : player.Name, steamId, player == null ? _blankZero : player.Address);
+			Interface.CallHook("OnUserUnbanned", player == null ? _blankUnnamed : player.Name, steamId, player == null ? _blankZero : player.Address);
 		}
 	}
 
