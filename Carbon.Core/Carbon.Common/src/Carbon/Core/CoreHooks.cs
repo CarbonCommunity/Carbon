@@ -211,14 +211,12 @@ public partial class CorePlugin : CarbonPlugin
 
 	#region Item
 
-	// To fix:
-	// Major issue with caching the 'OnLoseCondition' hook called in <redacted> (Type must not be ByRef Parameter name: typeArgs) (HookCallerCommon.CreateDelegate)
-	/*
 	private object IOnLoseCondition(Item item, float amount)
 	{
-		object[] arguments = { item, amount };
-		Interface.CallHook("OnLoseCondition", arguments);
-		amount = (float)arguments[1];
+		if(Interface.CallHook("OnLoseCondition", item, amount) is float hookResult)
+		{
+			amount = hookResult;
+		}
 
 		var condition = item.condition;
 		item.condition -= amount;
@@ -228,7 +226,7 @@ public partial class CorePlugin : CarbonPlugin
 		}
 
 		return true;
-	}*/
+	}
 
 	#endregion
 
