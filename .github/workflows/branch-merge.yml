@@ -11,7 +11,7 @@ on:
       source:
         description: 'From branch'
         required: true
-        default: 'develop'
+        default: 'preproduction'
         type: choice
         options:
           - preproduction
