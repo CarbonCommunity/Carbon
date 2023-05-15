@@ -275,7 +275,10 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			var targetItem = target.ElementAtOrDefault(index);
 
-			if (targetItem != null && sourceItem != targetItem && !targetItem.IsSubclassOf(sourceItem))
+			if (targetItem != null &&
+				sourceItem != targetItem &&
+				!targetItem.IsSubclassOf(sourceItem) &&
+				!targetItem.GetInterfaces().Contains(sourceItem))
 			{
 				equal = false;
 				break;

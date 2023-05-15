@@ -32,6 +32,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		permission.RefreshUser(player);
 		Interface.CallHook("OnPlayerConnected", player);
+		Interface.CallHook("OnUserConnected", player.IPlayer);
 	}
 
 	private object IOnUserApprove(Connection connection)
