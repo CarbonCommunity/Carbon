@@ -121,10 +121,20 @@ public sealed class Bootstrap
 			Name = "c.build",
 			Callback = (arg) => arg.ReplyWith(Analytics.InformationalVersion)
 		}, out string _);
+		Commands.RegisterCommand(new Command.RCon
+		{
+			Name = "carbon.build",
+			Callback = (arg) => arg.ReplyWith(Analytics.InformationalVersion)
+		}, out string _);
 
 		Commands.RegisterCommand(new Command.RCon
 		{
 			Name = "c.version",
+			Callback = (arg) => arg.ReplyWith($"Carbon v{Analytics.Version}")
+		}, out string _);
+		Commands.RegisterCommand(new Command.RCon
+		{
+			Name = "carbon.version",
 			Callback = (arg) => arg.ReplyWith($"Carbon v{Analytics.Version}")
 		}, out string _);
 
@@ -133,7 +143,11 @@ public sealed class Bootstrap
 			Name = "c.protocol",
 			Callback = (arg) => arg.ReplyWith(Analytics.Protocol)
 		}, out string _);
-
+		Commands.RegisterCommand(new Command.RCon
+		{
+			Name = "carbon.protocol",
+			Callback = (arg) => arg.ReplyWith(Analytics.Protocol)
+		}, out string _);
 
 		try
 		{
