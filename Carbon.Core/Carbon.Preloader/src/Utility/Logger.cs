@@ -22,7 +22,7 @@ internal sealed class Logger
 		Error, Warning, Notice, Debug, None
 	}
 
-	public static List<int> Lock = new List<int>();
+	public static List<int> Lock = new();
 
 	static Logger()
 	{
@@ -33,38 +33,34 @@ internal sealed class Logger
 
 	internal static void Write(Severity severity, object message, Exception ex = null)
 	{
+		string formatted = severity switch
+		{
+			Severity.None => $"{message}",
+			Severity.Notice => $"[i] {message}",
+			Severity.Warning => $"[w] {message}",
+			Severity.Error => $"[e] {message}",
+			Severity.Debug => $"[d] {message}",
+			_ => throw new Exception($"Severity {severity} not implemented.")
+		};
+
 		lock (Lock)
 		{
-			string formatted = null;
-
-			switch (severity)
+#if DEBUG
+			if (ex is not null)
 			{
-				case Severity.Error:
-					formatted = $"[e] {message}";
-					formatted += (ex != null) ? $"({ex?.Message})\n{ex?.StackTrace}" : null;
-					break;
-
-				case Severity.Warning:
-					formatted = $"[w] {message}";
-					break;
-
-				case Severity.Notice:
-					formatted = $"[i] {message}";
-					break;
-
-				case Severity.Debug:
-					formatted = $"[d] {message}";
-					break;
-
-				case Severity.None:
-					formatted = $"{message}";
-					break;
-
-				default:
-					throw new Exception($"Severity {severity} not implemented.");
+#if DEBUG_VERBOSE
+				formatted += $" ({ex?.Message})\n{ex?.StackTrace}";
+#else
+				formatted += $" ({ex?.Message})";
+#endif
 			}
 
-			System.IO.File.AppendAllText(logFile,
+			if (severity != Severity.Debug)
+			{
+				Console.WriteLine(formatted);
+			}
+#endif
+			File.AppendAllText(logFile,
 				$"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {formatted}" + Environment.NewLine);
 		}
 	}

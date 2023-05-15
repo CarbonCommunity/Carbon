@@ -94,7 +94,7 @@ internal sealed class ThreadManager : CarbonBehaviour, IDisposable, IThreadManag
 			Priority = ThreadPriority.Lowest
 		};
 
-		Logger.Log($"Thread[{thread.ManagedThreadId}] created");
+		Logger.Debug($"Thread[{thread.ManagedThreadId}] created");
 		return thread;
 	}
 

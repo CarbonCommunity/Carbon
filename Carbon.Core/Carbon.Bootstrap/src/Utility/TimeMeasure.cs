@@ -25,6 +25,6 @@ public struct TimeMeasure : IDisposable
 	public void Dispose()
 	{
 		int num = Environment.TickCount - _timestamp;
-		Logger.Warn($"[PROFILER] {_name} took {num:0}ms");
+		Logger.Debug($"[PROFILER] {_name} took {num:0}ms");
 	}
 }
