@@ -86,10 +86,10 @@ namespace Oxide.Core.Plugins
 						var method = attribute.Method;
 						var priority = method.GetCustomAttribute<HookPriority>();
 
-						var name = (string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length;
-						if (!HookMethodAttributeCache.TryGetValue(name, out var list))
+						var hash = (uint)(HookCallerCommon.StringPool.GetOrAdd(string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length);
+						if (!HookMethodAttributeCache.TryGetValue(hash, out var list))
 						{
-							HookMethodAttributeCache.Add(name, new() { CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority) });
+							HookMethodAttributeCache.Add(hash, new() { CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority) });
 						}
 						else list.Add(CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority));
 					}
@@ -109,7 +109,10 @@ namespace Oxide.Core.Plugins
 				using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 				{
 					foreach (var hook in Hooks)
-						Community.Runtime.HookManager.Subscribe(hook.Key, requester);
+					{
+						Community.Runtime.HookManager.Subscribe(HookCallerCommon.StringPool.GetOrAdd(hook.Key), requester);
+					}
+						
 				}
 				Carbon.Logger.Debug(Name, "Processed hooks");
 			}
@@ -146,7 +149,9 @@ namespace Oxide.Core.Plugins
 			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 			{
 				foreach (var hook in Hooks)
-					Community.Runtime.HookManager.Unsubscribe(hook.Key, FileName);
+				{
+					Community.Runtime.HookManager.Unsubscribe(HookCallerCommon.StringPool.GetOrAdd(hook.Key), FileName);
+				}
 				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 			}
 

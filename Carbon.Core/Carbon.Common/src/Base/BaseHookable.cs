@@ -16,13 +16,13 @@ namespace Carbon.Base;
 
 public class BaseHookable
 {
-	public Dictionary<string, Priorities> Hooks { get; set; }
+	public Dictionary<uint, Priorities> Hooks { get; set; }
 	public List<HookMethodAttribute> HookMethods { get; set; }
 	public List<PluginReferenceAttribute> PluginReferences { get; set; }
 
-	public Dictionary<string, List<CachedHook>> HookCache { get; set; } = new();
-	public Dictionary<string, List<CachedHook>> HookMethodAttributeCache { get; set; } = new();
-	public List<string> IgnoredHooks { get; set; } = new();
+	public Dictionary<uint, List<CachedHook>> HookCache { get; set; } = new();
+	public Dictionary<uint, List<CachedHook>> HookMethodAttributeCache { get; set; } = new();
+	public List<uint> IgnoredHooks { get; set; } = new();
 
 	public struct CachedHook
 	{
@@ -92,37 +92,43 @@ public class BaseHookable
 
 	public void Unsubscribe(string hook)
 	{
-		if (IgnoredHooks.Contains(hook)) return;
+		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
 
-		IgnoredHooks.Add(hook);
+		if (IgnoredHooks.Contains(hash)) return;
+
+		IgnoredHooks.Add(hash);
 	}
 	public void Subscribe(string hook)
 	{
-		if (!IgnoredHooks.Contains(hook)) return;
+		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
 
-		IgnoredHooks.Remove(hook);
+		if (!IgnoredHooks.Contains(hash)) return;
+
+		IgnoredHooks.Remove(hash);
 	}
 	public bool IsHookIgnored(string hook)
 	{
-		return IgnoredHooks == null || IgnoredHooks.Contains(hook);
+		return IgnoredHooks == null || IgnoredHooks.Contains(HookCallerCommon.StringPool.GetOrAdd(hook));
 	}
 
 	public void SubscribeAll(Func<string, bool> condition = null)
 	{
 		foreach (var hook in Hooks)
 		{
-			if (condition != null && !condition(hook.Key)) continue;
+			var name = HookCallerCommon.StringPool.GetOrAdd(hook.Key);
+			if (condition != null && !condition(name)) continue;
 
-			Subscribe(hook.Key);
+			Subscribe(name);
 		}
 	}
 	public void UnsubscribeAll(Func<string, bool> condition = null)
 	{
 		foreach (var hook in Hooks)
 		{
-			if (condition != null && !condition(hook.Key)) continue;
+			var name = HookCallerCommon.StringPool.GetOrAdd(hook.Key);
+			if (condition != null && !condition(name)) continue;
 
-			Unsubscribe(hook.Key);
+			Unsubscribe(name);
 		}
 	}
 

@@ -112,7 +112,9 @@ public class HookCallerInternal : HookCallerCommon
 
 		if (plugin.IsHookIgnored(hookName)) return null;
 
-		var id = $"{hookName}[{(args == null ? 0 : args.Length)}]";
+		var id = StringPool.GetOrAdd(hookName);
+		if (args != null) id += (uint)args.Length;
+
 		var result = (object)null;
 		var conflicts = Pool.GetList<Conflict>();
 
@@ -158,7 +160,6 @@ public class HookCallerInternal : HookCallerCommon
 
 				ResultOverride(plugin, priority);
 			}
-			catch (TargetParameterCountException) { }
 			catch (Exception ex)
 			{
 				var exception = ex.InnerException ?? ex;

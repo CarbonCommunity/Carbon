@@ -94,7 +94,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 
 				var priority = method.GetCustomAttribute<HookPriority>();
-				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+				if (!Hooks.ContainsKey(hash)) Hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
 			}
 		}
 

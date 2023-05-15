@@ -10,6 +10,7 @@ using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
 using Oxide.Plugins;
+using UnityEngine;
 using static Carbon.HookCallerCommon;
 
 /*
@@ -23,6 +24,34 @@ namespace Carbon;
 
 public class HookCallerCommon
 {
+	public class StringPool
+	{
+		public static Dictionary<string, uint> HookNamePoolString { get; } = new();
+		public static Dictionary<uint, string> HookNamePoolInt { get; } = new();
+
+		public static uint GetOrAdd(string name)
+		{
+			if (!HookNamePoolString.TryGetValue(name, out var hash))
+			{
+				hash = name.ManifestHash();
+				HookNamePoolInt[hash] = name;
+				return HookNamePoolString[name] = hash;
+			}
+
+			return hash;
+		}
+
+		public static string GetOrAdd(uint name)
+		{
+			if (!HookNamePoolInt.TryGetValue(name, out var hash))
+			{
+				return string.Empty;
+			}
+
+			return hash;
+		}
+	}
+
 	public Dictionary<int, object[]> _argumentBuffer { get; } = new Dictionary<int, object[]>();
 	public Dictionary<string, int> _hookTimeBuffer { get; } = new Dictionary<string, int>();
 	public Dictionary<string, int> _hookTotalTimeBuffer { get; } = new Dictionary<string, int>();
@@ -57,7 +86,7 @@ public class HookCallerCommon
 	public static Delegate CreateDelegate(MethodInfo methodInfo, object target)
 	{
 		Func<Type[], Type> getType;
-		var isAction = methodInfo.ReturnType.Equals((typeof(void)));
+		var isAction = methodInfo.ReturnType.Equals(typeof(void));
 		var types = methodInfo.GetParameters().Select(p => p.ParameterType);
 
 		if (isAction)
@@ -104,13 +133,13 @@ public static class HookCaller
 		return total;
 	}
 
-	private static object CallStaticHook(string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, object[] args = null)
+	private static object CallStaticHook(string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, object[] args = null, bool keepArgs = false)
 	{
 		Caller.ClearHookTime(hookName);
 
 		var result = (object)null;
 		var conflicts = Pool.GetList<Conflict>();
-		var array = args == null || args.Length == 0 ? null : args.ToArray();
+		var array = args == null || args.Length == 0 ? null : keepArgs ? args : args.ToArray();
 
 		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
 		{
@@ -156,7 +185,7 @@ public static class HookCaller
 
 		Pool.FreeList(ref plugins);
 
-		if (array != null) Array.Clear(array, 0, array.Length);
+		if (array != null && !keepArgs) Array.Clear(array, 0, array.Length);
 
 		void ResultOverride(BaseHookable hookable, Priorities priority)
 		{
@@ -1298,6 +1327,15 @@ public static class HookCaller
 
 		Caller.ClearBuffer(buffer);
 		return result;
+	}
+
+	public static object CallStaticHook(string hookName, object[] args)
+	{
+		return CallStaticHook(hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args, true);
+	}
+	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object[] args)
+	{
+		return CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
 	}
 
 	private static object CallPublicHook<T>(this T plugin, string hookName, object[] args) where T : BaseHookable
