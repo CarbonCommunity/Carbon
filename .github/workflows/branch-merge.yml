@@ -14,8 +14,9 @@ on:
         default: 'preproduction'
         type: choice
         options:
-          - preproduction
           - develop
+          - preview
+          - preproduction
 
       target:
         description: 'Target branch'
@@ -23,6 +24,7 @@ on:
         default: 'production'
         type: choice
         options:
+          - preview
           - production
 
 jobs:
