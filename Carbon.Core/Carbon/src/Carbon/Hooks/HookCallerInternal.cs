@@ -169,7 +169,6 @@ public class HookCallerInternal : HookCallerCommon
 				);
 			}
 		}
-
 		object DoCall(MethodInfo info, Delegate @delegate)
 		{
 			if (@delegate == null)
@@ -241,7 +240,10 @@ public class HookCallerInternal : HookCallerCommon
 				localResult = priorityConflict.Result;
 				if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
 
-				result = localResult;
+				if (localResult != null)
+				{
+					result = localResult;
+				}
 			}
 		}
 
