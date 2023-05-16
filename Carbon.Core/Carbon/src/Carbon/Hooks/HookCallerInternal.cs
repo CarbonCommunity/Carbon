@@ -118,20 +118,7 @@ public class HookCallerInternal : HookCallerCommon
 		var result = (object)null;
 		var conflicts = Pool.GetList<Conflict>();
 
-		if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks))
-		{
-			foreach (var cachedHook in hooks)
-			{
-				var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate);
-				if (methodResult != null)
-				{
-					priority = cachedHook.Priority;
-					result = methodResult;
-				}
-
-				ResultOverride(plugin, priority);
-			}
-		}
+		if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks)) { }
 		else if (!plugin.HookCache.TryGetValue(id, out hooks))
 		{
 			plugin.HookCache.Add(id, hooks = new());
@@ -189,6 +176,7 @@ public class HookCallerInternal : HookCallerCommon
 				var beforeTicks = Environment.TickCount;
 				plugin.TrackStart();
 				var result2 = @delegate.DynamicInvoke(args);
+
 				plugin.TrackEnd();
 				var afterTicks = Environment.TickCount;
 				var totalTicks = afterTicks - beforeTicks;
