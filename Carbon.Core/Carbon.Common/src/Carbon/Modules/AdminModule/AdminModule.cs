@@ -2929,7 +2929,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				new Tab.OptionInput(null, ap => ap.GetStorage<string>(tab, "filter", string.Empty), 0, false, (ap, args) => { ap.SetStorage(tab, "filter", args.ToString(" ")); DrawEntities(tab, ap); }),
 				new Tab.OptionButton($"Refresh", ap => { DrawEntities(tab, ap); }));
 
-			var isMulti = ap3.GetStorage<bool>(tab, "multi");
+			var isMulti = ap3.GetStorage<bool>(tab, "multi", false);
 			tab.AddToggle(0, "Multi-selection", ap =>
 			{
 				isMulti = ap.SetStorage(tab, "multi", !isMulti);
@@ -2942,7 +2942,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			EntityCount = 0;
 
 			var usedFilter = ap3.GetStorage<string>(tab, "filter", string.Empty)?.ToLower()?.Trim();
-			using var map = Entities.Get<BaseEntity>(true);
+			var map = Entities.Get<BaseEntity>(true);
 			var validateFilter = ap3.GetStorage<Func<BaseEntity, bool>>(tab, "validatefilter");
 			var maximumRange = ((int)World.Size).Clamp(1, int.MaxValue) / 2;
 			var range = ap3.GetStorage<int>(tab, "range", maximumRange);
@@ -2953,6 +2953,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}, entity => entity != null && entity.transform != null && (validateFilter == null || validateFilter.Invoke(entity)) && entity.transform.position != Vector3.zero
 				&& (string.IsNullOrEmpty(usedFilter) || entity.ToString().ToLower().Contains(usedFilter) || entity.name.ToLower().Contains(usedFilter) || entity.GetType().Name?.ToLower() == usedFilter)
 				&& (range == -1 || ap3 == null || (ap3.Player != null && Vector3.Distance(ap3.Player.transform.position, entity.transform.position) <= range)));
+			map.Dispose();
 
 			tab.AddRange(0, "Range", 0, maximumRange, ap => range, (ap, value) => { try { ap.SetStorage(tab, "range", (int)value); DrawEntities(tab, ap); } catch (Exception ex) { Logger.Error($"Oof", ex); } }, ap => $"{range:0.0}m");
 			tab.AddName(0, $"Entities  ({EntityCount:n0})", TextAnchor.MiddleLeft);
@@ -3002,6 +3003,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					DrawEntitySettings(tab, 1, ap);
 				}, ap => selectedEntitites.Contains(entity) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 			}
+
+			Pool.FreeList(ref pool);
 
 			if (EntityCount == 0)
 			{
