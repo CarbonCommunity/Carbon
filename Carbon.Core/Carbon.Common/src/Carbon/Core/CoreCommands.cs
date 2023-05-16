@@ -175,7 +175,8 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var error in mod.Errors)
 					{
-						result += $" {error}\n";
+						result += $" {error.Message} [{error.Number}]\n" +
+								  $" ({error.Column} line {error.Line})\n";
 					}
 
 					result += "\n";
