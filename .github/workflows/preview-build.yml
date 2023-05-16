@@ -26,6 +26,8 @@ jobs:
         
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
+        with:
+          ref: preview
 
       - name: 📅 Prepare the environment
         id: step1
@@ -44,7 +46,7 @@ jobs:
     continue-on-error: false
 
     outputs:
-      artifact: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
+      artifact: build-preview-${{ needs.bootstrap.outputs.ref }}-linux
       build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
     
     steps:
@@ -70,7 +72,7 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-develop-linux
+        name: build-preview-linux
         path: |
           Release/Carbon.Linux.Debug.tar.gz
           Release/Carbon.Linux.Debug.info
@@ -105,7 +107,7 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-develop-windows
+        name: build-preview-windows
         path: |
           Release/Carbon.Windows.Debug.zip
           Release/Carbon.Windows.Debug.info
@@ -149,7 +151,7 @@ jobs:
         tag_name: preview_build
         name: 'Preview Build — v${{ needs.bootstrap.outputs.version }}'
         body: |
-          This is a manually triggered development build of Carbon based on the `develop` branch.
+          This is a manually triggered development build of Carbon based on the `preview` branch which includes pre-production changes and upcoming features (for testing purposes).
                   
           This build is targeted at developers.
           The general public is advised to use one of the [stable] builds.
@@ -164,7 +166,7 @@ jobs:
 
           [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
         files: |
-          Release/build-develop-linux/Carbon.Linux.Debug.info
-          Release/build-develop-linux/Carbon.Linux.Debug.tar.gz
-          Release/build-develop-windows/Carbon.Windows.Debug.info
-          Release/build-develop-windows/Carbon.Windows.Debug.zip
+          Release/build-preview-linux/Carbon.Linux.Debug.info
+          Release/build-preview-linux/Carbon.Linux.Debug.tar.gz
+          Release/build-preview-windows/Carbon.Windows.Debug.info
+          Release/build-preview-windows/Carbon.Windows.Debug.zip
