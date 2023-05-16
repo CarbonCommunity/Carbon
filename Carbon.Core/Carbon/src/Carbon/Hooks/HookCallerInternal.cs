@@ -132,8 +132,7 @@ public class HookCallerInternal : HookCallerCommon
 				ResultOverride(plugin, priority);
 			}
 		}
-
-		if (!plugin.HookCache.TryGetValue(id, out hooks))
+		else if (!plugin.HookCache.TryGetValue(id, out hooks))
 		{
 			plugin.HookCache.Add(id, hooks = new());
 
