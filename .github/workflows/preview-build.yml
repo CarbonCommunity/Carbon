@@ -6,6 +6,10 @@ name: Preview Build
 concurrency: build-2-preview
 
 on:
+  push:
+    branches:
+      - preview
+      
   workflow_dispatch:
 
 jobs:
