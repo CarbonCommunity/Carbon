@@ -266,8 +266,7 @@ public class HookCallerInternal : HookCallerCommon
 
 			if (targetItem != null &&
 				sourceItem != targetItem &&
-				!targetItem.IsSubclassOf(sourceItem) &&
-				!targetItem.GetInterfaces().Contains(sourceItem))
+				!sourceItem.IsAssignableFrom(targetItem))
 			{
 				equal = false;
 				break;
