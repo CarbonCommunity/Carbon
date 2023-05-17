@@ -5059,23 +5059,29 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = GetTab(ap.Player);
 
 		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var arg = new string[args.Args.Length];
+		Array.Copy(args.Args, arg, args.Args.Length);
 
-		switch (args.Args[0])
+		switch (arg[0])
 		{
 			case "0":
-				vendor.Download(args.Args[1], () => Singleton.Draw(args.Player()));
+				vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+				Array.Clear(arg, 0, arg.Length);
 				break;
 			case "1":
 				tab.CreateDialog($"Are you sure you want to update '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
 				{
-					vendor.Download(args.Args[1], () => Singleton.Draw(args.Player()));
+					vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+					Array.Clear(arg, 0, arg.Length);
 				}, null);
 				break;
 
 			case "2":
 				tab.CreateDialog($"Are you sure you want to uninstall '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
 				{
-					vendor.Uninstall(args.Args[1]);
+					Puts($"Uninstalling {arg[1]} on {vendor?.GetType().Name}");
+					vendor.Uninstall(arg[1]);
+					Array.Clear(arg, 0, arg.Length);
 				}, null);
 				break;
 
@@ -5098,13 +5104,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						plugin.ProcessorInstance.SetDirty();
 						Community.Runtime.CorePlugin.NextTick(() => SetTab(ap.Player, "plugins", false));
 					}));
+				Array.Clear(arg, 0, arg.Length);
 				break;
 
 			case "10":
-				var pluginName = args.Args.Skip(1).ToArray().ToString(" ");
+				var pluginName = arg.Skip(1).ToArray().ToString(" ");
 				if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
 					PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
 				else PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
+				Array.Clear(arg, 0, arg.Length);
 				break;
 		}
 

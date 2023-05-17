@@ -168,6 +168,7 @@ public partial class CorePlugin : CarbonPlugin
 			default:
 				var result = string.Empty;
 				var count = 1;
+				var index = 1;
 
 				foreach (var mod in ModLoader.FailedMods)
 				{
@@ -175,9 +176,13 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var error in mod.Errors)
 					{
-						result += $" {error}\n";
+						result += $" {index}. {error.Message} [{error.Number}]\n" +
+								  $"   ({error.Column} line {error.Line})\n";
+
+						index++;
 					}
 
+					index = 1;
 					result += "\n";
 					count++;
 				}
