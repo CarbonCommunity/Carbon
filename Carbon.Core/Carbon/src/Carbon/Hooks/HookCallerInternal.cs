@@ -5,6 +5,7 @@ using System.Reflection;
 using Carbon.Base;
 using Carbon.Extensions;
 using Facepunch;
+using static Carbon.Base.BaseHookable;
 
 /*
  *
@@ -106,7 +107,7 @@ public class HookCallerInternal : HookCallerCommon
 		return "normal";
 	}
 
-	public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority)
+	public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false)
 	{
 		priority = Priorities.Normal;
 
@@ -128,7 +129,7 @@ public class HookCallerInternal : HookCallerCommon
 				if (method.Name != hookName) continue;
 
 				var methodPriority = method.GetCustomAttribute<HookPriority>();
-				hooks.Add(BaseHookable.CachedHook.Make(method, CreateDelegate(method, plugin), methodPriority == null ? Priorities.Normal : methodPriority.Priority));
+				hooks.Add(BaseHookable.CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
 			}
 		}
 
@@ -136,7 +137,12 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			try
 			{
-				var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate);
+				if (cachedHook.IsByRef)
+				{
+					keepArgs = true;
+				}
+
+				var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate, cachedHook.IsByRef);
 
 				if (methodResult != null)
 				{
@@ -155,9 +161,10 @@ public class HookCallerInternal : HookCallerCommon
 				);
 			}
 		}
-		object DoCall(MethodInfo info, Delegate @delegate)
+
+		object DoCall(MethodInfo info, Delegate @delegate, bool isByRef)
 		{
-			if (@delegate == null)
+			if (@delegate == null && !isByRef)
 			{
 				return null;
 			}
@@ -175,7 +182,10 @@ public class HookCallerInternal : HookCallerCommon
 			{
 				var beforeTicks = Environment.TickCount;
 				plugin.TrackStart();
-				var result2 = @delegate.DynamicInvoke(args);
+				var result2 = (object)default;
+
+				if (isByRef) result2 = info.Invoke(plugin, args);
+				else result2 = @delegate.DynamicInvoke(args);
 
 				plugin.TrackEnd();
 				var afterTicks = Environment.TickCount;
@@ -264,7 +274,7 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			var targetItem = target.ElementAtOrDefault(index);
 
-			if (targetItem != null &&
+			if (targetItem != null && !sourceItem.IsByRef && !targetItem.IsByRef &&
 				sourceItem != targetItem &&
 				!sourceItem.IsAssignableFrom(targetItem))
 			{

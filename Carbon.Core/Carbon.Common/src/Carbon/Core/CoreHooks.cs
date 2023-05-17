@@ -215,10 +215,9 @@ public partial class CorePlugin : CarbonPlugin
 
 	private object IOnLoseCondition(Item item, float amount)
 	{
-		if(Interface.CallHook("OnLoseCondition", item, amount) is float hookResult)
-		{
-			amount = hookResult;
-		}
+		var args = new object[] { item, amount };
+		HookCaller.CallStaticHook("OnLoseCondition", args, keepArgs: true);
+		amount = (float)args[1];
 
 		var condition = item.condition;
 		item.condition -= amount;

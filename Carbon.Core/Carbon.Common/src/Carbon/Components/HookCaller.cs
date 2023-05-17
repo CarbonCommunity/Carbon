@@ -64,7 +64,7 @@ public class HookCallerCommon
 	public virtual object[] RescaleBuffer(object[] oldBuffer, int newScale) => null;
 	public virtual void ClearBuffer(object[] buffer) { }
 
-	public virtual object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority) where T : BaseHookable => null;
+	public virtual object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false) where T : BaseHookable => null;
 	public virtual object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority) where T : BaseHookable => null;
 
 	public struct Conflict
@@ -146,7 +146,7 @@ public static class HookCaller
 			if (hookable is IModule modules && !modules.GetEnabled()) continue;
 
 			var priority = (Priorities)default;
-			var methodResult = Caller.CallHook(hookable, hookName, flags: flag, args: array, ref priority);
+			var methodResult = Caller.CallHook(hookable, hookName, flags: flag, args: array, ref priority, keepArgs);
 
 			if (methodResult != null)
 			{
@@ -1329,9 +1329,9 @@ public static class HookCaller
 		return result;
 	}
 
-	public static object CallStaticHook(string hookName, object[] args)
+	public static object CallStaticHook(string hookName, object[] args, bool keepArgs = false)
 	{
-		return CallStaticHook(hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args, true);
+		return CallStaticHook(hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args, keepArgs: keepArgs);
 	}
 	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object[] args)
 	{
