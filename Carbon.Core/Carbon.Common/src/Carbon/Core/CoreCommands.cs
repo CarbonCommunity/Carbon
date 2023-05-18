@@ -1283,4 +1283,32 @@ public partial class CorePlugin : CarbonPlugin
 	}
 
 	#endregion
+
+
+#if DEBUG
+
+	#region Profiling
+
+	[ConsoleCommand("beginprofile", "Starts profiling the server.")]
+	[AuthLevel(2)]
+	private void BeginProfile(ConsoleSystem.Arg arg)
+	{
+		var date = DateTime.UtcNow;
+		var duration = arg.GetFloat(0, -1);
+		var name = arg.GetString(1, $"carbonprofile_{date.Year}-{date.Month}-{date.Day}_{date.Hour}{date.Minute}{date.Second}");
+
+		Profiler.Make(name).Begin(duration);
+		arg.ReplyWith("Began profiling...");
+	}
+
+	[ConsoleCommand("endprofile", "Ends profiling the server and asynchronously writes it to disk.")]
+	[AuthLevel(2)]
+	private void EndProfile(ConsoleSystem.Arg arg)
+	{
+		arg.ReplyWith(Profiler.End() ? "Ended profiling, writing to disk." : "Couldn't end profile. Most likely because there's none started.");
+	}
+
+	#endregion
+
+#endif
 }

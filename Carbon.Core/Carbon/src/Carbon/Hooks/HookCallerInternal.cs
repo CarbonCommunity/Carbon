@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Carbon.Base;
+using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
 using static Carbon.Base.BaseHookable;
@@ -180,6 +181,10 @@ public class HookCallerInternal : HookCallerCommon
 
 			if (args == null || SequenceEqual(info.GetParameters().Select(p => p.ParameterType), args.Select(a => a?.GetType())))
 			{
+#if DEBUG
+				Profiler.StartHookCall(plugin, hookName);
+#endif
+
 				var beforeTicks = Environment.TickCount;
 				plugin.TrackStart();
 				var result2 = (object)default;
@@ -198,6 +203,9 @@ public class HookCallerInternal : HookCallerCommon
 					Carbon.Logger.Warn($" {plugin.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
 				}
 
+#if DEBUG
+				Profiler.EndHookCall(plugin);
+#endif
 				return result2;
 			}
 
