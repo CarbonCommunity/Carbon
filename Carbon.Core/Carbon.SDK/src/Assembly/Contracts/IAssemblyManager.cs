@@ -18,7 +18,7 @@ public interface IAssemblyManager
 	public IAddonManager Modules { get; }
 
 #if EXPERIMENTAL
-	public IAssemblyTypeManager Plugins { get; }
+	public IAddonManager Plugins { get; }
 #endif
 
 	public byte[] Read(string file);

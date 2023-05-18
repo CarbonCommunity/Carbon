@@ -7,6 +7,7 @@ using Carbon.Extensions;
 using Carbon.Plugins;
 using Oxide.Core;
 using Oxide.Core.Plugins;
+using Oxide.Plugins;
 using UnityEngine;
 using Application = UnityEngine.Application;
 using CommandLine = Carbon.Components.CommandLine;
@@ -24,6 +25,8 @@ namespace Carbon.Core;
 public partial class CorePlugin : CarbonPlugin
 {
 	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
+
+	internal int _originalMaxPlayers = 0;
 
 	public static void RefreshOrderedFiles()
 	{
@@ -65,7 +68,8 @@ public partial class CorePlugin : CarbonPlugin
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 
 				var priority = method.GetCustomAttribute<HookPriority>();
-				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+				if (!Hooks.ContainsKey(hash)) Hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
 			}
 		}
 
@@ -83,6 +87,9 @@ public partial class CorePlugin : CarbonPlugin
 		});
 
 		cmd.AddConsoleCommand("help", this, nameof(Help), authLevel: 2);
+
+		_originalMaxPlayers = ConVar.Server.maxplayers;
+		ConVar.Server.maxplayers = 0;
 	}
 
 	private void OnServerInitialized()
@@ -91,12 +98,38 @@ public partial class CorePlugin : CarbonPlugin
 		CommandLine.ExecuteCommands("+carbon.onserverinit", "OnServerInitialized");
 
 		var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
-		var lines = OsEx.File.Exists(serverConfigPath) ? OsEx.File.ReadTextLines(serverConfigPath) : null; if (lines != null)
+		var lines = OsEx.File.Exists(serverConfigPath) ? OsEx.File.ReadTextLines(serverConfigPath) : null;
+
+		if (lines != null)
 		{
 			CommandLine.ExecuteCommands("+carbon.onserverinit", "cfg/server.cfg", lines);
 			Array.Clear(lines, 0, lines.Length);
 			lines = null;
 		}
+
+		var pluginCheck = (Timer)null;
+
+		if (!Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
+		{
+			Logger.Warn($"There still are pending plugins loading... Temporarily disallowing players from joining (enabled queue).");
+		}
+
+		pluginCheck = timer.Every(1f, () =>
+		{
+			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete() &&
+				Community.Runtime.ScriptProcessor.AllNonRequiresScriptsComplete() &&
+				Community.Runtime.ScriptProcessor.AllExtensionsComplete())
+			{
+				if (ConVar.Server.maxplayers != _originalMaxPlayers)
+				{
+					Logger.Warn($"All plugins have been loaded. Changing maximum players back to {_originalMaxPlayers}.");
+					ConVar.Server.maxplayers = _originalMaxPlayers;
+				}
+
+				pluginCheck.Destroy();
+				pluginCheck = null;
+			}
+		});
 	}
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)

@@ -360,9 +360,9 @@ public class CuiRectTransformComponent : ICuiComponent
 	[JsonProperty("offsetmin", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string OffsetMin { get; set; } = "0 0";
 
-	[DefaultValue("0 0")]
+	[DefaultValue("1 1")]
 	[JsonProperty("offsetmax")]
-	public string OffsetMax { get; set; } = "0 0";
+	public string OffsetMax { get; set; } = "1 1";
 }
 public class CuiCountdownComponent : ICuiComponent
 {

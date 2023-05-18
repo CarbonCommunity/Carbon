@@ -34,7 +34,7 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 		_domain = AppDomain.CreateDomain(_identifier, null, domaininfo);
 
 #if DEBUG
-		Logger.Log($"Created a new AppDomain '{_identifier}'");
+		Logger.Debug($"Created a new AppDomain '{_identifier}'");
 #endif
 
 		Type type = typeof(T);
@@ -50,7 +50,7 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 		if (_domain != null)
 		{
 #if DEBUG
-			Logger.Log($"Unloading AppDomain '{_identifier}'");
+			Logger.Debug($"Unloading AppDomain '{_identifier}'");
 #endif
 			AppDomain.Unload(_domain);
 			_domain = default;
