@@ -1094,6 +1094,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#region Methods
 
+	public const float OptionHeightOffset = 0.0035f;
+
 	public void Draw(BasePlayer player)
 	{
 		try
@@ -1115,20 +1117,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: 1, yMin: 0, yMax: 1,
 				needsCursor: true, destroyUi: PanelId, parent: ClientPanels.HudMenu);
 
+			var shade = cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
+				color: "0 0 0 0.6",
+				//xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f
+				xMin: 0.5f, xMax: 0.5f, yMin: 0.5f, yMax: 0.5f,
+				OxMin: -475, OxMax: 475, OyMin: -300, OyMax: 300);
+			var main = cui.CreatePanel(container, shade, $"{PanelId}main",
+				color: "0 0 0 0.5",
+				blur: true);
+
 			using (TimeMeasure.New($"{Name}.Main"))
 			{
-				cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
-					color: "0 0 0 0.6",
-					xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f);
-				cui.CreatePanel(container, $"{PanelId}color", $"{PanelId}main",
-					color: "0 0 0 0.5",
-					blur: true);
-
 				if (tab == null || !tab.Fullscreen)
 				{
 					#region Title
 
-					cui.CreateText(container, parent: $"{PanelId}main", id: null,
+					cui.CreateText(container, parent: main, id: null,
 						color: "1 1 1 0.8",
 						text: "<b>Admin Settings</b>", 18,
 						xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
@@ -1140,12 +1144,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					#region Tabs
 					try
 					{
-						cui.CreatePanel(container, parent: $"{PanelId}main", id: "tab_buttons",
+						var tabButtons = cui.CreatePanel(container, parent: main, id: null,
 							color: "0 0 0 0.6",
 							xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
 
-						TabButton(cui, container, "tab_buttons", "<", PanelId + ".changetab down", 0.03f, 0);
-						TabButton(cui, container, "tab_buttons", ">", PanelId + ".changetab up", 0.03f, 0.97f);
+						TabButton(cui, container, tabButtons, "<", PanelId + ".changetab down", 0.03f, 0);
+						TabButton(cui, container, tabButtons, ">", PanelId + ".changetab up", 0.03f, 0.97f);
 
 						var tabIndex = 0.03f;
 						var amount = Tabs.Count;
@@ -1155,21 +1159,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						{
 							var _tab = Tabs[ap.TabSkip + i];
 							var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
-							TabButton(cui, container, "tab_buttons", $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccessLevel(player, _tab.AccessLevel));
+							TabButton(cui, container, tabButtons, $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccessLevel(player, _tab.AccessLevel));
 							tabIndex += tabWidth;
 						}
 					}
 					catch (Exception ex) { PutsError($"Draw({player}).Tabs", ex); }
 					#endregion
 				}
-			}
+			}			
 
 			#region Panels
 			try
 			{
 				using (TimeMeasure.New($"{Name}.Panels/Overrides"))
 				{
-					var panels = cui.CreatePanel(container, $"{PanelId}main", "panels",
+					var panels = cui.CreatePanel(container, main, "panels",
 						color: "0 0 0 0",
 						xMin: 0.01f, xMax: 0.99f, yMin: 0.02f, yMax: tab != null && tab.Fullscreen ? 0.98f : 0.86f);
 
@@ -1208,7 +1212,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 								if (columnPage.TotalPages > 0)
 								{
+									rowHeight += OptionHeightOffset;
+
 									TabColumnPagination(cui, container, panel, i, columnPage, rowHeight, rowIndex);
+
+									rowHeight -= OptionHeightOffset;
 
 									rowIndex += rowHeight + rowSpacing;
 								}
@@ -1217,6 +1225,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								{
 									var actualI = r + (columnPage.CurrentPage * contentsPerPage);
 									var row = rows.ElementAt(actualI);
+
+									rowHeight += OptionHeightOffset;
 
 									switch (row)
 									{
@@ -1277,6 +1287,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 									TabTooltip(cui, container, panel, row, PanelId + $".callaction {i} {actualI}", ap, rowHeight, rowIndex);
 
 									#endregion
+
+									rowHeight -= OptionHeightOffset;
 
 									rowIndex += rowHeight + rowSpacing;
 								}
@@ -2917,7 +2929,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				new Tab.OptionInput(null, ap => ap.GetStorage<string>(tab, "filter", string.Empty), 0, false, (ap, args) => { ap.SetStorage(tab, "filter", args.ToString(" ")); DrawEntities(tab, ap); }),
 				new Tab.OptionButton($"Refresh", ap => { DrawEntities(tab, ap); }));
 
-			var isMulti = ap3.GetStorage<bool>(tab, "multi");
+			var isMulti = ap3.GetStorage<bool>(tab, "multi", false);
 			tab.AddToggle(0, "Multi-selection", ap =>
 			{
 				isMulti = ap.SetStorage(tab, "multi", !isMulti);
@@ -2930,7 +2942,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			EntityCount = 0;
 
 			var usedFilter = ap3.GetStorage<string>(tab, "filter", string.Empty)?.ToLower()?.Trim();
-			using var map = Entities.Get<BaseEntity>(true);
+			var map = Entities.Get<BaseEntity>(true);
 			var validateFilter = ap3.GetStorage<Func<BaseEntity, bool>>(tab, "validatefilter");
 			var maximumRange = ((int)World.Size).Clamp(1, int.MaxValue) / 2;
 			var range = ap3.GetStorage<int>(tab, "range", maximumRange);
@@ -2941,6 +2953,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}, entity => entity != null && entity.transform != null && (validateFilter == null || validateFilter.Invoke(entity)) && entity.transform.position != Vector3.zero
 				&& (string.IsNullOrEmpty(usedFilter) || entity.ToString().ToLower().Contains(usedFilter) || entity.name.ToLower().Contains(usedFilter) || entity.GetType().Name?.ToLower() == usedFilter)
 				&& (range == -1 || ap3 == null || (ap3.Player != null && Vector3.Distance(ap3.Player.transform.position, entity.transform.position) <= range)));
+			map.Dispose();
 
 			tab.AddRange(0, "Range", 0, maximumRange, ap => range, (ap, value) => { try { ap.SetStorage(tab, "range", (int)value); DrawEntities(tab, ap); } catch (Exception ex) { Logger.Error($"Oof", ex); } }, ap => $"{range:0.0}m");
 			tab.AddName(0, $"Entities  ({EntityCount:n0})", TextAnchor.MiddleLeft);
@@ -2990,6 +3003,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					DrawEntitySettings(tab, 1, ap);
 				}, ap => selectedEntitites.Contains(entity) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 			}
+
+			Pool.FreeList(ref pool);
 
 			if (EntityCount == 0)
 			{
@@ -5044,23 +5059,29 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = GetTab(ap.Player);
 
 		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var arg = new string[args.Args.Length];
+		Array.Copy(args.Args, arg, args.Args.Length);
 
-		switch (args.Args[0])
+		switch (arg[0])
 		{
 			case "0":
-				vendor.Download(args.Args[1], () => Singleton.Draw(args.Player()));
+				vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+				Array.Clear(arg, 0, arg.Length);
 				break;
 			case "1":
 				tab.CreateDialog($"Are you sure you want to update '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
 				{
-					vendor.Download(args.Args[1], () => Singleton.Draw(args.Player()));
+					vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+					Array.Clear(arg, 0, arg.Length);
 				}, null);
 				break;
 
 			case "2":
 				tab.CreateDialog($"Are you sure you want to uninstall '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
 				{
-					vendor.Uninstall(args.Args[1]);
+					Puts($"Uninstalling {arg[1]} on {vendor?.GetType().Name}");
+					vendor.Uninstall(arg[1]);
+					Array.Clear(arg, 0, arg.Length);
 				}, null);
 				break;
 
@@ -5083,13 +5104,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						plugin.ProcessorInstance.SetDirty();
 						Community.Runtime.CorePlugin.NextTick(() => SetTab(ap.Player, "plugins", false));
 					}));
+				Array.Clear(arg, 0, arg.Length);
 				break;
 
 			case "10":
-				var pluginName = args.Args.Skip(1).ToArray().ToString(" ");
+				var pluginName = arg.Skip(1).ToArray().ToString(" ");
 				if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
 					PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
 				else PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
+				Array.Clear(arg, 0, arg.Length);
 				break;
 		}
 

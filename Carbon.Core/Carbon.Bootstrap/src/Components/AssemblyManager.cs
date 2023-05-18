@@ -43,7 +43,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 	{ get => gameObject.GetComponent<ModuleManager>(); }
 
 #if EXPERIMENTAL
-	public IAssemblyTypeManager Plugins
+	public IAddonManager Plugins
 	{ get => gameObject.GetComponent<PluginManager>(); }
 #endif
 
@@ -167,6 +167,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"System.Memory",
 		"System.Net.Http",
 		"System.Runtime",
+		"System.Threading.Tasks.Extensions",
 		"System.Xml.Linq",
 		"System.Xml.Serialization",
 		"System.Xml",
@@ -185,6 +186,8 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 
 		"Fleck", // bundled with rust (websocket server)
 		"Newtonsoft.Json", // bundled with rust
+
+		"Ionic.Zip.Reduced",
 
 		"Facepunch.BurstCloth",
 		"Facepunch.Console",

@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
+using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -27,8 +28,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string[] Requires;
 	public bool IsExtension;
 	public List<string> Usings = new();
-	public Dictionary<Type, Dictionary<string, Priorities>> Hooks = new();
-	public Dictionary<Type, List<string>> UnsupportedHooks = new();
+	public Dictionary<Type, Dictionary<uint, Priorities>> Hooks = new();
+	public Dictionary<Type, List<uint>> UnsupportedHooks = new();
 	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
 	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
 	public float CompileTime;
@@ -162,6 +163,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			try { _injectExtensionReference(id, item, references); }
 			catch { }
 		}
+
 		return references;
 	}
 
@@ -199,7 +201,19 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectExtensionReference(reference, Path.Combine(Defines.GetExtensionsFolder(), $"{reference}.dll"), references);
+				var extensionFile = Path.Combine(Defines.GetExtensionsFolder(), $"{reference}.dll");
+				if (OsEx.File.Exists(extensionFile))
+				{
+					_injectExtensionReference(reference, extensionFile, references);
+					continue;
+				}
+
+				var managedFile = Path.Combine(Defines.GetRustManagedFolder(), $"{reference}.dll");
+				if (OsEx.File.Exists(managedFile))
+				{
+					_injectReference(reference, managedFile, references);
+					continue;
+				}
 			}
 			catch { /* do nothing */ }
 		}
@@ -296,8 +310,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			foreach (var type in Assembly.GetTypes())
 			{
-				var hooks = new Dictionary<string, Priorities>();
-				var unsupportedHooks = new List<string>();
+				var hooks = new Dictionary<uint, Priorities>();
+				var unsupportedHooks = new List<uint>();
 				var hookMethods = new List<HookMethodAttribute>();
 				var pluginReferences = new List<PluginReferenceAttribute>();
 				Hooks.Add(type, hooks);
@@ -307,15 +321,17 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 				{
+					var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+
 					if (HookValidator.IsIncompatibleOxideHook(method.Name))
 					{
-						unsupportedHooks.Add(method.Name);
+						unsupportedHooks.Add(hash);
 					}
 
 					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 					{
 						var priority = method.GetCustomAttribute<HookPriority>();
-						if (!hooks.ContainsKey(method.Name)) hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+						if (!hooks.ContainsKey(hash)) hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
 					}
 					else
 					{

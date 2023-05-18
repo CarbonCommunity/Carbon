@@ -144,8 +144,8 @@ namespace Oxide.Game.Rust.Libraries
 				try
 				{
 					var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-					var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer)));
-					var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer)));
+					var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters ().Any () || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
+					var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters ().Any () || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
 					var methodInfo = covalenceMethod ?? consoleMethod;
 					var parameters = methodInfo.GetParameters();
 
@@ -187,9 +187,9 @@ namespace Oxide.Game.Rust.Libraries
 								arguments.Add(null);
 							}
 						}
-					}
 
-					result = arguments.ToArray();
+						result = arguments.ToArray();
+					}
 
 					methodInfo?.Invoke(plugin, result);
 				}
@@ -280,8 +280,8 @@ namespace Oxide.Game.Rust.Libraries
 					try
 					{
 						var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-						var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer)));
-						var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer)));
+						var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
+						var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
 						var methodInfo = covalenceMethod ?? consoleMethod;
 						var parameters = methodInfo.GetParameters();
 

@@ -37,7 +37,7 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 		_domain = AppDomain.CreateDomain(_identifier, null, setup, permissions);
 		_proxy = (T)_domain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
 
-		Logger.Log($"Created a new AppDomain '{_identifier}' with a proxy to '{type.Name}'");
+		Logger.Debug($"Created a new AppDomain '{_identifier}' with a proxy to '{type.Name}'");
 	}
 
 	private bool _disposing;
@@ -50,7 +50,7 @@ public sealed class Sandbox<T> : IDisposable where T : MarshalByRefObject
 			{
 				if (_domain != null)
 				{
-					Logger.Log($"Unloading AppDomain '{_identifier}'");
+					Logger.Debug($"Unloading AppDomain '{_identifier}'");
 					AppDomain.Unload(_domain);
 					_domain = default;
 				}

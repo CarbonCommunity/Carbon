@@ -7,6 +7,7 @@ using API.Commands;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
+using API.Threads;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -67,6 +68,13 @@ public class Community
 	private readonly Lazy<IEventManager> _eventManager
 		= new(GameObject.GetComponent<IEventManager>);
 
+#if EXPERIMENTAL
+	public IThreadManager Threads
+	{ get => _threadManager.Value; }
+
+	private readonly Lazy<IThreadManager> _threadManager
+		= new(GameObject.GetComponent<IThreadManager>);
+#endif
 
 	public IPatchManager HookManager
 	{ get; set; }

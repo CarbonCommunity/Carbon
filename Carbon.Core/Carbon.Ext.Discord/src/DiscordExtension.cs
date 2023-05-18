@@ -56,7 +56,7 @@ namespace Oxide.Ext.Discord
 			DiscordSubscriptions = new DiscordSubscriptions(GlobalLogger);
 
 			Community.Runtime.Events.Subscribe(
-				CarbonEvent.PluginLoaded, arg => OnPluginLoaded(arg as CarbonEventArgs));
+				CarbonEvent.PluginPreload, arg => OnPluginLoaded(arg as CarbonEventArgs));
 
 			Community.Runtime.Events.Subscribe(
 				CarbonEvent.PluginUnloaded, arg => OnPluginUnloaded(arg as CarbonEventArgs));
@@ -73,7 +73,7 @@ namespace Oxide.Ext.Discord
 			}
 
 			Community.Runtime.Events.Unsubscribe(
-				CarbonEvent.PluginLoaded, arg => OnPluginLoaded(arg as CarbonEventArgs));
+				CarbonEvent.PluginPreload, arg => OnPluginLoaded(arg as CarbonEventArgs));
 
 			Community.Runtime.Events.Unsubscribe(
 				CarbonEvent.PluginUnloaded, arg => OnPluginUnloaded(arg as CarbonEventArgs));

@@ -251,7 +251,10 @@ public struct CUI : IDisposable
 		internal CuiRectPosition _defaultPosition = new(0f, 1f, 0f, 1f);
 		internal CuiImageComponent _defaultImage = new();
 		internal CuiRawImageComponent _defaultRawImage = new();
-		internal CuiRectTransformComponent _defaultRectTransform = new();
+		internal CuiRectTransformComponent _defaultRectTransform = new()
+		{
+			OffsetMax = "0 0"
+		};
 		internal CuiTextComponent _defaultText = new();
 		internal CuiButtonComponent _defaultButton = new();
 		internal CuiInputFieldComponent _defaultInputField = new();
