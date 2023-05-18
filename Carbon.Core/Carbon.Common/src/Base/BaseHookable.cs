@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Oxide.Core;
@@ -29,15 +30,20 @@ public class BaseHookable
 		public MethodInfo Method;
 		public Delegate Delegate;
 		public Priorities Priority;
+		public bool IsByRef;
 
-		public static CachedHook Make(MethodInfo method, Delegate @delegate, Priorities priority)
+		public static CachedHook Make(MethodInfo method, Priorities priority, object context)
 		{
-			return new CachedHook
+			var isByRef = method.GetParameters().Any(x => x.ParameterType.IsByRef);
+			var hook = new CachedHook
 			{
 				Method = method,
-				Delegate = @delegate,
-				Priority = priority
+				Delegate = isByRef ? null : HookCallerCommon.CreateDelegate(method, context),
+				Priority = priority,
+				IsByRef = isByRef
 			};
+
+			return hook;
 		}
 	}
 

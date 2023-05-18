@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Carbon.Base;
+using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
+using static Carbon.Base.BaseHookable;
 
 /*
  *
@@ -106,7 +108,7 @@ public class HookCallerInternal : HookCallerCommon
 		return "normal";
 	}
 
-	public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority)
+	public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false)
 	{
 		priority = Priorities.Normal;
 
@@ -118,22 +120,8 @@ public class HookCallerInternal : HookCallerCommon
 		var result = (object)null;
 		var conflicts = Pool.GetList<Conflict>();
 
-		if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks))
-		{
-			foreach (var cachedHook in hooks)
-			{
-				var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate);
-				if (methodResult != null)
-				{
-					priority = cachedHook.Priority;
-					result = methodResult;
-				}
-
-				ResultOverride(plugin, priority);
-			}
-		}
-
-		if (!plugin.HookCache.TryGetValue(id, out hooks))
+		if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks)) { }
+		else if (!plugin.HookCache.TryGetValue(id, out hooks))
 		{
 			plugin.HookCache.Add(id, hooks = new());
 
@@ -142,7 +130,7 @@ public class HookCallerInternal : HookCallerCommon
 				if (method.Name != hookName) continue;
 
 				var methodPriority = method.GetCustomAttribute<HookPriority>();
-				hooks.Add(BaseHookable.CachedHook.Make(method, CreateDelegate(method, plugin), methodPriority == null ? Priorities.Normal : methodPriority.Priority));
+				hooks.Add(BaseHookable.CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
 			}
 		}
 
@@ -150,7 +138,12 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			try
 			{
-				var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate);
+				if (cachedHook.IsByRef)
+				{
+					keepArgs = true;
+				}
+
+				var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate, cachedHook.IsByRef);
 
 				if (methodResult != null)
 				{
@@ -170,9 +163,9 @@ public class HookCallerInternal : HookCallerCommon
 			}
 		}
 
-		object DoCall(MethodInfo info, Delegate @delegate)
+		object DoCall(MethodInfo info, Delegate @delegate, bool isByRef)
 		{
-			if (@delegate == null)
+			if (@delegate == null && !isByRef)
 			{
 				return null;
 			}
@@ -188,9 +181,17 @@ public class HookCallerInternal : HookCallerCommon
 
 			if (args == null || SequenceEqual(info.GetParameters().Select(p => p.ParameterType), args.Select(a => a?.GetType())))
 			{
+#if DEBUG
+				Profiler.StartHookCall(plugin, hookName);
+#endif
+
 				var beforeTicks = Environment.TickCount;
 				plugin.TrackStart();
-				var result2 = @delegate.DynamicInvoke(args);
+				var result2 = (object)default;
+
+				if (isByRef) result2 = info.Invoke(plugin, args);
+				else result2 = @delegate.DynamicInvoke(args);
+
 				plugin.TrackEnd();
 				var afterTicks = Environment.TickCount;
 				var totalTicks = afterTicks - beforeTicks;
@@ -202,6 +203,9 @@ public class HookCallerInternal : HookCallerCommon
 					Carbon.Logger.Warn($" {plugin.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
 				}
 
+#if DEBUG
+				Profiler.EndHookCall(plugin);
+#endif
 				return result2;
 			}
 
@@ -241,7 +245,10 @@ public class HookCallerInternal : HookCallerCommon
 				localResult = priorityConflict.Result;
 				if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
 
-				result = localResult;
+				if (localResult != null)
+				{
+					result = localResult;
+				}
 			}
 		}
 
@@ -275,10 +282,9 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			var targetItem = target.ElementAtOrDefault(index);
 
-			if (targetItem != null &&
+			if (targetItem != null && !sourceItem.IsByRef && !targetItem.IsByRef &&
 				sourceItem != targetItem &&
-				!targetItem.IsSubclassOf(sourceItem) &&
-				!targetItem.GetInterfaces().Contains(sourceItem))
+				!sourceItem.IsAssignableFrom(targetItem))
 			{
 				equal = false;
 				break;
