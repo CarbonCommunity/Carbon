@@ -219,11 +219,15 @@ public class Profiler : IDisposable
 		public string Version;
 		public List<HookCall> HookCalls;
 
+#if DEBUG
+
 		[NonSerialized, JsonIgnore]
 		internal TimeSince _time;
 
 		[NonSerialized, JsonIgnore]
 		internal int _currentHook = -1;
+
+#endif
 
 		public void StartCall(string hook)
 		{
