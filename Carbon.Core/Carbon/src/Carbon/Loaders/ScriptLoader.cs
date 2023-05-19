@@ -8,19 +8,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Carbon.Base;
+using API.Events;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Jobs;
 using Facepunch;
-using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
-using SharpCompress.Common;
-using UnityEngine;
-using static UnityEngine.UI.GridLayoutGroup;
 
 /*
  *
@@ -44,7 +40,7 @@ public class ScriptLoader : IScriptLoader
 	public bool HasRequires { get; set; }
 
 	public IBaseProcessor.IInstance Instance { get; set; }
-	public Loader.CarbonMod Mod { get; set; }
+	public ModLoader.ModPackage Mod { get; set; }
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
 
@@ -108,7 +104,7 @@ public class ScriptLoader : IScriptLoader
 			{
 				try
 				{
-					Loader.UninitializePlugin(plugin.Instance);
+					ModLoader.UninitializePlugin(plugin.Instance);
 				}
 				catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
 			}
@@ -239,7 +235,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (noRequiresFound)
 		{
-			Loader.PostBatchFailedRequirees.Add(File);
+			ModLoader.PostBatchFailedRequirees.Add(File);
 			HasFinished = true;
 			Pool.FreeList(ref requires);
 			yield break;
@@ -281,10 +277,10 @@ public class ScriptLoader : IScriptLoader
 				Logger.Error($"  {i + 1:n0}. {print}");
 			}
 
-			Loader.FailedMods.Add(new Loader.FailedMod
+			ModLoader.FailedMods.Add(new ModLoader.FailedMod
 			{
 				File = File,
-				Errors = AsyncLoader.Exceptions.Select(x => new Loader.FailedMod.Error
+				Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedMod.Error
 				{
 					Message = x.Error.ErrorText,
 					Number = x.Error.ErrorNumber,
@@ -292,7 +288,7 @@ public class ScriptLoader : IScriptLoader
 					Line = x.Error.Line
 				}).ToArray(),
 #if DEBUG
-				Warnings = AsyncLoader.Warnings.Select(x => new Loader.FailedMod.Error
+				Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
 				{
 					Message = x.Error.ErrorText,
 					Number = x.Error.ErrorNumber,
@@ -309,14 +305,14 @@ public class ScriptLoader : IScriptLoader
 
 			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
 			{
-				Loader.OnPluginProcessFinished();
+				ModLoader.OnPluginProcessFinished();
 			}
 			yield break;
 		}
 
 		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...", 1);
 
-		Loader.AssemblyCache.Add(AsyncLoader.Assembly);
+		ModLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
 		var assembly = AsyncLoader.Assembly;
 		var firstPlugin = true;
@@ -374,9 +370,9 @@ public class ScriptLoader : IScriptLoader
 				plugin.Version = info.Version;
 				plugin.Description = description?.Description;
 
-				if (Loader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
+				if (ModLoader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
 					{
-						p._processor_instance = Instance;
+						p.ProcessorInstance = Instance;
 
 						p.Hooks = AsyncLoader.Hooks[type];
 						p.HookMethods = AsyncLoader.HookMethods[type];
@@ -393,7 +389,7 @@ public class ScriptLoader : IScriptLoader
 					rustPlugin.HasConditionals = Source.Contains("#if ");
 					rustPlugin.IsExtension = IsExtension;
 #if DEBUG
-					rustPlugin.CompileWarnings = AsyncLoader.Warnings.Select(x => new Loader.FailedMod.Error
+					rustPlugin.CompileWarnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
 					{
 						Message = x.Error.ErrorText,
 						Number = x.Error.ErrorNumber,
@@ -402,10 +398,12 @@ public class ScriptLoader : IScriptLoader
 					}).ToArray();
 #endif
 
+					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, new CarbonEventArgs(rustPlugin));
+
 					plugin.Instance = rustPlugin;
 					plugin.IsCore = IsCore;
 
-					Loader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
+					ModLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
 					Scripts.Add(plugin);
 
 					Carbon.Components.Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);
@@ -434,7 +432,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
 		{
-			Loader.OnPluginProcessFinished();
+			ModLoader.OnPluginProcessFinished();
 		}
 
 		Pool.FreeList(ref requires);

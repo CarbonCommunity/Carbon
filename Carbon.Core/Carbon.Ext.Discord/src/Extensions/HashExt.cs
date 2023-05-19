@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord.Extensions
 {

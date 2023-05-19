@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using API.Commands;
 using API.Hooks;
 using Carbon.Extensions;
 using Facepunch;
@@ -46,6 +45,14 @@ public partial class Category_Static
 					var command = split[0].Trim();
 
 					var arguments = split.Length > 1 ? cmd.Message.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
+
+					if (HookCaller.CallStaticHook("OnRconCommand", cmd.Ip, command, arguments) != null)
+					{
+						return false;
+					}
+
+					Command.FromRcon = API.Commands.Command.FromRcon = true;
+
 					var consoleArg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 					var option = Option.Unrestricted;
 					option.FromRcon = true;
@@ -53,31 +60,24 @@ public partial class Category_Static
 					consoleArg.FullString = cmd.Message;
 					consoleArg.Args = arguments;
 
-					if (HookCaller.CallStaticHook("OnRconCommand", cmd.Ip, command, arguments) != null)
-					{
-						return false;
-					}
-
-					var commandArgs = Facepunch.Pool.Get<API.Commands.Command.Args>();
-					commandArgs.Arguments = arguments;
-
-					Command.FromRcon = true;
-
 					try
 					{
 						if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.RCon, command, out var outCommand))
 						{
+							var commandArgs = Facepunch.Pool.Get<API.Commands.Command.Args>();
+							commandArgs.Token = consoleArg;
+							commandArgs.Type = outCommand.Type;
+							commandArgs.Arguments = arguments;
+
 							Community.Runtime.CommandManager.Execute(outCommand, commandArgs);
-						}
-						else if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Console, command, out var outCommand2))
-						{
-							Community.Runtime.CommandManager.Execute(outCommand2, commandArgs);
 						}
 					}
 					catch (Exception ex)
 					{
 						Logger.Error("RconCommand_OnCommand", ex);
 					}
+
+					Community.Runtime.CorePlugin.NextFrame(() => Command.FromRcon = API.Commands.Command.FromRcon = false);
 				}
 				catch { }
 

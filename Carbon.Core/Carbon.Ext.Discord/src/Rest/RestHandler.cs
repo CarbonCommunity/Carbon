@@ -4,7 +4,6 @@ using Oxide.Ext.Discord.Entities.Api;
 using Oxide.Ext.Discord.Extensions;
 using Oxide.Ext.Discord.Logging;
 using Oxide.Ext.Discord.RateLimits;
-using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord.Rest
 {

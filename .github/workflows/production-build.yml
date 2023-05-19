@@ -5,10 +5,7 @@
 name: Production Build
 concurrency: build-1-production
 
-on:
-  schedule:
-    - cron: '30 18 * * 4'
-    
+on:    
   push:
     branches:
       - production
@@ -125,6 +122,11 @@ jobs:
         path: |
           Release/Carbon.Windows.Release.zip
           Release/Carbon.Windows.Release.info
+
+    - name: 🔨 Upload NuGet package
+      shell: cmd
+      run: | 
+        %GITHUB_WORKSPACE%\Tools\Build\win\publish_nuget.bat ${{ secrets.NUGET_API }} ${{ needs.bootstrap.outputs.version }}
 
   # RELEASE --------------------------------------------------------------------
   release-on-schedule:

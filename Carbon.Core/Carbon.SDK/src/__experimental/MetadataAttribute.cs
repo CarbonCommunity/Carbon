@@ -7,19 +7,19 @@
  *
  */
 
-namespace API.Plugins;
+namespace API.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class PluginAttribute : Attribute
+public class Metadata : Attribute
 {
 	[AttributeUsage(AttributeTargets.Class)]
-	public class Info : Attribute
+	public class Product : Attribute
 	{
-		public string Title { get; }
-		public string Author { get; }
+		public string Title { get; private set; }
+		public string Author { get; private set; }
 		public Version Version { get; private set; }
 
-		public Info(string title, string author, string version)
+		public Product(string title, string author, string version)
 		{
 			Title = title;
 			Author = author; ;
@@ -30,7 +30,7 @@ public class PluginAttribute : Attribute
 	[AttributeUsage(AttributeTargets.Class)]
 	public class Description : Attribute
 	{
-		public string Value { get; }
+		public string Value { get; private set; }
 
 		public Description(string description)
 		{

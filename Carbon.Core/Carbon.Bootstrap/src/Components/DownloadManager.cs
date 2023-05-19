@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using API.Abstracts;
 using API.Contracts;
-using UnityEngine;
 
 /*
  *
@@ -50,7 +49,7 @@ internal sealed class DownloadManager : CarbonBehaviour, IDownloadManager
 		job.Start = DateTime.UtcNow;
 		_currentDownloads++;
 
-		Utility.Logger.Log($"Download job '{job.Identifier}' started");
+		Utility.Logger.Debug($"Download job '{job.Identifier}' started");
 		webClient.DownloadDataAsync(address: new Uri(job.URL), job);
 	}
 
@@ -95,7 +94,7 @@ internal sealed class DownloadManager : CarbonBehaviour, IDownloadManager
 			Identifier = $"{Guid.NewGuid():N}",
 		};
 
-		Utility.Logger.Log($"New download request with token '{job.Identifier}': {job.URL}");
+		Utility.Logger.Debug($"New download request with token '{job.Identifier}': {job.URL}");
 		_donwloadQueue.Enqueue(job);
 		byte[] bytes = await tcs.Task;
 
@@ -111,7 +110,7 @@ internal sealed class DownloadManager : CarbonBehaviour, IDownloadManager
 			Identifier = $"{Guid.NewGuid():N}",
 		};
 
-		Utility.Logger.Log($"New async download request with token '{job.Identifier}': {job.URL}");
+		Utility.Logger.Debug($"New async download request with token '{job.Identifier}': {job.URL}");
 		_donwloadQueue.Enqueue(job);
 	}
 

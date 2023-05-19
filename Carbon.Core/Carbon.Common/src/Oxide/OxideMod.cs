@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Carbon;
-using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Oxide;
 using Oxide.Core.Libraries;
-using static ConsoleSystem;
 
 /*
  *
@@ -162,6 +160,7 @@ public class OxideMod
 		else if (type == typeof(Lang)) return Community.Runtime.CorePlugin.lang as T;
 		else if (type == typeof(Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
 		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
+		else if (type == typeof(Oxide.Core.Libraries.WebRequests)) return Community.Runtime.CorePlugin.webrequest as T;
 
 		try { return Activator.CreateInstance<T>(); }
 		catch

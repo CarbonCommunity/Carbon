@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Reflection;
 using System.Threading;
 using API.Assembly;
@@ -129,7 +128,7 @@ public class Initializer : ICarbonComponent
 	}
 
 	public void OnUnloaded(EventArgs args)
-	{
+	{	
 		Logger.Log("Uninitalizing...");
 		CommunityInternal.InternalRuntime?.Uninitalize();
 		CommunityInternal.InternalRuntime = null;

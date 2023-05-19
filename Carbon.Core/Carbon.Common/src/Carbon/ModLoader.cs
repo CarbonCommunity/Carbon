@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using API.Commands;
 using API.Events;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
-using Carbon.Components;
 using Carbon.Extensions;
 using Facepunch;
 using Newtonsoft.Json;
@@ -24,7 +21,7 @@ using Report = Carbon.Components.Report;
 
 namespace Carbon.Core;
 
-public static class Loader
+public static class ModLoader
 {
 	public static List<Assembly> AssemblyCache { get; } = new();
 	public static Dictionary<string, Assembly> AssemblyDictionaryCache { get; } = new();
@@ -32,7 +29,7 @@ public static class Loader
 	public static bool IsBatchComplete { get; set; }
 	public static List<string> PostBatchFailedRequirees { get; } = new();
 
-	static Loader()
+	static ModLoader()
 	{
 		Community.Runtime.Events.Subscribe(
 			CarbonEvent.OnServerInitialized,
@@ -80,7 +77,6 @@ public static class Loader
 
 		PendingRequirees.Clear();
 		requirees.Clear();
-		requirees = null;
 	}
 	public static void ClearAllErrored()
 	{
@@ -102,8 +98,8 @@ public static class Loader
 	{
 		ClearAllRequirees();
 
-		var list = Facepunch.Pool.GetList<CarbonMod>();
-		list.AddRange(LoadedMods);
+		var list = Facepunch.Pool.GetList<ModPackage>();
+		list.AddRange(LoadedPackages);
 
 		foreach (var mod in list)
 		{
@@ -116,7 +112,7 @@ public static class Loader
 	}
 	public static bool UnloadCarbonMod(string name)
 	{
-		var mod = GetMod(name);
+		var mod = GetPackage(name);
 		if (mod == null)
 		{
 			return false;
@@ -144,7 +140,7 @@ public static class Loader
 
 	#region Carbon
 
-	public static void InitializePlugins(CarbonMod mod)
+	public static void InitializePlugins(ModPackage mod)
 	{
 		Logger.Warn($"Initializing mod '{mod.Name}'");
 
@@ -183,7 +179,7 @@ public static class Loader
 			catch (Exception ex) { Logger.Error($"Failed loading '{mod.Name}'", ex); }
 		}
 	}
-	public static void UninitializePlugins(CarbonMod mod)
+	public static void UninitializePlugins(ModPackage mod)
 	{
 		var plugins = Pool.GetList<RustPlugin>();
 		plugins.AddRange(mod.Plugins);
@@ -200,7 +196,7 @@ public static class Loader
 		Pool.FreeList(ref plugins);
 	}
 
-	public static bool InitializePlugin(Type type, out RustPlugin plugin, CarbonMod mod = null, Action<RustPlugin> preInit = null)
+	public static bool InitializePlugin(Type type, out RustPlugin plugin, ModPackage package = null, Action<RustPlugin> preInit = null)
 	{
 		var instance = Activator.CreateInstance(type, false);
 		plugin = instance as RustPlugin;
@@ -219,7 +215,7 @@ public static class Loader
 		var description = desc == null ? string.Empty : desc.Description;
 
 		plugin.SetProcessor(Community.Runtime.ScriptProcessor);
-		plugin.SetupMod(mod, title, author, version, description);
+		plugin.SetupMod(package, title, author, version, description);
 
 		preInit?.Invoke(plugin);
 
@@ -228,7 +224,7 @@ public static class Loader
 		plugin.IInit();
 		plugin.Load();
 
-		mod?.Plugins.Add(plugin);
+		package?.Plugins.Add(plugin);
 		ProcessCommands(type, plugin);
 
 		Logger.Log($"Loaded plugin {plugin.ToString()} [{plugin.CompileTime:0}ms]");
@@ -484,7 +480,7 @@ public static class Loader
 			var counter = 0;
 			var plugins = Pool.GetList<RustPlugin>();
 
-			foreach (var mod in LoadedMods)
+			foreach (var mod in LoadedPackages)
 			{
 				foreach (var plugin in mod.Plugins)
 				{
@@ -537,86 +533,42 @@ public static class Loader
 
 			Report.OnProcessEnded?.Invoke();
 			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
+
+#if DEBUG_VERBOSE
+			Logger.Error($"realtimeSinceStartup: {UnityEngine.Time.realtimeSinceStartup}");
+#endif
 		}
 	}
 
 	#endregion
 
-	internal static CarbonMod GetMod(string name)
+	internal static ModPackage GetPackage(string name)
 	{
-		foreach (var mod in LoadedMods)
+		foreach (var mod in LoadedPackages)
 		{
 			if (mod.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase)) return mod;
 		}
 
 		return null;
 	}
-	internal static Assembly LoadAssembly(string assemblyPath)
-	{
-		try
-		{
-			if (!File.Exists(assemblyPath))
-				throw new FileNotFoundException($"File not found '{assemblyPath}'");
 
-			var rawAssembly = File.ReadAllBytes(assemblyPath);
-			if (rawAssembly == null) throw new Exception("No bytes read from file");
-
-			return Assembly.Load(rawAssembly);
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"[LoadAssembly] Failed processing '{assemblyPath}'\n{ex}");
-		}
-
-		return null;
-	}
-	internal static bool IsKnownDependency(string assemblyName)
-	{
-		return assemblyName.StartsWith("System.", StringComparison.InvariantCultureIgnoreCase)
-			|| assemblyName.StartsWith("Microsoft.", StringComparison.InvariantCultureIgnoreCase)
-			|| assemblyName.StartsWith("Newtonsoft.", StringComparison.InvariantCultureIgnoreCase)
-			|| assemblyName.StartsWith("UnityEngine.", StringComparison.InvariantCultureIgnoreCase);
-	}
-
-	internal static void ReportException(string harmonyId, Exception e)
-	{
-		LogError(harmonyId, e);
-		ReflectionTypeLoadException ex;
-		if ((ex = e as ReflectionTypeLoadException) != null)
-		{
-			LogError(harmonyId, string.Format("Has {0} LoaderExceptions:", ex.LoaderExceptions));
-			foreach (var e2 in ex.LoaderExceptions)
-			{
-				ReportException(harmonyId, e2);
-			}
-		}
-		if (e.InnerException != null)
-		{
-			LogError(harmonyId, "Has InnerException:");
-			ReportException(harmonyId, e.InnerException);
-		}
-	}
-	internal static void Log(string harmonyId, object message)
-		=> Logger.Log($"[{harmonyId}] {message}");
-
-	internal static void LogError(string harmonyId, object message)
-		=> Logger.Error($"[{harmonyId}] {message}");
-
-	public static List<CarbonMod> LoadedMods = new();
+	public static List<ModPackage> LoadedPackages = new();
 	public static List<FailedMod> FailedMods = new();
 
 	[JsonObject(MemberSerialization.OptIn)]
-	public class CarbonMod
+	public class ModPackage
 	{
-		[JsonProperty]
-		public string Name { get; set; } = string.Empty;
-		[JsonProperty]
-		public string File { get; set; } = string.Empty;
-		[JsonProperty]
-		public bool IsCoreMod { get; set; } = false;
 		public Assembly Assembly { get; set; }
 		public Type[] AllTypes { get; set; }
-		//public List<IHarmonyMod> Hooks { get; } = new List<IHarmonyMod>();
+
+		[JsonProperty]
+		public string Name { get; set; } = string.Empty;
+
+		[JsonProperty]
+		public string File { get; set; } = string.Empty;
+
+		[JsonProperty]
+		public bool IsCoreMod { get; set; } = false;
 
 		[JsonProperty]
 		public List<RustPlugin> Plugins { get; set; } = new List<RustPlugin>();

@@ -90,7 +90,7 @@ internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 
 			if (String.IsNullOrEmpty(path))
 			{
-#if DEBUG
+#if DEBUG_VERBOSE
 				Logger.Error($"Unresolved library: '{name}'");
 #endif
 				return default;

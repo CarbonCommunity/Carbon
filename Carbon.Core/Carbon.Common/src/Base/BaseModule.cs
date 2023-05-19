@@ -94,7 +94,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 
 				var priority = method.GetCustomAttribute<HookPriority>();
-				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+				if (!Hooks.ContainsKey(hash)) Hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
 			}
 		}
 
@@ -190,7 +191,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual void OnDisabled(bool initialized)
 	{
-		if (initialized) Loader.RemoveCommands(this);
+		if (initialized) ModLoader.RemoveCommands(this);
 
 		UnsubscribeAll();
 		UnregisterPermissions();
@@ -199,7 +200,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
-		if (initialized) Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		if (initialized) ModLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
 		SubscribeAll();
 

@@ -1,6 +1,4 @@
 ﻿using API.Hooks;
-using Carbon.Base;
-using Carbon.Modules;
 
 /*
  *

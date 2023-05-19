@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using Carbon;
 using Oxide.Core.Plugins;
-using Oxide.Plugins;
 
 /*
  *
@@ -11,6 +11,8 @@ using Oxide.Plugins;
  * All rights reserved.
  *
  */
+
+#pragma warning disable CS4014
 
 namespace Oxide.Core.Libraries;
 
@@ -23,7 +25,7 @@ public enum RequestMethod
 	PUT
 }
 
-public class WebRequests
+public class WebRequests : Library
 {
 	public WebRequests()
 	{
@@ -32,15 +34,42 @@ public class WebRequests
 		ServicePointManager.DefaultConnectionLimit = 200;
 	}
 
-	public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f)
+	public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, string, Exception> onException = null)
 	{
 		return new WebRequest(url, callback, owner)
 		{
 			Method = method.ToString(),
 			RequestHeaders = headers,
 			Timeout = timeout,
-			Body = body
+			Body = body,
+			ErrorCallback = onException
 		}.Start();
+	}
+
+	public async Task<WebRequest> EnqueueAsync(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, string, Exception> onException = null)
+	{
+		var request = new WebRequest(url, callback, owner)
+		{
+			Method = method.ToString(),
+			RequestHeaders = headers,
+			Timeout = timeout,
+			Body = body,
+			ErrorCallback = onException
+		}.Start();
+
+		var tcs = new TaskCompletionSource<bool>();
+
+		Task.Run(() =>
+		{
+			while (request._client != null) { }
+
+			tcs.SetResult(true);
+		});
+
+		await tcs.Task;
+		tcs = null;
+
+		return request;
 	}
 
 	[Obsolete("EnqueueGet is deprecated, use Enqueue instead")]
@@ -143,6 +172,7 @@ public class WebRequests
 					case "PUT":
 					case "PATCH":
 					case "POST":
+					case "DELETE":
 						_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
 						{
 							try

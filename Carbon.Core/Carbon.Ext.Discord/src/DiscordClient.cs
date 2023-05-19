@@ -8,7 +8,6 @@ using Oxide.Ext.Discord.Attributes;
 using Oxide.Ext.Discord.Constants;
 using Oxide.Ext.Discord.Entities.Gatway;
 using Oxide.Ext.Discord.Logging;
-using Oxide.Plugins;
 
 namespace Oxide.Ext.Discord
 {

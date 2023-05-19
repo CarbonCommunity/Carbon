@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Carbon.Components;
-using Carbon.Extensions;
 using Oxide.Core;
 using Oxide.Plugins;
 

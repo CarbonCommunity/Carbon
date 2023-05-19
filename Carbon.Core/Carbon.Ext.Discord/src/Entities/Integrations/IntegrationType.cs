@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace Oxide.Ext.Discord.Entities.Integrations
+﻿namespace Oxide.Ext.Discord.Entities.Integrations
 {
 	/// <summary>
 	/// Represents Integrations types

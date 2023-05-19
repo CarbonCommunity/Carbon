@@ -44,8 +44,4 @@ public class Config
 #if WIN
 	public bool ShowConsoleInfo { get; set; } = true;
 #endif
-
-#if DEBUG
-	public bool WipeHarmonyLogOnBoot { get; set; } = true;
-#endif
 }

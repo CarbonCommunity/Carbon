@@ -1,5 +1,4 @@
-﻿using System;
-using Oxide.Ext.Discord.Entities;
+﻿using Oxide.Ext.Discord.Entities;
 
 namespace Oxide.Ext.Discord.Helpers
 {
