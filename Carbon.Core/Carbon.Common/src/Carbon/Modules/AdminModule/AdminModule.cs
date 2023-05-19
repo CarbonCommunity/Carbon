@@ -3868,6 +3868,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var favouriteButton = cui.CreateProtectedButton(container, card, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.84f, xMax: 0.97f, yMin: 0.73f, yMax: 0.86f, command: $"pluginbrowser.interact 10 {plugin.File}");
 				cui.CreateImage(container, favouriteButton, null, "star", ServerOwner.Singleton.FavouritePlugins.Contains(plugin.File) ? "0.9 0.8 0.4 0.95" : "0.2 0.2 0.2 0.4");
 
+				var autoUpdateButton = cui.CreateProtectedButton(container, card, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.84f, xMax: 0.97f, yMin: 0.59f, yMax: 0.72f, command: $"pluginbrowser.interact 11 {plugin.File}");
+				cui.CreateImage(container, autoUpdateButton, null, "update-pending", ServerOwner.Singleton.AutoUpdate.Contains(plugin.File) ? "0.8 0.4 0.9 0.95" : "0.2 0.2 0.2 0.4");
+
 				column += columnSize + spacing;
 
 				if (i % 5 == 4)
@@ -4802,6 +4805,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 
+		#endregion
+
 		[ProtoContract]
 		public class Local : IVendorDownloader
 		{
@@ -4991,8 +4996,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				return ExistentPlugin.Version.ToString() == Version;
 			}
 		}
-
-		#endregion
 	}
 
 	#region Administration - Custom Commands
@@ -5108,12 +5111,25 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				break;
 
 			case "10":
-				var pluginName = arg.Skip(1).ToArray().ToString(" ");
-				if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
-					PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
-				else PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
-				Array.Clear(arg, 0, arg.Length);
+				{
+					var pluginName = arg.Skip(1).ToArray().ToString(" ");
+					if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
+						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
+					else PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
+					Array.Clear(arg, 0, arg.Length);
+				}
 				break;
+
+			case "11":
+				{
+					var pluginName = arg.Skip(1).ToArray().ToString(" ");
+					if (PluginsTab.ServerOwner.Singleton.AutoUpdate.Contains(pluginName))
+						PluginsTab.ServerOwner.Singleton.AutoUpdate.Remove(pluginName);
+					else PluginsTab.ServerOwner.Singleton.AutoUpdate.Add(pluginName);
+					Array.Clear(arg, 0, arg.Length);
+				}
+				break;
+
 		}
 
 		Singleton.Draw(args.Player());
