@@ -2303,16 +2303,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.AddInput(0, "Search", ap => ap?.GetStorage<string>(tab, "playerfilter"), (ap2, args) => { ap2.SetStorage(tab, "playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
 
-				tab.AddName(0, "Online");
 				var onlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && x.IsConnected);
+				tab.AddName(0, $"Online ({onlinePlayers.Count():n0})");
 				foreach (var player in onlinePlayers)
 				{
 					AddPlayer(tab, ap, player);
 				}
 				if (onlinePlayers.Count() == 0) tab.AddText(0, "No online players found.", 10, "1 1 1 0.4");
 
-				tab.AddName(0, "Offline");
 				var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
+				tab.AddName(0, $"Offline ({offlinePlayers.Count():n0})");
 				foreach (var player in offlinePlayers)
 				{
 					AddPlayer(tab, ap, player);
