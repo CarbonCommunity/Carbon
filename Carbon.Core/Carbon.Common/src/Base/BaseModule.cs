@@ -200,7 +200,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		UnsubscribeAll();
 		UnregisterPermissions();
 
-		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
+		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
@@ -208,7 +208,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		SubscribeAll();
 
-		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
+		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
 
 		if (InitEnd())
 		{
