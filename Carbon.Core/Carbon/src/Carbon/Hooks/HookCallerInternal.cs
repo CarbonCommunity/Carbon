@@ -125,19 +125,24 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			plugin.HookCache.Add(id, hooks = new());
 
-			foreach (var method in plugin.Type.GetMethods(flags))
+			var methods = plugin.Type.GetMethods(flags);
+
+			for (int i = 0; i < methods.Length; i++)
 			{
+				var method = methods[i];
 				if (method.Name != hookName) continue;
 
 				var methodPriority = method.GetCustomAttribute<HookPriority>();
-				hooks.Add(BaseHookable.CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
+				hooks.Add(CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
 			}
 		}
 
-		foreach (var cachedHook in hooks)
+		for (int i = 0; i < hooks.Count; i++)
 		{
 			try
 			{
+				var cachedHook = hooks[i];
+
 				if (cachedHook.IsByRef)
 				{
 					keepArgs = true;
@@ -229,8 +234,10 @@ public class HookCallerInternal : HookCallerCommon
 				var localResult = conflicts[0].Result;
 				var priorityConflict = _defaultConflict;
 
-				foreach (var conflict in conflicts)
+				for (int i = 0; i < conflicts.Count; i++)
 				{
+					var conflict = conflicts[i];
+
 					if (conflict.Result?.ToString() != localResult?.ToString())
 					{
 						differentResults = true;

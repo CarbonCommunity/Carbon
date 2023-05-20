@@ -141,8 +141,10 @@ public static class HookCaller
 		var conflicts = Pool.GetList<Conflict>();
 		var array = args == null || args.Length == 0 ? null : keepArgs ? args : args.ToArray();
 
-		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+		for (int i = 0; i < Community.Runtime.ModuleProcessor.Modules.Count; i++)
 		{
+			var hookable = Community.Runtime.ModuleProcessor.Modules[i];
+
 			if (hookable is IModule modules && !modules.GetEnabled()) continue;
 
 			var priority = (Priorities)default;
@@ -157,16 +159,20 @@ public static class HookCaller
 
 		var plugins = Pool.GetList<RustPlugin>();
 
-		foreach (var mod in ModLoader.LoadedPackages)
+		for (int i = 0; i < ModLoader.LoadedPackages.Count; i++)
 		{
-			foreach (var plugin in mod.Plugins)
+			var mod = ModLoader.LoadedPackages[i];
+
+			for (int x = 0; x < plugins.Count; x++)
 			{
-				plugins.Add(plugin);
+				plugins.Add(mod.Plugins[x]);
 			}
 		}
 
-		foreach (var plugin in plugins)
+		for(int i = 0; i < plugins.Count; i++)
 		{
+			var plugin = plugins[i];
+
 			try
 			{
 				var priority = (Priorities)default;
@@ -183,6 +189,7 @@ public static class HookCaller
 
 		ConflictCheck();
 
+		Pool.FreeList(ref conflicts);
 		Pool.FreeList(ref plugins);
 
 		if (array != null && !keepArgs) Array.Clear(array, 0, array.Length);
@@ -200,8 +207,10 @@ public static class HookCaller
 				var localResult = conflicts[0].Result;
 				var priorityConflict = _defaultConflict;
 
-				foreach (var conflict in conflicts)
+				for(int i = 0; i < conflicts.Count; i++) 
 				{
+					var conflict = conflicts[i];
+
 					if (conflict.Result?.ToString() != localResult?.ToString())
 					{
 						differentResults = true;
