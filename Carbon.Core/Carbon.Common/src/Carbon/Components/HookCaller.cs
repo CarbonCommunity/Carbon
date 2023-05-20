@@ -163,7 +163,7 @@ public static class HookCaller
 		{
 			var mod = ModLoader.LoadedPackages[i];
 
-			for (int x = 0; x < plugins.Count; x++)
+			for (int x = 0; x < mod.Plugins.Count; x++)
 			{
 				plugins.Add(mod.Plugins[x]);
 			}
