@@ -26,29 +26,30 @@ public class HookCallerCommon
 {
 	public class StringPool
 	{
-		public static Dictionary<string, uint> HookNamePoolString { get; } = new();
-		public static Dictionary<uint, string> HookNamePoolInt { get; } = new();
+		public static Dictionary<string, uint> HookNamePoolString = new();
+		public static Dictionary<uint, string> HookNamePoolInt = new();
 
 		public static uint GetOrAdd(string name)
 		{
-			if (!HookNamePoolString.TryGetValue(name, out var hash))
+			if (HookNamePoolString.TryGetValue(name, out var hash))
 			{
-				hash = name.ManifestHash();
-				HookNamePoolInt[hash] = name;
-				return HookNamePoolString[name] = hash;
+				return hash;
 			}
 
+			hash = name.ManifestHash();
+			HookNamePoolString[name] = hash;
+			HookNamePoolInt[hash] = name;
 			return hash;
 		}
 
 		public static string GetOrAdd(uint name)
 		{
-			if (!HookNamePoolInt.TryGetValue(name, out var hash))
+			if (HookNamePoolInt.TryGetValue(name, out var hash))
 			{
-				return string.Empty;
+				return hash;
 			}
 
-			return hash;
+			return string.Empty;
 		}
 	}
 
