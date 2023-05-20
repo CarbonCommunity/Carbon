@@ -175,6 +175,10 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		Config.WriteObject(ModuleConfiguration);
 		if (DataInstance != null) Data.WriteObject(DataInstance);
 	}
+	public virtual void Shutdown()
+	{
+
+	}
 
 	public override void SetEnabled(bool enable)
 	{
