@@ -17,13 +17,13 @@ namespace Carbon.Base;
 
 public class BaseHookable
 {
-	public Dictionary<uint, Priorities> Hooks { get; set; }
-	public List<HookMethodAttribute> HookMethods { get; set; }
-	public List<PluginReferenceAttribute> PluginReferences { get; set; }
+	public Dictionary<uint, Priorities> Hooks;
+	public List<HookMethodAttribute> HookMethods;
+	public List<PluginReferenceAttribute> PluginReferences;
 
-	public Dictionary<uint, List<CachedHook>> HookCache { get; set; } = new();
-	public Dictionary<uint, List<CachedHook>> HookMethodAttributeCache { get; set; } = new();
-	public HashSet<uint> IgnoredHooks { get; set; } = new();
+	public Dictionary<uint, List<CachedHook>> HookCache = new();
+	public Dictionary<uint, List<CachedHook>> HookMethodAttributeCache = new();
+	public HashSet<uint> IgnoredHooks = new();
 
 	public struct CachedHook
 	{
@@ -51,7 +51,7 @@ public class BaseHookable
 	}
 
 	[JsonProperty]
-	public string Name { get; set; }
+	public string Name;
 
 	[JsonProperty]
 	public virtual VersionNumber Version { get; set; }
@@ -59,8 +59,8 @@ public class BaseHookable
 	[JsonProperty]
 	public double TotalHookTime { get; internal set; }
 
-	public bool HasInitialized { get; set; }
-	public Type Type { get; set; }
+	public bool HasInitialized;
+	public Type Type;
 
 	#region Tracking
 

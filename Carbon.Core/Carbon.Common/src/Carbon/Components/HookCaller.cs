@@ -53,10 +53,10 @@ public class HookCallerCommon
 		}
 	}
 
-	public Dictionary<int, object[]> _argumentBuffer { get; } = new Dictionary<int, object[]>();
-	public Dictionary<string, int> _hookTimeBuffer { get; } = new Dictionary<string, int>();
-	public Dictionary<string, int> _hookTotalTimeBuffer { get; } = new Dictionary<string, int>();
-	public Dictionary<string, DateTime> _lastDeprecatedWarningAt { get; } = new Dictionary<string, DateTime>();
+	public Dictionary<int, object[]> _argumentBuffer = new();
+	public Dictionary<string, int> _hookTimeBuffer = new();
+	public Dictionary<string, int> _hookTotalTimeBuffer = new();
+	public Dictionary<string, DateTime> _lastDeprecatedWarningAt = new();
 
 	public virtual void AppendHookTime(string hook, int time) { }
 	public virtual void ClearHookTime(string hook) { }
