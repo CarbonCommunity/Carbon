@@ -26,29 +26,30 @@ public class HookCallerCommon
 {
 	public class StringPool
 	{
-		public static Dictionary<string, uint> HookNamePoolString { get; } = new();
-		public static Dictionary<uint, string> HookNamePoolInt { get; } = new();
+		public static Dictionary<string, uint> HookNamePoolString = new();
+		public static Dictionary<uint, string> HookNamePoolInt = new();
 
 		public static uint GetOrAdd(string name)
 		{
-			if (!HookNamePoolString.TryGetValue(name, out var hash))
+			if (HookNamePoolString.TryGetValue(name, out var hash))
 			{
-				hash = name.ManifestHash();
-				HookNamePoolInt[hash] = name;
-				return HookNamePoolString[name] = hash;
+				return hash;
 			}
 
+			hash = name.ManifestHash();
+			HookNamePoolString[name] = hash;
+			HookNamePoolInt[hash] = name;
 			return hash;
 		}
 
 		public static string GetOrAdd(uint name)
 		{
-			if (!HookNamePoolInt.TryGetValue(name, out var hash))
+			if (HookNamePoolInt.TryGetValue(name, out var hash))
 			{
-				return string.Empty;
+				return hash;
 			}
 
-			return hash;
+			return string.Empty;
 		}
 	}
 
@@ -141,8 +142,10 @@ public static class HookCaller
 		var conflicts = Pool.GetList<Conflict>();
 		var array = args == null || args.Length == 0 ? null : keepArgs ? args : args.ToArray();
 
-		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+		for (int i = 0; i < Community.Runtime.ModuleProcessor.Modules.Count; i++)
 		{
+			var hookable = Community.Runtime.ModuleProcessor.Modules[i];
+
 			if (hookable is IModule modules && !modules.GetEnabled()) continue;
 
 			var priority = (Priorities)default;
@@ -157,16 +160,20 @@ public static class HookCaller
 
 		var plugins = Pool.GetList<RustPlugin>();
 
-		foreach (var mod in ModLoader.LoadedPackages)
+		for (int i = 0; i < ModLoader.LoadedPackages.Count; i++)
 		{
-			foreach (var plugin in mod.Plugins)
+			var mod = ModLoader.LoadedPackages[i];
+
+			for (int x = 0; x < mod.Plugins.Count; x++)
 			{
-				plugins.Add(plugin);
+				plugins.Add(mod.Plugins[x]);
 			}
 		}
 
-		foreach (var plugin in plugins)
+		for(int i = 0; i < plugins.Count; i++)
 		{
+			var plugin = plugins[i];
+
 			try
 			{
 				var priority = (Priorities)default;
@@ -183,6 +190,7 @@ public static class HookCaller
 
 		ConflictCheck();
 
+		Pool.FreeList(ref conflicts);
 		Pool.FreeList(ref plugins);
 
 		if (array != null && !keepArgs) Array.Clear(array, 0, array.Length);
@@ -200,8 +208,10 @@ public static class HookCaller
 				var localResult = conflicts[0].Result;
 				var priorityConflict = _defaultConflict;
 
-				foreach (var conflict in conflicts)
+				for(int i = 0; i < conflicts.Count; i++) 
 				{
+					var conflict = conflicts[i];
+
 					if (conflict.Result?.ToString() != localResult?.ToString())
 					{
 						differentResults = true;

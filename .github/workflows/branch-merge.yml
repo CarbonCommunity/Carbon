@@ -25,6 +25,7 @@ on:
         type: choice
         options:
           - preview
+          - preproduction
           - production
 
 jobs:

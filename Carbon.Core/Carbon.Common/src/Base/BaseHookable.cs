@@ -23,24 +23,27 @@ public class BaseHookable
 
 	public Dictionary<uint, List<CachedHook>> HookCache { get; set; } = new();
 	public Dictionary<uint, List<CachedHook>> HookMethodAttributeCache { get; set; } = new();
-	public List<uint> IgnoredHooks { get; set; } = new();
+	public HashSet<uint> IgnoredHooks { get; set; } = new();
 
 	public struct CachedHook
 	{
 		public MethodInfo Method;
+		public Type[] Parameters;
 		public Delegate Delegate;
 		public Priorities Priority;
 		public bool IsByRef;
 
 		public static CachedHook Make(MethodInfo method, Priorities priority, object context)
 		{
-			var isByRef = method.GetParameters().Any(x => x.ParameterType.IsByRef);
+			var parameters = method.GetParameters();
+			var isByRef = parameters.Any(x => x.ParameterType.IsByRef);
 			var hook = new CachedHook
 			{
 				Method = method,
 				Delegate = isByRef ? null : HookCallerCommon.CreateDelegate(method, context),
 				Priority = priority,
-				IsByRef = isByRef
+				IsByRef = isByRef,
+				Parameters = parameters.Select(x => x.ParameterType).ToArray(),
 			};
 
 			return hook;

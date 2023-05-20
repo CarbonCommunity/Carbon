@@ -125,25 +125,30 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			plugin.HookCache.Add(id, hooks = new());
 
-			foreach (var method in plugin.Type.GetMethods(flags))
+			var methods = plugin.Type.GetMethods(flags);
+
+			for (int i = 0; i < methods.Length; i++)
 			{
+				var method = methods[i];
 				if (method.Name != hookName) continue;
 
 				var methodPriority = method.GetCustomAttribute<HookPriority>();
-				hooks.Add(BaseHookable.CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
+				hooks.Add(CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
 			}
 		}
 
-		foreach (var cachedHook in hooks)
+		for (int i = 0; i < hooks.Count; i++)
 		{
 			try
 			{
+				var cachedHook = hooks[i];
+
 				if (cachedHook.IsByRef)
 				{
 					keepArgs = true;
 				}
 
-				var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate, cachedHook.IsByRef);
+				var methodResult = DoCall(cachedHook);
 
 				if (methodResult != null)
 				{
@@ -163,23 +168,24 @@ public class HookCallerInternal : HookCallerCommon
 			}
 		}
 
-		object DoCall(MethodInfo info, Delegate @delegate, bool isByRef)
+		object DoCall(CachedHook hook)
 		{
-			if (@delegate == null && !isByRef)
+			if (hook.Delegate == null && !hook.IsByRef)
 			{
 				return null;
 			}
 
 			if (args != null)
 			{
-				var actualLength = info.GetParameters().Length;
+				var actualLength = hook.Parameters.Length;
+
 				if (actualLength != args.Length)
 				{
 					args = RescaleBuffer(args, actualLength);
 				}
 			}
 
-			if (args == null || SequenceEqual(info.GetParameters().Select(p => p.ParameterType), args.Select(a => a?.GetType())))
+			if (args == null || SequenceEqual(hook.Parameters, args))
 			{
 #if DEBUG
 				Profiler.StartHookCall(plugin, hookName);
@@ -189,8 +195,8 @@ public class HookCallerInternal : HookCallerCommon
 				plugin.TrackStart();
 				var result2 = (object)default;
 
-				if (isByRef) result2 = info.Invoke(plugin, args);
-				else result2 = @delegate.DynamicInvoke(args);
+				if (hook.IsByRef) result2 = hook.Method.Invoke(plugin, args);
+				else result2 = hook.Delegate.DynamicInvoke(args);
 
 				plugin.TrackEnd();
 				var afterTicks = Environment.TickCount;
@@ -229,8 +235,10 @@ public class HookCallerInternal : HookCallerCommon
 				var localResult = conflicts[0].Result;
 				var priorityConflict = _defaultConflict;
 
-				foreach (var conflict in conflicts)
+				for (int i = 0; i < conflicts.Count; i++)
 				{
+					var conflict = conflicts[i];
+
 					if (conflict.Result?.ToString() != localResult?.ToString())
 					{
 						differentResults = true;
@@ -273,14 +281,14 @@ public class HookCallerInternal : HookCallerCommon
 		return CallHook(plugin, newHook, flags, args, ref priority);
 	}
 
-	internal bool SequenceEqual(IEnumerable<Type> source, IEnumerable<Type> target)
+	internal bool SequenceEqual(Type[] source, object[] target)
 	{
-		var index = 0;
 		var equal = true;
 
-		foreach (var sourceItem in source)
+		for(int i = 0; i < source.Length; i++)
 		{
-			var targetItem = target.ElementAtOrDefault(index);
+			var sourceItem = source[i];
+			var targetItem = target[i]?.GetType();
 
 			if (targetItem != null && !sourceItem.IsByRef && !targetItem.IsByRef &&
 				sourceItem != targetItem &&
@@ -289,8 +297,6 @@ public class HookCallerInternal : HookCallerCommon
 				equal = false;
 				break;
 			}
-
-			index++;
 		}
 
 		return equal;
