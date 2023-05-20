@@ -23,7 +23,7 @@ public class BaseHookable
 
 	public Dictionary<uint, List<CachedHook>> HookCache { get; set; } = new();
 	public Dictionary<uint, List<CachedHook>> HookMethodAttributeCache { get; set; } = new();
-	public List<uint> IgnoredHooks { get; set; } = new();
+	public HashSet<uint> IgnoredHooks { get; set; } = new();
 
 	public struct CachedHook
 	{

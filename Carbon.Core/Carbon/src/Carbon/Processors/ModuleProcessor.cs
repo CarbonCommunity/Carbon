@@ -21,7 +21,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 	List<BaseHookable> IModuleProcessor.Modules { get => _modules; }
 
-	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(50);
+	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(200);
 
 	public void Init()
 	{
@@ -34,11 +34,84 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		var types = typeof(Community).Assembly.GetExportedTypes().ToList();
 		types.AddRange(Community.Runtime.AssemblyEx.Modules.LoadedTypes);
+
+		var temporaryTypes = types.ToArray();
+		Build(temporaryTypes);
+
+		Pool.FreeList(ref types);
+		Array.Clear(temporaryTypes, 0, temporaryTypes.Length);
+		temporaryTypes = null;
+	}
+	public void OnServerInit()
+	{
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				try
+				{
+					module.OnServerInit();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnServerInit for '{hookable.Name}'", ex);
+				}
+			}
+		}
+
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				try
+				{
+					module.OnPostServerInit();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnPostServerInit for '{hookable.Name}'", ex);
+				}
+			}
+		}
+	}
+	public void OnServerSave()
+	{
+		foreach (var hookable in _modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				try
+				{
+					module.OnServerSaved();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"[ModuleProcessor] Failed OnServerSave for '{hookable.Name}'", ex);
+				}
+			}
+		}
+	}
+
+	public void Setup(BaseHookable hookable)
+	{
+		if (hookable is IModule)
+		{
+			_modules.Add(hookable);
+		}
+	}
+	public void Build(params Type[] types)
+	{
 		var modules = Pool.GetList<BaseHookable>();
 
 		foreach (var type in types)
 		{
-			if (type.BaseType == null || !type.BaseType.Name.Contains("CarbonModule")) continue;
+			if (type.Name == "BaseModule" ||
+				type.Name.StartsWith("CarbonModule") ||
+				type.BaseType == null ||
+				!type.IsSubclassOf(typeof(BaseModule)))
+			{
+				continue;
+			}
 
 			var module = Activator.CreateInstance(type) as BaseHookable;
 			Setup(module);
@@ -95,61 +168,10 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		Pool.FreeList(ref modules);
 	}
-	public void OnServerInit()
+	public void Uninstall(IModule module)
 	{
-		foreach (var hookable in _modules)
-		{
-			if (hookable is IModule module && module.GetEnabled())
-			{
-				try
-				{
-					module.OnServerInit();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"[ModuleProcessor] Failed OnServerInit for '{hookable.Name}'", ex);
-				}
-			}
-		}
-
-		foreach (var hookable in _modules)
-		{
-			if (hookable is IModule module && module.GetEnabled())
-			{
-				try
-				{
-					module.OnPostServerInit();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"[ModuleProcessor] Failed OnPostServerInit for '{hookable.Name}'", ex);
-				}
-			}
-		}
-	}
-	public void OnServerSave()
-	{
-		foreach (var hookable in _modules)
-		{
-			if (hookable is IModule module && module.GetEnabled())
-			{
-				try
-				{
-					module.OnServerSaved();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"[ModuleProcessor] Failed OnServerSave for '{hookable.Name}'", ex);
-				}
-			}
-		}
-	}
-	public void Setup(BaseHookable hookable)
-	{
-		if (hookable is IModule module)
-		{
-			_modules.Add(hookable);
-		}
+		module.Shutdown();
+		_modules.RemoveAll(x => x == module);
 	}
 
 	public void Save()

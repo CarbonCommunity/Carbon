@@ -18,6 +18,7 @@ public interface IModule : IHookableModule, IDisposable
 	bool InitEnd();
 	void Save();
 	void Load();
+	void Shutdown();
 
 	void OnPostServerInit();
 	void OnServerInit();
