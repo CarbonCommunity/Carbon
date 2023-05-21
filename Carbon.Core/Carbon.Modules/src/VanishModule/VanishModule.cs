@@ -31,6 +31,8 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	internal readonly GameObjectRef _drownEffect = new() { guid = "28ad47c8e6d313742a7a2740674a25b5" };
 	internal readonly GameObjectRef _fallDamageEffect = new() { guid = "ca14ed027d5924003b1c5d9e523a5fce" };
 	internal readonly GameObjectRef _emptyEffect = new();
+	internal readonly string _whooshEffect = "assets/prefabs/npc/patrol helicopter/effects/rocket_fire.prefab";
+	internal readonly string _gutshotEffect = "assets/bundled/prefabs/fx/player/gutshot_scream.prefab";
 
 	public override void OnEnabled(bool initialized)
 	{
@@ -98,7 +100,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		return null;
 	}
 
-	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool enableNoclip = true)
+	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true, bool toggleGodMode = true)
 	{
 		if (wants)
 		{
@@ -114,13 +116,19 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.OnNetworkSubscribersLeave(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player).ToList());
 			SimpleAIMemory.AddIgnorePlayer(player);
 
+			if (ConfigInstance.WhooshSoundOnVanish) Effect.server.Run(_whooshEffect, player.transform.position);
+
 			if (withUI) _drawUI(player);
 
 			if (ConfigInstance.EnableLogs) Puts($"{player} just vanished at {player.transform.position}");
 
-			if (ConfigInstance.ToggleNoclipOnVanish && enableNoclip && player.net.connection.authLevel > 0 && !player.IsFlying)
+			if (ConfigInstance.ToggleNoclipOnVanish && toggleNoclip && player.net.connection.authLevel > 0 && !player.IsFlying)
 			{
 				player.SendConsoleCommand("noclip");
+			}
+			if (ConfigInstance.ToggleGodModeOnVanish && toggleGodMode && player.net.connection.authLevel > 0 && !player.IsGod())
+			{
+				player.SendConsoleCommand("god true");
 			}
 		}
 		else
@@ -137,16 +145,20 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.drownEffect = _drownEffect;
 			player.fallDamageEffect = _fallDamageEffect;
 
-			if (ConfigInstance.GutshotScreamOnUnvanish) Effect.server.Run("assets/bundled/prefabs/fx/player/gutshot_scream.prefab", player.transform.position);
+			if (ConfigInstance.GutshotScreamOnUnvanish) Effect.server.Run(_gutshotEffect, player.transform.position);
 
 			using var cui = new CUI(Handler);
 			cui.Destroy("vanishui", player);
 
 			if (ConfigInstance.EnableLogs) Puts($"{player} unvanished at {player.transform.position}");
 
-			if (ConfigInstance.ToggleNoclipOnUnvanish && enableNoclip && player.net.connection.authLevel > 0 && player.IsFlying)
+			if (ConfigInstance.ToggleNoclipOnUnvanish && toggleNoclip && player.net.connection.authLevel > 0 && player.IsFlying)
 			{
 				player.SendConsoleCommand("noclip");
+			}
+			if (ConfigInstance.ToggleGodModeOnUnvanish && toggleGodMode && player.net.connection.authLevel > 0 && player.IsGod())
+			{
+				player.SendConsoleCommand("god false");
 			}
 		}
 	}
@@ -203,6 +215,8 @@ public class VanishConfig
 	public string VanishCommand = "vanish";
 	public bool ToggleNoclipOnVanish = true;
 	public bool ToggleNoclipOnUnvanish = false;
+	public bool ToggleGodModeOnVanish = false;
+	public bool ToggleGodModeOnUnvanish = false;
 
 	public string InvisibleText = "You are currently invisible.";
 	public int InvisibleTextSize = 10;
@@ -217,6 +231,7 @@ public class VanishConfig
 	public float[] InvisibleIconAnchorX = new float[] { 0.175f, 0.22f };
 	public float[] InvisibleIconAnchorY = new float[] { 0.017f, 0.08f };
 
+	public bool WhooshSoundOnVanish = true;
 	public bool GutshotScreamOnUnvanish = true;
 	public bool EnableLogs = true;
 	public bool TeleportBackOnUnvanish = false;
