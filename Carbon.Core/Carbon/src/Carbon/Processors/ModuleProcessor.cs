@@ -105,8 +105,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach (var type in types)
 		{
-			if (type.Name == "BaseModule" ||
-				type.Name.StartsWith("CarbonModule") ||
+			if (type.IsAbstract ||
 				type.BaseType == null ||
 				!type.IsSubclassOf(typeof(BaseModule)))
 			{
