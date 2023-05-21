@@ -11,7 +11,6 @@ using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using ProtoBuf;
 
 /*
  *
@@ -238,11 +237,16 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var tree = CSharpSyntaxTree.ParseText(
 				Source, options: parseOptions);
 
-			GenerateInternalCallHook(tree.GetCompilationUnitRoot(), out var root);
+			var root = tree.GetCompilationUnitRoot();
 
-			Source = root.ToFullString();
+			if (!Source.Contains("InternalCallHook"))
+			{
+				GenerateInternalCallHook(root, out root);
 
-			trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions));
+				Source = root.ToFullString();
+				trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions));
+			}
+			else trees.Add(tree);
 
 			foreach (var element in root.Usings)
 				Usings.Add($"{element.Name}");
@@ -395,7 +399,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var @class = @namespace.Members[0] as ClassDeclarationSyntax;
 		var methodDeclarations = @class.ChildNodes().OfType<MethodDeclarationSyntax>();
 		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
-		var privateMethods = methodDeclarations.Where(md => md.Modifiers.Any(SyntaxKind.PrivateKeyword) && md.TypeParameterList == null).OrderBy(x => x.Identifier.ValueText);
+		var privateMethods = methodDeclarations.Where(md => (md.Modifiers.Any(SyntaxKind.PrivateKeyword) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null).OrderBy(x => x.Identifier.ValueText);
 
 		foreach (var method in privateMethods)
 		{
@@ -422,15 +426,19 @@ public class ScriptCompilationThread : BaseThreadedJob
 					var parameters = method.ParameterList.Parameters.Select(x =>
 					{
 						parameterIndex++;
-						return $"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : "")}arg{parameterIndex}";
+						return x.Default != null ?
+							$"args[{parameterIndex}] is {x.Type} arg{parameterIndex} ? arg{parameterIndex} : default" :
+							$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : "")}arg{parameterIndex}";
 					}).ToArray();
 
+					var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null);
+					var requiredParameterCount = requiredParameters.Count();
 					parameterIndex = -1;
-					methodContents += $"\t\tcase {group.Key} when {(method.ParameterList.Parameters.Count > 0 ? $"{method.ParameterList.Parameters.Select(x =>
+					methodContents += $"\t\tcase {group.Key}{(requiredParameterCount > 0 ? $" when {method.ParameterList.Parameters.Select(x =>
 					{
 						parameterIndex++;
-						return $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}";
-					}).ToArray().ToString(" && ")}" : "args == null || args.Length == 0")}:\n" +
+						return x.Default == null ? $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}" : null;
+					}).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")}" : (method.Identifier.ValueText == "OnServerInitialized" ? "" : $" when args == null || args.Length <= {parameters.Length}"))}:\n" +
 						$"\t\t{{";
 
 					methodContents += $"\t\t\t{(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)});\n";
@@ -454,7 +462,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 			else
 			{
-				methodContents += $"\t\tcase \"{group.Key}\":\n" +
+				methodContents += $"\t\tcase {group.Key}:\n" +
 					$"\t\t{{";
 
 				for (int i = 0; i < group.Value.Count; i++)
