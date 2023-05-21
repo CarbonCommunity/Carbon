@@ -227,7 +227,10 @@ namespace Oxide.Core.Plugins
 
 					plugin = Community.Runtime.CorePlugin.plugins.Find(info.Title);
 				}
-				else plugin = Community.Runtime.CorePlugin.plugins.Find(name);
+				else
+				{
+					plugin = Community.Runtime.CorePlugin.plugins.Find(name);
+				}
 
 				if (plugin != null) field.SetValue(this, plugin);
 			}

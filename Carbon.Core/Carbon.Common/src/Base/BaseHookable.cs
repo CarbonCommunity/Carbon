@@ -99,6 +99,11 @@ public class BaseHookable
 
 	#endregion
 
+	public virtual object InternalCallHook(uint hook, object[] args)
+	{
+		return null;
+	}
+
 	public void Unsubscribe(string hook)
 	{
 		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
