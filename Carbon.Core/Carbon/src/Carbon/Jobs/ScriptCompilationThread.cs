@@ -392,6 +392,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 @"
 	var result = (object)null;
 
+	try {
 	switch(hook)
 	{
 ";
@@ -438,8 +439,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					{
 						parameterIndex++;
 						return x.Default == null ? $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}" : null;
-					}).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")}" : (method.Identifier.ValueText == "OnServerInitialized" ? "" : $" when args == null || args.Length <= {parameters.Length}"))}:\n" +
-						$"\t\t{{";
+					}).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")}" : (method.Identifier.ValueText == "OnServerInitialized" ? "" : $" when args == null || args.Length <= {parameters.Length}"))}:\n\t\t{{";
 
 					methodContents += $"\t\t\t{(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)});\n";
 
@@ -454,26 +454,19 @@ public class ScriptCompilationThread : BaseThreadedJob
 						parameterIndex++;
 					}
 
-					methodContents +=
-						"\tbreak;\n" +
-						"\t}\n" +
-						"\n";
+					methodContents += "\tbreak;\n\t}\n\n";
 				}
 			}
 			else
 			{
-				methodContents += $"\t\tcase {group.Key}:\n" +
-					$"\t\t{{";
+				methodContents += $"\t\tcase {group.Key}:\n\t\t{{";
 
 				for (int i = 0; i < group.Value.Count; i++)
 				{
 					PopulateCase(group.Value[i], i);
 				}
 
-				methodContents +=
-					"\tbreak;\n" +
-					"\t}\n" +
-					"\n";
+				methodContents += "\tbreak;\n\t}\n\n";
 			}
 
 			void PopulateCase(MethodDeclarationSyntax method, int methodIndex)
@@ -517,7 +510,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 		}
 
-		methodContents += "\t}\n\n\treturn result;\n";
+		methodContents += "\t}\n\t\t}\r\n\t\tcatch (System.Exception ex)\r\n\t\t{\r\n\t\t\tvar exception = ex.InnerException ?? ex;\r\n\t\t\tCarbon.Logger.Error(\r\n\t\t\t\t$\"Failed to call hook '{Carbon.HookCallerCommon.StringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\",\r\n\t\t\t\texception\r\n\t\t\t);\r\n\t\t}\n\treturn result;\n";
 
 		var generatedMethod = SyntaxFactory.MethodDeclaration(
 			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),
