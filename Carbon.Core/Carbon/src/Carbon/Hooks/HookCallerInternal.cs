@@ -148,7 +148,7 @@ public class HookCallerInternal : HookCallerCommon
 					keepArgs = true;
 				}
 
-				var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate, cachedHook.IsByRef);
+				var methodResult = DoCall(cachedHook);
 
 				if (methodResult != null)
 				{
@@ -168,23 +168,24 @@ public class HookCallerInternal : HookCallerCommon
 			}
 		}
 
-		object DoCall(MethodInfo info, Delegate @delegate, bool isByRef)
+		object DoCall(CachedHook hook)
 		{
-			if (@delegate == null && !isByRef)
+			if (hook.Delegate == null && !hook.IsByRef)
 			{
 				return null;
 			}
 
 			if (args != null)
 			{
-				var actualLength = info.GetParameters().Length;
+				var actualLength = hook.Parameters.Length;
+
 				if (actualLength != args.Length)
 				{
 					args = RescaleBuffer(args, actualLength);
 				}
 			}
 
-			if (args == null || SequenceEqual(info.GetParameters().Select(p => p.ParameterType), args.Select(a => a?.GetType())))
+			if (args == null || SequenceEqual(hook.Parameters, args))
 			{
 #if DEBUG
 				Profiler.StartHookCall(plugin, hookName);
@@ -194,8 +195,8 @@ public class HookCallerInternal : HookCallerCommon
 				plugin.TrackStart();
 				var result2 = (object)default;
 
-				if (isByRef) result2 = info.Invoke(plugin, args);
-				else result2 = @delegate.DynamicInvoke(args);
+				if (hook.IsByRef) result2 = hook.Method.Invoke(plugin, args);
+				else result2 = hook.Delegate.DynamicInvoke(args);
 
 				plugin.TrackEnd();
 				var afterTicks = Environment.TickCount;
@@ -280,14 +281,14 @@ public class HookCallerInternal : HookCallerCommon
 		return CallHook(plugin, newHook, flags, args, ref priority);
 	}
 
-	internal bool SequenceEqual(IEnumerable<Type> source, IEnumerable<Type> target)
+	internal bool SequenceEqual(Type[] source, object[] target)
 	{
-		var index = 0;
 		var equal = true;
 
-		foreach (var sourceItem in source)
+		for(int i = 0; i < source.Length; i++)
 		{
-			var targetItem = target.ElementAtOrDefault(index);
+			var sourceItem = source[i];
+			var targetItem = target[i]?.GetType();
 
 			if (targetItem != null && !sourceItem.IsByRef && !targetItem.IsByRef &&
 				sourceItem != targetItem &&
@@ -296,8 +297,6 @@ public class HookCallerInternal : HookCallerCommon
 				equal = false;
 				break;
 			}
-
-			index++;
 		}
 
 		return equal;
