@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Components;
+using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
 using static Carbon.Base.BaseHookable;
@@ -110,11 +111,17 @@ public class HookCallerInternal : HookCallerCommon
 
 	public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false)
 	{
-		priority = Priorities.Normal;
-
 		if (plugin.IsHookIgnored(hookName)) return null;
 
 		var id = StringPool.GetOrAdd(hookName);
+
+		if (plugin is not CorePlugin)
+		{
+			return plugin.InternalCallHook(id, args);
+		}
+
+		priority = Priorities.Normal;
+
 		if (args != null) id += (uint)args.Length;
 
 		var result = (object)null;

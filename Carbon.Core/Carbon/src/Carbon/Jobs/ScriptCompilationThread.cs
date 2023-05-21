@@ -3,12 +3,15 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using ProtoBuf;
 
 /*
  *
@@ -36,6 +39,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new();
 	public List<CompilerException> Warnings = new();
+
+	#region Internals
+
 	internal DateTime TimeSinceCompile;
 	internal static Dictionary<string, byte[]> _compilationCache = new();
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
@@ -50,14 +56,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		return result;
 	}
-
 	internal static byte[] _getExtensionPlugin(string name)
 	{
 		if (!_extensionCompilationCache.TryGetValue(name, out var result)) return null;
 
 		return result;
 	}
-
 	internal static void _overridePlugin(string name, byte[] pluginAssembly)
 	{
 		name = name.Replace(" ", "");
@@ -74,7 +78,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Array.Clear(plugin, 0, plugin.Length);
 		try { _compilationCache[name] = pluginAssembly; } catch { }
 	}
-
 	internal static void _overrideExtensionPlugin(string name, byte[] pluginAssembly)
 	{
 		if (pluginAssembly == null) return;
@@ -89,13 +92,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Array.Clear(plugin, 0, plugin.Length);
 		try { _extensionCompilationCache[name] = pluginAssembly; } catch { }
 	}
-
 	internal static void _clearExtensionPlugin(string name)
 	{
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.Remove(name);
 		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
 	}
-
 	internal void _injectReference(string id, string name, List<MetadataReference> references)
 	{
 		if (_referenceCache.TryGetValue(name, out var reference))
@@ -116,7 +117,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
-
 	internal void _injectExtensionReference(string id, string name, List<MetadataReference> references)
 	{
 		if (_extensionReferenceCache.TryGetValue(name, out var reference))
@@ -135,7 +135,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			_extensionReferenceCache.Add(name, processedReference);
 		}
 	}
-
 	internal List<MetadataReference> _addReferences()
 	{
 		var references = new List<MetadataReference>();
@@ -166,6 +165,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		return references;
 	}
+
+	#endregion
 
 	public class CompilerException : Exception
 	{
@@ -236,9 +237,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 				.WithPreprocessorSymbols(Community.Runtime.Config.ConditionalCompilationSymbols);
 			var tree = CSharpSyntaxTree.ParseText(
 				Source, options: parseOptions);
-			trees.Add(tree);
 
-			var root = tree.GetCompilationUnitRoot();
+			GenerateInternalCallHook(tree.GetCompilationUnitRoot(), out var root);
+
+			Source = root.ToFullString();
+
+			trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions));
 
 			foreach (var element in root.Usings)
 				Usings.Add($"{element.Name}");
@@ -375,4 +379,158 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Exceptions = null;
 		Warnings = null;
 	}
+
+	#region Code Generator
+
+	public static void GenerateInternalCallHook(CompilationUnitSyntax input, out CompilationUnitSyntax output)
+	{
+		var methodContents =
+@"
+	var result = (object)null;
+
+	switch(hook)
+	{
+";
+		var @namespace = input.Members[0] as BaseNamespaceDeclarationSyntax;
+		var @class = @namespace.Members[0] as ClassDeclarationSyntax;
+		var methodDeclarations = @class.ChildNodes().OfType<MethodDeclarationSyntax>();
+		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
+		var privateMethods = methodDeclarations.Where(md => md.Modifiers.Any(SyntaxKind.PrivateKeyword) && md.TypeParameterList == null).OrderBy(x => x.Identifier.ValueText);
+
+		foreach (var method in privateMethods)
+		{
+			if (method.ParameterList.Parameters.Any(x => x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)))) continue;
+
+			var id = HookCallerCommon.StringPool.GetOrAdd(method.Identifier.ValueText);
+
+			if (!hookableMethods.TryGetValue(id, out var list))
+			{
+				hookableMethods[id] = list = new();
+			}
+
+			list.Add(method);
+		}
+
+		foreach (var group in hookableMethods)
+		{
+			if (group.Value.Count > 0)
+			{
+				for (int i = 0; i < group.Value.Count; i++)
+				{
+					var parameterIndex = -1;
+					var method = group.Value[i];
+					var parameters = method.ParameterList.Parameters.Select(x =>
+					{
+						parameterIndex++;
+						return $"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : "")}arg{parameterIndex}";
+					}).ToArray();
+
+					parameterIndex = -1;
+					methodContents += $"\t\tcase {group.Key} when {(method.ParameterList.Parameters.Count > 0 ? $"{method.ParameterList.Parameters.Select(x =>
+					{
+						parameterIndex++;
+						return $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}";
+					}).ToArray().ToString(" && ")}" : "args == null || args.Length == 0")}:\n" +
+						$"\t\t{{";
+
+					methodContents += $"\t\t\t{(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)});\n";
+
+					parameterIndex = 0;
+					foreach (var @ref in method.ParameterList.Parameters)
+					{
+						if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
+						{
+							methodContents += $"\t\targs[{parameterIndex}] = arg{parameterIndex};\n";
+						}
+
+						parameterIndex++;
+					}
+
+					methodContents +=
+						"\tbreak;\n" +
+						"\t}\n" +
+						"\n";
+				}
+			}
+			else
+			{
+				methodContents += $"\t\tcase \"{group.Key}\":\n" +
+					$"\t\t{{";
+
+				for (int i = 0; i < group.Value.Count; i++)
+				{
+					PopulateCase(group.Value[i], i);
+				}
+
+				methodContents +=
+					"\tbreak;\n" +
+					"\t}\n" +
+					"\n";
+			}
+
+			void PopulateCase(MethodDeclarationSyntax method, int methodIndex)
+			{
+				var parameterIndex = -1;
+				var parameters = method.ParameterList.Parameters.Select(x =>
+				{
+					parameterIndex++;
+
+					if (x.Modifiers.Any(y => y.IsKind(SyntaxKind.RefKeyword)))
+					{
+						return $"ref ref{parameterIndex}_{methodIndex}";
+					}
+
+					return $"({x.Type})args[{parameterIndex}]";
+				}).ToArray();
+
+				var refId = 0;
+				foreach (var @ref in method.ParameterList.Parameters)
+				{
+					if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
+					{
+						methodContents += $"\t\tvar ref{refId}_{methodIndex} = ({@ref.Type})args[{refId}];\n";
+					}
+
+					refId++;
+				}
+
+				methodContents += $"\t\t\t{(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)});\n";
+
+				refId = 0;
+				foreach (var @ref in method.ParameterList.Parameters)
+				{
+					if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
+					{
+						methodContents += $"\t\targs[{refId}] = ref{refId}_{methodIndex};\n";
+					}
+
+					refId++;
+				}
+			}
+		}
+
+		methodContents += "\t}\n\n\treturn result;\n";
+
+		var generatedMethod = SyntaxFactory.MethodDeclaration(
+			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),
+			"InternalCallHook").AddParameterListParameters(
+				SyntaxFactory.Parameter(SyntaxFactory.Identifier("hook")).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UIntKeyword)).WithTrailingTrivia(SyntaxFactory.Space)),
+				SyntaxFactory.Parameter(SyntaxFactory.Identifier("args")).WithType(SyntaxFactory.ArrayType(
+				SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+				SyntaxFactory.SingletonList(
+						SyntaxFactory.ArrayRankSpecifier(
+							SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+								SyntaxFactory.OmittedArraySizeExpression()
+							)
+						)
+					)
+				).WithTrailingTrivia(SyntaxFactory.Space)))
+				.WithTrailingTrivia(SyntaxFactory.LineFeed)
+			.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space), SyntaxFactory.Token(SyntaxKind.OverrideKeyword).WithTrailingTrivia(SyntaxFactory.Space))
+			.AddBodyStatements(SyntaxFactory.ParseStatement(methodContents)).WithTrailingTrivia(SyntaxFactory.LineFeed);
+
+		output = input.WithMembers(input.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class.WithMembers(@class.Members.Insert(0, generatedMethod))))));
+	}
+
+	#endregion
 }

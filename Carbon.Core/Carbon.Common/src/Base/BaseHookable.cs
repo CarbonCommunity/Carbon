@@ -99,14 +99,8 @@ public class BaseHookable
 
 	#endregion
 
-	public virtual object InternalCallHook(string hookName, object[] args, bool keepArgs = false)
+	public virtual object InternalCallHook(uint hook, object[] args)
 	{
-		if (!keepArgs && args != null)
-		{
-			Array.Clear(args, 0, args.Length);
-			args = null;
-		}
-
 		return null;
 	}
 
