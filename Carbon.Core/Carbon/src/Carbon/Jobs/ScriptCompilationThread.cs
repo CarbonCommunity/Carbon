@@ -388,14 +388,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	public static void GenerateInternalCallHook(CompilationUnitSyntax input, out CompilationUnitSyntax output)
 	{
-		var methodContents =
-@"
-	var result = (object)null;
-
-	try {
-	switch(hook)
-	{
-";
+		var methodContents = "\n\tvar result = (object)null;\n\ttry\n\t{\n\t\tswitch(hook)\n\t\t{\n";
 		var @namespace = input.Members[0] as BaseNamespaceDeclarationSyntax;
 		var @class = @namespace.Members[0] as ClassDeclarationSyntax;
 		var methodDeclarations = @class.ChildNodes().OfType<MethodDeclarationSyntax>();
@@ -418,99 +411,47 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		foreach (var group in hookableMethods)
 		{
-			if (group.Value.Count > 0)
-			{
-				for (int i = 0; i < group.Value.Count; i++)
-				{
-					var parameterIndex = -1;
-					var method = group.Value[i];
-					var parameters = method.ParameterList.Parameters.Select(x =>
-					{
-						parameterIndex++;
-						return x.Default != null ?
-							$"args[{parameterIndex}] is {x.Type} arg{parameterIndex} ? arg{parameterIndex} : default" :
-							$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : "")}arg{parameterIndex}";
-					}).ToArray();
+			methodContents += $"\t\t\tcase {group.Key}:\n\t\t\t{{";
 
-					var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null);
-					var requiredParameterCount = requiredParameters.Count();
-					parameterIndex = -1;
-					methodContents += $"\t\tcase {group.Key}{(requiredParameterCount > 0 ? $" when {method.ParameterList.Parameters.Select(x =>
-					{
-						parameterIndex++;
-						return x.Default == null ? $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}" : null;
-					}).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")}" : (method.Identifier.ValueText == "OnServerInitialized" ? "" : $" when args == null || args.Length <= {parameters.Length}"))}:\n\t\t{{";
-
-					methodContents += $"\t\t\t{(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)});\n";
-
-					parameterIndex = 0;
-					foreach (var @ref in method.ParameterList.Parameters)
-					{
-						if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
-						{
-							methodContents += $"\t\targs[{parameterIndex}] = arg{parameterIndex};\n";
-						}
-
-						parameterIndex++;
-					}
-
-					methodContents += "\tbreak;\n\t}\n\n";
-				}
-			}
-			else
-			{
-				methodContents += $"\t\tcase {group.Key}:\n\t\t{{";
-
-				for (int i = 0; i < group.Value.Count; i++)
-				{
-					PopulateCase(group.Value[i], i);
-				}
-
-				methodContents += "\tbreak;\n\t}\n\n";
-			}
-
-			void PopulateCase(MethodDeclarationSyntax method, int methodIndex)
+			for (int i = 0; i < group.Value.Count; i++)
 			{
 				var parameterIndex = -1;
+				var method = group.Value[i];
 				var parameters = method.ParameterList.Parameters.Select(x =>
 				{
 					parameterIndex++;
-
-					if (x.Modifiers.Any(y => y.IsKind(SyntaxKind.RefKeyword)))
-					{
-						return $"ref ref{parameterIndex}_{methodIndex}";
-					}
-
-					return $"({x.Type})args[{parameterIndex}]";
+					return x.Default != null ?
+						$"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : default" :
+						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : "")}arg{parameterIndex}_{i}";
 				}).ToArray();
 
-				var refId = 0;
+				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null);
+				var requiredParameterCount = requiredParameters.Count();
+
+				var refSets = string.Empty;
+				parameterIndex = 0;
 				foreach (var @ref in method.ParameterList.Parameters)
 				{
 					if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
 					{
-						methodContents += $"\t\tvar ref{refId}_{methodIndex} = ({@ref.Type})args[{refId}];\n";
+						refSets += $"args[{parameterIndex}] = arg{parameterIndex}_{i}; ";
 					}
 
-					refId++;
+					parameterIndex++;
 				}
 
-				methodContents += $"\t\t\t{(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)});\n";
-
-				refId = 0;
-				foreach (var @ref in method.ParameterList.Parameters)
+				parameterIndex = -1;
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({method.ParameterList.Parameters.Select(x =>
 				{
-					if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
-					{
-						methodContents += $"\t\targs[{refId}] = ref{refId}_{methodIndex};\n";
-					}
-
-					refId++;
-				}
+					parameterIndex++;
+					return x.Default == null ? $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i}" : null;
+				}).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "}" : "")}";
 			}
+
+			methodContents += "\t\t\t\tbreak;\n\t\t\t}\n";
 		}
 
-		methodContents += "\t}\n\t\t}\r\n\t\tcatch (System.Exception ex)\r\n\t\t{\r\n\t\t\tvar exception = ex.InnerException ?? ex;\r\n\t\t\tCarbon.Logger.Error(\r\n\t\t\t\t$\"Failed to call hook '{Carbon.HookCallerCommon.StringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\",\r\n\t\t\t\texception\r\n\t\t\t);\r\n\t\t}\n\treturn result;\n";
+		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nvar exception = ex.InnerException ?? ex;\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.HookCallerCommon.StringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\", exception);\n}\nreturn result;";
 
 		var generatedMethod = SyntaxFactory.MethodDeclaration(
 			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),
