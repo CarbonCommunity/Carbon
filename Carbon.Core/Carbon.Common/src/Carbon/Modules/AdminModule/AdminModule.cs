@@ -5410,10 +5410,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
 
 		using var cui = new CUI(Singleton.Handler);
-		var container = cui.CreateContainer(SpectatePanelId, color: "0.1 0.1 0.1 0.8", needsCursor: true, parent: ClientPanels.Overlay);
+		var container = cui.CreateContainer(SpectatePanelId, color: "0.1 0.1 0.1 0.8", needsCursor: false, parent: ClientPanels.Overlay);
 		var panel = cui.CreatePanel(container, SpectatePanelId, null, "0 0 0 0");
-		cui.CreatePanel(container, panel, null, "0 0 0 1", yMax: 0.075f);
-		cui.CreatePanel(container, panel, null, "0 0 0 1", yMin: 0.925f);
 		var item = target.GetItem();
 		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{(targetPlayer == null ? item != null ? item.info.displayName.english.ToUpper().SpacedString(1) : target.ShortPrefabName.ToUpper().SpacedString(1) : targetPlayer.displayName.ToUpper().SpacedString(1))}</b>", 15);
 		cui.CreateProtectedButton(container, panel, null, "#1c6aa0", "1 1 1 0.7", "END SPECTATE".SpacedString(1), 10,
@@ -5439,6 +5437,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.gameObject.SetLayerRecursive(17);
 		if (spectated != null) player.Teleport(spectated.transform.position);
 		player.spectateFilter = string.Empty;
+		if (!player.IsFlying) player.SendConsoleCommand("noclip");
+		player.Teleport(player.transform.position + (Vector3.up * -3f));
 
 		var tab = Singleton.GetTab(player);
 		var ap = Singleton.GetPlayerSession(player);
