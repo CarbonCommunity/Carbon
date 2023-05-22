@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -41,6 +42,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	#region Internals
 
+	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal DateTime TimeSinceCompile;
 	internal static Dictionary<string, byte[]> _compilationCache = new();
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
@@ -239,7 +241,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			var root = tree.GetCompilationUnitRoot();
 
-			if (!Source.Contains("InternalCallHook"))
+			if (!Source.Contains(_internalCallHookPattern))
 			{
 				GenerateInternalCallHook(root, out root);
 
