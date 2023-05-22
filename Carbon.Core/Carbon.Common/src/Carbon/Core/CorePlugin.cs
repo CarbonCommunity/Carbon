@@ -136,6 +136,18 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		HookCaller.CallStaticHook("OnUserDisconnected", player?.AsIPlayer(), reason);
 		Logger.Log($"{player.net.connection} left: {reason}");
+
+		if (player.IsAdmin && player.IsFlying)
+		{
+			var newPosition = player.transform.position;
+			newPosition.y = TerrainMeta.HeightMap.GetHeight(player.transform.position);
+
+			if (Vector3.Distance(player.transform.position, newPosition) > 3.5f)
+			{
+				player.Teleport(newPosition);
+				Logger.Warn($"Moved admin player {player.net.connection} above the ground so it doesn't die from fall damage.");
+			}
+		}
 	}
 	private void OnPluginLoaded(Plugin plugin)
 	{
