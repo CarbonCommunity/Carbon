@@ -67,7 +67,7 @@ public class Profiler : IDisposable
 #endif
 	}
 
-	public void Begin(float duration)
+	public void Begin(float duration, Action<Profiler> onEnd = null)
 	{
 		Duration = duration;
 		Running = true;
@@ -77,6 +77,8 @@ public class Profiler : IDisposable
 		{
 			Community.Runtime.CorePlugin.timer.In(Duration, () =>
 			{
+				onEnd?.Invoke(this);
+
 				End();
 			});
 		}
