@@ -1297,7 +1297,10 @@ public partial class CorePlugin : CarbonPlugin
 		var duration = arg.GetFloat(0, -1);
 		var name = arg.GetString(1, $"carbonprofile_{date.Year}-{date.Month}-{date.Day}_{date.Hour}{date.Minute}{date.Second}");
 
-		Profiler.Make(name).Begin(duration);
+		Profiler.Make(name).Begin(duration, onEnd: duration == -1 ? null : profiler =>
+		{
+			Logger.Log($"Ended profiling, writing to disk: {profiler.Path}");
+		});
 		arg.ReplyWith("Began profiling...");
 	}
 
@@ -1305,7 +1308,8 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void EndProfile(ConsoleSystem.Arg arg)
 	{
-		arg.ReplyWith(Profiler.End() ? "Ended profiling, writing to disk." : "Couldn't end profile. Most likely because there's none started.");
+		var path = Profiler.Singleton.Path;
+		arg.ReplyWith(Profiler.End() ? $"Ended profiling, writing to disk: {path}" : "Couldn't end profile. Most likely because there's none started.");
 	}
 
 	#endregion
