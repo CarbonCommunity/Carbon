@@ -128,7 +128,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			}
 			if (ConfigInstance.ToggleGodModeOnVanish && toggleGodMode && player.net.connection.authLevel > 0 && !player.IsGod())
 			{
-				player.SendConsoleCommand("god true");
+				player.net.connection.info.Set("global.god", "true");
 			}
 		}
 		else
@@ -158,7 +158,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			}
 			if (ConfigInstance.ToggleGodModeOnUnvanish && toggleGodMode && player.net.connection.authLevel > 0 && player.IsGod())
 			{
-				player.SendConsoleCommand("god false");
+				player.net.connection.info.Set("global.god", "false");
 			}
 		}
 	}
