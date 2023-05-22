@@ -449,7 +449,7 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			var newPosition = player.transform.position;
 
-			if (Physics.Raycast(newPosition, Vector3.down, out var hit, float.MaxValue, ~0, queryTriggerInteraction: QueryTriggerInteraction.Ignore))
+			if (UnityEngine.Physics.Raycast(newPosition, Vector3.down, out var hit, float.MaxValue, ~0, queryTriggerInteraction: QueryTriggerInteraction.Ignore))
 			{
 				newPosition.y = hit.point.y;
 
