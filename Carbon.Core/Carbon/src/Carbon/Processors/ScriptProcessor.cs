@@ -142,7 +142,8 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 					output = input.Replace("PluginTimers", "Timers")
 						.Replace("using Harmony;", "using HarmonyLib;")
 						.Replace("HarmonyInstance.Create", "new Harmony")
-						.Replace("HarmonyInstance", "Harmony");
+						.Replace("HarmonyInstance", "Harmony")
+						.Replace("OnPlayerTick", "OnPlayerInput");
 				}
 				catch
 				{
