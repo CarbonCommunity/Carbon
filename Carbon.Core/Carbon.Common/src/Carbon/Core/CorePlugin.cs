@@ -147,7 +147,16 @@ public partial class CorePlugin : CarbonPlugin
 
 				if (Vector3.Distance(player.transform.position, newPosition) > 3.5f)
 				{
+					player.SetServerFall(false);
 					player.Teleport(newPosition);
+					player.estimatedVelocity = Vector3.zero;
+					NextFrame(() =>
+					{
+						if (player != null)
+						{
+							player.SetServerFall(true);
+						}
+					});
 					Logger.Warn($"Moved admin player {player.net.connection} on the object underneath so it doesn't die from fall damage.");
 				}
 			}
