@@ -56,7 +56,9 @@ jobs:
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
-
+      with:
+        ref: preview
+        
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
@@ -91,7 +93,9 @@ jobs:
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
-
+      with:
+        ref: preview
+        
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
