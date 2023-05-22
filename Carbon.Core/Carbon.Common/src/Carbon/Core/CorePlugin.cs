@@ -137,7 +137,7 @@ public partial class CorePlugin : CarbonPlugin
 		HookCaller.CallStaticHook("OnUserDisconnected", player?.AsIPlayer(), reason);
 		Logger.Log($"{player.net.connection} left: {reason}");
 
-		if (player.IsAdmin && player.IsFlying && !player.IsOnGround())
+		if (player.IsAdmin && !player.IsOnGround())
 		{
 			var newPosition = player.transform.position;
 
