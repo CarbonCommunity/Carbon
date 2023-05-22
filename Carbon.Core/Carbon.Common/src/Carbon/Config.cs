@@ -18,7 +18,6 @@ public class Config
 	public bool AutoUpdate { get; set; } = true;
 	public bool HarmonyReference { get; set; } = false;
 	public bool ScriptWatchers { get; set; } = true;
-	public bool HookTimeTracker { get; set; } = false;
 	public bool HookValidation { get; set; } = true;
 	public bool FileNameCheck { get; set; } = true;
 	public bool IsModded { get; set; } = true;

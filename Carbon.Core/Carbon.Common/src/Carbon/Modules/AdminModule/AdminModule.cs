@@ -184,8 +184,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				["autoupdate"] = "Auto Update",
 				["autoupdate_help"] = "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.",
 				["general"] = "General",
-				["hooktimetracker"] = "Hook Time Tracker",
-				["hooktimetracker_help"] = "Tracks the time taken for hooks to be executed.",
 				["hookvalidation"] = "Hook Validation",
 				["hookvalidation_help"] = "Probably obsolete, but when enabled, it prints a list of hooks that are compatible in Oxide, but not Carbon.",
 				["entmapbuffersize"] = "Entity Map Buffer Size (restart required)",
@@ -2254,7 +2252,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.AddToggle(1, Singleton.GetPhrase("autoupdate", ap.Player.UserIDString), ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, Singleton.GetPhrase("autoupdate_help", ap.Player.UserIDString));
 
 					tab.AddName(1, Singleton.GetPhrase("general", ap.Player.UserIDString), TextAnchor.MiddleLeft);
-					tab.AddToggle(1, Singleton.GetPhrase("hooktimetracker", ap.Player.UserIDString), ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker, Singleton.GetPhrase("hooktimetracker_help", ap.Player.UserIDString));
 					tab.AddToggle(1, Singleton.GetPhrase("hookvalidation", ap.Player.UserIDString), ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation, Singleton.GetPhrase("hookvalidation_help", ap.Player.UserIDString));
 					tab.AddInput(1, Singleton.GetPhrase("entmapbuffersize", ap.Player.UserIDString), ap => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, Singleton.GetPhrase("entmapbuffersize_help", ap.Player.UserIDString));
 

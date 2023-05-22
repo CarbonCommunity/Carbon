@@ -423,10 +423,6 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-	[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.")]
-	[AuthLevel(2)]
-	private bool HookTimeTracker { get { return Community.Runtime.Config.HookTimeTracker; } set { Community.Runtime.Config.HookTimeTracker = value; Community.Runtime.SaveConfig(); } }
-
 	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.")]
 	[AuthLevel(2)]
 	private bool HookValidation { get { return Community.Runtime.Config.HookValidation; } set { Community.Runtime.Config.HookValidation = value; Community.Runtime.SaveConfig(); } }

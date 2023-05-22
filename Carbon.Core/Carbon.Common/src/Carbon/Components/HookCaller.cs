@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -54,8 +55,8 @@ public class HookCallerCommon
 	}
 
 	public Dictionary<int, object[]> _argumentBuffer = new();
-	public Dictionary<string, int> _hookTimeBuffer = new();
-	public Dictionary<string, int> _hookTotalTimeBuffer = new();
+	public ConcurrentDictionary<string, int> _hookTimeBuffer = new();
+	public ConcurrentDictionary<string, int> _hookTotalTimeBuffer = new();
 	public Dictionary<string, DateTime> _lastDeprecatedWarningAt = new();
 
 	public virtual void AppendHookTime(string hook, int time) { }
@@ -115,6 +116,16 @@ public static class HookCaller
 {
 	public static HookCallerCommon Caller { get; set; }
 
+	#region Blacklisted Hooks
+
+	public const string OnPlayerTick = "OnPlayerTick";
+
+	#endregion
+
+	public static bool IsBlacklisted(string hookName)
+	{
+		return hookName == OnPlayerTick;
+	}
 	public static int GetHookTime(string hook)
 	{
 		if (!Caller._hookTimeBuffer.TryGetValue(hook, out var total))
@@ -136,6 +147,11 @@ public static class HookCaller
 
 	private static object CallStaticHook(string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, object[] args = null, bool keepArgs = false)
 	{
+		if (IsBlacklisted(hookName))
+		{
+			return null;
+		}
+
 		Caller.ClearHookTime(hookName);
 
 		var result = (object)null;
