@@ -443,11 +443,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 
 				parameterIndex = -1;
-				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({method.ParameterList.Parameters.Select(x =>
-				{
-					parameterIndex++;
-					return x.Default == null ? $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i}" : null;
-				}).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "}" : "")}";
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null ? $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "}" : "")}";
 			}
 
 			methodContents += "\t\t\t\tbreak;\n\t\t\t}\n";
