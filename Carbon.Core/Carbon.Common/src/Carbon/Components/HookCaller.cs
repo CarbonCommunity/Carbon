@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -54,8 +55,8 @@ public class HookCallerCommon
 	}
 
 	public Dictionary<int, object[]> _argumentBuffer = new();
-	public Dictionary<string, int> _hookTimeBuffer = new();
-	public Dictionary<string, int> _hookTotalTimeBuffer = new();
+	public ConcurrentDictionary<string, int> _hookTimeBuffer = new();
+	public ConcurrentDictionary<string, int> _hookTotalTimeBuffer = new();
 	public Dictionary<string, DateTime> _lastDeprecatedWarningAt = new();
 
 	public virtual void AppendHookTime(string hook, int time) { }

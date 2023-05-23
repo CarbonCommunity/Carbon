@@ -21,32 +21,12 @@ public class HookCallerInternal : HookCallerCommon
 {
 	public override void AppendHookTime(string hook, int time)
 	{
-		if (!Community.Runtime.Config.HookTimeTracker) return;
-
-		if (!_hookTimeBuffer.TryGetValue(hook, out var total))
-		{
-			_hookTimeBuffer.Add(hook, time);
-		}
-		else _hookTimeBuffer[hook] = total + time;
-
-		if (!_hookTotalTimeBuffer.TryGetValue(hook, out total))
-		{
-			_hookTotalTimeBuffer.Add(hook, time);
-		}
-		else _hookTotalTimeBuffer[hook] = total + time;
+		_hookTimeBuffer.AddOrUpdate(hook, time, (_, existingTime) => existingTime + time);
+		_hookTotalTimeBuffer.AddOrUpdate(hook, time, (_, existingTotal) => existingTotal + time);
 	}
 	public override void ClearHookTime(string hook)
 	{
-		if (!Community.Runtime.Config.HookTimeTracker) return;
-
-		if (!_hookTimeBuffer.ContainsKey(hook))
-		{
-			_hookTimeBuffer.Add(hook, 0);
-		}
-		else
-		{
-			_hookTimeBuffer[hook] = 0;
-		}
+		_hookTimeBuffer[hook] = 0;
 	}
 
 	public override object[] AllocateBuffer(int count)
