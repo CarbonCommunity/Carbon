@@ -116,16 +116,6 @@ public static class HookCaller
 {
 	public static HookCallerCommon Caller { get; set; }
 
-	#region Blacklisted Hooks
-
-	public const string OnPlayerTick = "OnPlayerTick";
-
-	#endregion
-
-	public static bool IsBlacklisted(string hookName)
-	{
-		return hookName == OnPlayerTick;
-	}
 	public static int GetHookTime(string hook)
 	{
 		if (!Caller._hookTimeBuffer.TryGetValue(hook, out var total))
@@ -147,11 +137,6 @@ public static class HookCaller
 
 	private static object CallStaticHook(string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, object[] args = null, bool keepArgs = false)
 	{
-		if (IsBlacklisted(hookName))
-		{
-			return null;
-		}
-
 		Caller.ClearHookTime(hookName);
 
 		var result = (object)null;
