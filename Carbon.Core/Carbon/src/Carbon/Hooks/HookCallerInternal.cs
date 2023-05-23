@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Carbon.Base;
 using Carbon.Components;
+using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
 using static Carbon.Base.BaseHookable;
@@ -21,32 +21,12 @@ public class HookCallerInternal : HookCallerCommon
 {
 	public override void AppendHookTime(string hook, int time)
 	{
-		if (!Community.Runtime.Config.HookTimeTracker) return;
-
-		if (!_hookTimeBuffer.TryGetValue(hook, out var total))
-		{
-			_hookTimeBuffer.Add(hook, time);
-		}
-		else _hookTimeBuffer[hook] = total + time;
-
-		if (!_hookTotalTimeBuffer.TryGetValue(hook, out total))
-		{
-			_hookTotalTimeBuffer.Add(hook, time);
-		}
-		else _hookTotalTimeBuffer[hook] = total + time;
+		_hookTimeBuffer.AddOrUpdate(hook, time, (_, existingTime) => existingTime + time);
+		_hookTotalTimeBuffer.AddOrUpdate(hook, time, (_, existingTotal) => existingTotal + time);
 	}
 	public override void ClearHookTime(string hook)
 	{
-		if (!Community.Runtime.Config.HookTimeTracker) return;
-
-		if (!_hookTimeBuffer.ContainsKey(hook))
-		{
-			_hookTimeBuffer.Add(hook, 0);
-		}
-		else
-		{
-			_hookTimeBuffer[hook] = 0;
-		}
+		_hookTimeBuffer[hook] = 0;
 	}
 
 	public override object[] AllocateBuffer(int count)
@@ -110,149 +90,202 @@ public class HookCallerInternal : HookCallerCommon
 
 	public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false)
 	{
-		priority = Priorities.Normal;
-
 		if (plugin.IsHookIgnored(hookName)) return null;
 
 		var id = StringPool.GetOrAdd(hookName);
-		if (args != null) id += (uint)args.Length;
 
-		var result = (object)null;
-		var conflicts = Pool.GetList<Conflict>();
-
-		if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks)) { }
-		else if (!plugin.HookCache.TryGetValue(id, out hooks))
+		if (plugin is not BaseModule)
 		{
-			plugin.HookCache.Add(id, hooks = new());
-
-			foreach (var method in plugin.Type.GetMethods(flags))
-			{
-				if (method.Name != hookName) continue;
-
-				var methodPriority = method.GetCustomAttribute<HookPriority>();
-				hooks.Add(BaseHookable.CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
-			}
-		}
-
-		foreach (var cachedHook in hooks)
-		{
-			try
-			{
-				if (cachedHook.IsByRef)
-				{
-					keepArgs = true;
-				}
-
-				var methodResult = DoCall(cachedHook.Method, cachedHook.Delegate, cachedHook.IsByRef);
-
-				if (methodResult != null)
-				{
-					priority = cachedHook.Priority;
-					result = methodResult;
-				}
-
-				ResultOverride(plugin, priority);
-			}
-			catch (Exception ex)
-			{
-				var exception = ex.InnerException ?? ex;
-				Carbon.Logger.Error(
-					$"Failed to call hook '{hookName}' on plugin '{plugin.Name} v{plugin.Version}'",
-					exception
-				);
-			}
-		}
-
-		object DoCall(MethodInfo info, Delegate @delegate, bool isByRef)
-		{
-			if (@delegate == null && !isByRef)
-			{
-				return null;
-			}
+			var processedId = id;
 
 			if (args != null)
 			{
-				var actualLength = info.GetParameters().Length;
+				processedId += (uint)args.Length;
+			}
+
+			if (plugin.HookMethodAttributeCache.TryGetValue(processedId, out var hooks)) { }
+			else if (!plugin.HookCache.TryGetValue(processedId, out hooks))
+			{
+				plugin.HookCache.Add(processedId, hooks = new());
+
+				var methods = plugin.Type.GetMethods(flags);
+
+				for (int i = 0; i < methods.Length; i++)
+				{
+					var method = methods[i];
+					if (method.Name != hookName) continue;
+
+					var methodPriority = method.GetCustomAttribute<HookPriority>();
+					hooks.Add(CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
+				}
+			}
+
+			if (args != null && hooks.Count > 0)
+			{
+				var actualLength = hooks[0].Parameters.Length;
+
 				if (actualLength != args.Length)
 				{
 					args = RescaleBuffer(args, actualLength);
 				}
 			}
 
-			if (args == null || SequenceEqual(info.GetParameters().Select(p => p.ParameterType), args.Select(a => a?.GetType())))
+			return plugin.InternalCallHook(id, args);
+		}
+		else
+		{
+			priority = Priorities.Normal;
+
+			if (args != null)
 			{
-#if DEBUG
-				Profiler.StartHookCall(plugin, hookName);
-#endif
-
-				var beforeTicks = Environment.TickCount;
-				plugin.TrackStart();
-				var result2 = (object)default;
-
-				if (isByRef) result2 = info.Invoke(plugin, args);
-				else result2 = @delegate.DynamicInvoke(args);
-
-				plugin.TrackEnd();
-				var afterTicks = Environment.TickCount;
-				var totalTicks = afterTicks - beforeTicks;
-
-				AppendHookTime(hookName, totalTicks);
-
-				if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
-				{
-					Carbon.Logger.Warn($" {plugin.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
-				}
-
-#if DEBUG
-				Profiler.EndHookCall(plugin);
-#endif
-				return result2;
+				id += (uint)args.Length;
 			}
 
-			return null;
-		}
+			var result = (object)null;
+			var conflicts = Pool.GetList<Conflict>();
 
-		ConflictCheck();
-
-		Pool.FreeList(ref conflicts);
-
-		void ResultOverride(BaseHookable hookable, Priorities priority)
-		{
-			conflicts.Add(Conflict.Make(hookable, hookName, result, priority));
-		}
-		void ConflictCheck()
-		{
-			var differentResults = false;
-
-			if (conflicts.Count > 1)
+			if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks)) { }
+			else if (!plugin.HookCache.TryGetValue(id, out hooks))
 			{
-				var localResult = conflicts[0].Result;
-				var priorityConflict = _defaultConflict;
+				plugin.HookCache.Add(id, hooks = new());
 
-				foreach (var conflict in conflicts)
+				var methods = plugin.Type.GetMethods(flags);
+
+				for (int i = 0; i < methods.Length; i++)
 				{
-					if (conflict.Result?.ToString() != localResult?.ToString())
-					{
-						differentResults = true;
-					}
+					var method = methods[i];
+					if (method.Name != hookName) continue;
 
-					if (conflict.Priority > priorityConflict.Priority)
-					{
-						priorityConflict = conflict;
-					}
-				}
-
-				localResult = priorityConflict.Result;
-				if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
-
-				if (localResult != null)
-				{
-					result = localResult;
+					var methodPriority = method.GetCustomAttribute<HookPriority>();
+					hooks.Add(CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
 				}
 			}
-		}
 
-		return result;
+			for (int i = 0; i < hooks.Count; i++)
+			{
+				try
+				{
+					var cachedHook = hooks[i];
+
+					if (cachedHook.IsByRef)
+					{
+						keepArgs = true;
+					}
+
+					var methodResult = DoCall(cachedHook);
+
+					if (methodResult != null)
+					{
+						priority = cachedHook.Priority;
+						result = methodResult;
+					}
+
+					ResultOverride(plugin, priority);
+				}
+				catch (Exception ex)
+				{
+					var exception = ex.InnerException ?? ex;
+					Carbon.Logger.Error(
+						$"Failed to call hook '{hookName}' on plugin '{plugin.Name} v{plugin.Version}'",
+						exception
+					);
+				}
+			}
+
+			object DoCall(CachedHook hook)
+			{
+				if (hook.Delegate == null && !hook.IsByRef)
+				{
+					return null;
+				}
+
+				if (args != null)
+				{
+					var actualLength = hook.Parameters.Length;
+
+					if (actualLength != args.Length)
+					{
+						args = RescaleBuffer(args, actualLength);
+					}
+				}
+
+				if (args == null || SequenceEqual(hook.Parameters, args))
+				{
+#if DEBUG
+					Profiler.StartHookCall(plugin, hookName);
+#endif
+
+					var beforeTicks = Environment.TickCount;
+					plugin.TrackStart();
+					var result2 = (object)default;
+
+					if (hook.IsByRef) result2 = hook.Method.Invoke(plugin, args);
+					else result2 = hook.Delegate.DynamicInvoke(args);
+
+					plugin.TrackEnd();
+					var afterTicks = Environment.TickCount;
+					var totalTicks = afterTicks - beforeTicks;
+
+					AppendHookTime(hookName, totalTicks);
+
+					if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
+					{
+						Carbon.Logger.Warn($" {plugin.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
+					}
+
+#if DEBUG
+					Profiler.EndHookCall(plugin);
+#endif
+					return result2;
+				}
+
+				return null;
+			}
+
+			ConflictCheck();
+
+			Pool.FreeList(ref conflicts);
+
+			void ResultOverride(BaseHookable hookable, Priorities priority)
+			{
+				conflicts.Add(Conflict.Make(hookable, hookName, result, priority));
+			}
+			void ConflictCheck()
+			{
+				var differentResults = false;
+
+				if (conflicts.Count > 1)
+				{
+					var localResult = conflicts[0].Result;
+					var priorityConflict = _defaultConflict;
+
+					for (int i = 0; i < conflicts.Count; i++)
+					{
+						var conflict = conflicts[i];
+
+						if (conflict.Result?.ToString() != localResult?.ToString())
+						{
+							differentResults = true;
+						}
+
+						if (conflict.Priority > priorityConflict.Priority)
+						{
+							priorityConflict = conflict;
+						}
+					}
+
+					localResult = priorityConflict.Result;
+					if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+
+					if (localResult != null)
+					{
+						result = localResult;
+					}
+				}
+			}
+
+			return result;
+		}
 	}
 	public override object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority)
 	{
@@ -273,14 +306,14 @@ public class HookCallerInternal : HookCallerCommon
 		return CallHook(plugin, newHook, flags, args, ref priority);
 	}
 
-	internal bool SequenceEqual(IEnumerable<Type> source, IEnumerable<Type> target)
+	internal bool SequenceEqual(Type[] source, object[] target)
 	{
-		var index = 0;
 		var equal = true;
 
-		foreach (var sourceItem in source)
+		for(int i = 0; i < source.Length; i++)
 		{
-			var targetItem = target.ElementAtOrDefault(index);
+			var sourceItem = source[i];
+			var targetItem = target[i]?.GetType();
 
 			if (targetItem != null && !sourceItem.IsByRef && !targetItem.IsByRef &&
 				sourceItem != targetItem &&
@@ -289,8 +322,6 @@ public class HookCallerInternal : HookCallerCommon
 				equal = false;
 				break;
 			}
-
-			index++;
 		}
 
 		return equal;

@@ -184,8 +184,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				["autoupdate"] = "Auto Update",
 				["autoupdate_help"] = "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.",
 				["general"] = "General",
-				["hooktimetracker"] = "Hook Time Tracker",
-				["hooktimetracker_help"] = "Tracks the time taken for hooks to be executed.",
 				["hookvalidation"] = "Hook Validation",
 				["hookvalidation_help"] = "Probably obsolete, but when enabled, it prints a list of hooks that are compatible in Oxide, but not Carbon.",
 				["entmapbuffersize"] = "Entity Map Buffer Size (restart required)",
@@ -2254,7 +2252,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.AddToggle(1, Singleton.GetPhrase("autoupdate", ap.Player.UserIDString), ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, Singleton.GetPhrase("autoupdate_help", ap.Player.UserIDString));
 
 					tab.AddName(1, Singleton.GetPhrase("general", ap.Player.UserIDString), TextAnchor.MiddleLeft);
-					tab.AddToggle(1, Singleton.GetPhrase("hooktimetracker", ap.Player.UserIDString), ap => { Config.HookTimeTracker = !Config.HookTimeTracker; Community.Runtime.SaveConfig(); }, ap => Config.HookTimeTracker, Singleton.GetPhrase("hooktimetracker_help", ap.Player.UserIDString));
 					tab.AddToggle(1, Singleton.GetPhrase("hookvalidation", ap.Player.UserIDString), ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation, Singleton.GetPhrase("hookvalidation_help", ap.Player.UserIDString));
 					tab.AddInput(1, Singleton.GetPhrase("entmapbuffersize", ap.Player.UserIDString), ap => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, Singleton.GetPhrase("entmapbuffersize_help", ap.Player.UserIDString));
 
@@ -2303,16 +2300,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.AddInput(0, "Search", ap => ap?.GetStorage<string>(tab, "playerfilter"), (ap2, args) => { ap2.SetStorage(tab, "playerfilter", args.ToString(" ")); RefreshPlayers(tab, ap2); });
 
-				tab.AddName(0, "Online");
-				var onlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && x.IsConnected);
+				var onlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && x.IsConnected).OrderBy(x => x.Connection?.connectionTime);
+				tab.AddName(0, $"Online ({onlinePlayers.Count():n0})");
 				foreach (var player in onlinePlayers)
 				{
 					AddPlayer(tab, ap, player);
 				}
 				if (onlinePlayers.Count() == 0) tab.AddText(0, "No online players found.", 10, "1 1 1 0.4");
 
-				tab.AddName(0, "Offline");
 				var offlinePlayers = BasePlayer.allPlayerList.Where(x => x.userID.IsSteamId() && !x.IsConnected);
+				tab.AddName(0, $"Offline ({offlinePlayers.Count():n0})");
 				foreach (var player in offlinePlayers)
 				{
 					AddPlayer(tab, ap, player);
@@ -3868,6 +3865,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var favouriteButton = cui.CreateProtectedButton(container, card, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.84f, xMax: 0.97f, yMin: 0.73f, yMax: 0.86f, command: $"pluginbrowser.interact 10 {plugin.File}");
 				cui.CreateImage(container, favouriteButton, null, "star", ServerOwner.Singleton.FavouritePlugins.Contains(plugin.File) ? "0.9 0.8 0.4 0.95" : "0.2 0.2 0.2 0.4");
 
+				var autoUpdateButton = cui.CreateProtectedButton(container, card, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.84f, xMax: 0.97f, yMin: 0.59f, yMax: 0.72f, command: $"pluginbrowser.interact 11 {plugin.File}");
+				cui.CreateImage(container, autoUpdateButton, null, "update-pending", ServerOwner.Singleton.AutoUpdate.Contains(plugin.File) ? "0.8 0.4 0.9 0.95" : "0.2 0.2 0.2 0.4");
+
 				column += columnSize + spacing;
 
 				if (i % 5 == 4)
@@ -4802,6 +4802,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 		}
 
+		#endregion
+
 		[ProtoContract]
 		public class Local : IVendorDownloader
 		{
@@ -4991,8 +4993,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				return ExistentPlugin.Version.ToString() == Version;
 			}
 		}
-
-		#endregion
 	}
 
 	#region Administration - Custom Commands
@@ -5108,12 +5108,25 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				break;
 
 			case "10":
-				var pluginName = arg.Skip(1).ToArray().ToString(" ");
-				if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
-					PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
-				else PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
-				Array.Clear(arg, 0, arg.Length);
+				{
+					var pluginName = arg.Skip(1).ToArray().ToString(" ");
+					if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
+						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
+					else PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
+					Array.Clear(arg, 0, arg.Length);
+				}
 				break;
+
+			case "11":
+				{
+					var pluginName = arg.Skip(1).ToArray().ToString(" ");
+					if (PluginsTab.ServerOwner.Singleton.AutoUpdate.Contains(pluginName))
+						PluginsTab.ServerOwner.Singleton.AutoUpdate.Remove(pluginName);
+					else PluginsTab.ServerOwner.Singleton.AutoUpdate.Add(pluginName);
+					Array.Clear(arg, 0, arg.Length);
+				}
+				break;
+
 		}
 
 		Singleton.Draw(args.Player());
@@ -5394,10 +5407,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.spectateFilter = targetPlayer != null ? targetPlayer.UserIDString : target.net.ID.ToString();
 
 		using var cui = new CUI(Singleton.Handler);
-		var container = cui.CreateContainer(SpectatePanelId, color: "0.1 0.1 0.1 0.8", needsCursor: true, parent: ClientPanels.Overlay);
+		var container = cui.CreateContainer(SpectatePanelId, color: "0.1 0.1 0.1 0.8", needsCursor: false, parent: ClientPanels.Overlay);
 		var panel = cui.CreatePanel(container, SpectatePanelId, null, "0 0 0 0");
-		cui.CreatePanel(container, panel, null, "0 0 0 1", yMax: 0.075f);
-		cui.CreatePanel(container, panel, null, "0 0 0 1", yMin: 0.925f);
 		var item = target.GetItem();
 		cui.CreateText(container, panel, null, "1 1 1 0.2", $"YOU'RE SPECTATING ".SpacedString(1, false) + $"<b>{(targetPlayer == null ? item != null ? item.info.displayName.english.ToUpper().SpacedString(1) : target.ShortPrefabName.ToUpper().SpacedString(1) : targetPlayer.displayName.ToUpper().SpacedString(1))}</b>", 15);
 		cui.CreateProtectedButton(container, panel, null, "#1c6aa0", "1 1 1 0.7", "END SPECTATE".SpacedString(1), 10,
@@ -5423,6 +5434,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		player.gameObject.SetLayerRecursive(17);
 		if (spectated != null) player.Teleport(spectated.transform.position);
 		player.spectateFilter = string.Empty;
+		if (!player.IsFlying) player.SendConsoleCommand("noclip");
+		player.Teleport(player.transform.position + (Vector3.up * -3f));
 
 		var tab = Singleton.GetTab(player);
 		var ap = Singleton.GetPlayerSession(player);
