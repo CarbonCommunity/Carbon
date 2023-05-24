@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -54,8 +55,8 @@ public class HookCallerCommon
 	}
 
 	public Dictionary<int, object[]> _argumentBuffer = new();
-	public Dictionary<string, int> _hookTimeBuffer = new();
-	public Dictionary<string, int> _hookTotalTimeBuffer = new();
+	public ConcurrentDictionary<string, int> _hookTimeBuffer = new();
+	public ConcurrentDictionary<string, int> _hookTotalTimeBuffer = new();
 	public Dictionary<string, DateTime> _lastDeprecatedWarningAt = new();
 
 	public virtual void AppendHookTime(string hook, int time) { }
@@ -115,6 +116,37 @@ public static class HookCaller
 {
 	public static HookCallerCommon Caller { get; set; }
 
+	#region Internals
+
+	internal static List<Conflict> _conflictCache = new(10);
+	internal static Priorities _priorityCatcher;
+	internal static Conflict _defaultConflict = new()
+	{
+		Priority = Priorities.Low
+	};
+
+	internal static string _getPriorityName(Priorities priority)
+	{
+		switch (priority)
+		{
+			case Priorities.Low:
+				return "lower";
+
+			case Priorities.Normal:
+				return "normal";
+
+			case Priorities.High:
+				return "higher";
+
+			case Priorities.Highest:
+				return "highest";
+		}
+
+		return "normal";
+	}
+
+	#endregion
+
 	public static int GetHookTime(string hook)
 	{
 		if (!Caller._hookTimeBuffer.TryGetValue(hook, out var total))
@@ -139,7 +171,9 @@ public static class HookCaller
 		Caller.ClearHookTime(hookName);
 
 		var result = (object)null;
-		var conflicts = Pool.GetList<Conflict>();
+
+		_conflictCache.Clear();
+
 		var array = args == null || args.Length == 0 ? null : keepArgs ? args : args.ToArray();
 
 		for (int i = 0; i < Community.Runtime.ModuleProcessor.Modules.Count; i++)
@@ -158,59 +192,49 @@ public static class HookCaller
 			}
 		}
 
-		var plugins = Pool.GetList<RustPlugin>();
-
 		for (int i = 0; i < ModLoader.LoadedPackages.Count; i++)
 		{
 			var mod = ModLoader.LoadedPackages[i];
 
 			for (int x = 0; x < mod.Plugins.Count; x++)
 			{
-				plugins.Add(mod.Plugins[x]);
-			}
-		}
+				var plugin = mod.Plugins[x];
 
-		for(int i = 0; i < plugins.Count; i++)
-		{
-			var plugin = plugins[i];
-
-			try
-			{
-				var priority = (Priorities)default;
-				var methodResult = Caller.CallHook(plugin, hookName, flags: flag, args: array, ref priority);
-
-				if (methodResult != null)
+				try
 				{
-					result = methodResult;
-					ResultOverride(plugin, priority);
+					var priority = (Priorities)default;
+					var methodResult = Caller.CallHook(plugin, hookName, flags: flag, args: array, ref priority);
+
+					if (methodResult != null)
+					{
+						result = methodResult;
+						ResultOverride(plugin, priority);
+					}
 				}
+				catch (Exception ex) { Logger.Error($"Major issue with caching the '{hookName}' hook called in {plugin}", ex); }
 			}
-			catch (Exception ex) { Logger.Error($"Major issue with caching the '{hookName}' hook called in {plugin}", ex); }
 		}
 
 		ConflictCheck();
-
-		Pool.FreeList(ref conflicts);
-		Pool.FreeList(ref plugins);
 
 		if (array != null && !keepArgs) Array.Clear(array, 0, array.Length);
 
 		void ResultOverride(BaseHookable hookable, Priorities priority)
 		{
-			conflicts.Add(Conflict.Make(hookable, hookName, result, priority));
+			_conflictCache.Add(Conflict.Make(hookable, hookName, result, priority));
 		}
 		void ConflictCheck()
 		{
 			var differentResults = false;
 
-			if (conflicts.Count > 1)
+			if (_conflictCache.Count > 1)
 			{
-				var localResult = conflicts[0].Result;
+				var localResult = _conflictCache[0].Result;
 				var priorityConflict = _defaultConflict;
 
-				for(int i = 0; i < conflicts.Count; i++) 
+				for(int i = 0; i < _conflictCache.Count; i++) 
 				{
-					var conflict = conflicts[i];
+					var conflict = _conflictCache[i];
 
 					if (conflict.Result?.ToString() != localResult?.ToString())
 					{
@@ -224,7 +248,7 @@ public static class HookCaller
 				}
 
 				localResult = priorityConflict.Result;
-				if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+				if (differentResults && !_conflictCache.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
 
 				result = localResult;
 			}
@@ -249,31 +273,6 @@ public static class HookCaller
 		}
 
 		return CallStaticHook(oldHook, flag, args);
-	}
-
-	internal static Priorities _priorityCatcher;
-	internal static Conflict _defaultConflict = new()
-	{
-		Priority = Priorities.Low
-	};
-	internal static string _getPriorityName(Priorities priority)
-	{
-		switch (priority)
-		{
-			case Priorities.Low:
-				return "lower";
-
-			case Priorities.Normal:
-				return "normal";
-
-			case Priorities.High:
-				return "higher";
-
-			case Priorities.Highest:
-				return "highest";
-		}
-
-		return "normal";
 	}
 
 	public static object CallHook(BaseHookable plugin, string hookName)
