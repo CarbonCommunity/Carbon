@@ -122,19 +122,7 @@ public class BaseHookable
 	}
 	public bool IsHookIgnored(string hook)
 	{
-		if (IgnoredHooks == null) return false;
-
-		var hookName = HookCallerCommon.StringPool.GetOrAdd(hook);
-
-		foreach (var ignoredHook in IgnoredHooks)
-		{
-			if(ignoredHook == hookName)
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return IgnoredHooks != null && IgnoredHooks.Contains(HookCallerCommon.StringPool.GetOrAdd(hook));
 	}
 
 	public void SubscribeAll(Func<string, bool> condition = null)
