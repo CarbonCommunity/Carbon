@@ -395,7 +395,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var @class = @namespace.Members[0] as ClassDeclarationSyntax;
 		var methodDeclarations = @class.ChildNodes().OfType<MethodDeclarationSyntax>();
 		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
-		var privateMethods = methodDeclarations.Where(md => (md.Modifiers.Any(SyntaxKind.PrivateKeyword) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null).OrderBy(x => x.Identifier.ValueText);
+		var privateMethods = methodDeclarations.Where(md => md.Modifiers.Count == 0 || (md.Modifiers.Any(SyntaxKind.PrivateKeyword) || md.Modifiers.Any(SyntaxKind.ProtectedKeyword) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null).OrderBy(x => x.Identifier.ValueText);
 
 		foreach (var method in privateMethods)
 		{
