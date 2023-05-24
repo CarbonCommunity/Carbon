@@ -197,6 +197,8 @@ public static class HookCaller
 			{
 				var plugin = mod.Plugins[x];
 
+				if (plugin == null) continue;
+
 				try
 				{
 					var priority = (Priorities)default;
