@@ -145,7 +145,6 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 			var result = (object)null;
-			_conflictCache.Clear();
 
 			if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks)) { }
 			else if (!plugin.HookCache.TryGetValue(id, out hooks))
@@ -246,6 +245,8 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 			ConflictCheck();
+
+			_conflictCache.Clear();
 
 			void ResultOverride(BaseHookable hookable, Priorities priority)
 			{

@@ -171,9 +171,6 @@ public static class HookCaller
 		Caller.ClearHookTime(hookName);
 
 		var result = (object)null;
-
-		_conflictCache.Clear();
-
 		var array = args == null || args.Length == 0 ? null : keepArgs ? args : args.ToArray();
 
 		for (int i = 0; i < Community.Runtime.ModuleProcessor.Modules.Count; i++)
@@ -216,6 +213,8 @@ public static class HookCaller
 		}
 
 		ConflictCheck();
+
+		_conflictCache.Clear();
 
 		if (array != null && !keepArgs) Array.Clear(array, 0, array.Length);
 
