@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Carbon.Base;
@@ -19,6 +20,8 @@ namespace Carbon.Hooks;
 
 public class HookCallerInternal : HookCallerCommon
 {
+	internal static List<Conflict> _conflictCache = new(10);
+
 	public override void AppendHookTime(string hook, int time)
 	{
 		_hookTimeBuffer.AddOrUpdate(hook, time, (_, existingTime) => existingTime + time);
@@ -142,7 +145,7 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 			var result = (object)null;
-			var conflicts = Pool.GetList<Conflict>();
+			_conflictCache.Clear();
 
 			if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks)) { }
 			else if (!plugin.HookCache.TryGetValue(id, out hooks))
@@ -244,24 +247,22 @@ public class HookCallerInternal : HookCallerCommon
 
 			ConflictCheck();
 
-			Pool.FreeList(ref conflicts);
-
 			void ResultOverride(BaseHookable hookable, Priorities priority)
 			{
-				conflicts.Add(Conflict.Make(hookable, hookName, result, priority));
+				_conflictCache.Add(Conflict.Make(hookable, hookName, result, priority));
 			}
 			void ConflictCheck()
 			{
 				var differentResults = false;
 
-				if (conflicts.Count > 1)
+				if (_conflictCache.Count > 1)
 				{
-					var localResult = conflicts[0].Result;
+					var localResult = _conflictCache[0].Result;
 					var priorityConflict = _defaultConflict;
 
-					for (int i = 0; i < conflicts.Count; i++)
+					for (int i = 0; i < _conflictCache.Count; i++)
 					{
-						var conflict = conflicts[i];
+						var conflict = _conflictCache[i];
 
 						if (conflict.Result?.ToString() != localResult?.ToString())
 						{
@@ -275,7 +276,7 @@ public class HookCallerInternal : HookCallerCommon
 					}
 
 					localResult = priorityConflict.Result;
-					if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+					if (differentResults && !_conflictCache.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
 
 					if (localResult != null)
 					{
