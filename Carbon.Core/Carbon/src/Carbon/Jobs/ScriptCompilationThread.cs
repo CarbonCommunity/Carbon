@@ -395,7 +395,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var @class = @namespace.Members[0] as ClassDeclarationSyntax;
 		var methodDeclarations = @class.ChildNodes().OfType<MethodDeclarationSyntax>();
 		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
-		var privateMethods = methodDeclarations.Where(md => md.Modifiers.Count == 0 || (md.Modifiers.Any(SyntaxKind.PrivateKeyword) || md.Modifiers.Any(SyntaxKind.ProtectedKeyword) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null).OrderBy(x => x.Identifier.ValueText);
+		var privateMethods0 = methodDeclarations.Where(md => md.Modifiers.Count == 0 || (md.Modifiers.Any(SyntaxKind.PrivateKeyword) || md.Modifiers.Any(SyntaxKind.ProtectedKeyword) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);
+		var privateMethods = privateMethods0.OrderBy(x => x.Identifier.ValueText);
+		privateMethods0 = null;
 
 		foreach (var method in privateMethods)
 		{
@@ -419,13 +421,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				var parameterIndex = -1;
 				var method = group.Value[i];
-				var parameters = method.ParameterList.Parameters.Select(x =>
+				var parameters0 = method.ParameterList.Parameters.Select(x =>
 				{
 					parameterIndex++;
 					return x.Default != null ?
 						$"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : default" :
 						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : "")}arg{parameterIndex}_{i}";
-				}).ToArray();
+				});
+				var parameters = parameters0.ToArray();
 
 				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null);
 				var requiredParameterCount = requiredParameters.Count();
@@ -443,7 +446,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 
 				parameterIndex = -1;
-				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null ? $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "}" : "")}";
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null ? $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "}" : "")}";
+
+				Array.Clear(parameters, 0, parameters.Length);
+				parameters = null;
+				parameters0 = null;
+				requiredParameters = null;
 			}
 
 			methodContents += "\t\t\t\tbreak;\n\t\t\t}\n";
@@ -470,6 +478,18 @@ public class ScriptCompilationThread : BaseThreadedJob
 			.AddBodyStatements(SyntaxFactory.ParseStatement(methodContents)).WithTrailingTrivia(SyntaxFactory.LineFeed);
 
 		output = input.WithMembers(input.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class.WithMembers(@class.Members.Insert(0, generatedMethod))))));
+
+		#region Cleanup Pass
+
+		methodDeclarations = null;
+		foreach(var hookableMethod in hookableMethods)
+		{
+			hookableMethod.Value.Clear();
+		}
+		hookableMethods.Clear();
+		hookableMethods = null;
+
+		#endregion
 	}
 
 	#endregion
