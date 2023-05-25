@@ -55,6 +55,8 @@ public class Permission : Library
 	internal Dictionary<string, GroupData> groupdata = new();
 	private Func<string, bool> validate;
 
+	internal static readonly UserData _blankUser = new();
+
 	private static FieldInfo _iPlayerFieldCache;
 	public static FieldInfo iPlayerField
 		=> _iPlayerFieldCache ??= typeof(BasePlayer).GetField("IPlayer", BindingFlags.Public | BindingFlags.Instance);
@@ -328,7 +330,7 @@ public class Permission : Library
 	{
 		if (!userdata.TryGetValue(id, out var result))
 		{
-			if (!addIfNotExisting) return null;
+			if (!addIfNotExisting) return _blankUser;
 
 			userdata.Add(id, result = new UserData());
 		}
