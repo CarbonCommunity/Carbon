@@ -72,7 +72,7 @@ namespace Oxide.Core.Plugins
 
 		public static implicit operator bool(Plugin other)
 		{
-			return other != null;
+			return other != null && other.IsLoaded;
 		}
 
 		public virtual void IInit()

@@ -197,12 +197,10 @@ public static class HookCaller
 			{
 				var plugin = mod.Plugins[x];
 
-				if (plugin == null) continue;
-
 				try
 				{
 					var priority = (Priorities)default;
-					var methodResult = Caller.CallHook(plugin, hookName, flags: flag, args: array, ref priority);
+					var methodResult = Caller.CallHook(plugin, hookName, flags: flag, args: array, ref priority, keepArgs);
 
 					if (methodResult != null)
 					{
@@ -210,7 +208,7 @@ public static class HookCaller
 						ResultOverride(plugin, priority);
 					}
 				}
-				catch (Exception ex) { Logger.Error($"Major issue with caching the '{hookName}' hook called in {plugin}", ex); }
+				catch (Exception ex) { Logger.Error($"Failed to call hook '{hookName}' on plugin {plugin}", ex); }
 			}
 		}
 
