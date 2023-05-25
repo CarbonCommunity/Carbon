@@ -401,8 +401,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		foreach (var method in privateMethods)
 		{
-			if (method.ParameterList.Parameters.Any(x => x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)))) continue;
-
 			var methodName = method.Identifier.ValueText;
 			var id = HookCallerCommon.StringPool.GetOrAdd(methodName);
 
@@ -428,7 +426,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					parameterIndex++;
 					return x.Default != null ?
 						$"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : default" :
-						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : "")}arg{parameterIndex}_{i}";
+						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)) ? "out var " : "")}arg{parameterIndex}_{i}";
 				});
 				var parameters = parameters0.ToArray();
 
@@ -439,7 +437,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				parameterIndex = 0;
 				foreach (var @ref in method.ParameterList.Parameters)
 				{
-					if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
+					if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword) || x.IsKind(SyntaxKind.OutKeyword)))
 					{
 						refSets += $"args[{parameterIndex}] = arg{parameterIndex}_{i}; ";
 					}
@@ -448,7 +446,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 
 				parameterIndex = -1;
-				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null ? $"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 || methodName != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 || methodName != "OnServerInitialized" ? "}" : "")}";
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null && !x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) ? $"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "}" : "")}";
 
 				Array.Clear(parameters, 0, parameters.Length);
 				parameters = null;
