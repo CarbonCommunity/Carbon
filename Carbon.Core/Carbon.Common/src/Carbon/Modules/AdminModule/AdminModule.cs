@@ -2358,7 +2358,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						var permission = Community.Runtime.CorePlugin.permission;
 						Singleton.SetTab(ap.Player, "permissions");
 
-						ap.SetStorage(tab, "player", player);
+						ap.SetStorage(tab, "player", player.UserIDString);
 						PermissionsTab.GeneratePlayers(perms, permission, ap);
 						PermissionsTab.GeneratePlugins(perms, ap, permission, permission.FindUser(ap.Player.UserIDString), null);
 					}, (ap) => Singleton.HasAccessLevel(player, 3) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Important);
@@ -2555,7 +2555,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddButtonArray(1, new Tab.OptionButton("Data Users", ap => {
 					localPlayers = ap.SetStorage(tab, "localplayers", !localPlayers);
 					GeneratePlayers(tab, perms, ap);
-				}, ap => localPlayers ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+				}, ap => !localPlayers ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 				new Tab.OptionButton("Add User", ap => {
 					Modal.Open(ap.Player, "Create New User", new()
 					{
@@ -2588,30 +2588,33 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						tab.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
 						{
-							ap.SetStorage(tab, "player", player);
+							ap.SetStorage(tab, "player", player.UserIDString);
 
 							ap.ClearStorage(tab, "plugin");
 
 							tab.ClearColumn(3);
 
 							GeneratePlugins(tab, ap, perms, permission.FindUser(player.UserIDString), null);
-						}, type: (_instance) => ap.GetStorage<BasePlayer>(tab, "player", null) == player ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+						}, type: (_instance) => ap.GetStorage<string>(tab, "player", null) == player.UserIDString ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 					}
 				}
 				else
 				{
 					foreach (var player in permission.userdata)
 					{
-						tab.AddRow(1, new Tab.OptionButton($"{(string.IsNullOrEmpty(player.Value.LastSeenNickname) ? "Unknown" : player.Value.LastSeenNickname)} ({player.Key})", instance2 =>
+						if (player.Key.Contains(filter) || (!string.IsNullOrEmpty(player.Value.LastSeenNickname) && player.Value.LastSeenNickname.ToLower().Contains(filter)))
 						{
-							ap.SetStorage(tab, "player", player);
+							tab.AddRow(1, new Tab.OptionButton($"{(string.IsNullOrEmpty(player.Value.LastSeenNickname) ? "Unknown" : player.Value.LastSeenNickname)} ({player.Key})", instance2 =>
+							{
+								ap.SetStorage(tab, "player", player.Key);
 
-							ap.ClearStorage(tab, "plugin");
+								ap.ClearStorage(tab, "plugin");
 
-							tab.ClearColumn(3);
+								tab.ClearColumn(3);
 
-							GeneratePlugins(tab, ap, perms, player, null);
-						}, type: (_instance) => ap.GetStorage<UserData>(tab, "player", null) == player.Value ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+								GeneratePlugins(tab, ap, perms, player, null);
+							}, type: (_instance) => ap.GetStorage<string>(tab, "player", null) == player.Key ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+						}
 					}
 				}
 			}
@@ -2633,7 +2636,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.ClearColumn(2);
 			if (string.IsNullOrEmpty(selectedGroup))
 			{
-				tab.AddName(2, $"{player.Value.LastSeenNickname}");
+				tab.AddName(2, $"{player.Value.LastSeenNickname}", TextAnchor.LowerCenter);
+				tab.AddText(2, player.Key, 8, "1 1 1 0.6", align: TextAnchor.UpperCenter, isInput: true);
 
 				var existentPlayer = BasePlayer.FindAwakeOrSleeping(player.Key);
 				tab.AddButtonArray(2,
