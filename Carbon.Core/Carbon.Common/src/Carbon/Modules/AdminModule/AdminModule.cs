@@ -41,7 +41,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
 
-	public readonly CUI.Handler Handler = new();
+	public readonly Handler Handler = new();
 
 	internal const float OptionWidth = 0.475f;
 	internal const float TooltipOffset = 15;
@@ -251,7 +251,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		var ap = GetPlayerSession(player);
 		var tab = GetTab(player);
-		if (!ap.GetStorage<bool>(tab, "wasviewingcam", false)) return;
+		if (!ap.GetStorage(tab, "wasviewingcam", false)) return;
 
 		entity.Kill();
 		Draw(player);
@@ -413,7 +413,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, xMax: 1, yMin: 0f, yMax: 0.015f);
 		}
 	}
-	public void TabPanelText(CUI cui, CuiElementContainer container, string parent, string text, int size, string color, float height, float offset, TextAnchor align, CUI.Handler.FontTypes font, bool isInput)
+	public void TabPanelText(CUI cui, CuiElementContainer container, string parent, string text, int size, string color, float height, float offset, TextAnchor align, Handler.FontTypes font, bool isInput)
 	{
 		if (isInput)
 		{
@@ -1713,7 +1713,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				pageInstance.Check();
 			}
 		}
-		public T GetStorage<T>(Tab tab, string id, object @default = null)
+		public T GetStorage<T>(Tab tab, string id, T @default = default)
 		{
 			try
 			{
@@ -1739,7 +1739,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			if (Player == null) return default;
 
-			return GetStorage<T>(tab, id, value);
+			return GetStorage(tab, id, value);
 		}
 		public void ClearStorage(Tab tab, string id)
 		{
@@ -1874,7 +1874,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			return AddRow(column, new OptionToggle(name, callback, ap => { try { return (isOn?.Invoke(ap)).GetValueOrDefault(false); } catch (Exception ex) { Logger.Error($"AddToggle[{column}][{name}] failed", ex); } return false; }, tooltip));
 		}
-		public Tab AddText(int column, string name, int size, string color, TextAnchor align = TextAnchor.MiddleCenter, CUI.Handler.FontTypes font = Handler.FontTypes.RobotoCondensedRegular, bool isInput = false)
+		public Tab AddText(int column, string name, int size, string color, TextAnchor align = TextAnchor.MiddleCenter, Handler.FontTypes font = Handler.FontTypes.RobotoCondensedRegular, bool isInput = false)
 		{
 			return AddRow(column, new OptionText(name, size, color, align, font, isInput));
 		}
@@ -2008,10 +2008,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public int Size;
 			public string Color;
 			public TextAnchor Align;
-			public CUI.Handler.FontTypes Font;
+			public Handler.FontTypes Font;
 			public bool IsInput;
 
-			public OptionText(string name, int size, string color, TextAnchor align, CUI.Handler.FontTypes font, bool isInput, string tooltip = null) : base(name, tooltip) { Align = align; Size = size; Color = color; Font = font; IsInput = isInput; }
+			public OptionText(string name, int size, string color, TextAnchor align, Handler.FontTypes font, bool isInput, string tooltip = null) : base(name, tooltip) { Align = align; Size = size; Color = color; Font = font; IsInput = isInput; }
 		}
 		public class OptionInput : Option
 		{
@@ -2173,7 +2173,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	public class CarbonTab
 	{
-		public static Core.Config Config => Community.Runtime.Config;
+		public static Config Config => Community.Runtime.Config;
 
 		internal static string[] LogFileModes = new string[]
 		{
@@ -2360,7 +2360,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						ap.SetStorage(tab, "player", player);
 						PermissionsTab.GeneratePlayers(perms, permission, ap);
-						PermissionsTab.GeneratePlugins(perms, ap, permission, ap.Player, null);
+						PermissionsTab.GeneratePlugins(perms, ap, permission, permission.FindUser(ap.Player.UserIDString), null);
 					}, (ap) => Singleton.HasAccessLevel(player, 3) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Important);
 				}
 			}
@@ -2513,7 +2513,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				ap.SetStorage(tab, "option", 0);
 
 				GeneratePlayers(tab, permission, ap);
-			}, type: (ap) => ap.GetStorage<int>(tab, "option", 0) == 0 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
+			}, type: (ap) => ap.GetStorage(tab, "option", 0) == 0 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 
 			GeneratePlayers(tab, permission, PlayerSession.Blank);
 
@@ -2531,7 +2531,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				ap.SetStorage(tab, "option", 1);
 				GenerateGroups(tab, permission, ap);
-			}, type: (ap) => ap.GetStorage<int>(tab, "option", 0) == 1 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
+			}, type: (ap) => ap.GetStorage(tab, "option", 0) == 1 ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 			tab.AddColumn(1);
 			tab.AddColumn(2);
 			tab.AddColumn(3);
@@ -2541,47 +2541,85 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static void GeneratePlayers(Tab tab, Permission perms, PlayerSession ap)
 		{
-			var filter = ap.GetStorage<string>(tab, "playerfilter", string.Empty)?.Trim().ToLower();
-			var players = BasePlayer.allPlayerList.Where(x =>
-			{
-				if (!x.userID.IsSteamId()) return false;
-
-				if (!string.IsNullOrEmpty(filter))
-				{
-					return x.displayName.ToLower().Contains(filter) || x.UserIDString.Contains(filter);
-				}
-
-				return true;
-			});
+			var localPlayers = ap.GetStorage(tab, "localplayers", true);
+			var filter = ap.GetStorage(tab, "playerfilter", string.Empty)?.Trim().ToLower();
 
 			tab.ClearColumn(1);
 			tab.AddName(1, "Players", TextAnchor.MiddleLeft);
 			{
-				tab.AddInput(1, "Search", ap => ap.GetStorage<string>(tab, "playerfilter", string.Empty), (ap, args) =>
+				tab.AddInput(1, "Search", ap => ap.GetStorage(tab, "playerfilter", string.Empty), (ap, args) =>
 				{
 					ap.SetStorage(tab, "playerfilter", args.ToString(" "));
 					GeneratePlayers(tab, perms, ap);
 				});
-
-				foreach (var player in players)
-				{
-					tab.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
+				tab.AddButtonArray(1, new Tab.OptionButton("Data Users", ap => {
+					localPlayers = ap.SetStorage(tab, "localplayers", !localPlayers);
+					GeneratePlayers(tab, perms, ap);
+				}, ap => localPlayers ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+				new Tab.OptionButton("Add User", ap => {
+					Modal.Open(ap.Player, "Create New User", new()
 					{
-						ap.SetStorage(tab, "player", player);
+						["steamid"] = Modal.Field.Make("Steam ID", Modal.Field.FieldTypes.String, true, customIsInvalid: field => !field.Get<string>().IsSteamId() ? "Not a valid Steam ID." : permission.GetUserData(field.Get<string>()) != null ? "User with the same Steam ID already exists." : string.Empty),
+						["displayname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String)
+					}, (pl, mod) =>
+					{
+						var user = permission.GetUserData(mod.Get<string>("steamid"));
+						user.LastSeenNickname = mod.Get<string>("displayname");
 
-						ap.ClearStorage(tab, "plugin");
+						GeneratePlayers(tab, perms, ap);
+					});
+				}, ap => Tab.OptionButton.Types.None));
 
-						tab.ClearColumn(3);
+				if (localPlayers)
+				{
+					var players = BasePlayer.allPlayerList.Where(x =>
+					{
+						if (!x.userID.IsSteamId()) return false;
 
-						GeneratePlugins(tab, ap, perms, player, null);
-					}, type: (_instance) => ap.GetStorage<BasePlayer>(tab, "player", null) == player ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+						if (!string.IsNullOrEmpty(filter))
+						{
+							return x.displayName.ToLower().Contains(filter) || x.UserIDString.Contains(filter);
+						}
+
+						return true;
+					});
+
+					foreach (var player in players)
+					{
+						tab.AddRow(1, new Tab.OptionButton($"{player.displayName} ({player.userID})", instance2 =>
+						{
+							ap.SetStorage(tab, "player", player);
+
+							ap.ClearStorage(tab, "plugin");
+
+							tab.ClearColumn(3);
+
+							GeneratePlugins(tab, ap, perms, permission.FindUser(player.UserIDString), null);
+						}, type: (_instance) => ap.GetStorage<BasePlayer>(tab, "player", null) == player ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+					}
+				}
+				else
+				{
+					foreach (var player in permission.userdata)
+					{
+						tab.AddRow(1, new Tab.OptionButton($"{(string.IsNullOrEmpty(player.Value.LastSeenNickname) ? "Unknown" : player.Value.LastSeenNickname)} ({player.Key})", instance2 =>
+						{
+							ap.SetStorage(tab, "player", player);
+
+							ap.ClearStorage(tab, "plugin");
+
+							tab.ClearColumn(3);
+
+							GeneratePlugins(tab, ap, perms, player, null);
+						}, type: (_instance) => ap.GetStorage<UserData>(tab, "player", null) == player.Value ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+					}
 				}
 			}
 		}
-		public static void GeneratePlugins(Tab tab, PlayerSession ap, Permission permission, BasePlayer player, string selectedGroup)
+		public static void GeneratePlugins(Tab tab, PlayerSession ap, Permission permission, KeyValuePair<string, UserData> player, string selectedGroup)
 		{
 			var groupEdit = ap.GetStorage<bool>(tab, "groupedit");
-			var filter = ap.GetStorage<string>(tab, "pluginfilter", string.Empty)?.Trim().ToLower();
+			var filter = ap.GetStorage(tab, "pluginfilter", string.Empty)?.Trim().ToLower();
 			var plugins = ModLoader.LoadedPackages.SelectMany(x => x.Plugins).Where(x =>
 			{
 				if (!string.IsNullOrEmpty(filter))
@@ -2595,7 +2633,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.ClearColumn(2);
 			if (string.IsNullOrEmpty(selectedGroup))
 			{
-				tab.AddName(2, $"{player.displayName}");
+				tab.AddName(2, $"{player.Value.LastSeenNickname}");
+
+				var existentPlayer = BasePlayer.FindAwakeOrSleeping(player.Key);
 				tab.AddButtonArray(2,
 					new Tab.OptionButton("Select Player", (ap2) =>
 				{
@@ -2603,7 +2643,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var tab = Singleton.GetTab(ap.Player);
 					ap.SetStorage(tab, "playerfilterpl", player);
 					PlayersTab.RefreshPlayers(tab, ap);
-					PlayersTab.ShowInfo(tab, ap, player);
+					PlayersTab.ShowInfo(tab, ap, existentPlayer);
 				}, ap => Tab.OptionButton.Types.Warned),
 					new Tab.OptionButton(groupEdit ? "Edit Plugins" : "Edit Groups", (ap2) =>
 				{
@@ -2656,7 +2696,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.ClearColumn(2);
 						tab.ClearColumn(3);
 						GenerateGroups(tab, permission, ap);
-						GeneratePlugins(tab, ap, permission, ap.Player, selectedGroup);
+						GeneratePlugins(tab, ap, permission, permission.FindUser(ap.Player.UserIDString), selectedGroup);
 					});
 				}));
 				tab.AddButton(2, "Duplicate Group", ap =>
@@ -2669,7 +2709,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var array = temp.ToArray();
 					Pool.FreeList(ref temp);
 
-					Modal.Open(player, "Duplicate Group", new Dictionary<string, Modal.Field>
+					Modal.Open(ap.Player, "Duplicate Group", new Dictionary<string, Modal.Field>
 					{
 						["name"] = Modal.Field.Make("Name", Modal.Field.FieldTypes.String, true, customIsInvalid: (field) => permission.GetGroups().Any(x => x == field.Get<string>()) ? "Group with that name already exists." : null),
 						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, @default: string.Empty),
@@ -2702,7 +2742,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				tab.AddName(2, "Groups", TextAnchor.MiddleLeft);
 				{
-					tab.AddInput(2, "Search", ap => ap.GetStorage<string>(tab, "groupfilter", string.Empty), (ap, args) =>
+					tab.AddInput(2, "Search", ap => ap.GetStorage(tab, "groupfilter", string.Empty), (ap, args) =>
 					{
 						ap.SetStorage(tab, "groupfilter", args.ToString(" "));
 						GeneratePlugins(tab, ap, permission, player, selectedGroup);
@@ -2716,14 +2756,17 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						tab.AddButton(2, $"{group}", ap =>
 						{
-							if (permission.UserHasGroup(player.UserIDString, group))
+							if (permission.UserHasGroup(player.Key, group))
 							{
-								permission.RemoveUserGroup(player.UserIDString, group);
+								permission.RemoveUserGroup(player.Key, group);
 							}
-							else permission.AddUserGroup(player.UserIDString, group);
+							else
+							{
+								permission.AddUserGroup(player.Key, group);
+							}
 
 							GeneratePlugins(tab, ap, permission, player, selectedGroup);
-						}, type: (_instance) => permission.UserHasGroup(player.UserIDString, group) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
+						}, type: (_instance) => permission.UserHasGroup(player.Key, group) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 					}
 				}
 			}
@@ -2731,7 +2774,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				tab.AddName(2, "Plugins", TextAnchor.MiddleLeft);
 				{
-					tab.AddInput(2, "Search", ap => ap.GetStorage<string>(tab, "pluginfilter", string.Empty), (ap, args) =>
+					tab.AddInput(2, "Search", ap => ap.GetStorage(tab, "pluginfilter", string.Empty), (ap, args) =>
 					{
 						ap.SetStorage(tab, "pluginfilter", args.ToString(" "));
 						GeneratePlugins(tab, ap, permission, player, selectedGroup);
@@ -2751,7 +2794,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			}
 		}
-		public static void GeneratePermissions(Tab tab, Permission perms, RustPlugin plugin, BasePlayer player, string selectedGroup)
+		public static void GeneratePermissions(Tab tab, Permission perms, RustPlugin plugin, KeyValuePair<string, UserData> player, string selectedGroup)
 		{
 			tab.ClearColumn(3);
 			tab.AddName(3, "Permissions", TextAnchor.MiddleLeft);
@@ -2762,7 +2805,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var isInherited = false;
 					var list = "";
 
-					foreach (var group in perms.GetUserGroups(player.UserIDString))
+					foreach (var group in perms.GetUserGroups(player.Key))
 						if (perms.GroupHasPermission(group, perm))
 						{
 							isInherited = true;
@@ -2771,10 +2814,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					tab.AddRow(3, new Tab.OptionButton($"{perm}", instance5 =>
 					{
-						if (perms.UserHasPermission(player.UserIDString, perm))
-							perms.RevokeUserPermission(player.UserIDString, perm);
-						else perms.GrantUserPermission(player.UserIDString, perm, plugin);
-					}, type: (_instance) => isInherited ? Tab.OptionButton.Types.Important : perms.UserHasPermission(player.UserIDString, perm) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+						if (perms.UserHasPermission(player.Key, perm))
+							perms.RevokeUserPermission(player.Key, perm);
+						else perms.GrantUserPermission(player.Key, perm, plugin);
+					}, type: (_instance) => isInherited ? Tab.OptionButton.Types.Important : perms.UserHasPermission(player.Key, perm) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 
 					if (isInherited)
 					{
@@ -2798,7 +2841,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.ClearColumn(1);
 			tab.AddName(1, "Groups", TextAnchor.MiddleLeft);
 			{
-				tab.AddInput(1, "Search", ap => ap.GetStorage<string>(tab, "groupfilter", string.Empty), (ap, args) =>
+				tab.AddInput(1, "Search", ap => ap.GetStorage(tab, "groupfilter", string.Empty), (ap, args) =>
 				{
 					ap.SetStorage(tab, "groupfilter", args.ToString(" "));
 					GenerateGroups(tab, perms, ap);
@@ -2847,8 +2890,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.ClearColumn(2);
 						tab.ClearColumn(3);
 
-						GeneratePlugins(tab, ap, permission, ap.Player, group);
-					}, type: (_instance) => ap.GetStorage<string>(tab, "group", string.Empty) == group ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
+						GeneratePlugins(tab, ap, permission, permission.FindUser(ap.Player.UserIDString), group);
+					}, type: (_instance) => ap.GetStorage(tab, "group", string.Empty) == group ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 				}
 			}
 		}
@@ -2892,7 +2935,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				selectedEntitites = session.GetStorage<List<BaseEntity>>(tab, "selectedentities");
 			}
 
-			if (!session.GetStorage<bool>(tab, "multi", false)) selectedEntitites.Clear();
+			if (!session.GetStorage(tab, "multi", false)) selectedEntitites.Clear();
 			if (!selectedEntitites.Contains(entity)) selectedEntitites.Add(entity);
 		}
 		internal static void ResetSelection(Tab tab, PlayerSession session)
@@ -2923,10 +2966,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 
 			tab.AddInputButton(0, "Search Entity", 0.3f,
-				new Tab.OptionInput(null, ap => ap.GetStorage<string>(tab, "filter", string.Empty), 0, false, (ap, args) => { ap.SetStorage(tab, "filter", args.ToString(" ")); DrawEntities(tab, ap); }),
+				new Tab.OptionInput(null, ap => ap.GetStorage(tab, "filter", string.Empty), 0, false, (ap, args) => { ap.SetStorage(tab, "filter", args.ToString(" ")); DrawEntities(tab, ap); }),
 				new Tab.OptionButton($"Refresh", ap => { DrawEntities(tab, ap); }));
 
-			var isMulti = ap3.GetStorage<bool>(tab, "multi", false);
+			var isMulti = ap3.GetStorage(tab, "multi", false);
 			tab.AddToggle(0, "Multi-selection", ap =>
 			{
 				isMulti = ap.SetStorage(tab, "multi", !isMulti);
@@ -2938,11 +2981,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var pool = Pool.GetList<BaseEntity>();
 			EntityCount = 0;
 
-			var usedFilter = ap3.GetStorage<string>(tab, "filter", string.Empty)?.ToLower()?.Trim();
+			var usedFilter = ap3.GetStorage(tab, "filter", string.Empty)?.ToLower()?.Trim();
 			var map = Entities.Get<BaseEntity>(true);
 			var validateFilter = ap3.GetStorage<Func<BaseEntity, bool>>(tab, "validatefilter");
 			var maximumRange = ((int)World.Size).Clamp(1, int.MaxValue) / 2;
-			var range = ap3.GetStorage<int>(tab, "range", maximumRange);
+			var range = ap3.GetStorage(tab, "range", maximumRange);
 			map.Each(entity =>
 			{
 				pool.Add(entity);
@@ -2955,7 +2998,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.AddRange(0, "Range", 0, maximumRange, ap => range, (ap, value) => { try { ap.SetStorage(tab, "range", (int)value); DrawEntities(tab, ap); } catch (Exception ex) { Logger.Error($"Oof", ex); } }, ap => $"{range:0.0}m");
 			tab.AddName(0, $"Entities  ({EntityCount:n0})", TextAnchor.MiddleLeft);
 
-			var filter = ap3.GetStorage<string>(tab, "filter", string.Empty);
+			var filter = ap3.GetStorage(tab, "filter", string.Empty);
 			tab.AddButtonArray(0,
 				new Tab.OptionButton("Players", ap => { ap.SetStorage(tab, "filter", nameof(BasePlayer)); DrawEntities(tab, ap); }, ap => filter == nameof(BasePlayer) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 				new Tab.OptionButton("Containers", ap => { ap.SetStorage(tab, "filter", nameof(StorageContainer)); validateFilter = null; DrawEntities(tab, ap); }, ap => filter == nameof(StorageContainer) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
@@ -2964,7 +3007,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				new Tab.OptionButton("NPCs", ap => { ap.SetStorage(tab, "filter", nameof(NPCPlayer)); validateFilter = null; DrawEntities(tab, ap); }, ap => filter == nameof(NPCPlayer) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 				new Tab.OptionButton("I/O", ap => { ap.SetStorage(tab, "filter", nameof(IOEntity)); validateFilter = null; DrawEntities(tab, ap); }, ap => filter == nameof(IOEntity) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 
-			switch (ap3.GetStorage<string>(tab, "filter", string.Empty))
+			switch (ap3.GetStorage(tab, "filter", string.Empty))
 			{
 				case nameof(BasePlayer):
 					tab.AddButtonArray(0,
@@ -3344,7 +3387,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		internal static void DrawEntityFlags(Tab tab, PlayerSession session, int column = 1)
 		{
-			var selectedEntitites = session.GetStorage<List<BaseEntity>>(tab, "selectedentities", new List<BaseEntity>());
+			var selectedEntitites = session.GetStorage(tab, "selectedentities", new List<BaseEntity>());
 
 			tab.ClearColumn(column);
 			if (selectedEntitites.Count == 0) return;
@@ -3616,7 +3659,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				try
 				{
 					var plugins = vendor.FetchedPlugins.ToArray();
-					var filter = ap.GetStorage<FilterTypes>(tab, "filter", FilterTypes.None);
+					var filter = ap.GetStorage(tab, "filter", FilterTypes.None);
 					switch (filter)
 					{
 						case FilterTypes.Price:
@@ -3736,7 +3779,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					maxPages = (customList.Count - 1) / 15;
 
-					var page2 = ap.GetStorage<int>(tab, "page", 0);
+					var page2 = ap.GetStorage(tab, "page", 0);
 					if (page2 > maxPages) ap.SetStorage(tab, "page", maxPages);
 
 					var page = 15 * page2;
@@ -3800,7 +3843,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var header = cui.CreatePanel(container, parent, null, "0.2 0.2 0.2 0.5",
 				xMin: 0f, xMax: 1f, yMin: 0.95f, yMax: 1f);
 
-			var vendorName = ap.GetStorage<string>(tab, "vendor", "Local");
+			var vendorName = ap.GetStorage(tab, "vendor", "Local");
 			var vendor = GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), vendorName));
 
 			var vendors = Enum.GetNames(typeof(VendorTypes));
@@ -3889,11 +3932,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0f, xMax: 0.8f, yMin: 0.89f, yMax: 0.94f);
 
 			var drop = cui.CreatePanel(container, sidebar, null, "0 0 0 0", yMin: 0.96f, OxMin: -155);
-			Singleton.TabPanelDropdown(cui, PlaceboPage, container, drop, null, $"pluginbrowser.changesetting filter_dd", 1, 0, (int)ap.GetStorage<FilterTypes>(tab, "filter", FilterTypes.None), DropdownOptions, null, 0, DropdownShow);
+			Singleton.TabPanelDropdown(cui, PlaceboPage, container, drop, null, $"pluginbrowser.changesetting filter_dd", 1, 0, (int)ap.GetStorage(tab, "filter", FilterTypes.None), DropdownOptions, null, 0, DropdownShow);
 
 			var topbarYScale = 0.1f;
 			cui.CreateText(container, topbar, null, "1 1 1 1", plugins.Count > 0 ? $"/ {maxPages + 1:n0}" : "NONE", plugins.Count > 0 ? 10 : 8, xMin: plugins.Count > 0 ? 0.925f : 0.92f, xMax: 0.996f, align: TextAnchor.MiddleLeft);
-			if (plugins.Count != 0) cui.CreateProtectedInputField(container, topbar, null, "1 1 1 1", $"{ap.GetStorage<int>(tab, "page", 0) + 1}", 10, 3, false, xMin: 0.8f, xMax: 0.92f, align: TextAnchor.MiddleRight, command: $"pluginbrowser.page ");
+			if (plugins.Count != 0) cui.CreateProtectedInputField(container, topbar, null, "1 1 1 1", $"{ap.GetStorage(tab, "page", 0) + 1}", 10, 3, false, xMin: 0.8f, xMax: 0.92f, align: TextAnchor.MiddleRight, command: $"pluginbrowser.page ");
 			cui.CreateProtectedButton(container, topbar, null, "0.4 0.7 0.3 0.8", "1 1 1 0.6", "<", 10, xMin: 0.86f, xMax: 0.886f, yMin: topbarYScale, yMax: 1f - topbarYScale, command: "pluginbrowser.page -1");
 			cui.CreateProtectedButton(container, topbar, null, "0.4 0.7 0.3 0.8", "1 1 1 0.6", ">", 10, xMin: 0.97f, xMax: 0.996f, yMin: topbarYScale, yMax: 1f - topbarYScale, command: "pluginbrowser.page +1");
 
@@ -5058,7 +5101,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		var arg = new string[args.Args.Length];
 		Array.Copy(args.Args, arg, args.Args.Length);
 
@@ -5137,11 +5180,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 		PluginsTab.GetPlugins(vendor, tab, ap, out var maxPages);
 
-		var page = ap.GetStorage<int>(tab, "page", 0);
+		var page = ap.GetStorage(tab, "page", 0);
 
 		switch (args.Args[0])
 		{
@@ -5172,7 +5215,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		var filter = ap.GetStorage<PluginsTab.FilterTypes>(tab, "filter");
@@ -5192,7 +5235,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		var filter = args.Args.ToString(" ");
@@ -5210,7 +5253,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		var search = ap.SetStorage(tab, "search", args.Args.ToString(" "));
@@ -5228,7 +5271,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 
 		if (vendor is PluginsTab.Local) return;
 
@@ -5266,7 +5309,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		ap.SetStorage(tab, "selectedplugin", vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[0]));
@@ -5279,7 +5322,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		ap.SetStorage(tab, "selectedplugin", (PluginsTab.Plugin)null);
@@ -5292,7 +5335,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		var plugins = PluginsTab.GetPlugins(vendor, tab, ap);
@@ -5309,7 +5352,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		var ap = GetPlayerSession(args.Player());
 		var tab = GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage<string>(tab, "vendor", "Local")));
+		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 
 		switch (args.Args[0])
 		{
@@ -5318,7 +5361,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (args.HasArgs(4))
 				{
-					if ((int)ap.GetStorage<PluginsTab.FilterTypes>(tab, "filter", PluginsTab.FilterTypes.None) == args.Args[3].ToInt()) ap.SetStorage(tab, "flipstorage", !ap.GetStorage<bool>(tab, "flipstorage", false)); else { ap.SetStorage(tab, "flipstorage", false); }
+					if ((int)ap.GetStorage(tab, "filter", PluginsTab.FilterTypes.None) == args.Args[3].ToInt()) ap.SetStorage(tab, "flipstorage", !ap.GetStorage(tab, "flipstorage", false)); else { ap.SetStorage(tab, "flipstorage", false); }
 
 					ap.SetStorage(tab, "page", 0);
 					ap.SetStorage(tab, "filter", (PluginsTab.FilterTypes)args.Args[3].ToInt());
@@ -5620,7 +5663,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (array.Count <= 1)
 			{
 				var sample = array.FirstOrDefault() as JObject;
-				var newPropertyName = ap.GetStorage<string>(this, "jsonprop", "New Property");
+				var newPropertyName = ap.GetStorage(this, "jsonprop", "New Property");
 
 				if (array.Count == 1)
 				{
@@ -5632,7 +5675,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 				else if (array.Count == 0) AddText(subColumn, $"{StringEx.SpacedString(Spacing, 0, false)}No entries", 10, "1 1 1 0.6", TextAnchor.MiddleLeft);
 
-				AddInput(subColumn, "Property Name", ap => ap.GetStorage<string>(this, "jsonprop", "New Property"), (ap, args) => { ap.SetStorage(this, "jsonprop", newPropertyName = args.ToString(" ")); });
+				AddInput(subColumn, "Property Name", ap => ap.GetStorage(this, "jsonprop", "New Property"), (ap, args) => { ap.SetStorage(this, "jsonprop", newPropertyName = args.ToString(" ")); });
 				AddButtonArray(subColumn, 0.01f,
 					new OptionButton("Add Label", ap => { if (sample == null) array.Add(sample = JObject.Parse("{ }")); if (!(sample as IDictionary<string, JToken>).ContainsKey(newPropertyName)) { sample.Add(newPropertyName, string.Empty); _drawArray(name, array, level, column, ap); } }),
 					new OptionButton("Add Toggle", ap => { if (sample == null) array.Add(sample = JObject.Parse("{ }")); if (!(sample as IDictionary<string, JToken>).ContainsKey(newPropertyName)) { sample.Add(newPropertyName, false); _drawArray(name, array, level, column, ap); } }),
@@ -5801,7 +5844,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		internal void Draw(Tab tab, CUI cui, CuiElementContainer container, string panel, PlayerSession ap)
 		{
-			var page = ap.GetStorage<int>(tab, "page", 0);
+			var page = ap.GetStorage(tab, "page", 0);
 			Pages[page].Draw?.Invoke(cui, tab, container, panel, ap);
 		}
 
@@ -5856,7 +5899,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		internal void DisplayArrows(CUI cui, Tab tab, CuiElementContainer container, string panel, PlayerSession ap, bool centerNext = false)
 		{
-			var page = ap.GetStorage<int>(tab, "page", 0);
+			var page = ap.GetStorage(tab, "page", 0);
 
 			if (page < Pages.Count - 1)
 			{
@@ -5929,7 +5972,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(arg.Player());
 		var tab = GetTab(ap.Player);
 
-		var currentPage = ap.GetStorage<int>(tab, "page", 0);
+		var currentPage = ap.GetStorage(tab, "page", 0);
 		currentPage += arg.Args[0].ToInt();
 		ap.SetStorage(tab, "page", currentPage);
 
@@ -6054,8 +6097,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			ap.SetStorage(ap.SelectedTab, OnColorPicked, onColorPicked);
 
-			var brightness = ap.GetStorage<float>(ap.SelectedTab, Brightness, 1f);
-			var firstOpen = ap.GetStorage<bool>(ap.SelectedTab, FirstOpen, false);
+			var brightness = ap.GetStorage(ap.SelectedTab, Brightness, 1f);
+			var firstOpen = ap.GetStorage(ap.SelectedTab, FirstOpen, false);
 
 			using var cui = new CUI(Singleton.Handler);
 
@@ -6178,7 +6221,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				fadeIn: fade,
 				command: PanelId + $".pickcolor {mode} {ColorUtility.ToHtmlStringRGBA(color)} {color.r} {color.g} {color.b}");
 
-			if (mode == "brightness" && index == ap.GetStorage<int>(ap.SelectedTab, BrightnessIndicator, 8))
+			if (mode == "brightness" && index == ap.GetStorage(ap.SelectedTab, BrightnessIndicator, 8))
 			{
 				cui.CreatePanel(container, id, null, "0.75 0.75 0.2 0.8", yMin: 0.85f, yMax: 1, OyMin: 4, OyMax: 8.5f);
 			}
@@ -6220,8 +6263,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var rawColor = args.Args.Skip(2).ToArray().ToString(" ", " ");
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
-		var brightness = ap.GetStorage<float>(ap.SelectedTab, ColorPicker.Brightness, 1f);
-		var brightnessIndicator = ap.GetStorage<int>(ap.SelectedTab, ColorPicker.BrightnessIndicator, 8);
+		var brightness = ap.GetStorage(ap.SelectedTab, ColorPicker.Brightness, 1f);
+		var brightnessIndicator = ap.GetStorage(ap.SelectedTab, ColorPicker.BrightnessIndicator, 8);
 		var onColorPicked = ap.GetStorage<Action<string, string>>(ap.SelectedTab, ColorPicker.OnColorPicked);
 
 		switch (mode)
@@ -6387,6 +6430,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					case Field.FieldTypes.String:
 					case Field.FieldTypes.Float:
 					case Field.FieldTypes.Integer:
+					case Field.FieldTypes.ULong:
 						var value = field.Value.Value?.ToString();
 						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: Singleton.HandleEnableNeedsKeyboard(Player));
 						break;
@@ -6480,6 +6524,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				String,
 				Integer,
 				Float,
+				ULong,
 				Boolean,
 				Enum,
 				RustColor,
@@ -6548,7 +6593,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	#region Custom Commands
 
 	[ProtectedCommand("modal.action")]
-	private void ModalAction(ConsoleSystem.Arg arg)
+	private void ModalAction(Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
 		var modal = ap.GetStorage<Modal>(null, "modal");
@@ -6570,6 +6615,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				case Modal.Field.FieldTypes.Integer:
 					field.Value = value.ToInt();
+					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
+					break;
+
+				case Modal.Field.FieldTypes.ULong:
+					field.Value = value.ToUlong();
 					modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 					break;
 
@@ -6631,7 +6681,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	[ProtectedCommand("modal.confirm")]
-	private void ModalConfirm(ConsoleSystem.Arg arg)
+	private void ModalConfirm(Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
 		var modal = ap.GetStorage<Modal>(null, "modal");
@@ -6647,7 +6697,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	[ProtectedCommand("modal.cancel")]
-	private void ModalCancel(ConsoleSystem.Arg arg)
+	private void ModalCancel(Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
 		var modal = ap.GetStorage<Modal>(null, "modal");
@@ -6656,7 +6706,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	[ProtectedCommand("modal.page")]
-	private void ModalPage(ConsoleSystem.Arg arg)
+	private void ModalPage(Arg arg)
 	{
 		var ap = GetPlayerSession(arg.Player());
 		var modal = ap.GetStorage<Modal>(null, "modal");

@@ -51,8 +51,8 @@ public class Permission : Library
 	public static string[] EmptyStringArray = new string[0];
 
 	private readonly Dictionary<BaseHookable, HashSet<string>> permset;
-	private Dictionary<string, UserData> userdata = new();
-	private Dictionary<string, GroupData> groupdata = new();
+	internal Dictionary<string, UserData> userdata = new();
+	internal Dictionary<string, GroupData> groupdata = new();
 	private Func<string, bool> validate;
 
 	private static FieldInfo _iPlayerFieldCache;
