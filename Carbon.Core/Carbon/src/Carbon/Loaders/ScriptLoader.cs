@@ -96,7 +96,7 @@ public class ScriptLoader : IScriptLoader
 			var plugin = Scripts[i];
 			if (plugin.IsCore) continue;
 
-			Community.Runtime.Plugins.Plugins.Remove(plugin.Instance);
+			plugin.Instance.Package.Plugins.Remove(plugin.Instance);
 
 			if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
 

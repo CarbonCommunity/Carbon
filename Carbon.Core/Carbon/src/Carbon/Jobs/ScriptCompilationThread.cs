@@ -457,7 +457,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			methodContents += "\t\t\t\tbreak;\n\t\t\t}\n";
 		}
 
-		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nvar exception = ex.InnerException ?? ex;\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.HookCallerCommon.StringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\", exception);\n}\nreturn result;";
+		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.HookCallerCommon.StringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\", ex);\n}\nreturn result;";
 
 		var generatedMethod = SyntaxFactory.MethodDeclaration(
 			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),
