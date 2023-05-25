@@ -431,7 +431,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				var parameters = parameters0.ToArray();
 
 				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null);
-				var requiredParameterCount = requiredParameters.Count();
+				var requiredParameterCount = requiredParameters.Count(x => !x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)));
 
 				var refSets = string.Empty;
 				parameterIndex = 0;
