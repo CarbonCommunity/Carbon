@@ -403,7 +403,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			if (method.ParameterList.Parameters.Any(x => x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)))) continue;
 
-			var id = HookCallerCommon.StringPool.GetOrAdd(method.Identifier.ValueText);
+			var methodName = method.Identifier.ValueText;
+			var id = HookCallerCommon.StringPool.GetOrAdd(methodName);
 
 			if (!hookableMethods.TryGetValue(id, out var list))
 			{
@@ -421,6 +422,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				var parameterIndex = -1;
 				var method = group.Value[i];
+				var methodName = method.Identifier.ValueText;
 				var parameters0 = method.ParameterList.Parameters.Select(x =>
 				{
 					parameterIndex++;
@@ -446,7 +448,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 
 				parameterIndex = -1;
-				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null ? $"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{method.Identifier.ValueText}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 || method.Identifier.ValueText != "OnServerInitialized" ? "}" : "")}";
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null ? $"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 || methodName != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 || methodName != "OnServerInitialized" ? "}" : "")}";
 
 				Array.Clear(parameters, 0, parameters.Length);
 				parameters = null;
