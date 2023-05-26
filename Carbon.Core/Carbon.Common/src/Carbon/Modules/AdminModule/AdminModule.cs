@@ -2264,7 +2264,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					tab.AddName(1, Singleton.GetPhrase("watchers", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 					tab.AddToggle(1, Singleton.GetPhrase("scriptwatchers", ap.Player.UserIDString), ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers, Singleton.GetPhrase("scriptwatchers_help", ap.Player.UserIDString));
-					tab.AddDropdown(1, Singleton.GetPhrase("scriptwatchersoption", ap.Player.UserIDString), ap => (int)Config.ScriptWatcherOption, (ap, index) => { Config.ScriptWatcherOption = (SearchOption)index; Community.Runtime.SaveConfig(); }, SearchDirectories, tooltip: Singleton.GetPhrase("scriptwatchersoption_help", ap.Player.UserIDString));
+					tab.AddDropdown(1, Singleton.GetPhrase("scriptwatchersoption", ap.Player.UserIDString), ap => (int)Config.ScriptWatcherOption, (ap, index) => {
+						Config.ScriptWatcherOption = (SearchOption)index;
+						Community.Runtime.ScriptProcessor.SetIncludeSubdirectories(index == (int)SearchOption.AllDirectories);
+						Community.Runtime.SaveConfig(); }, SearchDirectories, tooltip: Singleton.GetPhrase("scriptwatchersoption_help", ap.Player.UserIDString));
 					tab.AddToggle(1, Singleton.GetPhrase("harmonyreference", ap.Player.UserIDString), ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference, Singleton.GetPhrase("harmonyreference_help", ap.Player.UserIDString));
 					tab.AddToggle(1, Singleton.GetPhrase("filenamecheck", ap.Player.UserIDString), ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck, Singleton.GetPhrase("filenamecheck_help", ap.Player.UserIDString));
 
