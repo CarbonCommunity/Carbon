@@ -574,6 +574,9 @@ public struct CUI : IDisposable
 			else
 			{
 				element = _outlines[0] as CuiOutlineComponent;
+				element.Color = _defaultOutline.Color;
+				element.Distance = _defaultOutline.Distance;
+				element.UseGraphicAlpha = _defaultOutline.UseGraphicAlpha;
 				_outlines.RemoveAt(0);
 			}
 
