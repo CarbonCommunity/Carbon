@@ -2,9 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
+using Facepunch.Extend;
 using UnityEngine;
 
 /*
@@ -26,6 +28,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 	public virtual bool EnableWatcher => true;
 	public virtual string Folder => string.Empty;
 	public virtual string Extension => string.Empty;
+	public string[] BlacklistPattern { get; set; }
 	public virtual float Rate => 0.2f;
 	public virtual Type IndexedType => null;
 	public FileSystemWatcher Watcher { get; private set; }
@@ -99,7 +102,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 				if (element.Value == null)
 				{
 					var instance = Activator.CreateInstance(IndexedType) as Instance;
-					instance.File = Path.Combine(Defines.GetScriptFolder(), $"{element.Key}{Extension}");
+					instance.File = element.Key;
 					instance.Execute();
 
 					InstanceBuffer[element.Key] = instance;
@@ -213,28 +216,48 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 
 	internal void _onCreated(object sender, FileSystemEventArgs e)
 	{
-		if (!EnableWatcher) return;
+		var path = e.FullPath;
 
-		InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
+		if (!EnableWatcher || IsBlacklisted(path)) return;		
+
+		InstanceBuffer.Add(path, null);
 	}
 	internal void _onChanged(object sender, FileSystemEventArgs e)
 	{
-		if (!EnableWatcher) return;
+		var path = e.FullPath;
 
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.SetDirty();
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(path, out var mod)) mod.SetDirty();
 	}
 	internal void _onRenamed(object sender, RenamedEventArgs e)
 	{
-		if (!EnableWatcher) return;
+		var path = e.FullPath;
 
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.OldName), out var mod)) mod.MarkDeleted();
-		InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(path, out var mod)) mod.MarkDeleted();
+		InstanceBuffer.Add(path, null);
 	}
 	internal void _onRemoved(object sender, FileSystemEventArgs e)
 	{
-		if (!EnableWatcher) return;
+		var path = e.FullPath;
 
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.MarkDeleted();
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(path, out var mod)) mod.MarkDeleted();
+	}
+
+	public bool IsBlacklisted(string path)
+	{
+		if (BlacklistPattern == null) return false;
+
+		for(int i = 0; i < BlacklistPattern.Length; i++)
+		{
+			if (path.Contains(BlacklistPattern[i])) return true;
+		}
+
+		return false;
 	}
 
 	public class Instance : IBaseProcessor.IInstance, IDisposable

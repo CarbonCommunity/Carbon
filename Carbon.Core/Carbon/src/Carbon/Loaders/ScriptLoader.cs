@@ -64,20 +64,20 @@ public class ScriptLoader : IScriptLoader
 	public static void LoadAll()
 	{
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
-		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: SearchOption.TopDirectoryOnly);
+		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: SearchOption.AllDirectories);
 
 		Community.Runtime.ScriptProcessor.Clear();
 
 		foreach (var file in extensionPlugins)
 		{
 			var plugin = new ScriptProcessor.Script { File = file };
-			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(file, plugin);
 		}
 
 		foreach (var file in plugins)
 		{
 			var plugin = new ScriptProcessor.Script { File = file };
-			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(file, plugin);
 		}
 
 		foreach (var plugin in Community.Runtime.ScriptProcessor.InstanceBuffer)
