@@ -162,7 +162,7 @@ public class ScriptLoader : IScriptLoader
 		if (string.IsNullOrEmpty(Source))
 		{
 			HasFinished = true;
-			Logger.Warn("Attempted to compile an empty string of source code.");
+			// Logger.Warn("Attempted to compile an empty string of source code.");
 			yield break;
 		}
 
