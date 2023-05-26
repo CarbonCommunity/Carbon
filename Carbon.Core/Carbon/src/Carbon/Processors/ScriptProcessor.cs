@@ -31,6 +31,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		{
 			"backups"
 		};
+		SetIncludeSubdirectories(Community.Runtime.Config.ScriptWatcherOption == SearchOption.AllDirectories);
 	}
 
 	public bool AllPendingScriptsComplete()

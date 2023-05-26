@@ -2,11 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Carbon.Contracts;
-using Carbon.Core;
 using Carbon.Extensions;
-using Facepunch.Extend;
 using UnityEngine;
 
 /*
@@ -18,7 +15,7 @@ using UnityEngine;
 
 namespace Carbon.Base;
 
-public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
+public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 {
 	public virtual string Name { get; }
 
@@ -31,6 +28,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 	public string[] BlacklistPattern { get; set; }
 	public virtual float Rate => 0.2f;
 	public virtual Type IndexedType => null;
+	public bool IncludeSubdirectories { get { return Watcher.IncludeSubdirectories; } set { SetIncludeSubdirectories(value); } }
 	public FileSystemWatcher Watcher { get; private set; }
 
 	internal WaitForSeconds _wfsInstance;
@@ -72,7 +70,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 			Watcher.Changed += _onChanged;
 			Watcher.Renamed += _onRenamed;
 			Watcher.Deleted += _onRemoved;
-			Watcher.IncludeSubdirectories = true;
+			Watcher.IncludeSubdirectories = IncludeSubdirectories;
 			Watcher.EnableRaisingEvents = true;
 		}
 
@@ -258,6 +256,10 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 		}
 
 		return false;
+	}
+	public void SetIncludeSubdirectories(bool wants)
+	{
+		Watcher.IncludeSubdirectories = wants;
 	}
 
 	public class Instance : IBaseProcessor.IInstance, IDisposable

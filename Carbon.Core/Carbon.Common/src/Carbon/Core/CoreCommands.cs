@@ -398,6 +398,26 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private bool HigherPriorityHookWarns { get { return Community.Runtime.Config.HigherPriorityHookWarns; } set { Community.Runtime.Config.HigherPriorityHookWarns = value; Community.Runtime.SaveConfig(); } }
 
+	[CommandVar("scriptwatchers", "When disabled, you must load/unload plugins manually with `c.load` or `c.unload`.")]
+	[AuthLevel(2)]
+	private bool ScriptWatchers { get { return Community.Runtime.Config.ScriptWatchers; } set { Community.Runtime.Config.ScriptWatchers = value; Community.Runtime.SaveConfig(); } }
+
+	[CommandVar("scriptwatchersoption", "Indicates wether the script watcher (whenever enabled) listens to the 'carbon/plugins' folder only, or its subfolders. (0 = Top-only directories, 1 = All directories)")]
+	[AuthLevel(2)]
+	private int ScriptWatchersOption
+	{
+		get
+		{
+			return (int)Community.Runtime.Config.ScriptWatcherOption;
+		}
+		set
+		{
+			Community.Runtime.Config.ScriptWatcherOption = (SearchOption)value;
+			Community.Runtime.ScriptProcessor.SetIncludeSubdirectories(value == (int)SearchOption.AllDirectories);
+			Community.Runtime.SaveConfig();
+		}
+	}
+
 	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.")]
 	[AuthLevel(2)]
 	private bool HarmonyReference { get { return Community.Runtime.Config.HarmonyReference; } set { Community.Runtime.Config.HarmonyReference = value; Community.Runtime.SaveConfig(); } }

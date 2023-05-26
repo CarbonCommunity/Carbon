@@ -63,8 +63,9 @@ public class ScriptLoader : IScriptLoader
 
 	public static void LoadAll()
 	{
+		var config = Community.Runtime.Config;
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
-		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: SearchOption.AllDirectories);
+		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.ScriptWatcherOption);
 		var processor = Community.Runtime.ScriptProcessor;
 
 		processor.Clear();
