@@ -69,7 +69,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 #endif
 	}
 
-	public byte[] Read(string file)
+	public byte[] Read(string file, string[] directories = null)
 	{
 		byte[] raw = default;
 
@@ -83,7 +83,6 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 				if (raw != null) return raw;
 			}
 		}
-
 		if (Extensions.Loaded.Contains(file))
 		{
 			raw = Extensions.Read(file);
@@ -99,7 +98,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		foreach (string expr in _blacklistLibs)
 		{
 			if (Regex.IsMatch(file, expr)) break;
-			IAssemblyCache result = _library.ResolveAssembly(file, $"{this}");
+			IAssemblyCache result = _library.ResolveAssembly(file, $"{this}", directories);
 			if (result.Raw != null) return result.Raw;
 		}
 

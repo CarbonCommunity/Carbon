@@ -48,6 +48,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
+	internal static readonly string[] _directories = new[]
+	{
+		Defines.GetManagedFolder(),
+		Defines.GetRustManagedFolder(),
+		Defines.GetManagedModulesFolder(),
+		Defines.GetExtensionsFolder()
+	};
 
 	internal static byte[] _getPlugin(string name)
 	{
@@ -107,7 +114,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name);
+			var raw = Community.Runtime.AssemblyEx.Read(name, _directories);
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -152,9 +159,21 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				_injectReference(id, item, references);
 			}
-			catch (System.Exception)
+			catch (System.Exception ex)
 			{
-				Logger.Debug(id, $"Error loading common reference '{item}'", 4);
+				Logger.Debug(id, $"Error loading common reference '{item}': {ex}", 4);
+			}
+		}
+
+		foreach (var item in Community.Runtime.AssemblyEx.Modules.Loaded)
+		{
+			try
+			{
+				_injectReference(id, item, references);
+			}
+			catch (System.Exception ex)
+			{
+				Logger.Debug(id, $"Error loading common reference '{item}': {ex}", 4);
 			}
 		}
 
@@ -207,6 +226,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 				if (OsEx.File.Exists(extensionFile))
 				{
 					_injectExtensionReference(reference, extensionFile, references);
+					continue;
+				}
+
+				var libFile = Path.Combine(Defines.GetLibFolder(), $"{reference}.dll");
+				if (OsEx.File.Exists(libFile))
+				{
+					_injectReference(reference, libFile, references);
 					continue;
 				}
 
