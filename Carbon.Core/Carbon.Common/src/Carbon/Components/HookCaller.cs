@@ -10,6 +10,9 @@ using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Oxide.Plugins;
 using UnityEngine;
 using static Carbon.HookCallerCommon;
@@ -273,6 +276,8 @@ public static class HookCaller
 
 		return CallStaticHook(oldHook, flag, args);
 	}
+
+	#region Hook Overrides
 
 	public static object CallHook(BaseHookable plugin, string hookName)
 	{
@@ -912,6 +917,10 @@ public static class HookCaller
 		return (T)result;
 	}
 
+	#endregion
+
+	#region Static Hook Overrides
+
 	public static object CallStaticHook(string hookName)
 	{
 		return CallStaticHook(hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
@@ -1346,6 +1355,8 @@ public static class HookCaller
 		return CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
 	}
 
+	#endregion
+
 	private static object CallPublicHook<T>(this T plugin, string hookName, object[] args) where T : BaseHookable
 	{
 		return CallHook(plugin, hookName, BindingFlags.Public | BindingFlags.Instance, args);
@@ -1354,4 +1365,146 @@ public static class HookCaller
 	{
 		return CallStaticHook(hookName, BindingFlags.Public | BindingFlags.Instance, args);
 	}
+
+	#region Generator
+
+	public static void GenerateInternalCallHook(CompilationUnitSyntax input, out CompilationUnitSyntax output, out MethodDeclarationSyntax generatedMethod, bool publicize = true)
+	{
+		var methodContents = "\n\tvar result = (object)null;\n\ttry\n\t{\n\t\tswitch(hook)\n\t\t{\n";
+		var @namespace = input.Members[0] as BaseNamespaceDeclarationSyntax;
+		var @class = @namespace.Members[0] as ClassDeclarationSyntax;
+
+		if (publicize)
+		{
+			ClassDeclarationSyntax PublicizeRecursively(ClassDeclarationSyntax @cls)
+			{
+				for (int i = 0; i < @cls.Modifiers.Count; i++)
+				{
+					var modifier = @cls.Modifiers[i];
+
+					if (modifier.IsKind(SyntaxKind.PrivateKeyword) || modifier.IsKind(SyntaxKind.ProtectedKeyword) || modifier.IsKind(SyntaxKind.InternalKeyword))
+					{
+						@cls = @cls.WithModifiers(@cls.Modifiers.RemoveAt(i));
+					}
+				}
+
+				if (!@cls.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword)))
+				{
+					@cls = @cls.WithModifiers(@cls.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space)));
+				}
+
+				for (int i = 0; i < cls.Members.Count; i++)
+				{
+					if (cls.Members[i] is ClassDeclarationSyntax @cls2)
+					{
+						cls = cls.WithMembers(cls.Members.Replace(cls2, PublicizeRecursively(@cls2)));
+					}
+				}
+
+				return cls;
+			}
+
+			@class = PublicizeRecursively(@class);
+		}
+
+		var methodDeclarations = @class.ChildNodes().OfType<MethodDeclarationSyntax>();
+		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
+		var privateMethods0 = methodDeclarations.Where(md => (md.Modifiers.Count == 0 || md.Modifiers.Any(SyntaxKind.PrivateKeyword) || md.Modifiers.Any(SyntaxKind.ProtectedKeyword) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);
+		var privateMethods = privateMethods0.OrderBy(x => x.Identifier.ValueText);
+		privateMethods0 = null;
+
+		foreach (var method in privateMethods)
+		{
+			var methodName = method.Identifier.ValueText; 
+			var id = HookCallerCommon.StringPool.GetOrAdd(methodName);
+
+			if (!hookableMethods.TryGetValue(id, out var list))
+			{
+				hookableMethods[id] = list = new();
+			}
+
+			list.Add(method);
+		}
+
+		foreach (var group in hookableMethods)
+		{
+			methodContents += $"\t\t\tcase {group.Key}:\n\t\t\t{{";
+
+			for (int i = 0; i < group.Value.Count; i++)
+			{
+				var parameterIndex = -1;
+				var method = group.Value[i];
+				var methodName = method.Identifier.ValueText;
+				var parameters0 = method.ParameterList.Parameters.Select(x =>
+				{
+					parameterIndex++;
+					return x.Default != null ?
+						$"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : default" :
+						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)) ? "out var " : "")}arg{parameterIndex}_{i}";
+				});
+				var parameters = parameters0.ToArray();
+
+				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null);
+				var requiredParameterCount = requiredParameters.Count(x => !x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)));
+
+				var refSets = string.Empty;
+				parameterIndex = 0;
+				foreach (var @ref in method.ParameterList.Parameters)
+				{
+					if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword) || x.IsKind(SyntaxKind.OutKeyword)))
+					{
+						refSets += $"args[{parameterIndex}] = arg{parameterIndex}_{i}; ";
+					}
+
+					parameterIndex++;
+				}
+
+				parameterIndex = -1;
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null && !x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) ? $"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "}" : "")}";
+
+				Array.Clear(parameters, 0, parameters.Length);
+				parameters = null;
+				parameters0 = null;
+				requiredParameters = null;
+			}
+
+			methodContents += "\t\t\t\tbreak;\n\t\t\t}\n";
+		}
+
+		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.HookCallerCommon.StringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\", ex);\n}\nreturn result;";
+
+		generatedMethod = SyntaxFactory.MethodDeclaration(
+			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),
+			"InternalCallHook").AddParameterListParameters(
+				SyntaxFactory.Parameter(SyntaxFactory.Identifier("hook")).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UIntKeyword)).WithTrailingTrivia(SyntaxFactory.Space)),
+				SyntaxFactory.Parameter(SyntaxFactory.Identifier("args")).WithType(SyntaxFactory.ArrayType(
+				SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+				SyntaxFactory.SingletonList(
+						SyntaxFactory.ArrayRankSpecifier(
+							SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+								SyntaxFactory.OmittedArraySizeExpression()
+							)
+						)
+					)
+				).WithTrailingTrivia(SyntaxFactory.Space)))
+				.WithTrailingTrivia(SyntaxFactory.LineFeed)
+			.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space), SyntaxFactory.Token(SyntaxKind.OverrideKeyword).WithTrailingTrivia(SyntaxFactory.Space))
+			.AddBodyStatements(SyntaxFactory.ParseStatement(methodContents)).WithTrailingTrivia(SyntaxFactory.LineFeed);
+
+		output = input.WithMembers(input.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class.WithMembers(@class.Members.Insert(0, generatedMethod))))));
+
+		#region Cleanup Pass
+
+		methodDeclarations = null;
+		foreach (var hookableMethod in hookableMethods)
+		{
+			hookableMethod.Value.Clear();
+		}
+		hookableMethods.Clear();
+		hookableMethods = null;
+
+		#endregion
+	}
+
+	#endregion
 }

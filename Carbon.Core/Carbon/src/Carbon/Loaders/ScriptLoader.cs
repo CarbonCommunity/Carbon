@@ -75,7 +75,7 @@ public class ScriptLoader : IScriptLoader
 			if (processor.IsBlacklisted(file)) continue;
 
 			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(file, plugin);
+			processor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
 		}
 
 		foreach (var file in plugins)
@@ -83,7 +83,7 @@ public class ScriptLoader : IScriptLoader
 			if (processor.IsBlacklisted(file)) continue;
 
 			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(file, plugin);
+			processor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
 		}
 
 		foreach (var plugin in processor.InstanceBuffer)
