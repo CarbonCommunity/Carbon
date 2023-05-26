@@ -25,12 +25,13 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 	public override void Start()
 	{
-		base.Start();
-
 		BlacklistPattern = new[]
 		{
 			"backups"
 		};
+
+		base.Start();
+
 		SetIncludeSubdirectories(Community.Runtime.Config.ScriptWatcherOption == SearchOption.AllDirectories);
 	}
 
