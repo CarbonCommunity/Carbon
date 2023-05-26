@@ -296,6 +296,11 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 	[JsonProperty("lineType", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public InputField.LineType LineType { get; set; }
 
+	[JsonProperty("autofocus")]
+	public bool Autofocus { get; set; }
+
+	[JsonProperty("hudMenuInput")]
+	public bool HudMenuInput { get; set; }
 }
 public class CuiNeedsCursorComponent : ICuiComponent
 {
@@ -409,6 +414,10 @@ public class CuiTextComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("fadeIn", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeIn { get; set; }
+
+	[JsonConverter(typeof(StringEnumConverter))]
+	[JsonProperty("verticalOverflow")]
+	public VerticalWrapMode VerticalOverflow { get; set; }
 }
 
 #endregion
