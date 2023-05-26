@@ -67,6 +67,14 @@ public class Defines
 
 		return folder;
 	}
+	public static string GetLibFolder()
+	{
+		_initializeCommandLine();
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customModuleFolder) ? Path.Combine(GetManagedFolder(), "lib") : _customModuleFolder);
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
 	public static string GetConfigsFolder()
 	{
 		_initializeCommandLine();
@@ -79,6 +87,14 @@ public class Defines
 	{
 		_initializeCommandLine();
 		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customModuleFolder) ? Path.Combine(GetRootFolder(), "modules") : _customModuleFolder);
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
+	public static string GetManagedModulesFolder()
+	{
+		_initializeCommandLine();
+		var folder = Path.GetFullPath(Path.Combine(GetManagedFolder(), "modules"));
 		Directory.CreateDirectory(folder);
 
 		return folder;

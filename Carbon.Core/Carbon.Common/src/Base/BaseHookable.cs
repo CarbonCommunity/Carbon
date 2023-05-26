@@ -17,30 +17,33 @@ namespace Carbon.Base;
 
 public class BaseHookable
 {
-	public Dictionary<uint, Priorities> Hooks { get; set; }
-	public List<HookMethodAttribute> HookMethods { get; set; }
-	public List<PluginReferenceAttribute> PluginReferences { get; set; }
+	public Dictionary<uint, Priorities> Hooks;
+	public List<HookMethodAttribute> HookMethods;
+	public List<PluginReferenceAttribute> PluginReferences;
 
-	public Dictionary<uint, List<CachedHook>> HookCache { get; set; } = new();
-	public Dictionary<uint, List<CachedHook>> HookMethodAttributeCache { get; set; } = new();
-	public List<uint> IgnoredHooks { get; set; } = new();
+	public Dictionary<uint, List<CachedHook>> HookCache = new();
+	public Dictionary<uint, List<CachedHook>> HookMethodAttributeCache = new();
+	public HashSet<uint> IgnoredHooks = new();
 
 	public struct CachedHook
 	{
 		public MethodInfo Method;
+		public Type[] Parameters;
 		public Delegate Delegate;
 		public Priorities Priority;
 		public bool IsByRef;
 
 		public static CachedHook Make(MethodInfo method, Priorities priority, object context)
 		{
-			var isByRef = method.GetParameters().Any(x => x.ParameterType.IsByRef);
+			var parameters = method.GetParameters();
+			var isByRef = parameters.Any(x => x.ParameterType.IsByRef);
 			var hook = new CachedHook
 			{
 				Method = method,
 				Delegate = isByRef ? null : HookCallerCommon.CreateDelegate(method, context),
 				Priority = priority,
-				IsByRef = isByRef
+				IsByRef = isByRef,
+				Parameters = parameters.Select(x => x.ParameterType).ToArray(),
 			};
 
 			return hook;
@@ -48,7 +51,7 @@ public class BaseHookable
 	}
 
 	[JsonProperty]
-	public string Name { get; set; }
+	public string Name;
 
 	[JsonProperty]
 	public virtual VersionNumber Version { get; set; }
@@ -56,8 +59,8 @@ public class BaseHookable
 	[JsonProperty]
 	public double TotalHookTime { get; internal set; }
 
-	public bool HasInitialized { get; set; }
-	public Type Type { get; set; }
+	public bool HasInitialized;
+	public Type Type;
 
 	#region Tracking
 
@@ -96,6 +99,11 @@ public class BaseHookable
 
 	#endregion
 
+	public virtual object InternalCallHook(uint hook, object[] args)
+	{
+		return null;
+	}
+
 	public void Unsubscribe(string hook)
 	{
 		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
@@ -114,7 +122,7 @@ public class BaseHookable
 	}
 	public bool IsHookIgnored(string hook)
 	{
-		return IgnoredHooks == null || IgnoredHooks.Contains(HookCallerCommon.StringPool.GetOrAdd(hook));
+		return IgnoredHooks != null && IgnoredHooks.Contains(HookCallerCommon.StringPool.GetOrAdd(hook));
 	}
 
 	public void SubscribeAll(Func<string, bool> condition = null)

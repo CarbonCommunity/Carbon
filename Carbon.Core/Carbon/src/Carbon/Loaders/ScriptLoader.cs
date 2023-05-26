@@ -63,24 +63,30 @@ public class ScriptLoader : IScriptLoader
 
 	public static void LoadAll()
 	{
+		var config = Community.Runtime.Config;
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
-		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: SearchOption.TopDirectoryOnly);
+		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.ScriptWatcherOption);
+		var processor = Community.Runtime.ScriptProcessor;
 
-		Community.Runtime.ScriptProcessor.Clear();
+		processor.Clear();
 
 		foreach (var file in extensionPlugins)
 		{
+			if (processor.IsBlacklisted(file)) continue;
+
 			var plugin = new ScriptProcessor.Script { File = file };
-			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			processor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
 		}
 
 		foreach (var file in plugins)
 		{
+			if (processor.IsBlacklisted(file)) continue;
+
 			var plugin = new ScriptProcessor.Script { File = file };
-			Community.Runtime.ScriptProcessor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			processor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
 		}
 
-		foreach (var plugin in Community.Runtime.ScriptProcessor.InstanceBuffer)
+		foreach (var plugin in processor.InstanceBuffer)
 		{
 			plugin.Value.SetDirty();
 		}
@@ -96,7 +102,7 @@ public class ScriptLoader : IScriptLoader
 			var plugin = Scripts[i];
 			if (plugin.IsCore) continue;
 
-			Community.Runtime.Plugins.Plugins.Remove(plugin.Instance);
+			plugin.Instance.Package.Plugins.Remove(plugin.Instance);
 
 			if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
 
@@ -156,7 +162,7 @@ public class ScriptLoader : IScriptLoader
 		if (string.IsNullOrEmpty(Source))
 		{
 			HasFinished = true;
-			Logger.Warn("Attempted to compile an empty string of source code.");
+			// Logger.Warn("Attempted to compile an empty string of source code.");
 			yield break;
 		}
 

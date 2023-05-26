@@ -3,12 +3,15 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 /*
  *
@@ -36,11 +39,22 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new();
 	public List<CompilerException> Warnings = new();
+
+	#region Internals
+
+	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal DateTime TimeSinceCompile;
 	internal static Dictionary<string, byte[]> _compilationCache = new();
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
+	internal static readonly string[] _directories = new[]
+	{
+		Defines.GetManagedFolder(),
+		Defines.GetRustManagedFolder(),
+		Defines.GetManagedModulesFolder(),
+		Defines.GetExtensionsFolder()
+	};
 
 	internal static byte[] _getPlugin(string name)
 	{
@@ -50,14 +64,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		return result;
 	}
-
 	internal static byte[] _getExtensionPlugin(string name)
 	{
 		if (!_extensionCompilationCache.TryGetValue(name, out var result)) return null;
 
 		return result;
 	}
-
 	internal static void _overridePlugin(string name, byte[] pluginAssembly)
 	{
 		name = name.Replace(" ", "");
@@ -74,7 +86,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Array.Clear(plugin, 0, plugin.Length);
 		try { _compilationCache[name] = pluginAssembly; } catch { }
 	}
-
 	internal static void _overrideExtensionPlugin(string name, byte[] pluginAssembly)
 	{
 		if (pluginAssembly == null) return;
@@ -89,13 +100,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Array.Clear(plugin, 0, plugin.Length);
 		try { _extensionCompilationCache[name] = pluginAssembly; } catch { }
 	}
-
 	internal static void _clearExtensionPlugin(string name)
 	{
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.Remove(name);
 		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
 	}
-
 	internal void _injectReference(string id, string name, List<MetadataReference> references)
 	{
 		if (_referenceCache.TryGetValue(name, out var reference))
@@ -105,7 +114,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name);
+			var raw = Community.Runtime.AssemblyEx.Read(name, _directories);
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -116,7 +125,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
-
 	internal void _injectExtensionReference(string id, string name, List<MetadataReference> references)
 	{
 		if (_extensionReferenceCache.TryGetValue(name, out var reference))
@@ -135,7 +143,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			_extensionReferenceCache.Add(name, processedReference);
 		}
 	}
-
 	internal List<MetadataReference> _addReferences()
 	{
 		var references = new List<MetadataReference>();
@@ -152,9 +159,21 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				_injectReference(id, item, references);
 			}
-			catch (System.Exception)
+			catch (System.Exception ex)
 			{
-				Logger.Debug(id, $"Error loading common reference '{item}'", 4);
+				Logger.Debug(id, $"Error loading common reference '{item}': {ex}", 4);
+			}
+		}
+
+		foreach (var item in Community.Runtime.AssemblyEx.Modules.Loaded)
+		{
+			try
+			{
+				_injectReference(id, item, references);
+			}
+			catch (System.Exception ex)
+			{
+				Logger.Debug(id, $"Error loading common reference '{item}': {ex}", 4);
 			}
 		}
 
@@ -166,6 +185,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		return references;
 	}
+
+	#endregion
 
 	public class CompilerException : Exception
 	{
@@ -208,6 +229,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 					continue;
 				}
 
+				var libFile = Path.Combine(Defines.GetLibFolder(), $"{reference}.dll");
+				if (OsEx.File.Exists(libFile))
+				{
+					_injectReference(reference, libFile, references);
+					continue;
+				}
+
 				var managedFile = Path.Combine(Defines.GetRustManagedFolder(), $"{reference}.dll");
 				if (OsEx.File.Exists(managedFile))
 				{
@@ -236,9 +264,17 @@ public class ScriptCompilationThread : BaseThreadedJob
 				.WithPreprocessorSymbols(Community.Runtime.Config.ConditionalCompilationSymbols);
 			var tree = CSharpSyntaxTree.ParseText(
 				Source, options: parseOptions);
-			trees.Add(tree);
 
 			var root = tree.GetCompilationUnitRoot();
+
+			if (!Source.Contains(_internalCallHookPattern))
+			{
+				HookCaller.GenerateInternalCallHook(root, out root, out _, publicize: false);
+
+				Source = root.ToFullString();
+				trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions));
+			}
+			else trees.Add(tree);
 
 			foreach (var element in root.Usings)
 				Usings.Add($"{element.Name}");
