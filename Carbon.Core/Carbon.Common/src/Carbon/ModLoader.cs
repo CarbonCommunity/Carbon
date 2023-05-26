@@ -233,14 +233,14 @@ public static class ModLoader
 	public static bool UninitializePlugin(RustPlugin plugin)
 	{
 		plugin.CallHook("Unload");
+
+		RemoveCommands(plugin);
 		plugin.IUnload();
 
 		HookCaller.CallStaticHook("OnPluginUnloaded", plugin);
 
-		RemoveCommands(plugin);
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
-
 		return true;
 	}
 

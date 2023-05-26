@@ -34,8 +34,13 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		OrderedFiles.Clear();
 
-		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", SearchOption.TopDirectoryOnly))
+		var config = Community.Runtime.Config;
+		var processor = Community.Runtime.ScriptProcessor;
+		
+		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", config.ScriptWatcherOption))
 		{
+			if (processor.IsBlacklisted(file)) continue;
+
 			OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
 		}
 	}
@@ -398,7 +403,6 @@ public partial class CorePlugin : CarbonPlugin
 		}
 		return result;
 	}
-
 
 	private void OnServerInitialized()
 	{
