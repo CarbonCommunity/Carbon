@@ -72,7 +72,7 @@ namespace Oxide.Core.Plugins
 
 		public static implicit operator bool(Plugin other)
 		{
-			return other != null;
+			return other != null && other.IsLoaded;
 		}
 
 		public virtual void IInit()
@@ -146,61 +146,82 @@ namespace Oxide.Core.Plugins
 		}
 		public virtual void IUnload()
 		{
-			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
+			try
 			{
-				foreach (var hook in Hooks)
+				using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 				{
-					Community.Runtime.HookManager.Unsubscribe(HookCallerCommon.StringPool.GetOrAdd(hook.Key), FileName);
-				}
-				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
-			}
-
-			using (TimeMeasure.New($"IUnload.Disposal on '{this}'"))
-			{
-				IgnoredHooks.Clear();
-				HookCache.Clear();
-				Hooks.Clear();
-				HookMethods.Clear();
-				PluginReferences.Clear();
-				HookMethodAttributeCache.Clear();
-
-				IgnoredHooks = null;
-				HookCache = null;
-				Hooks = null;
-				HookMethods = null;
-				PluginReferences = null;
-				HookMethodAttributeCache = null;
-			}
-
-			using (TimeMeasure.New($"IUnload.UnloadRequirees on '{this}'"))
-			{
-				var mods = Pool.GetList<ModLoader.ModPackage>();
-				mods.AddRange(ModLoader.LoadedPackages);
-				var plugins = Pool.GetList<Plugin>();
-
-				foreach (var mod in ModLoader.LoadedPackages)
-				{
-					plugins.Clear();
-					plugins.AddRange(mod.Plugins);
-
-					foreach (var plugin in plugins)
+					foreach (var hook in Hooks)
 					{
-						if (plugin.Requires != null && plugin.Requires.Contains(this))
+						Community.Runtime.HookManager.Unsubscribe(HookCallerCommon.StringPool.GetOrAdd(hook.Key), FileName);
+					}
+					Carbon.Logger.Debug(Name, $"Unprocessed hooks");
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed calling Plugin.IUnload.UnprocessHooks on {this}", ex);
+			}
+
+			try
+			{
+				using (TimeMeasure.New($"IUnload.Disposal on '{this}'"))
+				{
+					IgnoredHooks?.Clear();
+					HookCache?.Clear();
+					Hooks?.Clear();
+					HookMethods?.Clear();
+					PluginReferences?.Clear();
+					HookMethodAttributeCache?.Clear();
+
+					IgnoredHooks = null;
+					HookCache = null;
+					Hooks = null;
+					HookMethods = null;
+					PluginReferences = null;
+					HookMethodAttributeCache = null;
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed calling Plugin.IUnload.Disposal on {this}", ex);
+			}
+
+			try
+			{
+				using (TimeMeasure.New($"IUnload.UnloadRequirees on '{this}'"))
+				{
+					var mods = Pool.GetList<ModLoader.ModPackage>();
+					mods.AddRange(ModLoader.LoadedPackages);
+					var plugins = Pool.GetList<Plugin>();
+
+					foreach (var mod in ModLoader.LoadedPackages)
+					{
+						plugins.Clear();
+						plugins.AddRange(mod.Plugins);
+
+						foreach (var plugin in plugins)
 						{
-							switch (plugin.Processor)
+							if (plugin.Requires != null && plugin.Requires.Contains(this))
 							{
-								case IScriptProcessor script:
-									Logger.Warn($" [{Name}] Unloading '{plugin.ToString()}' because parent '{ToString()}' has been unloaded.");
-									ModLoader.AddPendingRequiree(this, plugin);
-									plugin.Processor.Get<IScriptProcessor.IScript>(plugin.FileName).Dispose();
-									break;
+								switch (plugin.Processor)
+								{
+									case IScriptProcessor script:
+										Logger.Warn($" [{Name}] Unloading '{plugin.ToString()}' because parent '{ToString()}' has been unloaded.");
+										ModLoader.AddPendingRequiree(this, plugin);
+										plugin.Processor.Get<IScriptProcessor.IScript>(plugin.FileName)?.Dispose();
+										break;
+								}
 							}
 						}
 					}
-				}
 
-				Pool.FreeList(ref mods);
-				Pool.FreeList(ref plugins);
+					Pool.FreeList(ref mods);
+					Pool.FreeList(ref plugins);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed calling Plugin.IUnload.UnloadRequirees on {this}", ex);
 			}
 		}
 		internal void InternalApplyPluginReferences()
