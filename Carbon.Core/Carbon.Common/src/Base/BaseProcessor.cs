@@ -214,40 +214,46 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 	internal void _onCreated(object sender, FileSystemEventArgs e)
 	{
-		var path = e.FullPath;
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;		
 
-		if (!EnableWatcher || IsBlacklisted(path)) return;		
-
-		InstanceBuffer.Add(path, null);
+		InstanceBuffer.Add(e.Name, null);
 	}
 	internal void _onChanged(object sender, FileSystemEventArgs e)
 	{
 		var path = e.FullPath;
+		var name = Path.GetFileNameWithoutExtension(path);
 
 		if (!EnableWatcher || IsBlacklisted(path)) return;
 
-		if (InstanceBuffer.TryGetValue(path, out var mod)) mod.SetDirty();
+		if (InstanceBuffer.TryGetValue(name, out var mod)) mod.SetDirty();
 	}
 	internal void _onRenamed(object sender, RenamedEventArgs e)
 	{
 		var path = e.FullPath;
+		var name = Path.GetFileNameWithoutExtension(path);
 
 		if (!EnableWatcher || IsBlacklisted(path)) return;
 
-		if (InstanceBuffer.TryGetValue(path, out var mod)) mod.MarkDeleted();
-		InstanceBuffer.Add(path, null);
+		if (InstanceBuffer.TryGetValue(name, out var mod)) mod.MarkDeleted();
+		InstanceBuffer.Add(name, null);
 	}
 	internal void _onRemoved(object sender, FileSystemEventArgs e)
 	{
 		var path = e.FullPath;
+		var name = Path.GetFileNameWithoutExtension(path);
 
 		if (!EnableWatcher || IsBlacklisted(path)) return;
 
-		if (InstanceBuffer.TryGetValue(path, out var mod)) mod.MarkDeleted();
+		if (InstanceBuffer.TryGetValue(name, out var mod)) mod.MarkDeleted();
 	}
 
 	public bool IsBlacklisted(string path)
 	{
+		if (!IncludeSubdirectories && Path.GetFullPath(Path.GetDirectoryName(path)) != Path.GetFullPath(Folder))
+		{
+			return true;
+		}
+
 		if (BlacklistPattern == null) return false;
 
 		for(int i = 0; i < BlacklistPattern.Length; i++)
