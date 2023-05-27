@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -9,6 +10,9 @@ using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
 using Facepunch;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Oxide.Plugins;
 using UnityEngine;
 using static Carbon.HookCallerCommon;
@@ -26,36 +30,37 @@ public class HookCallerCommon
 {
 	public class StringPool
 	{
-		public static Dictionary<string, uint> HookNamePoolString { get; } = new();
-		public static Dictionary<uint, string> HookNamePoolInt { get; } = new();
+		public static Dictionary<string, uint> HookNamePoolString = new();
+		public static Dictionary<uint, string> HookNamePoolInt = new();
 
 		public static uint GetOrAdd(string name)
 		{
-			if (!HookNamePoolString.TryGetValue(name, out var hash))
+			if (HookNamePoolString.TryGetValue(name, out var hash))
 			{
-				hash = name.ManifestHash();
-				HookNamePoolInt[hash] = name;
-				return HookNamePoolString[name] = hash;
+				return hash;
 			}
 
+			hash = name.ManifestHash();
+			HookNamePoolString[name] = hash;
+			HookNamePoolInt[hash] = name;
 			return hash;
 		}
 
 		public static string GetOrAdd(uint name)
 		{
-			if (!HookNamePoolInt.TryGetValue(name, out var hash))
+			if (HookNamePoolInt.TryGetValue(name, out var hash))
 			{
-				return string.Empty;
+				return hash;
 			}
 
-			return hash;
+			return string.Empty;
 		}
 	}
 
-	public Dictionary<int, object[]> _argumentBuffer { get; } = new Dictionary<int, object[]>();
-	public Dictionary<string, int> _hookTimeBuffer { get; } = new Dictionary<string, int>();
-	public Dictionary<string, int> _hookTotalTimeBuffer { get; } = new Dictionary<string, int>();
-	public Dictionary<string, DateTime> _lastDeprecatedWarningAt { get; } = new Dictionary<string, DateTime>();
+	public Dictionary<int, object[]> _argumentBuffer = new();
+	public ConcurrentDictionary<string, int> _hookTimeBuffer = new();
+	public ConcurrentDictionary<string, int> _hookTotalTimeBuffer = new();
+	public Dictionary<string, DateTime> _lastDeprecatedWarningAt = new();
 
 	public virtual void AppendHookTime(string hook, int time) { }
 	public virtual void ClearHookTime(string hook) { }
@@ -114,6 +119,37 @@ public static class HookCaller
 {
 	public static HookCallerCommon Caller { get; set; }
 
+	#region Internals
+
+	internal static List<Conflict> _conflictCache = new(10);
+	internal static Priorities _priorityCatcher;
+	internal static Conflict _defaultConflict = new()
+	{
+		Priority = Priorities.Low
+	};
+
+	internal static string _getPriorityName(Priorities priority)
+	{
+		switch (priority)
+		{
+			case Priorities.Low:
+				return "lower";
+
+			case Priorities.Normal:
+				return "normal";
+
+			case Priorities.High:
+				return "higher";
+
+			case Priorities.Highest:
+				return "highest";
+		}
+
+		return "normal";
+	}
+
+	#endregion
+
 	public static int GetHookTime(string hook)
 	{
 		if (!Caller._hookTimeBuffer.TryGetValue(hook, out var total))
@@ -138,11 +174,12 @@ public static class HookCaller
 		Caller.ClearHookTime(hookName);
 
 		var result = (object)null;
-		var conflicts = Pool.GetList<Conflict>();
 		var array = args == null || args.Length == 0 ? null : keepArgs ? args : args.ToArray();
 
-		foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+		for (int i = 0; i < Community.Runtime.ModuleProcessor.Modules.Count; i++)
 		{
+			var hookable = Community.Runtime.ModuleProcessor.Modules[i];
+
 			if (hookable is IModule modules && !modules.GetEnabled()) continue;
 
 			var priority = (Priorities)default;
@@ -155,53 +192,52 @@ public static class HookCaller
 			}
 		}
 
-		var plugins = Pool.GetList<RustPlugin>();
-
-		foreach (var mod in ModLoader.LoadedPackages)
+		for (int i = 0; i < ModLoader.LoadedPackages.Count; i++)
 		{
-			foreach (var plugin in mod.Plugins)
-			{
-				plugins.Add(plugin);
-			}
-		}
+			var mod = ModLoader.LoadedPackages[i];
 
-		foreach (var plugin in plugins)
-		{
-			try
+			for (int x = 0; x < mod.Plugins.Count; x++)
 			{
-				var priority = (Priorities)default;
-				var methodResult = Caller.CallHook(plugin, hookName, flags: flag, args: array, ref priority);
+				var plugin = mod.Plugins[x];
 
-				if (methodResult != null)
+				try
 				{
-					result = methodResult;
-					ResultOverride(plugin, priority);
+					var priority = (Priorities)default;
+					var methodResult = Caller.CallHook(plugin, hookName, flags: flag, args: array, ref priority, keepArgs);
+
+					if (methodResult != null)
+					{
+						result = methodResult;
+						ResultOverride(plugin, priority);
+					}
 				}
+				catch (Exception ex) { Logger.Error($"Failed to call hook '{hookName}' on plugin {plugin}", ex); }
 			}
-			catch (Exception ex) { Logger.Error($"Major issue with caching the '{hookName}' hook called in {plugin}", ex); }
 		}
 
 		ConflictCheck();
 
-		Pool.FreeList(ref plugins);
+		_conflictCache.Clear();
 
 		if (array != null && !keepArgs) Array.Clear(array, 0, array.Length);
 
 		void ResultOverride(BaseHookable hookable, Priorities priority)
 		{
-			conflicts.Add(Conflict.Make(hookable, hookName, result, priority));
+			_conflictCache.Add(Conflict.Make(hookable, hookName, result, priority));
 		}
 		void ConflictCheck()
 		{
 			var differentResults = false;
 
-			if (conflicts.Count > 1)
+			if (_conflictCache.Count > 1)
 			{
-				var localResult = conflicts[0].Result;
+				var localResult = _conflictCache[0].Result;
 				var priorityConflict = _defaultConflict;
 
-				foreach (var conflict in conflicts)
+				for(int i = 0; i < _conflictCache.Count; i++) 
 				{
+					var conflict = _conflictCache[i];
+
 					if (conflict.Result?.ToString() != localResult?.ToString())
 					{
 						differentResults = true;
@@ -214,7 +250,7 @@ public static class HookCaller
 				}
 
 				localResult = priorityConflict.Result;
-				if (differentResults && !conflicts.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+				if (differentResults && !_conflictCache.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
 
 				result = localResult;
 			}
@@ -241,30 +277,7 @@ public static class HookCaller
 		return CallStaticHook(oldHook, flag, args);
 	}
 
-	internal static Priorities _priorityCatcher;
-	internal static Conflict _defaultConflict = new()
-	{
-		Priority = Priorities.Low
-	};
-	internal static string _getPriorityName(Priorities priority)
-	{
-		switch (priority)
-		{
-			case Priorities.Low:
-				return "lower";
-
-			case Priorities.Normal:
-				return "normal";
-
-			case Priorities.High:
-				return "higher";
-
-			case Priorities.Highest:
-				return "highest";
-		}
-
-		return "normal";
-	}
+	#region Hook Overrides
 
 	public static object CallHook(BaseHookable plugin, string hookName)
 	{
@@ -904,6 +917,10 @@ public static class HookCaller
 		return (T)result;
 	}
 
+	#endregion
+
+	#region Static Hook Overrides
+
 	public static object CallStaticHook(string hookName)
 	{
 		return CallStaticHook(hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
@@ -1338,6 +1355,8 @@ public static class HookCaller
 		return CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
 	}
 
+	#endregion
+
 	private static object CallPublicHook<T>(this T plugin, string hookName, object[] args) where T : BaseHookable
 	{
 		return CallHook(plugin, hookName, BindingFlags.Public | BindingFlags.Instance, args);
@@ -1346,4 +1365,146 @@ public static class HookCaller
 	{
 		return CallStaticHook(hookName, BindingFlags.Public | BindingFlags.Instance, args);
 	}
+
+	#region Generator
+
+	public static void GenerateInternalCallHook(CompilationUnitSyntax input, out CompilationUnitSyntax output, out MethodDeclarationSyntax generatedMethod, bool publicize = true)
+	{
+		var methodContents = "\n\tvar result = (object)null;\n\ttry\n\t{\n\t\tswitch(hook)\n\t\t{\n";
+		var @namespace = input.Members[0] as BaseNamespaceDeclarationSyntax;
+		var @class = @namespace.Members[0] as ClassDeclarationSyntax;
+
+		if (publicize)
+		{
+			ClassDeclarationSyntax PublicizeRecursively(ClassDeclarationSyntax @cls)
+			{
+				for (int i = 0; i < @cls.Modifiers.Count; i++)
+				{
+					var modifier = @cls.Modifiers[i];
+
+					if (modifier.IsKind(SyntaxKind.PrivateKeyword) || modifier.IsKind(SyntaxKind.ProtectedKeyword) || modifier.IsKind(SyntaxKind.InternalKeyword))
+					{
+						@cls = @cls.WithModifiers(@cls.Modifiers.RemoveAt(i));
+					}
+				}
+
+				if (!@cls.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword)))
+				{
+					@cls = @cls.WithModifiers(@cls.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space)));
+				}
+
+				for (int i = 0; i < cls.Members.Count; i++)
+				{
+					if (cls.Members[i] is ClassDeclarationSyntax @cls2)
+					{
+						cls = cls.WithMembers(cls.Members.Replace(cls2, PublicizeRecursively(@cls2)));
+					}
+				}
+
+				return cls;
+			}
+
+			@class = PublicizeRecursively(@class);
+		}
+
+		var methodDeclarations = @class.ChildNodes().OfType<MethodDeclarationSyntax>();
+		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
+		var privateMethods0 = methodDeclarations.Where(md => (md.Modifiers.Count == 0 || md.Modifiers.Any(SyntaxKind.PrivateKeyword) || md.Modifiers.Any(SyntaxKind.ProtectedKeyword) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);
+		var privateMethods = privateMethods0.OrderBy(x => x.Identifier.ValueText);
+		privateMethods0 = null;
+
+		foreach (var method in privateMethods)
+		{
+			var methodName = method.Identifier.ValueText; 
+			var id = HookCallerCommon.StringPool.GetOrAdd(methodName);
+
+			if (!hookableMethods.TryGetValue(id, out var list))
+			{
+				hookableMethods[id] = list = new();
+			}
+
+			list.Add(method);
+		}
+
+		foreach (var group in hookableMethods)
+		{
+			methodContents += $"\t\t\tcase {group.Key}:\n\t\t\t{{";
+
+			for (int i = 0; i < group.Value.Count; i++)
+			{
+				var parameterIndex = -1;
+				var method = group.Value[i];
+				var methodName = method.Identifier.ValueText;
+				var parameters0 = method.ParameterList.Parameters.Select(x =>
+				{
+					parameterIndex++;
+					return x.Default != null ?
+						$"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : default" :
+						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)) ? "out var " : "")}arg{parameterIndex}_{i}";
+				});
+				var parameters = parameters0.ToArray();
+
+				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null);
+				var requiredParameterCount = requiredParameters.Count(x => !x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)));
+
+				var refSets = string.Empty;
+				parameterIndex = 0;
+				foreach (var @ref in method.ParameterList.Parameters)
+				{
+					if (@ref.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword) || x.IsKind(SyntaxKind.OutKeyword)))
+					{
+						refSets += $"args[{parameterIndex}] = arg{parameterIndex}_{i}; ";
+					}
+
+					parameterIndex++;
+				}
+
+				parameterIndex = -1;
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null && !x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) ? $"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "}" : "")}";
+
+				Array.Clear(parameters, 0, parameters.Length);
+				parameters = null;
+				parameters0 = null;
+				requiredParameters = null;
+			}
+
+			methodContents += "\t\t\t\tbreak;\n\t\t\t}\n";
+		}
+
+		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.HookCallerCommon.StringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\", ex);\n}\nreturn result;";
+
+		generatedMethod = SyntaxFactory.MethodDeclaration(
+			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),
+			"InternalCallHook").AddParameterListParameters(
+				SyntaxFactory.Parameter(SyntaxFactory.Identifier("hook")).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UIntKeyword)).WithTrailingTrivia(SyntaxFactory.Space)),
+				SyntaxFactory.Parameter(SyntaxFactory.Identifier("args")).WithType(SyntaxFactory.ArrayType(
+				SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+				SyntaxFactory.SingletonList(
+						SyntaxFactory.ArrayRankSpecifier(
+							SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+								SyntaxFactory.OmittedArraySizeExpression()
+							)
+						)
+					)
+				).WithTrailingTrivia(SyntaxFactory.Space)))
+				.WithTrailingTrivia(SyntaxFactory.LineFeed)
+			.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space), SyntaxFactory.Token(SyntaxKind.OverrideKeyword).WithTrailingTrivia(SyntaxFactory.Space))
+			.AddBodyStatements(SyntaxFactory.ParseStatement(methodContents)).WithTrailingTrivia(SyntaxFactory.LineFeed);
+
+		output = input.WithMembers(input.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class.WithMembers(@class.Members.Insert(0, generatedMethod))))));
+
+		#region Cleanup Pass
+
+		methodDeclarations = null;
+		foreach (var hookableMethod in hookableMethods)
+		{
+			hookableMethod.Value.Clear();
+		}
+		hookableMethods.Clear();
+		hookableMethods = null;
+
+		#endregion
+	}
+
+	#endregion
 }

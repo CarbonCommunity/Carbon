@@ -18,7 +18,7 @@ public class Config
 	public bool AutoUpdate { get; set; } = true;
 	public bool HarmonyReference { get; set; } = false;
 	public bool ScriptWatchers { get; set; } = true;
-	public bool HookTimeTracker { get; set; } = false;
+	public System.IO.SearchOption ScriptWatcherOption { get; set; } = System.IO.SearchOption.TopDirectoryOnly;
 	public bool HookValidation { get; set; } = true;
 	public bool FileNameCheck { get; set; } = true;
 	public bool IsModded { get; set; } = true;

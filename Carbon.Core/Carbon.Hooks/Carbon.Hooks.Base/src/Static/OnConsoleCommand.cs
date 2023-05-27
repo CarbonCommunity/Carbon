@@ -74,6 +74,7 @@ public partial class Category_Static
 							Community.Runtime.CommandManager.Execute(cmd, commandArgs);
 							Facepunch.Pool.Free(ref commandArgs);
 							arg = null;
+
 							return false;
 						}
 					}

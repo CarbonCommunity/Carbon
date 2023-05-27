@@ -51,9 +51,11 @@ public class Permission : Library
 	public static string[] EmptyStringArray = new string[0];
 
 	private readonly Dictionary<BaseHookable, HashSet<string>> permset;
-	private Dictionary<string, UserData> userdata = new();
-	private Dictionary<string, GroupData> groupdata = new();
+	internal Dictionary<string, UserData> userdata = new();
+	internal Dictionary<string, GroupData> groupdata = new();
 	private Func<string, bool> validate;
+
+	internal static readonly UserData _blankUser = new();
 
 	private static FieldInfo _iPlayerFieldCache;
 	public static FieldInfo iPlayerField
@@ -324,10 +326,12 @@ public class Permission : Library
 		return userdata.TryGetValue(id, out data);
 	}
 
-	public virtual UserData GetUserData(string id)
+	public virtual UserData GetUserData(string id, bool addIfNotExisting = false)
 	{
 		if (!userdata.TryGetValue(id, out var result))
 		{
+			if (!addIfNotExisting) return _blankUser;
+
 			userdata.Add(id, result = new UserData());
 		}
 
@@ -347,7 +351,7 @@ public class Permission : Library
 	{
 		id = id.ToLower().Trim();
 
-		if (id.IsSteamId()) GetUserData(id);
+		if (id.IsSteamId()) GetUserData(id, true);
 
 		foreach (var user in userdata)
 		{

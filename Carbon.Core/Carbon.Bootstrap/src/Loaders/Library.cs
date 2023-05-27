@@ -71,7 +71,7 @@ internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 		return ResolveAssembly(assemblyName.Name, requester).Assembly;
 	}
 
-	internal IAssemblyCache ResolveAssembly(string name, string requester)
+	internal IAssemblyCache ResolveAssembly(string name, string requester, string[] customDirectories = null)
 	{
 		try
 		{
@@ -82,10 +82,12 @@ internal sealed class LibraryLoader : Singleton<LibraryLoader>, IDisposable
 		Logger.Debug($"Resolve library '{name}' requested by '{requester}'");
 #endif
 
-			foreach (string directory in _directoryList)
+			foreach (string directory in customDirectories ?? _directoryList)
 			{
-				if (!File.Exists(Path.Combine(directory, $"{name}.dll"))) continue;
-				path = Path.Combine(directory, $"{name}.dll");
+				var newPath = Path.Combine(directory, name.EndsWith(".dll") ? name : $"{name}.dll");
+
+				if (!File.Exists(newPath)) continue;
+				path = newPath;
 			}
 
 			if (String.IsNullOrEmpty(path))
