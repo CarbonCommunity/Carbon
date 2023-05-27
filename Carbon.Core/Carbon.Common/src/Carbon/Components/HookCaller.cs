@@ -1439,7 +1439,7 @@ public static class HookCaller
 				{
 					parameterIndex++;
 					return x.Default != null ?
-						$"args[{parameterIndex}] is {x.Type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : default" :
+						$"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : default" :
 						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)) ? "out var " : "")}arg{parameterIndex}_{i}";
 				});
 				var parameters = parameters0.ToArray();
