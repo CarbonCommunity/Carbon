@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Carbon.Base;
 using Carbon.Core;
-using Carbon.Hooks;
 
 namespace Carbon.Contracts;
 
@@ -23,7 +18,7 @@ public interface IScriptLoader : IDisposable
 	bool HasFinished { get; set; }
 	bool HasRequires { get; set; }
 
-	Loader.CarbonMod Mod { get; set; }
+	ModLoader.ModPackage Mod { get; set; }
 	IBaseProcessor.IInstance Instance { get; set; }
 	IBaseProcessor.IParser Parser { get; set; }
 }

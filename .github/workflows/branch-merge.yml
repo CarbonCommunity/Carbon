@@ -11,10 +11,12 @@ on:
       source:
         description: 'From branch'
         required: true
-        default: 'develop'
+        default: 'preproduction'
         type: choice
         options:
           - develop
+          - preview
+          - preproduction
 
       target:
         description: 'Target branch'
@@ -22,6 +24,8 @@ on:
         default: 'production'
         type: choice
         options:
+          - preview
+          - preproduction
           - production
 
 jobs:

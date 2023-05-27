@@ -3,9 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Carbon.Contracts;
-using Carbon.Core;
 using Carbon.Extensions;
-using Facepunch;
 using UnityEngine;
 
 /*
@@ -17,7 +15,7 @@ using UnityEngine;
 
 namespace Carbon.Base;
 
-public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
+public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 {
 	public virtual string Name { get; }
 
@@ -27,8 +25,10 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 	public virtual bool EnableWatcher => true;
 	public virtual string Folder => string.Empty;
 	public virtual string Extension => string.Empty;
+	public string[] BlacklistPattern { get; set; }
 	public virtual float Rate => 0.2f;
 	public virtual Type IndexedType => null;
+	public bool IncludeSubdirectories { get { return Watcher.IncludeSubdirectories; } set { SetIncludeSubdirectories(value); } }
 	public FileSystemWatcher Watcher { get; private set; }
 
 	internal WaitForSeconds _wfsInstance;
@@ -70,7 +70,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 			Watcher.Changed += _onChanged;
 			Watcher.Renamed += _onRenamed;
 			Watcher.Deleted += _onRemoved;
-			Watcher.IncludeSubdirectories = true;
+			Watcher.IncludeSubdirectories = IncludeSubdirectories;
 			Watcher.EnableRaisingEvents = true;
 		}
 
@@ -91,12 +91,6 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 	{
 		while (true)
 		{
-			if (!EnableWatcher)
-			{
-				yield return null;
-				continue;
-			}
-
 			yield return _wfsInstance;
 
 			foreach (var element in InstanceBuffer) _runtimeCache.Add(element.Key, element.Value);
@@ -106,12 +100,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 				if (element.Value == null)
 				{
 					var instance = Activator.CreateInstance(IndexedType) as Instance;
-
-					var p = (Extension.Equals(".dll"))
-						? Defines.GetHarmonyFolder()
-						: Defines.GetScriptFolder();
-
-					instance.File = Path.Combine(p, $"{element.Key}{Extension}");
+					instance.File = element.Key;
 					instance.Execute();
 
 					InstanceBuffer[element.Key] = instance;
@@ -225,20 +214,58 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 
 	internal void _onCreated(object sender, FileSystemEventArgs e)
 	{
-		InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;		
+
+		InstanceBuffer.Add(e.Name, null);
 	}
 	internal void _onChanged(object sender, FileSystemEventArgs e)
 	{
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.SetDirty();
+		var path = e.FullPath;
+		var name = Path.GetFileNameWithoutExtension(path);
+
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(name, out var mod)) mod.SetDirty();
 	}
 	internal void _onRenamed(object sender, RenamedEventArgs e)
 	{
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.OldName), out var mod)) mod.MarkDeleted();
-		InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
+		var path = e.FullPath;
+		var name = Path.GetFileNameWithoutExtension(path);
+
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(name, out var mod)) mod.MarkDeleted();
+		InstanceBuffer.Add(name, null);
 	}
 	internal void _onRemoved(object sender, FileSystemEventArgs e)
 	{
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.MarkDeleted();
+		var path = e.FullPath;
+		var name = Path.GetFileNameWithoutExtension(path);
+
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(name, out var mod)) mod.MarkDeleted();
+	}
+
+	public bool IsBlacklisted(string path)
+	{
+		if (!IncludeSubdirectories && Path.GetFullPath(Path.GetDirectoryName(path)) != Path.GetFullPath(Folder))
+		{
+			return true;
+		}
+
+		if (BlacklistPattern == null) return false;
+
+		for(int i = 0; i < BlacklistPattern.Length; i++)
+		{
+			if (path.Contains(BlacklistPattern[i])) return true;
+		}
+
+		return false;
+	}
+	public void SetIncludeSubdirectories(bool wants)
+	{
+		Watcher.IncludeSubdirectories = wants;
 	}
 
 	public class Instance : IBaseProcessor.IInstance, IDisposable

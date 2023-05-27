@@ -1,6 +1,3 @@
 [submodule "Tools/DepotDownloader"]
 	path = Tools/DepotDownloader
 	url = https://github.com/SteamRE/DepotDownloader.git
-[submodule "Tools/NStrip"]
-	path = Tools/NStrip
-	url = https://github.com/BepInEx/NStrip.git

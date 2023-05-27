@@ -22,8 +22,6 @@ public abstract class BaseModule : BaseHookable
 {
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
-	public virtual bool Disabled => false;
-	public virtual bool IsCoreModule => false;
 
 	public abstract void OnPostServerInit();
 	public abstract void OnServerInit();
@@ -79,12 +77,13 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual void Init()
 	{
-		base.Name = Name;
-		base.Type = Type;
-
-		if (Disabled) return;
-
-		Hooks = new();
+		base.Hooks ??= new();
+		base.Name ??= Name;
+		base.Type ??= Type;
+	}
+	public virtual bool InitEnd()
+	{
+		if (HasInitialized) return false;
 
 		Community.Runtime.HookManager.LoadHooksFromType(Type);
 
@@ -95,25 +94,32 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 
 				var priority = method.GetCustomAttribute<HookPriority>();
-				if (!Hooks.ContainsKey(method.Name)) Hooks.Add(method.Name, priority == null ? Priorities.Normal : priority.Priority);
+				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+				if (!Hooks.ContainsKey(hash)) Hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
 			}
 		}
 
-		Config = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
-		Data = new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
+		var phrases = GetDefaultPhrases();
 
-		Load();
-		OnEnableStatus();
-	}
-	public virtual void InitEnd()
-	{
-		Puts(Disabled ? "Disabled." : $"Initialized.");
+		if (phrases != null)
+		{
+			foreach (var language in phrases)
+			{
+				Community.Runtime.CorePlugin.lang.RegisterMessages(language.Value, this, language.Key);
+			}
+		}
+
+		Puts("Initialized.");
+		HasInitialized = true;
+
+		return true;
 	}
 	public override void Load()
 	{
-		if (Disabled) return;
-
 		var shouldSave = false;
+
+		Config ??= new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
+		Data ??= new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
 		if (!Config.Exists())
 		{
@@ -127,7 +133,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			catch (Exception exception) { Logger.Error($"Failed loading config. JSON file is corrupted and/or invalid.\n{exception.Message}"); }
 		}
 
-		if (IsCoreModule) ModuleConfiguration.Enabled = true;
 		ConfigInstance = ModuleConfiguration.Config;
 
 		if (typeof(D) != typeof(EmptyModuleData))
@@ -147,6 +152,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		if (PreLoadShouldSave()) shouldSave = true;
 
 		if (shouldSave) Save();
+
+		OnEnableStatus();
 	}
 	public virtual bool PreLoadShouldSave()
 	{
@@ -154,8 +161,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override void Save()
 	{
-		if (Disabled) return;
-
 		if (ModuleConfiguration == null)
 		{
 			ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
@@ -170,11 +175,13 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		Config.WriteObject(ModuleConfiguration);
 		if (DataInstance != null) Data.WriteObject(DataInstance);
 	}
+	public virtual void Shutdown()
+	{
+
+	}
 
 	public override void SetEnabled(bool enable)
 	{
-		if (Disabled && !IsCoreModule) return;
-
 		if (ModuleConfiguration != null)
 		{
 			ModuleConfiguration.Enabled = enable;
@@ -183,25 +190,30 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	}
 	public override bool GetEnabled()
 	{
-		return IsCoreModule || (!Disabled && ModuleConfiguration != null && ModuleConfiguration.Enabled);
+		return ModuleConfiguration != null && ModuleConfiguration.Enabled;
 	}
 
 	public virtual void OnDisabled(bool initialized)
 	{
-		if (initialized) Loader.RemoveCommands(this);
+		if (initialized) ModLoader.RemoveCommands(this);
 
 		UnsubscribeAll();
 		UnregisterPermissions();
 
-		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
+		if (Hooks.Count > 0) Puts($"Unsubscribed from {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
 	}
 	public virtual void OnEnabled(bool initialized)
 	{
-		if (initialized) Loader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		if (initialized) ModLoader.ProcessCommands(Type, this, flags: BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
 		SubscribeAll();
 
-		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count.ToNumbered().ToLower()} {Hooks.Count.Plural("hook", "hooks")}.");
+		if (Hooks.Count > 0) Puts($"Subscribed to {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
+
+		if (InitEnd())
+		{
+			if (initialized) OnServerInit();
+		}
 	}
 
 	public void OnEnableStatus()

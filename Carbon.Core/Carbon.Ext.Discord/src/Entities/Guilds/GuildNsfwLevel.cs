@@ -1,7 +1,4 @@
-﻿using System.ComponentModel;
-using System.Runtime.Serialization;
-
-namespace Oxide.Ext.Discord.Entities.Guilds
+﻿namespace Oxide.Ext.Discord.Entities.Guilds
 {
 	/// <summary>
 	/// Represents <a href="https://discord.com/developers/docs/resources/guild#guild-nsfw-level">Guild NSFW Level</a>

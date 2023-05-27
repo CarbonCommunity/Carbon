@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using Newtonsoft.Json;
 using Oxide.Ext.Discord.Builders;
 

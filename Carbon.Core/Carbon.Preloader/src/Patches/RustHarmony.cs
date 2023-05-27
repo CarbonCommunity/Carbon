@@ -48,6 +48,7 @@ internal sealed class RustHarmony : MarshalByRefObject
 			//Nuke_them_all();
 			Clean_HarmonyLoader_Methods();
 			Clean_HarmonyLoader_HarmonyMod();
+			Remove_Harmony_Reference();
 		}
 		catch (System.Exception ex)
 		{
@@ -63,30 +64,37 @@ internal sealed class RustHarmony : MarshalByRefObject
 
 		foreach (string Item in Items)
 		{
-			Logger.Debug($" - Patching {type.Name}.{Item}");
-
-			MethodDefinition method = type.Methods.First(x => x.Name == Item);
-			ILProcessor processor = method.Body.GetILProcessor();
-
-			method.Body.Variables.Clear();
-			method.Body.Instructions.Clear();
-			method.Body.ExceptionHandlers.Clear();
-
-			switch (method.ReturnType.FullName)
+			try
 			{
-				case "System.Void":
-					break;
+				Logger.Debug($" - Patching {type.Name}.{Item}");
 
-				case "System.Boolean":
-					processor.Append(processor.Create(OpCodes.Ldc_I4_0));
-					break;
+				MethodDefinition method = type.Methods.First(x => x.Name == Item);
+				ILProcessor processor = method.Body.GetILProcessor();
 
-				default:
-					processor.Append(processor.Create(OpCodes.Ldnull));
-					break;
+				method.Body.Variables.Clear();
+				method.Body.Instructions.Clear();
+				method.Body.ExceptionHandlers.Clear();
+
+				switch (method.ReturnType.FullName)
+				{
+					case "System.Void":
+						break;
+
+					case "System.Boolean":
+						processor.Append(processor.Create(OpCodes.Ldc_I4_0));
+						break;
+
+					default:
+						processor.Append(processor.Create(OpCodes.Ldnull));
+						break;
+				}
+
+				processor.Append(processor.Create(OpCodes.Ret));
 			}
-
-			processor.Append(processor.Create(OpCodes.Ret));
+			catch (System.Exception e)
+			{
+				Logger.Debug($" - Patching failed: {e.Message}");
+			}
 		}
 	}
 
@@ -113,10 +121,27 @@ internal sealed class RustHarmony : MarshalByRefObject
 				FieldDefinition backingField = child.Fields.First(x => x.Name == $"<{Item}>k__BackingField");
 				child.Fields.Remove(backingField);
 			}
-			catch (System.Exception)
+			catch (System.Exception e)
 			{
-				Logger.Debug($" - Patching failed");
+				Logger.Debug($" - Patching failed: {e.Message}");
 			}
+		}
+	}
+
+	private void Remove_Harmony_Reference()
+	{
+		try
+		{
+			AssemblyNameReference harmony =
+				_assembly.MainModule.AssemblyReferences.FirstOrDefault(x => x.Name == "0Harmony");
+
+			if (harmony is null) return;
+			_assembly.MainModule.AssemblyReferences.Remove(harmony);
+			Logger.Debug($" - Remove '0Harmony' reference");
+		}
+		catch (System.Exception e)
+		{
+			Logger.Debug($" - Remove reference failed: {e.Message}");
 		}
 	}
 

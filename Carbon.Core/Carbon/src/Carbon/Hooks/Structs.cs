@@ -1,9 +1,5 @@
-﻿
-using System;
-using System.Reflection;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 using API.Hooks;
-using Facepunch.Extend;
 using HarmonyLib;
 
 /*
@@ -17,7 +13,7 @@ namespace Carbon.Hooks;
 
 public struct HookRuntime
 {
-	public Exception LastError;
+	public string LastError;
 	public HookState Status;
 
 	// Harmony

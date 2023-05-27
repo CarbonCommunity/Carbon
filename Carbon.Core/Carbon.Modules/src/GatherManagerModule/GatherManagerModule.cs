@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Carbon.Base;
+using Newtonsoft.Json;
 using UnityEngine;
 using static BaseEntity;
 
@@ -15,13 +17,15 @@ using static BaseEntity;
 namespace Carbon.Modules;
 #pragma warning disable IDE0051
 
-public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
+public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
 {
 	public override string Name => "GatherManager";
 	public override bool ForceModded => true;
 	public override Type Type => typeof(GatherManagerModule);
 
 	public override bool EnabledByDefault => false;
+
+	internal Item _processedItem;
 
 	#region Hooks
 
@@ -92,10 +96,16 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 	}
 	private void OnDispenserGather(ResourceDispenser dispenser, BasePlayer player, Item item)
 	{
+		if (_processedItem == item) return;
+		_processedItem = item;
+
 		item.amount = GetAmount(item.info, item.amount, 1);
 	}
 	private void OnDispenserGather(ResourceDispenser dispenser, BaseEntity entity, Item item)
 	{
+		if (_processedItem == item) return;
+		_processedItem = item;
+
 		item.amount = GetAmount(item.info, item.amount, 1);
 	}
 
@@ -110,6 +120,16 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 	private object IVendingBuyDuration()
 	{
 		return ConfigInstance.VendingMachineBuyDuration;
+	}
+	private object IOvenSmeltSpeedOverride(BaseOven oven)
+	{
+		if (ConfigInstance.OvenSpeedOverrideBlacklist.Contains(oven.ShortPrefabName) ||
+			ConfigInstance.OvenSpeedOverrideBlacklist.Contains(oven.GetType().Name))
+		{
+			return ConfigInstance.OvenSpeedBlackistedOverride;
+		}
+
+		return ConfigInstance.OvenSpeedOverride;
 	}
 
 	private object IMixingSpeedMultiplier(MixingTable table, float originalValue)
@@ -144,7 +164,7 @@ public class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModule
 			1 => ConfigInstance.Gather,
 			2 => ConfigInstance.Quarry,
 			3 => ConfigInstance.Excavator,
-			_ => throw new Exception("Invalid CreateItemEx kind"),
+			_ => throw new Exception("Invalid GetAmount kind"),
 		};
 
 		if (!dictionary.TryGetValue(itemDefinition.shortname, out var multiply) && !dictionary.TryGetValue("*", out multiply))
@@ -165,6 +185,16 @@ public class GatherManagerConfig
 	public float VendingMachineBuyDuration = 2.5f;
 	public float CraftingSpeedMultiplier = 1f;
 	public float MixingSpeedMultiplier = 1f;
+	public float OvenSpeedOverride = 0.5f;
+	public float OvenSpeedBlackistedOverride = 0.5f;
+
+	[JsonProperty("OvenSpeedOverrideBlacklist (prefab shortname, type)")]
+	public string[] OvenSpeedOverrideBlacklist = new string[]
+	{
+		"lantern.deployed", 
+		"tunalight.deployed",
+		"chineselantern.deployed"
+	};
 
 	public Dictionary<string, float> Quarry = new()
 	{

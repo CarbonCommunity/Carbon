@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Oxide.Core;
@@ -16,33 +17,41 @@ namespace Carbon.Base;
 
 public class BaseHookable
 {
-	public Dictionary<string, Priorities> Hooks { get; set; }
-	public List<HookMethodAttribute> HookMethods { get; set; }
-	public List<PluginReferenceAttribute> PluginReferences { get; set; }
+	public Dictionary<uint, Priorities> Hooks;
+	public List<HookMethodAttribute> HookMethods;
+	public List<PluginReferenceAttribute> PluginReferences;
 
-	public Dictionary<string, List<CachedHook>> HookCache { get; set; } = new();
-	public Dictionary<string, List<CachedHook>> HookMethodAttributeCache { get; set; } = new();
-	public List<string> IgnoredHooks { get; set; } = new List<string>();
+	public Dictionary<uint, List<CachedHook>> HookCache = new();
+	public Dictionary<uint, List<CachedHook>> HookMethodAttributeCache = new();
+	public HashSet<uint> IgnoredHooks = new();
 
 	public struct CachedHook
 	{
 		public MethodInfo Method;
+		public Type[] Parameters;
 		public Delegate Delegate;
 		public Priorities Priority;
+		public bool IsByRef;
 
-		public static CachedHook Make(MethodInfo method, Delegate @delegate, Priorities priority)
+		public static CachedHook Make(MethodInfo method, Priorities priority, object context)
 		{
-			return new CachedHook
+			var parameters = method.GetParameters();
+			var isByRef = parameters.Any(x => x.ParameterType.IsByRef);
+			var hook = new CachedHook
 			{
 				Method = method,
-				Delegate = @delegate,
-				Priority = priority
+				Delegate = isByRef ? null : HookCallerCommon.CreateDelegate(method, context),
+				Priority = priority,
+				IsByRef = isByRef,
+				Parameters = parameters.Select(x => x.ParameterType).ToArray(),
 			};
+
+			return hook;
 		}
 	}
 
 	[JsonProperty]
-	public string Name { get; set; }
+	public string Name;
 
 	[JsonProperty]
 	public virtual VersionNumber Version { get; set; }
@@ -50,8 +59,8 @@ public class BaseHookable
 	[JsonProperty]
 	public double TotalHookTime { get; internal set; }
 
-	public bool HasInitialized { get; set; }
-	public Type Type { get; set; }
+	public bool HasInitialized;
+	public Type Type;
 
 	#region Tracking
 
@@ -90,39 +99,50 @@ public class BaseHookable
 
 	#endregion
 
+	public virtual object InternalCallHook(uint hook, object[] args)
+	{
+		return null;
+	}
+
 	public void Unsubscribe(string hook)
 	{
-		if (IgnoredHooks.Contains(hook)) return;
+		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
 
-		IgnoredHooks.Add(hook);
+		if (IgnoredHooks.Contains(hash)) return;
+
+		IgnoredHooks.Add(hash);
 	}
 	public void Subscribe(string hook)
 	{
-		if (!IgnoredHooks.Contains(hook)) return;
+		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
 
-		IgnoredHooks.Remove(hook);
+		if (!IgnoredHooks.Contains(hash)) return;
+
+		IgnoredHooks.Remove(hash);
 	}
 	public bool IsHookIgnored(string hook)
 	{
-		return IgnoredHooks == null || IgnoredHooks.Contains(hook);
+		return IgnoredHooks != null && IgnoredHooks.Contains(HookCallerCommon.StringPool.GetOrAdd(hook));
 	}
 
 	public void SubscribeAll(Func<string, bool> condition = null)
 	{
 		foreach (var hook in Hooks)
 		{
-			if (condition != null && !condition(hook.Key)) continue;
+			var name = HookCallerCommon.StringPool.GetOrAdd(hook.Key);
+			if (condition != null && !condition(name)) continue;
 
-			Subscribe(hook.Key);
+			Subscribe(name);
 		}
 	}
 	public void UnsubscribeAll(Func<string, bool> condition = null)
 	{
 		foreach (var hook in Hooks)
 		{
-			if (condition != null && !condition(hook.Key)) continue;
+			var name = HookCallerCommon.StringPool.GetOrAdd(hook.Key);
+			if (condition != null && !condition(name)) continue;
 
-			Unsubscribe(hook.Key);
+			Unsubscribe(name);
 		}
 	}
 

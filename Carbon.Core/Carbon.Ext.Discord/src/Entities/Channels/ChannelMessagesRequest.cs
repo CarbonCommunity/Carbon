@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Oxide.Ext.Discord.Builders;
 
 namespace Oxide.Ext.Discord.Entities.Channels

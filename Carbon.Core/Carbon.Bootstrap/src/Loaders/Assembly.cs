@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using API.Abstracts;
 using API.Assembly;
 using Utility;
 
@@ -34,8 +33,8 @@ internal sealed class AssemblyLoader : IDisposable
 		Context.CarbonExtensions,
 	};
 
-	internal IAssemblyCache Load(string file, string requester = "unknown",
-		string[] directories = null, IReadOnlyList<string> restricted = null)
+	internal IAssemblyCache Load(string file, string requester,
+		string[] directories, IReadOnlyList<string> blackList, IReadOnlyList<string> whiteList)
 	{
 		// normalize filename
 		file = Path.GetFileName(file);
@@ -57,10 +56,11 @@ internal sealed class AssemblyLoader : IDisposable
 			return default;
 		}
 
-		if (restricted is not null)
+		if (blackList is not null || whiteList is not null)
 		{
 			using Sandbox<AssemblyValidator> sandbox = new Sandbox<AssemblyValidator>();
-			sandbox.Proxy.Whitelist = restricted;
+			sandbox.Proxy.Blacklist = blackList;
+			sandbox.Proxy.Whitelist = whiteList;
 
 			if (!sandbox.Proxy.Validate(path))
 			{
@@ -70,7 +70,7 @@ internal sealed class AssemblyLoader : IDisposable
 		}
 
 		byte[] raw = File.ReadAllBytes(path);
-		string sha1 = Util.SHA1(raw);
+		string sha1 = Util.sha1(raw);
 
 		if (_cache.TryGetValue(sha1, out Item cache))
 		{

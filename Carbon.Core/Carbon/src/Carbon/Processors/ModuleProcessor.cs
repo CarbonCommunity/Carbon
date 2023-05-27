@@ -21,34 +21,32 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 	List<BaseHookable> IModuleProcessor.Modules { get => _modules; }
 
-	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(50);
+	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(200);
 
 	public void Init()
 	{
-		var types = typeof(Community).Assembly.GetExportedTypes().AsEnumerable();
-		var modules = Pool.GetList<string>();
-		modules.AddRange(Community.Runtime.AssemblyEx.Modules.Loaded);
+		// TODO ---------------------------------------------------------------
+		// This needs to go into the ModuleManager. Each module must implement
+		// the ICarbonModule. Currently is just a workaround to be compatible
+		// with the single modules file we ship. After migrating this the 
+		// IAddonCache.Types and ITypeManager.LoadedTypes should no longer be
+		// required and will be removed.
 
-		foreach (var module in modules)
-		{
-			var assembly = Community.Runtime.AssemblyEx.Modules.Load(module, "ModuleProcessor.Init");
-			types = types.Concat(assembly.GetExportedTypes());
-		}
+		var types = typeof(Community).Assembly.GetExportedTypes().ToList();
+		types.AddRange(Community.Runtime.AssemblyEx.Modules.LoadedTypes);
 
-		Pool.FreeList(ref modules);
+		var temporaryTypes = types.ToArray();
+		Build(temporaryTypes);
 
-		foreach (var type in types)
-		{
-			if (type.BaseType == null || !type.BaseType.Name.Contains("CarbonModule")) continue;
-
-			Setup(Activator.CreateInstance(type) as BaseHookable);
-		}
+		Pool.FreeList(ref types);
+		Array.Clear(temporaryTypes, 0, temporaryTypes.Length);
+		temporaryTypes = null;
 	}
 	public void OnServerInit()
 	{
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module)
+			if (hookable is IModule module && module.GetEnabled())
 			{
 				try
 				{
@@ -63,7 +61,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module)
+			if (hookable is IModule module && module.GetEnabled())
 			{
 				try
 				{
@@ -80,7 +78,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module)
+			if (hookable is IModule module && module.GetEnabled())
 			{
 				try
 				{
@@ -93,32 +91,86 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			}
 		}
 	}
+
 	public void Setup(BaseHookable hookable)
 	{
-		if (hookable is IModule module)
+		if (hookable is IModule)
 		{
-			try
-			{
-				module.Init();
-
-				var phrases = module.GetDefaultPhrases();
-
-				if (phrases != null)
-				{
-					foreach (var language in phrases)
-					{
-						Community.Runtime.CorePlugin.lang.RegisterMessages(language.Value, hookable, language.Key);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"[ModuleProcessor] Failed initializing '{hookable.Name}'.", ex);
-			}
-
 			_modules.Add(hookable);
-			module.InitEnd();
 		}
+	}
+	public void Build(params Type[] types)
+	{
+		var modules = Pool.GetList<BaseHookable>();
+
+		foreach (var type in types)
+		{
+			if (type.IsAbstract ||
+				type.BaseType == null ||
+				!type.IsSubclassOf(typeof(BaseModule)))
+			{
+				continue;
+			}
+
+			var module = Activator.CreateInstance(type) as BaseHookable;
+			Setup(module);
+			modules.Add(module);
+		}
+
+		foreach (var hookable in modules)
+		{
+			if (hookable is IModule module)
+			{
+				try
+				{
+					module.Init();
+				}
+				catch (Exception ex) { Logger.Error($"Failed module Init for {module?.GetType().FullName}", ex); }
+			}
+		}
+
+		foreach (var hookable in modules)
+		{
+			if (hookable is IModule module)
+			{
+				try
+				{
+					module.Load();
+				}
+				catch (Exception ex) { Logger.Error($"Failed module Load for {module?.GetType().FullName}", ex); }
+			}
+		}
+
+		foreach (var hookable in modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				try
+				{
+					module.InitEnd();
+				}
+				catch (Exception ex) { Logger.Error($"Failed module InitEnd for {module?.GetType().FullName}", ex); }
+			}
+		}
+
+		foreach (var hookable in modules)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				try
+				{
+					module.OnEnableStatus();
+				}
+				catch (Exception ex) { Logger.Error($"Failed module OnEnableStatus [{module?.GetEnabled()}] for {module?.GetType().FullName}", ex); }
+			}
+		}
+
+		Pool.FreeList(ref modules);
+	}
+	public void Uninstall(IModule module)
+	{
+		module.Shutdown();
+		_modules.RemoveAll(x => x == module);
 	}
 
 	public void Save()

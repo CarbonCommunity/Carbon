@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
+using Mono.Collections.Generic;
 using Utility;
 
 /*
@@ -17,7 +20,8 @@ namespace Patches;
 internal sealed class AssemblyCSharp : MarshalByRefObject
 {
 	private static readonly DefaultAssemblyResolver _resolver;
-	private AssemblyDefinition _assembly;
+	private readonly Dictionary<string, string> _checksums = new();
+	private readonly AssemblyDefinition _assembly;
 	private string _filename;
 
 	static AssemblyCSharp()
@@ -160,116 +164,150 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 
 		foreach (string Item in Items)
 		{
-			Logger.Debug($" - Patching {type.Name}.{Item}");
-
-			MethodDefinition method = type.Methods.Single(x => x.Name == Item);
-			ILProcessor processor = method.Body.GetILProcessor();
-
-			method.Body.Variables.Clear();
-			method.Body.Instructions.Clear();
-			method.Body.ExceptionHandlers.Clear();
-
-			switch (method.ReturnType.FullName)
+			try
 			{
-				case "System.Void":
-					break;
+				Logger.Debug($" - Patching {type.Name}.{Item}");
 
-				case "System.Boolean":
-					processor.Append(processor.Create(OpCodes.Ldc_I4_0));
-					break;
+				MethodDefinition method = type.Methods.Single(x => x.Name == Item);
+				ILProcessor processor = method.Body.GetILProcessor();
 
-				default:
-					processor.Append(processor.Create(OpCodes.Ldnull));
-					break;
+				method.Body.Variables.Clear();
+				method.Body.Instructions.Clear();
+				method.Body.ExceptionHandlers.Clear();
+
+				switch (method.ReturnType.FullName)
+				{
+					case "System.Void":
+						break;
+
+					case "System.Boolean":
+						processor.Append(processor.Create(OpCodes.Ldc_I4_0));
+						break;
+
+					default:
+						processor.Append(processor.Create(OpCodes.Ldnull));
+						break;
+				}
+
+				processor.Append(processor.Create(OpCodes.Ret));
 			}
-
-			processor.Append(processor.Create(OpCodes.Ret));
+			catch (System.Exception e)
+			{
+				Logger.Debug($" - Patching failed: {e.Message}");
+			}
 		}
 	}
 
 	internal void Add_Bootstrap_Tier0_Hook()
 	{
-		Logger.Debug($" - Patching Bootstrap.Init_Tier0");
+		try
+		{
+			AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(
+				new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.Bootstrap.dll"))));
 
-		AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(
-			stream: new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.Bootstrap.dll"))));
+			TypeDefinition type1 = assembly.MainModule.GetType("Carbon", "Bootstrap")
+				?? throw new Exception("Unable to get a type for 'Carbon.Bootstrap'");
 
-		TypeDefinition type1 = assembly.MainModule.GetType("Carbon", "Bootstrap");
-		if (type1 == null) throw new Exception("Unable to get a type for 'Carbon.Bootstrap'");
+			MethodDefinition method1 = type1.Methods.Single(x => x.Name == "Initialize")
+				?? throw new Exception("Unable to get a method definition for 'Tier0'");
 
-		MethodDefinition method1 = type1.Methods.Single(x => x.Name == "Initialize");
-		if (method1 == null) throw new Exception("Unable to get a method definition for 'Tier0'");
+			TypeDefinition type2 = _assembly.MainModule.GetType("Bootstrap")
+				?? throw new Exception("Unable to get a type for 'Bootstrap'");
 
-		TypeDefinition type2 = _assembly.MainModule.GetType("Bootstrap");
-		if (type2 == null) throw new Exception("Unable to get a type for 'Bootstrap'");
+			MethodDefinition method2 = type2.Methods.Single(x => x.Name == "Init_Tier0")
+				?? throw new Exception("Unable to get a method definition for 'Init_Tier0'");
 
-		MethodDefinition method2 = type2.Methods.Single(x => x.Name == "Init_Tier0");
-		if (method2 == null) throw new Exception("Unable to get a method definition for 'Init_Tier0'");
+			ILProcessor processor = method2.Body.GetILProcessor();
+			Instruction instruction = processor.Create(
+				OpCodes.Call, _assembly.MainModule.ImportReference(method1));
 
-		ILProcessor processor = method2.Body.GetILProcessor();
+			if (method2.Body.Instructions.Any(x => x.OpCode == OpCodes.Call
+				&& x.Operand.ToString().Contains("Carbon.Bootstrap::Initialize"))) return;
 
-		Instruction instruction = processor.Create(
-			OpCodes.Call, method2.Module.ImportReference(method1));
+			Logger.Debug($" - Patching Bootstrap.Init_Tier0");
 
-		Instruction code = method2.Body.Instructions[method2.Body.Instructions.Count - 2];
-		if (code.OpCode == instruction.OpCode && code.Operand.ToString().Contains("Tier0"))
-			return;
+			method2.Body.Instructions[method2.Body.Instructions.Count - 1]
+				= instruction;
 
-		method2.Body.Instructions[method2.Body.Instructions.Count - 1]
-			= instruction;
-
-		method2.Body.Instructions.Insert(method2.Body.Instructions.Count,
-			processor.Create(OpCodes.Ret));
-
-		_assembly.MainModule.AssemblyReferences.Add(assembly.Name);
+			method2.Body.Instructions.Insert(method2.Body.Instructions.Count,
+				processor.Create(OpCodes.Ret));
+			method2.Body.OptimizeMacros();
+		}
+		catch (System.Exception e)
+		{
+			Logger.Debug($" - Patching Bootstrap.Init_Tier0 failed: {e.Message}");
+		}
 	}
 
 	internal void Add_the_Fucking_IPlayer_shit()
 	{
-		Logger.Debug($" - Patching BasePlayer.IPlayer");
+		try
+		{
+			FieldDefinition iplayer = _assembly.MainModule.GetType("BasePlayer").Fields.FirstOrDefault(x => x.Name == "IPlayer");
+			if (iplayer is not null) return;
 
-		AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(
-			stream: new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.Common.dll"))));
+			Logger.Debug($" - Patching BasePlayer.IPlayer");
 
-		TypeDefinition type1 = assembly.MainModule.GetType("Oxide.Core.Libraries.Covalence", "IPlayer");
-		if (type1 == null) throw new Exception("Unable to get a type for 'API.Contracts.IPlayer'");
+			AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(
+				new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.Common.dll"))));
 
-		_assembly.MainModule.AssemblyReferences.Add(assembly.Name);
-		_assembly.MainModule.GetType("BasePlayer").Fields.Add(item: new FieldDefinition("IPlayer",
-			FieldAttributes.Public | FieldAttributes.NotSerialized, _assembly.MainModule.ImportReference(type1)));
+			TypeDefinition type1 = assembly.MainModule.GetType("Oxide.Core.Libraries.Covalence", "IPlayer")
+				?? throw new Exception("Unable to get a type for 'API.Contracts.IPlayer'");
+
+			TypeDefinition type2 = _assembly.MainModule.GetType("BasePlayer")
+				?? throw new Exception("Unable to get a type for 'BasePlayer'");
+
+			type2.Fields.Add(item: new FieldDefinition("IPlayer",
+				FieldAttributes.Public | FieldAttributes.NotSerialized, _assembly.MainModule.ImportReference(type1)));
+		}
+		catch (System.Exception e)
+		{
+			Logger.Debug($" - Patching BasePlayer.IPlayer failed: {e.Message}");
+		}
 	}
 
-	// internal void Add_Bootstrap_StartupShared_Hook()
-	// {
-	// 	Logger.Debug($" - Patching Bootstrap.StartupShared");
+	public static string GetMethodMSILHash(MethodDefinition method)
+	{
+		try
+		{
+			ILProcessor processor = method.Body.GetILProcessor();
+			Collection<Instruction> instructions = processor.Body.Instructions;
 
-	// 	AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(
-	// 		stream: new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.Bootstrap.dll"))));
+			byte[] raw = new byte[instructions.Count * sizeof(int)];
 
-	// 	TypeDefinition t_type = assembly.MainModule.GetType("Hooks", "Bootstrap");
-	// 	if (t_type == null) throw new Exception("Unable to get a type for 'Hooks.Bootstrap'");
+			for (int i = 0; i < instructions.Count; i++)
+			{
+				Instruction instruction = instructions[i];
+				int opcodeValue = (int)instruction.OpCode.Value;
 
-	// 	MethodDefinition t_method = t_type.Methods.Single(x => x.Name == "StartupShared");
-	// 	if (t_method == null) throw new Exception("Unable to get a method definition for 'StartupShared'");
+				raw[i * sizeof(int) + 0] = (byte)(opcodeValue & 0xFF);
+				raw[i * sizeof(int) + 1] = (byte)((opcodeValue >> 8) & 0xFF);
+				raw[i * sizeof(int) + 2] = (byte)((opcodeValue >> 16) & 0xFF);
+				raw[i * sizeof(int) + 3] = (byte)((opcodeValue >> 24) & 0xFF);
+			}
 
-	// 	TypeDefinition type = _assembly.MainModule.GetType("Bootstrap");
-	// 	if (type == null) throw new Exception("Unable to get a type for 'Bootstrap'");
+			return Crypto.md5(raw);
+		}
+		catch (System.Exception)
+		{
+			return null;
+		}
+	}
 
-	// 	MethodDefinition method = type.Methods.Single(x => x.Name == "StartupShared");
-	// 	if (method == null) throw new Exception("Unable to get a method definition for 'StartupShared'");
+	public static string GetMethodSignature(MethodDefinition method)
+	{
+		string methodName = method.Name;
+		string typeName = method.DeclaringType.FullName.Replace("+", ".");
+		string parameterList = string.Join(",", method.Parameters.Select(p => p.ParameterType.FullName));
 
-	// 	ILProcessor processor = method.Body.GetILProcessor();
+		if (method.HasGenericParameters)
+		{
+			string genericList = string.Join(",", method.GenericParameters.Select(p => p.FullName));
+			methodName += $"<{genericList}>";
+		}
 
-	// 	Instruction instruction = processor.Create(
-	// 		OpCodes.Call, method.Module.ImportReference(t_method));
-
-	// 	Instruction code = method.Body.Instructions[1];
-	// 	if (code.OpCode == instruction.OpCode && code.Operand.ToString().Contains("StartupShared"))
-	// 		return;
-
-	// 	_assembly.MainModule.AssemblyReferences.Add(assembly.Name);
-	// 	method.Body.Instructions.Insert(1, instruction);
-	// }
+		return $"{typeName}::{methodName}({parameterList})";
+	}
 
 	internal void Write()
 	{

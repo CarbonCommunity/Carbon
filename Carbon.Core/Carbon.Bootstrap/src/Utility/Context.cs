@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Carbon.Extensions;
 
 /*
  *
@@ -17,8 +18,7 @@ internal sealed class Context
 
 	internal static readonly string
 		Game, GameManaged,
-
-		Carbon, CarbonData, CarbonExtensions, CarbonHarmony, CarbonHooks,
+		Carbon, CarbonData, CarbonExtensions, CarbonHooks,
 		CarbonLib, CarbonLogs, CarbonManaged, CarbonModules, CarbonPlugins;
 
 	static Context()
@@ -37,20 +37,16 @@ internal sealed class Context
 		try
 		{
 			if (Game == null) throw new Exception("Unable to find root folder");
-
 			GameManaged = Path.GetFullPath(Path.Combine(Game, "RustDedicated_Data", "Managed"));
 
-			Carbon = Path.GetFullPath(Path.Combine(Game, "carbon"));
+			Carbon = Path.GetFullPath(CommandLineEx.GetArgumentResult("-carbon.rootdir", Path.Combine(Game, "carbon")));
 			if (!Directory.Exists(Carbon)) throw new Exception("Carbon folder is missing");
 
-			CarbonData = Path.Combine(Carbon, "data");
+			CarbonData = CommandLineEx.GetArgumentResult("-carbon.datadir", Path.Combine(Carbon, "data"));
 			if (!Directory.Exists(CarbonData)) Directory.CreateDirectory(CarbonData);
 
-			CarbonExtensions = Path.Combine(Carbon, "extensions");
+			CarbonExtensions = CommandLineEx.GetArgumentResult("-carbon.extdir", Path.Combine(Carbon, "extensions"));
 			if (!Directory.Exists(CarbonExtensions)) Directory.CreateDirectory(CarbonExtensions);
-
-			CarbonHarmony = Path.Combine(Carbon, "harmony");
-			if (!Directory.Exists(CarbonHarmony)) Directory.CreateDirectory(CarbonHarmony);
 
 			CarbonHooks = Path.Combine(Carbon, "managed", "hooks");
 			if (!Directory.Exists(CarbonHooks)) Directory.CreateDirectory(CarbonHooks);
@@ -67,7 +63,7 @@ internal sealed class Context
 			CarbonModules = Path.Combine(Carbon, "managed", "modules");
 			if (!Directory.Exists(CarbonModules)) Directory.CreateDirectory(CarbonModules);
 
-			CarbonPlugins = Path.Combine(Carbon, "plugins");
+			CarbonPlugins = CommandLineEx.GetArgumentResult("-carbon.scriptdir", Path.Combine(Carbon, "plugins"));
 			if (!Directory.Exists(CarbonPlugins)) Directory.CreateDirectory(CarbonPlugins);
 		}
 		catch (System.Exception e)

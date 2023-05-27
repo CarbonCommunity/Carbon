@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using API.Commands;
 using API.Hooks;
 using Carbon.Extensions;
 using Facepunch.Extend;
+using static ConsoleSystem;
+using Command = API.Commands.Command;
 
 /*
  *
@@ -46,18 +49,34 @@ public partial class Category_Static
 						return false;
 					}
 
-					var player = options.Connection?.player as BasePlayer;
-
-					var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
-					commandArgs.Arguments = args2;
-					commandArgs.Player = player;
-
-					if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Console, command, out var cmd))
+					if (!Command.FromRcon)
 					{
-						Command.FromRcon = false;
-						Community.Runtime.CommandManager.Execute(cmd, commandArgs);
-						Facepunch.Pool.Free(ref commandArgs);
-						return false;
+						var player = options.Connection?.player as BasePlayer;
+						var commands = player == null ? Community.Runtime.CommandManager.RCon : Community.Runtime.CommandManager.ClientConsole;
+
+						if (Community.Runtime.CommandManager.Contains(commands, command, out var cmd))
+						{
+							var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
+							var client = player == null ? Option.Unrestricted : Option.Client;
+							if (player != null) client = client.FromConnection(player.net.connection);
+							client.FromRcon = false;
+							arg.Option = client;
+							arg.FullString = split.ToString(" ");
+							arg.Args = args2;
+
+							var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+							commandArgs.Token = arg;
+							commandArgs.Type = cmd.Type;
+							commandArgs.Arguments = args2;
+							commandArgs.Player = player;
+
+							Command.FromRcon = false;
+							Community.Runtime.CommandManager.Execute(cmd, commandArgs);
+							Facepunch.Pool.Free(ref commandArgs);
+							arg = null;
+
+							return false;
+						}
 					}
 				}
 				catch (Exception exception) { Logger.Error($"Failed ConsoleSystem.Run [{strCommand}] [{string.Join(" ", args)}]", exception); }

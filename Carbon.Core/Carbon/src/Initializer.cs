@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Reflection;
 using System.Threading;
 using API.Assembly;
@@ -15,8 +14,19 @@ namespace Carbon.Core;
 
 public class Initializer : ICarbonComponent
 {
-	public void Initialize(string identifier)
+	public void Awake(EventArgs args)
 	{
+		Logger.Debug($"A new instance of '{this}' created");
+	}
+
+	public void OnEnable(EventArgs args)
+	{
+		Logger.Debug($"Triggered '{this}' OnEnable");
+	}
+
+	public void OnDisable(EventArgs args)
+	{
+		Logger.Debug($"Triggered '{this}' OnDisable");
 	}
 
 	public void OnLoaded(EventArgs args)
@@ -118,7 +128,7 @@ public class Initializer : ICarbonComponent
 	}
 
 	public void OnUnloaded(EventArgs args)
-	{
+	{	
 		Logger.Log("Uninitalizing...");
 		CommunityInternal.InternalRuntime?.Uninitalize();
 		CommunityInternal.InternalRuntime = null;

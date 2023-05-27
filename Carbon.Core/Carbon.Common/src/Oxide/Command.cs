@@ -144,8 +144,8 @@ namespace Oxide.Game.Rust.Libraries
 				try
 				{
 					var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-					var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer)));
-					var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer)));
+					var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters ().Any () || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
+					var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters ().Any () || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
 					var methodInfo = covalenceMethod ?? consoleMethod;
 					var parameters = methodInfo.GetParameters();
 
@@ -187,9 +187,9 @@ namespace Oxide.Game.Rust.Libraries
 								arguments.Add(null);
 							}
 						}
-					}
 
-					result = arguments.ToArray();
+						result = arguments.ToArray();
+					}
 
 					methodInfo?.Invoke(plugin, result);
 				}
@@ -201,36 +201,62 @@ namespace Oxide.Game.Rust.Libraries
 		}
 		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 		{
-			var cmd = new API.Commands.Command.Console
+			// Client console
 			{
-				Name = command,
-				Reference = plugin,
-				Callback = arg =>
+				var cmd = new API.Commands.Command.ClientConsole
 				{
-					switch (arg)
+					Name = command,
+					Reference = plugin,
+					Callback = arg =>
 					{
-						case PlayerArgs playerArgs:
-							callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments);
-							break;
-					}
-				},
-				Help = help,
-				Token = reference,
-				Auth = new API.Commands.Command.Authentication
-				{
-					AuthLevel = authLevel,
-					Permissions = permissions,
-					Groups = groups,
-					Cooldown = cooldown,
-				},
-				CanExecute = _playerExecute
-			};
-			cmd.SetFlag(CommandFlags.Hidden, isHidden);
-			cmd.SetFlag(CommandFlags.Protected, @protected);
+						switch (arg)
+						{
+							case PlayerArgs playerArgs:
+								callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments);
+								break;
+						}
+					},
+					Help = help,
+					Token = reference,
+					Auth = new API.Commands.Command.Authentication
+					{
+						AuthLevel = authLevel,
+						Permissions = permissions,
+						Groups = groups,
+						Cooldown = cooldown,
+					},
+					CanExecute = _playerExecute,
+				};
+				cmd.SetFlag(CommandFlags.Hidden, isHidden);
+				cmd.SetFlag(CommandFlags.Protected, @protected);
 
-			if (!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason) && !silent)
+				if (!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason) && !silent)
+				{
+					Logger.Warn(reason);
+				}
+			}
+
+			// RCon console
 			{
-				Logger.Warn(reason);
+				var cmd = new API.Commands.Command.RCon
+				{
+					Name = command,
+					Reference = plugin,
+					Callback = arg =>
+					{
+						callback?.Invoke(null, command, arg.Arguments);
+					},
+					Help = help,
+					Token = reference,
+					CanExecute = _playerExecute,
+				};
+				cmd.SetFlag(CommandFlags.Hidden, isHidden);
+				cmd.SetFlag(CommandFlags.Protected, @protected);
+
+				if (!Community.Runtime.CommandManager.RegisterCommand(cmd, out var reason) && !silent)
+				{
+					Logger.Warn(reason);
+				}
 			}
 		}
 		public void AddConsoleCommand(string command, BaseHookable plugin, string method, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
@@ -254,8 +280,8 @@ namespace Oxide.Game.Rust.Libraries
 					try
 					{
 						var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-						var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer)));
-						var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer)));
+						var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
+						var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
 						var methodInfo = covalenceMethod ?? consoleMethod;
 						var parameters = methodInfo.GetParameters();
 

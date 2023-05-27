@@ -10,14 +10,15 @@ using System.Collections.Generic;
 
 namespace Carbon.Base.Interfaces;
 
-public interface IModule : IHookableModule, IDisposable
+public interface IModule : IDisposable
 {
 	string Name { get; }
 
 	void Init();
-	void InitEnd();
+	bool InitEnd();
 	void Save();
 	void Load();
+	void Shutdown();
 
 	void OnPostServerInit();
 	void OnServerInit();

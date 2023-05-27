@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using API.Logger;
-using Facepunch;
 
 /*
  *
@@ -140,23 +138,11 @@ public class Logger : ILogger
 	/// <param name="message"></param>
 	/// <param name="ex"></param>
 #if DEBUG
-	public static void Error(object message, Exception ex = null,
-		[CallerLineNumber] int line = 0,
-		[CallerFilePath] string path = null,
-		[CallerMemberName] string method = null)
-	{
-		// allows the usage of Error() before config has been init
-		int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
-
-		if (minVerbosity > 0)
-			message = $"{message}\n" +
-					  $" [file: {_getFileNameEx(path)}, method: {method}, line: {line}]";
-
-		Write(Severity.Error, message, ex);
-	}
+	public static void Error(object message, Exception ex = null)
+		=> Write(Severity.Error, message, ex);
 #else
-        public static void Error(object message, Exception ex = null)
-            => Write(Severity.Error, message, ex);
+	public static void Error(object message, Exception ex = null)
+		=> Write(Severity.Error, message);
 #endif
 
 	// Interface implementation workaround for static methods.

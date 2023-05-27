@@ -24,15 +24,19 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 {
 	public override string Name => "DRM";
 	public override Type Type => typeof(DRMModule);
-	public override bool EnabledByDefault => true;
 
-	public override void Init()
+	public override void Load()
 	{
-		base.Init();
+		base.Load();
 
-		foreach (var processor in ConfigInstance.Processors)
+		if (GetEnabled())
 		{
-			processor.Value.Initialize();
+			Dispose();
+
+			foreach (var processor in ConfigInstance.Processors)
+			{
+				processor.Value.Initialize();
+			}
 		}
 	}
 	public override void Dispose()
@@ -98,7 +102,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 		public bool IsOnline { get; internal set; }
 
 		[JsonIgnore]
-		public Loader.CarbonMod Mod { get; } = new Loader.CarbonMod();
+		public ModLoader.ModPackage Mod { get; } = new ModLoader.ModPackage();
 
 		[JsonIgnore]
 		public List<BaseProcessor.Instance> ProcessorInstances { get; } = new List<BaseProcessor.Instance>();
@@ -166,7 +170,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 			Validate(launch: true);
 
 			Mod.Name = $"{Name} DRM";
-			Loader.LoadedMods.Add(Mod);
+			ModLoader.LoadedPackages.Add(Mod);
 		}
 		public void Uninitialize()
 		{
@@ -177,7 +181,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 			ProcessorInstances.Clear();
 
-			Loader.LoadedMods.Remove(Mod);
+			ModLoader.LoadedPackages.Remove(Mod);
 		}
 
 		public void Launch()
@@ -222,7 +226,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 							foreach (var type in assembly.GetTypes())
 							{
-								Loader.InitializePlugin(type, out var plugin, Mod);
+								ModLoader.InitializePlugin(type, out var plugin, Mod);
 							}
 							break;
 					}
@@ -256,7 +260,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 		public class ScriptInstance : BaseProcessor.Instance, IScriptProcessor.IScript
 		{
-			internal Loader.CarbonMod _mod;
+			internal ModLoader.ModPackage _mod;
 			internal string _source;
 
 			public IScriptLoader Loader { get; set; }

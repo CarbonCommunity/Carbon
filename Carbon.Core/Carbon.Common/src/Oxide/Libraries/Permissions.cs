@@ -5,9 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Carbon;
 using Carbon.Base;
-using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Libraries.Covalence;
-using Oxide.Plugins;
 
 /*
  *
@@ -53,9 +51,11 @@ public class Permission : Library
 	public static string[] EmptyStringArray = new string[0];
 
 	private readonly Dictionary<BaseHookable, HashSet<string>> permset;
-	private Dictionary<string, UserData> userdata = new();
-	private Dictionary<string, GroupData> groupdata = new();
+	internal Dictionary<string, UserData> userdata = new();
+	internal Dictionary<string, GroupData> groupdata = new();
 	private Func<string, bool> validate;
+
+	internal static readonly UserData _blankUser = new();
 
 	private static FieldInfo _iPlayerFieldCache;
 	public static FieldInfo iPlayerField
@@ -326,10 +326,12 @@ public class Permission : Library
 		return userdata.TryGetValue(id, out data);
 	}
 
-	public virtual UserData GetUserData(string id)
+	public virtual UserData GetUserData(string id, bool addIfNotExisting = false)
 	{
 		if (!userdata.TryGetValue(id, out var result))
 		{
+			if (!addIfNotExisting) return _blankUser;
+
 			userdata.Add(id, result = new UserData());
 		}
 
@@ -349,7 +351,7 @@ public class Permission : Library
 	{
 		id = id.ToLower().Trim();
 
-		if (id.IsSteamId()) GetUserData(id);
+		if (id.IsSteamId()) GetUserData(id, true);
 
 		foreach (var user in userdata)
 		{
@@ -371,15 +373,19 @@ public class Permission : Library
 			user.Language = player.net.connection.info.GetString("global.language", "en");
 		else user.Language = "en";
 
-		AddUserGroup(player.UserIDString, "default");
+		if (!string.IsNullOrEmpty(Community.Runtime.Config.PlayerDefaultGroup))
+			AddUserGroup(player.UserIDString, Community.Runtime.Config.PlayerDefaultGroup);
 
-		if (player.IsAdmin)
+		if (!string.IsNullOrEmpty(Community.Runtime.Config.AdminDefaultGroup))
 		{
-			AddUserGroup(player.UserIDString, "admin");
-		}
-		else if (UserHasGroup(player.UserIDString, "admin"))
-		{
-			RemoveUserGroup(player.UserIDString, "admin");
+			if (player.IsAdmin)
+			{
+				AddUserGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup);
+			}
+			else if (UserHasGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup))
+			{
+				RemoveUserGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup);
+			}
 		}
 
 		if (iPlayerField.GetValue(player) == null) iPlayerField.SetValue(player, new RustPlayer(player));
@@ -558,7 +564,7 @@ public class Permission : Library
 		return groupData.Rank;
 	}
 
-	public virtual bool GrantUserPermission(string id, string perm, RustPlugin owner)
+	public virtual bool GrantUserPermission(string id, string perm, BaseHookable owner)
 	{
 		if (!PermissionExists(perm, owner)) return false;
 

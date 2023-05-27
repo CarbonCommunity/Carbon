@@ -13,6 +13,7 @@ using Carbon.Plugins;
 using ConVar;
 using Network;
 using Oxide.Core;
+using UnityEngine;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -31,6 +32,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		permission.RefreshUser(player);
 		Interface.CallHook("OnPlayerConnected", player);
+		Interface.CallHook("OnUserConnected", player.AsIPlayer());
 	}
 
 	private object IOnUserApprove(Connection connection)
@@ -181,14 +183,17 @@ public partial class CorePlugin : CarbonPlugin
 
 	#region Server
 
+	internal const string _blankZero = "0";
+	internal const string _blankUnnamed = "Unnamed";
+
 	private void OnServerUserSet(ulong steamId, ServerUsers.UserGroup group, string playerName, string reason, long expiry)
 	{
 		if (Community.IsServerFullyInitializedCache && group == ServerUsers.UserGroup.Banned)
 		{
 			var playerId = steamId.ToString();
-			var player = BasePlayer.FindByID(steamId).AsIPlayer();
-			Interface.CallHook("OnPlayerBanned", playerName, steamId, player.Address ?? "0", reason, expiry);
-			Interface.CallHook("OnUserBanned", playerName, playerId, player.Address ?? "0", reason, expiry);
+			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
+			Interface.CallHook("OnPlayerBanned", playerName, steamId, player == null ? _blankZero : player.Address, reason, expiry);
+			Interface.CallHook("OnUserBanned", playerName, playerId, player == null ? _blankZero : player.Address, reason, expiry);
 		}
 	}
 
@@ -198,10 +203,9 @@ public partial class CorePlugin : CarbonPlugin
 			ServerUsers.users.ContainsKey(steamId) &&
 			ServerUsers.users[steamId].group == ServerUsers.UserGroup.Banned)
 		{
-			var playerId = steamId.ToString();
-			var player = BasePlayer.FindByID(steamId).AsIPlayer();
-			Interface.CallHook("OnPlayerUnbanned", player.Name ?? "Unnamed", steamId, player.Address ?? "0");
-			Interface.CallHook("OnUserUnbanned", player.Name ?? "Unnamed", playerId, player.Address ?? "0");
+			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
+			Interface.CallHook("OnPlayerUnbanned", player == null ? _blankUnnamed : player.Name, steamId, player == null ? _blankZero : player.Address);
+			Interface.CallHook("OnUserUnbanned", player == null ? _blankUnnamed : player.Name, steamId, player == null ? _blankZero : player.Address);
 		}
 	}
 
@@ -209,14 +213,11 @@ public partial class CorePlugin : CarbonPlugin
 
 	#region Item
 
-	// To fix:
-	// Major issue with caching the 'OnLoseCondition' hook called in <redacted> (Type must not be ByRef Parameter name: typeArgs) (HookCallerCommon.CreateDelegate)
-	/*
 	private object IOnLoseCondition(Item item, float amount)
 	{
-		object[] arguments = { item, amount };
-		Interface.CallHook("OnLoseCondition", arguments);
-		amount = (float)arguments[1];
+		var args = new object[] { item, amount };
+		HookCaller.CallStaticHook("OnLoseCondition", args, keepArgs: true);
+		amount = (float)args[1];
 
 		var condition = item.condition;
 		item.condition -= amount;
@@ -226,7 +227,7 @@ public partial class CorePlugin : CarbonPlugin
 		}
 
 		return true;
-	}*/
+	}
 
 	#endregion
 
@@ -249,9 +250,15 @@ public partial class CorePlugin : CarbonPlugin
 				return false;
 			}
 
+			if (HookCaller.CallStaticHook("OnUserCommand", player.AsIPlayer(), command, args) != null)
+			{
+				return false;
+			}
+
 			if (Community.Runtime.CommandManager.Contains(Community.Runtime.CommandManager.Chat, command, out var cmd))
 			{
 				var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
+				commandArgs.Type = cmd.Type;
 				commandArgs.Arguments = args;
 				commandArgs.Player = player;
 
@@ -271,7 +278,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 	private object IOnServerCommand(ConsoleSystem.Arg arg)
 	{
-		if (arg != null && arg.cmd != null && arg.cmd.FullName == "chat.say") return null;
+		if (arg != null && arg.cmd != null && arg.Player() != null && arg.cmd.FullName == "chat.say") return null;
 
 		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
 		{

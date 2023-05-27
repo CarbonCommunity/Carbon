@@ -177,9 +177,9 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 	[HookPriority(Priorities.Highest)]
 	private object OnServerMessage(string message, string name)
 	{
-		if (!ConfigInstance.NoGiveNotices) return null;
+		if (!ConfigInstance.NoGiveNotices || !(name == "SERVER" && message.Contains("gave"))) return null;
 
-		return name == "SERVER" && message.Contains("gave");
+		return true;
 	}
 
 	private void ToggleCadmin(BasePlayer player, string cmd, string[] args)

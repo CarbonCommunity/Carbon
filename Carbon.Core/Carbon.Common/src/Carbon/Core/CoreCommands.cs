@@ -18,6 +18,8 @@ using Carbon.Extensions;
 using Carbon.Plugins;
 using Facepunch;
 using Newtonsoft.Json;
+using Oxide.Core;
+using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using UnityEngine;
@@ -31,10 +33,11 @@ public partial class CorePlugin : CarbonPlugin
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
 	// [ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
+	// [AuthLevel(2)]
 	// private void Exit(ConsoleSystem.Arg arg)
 	// {
 	// 	//FIXMENOW
-	// 	//Supervisor.ASM.UnloadModule("Carbon.dll", false);
+	// 	Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
 	// }
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
@@ -42,7 +45,7 @@ public partial class CorePlugin : CarbonPlugin
 	// private void Reboot(ConsoleSystem.Arg arg)
 	// {
 	// 	//FIXMENOW
-	// 	//Supervisor.ASM.UnloadModule("Carbon.dll", true);
+	// 	Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
 	// }
 
 	[ConsoleCommand("help", "Returns a brief introduction to Carbon.")]
@@ -53,27 +56,6 @@ public partial class CorePlugin : CarbonPlugin
 			$"To list all currently loaded plugins, execute `c.plugins`.\n" +
 			$"For more information, please visit https://docs.carbonmod.gg or join the Discord server at https://discord.gg/carbonmod\n" +
 			$"You're currently running {Community.Runtime.Analytics.InformationalVersion}.");
-	}
-
-	[ConsoleCommand("version", "Returns currently loaded version of Carbon.")]
-	[AuthLevel(2)]
-	private void GetVersion(ConsoleSystem.Arg arg)
-	{
-		arg.ReplyWith($"Carbon v{Community.Runtime.Analytics.Version}");
-	}
-
-	[ConsoleCommand("protocol", "Returns currently loaded protocol of Carbon.")]
-	[AuthLevel(2)]
-	private void GetProtocol(ConsoleSystem.Arg arg)
-	{
-		arg.ReplyWith(Community.Runtime.Analytics.Protocol);
-	}
-
-	[ConsoleCommand("build", "Returns current version of Carbon's Assembly.")]
-	[AuthLevel(2)]
-	private void GetBuild(ConsoleSystem.Arg arg)
-	{
-		arg.ReplyWith($"{Community.Runtime.Analytics.InformationalVersion}");
 	}
 
 	[ConsoleCommand("plugins", "Prints the list of mods and their loaded plugins.")]
@@ -90,28 +72,50 @@ public partial class CorePlugin : CarbonPlugin
 			case "--j":
 			case "-json":
 			case "--json":
-				arg.ReplyWith(Loader.LoadedMods);
+				arg.ReplyWith(ModLoader.LoadedPackages);
 				break;
 
 			default:
-				var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
-				var count = 1;
+				var result = string.Empty;
 
-				foreach (var mod in Loader.LoadedMods)
+				// Loaded plugins
 				{
-					if (mod.IsCoreMod) continue;
+					var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
+					var count = 1;
 
-					body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "");
-
-					foreach (var plugin in mod.Plugins)
+					foreach (var mod in ModLoader.LoadedPackages)
 					{
-						body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0.0}s", $"{plugin.CompileTime:0}ms");
+						if (mod.IsCoreMod) continue;
+
+						body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "");
+
+						foreach (var plugin in mod.Plugins)
+						{
+							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0.0}s", $"{plugin.CompileTime:0}ms");
+						}
+
+						count++;
 					}
 
-					count++;
+					result += $"{body.ToStringMinimal()}\n";
 				}
 
-				arg.ReplyWith(body.ToStringMinimal());
+				// Failed plugins
+				{
+					var body = new StringTable("#", "File", "Errors", "Stack");
+					var count = 1;
+
+					foreach (var mod in ModLoader.FailedMods)
+					{
+						body.AddRow($"{count:n0}", $"{Path.GetFileName(mod.File)}", $"{mod.Errors.Length:n0}", $"{mod.Errors.Select(x => x.Message).ToArray().ToString(", ").Truncate(150, "...")}");
+
+						count++;
+					}
+
+					result += $"Failed plugins:\n{body.ToStringMinimal()}\nTo list the full stack trace of failed plugins, run 'c.pluginsfailed'";
+				}
+
+				arg.ReplyWith(result);
 				break;
 		}
 	}
@@ -158,22 +162,27 @@ public partial class CorePlugin : CarbonPlugin
 			case "--j":
 			case "-json":
 			case "--json":
-				arg.ReplyWith(Loader.FailedMods);
+				arg.ReplyWith(ModLoader.FailedMods);
 				break;
 
 			default:
 				var result = string.Empty;
 				var count = 1;
+				var index = 1;
 
-				foreach (var mod in Loader.FailedMods)
+				foreach (var mod in ModLoader.FailedMods)
 				{
 					result += $"{count:n0}. {mod.File}\n";
 
 					foreach (var error in mod.Errors)
 					{
-						result += $" {error}\n";
+						result += $" {index}. {error.Message} [{error.Number}]\n" +
+								  $"   ({error.Column} line {error.Line})\n";
+
+						index++;
 					}
 
+					index = 1;
 					result += "\n";
 					count++;
 				}
@@ -183,11 +192,74 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-#if DEBUG
-	[CommandVar("wipeharmonylogonboot")]
+	[ConsoleCommand("pluginwarns", "Prints the list of warnings of a specific plugin (or all if no arguments are set).")]
 	[AuthLevel(2)]
-	private bool WipeHarmonyLogOnBoot { get { return Community.Runtime.Config.WipeHarmonyLogOnBoot; } set { Community.Runtime.Config.WipeHarmonyLogOnBoot = value; } }
-#endif
+	private void PluginWarns(ConsoleSystem.Arg arg)
+	{
+		var filter = arg.GetString(0);
+
+		if (string.IsNullOrEmpty(filter))
+		{
+			var r = string.Empty;
+
+			foreach (var mod in ModLoader.LoadedPackages)
+			{
+				foreach (var plugin in mod.Plugins)
+				{
+					r += $"{Print(plugin)}\n";
+				}
+			}
+
+			arg.ReplyWith(r);
+		}
+		else
+		{
+			var plugin = (Plugin)null;
+
+			foreach (var mod in ModLoader.LoadedPackages)
+			{
+				foreach (var p in mod.Plugins)
+				{
+					if (p.Name == filter)
+					{
+						plugin = p;
+						break;
+					}
+				}
+			}
+
+			if (plugin == null)
+			{
+				arg.ReplyWith($"Couldn't find a plugin with that name: '{filter}'");
+				return;
+			}
+
+			arg.ReplyWith(Print(plugin));
+		}
+
+		static string Print(Plugin plugin)
+		{
+			var result = string.Empty;
+			var count = 1;
+
+			result += $"{plugin.Name} v{plugin.Version} by {plugin.Author}:\n";
+
+			if (plugin.CompileWarnings == null || plugin.CompileWarnings.Length == 0)
+			{
+				result += $"  No warnings available.\n";
+			}
+			else
+			{
+				foreach (var warn in plugin.CompileWarnings)
+				{
+					result += $"  {count:n0}. {warn.Message} [{warn.Number}]\n     ({warn.Column} line {warn.Line})\n";
+					count++;
+				}
+			}
+
+			return result;
+		}
+	}
 
 	// DISABLED UNTIL FULLY FUNCTIONAL
 	// [ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
@@ -209,22 +281,9 @@ public partial class CorePlugin : CarbonPlugin
 	// 	});
 	// }
 
-#endregion
+	#endregion
 
-#if DEBUG
-	[ConsoleCommand("assembly", "Debug stuff.")]
-	[AuthLevel(2)]
-	private void AssemblyInfo(ConsoleSystem.Arg arg)
-	{
-		int count = 0;
-		StringTable body = new StringTable("#", "Assembly", "Version", "Dynamic", "Location");
-		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-			body.AddRow($"{count++:n0}", assembly.GetName().Name, assembly.GetName().Version, assembly.IsDynamic, (assembly.IsDynamic) ? string.Empty : assembly.Location);
-		arg.ReplyWith(body.ToStringMinimal());
-	}
-#endif
-
-#region Conditionals
+	#region Conditionals
 
 	[ConsoleCommand("addconditional", "Adds a new conditional compilation symbol to the compiler.")]
 	[AuthLevel(2)]
@@ -243,7 +302,7 @@ public partial class CorePlugin : CarbonPlugin
 			arg.ReplyWith($"Conditional '{value}' already exists.");
 		}
 
-		foreach (var mod in Loader.LoadedMods)
+		foreach (var mod in ModLoader.LoadedPackages)
 		{
 			var plugins = Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
@@ -252,8 +311,8 @@ public partial class CorePlugin : CarbonPlugin
 			{
 				if (plugin.HasConditionals)
 				{
-					plugin._processor_instance.Dispose();
-					plugin._processor_instance.Execute();
+					plugin.ProcessorInstance.Dispose();
+					plugin.ProcessorInstance.Execute();
 					mod.Plugins.Remove(plugin);
 				}
 			}
@@ -279,7 +338,7 @@ public partial class CorePlugin : CarbonPlugin
 			arg.ReplyWith($"Conditional '{value}' does not exist.");
 		}
 
-		foreach (var mod in Loader.LoadedMods)
+		foreach (var mod in ModLoader.LoadedPackages)
 		{
 			var plugins = Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
@@ -288,8 +347,8 @@ public partial class CorePlugin : CarbonPlugin
 			{
 				if (plugin.HasConditionals)
 				{
-					plugin._processor_instance.Dispose();
-					plugin._processor_instance.Execute();
+					plugin.ProcessorInstance.Dispose();
+					plugin.ProcessorInstance.Execute();
 					mod.Plugins.Remove(plugin);
 				}
 			}
@@ -305,123 +364,9 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}");
 	}
 
-#endregion
+	#endregion
 
-#region Hooks
-
-	[ConsoleCommand("hooks", "Prints the list of all hooks that have been called at least once.")]
-	[AuthLevel(2)]
-	private void HookInfo(ConsoleSystem.Arg arg)
-	{
-		var body = new StringTable("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
-		int count = 0, success = 0, warning = 0, failure = 0;
-
-		var option1 = arg.GetString(0, null);
-		var option2 = arg.GetString(1, null);
-
-		switch (option1)
-		{
-			case "loaded":
-				{
-					IEnumerable<IHook> hooks;
-
-					switch (option2)
-					{
-						case "--patch":
-							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
-							break;
-
-						case "--static":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--dynamic":
-							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
-							break;
-
-						default:
-							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
-							break;
-					}
-
-					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
-					{
-						if (mod.Status == HookState.Failure) failure++;
-						if (mod.Status == HookState.Success) success++;
-						if (mod.Status == HookState.Warning) warning++;
-
-						body.AddRow(
-							$"{count++:n0}",
-							mod.HookFullName,
-							mod.HookName,
-							mod.Identifier.Substring(mod.Identifier.Length - 6),
-							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
-							mod.Status,
-							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
-						);
-					}
-
-					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}" + Environment.NewLine + Environment.NewLine + body.ToStringMinimal());
-					break;
-				}
-
-			default: // list installed
-				{
-					IEnumerable<IHook> hooks;
-
-					switch (option1)
-					{
-						case "--patch":
-							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
-							break;
-
-						case "--static":
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--dynamic":
-							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
-							break;
-
-						default:
-							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
-							break;
-					}
-
-					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
-					{
-						if (mod.Status == HookState.Failure) failure++;
-						if (mod.Status == HookState.Success) success++;
-						if (mod.Status == HookState.Warning) warning++;
-
-						body.AddRow(
-							$"{count++:n0}",
-							mod.HookFullName,
-							mod.HookName,
-							mod.Identifier.Substring(mod.Identifier.Length - 6),
-							mod.IsStaticHook ? "Static" : mod.IsPatch ? "Patch" : "Dynamic",
-							mod.Status,
-							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
-							(mod.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
-						);
-					}
-
-					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}" + Environment.NewLine + Environment.NewLine + body.ToStringMinimal());
-					break;
-				}
-		}
-	}
-
-#endregion
-
-#region Config
+	#region Config
 
 	[ConsoleCommand("loadconfig", "Loads Carbon config from file.")]
 	[AuthLevel(2)]
@@ -445,10 +390,6 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith("Saved Carbon config.");
 	}
 
-	[CommandVar("autoupdate", "Updates carbon hooks on boot.")]
-	[AuthLevel(2)]
-	private bool AutoUpdate { get { return Community.Runtime.Config.AutoUpdate; } set { Community.Runtime.Config.AutoUpdate = value; Community.Runtime.SaveConfig(); } }
-
 	[CommandVar("modding", "Mark this server as modded or not.")]
 	[AuthLevel(2)]
 	private bool Modding { get { return Community.Runtime.Config.IsModded; } set { Community.Runtime.Config.IsModded = value; Community.Runtime.SaveConfig(); } }
@@ -456,6 +397,26 @@ public partial class CorePlugin : CarbonPlugin
 	[CommandVar("higherpriorityhookwarns", "Print warns if hooks with higher priority conflict with other hooks. Best to keep this disabled. Same-priority hooks will be printed.")]
 	[AuthLevel(2)]
 	private bool HigherPriorityHookWarns { get { return Community.Runtime.Config.HigherPriorityHookWarns; } set { Community.Runtime.Config.HigherPriorityHookWarns = value; Community.Runtime.SaveConfig(); } }
+
+	[CommandVar("scriptwatchers", "When disabled, you must load/unload plugins manually with `c.load` or `c.unload`.")]
+	[AuthLevel(2)]
+	private bool ScriptWatchers { get { return Community.Runtime.Config.ScriptWatchers; } set { Community.Runtime.Config.ScriptWatchers = value; Community.Runtime.SaveConfig(); } }
+
+	[CommandVar("scriptwatchersoption", "Indicates wether the script watcher (whenever enabled) listens to the 'carbon/plugins' folder only, or its subfolders. (0 = Top-only directories, 1 = All directories)")]
+	[AuthLevel(2)]
+	private int ScriptWatchersOption
+	{
+		get
+		{
+			return (int)Community.Runtime.Config.ScriptWatcherOption;
+		}
+		set
+		{
+			Community.Runtime.Config.ScriptWatcherOption = (SearchOption)value;
+			Community.Runtime.ScriptProcessor.SetIncludeSubdirectories(value == (int)SearchOption.AllDirectories);
+			Community.Runtime.SaveConfig();
+		}
+	}
 
 	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.")]
 	[AuthLevel(2)]
@@ -481,10 +442,6 @@ public partial class CorePlugin : CarbonPlugin
 			ApplyStacktrace();
 		}
 	}
-
-	[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.")]
-	[AuthLevel(2)]
-	private bool HookTimeTracker { get { return Community.Runtime.Config.HookTimeTracker; } set { Community.Runtime.Config.HookTimeTracker = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.")]
 	[AuthLevel(2)]
@@ -531,9 +488,9 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private bool oCommandChecks { get { return Community.Runtime.Config.oCommandChecks; } set { Community.Runtime.Config.oCommandChecks = value; Community.Runtime.SaveConfig(); } }
 
-#endregion
+	#endregion
 
-#region Commands
+	#region Commands
 
 	[ConsoleCommand("find", "Searches through Carbon-processed console commands.")]
 	[AuthLevel(2)]
@@ -542,7 +499,7 @@ public partial class CorePlugin : CarbonPlugin
 		var body = new StringTable("Command", "Value", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
-		foreach (var command in Community.Runtime.CommandManager.Console)
+		foreach (var command in Community.Runtime.CommandManager.ClientConsole)
 		{
 			if (command.HasFlag(CommandFlags.Hidden) || (!string.IsNullOrEmpty(filter) && !command.Name.Contains(filter))) continue;
 
@@ -582,9 +539,9 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith($"Chat Commands:\n{body.ToStringMinimal()}");
 	}
 
-#endregion
+	#endregion
 
-#region Report
+	#region Report
 
 	[ConsoleCommand("report", "Reloads all current plugins, and returns a report based on them at the output path.")]
 	[AuthLevel(2)]
@@ -593,9 +550,9 @@ public partial class CorePlugin : CarbonPlugin
 		new Carbon.Components.Report().Init();
 	}
 
-#endregion
+	#endregion
 
-#region Modules
+	#region Modules
 
 	[ConsoleCommand("setmodule", "Enables or disables Carbon modules. Visit root/carbon/modules and use the config file names as IDs.")]
 	[AuthLevel(2)]
@@ -694,9 +651,9 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith(print.ToStringMinimal());
 	}
 
-#endregion
+	#endregion
 
-#region Mod & Plugin Loading
+	#region Mod & Plugin Loading
 
 	[ConsoleCommand("reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything.")]
 	[AuthLevel(2)]
@@ -725,7 +682,7 @@ public partial class CorePlugin : CarbonPlugin
 
 				var pluginFound = false;
 
-				foreach (var mod in Loader.LoadedMods)
+				foreach (var mod in ModLoader.LoadedPackages)
 				{
 					var plugins = Pool.GetList<RustPlugin>();
 					plugins.AddRange(mod.Plugins);
@@ -734,8 +691,8 @@ public partial class CorePlugin : CarbonPlugin
 					{
 						if (plugin.Name == name)
 						{
-							plugin._processor_instance.Dispose();
-							plugin._processor_instance.Execute();
+							plugin.ProcessorInstance.Dispose();
+							plugin.ProcessorInstance.Execute();
 							mod.Plugins.Remove(plugin);
 							pluginFound = true;
 						}
@@ -874,7 +831,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					var pluginFound = false;
 
-					foreach (var mod in Loader.LoadedMods)
+					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						var plugins = Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
@@ -883,7 +840,7 @@ public partial class CorePlugin : CarbonPlugin
 						{
 							if (plugin.Name == name)
 							{
-								plugin._processor_instance.Dispose();
+								plugin.ProcessorInstance.Dispose();
 								mod.Plugins.Remove(plugin);
 								pluginFound = true;
 							}
@@ -920,7 +877,7 @@ public partial class CorePlugin : CarbonPlugin
 			case "*":
 				{
 
-					foreach (var package in Loader.LoadedMods)
+					foreach (var package in ModLoader.LoadedPackages)
 					{
 						foreach (var plugin in package.Plugins)
 						{
@@ -937,7 +894,7 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					var pluginFound = false;
 
-					foreach (var mod in Loader.LoadedMods)
+					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						var plugins = Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
@@ -965,9 +922,17 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-#endregion
+	#endregion
 
-#region Permissions
+	#region Permissions
+
+	[CommandVar("defaultplayergroup", "The default group for any player with the regular authority level they get assigned to.")]
+	[AuthLevel(2)]
+	private string DefaultPlayerGroup { get { return Community.Runtime.Config.PlayerDefaultGroup; } set { Community.Runtime.Config.PlayerDefaultGroup = value; } }
+
+	[CommandVar("defaultadmingroup", "The default group players with the admin flag get assigned to.")]
+	[AuthLevel(2)]
+	private string DefaultAdminGroup { get { return Community.Runtime.Config.AdminDefaultGroup; } set { Community.Runtime.Config.AdminDefaultGroup = value; } }
 
 	[ConsoleCommand("grant", "Grant one or more permissions to users or groups. Do 'c.grant' for syntax info.")]
 	[AuthLevel(2)]
@@ -1294,9 +1259,9 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-#endregion
+	#endregion
 
-#region CUI
+	#region CUI
 
 	[ConsoleCommand("wipeui", "Clears the entire CUI containers and their elements from the caller's client.")]
 	[AuthLevel(2)]
@@ -1305,9 +1270,9 @@ public partial class CorePlugin : CarbonPlugin
 		CuiHelper.DestroyActivePanelList(arg.Player());
 	}
 
-#endregion
+	#endregion
 
-#region Markers
+	#region Markers
 
 	[ConsoleCommand("wipemarkers", "Removes all markers of the calling player or argument filter.")]
 	[AuthLevel(2)]
@@ -1333,5 +1298,37 @@ public partial class CorePlugin : CarbonPlugin
 		player.SendNetworkUpdate();
 	}
 
-#endregion
+	#endregion
+
+
+#if DEBUG
+
+	#region Profiling
+
+	[ConsoleCommand("beginprofile", "Starts profiling the server.")]
+	[AuthLevel(2)]
+	private void BeginProfile(ConsoleSystem.Arg arg)
+	{
+		var date = DateTime.UtcNow;
+		var duration = arg.GetFloat(0, -1);
+		var name = arg.GetString(1, $"carbonprofile_{date.Year}-{date.Month}-{date.Day}_{date.Hour}{date.Minute}{date.Second}");
+
+		Profiler.Make(name).Begin(duration, onEnd: duration == -1 ? null : profiler =>
+		{
+			Logger.Log($"Ended profiling, writing to disk: {profiler.Path}");
+		});
+		arg.ReplyWith("Began profiling...");
+	}
+
+	[ConsoleCommand("endprofile", "Ends profiling the server and asynchronously writes it to disk.")]
+	[AuthLevel(2)]
+	private void EndProfile(ConsoleSystem.Arg arg)
+	{
+		var path = Profiler.Singleton.Path;
+		arg.ReplyWith(Profiler.End() ? $"Ended profiling, writing to disk: {path}" : "Couldn't end profile. Most likely because there's none started.");
+	}
+
+	#endregion
+
+#endif
 }

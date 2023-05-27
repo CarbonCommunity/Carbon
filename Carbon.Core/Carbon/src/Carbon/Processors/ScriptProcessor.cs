@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Contracts;
@@ -20,10 +18,22 @@ namespace Carbon.Managers;
 public class ScriptProcessor : BaseProcessor, IScriptProcessor
 {
 	public override string Name => "Script Processor";
-	public override bool EnableWatcher => Community.IsConfigReady ? Community.Runtime.Config.ScriptWatchers : true;
+	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.ScriptWatchers;
 	public override string Folder => Defines.GetScriptFolder();
 	public override string Extension => ".cs";
 	public override Type IndexedType => typeof(Script);
+
+	public override void Start()
+	{
+		BlacklistPattern = new[]
+		{
+			"backups"
+		};
+
+		base.Start();
+
+		SetIncludeSubdirectories(Community.Runtime.Config.ScriptWatcherOption == SearchOption.AllDirectories);
+	}
 
 	public bool AllPendingScriptsComplete()
 	{
@@ -94,7 +104,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		{
 			try
 			{
-				Carbon.Core.Loader.FailedMods.RemoveAll(x => x.File == File);
+				Carbon.Core.ModLoader.FailedMods.RemoveAll(x => x.File == File);
 
 				Loader = new ScriptLoader
 				{

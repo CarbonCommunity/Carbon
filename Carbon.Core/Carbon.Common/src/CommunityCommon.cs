@@ -7,6 +7,7 @@ using API.Commands;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
+using API.Threads;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -67,6 +68,13 @@ public class Community
 	private readonly Lazy<IEventManager> _eventManager
 		= new(GameObject.GetComponent<IEventManager>);
 
+#if EXPERIMENTAL
+	public IThreadManager Threads
+	{ get => _threadManager.Value; }
+
+	private readonly Lazy<IThreadManager> _threadManager
+		= new(GameObject.GetComponent<IThreadManager>);
+#endif
 
 	public IPatchManager HookManager
 	{ get; set; }
@@ -96,11 +104,28 @@ public class Community
 	public RustPlugin CorePlugin
 	{ get; set; }
 
-	public Loader.CarbonMod Plugins
+	public ModLoader.ModPackage Plugins
 	{ get; set; }
 
 	public Entities Entities
 	{ get; set; }
+
+	internal static int Tick = DateTime.UtcNow.Year + DateTime.UtcNow.Month + DateTime.UtcNow.Day + DateTime.UtcNow.Hour + DateTime.UtcNow.Minute + DateTime.UtcNow.Second + DateTime.UtcNow.Month;
+
+	public static string Protect(string name)
+	{
+		if (string.IsNullOrEmpty(name)) return string.Empty;
+
+		var split = name.Split(' ');
+		var command = split[0];
+		var args = split.Skip(1).ToArray();
+		var arguments = args.ToString(" ");
+
+		Array.Clear(split, 0, split.Length);
+		Array.Clear(args, 0, args.Length);
+
+		return $"carbonprotecc_{RandomEx.GetRandomString(16, command + Tick.ToString(), command.Length + Tick)} {arguments}".TrimEnd();
+	}
 
 	public Community()
 	{
@@ -135,7 +160,7 @@ public class Community
 						{ "platform", Analytics.Platform },
 					},
 					metrics: new Dictionary<string, object> {
-						{ "plugin_count", Loader.LoadedMods.Sum(x => x.Plugins.Count) }
+						{ "plugin_count", ModLoader.LoadedPackages.Sum(x => x.Plugins.Count) }
 					}
 				);
 			});
@@ -194,14 +219,14 @@ public class Community
 
 	public virtual void ReloadPlugins()
 	{
-		Loader.IsBatchComplete = false;
-		Loader.ClearAllErrored();
-		Loader.ClearAllRequirees();
+		ModLoader.IsBatchComplete = false;
+		ModLoader.ClearAllErrored();
+		ModLoader.ClearAllRequirees();
 	}
 	public void ClearPlugins()
 	{
 		Runtime.ClearCommands();
-		Loader.UnloadCarbonMods();
+		ModLoader.UnloadCarbonMods();
 	}
 
 	#endregion
@@ -221,7 +246,7 @@ public class Community
             Analytics.Version;
 #endif
 
-		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {Loader.LoadedMods.Count:n0} mods, {Loader.LoadedMods.Sum(x => x.Plugins.Count):n0} plgs";
+		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {ModLoader.LoadedPackages.Count:n0} mods, {ModLoader.LoadedPackages.Sum(x => x.Plugins.Count):n0} plgs";
 #endif
 	}
 

@@ -41,6 +41,8 @@ namespace Oxide.Core.Plugins
 
 		[JsonProperty]
 		public double CompileTime { get; set; }
+		[JsonProperty]
+		public ModLoader.FailedMod.Error[] CompileWarnings { get; set; }
 
 		[JsonProperty]
 		public string FilePath { get; set; }
@@ -64,13 +66,13 @@ namespace Oxide.Core.Plugins
 
 		public Plugin[] Requires { get; set; }
 
-		internal Loader.CarbonMod _carbon;
-		public IBaseProcessor _processor;
-		public IBaseProcessor.IInstance _processor_instance;
+		public ModLoader.ModPackage Package;
+		public IBaseProcessor Processor;
+		public IBaseProcessor.IInstance ProcessorInstance;
 
 		public static implicit operator bool(Plugin other)
 		{
-			return other != null;
+			return other != null && other.IsLoaded;
 		}
 
 		public virtual void IInit()
@@ -84,12 +86,12 @@ namespace Oxide.Core.Plugins
 						var method = attribute.Method;
 						var priority = method.GetCustomAttribute<HookPriority>();
 
-						var name = (string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length;
-						if (!HookMethodAttributeCache.TryGetValue(name, out var list))
+						var hash = (uint)(HookCallerCommon.StringPool.GetOrAdd(string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length);
+						if (!HookMethodAttributeCache.TryGetValue(hash, out var list))
 						{
-							HookMethodAttributeCache.Add(name, new() { CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority) });
+							HookMethodAttributeCache.Add(hash, new() { CachedHook.Make(method, priority == null ? Priorities.Normal : priority.Priority, this) });
 						}
-						else list.Add(CachedHook.Make(method, HookCallerCommon.CreateDelegate(method, this), priority == null ? Priorities.Normal : priority.Priority));
+						else list.Add(CachedHook.Make(method, priority == null ? Priorities.Normal : priority.Priority, this));
 					}
 				}
 				Carbon.Logger.Debug(Name, "Installed hook method attributes");
@@ -107,7 +109,10 @@ namespace Oxide.Core.Plugins
 				using (TimeMeasure.New($"Processing Hooks on '{this}'"))
 				{
 					foreach (var hook in Hooks)
-						Community.Runtime.HookManager.Subscribe(hook.Key, requester);
+					{
+						Community.Runtime.HookManager.Subscribe(HookCallerCommon.StringPool.GetOrAdd(hook.Key), requester);
+					}
+						
 				}
 				Carbon.Logger.Debug(Name, "Processed hooks");
 			}
@@ -125,7 +130,7 @@ namespace Oxide.Core.Plugins
 
 			using (TimeMeasure.New($"Load.PendingRequirees on '{this}'"))
 			{
-				var requirees = Loader.GetRequirees(this);
+				var requirees = ModLoader.GetRequirees(this);
 
 				if (requirees != null)
 				{
@@ -135,65 +140,88 @@ namespace Oxide.Core.Plugins
 						Community.Runtime.ScriptProcessor.Prepare(requiree);
 					}
 
-					Loader.ClearPendingRequirees(this);
+					ModLoader.ClearPendingRequirees(this);
 				}
 			}
 		}
 		public virtual void IUnload()
 		{
-			using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
+			try
 			{
-				foreach (var hook in Hooks)
-					Community.Runtime.HookManager.Unsubscribe(hook.Key, FileName);
-				Carbon.Logger.Debug(Name, $"Unprocessed hooks");
-			}
-
-			using (TimeMeasure.New($"IUnload.Disposal on '{this}'"))
-			{
-				IgnoredHooks.Clear();
-				HookCache.Clear();
-				Hooks.Clear();
-				HookMethods.Clear();
-				PluginReferences.Clear();
-				HookMethodAttributeCache.Clear();
-
-				IgnoredHooks = null;
-				HookCache = null;
-				Hooks = null;
-				HookMethods = null;
-				PluginReferences = null;
-				HookMethodAttributeCache = null;
-			}
-
-			using (TimeMeasure.New($"IUnload.UnloadRequirees on '{this}'"))
-			{
-				var mods = Pool.GetList<Loader.CarbonMod>();
-				mods.AddRange(Loader.LoadedMods);
-				var plugins = Pool.GetList<Plugin>();
-
-				foreach (var mod in Loader.LoadedMods)
+				using (TimeMeasure.New($"IUnload.UnprocessHooks on '{this}'"))
 				{
-					plugins.Clear();
-					plugins.AddRange(mod.Plugins);
-
-					foreach (var plugin in plugins)
+					foreach (var hook in Hooks)
 					{
-						if (plugin.Requires != null && plugin.Requires.Contains(this))
+						Community.Runtime.HookManager.Unsubscribe(HookCallerCommon.StringPool.GetOrAdd(hook.Key), FileName);
+					}
+					Carbon.Logger.Debug(Name, $"Unprocessed hooks");
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed calling Plugin.IUnload.UnprocessHooks on {this}", ex);
+			}
+
+			try
+			{
+				using (TimeMeasure.New($"IUnload.Disposal on '{this}'"))
+				{
+					IgnoredHooks?.Clear();
+					HookCache?.Clear();
+					Hooks?.Clear();
+					HookMethods?.Clear();
+					PluginReferences?.Clear();
+					HookMethodAttributeCache?.Clear();
+
+					IgnoredHooks = null;
+					HookCache = null;
+					Hooks = null;
+					HookMethods = null;
+					PluginReferences = null;
+					HookMethodAttributeCache = null;
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed calling Plugin.IUnload.Disposal on {this}", ex);
+			}
+
+			try
+			{
+				using (TimeMeasure.New($"IUnload.UnloadRequirees on '{this}'"))
+				{
+					var mods = Pool.GetList<ModLoader.ModPackage>();
+					mods.AddRange(ModLoader.LoadedPackages);
+					var plugins = Pool.GetList<Plugin>();
+
+					foreach (var mod in ModLoader.LoadedPackages)
+					{
+						plugins.Clear();
+						plugins.AddRange(mod.Plugins);
+
+						foreach (var plugin in plugins)
 						{
-							switch (plugin._processor)
+							if (plugin.Requires != null && plugin.Requires.Contains(this))
 							{
-								case IScriptProcessor script:
-									Logger.Warn($" [{Name}] Unloading '{plugin.ToString()}' because parent '{ToString()}' has been unloaded.");
-									Loader.AddPendingRequiree(this, plugin);
-									plugin._processor.Get<IScriptProcessor.IScript>(plugin.FileName).Dispose();
-									break;
+								switch (plugin.Processor)
+								{
+									case IScriptProcessor script:
+										Logger.Warn($" [{Name}] Unloading '{plugin.ToString()}' because parent '{ToString()}' has been unloaded.");
+										ModLoader.AddPendingRequiree(this, plugin);
+										plugin.Processor.Get<IScriptProcessor.IScript>(plugin.FileName)?.Dispose();
+										break;
+								}
 							}
 						}
 					}
-				}
 
-				Pool.FreeList(ref mods);
-				Pool.FreeList(ref plugins);
+					Pool.FreeList(ref mods);
+					Pool.FreeList(ref plugins);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed calling Plugin.IUnload.UnloadRequirees on {this}", ex);
 			}
 		}
 		internal void InternalApplyPluginReferences()
@@ -220,7 +248,10 @@ namespace Oxide.Core.Plugins
 
 					plugin = Community.Runtime.CorePlugin.plugins.Find(info.Title);
 				}
-				else plugin = Community.Runtime.CorePlugin.plugins.Find(name);
+				else
+				{
+					plugin = Community.Runtime.CorePlugin.plugins.Find(name);
+				}
 
 				if (plugin != null) field.SetValue(this, plugin);
 			}
@@ -228,7 +259,7 @@ namespace Oxide.Core.Plugins
 
 		public static void InternalApplyAllPluginReferences()
 		{
-			foreach (var package in Loader.LoadedMods)
+			foreach (var package in ModLoader.LoadedPackages)
 			{
 				foreach (var plugin in package.Plugins)
 				{
@@ -239,7 +270,7 @@ namespace Oxide.Core.Plugins
 
 		public void SetProcessor(IBaseProcessor processor)
 		{
-			_processor = processor;
+			Processor = processor;
 		}
 
 		#region Calls

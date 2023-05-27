@@ -1,6 +1,4 @@
-﻿using System;
-using Carbon.Core;
-using Oxide.Core.Plugins;
+﻿using Oxide.Core.Plugins;
 
 /*
  *

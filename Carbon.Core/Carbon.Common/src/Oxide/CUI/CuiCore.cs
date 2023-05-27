@@ -250,8 +250,7 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.InputField";
 
-	[DefaultValue("")]
-	[JsonProperty("text", NullValueHandling = NullValueHandling.Ignore)]
+	[JsonProperty("text")]
 	public string Text { get; set; } = "";
 
 	[DefaultValue(14)]
@@ -297,6 +296,11 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 	[JsonProperty("lineType", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public InputField.LineType LineType { get; set; }
 
+	[JsonProperty("autofocus")]
+	public bool Autofocus { get; set; }
+
+	[JsonProperty("hudMenuInput")]
+	public bool HudMenuInput { get; set; }
 }
 public class CuiNeedsCursorComponent : ICuiComponent
 {
@@ -361,9 +365,9 @@ public class CuiRectTransformComponent : ICuiComponent
 	[JsonProperty("offsetmin", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public string OffsetMin { get; set; } = "0 0";
 
-	[DefaultValue("0 0")]
+	[DefaultValue("1 1")]
 	[JsonProperty("offsetmax")]
-	public string OffsetMax { get; set; } = "0 0";
+	public string OffsetMax { get; set; } = "1 1";
 }
 public class CuiCountdownComponent : ICuiComponent
 {
@@ -388,8 +392,7 @@ public class CuiTextComponent : ICuiComponent, ICuiColor
 {
 	public string Type => "UnityEngine.UI.Text";
 
-	[DefaultValue("")]
-	[JsonProperty("text", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
+	[JsonProperty("text")]
 	public string Text { get; set; } = "";
 
 	[DefaultValue(14)]
@@ -411,6 +414,10 @@ public class CuiTextComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("fadeIn", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeIn { get; set; }
+
+	[JsonConverter(typeof(StringEnumConverter))]
+	[JsonProperty("verticalOverflow")]
+	public VerticalWrapMode VerticalOverflow { get; set; }
 }
 
 #endregion

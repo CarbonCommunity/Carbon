@@ -3,45 +3,44 @@
 :: All rights reserved
 ::
 @echo off
-set BASE=%~dp0
 
 echo ** Get the base path of the script
-pushd %BASE%..\..\..
-set ROOT=%CD%
+pushd %~dp0..\..\..
+set BUILD_ROOT=%CD%
 popd
 
 if "%1" EQU "" (
-	set TARGET=Debug
+	set BUILD_TARGET=Debug
 ) else (
-	set TARGET=%1
+	set BUILD_TARGET=%1
 )
 
-echo ** Set the build target config to %TARGET%
+echo ** Set the build target config to %BUILD_TARGET%
 
 echo ** Cleanup the release folder
-rmdir /s /q "%ROOT%\Release\.tmp\%TARGET%" 2>NUL
-del /q "%ROOT%\Release\Carbon.%TARGET%.zip" 2>NUL
+rmdir /s /q "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%" 2>NUL
+del /q "%BUILD_ROOT%\Release\Carbon.%BUILD_TARGET%.zip" 2>NUL
 
 echo ** Build the solution
-dotnet restore "%ROOT%\Carbon.Core" -v:m --nologo || exit /b
-dotnet   clean "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --nologo || exit /b
-dotnet   build "%ROOT%\Carbon.Core" -v:m --configuration %TARGET% --no-restore --no-incremental ^
-	/p:UserConstants="%DEFINES%" /p:UserVersion="%VERSION%" || exit /b
+dotnet restore "%BUILD_ROOT%\Carbon.Core" -v:m --nologo || exit /b
+dotnet   clean "%BUILD_ROOT%\Carbon.Core" -v:m --configuration %BUILD_TARGET% --nologo || exit /b
+dotnet   build "%BUILD_ROOT%\Carbon.Core" -v:m --configuration %BUILD_TARGET% --no-restore --no-incremental ^
+	/p:UserConstants=\"%DEFINES%\" /p:UserVersion="%VERSION%" || exit /b
 
 echo ** Copy operating system specific files
-echo "%TARGET%" | findstr /C:"Unix" >NUL && (
-	copy /y "%ROOT%\Tools\Helpers\carbon.sh"                      "%ROOT%\Release\.tmp\%TARGET%\carbon.sh"
-	copy /y "%ROOT%\Tools\Helpers\environment.sh"                 "%ROOT%\Release\.tmp\%TARGET%\carbon\tools\"
-	copy /y "%ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" "%ROOT%\Release\.tmp\%TARGET%\libdoorstop.so"
+echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
+	copy /y "%BUILD_ROOT%\Tools\Helpers\carbon.sh"                      "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon.sh"
+	copy /y "%BUILD_ROOT%\Tools\Helpers\environment.sh"                 "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon\tools\"
+	copy /y "%BUILD_ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\libdoorstop.so"
 	(CALL )
 ) || (                                                                                                                          
-	copy /y "%ROOT%\Tools\Helpers\doorstop_config.ini"            "%ROOT%\Release\.tmp\%TARGET%"                                
-	copy /y "%ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" "%ROOT%\Release\.tmp\%TARGET%\winhttp.dll"    
+	copy /y "%BUILD_ROOT%\Tools\Helpers\doorstop_config.ini"            "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%"                                
+	copy /y "%BUILD_ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\winhttp.dll"    
 	(CALL )
 )
 
-echo "%TARGET%" | findstr /C:"Unix" >NUL && (
-	echo "%TARGET%" | findstr /C:"Debug" >NUL && (
+echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
+	echo "%BUILD_TARGET%" | findstr /C:"Debug" >NUL && (
 		set TOS=Linux
 		set TAG=Debug
 		(CALL )
@@ -52,7 +51,7 @@ echo "%TARGET%" | findstr /C:"Unix" >NUL && (
 	)
 	(CALL )
 ) || (                                                                                                                          
-	echo "%TARGET%" | findstr /C:"Debug" >NUL && (
+	echo "%BUILD_TARGET%" | findstr /C:"Debug" >NUL && (
 		set TOS=Windows
 		set TAG=Debug
 		(CALL )
@@ -66,5 +65,5 @@ echo "%TARGET%" | findstr /C:"Unix" >NUL && (
 
 if "%2" NEQ "--no-archive" (
 	echo ** Create the compressed archive 'Carbon.%TOS%.%TAG%.zip'
-	powershell -Command "Compress-Archive -Update -Path '%ROOT%\Release\.tmp\%TARGET%\*' -DestinationPath '%ROOT%\Release\Carbon.%TOS%.%TAG%.zip'"
+	powershell -Command "Compress-Archive -Update -Path '%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\*' -DestinationPath '%BUILD_ROOT%\Release\Carbon.%TOS%.%TAG%.zip'"
 )

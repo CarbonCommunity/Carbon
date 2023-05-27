@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using API.Abstracts;
 using API.Assembly;
 using API.Commands;
 using Loaders;
@@ -18,27 +20,30 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
+internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 {
 	private LibraryLoader _library;
 
-	public IReadOnlyList<string> References
-	{ get => _knownLibs; }
+	public IReadOnlyList<string> RefBlacklist
+	{ get => _blacklistLibs; }
 
-	public IAssemblyTypeManager Components
+	public IReadOnlyList<string> RefWhitelist
+	{ get => _whitelistLibs; }
+
+	public IAddonManager Components
 	{ get => gameObject.GetComponent<ComponentManager>(); }
 
-	public IAssemblyTypeManager Extensions
+	public IAddonManager Extensions
 	{ get => gameObject.GetComponent<ExtensionManager>(); }
 
-	public IAssemblyTypeManager Hooks
+	public IAddonManager Hooks
 	{ get => gameObject.GetComponent<HookManager>(); }
 
-	public IAssemblyTypeManager Modules
+	public IAddonManager Modules
 	{ get => gameObject.GetComponent<ModuleManager>(); }
 
 #if EXPERIMENTAL
-	public IAssemblyTypeManager Plugins
+	public IAddonManager Plugins
 	{ get => gameObject.GetComponent<PluginManager>(); }
 #endif
 
@@ -55,24 +60,16 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 		gameObject.AddComponent<PluginManager>();
 #endif
 
-		try
+#if DEBUG
+		Carbon.Bootstrap.Commands.RegisterCommand(new Command.RCon
 		{
-			if (!Carbon.Bootstrap.Commands.RegisterCommand(new Command.Console
-			{
-				Name = "test.foobar",
-				Callback = (arg) =>
-				{
-					Logger.Log("foobar");
-				},
-			}, out string reason)) throw new Exception(reason);
-		}
-		catch (System.Exception e)
-		{
-			Logger.Error($"Unable to register command", e);
-		}
+			Name = "c.assembly",
+			Callback = (arg) => CMDAssemblyInfo(arg)
+		}, out string reason);
+#endif
 	}
 
-	public byte[] Read(string file)
+	public byte[] Read(string file, string[] directories = null)
 	{
 		byte[] raw = default;
 
@@ -86,16 +83,22 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 				if (raw != null) return raw;
 			}
 		}
-
 		if (Extensions.Loaded.Contains(file))
 		{
 			raw = Extensions.Read(file);
 			if (raw != null) return raw;
 		}
 
-		if (_knownLibs.Contains(file))
+		// if (_whitelistLibs.Contains(file))
+		// {
+		// 	IAssemblyCache result = _library.ResolveAssembly(file, $"{this}");
+		// 	if (result.Raw != null) return result.Raw;
+		// }
+
+		foreach (string expr in _blacklistLibs)
 		{
-			IAssemblyCache result = _library.ResolveAssembly(file, $"{this}");
+			if (Regex.IsMatch(file, expr)) break;
+			IAssemblyCache result = _library.ResolveAssembly(file, $"{this}", directories);
 			if (result.Raw != null) return result.Raw;
 		}
 
@@ -109,17 +112,6 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 		{
 			Type @base = typeof(T) ?? throw new Exception();
 			output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
-
-			// NOTE: If we have issues with IsType<> test the following implementation:
-			// if(@base.IsInterface)
-			// {
-			// 	output = assembly.GetTypes().Where(type => type.GetInterfaces().Contains(@base));
-			// }
-			// else
-			// {
-			// 	output = assembly.GetTypes().Where(type => @base.IsAssignableFrom(type));
-			// }
-
 			return output.Count() > 0;
 		}
 		catch
@@ -135,7 +127,34 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 		}
 	}
 
-	private static readonly IReadOnlyList<string> _knownLibs = new List<string>() {
+	private void CMDAssemblyInfo(Command.Args arg)
+	{
+		int count = 0;
+		TextTable table = new();
+
+		table.AddColumns("#", "Assembly", "Version", "Dynamic", "Location");
+
+		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+		{
+			table.AddRow(
+				$"{count++:n0}",
+				assembly.GetName().Name,
+				$"{assembly.GetName().Version}",
+				$"{assembly.IsDynamic}",
+				(assembly.IsDynamic) ? string.Empty : assembly.Location
+			);
+		}
+
+		arg.ReplyWith(table.ToString());
+	}
+
+	private static readonly IReadOnlyList<string> _blacklistLibs = new List<string>() {
+		@"^Carbon$",
+		@"^Carbon\.Bootstrap|Preloader$",
+		@"^Carbon\..+_\d{4}\.\d{2}\.\d{2}\.\d{4}$",
+	};
+
+	private static readonly IReadOnlyList<string> _whitelistLibs = new List<string>() {
 		"mscorlib",
 		"netstandard",
 
@@ -147,6 +166,7 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 		"System.Memory",
 		"System.Net.Http",
 		"System.Runtime",
+		"System.Threading.Tasks.Extensions",
 		"System.Xml.Linq",
 		"System.Xml.Serialization",
 		"System.Xml",
@@ -155,9 +175,6 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 		"Carbon.Common",
 		"Carbon.SDK",
 
-		"0Harmony", // this needs to be injected only when
-					// IHarmony is defined
-					
 		"MySql.Data", // v6.9.5.0
 		"protobuf-net.Core",
 		"protobuf-net",
@@ -168,6 +185,8 @@ internal sealed class AssemblyManager : BaseMonoBehaviour, IAssemblyManager
 
 		"Fleck", // bundled with rust (websocket server)
 		"Newtonsoft.Json", // bundled with rust
+
+		"Ionic.Zip.Reduced",
 
 		"Facepunch.BurstCloth",
 		"Facepunch.Console",

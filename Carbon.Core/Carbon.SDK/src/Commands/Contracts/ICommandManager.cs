@@ -5,9 +5,9 @@ namespace API.Commands;
 
 public interface ICommandManager
 {
-	List<Command> RCon { get; set; }
-	List<Command> Console { get; set; }
 	List<Command> Chat { get; set; }
+	List<Command> ClientConsole { get; set; }
+	List<Command> RCon { get; set; }
 
 	bool Contains(IList<Command> factory, string command, out Command outCommand);
 	List<T> GetFactory<T>() where T : Command;

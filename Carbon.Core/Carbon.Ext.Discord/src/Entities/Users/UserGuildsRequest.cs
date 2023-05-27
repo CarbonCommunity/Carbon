@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Oxide.Ext.Discord.Builders;
+﻿using Oxide.Ext.Discord.Builders;
 
 namespace Oxide.Ext.Discord.Entities.Users
 {

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
+﻿using System.Linq;
 using API.Hooks;
-using Carbon.Base;
-using Carbon.Extensions;
-using Carbon.Modules;
 using UnityEngine;
 
 /*
@@ -46,7 +41,8 @@ public partial class Category_Static
 		{
 			internal static string[] _filter = new string[]
 			{
-				"The referenced script on this Behaviour"
+				"The referenced script on this Behaviour",
+				"Calling kill - but already IsDestroyed!? vending_mapmarker[0]"
 			};
 
 			public static bool Prefix(object message)

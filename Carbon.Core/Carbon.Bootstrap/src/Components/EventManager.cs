@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using API.Contracts;
+using API.Abstracts;
 using API.Events;
-using UnityEngine;
 
 /*
  *
@@ -13,7 +12,7 @@ using UnityEngine;
 
 namespace Components;
 
-internal sealed class EventManager : MonoBehaviour, IEventManager
+internal sealed class EventManager : CarbonBehaviour, IEventManager
 {
 	private readonly Dictionary<CarbonEvent, Delegate> events = new();
 
@@ -21,14 +20,17 @@ internal sealed class EventManager : MonoBehaviour, IEventManager
 	{
 		if (!events.ContainsKey(eventId)) events[eventId] = callback;
 		else events[eventId] = Delegate.Combine(events[eventId], callback);
-		Utility.Logger.Debug($"[{eventId}] New subscriptor '{callback.Target}'");
+		Utility.Logger.Debug($"[{eventId}] New subscriptor '{callback.Target}' ('{callback.Method}')");
 	}
 
 	public void Trigger(CarbonEvent eventId, EventArgs args)
 	{
-		Utility.Logger.Debug($"[{eventId}] triggered");
+#if DEBUG
+		CarbonEventArgs parsed = args as CarbonEventArgs;
+		string payload = (args == EventArgs.Empty) ? "empty payload" : $"{parsed.Payload}";
+		Utility.Logger.Debug($"[{eventId}] {payload}");
+#endif
 		if (!events.ContainsKey(eventId)) return;
-
 		Action<EventArgs> @event = events[eventId] as Action<EventArgs>;
 		@event?.Invoke(args);
 	}
@@ -37,6 +39,6 @@ internal sealed class EventManager : MonoBehaviour, IEventManager
 	{
 		if (!events.ContainsKey(eventId)) return;
 		events[eventId] = Delegate.Remove(events[eventId], callback);
-		Utility.Logger.Debug($"[{eventId}] Remove subscription '{callback}'");
+		Utility.Logger.Debug($"[{eventId}] Remove subscription '{callback.Target}'");
 	}
 }
