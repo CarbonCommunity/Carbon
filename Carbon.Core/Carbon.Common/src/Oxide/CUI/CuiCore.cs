@@ -146,8 +146,7 @@ public class CuiElementContainer : List<CuiElement>
 				{
 					button.Text,
 					new CuiRectTransformComponent()
-				},
-				DestroyUi = destroyUi
+				}
 			});
 		}
 		return name;
@@ -197,11 +196,19 @@ public class CuiElementContainer : List<CuiElement>
 		{
 			cuiElement.Components.Add(panel.RawImage);
 		}
+
 		cuiElement.Components.Add(panel.RectTransform);
+
 		if (panel.CursorEnabled)
 		{
 			cuiElement.Components.Add(new CuiNeedsCursorComponent());
 		}
+
+		if (panel.KeyboardEnabled)
+		{
+			cuiElement.Components.Add(new CuiNeedsKeyboardComponent());
+		}
+
 		Add(cuiElement);
 		return name;
 	}
