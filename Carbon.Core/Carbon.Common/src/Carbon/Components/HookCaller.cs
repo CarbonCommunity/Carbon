@@ -1460,7 +1460,25 @@ public static class HookCaller
 				}
 
 				parameterIndex = -1;
-				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{method.ParameterList.Parameters.Select(x => { parameterIndex++; return x.Default == null && !x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) ? $"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i}" : null; }).Where(x => !string.IsNullOrEmpty(x)).ToArray().ToString(" && ")})" : "")} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "}" : "")}";
+				var parameterText = string.Empty;
+				for (int o = 0; o < method.ParameterList.Parameters.Count; o++)
+				{
+					var parameter = method.ParameterList.Parameters[o];
+					parameterIndex++;
+
+					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)))
+					{
+						var type = parameter.Type.ToString().Replace("?", string.Empty);
+						parameterText += !IsUnmanagedType(type) ? $"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} &&" : $"({type})(args[{parameterIndex}] ?? ({type})default) is {type} arg{parameterIndex}_{i} &&";
+					}
+				}
+
+				if (!string.IsNullOrEmpty(parameterText))
+				{
+					parameterText = parameterText.Substring(0, parameterText.Length - 3);
+				}
+
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{parameterText})" : "")} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "}" : "")}";
 
 				Array.Clear(parameters, 0, parameters.Length);
 				parameters = null;
@@ -1504,6 +1522,15 @@ public static class HookCaller
 		hookableMethods = null;
 
 		#endregion
+	}
+
+	public static bool IsUnmanagedType(string type)
+	{
+		return type switch
+		{
+			"string" or "int" or "uint" or "long" or "ulong" or "bool" => true,
+			_ => false,
+		};
 	}
 
 	#endregion
