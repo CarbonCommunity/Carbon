@@ -32,7 +32,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 		base.Start();
 
-		SetIncludeSubdirectories(Community.Runtime.Config.ScriptWatcherOption == SearchOption.AllDirectories);
+		IncludeSubdirectories = Community.Runtime.Config.ScriptWatcherOption == SearchOption.AllDirectories;
 	}
 
 	public bool AllPendingScriptsComplete()
