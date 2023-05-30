@@ -263,10 +263,6 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 		return false;
 	}
-	public void SetIncludeSubdirectories(bool wants)
-	{
-		Watcher.IncludeSubdirectories = wants;
-	}
 
 	public class Instance : IBaseProcessor.IInstance, IDisposable
 	{
