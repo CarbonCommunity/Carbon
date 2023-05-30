@@ -413,7 +413,7 @@ public partial class CorePlugin : CarbonPlugin
 		set
 		{
 			Community.Runtime.Config.ScriptWatcherOption = (SearchOption)value;
-			Community.Runtime.ScriptProcessor.SetIncludeSubdirectories(value == (int)SearchOption.AllDirectories);
+			Community.Runtime.ScriptProcessor.IncludeSubdirectories = value == (int)SearchOption.AllDirectories;
 			Community.Runtime.SaveConfig();
 		}
 	}

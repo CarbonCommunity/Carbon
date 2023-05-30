@@ -28,7 +28,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	public string[] BlacklistPattern { get; set; }
 	public virtual float Rate => 0.2f;
 	public virtual Type IndexedType => null;
-	public bool IncludeSubdirectories { get { return Watcher.IncludeSubdirectories; } set { SetIncludeSubdirectories(value); } }
+	public bool IncludeSubdirectories { get; set; }
 	public FileSystemWatcher Watcher { get; private set; }
 
 	internal WaitForSeconds _wfsInstance;
@@ -70,7 +70,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 			Watcher.Changed += _onChanged;
 			Watcher.Renamed += _onRenamed;
 			Watcher.Deleted += _onRemoved;
-			Watcher.IncludeSubdirectories = IncludeSubdirectories;
+			Watcher.IncludeSubdirectories = true;
 			Watcher.EnableRaisingEvents = true;
 		}
 
@@ -262,10 +262,6 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 		}
 
 		return false;
-	}
-	public void SetIncludeSubdirectories(bool wants)
-	{
-		Watcher.IncludeSubdirectories = wants;
 	}
 
 	public class Instance : IBaseProcessor.IInstance, IDisposable
