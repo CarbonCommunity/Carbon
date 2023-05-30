@@ -1469,7 +1469,7 @@ public static class HookCaller
 					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)))
 					{
 						var type = parameter.Type.ToString().Replace("?", string.Empty);
-						parameterText += !IsUnmanagedType(type) ? $"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} &&" : $"({type})(args[{parameterIndex}] ?? ({type})default) is {type} arg{parameterIndex}_{i} &&";
+						parameterText += !IsUnmanagedType(type) ? $"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} &&" : $"(args[{parameterIndex}] ?? ({type})default) is {type} arg{parameterIndex}_{i} &&";
 					}
 				}
 
