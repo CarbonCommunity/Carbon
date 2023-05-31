@@ -12,6 +12,8 @@ ROOT="$(realpath "${BASE}/../../../")"
 # Get the target depot argument
 TARGET=${1:-public}
 
+chmod +x "${ROOT}/Tools/DepotDownloader_Temp/DepotDownloader.exe"
+
 for OS in windows linux; do
 	# Download rust binary libs
 	"${ROOT}/Tools/DepotDownloader_Temp/DepotDownloader.exe" \
