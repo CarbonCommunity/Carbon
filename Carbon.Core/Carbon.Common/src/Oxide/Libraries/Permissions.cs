@@ -378,7 +378,7 @@ public class Permission : Library
 
 		if (!string.IsNullOrEmpty(Community.Runtime.Config.AdminDefaultGroup))
 		{
-			if (player.IsAdmin)
+			if (player.IsAdmin || (player.net.connection != null && player.net.connection.authLevel >= 2))
 			{
 				AddUserGroup(player.UserIDString, Community.Runtime.Config.AdminDefaultGroup);
 			}
