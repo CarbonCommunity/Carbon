@@ -70,7 +70,7 @@ public class Player : Library
 
 	public bool IsAdmin(ulong id)
 	{
-		return ServerUsers.Is(id, ServerUsers.UserGroup.Owner);
+		return ServerUsers.Is(id, ServerUsers.UserGroup.Owner) || DeveloperList.Contains(id);
 	}
 	public bool IsAdmin(string id)
 	{
