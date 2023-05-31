@@ -14,7 +14,7 @@ TARGET=${1:-public}
 
 for OS in windows linux; do
 	# Download rust binary libs
-	"${ROOT}/Tools/DepotDownloader_Temp/DepotDownloader" \
+	"${ROOT}/Tools/DepotDownloader_Temp/DepotDownloader.exe" \
 		-os ${OS} -validate -app 258550 -branch ${TARGET} -filelist \
 		"${ROOT}/Tools/Helpers/258550_refs.txt" -dir "${ROOT}/Rust/${OS}"
 
