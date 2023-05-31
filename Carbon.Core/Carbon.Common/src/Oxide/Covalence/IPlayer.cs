@@ -139,7 +139,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public bool HasPermission(string perm)
 		{
-			return IsServer ? true : perms.UserHasPermission(Id, perm);
+			return perms.UserHasPermission(Id, perm);
 		}
 
 		public void Heal(float amount)

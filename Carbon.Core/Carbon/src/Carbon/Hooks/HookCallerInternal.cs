@@ -52,9 +52,14 @@ public class HookCallerInternal : HookCallerCommon
 
 		for (int i = 0; i < newScale; i++)
 		{
-			if (i > oldBuffer.Length - 1) break;
-
-			newBuffer[i] = oldBuffer[i];
+			if (i > oldBuffer.Length - 1)
+			{
+				newBuffer[i] = null;
+			}
+			else
+			{
+				newBuffer[i] = oldBuffer[i];
+			}
 		}
 
 		return newBuffer;
