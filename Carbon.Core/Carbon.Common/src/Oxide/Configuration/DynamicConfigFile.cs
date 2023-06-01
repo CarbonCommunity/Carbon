@@ -86,6 +86,16 @@ public class DynamicConfigFile : ConfigFile, IEnumerable<KeyValuePair<string, ob
 		return (directoryName == null || Directory.Exists(directoryName)) && File.Exists(filename);
 	}
 
+	public void Delete(string filename = null)
+	{
+		filename = CheckPath(filename ?? Filename);
+
+		if (Exists(filename))
+		{
+			File.Delete(filename);
+		}
+	}
+
 	private string CheckPath(string filename)
 	{
 		filename = SanitizeName(filename);
