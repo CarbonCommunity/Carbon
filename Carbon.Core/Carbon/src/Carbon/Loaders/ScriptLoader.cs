@@ -74,16 +74,22 @@ public class ScriptLoader : IScriptLoader
 		{
 			if (processor.IsBlacklisted(file)) continue;
 
+			var id = Path.GetFileNameWithoutExtension(file);
+			if (processor.InstanceBuffer.ContainsKey(id)) continue;
+
 			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			processor.InstanceBuffer.Add(id, plugin);
 		}
 
 		foreach (var file in plugins)
 		{
 			if (processor.IsBlacklisted(file)) continue;
 
+			var id = Path.GetFileNameWithoutExtension(file);
+			if (processor.InstanceBuffer.ContainsKey(id)) continue;
+
 			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			processor.InstanceBuffer.Add(id, plugin);
 		}
 
 		foreach (var plugin in processor.InstanceBuffer)
