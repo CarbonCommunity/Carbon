@@ -20,14 +20,14 @@ public class ClientEntity : IDisposable
 
 	internal static bool _isPatched { get; set; }
 
-	public static Dictionary<ulong, ClientEntity> entities { get; private set; } = new();
+	public static Dictionary<uint, ClientEntity> entities { get; private set; } = new();
 
 	public static ClientEntity Create(
 		string prefabName,
 		Vector3 position,
 		Quaternion rotation,
 		ProtoBuf.Entity proto = null,
-		ulong netId = 0,
+		uint netId = 0,
 		uint group = 0)
 	{
 		var prefabId = (uint)default;
@@ -56,9 +56,9 @@ public class ClientEntity : IDisposable
 		return client;
 	}
 
-	internal static void ServerRPCUnknown(NetworkableId netID, uint rpcID, Message packet)
+	internal static void ServerRPCUnknown(uint netID, uint rpcID, Message packet)
 	{
-		if (entities.TryGetValue(netID.Value, out var entity) && entity.watchers.Contains(packet.connection))
+		if (entities.TryGetValue(netID, out var entity) && entity.watchers.Contains(packet.connection))
 		{
 			entity.OnRpc(StringPool.Get(rpcID), packet);
 		}
@@ -75,19 +75,19 @@ public class ClientEntity : IDisposable
 
 	#endregion
 
-	public ClientEntity(ProtoBuf.Entity proto = null, uint prefabId = 0, ulong netId = 0, uint group = 0) : base()
+	public ClientEntity(ProtoBuf.Entity proto = null, uint prefabId = 0, uint netId = 0, uint group = 0) : base()
 	{
 		Proto = proto ?? new();
 		Proto.baseNetworkable ??= new ProtoBuf.BaseNetworkable();
 		Proto.baseEntity ??= new ProtoBuf.BaseEntity();
 
-		NetID = new(netId == 0 ? Net.sv.TakeUID() : netId);
+		NetID = netId == 0 ? Net.sv.TakeUID() : netId;
 
 		Proto.baseNetworkable.group = group;
 
 		if (prefabId != 0) Proto.baseNetworkable.prefabID = prefabId;
 
-		entities[NetID.Value] = this;
+		entities[NetID] = this;
 		HookCheck();
 	}
 
@@ -96,7 +96,7 @@ public class ClientEntity : IDisposable
 		get;
 		set;
 	}
-	public NetworkableId NetID
+	public uint NetID
 	{
 		get => Proto.baseNetworkable.uid;
 		private set => Proto.baseNetworkable.uid = value;
@@ -117,7 +117,7 @@ public class ClientEntity : IDisposable
 			Pool.FreeList(ref temporaryWatchers);
 		}
 	}
-	public NetworkableId ParentID
+	public uint ParentID
 	{
 		get => _parentId;
 		set { _parentId = value; SendNetworkUpdate(); }
@@ -220,7 +220,7 @@ public class ClientEntity : IDisposable
 		writer.Vector3(in Proto.baseEntity.rot);
 		writer.Float(Time.time);
 
-		if (ParentID.IsValid) writer.EntityID(ParentID);
+		if (ParentID != 0) writer.EntityID(ParentID);
 
 		var sendInfo = new SendInfo(watchers)
 		{
@@ -239,7 +239,7 @@ public class ClientEntity : IDisposable
 	#region Internals
 
 	internal List<Connection> watchers = new();
-	internal NetworkableId _parentId;
+	internal uint _parentId;
 
 	internal void _sendNetworkUpdateImmediate(Connection connection)
 	{
@@ -342,7 +342,7 @@ public class ClientEntity : IDisposable
 	{
 		if (Proto == null) return;
 
-		entities.Remove(NetID.Value);
+		entities.Remove(NetID);
 
 		KillAll(BaseNetworkable.DestroyMode.None);
 		Proto?.Dispose();
