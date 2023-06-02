@@ -366,7 +366,7 @@ public class Permission : Library
 	{
 		if (player == null) return;
 
-		var user = GetUserData(player.UserIDString);
+		var user = GetUserData(player.UserIDString, addIfNotExisting: true);
 		user.LastSeenNickname = player.displayName;
 
 		if (player.net != null && player.net.connection != null && player.net.connection.info != null)
