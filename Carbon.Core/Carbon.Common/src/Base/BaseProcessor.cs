@@ -214,9 +214,10 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 	internal void _onCreated(object sender, FileSystemEventArgs e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;		
+		var id = Path.GetFileNameWithoutExtension(e.FullPath);
+		if (!EnableWatcher || IsBlacklisted(e.FullPath) || InstanceBuffer.ContainsKey(id)) return;		
 
-		InstanceBuffer.Add(e.Name, null);
+		InstanceBuffer.Add(id, null);
 	}
 	internal void _onChanged(object sender, FileSystemEventArgs e)
 	{
