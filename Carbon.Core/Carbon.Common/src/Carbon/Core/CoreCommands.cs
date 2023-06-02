@@ -398,6 +398,26 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private bool HigherPriorityHookWarns { get { return Community.Runtime.Config.HigherPriorityHookWarns; } set { Community.Runtime.Config.HigherPriorityHookWarns = value; Community.Runtime.SaveConfig(); } }
 
+	[CommandVar("scriptwatchers", "When disabled, you must load/unload plugins manually with `c.load` or `c.unload`.")]
+	[AuthLevel(2)]
+	private bool ScriptWatchers { get { return Community.Runtime.Config.ScriptWatchers; } set { Community.Runtime.Config.ScriptWatchers = value; Community.Runtime.SaveConfig(); } }
+
+	[CommandVar("scriptwatchersoption", "Indicates wether the script watcher (whenever enabled) listens to the 'carbon/plugins' folder only, or its subfolders. (0 = Top-only directories, 1 = All directories)")]
+	[AuthLevel(2)]
+	private int ScriptWatchersOption
+	{
+		get
+		{
+			return (int)Community.Runtime.Config.ScriptWatcherOption;
+		}
+		set
+		{
+			Community.Runtime.Config.ScriptWatcherOption = (SearchOption)value;
+			Community.Runtime.ScriptProcessor.IncludeSubdirectories = value == (int)SearchOption.AllDirectories;
+			Community.Runtime.SaveConfig();
+		}
+	}
+
 	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.")]
 	[AuthLevel(2)]
 	private bool HarmonyReference { get { return Community.Runtime.Config.HarmonyReference; } set { Community.Runtime.Config.HarmonyReference = value; Community.Runtime.SaveConfig(); } }
@@ -422,10 +442,6 @@ public partial class CorePlugin : CarbonPlugin
 			ApplyStacktrace();
 		}
 	}
-
-	[CommandVar("hooktimetracker", "For debugging purposes, this will track the time of hooks and gives a total.")]
-	[AuthLevel(2)]
-	private bool HookTimeTracker { get { return Community.Runtime.Config.HookTimeTracker; } set { Community.Runtime.Config.HookTimeTracker = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.")]
 	[AuthLevel(2)]
@@ -1297,7 +1313,10 @@ public partial class CorePlugin : CarbonPlugin
 		var duration = arg.GetFloat(0, -1);
 		var name = arg.GetString(1, $"carbonprofile_{date.Year}-{date.Month}-{date.Day}_{date.Hour}{date.Minute}{date.Second}");
 
-		Profiler.Make(name).Begin(duration);
+		Profiler.Make(name).Begin(duration, onEnd: duration == -1 ? null : profiler =>
+		{
+			Logger.Log($"Ended profiling, writing to disk: {profiler.Path}");
+		});
 		arg.ReplyWith("Began profiling...");
 	}
 
@@ -1305,7 +1324,8 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void EndProfile(ConsoleSystem.Arg arg)
 	{
-		arg.ReplyWith(Profiler.End() ? "Ended profiling, writing to disk." : "Couldn't end profile. Most likely because there's none started.");
+		var path = Profiler.Singleton.Path;
+		arg.ReplyWith(Profiler.End() ? $"Ended profiling, writing to disk: {path}" : "Couldn't end profile. Most likely because there's none started.");
 	}
 
 	#endregion

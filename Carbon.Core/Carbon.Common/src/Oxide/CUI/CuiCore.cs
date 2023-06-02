@@ -146,8 +146,7 @@ public class CuiElementContainer : List<CuiElement>
 				{
 					button.Text,
 					new CuiRectTransformComponent()
-				},
-				DestroyUi = destroyUi
+				}
 			});
 		}
 		return name;
@@ -197,11 +196,19 @@ public class CuiElementContainer : List<CuiElement>
 		{
 			cuiElement.Components.Add(panel.RawImage);
 		}
+
 		cuiElement.Components.Add(panel.RectTransform);
+
 		if (panel.CursorEnabled)
 		{
 			cuiElement.Components.Add(new CuiNeedsCursorComponent());
 		}
+
+		if (panel.KeyboardEnabled)
+		{
+			cuiElement.Components.Add(new CuiNeedsKeyboardComponent());
+		}
+
 		Add(cuiElement);
 		return name;
 	}
@@ -296,6 +303,11 @@ public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 	[JsonProperty("lineType", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public InputField.LineType LineType { get; set; }
 
+	[JsonProperty("autofocus")]
+	public bool Autofocus { get; set; }
+
+	[JsonProperty("hudMenuInput")]
+	public bool HudMenuInput { get; set; }
 }
 public class CuiNeedsCursorComponent : ICuiComponent
 {
@@ -409,6 +421,10 @@ public class CuiTextComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("fadeIn", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeIn { get; set; }
+
+	[JsonConverter(typeof(StringEnumConverter))]
+	[JsonProperty("verticalOverflow")]
+	public VerticalWrapMode VerticalOverflow { get; set; }
 }
 
 #endregion

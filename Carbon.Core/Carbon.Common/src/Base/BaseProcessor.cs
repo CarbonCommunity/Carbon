@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Carbon.Contracts;
-using Carbon.Core;
 using Carbon.Extensions;
 using UnityEngine;
 
@@ -16,7 +15,7 @@ using UnityEngine;
 
 namespace Carbon.Base;
 
-public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
+public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 {
 	public virtual string Name { get; }
 
@@ -26,8 +25,10 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 	public virtual bool EnableWatcher => true;
 	public virtual string Folder => string.Empty;
 	public virtual string Extension => string.Empty;
+	public string[] BlacklistPattern { get; set; }
 	public virtual float Rate => 0.2f;
 	public virtual Type IndexedType => null;
+	public bool IncludeSubdirectories { get; set; }
 	public FileSystemWatcher Watcher { get; private set; }
 
 	internal WaitForSeconds _wfsInstance;
@@ -99,7 +100,7 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 				if (element.Value == null)
 				{
 					var instance = Activator.CreateInstance(IndexedType) as Instance;
-					instance.File = Path.Combine(Defines.GetScriptFolder(), $"{element.Key}{Extension}");
+					instance.File = element.Key;
 					instance.Execute();
 
 					InstanceBuffer[element.Key] = instance;
@@ -213,28 +214,54 @@ public class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 
 	internal void _onCreated(object sender, FileSystemEventArgs e)
 	{
-		if (!EnableWatcher) return;
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;		
 
-		InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
+		InstanceBuffer.Add(e.Name, null);
 	}
 	internal void _onChanged(object sender, FileSystemEventArgs e)
 	{
-		if (!EnableWatcher) return;
+		var path = e.FullPath;
+		var name = Path.GetFileNameWithoutExtension(path);
 
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.SetDirty();
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(name, out var mod)) mod.SetDirty();
 	}
 	internal void _onRenamed(object sender, RenamedEventArgs e)
 	{
-		if (!EnableWatcher) return;
+		var path = e.FullPath;
+		var name = Path.GetFileNameWithoutExtension(path);
 
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.OldName), out var mod)) mod.MarkDeleted();
-		InstanceBuffer.Add(Path.GetFileNameWithoutExtension(e.Name), null);
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(name, out var mod)) mod.MarkDeleted();
+		InstanceBuffer.Add(name, null);
 	}
 	internal void _onRemoved(object sender, FileSystemEventArgs e)
 	{
-		if (!EnableWatcher) return;
+		var path = e.FullPath;
+		var name = Path.GetFileNameWithoutExtension(path);
 
-		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.Name), out var mod)) mod.MarkDeleted();
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(name, out var mod)) mod.MarkDeleted();
+	}
+
+	public bool IsBlacklisted(string path)
+	{
+		if (!IncludeSubdirectories && Path.GetFullPath(Path.GetDirectoryName(path)) != Path.GetFullPath(Folder))
+		{
+			return true;
+		}
+
+		if (BlacklistPattern == null) return false;
+
+		for(int i = 0; i < BlacklistPattern.Length; i++)
+		{
+			if (path.Contains(BlacklistPattern[i])) return true;
+		}
+
+		return false;
 	}
 
 	public class Instance : IBaseProcessor.IInstance, IDisposable

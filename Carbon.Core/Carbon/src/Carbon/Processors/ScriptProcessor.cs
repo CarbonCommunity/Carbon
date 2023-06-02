@@ -18,10 +18,22 @@ namespace Carbon.Managers;
 public class ScriptProcessor : BaseProcessor, IScriptProcessor
 {
 	public override string Name => "Script Processor";
-	public override bool EnableWatcher => Community.IsConfigReady ? Community.Runtime.Config.ScriptWatchers : true;
+	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.ScriptWatchers;
 	public override string Folder => Defines.GetScriptFolder();
 	public override string Extension => ".cs";
 	public override Type IndexedType => typeof(Script);
+
+	public override void Start()
+	{
+		BlacklistPattern = new[]
+		{
+			"backups"
+		};
+
+		base.Start();
+
+		IncludeSubdirectories = Community.Runtime.Config.ScriptWatcherOption == SearchOption.AllDirectories;
+	}
 
 	public bool AllPendingScriptsComplete()
 	{

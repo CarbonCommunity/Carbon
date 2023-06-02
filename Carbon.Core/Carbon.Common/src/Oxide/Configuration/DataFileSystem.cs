@@ -96,5 +96,7 @@ public class DataFileSystem
 		}
 	}
 
+	public void DeleteDataFile(string name) => GetFile(name).Delete();
+
 	private readonly Dictionary<string, DynamicConfigFile> _datafiles;
 }

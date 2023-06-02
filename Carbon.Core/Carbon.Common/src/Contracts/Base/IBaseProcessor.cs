@@ -17,6 +17,8 @@ namespace Carbon.Contracts
 		void Ignore(string file);
 		void Clear();
 		void ClearIgnore(string file);
+		bool IsBlacklisted(string path);
+		bool IncludeSubdirectories { get; set; }
 
 		public interface IInstance : IDisposable
 		{
