@@ -1373,6 +1373,23 @@ public static class HookCaller
 		var methodContents = "\n\tvar result = (object)null;\n\ttry\n\t{\n\t\tswitch(hook)\n\t\t{\n";
 		var @namespace = input.Members[0] as BaseNamespaceDeclarationSyntax;
 		var @class = @namespace.Members[0] as ClassDeclarationSyntax;
+		var methodDeclarations = new List<MethodDeclarationSyntax>();
+		methodDeclarations.AddRange(@class.ChildNodes().OfType<MethodDeclarationSyntax>());
+
+		#region Handle partials
+
+		foreach (var subNamespace in input.Members.OfType<BaseNamespaceDeclarationSyntax>())
+		{
+			foreach (var subClass in subNamespace.Members.OfType<ClassDeclarationSyntax>())
+			{
+				if (subClass != @class && subClass.Modifiers.Any(SyntaxKind.PartialKeyword) && subClass.Identifier.ValueText == @class.Identifier.ValueText)
+				{
+					methodDeclarations.AddRange(subClass.ChildNodes().OfType<MethodDeclarationSyntax>());
+				}
+			}
+		}
+
+		#endregion
 
 		if (publicize)
 		{
@@ -1407,7 +1424,6 @@ public static class HookCaller
 			@class = PublicizeRecursively(@class);
 		}
 
-		var methodDeclarations = @class.ChildNodes().OfType<MethodDeclarationSyntax>();
 		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
 		var privateMethods0 = methodDeclarations.Where(md => (md.Modifiers.Count == 0 || md.Modifiers.Any(SyntaxKind.PrivateKeyword) || md.Modifiers.Any(SyntaxKind.ProtectedKeyword) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);
 		var privateMethods = privateMethods0.OrderBy(x => x.Identifier.ValueText);
@@ -1511,8 +1527,9 @@ public static class HookCaller
 
 		output = input.WithMembers(input.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class.WithMembers(@class.Members.Insert(0, generatedMethod))))));
 
-		#region Cleanup Pass
+		#region Cleanup
 
+		methodDeclarations.Clear();
 		methodDeclarations = null;
 		foreach (var hookableMethod in hookableMethods)
 		{
