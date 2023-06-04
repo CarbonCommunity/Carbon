@@ -65,7 +65,6 @@ public class CommunityInternal : Community
 
 	#region Processors
 
-
 	internal void _installProcessors()
 	{
 		Carbon.Logger.Log("Installed processors");
