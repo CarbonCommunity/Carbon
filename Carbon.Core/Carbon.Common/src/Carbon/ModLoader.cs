@@ -39,6 +39,8 @@ public static class ModLoader
 
 	public static List<string> GetRequirees(Plugin initial)
 	{
+		if (string.IsNullOrEmpty(initial.FilePath)) return null;
+
 		if (PendingRequirees.TryGetValue(initial.FilePath, out var requirees))
 		{
 			return requirees;

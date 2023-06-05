@@ -607,8 +607,7 @@ namespace Oxide.Core.Plugins
 
 			if (!Config.Exists(null))
 			{
-				CallHook("LoadDefaultConfig");
-
+				LoadDefaultConfig();
 				SaveConfig();
 			}
 			try
