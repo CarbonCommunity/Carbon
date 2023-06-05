@@ -154,25 +154,6 @@ public static class ModLoader
 
 				if (!IsValidPlugin(type)) continue;
 
-				if (Community.Runtime.Config.HookValidation)
-				{
-					var counter = 0;
-					foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-					{
-						if (HookValidator.IsIncompatibleOxideHook(method.Name))
-						{
-							Logger.Warn($" Hook '{method.Name}' is not supported.");
-							counter++;
-						}
-					}
-
-					if (counter > 0)
-					{
-						Logger.Warn($"Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
-						Logger.Warn($"Plugin '{type.Name}' will not work as expected.");
-					}
-				}
-
 				if (!InitializePlugin(type, out var plugin, mod)) continue;
 				plugin.HasInitialized = true;
 
