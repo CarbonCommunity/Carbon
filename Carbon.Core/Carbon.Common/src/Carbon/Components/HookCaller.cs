@@ -1431,7 +1431,7 @@ public static class HookCaller
 
 		foreach (var method in privateMethods)
 		{
-			var methodName = method.Identifier.ValueText; 
+			var methodName = method.Identifier.ValueText;
 			var id = HookCallerCommon.StringPool.GetOrAdd(methodName);
 
 			if (!hookableMethods.TryGetValue(id, out var list))
@@ -1453,9 +1453,11 @@ public static class HookCaller
 				var methodName = method.Identifier.ValueText;
 				var parameters0 = method.ParameterList.Parameters.Select(x =>
 				{
+					var type = x.Type.ToString().Replace("?", string.Empty);
+
 					parameterIndex++;
-					return x.Default != null ?
-						$"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : default" :
+					return x.Default != null || x.Type is NullableTypeSyntax ?
+						$"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : ({type})default" :
 						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)) ? "out var " : "")}arg{parameterIndex}_{i}";
 				});
 				var parameters = parameters0.ToArray();
@@ -1482,7 +1484,7 @@ public static class HookCaller
 					var parameter = method.ParameterList.Parameters[o];
 					parameterIndex++;
 
-					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)))
+					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) && parameter.Type is not NullableTypeSyntax)
 					{
 						var type = parameter.Type.ToString().Replace("?", string.Empty);
 						parameterText += !IsUnmanagedType(type) ? $"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} &&" : $"(args[{parameterIndex}] ?? ({type})default) is {type} arg{parameterIndex}_{i} &&";

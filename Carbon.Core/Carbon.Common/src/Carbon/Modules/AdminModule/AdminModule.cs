@@ -2259,7 +2259,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.AddToggle(1, Singleton.GetPhrase("autoupdate", ap.Player.UserIDString), ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, Singleton.GetPhrase("autoupdate_help", ap.Player.UserIDString));
 
 					tab.AddName(1, Singleton.GetPhrase("general", ap.Player.UserIDString), TextAnchor.MiddleLeft);
-					tab.AddToggle(1, Singleton.GetPhrase("hookvalidation", ap.Player.UserIDString), ap => { Config.HookValidation = !Config.HookValidation; Community.Runtime.SaveConfig(); }, ap => Config.HookValidation, Singleton.GetPhrase("hookvalidation_help", ap.Player.UserIDString));
 					tab.AddInput(1, Singleton.GetPhrase("entmapbuffersize", ap.Player.UserIDString), ap => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, Singleton.GetPhrase("entmapbuffersize_help", ap.Player.UserIDString));
 
 					tab.AddName(1, Singleton.GetPhrase("watchers", ap.Player.UserIDString), TextAnchor.MiddleLeft);
