@@ -121,6 +121,9 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		Config ??= new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
 		Data ??= new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
 
+		var newConfig = !Config.Exists();
+		var newData = !Data.Exists();
+
 		if (!Config.Exists())
 		{
 			ModuleConfiguration = new Configuration { Config = Activator.CreateInstance<C>() };
@@ -149,13 +152,13 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			}
 		}
 
-		if (PreLoadShouldSave()) shouldSave = true;
+		if (PreLoadShouldSave(newConfig, newData)) shouldSave = true;
 
 		if (shouldSave) Save();
 
 		OnEnableStatus();
 	}
-	public virtual bool PreLoadShouldSave()
+	public virtual bool PreLoadShouldSave(bool newConfig, bool newData)
 	{
 		return false;
 	}
