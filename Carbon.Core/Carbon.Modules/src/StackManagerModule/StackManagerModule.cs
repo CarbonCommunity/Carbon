@@ -116,7 +116,8 @@ public class StackManagerConfig
 	public HashSet<string> Blacklist = new()
 	{
 		"water",
-		"water.salt"
+		"water.salt",
+		"photo"
 	};
 
 	public Dictionary<ItemCategory, float> Categories = new()
@@ -137,10 +138,7 @@ public class StackManagerConfig
 		{ ItemCategory.Weapon, 1 }
 	};
 
-	public Dictionary<string, float> Items = new()
-	{
-		{ "explosive.timed", 1 }
-	};
+	public Dictionary<string, float> Items = new();
 }
 public class StackManagerData
 {
