@@ -227,7 +227,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	public bool HasAccessLevel(BasePlayer player, int accessLevel)
 	{
-		if (accessLevel == 0 && (player != null || player.IsAdmin)) return true;
+		if (accessLevel == 0 || (player != null && player.IsAdmin)) return true;
 
 		for (int i = accessLevel; i <= AccessLevels; i++)
 		{
