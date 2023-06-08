@@ -167,7 +167,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			UnsubscribeAll();
 		}
 	}
-	public override bool PreLoadShouldSave()
+	public override bool PreLoadShouldSave(bool newConfig, bool newData)
 	{
 		if (ConfigInstance.Deployables.ManagedSpawners == null ||
 			ConfigInstance.Deployables.ManagedSpawners == null ||
