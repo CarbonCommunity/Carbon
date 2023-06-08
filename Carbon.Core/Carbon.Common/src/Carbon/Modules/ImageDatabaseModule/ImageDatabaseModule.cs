@@ -150,7 +150,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		Queue(DefaultImages);
 	}
 
-	public override bool PreLoadShouldSave()
+	public override bool PreLoadShouldSave(bool newConfig, bool newData)
 	{
 		var shouldSave = false;
 

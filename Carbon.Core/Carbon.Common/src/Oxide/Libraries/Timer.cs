@@ -220,9 +220,9 @@ public class Timer : Library, IDisposable
 			Persistence.InvokeRepeating(Callback, delay, delay);
 		}
 	}
-	public void Destroy()
+	public bool Destroy()
 	{
-		if (Destroyed) return;
+		if (Destroyed) return false;
 		Destroyed = true;
 
 		if (Persistence != null)
@@ -235,6 +235,8 @@ public class Timer : Library, IDisposable
 		{
 			Callback = null;
 		}
+
+		return true;
 	}
 	public void DestroyToPool()
 	{

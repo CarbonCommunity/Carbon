@@ -102,7 +102,7 @@ public class HookCallerInternal : HookCallerCommon
 
 		var id = StringPool.GetOrAdd(hookName);
 
-		if (plugin is not BaseModule)
+		if (plugin.InternalCallHookOverriden)
 		{
 			var processedId = id;
 

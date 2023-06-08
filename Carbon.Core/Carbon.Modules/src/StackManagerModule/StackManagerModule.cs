@@ -33,7 +33,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		{
 			foreach (var item in ItemManager.itemList)
 			{
-				if (item.category != category.Key || ConfigInstance.Blacklist.Contains(item.shortname) || ConfigInstance.Items.ContainsKey(item.shortname)) continue;
+				if (IsBypassed(item) || item.category != category.Key || ConfigInstance.Blacklist.Contains(item.shortname) || ConfigInstance.Items.ContainsKey(item.shortname)) continue;
 
 				DataInstance.Items.TryGetValue(item.shortname, out var originalStack);
 
@@ -43,7 +43,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 		foreach (var item in ItemManager.itemList)
 		{
-			if (!ConfigInstance.Items.ContainsKey(item.shortname)) continue;
+			if (IsBypassed(item) || !ConfigInstance.Items.ContainsKey(item.shortname)) continue;
 
 			var value = ConfigInstance.Items[item.shortname];
 
@@ -82,6 +82,35 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		}
 	}
 
+	public bool IsBypassed(ItemDefinition definition)
+	{
+		if (definition.itemMods == null || definition.itemMods.Length == 0) return false;
+
+		foreach (var mod in definition.itemMods)
+		{
+			if ((ConfigInstance.ProhibitItemContainerStacking && mod is ItemModContainer) ||
+				(ConfigInstance.ProhibitItemConsumableContainerStacking && mod is ItemModConsumeContents) ||
+				(ConfigInstance.ProhibitItemFishableStacking && mod is ItemModFishable) ||
+				mod is ItemModPhoto)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public override bool PreLoadShouldSave(bool newConfig, bool newData)
+	{
+		if (newConfig)
+		{
+			ConfigInstance.Blacklist.Add("water");
+			ConfigInstance.Blacklist.Add("water.salt");
+			return true;
+		}
+
+		return false;
+	}
 	public override void Load()
 	{
 		base.Load();
@@ -112,12 +141,9 @@ public class StackManagerConfig
 {
 	public float GlobalMultiplier = 1f;
 	public float GlobalItemsMultiplier = 1f;
-
-	public HashSet<string> Blacklist = new()
-	{
-		"water",
-		"water.salt"
-	};
+	public bool ProhibitItemContainerStacking = false;
+	public bool ProhibitItemConsumableContainerStacking = true;
+	public bool ProhibitItemFishableStacking = true;
 
 	public Dictionary<ItemCategory, float> Categories = new()
 	{
@@ -137,10 +163,8 @@ public class StackManagerConfig
 		{ ItemCategory.Weapon, 1 }
 	};
 
-	public Dictionary<string, float> Items = new()
-	{
-		{ "explosive.timed", 1 }
-	};
+	public Dictionary<string, float> Items = new();
+	public HashSet<string> Blacklist = new();
 }
 public class StackManagerData
 {
