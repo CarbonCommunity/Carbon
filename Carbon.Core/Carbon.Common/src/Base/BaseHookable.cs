@@ -51,7 +51,7 @@ public class BaseHookable
 	}
 
 	[JsonProperty]
-	public string Name;
+	public string Name { get; set; }
 
 	[JsonProperty]
 	public virtual VersionNumber Version { get; set; }
