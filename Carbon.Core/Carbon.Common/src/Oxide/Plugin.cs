@@ -583,6 +583,9 @@ namespace Oxide.Core.Plugins
 
 		#region Compatibility
 
+		public PluginManagerEvent OnAddedToManager = new();
+		public PluginManagerEvent OnRemovedFromManager = new();
+
 		public virtual void HandleAddedToManager(PluginManager manager) { }
 		public virtual void HandleRemovedFromManager(PluginManager manager) { }
 
