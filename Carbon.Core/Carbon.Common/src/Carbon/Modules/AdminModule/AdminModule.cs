@@ -118,6 +118,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				if (!CanAccess(player)) return;
 
 				var ap = GetPlayerSession(player);
+
+				if (ap.IsInMenu) return;
+
 				ap.SelectedTab = Tabs.FirstOrDefault(x => HasAccessLevel(player, x.AccessLevel));
 
 				var tab = GetTab(player);
@@ -204,7 +207,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				["misc"] = "Miscellaneous",
 				["serverlang"] = "Server Language",
 				["webreqip"] = "WebRequest IP",
-				["permmode"] = "Permission Mode"
+				["permmode"] = "Permission Mode",
+				["nocontent"] = "There are no options available.\nSelect a sub-tab to populate this area (if available)."
 			}
 		};
 	}
@@ -446,7 +450,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			_ => "0.2 0.2 0.2 0.5",
 		};
 
-		cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
+		var button = cui.CreateProtectedButton(container, parent: parent, id: $"{parent}btn",
 			color: color,
 			textColor: "1 1 1 0.5",
 			text: text, 11,
@@ -1012,8 +1016,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			SetTab(player, indexOf);
 		}
-
-		if (ap.SelectedTab != previous) Draw(player);
 	}
 
 	[ProtectedCommand(PanelId + ".callaction")]
@@ -1191,10 +1193,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 							for (int i = 0; i < tab.Columns.Count; i++)
 							{
-								var panel = $"sub{i}";
 								var rows = tab.Columns[i];
-
-								cui.CreatePanel(container, "panels", panel,
+								var panel = cui.CreatePanel(container, "panels", $"sub{i}",
 									color: "0 0 0 0.5",
 									xMin: panelIndex, xMax: panelIndex + panelWidth - spacing, yMin: 0, yMax: 1);
 
@@ -1209,6 +1209,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								columnPage.TotalPages = (int)Math.Ceiling(((double)rows.Count) / contentsPerPage - 1);
 								columnPage.Check();
 								var rowIndex = (rowHeight + rowSpacing) * (contentsPerPage - (rowPageCount - (columnPage.TotalPages > 0 ? 0 : 1)));
+
+								if (rowPageCount == 0)
+								{
+									cui.CreateText(container, panel, null, "1 1 1 0.35", GetPhrase("nocontent", player.UserIDString), 8, align: TextAnchor.MiddleCenter);
+								}
 
 								if (columnPage.TotalPages > 0)
 								{
@@ -1388,9 +1393,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			color: "0 0 0 0",
 			xMin: 0, xMax: 0, yMin: 0, yMax: 0,
 			fadeIn: 0.005f,
-			needsCursor: true);
+			needsCursor: true, destroyUi: CursorPanelId);
 
-		cui.Destroy(CursorPanelId, player);
 		cui.Send(container, player);
 	}
 	public void Close(BasePlayer player)
@@ -1436,13 +1440,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		Puts($"Registered tab '{tab.Name}'");
-
-		AdminPlayers.Clear();
 	}
 	public void UnregisterTab(string id)
 	{
-		AdminPlayers.Clear();
-
 		var tab = Tabs.FirstOrDefault(x => x.Id == id);
 		tab?.Dispose();
 
@@ -1840,11 +1840,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				if (i >= index) ClearColumn(i, erase);
 			}
 		}
-		public Tab AddColumn(int column)
+		public Tab AddColumn(int column, bool clear = false)
 		{
 			if (!Columns.TryGetValue(column, out var options))
 			{
-				Columns[column] = new List<Option>();
+				Columns[column] = options = new List<Option>();
+			}
+
+			if (clear)
+			{
+				options.Clear();
 			}
 
 			return this;
@@ -3488,19 +3493,26 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		public static Tab Get()
 		{
-			var tab = new Tab("modules", "Modules", Community.Runtime.CorePlugin, accessLevel: 3);
-			tab.AddColumn(0);
-			tab.AddColumn(1);
+			var tab = new Tab("modules", "Modules", Community.Runtime.CorePlugin, accessLevel: 3, onChange: (ap, tab) => ap.ClearStorage(tab, "selectedmodule"));
+			Draw();
 
-			tab.AddName(0, "Modules");
-			foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+			void Draw()
 			{
-				if (hookable is BaseModule module)
+				tab.AddColumn(0, true);
+				tab.AddColumn(1, true);
+
+				tab.AddName(0, "Modules");
+				foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
 				{
-					tab.AddButton(0, $"{hookable.Name}", ap =>
+					if (hookable is BaseModule module)
 					{
-						DrawModuleSettings(tab, module);
-					});
+						tab.AddButton(0, hookable.Name, ap =>
+						{
+							ap.SetStorage(tab, "selectedmodule", module);
+							Draw();
+							DrawModuleSettings(tab, module);
+						}, type: ap => ap.GetStorage<BaseModule>(tab, "selectedmodule") == module ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
+					}
 				}
 			}
 
@@ -3513,7 +3525,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var carbonModule = module.GetType();
 			tab.AddInput(1, "Name", ap => module.Name, null);
-
 
 			tab.AddToggle(1, "Enabled", ap2 => { module.SetEnabled(!module.GetEnabled()); module.Save(); DrawModuleSettings(tab, module); }, ap2 => module.GetEnabled());
 
