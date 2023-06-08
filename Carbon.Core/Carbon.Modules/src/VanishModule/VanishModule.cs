@@ -100,6 +100,22 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		return null;
 	}
 
+	public static void SendEffectTo(string effect, BasePlayer player)
+	{
+		if (player == null) return;
+
+		var effectInstance = new Effect();
+		effectInstance.Init(Effect.Type.Generic, player, 0, Vector3.up, Vector3.zero);
+		effectInstance.pooledstringid = StringPool.Get(effect);
+
+		var netWrite = Net.sv.StartWrite();
+		netWrite.PacketID(Message.Type.Effect);
+		effectInstance.WriteToStream(netWrite);
+		netWrite.Send(new SendInfo(player.net.connection));
+
+		effectInstance.Clear();
+	}
+
 	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true, bool toggleGodMode = true)
 	{
 		if (wants)
@@ -116,7 +132,11 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.OnNetworkSubscribersLeave(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player).ToList());
 			SimpleAIMemory.AddIgnorePlayer(player);
 
-			if (ConfigInstance.WhooshSoundOnVanish) Effect.server.Run(_whooshEffect, player.transform.position);
+			if (ConfigInstance.WhooshSoundOnVanish)
+			{
+				if (ConfigInstance.BroadcastVanishSounds) Effect.server.Run(_whooshEffect, player.transform.position);
+				else SendEffectTo(_whooshEffect, player);
+			}
 
 			if (withUI) _drawUI(player);
 
@@ -145,7 +165,11 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.drownEffect = _drownEffect;
 			player.fallDamageEffect = _fallDamageEffect;
 
-			if (ConfigInstance.GutshotScreamOnUnvanish) Effect.server.Run(_gutshotEffect, player.transform.position);
+			if (ConfigInstance.GutshotScreamOnUnvanish)
+			{
+				if (ConfigInstance.BroadcastVanishSounds) Effect.server.Run(_gutshotEffect, player.transform.position);
+				else SendEffectTo(_gutshotEffect, player);
+			}
 
 			using var cui = new CUI(Handler);
 			cui.Destroy("vanishui", player);
@@ -231,6 +255,7 @@ public class VanishConfig
 	public float[] InvisibleIconAnchorX = new float[] { 0.175f, 0.22f };
 	public float[] InvisibleIconAnchorY = new float[] { 0.017f, 0.08f };
 
+	public bool BroadcastVanishSounds = false;
 	public bool WhooshSoundOnVanish = true;
 	public bool GutshotScreamOnUnvanish = true;
 	public bool EnableLogs = true;

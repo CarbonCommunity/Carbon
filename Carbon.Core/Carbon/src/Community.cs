@@ -65,7 +65,6 @@ public class CommunityInternal : Community
 
 	#region Processors
 
-
 	internal void _installProcessors()
 	{
 		Carbon.Logger.Log("Installed processors");
@@ -124,12 +123,15 @@ public class CommunityInternal : Community
 		LoadConfig();
 		Carbon.Logger.Log("Loaded config");
 
-		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
+		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
 			ClearCommands();
 			_installDefaultCommands();
 			ModuleProcessor.Init();
+		});
 
+		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
+		{
 			CommandLine.ExecuteCommands("+carbon.onboot", "Carbon boot");
 
 			var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");

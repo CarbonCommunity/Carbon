@@ -19,7 +19,6 @@ public class Config
 	public bool HarmonyReference { get; set; } = false;
 	public bool ScriptWatchers { get; set; } = true;
 	public System.IO.SearchOption ScriptWatcherOption { get; set; } = System.IO.SearchOption.TopDirectoryOnly;
-	public bool HookValidation { get; set; } = true;
 	public bool FileNameCheck { get; set; } = true;
 	public bool IsModded { get; set; } = true;
 	public bool HigherPriorityHookWarns { get; set; } = false;
