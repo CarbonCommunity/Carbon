@@ -74,16 +74,22 @@ public class ScriptLoader : IScriptLoader
 		{
 			if (processor.IsBlacklisted(file)) continue;
 
+			var id = Path.GetFileNameWithoutExtension(file);
+			if (processor.InstanceBuffer.ContainsKey(id)) continue;
+
 			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			processor.InstanceBuffer.Add(id, plugin);
 		}
 
 		foreach (var file in plugins)
 		{
 			if (processor.IsBlacklisted(file)) continue;
 
+			var id = Path.GetFileNameWithoutExtension(file);
+			if (processor.InstanceBuffer.ContainsKey(id)) continue;
+
 			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(Path.GetFileNameWithoutExtension(file), plugin);
+			processor.InstanceBuffer.Add(id, plugin);
 		}
 
 		foreach (var plugin in processor.InstanceBuffer)
@@ -331,25 +337,6 @@ public class ScriptLoader : IScriptLoader
 			{
 				if (string.IsNullOrEmpty(type.Namespace) ||
 					!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) continue;
-
-				if (Community.Runtime.Config.HookValidation)
-				{
-					var unsupportedHooksString = new StringBuilder();
-					var counter = 0;
-					foreach (var hook in AsyncLoader.UnsupportedHooks[type])
-					{
-						unsupportedHooksString.Append($"{hook}, ");
-						counter++;
-					}
-
-					if (counter > 0)
-					{
-						Logger.Warn($"Plugin '{type.Name}' uses {counter:n0} hooks that are not supported: {unsupportedHooksString}and will not work as expected.");
-					}
-
-					unsupportedHooksString.Clear();
-					unsupportedHooksString = null;
-				}
 
 				if (type.GetCustomAttribute(typeof(InfoAttribute), true) is not InfoAttribute info) continue;
 
