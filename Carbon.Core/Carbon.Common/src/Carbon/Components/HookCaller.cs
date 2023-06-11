@@ -1444,7 +1444,7 @@ public static class HookCaller
 
 		foreach (var group in hookableMethods)
 		{
-			methodContents += $"\t\t\tcase {group.Key}:\n\t\t\t{{";
+			methodContents += $"\t\t\t// {group.Value[0].Identifier.ValueText} aka {group.Key}\n\t\t\tcase {group.Key}:\n\t\t\t{{";
 
 			for (int i = 0; i < group.Value.Count; i++)
 			{
@@ -1454,11 +1454,22 @@ public static class HookCaller
 				var parameters0 = method.ParameterList.Parameters.Select(x =>
 				{
 					var type = x.Type.ToString().Replace("?", string.Empty);
-
 					parameterIndex++;
-					return x.Default != null || x.Type is NullableTypeSyntax ?
-						$"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : ({type})default" :
-						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)) ? "out var " : "")}arg{parameterIndex}_{i}";
+
+					if (x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)))
+					{
+						return $"out var arg{parameterIndex}_{i}";
+					}
+					else if (x.Default != null || x.Type is NullableTypeSyntax)
+					{
+						return $"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : ({type})default";
+					}
+					else if (x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
+					{
+						return $"ref arg{parameterIndex}_{i}";
+					}
+
+					return $"arg{parameterIndex}_{i}";
 				});
 				var parameters = parameters0.ToArray();
 
@@ -1486,7 +1497,7 @@ public static class HookCaller
 
 					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) && parameter.Type is not NullableTypeSyntax)
 					{
-						var type = parameter.Type.ToString().Replace("?", string.Empty);
+						var type = parameter.Type.ToString().Replace("?", string.Empty).Replace("global::", string.Empty);
 						parameterText += !IsUnmanagedType(type) ? $"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} &&" : $"(args[{parameterIndex}] ?? ({type})default) is {type} arg{parameterIndex}_{i} &&";
 					}
 				}
