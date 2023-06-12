@@ -53,10 +53,22 @@ public static class CuiHelper
 	{
 		return JsonConvert.SerializeObject(elements, format ? Formatting.Indented : Formatting.None, _cuiSettings).Replace("\\n", "\n");
 	}
+	public static string ToJson(CuiElement element, bool format = false)
+	{
+		return JsonConvert.SerializeObject(element, format ? Formatting.Indented : Formatting.None, _cuiSettings).Replace("\\n", "\n");
+	}
 
 	public static List<CuiElement> FromJson(string json) => JsonConvert.DeserializeObject<List<CuiElement>>(json);
 
 	public static string GetGuid() => $"{Guid.NewGuid():N}";
+
+	public static bool AddUi(BasePlayer player, CuiElement element)
+	{
+		var json = ToJson(element);
+		if (player?.net == null || Interface.CallHook("CanUseUI", player, json) != null) return false;
+
+		return AddUi(player, json, true);
+	}
 
 	public static bool AddUi(BasePlayer player, List<CuiElement> elements)
 	{
