@@ -201,6 +201,8 @@ public static class ModLoader
 		plugin.SetProcessor(Community.Runtime.ScriptProcessor);
 		plugin.SetupMod(package, title, author, version, description);
 
+		plugin.IsPrecompiled = precompiled;
+
 		if (precompiled)
 		{
 			ProcessPrecompiledType(plugin);

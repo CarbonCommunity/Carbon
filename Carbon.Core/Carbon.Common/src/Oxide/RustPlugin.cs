@@ -19,6 +19,7 @@ namespace Oxide.Plugins;
 
 public class RustPlugin : Plugin
 {
+	public bool IsPrecompiled { get; set; }
 	public bool IsExtension { get; set; }
 
 	public Permission permission { get; set; }
