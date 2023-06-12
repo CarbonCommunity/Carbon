@@ -685,7 +685,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var plugin in plugins)
 					{
-						if (plugin.IsExtension) continue;
+						if (plugin.IsPrecompiled) continue;
 
 						if (plugin.Name == name)
 						{
