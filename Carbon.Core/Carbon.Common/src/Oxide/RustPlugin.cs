@@ -37,11 +37,6 @@ public class RustPlugin : Plugin
 	public Player Player { get { return rust.Player; } private set { } }
 	public Server Server { get { return rust.Server; } private set { } }
 
-	public RustPlugin()
-	{
-		try { Setup($"Core Plugin {RandomEx.GetRandomString(5)}", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty); } catch { }
-	}
-
 	public virtual void SetupMod(ModLoader.ModPackage mod, string name, string author, VersionNumber version, string description)
 	{
 		Package = mod;
