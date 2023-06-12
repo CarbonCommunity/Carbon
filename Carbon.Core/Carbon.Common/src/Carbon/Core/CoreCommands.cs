@@ -685,6 +685,8 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var plugin in plugins)
 					{
+						if (plugin.IsExtension) continue;
+
 						if (plugin.Name == name)
 						{
 							plugin.ProcessorInstance.Dispose();

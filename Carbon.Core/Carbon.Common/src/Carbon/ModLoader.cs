@@ -79,6 +79,7 @@ public static class ModLoader
 
 		PendingRequirees.Clear();
 		requirees.Clear();
+		requirees = null;
 	}
 	public static void ClearAllErrored()
 	{
@@ -179,7 +180,7 @@ public static class ModLoader
 		Pool.FreeList(ref plugins);
 	}
 
-	public static bool InitializePlugin(Type type, out RustPlugin plugin, ModPackage package = null, Action<RustPlugin> preInit = null)
+	public static bool InitializePlugin(Type type, out RustPlugin plugin, ModPackage package = null, Action<RustPlugin> preInit = null, bool precompiled = false)
 	{
 		var instance = Activator.CreateInstance(type, false);
 		plugin = instance as RustPlugin;
@@ -192,13 +193,18 @@ public static class ModLoader
 			return false;
 		}
 
-		var title = info.Title?.Replace(" ", "");
+		var title = info.Title?.Replace(" ", string.Empty);
 		var author = info.Author;
 		var version = info.Version;
 		var description = desc == null ? string.Empty : desc.Description;
 
 		plugin.SetProcessor(Community.Runtime.ScriptProcessor);
 		plugin.SetupMod(package, title, author, version, description);
+
+		if (precompiled)
+		{
+			ProcessPrecompiledType(plugin);
+		}
 
 		preInit?.Invoke(plugin);
 
@@ -225,6 +231,42 @@ public static class ModLoader
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
 		return true;
+	}
+
+	public static void ProcessPrecompiledType(RustPlugin plugin)
+	{
+		var type = plugin.GetType();
+		var hooks = plugin.Hooks ??= new();
+		var hookMethods = plugin.HookMethods ??= new();
+		var pluginReferences = plugin.PluginReferences ??= new();
+
+		foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
+		{
+			var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+
+			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+			{
+				var priority = method.GetCustomAttribute<HookPriority>();
+				if (!hooks.ContainsKey(hash)) hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
+			}
+			else
+			{
+				var attribute = method.GetCustomAttribute<HookMethodAttribute>();
+				if (attribute == null) continue;
+
+				attribute.Method = method;
+				hookMethods.Add(attribute);
+			}
+		}
+
+		foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+		{
+			var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
+			if (attribute == null) continue;
+
+			attribute.Field = field;
+			pluginReferences.Add(attribute);
+		}
 	}
 
 	public static bool IsValidPlugin(Type type)
