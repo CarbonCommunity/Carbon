@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using API.Events;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
@@ -182,7 +183,8 @@ public static class ModLoader
 
 	public static bool InitializePlugin(Type type, out RustPlugin plugin, ModPackage package = null, Action<RustPlugin> preInit = null, bool precompiled = false)
 	{
-		var instance = Activator.CreateInstance(type, false);
+		var constructor = type.GetConstructor(Type.EmptyTypes);
+		var instance = FormatterServices.GetUninitializedObject(type);
 		plugin = instance as RustPlugin;
 		var info = type.GetCustomAttribute<InfoAttribute>();
 		var desc = type.GetCustomAttribute<DescriptionAttribute>();
@@ -202,6 +204,15 @@ public static class ModLoader
 		plugin.SetupMod(package, title, author, version, description);
 
 		plugin.IsPrecompiled = precompiled;
+
+		try
+		{
+			constructor?.Invoke(instance, null);
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Failed invoking {plugin.ToString()} constructor", ex);
+		}
 
 		if (precompiled)
 		{
