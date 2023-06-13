@@ -891,13 +891,17 @@ public static class CUIStatics
 		container.Add(element);
 		return id;
 	}
-	public static string ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false)
+
+	public static string ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false) => ItemImage(cui, container, parent, id, itemID, 0, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, destroyUi, outlineColor, outlineDistance, outlineUseGraphicAlpha);
+
+	public static string ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, ulong skinID, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi);
 
 		var rawImage = cui.TakeFromPoolImage();
 		rawImage.ItemId = itemID;
+		rawImage.SkinId = skinID;
 		rawImage.FadeIn = fadeIn;
 		rawImage.Color = ProcessColor(color);
 		element.Components.Add(rawImage);
