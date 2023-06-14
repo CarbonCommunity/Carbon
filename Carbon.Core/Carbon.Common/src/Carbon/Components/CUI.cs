@@ -119,9 +119,9 @@ public struct CUI : IDisposable
 	{
 		return Manager.Sprite(container, parent, id, sprite, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, destroyUi, outlineColor, outlineDistance, outlineUseGraphicAlpha);
 	}
-	public Pair<string, CuiElement> CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false)
+	public Pair<string, CuiElement> CreateItemImage(CuiElementContainer container, string parent, string id, int itemID, ulong skinID, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false)
 	{
-		return Manager.ItemImage(container, parent, id, itemID, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, destroyUi, outlineColor, outlineDistance);
+		return Manager.ItemImage(container, parent, id, itemID, skinID, color, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, destroyUi, outlineColor, outlineDistance);
 	}
 	public Pair<string, CuiElement> CreateQRCodeImage(CuiElementContainer container, string parent, string id, string text, string brandUrl, string brandColor, string brandBgColor, int pixels, bool transparent, bool quietZones, string color, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false)
 	{
@@ -918,13 +918,14 @@ public static class CUIStatics
 		container.Add(element);
 		return new CUI.Pair<string, CuiElement> (id, element);
 	}
-	public static CUI.Pair<string, CuiElement> ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false)
+	public static CUI.Pair<string, CuiElement> ItemImage(this CUI.Handler cui, CuiElementContainer container, string parent, string id, int itemID, ulong skinID, string color, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi);
 
 		var rawImage = cui.TakeFromPoolImage();
 		rawImage.ItemId = itemID;
+		rawImage.SkinId = skinID;
 		rawImage.FadeIn = fadeIn;
 		rawImage.Color = ProcessColor(color);
 		element.Components.Add(rawImage);
