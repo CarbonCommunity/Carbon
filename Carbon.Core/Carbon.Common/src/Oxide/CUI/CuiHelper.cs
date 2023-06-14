@@ -62,14 +62,6 @@ public static class CuiHelper
 
 	public static string GetGuid() => $"{Guid.NewGuid():N}";
 
-	public static bool AddUi(BasePlayer player, CuiElement element)
-	{
-		var json = ToJson(element);
-		if (player?.net == null || Interface.CallHook("CanUseUI", player, json) != null) return false;
-
-		return AddUi(player, json, true);
-	}
-
 	public static bool AddUi(BasePlayer player, List<CuiElement> elements)
 	{
 		var json = ToJson(elements);
