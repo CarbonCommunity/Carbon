@@ -453,6 +453,9 @@ public class CuiElement
 
 	[JsonProperty("fadeOut", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
 	public float FadeOut { get; set; }
+
+	[JsonProperty("update", NullValueHandling = NullValueHandling.Ignore)]
+	public bool Update { get; set; }
 }
 public class CuiLabel
 {
