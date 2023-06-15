@@ -1473,7 +1473,7 @@ public static class HookCaller
 				});
 				var parameters = parameters0.ToArray();
 
-				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null);
+				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null && x.Type is not NullableTypeSyntax);
 				var requiredParameterCount = requiredParameters.Count(x => !x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)));
 
 				var refSets = string.Empty;
