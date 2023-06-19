@@ -2266,10 +2266,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					tab.AddName(1, Singleton.GetPhrase("watchers", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 					tab.AddToggle(1, Singleton.GetPhrase("scriptwatchers", ap.Player.UserIDString), ap => { Config.ScriptWatchers = !Config.ScriptWatchers; Community.Runtime.SaveConfig(); }, ap => Config.ScriptWatchers, Singleton.GetPhrase("scriptwatchers_help", ap.Player.UserIDString));
-					tab.AddDropdown(1, Singleton.GetPhrase("scriptwatchersoption", ap.Player.UserIDString), ap => (int)Config.ScriptWatcherOption, (ap, index) => {
+					tab.AddDropdown(1, Singleton.GetPhrase("scriptwatchersoption", ap.Player.UserIDString), ap => (int)Config.ScriptWatcherOption, (ap, index) =>
+					{
 						Config.ScriptWatcherOption = (SearchOption)index;
 						Community.Runtime.ScriptProcessor.IncludeSubdirectories = index == (int)SearchOption.AllDirectories;
-						Community.Runtime.SaveConfig(); }, SearchDirectories, tooltip: Singleton.GetPhrase("scriptwatchersoption_help", ap.Player.UserIDString));
+						Community.Runtime.SaveConfig();
+					}, SearchDirectories, tooltip: Singleton.GetPhrase("scriptwatchersoption_help", ap.Player.UserIDString));
 					tab.AddToggle(1, Singleton.GetPhrase("harmonyreference", ap.Player.UserIDString), ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference, Singleton.GetPhrase("harmonyreference_help", ap.Player.UserIDString));
 					tab.AddToggle(1, Singleton.GetPhrase("filenamecheck", ap.Player.UserIDString), ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck, Singleton.GetPhrase("filenamecheck_help", ap.Player.UserIDString));
 
@@ -2281,7 +2283,18 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tab.AddName(1, Singleton.GetPhrase("misc", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 					tab.AddInput(1, Singleton.GetPhrase("serverlang", ap.Player.UserIDString), ap => Config.Language, (ap, args) => { Config.Language = args[0]; Community.Runtime.SaveConfig(); });
 					tab.AddInput(1, Singleton.GetPhrase("webreqip", ap.Player.UserIDString), ap => Config.WebRequestIp, (ap, args) => { Config.WebRequestIp = args[0]; Community.Runtime.SaveConfig(); });
-					tab.AddEnum(1, Singleton.GetPhrase("permmode", ap.Player.UserIDString), (ap, back) => { var e = Enum.GetNames(typeof(Permission.SerializationMode)); Config.PermissionSerialization += back ? -1 : 1; if (Config.PermissionSerialization < 0) Config.PermissionSerialization = Permission.SerializationMode.SQL; else if (Config.PermissionSerialization > Permission.SerializationMode.SQL) Config.PermissionSerialization = Permission.SerializationMode.Protobuf; Community.Runtime.SaveConfig(); }, ap => Config.PermissionSerialization.ToString());
+					tab.AddEnum(1, Singleton.GetPhrase("permmode", ap.Player.UserIDString), (ap, back) =>
+					{
+						var e = Enum.GetNames(typeof(Permission.SerializationMode));
+						Config.PermissionSerialization += back ? -1 : 1;
+					
+						if (Config.PermissionSerialization < (Permission.SerializationMode)(-1))
+							Config.PermissionSerialization = (Permission.SerializationMode)(e.Length - 2);
+						else if ((int)Config.PermissionSerialization >= e.Length - 1)
+							Config.PermissionSerialization = (Permission.SerializationMode)(-1);
+
+						Community.Runtime.SaveConfig();
+					}, ap => Config.PermissionSerialization.ToString());
 				}
 			}
 		}

@@ -58,6 +58,10 @@ public class OxideMod
 
 		switch (Community.Runtime.Config.PermissionSerialization)
 		{
+			case Permission.SerializationMode.Storeless:
+				Permission = new PermissionStoreless();
+				break;
+
 			case Permission.SerializationMode.Protobuf:
 				Permission = new Permission();
 				break;
