@@ -51,19 +51,6 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		Singleton = this;
 	}
 
-	public override bool InitEnd()
-	{
-		if (base.InitEnd())
-		{
-			if (ConfigInstance.AutoEnableOnCustomMap
-				&& !string.IsNullOrEmpty(ConVar.Server.levelurl))
-			{
-				SetEnabled(true);
-			}
-		}
-
-		return true;
-	}
 	public override void OnServerInit()
 	{
 		#region Spawnpoints
@@ -161,6 +148,12 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	public override void Load()
 	{
 		base.Load();
+
+		if (ConfigInstance.AutoEnableOnCustomMap
+			&& !string.IsNullOrEmpty(ConVar.Server.levelurl))
+		{
+			SetEnabled(true);
+		}
 
 		if (!GetEnabled())
 		{
