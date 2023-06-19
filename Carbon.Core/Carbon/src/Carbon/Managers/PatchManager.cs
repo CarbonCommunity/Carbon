@@ -79,10 +79,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			Callback = (arg) => CMDHookInfo(arg)
 		}, out string _);
 
-		if (Community.Runtime.Config.AutoUpdate)
+		enabled = false;
+
+		if (Community.Runtime.Config.AutoUpdateExtHooks)
 		{
 			Logger.Log("Updating hooks...");
-			enabled = false;
 
 			Updater.DoUpdate((bool result) =>
 			{
@@ -91,6 +92,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				enabled = true;
 			});
 		}
+		else Invoke("OnEnable", 0.1f);
 	}
 
 	private void OnEnable()
@@ -572,11 +574,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		if (args.HasArgs(1))
 		{
-			Community.Runtime.Config.AutoUpdate = value;
+			Community.Runtime.Config.AutoUpdateExtHooks = value;
 			Community.Runtime.SaveConfig();
 		}
 
-		arg.ReplyWith($"c.autoupdate: {Community.Runtime.Config.AutoUpdate}");
+		arg.ReplyWith($"c.autoupdateexthooks: {Community.Runtime.Config.AutoUpdateExtHooks}");
 	}
 
 	private void CMDHookInfo(Command.Args arg)

@@ -141,6 +141,8 @@ namespace Oxide.Game.Rust.Libraries
 			{
 				var arguments = Pool.GetList<object>();
 				var result = (object[])null;
+				var arg = (ConsoleSystem.Arg)null;
+
 				try
 				{
 					var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -159,7 +161,23 @@ namespace Oxide.Game.Rust.Libraries
 						}
 						else
 						{
-							arguments.Add(player);
+							if (parameters[0].ParameterType == typeof(Arg))
+							{
+								var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
+								var client = player == null ? Option.Unrestricted : Option.Client;
+								arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
+								if (player != null) client = client.FromConnection(player.net.connection);
+								client.FromRcon = FromRcon;
+								arg.Option = client;
+								arg.FullString = fullString;
+								arg.Args = args;
+
+								arguments.Add(arg);
+							}
+							else
+							{
+								arguments.Add(player);
+							}
 						}
 
 						switch (parameters.Length)
@@ -197,6 +215,7 @@ namespace Oxide.Game.Rust.Libraries
 
 				if (arguments != null) Pool.FreeList(ref arguments);
 				if (result != null) Array.Clear(result, 0, result.Length);
+				if (arg != null) arg = null;
 			}, help, reference, permissions, groups, authLevel, cooldown, isHidden, @protected, silent);
 		}
 		public void AddConsoleCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)

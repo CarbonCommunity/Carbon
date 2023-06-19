@@ -69,7 +69,7 @@ public class CommunityInternal : Community
 
 	#region Processors
 
-	internal void _installProcessors()
+	internal void InstallProcessors()
 	{
 		Carbon.Logger.Log("Installed processors");
 		{
@@ -166,7 +166,7 @@ public class CommunityInternal : Community
 			Defines.Initialize();
 			HookValidator.Initialize();
 
-			_installProcessors();
+			InstallProcessors();
 
 			Interface.Initialize();
 
