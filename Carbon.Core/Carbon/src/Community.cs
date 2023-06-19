@@ -52,8 +52,12 @@ public class CommunityInternal : Community
 
 	internal void _installDefaultCommands()
 	{
-		CorePlugin = new CorePlugin { Name = "Core", IsCorePlugin = true };
 		Plugins = new ModLoader.ModPackage { Name = "Scripts", IsCoreMod = false };
+
+		CorePlugin = new CorePlugin();
+		CorePlugin.Setup("Core", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
+		ModLoader.ProcessPrecompiledType(CorePlugin);
+		CorePlugin.IsCorePlugin = CorePlugin.IsPrecompiled = true;
 		CorePlugin.IInit();
 
 		ModLoader.LoadedPackages.Add(new ModLoader.ModPackage { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
@@ -65,7 +69,7 @@ public class CommunityInternal : Community
 
 	#region Processors
 
-	internal void _installProcessors()
+	internal void InstallProcessors()
 	{
 		Carbon.Logger.Log("Installed processors");
 		{
@@ -162,7 +166,7 @@ public class CommunityInternal : Community
 			Defines.Initialize();
 			HookValidator.Initialize();
 
-			_installProcessors();
+			InstallProcessors();
 
 			Interface.Initialize();
 

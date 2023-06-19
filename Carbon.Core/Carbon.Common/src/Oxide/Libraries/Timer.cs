@@ -44,8 +44,6 @@ public class Timers
 
 	public Timer In(float time, Action action)
 	{
-		if (!Community.IsServerFullyInitialized) return null;
-
 		if (!IsValid()) return null;
 
 		var timer = new Timer(Persistence, action, Plugin);
