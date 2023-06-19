@@ -248,37 +248,44 @@ public static class ModLoader
 
 	public static void ProcessPrecompiledType(RustPlugin plugin)
 	{
-		var type = plugin.GetType();
-		var hooks = plugin.Hooks ??= new();
-		var hookMethods = plugin.HookMethods ??= new();
-		var pluginReferences = plugin.PluginReferences ??= new();
-
-		foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
+		try
 		{
-			var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+			var type = plugin.GetType();
+			var hooks = plugin.Hooks ??= new();
+			var hookMethods = plugin.HookMethods ??= new();
+			var pluginReferences = plugin.PluginReferences ??= new();
 
-			if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+			foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 			{
-				var priority = method.GetCustomAttribute<HookPriority>();
-				if (!hooks.ContainsKey(hash)) hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
+				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+
+				if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+				{
+					var priority = method.GetCustomAttribute<HookPriority>();
+					if (!hooks.ContainsKey(hash)) hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
+				}
+				else
+				{
+					var attribute = method.GetCustomAttribute<HookMethodAttribute>();
+					if (attribute == null) continue;
+
+					attribute.Method = method;
+					hookMethods.Add(attribute);
+				}
 			}
-			else
+
+			foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
 			{
-				var attribute = method.GetCustomAttribute<HookMethodAttribute>();
+				var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
 				if (attribute == null) continue;
 
-				attribute.Method = method;
-				hookMethods.Add(attribute);
+				attribute.Field = field;
+				pluginReferences.Add(attribute);
 			}
 		}
-
-		foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+		catch (Exception ex)
 		{
-			var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
-			if (attribute == null) continue;
-
-			attribute.Field = field;
-			pluginReferences.Add(attribute);
+			Logger.Error($"Failed ProcessPrecompiledType for plugin '{plugin}'", ex);
 		}
 	}
 

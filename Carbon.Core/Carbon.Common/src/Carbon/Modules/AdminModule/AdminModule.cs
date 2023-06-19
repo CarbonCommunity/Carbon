@@ -182,8 +182,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				["config"] = "Config",
 				["ismodded"] = "Is Modded",
 				["ismodded_help"] = "When enabled, it marks the server as modded.",
-				["autoupdate"] = "Auto Update",
-				["autoupdate_help"] = "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.",
+				["autoupdateexthooks"] = "Auto Update External Hooks",
+				["autoupdateexthooks_help"] = "Automatically update the 'Carbon.Hooks.Extra' file on boot. Recommended to be enabled.",
 				["general"] = "General",
 				["hookvalidation"] = "Hook Validation",
 				["hookvalidation_help"] = "Probably obsolete, but when enabled, it prints a list of hooks that are compatible in Oxide, but not Carbon.",
@@ -2259,7 +2259,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddName(1, Singleton.GetPhrase("config", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 				{
 					tab.AddToggle(1, Singleton.GetPhrase("ismodded", ap.Player.UserIDString), ap => { Config.IsModded = !Config.IsModded; Community.Runtime.SaveConfig(); }, ap => Config.IsModded, Singleton.GetPhrase("ismodded_help", ap.Player.UserIDString));
-					tab.AddToggle(1, Singleton.GetPhrase("autoupdate", ap.Player.UserIDString), ap => { Config.AutoUpdate = !Config.AutoUpdate; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdate, Singleton.GetPhrase("autoupdate_help", ap.Player.UserIDString));
+					tab.AddToggle(1, Singleton.GetPhrase("autoupdateexthooks", ap.Player.UserIDString), ap => { Config.AutoUpdateExtHooks = !Config.AutoUpdateExtHooks; Community.Runtime.SaveConfig(); }, ap => Config.AutoUpdateExtHooks, Singleton.GetPhrase("autoupdateexthooks_help", ap.Player.UserIDString));
 
 					tab.AddName(1, Singleton.GetPhrase("general", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 					tab.AddInput(1, Singleton.GetPhrase("entmapbuffersize", ap.Player.UserIDString), ap => Config.EntityMapBufferSize.ToString(), (ap, args) => { Config.EntityMapBufferSize = args[0].ToInt().Clamp(10000, 500000); Community.Runtime.SaveConfig(); }, Singleton.GetPhrase("entmapbuffersize_help", ap.Player.UserIDString));
