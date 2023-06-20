@@ -29,7 +29,7 @@ namespace Oxide.Core.Plugins
 		public bool IsCorePlugin { get; set; }
 
 		[JsonProperty]
-		public string Title { get; set; } = "Rust";
+		public string Title { get; set; }
 		[JsonProperty]
 		public string Description { get; set; }
 		[JsonProperty]
