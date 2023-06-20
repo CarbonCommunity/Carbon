@@ -91,7 +91,7 @@ public partial class CorePlugin : CarbonPlugin
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0.0}s", $"{plugin.CompileTime:0}ms");
+							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{plugin.CompileTime:0}ms");
 						}
 
 						count++;
