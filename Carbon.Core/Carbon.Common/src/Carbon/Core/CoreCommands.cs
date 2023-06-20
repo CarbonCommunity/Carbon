@@ -443,10 +443,6 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.")]
-	[AuthLevel(2)]
-	private bool HookValidation { get { return Community.Runtime.Config.HookValidation; } set { Community.Runtime.Config.HookValidation = value; Community.Runtime.SaveConfig(); } }
-
 	[CommandVar("filenamecheck", "It checks if the file name and the plugin name matches. (only applies to scripts)")]
 	[AuthLevel(2)]
 	private bool FileNameCheck { get { return Community.Runtime.Config.FileNameCheck; } set { Community.Runtime.Config.FileNameCheck = value; Community.Runtime.SaveConfig(); } }
@@ -681,6 +677,7 @@ public partial class CorePlugin : CarbonPlugin
 				}
 
 				var pluginFound = false;
+				var pluginPrecompiled = false;
 
 				foreach (var mod in ModLoader.LoadedPackages)
 				{
@@ -689,12 +686,22 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var plugin in plugins)
 					{
+						if (plugin.IsPrecompiled) continue;
+
 						if (plugin.Name == name)
 						{
-							plugin.ProcessorInstance.Dispose();
-							plugin.ProcessorInstance.Execute();
-							mod.Plugins.Remove(plugin);
 							pluginFound = true;
+
+							if (plugin.IsPrecompiled)
+							{
+								pluginPrecompiled = true;
+							}
+							else
+							{
+								plugin.ProcessorInstance.Dispose();
+								plugin.ProcessorInstance.Execute();
+								mod.Plugins.Remove(plugin);
+							}
 						}
 					}
 
@@ -704,6 +711,10 @@ public partial class CorePlugin : CarbonPlugin
 				if (!pluginFound)
 				{
 					Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+				}
+				else if (pluginPrecompiled)
+				{
+					Logger.Warn($"Plugin {name} is a precompiled plugin which can only be reloaded programmatically.");
 				}
 				break;
 		}
@@ -830,6 +841,7 @@ public partial class CorePlugin : CarbonPlugin
 					}
 
 					var pluginFound = false;
+					var pluginPrecompiled = false;
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
@@ -840,9 +852,17 @@ public partial class CorePlugin : CarbonPlugin
 						{
 							if (plugin.Name == name)
 							{
-								plugin.ProcessorInstance.Dispose();
-								mod.Plugins.Remove(plugin);
 								pluginFound = true;
+
+								if (plugin.IsPrecompiled)
+								{
+									pluginPrecompiled = true;
+								}
+								else
+								{
+									plugin.ProcessorInstance?.Dispose();
+									mod.Plugins.Remove(plugin);
+								}
 							}
 						}
 
@@ -853,6 +873,10 @@ public partial class CorePlugin : CarbonPlugin
 					{
 						if (string.IsNullOrEmpty(path)) Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
 						else Logger.Warn($"Plugin {name} was not loaded but was marked as ignored.");
+					}
+					else if (pluginPrecompiled)
+					{
+						Logger.Warn($"Plugin {name} is a precompiled plugin which can only be unloaded programmatically.");
 					}
 					break;
 				}

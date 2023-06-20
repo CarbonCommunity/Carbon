@@ -145,6 +145,13 @@ public static class StringEx
 			result += $"{split[0].ToString().ToUpper()}{split.Substring(1, split.Length - 1)} ";
 		}
 
+		if (splits.Length == 0)
+		{
+			result = $"{char.ToUpper(str[0])}{str.Substring(1, str.Length)}";
+		}
+
+		Array.Clear(splits, 0, splits.Length);
+		splits = null;
 		return result;
 	}
 

@@ -97,27 +97,31 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 			foreach (var element in _runtimeCache)
 			{
+				var id = Path.GetFileNameWithoutExtension(element.Key);
+
 				if (element.Value == null)
 				{
 					var instance = Activator.CreateInstance(IndexedType) as Instance;
 					instance.File = element.Key;
 					instance.Execute();
 
-					InstanceBuffer[element.Key] = instance;
+					InstanceBuffer.Remove(element.Key);
+					InstanceBuffer[id] = instance;
 					continue;
-				}
-
-				if (element.Value.IsRemoved)
-				{
-					Clear(element.Key, element.Value);
-					yield return null;
-					break;
 				}
 
 				if (element.Value.IsDirty)
 				{
 					Process(element.Key, element.Value);
 					yield return null;
+					continue;
+				}
+
+				if (element.Value.IsRemoved)
+				{
+					Clear(id, element.Value);
+					yield return null;
+					continue;
 				}
 			}
 
@@ -214,9 +218,21 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 	internal void _onCreated(object sender, FileSystemEventArgs e)
 	{
-		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;		
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		InstanceBuffer.Add(e.Name, null);
+		if (InstanceBuffer.TryGetValue(e.FullPath, out var instance1))
+		{
+			instance1?.SetDirty();
+			return;
+		}
+
+		if (InstanceBuffer.TryGetValue(Path.GetFileNameWithoutExtension(e.FullPath), out var instance2))
+		{
+			instance2?.SetDirty();
+			return;
+		}
+
+		InstanceBuffer.Add(e.FullPath, null);
 	}
 	internal void _onChanged(object sender, FileSystemEventArgs e)
 	{
@@ -256,7 +272,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 		if (BlacklistPattern == null) return false;
 
-		for(int i = 0; i < BlacklistPattern.Length; i++)
+		for (int i = 0; i < BlacklistPattern.Length; i++)
 		{
 			if (path.Contains(BlacklistPattern[i])) return true;
 		}
@@ -282,6 +298,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 
 		public void SetDirty()
 		{
+			_hasRemoved = false;
 			_hasChanged = true;
 		}
 		public void MarkDeleted()

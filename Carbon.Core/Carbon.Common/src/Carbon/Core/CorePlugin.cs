@@ -36,12 +36,13 @@ public partial class CorePlugin : CarbonPlugin
 
 		var config = Community.Runtime.Config;
 		var processor = Community.Runtime.ScriptProcessor;
-		
+
 		foreach (var file in OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", config.ScriptWatcherOption))
 		{
 			if (processor.IsBlacklisted(file)) continue;
 
-			OrderedFiles.Add(Path.GetFileNameWithoutExtension(file), file);
+			var id = Path.GetFileNameWithoutExtension(file);
+			if (!OrderedFiles.ContainsKey(id)) OrderedFiles.Add(id, file);
 		}
 	}
 

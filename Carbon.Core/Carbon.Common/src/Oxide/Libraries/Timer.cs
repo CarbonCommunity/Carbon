@@ -44,8 +44,6 @@ public class Timers
 
 	public Timer In(float time, Action action)
 	{
-		if (!Community.IsServerFullyInitialized) return null;
-
 		if (!IsValid()) return null;
 
 		var timer = new Timer(Persistence, action, Plugin);
@@ -220,9 +218,9 @@ public class Timer : Library, IDisposable
 			Persistence.InvokeRepeating(Callback, delay, delay);
 		}
 	}
-	public void Destroy()
+	public bool Destroy()
 	{
-		if (Destroyed) return;
+		if (Destroyed) return false;
 		Destroyed = true;
 
 		if (Persistence != null)
@@ -235,6 +233,8 @@ public class Timer : Library, IDisposable
 		{
 			Callback = null;
 		}
+
+		return true;
 	}
 	public void DestroyToPool()
 	{

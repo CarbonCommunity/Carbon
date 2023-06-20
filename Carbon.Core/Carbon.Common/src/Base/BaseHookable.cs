@@ -51,7 +51,7 @@ public class BaseHookable
 	}
 
 	[JsonProperty]
-	public string Name;
+	public string Name { get; set; }
 
 	[JsonProperty]
 	public virtual VersionNumber Version { get; set; }
@@ -61,6 +61,7 @@ public class BaseHookable
 
 	public bool HasInitialized;
 	public Type Type;
+	public bool InternalCallHookOverriden = true;
 
 	#region Tracking
 
@@ -101,6 +102,7 @@ public class BaseHookable
 
 	public virtual object InternalCallHook(uint hook, object[] args)
 	{
+		InternalCallHookOverriden = false;
 		return null;
 	}
 
