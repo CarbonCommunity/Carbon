@@ -40,6 +40,16 @@ public sealed class Entrypoint
 			isolated2.Do.Write();
 		}
 
+		using Sandbox<FacepunchNetwork> isolated3 = new Sandbox<FacepunchNetwork>();
+		{
+			if(!isolated3.Do.IsPublic("Networkable", "sv"))
+			{
+				isolated3.Do.Publicize();
+			}
+
+			isolated3.Do.Write();
+		}
+
 		foreach (string file in Preload)
 		{
 			try
