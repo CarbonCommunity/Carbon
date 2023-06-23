@@ -1490,6 +1490,7 @@ public static class HookCaller
 
 				parameterIndex = -1;
 				var parameterText = string.Empty;
+				var varText = string.Empty;
 				for (int o = 0; o < method.ParameterList.Parameters.Count; o++)
 				{
 					var parameter = method.ParameterList.Parameters[o];
@@ -1498,7 +1499,8 @@ public static class HookCaller
 					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) && parameter.Type is not NullableTypeSyntax)
 					{
 						var type = parameter.Type.ToString().Replace("?", string.Empty).Replace("global::", string.Empty);
-						parameterText += !IsUnmanagedType(type) ? $"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} &&" : $"(args[{parameterIndex}] ?? ({type})default) is {type} arg{parameterIndex}_{i} &&";
+						varText += $"var narg{parameterIndex}_{i} = args[{parameterIndex}] is {type};\nvar arg{parameterIndex}_{i} = narg{parameterIndex}_{i} ? ({type})(args[{parameterIndex}] ?? ({type})default) : ({type})default;\n";
+						parameterText += !IsUnmanagedType(type) ? $"narg{parameterIndex}_{i} && " : $"(narg{parameterIndex}_{i} || args[{parameterIndex}] == null) && ";
 					}
 				}
 
@@ -1507,7 +1509,8 @@ public static class HookCaller
 					parameterText = parameterText.Substring(0, parameterText.Length - 3);
 				}
 
-				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{parameterText})" : "")} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "}" : "")}";
+				var validLengthCheck = group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count);
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"{(validLengthCheck ? $"if(args.Length == {method.ParameterList.Parameters.Count})" : string.Empty)}" : "")} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" && validLengthCheck ? "{" : "")} {varText}{(string.IsNullOrEmpty(parameterText) ? string.Empty : $"if({parameterText}) {{")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" && validLengthCheck ? "}" : "")}{(string.IsNullOrEmpty(parameterText) ? string.Empty : $"}}")}\n";
 
 				Array.Clear(parameters, 0, parameters.Length);
 				parameters = null;
