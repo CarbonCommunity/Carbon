@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using API.Assembly;
 
@@ -31,6 +32,47 @@ public class Initializer : ICarbonComponent
 
 	public void OnLoaded(EventArgs args)
 	{
+		try
+		{
+#if UNIX
+			var os = OSPlatform.Linux;
+			var otherOS = OSPlatform.Windows;
+#else
+			var os = OSPlatform.Windows;
+			var otherOS = OSPlatform.Linux;
+#endif
+
+			if (!RuntimeInformation.IsOSPlatform(os))
+			{
+				Logger.Log(Environment.NewLine +
+					$@"                                                          " + Environment.NewLine +
+					$@"  ________ _______ ______ _______ _______ _______ _______ " + Environment.NewLine +
+					$@" |  |  |  |   _   |   __ \    |  |_     _|    |  |     __|" + Environment.NewLine +
+					$@" |  |  |  |       |      <       |_|   |_|       |    |  |" + Environment.NewLine +
+					$@" |________|___|___|___|__|__|____|_______|__|____|_______|" + Environment.NewLine +
+					$@"                                                          " + Environment.NewLine +
+					$@"    YOU'RE TRYING TO RUN CARBON FOR {os} ON A {otherOS}   " + Environment.NewLine +
+					$@"    MACHINE. THIS CANNOT HAPPEN.                          " + Environment.NewLine +
+					$@"                                                          " + Environment.NewLine +
+					$@"    PLEASE VERIFY SERVER FILES WITH STEAM, DOWNLOAD THE   " + Environment.NewLine +
+					$@"    {otherOS} CARBON BUILD, THEN TRY AGAIN.               " + Environment.NewLine +
+					$@"                                                          " + Environment.NewLine +
+					$@"    IF THIS STILL PERSISTS, PLEASE REACH OUT TO US.       " + Environment.NewLine +
+					$@"    THANK YOU <3                                          " + Environment.NewLine +
+					$@"                                                          " + Environment.NewLine
+				);
+
+				Thread.Sleep(60000);
+				UnityEngine.Application.Quit();
+				return;
+			}
+		}
+		catch (Exception e)
+		{
+			Logger.Error("Unable to assert operating system status.", e);
+			return;
+		}
+
 		try
 		{
 			if (Type.GetType("Oxide.Core.Interface, Oxide.Core") is not null)
@@ -107,7 +149,7 @@ public class Initializer : ICarbonComponent
 			@" |      |   _   |   __ \   __ \       |    |  |" + Environment.NewLine +
 			@" |   ---|       |      <   __ <   -   |       |" + Environment.NewLine +
 			@" |______|___|___|___|__|______/_______|__|____|" + Environment.NewLine +
-			@"                         discord.gg/eXPcNKK4yd " + Environment.NewLine +
+			@"                          discord.gg/carbonmod " + Environment.NewLine +
 			@"                                               " + Environment.NewLine
 		);
 

@@ -29,7 +29,7 @@ namespace Oxide.Core.Plugins
 		public bool IsCorePlugin { get; set; }
 
 		[JsonProperty]
-		public string Title { get; set; } = "Rust";
+		public string Title { get; set; }
 		[JsonProperty]
 		public string Description { get; set; }
 		[JsonProperty]
@@ -583,6 +583,9 @@ namespace Oxide.Core.Plugins
 
 		#region Compatibility
 
+		public PluginManagerEvent OnAddedToManager = new();
+		public PluginManagerEvent OnRemovedFromManager = new();
+
 		public virtual void HandleAddedToManager(PluginManager manager) { }
 		public virtual void HandleRemovedFromManager(PluginManager manager) { }
 
@@ -607,8 +610,7 @@ namespace Oxide.Core.Plugins
 
 			if (!Config.Exists(null))
 			{
-				CallHook("LoadDefaultConfig");
-
+				LoadDefaultConfig();
 				SaveConfig();
 			}
 			try

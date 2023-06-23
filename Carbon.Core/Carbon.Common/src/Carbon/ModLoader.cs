@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using API.Events;
 using Carbon.Base;
 using Carbon.Base.Interfaces;
@@ -39,6 +40,8 @@ public static class ModLoader
 
 	public static List<string> GetRequirees(Plugin initial)
 	{
+		if (string.IsNullOrEmpty(initial.FilePath)) return null;
+
 		if (PendingRequirees.TryGetValue(initial.FilePath, out var requirees))
 		{
 			return requirees;
@@ -77,6 +80,7 @@ public static class ModLoader
 
 		PendingRequirees.Clear();
 		requirees.Clear();
+		requirees = null;
 	}
 	public static void ClearAllErrored()
 	{
@@ -152,25 +156,6 @@ public static class ModLoader
 
 				if (!IsValidPlugin(type)) continue;
 
-				if (Community.Runtime.Config.HookValidation)
-				{
-					var counter = 0;
-					foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-					{
-						if (HookValidator.IsIncompatibleOxideHook(method.Name))
-						{
-							Logger.Warn($" Hook '{method.Name}' is not supported.");
-							counter++;
-						}
-					}
-
-					if (counter > 0)
-					{
-						Logger.Warn($"Plugin '{type.Name}' uses {counter:n0} Oxide hooks that Carbon doesn't support yet.");
-						Logger.Warn($"Plugin '{type.Name}' will not work as expected.");
-					}
-				}
-
 				if (!InitializePlugin(type, out var plugin, mod)) continue;
 				plugin.HasInitialized = true;
 
@@ -196,9 +181,10 @@ public static class ModLoader
 		Pool.FreeList(ref plugins);
 	}
 
-	public static bool InitializePlugin(Type type, out RustPlugin plugin, ModPackage package = null, Action<RustPlugin> preInit = null)
+	public static bool InitializePlugin(Type type, out RustPlugin plugin, ModPackage package = null, Action<RustPlugin> preInit = null, bool precompiled = false)
 	{
-		var instance = Activator.CreateInstance(type, false);
+		var constructor = type.GetConstructor(Type.EmptyTypes);
+		var instance = FormatterServices.GetUninitializedObject(type);
 		plugin = instance as RustPlugin;
 		var info = type.GetCustomAttribute<InfoAttribute>();
 		var desc = type.GetCustomAttribute<DescriptionAttribute>();
@@ -209,13 +195,29 @@ public static class ModLoader
 			return false;
 		}
 
-		var title = info.Title?.Replace(" ", "");
+		var title = info.Title?.Replace(" ", string.Empty);
 		var author = info.Author;
 		var version = info.Version;
 		var description = desc == null ? string.Empty : desc.Description;
 
 		plugin.SetProcessor(Community.Runtime.ScriptProcessor);
 		plugin.SetupMod(package, title, author, version, description);
+
+		plugin.IsPrecompiled = precompiled;
+
+		try
+		{
+			constructor?.Invoke(instance, null);
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Failed invoking {plugin.ToString()} constructor", ex);
+		}
+
+		if (precompiled)
+		{
+			ProcessPrecompiledType(plugin);
+		}
 
 		preInit?.Invoke(plugin);
 
@@ -242,6 +244,49 @@ public static class ModLoader
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
 		return true;
+	}
+
+	public static void ProcessPrecompiledType(RustPlugin plugin)
+	{
+		try
+		{
+			var type = plugin.GetType();
+			var hooks = plugin.Hooks ??= new();
+			var hookMethods = plugin.HookMethods ??= new();
+			var pluginReferences = plugin.PluginReferences ??= new();
+
+			foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
+			{
+				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+
+				if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+				{
+					var priority = method.GetCustomAttribute<HookPriority>();
+					if (!hooks.ContainsKey(hash)) hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
+				}
+				else
+				{
+					var attribute = method.GetCustomAttribute<HookMethodAttribute>();
+					if (attribute == null) continue;
+
+					attribute.Method = method;
+					hookMethods.Add(attribute);
+				}
+			}
+
+			foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+			{
+				var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
+				if (attribute == null) continue;
+
+				attribute.Field = field;
+				pluginReferences.Add(attribute);
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Failed ProcessPrecompiledType for plugin '{plugin}'", ex);
+		}
 	}
 
 	public static bool IsValidPlugin(Type type)
