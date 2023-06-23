@@ -69,7 +69,7 @@ public class BaseHookable
 
 	public virtual void TrackStart()
 	{
-		if (!Community.IsServerFullyInitialized)
+		if (!Community.IsServerFullyInitializedCache)
 		{
 			return;
 		}
@@ -83,7 +83,7 @@ public class BaseHookable
 	}
 	public virtual void TrackEnd()
 	{
-		if (!Community.IsServerFullyInitialized)
+		if (!Community.IsServerFullyInitializedCache)
 		{
 			return;
 		}
@@ -94,7 +94,7 @@ public class BaseHookable
 			return;
 		}
 		stopwatch.Stop();
-		TotalHookTime += stopwatch.Elapsed.TotalSeconds;
+		TotalHookTime += stopwatch.Elapsed.TotalMilliseconds;
 		stopwatch.Reset();
 	}
 
@@ -108,6 +108,8 @@ public class BaseHookable
 
 	public void Unsubscribe(string hook)
 	{
+		if (IgnoredHooks == null) return;
+
 		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
 
 		if (IgnoredHooks.Contains(hash)) return;
@@ -116,6 +118,8 @@ public class BaseHookable
 	}
 	public void Subscribe(string hook)
 	{
+		if (IgnoredHooks == null) return;
+
 		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
 
 		if (!IgnoredHooks.Contains(hash)) return;

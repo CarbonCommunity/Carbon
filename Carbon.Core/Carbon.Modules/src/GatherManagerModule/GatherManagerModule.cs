@@ -126,7 +126,7 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 		if (ConfigInstance.OvenSpeedOverrideBlacklist.Contains(oven.ShortPrefabName) ||
 			ConfigInstance.OvenSpeedOverrideBlacklist.Contains(oven.GetType().Name))
 		{
-			return ConfigInstance.OvenSpeedBlackistedOverride;
+			return ConfigInstance.OvenSpeedBlacklistedOverride;
 		}
 
 		return ConfigInstance.OvenSpeedOverride;
@@ -186,7 +186,7 @@ public class GatherManagerConfig
 	public float CraftingSpeedMultiplier = 1f;
 	public float MixingSpeedMultiplier = 1f;
 	public float OvenSpeedOverride = 0.5f;
-	public float OvenSpeedBlackistedOverride = 0.5f;
+	public float OvenSpeedBlacklistedOverride = 0.5f;
 
 	[JsonProperty("OvenSpeedOverrideBlacklist (prefab shortname, type)")]
 	public string[] OvenSpeedOverrideBlacklist = new string[]

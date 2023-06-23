@@ -15,7 +15,7 @@ namespace Carbon.Core;
 [Serializable]
 public class Config
 {
-	public bool AutoUpdate { get; set; } = true;
+	public bool AutoUpdateExtHooks { get; set; } = true;
 	public bool HarmonyReference { get; set; } = false;
 	public bool ScriptWatchers { get; set; } = true;
 	public System.IO.SearchOption ScriptWatcherOption { get; set; } = System.IO.SearchOption.TopDirectoryOnly;
