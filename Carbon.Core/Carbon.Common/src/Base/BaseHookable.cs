@@ -108,6 +108,8 @@ public class BaseHookable
 
 	public void Unsubscribe(string hook)
 	{
+		if (IgnoredHooks == null) return;
+
 		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
 
 		if (IgnoredHooks.Contains(hash)) return;
@@ -116,6 +118,8 @@ public class BaseHookable
 	}
 	public void Subscribe(string hook)
 	{
+		if (IgnoredHooks == null) return;
+
 		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
 
 		if (!IgnoredHooks.Contains(hash)) return;
