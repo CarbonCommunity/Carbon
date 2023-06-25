@@ -1644,7 +1644,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			case Tab.OptionColor color:
 				if (color.Callback != null)
 				{
-					ColorPicker.Draw(player, (rustColor, hexColor) => { color.Callback?.Invoke(ap, rustColor, hexColor); });
+					ColorPicker.Draw(player, (rustColor, hexColor, alpha) => { color.Callback?.Invoke(ap, rustColor, hexColor, alpha); });
 					return false;
 				}
 				break;
@@ -1932,7 +1932,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			return AddRow(column, new OptionInputButton(name, buttonPriority, input, button, tooltip));
 		}
-		public Tab AddColor(int column, string name, Func<string> color, Action<PlayerSession, string, string> callback, string tooltip = null)
+		public Tab AddColor(int column, string name, Func<string> color, Action<PlayerSession, string, string, float> callback, string tooltip = null)
 		{
 			return AddRow(column, new OptionColor(name, color, callback, tooltip));
 		}
@@ -2160,9 +2160,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public class OptionColor : Option
 		{
 			public Func<string> Color;
-			public Action<PlayerSession, string, string> Callback;
+			public Action<PlayerSession, string, string, float> Callback;
 
-			public OptionColor(string name, Func<string> color, Action<PlayerSession, string, string> callback, string tooltip = null) : base(name, tooltip)
+			public OptionColor(string name, Func<string> color, Action<PlayerSession, string, string, float> callback, string tooltip = null) : base(name, tooltip)
 			{
 				Color = color;
 				Callback = callback;
@@ -5679,7 +5679,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							var valueSplit = value.Split(' ');
 							if (value.StartsWith("#") || (valueSplit.Length >= 3 && valueSplit.All(x => float.TryParse(x, out _))))
 							{
-								AddColor(column, name, () => value.StartsWith("#") ? HexToRustColor(value) : value, (ap, hex, rust) =>
+								AddColor(column, name, () => value.StartsWith("#") ? HexToRustColor(value) : value, (ap, hex, rust, alpha) =>
 								{
 									value = value.StartsWith("#") ? hex : rust;
 									usableToken.Replace(usableToken = $"#{value}");
@@ -6177,6 +6177,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public const string Brightness = "colorpicker_brightness";
 		public const string BrightnessIndicator = "colorpicker_brightnessindicator";
 		public const string FirstOpen = "colorpicker_firstopen";
+		public const string Alpha = "colorpicker_alpha";
 		public const string OnColorPicked = "colorpicker_oncolorpicked";
 
 		public const string PanelId = "carbonuicolorpicker";
@@ -6185,14 +6186,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		internal static float AnimationLength = 0.005f;
 		internal static float CurrentAnimation = 0f;
 
-		public static void Open(BasePlayer player, Action<string, string> onColorPicked)
+		public static void Open(BasePlayer player, Action<string, string, float> onColorPicked)
 		{
 			var ap = Singleton.GetPlayerSession(player);
+			ap.SetStorage(ap.SelectedTab, Alpha, 1f);
 
 			if (!Singleton.ModuleConfiguration.Enabled)
 			{
 				var empty = string.Empty;
-				onColorPicked?.Invoke(empty, empty);
+				onColorPicked?.Invoke(empty, empty, 1f);
 				return;
 			}
 
@@ -6210,13 +6212,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			ap.SetStorage(ap.SelectedTab, FirstOpen, false);
 		}
 
-		internal static void Draw(BasePlayer player, Action<string, string> onColorPicked)
+		internal static void Draw(BasePlayer player, Action<string, string, float> onColorPicked)
 		{
 			if (player == null) return;
 
 			var ap = Singleton.GetPlayerSession(player);
 
 			ap.SetStorage(ap.SelectedTab, OnColorPicked, onColorPicked);
+			var alphaValue = ap.GetStorage(ap.SelectedTab, Alpha, 1f);
 
 			var brightness = ap.GetStorage(ap.SelectedTab, Brightness, 1f);
 			var firstOpen = ap.GetStorage(ap.SelectedTab, FirstOpen, false);
@@ -6267,10 +6270,28 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				align: TextAnchor.LowerLeft,
 				font: Handler.FontTypes.RobotoCondensedRegular);
 
+			cui.CreateText(container, parent: main, id: null,
+				color: "1 1 1 0.3",
+				text: "------------------- ALPHA", 8,
+				xMin: 0, xMax: 0.14f, yMin: 0.085f, yMax: 1f,
+				align: TextAnchor.LowerRight,
+				font: Handler.FontTypes.RobotoCondensedRegular);
+
+			//
+			// Hex input field
+			//
 			var input = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
 				xMin: 0.805f, xMax: 0.94f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
 			cui.CreateProtectedInputField(container, input, null, "1 1 1 1", "#", 10, 0, false,
 				xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
+
+			//
+			// Alpha input field
+			//
+			var alpha = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
+				xMin: 0.015f, xMax: 0.14f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
+			cui.CreateProtectedInputField(container, alpha, null, "1 1 1 1", $"{alphaValue}", 10, 0, false,
+				xMin: 0.075f, command: PanelId + ".pickalpha", align: TextAnchor.MiddleRight, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 
 			var picker = cui.CreatePanel(container, parent: main, id: PanelId + ".picker",
 				color: "0 0 0 0",
@@ -6340,7 +6361,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, yMin: size * (scale - 1f), xMax: 1f - (size * (scale - 1f)), yMax: 1f,
 				OxMin: xOffset, OyMin: yOffset, OxMax: xOffset, OyMax: yOffset,
 				fadeIn: fade,
-				command: PanelId + $".pickcolor {mode} {ColorUtility.ToHtmlStringRGBA(color)} {color.r} {color.g} {color.b}");
+				command: PanelId + $".pickcolor {mode} {ColorUtility.ToHtmlStringRGBA(color)} {ap.GetStorage(ap.SelectedTab, Alpha, 1f)} {color.r} {color.g} {color.b}");
 
 			if (mode == "brightness" && index == ap.GetStorage(ap.SelectedTab, BrightnessIndicator, 8))
 			{
@@ -6361,7 +6382,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 	}
 
-	public void OpenColorPicker(BasePlayer player, Action<string, string> onColorPicked)
+	public void OpenColorPicker(BasePlayer player, Action<string, string, float> onColorPicked)
 	{
 		ColorPicker.Draw(player, onColorPicked);
 	}
@@ -6381,12 +6402,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var mode = args.Args[0];
 		var hex = args.Args[1];
-		var rawColor = args.Args.Skip(2).ToArray().ToString(" ", " ");
+		var alpha = args.Args[2].ToFloat();
+		var rawColor = args.Args.Skip(3).ToArray().ToString(" ", " ");
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
 		var brightness = ap.GetStorage(ap.SelectedTab, ColorPicker.Brightness, 1f);
 		var brightnessIndicator = ap.GetStorage(ap.SelectedTab, ColorPicker.BrightnessIndicator, 8);
-		var onColorPicked = ap.GetStorage<Action<string, string>>(ap.SelectedTab, ColorPicker.OnColorPicked);
+		var onColorPicked = ap.GetStorage<Action<string, string, float>>(ap.SelectedTab, ColorPicker.OnColorPicked);
 
 		switch (mode)
 		{
@@ -6396,9 +6418,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				ap.SetStorage(ap.SelectedTab, ColorPicker.FirstOpen, true);
 				ColorPicker.Draw(player, onColorPicked);
 				return;
+
+			case "alpha":
+				ap.SetStorage(ap.SelectedTab, ColorPicker.Alpha, alpha);
+				ColorPicker.Draw(player, onColorPicked);
+				return;
 		}
 
-		onColorPicked?.Invoke(hex, rawColor);
+		onColorPicked?.Invoke(hex, rawColor, alpha);
 		ColorPicker.Close(args.Player());
 	}
 
@@ -6408,18 +6435,28 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var player = args.Player();
 		var ap = GetPlayerSession(player);
 		var hex = args.Args[0];
+		var alpha = ap.GetStorage(ap.SelectedTab, ColorPicker.Alpha, 1f);
 
 		if (args.Args.Length == 0 || string.IsNullOrEmpty(hex) || hex == "#")
 		{
 			return;
 		}
 
-		var onColorPicked = ap.GetStorage<Action<string, string>>(ap.SelectedTab, ColorPicker.OnColorPicked);
+		var onColorPicked = ap.GetStorage<Action<string, string, float>>(ap.SelectedTab, ColorPicker.OnColorPicked);
 
 		if (!hex.StartsWith("#")) hex = $"#{hex}";
 		var rawColor = HexToRustColor(hex, includeAlpha: false);
-		onColorPicked?.Invoke(hex, rawColor);
+		onColorPicked?.Invoke(hex, rawColor, alpha);
 		ColorPicker.Close(args.Player());
+	}
+
+	[ProtectedCommand(ColorPicker.PanelId + ".pickalpha")]
+	private void PickAlphaColorPickerUI(Arg args)
+	{
+		var player = args.Player();
+		var ap = GetPlayerSession(player);
+		var alpha = args.Args[0].ToFloat().Clamp(0f, 1f);
+		ap.SetStorage(ap.SelectedTab, ColorPicker.Alpha, alpha);
 	}
 
 	#endregion
@@ -6978,7 +7015,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				case Modal.Field.FieldTypes.HexColor:
 					Community.Runtime.CorePlugin.NextFrame(() =>
 					{
-						OpenColorPicker(ap.Player, (hexColor, rustColor) =>
+						OpenColorPicker(ap.Player, (hexColor, rustColor, alpha) =>
 						{
 							if (field.Type == Modal.Field.FieldTypes.RustColor) field.Value = rustColor;
 							else field.Value = $"#{hexColor}";
