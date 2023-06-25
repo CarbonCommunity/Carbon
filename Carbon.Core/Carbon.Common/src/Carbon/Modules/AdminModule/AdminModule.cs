@@ -6347,7 +6347,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			cui.Send(container, player);
 
-
 			CurrentAnimation = 0;
 		}
 		internal static void DrawColor(CUI cui, CuiElementContainer container, PlayerSession ap, float scale, Color color, string parent, float xOffset, float yOffset, string mode = "color", float fade = 0f, int index = -1)
@@ -6361,7 +6360,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				xMin: 0, yMin: size * (scale - 1f), xMax: 1f - (size * (scale - 1f)), yMax: 1f,
 				OxMin: xOffset, OyMin: yOffset, OxMax: xOffset, OyMax: yOffset,
 				fadeIn: fade,
-				command: PanelId + $".pickcolor {mode} {ColorUtility.ToHtmlStringRGBA(color)} {ap.GetStorage(ap.SelectedTab, Alpha, 1f)} {color.r} {color.g} {color.b}");
+				command: PanelId + $".pickcolor {mode} {ColorUtility.ToHtmlStringRGBA(color)} {color.r} {color.g} {color.b}");
 
 			if (mode == "brightness" && index == ap.GetStorage(ap.SelectedTab, BrightnessIndicator, 8))
 			{
@@ -6402,8 +6401,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var mode = args.Args[0];
 		var hex = args.Args[1];
-		var alpha = args.Args[2].ToFloat();
-		var rawColor = args.Args.Skip(3).ToArray().ToString(" ", " ");
+		var alpha = ap.GetStorage(ap.SelectedTab, ColorPicker.Alpha, 1f);
+		var rawColor = args.Args.Skip(2).ToArray().ToString(" ", " ");
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
 		var brightness = ap.GetStorage(ap.SelectedTab, ColorPicker.Brightness, 1f);
@@ -6416,11 +6415,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				ap.SetStorage(ap.SelectedTab, ColorPicker.Brightness, color.r.Scale(0f, 1f, 0f, 2.5f));
 				ap.SetStorage(ap.SelectedTab, ColorPicker.BrightnessIndicator, (int)color.r.Scale(0f, 1f, 0f, 20.5f));
 				ap.SetStorage(ap.SelectedTab, ColorPicker.FirstOpen, true);
-				ColorPicker.Draw(player, onColorPicked);
-				return;
-
-			case "alpha":
-				ap.SetStorage(ap.SelectedTab, ColorPicker.Alpha, alpha);
 				ColorPicker.Draw(player, onColorPicked);
 				return;
 		}
@@ -6774,7 +6768,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			ap.SetStorage(null, "modal", this);
 			cui.Send(container, player);
 		}
-		public void _drawInternal(CUI cui, CuiElementContainer container, string panel)
+
+		internal void _drawInternal(CUI cui, CuiElementContainer container, string panel)
 		{
 			var subText = $"<b><color=red>*</color></b>  {"Assign all required field values.".ToUpper().SpacedString(1)}" +
 				$"\n    {(IsValid() ? $"<b><color=green>{"The modal is valid.".ToUpper().SpacedString(1)}</color></b>" : $"<b><color=red>{"The modal has invalid fields.".ToUpper().SpacedString(1)}</color></b>")}" +
@@ -6824,16 +6819,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					case Field.FieldTypes.RustColor:
 					case Field.FieldTypes.HexColor:
-						var originalColor = field.Value.Value == null || (string.IsNullOrEmpty(field.Value.Value.ToString())) ? (field.Value.Type == Field.FieldTypes.RustColor ? "1 1 1" : "#ffffff") : field.Value.Value.ToString();
-						var hexColor = field.Value.Type == Field.FieldTypes.RustColor ? RustToHexColor(originalColor, includeAlpha: false) : originalColor;
-						var rustColor = field.Value.Type == Field.FieldTypes.HexColor ? HexToRustColor(originalColor, includeAlpha: false) : originalColor;
+						var originalColor = string.IsNullOrEmpty($"{field.Value.Value}") ? (field.Value.Type == Field.FieldTypes.RustColor ? "1 1 1" : "#ffffff") : field.Value.Value.ToString();
+						var hexColor = field.Value.Type == Field.FieldTypes.RustColor ? RustToHexColor(originalColor, includeAlpha: true) : originalColor;
+						var rustColor = field.Value.Type == Field.FieldTypes.HexColor ? HexToRustColor(originalColor, includeAlpha: true) : originalColor;
 						var rustColorSplit = rustColor.Split(' ');
-						rustColor = $"R:{rustColorSplit[0].ToFloat() * 255:0}   G:{rustColorSplit[1].ToFloat() * 255:0}   B:{rustColorSplit[2].ToFloat() * 255:0}";
+						rustColor = $"R:{rustColorSplit[0].ToFloat() * 255:0}   G:{rustColorSplit[1].ToFloat() * 255:0}   B:{rustColorSplit[2].ToFloat() * 255:0}   A:{(rustColorSplit.Length == 4 ? rustColorSplit[3].ToFloat() : 1f) * 255:0}";
 						Array.Clear(rustColorSplit, 0, rustColorSplit.Length);
 
 						cui.CreateText(container, option, null, textColor, $"<b>{"HEX".SpacedString(1)}:</b>  {hexColor}", 12, xMin: 0.7f, align: TextAnchor.MiddleLeft);
 						cui.CreateText(container, option, null, textColor, $"<b>{"RUST".SpacedString(1)}:</b>  {rustColor}", 12, xMin: 0.115f, align: TextAnchor.MiddleLeft);
-						var color = cui.CreateProtectedButton(container, option, null, hexColor, "0 0 0 0", string.Empty, 0, xMin: 0.025f, xMax: 0.085f, yMin: 0.1f, yMax: 0.9f, command: $"modal.action {field.Key}");
+						cui.CreateProtectedButton(container, option, null, hexColor, "0 0 0 0", string.Empty, 0, xMin: 0.025f, xMax: 0.085f, yMin: 0.1f, yMax: 0.9f, command: $"modal.action {field.Key}");
 						break;
 
 					case Field.FieldTypes.Enum:
@@ -7017,8 +7012,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						OpenColorPicker(ap.Player, (hexColor, rustColor, alpha) =>
 						{
-							if (field.Type == Modal.Field.FieldTypes.RustColor) field.Value = rustColor;
-							else field.Value = $"#{hexColor}";
+							var before = field.Value;
+
+							if (field.Type == Modal.Field.FieldTypes.RustColor)
+								field.Value = CUI.HexToRustColor($"#{hexColor}", alpha);
+							else field.Value = CUI.RustToHexColor(rustColor, alpha);
 
 							modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 							modal.Draw(ap.Player);
