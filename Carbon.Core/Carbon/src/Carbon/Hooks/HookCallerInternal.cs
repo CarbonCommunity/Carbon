@@ -101,6 +101,7 @@ public class HookCallerInternal : HookCallerCommon
 		if (plugin.IsHookIgnored(hookName)) return null;
 
 		var id = StringPool.GetOrAdd(hookName);
+		var result = (object)null;
 
 		if (plugin.InternalCallHookOverriden)
 		{
@@ -138,7 +139,31 @@ public class HookCallerInternal : HookCallerCommon
 				}
 			}
 
-			return plugin.InternalCallHook(id, args);
+#if DEBUG
+			Profiler.StartHookCall(plugin, hookName);
+#endif
+
+			var beforeTicks = Environment.TickCount;
+			plugin.TrackStart();
+
+			result = plugin.InternalCallHook(id, args);
+
+			plugin.TrackEnd();
+			var afterTicks = Environment.TickCount;
+			var totalTicks = afterTicks - beforeTicks;
+
+			AppendHookTime(hookName, totalTicks);
+
+			if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
+			{
+				Carbon.Logger.Warn($" {plugin.Name} hook took longer than 100ms {hookName} [{totalTicks:0}ms]");
+			}
+
+#if DEBUG
+			Profiler.EndHookCall(plugin);
+#endif
+
+			return result;
 		}
 		else
 		{
@@ -148,8 +173,6 @@ public class HookCallerInternal : HookCallerCommon
 			{
 				id += (uint)args.Length;
 			}
-
-			var result = (object)null;
 
 			if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks)) { }
 			else if (!plugin.HookCache.TryGetValue(id, out hooks))
