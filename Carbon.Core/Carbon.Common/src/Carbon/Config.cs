@@ -23,6 +23,7 @@ public class Config
 	public bool IsModded { get; set; } = true;
 	public bool HigherPriorityHookWarns { get; set; } = false;
 	public int EntityMapBufferSize { get; set; } = 100000;
+	public int FrameTickBufferSize { get; set; } = 1000;
 	public string PlayerDefaultGroup { get; set; } = "default";
 	public string AdminDefaultGroup { get; set; } = "admin";
 	public int LogFileMode { get; set; } = 2;

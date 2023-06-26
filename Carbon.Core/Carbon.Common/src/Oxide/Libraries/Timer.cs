@@ -44,12 +44,6 @@ public class Timers
 
 	public Timer In(float time, Action action)
 	{
-		if (!Community.IsServerFullyInitializedCache)
-		{
-			Plugin.NextTick(action);
-			return default;
-		}
-
 		if (!IsValid()) return null;
 
 		var timer = new Timer(Persistence, action, Plugin);
@@ -69,7 +63,15 @@ public class Timers
 		timer.Delay = time;
 		timer.Callback = activity;
 
-		Persistence.Invoke(activity, time);
+		if (Community.IsServerFullyInitializedCache)
+		{
+			Persistence.Invoke(activity, time);
+		}
+		else
+		{
+			Plugin.NextTick(activity);
+		}
+
 		return timer;
 	}
 	public Timer Once(float time, Action action)

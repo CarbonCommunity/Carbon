@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Carbon.Base;
 using Carbon.Contracts;
+using Carbon.Extensions;
 using Facepunch;
 
 /*
@@ -17,25 +18,23 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 {
 	public override string Name => "Carbon Processor";
 
-	internal List<Action> _onFrameQueueBuffer = new();
-
 	public override void Start() { }
 	public override void OnDestroy() { }
 	public override void Dispose() { }
 
 	public Queue<Action> OnFrameQueue { get; set; } = new Queue<Action>();
 
-	public void Update()
+	public void FixedUpdate()
 	{
-		if (OnFrameQueue.Count <= 0) return;
+		if (!Community.IsServerFullyInitializedCache || OnFrameQueue.Count <= 0) return;
 
-		_onFrameQueueBuffer.AddRange(OnFrameQueue);
+		var count = OnFrameQueue.Count;
 
-		foreach (var callback in _onFrameQueueBuffer)
+		for (int i = 0; i < count.Clamp(0, Community.Runtime.Config.FrameTickBufferSize); i++)
 		{
 			try
 			{
-				callback?.Invoke();
+				OnFrameQueue.Dequeue()?.Invoke();
 			}
 			catch (Exception exception)
 			{
@@ -43,7 +42,6 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 			}
 		}
 
-		_onFrameQueueBuffer.Clear();
-		OnFrameQueue.Clear();
+		 Logger.Debug($"Batch frame queue triggered {count:n0} callbacks", 5);
 	}
 }
