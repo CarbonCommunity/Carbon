@@ -137,13 +137,8 @@ public class Logger : ILogger
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="ex"></param>
-#if DEBUG
 	public static void Error(object message, Exception ex = null)
 		=> Write(Severity.Error, message, ex);
-#else
-	public static void Error(object message, Exception ex = null)
-		=> Write(Severity.Error, message);
-#endif
 
 	// Interface implementation workaround for static methods.
 	void ILogger.Console(string message, Severity severity, Exception exception)

@@ -44,6 +44,12 @@ public class Timers
 
 	public Timer In(float time, Action action)
 	{
+		if (!Community.IsServerFullyInitializedCache)
+		{
+			Plugin.NextTick(action);
+			return default;
+		}
+
 		if (!IsValid()) return null;
 
 		var timer = new Timer(Persistence, action, Plugin);

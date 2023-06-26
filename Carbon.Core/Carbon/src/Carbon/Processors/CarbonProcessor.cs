@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Carbon.Base;
 using Carbon.Contracts;
+using Facepunch;
 
 /*
  *
@@ -16,6 +17,8 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 {
 	public override string Name => "Carbon Processor";
 
+	internal List<Action> _onFrameQueueBuffer = new();
+
 	public override void Start() { }
 	public override void OnDestroy() { }
 	public override void Dispose() { }
@@ -26,13 +29,21 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 	{
 		if (OnFrameQueue.Count <= 0) return;
 
-		try
+		_onFrameQueueBuffer.AddRange(OnFrameQueue);
+
+		foreach (var callback in _onFrameQueueBuffer)
 		{
-			OnFrameQueue.Dequeue()?.Invoke();
+			try
+			{
+				callback?.Invoke();
+			}
+			catch (Exception exception)
+			{
+				Logger.Error($"Failed to execute OnFrame callback ({exception.Message})\n{exception.StackTrace}");
+			}
 		}
-		catch (Exception exception)
-		{
-			Logger.Error($"Failed to execute OnFrame callback ({exception.Message})\n{exception.StackTrace}");
-		}
+
+		_onFrameQueueBuffer.Clear();
+		OnFrameQueue.Clear();
 	}
 }
