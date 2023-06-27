@@ -989,12 +989,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Granted user '{user.Value.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.GrantGroupPermission(name, perm, null))
 				{
 					arg.ReplyWith($"Granted group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant group permission.");
 				}
 				break;
 
@@ -1031,12 +1039,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Revoked user '{user.Value?.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.RevokeGroupPermission(name, perm))
 				{
 					arg.ReplyWith($"Revoked group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke group permission.");
 				}
 				break;
 
