@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Carbon.Base;
 using Carbon.Contracts;
+using Carbon.Extensions;
+using Facepunch;
 
 /*
  *
@@ -22,17 +24,24 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 
 	public Queue<Action> OnFrameQueue { get; set; } = new Queue<Action>();
 
-	public void Update()
+	public void FixedUpdate()
 	{
-		if (OnFrameQueue.Count <= 0) return;
+		if (!Community.IsServerFullyInitializedCache || OnFrameQueue.Count <= 0) return;
 
-		try
+		var count = OnFrameQueue.Count;
+
+		for (int i = 0; i < count.Clamp(0, Community.Runtime.Config.FrameTickBufferSize); i++)
 		{
-			OnFrameQueue.Dequeue()?.Invoke();
+			try
+			{
+				OnFrameQueue.Dequeue()?.Invoke();
+			}
+			catch (Exception exception)
+			{
+				Logger.Error($"Failed to execute OnFrame callback ({exception.Message})\n{exception.StackTrace}");
+			}
 		}
-		catch (Exception exception)
-		{
-			Logger.Error($"Failed to execute OnFrame callback ({exception.Message})\n{exception.StackTrace}");
-		}
+
+		 Logger.Debug($"Batch frame queue triggered {count:n0} callbacks", 5);
 	}
 }
