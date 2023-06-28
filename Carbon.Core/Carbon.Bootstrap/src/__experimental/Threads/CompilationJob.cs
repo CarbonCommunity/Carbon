@@ -29,7 +29,7 @@ public class CompilationJob : IThreadJob
 	public Action<Result> Callback { get; set; }
 	public object Input { get; set; }
 
-	private string _contents = null;
+	//private string _contents = null;
 	private Result _result = new();
 
 
