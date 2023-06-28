@@ -130,6 +130,6 @@ public class CompilationJob : IThreadJob
 
 	public override string ToString()
 	{
-		return $"Script complier ({FileName})";
+		return "Script complier ({FileName})";
 	}
 }
