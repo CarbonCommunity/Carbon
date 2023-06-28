@@ -156,6 +156,8 @@ public class OxideMod
 		};
 	}
 
+	internal static Dictionary<string, object> _libraryCache = new();
+
 	public T GetLibrary<T>(string name = null) where T : Library
 	{
 		var type = typeof(T);
@@ -166,14 +168,21 @@ public class OxideMod
 		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 		else if (type == typeof(Oxide.Core.Libraries.WebRequests)) return Community.Runtime.CorePlugin.webrequest as T;
 
-		try { return Activator.CreateInstance<T>(); }
-		catch
+		name ??= typeof(T).Name;
+
+		if (!_libraryCache.TryGetValue(name, out var instance))
 		{
-			try { return FormatterServices.GetUninitializedObject(typeof(T)) as T; }
-			catch { }
+			try { instance = Activator.CreateInstance<T>(); }
+			catch
+			{
+				try { instance = FormatterServices.GetUninitializedObject(typeof(T)) as T; }
+				catch { }
+			}
+
+			_libraryCache.Add(name, instance);
 		}
 
-		return null;
+		return instance as T;
 	}
 
 	public static readonly VersionNumber Version = new(_assemblyVersion.Major, _assemblyVersion.Minor, _assemblyVersion.Build);
