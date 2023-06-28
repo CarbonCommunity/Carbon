@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using API.Abstracts;
-using API.Assembly;
 using API.Threads;
-using Threads;
 using Utility;
 
 /*
@@ -19,10 +15,13 @@ using Utility;
 namespace Components;
 #pragma warning disable IDE0051
 
-internal sealed class ThreadManager : CarbonBehaviour, IDisposable, IThreadManager
+internal sealed class ThreadManager : CarbonBehaviour, IThreadManager, IDisposable
 {
-	private static readonly ConcurrentQueue<IThreadedJob> _workQueue = new();
+	private static readonly ConcurrentQueue<IThreadJob> _workQueue = new();
 	private static readonly Thread[] _threads = new Thread[4];
+
+	private static Thread _thread
+	{ get => Thread.CurrentThread; }
 
 	internal void Awake()
 	{
@@ -48,33 +47,52 @@ internal sealed class ThreadManager : CarbonBehaviour, IDisposable, IThreadManag
 
 	internal void OnEnable()
 	{
+		StartThreads();
+		InvokeRepeating(nameof(Heartbeat), 1f, 5f);
+	}
+
+	internal void OnDisable()
+	{
+		AbortThreads();
+		CancelInvoke(nameof(Heartbeat));
+	}
+
+	internal void OnDestroy()
+	{
+		Dispose();
+	}
+
+	private Thread CreateThread()
+	{
+		Thread thread = new Thread(new ThreadStart(ThreadManager.DoWork))
+		{
+			Name = "Carbon.Thread",
+			Priority = ThreadPriority.Lowest
+		};
+
+		Logger.Debug($"A new thread created with ID {thread.ManagedThreadId}");
+		return thread;
+	}
+
+	public void StartThreads()
+	{
 		for (int i = 0; i < _threads.Length; i++)
 		{
 			_threads[i] = CreateThread();
 			_threads[i].Start();
 		}
-
-		InvokeRepeating(nameof(CheckThreads), 1f, 5f);
 	}
 
-	internal void OnDisable()
+	public void AbortThreads()
 	{
 		for (int i = 0; i < _threads.Length; i++)
 		{
 			_threads[i].Abort();
 			_threads[i] = null;
 		}
-
-		CancelInvoke(nameof(CheckThreads));
 	}
 
-	internal void OnDestroy()
-		=> Dispose();
-
-	private static int ThreadID
-	{ get => Thread.CurrentThread.ManagedThreadId; }
-
-	private void CheckThreads()
+	private void Heartbeat()
 	{
 		for (int i = 0; i < _threads.Length; i++)
 		{
@@ -86,28 +104,14 @@ internal sealed class ThreadManager : CarbonBehaviour, IDisposable, IThreadManag
 		}
 	}
 
-	private Thread CreateThread(string name = "Carbon.Thread")
+	public void Queue(IThreadJob job, Action<Result> callback)
 	{
-		Thread thread = new Thread(new ThreadStart(ThreadManager.DoWork))
-		{
-			Name = name,
-			Priority = ThreadPriority.Lowest
-		};
-
-		Logger.Debug($"Thread[{thread.ManagedThreadId}] created");
-		return thread;
+		job.MainThreadContext = SynchronizationContext.Current;
+		job.Callback = callback;
+		Queue(job);
 	}
 
-	public void Clear()
-	{
-		for (int i = 0; i < _threads.Length; i++)
-		{
-			_threads[i].Abort();
-			_threads[i] = null;
-		}
-	}
-
-	public void Queue(IThreadedJob job)
+	public void Queue(IThreadJob job)
 	{
 		_workQueue.Enqueue(job);
 	}
@@ -118,20 +122,25 @@ internal sealed class ThreadManager : CarbonBehaviour, IDisposable, IThreadManag
 		{
 			while (true)
 			{
-				if (_workQueue.TryDequeue(out IThreadedJob job))
+				if (_workQueue.TryDequeue(out IThreadJob job))
 				{
 					try
 					{
-						using (TimeMeasure.New($"Thread[{ThreadID}] '{job.FileName}'"))
+						using (TimeMeasure.New($"Thread[{_thread.ManagedThreadId}] '{job}'"))
 						{
 							job.Awake();
-							job.DoWork();
+
+							job.MainThreadContext.Post(d: new SendOrPostCallback((state) =>
+							{
+								job.Callback((Result)state);
+							}), job.DoWork());
+
 							job.Destroy();
 						}
 					}
 					catch (Exception e)
 					{
-						Logger.Error($"Thread[{ThreadID}] error: {e.Message}");
+						Logger.Error($"Thread[{_thread.ManagedThreadId}] error: {e.Message}");
 						continue;
 					}
 				}
@@ -143,11 +152,11 @@ internal sealed class ThreadManager : CarbonBehaviour, IDisposable, IThreadManag
 		}
 		catch (ThreadAbortException)
 		{
-			Logger.Warn($"Thread[{ThreadID}] terminated");
+			Logger.Warn($"Thread[{_thread.ManagedThreadId}] terminated");
 		}
 		catch (Exception e)
 		{
-			Logger.Error($"Thread[{ThreadID}] crashed", e);
+			Logger.Error($"Thread[{_thread.ManagedThreadId}] crashed", e);
 		}
 	}
 
@@ -159,7 +168,7 @@ internal sealed class ThreadManager : CarbonBehaviour, IDisposable, IThreadManag
 		{
 			if (disposing)
 			{
-				Clear();
+				AbortThreads();
 			}
 			_disposing = true;
 		}

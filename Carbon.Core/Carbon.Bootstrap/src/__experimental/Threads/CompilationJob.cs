@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Threading;
 using API.Threads;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using Utility;
 
 /*
@@ -17,19 +18,20 @@ using Utility;
 
 namespace Threads;
 
-public class ScriptCompilerJob : IThreadedJob
+public class CompilationJob : IThreadJob
 {
 	private bool _processing = true;
 	public bool IsDone { get => !_processing; }
 	public bool IsProcessing { get => _processing; }
 
 
-	public byte[] Output { get; private set; }
-	public string FileName { get; set; }
-	public string Input { get; set; }
+	public SynchronizationContext MainThreadContext { get; set; }
+	public Action<Result> Callback { get; set; }
+	public object Input { get; set; }
 
+	private string _contents = null;
+	private Result _result = new();
 
-	private List<Diagnostic> _diagnostics = new();
 
 	private static readonly List<MetadataReference> _references = new();
 
@@ -43,7 +45,7 @@ public class ScriptCompilerJob : IThreadedJob
 		outputKind: OutputKind.DynamicallyLinkedLibrary
 	);
 
-	static ScriptCompilerJob()
+	static CompilationJob()
 	{
 		foreach (string reference in Carbon.Bootstrap.AssemblyEx.RefWhitelist)
 		{
@@ -80,20 +82,15 @@ public class ScriptCompilerJob : IThreadedJob
 		}
 	}
 
-	public void Start()
-	{
-	}
-
 	public void Awake()
 	{
-		if (!File.Exists(Path.Combine(Context.Carbon, "test", FileName))) throw new Exception();
-		Input = File.ReadAllText(Path.Combine(Context.Carbon, "test", FileName));
+		// do nothing
 	}
 
-	public void DoWork()
+	public Result DoWork()
 	{
 		List<SyntaxTree> tree = new() {
-			CSharpSyntaxTree.ParseText(Input, _parse)
+			CSharpSyntaxTree.ParseText((string)Input, _parse)
 		};
 
 		CSharpCompilation compilation = CSharpCompilation.Create(
@@ -101,17 +98,38 @@ public class ScriptCompilerJob : IThreadedJob
 
 		using MemoryStream stream = new MemoryStream();
 		EmitResult ilcode = compilation.Emit(stream);
-		_diagnostics = ilcode.Diagnostics.ToList();
+
+		foreach (Diagnostic diagnostic in ilcode.Diagnostics)
+		{
+			LinePositionSpan span = diagnostic.Location.GetMappedLineSpan().Span;
+
+			_result.Diagnostics.Add(new Problem
+			{
+				Column = span.Start.Character + 1,
+				Description = diagnostic.GetMessage(),
+				ErrorID = diagnostic.Id,
+				File = (string)Input,
+				Row = span.Start.Line + 1,
+				Severity = diagnostic.Severity,
+			});
+		}
 
 		if (ilcode.Success)
 		{
-			Output = stream.ToArray();
+			_result.Output = stream.ToArray();
 			_processing = false;
 		}
+
+		return _result;
 	}
 
 	public void Destroy()
 	{
 
+	}
+
+	public override string ToString()
+	{
+		return $"Script complier ({FileName})";
 	}
 }
