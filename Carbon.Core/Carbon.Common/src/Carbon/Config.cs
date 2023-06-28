@@ -31,7 +31,7 @@ public class Config
 #if DEBUG
 		true;
 #else
-		false;
+		true; // Set false when we're out of development
 #endif
 	public List<string> ConditionalCompilationSymbols { get; set; }
 	public Severity LogSeverity { get; set; } = Severity.Notice;
