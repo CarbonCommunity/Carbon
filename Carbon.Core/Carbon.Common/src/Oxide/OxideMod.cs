@@ -168,7 +168,7 @@ public class OxideMod
 		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 		else if (type == typeof(Oxide.Core.Libraries.WebRequests)) return Community.Runtime.CorePlugin.webrequest as T;
 
-		name ??= typeof(T).Name;
+		name ??= type.Name;
 
 		if (!_libraryCache.TryGetValue(name, out var instance))
 		{
