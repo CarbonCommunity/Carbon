@@ -596,11 +596,21 @@ namespace Oxide.Core.Plugins
 
 		public void NextTick(Action callback)
 		{
-			Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+			var processor = Community.Runtime.CarbonProcessor;
+
+			lock (processor.CurrentFrameLock)
+			{
+				processor.CurrentFrameQueue.Add(callback);
+			}
 		}
 		public void NextFrame(Action callback)
 		{
-			Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+			var processor = Community.Runtime.CarbonProcessor;
+
+			lock (processor.CurrentFrameLock)
+			{
+				processor.CurrentFrameQueue.Add(callback);
+			}
 		}
 
 		public DynamicConfigFile Config { get; internal set; }

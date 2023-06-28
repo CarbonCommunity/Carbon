@@ -76,12 +76,22 @@ public class OxideMod
 
 	public void NextTick(Action callback)
 	{
-		Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+		var processor = Community.Runtime.CarbonProcessor;
+
+		lock (processor.CurrentFrameLock)
+		{
+			processor.CurrentFrameQueue.Add(callback);
+		}
 	}
 
 	public void NextFrame(Action callback)
 	{
-		Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+		var processor = Community.Runtime.CarbonProcessor;
+
+		lock (processor.CurrentFrameLock)
+		{
+			processor.CurrentFrameQueue.Add(callback);
+		}
 	}
 
 	public void ReloadPlugin(string name)
