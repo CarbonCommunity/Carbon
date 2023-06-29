@@ -122,7 +122,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				ap.SelectedTab = Tabs.FirstOrDefault(x => HasAccessLevel(player, x.AccessLevel));
 
 				var tab = GetTab(player);
-				tab?.OnChange?.Invoke(ap, tab);
+				tab.OnChange?.Invoke(ap, tab);
 
 				ap.Clear();
 
