@@ -48,6 +48,7 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 			}
 			catch (Exception exception)
 			{
+				exception = exception.InnerException ?? exception;
 				Logger.Error($"Failed to execute OnFrame callback ({exception.Message})\n{exception.StackTrace}");
 			}
 		}
