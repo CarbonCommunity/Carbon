@@ -122,7 +122,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				ap.SelectedTab = Tabs.FirstOrDefault(x => HasAccessLevel(player, x.AccessLevel));
 
 				var tab = GetTab(player);
-				tab?.OnChange?.Invoke(ap, tab);
+				tab.OnChange?.Invoke(ap, tab);
 
 				ap.Clear();
 
@@ -304,15 +304,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			return result;
 		}
 
+		var authLevel = player.Connection.authLevel;
 		var minLevel = ConfigInstance.MinimumAuthLevel;
-		var userLevel = ServerUsers.Is(player.userID, ServerUsers.UserGroup.Moderator) ? 1 : ServerUsers.Is(player.userID, ServerUsers.UserGroup.Owner) ? 2 : 0;
 
-		if (userLevel < minLevel && userLevel > 0)
+		if (authLevel < minLevel && authLevel > 0)
 		{
-			player.ChatMessage($"Your auth level is not high enough to use this feature. Please adjust the minimum level required in your config or give yourself auth level {minLevel}.");
+			player.ChatMessage($"Your auth level is not high enough to use this feature [{authLevel}]. Please adjust the minimum level required in your config or give yourself auth level {minLevel}.");
 		}
 
-		return userLevel >= minLevel;
+		return authLevel >= minLevel;
 	}
 
 	#region Option Elements

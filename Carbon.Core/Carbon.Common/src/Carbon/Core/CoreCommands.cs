@@ -451,10 +451,6 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private int EntityMapBufferSize { get { return Community.Runtime.Config.EntityMapBufferSize; } set { Community.Runtime.Config.EntityMapBufferSize = value; Community.Runtime.SaveConfig(); } }
 
-	[CommandVar("frametickbuffersize", "Frame tick buffer size used by NextTick/NextFrame queued callbacks. Setting this value higher may cause performance instability. (Between 1-100.000)")]
-	[AuthLevel(2)]
-	private int FrameTickBufferSize { get { return Community.Runtime.Config.FrameTickBufferSize; } set { Community.Runtime.Config.FrameTickBufferSize = value.Clamp(1, 100000); Community.Runtime.SaveConfig(); } }
-
 	[CommandVar("language", "Server language used by the Language API.")]
 	[AuthLevel(2)]
 	private string Language { get { return Community.Runtime.Config.Language; } set { Community.Runtime.Config.Language = value; Community.Runtime.SaveConfig(); } }
@@ -989,12 +985,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Granted user '{user.Value.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.GrantGroupPermission(name, perm, null))
 				{
 					arg.ReplyWith($"Granted group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant group permission.");
 				}
 				break;
 
@@ -1031,12 +1035,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Revoked user '{user.Value?.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.RevokeGroupPermission(name, perm))
 				{
 					arg.ReplyWith($"Revoked group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke group permission.");
 				}
 				break;
 
