@@ -307,9 +307,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var authLevel = player.Connection.authLevel;
 		var minLevel = ConfigInstance.MinimumAuthLevel;
 
-		if (authLevel < minLevel && authLevel > 0)
+		if (authLevel == 0)
 		{
-			player.ChatMessage($"Your auth level is not high enough to use this feature [{authLevel}]. Please adjust the minimum level required in your config or give yourself auth level {minLevel}.");
+			player.ChatMessage($"Your auth level is not high enough to use this feature.");
+		}
+		else if (authLevel < minLevel && authLevel > 0)
+		{
+			player.ChatMessage($"Your auth level is not high enough to use this feature. Please adjust the minimum level required in your config or give yourself auth level {minLevel}.");
 		}
 
 		return authLevel >= minLevel;

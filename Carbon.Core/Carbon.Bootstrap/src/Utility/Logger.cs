@@ -48,11 +48,7 @@ internal sealed class Logger
 #if DEBUG
 			if (ex is not null)
 			{
-#if DEBUG_VERBOSE
 				formatted += $" ({ex?.Message})\n{ex?.StackTrace}";
-#else
-				formatted += $" ({ex?.Message})";
-#endif
 			}
 
 			if (severity != Severity.Debug)

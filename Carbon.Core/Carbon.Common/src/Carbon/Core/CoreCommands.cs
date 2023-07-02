@@ -1,11 +1,4 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +16,13 @@ using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using UnityEngine;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051

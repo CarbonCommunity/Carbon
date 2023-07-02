@@ -240,6 +240,12 @@ public partial class CorePlugin : CarbonPlugin
 		try
 		{
 			var fullString = message.Substring(1);
+
+			if (string.IsNullOrEmpty(fullString))
+			{
+				return false;
+			}
+
 			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 			var command = split[0].Trim();
 			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
