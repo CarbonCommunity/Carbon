@@ -740,16 +740,17 @@ public partial class CorePlugin : CarbonPlugin
 				// Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
-					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
 					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
-					foreach (var plugin in tempList)
+					foreach (var plugin in OrderedFiles)
 					{
-						Community.Runtime.ScriptProcessor.Prepare(Path.GetFileNameWithoutExtension(plugin), plugin);
-					}
+						if (Community.Runtime.ScriptProcessor.InstanceBuffer.ContainsKey(plugin.Key))
+						{
+							continue;
+						}
 
-					Pool.FreeList(ref tempList);
+						Community.Runtime.ScriptProcessor.Prepare(plugin.Key, plugin.Value);
+					}
 					break;
 				}
 
