@@ -1123,7 +1123,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			var shade = cui.CreatePanel(container, parent: PanelId, id: $"{PanelId}color",
 				color: "0 0 0 0.6",
-				//xMin: 0.15f, xMax: 0.85f, yMin: 0.1f, yMax: 0.9f
 				xMin: 0.5f, xMax: 0.5f, yMin: 0.5f, yMax: 0.5f,
 				OxMin: -475, OxMax: 475, OyMin: -300, OyMax: 300);
 			var main = cui.CreatePanel(container, shade, $"{PanelId}main",
@@ -5223,7 +5222,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	[ProtectedCommand("pluginbrowser.interact")]
 	private void PluginBrowserInteract(Arg args)
 	{
-		var ap = GetPlayerSession(args.Player());
+		var player = args.Player();
+
+		if (!HasAccessLevel(player, 3)) return;
+
+		var ap = GetPlayerSession(player);
 		var tab = GetTab(ap.Player);
 
 		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
