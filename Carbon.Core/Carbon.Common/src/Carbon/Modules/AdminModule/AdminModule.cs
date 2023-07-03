@@ -5222,7 +5222,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	[ProtectedCommand("pluginbrowser.interact")]
 	private void PluginBrowserInteract(Arg args)
 	{
-		var ap = GetPlayerSession(args.Player());
+		var player = args.Player();
+
+		if (!HasAccessLevel(player, 3)) return;
+
+		var ap = GetPlayerSession(player);
 		var tab = GetTab(ap.Player);
 
 		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
