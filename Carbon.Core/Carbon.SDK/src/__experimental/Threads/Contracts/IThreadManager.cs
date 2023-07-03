@@ -11,6 +11,6 @@ namespace API.Threads;
 
 public interface IThreadManager
 {
-	public void Clear();
-	public void Queue(IThreadedJob job);
+	public void Queue(IThreadJob job);
+	public void Queue(IThreadJob job, Action<Result> callback);
 }

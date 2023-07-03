@@ -67,10 +67,6 @@ public class Timers
 		{
 			Persistence.Invoke(activity, time);
 		}
-		else
-		{
-			Plugin.NextTick(activity);
-		}
 
 		return timer;
 	}

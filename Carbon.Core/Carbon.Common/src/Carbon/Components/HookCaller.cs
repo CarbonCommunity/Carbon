@@ -58,8 +58,8 @@ public class HookCallerCommon
 	}
 
 	public Dictionary<int, object[]> _argumentBuffer = new();
-	public ConcurrentDictionary<string, int> _hookTimeBuffer = new();
-	public ConcurrentDictionary<string, int> _hookTotalTimeBuffer = new();
+	public Dictionary<string, int> _hookTimeBuffer = new();
+	public Dictionary<string, int> _hookTotalTimeBuffer = new();
 	public Dictionary<string, DateTime> _lastDeprecatedWarningAt = new();
 
 	public virtual void AppendHookTime(string hook, int time) { }
@@ -1541,7 +1541,7 @@ public static class HookCaller
 			.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space), SyntaxFactory.Token(SyntaxKind.OverrideKeyword).WithTrailingTrivia(SyntaxFactory.Space))
 			.AddBodyStatements(SyntaxFactory.ParseStatement(methodContents)).WithTrailingTrivia(SyntaxFactory.LineFeed);
 
-		output = input.WithMembers(input.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class.WithMembers(@class.Members.Insert(0, generatedMethod))))));
+		output = input.WithMembers(input.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class.WithMembers(@class.Members.Insert(@class.Members.Count, generatedMethod))))));
 
 		#region Cleanup
 
