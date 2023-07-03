@@ -649,7 +649,7 @@ public partial class CorePlugin : CarbonPlugin
 
 	#endregion
 
-	#region Mod & Plugin Loading
+	#region Plugin
 
 	[ConsoleCommand("reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything.")]
 	[AuthLevel(2)]
@@ -1340,7 +1340,6 @@ public partial class CorePlugin : CarbonPlugin
 	}
 
 	#endregion
-
 
 #if DEBUG
 
