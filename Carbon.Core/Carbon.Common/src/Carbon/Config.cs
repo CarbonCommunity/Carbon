@@ -15,11 +15,10 @@ namespace Carbon.Core;
 [Serializable]
 public class Config
 {
-	public bool AutoUpdate { get; set; } = true;
+	public bool AutoUpdateExtHooks { get; set; } = true;
 	public bool HarmonyReference { get; set; } = false;
 	public bool ScriptWatchers { get; set; } = true;
 	public System.IO.SearchOption ScriptWatcherOption { get; set; } = System.IO.SearchOption.TopDirectoryOnly;
-	public bool HookValidation { get; set; } = true;
 	public bool FileNameCheck { get; set; } = true;
 	public bool IsModded { get; set; } = true;
 	public bool HigherPriorityHookWarns { get; set; } = false;
@@ -32,7 +31,7 @@ public class Config
 #if DEBUG
 		true;
 #else
-		false;
+		true; // Set false when we're out of development
 #endif
 	public List<string> ConditionalCompilationSymbols { get; set; }
 	public Severity LogSeverity { get; set; } = Severity.Notice;

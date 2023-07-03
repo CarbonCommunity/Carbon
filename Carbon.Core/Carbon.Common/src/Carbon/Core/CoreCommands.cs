@@ -1,11 +1,4 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +16,13 @@ using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using UnityEngine;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -91,7 +91,7 @@ public partial class CorePlugin : CarbonPlugin
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0.0}s", $"{plugin.CompileTime:0}ms");
+							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{plugin.CompileTime:0}ms");
 						}
 
 						count++;
@@ -443,10 +443,6 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-	[CommandVar("hookvalidation", "Prints a warning when plugins contain Oxide hooks that aren't available yet in Carbon.")]
-	[AuthLevel(2)]
-	private bool HookValidation { get { return Community.Runtime.Config.HookValidation; } set { Community.Runtime.Config.HookValidation = value; Community.Runtime.SaveConfig(); } }
-
 	[CommandVar("filenamecheck", "It checks if the file name and the plugin name matches. (only applies to scripts)")]
 	[AuthLevel(2)]
 	private bool FileNameCheck { get { return Community.Runtime.Config.FileNameCheck; } set { Community.Runtime.Config.FileNameCheck = value; Community.Runtime.SaveConfig(); } }
@@ -681,6 +677,7 @@ public partial class CorePlugin : CarbonPlugin
 				}
 
 				var pluginFound = false;
+				var pluginPrecompiled = false;
 
 				foreach (var mod in ModLoader.LoadedPackages)
 				{
@@ -689,12 +686,22 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var plugin in plugins)
 					{
+						if (plugin.IsPrecompiled) continue;
+
 						if (plugin.Name == name)
 						{
-							plugin.ProcessorInstance.Dispose();
-							plugin.ProcessorInstance.Execute();
-							mod.Plugins.Remove(plugin);
 							pluginFound = true;
+
+							if (plugin.IsPrecompiled)
+							{
+								pluginPrecompiled = true;
+							}
+							else
+							{
+								plugin.ProcessorInstance.Dispose();
+								plugin.ProcessorInstance.Execute();
+								mod.Plugins.Remove(plugin);
+							}
 						}
 					}
 
@@ -704,6 +711,10 @@ public partial class CorePlugin : CarbonPlugin
 				if (!pluginFound)
 				{
 					Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+				}
+				else if (pluginPrecompiled)
+				{
+					Logger.Warn($"Plugin {name} is a precompiled plugin which can only be reloaded programmatically.");
 				}
 				break;
 		}
@@ -729,16 +740,17 @@ public partial class CorePlugin : CarbonPlugin
 				// Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
-					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
 					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
-					foreach (var plugin in tempList)
+					foreach (var plugin in OrderedFiles)
 					{
-						Community.Runtime.ScriptProcessor.Prepare(Path.GetFileNameWithoutExtension(plugin), plugin);
-					}
+						if (Community.Runtime.ScriptProcessor.InstanceBuffer.ContainsKey(plugin.Key))
+						{
+							continue;
+						}
 
-					Pool.FreeList(ref tempList);
+						Community.Runtime.ScriptProcessor.Prepare(plugin.Key, plugin.Value);
+					}
 					break;
 				}
 
@@ -830,6 +842,7 @@ public partial class CorePlugin : CarbonPlugin
 					}
 
 					var pluginFound = false;
+					var pluginPrecompiled = false;
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
@@ -840,9 +853,17 @@ public partial class CorePlugin : CarbonPlugin
 						{
 							if (plugin.Name == name)
 							{
-								plugin.ProcessorInstance.Dispose();
-								mod.Plugins.Remove(plugin);
 								pluginFound = true;
+
+								if (plugin.IsPrecompiled)
+								{
+									pluginPrecompiled = true;
+								}
+								else
+								{
+									plugin.ProcessorInstance?.Dispose();
+									mod.Plugins.Remove(plugin);
+								}
 							}
 						}
 
@@ -853,6 +874,10 @@ public partial class CorePlugin : CarbonPlugin
 					{
 						if (string.IsNullOrEmpty(path)) Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
 						else Logger.Warn($"Plugin {name} was not loaded but was marked as ignored.");
+					}
+					else if (pluginPrecompiled)
+					{
+						Logger.Warn($"Plugin {name} is a precompiled plugin which can only be unloaded programmatically.");
 					}
 					break;
 				}
@@ -961,12 +986,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Granted user '{user.Value.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.GrantGroupPermission(name, perm, null))
 				{
 					arg.ReplyWith($"Granted group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant group permission.");
 				}
 				break;
 
@@ -1003,12 +1036,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Revoked user '{user.Value?.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.RevokeGroupPermission(name, perm))
 				{
 					arg.ReplyWith($"Revoked group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke group permission.");
 				}
 				break;
 

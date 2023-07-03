@@ -45,7 +45,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public CultureInfo Language => CultureInfo.GetCultureInfo(BasePlayer.net.connection.info.GetString("global.language", "") ?? "en");
 
-		public bool IsConnected => BasePlayer != null && BasePlayer.IsConnected;
+		public bool IsConnected => IsServer || (BasePlayer != null && BasePlayer.IsConnected);
 
 		public bool IsSleeping => BasePlayer != null && BasePlayer.IsSleeping();
 
@@ -139,6 +139,8 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public bool HasPermission(string perm)
 		{
+			if (IsServer) return true;
+
 			return perms.UserHasPermission(Id, perm);
 		}
 
@@ -172,7 +174,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			message = ((args.Length != 0) ? string.Format(Formatter.ToUnity(message), args) : Formatter.ToUnity(message));
 			var text = (prefix != null) ? (prefix + " " + message) : message;
 
-			if (BasePlayer == null) Carbon.Logger.Log(text);
+			if (IsServer) Carbon.Logger.Log(text);
 			else BasePlayer.SendConsoleCommand("chat.add", 2, Id, text);
 		}
 

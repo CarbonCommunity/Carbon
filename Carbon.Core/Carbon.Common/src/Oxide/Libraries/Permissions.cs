@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Carbon;
 using Carbon.Base;
+using Carbon.Extensions;
 using Oxide.Game.Rust.Libraries.Covalence;
 
 /*
@@ -20,8 +21,9 @@ public class Permission : Library
 {
 	public enum SerializationMode
 	{
-		Protobuf,
-		SQL
+		Storeless = -1,
+		Protobuf = 0,
+		SQL = 1
 	}
 
 	public bool IsGlobal
@@ -32,7 +34,7 @@ public class Permission : Library
 		}
 	}
 
-	public bool IsLoaded { get; private set; }
+	public bool IsLoaded { get; set; }
 
 	public Permission()
 	{
@@ -155,8 +157,8 @@ public class Permission : Library
 			groupdata = validatedGroups;
 		}
 
-		if (!GroupExists("default")) CreateGroup("default", "default", 0);
-		if (!GroupExists("admin")) CreateGroup("admin", "admin", 1);
+		if (!GroupExists(Community.Runtime.Config.PlayerDefaultGroup)) CreateGroup(Community.Runtime.Config.PlayerDefaultGroup, Community.Runtime.Config.PlayerDefaultGroup?.ToCamelCase(), 0);
+		if (!GroupExists(Community.Runtime.Config.AdminDefaultGroup)) CreateGroup(Community.Runtime.Config.AdminDefaultGroup, Community.Runtime.Config.AdminDefaultGroup?.ToCamelCase(), 1);
 
 		IsLoaded = true;
 
@@ -366,7 +368,7 @@ public class Permission : Library
 	{
 		if (player == null) return;
 
-		var user = GetUserData(player.UserIDString);
+		var user = GetUserData(player.UserIDString, addIfNotExisting: true);
 		user.LastSeenNickname = player.displayName;
 
 		if (player.net != null && player.net.connection != null && player.net.connection.info != null)

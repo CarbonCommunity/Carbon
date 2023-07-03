@@ -5,5 +5,7 @@ namespace Carbon.Contracts;
 
 public interface ICarbonProcessor : IDisposable
 {
-	Queue<Action> OnFrameQueue { get; }
+	object CurrentFrameLock { get; set; }
+	List<Action> CurrentFrameQueue { get; set; }
+	List<Action> PreviousFrameQueue { get; set; }
 }

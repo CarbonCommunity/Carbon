@@ -58,8 +58,8 @@ public class HookCallerCommon
 	}
 
 	public Dictionary<int, object[]> _argumentBuffer = new();
-	public ConcurrentDictionary<string, int> _hookTimeBuffer = new();
-	public ConcurrentDictionary<string, int> _hookTotalTimeBuffer = new();
+	public Dictionary<string, int> _hookTimeBuffer = new();
+	public Dictionary<string, int> _hookTotalTimeBuffer = new();
 	public Dictionary<string, DateTime> _lastDeprecatedWarningAt = new();
 
 	public virtual void AppendHookTime(string hook, int time) { }
@@ -1373,6 +1373,23 @@ public static class HookCaller
 		var methodContents = "\n\tvar result = (object)null;\n\ttry\n\t{\n\t\tswitch(hook)\n\t\t{\n";
 		var @namespace = input.Members[0] as BaseNamespaceDeclarationSyntax;
 		var @class = @namespace.Members[0] as ClassDeclarationSyntax;
+		var methodDeclarations = new List<MethodDeclarationSyntax>();
+		methodDeclarations.AddRange(@class.ChildNodes().OfType<MethodDeclarationSyntax>());
+
+		#region Handle partials
+
+		foreach (var subNamespace in input.Members.OfType<BaseNamespaceDeclarationSyntax>())
+		{
+			foreach (var subClass in subNamespace.Members.OfType<ClassDeclarationSyntax>())
+			{
+				if (subClass != @class && subClass.Modifiers.Any(SyntaxKind.PartialKeyword) && subClass.Identifier.ValueText == @class.Identifier.ValueText)
+				{
+					methodDeclarations.AddRange(subClass.ChildNodes().OfType<MethodDeclarationSyntax>());
+				}
+			}
+		}
+
+		#endregion
 
 		if (publicize)
 		{
@@ -1407,15 +1424,14 @@ public static class HookCaller
 			@class = PublicizeRecursively(@class);
 		}
 
-		var methodDeclarations = @class.ChildNodes().OfType<MethodDeclarationSyntax>();
 		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
-		var privateMethods0 = methodDeclarations.Where(md => (md.Modifiers.Count == 0 || md.Modifiers.Any(SyntaxKind.PrivateKeyword) || md.Modifiers.Any(SyntaxKind.ProtectedKeyword) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);
+		var privateMethods0 = methodDeclarations.Where(md => (md.Modifiers.Count == 0 || md.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword)) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);
 		var privateMethods = privateMethods0.OrderBy(x => x.Identifier.ValueText);
 		privateMethods0 = null;
 
 		foreach (var method in privateMethods)
 		{
-			var methodName = method.Identifier.ValueText; 
+			var methodName = method.Identifier.ValueText;
 			var id = HookCallerCommon.StringPool.GetOrAdd(methodName);
 
 			if (!hookableMethods.TryGetValue(id, out var list))
@@ -1428,7 +1444,7 @@ public static class HookCaller
 
 		foreach (var group in hookableMethods)
 		{
-			methodContents += $"\t\t\tcase {group.Key}:\n\t\t\t{{";
+			methodContents += $"\t\t\t// {group.Value[0].Identifier.ValueText} aka {group.Key}\n\t\t\tcase {group.Key}:\n\t\t\t{{";
 
 			for (int i = 0; i < group.Value.Count; i++)
 			{
@@ -1437,14 +1453,27 @@ public static class HookCaller
 				var methodName = method.Identifier.ValueText;
 				var parameters0 = method.ParameterList.Parameters.Select(x =>
 				{
+					var type = x.Type.ToString().Replace("?", string.Empty);
 					parameterIndex++;
-					return x.Default != null ?
-						$"args[{parameterIndex}] is {x.Type.ToString().Replace("?", string.Empty)} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : default" :
-						$"{(x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)) ? "ref " : x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)) ? "out var " : "")}arg{parameterIndex}_{i}";
+
+					if (x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)))
+					{
+						return $"out var arg{parameterIndex}_{i}";
+					}
+					else if (x.Default != null || x.Type is NullableTypeSyntax)
+					{
+						return $"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : ({type})default";
+					}
+					else if (x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
+					{
+						return $"ref arg{parameterIndex}_{i}";
+					}
+
+					return $"arg{parameterIndex}_{i}";
 				});
 				var parameters = parameters0.ToArray();
 
-				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null);
+				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null && x.Type is not NullableTypeSyntax);
 				var requiredParameterCount = requiredParameters.Count(x => !x.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)));
 
 				var refSets = string.Empty;
@@ -1461,15 +1490,17 @@ public static class HookCaller
 
 				parameterIndex = -1;
 				var parameterText = string.Empty;
+				var varText = string.Empty;
 				for (int o = 0; o < method.ParameterList.Parameters.Count; o++)
 				{
 					var parameter = method.ParameterList.Parameters[o];
 					parameterIndex++;
 
-					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)))
+					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) && parameter.Type is not NullableTypeSyntax)
 					{
-						var type = parameter.Type.ToString().Replace("?", string.Empty);
-						parameterText += !IsUnmanagedType(type) ? $"args[{parameterIndex}] is {type} arg{parameterIndex}_{i} &&" : $"(args[{parameterIndex}] ?? ({type})default) is {type} arg{parameterIndex}_{i} &&";
+						var type = parameter.Type.ToString().Replace("?", string.Empty).Replace("global::", string.Empty);
+						varText += $"var narg{parameterIndex}_{i} = args[{parameterIndex}] is {type};\nvar arg{parameterIndex}_{i} = narg{parameterIndex}_{i} ? ({type})(args[{parameterIndex}] ?? ({type})default) : ({type})default;\n";
+						parameterText += !IsUnmanagedType(type) ? $"narg{parameterIndex}_{i} && " : $"(narg{parameterIndex}_{i} || args[{parameterIndex}] == null) && ";
 					}
 				}
 
@@ -1478,7 +1509,8 @@ public static class HookCaller
 					parameterText = parameterText.Substring(0, parameterText.Length - 3);
 				}
 
-				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"if({(group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count) ? $"args.Length == {method.ParameterList.Parameters.Count} && " : string.Empty)}{parameterText})" : "")} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "{" : "")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" ? "}" : "")}";
+				var validLengthCheck = group.Value.Min(y => y.ParameterList.Parameters.Count) != group.Value.Max(y => y.ParameterList.Parameters.Count);
+				methodContents += $"\t\t\t\n\t\t\t\t{(requiredParameterCount > 0 ? $"{(validLengthCheck ? $"if(args.Length == {method.ParameterList.Parameters.Count})" : string.Empty)}" : "")} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" && validLengthCheck ? "{" : "")} {varText}{(string.IsNullOrEmpty(parameterText) ? string.Empty : $"if({parameterText}) {{")} {(method.ReturnType.ToString() != "void" ? "result = " : string.Empty)}{methodName}({string.Join(", ", parameters)}); {refSets} {(requiredParameterCount > 0 && methodName != "OnServerInitialized" && validLengthCheck ? "}" : "")}{(string.IsNullOrEmpty(parameterText) ? string.Empty : $"}}")}\n";
 
 				Array.Clear(parameters, 0, parameters.Length);
 				parameters = null;
@@ -1509,10 +1541,11 @@ public static class HookCaller
 			.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space), SyntaxFactory.Token(SyntaxKind.OverrideKeyword).WithTrailingTrivia(SyntaxFactory.Space))
 			.AddBodyStatements(SyntaxFactory.ParseStatement(methodContents)).WithTrailingTrivia(SyntaxFactory.LineFeed);
 
-		output = input.WithMembers(input.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class.WithMembers(@class.Members.Insert(0, generatedMethod))))));
+		output = input.WithMembers(input.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class.WithMembers(@class.Members.Insert(@class.Members.Count, generatedMethod))))));
 
-		#region Cleanup Pass
+		#region Cleanup
 
+		methodDeclarations.Clear();
 		methodDeclarations = null;
 		foreach (var hookableMethod in hookableMethods)
 		{

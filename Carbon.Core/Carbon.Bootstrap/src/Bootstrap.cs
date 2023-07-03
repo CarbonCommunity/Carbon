@@ -69,13 +69,17 @@ public sealed class Bootstrap
 		Logger.Log($"{assemblyName} loaded.");
 		_harmonyInstance = new HarmonyLib.Harmony(identifier);
 
-		Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", Path.Combine(Context.CarbonLogs, "harmony.log"));
-		typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
+		var logPath = Path.Combine(Context.CarbonLogs, "harmony.log");
 
+		Environment.SetEnvironmentVariable("HARMONY_LOG_FILE", logPath);
+		typeof(HarmonyLib.FileLog).GetField("_logPathInited", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
 #if DEBUG
 		HarmonyLib.Harmony.DEBUG = true;
-		File.Delete(Path.Combine(Context.CarbonLogs, "harmony.log"));
+#elif RELEASE
+		HarmonyLib.Harmony.DEBUG = false;
 #endif
+
+		if(File.Exists(logPath)) File.Delete(logPath);
 
 		_gameObject = new UnityEngine.GameObject("Carbon");
 		UnityEngine.Object.DontDestroyOnLoad(_gameObject);

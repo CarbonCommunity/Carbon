@@ -58,6 +58,10 @@ public class OxideMod
 
 		switch (Community.Runtime.Config.PermissionSerialization)
 		{
+			case Permission.SerializationMode.Storeless:
+				Permission = new PermissionStoreless();
+				break;
+
 			case Permission.SerializationMode.Protobuf:
 				Permission = new Permission();
 				break;
@@ -72,12 +76,22 @@ public class OxideMod
 
 	public void NextTick(Action callback)
 	{
-		Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+		var processor = Community.Runtime.CarbonProcessor;
+
+		lock (processor.CurrentFrameLock)
+		{
+			processor.CurrentFrameQueue.Add(callback);
+		}
 	}
 
 	public void NextFrame(Action callback)
 	{
-		Community.Runtime.CarbonProcessor.OnFrameQueue.Enqueue(callback);
+		var processor = Community.Runtime.CarbonProcessor;
+
+		lock (processor.CurrentFrameLock)
+		{
+			processor.CurrentFrameQueue.Add(callback);
+		}
 	}
 
 	public void ReloadPlugin(string name)
@@ -127,7 +141,7 @@ public class OxideMod
 			11 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
 			12 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
 			13 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
-			_ => HookCaller.CallStaticHook(hookName)
+			_ => HookCaller.CallStaticHook(hookName, args, true)
 		};
 	}
 
@@ -152,6 +166,8 @@ public class OxideMod
 		};
 	}
 
+	internal static Dictionary<string, object> _libraryCache = new();
+
 	public T GetLibrary<T>(string name = null) where T : Library
 	{
 		var type = typeof(T);
@@ -162,14 +178,21 @@ public class OxideMod
 		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 		else if (type == typeof(Oxide.Core.Libraries.WebRequests)) return Community.Runtime.CorePlugin.webrequest as T;
 
-		try { return Activator.CreateInstance<T>(); }
-		catch
+		name ??= type.Name;
+
+		if (!_libraryCache.TryGetValue(name, out var instance))
 		{
-			try { return FormatterServices.GetUninitializedObject(typeof(T)) as T; }
-			catch { }
+			try { instance = Activator.CreateInstance<T>(); }
+			catch
+			{
+				try { instance = FormatterServices.GetUninitializedObject(typeof(T)) as T; }
+				catch { }
+			}
+
+			_libraryCache.Add(name, instance);
 		}
 
-		return null;
+		return instance as T;
 	}
 
 	public static readonly VersionNumber Version = new(_assemblyVersion.Major, _assemblyVersion.Minor, _assemblyVersion.Build);
