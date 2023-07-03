@@ -122,7 +122,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				ap.SelectedTab = Tabs.FirstOrDefault(x => HasAccessLevel(player, x.AccessLevel));
 
 				var tab = GetTab(player);
-				tab?.OnChange?.Invoke(ap, tab);
+				tab.OnChange?.Invoke(ap, tab);
 
 				ap.Clear();
 
@@ -304,15 +304,19 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			return result;
 		}
 
+		var authLevel = player.Connection.authLevel;
 		var minLevel = ConfigInstance.MinimumAuthLevel;
-		var userLevel = ServerUsers.Is(player.userID, ServerUsers.UserGroup.Moderator) ? 1 : ServerUsers.Is(player.userID, ServerUsers.UserGroup.Owner) ? 2 : 0;
 
-		if (userLevel < minLevel && userLevel > 0)
+		if (authLevel == 0)
+		{
+			player.ChatMessage($"Your auth level is not high enough to use this feature.");
+		}
+		else if (authLevel < minLevel && authLevel > 0)
 		{
 			player.ChatMessage($"Your auth level is not high enough to use this feature. Please adjust the minimum level required in your config or give yourself auth level {minLevel}.");
 		}
 
-		return userLevel >= minLevel;
+		return authLevel >= minLevel;
 	}
 
 	#region Option Elements
@@ -1644,7 +1648,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			case Tab.OptionColor color:
 				if (color.Callback != null)
 				{
-					ColorPicker.Draw(player, (rustColor, hexColor) => { color.Callback?.Invoke(ap, rustColor, hexColor); });
+					ColorPicker.Draw(player, (rustColor, hexColor, alpha) => { color.Callback?.Invoke(ap, rustColor, hexColor, alpha); });
 					return false;
 				}
 				break;
@@ -1932,7 +1936,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			return AddRow(column, new OptionInputButton(name, buttonPriority, input, button, tooltip));
 		}
-		public Tab AddColor(int column, string name, Func<string> color, Action<PlayerSession, string, string> callback, string tooltip = null)
+		public Tab AddColor(int column, string name, Func<string> color, Action<PlayerSession, string, string, float> callback, string tooltip = null)
 		{
 			return AddRow(column, new OptionColor(name, color, callback, tooltip));
 		}
@@ -2160,9 +2164,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public class OptionColor : Option
 		{
 			public Func<string> Color;
-			public Action<PlayerSession, string, string> Callback;
+			public Action<PlayerSession, string, string, float> Callback;
 
-			public OptionColor(string name, Func<string> color, Action<PlayerSession, string, string> callback, string tooltip = null) : base(name, tooltip)
+			public OptionColor(string name, Func<string> color, Action<PlayerSession, string, string, float> callback, string tooltip = null) : base(name, tooltip)
 			{
 				Color = color;
 				Callback = callback;
@@ -5679,7 +5683,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							var valueSplit = value.Split(' ');
 							if (value.StartsWith("#") || (valueSplit.Length >= 3 && valueSplit.All(x => float.TryParse(x, out _))))
 							{
-								AddColor(column, name, () => value.StartsWith("#") ? HexToRustColor(value) : value, (ap, hex, rust) =>
+								AddColor(column, name, () => value.StartsWith("#") ? HexToRustColor(value) : value, (ap, hex, rust, alpha) =>
 								{
 									value = value.StartsWith("#") ? hex : rust;
 									usableToken.Replace(usableToken = $"#{value}");
@@ -6177,6 +6181,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public const string Brightness = "colorpicker_brightness";
 		public const string BrightnessIndicator = "colorpicker_brightnessindicator";
 		public const string FirstOpen = "colorpicker_firstopen";
+		public const string Alpha = "colorpicker_alpha";
 		public const string OnColorPicked = "colorpicker_oncolorpicked";
 
 		public const string PanelId = "carbonuicolorpicker";
@@ -6185,14 +6190,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		internal static float AnimationLength = 0.005f;
 		internal static float CurrentAnimation = 0f;
 
-		public static void Open(BasePlayer player, Action<string, string> onColorPicked)
+		public static void Open(BasePlayer player, Action<string, string, float> onColorPicked)
 		{
 			var ap = Singleton.GetPlayerSession(player);
+			ap.SetStorage(ap.SelectedTab, Alpha, 1f);
 
 			if (!Singleton.ModuleConfiguration.Enabled)
 			{
 				var empty = string.Empty;
-				onColorPicked?.Invoke(empty, empty);
+				onColorPicked?.Invoke(empty, empty, 1f);
 				return;
 			}
 
@@ -6210,13 +6216,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			ap.SetStorage(ap.SelectedTab, FirstOpen, false);
 		}
 
-		internal static void Draw(BasePlayer player, Action<string, string> onColorPicked)
+		internal static void Draw(BasePlayer player, Action<string, string, float> onColorPicked)
 		{
 			if (player == null) return;
 
 			var ap = Singleton.GetPlayerSession(player);
 
 			ap.SetStorage(ap.SelectedTab, OnColorPicked, onColorPicked);
+			var alphaValue = ap.GetStorage(ap.SelectedTab, Alpha, 1f);
 
 			var brightness = ap.GetStorage(ap.SelectedTab, Brightness, 1f);
 			var firstOpen = ap.GetStorage(ap.SelectedTab, FirstOpen, false);
@@ -6267,10 +6274,28 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				align: TextAnchor.LowerLeft,
 				font: Handler.FontTypes.RobotoCondensedRegular);
 
+			cui.CreateText(container, parent: main, id: null,
+				color: "1 1 1 0.3",
+				text: "------------------- ALPHA", 8,
+				xMin: 0, xMax: 0.14f, yMin: 0.085f, yMax: 1f,
+				align: TextAnchor.LowerRight,
+				font: Handler.FontTypes.RobotoCondensedRegular);
+
+			//
+			// Hex input field
+			//
 			var input = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
 				xMin: 0.805f, xMax: 0.94f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
 			cui.CreateProtectedInputField(container, input, null, "1 1 1 1", "#", 10, 0, false,
 				xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
+
+			//
+			// Alpha input field
+			//
+			var alpha = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
+				xMin: 0.015f, xMax: 0.14f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
+			cui.CreateProtectedInputField(container, alpha, null, "1 1 1 1", $"{alphaValue}", 10, 0, false,
+				xMin: 0.075f, command: PanelId + ".pickalpha", align: TextAnchor.MiddleRight, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap));
 
 			var picker = cui.CreatePanel(container, parent: main, id: PanelId + ".picker",
 				color: "0 0 0 0",
@@ -6326,7 +6351,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			cui.Send(container, player);
 
-
 			CurrentAnimation = 0;
 		}
 		internal static void DrawColor(CUI cui, CuiElementContainer container, PlayerSession ap, float scale, Color color, string parent, float xOffset, float yOffset, string mode = "color", float fade = 0f, int index = -1)
@@ -6361,7 +6385,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 	}
 
-	public void OpenColorPicker(BasePlayer player, Action<string, string> onColorPicked)
+	public void OpenColorPicker(BasePlayer player, Action<string, string, float> onColorPicked)
 	{
 		ColorPicker.Draw(player, onColorPicked);
 	}
@@ -6381,12 +6405,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var mode = args.Args[0];
 		var hex = args.Args[1];
+		var alpha = ap.GetStorage(ap.SelectedTab, ColorPicker.Alpha, 1f);
 		var rawColor = args.Args.Skip(2).ToArray().ToString(" ", " ");
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
 		var brightness = ap.GetStorage(ap.SelectedTab, ColorPicker.Brightness, 1f);
 		var brightnessIndicator = ap.GetStorage(ap.SelectedTab, ColorPicker.BrightnessIndicator, 8);
-		var onColorPicked = ap.GetStorage<Action<string, string>>(ap.SelectedTab, ColorPicker.OnColorPicked);
+		var onColorPicked = ap.GetStorage<Action<string, string, float>>(ap.SelectedTab, ColorPicker.OnColorPicked);
 
 		switch (mode)
 		{
@@ -6398,7 +6423,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				return;
 		}
 
-		onColorPicked?.Invoke(hex, rawColor);
+		onColorPicked?.Invoke(hex, rawColor, alpha);
 		ColorPicker.Close(args.Player());
 	}
 
@@ -6408,18 +6433,28 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var player = args.Player();
 		var ap = GetPlayerSession(player);
 		var hex = args.Args[0];
+		var alpha = ap.GetStorage(ap.SelectedTab, ColorPicker.Alpha, 1f);
 
 		if (args.Args.Length == 0 || string.IsNullOrEmpty(hex) || hex == "#")
 		{
 			return;
 		}
 
-		var onColorPicked = ap.GetStorage<Action<string, string>>(ap.SelectedTab, ColorPicker.OnColorPicked);
+		var onColorPicked = ap.GetStorage<Action<string, string, float>>(ap.SelectedTab, ColorPicker.OnColorPicked);
 
 		if (!hex.StartsWith("#")) hex = $"#{hex}";
 		var rawColor = HexToRustColor(hex, includeAlpha: false);
-		onColorPicked?.Invoke(hex, rawColor);
+		onColorPicked?.Invoke(hex, rawColor, alpha);
 		ColorPicker.Close(args.Player());
+	}
+
+	[ProtectedCommand(ColorPicker.PanelId + ".pickalpha")]
+	private void PickAlphaColorPickerUI(Arg args)
+	{
+		var player = args.Player();
+		var ap = GetPlayerSession(player);
+		var alpha = args.Args[0].ToFloat().Clamp(0f, 1f);
+		ap.SetStorage(ap.SelectedTab, ColorPicker.Alpha, alpha);
 	}
 
 	#endregion
@@ -6737,7 +6772,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			ap.SetStorage(null, "modal", this);
 			cui.Send(container, player);
 		}
-		public void _drawInternal(CUI cui, CuiElementContainer container, string panel)
+
+		internal void _drawInternal(CUI cui, CuiElementContainer container, string panel)
 		{
 			var subText = $"<b><color=red>*</color></b>  {"Assign all required field values.".ToUpper().SpacedString(1)}" +
 				$"\n    {(IsValid() ? $"<b><color=green>{"The modal is valid.".ToUpper().SpacedString(1)}</color></b>" : $"<b><color=red>{"The modal has invalid fields.".ToUpper().SpacedString(1)}</color></b>")}" +
@@ -6787,16 +6823,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					case Field.FieldTypes.RustColor:
 					case Field.FieldTypes.HexColor:
-						var originalColor = field.Value.Value == null || (string.IsNullOrEmpty(field.Value.Value.ToString())) ? (field.Value.Type == Field.FieldTypes.RustColor ? "1 1 1" : "#ffffff") : field.Value.Value.ToString();
-						var hexColor = field.Value.Type == Field.FieldTypes.RustColor ? RustToHexColor(originalColor, includeAlpha: false) : originalColor;
-						var rustColor = field.Value.Type == Field.FieldTypes.HexColor ? HexToRustColor(originalColor, includeAlpha: false) : originalColor;
+						var originalColor = string.IsNullOrEmpty($"{field.Value.Value}") ? (field.Value.Type == Field.FieldTypes.RustColor ? "1 1 1" : "#ffffff") : field.Value.Value.ToString();
+						var hexColor = field.Value.Type == Field.FieldTypes.RustColor ? RustToHexColor(originalColor, includeAlpha: true) : originalColor;
+						var rustColor = field.Value.Type == Field.FieldTypes.HexColor ? HexToRustColor(originalColor, includeAlpha: true) : originalColor;
 						var rustColorSplit = rustColor.Split(' ');
-						rustColor = $"R:{rustColorSplit[0].ToFloat() * 255:0}   G:{rustColorSplit[1].ToFloat() * 255:0}   B:{rustColorSplit[2].ToFloat() * 255:0}";
+						rustColor = $"R:{rustColorSplit[0].ToFloat() * 255:0}   G:{rustColorSplit[1].ToFloat() * 255:0}   B:{rustColorSplit[2].ToFloat() * 255:0}   A:{(rustColorSplit.Length == 4 ? rustColorSplit[3].ToFloat() : 1f) * 255:0}";
 						Array.Clear(rustColorSplit, 0, rustColorSplit.Length);
 
 						cui.CreateText(container, option, null, textColor, $"<b>{"HEX".SpacedString(1)}:</b>  {hexColor}", 12, xMin: 0.7f, align: TextAnchor.MiddleLeft);
 						cui.CreateText(container, option, null, textColor, $"<b>{"RUST".SpacedString(1)}:</b>  {rustColor}", 12, xMin: 0.115f, align: TextAnchor.MiddleLeft);
-						var color = cui.CreateProtectedButton(container, option, null, hexColor, "0 0 0 0", string.Empty, 0, xMin: 0.025f, xMax: 0.085f, yMin: 0.1f, yMax: 0.9f, command: $"modal.action {field.Key}");
+						cui.CreateProtectedButton(container, option, null, hexColor, "0 0 0 0", string.Empty, 0, xMin: 0.025f, xMax: 0.085f, yMin: 0.1f, yMax: 0.9f, command: $"modal.action {field.Key}");
 						break;
 
 					case Field.FieldTypes.Enum:
@@ -6978,10 +7014,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				case Modal.Field.FieldTypes.HexColor:
 					Community.Runtime.CorePlugin.NextFrame(() =>
 					{
-						OpenColorPicker(ap.Player, (hexColor, rustColor) =>
+						OpenColorPicker(ap.Player, (hexColor, rustColor, alpha) =>
 						{
-							if (field.Type == Modal.Field.FieldTypes.RustColor) field.Value = rustColor;
-							else field.Value = $"#{hexColor}";
+							var before = field.Value;
+
+							if (field.Type == Modal.Field.FieldTypes.RustColor)
+								field.Value = CUI.HexToRustColor($"#{hexColor}", alpha);
+							else field.Value = CUI.RustToHexColor(rustColor, alpha);
 
 							modal.OnFieldChanged?.Invoke(modal, fieldName, field, oldValue, value);
 							modal.Draw(ap.Player);

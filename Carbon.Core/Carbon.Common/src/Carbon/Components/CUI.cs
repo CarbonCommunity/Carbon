@@ -160,7 +160,7 @@ public struct CUI : IDisposable
 	{
 		if (!ColorUtility.TryParseHtmlString(hexColor, out var color))
 		{
-			return $"1 1 1 {alpha.GetValueOrDefault(1)}";
+			return $"1 1 1{(includeAlpha ? $" {alpha.GetValueOrDefault(1)}" : "")}";
 		}
 
 		return $"{color.r} {color.g} {color.b}{(includeAlpha ? $" {alpha ?? color.a}" : "")}";

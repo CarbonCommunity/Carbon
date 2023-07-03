@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Carbon.Base;
 using Carbon.Contracts;
+using Carbon.Extensions;
+using Facepunch;
 
 /*
  *
@@ -20,19 +22,37 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 	public override void OnDestroy() { }
 	public override void Dispose() { }
 
-	public Queue<Action> OnFrameQueue { get; set; } = new Queue<Action>();
+	public List<Action> CurrentFrameQueue { get; set; } = new();
+	public List<Action> PreviousFrameQueue { get; set; } = new();
+	public object CurrentFrameLock { get; set; } = new();
 
 	public void Update()
 	{
-		if (OnFrameQueue.Count <= 0) return;
+		if (CurrentFrameQueue.Count <= 0) return;
 
-		try
+		var lockObject = CurrentFrameLock;
+		var queueList = (List<Action>)null;
+
+		lock (lockObject)
 		{
-			OnFrameQueue.Dequeue()?.Invoke();
+			queueList = CurrentFrameQueue;
+			CurrentFrameQueue = PreviousFrameQueue;
+			PreviousFrameQueue = queueList;
 		}
-		catch (Exception exception)
+
+		for (int i = 0; i < queueList.Count; i++)
 		{
-			Logger.Error($"Failed to execute OnFrame callback ({exception.Message})\n{exception.StackTrace}");
+			try
+			{
+				queueList[i]();
+			}
+			catch (Exception exception)
+			{
+				exception = exception.InnerException ?? exception;
+				Logger.Error($"Failed to execute OnFrame callback ({exception.Message})\n{exception.StackTrace}");
+			}
 		}
+
+		queueList.Clear();
 	}
 }

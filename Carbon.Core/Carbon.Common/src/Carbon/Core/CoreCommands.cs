@@ -1,11 +1,4 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +16,13 @@ using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using UnityEngine;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -740,16 +740,17 @@ public partial class CorePlugin : CarbonPlugin
 				// Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
-					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
 					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
-					foreach (var plugin in tempList)
+					foreach (var plugin in OrderedFiles)
 					{
-						Community.Runtime.ScriptProcessor.Prepare(Path.GetFileNameWithoutExtension(plugin), plugin);
-					}
+						if (Community.Runtime.ScriptProcessor.InstanceBuffer.ContainsKey(plugin.Key))
+						{
+							continue;
+						}
 
-					Pool.FreeList(ref tempList);
+						Community.Runtime.ScriptProcessor.Prepare(plugin.Key, plugin.Value);
+					}
 					break;
 				}
 
@@ -985,12 +986,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Granted user '{user.Value.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.GrantGroupPermission(name, perm, null))
 				{
 					arg.ReplyWith($"Granted group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant group permission.");
 				}
 				break;
 
@@ -1027,12 +1036,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Revoked user '{user.Value?.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.RevokeGroupPermission(name, perm))
 				{
 					arg.ReplyWith($"Revoked group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke group permission.");
 				}
 				break;
 
