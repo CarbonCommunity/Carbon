@@ -23,7 +23,7 @@ public partial class Category_Resources
 		public class Resources_GrowableEntity_0122c151c6dd4865a324d79d05155a57 : Patch
 		{
 			public static void Prefix(ref GrowableEntity __instance)
-				=> HookCaller.CallStaticHook("OnGrowableUpdate", __instance);
+				=> HookCaller.CallStaticHook(63864217, __instance);
 		}
 	}
 }

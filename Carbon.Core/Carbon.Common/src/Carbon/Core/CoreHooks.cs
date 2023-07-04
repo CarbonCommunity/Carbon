@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using API.Commands;
 using Carbon.Extensions;
 using Carbon.Plugins;
+using Carbon.Pooling;
 using ConVar;
 using Network;
 using Oxide.Core;
@@ -216,7 +217,7 @@ public partial class CorePlugin : CarbonPlugin
 	private object IOnLoseCondition(Item item, float amount)
 	{
 		var args = new object[] { item, amount };
-		HookCaller.CallStaticHook("OnLoseCondition", args, keepArgs: true);
+		HookCaller.CallStaticHook(3503014187, args, keepArgs: true);
 		amount = (float)args[1];
 
 		var condition = item.condition;
@@ -251,12 +252,12 @@ public partial class CorePlugin : CarbonPlugin
 			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
 			Array.Clear(split, 0, split.Length);
 
-			if (HookCaller.CallStaticHook("OnPlayerCommand", player, command, args) != null)
+			if (HookCaller.CallStaticHook(1077563450, player, command, args) != null)
 			{
 				return false;
 			}
 
-			if (HookCaller.CallStaticHook("OnUserCommand", player.AsIPlayer(), command, args) != null)
+			if (HookCaller.CallStaticHook(2623980812, player.AsIPlayer(), command, args) != null)
 			{
 				return false;
 			}
@@ -273,7 +274,7 @@ public partial class CorePlugin : CarbonPlugin
 				return false;
 			}
 
-			if (HookCaller.CallStaticHook("OnUnknownPlayerCommand", player, command, args) != null)
+			if (HookCaller.CallStaticHook(554444971, player, command, args) != null)
 			{
 				return false;
 			}
@@ -286,7 +287,7 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		if (arg != null && arg.cmd != null && arg.Player() != null && arg.cmd.FullName == "chat.say") return null;
 
-		if (HookCaller.CallStaticHook("OnServerCommand", arg) == null)
+		if (HookCaller.CallStaticHook(3282920085, arg) == null)
 		{
 			return null;
 		}
@@ -320,7 +321,7 @@ public partial class CorePlugin : CarbonPlugin
 	private void IOnServerShutdown()
 	{
 		Logger.Log($"Saving plugin configuration and data..");
-		HookCaller.CallStaticHook("OnServerSave");
+		HookCaller.CallStaticHook(2032593992);
 
 		Logger.Log($"Shutting down Carbon..");
 		Interface.Oxide.OnShutdown();

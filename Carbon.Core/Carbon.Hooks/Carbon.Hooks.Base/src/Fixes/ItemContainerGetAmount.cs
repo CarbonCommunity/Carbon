@@ -22,7 +22,7 @@ public partial class Category_Fixes
 		{
 			public static bool Prefix(int itemid, bool onlyUsableAmounts, out int __result, ref ItemContainer __instance)
 			{
-				if (HookCaller.CallStaticHook("IDisallowSkinnedItemsFromBeingCraftable") == null)
+				if (HookCaller.CallStaticHook(2571830300) == null)
 				{
 					__result = default;
 					return true;

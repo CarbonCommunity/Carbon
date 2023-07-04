@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(CH47Helicopter __instance)
 		{
-			if (HookCaller.CallStaticHook("ICanCH47CreateMapMarker", __instance) != null)
+			if (HookCaller.CallStaticHook(1257940220, __instance) != null)
 			{
 				return false;
 			}

@@ -29,7 +29,7 @@ public partial class Category_Fun
 					var player = c.player as BasePlayer;
 
 					if (player.displayName == "Jackie Chan")
-						HookCaller.CallStaticHook("OnJackieChan", player);
+						HookCaller.CallStaticHook(1777955827, player);
 				}
 				catch { }
 			}

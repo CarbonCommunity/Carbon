@@ -38,7 +38,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 		var temporaryTypes = types.ToArray();
 		Build(temporaryTypes);
 
-		Pool.FreeList(ref types);
+		Facepunch.Pool.FreeList(ref types);
 		Array.Clear(temporaryTypes, 0, temporaryTypes.Length);
 		temporaryTypes = null;
 	}
@@ -101,7 +101,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	}
 	public void Build(params Type[] types)
 	{
-		var modules = Pool.GetList<BaseHookable>();
+		var modules = Facepunch.Pool.GetList<BaseHookable>();
 
 		foreach (var type in types)
 		{
@@ -165,7 +165,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			}
 		}
 
-		Pool.FreeList(ref modules);
+		Facepunch.Pool.FreeList(ref modules);
 	}
 	public void Uninstall(IModule module)
 	{

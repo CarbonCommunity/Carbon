@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(ref bool __result, CargoShip __instance)
 		{
-			if (HookCaller.CallStaticHook("ICanCargoShipBlockWaterFor", __instance) != null)
+			if (HookCaller.CallStaticHook(2592499489, __instance) != null)
 			{
 				__result = false;
 				return false;
