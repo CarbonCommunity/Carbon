@@ -240,7 +240,7 @@ public static class ModLoader
 		RemoveCommands(plugin);
 		plugin.IUnload();
 
-		HookCaller.CallStaticHook(HookStringPool.GetOrAdd("OnPluginUnloaded"), plugin);
+		HookCaller.CallStaticHook(3843290135, plugin);
 
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
@@ -564,7 +564,7 @@ public static class ModLoader
 
 				try
 				{
-					HookCaller.CallHook(plugin, HookStringPool.GetOrAdd("OnServerInitialized"), Community.IsServerFullyInitialized);
+					HookCaller.CallHook(plugin, 1330569572, Community.IsServerFullyInitialized);
 				}
 				catch (Exception initException)
 				{

@@ -18,6 +18,5 @@ public interface IHook
 
 	string HookFullName { get; }
 	string HookName { get; }
-	uint HookId { get; }
 	string Identifier { get; }
 }

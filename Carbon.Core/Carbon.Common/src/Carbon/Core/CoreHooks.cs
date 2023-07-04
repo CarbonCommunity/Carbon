@@ -217,7 +217,7 @@ public partial class CorePlugin : CarbonPlugin
 	private object IOnLoseCondition(Item item, float amount)
 	{
 		var args = new object[] { item, amount };
-		HookCaller.CallStaticHook(HookStringPool.GetOrAdd("OnLoseCondition"), args, keepArgs: true);
+		HookCaller.CallStaticHook(3503014187, args, keepArgs: true);
 		amount = (float)args[1];
 
 		var condition = item.condition;
@@ -252,12 +252,12 @@ public partial class CorePlugin : CarbonPlugin
 			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString.Substring(command.Length + 1)) : _emptyStringArray;
 			Array.Clear(split, 0, split.Length);
 
-			if (HookCaller.CallStaticHook(HookStringPool.GetOrAdd("OnPlayerCommand"), player, command, args) != null)
+			if (HookCaller.CallStaticHook(1077563450, player, command, args) != null)
 			{
 				return false;
 			}
 
-			if (HookCaller.CallStaticHook(HookStringPool.GetOrAdd("OnUserCommand"), player.AsIPlayer(), command, args) != null)
+			if (HookCaller.CallStaticHook(2623980812, player.AsIPlayer(), command, args) != null)
 			{
 				return false;
 			}
@@ -274,7 +274,7 @@ public partial class CorePlugin : CarbonPlugin
 				return false;
 			}
 
-			if (HookCaller.CallStaticHook(HookStringPool.GetOrAdd("OnUnknownPlayerCommand"), player, command, args) != null)
+			if (HookCaller.CallStaticHook(554444971, player, command, args) != null)
 			{
 				return false;
 			}
