@@ -26,7 +26,7 @@ public partial class Category_Server
 		{
 			public static bool Prefix(ref ConsoleSystem.Arg __instance, ref bool __result)
 			{
-				if (HookCaller.CallStaticHook("OnNativeCommandHasPermission", __instance) is bool value)
+				if (HookCaller.CallStaticHook(2656314715, __instance) is bool value)
 				{
 					__result = value;
 					return false;

@@ -644,7 +644,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookId)}ms",
 							(mod.IsStaticHook)
 								? "N/A" :
 								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
@@ -705,7 +705,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(mod.HookId)}ms",
 							(mod.IsStaticHook)
 								? "N/A" :
 								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"

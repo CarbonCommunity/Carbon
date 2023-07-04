@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using API.Hooks;
 using Carbon.Extensions;
+using Carbon.Pooling;
 using HarmonyLib;
 
 /*
@@ -23,6 +24,9 @@ public class HookEx : IDisposable, IHook
 
 
 	public string HookName
+	{ get; }
+
+	public uint HookId
 	{ get; }
 
 	public string HookFullName
@@ -113,6 +117,7 @@ public class HookEx : IDisposable, IHook
 			Dependencies = new string[0];
 			HookFullName = metadata.FullName;
 			HookName = metadata.Name;
+			HookId = HookStringPool.GetOrAdd(metadata.Name);
 			TargetMethod = metadata.Method;
 			TargetMethodArgs = metadata.MethodArgs;
 			TargetMethods = new();

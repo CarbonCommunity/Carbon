@@ -5,6 +5,7 @@ using System.Reflection;
 using API.Events;
 using Carbon.Extensions;
 using Carbon.Plugins;
+using Carbon.Pooling;
 using ConVar;
 using Network;
 using Oxide.Core;
@@ -555,7 +556,7 @@ public partial class CorePlugin : CarbonPlugin
 		}
 		catch (System.Exception ex)
 		{
-			Carbon.Logger.Error($"Failed to call internal hook '{Carbon.HookCallerCommon.StringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'", ex);
+			Carbon.Logger.Error($"Failed to call internal hook '{HookStringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'", ex);
 		}
 		return result;
 	}
@@ -610,7 +611,7 @@ public partial class CorePlugin : CarbonPlugin
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 
 				var priority = method.GetCustomAttribute<HookPriority>();
-				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+				var hash = HookStringPool.GetOrAdd(method.Name);
 				if (!Hooks.ContainsKey(hash)) Hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
 			}
 		}
@@ -676,9 +677,9 @@ public partial class CorePlugin : CarbonPlugin
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)
 	{
-		HookCaller.CallStaticHook("OnUserDisconnected", player?.AsIPlayer(), reason);
+		HookCaller.CallStaticHook(HookStringPool.GetOrAdd("OnUserDisconnected"), player?.AsIPlayer(), reason);
 		Logger.Log($"{player.net.connection} left: {reason}");
-
+	
 		if (player.IsAdmin && !player.IsOnGround())
 		{
 			var newPosition = player.transform.position;

@@ -21,7 +21,7 @@ public partial class RustEditModule
 	{
 		public static void Postfix(ref List<Vector3> __result)
 		{
-			var hook = HookCaller.CallStaticHook("IOnGenerateOceanPatrolPath", __result);
+			var hook = HookCaller.CallStaticHook(2477149531, __result);
 
 			if (hook is List<Vector3> result)
 			{
@@ -29,7 +29,7 @@ public partial class RustEditModule
 				return;
 			}
 
-			HookCaller.CallStaticHook("IOnPostGenerateOceanPatrolPath", __result);
+			HookCaller.CallStaticHook(2026974294, __result);
 		}
 	}
 }

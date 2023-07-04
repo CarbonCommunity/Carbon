@@ -304,7 +304,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		foreach (var mod in ModLoader.LoadedPackages)
 		{
-			var plugins = Pool.GetList<RustPlugin>();
+			var plugins = Facepunch.Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
 
 			foreach (var plugin in plugins)
@@ -317,7 +317,7 @@ public partial class CorePlugin : CarbonPlugin
 				}
 			}
 
-			Pool.FreeList(ref plugins);
+			Facepunch.Pool.FreeList(ref plugins);
 		}
 	}
 
@@ -340,7 +340,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		foreach (var mod in ModLoader.LoadedPackages)
 		{
-			var plugins = Pool.GetList<RustPlugin>();
+			var plugins = Facepunch.Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
 
 			foreach (var plugin in plugins)
@@ -353,7 +353,7 @@ public partial class CorePlugin : CarbonPlugin
 				}
 			}
 
-			Pool.FreeList(ref plugins);
+			Facepunch.Pool.FreeList(ref plugins);
 		}
 	}
 
@@ -681,7 +681,7 @@ public partial class CorePlugin : CarbonPlugin
 
 				foreach (var mod in ModLoader.LoadedPackages)
 				{
-					var plugins = Pool.GetList<RustPlugin>();
+					var plugins = Facepunch.Pool.GetList<RustPlugin>();
 					plugins.AddRange(mod.Plugins);
 
 					foreach (var plugin in plugins)
@@ -705,7 +705,7 @@ public partial class CorePlugin : CarbonPlugin
 						}
 					}
 
-					Pool.FreeList(ref plugins);
+					Facepunch.Pool.FreeList(ref plugins);
 				}
 
 				if (!pluginFound)
@@ -799,7 +799,7 @@ public partial class CorePlugin : CarbonPlugin
 				// Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
+					var tempList = Facepunch.Pool.GetList<string>();
 
 					foreach (var bufferInstance in Community.Runtime.ScriptProcessor.InstanceBuffer)
 					{
@@ -819,7 +819,7 @@ public partial class CorePlugin : CarbonPlugin
 				// Web-Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
+					var tempList = Facepunch.Pool.GetList<string>();
 					tempList.AddRange(Community.Runtime.WebScriptProcessor.IgnoreList);
 					Community.Runtime.WebScriptProcessor.IgnoreList.Clear();
 					Community.Runtime.WebScriptProcessor.Clear();
@@ -828,7 +828,7 @@ public partial class CorePlugin : CarbonPlugin
 					{
 						Community.Runtime.WebScriptProcessor.Ignore(plugin);
 					}
-					Pool.FreeList(ref tempList);
+					Facepunch.Pool.FreeList(ref tempList);
 					break;
 				}
 
@@ -846,7 +846,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
-						var plugins = Pool.GetList<RustPlugin>();
+						var plugins = Facepunch.Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
 
 						foreach (var plugin in plugins)
@@ -867,7 +867,7 @@ public partial class CorePlugin : CarbonPlugin
 							}
 						}
 
-						Pool.FreeList(ref plugins);
+						Facepunch.Pool.FreeList(ref plugins);
 					}
 
 					if (!pluginFound)
@@ -921,7 +921,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
-						var plugins = Pool.GetList<RustPlugin>();
+						var plugins = Facepunch.Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
 
 						foreach (var plugin in plugins)
@@ -935,7 +935,7 @@ public partial class CorePlugin : CarbonPlugin
 							}
 						}
 
-						Pool.FreeList(ref plugins);
+						Facepunch.Pool.FreeList(ref plugins);
 					}
 
 					if (!pluginFound)

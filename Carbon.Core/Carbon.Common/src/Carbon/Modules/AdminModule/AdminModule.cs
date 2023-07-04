@@ -7,6 +7,7 @@ using Carbon.Base;
 using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.Pooling;
 using Network;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -299,7 +300,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	private bool CanAccess(BasePlayer player)
 	{
-		if (HookCaller.CallStaticHook("CanAccessAdminModule", player) is bool result)
+		if (HookCaller.CallStaticHook(HookStringPool.GetOrAdd("CanAccessAdminModule"), player) is bool result)
 		{
 			return result;
 		}
@@ -1761,7 +1762,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			foreach (var page in ColumnPages)
 			{
 				var value = ColumnPages[page.Key];
-				Pool.Free(ref value);
+				Facepunch.Pool.Free(ref value);
 			}
 
 			ColumnPages.Clear();
@@ -2729,14 +2730,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}, null);
 				}, (ap) => Tab.OptionButton.Types.Important), new Tab.OptionButton("Edit", ap =>
 				{
-					var temp = Pool.GetList<string>();
+					var temp = Facepunch.Pool.GetList<string>();
 					var groups = Community.Runtime.CorePlugin.permission.GetGroups();
 					temp.Add("None");
 					temp.AddRange(groups);
 					temp.Remove(selectedGroup);
 
 					var array = temp.ToArray();
-					Pool.FreeList(ref temp);
+					Facepunch.Pool.FreeList(ref temp);
 
 					var parent = permission.GetGroupParent(selectedGroup);
 					var parentIndex = Array.IndexOf(array, parent);
@@ -2763,13 +2764,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}));
 				tab.AddButton(2, "Duplicate Group", ap =>
 				{
-					var temp = Pool.GetList<string>();
+					var temp = Facepunch.Pool.GetList<string>();
 					var groups = Community.Runtime.CorePlugin.permission.GetGroups();
 					temp.Add("None");
 					temp.AddRange(groups);
 
 					var array = temp.ToArray();
-					Pool.FreeList(ref temp);
+					Facepunch.Pool.FreeList(ref temp);
 
 					Modal.Open(ap.Player, "Duplicate Group", new Dictionary<string, Modal.Field>
 					{
@@ -2777,7 +2778,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, @default: string.Empty),
 						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, @default: 0),
 						["parent"] = Modal.EnumField.MakeEnum("Parent", array, @default: 0)
-					}, onConfirm: (p, modal) =>
+					}, onConfirm: (BasePlayer p, Modal modal) =>
 					{
 						var name = modal.Get<string>("name");
 						var parentIndex = modal.Get<int>("parent");
@@ -2913,13 +2914,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				tab.AddButton(1, "Add Group", ap =>
 				{
-					var temp = Pool.GetList<string>();
+					var temp = Facepunch.Pool.GetList<string>();
 					var groups = Community.Runtime.CorePlugin.permission.GetGroups();
 					temp.Add("None");
 					temp.AddRange(groups);
 
 					var array = temp.ToArray();
-					Pool.FreeList(ref temp);
+					Facepunch.Pool.FreeList(ref temp);
 
 					Modal.Open(ap.Player, "Create Group", new Dictionary<string, Modal.Field>()
 					{
@@ -2927,7 +2928,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						["dname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String, @default: string.Empty),
 						["rank"] = Modal.Field.Make("Rank", Modal.Field.FieldTypes.Integer, @default: 0),
 						["parent"] = Modal.EnumField.MakeEnum("Parent", array, @default: 0)
-					}, onConfirm: (player, modal) =>
+					}, onConfirm: (BasePlayer player, Modal modal) =>
 					{
 						var parentIndex = modal.Get<int>("parent");
 						perms.CreateGroup(modal.Get<string>("name"), modal.Get<string>("dname"), modal.Get<int>("rank"));
@@ -3040,7 +3041,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				DrawEntities(tab, ap3);
 			}, ap => isMulti);
 
-			var pool = Pool.GetList<BaseEntity>();
+			var pool = Facepunch.Pool.GetList<BaseEntity>();
 			EntityCount = 0;
 
 			var usedFilter = ap3.GetStorage(tab, "filter", string.Empty)?.ToLower()?.Trim();
@@ -3106,7 +3107,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}, ap => selectedEntitites.Contains(entity) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 			}
 
-			Pool.FreeList(ref pool);
+			Facepunch.Pool.FreeList(ref pool);
 
 			if (EntityCount == 0)
 			{
@@ -3491,7 +3492,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var entity = selectedEntitites[0];
 
 			var counter = 0;
-			var currentButtons = Pool.GetList<Tab.OptionButton>();
+			var currentButtons = Facepunch.Pool.GetList<Tab.OptionButton>();
 
 			tab.ClearColumn(column);
 
@@ -3518,7 +3519,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			}
 
-			Pool.FreeList(ref currentButtons);
+			Facepunch.Pool.FreeList(ref currentButtons);
 
 			void DoAll<T>(Action<T> callback) where T : BaseEntity
 			{
@@ -3753,8 +3754,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			maxPages = 0;
 
-			var resultList = Pool.GetList<Plugin>();
-			var customList = Pool.GetList<Plugin>();
+			var resultList = Facepunch.Pool.GetList<Plugin>();
+			var customList = Facepunch.Pool.GetList<Plugin>();
 
 			using (TimeMeasure.New("GetPluginsFromVendor", 1))
 			{
@@ -3897,12 +3898,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 				catch (Exception ex)
 				{
-					Pool.FreeList(ref resultList);
+					Facepunch.Pool.FreeList(ref resultList);
 
 					Logger.Error($"Failed getting plugins.", ex);
 				}
 
-				Pool.FreeList(ref customList);
+				Facepunch.Pool.FreeList(ref customList);
 			}
 
 			return resultList;
@@ -3912,8 +3913,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var plugins = GetPlugins(vendor, tab, ap);
 
-			var images = Pool.GetList<string>();
-			var imagesSafe = Pool.GetList<string>();
+			var images = Facepunch.Pool.GetList<string>();
+			var imagesSafe = Facepunch.Pool.GetList<string>();
 
 			foreach (var element in plugins)
 			{
@@ -3933,9 +3934,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (images.Count > 0) Singleton.ImageDatabase.QueueBatchCallback(vendor.IconScale, eraseAllBeforehand, result => { }, images.ToArray());
 			if (imagesSafe.Count > 0) Singleton.ImageDatabase.QueueBatch(vendor.SafeIconScale, eraseAllBeforehand, imagesSafe.ToArray());
 
-			Pool.FreeList(ref plugins);
-			Pool.FreeList(ref images);
-			Pool.FreeList(ref imagesSafe);
+			Facepunch.Pool.FreeList(ref plugins);
+			Facepunch.Pool.FreeList(ref images);
+			Facepunch.Pool.FreeList(ref imagesSafe);
 		}
 
 		public static void Draw(CUI cui, CuiElementContainer container, string parent, Tab tab, PlayerSession ap)
@@ -4109,7 +4110,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var tagOffset = 0f;
 				var tagSpacing = 0.012f;
 				var tags = cui.CreatePanel(container, mainPanel, null, "0 0 0 0", xMin: 0.48f, xMax: 0.8f, yMin: 0.66f, yMax: 0.7f);
-				var tempTags = Pool.GetList<string>();
+				var tempTags = Facepunch.Pool.GetList<string>();
 				var counter = 0;
 
 				foreach (var tag in selectedPlugin.Tags)
@@ -4133,7 +4134,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					tagOffset += size + tagSpacing;
 				}
 
-				Pool.FreeList(ref tempTags);
+				Facepunch.Pool.FreeList(ref tempTags);
 
 				#endregion
 
@@ -4227,7 +4228,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			}
 
-			Pool.FreeList(ref plugins);
+			Facepunch.Pool.FreeList(ref plugins);
 		}
 
 		#region Vendor
@@ -4343,7 +4344,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled()).ToArray();
 				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate()).ToArray();
 
-				var tags = Pool.GetList<string>();
+				var tags = Facepunch.Pool.GetList<string>();
 				foreach (var plugin in FetchedPlugins)
 				{
 					foreach (var tag in plugin.Tags)
@@ -4357,7 +4358,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}
 				}
 				PopularTags = tags.ToArray();
-				Pool.FreeList(ref tags);
+				Facepunch.Pool.FreeList(ref tags);
 			}
 			public void FetchList(Action<IVendorDownloader> callback = null)
 			{
@@ -4557,7 +4558,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled()).ToArray();
 				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate()).ToArray();
 
-				var tags = Pool.GetList<string>();
+				var tags = Facepunch.Pool.GetList<string>();
 				foreach (var plugin in FetchedPlugins)
 				{
 					foreach (var tag in plugin.Tags)
@@ -4571,7 +4572,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}
 				}
 				PopularTags = tags.ToArray();
-				Pool.FreeList(ref tags);
+				Facepunch.Pool.FreeList(ref tags);
 			}
 			public void FetchList(Action<IVendorDownloader> callback = null)
 			{
@@ -4814,7 +4815,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled()).ToArray();
 				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate()).ToArray();
 
-				var tags = Pool.GetList<string>();
+				var tags = Facepunch.Pool.GetList<string>();
 				foreach (var plugin in FetchedPlugins)
 				{
 					if (plugin.Tags == null) continue;
@@ -4830,7 +4831,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}
 				}
 				PopularTags = tags.ToArray();
-				Pool.FreeList(ref tags);
+				Facepunch.Pool.FreeList(ref tags);
 			}
 			public void FetchList(Action<IVendorDownloader> callback = null)
 			{
@@ -5469,7 +5470,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var plugins = PluginsTab.GetPlugins(vendor, tab, ap);
 		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.Args[0].ToInt();
 		ap.SetStorage(tab, "selectedplugin", plugins[nextPage > plugins.Count - 1 ? 0 : nextPage < 0 ? plugins.Count - 1 : nextPage]);
-		Pool.FreeList(ref plugins);
+		Facepunch.Pool.FreeList(ref plugins);
 
 		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 
@@ -5648,13 +5649,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			AddColumn(0);
 			AddColumn(1);
 
-			var list = Pool.GetList<OptionButton>();
+			var list = Facepunch.Pool.GetList<OptionButton>();
 			if (OnCancel != null) list.Add(new OptionButton("Cancel", ap => { OnCancel?.Invoke(ap, Entry); }));
 			if (OnSave != null) list.Add(new OptionButton("Save", ap => { OnSave?.Invoke(ap, Entry); }));
 			if (OnSaveAndReload != null) list.Add(new OptionButton("Save & Reload", ap => { OnSaveAndReload?.Invoke(ap, Entry); }));
 
 			AddButtonArray(0, list.ToArray());
-			Pool.FreeList(ref list);
+			Facepunch.Pool.FreeList(ref list);
 
 			foreach (var token in Entry)
 			{
