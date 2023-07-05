@@ -307,17 +307,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		var authLevel = player.Connection.authLevel;
 		var minLevel = ConfigInstance.MinimumAuthLevel;
+		var hasAccess = authLevel >= minLevel;
 
-		if (authLevel == 0)
+		if (!hasAccess)
 		{
-			player.ChatMessage($"Your auth level is not high enough to use this feature.");
-		}
-		else if (authLevel < minLevel && authLevel > 0)
-		{
-			player.ChatMessage($"Your auth level is not high enough to use this feature. Please adjust the minimum level required in your config or give yourself auth level {minLevel}.");
+			if (authLevel == 0)
+			{
+				player.ChatMessage($"Your auth level is not high enough to use this feature.");
+			}
+			else if (authLevel < minLevel && authLevel > 0)
+			{
+				player.ChatMessage($"Your auth level is not high enough to use this feature. Please adjust the minimum level required in your config or give yourself auth level {minLevel}.");
+			}
 		}
 
-		return authLevel >= minLevel;
+		return hasAccess;
 	}
 
 	#region Option Elements
@@ -2618,7 +2622,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				new Tab.OptionButton("Add User", ap => {
 					Modal.Open(ap.Player, "Create New User", new()
 					{
-						["steamid"] = Modal.Field.Make("Steam ID", Modal.Field.FieldTypes.String, true, customIsInvalid: field => !field.Get<string>().IsSteamId() ? "Not a valid Steam ID." : permission.GetUserData(field.Get<string>()) != null ? "User with the same Steam ID already exists." : string.Empty),
+						["steamid"] = Modal.Field.Make("Steam ID", Modal.Field.FieldTypes.String, true, customIsInvalid: field => !field.Get<string>().IsSteamId() ? "Not a valid Steam ID." : permission.UserExists(field.Get<string>()) ? "User with the same Steam ID already exists." : string.Empty),
 						["displayname"] = Modal.Field.Make("Display Name", Modal.Field.FieldTypes.String)
 					}, (pl, mod) =>
 					{
