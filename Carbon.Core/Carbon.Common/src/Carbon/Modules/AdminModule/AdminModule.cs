@@ -3765,39 +3765,35 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var plugins = vendor.FetchedPlugins.ToArray();
+					IEnumerable<Plugin> plugins = vendor.FetchedPlugins;
 					var filter = ap.GetStorage(tab, "filter", FilterTypes.None);
+					var flip = ap.GetStorage<bool>(tab, "flipfilter", false);
 					switch (filter)
 					{
 						case FilterTypes.Price:
-							plugins = vendor.PriceData;
+							plugins = flip ? vendor.PriceData.Reverse() : vendor.PriceData;
 							break;
 
 						case FilterTypes.Author:
-							plugins = vendor.AuthorData;
+							plugins = flip ? vendor.AuthorData.Reverse() : vendor.AuthorData;
 							break;
 
 						case FilterTypes.Installed:
-							plugins = vendor.InstalledData;
+							plugins = flip ? vendor.InstalledData.Reverse() : vendor.InstalledData;
 							break;
 
 						case FilterTypes.OutOfDate:
-							plugins = vendor.OutOfDateData;
+							plugins = flip ? vendor.OutOfDateData.Reverse() : vendor.OutOfDateData;
 							break;
 					}
-
-					// if (FlipFilter)
-					// {
-					// 	var reverse = plugins.Reverse().ToArray();
-					// 	Array.Clear(plugins, 0, plugins.Length);
-					// 	plugins = reverse;
-					// }
 
 					var search = ap.GetStorage<string>(tab, "search");
 					if (!string.IsNullOrEmpty(search))
 					{
 						foreach (var plugin in plugins)
 						{
+							if (plugin.Status != Status.Approved) continue;
+
 							if (filter == FilterTypes.Favourites)
 							{
 								if (ServerOwner.Singleton.FavouritePlugins.Contains(plugin.File))
@@ -3851,6 +3847,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						foreach (var plugin in plugins)
 						{
+							if (plugin.Status != Status.Approved) continue;
+
 							if (filter == FilterTypes.Favourites)
 							{
 								if (ServerOwner.Singleton.FavouritePlugins.Contains(plugin.File))
@@ -3883,6 +3881,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							else customList.Add(plugin);
 						}
 					}
+
+					plugins = null;
 
 					maxPages = (customList.Count - 1) / 15;
 
@@ -4235,7 +4235,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			Facepunch.Pool.FreeList(ref plugins);
 		}
 
-		#region Vendor
+		#region Vendors
 
 		public interface IVendorStored
 		{
@@ -4280,7 +4280,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			Pending = 1,
 			Approved = 0,
-			Hidden = -1
+			Hidden = -1,
+			Deleted = -2,
 		}
 
 		[ProtoContract]
@@ -4343,10 +4344,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					PriceData = AuthorData = InstalledData = null;
 				}
 
-				PriceData = FetchedPlugins.OrderBy(x => x.OriginalPrice).ToArray();
-				AuthorData = FetchedPlugins.OrderBy(x => x.Author).ToArray();
+				PriceData = FetchedPlugins.Where(x => x.Status == Status.Approved).OrderBy(x => x.OriginalPrice).ToArray();
+				AuthorData = FetchedPlugins.Where(x => x.Status == Status.Approved).OrderBy(x => x.Author).ToArray();
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled()).ToArray();
-				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate()).ToArray();
+				OutOfDateData = FetchedPlugins.Where(x => x.Status == Status.Approved).Where(x => x.IsInstalled() && !x.IsUpToDate()).ToArray();
 
 				var tags = Facepunch.Pool.GetList<string>();
 				foreach (var plugin in FetchedPlugins)
@@ -4394,6 +4395,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							Dependencies = token["file_depends"]?.ToString().Split(),
 							CarbonCompatible = (token["file_compatibility"]?.ToString().ToBool()).GetValueOrDefault(),
 							Rating = (token["file_rating"]?.ToString().ToFloat()).GetValueOrDefault(0),
+							Status = (Status)Enum.Parse(typeof(Status), token["file_status"]?.ToString()),
 							HasLookup = true
 						};
 
