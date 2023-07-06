@@ -76,7 +76,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	[AuthLevel(2)]
 	private void ClearInvalid(ConsoleSystem.Arg arg)
 	{
-		var toDelete = Pool.GetList<KeyValuePair<uint, FileStorage.CacheData>>();
+		var toDelete = Facepunch.Pool.GetList<KeyValuePair<uint, FileStorage.CacheData>>();
 
 		foreach (var file in FileStorage.server._cache)
 		{
@@ -92,7 +92,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		}
 
 		arg.ReplyWith($"Removed {toDelete.Count:n0} invalid stored files from FileStorage (above the maximum size of {ByteEx.Format(MaximumBytes, shortName: true).ToUpper()}).");
-		Pool.FreeList(ref toDelete);
+		Facepunch.Pool.FreeList(ref toDelete);
 	}
 
 	public override void OnServerInit()
@@ -179,7 +179,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			return true;
 		}
 
-		var invalidations = Pool.GetList<string>();
+		var invalidations = Facepunch.Pool.GetList<string>();
 
 		foreach (var pointer in _protoData.Map)
 		{
@@ -195,7 +195,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		}
 
 		var invalidated = invalidations.Count > 0;
-		Pool.FreeList(ref invalidations);
+		Facepunch.Pool.FreeList(ref invalidations);
 
 		return invalidated;
 	}
@@ -320,7 +320,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 			return;
 		}
 
-		var urls = Pool.GetList<string>();
+		var urls = Facepunch.Pool.GetList<string>();
 
 		foreach (var url in mappedUrls)
 		{
@@ -330,7 +330,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 
 		QueueBatch(scale, @override, urls.ToArray());
 
-		Pool.FreeList(ref urls);
+		Facepunch.Pool.FreeList(ref urls);
 	}
 	public void Queue(bool @override, Dictionary<string, string> mappedUrls)
 	{
@@ -538,7 +538,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 				return;
 			}
 
-			var results = Pool.GetList<QueuedThreadResult>();
+			var results = Facepunch.Pool.GetList<QueuedThreadResult>();
 			results.AddRange(Result);
 
 			foreach (var result in results)
@@ -563,7 +563,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 				catch { }
 			}
 
-			Pool.FreeList(ref results);
+			Facepunch.Pool.FreeList(ref results);
 
 			_finishedProcessing = true;
 		}

@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static void Postfix()
 		{
-			HookCaller.CallStaticHook("IPostClearMapEntities");
+			HookCaller.CallStaticHook(1073327062);
 		}
 	}
 }

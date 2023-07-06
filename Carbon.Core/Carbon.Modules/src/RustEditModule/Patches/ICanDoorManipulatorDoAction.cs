@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(DoorManipulator __instance)
 		{
-			if (HookCaller.CallStaticHook("ICanDoorManipulatorDoAction", __instance) != null)
+			if (HookCaller.CallStaticHook(1871062713, __instance) != null)
 			{
 				return false;
 			}

@@ -34,6 +34,7 @@ internal sealed class ExtensionManager : AddonManager
 	 * world, either directly or using reflection.
 	 *
 	 */
+
 	private readonly string[] _directories =
 	{
 		Context.CarbonExtensions,
@@ -89,11 +90,13 @@ internal sealed class ExtensionManager : AddonManager
 
 								Logger.Debug($"A new instance of '{extension}' created");
 
-								extension.Awake(EventArgs.Empty);
-								extension.OnLoaded(EventArgs.Empty);
+								var arg = new CarbonEventArgs(file);
 
+								extension.Awake(arg);
+								extension.OnLoaded(arg);
+							
 								Carbon.Bootstrap.Events
-									.Trigger(CarbonEvent.ExtensionLoaded, new CarbonEventArgs(file));
+									.Trigger(CarbonEvent.ExtensionLoaded, arg);
 
 								_loaded.Add(new() { Addon = extension, File = file });
 							}

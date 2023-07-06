@@ -22,7 +22,7 @@ public partial class Category_Fixes
 		{
 			public static bool Prefix(VendingMachine __instance, ref float __result)
 			{
-				var hook = HookCaller.CallStaticHook("IVendingBuyDuration", __instance);
+				var hook = HookCaller.CallStaticHook(2959446098, __instance);
 
 				if (hook is float value)
 				{
@@ -42,7 +42,7 @@ public partial class Category_Fixes
 		{
 			public static bool Prefix(InvisibleVendingMachine __instance, ref float __result)
 			{
-				var hook = HookCaller.CallStaticHook("IVendingBuyDuration", __instance);
+				var hook = HookCaller.CallStaticHook(2959446098, __instance);
 
 				if (hook is float value)
 				{

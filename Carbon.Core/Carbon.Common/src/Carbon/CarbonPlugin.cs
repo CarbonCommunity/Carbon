@@ -38,7 +38,7 @@ public class CarbonPlugin : RustPlugin
 
 	internal static Dictionary<BasePlayer, List<CooldownInstance>> _commandCooldownBuffer = new();
 
-	public static bool IsCommandCooledDown(BasePlayer player, string command, int time, out float timeLeft, bool doCooldownIfNot = true)
+	public static bool IsCommandCooledDown(BasePlayer player, string command, int time, out float timeLeft, bool doCooldownIfNot = true, float appendMultiplier = 0.5f)
 	{
 		if (time == 0 || player == null)
 		{
@@ -70,6 +70,12 @@ public class CarbonPlugin : RustPlugin
 		}
 
 		timeLeft = (float)((time - timePassed.TotalMilliseconds) * 0.001f);
+
+		if (appendMultiplier != 1)
+		{
+			lookupCommand.LastCall = lookupCommand.LastCall.AddMilliseconds(time * appendMultiplier);
+		}
+
 		return true;
 	}
 
