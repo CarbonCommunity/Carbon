@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using API.Hooks;
 using Carbon.Extensions;
+using Carbon.Pooling;
 using HarmonyLib;
 
 /*

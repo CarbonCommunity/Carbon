@@ -20,7 +20,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(string category, Prefab prefab, Vector3 position, Quaternion rotation, Vector3 scale)
 		{
-			return HookCaller.CallStaticHook("ICanWorldPrefabSpawn", category, prefab, position, rotation, scale) == null;
+			return HookCaller.CallStaticHook(3861669836, category, prefab, position, rotation, scale) == null;
 		}
 	}
 }

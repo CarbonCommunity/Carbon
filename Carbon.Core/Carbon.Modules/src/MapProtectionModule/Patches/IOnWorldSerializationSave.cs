@@ -21,12 +21,12 @@ public partial class MapProtectionModule
 	{
 		public static void Prefix(string fileName, ref WorldSerialization __instance)
 		{
-			HookCaller.CallStaticHook("IOnWorldSerializationSave", fileName, __instance);
+			HookCaller.CallStaticHook(3056094212, fileName, __instance);
 		}
 
 		public static void Postfix(string fileName, ref WorldSerialization __instance)
 		{
-			HookCaller.CallStaticHook("IOnWorldSerializationSaved", fileName, __instance);
+			HookCaller.CallStaticHook(2969253234, fileName, __instance);
 		}
 	}
 }

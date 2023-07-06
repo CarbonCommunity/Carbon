@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(BaseEntity __instance)
 		{
-			if (HookCaller.CallStaticHook("IPreBaseEntityOnAttacked", __instance) != null)
+			if (HookCaller.CallStaticHook(3769506800, __instance) != null)
 			{
 				return false;
 			}

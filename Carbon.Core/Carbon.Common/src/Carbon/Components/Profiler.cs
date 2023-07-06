@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using Oxide.Plugins;
 using System.Runtime.Remoting.Messaging;
 using API.Hooks;
+using Carbon.Pooling;
 
 namespace Carbon.Components;
 
@@ -172,14 +173,14 @@ public class Profiler : IDisposable
 #endif
 	}
 
-	public static void StartHookCall(BaseHookable hookable, string hookName)
+	public static void StartHookCall(BaseHookable hookable, uint hook)
 	{
 #if DEBUG
 		if (Singleton == null || !Singleton.Running || hookable == null) return;
 
 		QueryPlugin(hookable, out var plugin);
 
-		plugin.StartCall(hookName);
+		plugin.StartCall(hook);
 #endif
 	}
 	public static void EndHookCall(BaseHookable hookable)
@@ -231,7 +232,7 @@ public class Profiler : IDisposable
 
 #endif
 
-		public void StartCall(string hook)
+		public void StartCall(uint hook)
 		{
 #if DEBUG
 			_currentHook++;
@@ -239,7 +240,8 @@ public class Profiler : IDisposable
 
 			HookCalls.Add(new HookCall
 			{
-				Name = hook,
+				Id = hook,
+				Name = HookStringPool.GetOrAdd(hook),
 			});
 #endif
 		}
@@ -255,6 +257,7 @@ public class Profiler : IDisposable
 		[Serializable]
 		public class HookCall : Timestamp
 		{
+			public uint Id;
 			public string Name;
 			public string Stacktrace;
 			public float Duration;

@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(BasePlayer player, BaseEntity ent, ref bool __result)
 		{
-			var hook = HookCaller.CallStaticHook("ICanWireToolModifyEntity", player, ent);
+			var hook = HookCaller.CallStaticHook(4266340273, player, ent);
 
 			if (hook is bool result)
 			{

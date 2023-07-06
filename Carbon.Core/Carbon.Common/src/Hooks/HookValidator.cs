@@ -65,32 +65,6 @@ public class HookValidator
 		"OnPlayerOfflineChat"
 	};
 
-	public static bool IsIncompatibleOxideHook(string hook)
-	{
-		if (IgnoredInternalHooks.Contains(hook))
-		{
-			return false;
-		}
-
-		if (Community.Runtime.HookManager.LoadedStaticHooks.Any(x => x.HookName == hook) ||
-			Community.Runtime.HookManager.LoadedDynamicHooks.Any(x => x.HookName == hook)) return false;
-
-		if (OxideHooks != null)
-		{
-			foreach (var manifest in OxideHooks.Manifests)
-			{
-				foreach (var entry in manifest.Hooks)
-				{
-					var hookName = entry.Hook.HookName.Split(' ')[0];
-					if (hookName.Contains("/") || hookName != hook) continue;
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
 	private static int OxideHooksCount
 	{
 		get

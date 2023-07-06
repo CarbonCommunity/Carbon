@@ -84,7 +84,7 @@ public class FileLogger : IDisposable
 	}
 	public virtual void _flush()
 	{
-		var buffer = Pool.GetList<string>();
+		var buffer = Facepunch.Pool.GetList<string>();
 		buffer.AddRange(_buffer);
 
 		foreach (var line in buffer)
@@ -94,7 +94,7 @@ public class FileLogger : IDisposable
 
 		_file.Flush();
 		_buffer.Clear();
-		Pool.FreeList(ref buffer);
+		Facepunch.Pool.FreeList(ref buffer);
 
 		if (_file.BaseStream.Length > SplitSize)
 		{
