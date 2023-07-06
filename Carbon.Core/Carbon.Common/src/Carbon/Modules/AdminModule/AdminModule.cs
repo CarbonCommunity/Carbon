@@ -5344,26 +5344,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		Singleton.Draw(args.Player());
 	}
-	[ProtectedCommand("pluginbrowser.filter")]
-	private void PluginBrowserFilter(Arg args)
-	{
-		var ap = GetPlayerSession(args.Player());
-		var tab = GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
-		vendor.Refresh();
-
-		var filter = ap.GetStorage<PluginsTab.FilterTypes>(tab, "filter");
-		var flip = ap.GetStorage<bool>(tab, "flipfilter");
-		if ((int)filter == args.Args[0].ToInt()) ap.SetStorage(tab, "flipfilter", !flip); else { ap.SetStorage(tab, "flipfilter", false); }
-
-		ap.SetStorage(tab, "page", 0);
-		ap.SetStorage(tab, "filter", (PluginsTab.FilterTypes)args.Args[0].ToInt());
-
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
-
-		Singleton.Draw(args.Player());
-	}
 	[ProtectedCommand("pluginbrowser.tagfilter")]
 	private void PluginBrowserTagFilter(Arg args)
 	{
@@ -5496,7 +5476,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (args.HasArgs(4))
 				{
-					if ((int)ap.GetStorage(tab, "filter", PluginsTab.FilterTypes.None) == args.Args[3].ToInt()) ap.SetStorage(tab, "flipstorage", !ap.GetStorage(tab, "flipstorage", false)); else { ap.SetStorage(tab, "flipstorage", false); }
+					var filter = ap.GetStorage(tab, "filter", PluginsTab.FilterTypes.None);
+					var flipFilter = ap.GetStorage(tab, "flipfilter", false);
+
+					if ((int)filter == args.Args[3].ToInt()) ap.SetStorage(tab, "flipfilter", !flipFilter);
+					else { ap.SetStorage(tab, "flipfilter", false); }
 
 					ap.SetStorage(tab, "page", 0);
 					ap.SetStorage(tab, "filter", (PluginsTab.FilterTypes)args.Args[3].ToInt());
