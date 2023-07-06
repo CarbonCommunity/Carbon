@@ -42,6 +42,7 @@ public partial class CorePlugin : CarbonPlugin
 						if (narg0_0) { AddConditional(arg0_0); }
 						break;
 					}
+#if DEBUG
 				// BeginProfile aka 3261118524
 				case 3261118524:
 					{
@@ -50,6 +51,15 @@ public partial class CorePlugin : CarbonPlugin
 						if (narg0_0) { BeginProfile(arg0_0); }
 						break;
 					}
+				// EndProfile aka 164269095
+				case 164269095:
+					{
+						var narg0_0 = args[0] is ConsoleSystem.Arg;
+						var arg0_0 = narg0_0 ? (ConsoleSystem.Arg)(args[0] ?? (ConsoleSystem.Arg)default) : (ConsoleSystem.Arg)default;
+						if (narg0_0) { EndProfile(arg0_0); }
+						break;
+					}
+#endif
 				// CarbonLoadConfig aka 815132798
 				case 815132798:
 					{
@@ -80,14 +90,6 @@ public partial class CorePlugin : CarbonPlugin
 						var narg0_0 = args[0] is ConsoleSystem.Arg;
 						var arg0_0 = narg0_0 ? (ConsoleSystem.Arg)(args[0] ?? (ConsoleSystem.Arg)default) : (ConsoleSystem.Arg)default;
 						if (narg0_0) { Conditionals(arg0_0); }
-						break;
-					}
-				// EndProfile aka 164269095
-				case 164269095:
-					{
-						var narg0_0 = args[0] is ConsoleSystem.Arg;
-						var arg0_0 = narg0_0 ? (ConsoleSystem.Arg)(args[0] ?? (ConsoleSystem.Arg)default) : (ConsoleSystem.Arg)default;
-						if (narg0_0) { EndProfile(arg0_0); }
 						break;
 					}
 				// Find aka 739121130
