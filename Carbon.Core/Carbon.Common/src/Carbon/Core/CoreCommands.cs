@@ -1,11 +1,4 @@
-﻿/*
- *
- * Copyright (c) 2022-2023 Carbon Community 
- * All rights reserved.
- *
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +16,13 @@ using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
 using Oxide.Plugins;
 using UnityEngine;
+
+/*
+ *
+ * Copyright (c) 2022-2023 Carbon Community 
+ * All rights reserved.
+ *
+ */
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051
@@ -304,7 +304,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		foreach (var mod in ModLoader.LoadedPackages)
 		{
-			var plugins = Pool.GetList<RustPlugin>();
+			var plugins = Facepunch.Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
 
 			foreach (var plugin in plugins)
@@ -317,7 +317,7 @@ public partial class CorePlugin : CarbonPlugin
 				}
 			}
 
-			Pool.FreeList(ref plugins);
+			Facepunch.Pool.FreeList(ref plugins);
 		}
 	}
 
@@ -340,7 +340,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		foreach (var mod in ModLoader.LoadedPackages)
 		{
-			var plugins = Pool.GetList<RustPlugin>();
+			var plugins = Facepunch.Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
 
 			foreach (var plugin in plugins)
@@ -353,7 +353,7 @@ public partial class CorePlugin : CarbonPlugin
 				}
 			}
 
-			Pool.FreeList(ref plugins);
+			Facepunch.Pool.FreeList(ref plugins);
 		}
 	}
 
@@ -450,10 +450,6 @@ public partial class CorePlugin : CarbonPlugin
 	[CommandVar("entitymapbuffersize", "The entity map buffer size. Gets applied on Carbon reboot.")]
 	[AuthLevel(2)]
 	private int EntityMapBufferSize { get { return Community.Runtime.Config.EntityMapBufferSize; } set { Community.Runtime.Config.EntityMapBufferSize = value; Community.Runtime.SaveConfig(); } }
-
-	[CommandVar("frametickbuffersize", "Frame tick buffer size used by NextTick/NextFrame queued callbacks. Setting this value higher may cause performance instability. (Between 1-100.000)")]
-	[AuthLevel(2)]
-	private int FrameTickBufferSize { get { return Community.Runtime.Config.FrameTickBufferSize; } set { Community.Runtime.Config.FrameTickBufferSize = value.Clamp(1, 100000); Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("language", "Server language used by the Language API.")]
 	[AuthLevel(2)]
@@ -653,7 +649,7 @@ public partial class CorePlugin : CarbonPlugin
 
 	#endregion
 
-	#region Mod & Plugin Loading
+	#region Plugin
 
 	[ConsoleCommand("reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything.")]
 	[AuthLevel(2)]
@@ -685,7 +681,7 @@ public partial class CorePlugin : CarbonPlugin
 
 				foreach (var mod in ModLoader.LoadedPackages)
 				{
-					var plugins = Pool.GetList<RustPlugin>();
+					var plugins = Facepunch.Pool.GetList<RustPlugin>();
 					plugins.AddRange(mod.Plugins);
 
 					foreach (var plugin in plugins)
@@ -709,7 +705,7 @@ public partial class CorePlugin : CarbonPlugin
 						}
 					}
 
-					Pool.FreeList(ref plugins);
+					Facepunch.Pool.FreeList(ref plugins);
 				}
 
 				if (!pluginFound)
@@ -744,16 +740,17 @@ public partial class CorePlugin : CarbonPlugin
 				// Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
-					tempList.AddRange(Community.Runtime.ScriptProcessor.IgnoreList);
 					Community.Runtime.ScriptProcessor.IgnoreList.Clear();
 
-					foreach (var plugin in tempList)
+					foreach (var plugin in OrderedFiles)
 					{
-						Community.Runtime.ScriptProcessor.Prepare(Path.GetFileNameWithoutExtension(plugin), plugin);
-					}
+						if (Community.Runtime.ScriptProcessor.InstanceBuffer.ContainsKey(plugin.Key))
+						{
+							continue;
+						}
 
-					Pool.FreeList(ref tempList);
+						Community.Runtime.ScriptProcessor.Prepare(plugin.Key, plugin.Value);
+					}
 					break;
 				}
 
@@ -802,7 +799,7 @@ public partial class CorePlugin : CarbonPlugin
 				// Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
+					var tempList = Facepunch.Pool.GetList<string>();
 
 					foreach (var bufferInstance in Community.Runtime.ScriptProcessor.InstanceBuffer)
 					{
@@ -822,7 +819,7 @@ public partial class CorePlugin : CarbonPlugin
 				// Web-Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
+					var tempList = Facepunch.Pool.GetList<string>();
 					tempList.AddRange(Community.Runtime.WebScriptProcessor.IgnoreList);
 					Community.Runtime.WebScriptProcessor.IgnoreList.Clear();
 					Community.Runtime.WebScriptProcessor.Clear();
@@ -831,7 +828,7 @@ public partial class CorePlugin : CarbonPlugin
 					{
 						Community.Runtime.WebScriptProcessor.Ignore(plugin);
 					}
-					Pool.FreeList(ref tempList);
+					Facepunch.Pool.FreeList(ref tempList);
 					break;
 				}
 
@@ -849,7 +846,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
-						var plugins = Pool.GetList<RustPlugin>();
+						var plugins = Facepunch.Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
 
 						foreach (var plugin in plugins)
@@ -870,7 +867,7 @@ public partial class CorePlugin : CarbonPlugin
 							}
 						}
 
-						Pool.FreeList(ref plugins);
+						Facepunch.Pool.FreeList(ref plugins);
 					}
 
 					if (!pluginFound)
@@ -924,7 +921,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
-						var plugins = Pool.GetList<RustPlugin>();
+						var plugins = Facepunch.Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
 
 						foreach (var plugin in plugins)
@@ -938,7 +935,7 @@ public partial class CorePlugin : CarbonPlugin
 							}
 						}
 
-						Pool.FreeList(ref plugins);
+						Facepunch.Pool.FreeList(ref plugins);
 					}
 
 					if (!pluginFound)
@@ -989,12 +986,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Granted user '{user.Value.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.GrantGroupPermission(name, perm, null))
 				{
 					arg.ReplyWith($"Granted group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't grant group permission.");
 				}
 				break;
 
@@ -1031,12 +1036,20 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					arg.ReplyWith($"Revoked user '{user.Value?.LastSeenNickname}' permission '{perm}'");
 				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke user permission.");
+				}
 				break;
 
 			case "group":
 				if (permission.RevokeGroupPermission(name, perm))
 				{
 					arg.ReplyWith($"Revoked group '{name}' permission '{perm}'");
+				}
+				else
+				{
+					arg.ReplyWith($"Couldn't revoke group permission.");
 				}
 				break;
 
@@ -1327,7 +1340,6 @@ public partial class CorePlugin : CarbonPlugin
 	}
 
 	#endregion
-
 
 #if DEBUG
 

@@ -21,7 +21,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(ref List<Vector3> __result)
 		{
-			var hook = HookCaller.CallStaticHook("ICanGenerateOceanPatrolPath");
+			var hook = HookCaller.CallStaticHook(1936041518);
 
 			if (hook is List<Vector3> result)
 			{

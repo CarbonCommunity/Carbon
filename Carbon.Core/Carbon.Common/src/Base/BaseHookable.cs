@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Carbon.Pooling;
 using Newtonsoft.Json;
 using Oxide.Core;
 
@@ -110,7 +111,7 @@ public class BaseHookable
 	{
 		if (IgnoredHooks == null) return;
 
-		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
+		var hash = HookStringPool.GetOrAdd(hook);
 
 		if (IgnoredHooks.Contains(hash)) return;
 
@@ -120,22 +121,22 @@ public class BaseHookable
 	{
 		if (IgnoredHooks == null) return;
 
-		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
+		var hash = HookStringPool.GetOrAdd(hook);
 
 		if (!IgnoredHooks.Contains(hash)) return;
 
 		IgnoredHooks.Remove(hash);
 	}
-	public bool IsHookIgnored(string hook)
+	public bool IsHookIgnored(uint hook)
 	{
-		return IgnoredHooks != null && IgnoredHooks.Contains(HookCallerCommon.StringPool.GetOrAdd(hook));
+		return IgnoredHooks != null && IgnoredHooks.Contains(hook);
 	}
 
 	public void SubscribeAll(Func<string, bool> condition = null)
 	{
 		foreach (var hook in Hooks)
 		{
-			var name = HookCallerCommon.StringPool.GetOrAdd(hook.Key);
+			var name = HookStringPool.GetOrAdd(hook.Key);
 			if (condition != null && !condition(name)) continue;
 
 			Subscribe(name);
@@ -145,7 +146,7 @@ public class BaseHookable
 	{
 		foreach (var hook in Hooks)
 		{
-			var name = HookCallerCommon.StringPool.GetOrAdd(hook.Key);
+			var name = HookStringPool.GetOrAdd(hook.Key);
 			if (condition != null && !condition(name)) continue;
 
 			Unsubscribe(name);

@@ -23,7 +23,6 @@ public class Config
 	public bool IsModded { get; set; } = true;
 	public bool HigherPriorityHookWarns { get; set; } = false;
 	public int EntityMapBufferSize { get; set; } = 100000;
-	public int FrameTickBufferSize { get; set; } = 1000;
 	public string PlayerDefaultGroup { get; set; } = "default";
 	public string AdminDefaultGroup { get; set; } = "admin";
 	public int LogFileMode { get; set; } = 2;
@@ -32,7 +31,7 @@ public class Config
 #if DEBUG
 		true;
 #else
-		false;
+		true; // Set false when we're out of development
 #endif
 	public List<string> ConditionalCompilationSymbols { get; set; }
 	public Severity LogSeverity { get; set; } = Severity.Notice;

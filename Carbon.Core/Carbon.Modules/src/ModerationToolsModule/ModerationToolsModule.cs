@@ -184,6 +184,12 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 	private void ToggleCadmin(BasePlayer player, string cmd, string[] args)
 	{
+		if (player == null)
+		{
+			Logger.Warn($"This command can only be called by a player (console/chat).");
+			return;
+		}
+
 		var value = player.HasPlayerFlag(BasePlayer.PlayerFlags.IsDeveloper);
 		player.SetPlayerFlag(BasePlayer.PlayerFlags.IsDeveloper, !value);
 		player.ChatMessage($"You've {(!value ? "enabled" : "disabled")} <color=orange>cadmin</color> mode.");

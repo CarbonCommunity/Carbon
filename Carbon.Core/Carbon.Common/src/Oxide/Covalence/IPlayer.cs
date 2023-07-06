@@ -27,7 +27,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 			Id = player.UserIDString;
 			Name = player.displayName.Sanitize();
 			LastCommand = 0;
-			IsServer = true;
+			IsServer = false;
 			perms = Interface.Oxide.GetLibrary<Permission>();
 		}
 
@@ -49,7 +49,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public bool IsSleeping => BasePlayer != null && BasePlayer.IsSleeping();
 
-		public bool IsServer { get; set; }
+		public bool IsServer { get; set; } = true;
 
 		public bool IsAdmin => ulong.TryParse(Id, out var id) && ServerUsers.Is(id, ServerUsers.UserGroup.Owner);
 

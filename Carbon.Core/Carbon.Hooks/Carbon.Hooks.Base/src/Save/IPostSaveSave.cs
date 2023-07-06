@@ -22,7 +22,7 @@ public partial class Category_Save
 		{
 			public static void Postfix()
 			{
-				HookCaller.CallStaticHook("IPostSaveSave");
+				HookCaller.CallStaticHook(918603217);
 			}
 		}
 	}
