@@ -3765,27 +3765,17 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					IEnumerable<Plugin> plugins = vendor.FetchedPlugins;
 					var filter = ap.GetStorage(tab, "filter", FilterTypes.None);
-					var flip = ap.GetStorage<bool>(tab, "flipfilter", false);
-					switch (filter)
+					var flip = ap.GetStorage(tab, "flipfilter", false);
+
+					IEnumerable<Plugin> plugins = filter switch
 					{
-						case FilterTypes.Price:
-							plugins = flip ? vendor.PriceData.Reverse() : vendor.PriceData;
-							break;
-
-						case FilterTypes.Author:
-							plugins = flip ? vendor.AuthorData.Reverse() : vendor.AuthorData;
-							break;
-
-						case FilterTypes.Installed:
-							plugins = flip ? vendor.InstalledData.Reverse() : vendor.InstalledData;
-							break;
-
-						case FilterTypes.OutOfDate:
-							plugins = flip ? vendor.OutOfDateData.Reverse() : vendor.OutOfDateData;
-							break;
-					}
+						FilterTypes.Price => flip ? vendor.PriceData.Reverse() : vendor.PriceData,
+						FilterTypes.Author => flip ? vendor.AuthorData.Reverse() : vendor.AuthorData,
+						FilterTypes.Installed => flip ? vendor.InstalledData.Reverse() : vendor.InstalledData,
+						FilterTypes.OutOfDate => flip ? vendor.OutOfDateData.Reverse() : vendor.OutOfDateData,
+						_ => flip ? vendor.FetchedPlugins.AsEnumerable().Reverse() : vendor.FetchedPlugins,
+					};
 
 					var search = ap.GetStorage<string>(tab, "search");
 					if (!string.IsNullOrEmpty(search))
@@ -5476,14 +5466,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (args.HasArgs(4))
 				{
+					var index = args.Args[3].ToInt();
 					var filter = ap.GetStorage(tab, "filter", PluginsTab.FilterTypes.None);
-					var flipFilter = ap.GetStorage(tab, "flipfilter", false);
+					var flipFilter = ap.GetStorage<bool>(tab, "flipfilter");
 
-					if ((int)filter == args.Args[3].ToInt()) ap.SetStorage(tab, "flipfilter", !flipFilter);
-					else { ap.SetStorage(tab, "flipfilter", false); }
+					if ((int)filter == index)
+					{
+						ap.SetStorage(tab, "flipfilter", !flipFilter);
+					}
+					else
+					{
+						ap.SetStorage(tab, "flipfilter", false);
+					}
 
 					ap.SetStorage(tab, "page", 0);
-					ap.SetStorage(tab, "filter", (PluginsTab.FilterTypes)args.Args[3].ToInt());
+					ap.SetStorage(tab, "filter", (PluginsTab.FilterTypes)index);
 				}
 				break;
 		}
