@@ -22,7 +22,7 @@ public partial class Category_Fixes
 		{
 			public static void Prefix(ref float value, ref MixingTable __instance)
 			{
-				var hook = HookCaller.CallStaticHook("IMixingSpeedMultiplier", __instance, value);
+				var hook = HookCaller.CallStaticHook(2901256393, __instance, value);
 
 				if (hook is float overridenValue)
 				{

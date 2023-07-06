@@ -24,7 +24,7 @@ public partial class Category_Fixes
 		{
 			public static bool Prefix(List<Item> collect, int itemid, int iAmount, out int __result, ref ItemContainer __instance)
 			{
-				if (HookCaller.CallStaticHook("IDisallowSkinnedItemsFromBeingCraftable") == null)
+				if (HookCaller.CallStaticHook(2571830300) == null)
 				{
 					__result = default;
 					return true;
@@ -36,7 +36,7 @@ public partial class Category_Fixes
 					__result = num;
 				}
 
-				var list = Pool.GetList<Item>();
+				var list = Facepunch.Pool.GetList<Item>();
 				foreach (var item in __instance.itemList)
 				{
 					if (item.info.itemid != itemid || item.skin != 0) continue;
@@ -83,7 +83,7 @@ public partial class Category_Fixes
 					item3.RemoveFromContainer();
 				}
 
-				Pool.FreeList(ref list);
+				Facepunch.Pool.FreeList(ref list);
 				__result = num;
 				return false;
 			}

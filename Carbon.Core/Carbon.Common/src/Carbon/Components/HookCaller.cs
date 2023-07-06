@@ -9,6 +9,7 @@ using Carbon.Base;
 using Carbon.Base.Interfaces;
 using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.Pooling;
 using Facepunch;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -28,58 +29,29 @@ namespace Carbon;
 
 public class HookCallerCommon
 {
-	public class StringPool
-	{
-		public static Dictionary<string, uint> HookNamePoolString = new();
-		public static Dictionary<uint, string> HookNamePoolInt = new();
-
-		public static uint GetOrAdd(string name)
-		{
-			if (HookNamePoolString.TryGetValue(name, out var hash))
-			{
-				return hash;
-			}
-
-			hash = name.ManifestHash();
-			HookNamePoolString[name] = hash;
-			HookNamePoolInt[hash] = name;
-			return hash;
-		}
-
-		public static string GetOrAdd(uint name)
-		{
-			if (HookNamePoolInt.TryGetValue(name, out var hash))
-			{
-				return hash;
-			}
-
-			return string.Empty;
-		}
-	}
-
 	public Dictionary<int, object[]> _argumentBuffer = new();
-	public Dictionary<string, int> _hookTimeBuffer = new();
-	public Dictionary<string, int> _hookTotalTimeBuffer = new();
-	public Dictionary<string, DateTime> _lastDeprecatedWarningAt = new();
+	public Dictionary<uint, int> _hookTimeBuffer = new();
+	public Dictionary<uint, int> _hookTotalTimeBuffer = new();
+	public Dictionary<uint, DateTime> _lastDeprecatedWarningAt = new();
 
-	public virtual void AppendHookTime(string hook, int time) { }
-	public virtual void ClearHookTime(string hook) { }
+	public virtual void AppendHookTime(uint hook, int time) { }
+	public virtual void ClearHookTime(uint hook) { }
 
 	public virtual object[] AllocateBuffer(int count) => null;
 	public virtual object[] RescaleBuffer(object[] oldBuffer, int newScale) => null;
 	public virtual void ClearBuffer(object[] buffer) { }
 
-	public virtual object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false) where T : BaseHookable => null;
-	public virtual object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority) where T : BaseHookable => null;
+	public virtual object CallHook<T>(T plugin, uint hookName, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false) where T : BaseHookable => null;
+	public virtual object CallDeprecatedHook<T>(T plugin, uint oldHook, uint newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority) where T : BaseHookable => null;
 
 	public struct Conflict
 	{
 		public BaseHookable Hookable;
-		public string Hook;
+		public uint Hook;
 		public object Result;
 		public Priorities Priority;
 
-		public static Conflict Make(BaseHookable hookable, string hook, object result, Priorities priority) => new()
+		public static Conflict Make(BaseHookable hookable, uint hook, object result, Priorities priority) => new()
 		{
 			Hookable = hookable,
 			Hook = hook,
@@ -150,7 +122,7 @@ public static class HookCaller
 
 	#endregion
 
-	public static int GetHookTime(string hook)
+	public static int GetHookTime(uint hook)
 	{
 		if (!Caller._hookTimeBuffer.TryGetValue(hook, out var total))
 		{
@@ -159,7 +131,7 @@ public static class HookCaller
 
 		return total;
 	}
-	public static int GetHookTotalTime(string hook)
+	public static int GetHookTotalTime(uint hook)
 	{
 		if (!Caller._hookTotalTimeBuffer.TryGetValue(hook, out var total))
 		{
@@ -169,9 +141,9 @@ public static class HookCaller
 		return total;
 	}
 
-	private static object CallStaticHook(string hookName, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, object[] args = null, bool keepArgs = false)
+	private static object CallStaticHook(uint hookId, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, object[] args = null, bool keepArgs = false)
 	{
-		Caller.ClearHookTime(hookName);
+		Caller.ClearHookTime(hookId);
 
 		var result = (object)null;
 		var array = args == null || args.Length == 0 ? null : keepArgs ? args : args.ToArray();
@@ -183,7 +155,7 @@ public static class HookCaller
 			if (hookable is IModule modules && !modules.GetEnabled()) continue;
 
 			var priority = (Priorities)default;
-			var methodResult = Caller.CallHook(hookable, hookName, flags: flag, args: array, ref priority, keepArgs);
+			var methodResult = Caller.CallHook(hookable, hookId, flags: flag, args: array, ref priority, keepArgs);
 
 			if (methodResult != null)
 			{
@@ -203,7 +175,7 @@ public static class HookCaller
 				try
 				{
 					var priority = (Priorities)default;
-					var methodResult = Caller.CallHook(plugin, hookName, flags: flag, args: array, ref priority, keepArgs);
+					var methodResult = Caller.CallHook(plugin, hookId, flags: flag, args: array, ref priority, keepArgs);
 
 					if (methodResult != null)
 					{
@@ -211,7 +183,7 @@ public static class HookCaller
 						ResultOverride(plugin, priority);
 					}
 				}
-				catch (Exception ex) { Logger.Error($"Failed to call hook '{hookName}' on plugin {plugin}", ex); }
+				catch (Exception ex) { Logger.Error($"Failed to call hook '{hookId}' on plugin {plugin}", ex); }
 			}
 		}
 
@@ -223,7 +195,7 @@ public static class HookCaller
 
 		void ResultOverride(BaseHookable hookable, Priorities priority)
 		{
-			_conflictCache.Add(Conflict.Make(hookable, hookName, result, priority));
+			_conflictCache.Add(Conflict.Make(hookable, hookId, result, priority));
 		}
 		void ConflictCheck()
 		{
@@ -250,7 +222,7 @@ public static class HookCaller
 				}
 
 				localResult = priorityConflict.Result;
-				if (differentResults && !_conflictCache.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+				if (differentResults && !_conflictCache.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookId}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
 
 				result = localResult;
 			}
@@ -258,7 +230,7 @@ public static class HookCaller
 
 		return result;
 	}
-	private static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object[] args = null)
+	private static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Static, object[] args = null)
 	{
 		if (expireDate < DateTime.Now)
 		{
@@ -279,19 +251,19 @@ public static class HookCaller
 
 	#region Hook Overrides
 
-	public static object CallHook(BaseHookable plugin, string hookName)
+	public static object CallHook(BaseHookable plugin, uint hookName)
 	{
 		return Caller.CallHook(plugin, hookName, flags: BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null, ref _priorityCatcher);
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName)
 	{
 		return (T)Caller.CallHook(plugin, hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null, ref _priorityCatcher);
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate)
 	{
 		return (T)Caller.CallDeprecatedHook(plugin, oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null, ref _priorityCatcher);
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1)
 	{
 		var buffer = Caller.AllocateBuffer(1);
 		buffer[0] = arg1;
@@ -301,7 +273,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1)
 	{
 		var buffer = Caller.AllocateBuffer(1);
 		buffer[0] = arg1;
@@ -311,7 +283,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1)
 	{
 		var buffer = Caller.AllocateBuffer(1);
 		buffer[0] = arg1;
@@ -321,7 +293,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2)
 	{
 		var buffer = Caller.AllocateBuffer(2);
 		buffer[0] = arg1;
@@ -332,7 +304,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2)
 	{
 		var buffer = Caller.AllocateBuffer(2);
 		buffer[0] = arg1;
@@ -343,7 +315,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2)
 	{
 		var buffer = Caller.AllocateBuffer(2);
 		buffer[0] = arg1;
@@ -354,7 +326,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3)
 	{
 		var buffer = Caller.AllocateBuffer(3);
 		buffer[0] = arg1;
@@ -366,7 +338,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3)
 	{
 		var buffer = Caller.AllocateBuffer(3);
 		buffer[0] = arg1;
@@ -378,7 +350,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3)
 	{
 		var buffer = Caller.AllocateBuffer(3);
 		buffer[0] = arg1;
@@ -390,7 +362,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4)
 	{
 		var buffer = Caller.AllocateBuffer(4);
 		buffer[0] = arg1;
@@ -403,7 +375,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4)
 	{
 		var buffer = Caller.AllocateBuffer(4);
 		buffer[0] = arg1;
@@ -416,7 +388,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4)
 	{
 		var buffer = Caller.AllocateBuffer(4);
 		buffer[0] = arg1;
@@ -429,7 +401,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5)
 	{
 		var buffer = Caller.AllocateBuffer(5);
 		buffer[0] = arg1;
@@ -443,7 +415,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5)
 	{
 		var buffer = Caller.AllocateBuffer(5);
 		buffer[0] = arg1;
@@ -457,7 +429,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5)
 	{
 		var buffer = Caller.AllocateBuffer(5);
 		buffer[0] = arg1;
@@ -471,7 +443,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
 	{
 		var buffer = Caller.AllocateBuffer(6);
 		buffer[0] = arg1;
@@ -486,7 +458,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
 	{
 		var buffer = Caller.AllocateBuffer(6);
 		buffer[0] = arg1;
@@ -501,7 +473,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
 	{
 		var buffer = Caller.AllocateBuffer(6);
 		buffer[0] = arg1;
@@ -516,7 +488,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 	{
 		var buffer = Caller.AllocateBuffer(7);
 		buffer[0] = arg1;
@@ -532,7 +504,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 	{
 		var buffer = Caller.AllocateBuffer(7);
 		buffer[0] = arg1;
@@ -548,7 +520,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 	{
 		var buffer = Caller.AllocateBuffer(7);
 		buffer[0] = arg1;
@@ -564,7 +536,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
 	{
 		var buffer = Caller.AllocateBuffer(8);
 		buffer[0] = arg1;
@@ -581,7 +553,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
 	{
 		var buffer = Caller.AllocateBuffer(8);
 		buffer[0] = arg1;
@@ -598,7 +570,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
 	{
 		var buffer = Caller.AllocateBuffer(8);
 		buffer[0] = arg1;
@@ -615,7 +587,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 	{
 		var buffer = Caller.AllocateBuffer(9);
 		buffer[0] = arg1;
@@ -633,7 +605,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 	{
 		var buffer = Caller.AllocateBuffer(9);
 		buffer[0] = arg1;
@@ -651,7 +623,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 	{
 		var buffer = Caller.AllocateBuffer(9);
 		buffer[0] = arg1;
@@ -669,7 +641,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
 	{
 		var buffer = Caller.AllocateBuffer(10);
 		buffer[0] = arg1;
@@ -688,7 +660,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
 	{
 		var buffer = Caller.AllocateBuffer(10);
 		buffer[0] = arg1;
@@ -707,7 +679,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
 	{
 		var buffer = Caller.AllocateBuffer(10);
 		buffer[0] = arg1;
@@ -726,7 +698,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
 	{
 		var buffer = Caller.AllocateBuffer(11);
 		buffer[0] = arg1;
@@ -746,7 +718,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
 	{
 		var buffer = Caller.AllocateBuffer(11);
 		buffer[0] = arg1;
@@ -766,7 +738,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
 	{
 		var buffer = Caller.AllocateBuffer(11);
 		buffer[0] = arg1;
@@ -786,7 +758,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
 	{
 		var buffer = Caller.AllocateBuffer(12);
 		buffer[0] = arg1;
@@ -807,7 +779,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
 	{
 		var buffer = Caller.AllocateBuffer(12);
 		buffer[0] = arg1;
@@ -828,7 +800,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
 	{
 		var buffer = Caller.AllocateBuffer(12);
 		buffer[0] = arg1;
@@ -849,7 +821,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static object CallHook(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
+	public static object CallHook(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
 	{
 		var buffer = Caller.AllocateBuffer(13);
 		buffer[0] = arg1;
@@ -871,7 +843,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static T CallHook<T>(BaseHookable plugin, string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
+	public static T CallHook<T>(BaseHookable plugin, uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
 	{
 		var buffer = Caller.AllocateBuffer(13);
 		buffer[0] = arg1;
@@ -893,7 +865,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return (T)result;
 	}
-	public static T CallDeprecatedHook<T>(BaseHookable plugin, string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
+	public static T CallDeprecatedHook<T>(BaseHookable plugin, uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
 	{
 		var buffer = Caller.AllocateBuffer(13);
 		buffer[0] = arg1;
@@ -921,15 +893,15 @@ public static class HookCaller
 
 	#region Static Hook Overrides
 
-	public static object CallStaticHook(string hookName)
+	public static object CallStaticHook(uint hookName)
 	{
 		return CallStaticHook(hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate)
 	{
 		return CallStaticDeprecatedHook(oldHook, newHook, expireDate, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, null);
 	}
-	public static object CallStaticHook(string hookName, object arg1)
+	public static object CallStaticHook(uint hookName, object arg1)
 	{
 		var buffer = Caller.AllocateBuffer(1);
 		buffer[0] = arg1;
@@ -939,7 +911,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1)
 	{
 		var buffer = Caller.AllocateBuffer(1);
 		buffer[0] = arg1;
@@ -949,7 +921,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2)
 	{
 		var buffer = Caller.AllocateBuffer(2);
 		buffer[0] = arg1;
@@ -960,7 +932,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2)
 	{
 		var buffer = Caller.AllocateBuffer(2);
 		buffer[0] = arg1;
@@ -971,7 +943,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3)
 	{
 		var buffer = Caller.AllocateBuffer(3);
 		buffer[0] = arg1;
@@ -983,7 +955,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3)
 	{
 		var buffer = Caller.AllocateBuffer(3);
 		buffer[0] = arg1;
@@ -995,7 +967,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4)
 	{
 		var buffer = Caller.AllocateBuffer(4);
 		buffer[0] = arg1;
@@ -1008,7 +980,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4)
 	{
 		var buffer = Caller.AllocateBuffer(4);
 		buffer[0] = arg1;
@@ -1021,7 +993,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5)
 	{
 		var buffer = Caller.AllocateBuffer(5);
 		buffer[0] = arg1;
@@ -1035,7 +1007,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5)
 	{
 		var buffer = Caller.AllocateBuffer(5);
 		buffer[0] = arg1;
@@ -1049,7 +1021,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
 	{
 		var buffer = Caller.AllocateBuffer(6);
 		buffer[0] = arg1;
@@ -1064,7 +1036,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
 	{
 		var buffer = Caller.AllocateBuffer(6);
 		buffer[0] = arg1;
@@ -1079,7 +1051,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 	{
 		var buffer = Caller.AllocateBuffer(7);
 		buffer[0] = arg1;
@@ -1095,7 +1067,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 	{
 		var buffer = Caller.AllocateBuffer(7);
 		buffer[0] = arg1;
@@ -1111,7 +1083,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
 	{
 		var buffer = Caller.AllocateBuffer(8);
 		buffer[0] = arg1;
@@ -1128,7 +1100,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
 	{
 		var buffer = Caller.AllocateBuffer(8);
 		buffer[0] = arg1;
@@ -1145,7 +1117,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 	{
 		var buffer = Caller.AllocateBuffer(9);
 		buffer[0] = arg1;
@@ -1163,7 +1135,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 	{
 		var buffer = Caller.AllocateBuffer(9);
 		buffer[0] = arg1;
@@ -1181,7 +1153,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
 	{
 		var buffer = Caller.AllocateBuffer(10);
 		buffer[0] = arg1;
@@ -1200,7 +1172,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
 	{
 		var buffer = Caller.AllocateBuffer(10);
 		buffer[0] = arg1;
@@ -1219,7 +1191,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
 	{
 		var buffer = Caller.AllocateBuffer(11);
 		buffer[0] = arg1;
@@ -1239,7 +1211,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
 	{
 		var buffer = Caller.AllocateBuffer(11);
 		buffer[0] = arg1;
@@ -1259,7 +1231,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
 	{
 		var buffer = Caller.AllocateBuffer(12);
 		buffer[0] = arg1;
@@ -1280,7 +1252,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
 	{
 		var buffer = Caller.AllocateBuffer(12);
 		buffer[0] = arg1;
@@ -1301,7 +1273,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticHook(string hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
+	public static object CallStaticHook(uint hookName, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
 	{
 		var buffer = Caller.AllocateBuffer(13);
 		buffer[0] = arg1;
@@ -1323,7 +1295,7 @@ public static class HookCaller
 		Caller.ClearBuffer(buffer);
 		return result;
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
 	{
 		var buffer = Caller.AllocateBuffer(13);
 		buffer[0] = arg1;
@@ -1346,25 +1318,16 @@ public static class HookCaller
 		return result;
 	}
 
-	public static object CallStaticHook(string hookName, object[] args, bool keepArgs = false)
+	public static object CallStaticHook(uint hookName, object[] args, bool keepArgs = false)
 	{
 		return CallStaticHook(hookName, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, args, keepArgs: keepArgs);
 	}
-	public static object CallStaticDeprecatedHook(string oldHook, string newHook, DateTime expireDate, object[] args)
+	public static object CallStaticDeprecatedHook(uint oldHook, uint newHook, DateTime expireDate, object[] args)
 	{
 		return CallStaticDeprecatedHook(oldHook, newHook, expireDate, args);
 	}
 
 	#endregion
-
-	private static object CallPublicHook<T>(this T plugin, string hookName, object[] args) where T : BaseHookable
-	{
-		return CallHook(plugin, hookName, BindingFlags.Public | BindingFlags.Instance, args);
-	}
-	private static object CallPublicStaticHook(string hookName, object[] args)
-	{
-		return CallStaticHook(hookName, BindingFlags.Public | BindingFlags.Instance, args);
-	}
 
 	#region Generator
 
@@ -1432,7 +1395,7 @@ public static class HookCaller
 		foreach (var method in privateMethods)
 		{
 			var methodName = method.Identifier.ValueText;
-			var id = HookCallerCommon.StringPool.GetOrAdd(methodName);
+			var id = HookStringPool.GetOrAdd(methodName);
 
 			if (!hookableMethods.TryGetValue(id, out var list))
 			{
@@ -1521,7 +1484,7 @@ public static class HookCaller
 			methodContents += "\t\t\t\tbreak;\n\t\t\t}\n";
 		}
 
-		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.HookCallerCommon.StringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\", ex);\n}\nreturn result;";
+		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.Pooling.HookStringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\", ex);\n}\nreturn result;";
 
 		generatedMethod = SyntaxFactory.MethodDeclaration(
 			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),

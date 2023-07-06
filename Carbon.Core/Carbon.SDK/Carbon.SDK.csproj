@@ -6,13 +6,11 @@
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
-
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
+	
 	<ItemGroup>
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
-		<Reference Include="Newtonsoft.Json">
-		  <HintPath>..\..\Rust\windows\RustDedicated_Data\Managed\Newtonsoft.Json.dll</HintPath>
-		</Reference>
 	</ItemGroup>
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">

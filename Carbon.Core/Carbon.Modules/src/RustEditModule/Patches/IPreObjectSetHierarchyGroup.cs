@@ -20,7 +20,7 @@ public partial class RustEditModule
 	{
 		public static void Prefix(GameObject obj, string strRoot, bool groupActive = true, bool persistant = false)
 		{
-			HookCaller.CallStaticHook("IPreObjectSetHierarchyGroup", obj, strRoot, groupActive, persistant);
+			HookCaller.CallStaticHook(158862679, obj, strRoot, groupActive, persistant);
 		}
 	}
 }

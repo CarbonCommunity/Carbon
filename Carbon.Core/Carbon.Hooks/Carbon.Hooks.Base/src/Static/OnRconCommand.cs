@@ -46,7 +46,7 @@ public partial class Category_Static
 
 					var arguments = split.Length > 1 ? cmd.Message.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 
-					if (HookCaller.CallStaticHook("OnRconCommand", cmd.Ip, command, arguments) != null)
+					if (HookCaller.CallStaticHook(3694352140, cmd.Ip, command, arguments) != null)
 					{
 						return false;
 					}
