@@ -188,15 +188,17 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			priority = Priorities.Normal;
 
+			var processedId = hookId;
+
 			if (args != null)
 			{
-				hookId += (uint)args.Length;
+				processedId += (uint)args.Length;
 			}
 
-			if (plugin.HookMethodAttributeCache.TryGetValue(hookId, out var hooks)) { }
-			else if (!plugin.HookCache.TryGetValue(hookId, out hooks))
+			if (plugin.HookMethodAttributeCache.TryGetValue(processedId, out var hooks)) { }
+			else if (!plugin.HookCache.TryGetValue(processedId, out hooks))
 			{
-				plugin.HookCache.Add(hookId, hooks = new());
+				plugin.HookCache.Add(processedId, hooks = new());
 
 				var methods = plugin.Type.GetMethods(flags);
 				var readableHook = HookStringPool.GetOrAdd(hookId);
