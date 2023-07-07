@@ -13,7 +13,7 @@ namespace Carbon;
 
 public sealed class Logger : ILogger
 {
-	public static FileLogger _file { get; set; } = new FileLogger("Carbon.Core");
+	public static FileLogger CoreLog { get; set; } = new FileLogger("Carbon.Core");
 
 	public static Action<string, Exception, int> OnErrorCallback { get; set; }
 	public static Action<string, int> OnWarningCallback { get; set; }
@@ -26,7 +26,7 @@ public sealed class Logger : ILogger
 	}
 	internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1)
 	{
-		_file.Init(backup: true);
+		CoreLog.Init(backup: true);
 
 		if (severity != Severity.Debug)
 		{
@@ -43,12 +43,12 @@ public sealed class Logger : ILogger
 
 				if (dex != null)
 				{
-					_file._queueLog($"[ERRO] {textMessage} ({dex?.Message})\n{dex?.StackTrace}");
+					CoreLog._queueLog($"[ERRO] {textMessage} ({dex?.Message})\n{dex?.StackTrace}");
 					UnityEngine.Debug.LogError($"{textMessage} ({dex?.Message})\n{dex?.StackTrace}");
 				}
 				else
 				{
-					_file._queueLog($"[ERRO] {textMessage}");
+					CoreLog._queueLog($"[ERRO] {textMessage}");
 					UnityEngine.Debug.LogError(textMessage);
 				}
 
@@ -56,13 +56,13 @@ public sealed class Logger : ILogger
 				break;
 
 			case Severity.Warning:
-				_file._queueLog($"[WARN] {textMessage}");
+				CoreLog._queueLog($"[WARN] {textMessage}");
 				UnityEngine.Debug.LogWarning(textMessage);
 				OnWarningCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			case Severity.Notice:
-				_file._queueLog($"[INFO] {textMessage}");
+				CoreLog._queueLog($"[INFO] {textMessage}");
 				UnityEngine.Debug.Log(textMessage);
 				OnNoticeCallback?.Invoke(textMessage, verbosity);
 				break;
@@ -70,7 +70,7 @@ public sealed class Logger : ILogger
 			case Severity.Debug:
 				int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 				if (verbosity > minVerbosity) break;
-				_file._queueLog($"[INFO] {textMessage}");
+				CoreLog._queueLog($"[INFO] {textMessage}");
 				UnityEngine.Debug.Log(textMessage);
 				OnDebugCallback?.Invoke(textMessage, verbosity);
 				break;
@@ -82,7 +82,7 @@ public sealed class Logger : ILogger
 
 	public static void Dispose()
 	{
-		_file.Dispose();
+		CoreLog.Dispose();
 	}
 
 #if DEBUG

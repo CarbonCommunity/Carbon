@@ -627,8 +627,8 @@ public partial class CorePlugin : CarbonPlugin
 
 		timer.Every(5f, () =>
 		{
-			if (!Logger._file._hasInit || Logger._file._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
-			Logger._file._flush();
+			if (!Logger.CoreLog._hasInit || Logger.CoreLog._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
+			Logger.CoreLog._flush();
 		});
 
 		cmd.AddConsoleCommand("help", this, nameof(Help), authLevel: 2);
