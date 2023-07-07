@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using API.Logger;
 
 /*
@@ -10,9 +11,14 @@ using API.Logger;
 
 namespace Carbon;
 
-public class Logger : ILogger
+public sealed class Logger : ILogger
 {
 	public static FileLogger _file { get; set; } = new FileLogger("Carbon.Core");
+
+	public static Action<string, Exception, int> OnErrorCallback { get; set; }
+	public static Action<string, int> OnWarningCallback { get; set; }
+	public static Action<string, int> OnNoticeCallback { get; set; }
+	public static Action<string, int> OnDebugCallback { get; set; }
 
 	internal static string GetDate()
 	{
@@ -28,38 +34,45 @@ public class Logger : ILogger
 			if (severity > minSeverity) return;
 		}
 
+		var textMessage = message?.ToString();
+
 		switch (severity)
 		{
 			case Severity.Error:
-				var dex = /* ex?.Demystify() ?? */ ex;
+				var dex = ex?.Demystify() ?? ex;
 
 				if (dex != null)
 				{
-					_file._queueLog($"[ERRO] {message} ({dex?.Message})\n{dex?.StackTrace}");
-					UnityEngine.Debug.LogError($"{message} ({dex?.Message})\n{dex?.StackTrace}");
+					_file._queueLog($"[ERRO] {textMessage} ({dex?.Message})\n{dex?.StackTrace}");
+					UnityEngine.Debug.LogError($"{textMessage} ({dex?.Message})\n{dex?.StackTrace}");
 				}
 				else
 				{
-					_file._queueLog($"[ERRO] {message}");
-					UnityEngine.Debug.LogError(message);
+					_file._queueLog($"[ERRO] {textMessage}");
+					UnityEngine.Debug.LogError(textMessage);
 				}
+
+				OnErrorCallback?.Invoke(textMessage, dex, verbosity);
 				break;
 
 			case Severity.Warning:
-				_file._queueLog($"[WARN] {message}");
-				UnityEngine.Debug.LogWarning($"{message}");
+				_file._queueLog($"[WARN] {textMessage}");
+				UnityEngine.Debug.LogWarning(textMessage);
+				OnWarningCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			case Severity.Notice:
-				_file._queueLog($"[INFO] {message}");
-				UnityEngine.Debug.Log($"{message}");
+				_file._queueLog($"[INFO] {textMessage}");
+				UnityEngine.Debug.Log(textMessage);
+				OnNoticeCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			case Severity.Debug:
 				int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 				if (verbosity > minVerbosity) break;
-				_file._queueLog($"[INFO] {message}");
-				UnityEngine.Debug.Log($"{message}");
+				_file._queueLog($"[INFO] {textMessage}");
+				UnityEngine.Debug.Log(textMessage);
+				OnDebugCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			default:
