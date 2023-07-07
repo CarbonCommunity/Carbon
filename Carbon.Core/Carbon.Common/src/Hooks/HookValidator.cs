@@ -42,7 +42,7 @@ public class HookValidator
 		}
 	}
 
-	static readonly string[] IgnoredInternalHooks = new string[]
+	public static readonly string[] IgnoredInternalHooks = new string[]
 	{
 		"OnPlayerDisconnected",
 		"OnPlayerSleepEnded",
@@ -62,7 +62,20 @@ public class HookValidator
 		"OnUserApproved",
 		"OnPlayerChat",
 		"OnUserChat",
-		"OnPlayerOfflineChat"
+		"OnPlayerOfflineChat",
+		"OnServerSave",
+		"OnPlayerKicked",
+		"OnClientAuth",
+		"OnPlayerSetInfo",
+		"OnServerUserRemove",
+		"OnPermissionRegistered",
+		"OnGroupPermissionGranted",
+		"OnGroupPermissionRevoked",
+		"OnGroupCreated",
+		"OnGroupDeleted",
+		"OnGroupTitleSet",
+		"OnGroupRankSet",
+		"OnGroupParentSet"
 	};
 
 	private static int OxideHooksCount
