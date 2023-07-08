@@ -3768,7 +3768,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						foreach (var plugin in plugins)
 						{
-							if (plugin.Status != Status.Approved) continue;
+							if (plugin.Status != Status.Approved ||
+								(plugin.ExistentPlugin != null && plugin.ExistentPlugin.IsPrecompiled)) continue;
 
 							if (filter == FilterTypes.Favourites)
 							{
@@ -3823,7 +3824,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						foreach (var plugin in plugins)
 						{
-							if (plugin.Status != Status.Approved) continue;
+							if (plugin.Status != Status.Approved ||
+								(plugin.ExistentPlugin != null && plugin.ExistentPlugin.IsPrecompiled)) continue;
 
 							if (filter == FilterTypes.Favourites)
 							{
