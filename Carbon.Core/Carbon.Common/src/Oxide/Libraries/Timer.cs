@@ -11,7 +11,7 @@ using Logger = Carbon.Logger;
 
 namespace Oxide.Plugins;
 
-public class Timers
+public class Timers : Library
 {
 	public RustPlugin Plugin { get; }
 	internal List<Timer> _timers { get; set; } = new List<Timer>();

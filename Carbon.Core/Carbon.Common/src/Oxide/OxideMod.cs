@@ -5,6 +5,7 @@
  *
  */
 
+using Oxide.Plugins;
 using Logger = Carbon.Logger;
 
 namespace Oxide.Core;
@@ -175,6 +176,7 @@ public class OxideMod
 		else if (type == typeof(Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
 		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 		else if (type == typeof(Oxide.Core.Libraries.WebRequests)) return Community.Runtime.CorePlugin.webrequest as T;
+		else if (type == typeof(Oxide.Plugins.Timers)) return Community.Runtime.CorePlugin.timer as T;
 
 		name ??= type.Name;
 
