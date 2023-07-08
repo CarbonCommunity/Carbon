@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Carbon.Core;
-
-namespace Carbon.Contracts;
+﻿namespace Carbon.Contracts;
 
 public interface IScriptLoader : IDisposable
 {

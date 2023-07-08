@@ -1,13 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text.RegularExpressions;
-using Carbon;
 using Newtonsoft.Json;
+using Logger = Carbon.Logger;
 
 /*
  *

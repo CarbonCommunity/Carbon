@@ -1,9 +1,4 @@
-﻿using System.Linq;
-using Carbon;
-using Carbon.Core;
-using Carbon.Pooling;
-using Facepunch;
-using Oxide.Core.Plugins;
+﻿using Facepunch;
 
 /*
  *

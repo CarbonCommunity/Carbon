@@ -5,19 +5,9 @@
  *
  */
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading.Tasks;
-using Carbon.Base;
-using Carbon.Extensions;
 using Newtonsoft.Json;
-using Oxide.Plugins;
-using System.Runtime.Remoting.Messaging;
-using API.Hooks;
-using Carbon.Pooling;
 
 namespace Carbon.Components;
 

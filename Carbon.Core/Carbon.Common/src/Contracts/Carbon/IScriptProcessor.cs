@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using UnityEngine;
-
-namespace Carbon.Contracts;
+﻿namespace Carbon.Contracts;
 
 public interface IScriptProcessor : IBaseProcessor, IDisposable
 {

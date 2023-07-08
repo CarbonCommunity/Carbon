@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Carbon.Base.Interfaces;
-using Carbon.Core;
-using Carbon.Extensions;
-using Carbon.Pooling;
-using Oxide.Core.Configuration;
+﻿using Carbon.Base.Interfaces;
 using Defines = Carbon.Core.Defines;
 
 /*

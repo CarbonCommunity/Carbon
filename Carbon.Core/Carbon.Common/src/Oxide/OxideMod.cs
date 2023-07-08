@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.Serialization;
-using Carbon;
-using Carbon.Core;
-using Carbon.Oxide;
-using Carbon.Pooling;
-using Oxide.Core.Libraries;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
+
+using Logger = Carbon.Logger;
 
 namespace Oxide.Core;
 

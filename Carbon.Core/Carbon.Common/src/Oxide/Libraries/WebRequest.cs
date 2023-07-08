@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
-using Carbon;
-using Oxide.Core.Plugins;
+﻿using System.Net;
+using Logger = Carbon.Logger;
 
 /*
  *

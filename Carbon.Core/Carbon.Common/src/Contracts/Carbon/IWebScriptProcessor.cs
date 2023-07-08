@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Carbon.Contracts;
+﻿namespace Carbon.Contracts;
 
 public interface IWebScriptProcessor : IBaseProcessor, IDisposable
 {
