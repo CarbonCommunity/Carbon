@@ -10,6 +10,7 @@ public interface ICommandManager
 	List<Command> RCon { get; set; }
 
 	bool Contains(IList<Command> factory, string command, out Command outCommand);
+	Command Find(string command);
 	List<T> GetFactory<T>() where T : Command;
 	List<Command> GetFactory(Command command);
 	public IEnumerable<T> GetCommands<T>() where T : Command;
