@@ -1,12 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Carbon;
-using Carbon.Base;
-using Carbon.Core;
-using Carbon.Extensions;
-using Newtonsoft.Json;
-using Oxide.Core.Plugins;
-using Oxide.Plugins;
+﻿using Newtonsoft.Json;
 
 /*
  *

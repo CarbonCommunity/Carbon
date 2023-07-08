@@ -5,16 +5,9 @@
  *
  */
 
-using System;
-using System.Text.RegularExpressions;
 using API.Commands;
-using Carbon.Extensions;
-using Carbon.Plugins;
-using Carbon.Pooling;
 using ConVar;
-using Network;
-using Oxide.Core;
-using UnityEngine;
+using Connection = Network.Connection;
 
 namespace Carbon.Core;
 #pragma warning disable IDE0051

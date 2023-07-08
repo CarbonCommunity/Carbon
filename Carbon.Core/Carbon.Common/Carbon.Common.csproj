@@ -3,6 +3,7 @@
 		<Product>Carbon.Common</Product>
 		<OutputType>Library</OutputType>
 		<ProjectGuid>{531A79E2-9D4E-4C69-B277-D668F515C209}</ProjectGuid>
+		<ImplicitUsings>true</ImplicitUsings>
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />

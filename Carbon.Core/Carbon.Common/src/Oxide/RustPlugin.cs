@@ -1,19 +1,11 @@
-﻿using System;
-using System.IO;
-using Carbon.Core;
-using Carbon.Extensions;
-using Oxide.Core;
-using Oxide.Core.Libraries;
-using Oxide.Core.Plugins;
-using Oxide.Game.Rust.Libraries;
-using UnityEngine;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
+
+using Player = Oxide.Game.Rust.Libraries.Player;
 
 namespace Oxide.Plugins;
 

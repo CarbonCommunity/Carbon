@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using Oxide.Core.Libraries.Covalence;
+﻿using System.Text;
+using Formatter = Oxide.Core.Libraries.Covalence.Formatter;
 
 /*
  *

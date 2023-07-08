@@ -1,6 +1,6 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using API.Logger;
+using ILogger = API.Logger.ILogger;
 
 /*
  *

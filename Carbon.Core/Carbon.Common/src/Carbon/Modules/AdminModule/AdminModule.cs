@@ -1,26 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using API.Commands;
-using Carbon.Base;
-using Carbon.Components;
-using Carbon.Core;
-using Carbon.Extensions;
-using Carbon.Pooling;
+﻿using API.Commands;
 using Network;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Oxide.Core;
-using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
-using Oxide.Plugins;
 using ProtoBuf;
-using UnityEngine;
 using static Carbon.Components.CUI;
 using static ConsoleSystem;
 using Color = UnityEngine.Color;
-using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
 
 /*

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Carbon;
-using Facepunch;
-using Oxide.Core.Libraries;
+﻿using Facepunch;
 using static Oxide.Plugins.RustPlugin;
+using Logger = Carbon.Logger;
 
 /*
  *

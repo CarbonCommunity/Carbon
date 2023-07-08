@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Random = System.Random;
 
 /*
  *

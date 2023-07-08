@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using API.Events;
-using Carbon.Base;
+﻿using API.Events;
 using Carbon.Base.Interfaces;
-using Carbon.Extensions;
-using Carbon.Pooling;
-using Facepunch;
 using Newtonsoft.Json;
-using Oxide.Core.Plugins;
-using Oxide.Plugins;
 using Report = Carbon.Components.Report;
 
 /*
@@ -205,7 +194,6 @@ public static class ModLoader
 		plugin.SetupMod(package, title, author, version, description);
 
 		plugin.IsPrecompiled = precompiled;
-		plugin.InternalCallHookOverriden = !IsValidPlugin(type, false);
 
 		try
 		{
@@ -221,6 +209,7 @@ public static class ModLoader
 			ProcessPrecompiledType(plugin);
 		}
 
+		plugin.InternalCallHookOverriden = IsValidPlugin(type, false);
 		preInit?.Invoke(plugin);
 
 		plugin.ILoadConfig();
@@ -291,10 +280,13 @@ public static class ModLoader
 		}
 	}
 
+	public const string CARBON_PLUGIN = "CarbonPlugin";
+	public const string RUST_PLUGIN = "RustPlugin";
+
 	public static bool IsValidPlugin(Type type, bool recursive)
 	{
 		if (type == null) return false;
-		if (type.Name == "RustPlugin" || type.Name == "CarbonPlugin") return true;
+		if (type.Name == CARBON_PLUGIN || type.Name == RUST_PLUGIN) return true;
 		return recursive && IsValidPlugin(type.BaseType, recursive);
 	}
 

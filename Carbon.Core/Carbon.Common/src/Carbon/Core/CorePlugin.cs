@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using API.Events;
-using Carbon.Extensions;
-using Carbon.Plugins;
-using Carbon.Pooling;
+﻿using API.Events;
 using ConVar;
-using Network;
-using Oxide.Core;
-using Oxide.Core.Plugins;
-using Oxide.Plugins;
-using UnityEngine;
 using Application = UnityEngine.Application;
 using CommandLine = Carbon.Components.CommandLine;
+using Connection = Network.Connection;
+using Timer = Oxide.Plugins.Timer;
 
 /*
  *

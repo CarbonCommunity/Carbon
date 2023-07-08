@@ -1,21 +1,9 @@
-﻿using System;
-using System.Buffers;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Buffers;
 using System.Linq.Expressions;
-using System.Reflection;
-using Carbon.Base;
 using Carbon.Base.Interfaces;
-using Carbon.Core;
-using Carbon.Extensions;
-using Carbon.Pooling;
-using Facepunch;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Oxide.Plugins;
-using UnityEngine;
 using static Carbon.HookCallerCommon;
 
 /*
