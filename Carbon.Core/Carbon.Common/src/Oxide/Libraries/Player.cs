@@ -1,11 +1,6 @@
-﻿using System;
-using System.Globalization;
-using System.Text.RegularExpressions;
-using Carbon;
-using Network;
-using Oxide.Core.Libraries;
-using Oxide.Core.Libraries.Covalence;
-using UnityEngine;
+﻿using Network;
+using Connection = Network.Connection;
+using Formatter = Oxide.Core.Libraries.Covalence.Formatter;
 
 /*
  *

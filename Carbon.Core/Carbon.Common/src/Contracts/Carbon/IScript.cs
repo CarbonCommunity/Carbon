@@ -1,9 +1,4 @@
-﻿using System;
-using System.Reflection;
-using Oxide.Core;
-using Oxide.Plugins;
-
-namespace Carbon.Contracts;
+﻿namespace Carbon.Contracts;
 
 public interface IScript : IDisposable
 {

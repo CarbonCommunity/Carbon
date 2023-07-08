@@ -1,21 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using API.Commands;
-using API.Hooks;
+﻿using API.Commands;
 using Carbon.Base.Interfaces;
-using Carbon.Components;
-using Carbon.Extensions;
-using Carbon.Plugins;
-using Facepunch;
 using Newtonsoft.Json;
-using Oxide.Core;
-using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
-using Oxide.Plugins;
-using UnityEngine;
 
 /*
  *

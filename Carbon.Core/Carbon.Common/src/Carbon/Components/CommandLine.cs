@@ -5,9 +5,6 @@
  *
  */
 
-using System;
-using Carbon.Extensions;
-
 namespace Carbon.Components;
 
 public static class CommandLine

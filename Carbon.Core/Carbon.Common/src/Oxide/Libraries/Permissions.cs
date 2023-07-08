@@ -1,20 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Carbon;
-using Carbon.Base;
-using Carbon.Extensions;
-using Carbon.Pooling;
-using Oxide.Game.Rust.Libraries.Covalence;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
+
+using Logger = Carbon.Logger;
 
 namespace Oxide.Core.Libraries;
 

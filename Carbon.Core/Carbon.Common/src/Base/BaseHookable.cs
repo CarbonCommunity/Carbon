@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using Carbon.Pooling;
+﻿using System.Diagnostics;
 using Newtonsoft.Json;
-using Oxide.Core;
 
 /*
  *

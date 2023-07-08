@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
 using System.Net;
-using Carbon.Base;
-using Carbon.Extensions;
-using Facepunch;
-using Oxide.Core.Libraries;
 using ProtoBuf;
 using QRCoder;
+using Color = System.Drawing.Color;
 using Defines = Carbon.Core.Defines;
+using Graphics = System.Drawing.Graphics;
 
 /*
  *

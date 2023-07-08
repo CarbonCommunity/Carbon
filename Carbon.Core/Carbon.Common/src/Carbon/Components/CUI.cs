@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Carbon.Base;
-using Carbon.Extensions;
-using Carbon.Modules;
-using Oxide.Game.Rust.Cui;
-using UnityEngine;
+﻿using Oxide.Game.Rust.Cui;
 using static Carbon.Components.CUI;
 
 /*

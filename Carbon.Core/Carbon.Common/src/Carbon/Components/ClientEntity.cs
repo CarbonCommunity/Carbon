@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Facepunch;
-using Network;
-using UnityEngine;
+﻿using Network;
+using Connection = Network.Connection;
+using Net = Network.Net;
+using Time = UnityEngine.Time;
 
 /*
  *
