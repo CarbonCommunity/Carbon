@@ -29,51 +29,6 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 	#region Hooks
 
-	private object OnCollectiblePickup(CollectibleEntity entity, BasePlayer reciever, bool eat)
-	{
-		foreach (var itemAmount in entity.itemList)
-		{
-			var item = ByDefinition(itemAmount.itemDef, (int)itemAmount.amount, 0, 0);
-			if (item == null)
-			{
-				continue;
-			}
-
-			if (eat && item.info.category == ItemCategory.Food && reciever != null)
-			{
-				var component = item.info.GetComponent<ItemModConsume>();
-				if (component != null)
-				{
-					component.DoAction(item, reciever);
-					continue;
-				}
-			}
-
-			if ((bool)reciever)
-			{
-				reciever.GiveItem(item, GiveItemReason.ResourceHarvested);
-			}
-			else
-			{
-				item.Drop(entity.transform.position + Vector3.up * 0.5f, Vector3.up);
-			}
-		}
-
-		entity.itemList = null;
-		if (entity.pickupEffect.isValid)
-		{
-			Effect.server.Run(entity.pickupEffect.resourcePath, entity.transform.position, entity.transform.up);
-		}
-
-		var randomItemDispenser = PrefabAttribute.server.Find<RandomItemDispenser>(entity.prefabID);
-		if (randomItemDispenser != null)
-		{
-			randomItemDispenser.DistributeItems(reciever, entity.transform.position);
-		}
-
-		entity.Kill();
-		return false;
-	}
 	private void OnExcavatorGather(ExcavatorArm arm, Item item)
 	{
 		item.amount = GetAmount(item.info, item.amount, 3);
