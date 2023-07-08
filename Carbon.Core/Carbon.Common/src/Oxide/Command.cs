@@ -283,6 +283,7 @@ namespace Oxide.Game.Rust.Libraries
 					arg.Option = client;
 					arg.FullString = fullString;
 					arg.Args = args;
+					arg.cmd = Community.Runtime.CommandManager.Find(command)?.RustCommand;
 
 					try
 					{
@@ -400,6 +401,7 @@ namespace Oxide.Game.Rust.Libraries
 					arg.Option = client;
 					arg.FullString = fullString;
 					arg.Args = args;
+					arg.cmd = Community.Runtime.CommandManager.Find(command)?.RustCommand;
 
 					arguments.Add(arg);
 					result = arguments.ToArray();
