@@ -81,6 +81,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			RegisterPermission($"adminmodule.accesslevel{i}");
 		}
+
+		Application.logMessageReceived += OnLog;
 	}
 	public override void OnPostServerInit()
 	{
@@ -92,11 +94,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override void OnEnabled(bool initialized)
 	{
 		base.OnEnabled(initialized);
-
-		if (initialized)
-		{
-			Application.logMessageReceived += OnLog;
-		}
 
 		foreach (var command in ConfigInstance.OpenCommands)
 		{
@@ -129,8 +126,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Close(player);
 				}
 			});
-
-			Application.logMessageReceived -= OnLog;
 		}
 
 		base.OnDisabled(initialized);
