@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using API.Events;
-using Carbon.Base;
+﻿using API.Events;
 using Carbon.Base.Interfaces;
-using Carbon.Extensions;
-using Carbon.Pooling;
-using Facepunch;
 using Newtonsoft.Json;
-using Oxide.Core.Plugins;
-using Oxide.Plugins;
 using Report = Carbon.Components.Report;
 
 /*
@@ -155,7 +144,7 @@ public static class ModLoader
 			{
 				if (!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) continue;
 
-				if (!IsValidPlugin(type)) continue;
+				if (!IsValidPlugin(type, true)) continue;
 
 				if (!InitializePlugin(type, out var plugin, mod)) continue;
 				plugin.HasInitialized = true;
@@ -220,6 +209,7 @@ public static class ModLoader
 			ProcessPrecompiledType(plugin);
 		}
 
+		plugin.InternalCallHookOverriden = IsValidPlugin(type, false);
 		preInit?.Invoke(plugin);
 
 		plugin.ILoadConfig();
@@ -290,11 +280,14 @@ public static class ModLoader
 		}
 	}
 
-	public static bool IsValidPlugin(Type type)
+	public const string CARBON_PLUGIN = "CarbonPlugin";
+	public const string RUST_PLUGIN = "RustPlugin";
+
+	public static bool IsValidPlugin(Type type, bool recursive)
 	{
 		if (type == null) return false;
-		if (type.Name == "RustPlugin" || type.Name == "CarbonPlugin") return true;
-		return IsValidPlugin(type.BaseType);
+		if (type.Name == CARBON_PLUGIN || type.Name == RUST_PLUGIN) return true;
+		return recursive && IsValidPlugin(type.BaseType, recursive);
 	}
 
 	public static void ProcessCommands(Type type, BaseHookable hookable = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)

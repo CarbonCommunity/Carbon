@@ -1,18 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Carbon;
-using Carbon.Base;
-using Carbon.Components;
-using Carbon.Contracts;
-using Carbon.Core;
-using Carbon.Plugins;
-using Carbon.Pooling;
-using Facepunch;
+﻿using Facepunch;
 using Newtonsoft.Json;
-using Oxide.Core.Configuration;
-using Oxide.Plugins;
+using Logger = Carbon.Logger;
 
 /*
  *
@@ -587,8 +575,8 @@ namespace Oxide.Core.Plugins
 
 		#region Compatibility
 
-		public PluginManagerEvent OnAddedToManager = new();
-		public PluginManagerEvent OnRemovedFromManager = new();
+		public object OnAddedToManager;
+		public object OnRemovedFromManager;
 
 		public virtual void HandleAddedToManager(PluginManager manager) { }
 		public virtual void HandleRemovedFromManager(PluginManager manager) { }

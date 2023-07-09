@@ -2034,7 +2034,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		{
 			if (_cargoship != null)
 			{
-				foreach (BaseEntity b in _cargoship.children.ToArray())
+				foreach (BaseEntity b in _cargoship.children)
 				{
 					if (b != null && b.GetParentEntity() is CargoShip)
 					{

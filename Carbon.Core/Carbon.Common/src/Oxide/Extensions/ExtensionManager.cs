@@ -5,9 +5,6 @@
  *
  */
 
-using System.Collections.Generic;
-using Oxide.Core.Plugins;
-
 namespace Oxide.Core.Extensions;
 
 public class ExtensionManager

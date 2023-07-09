@@ -1,19 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using API.Analytics;
+﻿using API.Analytics;
 using API.Assembly;
 using API.Commands;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
-using API.Threads;
-using Carbon.Contracts;
-using Carbon.Core;
-using Carbon.Extensions;
 using Newtonsoft.Json;
-using Oxide.Plugins;
-using UnityEngine;
 
 /*
  *

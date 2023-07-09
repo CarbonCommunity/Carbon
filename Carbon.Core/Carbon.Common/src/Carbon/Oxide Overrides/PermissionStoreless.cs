@@ -1,9 +1,4 @@
-﻿using Oxide.Core;
-using System.Collections.Generic;
-using Oxide.Core.Libraries;
-using Carbon.Extensions;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.

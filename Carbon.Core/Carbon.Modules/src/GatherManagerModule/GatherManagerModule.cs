@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Carbon.Base;
+using Facepunch.Rust;
 using Newtonsoft.Json;
 using UnityEngine;
 using static BaseEntity;
@@ -51,6 +52,7 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 			if ((bool)reciever)
 			{
+				Analytics.Azure.OnGatherItem(item.info.shortname, item.amount, entity, reciever);
 				reciever.GiveItem(item, GiveItemReason.ResourceHarvested);
 			}
 			else
@@ -59,7 +61,6 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 			}
 		}
 
-		entity.itemList = null;
 		if (entity.pickupEffect.isValid)
 		{
 			Effect.server.Run(entity.pickupEffect.resourcePath, entity.transform.position, entity.transform.up);
@@ -71,7 +72,13 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 			randomItemDispenser.DistributeItems(reciever, entity.transform.position);
 		}
 
-		entity.Kill();
+		NextFrame(() =>
+		{
+			if (entity == null || entity.IsDestroyed) return;
+
+			entity.Kill();
+		});
+
 		return false;
 	}
 	private void OnExcavatorGather(ExcavatorArm arm, Item item)

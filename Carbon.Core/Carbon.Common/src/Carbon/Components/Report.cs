@@ -1,15 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Carbon.Core;
-using Carbon.Extensions;
-using Carbon.Pooling;
-using Facepunch;
-using Oxide.Core.Plugins;
-using Oxide.Plugins;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
