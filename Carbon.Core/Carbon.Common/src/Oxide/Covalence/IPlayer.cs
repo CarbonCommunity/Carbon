@@ -1,9 +1,4 @@
-﻿using System;
-using System.Globalization;
-using Oxide.Core;
-using Oxide.Core.Libraries;
-using Oxide.Core.Libraries.Covalence;
-using UnityEngine;
+﻿using Formatter = Oxide.Core.Libraries.Covalence.Formatter;
 
 /*
  *
@@ -25,7 +20,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 		{
 			Object = player;
 			Id = player.UserIDString;
-			Name = player.displayName.Sanitize();
+			Name = Oxide.Plugins.ExtensionMethods.Sanitize(player.displayName);
 			LastCommand = 0;
 			IsServer = false;
 			perms = Interface.Oxide.GetLibrary<Permission>();

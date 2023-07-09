@@ -1,10 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Carbon;
-using Carbon.Oxide;
-using Oxide.Core.Libraries.Covalence;
-using Oxide.Core.Plugins;
-using Oxide.Game.Rust.Libraries.Covalence;
+﻿using Formatter = Oxide.Core.Libraries.Covalence.Formatter;
+using Logger = Carbon.Logger;
 
 /*
  *

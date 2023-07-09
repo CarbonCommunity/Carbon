@@ -1,26 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using API.Commands;
-using Carbon.Base;
-using Carbon.Components;
-using Carbon.Core;
-using Carbon.Extensions;
-using Carbon.Pooling;
+﻿using API.Commands;
 using Network;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Oxide.Core;
-using Oxide.Core.Libraries;
 using Oxide.Game.Rust.Cui;
-using Oxide.Plugins;
 using ProtoBuf;
-using UnityEngine;
 using static Carbon.Components.CUI;
 using static ConsoleSystem;
 using Color = UnityEngine.Color;
-using Pool = Facepunch.Pool;
 using StringEx = Carbon.Extensions.StringEx;
 
 /*
@@ -95,6 +81,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			RegisterPermission($"adminmodule.accesslevel{i}");
 		}
+
+		Application.logMessageReceived += OnLog;
 	}
 	public override void OnPostServerInit()
 	{
@@ -106,11 +94,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override void OnEnabled(bool initialized)
 	{
 		base.OnEnabled(initialized);
-
-		if (initialized)
-		{
-			Application.logMessageReceived += OnLog;
-		}
 
 		foreach (var command in ConfigInstance.OpenCommands)
 		{
@@ -143,8 +126,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Close(player);
 				}
 			});
-
-			Application.logMessageReceived -= OnLog;
 		}
 
 		base.OnDisabled(initialized);
@@ -3782,7 +3763,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						foreach (var plugin in plugins)
 						{
-							if (plugin.Status != Status.Approved) continue;
+							if (plugin.Status != Status.Approved ||
+								(plugin.ExistentPlugin != null && plugin.ExistentPlugin.IsPrecompiled)) continue;
 
 							if (filter == FilterTypes.Favourites)
 							{
@@ -3837,7 +3819,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						foreach (var plugin in plugins)
 						{
-							if (plugin.Status != Status.Approved) continue;
+							if (plugin.Status != Status.Approved ||
+								(plugin.ExistentPlugin != null && plugin.ExistentPlugin.IsPrecompiled)) continue;
 
 							if (filter == FilterTypes.Favourites)
 							{

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Carbon.Oxide;
-using Oxide.Core.Libraries.Covalence;
+﻿using System.Text;
 
 /*
  *

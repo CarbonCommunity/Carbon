@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using API.Events;
-using Carbon.Extensions;
-using Carbon.Plugins;
-using Carbon.Pooling;
+﻿using API.Events;
 using ConVar;
-using Network;
-using Oxide.Core;
-using Oxide.Core.Plugins;
-using Oxide.Plugins;
-using UnityEngine;
 using Application = UnityEngine.Application;
 using CommandLine = Carbon.Components.CommandLine;
+using Connection = Network.Connection;
+using Timer = Oxide.Plugins.Timer;
 
 /*
  *
@@ -627,8 +617,8 @@ public partial class CorePlugin : CarbonPlugin
 
 		timer.Every(5f, () =>
 		{
-			if (!Logger._file._hasInit || Logger._file._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
-			Logger._file._flush();
+			if (!Logger.CoreLog._hasInit || Logger.CoreLog._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
+			Logger.CoreLog._flush();
 		});
 
 		cmd.AddConsoleCommand("help", this, nameof(Help), authLevel: 2);

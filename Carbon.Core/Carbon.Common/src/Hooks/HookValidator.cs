@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using API.Events;
+﻿using API.Events;
 using Carbon.Oxide.Metadata;
 using Newtonsoft.Json;
 

@@ -1,13 +1,11 @@
-﻿using System;
-using Carbon;
-using Carbon.Pooling;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
+
+using Logger = Carbon.Logger;
 
 namespace Oxide.Core
 {

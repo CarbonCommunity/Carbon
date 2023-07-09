@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.Serialization;
-using Carbon;
-using Carbon.Core;
-using Carbon.Oxide;
-using Carbon.Pooling;
-using Oxide.Core.Libraries;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
+
+using Oxide.Plugins;
+using Logger = Carbon.Logger;
 
 namespace Oxide.Core;
 
@@ -183,6 +176,7 @@ public class OxideMod
 		else if (type == typeof(Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
 		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 		else if (type == typeof(Oxide.Core.Libraries.WebRequests)) return Community.Runtime.CorePlugin.webrequest as T;
+		else if (type == typeof(Oxide.Plugins.Timers)) return Community.Runtime.CorePlugin.timer as T;
 
 		name ??= type.Name;
 

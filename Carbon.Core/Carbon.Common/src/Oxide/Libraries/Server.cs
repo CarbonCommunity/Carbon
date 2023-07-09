@@ -1,5 +1,4 @@
-﻿using Oxide.Core.Libraries;
-using Oxide.Core.Libraries.Covalence;
+﻿using Formatter = Oxide.Core.Libraries.Covalence.Formatter;
 
 /*
  *

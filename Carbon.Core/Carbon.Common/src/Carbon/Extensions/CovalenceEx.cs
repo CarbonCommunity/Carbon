@@ -1,7 +1,4 @@
-﻿using Oxide.Core.Libraries;
-using Oxide.Game.Rust.Libraries.Covalence;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
