@@ -24,7 +24,7 @@ public sealed class Logger : ILogger
 	{
 		return DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
 	}
-	internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1)
+	internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1, bool nativeLog = true)
 	{
 		CoreLog.Init(backup: true);
 
@@ -43,13 +43,14 @@ public sealed class Logger : ILogger
 
 				if (dex != null)
 				{
-					CoreLog._queueLog($"[ERRO] {textMessage} ({dex?.Message})\n{dex?.StackTrace}");
-					UnityEngine.Debug.LogError($"{textMessage} ({dex?.Message})\n{dex?.StackTrace}");
+					var exceptionResult = $"({dex?.Message})\n{dex.GetFullStackTrace(false)}";
+					CoreLog._queueLog($"[ERRO] {textMessage} {exceptionResult}");
+					if (nativeLog) UnityEngine.Debug.LogError($"{textMessage} {exceptionResult}");
 				}
 				else
 				{
 					CoreLog._queueLog($"[ERRO] {textMessage}");
-					UnityEngine.Debug.LogError(textMessage);
+					if (nativeLog) UnityEngine.Debug.LogError(textMessage);
 				}
 
 				OnErrorCallback?.Invoke(textMessage, dex, verbosity);
@@ -57,13 +58,13 @@ public sealed class Logger : ILogger
 
 			case Severity.Warning:
 				CoreLog._queueLog($"[WARN] {textMessage}");
-				UnityEngine.Debug.LogWarning(textMessage);
+				if (nativeLog) UnityEngine.Debug.LogWarning(textMessage);
 				OnWarningCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			case Severity.Notice:
 				CoreLog._queueLog($"[INFO] {textMessage}");
-				UnityEngine.Debug.Log(textMessage);
+				if (nativeLog) UnityEngine.Debug.Log(textMessage);
 				OnNoticeCallback?.Invoke(textMessage, verbosity);
 				break;
 
@@ -71,7 +72,7 @@ public sealed class Logger : ILogger
 				int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 				if (verbosity > minVerbosity) break;
 				CoreLog._queueLog($"[INFO] {textMessage}");
-				UnityEngine.Debug.Log(textMessage);
+				if (nativeLog) UnityEngine.Debug.Log(textMessage);
 				OnDebugCallback?.Invoke(textMessage, verbosity);
 				break;
 
