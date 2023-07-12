@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Facepunch.Extend;
 using Newtonsoft.Json;
 
 /*
@@ -54,6 +55,9 @@ public class BaseHookable
 	[JsonProperty]
 	public double TotalHookTime { get; internal set; }
 
+	[JsonProperty]
+	public double TotalMemoryUsed { get; internal set; }
+
 	public bool HasInitialized;
 	public Type Type;
 	public bool InternalCallHookOverriden = true;
@@ -61,6 +65,12 @@ public class BaseHookable
 	#region Tracking
 
 	internal Stopwatch _trackStopwatch = new();
+	internal long _currentMemory;
+	internal int _currentGcCount;
+
+	public static long CurrentMemory => GC.GetTotalMemory(false);
+	public static int CurrentGcCount => GC.CollectionCount(0);
+	public bool HasGCCollected => _currentGcCount != CurrentGcCount;
 
 	public virtual void TrackStart()
 	{
@@ -75,6 +85,8 @@ public class BaseHookable
 			return;
 		}
 		stopwatch.Start();
+		_currentMemory = CurrentMemory;
+		_currentGcCount = CurrentGcCount;
 	}
 	public virtual void TrackEnd()
 	{
@@ -90,6 +102,7 @@ public class BaseHookable
 		}
 		stopwatch.Stop();
 		TotalHookTime += stopwatch.Elapsed.TotalMilliseconds;
+		TotalMemoryUsed += (CurrentMemory - _currentMemory).Clamp(0, long.MaxValue);
 		stopwatch.Reset();
 	}
 

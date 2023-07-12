@@ -66,18 +66,18 @@ public partial class CorePlugin : CarbonPlugin
 
 				// Loaded plugins
 				{
-					var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
+					var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Memory Usage", "Compile Time");
 					var count = 1;
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						if (mod.IsCoreMod) continue;
 
-						body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "");
+						body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "", "");
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{plugin.CompileTime:0}ms");
+							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}", $"{plugin.CompileTime:0}ms");
 						}
 
 						count++;
