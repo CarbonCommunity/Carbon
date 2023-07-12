@@ -209,7 +209,11 @@ public static class ModLoader
 			ProcessPrecompiledType(plugin);
 		}
 
-		plugin.InternalCallHookOverriden = IsValidPlugin(type, false);
+		if(precompiled || !IsValidPlugin(type.BaseType, false))
+		{
+			plugin.InternalCallHookOverriden = false;
+		}
+
 		preInit?.Invoke(plugin);
 
 		plugin.ILoadConfig();

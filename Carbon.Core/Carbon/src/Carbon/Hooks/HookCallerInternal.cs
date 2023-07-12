@@ -180,7 +180,7 @@ public class HookCallerInternal : HookCallerCommon
 				if (plugin is Plugin basePlugin && !basePlugin.IsCorePlugin)
 				{
 					var readableHook = HookStringPool.GetOrAdd(hookId);
-					Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]");
+					Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(plugin.HasGCCollected ? " [GC]" : string.Empty)}");
 				}
 			}
 		}
