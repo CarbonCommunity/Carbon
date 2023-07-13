@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.Serialization;
-using Carbon;
-using Carbon.Core;
-using Carbon.Oxide;
-using Oxide.Core.Libraries;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
+
+using Oxide.Plugins;
+using Logger = Carbon.Logger;
 
 namespace Oxide.Core;
 
@@ -126,43 +120,48 @@ public class OxideMod
 
 	public object CallHook(string hookName, params object[] args)
 	{
+		var hookId = HookStringPool.GetOrAdd(hookName);
+
 		return args?.Length switch
 		{
-			1 => HookCaller.CallStaticHook(hookName, args[0]),
-			2 => HookCaller.CallStaticHook(hookName, args[0], args[1]),
-			3 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2]),
-			4 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3]),
-			5 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4]),
-			6 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5]),
-			7 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
-			8 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
-			9 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
-			10 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
-			11 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
-			12 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
-			13 => HookCaller.CallStaticHook(hookName, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
-			_ => HookCaller.CallStaticHook(hookName, args, true)
+			1 => HookCaller.CallStaticHook(hookId, args[0]),
+			2 => HookCaller.CallStaticHook(hookId, args[0], args[1]),
+			3 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2]),
+			4 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3]),
+			5 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3], args[4]),
+			6 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3], args[4], args[5]),
+			7 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+			8 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+			9 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+			10 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+			11 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+			12 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+			13 => HookCaller.CallStaticHook(hookId, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
+			_ => HookCaller.CallStaticHook(hookId, args, true)
 		};
 	}
 
 	public object CallDeprecatedHook(string oldHook, string newHook, DateTime expireDate, params object[] args)
 	{
+		var oldHookId = HookStringPool.GetOrAdd(oldHook);
+		var newHookId = HookStringPool.GetOrAdd(newHook);
+
 		return args.Length switch
 		{
-			1 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0]),
-			2 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1]),
-			3 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2]),
-			4 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3]),
-			5 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4]),
-			6 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5]),
-			7 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
-			8 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
-			9 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
-			10 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
-			11 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
-			12 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
-			13 => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
-			_ => HookCaller.CallStaticDeprecatedHook(oldHook, newHook, expireDate)
+			1 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0]),
+			2 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1]),
+			3 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2]),
+			4 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3]),
+			5 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3], args[4]),
+			6 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3], args[4], args[5]),
+			7 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+			8 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+			9 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+			10 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+			11 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+			12 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+			13 => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
+			_ => HookCaller.CallStaticDeprecatedHook(oldHookId, newHookId, expireDate)
 		};
 	}
 
@@ -177,6 +176,7 @@ public class OxideMod
 		else if (type == typeof(Game.Rust.Libraries.Command)) return Community.Runtime.CorePlugin.cmd as T;
 		else if (type == typeof(Game.Rust.Libraries.Rust)) return Community.Runtime.CorePlugin.rust as T;
 		else if (type == typeof(Oxide.Core.Libraries.WebRequests)) return Community.Runtime.CorePlugin.webrequest as T;
+		else if (type == typeof(Oxide.Plugins.Timers)) return Community.Runtime.CorePlugin.timer as T;
 
 		name ??= type.Name;
 

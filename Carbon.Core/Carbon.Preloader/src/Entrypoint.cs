@@ -40,6 +40,15 @@ public sealed class Entrypoint
 			isolated2.Do.Write();
 		}
 
+		using Sandbox<FacepunchConsole> isolated4 = new Sandbox<FacepunchConsole>();
+		{
+			if (!isolated4.Do.IsPublic("ConsoleSystem/Index", "All"))
+			{
+				isolated4.Do.Patch();
+				isolated4.Do.Write();
+			}
+		}
+
 		using Sandbox<FacepunchNetwork> isolated3 = new Sandbox<FacepunchNetwork>();
 		{
 			if(!isolated3.Do.IsPublic("Networkable", "sv"))

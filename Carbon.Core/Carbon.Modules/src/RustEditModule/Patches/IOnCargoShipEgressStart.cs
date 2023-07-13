@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static void Prefix(CargoShip __instance)
 		{
-			HookCaller.CallStaticHook("IOnCargoShipEgressStart", __instance);
+			HookCaller.CallStaticHook(3412888173, __instance);
 		}
 	}
 }

@@ -29,7 +29,7 @@ public partial class Category_Fun
 				{
 					if (brain != null && brain.baseEntity is Chicken chicken)
 					{
-						HookCaller.CallStaticHook("OnChickenScared", chicken,
+						HookCaller.CallStaticHook(3244860512, chicken,
 							brain.Events.Memory.Entity.Get(brain.Events.CurrentInputMemorySlot));
 					}
 				}

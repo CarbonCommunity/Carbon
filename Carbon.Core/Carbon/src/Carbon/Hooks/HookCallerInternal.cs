@@ -6,6 +6,7 @@ using Carbon.Base;
 using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.Pooling;
 using Facepunch;
 using Oxide.Core.Plugins;
 using static Carbon.Base.BaseHookable;
@@ -23,7 +24,7 @@ public class HookCallerInternal : HookCallerCommon
 {
 	internal static List<Conflict> _conflictCache = new(10);
 
-	public override void AppendHookTime(string hook, int time)
+	public override void AppendHookTime(uint hook, int time)
 	{
 		if(!_hookTimeBuffer.ContainsKey(hook))
 		{
@@ -43,7 +44,7 @@ public class HookCallerInternal : HookCallerCommon
 			_hookTotalTimeBuffer[hook] += time;
 		}
 	}
-	public override void ClearHookTime(string hook)
+	public override void ClearHookTime(uint hook)
 	{
 		_hookTimeBuffer[hook] = 0;
 	}
@@ -112,16 +113,15 @@ public class HookCallerInternal : HookCallerCommon
 		return "normal";
 	}
 
-	public override object CallHook<T>(T plugin, string hookName, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false)
+	public override object CallHook<T>(T plugin, uint hookId, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false)
 	{
-		if (plugin.IsHookIgnored(hookName)) return null;
+		if (plugin.IsHookIgnored(hookId)) return null;
 
-		var id = StringPool.GetOrAdd(hookName);
 		var result = (object)null;
 
 		if (plugin.InternalCallHookOverriden)
 		{
-			var processedId = id;
+			var processedId = hookId;
 
 			if (args != null)
 			{
@@ -134,11 +134,12 @@ public class HookCallerInternal : HookCallerCommon
 				plugin.HookCache.Add(processedId, hooks = new());
 
 				var methods = plugin.Type.GetMethods(flags);
+				var readableHook = HookStringPool.GetOrAdd(hookId);
 
 				for (int i = 0; i < methods.Length; i++)
 				{
 					var method = methods[i];
-					if (method.Name != hookName) continue;
+					if (method.Name != readableHook) continue;
 
 					var methodPriority = method.GetCustomAttribute<HookPriority>();
 					hooks.Add(CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
@@ -156,13 +157,13 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 #if DEBUG
-			Profiler.StartHookCall(plugin, hookName);
+			Profiler.StartHookCall(plugin, hookId);
 #endif
 
 			var beforeTicks = Environment.TickCount;
 			plugin.TrackStart();
 
-			result = plugin.InternalCallHook(id, args);
+			result = plugin.InternalCallHook(hookId, args);
 
 			plugin.TrackEnd();
 			var afterTicks = Environment.TickCount;
@@ -172,13 +173,14 @@ public class HookCallerInternal : HookCallerCommon
 			Profiler.EndHookCall(plugin);
 #endif
 
-			AppendHookTime(hookName, totalTicks);
+			AppendHookTime(hookId, totalTicks);
 
 			if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
 			{
 				if (plugin is Plugin basePlugin && !basePlugin.IsCorePlugin)
 				{
-					Carbon.Logger.Warn($" {plugin.Name} hook '{hookName}' took longer than 100ms [{totalTicks:0}ms]");
+					var readableHook = HookStringPool.GetOrAdd(hookId);
+					Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(plugin.HasGCCollected ? " [GC]" : string.Empty)}");
 				}
 			}
 		}
@@ -186,22 +188,25 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			priority = Priorities.Normal;
 
+			var processedId = hookId;
+
 			if (args != null)
 			{
-				id += (uint)args.Length;
+				processedId += (uint)args.Length;
 			}
 
-			if (plugin.HookMethodAttributeCache.TryGetValue(id, out var hooks)) { }
-			else if (!plugin.HookCache.TryGetValue(id, out hooks))
+			if (plugin.HookMethodAttributeCache.TryGetValue(processedId, out var hooks)) { }
+			else if (!plugin.HookCache.TryGetValue(processedId, out hooks))
 			{
-				plugin.HookCache.Add(id, hooks = new());
+				plugin.HookCache.Add(processedId, hooks = new());
 
 				var methods = plugin.Type.GetMethods(flags);
+				var readableHook = HookStringPool.GetOrAdd(hookId);
 
 				for (int i = 0; i < methods.Length; i++)
 				{
 					var method = methods[i];
-					if (method.Name != hookName) continue;
+					if (method.Name != readableHook) continue;
 
 					var methodPriority = method.GetCustomAttribute<HookPriority>();
 					hooks.Add(CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
@@ -232,8 +237,9 @@ public class HookCallerInternal : HookCallerCommon
 				catch (Exception ex)
 				{
 					var exception = ex.InnerException ?? ex;
+					var readableHook = HookStringPool.GetOrAdd(hookId);
 					Carbon.Logger.Error(
-						$"Failed to call hook '{hookName}' on plugin '{plugin.Name} v{plugin.Version}'",
+						$"Failed to call hook '{readableHook}' on plugin '{plugin.Name} v{plugin.Version}'",
 						exception
 					);
 				}
@@ -259,7 +265,7 @@ public class HookCallerInternal : HookCallerCommon
 				if (args == null || SequenceEqual(hook.Parameters, args))
 				{
 #if DEBUG
-					Profiler.StartHookCall(plugin, hookName);
+					Profiler.StartHookCall(plugin, hookId);
 #endif
 
 					var beforeTicks = Environment.TickCount;
@@ -273,13 +279,14 @@ public class HookCallerInternal : HookCallerCommon
 					var afterTicks = Environment.TickCount;
 					var totalTicks = afterTicks - beforeTicks;
 
-					AppendHookTime(hookName, totalTicks);
+					AppendHookTime(hookId, totalTicks);
 
 					if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
 					{
 						if (plugin is Plugin basePlugin && !basePlugin.IsCorePlugin)
 						{
-							Carbon.Logger.Warn($" {plugin.Name} hook '{hookName}' took longer than 100ms [{totalTicks:0}ms]");
+							var readableHook = HookStringPool.GetOrAdd(hookId);
+							Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]");
 						}
 					}
 
@@ -298,7 +305,7 @@ public class HookCallerInternal : HookCallerCommon
 
 			void ResultOverride(BaseHookable hookable, Priorities priority)
 			{
-				_conflictCache.Add(Conflict.Make(hookable, hookName, result, priority));
+				_conflictCache.Add(Conflict.Make(hookable, hookId, result, priority));
 			}
 			void ConflictCheck()
 			{
@@ -325,8 +332,11 @@ public class HookCallerInternal : HookCallerCommon
 					}
 
 					localResult = priorityConflict.Result;
-					if (differentResults && !_conflictCache.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns) Carbon.Logger.Warn($"Hook conflict while calling '{hookName}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
-
+					if (differentResults && !_conflictCache.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns)
+					{
+						var readableHook = HookStringPool.GetOrAdd(hookId);
+						Carbon.Logger.Warn($"Hook conflict while calling '{readableHook}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+					}
 					if (localResult != null)
 					{
 						result = localResult;
@@ -337,7 +347,7 @@ public class HookCallerInternal : HookCallerCommon
 
 		return result;
 	}
-	public override object CallDeprecatedHook<T>(T plugin, string oldHook, string newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority)
+	public override object CallDeprecatedHook<T>(T plugin, uint oldHook, uint newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority)
 	{
 		if (expireDate < DateTime.Now)
 		{

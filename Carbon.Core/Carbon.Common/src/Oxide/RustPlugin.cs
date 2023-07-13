@@ -1,19 +1,11 @@
-﻿using System;
-using System.IO;
-using Carbon.Core;
-using Carbon.Extensions;
-using Oxide.Core;
-using Oxide.Core.Libraries;
-using Oxide.Core.Plugins;
-using Oxide.Game.Rust.Libraries;
-using UnityEngine;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
+
+using Player = Oxide.Game.Rust.Libraries.Player;
 
 namespace Oxide.Plugins;
 
@@ -22,17 +14,17 @@ public class RustPlugin : Plugin
 	public bool IsPrecompiled { get; set; }
 	public bool IsExtension { get; set; }
 
-	public Permission permission { get; set; }
-	public Lang lang { get; set; }
-	public Command cmd { get; set; }
-	public Server server { get; set; }
-	public Oxide.Core.Libraries.Plugins plugins { get; set; }
-	public Timers timer { get; set; }
-	public OxideMod mod { get; set; }
-	public WebRequests webrequest { get; set; }
-	public Oxide.Game.Rust.Libraries.Rust rust { get; set; }
-	public Persistence persistence { get; set; }
-	public CovalencePlugin.Covalence covalence { get; set; }
+	public Permission permission;
+	public Lang lang;
+	public Command cmd;
+	public Server server;
+	public Oxide.Core.Libraries.Plugins plugins;
+	public Timers timer;
+	public OxideMod mod;
+	public WebRequests webrequest;
+	public Oxide.Game.Rust.Libraries.Rust rust;
+	public Persistence persistence;
+	public CovalencePlugin.Covalence covalence;
 
 	public Player Player { get { return rust.Player; } private set { } }
 	public Server Server { get { return rust.Server; } private set { } }

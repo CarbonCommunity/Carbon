@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Facepunch;
-using Network;
-using UnityEngine;
+﻿using Network;
+using Connection = Network.Connection;
+using Net = Network.Net;
+using Time = UnityEngine.Time;
 
 /*
  *
@@ -108,13 +107,13 @@ public class ClientEntity : IDisposable
 		{
 			Proto.baseNetworkable.prefabID = value;
 
-			var temporaryWatchers = Pool.GetList<Connection>();
+			var temporaryWatchers = Facepunch.Pool.GetList<Connection>();
 			temporaryWatchers.AddRange(watchers);
 
 			KillAll();
 			SpawnAll(temporaryWatchers);
 
-			Pool.FreeList(ref temporaryWatchers);
+			Facepunch.Pool.FreeList(ref temporaryWatchers);
 		}
 	}
 	public uint ParentID
@@ -193,11 +192,11 @@ public class ClientEntity : IDisposable
 	}
 	public virtual void SendNetworkUpdate()
 	{
-		var connections = Pool.GetList<Network.Connection>();
+		var connections = Facepunch.Pool.GetList<Network.Connection>();
 		foreach (var connection in watchers) connections.Add(connection);
 
 		_sendNetworkUpdateImmediate(connections);
-		Pool.FreeList(ref connections);
+		Facepunch.Pool.FreeList(ref connections);
 	}
 	public virtual void SendNetworkUpdate_Flags()
 	{

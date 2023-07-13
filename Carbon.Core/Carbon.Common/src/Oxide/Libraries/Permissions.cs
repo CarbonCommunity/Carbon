@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Carbon;
-using Carbon.Base;
-using Carbon.Extensions;
-using Oxide.Game.Rust.Libraries.Covalence;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
+
+using Logger = Carbon.Logger;
 
 namespace Oxide.Core.Libraries;
 
@@ -503,7 +495,7 @@ public class Permission : Library
 		if (!GroupExists(name)) return;
 		if (!GetUserData(id).Groups.Add(name.ToLower())) return;
 
-		HookCaller.CallStaticHook("OnUserGroupAdded", id, name);
+		HookCaller.CallStaticHook(3469176166, id, name);
 	}
 	public virtual void RemoveUserGroup(string id, string name)
 	{
@@ -521,7 +513,7 @@ public class Permission : Library
 		{
 			if (!userData.Groups.Remove(name.ToLower())) return;
 
-			HookCaller.CallStaticHook("OnUserGroupRemoved", id, name);
+			HookCaller.CallStaticHook(2616322405, id, name);
 			return;
 		}
 	}
@@ -598,7 +590,7 @@ public class Permission : Library
 		{
 			if (!data.Perms.Add(perm)) return false;
 
-			HookCaller.CallStaticHook("OnUserPermissionGranted", id, perm);
+			HookCaller.CallStaticHook(593143994, id, perm);
 			return true;
 		}
 	}
@@ -624,7 +616,7 @@ public class Permission : Library
 		{
 			if (!userData.Perms.Remove(perm)) return false;
 
-			HookCaller.CallStaticHook("OnUserPermissionRevoked", id, perm);
+			HookCaller.CallStaticHook(1216290467, id, perm);
 			return true;
 		}
 	}
@@ -661,7 +653,7 @@ public class Permission : Library
 		{
 			if (!data.Perms.Add(perm)) return false;
 
-			HookCaller.CallStaticHook("OnGroupPermissionGranted", name, perm);
+			HookCaller.CallStaticHook(2569513351, name, perm);
 			return true;
 		}
 	}
@@ -686,7 +678,7 @@ public class Permission : Library
 		{
 			if (!groupData.Perms.Remove(perm)) return false;
 
-			HookCaller.CallStaticHook("OnGroupPermissionRevoked", name, perm);
+			HookCaller.CallStaticHook(858041166, name, perm);
 			return true;
 		}
 	}

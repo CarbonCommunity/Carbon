@@ -266,49 +266,6 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 		}
 	}
 
-	public static string GetMethodMSILHash(MethodDefinition method)
-	{
-		try
-		{
-			ILProcessor processor = method.Body.GetILProcessor();
-			Collection<Instruction> instructions = processor.Body.Instructions;
-
-			byte[] raw = new byte[instructions.Count * sizeof(int)];
-
-			for (int i = 0; i < instructions.Count; i++)
-			{
-				Instruction instruction = instructions[i];
-				int opcodeValue = (int)instruction.OpCode.Value;
-
-				raw[i * sizeof(int) + 0] = (byte)(opcodeValue & 0xFF);
-				raw[i * sizeof(int) + 1] = (byte)((opcodeValue >> 8) & 0xFF);
-				raw[i * sizeof(int) + 2] = (byte)((opcodeValue >> 16) & 0xFF);
-				raw[i * sizeof(int) + 3] = (byte)((opcodeValue >> 24) & 0xFF);
-			}
-
-			return Crypto.md5(raw);
-		}
-		catch (System.Exception)
-		{
-			return null;
-		}
-	}
-
-	public static string GetMethodSignature(MethodDefinition method)
-	{
-		string methodName = method.Name;
-		string typeName = method.DeclaringType.FullName.Replace("+", ".");
-		string parameterList = string.Join(",", method.Parameters.Select(p => p.ParameterType.FullName));
-
-		if (method.HasGenericParameters)
-		{
-			string genericList = string.Join(",", method.GenericParameters.Select(p => p.FullName));
-			methodName += $"<{genericList}>";
-		}
-
-		return $"{typeName}::{methodName}({parameterList})";
-	}
-
 	internal void Write()
 	{
 		try

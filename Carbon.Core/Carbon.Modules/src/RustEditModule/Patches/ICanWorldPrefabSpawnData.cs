@@ -20,7 +20,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(PrefabData prefab)
 		{
-			return HookCaller.CallStaticHook("ICanWorldPrefabSpawnData", prefab) == null;
+			return HookCaller.CallStaticHook(803331510, prefab) == null;
 		}
 	}
 }

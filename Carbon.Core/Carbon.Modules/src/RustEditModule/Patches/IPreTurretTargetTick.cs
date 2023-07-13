@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(AutoTurret __instance)
 		{
-			if (HookCaller.CallStaticHook("IPreTurretTargetTick", __instance) != null)
+			if (HookCaller.CallStaticHook(3582323383, __instance) != null)
 			{
 				return false;
 			}

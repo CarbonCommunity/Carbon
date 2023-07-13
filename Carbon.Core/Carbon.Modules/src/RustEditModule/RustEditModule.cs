@@ -977,7 +977,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 	public bool NPCSpawner_AnyPlayersNearby(Vector3 position, float maxDist)
 	{
-		var list = Pool.GetList<BasePlayer>();
+		var list = Facepunch.Pool.GetList<BasePlayer>();
 		Vis.Entities(position, maxDist, list, 131072);
 
 		var result = false;
@@ -1648,7 +1648,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			}
 			if (Cargo_SinkMode)
 			{
-				var cargos = Pool.GetList<CargoMod>();
+				var cargos = Facepunch.Pool.GetList<CargoMod>();
 				cargos.AddRange(Cargo_CargoShips);
 
 				foreach (var cm in cargos)
@@ -1662,7 +1662,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 					}
 				}
 
-				Pool.FreeList(ref cargos);
+				Facepunch.Pool.FreeList(ref cargos);
 			}
 		}
 	}
@@ -1789,10 +1789,10 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	}
 	internal static bool Cargo_AreaBlocked(Vector3 vector3)
 	{
-		var colliders = Pool.GetList<Collider>();
+		var colliders = Facepunch.Pool.GetList<Collider>();
 		Vis.Colliders(vector3, 5, colliders, -1, QueryTriggerInteraction.Collide);
 		foreach (var collider in colliders) { if (collider.name.Contains("prevent_building_")) { return true; } }
-		Pool.FreeList(ref colliders);
+		Facepunch.Pool.FreeList(ref colliders);
 		return false;
 	}
 	internal static bool Cargo_InitializeHook()
@@ -2034,7 +2034,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		{
 			if (_cargoship != null)
 			{
-				foreach (BaseEntity b in _cargoship.children.ToArray())
+				foreach (BaseEntity b in _cargoship.children)
 				{
 					if (b != null && b.GetParentEntity() is CargoShip)
 					{
@@ -2059,7 +2059,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 		public bool PlayersNearbyfunction(Vector3 _base, float Distance)
 		{
 			if (_base == null) { return false; }
-			List<BasePlayer> obj = Pool.GetList<BasePlayer>();
+			var obj = Facepunch.Pool.GetList<BasePlayer>();
 			Vis.Entities(_base, Distance, obj, 131072);
 			bool result = false;
 			if (obj == null) { return false; }
@@ -2072,7 +2072,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 					result = true;
 				}
 			}
-			Pool.FreeList(ref obj);
+			Facepunch.Pool.FreeList(ref obj);
 			return result;
 		}
 
@@ -2220,7 +2220,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 
 		Singleton.PutsWarn($"Creating I/O connections...");
 
-		var ioEntities = Pool.GetList<BaseEntity>();
+		var ioEntities = Facepunch.Pool.GetList<BaseEntity>();
 		foreach (var be in BaseEntity.saveList) { if (IO_Protection.Contains(be.transform.position)) { ioEntities.Add(be); } }
 		foreach (var data in serializedIOData.entities)
 		{
@@ -2346,7 +2346,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			}
 			catch { }
 		}
-		Pool.FreeList(ref ioEntities);
+		Facepunch.Pool.FreeList(ref ioEntities);
 
 		foreach (IOEntity io in IO_Processed)
 		{
@@ -3078,7 +3078,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 			lootContainer.inventory.ServerInitialize(null, num);
 			lootContainer.inventory.GiveUID();
 
-			var list = Pool.GetList<LootableItemData>();
+			var list = Facepunch.Pool.GetList<LootableItemData>();
 			list.AddRange(lootableContainerData.items);
 
 			for (int i = 0; i < num; i++)
@@ -3106,7 +3106,7 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 					list.Remove(lootableItemData);
 				}
 			}
-			Pool.FreeList(ref list);
+			Facepunch.Pool.FreeList(ref list);
 		}
 	}
 	internal static void Deployables_StockVending(CustomVendingMachines vendingm)
@@ -3293,10 +3293,10 @@ public partial class RustEditModule : CarbonModule<RustEditConfig, EmptyModuleDa
 	internal static BaseEntity Deployables_FindEntity(Vector3 pos, float radius, uint ID)
 	{
 		//Scan area and return if something found with correct ID with in radius.
-		List<BaseNetworkable> list = Pool.GetList<BaseNetworkable>();
+		var list = Facepunch.Pool.GetList<BaseNetworkable>();
 		Vis.Entities<BaseNetworkable>(pos, radius, list, -1);
 		foreach (BaseNetworkable baseentity in list) { if (baseentity.prefabID == ID) { try { return baseentity as BaseEntity; } catch { } } }
-		Pool.FreeList<BaseNetworkable>(ref list);
+		Facepunch.Pool.FreeList<BaseNetworkable>(ref list);
 		return null;
 	}
 	internal static void Deployables_PairHangerDoor(Door door)

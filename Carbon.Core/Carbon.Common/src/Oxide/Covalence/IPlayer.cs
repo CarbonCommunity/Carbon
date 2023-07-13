@@ -1,9 +1,4 @@
-﻿using System;
-using System.Globalization;
-using Oxide.Core;
-using Oxide.Core.Libraries;
-using Oxide.Core.Libraries.Covalence;
-using UnityEngine;
+﻿using Formatter = Oxide.Core.Libraries.Covalence.Formatter;
 
 /*
  *
@@ -25,9 +20,9 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 		{
 			Object = player;
 			Id = player.UserIDString;
-			Name = player.displayName.Sanitize();
+			Name = Oxide.Plugins.ExtensionMethods.Sanitize(player.displayName);
 			LastCommand = 0;
-			IsServer = true;
+			IsServer = false;
 			perms = Interface.Oxide.GetLibrary<Permission>();
 		}
 
@@ -49,7 +44,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public bool IsSleeping => BasePlayer != null && BasePlayer.IsSleeping();
 
-		public bool IsServer { get; set; }
+		public bool IsServer { get; set; } = true;
 
 		public bool IsAdmin => ulong.TryParse(Id, out var id) && ServerUsers.Is(id, ServerUsers.UserGroup.Owner);
 

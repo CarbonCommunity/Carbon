@@ -9,6 +9,8 @@ using API.Abstracts;
 using API.Commands;
 using API.Events;
 using API.Hooks;
+using Carbon.Core;
+using Carbon.Pooling;
 
 /*
  *
@@ -321,11 +323,18 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					_dynamicHooks.Add(hook);
 					Logger.Debug($"Loaded dynamic hook '{hook}'", 4);
 				}
+
+				HookStringPool.GetOrAdd(hook.HookName);
 			}
 			catch (System.Exception e)
 			{
 				Logger.Error($"Error while parsing '{type.Name}'", e);
 			}
+		}
+
+		foreach(var internalHook in HookValidator.IgnoredInternalHooks)
+		{
+			HookStringPool.GetOrAdd(internalHook);
 		}
 
 		sw.Stop();
@@ -644,7 +653,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName))}ms",
 							(mod.IsStaticHook)
 								? "N/A" :
 								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
@@ -705,7 +714,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(mod.HookName)}ms",
+							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName))}ms",
 							(mod.IsStaticHook)
 								? "N/A" :
 								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"

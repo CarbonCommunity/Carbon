@@ -1,8 +1,4 @@
-﻿using System;
-using Oxide.Core.Libraries;
-using Oxide.Plugins;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
@@ -18,7 +14,7 @@ public class Rust : Library
 
 	public string QuoteSafe(string str)
 	{
-		return str.Quote();
+		return Oxide.Plugins.ExtensionMethods.Quote(str);
 	}
 
 	public void BroadcastChat(string name, string message = null, string userId = "0")

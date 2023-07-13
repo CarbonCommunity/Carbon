@@ -20,7 +20,7 @@ public partial class GatherManagerModule
 	{
 		public static bool Prefix(BaseOven __instance)
 		{
-			if (HookCaller.CallStaticHook("IOvenSmeltSpeedOverride", __instance) is float hookResult)
+			if (HookCaller.CallStaticHook(4131997659, __instance) is float hookResult)
 			{
 				if (__instance.FindBurnable() == null && !__instance.CanRunWithNoFuel)
 				{

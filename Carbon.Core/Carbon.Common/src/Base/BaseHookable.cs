@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
+﻿using System.Diagnostics;
+using Facepunch.Extend;
 using Newtonsoft.Json;
-using Oxide.Core;
 
 /*
  *
@@ -59,6 +55,9 @@ public class BaseHookable
 	[JsonProperty]
 	public double TotalHookTime { get; internal set; }
 
+	[JsonProperty]
+	public double TotalMemoryUsed { get; internal set; }
+
 	public bool HasInitialized;
 	public Type Type;
 	public bool InternalCallHookOverriden = true;
@@ -66,6 +65,12 @@ public class BaseHookable
 	#region Tracking
 
 	internal Stopwatch _trackStopwatch = new();
+	internal long _currentMemory;
+	internal int _currentGcCount;
+
+	public static long CurrentMemory => GC.GetTotalMemory(false);
+	public static int CurrentGcCount => GC.CollectionCount(0);
+	public bool HasGCCollected => _currentGcCount != CurrentGcCount;
 
 	public virtual void TrackStart()
 	{
@@ -80,6 +85,8 @@ public class BaseHookable
 			return;
 		}
 		stopwatch.Start();
+		_currentMemory = CurrentMemory;
+		_currentGcCount = CurrentGcCount;
 	}
 	public virtual void TrackEnd()
 	{
@@ -95,6 +102,7 @@ public class BaseHookable
 		}
 		stopwatch.Stop();
 		TotalHookTime += stopwatch.Elapsed.TotalMilliseconds;
+		TotalMemoryUsed += (CurrentMemory - _currentMemory).Clamp(0, long.MaxValue);
 		stopwatch.Reset();
 	}
 
@@ -110,7 +118,7 @@ public class BaseHookable
 	{
 		if (IgnoredHooks == null) return;
 
-		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
+		var hash = HookStringPool.GetOrAdd(hook);
 
 		if (IgnoredHooks.Contains(hash)) return;
 
@@ -120,22 +128,22 @@ public class BaseHookable
 	{
 		if (IgnoredHooks == null) return;
 
-		var hash = HookCallerCommon.StringPool.GetOrAdd(hook);
+		var hash = HookStringPool.GetOrAdd(hook);
 
 		if (!IgnoredHooks.Contains(hash)) return;
 
 		IgnoredHooks.Remove(hash);
 	}
-	public bool IsHookIgnored(string hook)
+	public bool IsHookIgnored(uint hook)
 	{
-		return IgnoredHooks != null && IgnoredHooks.Contains(HookCallerCommon.StringPool.GetOrAdd(hook));
+		return IgnoredHooks != null && IgnoredHooks.Contains(hook);
 	}
 
 	public void SubscribeAll(Func<string, bool> condition = null)
 	{
 		foreach (var hook in Hooks)
 		{
-			var name = HookCallerCommon.StringPool.GetOrAdd(hook.Key);
+			var name = HookStringPool.GetOrAdd(hook.Key);
 			if (condition != null && !condition(name)) continue;
 
 			Subscribe(name);
@@ -145,7 +153,7 @@ public class BaseHookable
 	{
 		foreach (var hook in Hooks)
 		{
-			var name = HookCallerCommon.StringPool.GetOrAdd(hook.Key);
+			var name = HookStringPool.GetOrAdd(hook.Key);
 			if (condition != null && !condition(name)) continue;
 
 			Unsubscribe(name);
