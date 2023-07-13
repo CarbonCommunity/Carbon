@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 using Oxide.Core;
 
 /*
@@ -13,6 +14,7 @@ using Oxide.Core;
 //namespace API.Plugins;
 
 [AttributeUsage(AttributeTargets.Class)]
+[MeansImplicitUse]
 public class InfoAttribute : Attribute
 {
 	public string Title { get; }
@@ -49,6 +51,7 @@ public class InfoAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Class)]
+[MeansImplicitUse]
 public class DescriptionAttribute : Attribute
 {
 	public string Description { get; }
@@ -60,6 +63,7 @@ public class DescriptionAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field)]
+[MeansImplicitUse]
 public class PluginReferenceAttribute : Attribute
 {
 	public string Name { get; set; }
@@ -73,6 +77,7 @@ public class PluginReferenceAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[MeansImplicitUse]
 public class CommandAttribute : Attribute
 {
 	public string[] Names { get; } = new string[1];
@@ -89,6 +94,7 @@ public class CommandAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[MeansImplicitUse]
 public class ChatCommandAttribute : Attribute
 {
 	public string Name { get; }
@@ -102,6 +108,7 @@ public class ChatCommandAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[MeansImplicitUse]
 public class ConsoleCommandAttribute : Attribute
 {
 	public string Name { get; }
@@ -120,6 +127,7 @@ public class ConsoleCommandAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[MeansImplicitUse]
 public class RConCommandAttribute : Attribute
 {
 	public string Name { get; }
@@ -133,6 +141,7 @@ public class RConCommandAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[MeansImplicitUse]
 public class ProtectedCommandAttribute : Attribute
 {
 	public string Name { get; }
@@ -151,6 +160,7 @@ public class ProtectedCommandAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+[MeansImplicitUse]
 public class CommandVarAttribute : Attribute
 {
 	public string Name { get; }
@@ -175,6 +185,7 @@ public class CommandVarAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method)]
+[MeansImplicitUse]
 public class HookMethodAttribute : Attribute
 {
 	public string Name { get; set; }
@@ -188,6 +199,7 @@ public class HookMethodAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[MeansImplicitUse]
 public class PermissionAttribute : Attribute
 {
 	public string Name { get; }
@@ -199,6 +211,7 @@ public class PermissionAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[MeansImplicitUse]
 public class GroupAttribute : Attribute
 {
 	public string Name { get; }
@@ -210,6 +223,7 @@ public class GroupAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
+[MeansImplicitUse]
 public class AuthLevelAttribute : Attribute
 {
 	public int AuthLevel { get; }
@@ -221,6 +235,7 @@ public class AuthLevelAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method)]
+[MeansImplicitUse]
 public class CooldownAttribute : Attribute
 {
 	public int Miliseconds { get; } = 0;
@@ -232,6 +247,7 @@ public class CooldownAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+[MeansImplicitUse]
 public class HookPriority : Attribute
 {
 	public Priorities Priority { get; set; } = Priorities.Normal;
@@ -244,6 +260,7 @@ public class HookPriority : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+[MeansImplicitUse]
 public class PluginPriority : Attribute
 {
 	public Priorities Priority { get; set; } = Priorities.Normal;
