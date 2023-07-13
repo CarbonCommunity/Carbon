@@ -19,7 +19,7 @@ public partial class ModerationToolsModule
 	{
 		public static bool Prefix(BasePlayer ply)
 		{
-			if (HookCaller.CallStaticHook("INoteAdminHack", ply) != null)
+			if (HookCaller.CallStaticHook(3335207430, ply) != null)
 			{
 				return false;
 			}

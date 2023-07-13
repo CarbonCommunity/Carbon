@@ -1,16 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using API.Events;
-using Carbon.Base;
+﻿using API.Events;
 using Carbon.Base.Interfaces;
-using Carbon.Extensions;
-using Facepunch;
 using Newtonsoft.Json;
-using Oxide.Core.Plugins;
-using Oxide.Plugins;
 using Report = Carbon.Components.Report;
 
 /*
@@ -154,7 +144,7 @@ public static class ModLoader
 			{
 				if (!(type.Namespace.Equals("Oxide.Plugins") || type.Namespace.Equals("Carbon.Plugins"))) continue;
 
-				if (!IsValidPlugin(type)) continue;
+				if (!IsValidPlugin(type, true)) continue;
 
 				if (!InitializePlugin(type, out var plugin, mod)) continue;
 				plugin.HasInitialized = true;
@@ -166,7 +156,7 @@ public static class ModLoader
 	}
 	public static void UninitializePlugins(ModPackage mod)
 	{
-		var plugins = Pool.GetList<RustPlugin>();
+		var plugins = Facepunch.Pool.GetList<RustPlugin>();
 		plugins.AddRange(mod.Plugins);
 
 		foreach (var plugin in plugins)
@@ -178,7 +168,7 @@ public static class ModLoader
 			catch (Exception ex) { Logger.Error($"Failed unloading '{mod.Name}'", ex); }
 		}
 
-		Pool.FreeList(ref plugins);
+		Facepunch.Pool.FreeList(ref plugins);
 	}
 
 	public static bool InitializePlugin(Type type, out RustPlugin plugin, ModPackage package = null, Action<RustPlugin> preInit = null, bool precompiled = false)
@@ -219,6 +209,11 @@ public static class ModLoader
 			ProcessPrecompiledType(plugin);
 		}
 
+		if(precompiled || !IsValidPlugin(type.BaseType, false))
+		{
+			plugin.InternalCallHookOverriden = false;
+		}
+
 		preInit?.Invoke(plugin);
 
 		plugin.ILoadConfig();
@@ -239,7 +234,7 @@ public static class ModLoader
 		RemoveCommands(plugin);
 		plugin.IUnload();
 
-		HookCaller.CallStaticHook("OnPluginUnloaded", plugin);
+		HookCaller.CallStaticHook(3843290135, plugin);
 
 		plugin.Dispose();
 		Logger.Log($"Unloaded plugin {plugin.ToString()}");
@@ -257,7 +252,7 @@ public static class ModLoader
 
 			foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 			{
-				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+				var hash = HookStringPool.GetOrAdd(method.Name);
 
 				if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 				{
@@ -289,11 +284,14 @@ public static class ModLoader
 		}
 	}
 
-	public static bool IsValidPlugin(Type type)
+	public const string CARBON_PLUGIN = "CarbonPlugin";
+	public const string RUST_PLUGIN = "RustPlugin";
+
+	public static bool IsValidPlugin(Type type, bool recursive)
 	{
 		if (type == null) return false;
-		if (type.Name == "RustPlugin" || type.Name == "CarbonPlugin") return true;
-		return IsValidPlugin(type.BaseType);
+		if (type.Name == CARBON_PLUGIN || type.Name == RUST_PLUGIN) return true;
+		return recursive && IsValidPlugin(type.BaseType, recursive);
 	}
 
 	public static void ProcessCommands(Type type, BaseHookable hookable = null, BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance, string prefix = null)
@@ -500,7 +498,7 @@ public static class ModLoader
 
 	public static void OnPluginProcessFinished()
 	{
-		var temp = Pool.GetList<string>();
+		var temp = Facepunch.Pool.GetList<string>();
 		temp.AddRange(PostBatchFailedRequirees);
 
 		foreach (var plugin in temp)
@@ -518,12 +516,12 @@ public static class ModLoader
 		}
 
 		temp.Clear();
-		Pool.FreeList(ref temp);
+		Facepunch.Pool.FreeList(ref temp);
 
 		if (Community.IsServerFullyInitialized)
 		{
 			var counter = 0;
-			var plugins = Pool.GetList<RustPlugin>();
+			var plugins = Facepunch.Pool.GetList<RustPlugin>();
 
 			foreach (var mod in LoadedPackages)
 			{
@@ -555,7 +553,7 @@ public static class ModLoader
 				plugin.HasInitialized = true;
 			}
 
-			Pool.FreeList(ref plugins);
+			Facepunch.Pool.FreeList(ref plugins);
 
 			foreach (var plugin in Community.Runtime.ModuleProcessor.Modules)
 			{
@@ -563,7 +561,7 @@ public static class ModLoader
 
 				try
 				{
-					HookCaller.CallHook(plugin, "OnServerInitialized", Community.IsServerFullyInitialized);
+					HookCaller.CallHook(plugin, 1330569572, Community.IsServerFullyInitialized);
 				}
 				catch (Exception initException)
 				{
@@ -578,10 +576,6 @@ public static class ModLoader
 
 			Report.OnProcessEnded?.Invoke();
 			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
-
-#if DEBUG_VERBOSE
-			Logger.Error($"realtimeSinceStartup: {UnityEngine.Time.realtimeSinceStartup}");
-#endif
 		}
 	}
 

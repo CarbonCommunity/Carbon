@@ -19,7 +19,7 @@ public partial class RustEditModule
 	{
 		public static bool Prefix(HitInfo info, BaseCombatEntity __instance)
 		{
-			if (HookCaller.CallStaticHook("ICanDie", __instance, info) != null)
+			if (HookCaller.CallStaticHook(3218212956, __instance, info) != null)
 			{
 				return false;
 			}

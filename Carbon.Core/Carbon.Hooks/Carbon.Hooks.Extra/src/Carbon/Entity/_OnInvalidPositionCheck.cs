@@ -24,7 +24,7 @@ public partial class Category_Entity
 		// {
 		public static bool Prefix(Vector3 vPos, ref bool __result)
 		{
-			if (HookCaller.CallStaticHook("OnInvalidPositionCheck", vPos) is bool hookValue)
+			if (HookCaller.CallStaticHook(388536476, vPos) is bool hookValue)
 			{
 				__result = !hookValue;
 				return false;

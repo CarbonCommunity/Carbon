@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Carbon;
-using Facepunch;
-using Oxide.Core.Libraries;
+﻿using Facepunch;
 using static Oxide.Plugins.RustPlugin;
+using Logger = Carbon.Logger;
 
 /*
  *
@@ -14,7 +11,7 @@ using static Oxide.Plugins.RustPlugin;
 
 namespace Oxide.Plugins;
 
-public class Timers
+public class Timers : Library
 {
 	public RustPlugin Plugin { get; }
 	internal List<Timer> _timers { get; set; } = new List<Timer>();
@@ -63,7 +60,11 @@ public class Timers
 		timer.Delay = time;
 		timer.Callback = activity;
 
-		Persistence.Invoke(activity, time);
+		if (Community.IsServerFullyInitializedCache)
+		{
+			Persistence.Invoke(activity, time);
+		}
+
 		return timer;
 	}
 	public Timer Once(float time, Action action)

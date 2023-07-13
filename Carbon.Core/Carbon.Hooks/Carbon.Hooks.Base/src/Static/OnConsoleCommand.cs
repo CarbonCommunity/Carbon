@@ -63,6 +63,7 @@ public partial class Category_Static
 							arg.Option = client;
 							arg.FullString = split.ToString(" ");
 							arg.Args = args2;
+							arg.cmd = cmd.RustCommand;
 
 							var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
 							commandArgs.Token = arg;

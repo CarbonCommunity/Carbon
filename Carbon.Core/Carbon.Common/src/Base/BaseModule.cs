@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Carbon.Base.Interfaces;
-using Carbon.Core;
-using Carbon.Extensions;
-using Oxide.Core.Configuration;
+﻿using Carbon.Base.Interfaces;
 using Defines = Carbon.Core.Defines;
 
 /*
@@ -94,7 +86,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 
 				var priority = method.GetCustomAttribute<HookPriority>();
-				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+				var hash = HookStringPool.GetOrAdd(method.Name);
 				if (!Hooks.ContainsKey(hash)) Hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
 			}
 		}

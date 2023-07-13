@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Carbon.Base;
-using Carbon.Extensions;
-using Carbon.Modules;
-using Oxide.Game.Rust.Cui;
-using UnityEngine;
+﻿using Oxide.Game.Rust.Cui;
 using static Carbon.Components.CUI;
 
 /*
@@ -160,7 +154,7 @@ public struct CUI : IDisposable
 	{
 		if (!ColorUtility.TryParseHtmlString(hexColor, out var color))
 		{
-			return $"1 1 1 {alpha.GetValueOrDefault(1)}";
+			return $"1 1 1{(includeAlpha ? $" {alpha.GetValueOrDefault(1)}" : "")}";
 		}
 
 		return $"{color.r} {color.g} {color.b}{(includeAlpha ? $" {alpha ?? color.a}" : "")}";
