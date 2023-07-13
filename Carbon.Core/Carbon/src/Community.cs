@@ -116,7 +116,7 @@ public class CommunityInternal : Community
 
 	#endregion
 
-	public void Initialize()
+	public override void Initialize()
 	{
 		if (IsInitialized) return;
 
@@ -179,7 +179,7 @@ public class CommunityInternal : Community
 
 		Entities.Init();
 	}
-	public void Uninitalize()
+	public override void Uninitialize()
 	{
 		try
 		{
