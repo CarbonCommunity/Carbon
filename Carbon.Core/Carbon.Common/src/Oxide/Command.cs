@@ -366,7 +366,9 @@ namespace Oxide.Game.Rust.Libraries
 
 							if (!string.IsNullOrEmpty(arg.Reply))
 							{
-								if (player != null) player.ConsoleMessage(arg.Reply); else Logger.Log(arg.Reply);
+								if (player != null) player.ConsoleMessage(arg.Reply);
+								else if (FromRcon) Facepunch.RCon.Broadcast(Facepunch.RCon.LogType.Generic, arg.Reply);
+								else Logger.Log(arg.Reply);
 							}
 						}
 					}
@@ -412,7 +414,9 @@ namespace Oxide.Game.Rust.Libraries
 
 						if (!string.IsNullOrEmpty(arg.Reply))
 						{
-							if (player != null) player.ConsoleMessage(arg.Reply); else Logger.Log(arg.Reply);
+							if (player != null) player.ConsoleMessage(arg.Reply);
+							else if(FromRcon) Facepunch.RCon.Broadcast(Facepunch.RCon.LogType.Generic, arg.Reply);
+							else Logger.Log(arg.Reply);
 						}
 					}
 				}
