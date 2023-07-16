@@ -276,10 +276,9 @@ namespace Oxide.Game.Rust.Libraries
 				try
 				{
 					var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
-					var client = player == null ? Option.Unrestricted : Option.Client;
+					var client = player == null ? Option.Server : Option.Client;
 					var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 					if (player != null) client = client.FromConnection(player.net.connection);
-					client.FromRcon = FromRcon;
 					arg.Option = client;
 					arg.FullString = fullString;
 					arg.Args = args;
@@ -396,10 +395,9 @@ namespace Oxide.Game.Rust.Libraries
 				try
 				{
 					var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
-					var client = player == null ? Option.Unrestricted : Option.Client;
+					var client = player == null ? Option.Server : Option.Client;
 					var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 					if (player != null) client = client.FromConnection(player.net.connection);
-					client.FromRcon = FromRcon;
 					arg.Option = client;
 					arg.FullString = fullString;
 					arg.Args = args;
