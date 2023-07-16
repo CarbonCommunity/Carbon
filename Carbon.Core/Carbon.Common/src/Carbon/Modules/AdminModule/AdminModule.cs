@@ -5872,29 +5872,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					"A Carbon built-in version of the Circular Network Distance from Codefling.", "", FindModule("OptimisationsModule"));
 
 			}));
-			tab.Pages.Add(new Page("RustEdit.Ext", (cui, t, container, panel, ap) =>
-			{
-				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
-					"RustEdit.Ext Module",
-					"An extension to allow further customisation in Rust maps.\n" +
-					"\n<b>Features</b>" +
-					"\n• Establishes IO connections made in the editor" +
-					"\n• Populates custom loot containers and ensures they respawn/refresh loot at the rates set in the associated loot profile" +
-					"\n• Creates spawn handlers for all loot containers placed in the editor without a loot profile so they respawn/refresh loot at default rates" +
-					"\n• Creates spawn handlers for all resource entities placed in the editor so manually placed resources will respawn" +
-					"\n• Creates spawn handlers for all junk piles placed in the editor so manually placed junk piles will respawn" +
-					"\n• Creates spawn handlers for NPC Spawners placed in the editor" +
-					"\n• Creates spawn handlers for vehicles placed in the editor" +
-					"\n• Populates custom vending machines using the vending profile associated with them in the editor" +
-					"\n• Overrides OceanPatrolPath generation with a custom path created in the editor" +
-					"\n• Creates and manages custom APC paths created in the editor" +
-					"\n• Fixes the spawn point prefab and ensures players will only spawn on them" +
-					"\n• Fixes the rotation of the excavator arm on map placed excavator monuments that have been rotated" +
-					"\n• Ensures desk keycard spawners actually respawn keycards" +
-					"\n• Disables damage and decay on all editor placed entities" +
-					"\n• Prevents deployable entities from killing themselves" +
-					"\n• Updates itself automatically", "", FindModule("RustEditModule"));
-			}));
 			tab.Pages.Add(new Page("Plugin Browser", (cui, t, container, panel, ap) =>
 			{
 				cui.CreateClientImage(container, panel, null, "https://i.imgur.com/mFxaU99.png", "1 1 1 0.7",
