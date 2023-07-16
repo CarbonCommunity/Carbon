@@ -206,11 +206,16 @@ public class CommunityInternal : Community
 			Entities.Dispose();
 
 			Carbon.Logger.Dispose();
+
+			Events.Trigger(CarbonEvent.CarbonShutdownComplete, EventArgs.Empty);
 		}
 		catch (Exception ex)
 		{
 			Carbon.Logger.Error($"Failed Carbon uninitialization.", ex);
 			Events.Trigger(CarbonEvent.CarbonShutdownFailed, EventArgs.Empty);
 		}
+
+		InternalRuntime = null;
+		base.Uninitialize();
 	}
 }

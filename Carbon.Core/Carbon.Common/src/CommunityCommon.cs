@@ -290,5 +290,8 @@ public abstract class Community
 	#endregion
 
 	public abstract void Initialize();
-	public abstract void Uninitialize();
+	public virtual void Uninitialize()
+	{
+		Runtime = null;
+	}
 }

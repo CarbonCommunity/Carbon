@@ -119,7 +119,6 @@ public sealed class Bootstrap
 			Watcher.enabled = true;
 		});
 
-
 		Commands.RegisterCommand(new Command.RCon
 		{
 			Name = "c.build",
