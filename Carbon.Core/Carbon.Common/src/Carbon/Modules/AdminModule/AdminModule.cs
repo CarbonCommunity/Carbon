@@ -4342,53 +4342,60 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				Community.Runtime.CorePlugin.webrequest.Enqueue(ListEndpoint, null, (error, data) =>
 				{
-					var list = JObject.Parse(data);
-
-					FetchedPlugins.Clear();
-
-					var plugins = Community.Runtime.CorePlugin.plugins.GetAll();
-					var file = list["file"];
-					foreach (var token in file)
+					try
 					{
-						var plugin = new Plugin
+						var list = JObject.Parse(data);
+
+						FetchedPlugins.Clear();
+
+						var plugins = Community.Runtime.CorePlugin.plugins.GetAll();
+						var file = list["file"];
+						foreach (var token in file)
 						{
-							Id = token["file_id"]?.ToString(),
-							Name = token["file_name"]?.ToString(),
-							Author = token["file_author"]?.ToString(),
-							Description = token["file_description"]?.ToString(),
-							Version = token["file_version"]?.ToString(),
-							OriginalPrice = token["file_price"]?.ToString(),
-							UpdateDate = token["file_updated"]?.ToString(),
-							Changelog = token["file_changelogs"]?.ToString(),
-							File = token["file_file_1"]?.ToString(),
-							Image = token["file_image"]["url"]?.ToString(),
-							ImageSize = (token["file_image"]["size"]?.ToString().ToInt()).GetValueOrDefault(),
-							Tags = token["file_tags"]?.ToString().Split(','),
-							DownloadCount = (token["file_downloads"]?.ToString().ToInt()).GetValueOrDefault(),
-							Dependencies = token["file_depends"]?.ToString().Split(),
-							CarbonCompatible = (token["file_compatibility"]?.ToString().ToBool()).GetValueOrDefault(),
-							Rating = (token["file_rating"]?.ToString().ToFloat()).GetValueOrDefault(0),
-							Status = (Status)Enum.Parse(typeof(Status), token["file_status"]?.ToString()),
-							HasLookup = true
-						};
+							var plugin = new Plugin
+							{
+								Id = token["file_id"]?.ToString(),
+								Name = token["file_name"]?.ToString(),
+								Author = token["file_author"]?.ToString(),
+								Description = token["file_description"]?.ToString(),
+								Version = token["file_version"]?.ToString(),
+								OriginalPrice = token["file_price"]?.ToString(),
+								UpdateDate = token["file_updated"]?.ToString(),
+								Changelog = token["file_changelogs"]?.ToString(),
+								File = token["file_file_1"]?.ToString(),
+								Image = token["file_image"]["url"]?.ToString(),
+								ImageSize = (token["file_image"]["size"]?.ToString().ToInt()).GetValueOrDefault(),
+								Tags = token["file_tags"]?.ToString().Split(','),
+								DownloadCount = (token["file_downloads"]?.ToString().ToInt()).GetValueOrDefault(),
+								Dependencies = token["file_depends"]?.ToString().Split(),
+								CarbonCompatible = (token["file_compatibility"]?.ToString().ToBool()).GetValueOrDefault(),
+								Rating = (token["file_rating"]?.ToString().ToFloat()).GetValueOrDefault(0),
+								Status = (Status)Enum.Parse(typeof(Status), token["file_status"]?.ToString()),
+								HasLookup = true
+							};
 
-						var date = DateTimeOffset.FromUnixTimeSeconds(plugin.UpdateDate.ToLong());
-						plugin.UpdateDate = date.UtcDateTime.ToString();
+							var date = DateTimeOffset.FromUnixTimeSeconds(plugin.UpdateDate.ToLong());
+							plugin.UpdateDate = date.UtcDateTime.ToString();
 
-						try { plugin.Description = plugin.Description.TrimStart('\t').Replace("\t", "\n").Split('\n')[0]; } catch { }
+							try { plugin.Description = plugin.Description.TrimStart('\t').Replace("\t", "\n").Split('\n')[0]; } catch { }
 
-						if (plugin.OriginalPrice == "{}") plugin.OriginalPrice = "FREE";
-						try { plugin.ExistentPlugin = plugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.FilePath) == Path.GetFileNameWithoutExtension(plugin.File)) as RustPlugin; } catch { }
+							if (plugin.OriginalPrice == "{}") plugin.OriginalPrice = "FREE";
+							try { plugin.ExistentPlugin = plugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.FilePath) == Path.GetFileNameWithoutExtension(plugin.File)) as RustPlugin; } catch { }
 
-						FetchedPlugins.Add(plugin);
+							FetchedPlugins.Add(plugin);
+						}
+
+						callback?.Invoke(this);
+						Logger.Log($"[{Type}] Downloaded JSON");
+
+						OwnedData = InstalledData;
+
+						Save();
 					}
-
-					callback?.Invoke(this);
-					Logger.Log($"[{Type}] Downloaded JSON");
-
-					OwnedData = InstalledData;
-
-					Save();
+					catch
+					{
+						Logger.Warn($" Couldn't fetch Codefling API to get the plugins list. Most likely because it's down.");
+					}
 				}, Community.Runtime.CorePlugin);
 			}
 			public void Download(string id, Action onTimeout = null)
