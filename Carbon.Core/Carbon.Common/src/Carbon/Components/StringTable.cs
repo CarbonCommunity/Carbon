@@ -81,19 +81,24 @@ public struct StringTable : IDisposable
 
 	private string ToStringNone()
 	{
-		using (var builder = new StringBody())
+		using var builder = new StringBody();
+		var columnLengths = ColumnLengths();
+		var format = Format(columnLengths, char.MinValue);
+		var temp1 = Columns.ToArray();
+		var columnHeaders = string.Format(format, temp1);
+		var results = Rows.Select(row => string.Format(format, row));
+
+		builder.Add(columnHeaders);
+
+		foreach(var item in results)
 		{
-			var columnLengths = ColumnLengths();
-			var format = Format(columnLengths, char.MinValue);
-			var columnHeaders = string.Format(format, Columns.ToArray());
-			var results = Rows.Select(row => string.Format(format, row)).ToList();
-
-			builder.Add(columnHeaders);
-			results.ForEach(row => builder.Add(row));
-
-			return builder.ToAppended();
+			builder.Add(item);
 		}
 
+		Array.Clear(temp1, 0, temp1.Length);
+		temp1 = null;
+		results = null;
+		return builder.ToAppended();
 	}
 
 	private string ToStringDefault()
@@ -208,21 +213,15 @@ public struct StringTable : IDisposable
 
 	public string Write(FormatTypes format = FormatTypes.Default)
 	{
-		switch (format)
+		return format switch
 		{
-			case FormatTypes.None:
-				return ToStringNone();
-			case FormatTypes.Default:
-				return ToStringDefault();
-			case FormatTypes.MarkDown:
-				return ToStringMarkDown();
-			case FormatTypes.Alternative:
-				return ToStringAlternative();
-			case FormatTypes.Minimal:
-				return ToStringMinimal();
-			default:
-				throw new ArgumentOutOfRangeException(nameof(format), format, null);
-		}
+			FormatTypes.None => ToStringNone(),
+			FormatTypes.Default => ToStringDefault(),
+			FormatTypes.MarkDown => ToStringMarkDown(),
+			FormatTypes.Alternative => ToStringAlternative(),
+			FormatTypes.Minimal => ToStringMinimal(),
+			_ => throw new ArgumentOutOfRangeException(nameof(format), format, null),
+		};
 	}
 
 	private static string[] GetColumns<T>()
