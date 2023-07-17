@@ -30,7 +30,7 @@
 		}
 		public interface IParser
 		{
-			void Process(string input, out string output);
+			void Process(string file, string input, out string output);
 		}
 	}
 }
