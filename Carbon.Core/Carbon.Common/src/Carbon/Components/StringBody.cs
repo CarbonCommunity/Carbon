@@ -61,7 +61,7 @@ public struct StringBody : IDisposable
 			result += $"{item}{inBetweenString}";
 		}
 
-		return result.Trim();
+		return result.TrimEnd();
 	}
 	public string ToNewLine()
 	{
@@ -72,11 +72,11 @@ public struct StringBody : IDisposable
 			result += $"{item}\n";
 		}
 
-		return result.Trim();
+		return result.TrimEnd();
 	}
 	public override string ToString()
 	{
-		return ToAppended();
+		return ToAppended(string.Empty);
 	}
 
 	#endregion

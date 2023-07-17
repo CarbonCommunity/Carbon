@@ -77,13 +77,13 @@ public partial class CorePlugin : CarbonPlugin
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}", $"{plugin.CompileTime:0}ms");
+							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}", $"{plugin.CompileTime:0}ms");
 						}
 
 						count++;
 					}
 
-					result += $"{body.ToStringMinimal()}\n";
+					result += $"{body.Write(StringTable.FormatTypes.None)}\n";
 				}
 
 				// Failed plugins
@@ -99,7 +99,7 @@ public partial class CorePlugin : CarbonPlugin
 							count++;
 						}
 
-						result += $"Failed plugins:\n{body.ToStringMinimal()}\nTo list the full stack trace of failed plugins, run 'c.pluginsfailed'";
+						result += $"Failed plugins:\n{body.Write(StringTable.FormatTypes.None)}\nTo list the full stack trace of failed plugins, run 'c.pluginsfailed'";
 					}
 
 					arg.ReplyWith(result);
@@ -502,7 +502,7 @@ public partial class CorePlugin : CarbonPlugin
 				value = new string('*', value.Length);
 			}
 
-			body.AddRow(command.Name, value, command.Help);
+			body.AddRow($" {command.Name}", value, command.Help);
 		}
 
 		arg.ReplyWith(body.Write(StringTable.FormatTypes.None));
@@ -519,7 +519,7 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			if (command.HasFlag(CommandFlags.Hidden) || (!string.IsNullOrEmpty(filter) && !command.Name.Contains(filter))) continue;
 
-			body.AddRow(command.Name, command.Help);
+			body.AddRow($" {command.Name}", command.Help);
 		}
 
 		arg.ReplyWith(body.Write(StringTable.FormatTypes.None));
