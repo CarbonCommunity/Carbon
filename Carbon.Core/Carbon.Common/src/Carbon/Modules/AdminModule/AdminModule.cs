@@ -2261,7 +2261,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						Community.Runtime.ScriptProcessor.IncludeSubdirectories = index == (int)SearchOption.AllDirectories;
 						Community.Runtime.SaveConfig();
 					}, SearchDirectories, tooltip: Singleton.GetPhrase("scriptwatchersoption_help", ap.Player.UserIDString));
-					tab.AddToggle(1, Singleton.GetPhrase("harmonyreference", ap.Player.UserIDString), ap => { Config.HarmonyReference = !Config.HarmonyReference; Community.Runtime.SaveConfig(); }, ap => Config.HarmonyReference, Singleton.GetPhrase("harmonyreference_help", ap.Player.UserIDString));
 					tab.AddToggle(1, Singleton.GetPhrase("filenamecheck", ap.Player.UserIDString), ap => { Config.FileNameCheck = !Config.FileNameCheck; Community.Runtime.SaveConfig(); }, ap => Config.FileNameCheck, Singleton.GetPhrase("filenamecheck_help", ap.Player.UserIDString));
 
 					tab.AddName(1, Singleton.GetPhrase("logging", ap.Player.UserIDString), TextAnchor.MiddleLeft);
@@ -4342,53 +4341,60 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				Community.Runtime.CorePlugin.webrequest.Enqueue(ListEndpoint, null, (error, data) =>
 				{
-					var list = JObject.Parse(data);
-
-					FetchedPlugins.Clear();
-
-					var plugins = Community.Runtime.CorePlugin.plugins.GetAll();
-					var file = list["file"];
-					foreach (var token in file)
+					try
 					{
-						var plugin = new Plugin
+						var list = JObject.Parse(data);
+
+						FetchedPlugins.Clear();
+
+						var plugins = Community.Runtime.CorePlugin.plugins.GetAll();
+						var file = list["file"];
+						foreach (var token in file)
 						{
-							Id = token["file_id"]?.ToString(),
-							Name = token["file_name"]?.ToString(),
-							Author = token["file_author"]?.ToString(),
-							Description = token["file_description"]?.ToString(),
-							Version = token["file_version"]?.ToString(),
-							OriginalPrice = token["file_price"]?.ToString(),
-							UpdateDate = token["file_updated"]?.ToString(),
-							Changelog = token["file_changelogs"]?.ToString(),
-							File = token["file_file_1"]?.ToString(),
-							Image = token["file_image"]["url"]?.ToString(),
-							ImageSize = (token["file_image"]["size"]?.ToString().ToInt()).GetValueOrDefault(),
-							Tags = token["file_tags"]?.ToString().Split(','),
-							DownloadCount = (token["file_downloads"]?.ToString().ToInt()).GetValueOrDefault(),
-							Dependencies = token["file_depends"]?.ToString().Split(),
-							CarbonCompatible = (token["file_compatibility"]?.ToString().ToBool()).GetValueOrDefault(),
-							Rating = (token["file_rating"]?.ToString().ToFloat()).GetValueOrDefault(0),
-							Status = (Status)Enum.Parse(typeof(Status), token["file_status"]?.ToString()),
-							HasLookup = true
-						};
+							var plugin = new Plugin
+							{
+								Id = token["file_id"]?.ToString(),
+								Name = token["file_name"]?.ToString(),
+								Author = token["file_author"]?.ToString(),
+								Description = token["file_description"]?.ToString(),
+								Version = token["file_version"]?.ToString(),
+								OriginalPrice = token["file_price"]?.ToString(),
+								UpdateDate = token["file_updated"]?.ToString(),
+								Changelog = token["file_changelogs"]?.ToString(),
+								File = token["file_file_1"]?.ToString(),
+								Image = token["file_image"]["url"]?.ToString(),
+								ImageSize = (token["file_image"]["size"]?.ToString().ToInt()).GetValueOrDefault(),
+								Tags = token["file_tags"]?.ToString().Split(','),
+								DownloadCount = (token["file_downloads"]?.ToString().ToInt()).GetValueOrDefault(),
+								Dependencies = token["file_depends"]?.ToString().Split(),
+								CarbonCompatible = (token["file_compatibility"]?.ToString().ToBool()).GetValueOrDefault(),
+								Rating = (token["file_rating"]?.ToString().ToFloat()).GetValueOrDefault(0),
+								Status = (Status)Enum.Parse(typeof(Status), token["file_status"]?.ToString()),
+								HasLookup = true
+							};
 
-						var date = DateTimeOffset.FromUnixTimeSeconds(plugin.UpdateDate.ToLong());
-						plugin.UpdateDate = date.UtcDateTime.ToString();
+							var date = DateTimeOffset.FromUnixTimeSeconds(plugin.UpdateDate.ToLong());
+							plugin.UpdateDate = date.UtcDateTime.ToString();
 
-						try { plugin.Description = plugin.Description.TrimStart('\t').Replace("\t", "\n").Split('\n')[0]; } catch { }
+							try { plugin.Description = plugin.Description.TrimStart('\t').Replace("\t", "\n").Split('\n')[0]; } catch { }
 
-						if (plugin.OriginalPrice == "{}") plugin.OriginalPrice = "FREE";
-						try { plugin.ExistentPlugin = plugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.FilePath) == Path.GetFileNameWithoutExtension(plugin.File)) as RustPlugin; } catch { }
+							if (plugin.OriginalPrice == "{}") plugin.OriginalPrice = "FREE";
+							try { plugin.ExistentPlugin = plugins.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.FilePath) == Path.GetFileNameWithoutExtension(plugin.File)) as RustPlugin; } catch { }
 
-						FetchedPlugins.Add(plugin);
+							FetchedPlugins.Add(plugin);
+						}
+
+						callback?.Invoke(this);
+						Logger.Log($"[{Type}] Downloaded JSON");
+
+						OwnedData = InstalledData;
+
+						Save();
 					}
-
-					callback?.Invoke(this);
-					Logger.Log($"[{Type}] Downloaded JSON");
-
-					OwnedData = InstalledData;
-
-					Save();
+					catch
+					{
+						Logger.Warn($" Couldn't fetch Codefling API to get the plugins list. Most likely because it's down.");
+					}
 				}, Community.Runtime.CorePlugin);
 			}
 			public void Download(string id, Action onTimeout = null)
@@ -5871,29 +5877,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					"Optimisations Module",
 					"A Carbon built-in version of the Circular Network Distance from Codefling.", "", FindModule("OptimisationsModule"));
 
-			}));
-			tab.Pages.Add(new Page("RustEdit.Ext", (cui, t, container, panel, ap) =>
-			{
-				tab.ModuleInfoTemplate(cui, t, container, panel, ap,
-					"RustEdit.Ext Module",
-					"An extension to allow further customisation in Rust maps.\n" +
-					"\n<b>Features</b>" +
-					"\n• Establishes IO connections made in the editor" +
-					"\n• Populates custom loot containers and ensures they respawn/refresh loot at the rates set in the associated loot profile" +
-					"\n• Creates spawn handlers for all loot containers placed in the editor without a loot profile so they respawn/refresh loot at default rates" +
-					"\n• Creates spawn handlers for all resource entities placed in the editor so manually placed resources will respawn" +
-					"\n• Creates spawn handlers for all junk piles placed in the editor so manually placed junk piles will respawn" +
-					"\n• Creates spawn handlers for NPC Spawners placed in the editor" +
-					"\n• Creates spawn handlers for vehicles placed in the editor" +
-					"\n• Populates custom vending machines using the vending profile associated with them in the editor" +
-					"\n• Overrides OceanPatrolPath generation with a custom path created in the editor" +
-					"\n• Creates and manages custom APC paths created in the editor" +
-					"\n• Fixes the spawn point prefab and ensures players will only spawn on them" +
-					"\n• Fixes the rotation of the excavator arm on map placed excavator monuments that have been rotated" +
-					"\n• Ensures desk keycard spawners actually respawn keycards" +
-					"\n• Disables damage and decay on all editor placed entities" +
-					"\n• Prevents deployable entities from killing themselves" +
-					"\n• Updates itself automatically", "", FindModule("RustEditModule"));
 			}));
 			tab.Pages.Add(new Page("Plugin Browser", (cui, t, container, panel, ap) =>
 			{

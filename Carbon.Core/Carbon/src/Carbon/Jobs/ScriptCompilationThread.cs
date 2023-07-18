@@ -148,10 +148,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var references = new List<MetadataReference>();
 		var id = Path.GetFileNameWithoutExtension(FilePath);
 
-		if (Community.Runtime.Config.HarmonyReference)
-		{
-			_injectReference(id, "0Harmony", references);
-		}
+		_injectReference(id, "0Harmony", references);
 
 		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
 		{
