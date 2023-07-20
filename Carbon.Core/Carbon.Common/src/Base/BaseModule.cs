@@ -14,6 +14,7 @@ public abstract class BaseModule : BaseHookable
 {
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
+	public virtual bool ForceEnabled => false;
 
 	public abstract void OnPostServerInit();
 	public abstract void OnServerInit();
@@ -129,6 +130,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		}
 
 		ConfigInstance = ModuleConfiguration.Config;
+		if (ForceEnabled) ModuleConfiguration.Enabled = true;
 
 		if (typeof(D) != typeof(EmptyModuleData))
 		{
@@ -165,6 +167,11 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		if (DataInstance == null && typeof(D) != typeof(EmptyModuleData))
 		{
 			DataInstance = Activator.CreateInstance<D>();
+		}
+
+		if (ForceEnabled)
+		{
+			ModuleConfiguration.Enabled = true;
 		}
 
 		Config.WriteObject(ModuleConfiguration);
