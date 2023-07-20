@@ -3931,7 +3931,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			foreach (var value in vendors)
 			{
 				var v = GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), value));
-				cui.CreateProtectedButton(container, header, null, vendorName == value ? "0.3 0.72 0.25 0.8" : "0.2 0.2 0.2 0.3", "1 1 1 0.7", $"{value.Replace("_", ".")}{(v == null ? "" : $" ({v?.BarInfo})")}", 11,
+				cui.CreateProtectedButton(container, header, null, vendorName == value ? "0.3 0.72 0.25 0.8" : "0.2 0.2 0.2 0.3", "1 1 1 0.7", $"<b>{value.Replace("_", ".")}</b>{(v == null ? "" : $" — {v?.BarInfo}")}", 11,
 					xMin: offset, xMax: offset + cuts, command: $"pluginbrowser.changetab {value}");
 				offset += cuts;
 			}
@@ -4044,6 +4044,18 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			}
 
+			var auth = vendor as IVendorAuthenticated;
+
+			if (auth != null)
+			{
+				var user = cui.CreatePanel(container, topbar, null, "0 0 0 0", xMax: 0.275f);
+
+				if (auth.IsLoggedIn) cui.CreateClientImage(container, user, null, auth.User.AvatarUrl, "1 1 1 0.8", xMin: 0.02f, xMax: 0.12f, yMin: 0.1f, yMax: 0.9f);
+				cui.CreateText(container, user, null, "1 1 1 0.9", auth.IsLoggedIn ? auth.User.DisplayName : "Not logged-in", 10, xMin: auth.IsLoggedIn ? 0.14f : 0.025f, yMax: 0.9f, align: TextAnchor.UpperLeft);
+				cui.CreateText(container, user, null, "1 1 0.3 0.9", auth.IsLoggedIn ? $"@{auth.User.Username}" : "Login to explore premium plugins!", 8, xMin: auth.IsLoggedIn ? 0.14f : 0.025f, yMin: 0.1f, align: TextAnchor.LowerLeft);
+				cui.CreateProtectedButton(container, user, null, auth.IsLoggedIn ? "0.8 0.1 0 0.8" : "0.1 0.8 0 0.8", "1 1 1 0.5", auth.IsLoggedIn ? "<b>LOGOUT</b>" : "<b>LOGIN</b>", 8, xMin: 0.75f, xMax: 0.975f, command: "pluginbrowser.login");
+			}
+
 			var isLocal = vendor is Local;
 			var searchQuery = ap.GetStorage<string>(tab, "search");
 			var search = cui.CreatePanel(container, topbar, null, "0 0 0 0", xMin: 0.6f, xMax: 0.855f, yMin: 0f, OyMax: -0.5f);
@@ -4057,7 +4069,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			if (TagFilter.Contains("banan")) cui.CreateClientImage(container, grid, null, "https://cf-images.us-east-1.prod.boltdns.net/v1/static/507936866/2cd498e2-da08-4305-a86e-f9711ac41615/eac8316f-0061-40ed-b289-aac0bab35da0/1280x720/match/image.jpg", "1 1 1 1", xMax: 0.8f);
 
 			var selectedPlugin = ap.GetStorage<Plugin>(tab, "selectedplugin");
-
 			if (selectedPlugin != null)
 			{
 				vendor.CheckMetadata(selectedPlugin.Id, () => { Singleton.Draw(ap.Player); });
@@ -4204,6 +4215,67 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				}
 			}
 
+			if (auth != null)
+			{
+				if (auth.IsLoggedIn && auth.User.PendingAccessToken)
+				{
+					var mainPanel = cui.CreatePanel(container, parent, null, "0.15 0.15 0.15 0.35", blur: true);
+					cui.CreatePanel(container, mainPanel, null, "0 0 0 0.9");
+
+					var image = cui.CreatePanel(container, parent, null, "1 1 1 1", xMin: 0.12f, xMax: 0.45f, yMin: 0.2f, yMax: 0.8f);
+
+					cui.QueueImages(vendor.Logo);
+					var qr = cui.CreateQRCodeImage(container, image, null, vendor.Url,
+						brandUrl: vendor.Logo,
+						brandColor: "0 0 0 1",
+						brandBgColor: "1 1 1 1", 15, true, true, "0 0 0 1", xMin: 0, xMax: 1, yMin: 0, yMax: 1);
+
+					if (auth.User.PendingResult != LoggedInUser.RequestResult.None)
+					{
+						var icon = string.Empty;
+						var color = string.Empty;
+
+						switch (auth.User.PendingResult)
+						{
+							case LoggedInUser.RequestResult.Processing:
+								icon = "reload";
+								color = "1 1 1 0.3";
+								break;
+
+							case LoggedInUser.RequestResult.Complete:
+								icon = "checkmark";
+								color = "0.3 0.9 0.3 0.9";
+								break;
+
+							case LoggedInUser.RequestResult.Refused:
+								icon = "update-pending";
+								color = "0.9 0.3 0.3 0.9";
+								break;
+						}
+
+						cui.CreatePanel(container, image, null, "0 0 0 0.4", blur: true);
+						cui.CreateImage(container, image, null, icon, color, xMin: 0.3f, xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
+					}
+
+					cui.CreateText(container, parent, null, "1 1 1 1", $"{vendor.Type} OAuth Login", 25, xMin: 0.51f, yMax: 0.75f, align: TextAnchor.UpperLeft, font: Handler.FontTypes.RobotoCondensedBold);
+					cui.CreateText(container, parent, null, "1 1 1 1", $"Securely log into your {vendor.Type} account through OAuth-based login!\n\nScan the QR code, log into {vendor.Type} and type in the provided authentication code received to complete the login process.", 18, xMin: 0.51f, xMax: 0.9f, yMax: 0.675f, align: TextAnchor.UpperLeft);
+
+					if (auth.User.PendingResult == LoggedInUser.RequestResult.None)
+					{
+						cui.CreateText(container, parent, null, "1 1 1 1", "Enter authorisation code: (type 'asd' to log into a mock account)", 13, xMin: 0.51f, yMax: 0.34f, align: TextAnchor.UpperLeft);
+						var activationCode = cui.CreatePanel(container, parent, null, "0.1 0.1 0.1 1", xMin: 0.5f, xMax: 0.8f, yMin: 0.23f, yMax: 0.3f);
+						cui.CreateProtectedInputField(container, activationCode, null, "1 1 1 1", string.Empty, 15, 0, false, command: "pluginbrowser.confirmcode ");
+
+						cui.CreateProtectedButton(container, parent, id: null,
+							color: "0.6 0.2 0.2 0.9",
+							textColor: "1 0.5 0.5 1",
+							text: "CANCEL".SpacedString(1), 9,
+							xMin: 0.8f, xMax: 0.9f, yMin: 0.23f, yMax: 0.3f,
+							command: "pluginbrowser.confirmcode ");
+					}
+				}
+			}
+
 			Facepunch.Pool.FreeList(ref plugins);
 		}
 
@@ -4216,7 +4288,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public interface IVendorAuthenticated
 		{
-
+			public LoggedInUser User { get; set; }
+			public bool IsLoggedIn { get; }
 		}
 		public interface IVendorDownloader : IVendorStored
 		{
@@ -4246,6 +4319,25 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			void Uninstall(string id);
 			void Refresh();
 			void CheckMetadata(string id, Action callback);
+		}
+
+		public class LoggedInUser
+		{
+			public string Username { get; set; }
+			public string DisplayName { get; set; }
+			public string AvatarUrl { get; set; }
+			public string AccessToken { get; set; }
+
+			public bool PendingAccessToken { get; set; }
+			public RequestResult PendingResult { get; set; }
+
+			public enum RequestResult
+			{
+				None,
+				Processing,
+				Complete,
+				Refused
+			}
 		}
 
 		public enum Status
@@ -4284,6 +4376,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			[ProtoMember(2)]
 			public long LastTick { get; set; }
+
+			#region Login
+
+			public LoggedInUser User { get; set; }
+
+			public bool IsLoggedIn => User != null;
+
+			#endregion
 
 			public void Refresh()
 			{
@@ -4343,6 +4443,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					try
 					{
+						Singleton.Puts(data);
 						var list = JObject.Parse(data);
 
 						FetchedPlugins.Clear();
@@ -4743,7 +4844,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 
 		[ProtoContract]
-		public class Lone_Design : IVendorDownloader, IVendorAuthenticated
+		public class Lone_Design : IVendorDownloader
 		{
 			public string Type => "Lone.Design";
 			public string Url => "https://lone.design";
@@ -5478,6 +5579,84 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		vendor.Refresh();
 		Singleton.Draw(args.Player());
+	}
+	[ProtectedCommand("pluginbrowser.login")]
+	private void PluginBrowserLogin(Arg args)
+	{
+		var ap = Singleton.GetPlayerSession(args.Player());
+		var tab = Singleton.GetTab(ap.Player);
+		var vendor = ap.GetStorage<string>(tab, "vendor");
+
+		var vendor2 = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
+		if (vendor2 is PluginsTab.IVendorAuthenticated auth)
+		{
+			if (auth.IsLoggedIn)
+			{
+				tab.CreateDialog("Are you sure you want to log out?", onConfirm: ap =>
+				{
+					auth.User = null;
+					Singleton.Draw(args.Player());
+				}, null);
+			}
+			else
+			{
+				auth.User = new PluginsTab.LoggedInUser
+				{
+					PendingAccessToken = true
+				};
+			}
+		}
+
+		Singleton.Draw(args.Player());
+	}
+	[ProtectedCommand("pluginbrowser.confirmcode")]
+	private void PluginBrowserConfirmCode(Arg args)
+	{
+		var ap = Singleton.GetPlayerSession(args.Player());
+		var tab = Singleton.GetTab(ap.Player);
+		var vendor = ap.GetStorage<string>(tab, "vendor");
+		var code = args.GetString(0);
+
+		var vendor2 = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
+		if (vendor2 is PluginsTab.IVendorAuthenticated auth)
+		{
+			if (string.IsNullOrEmpty(code))
+			{
+				auth.User = null;
+				Singleton.Draw(args.Player());
+				return;
+			}
+
+			auth.User.PendingResult = PluginsTab.LoggedInUser.RequestResult.Processing;
+			Singleton.Draw(args.Player());
+
+			Community.Runtime.CorePlugin.timer.In(RandomEx.GetRandomFloat(1f, 5f), () =>
+			{
+				if (code == "asd")
+				{
+					auth.User.PendingResult = PluginsTab.LoggedInUser.RequestResult.Complete;
+					Singleton.Draw(args.Player());
+				}
+				else
+				{
+					auth.User.PendingResult = PluginsTab.LoggedInUser.RequestResult.Refused;
+					Singleton.Draw(args.Player());
+					auth.User = null;
+				}
+
+				Community.Runtime.CorePlugin.timer.In(2f, () =>
+				{
+					if (auth.IsLoggedIn)
+					{
+						auth.User.PendingAccessToken = false;
+						auth.User.DisplayName = ap.Player.displayName;
+						auth.User.Username = "mock_account69";
+						auth.User.AvatarUrl = "https://icon-library.com/images/steam-question-mark-icon/steam-question-mark-icon-17.jpg";
+					}
+					Singleton.Draw(args.Player());
+				});
+			});
+		}
 	}
 
 	[ConsoleCommand("adminmodule.downloadplugin", "Downloads a plugin from a vendor (if available). Syntax: adminmodule.downloadplugin <codefling|umod> <plugin>")]
