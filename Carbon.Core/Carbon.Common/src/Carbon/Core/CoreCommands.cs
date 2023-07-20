@@ -550,6 +550,11 @@ public partial class CorePlugin : CarbonPlugin
 			arg.ReplyWith($"Couldn't find that module. Try 'c.modules' to print them all.");
 			return;
 		}
+		else if (module is BaseModule baseModule && baseModule.ForceEnabled)
+		{
+			arg.ReplyWith($"That module is forcefully enabled, you may not change its status.");
+			return;
+		}
 
 		var previousEnabled = module.GetEnabled();
 		var newEnabled = arg.Args[1].ToBool();
