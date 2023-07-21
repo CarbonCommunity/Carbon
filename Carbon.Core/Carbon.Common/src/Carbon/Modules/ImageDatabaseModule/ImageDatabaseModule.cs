@@ -21,6 +21,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	public override string Name => "ImageDatabase";
 	public override Type Type => typeof(ImageDatabaseModule);
 	public override bool EnabledByDefault => true;
+	public override bool ForceEnabled => true;
 
 	internal List<QueuedThread> _queue = new();
 	internal ImageDatabaseDataProto _protoData { get; set; }

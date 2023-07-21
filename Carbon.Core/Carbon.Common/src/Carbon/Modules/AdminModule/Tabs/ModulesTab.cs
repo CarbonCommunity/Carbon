@@ -15,9 +15,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		public static Tab Get()
 		{
-			var tab = new Tab("modules", "Modules", Community.Runtime.CorePlugin, accessLevel: 3, onChange: (ap, tab) => ap.ClearStorage(tab, "selectedmodule"));
-			Draw();
-
+			var tab = (Tab)null;
 			void Draw()
 			{
 				tab.AddColumn(0, true);
@@ -28,15 +26,32 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					if (hookable is BaseModule module)
 					{
-						tab.AddButton(0, hookable.Name, ap =>
-						{
-							ap.SetStorage(tab, "selectedmodule", module);
-							Draw();
-							DrawModuleSettings(tab, module);
-						}, type: ap => ap.GetStorage<BaseModule>(tab, "selectedmodule") == module ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
+						tab.AddButtonArray(0,
+							new Tab.OptionButton(hookable.Name, ap =>
+							{
+								ap.SetStorage(tab, "selectedmodule", module);
+								Draw();
+								DrawModuleSettings(tab, module);
+							}, type: ap => ap.GetStorage<BaseModule>(tab, "selectedmodule") == module ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+							new Tab.OptionButton($"{(module.ForceEnabled ? "Always Enabled" : module.GetEnabled() ? "Enabled" : "Disabled")}", ap =>
+							{
+								if (module.ForceEnabled) return;
+
+								module.SetEnabled(!module.GetEnabled());
+								module.Save();
+								ap.SetStorage(tab, "selectedmodule", module);
+								Draw();
+								DrawModuleSettings(tab, module);
+							}, type: ap => module.ForceEnabled ? Tab.OptionButton.Types.Warned : module.GetEnabled() ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
 					}
 				}
 			}
+
+			tab = new Tab("modules", "Modules", Community.Runtime.CorePlugin, accessLevel: 3, onChange: (ap, tab) =>
+			{
+				ap.ClearStorage(tab, "selectedmodule");
+				Draw();
+			});
 
 			return tab;
 		}

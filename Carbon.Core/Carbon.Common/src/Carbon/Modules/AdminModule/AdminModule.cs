@@ -27,6 +27,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	public override VersionNumber Version => new(1, 7, 0);
 	public override Type Type => typeof(AdminModule);
 	public override bool EnabledByDefault => true;
+	public override bool ForceEnabled => true;
 
 	public ImageDatabaseModule ImageDatabase;
 	public ColorPickerModule ColorPicker;
@@ -209,7 +210,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var log = condition.Split('\n');
 			var result = log[0];
 			Array.Clear(log, 0, log.Length);
-			_logQueue.Add($"<color={_logColor[type]}>{result}</color>");
+			_logQueue.Add($"<color={_logColor[type]}>{StringEx.Truncate(result, 116)}</color>");
 		}
 		catch { }
 	}
@@ -845,7 +846,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			currentOffset += offsetScale;
 		}
 	}
-	public void TabPanelButtonArray(CUI cui, CuiElementContainer container, string parent, string command, float spacing, float height, float offset, params Tab.OptionButton[] buttons)
+	public void TabPanelButtonArray(CUI cui, CuiElementContainer container, string parent, string command, float spacing, float height, float offset, PlayerSession session, params Tab.OptionButton[] buttons)
 	{
 		var panel = cui.CreatePanel(container, parent, $"{parent}panel",
 			color: "0.2 0.2 0.2 0",
@@ -857,7 +858,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		for (int i = 0; i < buttons.Length; i++)
 		{
 			var button = buttons[i];
-			var color = (button.Type == null ? Tab.OptionButton.Types.None : button.Type(null)) switch
+			var color = (button.Type == null ? Tab.OptionButton.Types.None : button.Type(session)) switch
 			{
 				Tab.OptionButton.Types.Selected => "0.4 0.7 0.2 0.7",
 				Tab.OptionButton.Types.Warned => "0.8 0.7 0.2 0.7",
@@ -1266,7 +1267,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 											break;
 
 										case Tab.OptionButtonArray array:
-											TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, array.Buttons);
+											TabPanelButtonArray(cui, container, panel, PanelId + $".callaction {i} {actualI}", array.Spacing, rowHeight, rowIndex, ap, array.Buttons);
 											break;
 
 										case Tab.OptionInputButton inputButton:
@@ -2816,8 +2817,8 @@ public class AdminConfig
 	[JsonProperty("OpenCommands")]
 	public string[] OpenCommands = new string[] { "cp", "cpanel" };
 	public int MinimumAuthLevel = 2;
-	public bool DisableEntitiesTab = false;
-	public bool DisablePluginsTab = true;
+	public bool DisableEntitiesTab = true;
+	public bool DisablePluginsTab = false;
 }
 public class AdminData
 {

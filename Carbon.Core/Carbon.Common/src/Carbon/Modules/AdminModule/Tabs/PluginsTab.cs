@@ -834,7 +834,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					try
 					{
-						Singleton.Puts(data);
 						var list = JObject.Parse(data);
 
 						FetchedPlugins.Clear();
@@ -935,6 +934,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			#region Auth
 
+			[ProtoBuf.ProtoMember(10)]
 			public LoggedInUser User { get; set; }
 
 			public bool IsLoggedIn => User != null;

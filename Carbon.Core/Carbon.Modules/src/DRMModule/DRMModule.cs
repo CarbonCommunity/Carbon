@@ -31,22 +31,22 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 		if (GetEnabled())
 		{
-			Dispose();
-
 			foreach (var processor in ConfigInstance.Processors)
 			{
+				processor.Value.Uninitialize();
 				processor.Value.Initialize();
 			}
 		}
 	}
-	public override void Dispose()
+
+	public override void OnDisabled(bool initialized)
 	{
+		base.OnDisabled(initialized);
+
 		foreach (var processor in ConfigInstance.Processors)
 		{
 			processor.Value.Uninitialize();
 		}
-
-		base.Dispose();
 	}
 
 	[ConsoleCommand("drm.request", "Requests the downloading ")]
