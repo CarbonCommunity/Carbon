@@ -1544,7 +1544,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				return button.Callback != null;
 
 			case Tab.OptionInput input:
-				input.Callback?.Invoke(ap, args);
+				input.Callback?.Invoke(ap, args.Skip(1).ToArray());
 				return input.Callback != null;
 
 			case Tab.OptionEnum @enum:
@@ -1629,7 +1629,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				switch (args[0])
 				{
 					case "input":
-						inputButton.Input.Callback?.Invoke(ap, args.Skip(1).ToArray());
+						inputButton.Input.Callback?.Invoke(ap, args.Skip(2).ToArray());
 						return inputButton.Input.Callback != null;
 
 					case "button":
