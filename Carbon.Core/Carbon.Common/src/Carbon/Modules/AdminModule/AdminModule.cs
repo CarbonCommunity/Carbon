@@ -39,6 +39,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal const float OptionWidth = 0.475f;
 	internal const float TooltipOffset = 15;
 	internal const int RangeCuts = 50;
+	internal readonly string[] EmptyElement = new string[] { string.Empty };
 
 	internal List<Tab> Tabs = new();
 	internal Dictionary<BasePlayer, PlayerSession> AdminPlayers = new();
@@ -1544,7 +1545,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				return button.Callback != null;
 
 			case Tab.OptionInput input:
-				input.Callback?.Invoke(ap, args.Skip(1).ToArray());
+				{
+					var enumerable = args.Skip(1);
+					input.Callback?.Invoke(ap, enumerable.Count() == 0 ? EmptyElement : enumerable.ToArray());
+				}
 				return input.Callback != null;
 
 			case Tab.OptionEnum @enum:
@@ -1629,7 +1633,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				switch (args[0])
 				{
 					case "input":
-						inputButton.Input.Callback?.Invoke(ap, args.Skip(2).ToArray());
+						{
+							var enumerable = args.Skip(1);
+							inputButton.Input.Callback?.Invoke(ap, enumerable.Count() == 0 ? EmptyElement : args.Skip(2).ToArray());
+						}
 						return inputButton.Input.Callback != null;
 
 					case "button":

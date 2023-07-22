@@ -21,28 +21,38 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.AddColumn(0, true);
 				tab.AddColumn(1, true);
 
-				tab.AddName(0, "Modules");
-				foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
-				{
-					if (hookable is BaseModule module)
-					{
-						tab.AddButtonArray(0,
-							new Tab.OptionButton(hookable.Name, ap =>
-							{
-								ap.SetStorage(tab, "selectedmodule", module);
-								Draw();
-								DrawModuleSettings(tab, module);
-							}, type: ap => ap.GetStorage<BaseModule>(tab, "selectedmodule") == module ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
-							new Tab.OptionButton($"{(module.ForceEnabled ? "Always Enabled" : module.GetEnabled() ? "Enabled" : "Disabled")}", ap =>
-							{
-								if (module.ForceEnabled) return;
+				tab.AddName(0, "Core Modules");
+				Generate(x => x.ForceEnabled);
 
-								module.SetEnabled(!module.GetEnabled());
-								module.Save();
-								ap.SetStorage(tab, "selectedmodule", module);
-								Draw();
-								DrawModuleSettings(tab, module);
-							}, type: ap => module.ForceEnabled ? Tab.OptionButton.Types.Warned : module.GetEnabled() ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+				tab.AddName(0, "Other Modules");
+				Generate(x => !x.ForceEnabled);
+
+				void Generate(Func<BaseModule, bool> condition)
+				{
+					foreach (var hookable in Community.Runtime.ModuleProcessor.Modules)
+					{
+						if (hookable is BaseModule module)
+						{
+							if (!condition(module)) continue;
+
+							tab.AddButtonArray(0,
+								new Tab.OptionButton(hookable.Name, ap =>
+								{
+									ap.SetStorage(tab, "selectedmodule", module);
+									Draw();
+									DrawModuleSettings(tab, module);
+								}, type: ap => ap.GetStorage<BaseModule>(tab, "selectedmodule") == module ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
+								new Tab.OptionButton($"{(module.ForceEnabled ? "Always Enabled" : module.GetEnabled() ? "Enabled" : "Disabled")}", ap =>
+								{
+									if (module.ForceEnabled) return;
+
+									module.SetEnabled(!module.GetEnabled());
+									module.Save();
+									ap.SetStorage(tab, "selectedmodule", module);
+									Draw();
+									DrawModuleSettings(tab, module);
+								}, type: ap => module.ForceEnabled ? Tab.OptionButton.Types.Warned : module.GetEnabled() ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None));
+						}
 					}
 				}
 			}

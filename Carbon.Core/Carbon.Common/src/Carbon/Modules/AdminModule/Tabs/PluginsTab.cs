@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Oxide.Game.Rust.Cui;
 using ProtoBuf;
+using UnityEngine;
 using static Carbon.Modules.AdminModule.PluginsTab;
 using static ConsoleSystem;
 
@@ -626,10 +627,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var image = cui.CreatePanel(container, parent, null, "1 1 1 1", xMin: 0.12f, xMax: 0.45f, yMin: 0.2f, yMax: 0.8f);
 
 					cui.QueueImages(vendor.Logo);
-					var qr = cui.CreateQRCodeImage(container, image, null, vendor.Url,
+					var qr = cui.CreateQRCodeImage(container, image, null, auth.AuthEndpoint,
 						brandUrl: vendor.Logo,
 						brandColor: "0 0 0 1",
 						brandBgColor: "1 1 1 1", 15, true, true, "0 0 0 1", xMin: 0, xMax: 1, yMin: 0, yMax: 1);
+					var authUrl = cui.CreatePanel(container, image, null, "0.1 0.1 0.1 0.8", yMax: 0, OyMin: -20);
+					cui.CreateInputField(container, authUrl, null, "1 1 1 1", auth.AuthEndpoint.Replace("https://", string.Empty), 9, 0, true);
 
 					if (auth.User.PendingResult != LoggedInUser.RequestResult.None)
 					{
@@ -658,21 +661,28 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						cui.CreateImage(container, image, null, icon, color, xMin: 0.3f, xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
 					}
 
-					cui.CreateText(container, parent, null, "1 1 1 1", $"{vendor.Type} OAuth Login", 25, xMin: 0.51f, yMax: 0.75f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
-					cui.CreateText(container, parent, null, "1 1 1 0.5", $"Securely log into your {vendor.Type} account through OAuth-based login!\n\nScan the QR code, log into {vendor.Type} and type in the provided authentication code received to complete the login process.", 15, xMin: 0.51f, xMax: 0.9f, yMax: 0.67f, align: TextAnchor.UpperLeft);
+					cui.CreateText(container, parent, null, "1 1 1 1", $"{vendor.Type} Auth", 25, xMin: 0.51f, yMax: 0.75f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
+					cui.CreateText(container, parent, null, "1 1 1 0.5", $"Securely log into your {vendor.Type} account through OAuth-based login!\n\nScan the QR code or go to the URL, log into {vendor.Type} and type in the provided authentication code below to complete the login process.", 15, xMin: 0.51f, xMax: 0.9f, yMax: 0.67f, align: TextAnchor.UpperLeft);
 
 					if (auth.User.PendingResult == LoggedInUser.RequestResult.None)
 					{
-						cui.CreateText(container, parent, null, "1 1 1 1", "Enter authorisation code: (type 'asd' to log into a mock account)", 13, xMin: 0.51f, yMax: 0.34f, align: TextAnchor.UpperLeft);
-						var activationCode = cui.CreatePanel(container, parent, null, "0.1 0.1 0.1 1", xMin: 0.5f, xMax: 0.8f, yMin: 0.23f, yMax: 0.3f);
-						cui.CreateProtectedInputField(container, activationCode, null, "1 1 1 1", string.Empty, 15, 0, false, command: "pluginbrowser.confirmcode ");
+						cui.CreateText(container, parent, null, "1 1 1 1", "Authorization code:", 13, xMin: 0.51f, yMax: 0.35f, align: TextAnchor.UpperLeft);
+						var pan = cui.CreatePanel(container, parent, null, "0.1 0.1 0.1 1",
+							xMin: 0.5f, xMax: 0.8f,
+							yMin: 0.21f, yMax: 0.31f);
 
-						cui.CreateProtectedButton(container, parent, id: null,
+						cui.CreateInputField(container, pan, null, "1 1 1 1", auth.AuthCode.SpacedString(1).ToUpper(), 30, 0, true,
+							xMin: 0.05f,
+							align: TextAnchor.MiddleLeft,
+							font: CUI.Handler.FontTypes.RobotoCondensedBold);
+
+						cui.CreateProtectedButton(container, parent: mainPanel, id: null,
 							color: "0.6 0.2 0.2 0.9",
 							textColor: "1 0.5 0.5 1",
-							text: "CANCEL".SpacedString(1), 9,
-							xMin: 0.8f, xMax: 0.9f, yMin: 0.23f, yMax: 0.3f,
-							command: "pluginbrowser.confirmcode ");
+							text: "X", 9,
+							xMin: 0.965f, xMax: 0.99f, yMin: 0.955f, yMax: 0.99f,
+							command: "pluginbrowser.confirmcode ",
+							font: CUI.Handler.FontTypes.DroidSansMono);
 					}
 				}
 			}
@@ -729,18 +739,28 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 		public interface IVendorAuthenticated
 		{
+			public string AuthCode { get; set; }
+			public string AuthEndpoint { get; }
+
 			public LoggedInUser User { get; set; }
 			public bool IsLoggedIn { get; }
 		}
 
+		[ProtoContract]
 		public class LoggedInUser
 		{
+			[ProtoMember(1)]
 			public string Username { get; set; }
+			[ProtoMember(2)]
 			public string DisplayName { get; set; }
+			[ProtoMember(3)]
 			public string AvatarUrl { get; set; }
+			[ProtoMember(4)]
 			public string AccessToken { get; set; }
 
+			[ProtoMember(5)]
 			public bool PendingAccessToken { get; set; }
+			[ProtoMember(6)]
 			public RequestResult PendingResult { get; set; }
 
 			public enum RequestResult
@@ -780,16 +800,19 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				if (FetchedPlugins == null) return;
 
+				var plugins = Community.Runtime.CorePlugin.plugins.GetAll();
+
 				foreach (var plugin in FetchedPlugins)
 				{
 					var name = plugin.File;
 					var length = 0;
-					if ((length = name.LastIndexOf('.')) != 0)
+
+					if (!string.IsNullOrEmpty(name) && (length = name.LastIndexOf('.')) != 0)
 					{
 						name = name.Substring(0, length);
 					}
 
-					foreach (var existentPlugin in Community.Runtime.CorePlugin.plugins.GetAll())
+					foreach (var existentPlugin in plugins)
 					{
 						if (existentPlugin.FileName == name)
 						{
@@ -798,6 +821,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 					}
 				}
+
+				Array.Clear(plugins, 0, plugins.Length);
+				plugins = null;
 
 				if (PriceData != null)
 				{
@@ -815,6 +841,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				var tags = Facepunch.Pool.GetList<string>();
 				foreach (var plugin in FetchedPlugins)
 				{
+					if (plugin.Tags == null || plugin.Tags.Length == 0) continue;
+
 					foreach (var tag in plugin.Tags)
 					{
 						var processedTag = tag?.ToLower()?.Trim();
@@ -842,6 +870,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						var file = list["file"];
 						foreach (var token in file)
 						{
+							var fileStatus = token["file_status"]?.ToString();
 							var plugin = new Plugin
 							{
 								Id = token["file_id"]?.ToString(),
@@ -860,7 +889,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 								Dependencies = token["file_depends"]?.ToString().Split(),
 								CarbonCompatible = (token["file_compatibility"]?.ToString().ToBool()).GetValueOrDefault(),
 								Rating = (token["file_rating"]?.ToString().ToFloat()).GetValueOrDefault(0),
-								Status = (Status)Enum.Parse(typeof(Status), token["file_status"]?.ToString()),
+								Status = string.IsNullOrEmpty(fileStatus) ? Status.Approved : (Status)Enum.Parse(typeof(Status), fileStatus),
 								HasLookup = true
 							};
 
@@ -937,6 +966,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			[ProtoBuf.ProtoMember(10)]
 			public LoggedInUser User { get; set; }
 
+			public string AuthEndpoint => "https://codefling.com/auth";
+			public string AuthCode { get; set; }
+
 			public bool IsLoggedIn => User != null;
 
 			#endregion
@@ -1008,10 +1040,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				if (FetchedPlugins == null) return;
 
+				var plugins = Community.Runtime.CorePlugin.plugins.GetAll();
+
 				foreach (var plugin in FetchedPlugins)
 				{
 					var name = plugin.File.Substring(0, plugin.File.IndexOf(".cs"));
-					foreach (var existentPlugin in Community.Runtime.CorePlugin.plugins.GetAll())
+
+					foreach (var existentPlugin in plugins)
 					{
 						if (existentPlugin.FileName == name)
 						{
@@ -1020,6 +1055,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 					}
 				}
+
+				Array.Clear(plugins, 0, plugins.Length);
+				plugins = null;
 
 				if (PriceData != null)
 				{
@@ -1229,7 +1267,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Serializer.Serialize(file, this);
 					Singleton.Puts($"Stored {Type} to file: {path}");
 				}
-				catch { }
+				catch (Exception ex)
+				{
+					Singleton.PutsError($" Couldn't store uMod plugins list.", ex);
+				}
 			}
 		}
 
@@ -1695,20 +1736,34 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			case "10":
 				{
-					var pluginName = arg.Skip(1).ToArray().ToString(" ");
+					var pluginName = arg[1];
 					if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
+					{
 						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
-					else PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
+						Logger.Log($" [{vendor.Type}] Unfavorited plugin '{pluginName}'");
+					}
+					else
+					{
+						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
+						Logger.Log($" [{vendor.Type}] Favorited plugin '{pluginName}'");
+					}
 					Array.Clear(arg, 0, arg.Length);
 				}
 				break;
 
 			case "11":
 				{
-					var pluginName = arg.Skip(1).ToArray().ToString(" ");
+					var pluginName = arg[1];
 					if (PluginsTab.ServerOwner.Singleton.AutoUpdate.Contains(pluginName))
+					{
 						PluginsTab.ServerOwner.Singleton.AutoUpdate.Remove(pluginName);
-					else PluginsTab.ServerOwner.Singleton.AutoUpdate.Add(pluginName);
+						Logger.Log($" [{vendor.Type}] Marked plugin '{pluginName}' for auto-update");
+					}
+					else
+					{
+						PluginsTab.ServerOwner.Singleton.AutoUpdate.Add(pluginName);
+						Logger.Log($" [{vendor.Type}] Unmarked plugin '{pluginName}' for auto-update");
+					}
 					Array.Clear(arg, 0, arg.Length);
 				}
 				break;
@@ -1928,6 +1983,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			}
 			else
 			{
+				auth.AuthCode = Carbon.Extensions.StringEx.Truncate(Guid.NewGuid().ToString(), 6);
 				auth.User = new PluginsTab.LoggedInUser
 				{
 					PendingAccessToken = true
