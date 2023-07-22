@@ -210,7 +210,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var log = condition.Split('\n');
 			var result = log[0];
 			Array.Clear(log, 0, log.Length);
-			_logQueue.Add($"<color={_logColor[type]}>{StringEx.Truncate(result, 116)}</color>");
+			_logQueue.Add($"<color={_logColor[type]}>{StringEx.Truncate(result, 105)}</color>");
 		}
 		catch { }
 	}

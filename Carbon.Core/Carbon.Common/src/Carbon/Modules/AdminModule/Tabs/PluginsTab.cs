@@ -683,9 +683,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		#region Vendors
 
 		[ProtoContract]
-		[ProtoInclude(1, typeof(Codefling))]
-		[ProtoInclude(2, typeof(uMod))]
-		[ProtoInclude(3, typeof(Lone_Design))]
+		[ProtoInclude(100, typeof(Codefling))]
+		[ProtoInclude(101, typeof(uMod))]
+		[ProtoInclude(102, typeof(Lone_Design))]
 		public abstract class Vendor
 		{
 			public virtual string Type { get; }
@@ -882,9 +882,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						Save();
 					}
-					catch
+					catch(Exception ex)
 					{
-						Logger.Warn($" Couldn't fetch Codefling API to get the plugins list. Most likely because it's down.");
+						Logger.Error($" Couldn't fetch Codefling API to get the plugins list. Most likely because it's down.", ex);
 					}
 				}, Community.Runtime.CorePlugin);
 			}
