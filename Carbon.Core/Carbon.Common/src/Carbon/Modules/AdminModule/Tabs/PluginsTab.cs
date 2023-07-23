@@ -94,7 +94,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		public static Tab Get()
 		{
-			OsEx.Folder.Create(Path.Combine(Core.Defines.GetScriptFolder(), "backups"));
+			OsEx.Folder.Create(Path.Combine(Defines.GetScriptFolder(), "backups"));
 
 			var tab = new Tab("plugins", "Plugins", Community.Runtime.CorePlugin, (ap, t) =>
 			{
@@ -401,7 +401,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				cui.CreateImage(container, favouriteButton, null, "star", ServerOwner.Singleton.FavouritePlugins.Contains(plugin.Name) ? "0.9 0.8 0.4 0.95" : "0.2 0.2 0.2 0.4");
 
 				var autoUpdateButton = cui.CreateProtectedButton(container, card, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.84f, xMax: 0.97f, yMin: 0.59f, yMax: 0.72f, command: $"pluginbrowser.interact 11 {plugin.Name}");
-				cui.CreateImage(container, autoUpdateButton, null, "update-pending", ServerOwner.Singleton.AutoUpdate.Contains(plugin.File) ? "0.8 0.4 0.9 0.95" : "0.2 0.2 0.2 0.4");
+				cui.CreateImage(container, autoUpdateButton, null, "update-pending", ServerOwner.Singleton.AutoUpdate.Contains(plugin.Name) ? "0.8 0.4 0.9 0.95" : "0.2 0.2 0.2 0.4");
 
 				column += columnSize + spacing;
 
@@ -618,7 +618,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}
 					if (selectedPlugin.IsInstalled())
 					{
-						var path = Path.Combine(Core.Defines.GetConfigsFolder(), selectedPlugin.ExistentPlugin.Config.Filename);
+						var path = Path.Combine(Defines.GetConfigsFolder(), selectedPlugin.ExistentPlugin.Config.Filename);
 
 						if (OsEx.File.Exists(path)) cui.CreateProtectedButton(container, mainPanel, null, "0.1 0.1 0.1 0.8", "1 1 1 0.7", "EDIT CONFIG", 11, xMin: 0.48f, xMax: 0.564f, yMin: 0.175f, yMax: 0.235f, OyMin: 35, OyMax: 35, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 3 {selectedPlugin.Id}");
 					}
@@ -802,7 +802,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public override string Url => "https://codefling.com";
 			public override string Logo => "cflogo";
 			public override float LogoRatio => 0f;
-				   
+
 			public override float IconScale => 0.4f;
 			public override float SafeIconScale => 0.2f;
 
@@ -828,10 +828,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						name = name.Substring(0, length);
 					}
 
-					if (auth.User != null && auth.User.OwnedFiles.Contains(plugin.Id))
-					{
-						plugin.Owned = true;
-					}
+					plugin.Owned = auth.User != null && auth.User.OwnedFiles.Contains(plugin.Id);
 
 					foreach (var existentPlugin in plugins)
 					{
@@ -932,7 +929,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						Save();
 					}
-					catch(Exception ex)
+					catch (Exception ex)
 					{
 						Logger.Error($" Couldn't fetch Codefling API to get the plugins list. Most likely because it's down.", ex);
 					}
@@ -944,7 +941,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				plugin.IsBusy = true;
 				plugin.DownloadCount++;
 
-				var path = Path.Combine(Core.Defines.GetScriptFolder(), plugin.File);
+				var path = Path.Combine(Defines.GetScriptFolder(), plugin.File);
 				var url = DownloadEndpoint.Replace("[ID]", id);
 
 				Community.Runtime.CorePlugin.timer.In(2f, () =>
@@ -974,7 +971,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -1050,7 +1047,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var path = Path.Combine(Core.Defines.GetDataFolder(), "vendordata_cf.db");
+					var path = Path.Combine(Defines.GetDataFolder(), "vendordata_cf.db");
 					if (!OsEx.File.Exists(path)) return false;
 
 					using var file = File.OpenRead(path);
@@ -1077,7 +1074,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var path = Path.Combine(Core.Defines.GetDataFolder(), "vendordata_cf.db");
+					var path = Path.Combine(Defines.GetDataFolder(), "vendordata_cf.db");
 					using var file = File.OpenWrite(path);
 					LastTick = DateTime.Now.Ticks;
 					Serializer.Serialize(file, this);
@@ -1175,7 +1172,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public override void Download(string id, Action onTimeout = null)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				var path = Path.Combine(Core.Defines.GetScriptFolder(), plugin.File);
+				var path = Path.Combine(Defines.GetScriptFolder(), plugin.File);
 				var url = DownloadEndpoint.Replace("[ID]", plugin.Name);
 
 				plugin.IsBusy = true;
@@ -1206,7 +1203,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -1302,7 +1299,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var path = Path.Combine(Core.Defines.GetDataFolder(), "vendordata_umod.db");
+					var path = Path.Combine(Defines.GetDataFolder(), "vendordata_umod.db");
 					if (!OsEx.File.Exists(path)) return false;
 
 					using var file = File.OpenRead(path);
@@ -1328,7 +1325,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var path = Path.Combine(Core.Defines.GetDataFolder(), "vendordata_umod.db");
+					var path = Path.Combine(Defines.GetDataFolder(), "vendordata_umod.db");
 					using var file = File.OpenWrite(path);
 
 					LastTick = DateTime.Now.Ticks;
@@ -1459,7 +1456,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				plugin.IsBusy = true;
 				plugin.DownloadCount++;
 
-				var path = Path.Combine(Core.Defines.GetScriptFolder(), plugin.File);
+				var path = Path.Combine(Defines.GetScriptFolder(), plugin.File);
 				var url = DownloadEndpoint.Replace("[ID]", id);
 
 				Community.Runtime.CorePlugin.timer.In(2f, () =>
@@ -1489,7 +1486,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -1501,7 +1498,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var path = Path.Combine(Core.Defines.GetDataFolder(), "vendordata_lone.db");
+					var path = Path.Combine(Defines.GetDataFolder(), "vendordata_lone.db");
 					if (!OsEx.File.Exists(path)) return false;
 
 					using var file = File.OpenRead(path);
@@ -1527,7 +1524,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var path = Path.Combine(Core.Defines.GetDataFolder(), "vendordata_lone.db");
+					var path = Path.Combine(Defines.GetDataFolder(), "vendordata_lone.db");
 					using var file = File.OpenWrite(path);
 					LastTick = DateTime.Now.Ticks;
 					Serializer.Serialize(file, this);
@@ -1607,6 +1604,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				AuthorData = FetchedPlugins.OrderBy(x => x.Author).ToArray();
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled()).ToArray();
 				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate()).ToArray();
+				OwnedData = FetchedPlugins.OrderBy(x => x.Owned).ToArray();
 			}
 
 			public void Save()
@@ -1616,7 +1614,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Core.Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
 				plugin.ExistentPlugin = null;
 			}
 		}
@@ -1627,7 +1625,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public static ServerOwner Singleton { get; internal set; } = new ServerOwner();
 
 			[ProtoMember(1)]
-			public List<string> FavouritePlugins { get; set; } = new List<string>();
+			public List<string> FavouritePlugins { get; set; } = new();
 
 			[ProtoMember(2)]
 			public List<string> AutoUpdate { get; set; } = new();
@@ -1636,7 +1634,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var path = Path.Combine(Core.Defines.GetDataFolder(), "vendordata_owner.db");
+					var path = Path.Combine(Defines.GetDataFolder(), "vendordata_svowner.db");
 					if (!OsEx.File.Exists(path))
 					{
 						Save();
@@ -1649,8 +1647,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Singleton.FavouritePlugins ??= new();
 					Singleton.AutoUpdate ??= new();
 				}
-				catch
+				catch (Exception ex)
 				{
+					Logger.Error($"ServerOwner.Load failed", ex);
 					Singleton = new();
 					Save();
 				}
@@ -1659,12 +1658,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			{
 				try
 				{
-					var path = Path.Combine(Core.Defines.GetDataFolder(), "vendordata_owner.db");
+					var path = Path.Combine(Defines.GetDataFolder(), "vendordata_svowner.db");
 					using var file = File.OpenWrite(path);
 
 					Serializer.Serialize(file, Singleton);
 				}
-				catch { }
+				catch (Exception ex)
+				{
+					Logger.Error($"ServerOwner.Save failed", ex);
+				}
 			}
 		}
 
@@ -1690,8 +1692,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public bool HasLookup { get; set; } = false;
 			public Status Status { get; set; } = Status.Approved;
 			public bool CarbonCompatible { get; set; } = false;
-
-			[ProtoBuf.ProtoIgnore]
 			public bool Owned { get; set; }
 
 			internal RustPlugin ExistentPlugin { get; set; }
@@ -1737,11 +1737,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = Singleton.GetTab(ap.Player);
 		var vendor2 = ap.SetStorage(tab, "vendor", args.Args[0]);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor2));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor2));
 		vendor.Refresh();
-		PluginsTab.TagFilter.Clear();
+		TagFilter.Clear();
 
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
+		DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 		Singleton.Draw(args.Player());
 	}
 	[ProtectedCommand("pluginbrowser.interact")]
@@ -1754,7 +1754,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = Singleton.GetPlayerSession(player);
 		var tab = Singleton.GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		var arg = new string[args.Args.Length];
 		Array.Copy(args.Args, arg, args.Args.Length);
 
@@ -1783,7 +1783,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			case "3":
 				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
-				var path = Path.Combine(Core.Defines.GetConfigsFolder(), plugin.Config.Filename);
+				var path = Path.Combine(Defines.GetConfigsFolder(), plugin.Config.Filename);
 				Singleton.SetTab(ap.Player, ConfigEditor.Make(OsEx.File.ReadText(path),
 					(ap, jobject) =>
 					{
@@ -1805,15 +1805,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			case "10":
 				{
-					var pluginName = arg[1];
-					if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
+					var pluginName = arg.Skip(1).ToString(" ");
+					if (ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
 					{
-						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
+						ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
 						Logger.Log($" [{vendor.Type}] Unfavorited plugin '{pluginName}'");
 					}
 					else
 					{
-						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
+						ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
 						Logger.Log($" [{vendor.Type}] Favorited plugin '{pluginName}'");
 					}
 					Array.Clear(arg, 0, arg.Length);
@@ -1822,15 +1822,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			case "11":
 				{
-					var pluginName = arg[1];
-					if (PluginsTab.ServerOwner.Singleton.AutoUpdate.Contains(pluginName))
+					var pluginName = arg.Skip(1).ToString(" ");
+					if (ServerOwner.Singleton.AutoUpdate.Contains(pluginName))
 					{
-						PluginsTab.ServerOwner.Singleton.AutoUpdate.Remove(pluginName);
+						ServerOwner.Singleton.AutoUpdate.Remove(pluginName);
 						Logger.Log($" [{vendor.Type}] Marked plugin '{pluginName}' for auto-update");
 					}
 					else
 					{
-						PluginsTab.ServerOwner.Singleton.AutoUpdate.Add(pluginName);
+						ServerOwner.Singleton.AutoUpdate.Add(pluginName);
 						Logger.Log($" [{vendor.Type}] Unmarked plugin '{pluginName}' for auto-update");
 					}
 					Array.Clear(arg, 0, arg.Length);
@@ -1847,9 +1847,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
-		PluginsTab.GetPlugins(vendor, tab, ap, out var maxPages);
+		GetPlugins(vendor, tab, ap, out var maxPages);
 
 		var page = ap.GetStorage(tab, "page", 0);
 
@@ -1872,7 +1872,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		ap.SetStorage(tab, "page", page);
 
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
+		DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 
 		Singleton.Draw(args.Player());
 	}
@@ -1882,15 +1882,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		var filter = args.Args.ToString(" ");
 
-		if (PluginsTab.TagFilter.Contains(filter)) PluginsTab.TagFilter.Remove(filter);
-		else PluginsTab.TagFilter.Add(filter);
+		if (TagFilter.Contains(filter)) TagFilter.Remove(filter);
+		else TagFilter.Add(filter);
 
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
+		DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 
 		Singleton.Draw(args.Player());
 	}
@@ -1900,7 +1900,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		var search = ap.SetStorage(tab, "search", args.Args.ToString(" "));
@@ -1908,7 +1908,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (search == "Search...") ap.SetStorage(tab, "search", string.Empty);
 
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
+		DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 
 		Singleton.Draw(args.Player());
 	}
@@ -1918,7 +1918,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 
 		if (vendor is PluginsTab.Local) return;
 
@@ -1927,16 +1927,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var id = string.Empty;
 			switch (vendor)
 			{
-				case PluginsTab.Codefling:
+				case Codefling:
 					id = "cf";
 					break;
 
-				case PluginsTab.uMod:
+				case uMod:
 					id = "umod";
 					break;
 			}
 
-			var dataPath = Path.Combine(Core.Defines.GetDataFolder(), $"vendordata_{id}.db");
+			var dataPath = Path.Combine(Defines.GetDataFolder(), $"vendordata_{id}.db");
 			OsEx.File.Delete(dataPath);
 
 			if (vendor is IVendorStored stored && !stored.Load())
@@ -1956,7 +1956,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		ap.SetStorage(tab, "selectedplugin", vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[0]));
@@ -1969,7 +1969,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
 		ap.SetStorage(tab, "selectedplugin", (PluginsTab.Plugin)null);
@@ -1982,15 +1982,15 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 		vendor.Refresh();
 
-		var plugins = PluginsTab.GetPlugins(vendor, tab, ap);
+		var plugins = GetPlugins(vendor, tab, ap);
 		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.Args[0].ToInt();
 		ap.SetStorage(tab, "selectedplugin", plugins[nextPage > plugins.Count - 1 ? 0 : nextPage < 0 ? plugins.Count - 1 : nextPage]);
 		Facepunch.Pool.FreeList(ref plugins);
 
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
+		DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 
 		Singleton.Draw(args.Player());
 	}
@@ -1999,17 +1999,17 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
+		var vendor = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", "Local")));
 
 		switch (args.Args[0])
 		{
 			case "filter_dd":
-				PluginsTab.DropdownShow = !PluginsTab.DropdownShow;
+				DropdownShow = !DropdownShow;
 
 				if (args.HasArgs(4))
 				{
 					var index = args.Args[3].ToInt();
-					var filter = ap.GetStorage(tab, "filter", PluginsTab.FilterTypes.None);
+					var filter = ap.GetStorage(tab, "filter", FilterTypes.None);
 					var flipFilter = ap.GetStorage<bool>(tab, "flipfilter");
 
 					if ((int)filter == index)
@@ -2027,7 +2027,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				break;
 		}
 
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
+		DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 
 		vendor.Refresh();
 		Singleton.Draw(args.Player());
@@ -2039,7 +2039,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = Singleton.GetTab(ap.Player);
 		var vendor = ap.GetStorage<string>(tab, "vendor");
 
-		var vendor2 = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
+		var vendor2 = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
 		if (vendor2 is PluginsTab.IVendorAuthenticated auth)
 		{
 			if (auth.IsLoggedIn)
@@ -2047,13 +2047,14 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab.CreateDialog("Are you sure you want to log out?", onConfirm: ap =>
 				{
 					auth.User = null;
+					vendor2.Refresh();
 					Singleton.Draw(args.Player());
 					if (vendor2 is IVendorStored store) store.Save();
 				}, null);
 			}
 			else
 			{
-				auth.AuthCode = Carbon.Extensions.StringEx.Truncate(Guid.NewGuid().ToString(), 6).ToUpper();
+				auth.AuthCode = Extensions.StringEx.Truncate(Guid.NewGuid().ToString(), 6).ToUpper();
 				auth.User = new PluginsTab.LoggedInUser
 				{
 					PendingAccessToken = true
@@ -2094,22 +2095,23 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 										auth.User.DisplayName = jobject["formattedName"]?.ToString();
 										auth.User.CoverUrl = jobject["coverPhotoUrl"]?.ToString();
 										auth.User.Id = jobject["id"].ToString().ToInt();
-										Singleton.Draw(args.Player());
-										if (vendor2 is IVendorStored store) store.Save();
+
+										core.webrequest.Enqueue(auth.AuthOwnedPluginsEndpoint, null, (code, data) =>
+										{
+											var jobject = JObject.Parse(data);
+											auth.User.OwnedFiles.Clear();
+
+											foreach (var item in jobject["results"])
+											{
+												auth.User.OwnedFiles.Add(item["itemId"].ToString());
+											}
+
+											vendor2.Refresh();
+											if (vendor2 is IVendorStored store) store.Save();
+											Singleton.Draw(args.Player());
+										}, core, headers: headers);
 										break;
 								}
-							}, core, headers: headers);
-
-							core.webrequest.Enqueue(auth.AuthOwnedPluginsEndpoint, null, (code, data) =>
-							{
-								var jobject = JObject.Parse(data);
-								auth.User.OwnedFiles.Clear();
-
-								foreach(var item in jobject["results"])
-								{ 
-									auth.User.OwnedFiles.Add(item["itemId"].ToString());
-								}
-
 							}, core, headers: headers);
 						});
 
@@ -2128,7 +2130,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var tab = Singleton.GetTab(ap.Player);
 		var vendor = ap.GetStorage<string>(tab, "vendor");
 
-		var vendor2 = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
+		var vendor2 = GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
 		if (vendor2 is PluginsTab.IVendorAuthenticated auth)
 		{
 			auth.User = null;
@@ -2142,7 +2144,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	[AuthLevel(2)]
 	private void DownloadPlugin(Arg args)
 	{
-		var vendor = PluginsTab.GetVendor(args.Args[0] == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
+		var vendor = GetVendor(args.Args[0] == "codefling" ? VendorTypes.Codefling : VendorTypes.uMod);
 		if (vendor == null)
 		{
 			Singleton.PutsWarn($"Couldn't find that vendor.");
@@ -2161,7 +2163,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	[AuthLevel(2)]
 	private void UpdateVendor(Arg args)
 	{
-		var vendor = PluginsTab.GetVendor(args.Args[0] == "codefling" ? PluginsTab.VendorTypes.Codefling : PluginsTab.VendorTypes.uMod);
+		var vendor = GetVendor(args.Args[0] == "codefling" ? VendorTypes.Codefling : VendorTypes.uMod);
 		if (vendor == null)
 		{
 			Singleton.PutsWarn($"Couldn't find that vendor.");
@@ -2171,16 +2173,16 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var id = string.Empty;
 		switch (vendor)
 		{
-			case PluginsTab.Codefling:
+			case Codefling:
 				id = "cf";
 				break;
 
-			case PluginsTab.uMod:
+			case uMod:
 				id = "umod";
 				break;
 		}
 
-		var dataPath = Path.Combine(Core.Defines.GetDataFolder(), $"vendordata_{id}.db");
+		var dataPath = Path.Combine(Defines.GetDataFolder(), $"vendordata_{id}.db");
 		OsEx.File.Delete(dataPath);
 
 		if (vendor is IVendorStored stored && !stored.Load())
