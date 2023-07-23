@@ -333,7 +333,7 @@ public partial class ModalModule : CarbonModule<AdminConfig, AdminData>
 
 		if (!field.IsReadOnly)
 		{
-			var value = arg.Args.Skip(1).ToArray().ToString(" ");
+			var value = arg.Args[1];
 
 			switch (field.Type)
 			{
