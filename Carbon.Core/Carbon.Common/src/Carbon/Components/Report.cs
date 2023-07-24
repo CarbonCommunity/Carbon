@@ -47,7 +47,7 @@ public class Report : IDisposable
 					counter++;
 				}
 
-				report += $"PLUGIN REPORT:\n{builder.ToStringMinimal()}\n\n";
+				report += $"PLUGIN REPORT:\n{builder.Write(StringTable.FormatTypes.None)}\n\n";
 			}
 
 			// Failed plugins
