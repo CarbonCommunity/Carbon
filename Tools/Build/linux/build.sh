@@ -32,21 +32,20 @@ else
 	cp "${ROOT}/Tools/UnityDoorstop/windows/x64/doorstop.dll" "${ROOT}/Release/.tmp/${TARGET}/winhttp.dll"
 fi
 
+TAG="$1"
+TAG="${TAG//Unix/}"
+
 if [[ "${TARGET}" == *"Unix" ]]; then
 	if [[ "${TARGET}" == "Debug"* ]]; then
 		TOS=Linux
-		TAG=Debug
 	else
 		TOS=Linux
-		TAG=Release
 	fi
 else
 	if [[ "${TARGET}" == "Debug"* ]]; then
 		TOS=Windows
-		TAG=Debug
 	else
 		TOS=Windows
-		TAG=Release
 	fi
 fi
 
