@@ -1,5 +1,7 @@
-﻿/*
- *
+﻿#if !MINIMAL
+
+/*
+*
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
@@ -210,7 +212,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					var parent = permission.GetGroupParent(selectedGroup);
 					var parentIndex = Array.IndexOf(array, parent);
-					tab.CreateModal(ap.Player, $"Editing '{selectedGroup}'", new Dictionary<string, ModalModule.Modal.Field>()
+					Singleton.Modal.Open(ap.Player, $"Editing '{selectedGroup}'", new Dictionary<string, ModalModule.Modal.Field>()
 					{
 						["name"] = ModalModule.Modal.Field.Make("Name", ModalModule.Modal.Field.FieldTypes.String, true, selectedGroup, true),
 						["dname"] = ModalModule.Modal.Field.Make("Display Name", ModalModule.Modal.Field.FieldTypes.String, @default: permission.GetGroupTitle(selectedGroup)),
@@ -429,3 +431,5 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 	}
 }
+
+#endif

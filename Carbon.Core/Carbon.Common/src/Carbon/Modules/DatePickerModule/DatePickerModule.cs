@@ -48,7 +48,7 @@ public class DatePickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 	{
 		var ap = Admin.GetPlayerSession(player);
 
-		if (!Admin.ModuleConfiguration.Enabled)
+		if (!ModuleConfiguration.Enabled)
 		{
 			var empty = string.Empty;
 			onDatePicked?.Invoke(default);
@@ -60,8 +60,8 @@ public class DatePickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 	}
 	public void Close(BasePlayer player)
 	{
-		Admin.Handler.Destroy(PanelId, player);
-		Admin.Handler.Destroy(PanelCursorLockId, player);
+		Handler.Destroy(PanelId, player);
+		Handler.Destroy(PanelCursorLockId, player);
 	}
 
 	internal void Draw(BasePlayer player, Action<DateTime> onDatePicked)
@@ -72,8 +72,8 @@ public class DatePickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 
 		ap.SetStorage(ap.SelectedTab, OnDatePicked, onDatePicked);
 
-		using var cui = new CUI(Admin.Handler);
-
+		using var cui = new CUI(Handler);
+	
 		var container = cui.CreateContainer(PanelId,
 			color: "0 0 0 0.75",
 			xMin: 0, xMax: 1, yMin: 0, yMax: 1,

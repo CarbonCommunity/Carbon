@@ -1,4 +1,6 @@
-﻿/*
+﻿#if !MINIMAL
+
+/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
@@ -762,26 +764,26 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public class LoggedInUser
 		{
 			[ProtoMember(1)]
-			public string Authority { get; set; }
-			[ProtoMember(2)]
-			public string DisplayName { get; set; }
-			[ProtoMember(3)]
-			public string AvatarUrl { get; set; }
-			[ProtoMember(4)]
-			public string AccessTokenEncoded { get; set; }
-			[ProtoMember(10)]
-			public string CoverUrl { get; set; }
-			[ProtoMember(11)]
 			public int Id { get; set; }
-
+			[ProtoMember(2)]
+			public string Authority { get; set; }
+			[ProtoMember(3)]
+			public string DisplayName { get; set; }
+			[ProtoMember(4)]
+			public string AvatarUrl { get; set; }
 			[ProtoMember(5)]
-			public bool PendingAccessToken { get; set; }
+			public string AccessTokenEncoded { get; set; }
 			[ProtoMember(6)]
+			public string CoverUrl { get; set; }
+
+			[ProtoMember(500)]
+			public bool PendingAccessToken { get; set; }
+			[ProtoMember(501)]
 			public RequestResult PendingResult { get; set; }
-			[ProtoMember(13)]
+			[ProtoMember(502)]
 			public bool IsAdmin { get; set; }
 
-			[ProtoMember(12)]
+			[ProtoMember(600)]
 			public List<string> OwnedFiles { get; } = new();
 
 			public string AccessToken { get; set; }
@@ -1079,7 +1081,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			#region Auth
 
-			[ProtoBuf.ProtoMember(10)]
+			[ProtoBuf.ProtoMember(50)]
 			public LoggedInUser User { get; set; }
 
 			public string AuthRequestEndpoint => "https://codefling.com/auth";
@@ -2318,3 +2320,5 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 	#endregion
 }
+
+#endif

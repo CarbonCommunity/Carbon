@@ -1,4 +1,6 @@
-﻿/*
+﻿#if !MINIMAL
+
+/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
@@ -249,3 +251,5 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		}
 	}
 }
+
+#endif
