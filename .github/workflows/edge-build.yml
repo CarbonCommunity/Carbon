@@ -109,8 +109,8 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
-        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
