@@ -10,7 +10,6 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Utilities;
 using Oxide.Game.Rust.Cui;
 using ProtoBuf;
 using static Carbon.Modules.AdminModule.PluginsTab;
@@ -755,6 +754,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public bool IsLoggedIn { get; }
 
 			public void Validate(PlayerSession session, Action onCompletion);
+			public void RefreshUser(PlayerSession session);
 		}
 
 		[ProtoContract]
@@ -1132,6 +1132,47 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 					});
 				});
+			}
+			public void RefreshUser(PlayerSession session)
+			{
+				if (!IsLoggedIn) return;
+
+				var core = Community.Runtime.CorePlugin;
+				var authHeader = AuthHeader;
+				var headers = new Dictionary<string, string>()
+				{
+					[authHeader.Key.ToString()] = string.Format(authHeader.Value, User.AccessToken)
+				};
+
+				core.webrequest.Enqueue(AuthUserInfoEndpoint, null, (code, info) =>
+				{
+					switch (code)
+					{
+						case 200:
+							var jobject = JObject.Parse(info);
+							User.Authority = jobject["primaryGroup"]["name"]?.ToString();
+							User.AvatarUrl = jobject["photoUrl"]?.ToString();
+							User.DisplayName = jobject["formattedName"]?.ToString();
+							User.CoverUrl = jobject["coverPhotoUrl"]?.ToString();
+							User.Id = jobject["id"].ToString().ToInt();
+
+							core.webrequest.Enqueue(AuthOwnedPluginsEndpoint, null, (code, data) =>
+							{
+								var jobject = JObject.Parse(data);
+								User.OwnedFiles.Clear();
+
+								foreach (var item in jobject["results"])
+								{
+									User.OwnedFiles.Add(item["itemId"].ToString());
+								}
+
+								Refresh();
+								Save();
+								Singleton.Draw(session.Player);
+							}, core, headers: headers);
+							break;
+					}
+				}, core, headers: headers);
 			}
 
 			public bool IsLoggedIn => User != null;
@@ -2052,6 +2093,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				vendor.FetchList();
 				vendor.Refresh();
 			}
+			if (vendor is IVendorAuthenticated auth)
+			{
+				auth.RefreshUser(ap);
+			}
 
 			Singleton.Draw(args.Player());
 		}, null);
@@ -2187,40 +2232,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							auth.User.PendingAccessToken = false;
 							Singleton.Draw(args.Player());
 
-							var headers = new Dictionary<string, string>()
-							{
-								[authHeader.Key.ToString()] = string.Format(authHeader.Value, auth.User.AccessToken)
-							};
-
-							core.webrequest.Enqueue(auth.AuthUserInfoEndpoint, null, (code, info) =>
-							{
-								switch (code)
-								{
-									case 200:
-										var jobject = JObject.Parse(info);
-										auth.User.Authority = jobject["primaryGroup"]["name"]?.ToString();
-										auth.User.AvatarUrl = jobject["photoUrl"]?.ToString();
-										auth.User.DisplayName = jobject["formattedName"]?.ToString();
-										auth.User.CoverUrl = jobject["coverPhotoUrl"]?.ToString();
-										auth.User.Id = jobject["id"].ToString().ToInt();
-
-										core.webrequest.Enqueue(auth.AuthOwnedPluginsEndpoint, null, (code, data) =>
-										{
-											var jobject = JObject.Parse(data);
-											auth.User.OwnedFiles.Clear();
-
-											foreach (var item in jobject["results"])
-											{
-												auth.User.OwnedFiles.Add(item["itemId"].ToString());
-											}
-
-											vendor2.Refresh();
-											if (vendor2 is IVendorStored store) store.Save();
-											Singleton.Draw(args.Player());
-										}, core, headers: headers);
-										break;
-								}
-							}, core, headers: headers);
+							auth.RefreshUser(ap);
 						});
 
 						Singleton.Draw(args.Player());
@@ -2232,7 +2244,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Singleton.Draw(args.Player());
 	}
 	[ProtectedCommand("pluginbrowser.closelogin")]
-	private void PluginBrowserConfirmCode(Arg args)
+	private void PluginBrowserCloseLogin(Arg args)
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
