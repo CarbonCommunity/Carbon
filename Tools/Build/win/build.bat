@@ -39,25 +39,24 @@ echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
 	(CALL )
 )
 
+set TAG=%1
+set TAG=%TAG:Unix=%
+
 echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
 	echo "%BUILD_TARGET%" | findstr /C:"Debug" >NUL && (
 		set TOS=Linux
-		set TAG=Debug
 		(CALL )
 	) || (                                                                                                                          
 		set TOS=Linux
-		set TAG=Release
 		(CALL )
 	)
 	(CALL )
 ) || (                                                                                                                          
 	echo "%BUILD_TARGET%" | findstr /C:"Debug" >NUL && (
 		set TOS=Windows
-		set TAG=Debug
 		(CALL )
 	) || (                                                                                                                          
 		set TOS=Windows
-		set TAG=Release
 		(CALL )
 	)
 	(CALL )
