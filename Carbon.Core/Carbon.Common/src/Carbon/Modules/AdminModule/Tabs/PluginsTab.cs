@@ -555,7 +555,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var status = string.Empty;
 					var scale = 0f;
 					var callMode = 0;
-					var isAdmin = auth.IsLoggedIn && auth.User.IsAdmin;
+					var isAdmin = auth != null && auth.IsLoggedIn && auth.User.IsAdmin;
 
 					if (!selectedPlugin.IsInstalled())
 					{
