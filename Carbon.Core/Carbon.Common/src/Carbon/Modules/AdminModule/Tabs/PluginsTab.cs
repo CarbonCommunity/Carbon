@@ -5,10 +5,12 @@
  *
  */
 
+using System.IO.Compression;
 using System.Net;
-using K4os.Compression.LZ4.Encoders;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Utilities;
 using Oxide.Game.Rust.Cui;
 using ProtoBuf;
 using static Carbon.Modules.AdminModule.PluginsTab;
@@ -546,7 +548,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					command: "pluginbrowser.deselectplugin",
 					font: CUI.Handler.FontTypes.DroidSansMono);
 
-
 				if (Singleton.HasAccessLevel(ap.Player, 3))
 				{
 					var buttonColor = string.Empty;
@@ -558,7 +559,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					if (!selectedPlugin.IsInstalled())
 					{
-						if (selectedPlugin.IsPaid())
+						if (!selectedPlugin.Owned && selectedPlugin.IsPaid())
 						{
 							buttonColor = "#2f802f";
 							elementColor = "#75f475";
@@ -610,7 +611,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 					}
 
-					if (!selectedPlugin.IsPaid() || selectedPlugin.IsInstalled())
+					if (selectedPlugin.Owned || !selectedPlugin.IsPaid() || selectedPlugin.IsInstalled())
 					{
 						var button = cui.CreateProtectedButton(container, mainPanel, null, buttonColor, "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: scale, yMin: 0.175f, yMax: 0.235f, align: TextAnchor.MiddleRight, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact {callMode} {selectedPlugin.Id}");
 						cui.CreateText(container, button, null, "1 1 1 0.7", status, 11, xMax: 0.88f, align: TextAnchor.MiddleRight);
@@ -744,6 +745,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public string AuthValidationEndpoint { get; }
 			public string AuthUserInfoEndpoint { get; }
 			public string AuthOwnedPluginsEndpoint { get; }
+			public string AuthDownloadFileEndpoint { get; }
 			public KeyValuePair<HttpRequestHeader, string> AuthHeader { get; }
 
 			public float AuthValidationCheckRate { get; }
@@ -765,7 +767,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			[ProtoMember(3)]
 			public string AvatarUrl { get; set; }
 			[ProtoMember(4)]
-			public string AccessToken { get; set; }
+			public string AccessTokenEncoded { get; set; }
 			[ProtoMember(10)]
 			public string CoverUrl { get; set; }
 			[ProtoMember(11)]
@@ -778,6 +780,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			[ProtoMember(12)]
 			public List<string> OwnedFiles { get; } = new();
+
+			public string AccessToken { get; set; }
 
 			public enum RequestResult
 			{
@@ -941,10 +945,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				plugin.IsBusy = true;
 				plugin.DownloadCount++;
 
-				var path = Path.Combine(Defines.GetScriptFolder(), plugin.File);
-				var url = DownloadEndpoint.Replace("[ID]", id);
+				var core = Community.Runtime.CorePlugin;
 
-				Community.Runtime.CorePlugin.timer.In(2f, () =>
+				core.timer.In(2f, () =>
 				{
 					if (plugin.IsBusy)
 					{
@@ -953,20 +956,112 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					}
 				});
 
-				Community.Runtime.CorePlugin.webrequest.Enqueue(url, null, (error, source) =>
+				if (IsLoggedIn)
 				{
-					plugin.IsBusy = false;
-
-					if (!source.StartsWith("<!DOCTYPE html>"))
+					var headers = new Dictionary<string, string>
 					{
-						Singleton.Puts($"Downloaded {plugin.Name}");
-						OsEx.File.Create(path, source);
+						[AuthHeader.Key.ToString()] = string.Format(AuthHeader.Value, User.AccessToken)
+					};
+
+					var extension = Path.GetExtension(plugin.File);
+
+					switch (extension)
+					{
+						case ".zip":
+							core.webrequest.Enqueue(string.Format(AuthDownloadFileEndpoint, plugin.Id), null, (error, source) =>
+							{
+								var jobject = JObject.Parse(source);
+								var name = jobject["files"][0]["name"].ToString();
+								var file = jobject["files"][0]["url"].ToString();
+								var path = Path.Combine(Defines.GetScriptFolder(), name);
+								jobject = null;
+
+								core.webrequest.EnqueueData(file, null, (error, source) =>
+								{
+									plugin.IsBusy = false;
+
+									using var stream = new MemoryStream(source);
+									using var zip = new ZipArchive(stream);
+
+									const string sourceExtension = ".cs";
+									const string dllExtension = ".dll";
+
+									foreach (var file in zip.Entries)
+									{
+										switch (Path.GetExtension(file.Name))
+										{
+											case sourceExtension:
+												{
+													using var reader = new StreamReader(file.Open());
+													var fileSource = reader.ReadToEnd();
+
+													OsEx.File.Create(Path.Combine(Defines.GetScriptFolder(), file.Name), fileSource);
+													Singleton.Puts($" Extracted plugin file {file.Name}");
+												}
+												break;
+
+											case dllExtension:
+												{
+													using var memoryStream = new MemoryStream();
+													using var entryStream = file.Open();
+													entryStream.CopyTo(memoryStream);
+													var bytes = memoryStream.ToArray();
+
+													OsEx.File.Create(Path.Combine(Defines.GetLibFolder(), file.Name), bytes);
+													Singleton.Puts($" Extracted plugin extension file {file.Name}");
+												}
+												break;
+										}
+									}
+
+									Singleton.Puts($"Downloaded {plugin.Name}");
+									OsEx.File.Create(path, source);
+								}, core, headers: headers);
+
+							}, core, headers: headers);
+							break;
+
+						case ".cs":
+							core.webrequest.Enqueue(string.Format(AuthDownloadFileEndpoint, plugin.Id), null, (error, source) =>
+							{
+								var jobject = JObject.Parse(source);
+								var name = jobject["files"][0]["name"].ToString();
+								var file = jobject["files"][0]["url"].ToString();
+								var path = Path.Combine(Defines.GetScriptFolder(), name);
+								jobject = null;
+
+								core.webrequest.Enqueue(file, null, (error, source) =>
+								{
+									plugin.IsBusy = false;
+
+									Singleton.Puts($"Downloaded {plugin.Name}");
+									OsEx.File.Create(path, source);
+								}, core, headers: headers);
+
+							}, core, headers: headers);
+							break;
 					}
-				}, Community.Runtime.CorePlugin, headers: new Dictionary<string, string>
+				}
+				else
 				{
-					["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.63",
-					["accept"] = "ext/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
-				});
+					var path = Path.Combine(Defines.GetScriptFolder(), plugin.File);
+					var url = DownloadEndpoint.Replace("[ID]", id);
+
+					core.webrequest.Enqueue(url, null, (error, source) =>
+					{
+						plugin.IsBusy = false;
+
+						if (!source.StartsWith("<!DOCTYPE html>"))
+						{
+							Singleton.Puts($"Downloaded {plugin.Name}");
+							OsEx.File.Create(path, source);
+						}
+					}, core, headers: new Dictionary<string, string>
+					{
+						["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.63",
+						["accept"] = "ext/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+					});
+				}
 			}
 			public override void Uninstall(string id)
 			{
@@ -988,6 +1083,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public string AuthValidationEndpoint => "https://codefling.com/auth/bearer?code={0}";
 			public string AuthUserInfoEndpoint => "https://codefling.com/api/core/me";
 			public string AuthOwnedPluginsEndpoint => "https://codefling.com/api/nexus/purchases?perPage=100000&itemType=file&itemApp=downloads";
+			public string AuthDownloadFileEndpoint => "https://codefling.com/api/downloads/files/{0}/download";
 			public KeyValuePair<HttpRequestHeader, string> AuthHeader => new(HttpRequestHeader.Authorization, "Bearer {0}");
 			public float AuthValidationCheckRate => 5f;
 			public Timer ValidationTimer { get; set; }
@@ -999,7 +1095,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				ValidationTimer = core.timer.Every(AuthValidationCheckRate, () =>
 				{
-					if (!session.IsInMenu)
+					if (User == null || !session.IsInMenu)
 					{
 						ValidationTimer?.Destroy();
 						ValidationTimer = null;
@@ -1013,6 +1109,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						var jobject = JObject.Parse(result);
 						User.AccessToken = jobject["accesstoken"].ToString();
+						User.AccessTokenEncoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(User.AccessToken));
 						ValidationTimer.Destroy();
 						ValidationTimer = null;
 						jobject = null;
@@ -1058,6 +1155,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					FetchedPlugins.AddRange(value.FetchedPlugins);
 					User = value.User;
 
+					if (User != null && !string.IsNullOrEmpty(User.AccessTokenEncoded))
+					{
+						User.AccessToken = Encoding.UTF8.GetString(Convert.FromBase64String(User.AccessTokenEncoded));
+					}
+
 					if ((DateTime.Now - new DateTime(value.LastTick)).TotalHours >= 24)
 					{
 						Singleton.Puts($"Invalidated {Type} database. Fetching...");
@@ -1067,7 +1169,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
-				catch { Save(); }
+				catch (Exception ex)
+				{
+					Logger.Error($"{Type}.Load error", ex);
+				}
 				return true;
 			}
 			public void Save()
@@ -1080,7 +1185,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Serializer.Serialize(file, this);
 					Singleton.Puts($"Stored {Type} to file: {path}");
 				}
-				catch { }
+				catch (Exception ex)
+				{
+					Logger.Error($"{Type}.Save error", ex);
+				}
 			}
 
 			#endregion

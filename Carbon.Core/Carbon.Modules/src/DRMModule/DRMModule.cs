@@ -118,7 +118,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 		#endregion
 
-		public WebRequests.WebRequest Enqueue(string url, string body, Action<int, string> callback, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, string, Exception> onException = null)
+		public WebRequests.WebRequest Enqueue(string url, string body, Action<int, string> callback, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, object, Exception> onException = null)
 		{
 			return new WebRequests.WebRequest(url, callback, null)
 			{
