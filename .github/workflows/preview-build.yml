@@ -70,6 +70,7 @@ jobs:
       run: |
         export VERSION=${{ needs.bootstrap.outputs.version }}
         ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -78,6 +79,8 @@ jobs:
         path: |
           Release/Carbon.Linux.Debug.tar.gz
           Release/Carbon.Linux.Debug.info
+          Release/Carbon.Linux.Minimal.tar.gz
+          Release/Carbon.Linux.Minimal.info
 
   # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
@@ -106,7 +109,8 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -115,6 +119,8 @@ jobs:
         path: |
           Release/Carbon.Windows.Debug.zip
           Release/Carbon.Windows.Debug.info
+          Release/Carbon.Windows.Minimal.zip
+          Release/Carbon.Windows.Minimal.info
 
   # RELEASE --------------------------------------------------------------------
   release-on-schedule:
@@ -174,3 +180,7 @@ jobs:
           Release/build-preview-linux/Carbon.Linux.Debug.tar.gz
           Release/build-preview-windows/Carbon.Windows.Debug.info
           Release/build-preview-windows/Carbon.Windows.Debug.zip
+          Release/build-preview-linux/Carbon.Linux.Minimal.info
+          Release/build-preview-linux/Carbon.Linux.Minimal.tar.gz
+          Release/build-preview-windows/Carbon.Windows.Minimal.info
+          Release/build-preview-windows/Carbon.Windows.Minimal.zip
