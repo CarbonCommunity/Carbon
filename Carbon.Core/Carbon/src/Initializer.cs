@@ -155,8 +155,11 @@ public class Initializer : ICarbonComponent
 
 		try
 		{
+#if MINIMAL
+			Logger.Log("Initializing minimal build...");
+#else
 			Logger.Log("Initializing...");
-
+#endif
 			if (CommunityInternal.InternalRuntime == null) CommunityInternal.InternalRuntime = new CommunityInternal();
 			else CommunityInternal.InternalRuntime?.Uninitialize();
 
