@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix;Minimal;MinimalUnix</Configurations>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Deterministic>true</Deterministic>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

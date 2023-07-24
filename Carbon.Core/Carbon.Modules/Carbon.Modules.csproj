@@ -13,7 +13,7 @@
 		<ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" Private="false" />
 	</ItemGroup>
 
-	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
+	<Target Condition="'$(Configuration)' != 'Minimal' And '$(Configuration)' != 'MinimalUnix'" Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_modules)" />
 	</Target>
 </Project>

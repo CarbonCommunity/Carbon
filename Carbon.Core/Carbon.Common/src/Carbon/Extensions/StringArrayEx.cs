@@ -26,7 +26,7 @@ public static class StringArrayEx
 		if (count == 0) { return string.Empty; }
 		if (count == 1) { return array.First(); }
 
-		var str = string.Join(separator, array);
+		var str = string.Join(separator, array.Take(count - 1));
 		str += string.Format("{0}{1}", lastSeparator, array.ElementAt(count - 1));
 
 		return str;
