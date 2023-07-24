@@ -555,10 +555,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var status = string.Empty;
 					var scale = 0f;
 					var callMode = 0;
+					var isAdmin = auth.IsLoggedIn && auth.User.IsAdmin;
 
 					if (!selectedPlugin.IsInstalled())
 					{
-						if (!selectedPlugin.Owned && selectedPlugin.IsPaid())
+						if (!isAdmin && !selectedPlugin.Owned && selectedPlugin.IsPaid())
 						{
 							buttonColor = "#2f802f";
 							elementColor = "#75f475";
@@ -610,7 +611,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						}
 					}
 
-					if (selectedPlugin.Owned || !selectedPlugin.IsPaid() || selectedPlugin.IsInstalled())
+					if (isAdmin || selectedPlugin.Owned || !selectedPlugin.IsPaid() || selectedPlugin.IsInstalled())
 					{
 						var button = cui.CreateProtectedButton(container, mainPanel, null, buttonColor, "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: scale, yMin: 0.175f, yMax: 0.235f, align: TextAnchor.MiddleRight, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact {callMode} {selectedPlugin.Id}");
 						cui.CreateText(container, button, null, "1 1 1 0.7", status, 11, xMax: 0.88f, align: TextAnchor.MiddleRight);
@@ -777,6 +778,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public bool PendingAccessToken { get; set; }
 			[ProtoMember(6)]
 			public RequestResult PendingResult { get; set; }
+			[ProtoMember(13)]
+			public bool IsAdmin { get; set; }
 
 			[ProtoMember(12)]
 			public List<string> OwnedFiles { get; } = new();
@@ -1155,6 +1158,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							User.DisplayName = jobject["formattedName"]?.ToString();
 							User.CoverUrl = jobject["coverPhotoUrl"]?.ToString();
 							User.Id = jobject["id"].ToString().ToInt();
+							User.IsAdmin = User.Authority == "Administrator";
 
 							core.webrequest.Enqueue(AuthOwnedPluginsEndpoint, null, (code, data) =>
 							{
