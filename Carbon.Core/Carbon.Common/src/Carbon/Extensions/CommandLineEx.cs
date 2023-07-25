@@ -1,6 +1,4 @@
-﻿using System;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
@@ -21,7 +19,6 @@ public static class CommandLineEx
 	public static string GetArgumentResult(this string[] args, string argument, string Default = null)
 	{
 		var result = string.Empty;
-
 
 		for (var i = 0; i < args.Length; i++)
 		{

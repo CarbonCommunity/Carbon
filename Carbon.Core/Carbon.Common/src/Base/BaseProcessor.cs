@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using Carbon.Contracts;
-using Carbon.Extensions;
-using UnityEngine;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
@@ -308,7 +300,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	}
 	public class Parser
 	{
-		public virtual void Process(string input, out string output)
+		public virtual void Process(string file, string input, out string output)
 		{
 			output = null;
 		}

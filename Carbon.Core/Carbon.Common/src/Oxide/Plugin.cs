@@ -1,17 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Carbon;
-using Carbon.Base;
-using Carbon.Components;
-using Carbon.Contracts;
-using Carbon.Core;
-using Carbon.Plugins;
-using Facepunch;
+﻿using Facepunch;
 using Newtonsoft.Json;
-using Oxide.Core.Configuration;
-using Oxide.Plugins;
+using Logger = Carbon.Logger;
 
 /*
  *
@@ -87,7 +76,7 @@ namespace Oxide.Core.Plugins
 						var method = attribute.Method;
 						var priority = method.GetCustomAttribute<HookPriority>();
 
-						var hash = (uint)(HookCallerCommon.StringPool.GetOrAdd(string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length);
+						var hash = (uint)(HookStringPool.GetOrAdd(string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length);
 						if (!HookMethodAttributeCache.TryGetValue(hash, out var list))
 						{
 							HookMethodAttributeCache.Add(hash, new() { CachedHook.Make(method, priority == null ? Priorities.Normal : priority.Priority, this) });
@@ -111,7 +100,7 @@ namespace Oxide.Core.Plugins
 				{
 					foreach (var hook in Hooks)
 					{
-						Community.Runtime.HookManager.Subscribe(HookCallerCommon.StringPool.GetOrAdd(hook.Key), requester);
+						Community.Runtime.HookManager.Subscribe(HookStringPool.GetOrAdd(hook.Key), requester);
 					}
 						
 				}
@@ -153,7 +142,7 @@ namespace Oxide.Core.Plugins
 				{
 					foreach (var hook in Hooks)
 					{
-						Community.Runtime.HookManager.Unsubscribe(HookCallerCommon.StringPool.GetOrAdd(hook.Key), FileName);
+						Community.Runtime.HookManager.Unsubscribe(HookStringPool.GetOrAdd(hook.Key), FileName);
 					}
 					Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 				}
@@ -280,305 +269,305 @@ namespace Oxide.Core.Plugins
 
 		public T Call<T>(string hook)
 		{
-			return HookCaller.CallHook<T>(this, hook);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook));
 		}
 		public T Call<T>(string hook, object arg1)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1);
 		}
 		public T Call<T>(string hook, object arg1, object arg2)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3, object arg4)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
 		}
 		public T Call<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 		}
 		public T Call<T>(string hook, object[] args)
 		{
 			return args.Length switch
 			{
-				1 => HookCaller.CallHook<T>(this, hook, args[0]),
-				2 => HookCaller.CallHook<T>(this, hook, args[0], args[1]),
-				3 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2]),
-				4 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3]),
-				5 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4]),
-				6 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
-				7 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
-				8 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
-				9 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
-				10 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
-				11 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
-				12 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
-				13 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[13]),
-				_ => HookCaller.CallHook<T>(this, hook),
+				1 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0]),
+				2 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1]),
+				3 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2]),
+				4 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3]),
+				5 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4]),
+				6 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5]),
+				7 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+				8 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+				9 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+				10 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+				11 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+				12 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+				13 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[13]),
+				_ => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook)),
 			};
 		}
 
 		public object Call(string hook)
 		{
-			return HookCaller.CallHook(this, hook);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook));
 		}
 		public object Call(string hook, object arg1)
 		{
-			return HookCaller.CallHook(this, hook, arg1);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1);
 		}
 		public object Call(string hook, object arg1, object arg2)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 		}
 		public object Call(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
 		}
 		public object Call(string hook, object[] args)
 		{
 			return args?.Length switch
 			{
-				1 => HookCaller.CallHook(this, hook, args[0]),
-				2 => HookCaller.CallHook(this, hook, args[0], args[1]),
-				3 => HookCaller.CallHook(this, hook, args[0], args[1], args[2]),
-				4 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3]),
-				5 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4]),
-				6 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
-				7 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
-				8 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
-				9 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
-				10 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
-				11 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
-				12 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
-				13 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
-				_ => HookCaller.CallHook(this, hook),
+				1 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0]),
+				2 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1]),
+				3 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2]),
+				4 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3]),
+				5 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4]),
+				6 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5]),
+				7 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+				8 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+				9 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+				10 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+				11 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+				12 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+				13 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
+				_ => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook)),
 			};
 		}
 
 		public T CallHook<T>(string hook)
 		{
-			return HookCaller.CallHook<T>(this, hook);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook));
 		}
 		public T CallHook<T>(string hook, object arg1)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 		}
 		public T CallHook<T>(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
 		{
-			return HookCaller.CallHook<T>(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
+			return HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
 		}
 		public T CallHook<T>(string hook, object[] args)
 		{
 			return args.Length switch
 			{
-				1 => HookCaller.CallHook<T>(this, hook, args[0]),
-				2 => HookCaller.CallHook<T>(this, hook, args[0], args[1]),
-				3 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2]),
-				4 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3]),
-				5 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4]),
-				6 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
-				7 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
-				8 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
-				9 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
-				10 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
-				11 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
-				12 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
-				13 => HookCaller.CallHook<T>(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[13]),
-				_ => HookCaller.CallHook<T>(this, hook),
+				1 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0]),
+				2 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1]),
+				3 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2]),
+				4 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3]),
+				5 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4]),
+				6 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5]),
+				7 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+				8 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+				9 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+				10 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+				11 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+				12 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+				13 => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[13]),
+				_ => HookCaller.CallHook<T>(this, HookStringPool.GetOrAdd(hook)),
 			};
 		}
 
 		public object CallHook(string hook)
 		{
-			return HookCaller.CallHook(this, hook);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook));
 		}
 		public object CallHook(string hook, object arg1)
 		{
-			return HookCaller.CallHook(this, hook, arg1);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1);
 		}
 		public object CallHook(string hook, object arg1, object arg2)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4, object arg5)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
 		}
 		public object CallHook(string hook, object arg1, object arg2, object arg3, object arg4, object arg5, object arg6, object arg7, object arg8, object arg9, object arg10, object arg11, object arg12, object arg13)
 		{
-			return HookCaller.CallHook(this, hook, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
+			return HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
 		}
 		public object CallHook(string hook, object[] args)
 		{
 			return args?.Length switch
 			{
-				1 => HookCaller.CallHook(this, hook, args[0]),
-				2 => HookCaller.CallHook(this, hook, args[0], args[1]),
-				3 => HookCaller.CallHook(this, hook, args[0], args[1], args[2]),
-				4 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3]),
-				5 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4]),
-				6 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5]),
-				7 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
-				8 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
-				9 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
-				10 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
-				11 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
-				12 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
-				13 => HookCaller.CallHook(this, hook, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
-				_ => HookCaller.CallHook(this, hook),
+				1 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0]),
+				2 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1]),
+				3 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2]),
+				4 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3]),
+				5 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4]),
+				6 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5]),
+				7 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6]),
+				8 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]),
+				9 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]),
+				10 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]),
+				11 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]),
+				12 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]),
+				13 => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook), args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]),
+				_ => HookCaller.CallHook(this, HookStringPool.GetOrAdd(hook)),
 			};
 		}
 
@@ -586,8 +575,8 @@ namespace Oxide.Core.Plugins
 
 		#region Compatibility
 
-		public PluginManagerEvent OnAddedToManager = new();
-		public PluginManagerEvent OnRemovedFromManager = new();
+		public object OnAddedToManager;
+		public object OnRemovedFromManager;
 
 		public virtual void HandleAddedToManager(PluginManager manager) { }
 		public virtual void HandleRemovedFromManager(PluginManager manager) { }

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
-using Carbon;
-using Oxide.Core.Plugins;
+﻿using System.Net;
+using System.Text;
+using Logger = Carbon.Logger;
 
 /*
  *
@@ -34,7 +31,7 @@ public class WebRequests : Library
 		ServicePointManager.DefaultConnectionLimit = 200;
 	}
 
-	public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, string, Exception> onException = null)
+	public WebRequest Enqueue(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, object, Exception> onException = null)
 	{
 		return new WebRequest(url, callback, owner)
 		{
@@ -46,7 +43,45 @@ public class WebRequests : Library
 		}.Start();
 	}
 
-	public async Task<WebRequest> EnqueueAsync(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, string, Exception> onException = null)
+	public async Task<WebRequest> EnqueueAsync(string url, string body, Action<int, string> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, object, Exception> onException = null)
+	{
+		var request = new WebRequest(url, callback, owner)
+		{
+			Method = method.ToString(),
+			RequestHeaders = headers,
+			Timeout = timeout,
+			Body = body,
+			ErrorCallback = onException
+		}.Start();
+
+		var tcs = new TaskCompletionSource<bool>();
+
+		Task.Run(() =>
+		{
+			while (request._client != null) { }
+
+			tcs.SetResult(true);
+		});
+
+		await tcs.Task;
+		tcs = null;
+
+		return request;
+	}
+
+	public WebRequest EnqueueData(string url, string body, Action<int, byte[]> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, object, Exception> onException = null)
+	{
+		return new WebRequest(url, callback, owner)
+		{
+			Method = method.ToString(),
+			RequestHeaders = headers,
+			Timeout = timeout,
+			Body = body,
+			ErrorCallback = onException
+		}.Start();
+	}
+
+	public async Task<WebRequest> EnqueueDataAsync(string url, string body, Action<int, byte[]> callback, Plugin owner, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, object, Exception> onException = null)
 	{
 		var request = new WebRequest(url, callback, owner)
 		{
@@ -93,7 +128,8 @@ public class WebRequests : Library
 	public class WebRequest : IDisposable
 	{
 		public Action<int, string> SuccessCallback { get; set; }
-		public Action<int, string, Exception> ErrorCallback { get; set; }
+		public Action<int, byte[]> SuccessDataCallback { get; set; }
+		public Action<int, object, Exception> ErrorCallback { get; set; }
 
 		public float Timeout { get; set; }
 		public string Method { get; set; }
@@ -101,12 +137,13 @@ public class WebRequests : Library
 		public string Body { get; set; }
 
 		public int ResponseCode { get; protected set; } = 200;
-		public string ResponseText { get; protected set; }
+		public object ResponseObject { get; protected set; }
 		public Exception ResponseError { get; protected set; }
 
 		public Plugin Owner { get; protected set; }
 		public Dictionary<string, string> RequestHeaders { get; set; }
 
+		internal bool _data;
 		internal Uri _uri;
 		internal Client _client;
 
@@ -116,6 +153,16 @@ public class WebRequests : Library
 			SuccessCallback = callback;
 			Owner = owner;
 			_uri = new Uri(url);
+			_data = false;
+		}
+
+		public WebRequest(string url, Action<int, byte[]> callback, Plugin owner)
+		{
+			Url = url;
+			SuccessDataCallback = callback;
+			Owner = owner;
+			_uri = new Uri(url);
+			_data = true;
 		}
 
 		public WebRequest Start()
@@ -129,31 +176,62 @@ public class WebRequests : Library
 				switch (Method)
 				{
 					case "GET":
-						_client.DownloadStringCompleted += (object sender, DownloadStringCompletedEventArgs e) =>
+						if (_data)
 						{
-							try
+							_client.DownloadDataCompleted += (object sender, DownloadDataCompletedEventArgs e) =>
 							{
-								if (e == null)
+								try
 								{
-									OnComplete(true);
-									return;
-								}
+									if (e == null)
+									{
+										OnComplete(true);
+										return;
+									}
 
-								if (e.Error != null)
+									if (e.Error != null)
+									{
+										if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
+										ResponseError = e.Error;
+										OnComplete(true);
+										return;
+									}
+
+									ResponseCode = _client.StatusCode;
+									ResponseObject = e.Result;
+
+									OnComplete(false);
+								}
+								catch { }
+							};
+						}
+						else
+						{
+							_client.DownloadStringCompleted += (object sender, DownloadStringCompletedEventArgs e) =>
+							{
+								try
 								{
-									if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
-									ResponseError = e.Error;
-									OnComplete(true);
-									return;
+									if (e == null)
+									{
+										OnComplete(true);
+										return;
+									}
+
+									if (e.Error != null)
+									{
+										if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
+										ResponseError = e.Error;
+										OnComplete(true);
+										return;
+									}
+
+									ResponseCode = _client.StatusCode;
+									ResponseObject = e.Result;
+
+									OnComplete(false);
 								}
-
-								ResponseCode = _client.StatusCode;
-								ResponseText = e.Result;
-
-								OnComplete(false);
-							}
-							catch { }
-						};
+								catch { }
+							};
+						}
 
 						try
 						{
@@ -164,7 +242,14 @@ public class WebRequests : Library
 									_client.Headers.Add(header.Key, header.Value);
 								}
 							}
-							_client.DownloadStringAsync(_uri);
+							if (_data)
+							{
+								_client.DownloadDataAsync(_uri);
+							}
+							else
+							{
+								_client.DownloadStringAsync(_uri);
+							}
 						}
 						catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 						break;
@@ -173,31 +258,62 @@ public class WebRequests : Library
 					case "PATCH":
 					case "POST":
 					case "DELETE":
-						_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
+						if (_data)
 						{
-							try
+							_client.UploadDataCompleted += (object sender, UploadDataCompletedEventArgs e) =>
 							{
-								if (e == null)
+								try
 								{
-									OnComplete(true);
-									return;
-								}
+									if (e == null)
+									{
+										OnComplete(true);
+										return;
+									}
 
-								if (e.Error != null)
+									if (e.Error != null)
+									{
+										if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
+										ResponseError = e.Error;
+										OnComplete(true);
+										return;
+									}
+
+									ResponseCode = _client.StatusCode;
+									ResponseObject = e.Result;
+
+									OnComplete(false);
+								}
+								catch { }
+							};
+						}
+						else
+						{
+							_client.UploadStringCompleted += (object sender, UploadStringCompletedEventArgs e) =>
+							{
+								try
 								{
-									if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
-									ResponseError = e.Error;
-									OnComplete(true);
-									return;
+									if (e == null)
+									{
+										OnComplete(true);
+										return;
+									}
+
+									if (e.Error != null)
+									{
+										if (e.Error is WebException web) ResponseCode = (int)(web.Response as HttpWebResponse).StatusCode;
+										ResponseError = e.Error;
+										OnComplete(true);
+										return;
+									}
+
+									ResponseCode = _client.StatusCode;
+									ResponseObject = e.Result;
+
+									OnComplete(false);
 								}
-
-								ResponseCode = _client.StatusCode;
-								ResponseText = e.Result;
-
-								OnComplete(false);
-							}
-							catch { }
-						};
+								catch { }
+							};
+						}
 
 						try
 						{
@@ -212,7 +328,15 @@ public class WebRequests : Library
 							{
 								_client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
 							}
-							_client.UploadStringAsync(_uri, Method, Body);
+
+							if (_data)
+							{
+								_client.UploadDataAsync(_uri, Method, Encoding.Default.GetBytes(Body));
+							}
+							else
+							{
+								_client.UploadStringAsync(_uri, Method, Body);
+							}
 						}
 						catch (Exception ex) { ResponseError = ex; OnComplete(true); }
 						break;
@@ -228,8 +352,21 @@ public class WebRequests : Library
 
 			try
 			{
-				if (failure) ErrorCallback?.Invoke(ResponseCode, ResponseText, ResponseError);
-				else SuccessCallback?.Invoke(ResponseCode, ResponseText);
+				if (failure)
+				{
+					ErrorCallback?.Invoke(ResponseCode, ResponseObject, ResponseError);
+				}
+				else
+				{
+					if (_data)
+					{
+						SuccessDataCallback?.Invoke(ResponseCode, ResponseObject as byte[]);
+					}
+					else
+					{
+						SuccessCallback?.Invoke(ResponseCode, ResponseObject?.ToString());
+					}
+				}
 			}
 			catch (Exception ex)
 			{

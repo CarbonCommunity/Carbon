@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace API.Commands;
 
-public class Command
+public class Command : IDisposable
 {
 	public enum Types
 	{
@@ -30,6 +30,9 @@ public class Command
 	public CommandFlags Flags { get; set; } = CommandFlags.None;
 	public Action<Args> Callback { get; set; }
 	public Func<Command, Args, bool> CanExecute { get; set; }
+	public ConsoleSystem.Command RustCommand { get; set; }
+
+	internal const char _splitDelimiter = '.';
 
 	public void Fetch()
 	{
@@ -50,6 +53,31 @@ public class Command
 			default:
 				break;
 		}
+
+		if (RustCommand == null) RustCommand = new();
+
+		var nameSplit = Name.Split(_splitDelimiter);
+		var parent = nameSplit.Length > 1 ? nameSplit[0] : "global";
+		var name = nameSplit.Length > 1 ? nameSplit[1] : Name;
+
+		Array.Clear(nameSplit, 0, nameSplit.Length);
+		nameSplit = null;
+
+		RustCommand.Name = name;
+		RustCommand.Parent = parent;
+		RustCommand.FullName = Name;
+		RustCommand.ServerUser = true;
+		RustCommand.ServerAdmin = true;
+		RustCommand.Client = true;
+		RustCommand.ClientInfo = true;
+		RustCommand.Variable = false;
+	}
+
+	public void Dispose()
+	{
+		Callback = null;
+		CanExecute = null;
+		RustCommand = null;
 	}
 
 	public class Args : IDisposable
@@ -59,6 +87,8 @@ public class Command
 
 		public string Reply { get; set; }
 		public object Token { get; set; }
+		public bool IsRCon { get; set; }
+		public bool IsServer { get; set; }
 
 		public bool Tokenize<T>(out T value)
 		{

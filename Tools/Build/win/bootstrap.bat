@@ -26,7 +26,7 @@ FOR %%O IN (DepotDownloader) DO (
 ) > NUL
 
 rem Download rust binary libs
-call "%~dp0\update.bat" public
+call "%~dp0\update.bat" release
 
 rem Don't track changes to this file
 git -C "%BOOTSTRAP_ROOT%" update-index --assume-unchanged "%BOOTSTRAP_ROOT%\Tools\Helpers\doorstop_config.ini"

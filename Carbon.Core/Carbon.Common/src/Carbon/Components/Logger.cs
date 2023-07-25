@@ -1,5 +1,6 @@
-﻿using System;
+﻿using System.Diagnostics;
 using API.Logger;
+using ILogger = API.Logger.ILogger;
 
 /*
  *
@@ -10,17 +11,22 @@ using API.Logger;
 
 namespace Carbon;
 
-public class Logger : ILogger
+public sealed class Logger : ILogger
 {
-	public static FileLogger _file { get; set; } = new FileLogger("Carbon.Core");
+	public static FileLogger CoreLog { get; set; } = new FileLogger("Carbon.Core");
+
+	public static Action<string, Exception, int> OnErrorCallback { get; set; }
+	public static Action<string, int> OnWarningCallback { get; set; }
+	public static Action<string, int> OnNoticeCallback { get; set; }
+	public static Action<string, int> OnDebugCallback { get; set; }
 
 	internal static string GetDate()
 	{
 		return DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
 	}
-	internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1)
+	internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1, bool nativeLog = true)
 	{
-		_file.Init(backup: true);
+		CoreLog.Init(backup: true);
 
 		if (severity != Severity.Debug)
 		{
@@ -28,38 +34,46 @@ public class Logger : ILogger
 			if (severity > minSeverity) return;
 		}
 
+		var textMessage = message?.ToString();
+
 		switch (severity)
 		{
 			case Severity.Error:
-				var dex = /* ex?.Demystify() ?? */ ex;
+				var dex = ex?.Demystify() ?? ex;
 
 				if (dex != null)
 				{
-					_file._queueLog($"[ERRO] {message} ({dex?.Message})\n{dex?.StackTrace}");
-					UnityEngine.Debug.LogError($"{message} ({dex?.Message})\n{dex?.StackTrace}");
+					var exceptionResult = $"({dex?.Message})\n{dex.GetFullStackTrace(false)}";
+					CoreLog._queueLog($"[ERRO] {textMessage} {exceptionResult}");
+					if (nativeLog) UnityEngine.Debug.LogError($"{textMessage} {exceptionResult}");
 				}
 				else
 				{
-					_file._queueLog($"[ERRO] {message}");
-					UnityEngine.Debug.LogError(message);
+					CoreLog._queueLog($"[ERRO] {textMessage}");
+					if (nativeLog) UnityEngine.Debug.LogError(textMessage);
 				}
+
+				OnErrorCallback?.Invoke(textMessage, dex, verbosity);
 				break;
 
 			case Severity.Warning:
-				_file._queueLog($"[WARN] {message}");
-				UnityEngine.Debug.LogWarning($"{message}");
+				CoreLog._queueLog($"[WARN] {textMessage}");
+				if (nativeLog) UnityEngine.Debug.LogWarning(textMessage);
+				OnWarningCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			case Severity.Notice:
-				_file._queueLog($"[INFO] {message}");
-				UnityEngine.Debug.Log($"{message}");
+				CoreLog._queueLog($"[INFO] {textMessage}");
+				if (nativeLog) UnityEngine.Debug.Log(textMessage);
+				OnNoticeCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			case Severity.Debug:
 				int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 				if (verbosity > minVerbosity) break;
-				_file._queueLog($"[INFO] {message}");
-				UnityEngine.Debug.Log($"{message}");
+				CoreLog._queueLog($"[INFO] {textMessage}");
+				if (nativeLog) UnityEngine.Debug.Log(textMessage);
+				OnDebugCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			default:
@@ -69,7 +83,7 @@ public class Logger : ILogger
 
 	public static void Dispose()
 	{
-		_file.Dispose();
+		CoreLog.Dispose();
 	}
 
 #if DEBUG

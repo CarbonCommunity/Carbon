@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -32,7 +33,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public bool IsExtension;
 	public List<string> Usings = new();
 	public Dictionary<Type, Dictionary<uint, Priorities>> Hooks = new();
-	public Dictionary<Type, List<uint>> UnsupportedHooks = new();
 	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
 	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
 	public float CompileTime;
@@ -148,10 +148,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var references = new List<MetadataReference>();
 		var id = Path.GetFileNameWithoutExtension(FilePath);
 
-		if (Community.Runtime.Config.HarmonyReference)
-		{
-			_injectReference(id, "0Harmony", references);
-		}
+		_injectReference(id, "0Harmony", references);
 
 		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
 		{
@@ -347,22 +344,15 @@ public class ScriptCompilationThread : BaseThreadedJob
 			foreach (var type in Assembly.GetTypes())
 			{
 				var hooks = new Dictionary<uint, Priorities>();
-				var unsupportedHooks = new List<uint>();
 				var hookMethods = new List<HookMethodAttribute>();
 				var pluginReferences = new List<PluginReferenceAttribute>();
 				Hooks.Add(type, hooks);
-				UnsupportedHooks.Add(type, unsupportedHooks);
 				HookMethods.Add(type, hookMethods);
 				PluginReferences.Add(type, pluginReferences);
 
 				foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
 				{
-					var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
-
-					if (HookValidator.IsIncompatibleOxideHook(method.Name))
-					{
-						unsupportedHooks.Add(hash);
-					}
+					var hash = HookStringPool.GetOrAdd(method.Name);
 
 					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 					{
@@ -400,12 +390,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 		Warnings.Clear();
 
 		Hooks.Clear();
-		UnsupportedHooks.Clear();
 		HookMethods.Clear();
 		PluginReferences.Clear();
 
 		Hooks = null;
-		UnsupportedHooks = null;
 		HookMethods = null;
 		PluginReferences = null;
 		Exceptions = null;

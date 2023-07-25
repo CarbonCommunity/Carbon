@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Carbon.Base.Interfaces;
-using Carbon.Core;
-using Carbon.Extensions;
-using Oxide.Core.Configuration;
+﻿using Carbon.Base.Interfaces;
 using Defines = Carbon.Core.Defines;
 
 /*
@@ -22,6 +14,7 @@ public abstract class BaseModule : BaseHookable
 {
 	public virtual bool EnabledByDefault => false;
 	public virtual bool ForceModded => false;
+	public virtual bool ForceEnabled => false;
 
 	public abstract void OnPostServerInit();
 	public abstract void OnServerInit();
@@ -94,7 +87,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 
 				var priority = method.GetCustomAttribute<HookPriority>();
-				var hash = HookCallerCommon.StringPool.GetOrAdd(method.Name);
+				var hash = HookStringPool.GetOrAdd(method.Name);
 				if (!Hooks.ContainsKey(hash)) Hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
 			}
 		}
@@ -137,6 +130,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		}
 
 		ConfigInstance = ModuleConfiguration.Config;
+		if (ForceEnabled) ModuleConfiguration.Enabled = true;
 
 		if (typeof(D) != typeof(EmptyModuleData))
 		{
@@ -175,8 +169,13 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			DataInstance = Activator.CreateInstance<D>();
 		}
 
+		if (ForceEnabled)
+		{
+			ModuleConfiguration.Enabled = true;
+		}
+
 		Config.WriteObject(ModuleConfiguration);
-		if (DataInstance != null) Data.WriteObject(DataInstance);
+		if (DataInstance != null) Data?.WriteObject(DataInstance);
 	}
 	public virtual void Shutdown()
 	{

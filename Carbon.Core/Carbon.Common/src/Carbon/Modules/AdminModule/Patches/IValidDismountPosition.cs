@@ -1,5 +1,6 @@
-﻿using API.Hooks;
-using UnityEngine;
+﻿#if !MINIMAL
+
+using API.Hooks;
 
 /*
  *
@@ -20,7 +21,7 @@ public partial class AdminModule
 	{
 		public static bool Prefix(BasePlayer player, Vector3 disPos, BaseMountable __instance, ref bool __result)
 		{
-			if (HookCaller.CallStaticHook("IValidDismountPosition", __instance, player) is bool hookResult)
+			if (HookCaller.CallStaticHook(3269023868, __instance, player) is bool hookResult)
 			{
 				__result = hookResult;
 				return false;
@@ -30,3 +31,5 @@ public partial class AdminModule
 		}
 	}
 }
+
+#endif

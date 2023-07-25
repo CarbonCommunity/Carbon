@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using API.Logger;
-using Oxide.Core.Libraries;
+﻿using API.Logger;
 
 /*
  *
@@ -16,7 +13,6 @@ namespace Carbon.Core;
 public class Config
 {
 	public bool AutoUpdateExtHooks { get; set; } = true;
-	public bool HarmonyReference { get; set; } = false;
 	public bool ScriptWatchers { get; set; } = true;
 	public System.IO.SearchOption ScriptWatcherOption { get; set; } = System.IO.SearchOption.TopDirectoryOnly;
 	public bool FileNameCheck { get; set; } = true;

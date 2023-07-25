@@ -1,21 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using API.Commands;
-using API.Hooks;
+﻿using API.Commands;
 using Carbon.Base.Interfaces;
-using Carbon.Components;
-using Carbon.Extensions;
-using Carbon.Plugins;
-using Facepunch;
 using Newtonsoft.Json;
-using Oxide.Core;
-using Oxide.Core.Plugins;
 using Oxide.Game.Rust.Cui;
-using Oxide.Plugins;
-using UnityEngine;
 
 /*
  *
@@ -62,7 +48,7 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void Plugins(ConsoleSystem.Arg arg)
 	{
-		if (!arg.IsPlayerCalledAndAdmin()) return;
+		if (!arg.IsPlayerCalledOrAdmin()) return;
 
 		var mode = arg.HasArgs(1) ? arg.Args[0] : null;
 
@@ -80,42 +66,44 @@ public partial class CorePlugin : CarbonPlugin
 
 				// Loaded plugins
 				{
-					var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Compile Time");
+					using var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Memory Usage", "Compile Time");
 					var count = 1;
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						if (mod.IsCoreMod) continue;
 
-						body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "");
+						body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "", "");
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow($"", plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{plugin.CompileTime:0}ms");
+							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}", $"{plugin.CompileTime:0}ms");
 						}
 
 						count++;
 					}
 
-					result += $"{body.ToStringMinimal()}\n";
+					result += $"{body.Write(StringTable.FormatTypes.None)}\n";
 				}
 
 				// Failed plugins
 				{
-					var body = new StringTable("#", "File", "Errors", "Stack");
-					var count = 1;
-
-					foreach (var mod in ModLoader.FailedMods)
+					using (var body = new StringTable("#", "File", "Errors", "Stack"))
 					{
-						body.AddRow($"{count:n0}", $"{Path.GetFileName(mod.File)}", $"{mod.Errors.Length:n0}", $"{mod.Errors.Select(x => x.Message).ToArray().ToString(", ").Truncate(150, "...")}");
+						var count = 1;
 
-						count++;
+						foreach (var mod in ModLoader.FailedMods)
+						{
+							body.AddRow($"{count:n0}", $"{Path.GetFileName(mod.File)}", $"{mod.Errors.Length:n0}", $"{mod.Errors.Select(x => x.Message).ToArray().ToString(", ").Truncate(75, "...")}");
+
+							count++;
+						}
+
+						result += $"Failed plugins:\n{body.Write(StringTable.FormatTypes.None)}\nTo list the full stack trace of failed plugins, run 'c.pluginsfailed'";
 					}
 
-					result += $"Failed plugins:\n{body.ToStringMinimal()}\nTo list the full stack trace of failed plugins, run 'c.pluginsfailed'";
+					arg.ReplyWith(result);
 				}
-
-				arg.ReplyWith(result);
 				break;
 		}
 	}
@@ -136,16 +124,18 @@ public partial class CorePlugin : CarbonPlugin
 				break;
 
 			default:
-				var body = new StringTable("#", "File");
-				var count = 1;
-
-				foreach (var ignored in Community.Runtime.ScriptProcessor.IgnoreList)
+				using (var body = new StringTable("#", "File"))
 				{
-					body.AddRow($"{count:n0}", $"{ignored}");
-					count++;
-				}
+					var count = 1;
 
-				arg.ReplyWith(body.ToStringMinimal());
+					foreach (var ignored in Community.Runtime.ScriptProcessor.IgnoreList)
+					{
+						body.AddRow($"{count:n0}", $"{ignored}");
+						count++;
+					}
+
+					arg.ReplyWith(body.Write(StringTable.FormatTypes.None));
+				}
 				break;
 		}
 	}
@@ -304,7 +294,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		foreach (var mod in ModLoader.LoadedPackages)
 		{
-			var plugins = Pool.GetList<RustPlugin>();
+			var plugins = Facepunch.Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
 
 			foreach (var plugin in plugins)
@@ -317,7 +307,7 @@ public partial class CorePlugin : CarbonPlugin
 				}
 			}
 
-			Pool.FreeList(ref plugins);
+			Facepunch.Pool.FreeList(ref plugins);
 		}
 	}
 
@@ -340,7 +330,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		foreach (var mod in ModLoader.LoadedPackages)
 		{
-			var plugins = Pool.GetList<RustPlugin>();
+			var plugins = Facepunch.Pool.GetList<RustPlugin>();
 			plugins.AddRange(mod.Plugins);
 
 			foreach (var plugin in plugins)
@@ -353,7 +343,7 @@ public partial class CorePlugin : CarbonPlugin
 				}
 			}
 
-			Pool.FreeList(ref plugins);
+			Facepunch.Pool.FreeList(ref plugins);
 		}
 	}
 
@@ -417,10 +407,6 @@ public partial class CorePlugin : CarbonPlugin
 			Community.Runtime.SaveConfig();
 		}
 	}
-
-	[CommandVar("harmonyreference", "Reference 0Harmony.dll into plugins. Highly not recommended as plugins that patch methods might create a lot of instability to Carbon's core.")]
-	[AuthLevel(2)]
-	private bool HarmonyReference { get { return Community.Runtime.Config.HarmonyReference; } set { Community.Runtime.Config.HarmonyReference = value; Community.Runtime.SaveConfig(); } }
 
 	[CommandVar("debug", "The level of debug logging for Carbon. Helpful for very detailed logs in case things break. (Set it to -1 to disable debug logging.)")]
 	[AuthLevel(2)]
@@ -492,7 +478,7 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void Find(ConsoleSystem.Arg arg)
 	{
-		var body = new StringTable("Command", "Value", "Help");
+		using var body = new StringTable("Console Command", "Value", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
 		foreach (var command in Community.Runtime.CommandManager.ClientConsole)
@@ -512,27 +498,27 @@ public partial class CorePlugin : CarbonPlugin
 				value = new string('*', value.Length);
 			}
 
-			body.AddRow(command.Name, value, command.Help);
+			body.AddRow($" {command.Name}", value, command.Help);
 		}
 
-		arg.ReplyWith($"Console Commands:\n{body.ToStringMinimal()}");
+		arg.ReplyWith(body.Write(StringTable.FormatTypes.None));
 	}
 
 	[ConsoleCommand("findchat", "Searches through Carbon-processed chat commands.")]
 	[AuthLevel(2)]
 	private void FindChat(ConsoleSystem.Arg arg)
 	{
-		var body = new StringTable("Command", "Help");
+		using var body = new StringTable("Chat Command", "Help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
 
 		foreach (var command in Community.Runtime.CommandManager.Chat)
 		{
 			if (command.HasFlag(CommandFlags.Hidden) || (!string.IsNullOrEmpty(filter) && !command.Name.Contains(filter))) continue;
 
-			body.AddRow(command.Name, command.Help);
+			body.AddRow($" {command.Name}", command.Help);
 		}
 
-		arg.ReplyWith($"Chat Commands:\n{body.ToStringMinimal()}");
+		arg.ReplyWith(body.Write(StringTable.FormatTypes.None));
 	}
 
 	#endregion
@@ -562,6 +548,11 @@ public partial class CorePlugin : CarbonPlugin
 		if (module == null)
 		{
 			arg.ReplyWith($"Couldn't find that module. Try 'c.modules' to print them all.");
+			return;
+		}
+		else if (module is BaseModule baseModule && baseModule.ForceEnabled)
+		{
+			arg.ReplyWith($"That module is forcefully enabled, you may not change its status.");
 			return;
 		}
 
@@ -644,12 +635,12 @@ public partial class CorePlugin : CarbonPlugin
 			print.AddRow(hookable.Name, module.GetEnabled() ? "Yes" : "No", $"c.setmodule \"{hookable.Name}\" 0/1");
 		}
 
-		arg.ReplyWith(print.ToStringMinimal());
+		arg.ReplyWith(print.Write(StringTable.FormatTypes.None));
 	}
 
 	#endregion
 
-	#region Mod & Plugin Loading
+	#region Plugin
 
 	[ConsoleCommand("reload", "Reloads all or specific mods / plugins. E.g 'c.reload *' to reload everything.")]
 	[AuthLevel(2)]
@@ -681,7 +672,7 @@ public partial class CorePlugin : CarbonPlugin
 
 				foreach (var mod in ModLoader.LoadedPackages)
 				{
-					var plugins = Pool.GetList<RustPlugin>();
+					var plugins = Facepunch.Pool.GetList<RustPlugin>();
 					plugins.AddRange(mod.Plugins);
 
 					foreach (var plugin in plugins)
@@ -705,7 +696,7 @@ public partial class CorePlugin : CarbonPlugin
 						}
 					}
 
-					Pool.FreeList(ref plugins);
+					Facepunch.Pool.FreeList(ref plugins);
 				}
 
 				if (!pluginFound)
@@ -799,7 +790,7 @@ public partial class CorePlugin : CarbonPlugin
 				// Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
+					var tempList = Facepunch.Pool.GetList<string>();
 
 					foreach (var bufferInstance in Community.Runtime.ScriptProcessor.InstanceBuffer)
 					{
@@ -819,7 +810,7 @@ public partial class CorePlugin : CarbonPlugin
 				// Web-Scripts
 				//
 				{
-					var tempList = Pool.GetList<string>();
+					var tempList = Facepunch.Pool.GetList<string>();
 					tempList.AddRange(Community.Runtime.WebScriptProcessor.IgnoreList);
 					Community.Runtime.WebScriptProcessor.IgnoreList.Clear();
 					Community.Runtime.WebScriptProcessor.Clear();
@@ -828,7 +819,7 @@ public partial class CorePlugin : CarbonPlugin
 					{
 						Community.Runtime.WebScriptProcessor.Ignore(plugin);
 					}
-					Pool.FreeList(ref tempList);
+					Facepunch.Pool.FreeList(ref tempList);
 					break;
 				}
 
@@ -846,7 +837,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
-						var plugins = Pool.GetList<RustPlugin>();
+						var plugins = Facepunch.Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
 
 						foreach (var plugin in plugins)
@@ -867,7 +858,7 @@ public partial class CorePlugin : CarbonPlugin
 							}
 						}
 
-						Pool.FreeList(ref plugins);
+						Facepunch.Pool.FreeList(ref plugins);
 					}
 
 					if (!pluginFound)
@@ -921,7 +912,7 @@ public partial class CorePlugin : CarbonPlugin
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
-						var plugins = Pool.GetList<RustPlugin>();
+						var plugins = Facepunch.Pool.GetList<RustPlugin>();
 						plugins.AddRange(mod.Plugins);
 
 						foreach (var plugin in plugins)
@@ -935,7 +926,7 @@ public partial class CorePlugin : CarbonPlugin
 							}
 						}
 
-						Pool.FreeList(ref plugins);
+						Facepunch.Pool.FreeList(ref plugins);
 					}
 
 					if (!pluginFound)
@@ -1340,7 +1331,6 @@ public partial class CorePlugin : CarbonPlugin
 	}
 
 	#endregion
-
 
 #if DEBUG
 

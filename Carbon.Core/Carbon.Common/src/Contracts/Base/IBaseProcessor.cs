@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Carbon.Contracts
+﻿namespace Carbon.Contracts
 {
 	public interface IBaseProcessor
 	{
@@ -33,7 +30,7 @@ namespace Carbon.Contracts
 		}
 		public interface IParser
 		{
-			void Process(string input, out string output);
+			void Process(string file, string input, out string output);
 		}
 	}
 }

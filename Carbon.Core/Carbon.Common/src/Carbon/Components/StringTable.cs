@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text;
 
 /*
  *
@@ -85,19 +81,26 @@ public struct StringTable : IDisposable
 
 	private string ToStringNone()
 	{
-		using (var builder = new StringBody())
+		using var builder = new StringBody();
+		var columnLengths = ColumnLengths();
+		var format = Format(columnLengths, char.MinValue);
+		var temp1 = Columns.ToArray();
+		var columnHeaders = string.Format(format, temp1);
+		var results = Rows.Select(row => string.Format(format, row));
+
+		builder.Add(columnHeaders);
+
+		foreach(var item in results)
 		{
-			var columnLengths = ColumnLengths();
-			var format = Format(columnLengths, char.MinValue);
-			var columnHeaders = string.Format(format, Columns.ToArray());
-			var results = Rows.Select(row => string.Format(format, row)).ToList();
-
-			builder.Add(columnHeaders);
-			results.ForEach(row => builder.Add(row));
-
-			return builder.ToAppended();
+			builder.Add(item);
 		}
 
+		Array.Clear(temp1, 0, temp1.Length);
+		temp1 = null;
+		results = null;
+		columnLengths.Clear();
+		columnLengths = null;
+		return builder.ToNewLine();
 	}
 
 	private string ToStringDefault()
@@ -105,16 +108,21 @@ public struct StringTable : IDisposable
 		var builder = new StringBuilder();
 
 		var columnLengths = ColumnLengths();
-
 		var format = Enumerable.Range(0, Columns.Count)
 			.Select(i => " | {" + i + ",-" + columnLengths[i] + "}")
 			.Aggregate((s, a) => s + a) + " |";
 
+		var temp1 = Columns.ToArray();
 		var maxRowLength = Math.Max(0, Rows.Any() ? Rows.Max(row => string.Format(format, row).Length) : 0);
-		var columnHeaders = string.Format(format, Columns.ToArray());
+		var columnHeaders = string.Format(format, temp1);
 		var longestLine = Math.Max(maxRowLength, columnHeaders.Length);
-		var results = Rows.Select(row => string.Format(format, row)).ToList();
+		var results = Rows.Select(row => string.Format(format, row));
 		var divider = " " + string.Join("", Enumerable.Repeat("-", longestLine - 1)) + " ";
+
+		Array.Clear(temp1, 0, temp1.Length);
+		temp1 = null;
+		columnLengths.Clear();
+		columnLengths = null;
 
 		builder.AppendLine(divider);
 		builder.AppendLine(columnHeaders);
@@ -148,12 +156,19 @@ public struct StringTable : IDisposable
 		var columnLengths = ColumnLengths();
 		var format = Format(columnLengths, delimiter);
 		var columnHeaders = string.Format(format, Columns.ToArray());
-		var results = Rows.Select(row => string.Format(format, row)).ToList();
+		var results = Rows.Select(row => string.Format(format, row));
 		var divider = Regex.Replace(columnHeaders, @"[^|]", "-");
+
+		columnLengths.Clear();
+		columnLengths = null;
 
 		builder.AppendLine(columnHeaders);
 		builder.AppendLine(divider);
-		results.ForEach(row => builder.AppendLine(row));
+
+		foreach(var item in results)
+		{
+			builder.AppendLine(item);
+		}
 
 		return builder.ToString();
 	}
@@ -167,12 +182,18 @@ public struct StringTable : IDisposable
 	{
 		var builder = new StringBuilder();
 
+		var temp1 = Columns.ToArray();
 		var columnLengths = ColumnLengths();
 		var format = Format(columnLengths);
-		var columnHeaders = string.Format(format, Columns.ToArray());
-		var results = Rows.Select(row => string.Format(format, row)).ToList();
+		var columnHeaders = string.Format(format, temp1);
+		var results = Rows.Select(row => string.Format(format, row));
 		var divider = Regex.Replace(columnHeaders, @"[^|]", "-");
 		var dividerPlus = divider.Replace("|", "+");
+
+		Array.Clear(temp1, 0, temp1.Length);
+		temp1 = null;
+		columnLengths.Clear();
+		columnLengths = null;
 
 		builder.AppendLine(dividerPlus);
 		builder.AppendLine(columnHeaders);
@@ -212,21 +233,15 @@ public struct StringTable : IDisposable
 
 	public string Write(FormatTypes format = FormatTypes.Default)
 	{
-		switch (format)
+		return format switch
 		{
-			case FormatTypes.None:
-				return ToStringNone();
-			case FormatTypes.Default:
-				return ToStringDefault();
-			case FormatTypes.MarkDown:
-				return ToStringMarkDown();
-			case FormatTypes.Alternative:
-				return ToStringAlternative();
-			case FormatTypes.Minimal:
-				return ToStringMinimal();
-			default:
-				throw new ArgumentOutOfRangeException(nameof(format), format, null);
-		}
+			FormatTypes.None => ToStringNone(),
+			FormatTypes.Default => ToStringDefault(),
+			FormatTypes.MarkDown => ToStringMarkDown(),
+			FormatTypes.Alternative => ToStringAlternative(),
+			FormatTypes.Minimal => ToStringMinimal(),
+			_ => throw new ArgumentOutOfRangeException(nameof(format), format, null),
+		};
 	}
 
 	private static string[] GetColumns<T>()

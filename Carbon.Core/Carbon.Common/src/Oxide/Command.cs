@@ -1,18 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using API.Commands;
-using Carbon;
-using Carbon.Base;
-using Carbon.Extensions;
-using Carbon.Plugins;
-using Oxide.Core;
-using Oxide.Core.Libraries;
-using Oxide.Core.Libraries.Covalence;
-using Oxide.Game.Rust.Libraries.Covalence;
-using Oxide.Plugins;
+﻿using API.Commands;
 using static ConsoleSystem;
+using Logger = Carbon.Logger;
 using Pool = Facepunch.Pool;
 
 /*
@@ -288,13 +276,13 @@ namespace Oxide.Game.Rust.Libraries
 				try
 				{
 					var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
-					var client = player == null ? Option.Unrestricted : Option.Client;
+					var client = player == null ? Option.Server : Option.Client;
 					var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 					if (player != null) client = client.FromConnection(player.net.connection);
-					client.FromRcon = FromRcon;
 					arg.Option = client;
 					arg.FullString = fullString;
 					arg.Args = args;
+					arg.cmd = Community.Runtime.CommandManager.Find(command)?.RustCommand;
 
 					try
 					{
@@ -377,7 +365,9 @@ namespace Oxide.Game.Rust.Libraries
 
 							if (!string.IsNullOrEmpty(arg.Reply))
 							{
-								if (player != null) player.ConsoleMessage(arg.Reply); else Logger.Log(arg.Reply);
+								if (player != null) player.ConsoleMessage(arg.Reply);
+								else if (FromRcon) Facepunch.RCon.OnMessage(arg.Reply, string.Empty, UnityEngine.LogType.Log);
+								else Logger.Log(arg.Reply);
 							}
 						}
 					}
@@ -405,13 +395,13 @@ namespace Oxide.Game.Rust.Libraries
 				try
 				{
 					var fullString = args == null || args.Length == 0 ? string.Empty : string.Join(" ", args);
-					var client = player == null ? Option.Unrestricted : Option.Client;
+					var client = player == null ? Option.Server : Option.Client;
 					var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
 					if (player != null) client = client.FromConnection(player.net.connection);
-					client.FromRcon = FromRcon;
 					arg.Option = client;
 					arg.FullString = fullString;
 					arg.Args = args;
+					arg.cmd = Community.Runtime.CommandManager.Find(command)?.RustCommand;
 
 					arguments.Add(arg);
 					result = arguments.ToArray();
@@ -422,7 +412,9 @@ namespace Oxide.Game.Rust.Libraries
 
 						if (!string.IsNullOrEmpty(arg.Reply))
 						{
-							if (player != null) player.ConsoleMessage(arg.Reply); else Logger.Log(arg.Reply);
+							if (player != null) player.ConsoleMessage(arg.Reply);
+							else if(FromRcon) Facepunch.RCon.OnMessage(arg.Reply, string.Empty, UnityEngine.LogType.Log);
+							else Logger.Log(arg.Reply);
 						}
 					}
 				}

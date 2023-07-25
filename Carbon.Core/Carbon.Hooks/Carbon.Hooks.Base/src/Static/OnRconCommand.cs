@@ -46,7 +46,7 @@ public partial class Category_Static
 
 					var arguments = split.Length > 1 ? cmd.Message.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
 
-					if (HookCaller.CallStaticHook("OnRconCommand", cmd.Ip, command, arguments) != null)
+					if (HookCaller.CallStaticHook(3694352140, cmd.Ip, command, arguments) != null)
 					{
 						return false;
 					}
@@ -68,6 +68,8 @@ public partial class Category_Static
 							commandArgs.Token = consoleArg;
 							commandArgs.Type = outCommand.Type;
 							commandArgs.Arguments = arguments;
+							commandArgs.IsRCon = true;
+							commandArgs.IsServer = false;
 
 							Community.Runtime.CommandManager.Execute(outCommand, commandArgs);
 						}

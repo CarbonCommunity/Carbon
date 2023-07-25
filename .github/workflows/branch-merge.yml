@@ -27,6 +27,9 @@ on:
           - preview
           - preproduction
           - production
+          - rust_beta/aux01
+          - rust_beta/aux02
+          - rust_beta/staging
 
 jobs:
   merge:

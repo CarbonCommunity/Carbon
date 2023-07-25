@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Random = System.Random;
 
 /*
  *
@@ -18,10 +18,7 @@ public class RandomEx
 
 	public static string GetRandomString(int size)
 	{
-		if (Random == null)
-		{
-			Random = new Random();
-		}
+		Random ??= new Random(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
 
 		var randomChars = new char[size];
 
@@ -30,15 +27,14 @@ public class RandomEx
 			randomChars[i] = Chars[Random.Next(Chars.Length)];
 		}
 
-		return new string(randomChars);
+		var str = new string(randomChars);
+		Array.Clear(randomChars, 0, randomChars.Length);
+		return str;
 	}
 
 	public static string GetRandomString(int size, string chars)
 	{
-		if (Random == null)
-		{
-			Random = new Random();
-		}
+		Random ??= new Random(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
 
 		var randomChars = new char[size];
 
@@ -47,31 +43,39 @@ public class RandomEx
 			randomChars[i] = chars[Random.Next(chars.Length)];
 		}
 
-		return new string(randomChars);
+		var str = new string(randomChars);
+		Array.Clear(randomChars, 0, randomChars.Length);
+		return str;
 	}
 	public static string GetRandomString(int size, int seed)
 	{
+		Random = null;
 		Random = new Random(seed);
-		var RandomChars = new char[size];
+		var randomChars = new char[size];
 
 		for (var i = 0; i < size; i++)
 		{
-			RandomChars[i] = Chars[Random.Next(Chars.Length)];
+			randomChars[i] = Chars[Random.Next(Chars.Length)];
 		}
 
-		return new string(RandomChars);
+		var str = new string(randomChars);
+		Array.Clear(randomChars, 0, randomChars.Length);
+		return str;
 	}
 	public static string GetRandomString(int size, string chars, int seed)
 	{
+		Random = null;
 		Random = new Random(seed);
-		var RandomChars = new char[size];
+		var randomChars = new char[size];
 
 		for (var i = 0; i < size; i++)
 		{
-			RandomChars[i] = chars[Random.Next(chars.Length)];
+			randomChars[i] = chars[Random.Next(chars.Length)];
 		}
 
-		return new string(RandomChars);
+		var str = new string(randomChars);
+		Array.Clear(randomChars, 0, randomChars.Length);
+		return str;
 	}
 
 	#endregion

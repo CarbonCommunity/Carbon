@@ -19,7 +19,7 @@ public partial class ModerationToolsModule
 	{
 		public static bool Prefix(GameTip.Styles style, Translate.Phrase phrase, string[] arguments)
 		{
-			if (HookCaller.CallStaticHook("IServerEventToasts", style) != null)
+			if (HookCaller.CallStaticHook(318331221, style) != null)
 			{
 				return false;
 			}

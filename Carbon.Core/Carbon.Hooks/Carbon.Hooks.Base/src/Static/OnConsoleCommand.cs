@@ -31,6 +31,7 @@ public partial class Category_Static
 		public class Static_ConsoleSystem_4be71c5d077949cdb88438ec6dabac24 : Patch
 		{
 			internal static string[] EmptyArgs = new string[0];
+			internal const string Space = " ";
 
 			public static bool Prefix(ConsoleSystem.Option options, string strCommand, object[] args)
 			{
@@ -41,6 +42,7 @@ public partial class Category_Static
 					var split = strCommand.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 					var command = split.Length == 0 ? string.Empty : split[0].Trim();
 					var args2 = split.Length > 1 ? strCommand.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
+					var fullString = split.ToString(Space);
 					Array.Clear(split, 0, split.Length);
 
 					if (Community.Runtime.Config.oCommandChecks && command.StartsWith("o.") || command.StartsWith("oxide."))
@@ -57,18 +59,19 @@ public partial class Category_Static
 						if (Community.Runtime.CommandManager.Contains(commands, command, out var cmd))
 						{
 							var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
-							var client = player == null ? Option.Unrestricted : Option.Client;
-							if (player != null) client = client.FromConnection(player.net.connection);
-							client.FromRcon = false;
-							arg.Option = client;
-							arg.FullString = split.ToString(" ");
+							var option = player == null ? Option.Server : Option.Client;
+							if (player != null) option = option.FromConnection(player.net.connection);
+							arg.Option = option;
+							arg.FullString = fullString;
 							arg.Args = args2;
+							arg.cmd = cmd.RustCommand;
 
 							var commandArgs = Facepunch.Pool.Get<PlayerArgs>();
 							commandArgs.Token = arg;
 							commandArgs.Type = cmd.Type;
 							commandArgs.Arguments = args2;
 							commandArgs.Player = player;
+							commandArgs.IsServer = player == null;
 
 							Command.FromRcon = false;
 							Community.Runtime.CommandManager.Execute(cmd, commandArgs);

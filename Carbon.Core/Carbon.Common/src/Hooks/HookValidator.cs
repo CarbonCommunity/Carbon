@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using API.Events;
+﻿using API.Events;
 using Carbon.Oxide.Metadata;
 using Newtonsoft.Json;
 
@@ -42,7 +39,7 @@ public class HookValidator
 		}
 	}
 
-	static readonly string[] IgnoredInternalHooks = new string[]
+	public static readonly string[] IgnoredInternalHooks = new string[]
 	{
 		"OnPlayerDisconnected",
 		"OnPlayerSleepEnded",
@@ -62,34 +59,21 @@ public class HookValidator
 		"OnUserApproved",
 		"OnPlayerChat",
 		"OnUserChat",
-		"OnPlayerOfflineChat"
+		"OnPlayerOfflineChat",
+		"OnServerSave",
+		"OnPlayerKicked",
+		"OnClientAuth",
+		"OnPlayerSetInfo",
+		"OnServerUserRemove",
+		"OnPermissionRegistered",
+		"OnGroupPermissionGranted",
+		"OnGroupPermissionRevoked",
+		"OnGroupCreated",
+		"OnGroupDeleted",
+		"OnGroupTitleSet",
+		"OnGroupRankSet",
+		"OnGroupParentSet"
 	};
-
-	public static bool IsIncompatibleOxideHook(string hook)
-	{
-		if (IgnoredInternalHooks.Contains(hook))
-		{
-			return false;
-		}
-
-		if (Community.Runtime.HookManager.LoadedStaticHooks.Any(x => x.HookName == hook) ||
-			Community.Runtime.HookManager.LoadedDynamicHooks.Any(x => x.HookName == hook)) return false;
-
-		if (OxideHooks != null)
-		{
-			foreach (var manifest in OxideHooks.Manifests)
-			{
-				foreach (var entry in manifest.Hooks)
-				{
-					var hookName = entry.Hook.HookName.Split(' ')[0];
-					if (hookName.Contains("/") || hookName != hook) continue;
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
 
 	private static int OxideHooksCount
 	{

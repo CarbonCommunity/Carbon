@@ -77,6 +77,26 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 		return default;
 	}
 
+	public Command Find(string command)
+	{
+		if (Contains(Chat, command, out var cmd))
+		{
+			return cmd;
+		}
+
+		if (Contains(ClientConsole, command, out cmd))
+		{
+			return cmd;
+		}
+
+		if (Contains(RCon, command, out cmd))
+		{
+			return cmd;
+		}
+
+		return null;
+	}
+
 	public void ClearCommands(Func<Command, bool> condition)
 	{
 		if (condition == null)
@@ -164,11 +184,15 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 
 				if (player != null)
 				{
-					player.ConsoleMessage(args.Reply);
+					player.ConsoleMessage(reply);
+				} 
+				else if(arg.IsRcon)
+				{
+					Facepunch.RCon.OnMessage(reply, string.Empty, UnityEngine.LogType.Log);
 				}
 				else
 				{
-					Debug.Log(args.Reply);
+					Debug.Log(reply);
 				}
 			}
 
@@ -184,7 +208,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 
 	public bool RegisterCommand(Command command, out string reason)
 	{
-		if (command == null)
+		if (command == null || string.IsNullOrEmpty(command.Name))
 		{
 			reason = "Command is null.";
 			return false;
@@ -222,6 +246,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 			return false;
 		}
 
+		command.Dispose();
 		factory.Remove(command);
 
 		reason = "Successfully removed command.";

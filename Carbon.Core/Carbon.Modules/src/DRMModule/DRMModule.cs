@@ -31,22 +31,22 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 		if (GetEnabled())
 		{
-			Dispose();
-
 			foreach (var processor in ConfigInstance.Processors)
 			{
+				processor.Value.Uninitialize();
 				processor.Value.Initialize();
 			}
 		}
 	}
-	public override void Dispose()
+
+	public override void OnDisabled(bool initialized)
 	{
+		base.OnDisabled(initialized);
+
 		foreach (var processor in ConfigInstance.Processors)
 		{
 			processor.Value.Uninitialize();
 		}
-
-		base.Dispose();
 	}
 
 	[ConsoleCommand("drm.request", "Requests the downloading ")]
@@ -118,7 +118,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 		#endregion
 
-		public WebRequests.WebRequest Enqueue(string url, string body, Action<int, string> callback, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, string, Exception> onException = null)
+		public WebRequests.WebRequest Enqueue(string url, string body, Action<int, string> callback, RequestMethod method = RequestMethod.GET, Dictionary<string, string> headers = null, float timeout = 0f, Action<int, object, Exception> onException = null)
 		{
 			return new WebRequests.WebRequest(url, callback, null)
 			{

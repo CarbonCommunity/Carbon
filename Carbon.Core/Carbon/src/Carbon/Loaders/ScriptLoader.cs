@@ -155,7 +155,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (Parser != null)
 		{
-			Parser.Process(Source, out var newSource);
+			Parser.Process(File, Source, out var newSource);
 
 			yield return null;
 
@@ -173,8 +173,8 @@ public class ScriptLoader : IScriptLoader
 		}
 
 		var lines = Source?.Split('\n');
-		var resultReferences = Pool.GetList<string>();
-		var resultRequires = Pool.GetList<string>();
+		var resultReferences = Facepunch.Pool.GetList<string>();
+		var resultRequires = Facepunch.Pool.GetList<string>();
 
 		if (lines != null)
 		{
@@ -215,8 +215,8 @@ public class ScriptLoader : IScriptLoader
 			AsyncLoader.Requires = resultRequires?.ToArray();
 			AsyncLoader.IsExtension = IsExtension;
 		}
-		Pool.FreeList(ref resultReferences);
-		Pool.FreeList(ref resultRequires);
+		Facepunch.Pool.FreeList(ref resultReferences);
+		Facepunch.Pool.FreeList(ref resultRequires);
 
 		if (AsyncLoader != null) HasRequires = AsyncLoader.Requires.Length > 0;
 
@@ -227,7 +227,7 @@ public class ScriptLoader : IScriptLoader
 			yield return null;
 		}
 
-		var requires = Pool.GetList<Plugin>();
+		var requires = Facepunch.Pool.GetList<Plugin>();
 		var noRequiresFound = false;
 		if (AsyncLoader != null)
 		{
@@ -249,7 +249,7 @@ public class ScriptLoader : IScriptLoader
 		{
 			ModLoader.PostBatchFailedRequirees.Add(File);
 			HasFinished = true;
-			Pool.FreeList(ref requires);
+			Facepunch.Pool.FreeList(ref requires);
 			yield break;
 		}
 
@@ -399,10 +399,10 @@ public class ScriptLoader : IScriptLoader
 					ModLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
 					Scripts.Add(plugin);
 
-					Carbon.Components.Report.OnPluginCompiled?.Invoke(plugin.Instance, AsyncLoader.UnsupportedHooks[type]);
+					Carbon.Components.Report.OnPluginCompiled?.Invoke(plugin.Instance);
 
 					Plugin.InternalApplyAllPluginReferences();
-					HookCaller.CallStaticHook("OnPluginLoaded", rustPlugin);
+					HookCaller.CallStaticHook(4143864509, rustPlugin);
 				}
 			}
 			catch (Exception exception)
@@ -414,11 +414,6 @@ public class ScriptLoader : IScriptLoader
 			yield return null;
 		}
 
-		foreach (var uhList in AsyncLoader.UnsupportedHooks)
-		{
-			uhList.Value.Clear();
-		}
-
 		AsyncLoader.Dispose();
 
 		HasFinished = true;
@@ -428,7 +423,7 @@ public class ScriptLoader : IScriptLoader
 			ModLoader.OnPluginProcessFinished();
 		}
 
-		Pool.FreeList(ref requires);
+		Facepunch.Pool.FreeList(ref requires);
 		yield return null;
 	}
 

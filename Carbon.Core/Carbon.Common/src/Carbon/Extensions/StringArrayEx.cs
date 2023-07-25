@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
  *
  */
+
+using Facepunch;
 
 namespace Carbon.Extensions;
 
@@ -19,23 +18,16 @@ public static class StringArrayEx
 	/// <param name="separator">String array to string with this separation between each word.</param>
 	/// <param name="lastSeparator">String array to string with this ending separation between the last word.</param>
 	/// <returns></returns>
-	public static string ToString(this string[] array, string separator, string lastSeparator = null)
+	public static string ToString(this IEnumerable<string> array, string separator, string lastSeparator = null)
 	{
 		if (string.IsNullOrEmpty(lastSeparator)) lastSeparator = separator;
 
-		if (array.Length == 0) { return string.Empty; }
-		if (array.Length == 1) { return array[0]; }
+		var count = array.Count();
+		if (count == 0) { return string.Empty; }
+		if (count == 1) { return array.First(); }
 
-		var str = "";
-
-		var iArray = new List<string>();
-		for (var i = 0; i < array.Length - 1; i++)
-		{
-			iArray.Add(array[i]);
-		}
-
-		str = string.Join(separator, iArray.ToArray());
-		str += string.Format("{0}{1}", lastSeparator, array[array.Length - 1]);
+		var str = string.Join(separator, array.Take(count - 1));
+		str += string.Format("{0}{1}", lastSeparator, array.ElementAt(count - 1));
 
 		return str;
 	}
@@ -48,17 +40,18 @@ public static class StringArrayEx
 	/// <param name="separator">String array to string with this separation between each word.</param>
 	/// <param name="throwError">Return an error if errored about start index over it's length, if the case.</param>
 	/// <returns></returns>
-	public static string ToString(this string[] array, int startIndex, string separator = " ", bool throwError = false)
+	public static string ToString(this IEnumerable<string> array, int startIndex, string separator = " ", bool throwError = false)
 	{
-		if (array.Length == 0) { return string.Empty; }
-		if (array.Length == 1) { return array[0]; }
+		var count = array.Count();
+		if (count == 0) { return string.Empty; }
+		if (count == 1) { return array.First(); }
 
-		if (startIndex > array.Length)
+		if (startIndex > count)
 		{
-			return throwError ? string.Format("ERROR! The start index ({0}) is over the length of the arguments ({1}).", startIndex, array.Length) : null;
+			return throwError ? string.Format("ERROR! The start index ({0}) is over the length of the arguments ({1}).", startIndex, count) : null;
 		}
 
-		return string.Join(separator, array, startIndex, array.Length - startIndex);
+		return string.Join(separator, array, startIndex, count - startIndex);
 	}
 
 	/// <summary>
@@ -70,28 +63,20 @@ public static class StringArrayEx
 	/// <param name="lastSeparator">String array to string with this ending separation between the last word.</param>
 	/// <param name="throwError">Return an error if errored about start index over it's length, if the case.</param>
 	/// <returns></returns>
-	public static string ToString(this string[] array, int startIndex, string separator, string lastSeparator = null, bool throwError = false)
+	public static string ToString(this IEnumerable<string> array, int startIndex, string separator, string lastSeparator = null, bool throwError = false)
 	{
 		if (lastSeparator == null) lastSeparator = separator;
 
-		if (array.Length == 0) { return string.Empty; }
-		if (array.Length == 1) { return array[0]; }
+		var count = array.Count();
+		if (count == 0) { return string.Empty; }
+		if (count == 1) { return array.First(); }
 
-		if (startIndex > array.Length)
+		if (startIndex > count)
 		{
-			return throwError ? string.Format("ERROR! The start index ({0}) is over the length of the arguments ({1}).", startIndex, array.Length) : null;
+			return throwError ? string.Format("ERROR! The start index ({0}) is over the length of the arguments ({1}).", startIndex, count) : null;
 		}
 
-		var str = "";
-
-		var iArray = new List<string>();
-		for (var i = 0; i < array.Length - 1; i++)
-		{
-			iArray.Add(array[i]);
-		}
-
-		str = string.Join(separator, iArray.ToArray(), startIndex, iArray.Count - startIndex);
-		str += string.Format("{0}{1}", lastSeparator, array[array.Length - 1]);
+		var str = string.Join(separator, array, startIndex, count - startIndex) + string.Format("{0}{1}", lastSeparator, array.ElementAt(count - 1));
 
 		return str;
 	}
@@ -105,16 +90,20 @@ public static class StringArrayEx
 	public static string[] Split(this string text, int chunkSize, bool includeLeftovers = true)
 	{
 		var splits = Enumerable.Range(0, text.Length / chunkSize)
-			.Select(i => text.Substring(i * chunkSize, chunkSize)).ToArray();
+			.Select(i => text.Substring(i * chunkSize, chunkSize));
 
-		var remainingText = text.Replace(splits.ToArray().ToString(""), "");
-		var splitsList = splits.ToList();
+		var remainingText = text.Replace(splits.ToString(""), "");
+		var splitsList = Pool.GetList<string>();
+		splitsList.AddRange(splits);
 
 		if (includeLeftovers && !string.IsNullOrEmpty(remainingText))
 		{
 			splitsList.Add(remainingText);
 		}
 
-		return splitsList.ToArray();
+		var result = splitsList.ToArray();
+		Pool.FreeList(ref splitsList);
+
+		return result;
 	}
 }

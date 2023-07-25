@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-/*
+﻿/*
  *
  * Copyright (c) 2022-2023 Carbon Community 
  * All rights reserved.
@@ -103,6 +99,10 @@ public class OsEx
 			return null;
 		}
 
+		public static readonly string EMPTY_STRING = string.Empty;
+		public static readonly string[] EMPTY_STRARRAY = new string[0];
+		public static readonly byte[] EMPTY_BYTEARRAY = new byte[0];
+
 		public static string ReadText(string file)
 		{
 			if (!string.IsNullOrEmpty(file))
@@ -113,7 +113,7 @@ public class OsEx
 				}
 			}
 
-			return string.Empty;
+			return EMPTY_STRING;
 		}
 		public static string[] ReadTextLines(string file)
 		{
@@ -125,7 +125,7 @@ public class OsEx
 				}
 			}
 
-			return new string[0];
+			return EMPTY_STRARRAY;
 		}
 		public static byte[] ReadBytes(string file)
 		{
@@ -137,7 +137,7 @@ public class OsEx
 				}
 			}
 
-			return new byte[0];
+			return EMPTY_BYTEARRAY;
 		}
 	}
 
@@ -353,7 +353,6 @@ public class OsEx
 
 			return fileOrFolder;
 		}
-
 		public static string Move(string fileOrFolder, string destination, bool subdirectories = true, bool overwrite = true)
 		{
 			if (!string.IsNullOrEmpty(fileOrFolder) && !string.IsNullOrEmpty(destination))
