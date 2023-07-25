@@ -300,7 +300,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 	}
 	public class Parser
 	{
-		public virtual void Process(string input, out string output)
+		public virtual void Process(string file, string input, out string output)
 		{
 			output = null;
 		}

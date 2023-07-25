@@ -155,7 +155,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (Parser != null)
 		{
-			Parser.Process(Source, out var newSource);
+			Parser.Process(File, Source, out var newSource);
 
 			yield return null;
 

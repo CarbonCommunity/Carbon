@@ -13,7 +13,7 @@ public struct TimeMeasure : IDisposable
 	internal string _name;
 	internal string _warn;
 	internal int _miliseconds;
-	internal int _timeSince;
+	internal int _currentValue;
 #endif
 
 	public static TimeMeasure New(string name, int miliseconds = 75, string warn = null)
@@ -23,7 +23,7 @@ public struct TimeMeasure : IDisposable
 		result._name = name;
 		result._warn = warn;
 		result._miliseconds = miliseconds;
-		result._timeSince = Environment.TickCount;
+		result._currentValue = Environment.TickCount;
 		return result;
 #else
 		return default;
@@ -33,12 +33,12 @@ public struct TimeMeasure : IDisposable
 	public void Dispose()
 	{
 #if DEBUG
-		var num = Environment.TickCount;
+		var difference = Environment.TickCount - _currentValue;
 
-		if (Mathf.Abs(Environment.TickCount - num) >= _miliseconds)
+		if (difference > _miliseconds)
 		{
 			Carbon.Logger.Warn(
-				$" {_name} took {num:0}ms [abv {_miliseconds}]{(string.IsNullOrEmpty(_warn) ? "" : (": " + _warn))}");
+				$" {_name} took {difference:0}ms [abv {_miliseconds}]{(string.IsNullOrEmpty(_warn) ? "" : (": " + _warn))}");
 		}
 #endif
 	}

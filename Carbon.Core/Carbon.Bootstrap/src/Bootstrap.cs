@@ -4,6 +4,7 @@ using System.Reflection;
 using API.Commands;
 using API.Events;
 using Components;
+using Facepunch;
 using Utility;
 
 /*
@@ -131,12 +132,44 @@ public sealed class Bootstrap
 			Callback = (arg) => arg.ReplyWith(Analytics.InformationalVersion)
 		}, out string _);
 
+		var versionArg = new Action<Command.Args>((arg) =>
+		{
+			if (arg.IsServer)
+			{
+				arg.ReplyWith($"Carbon" +
+#if MINIMAL
+					$" Minimal" +
+#endif
+					$" {Analytics.Version}/{Analytics.Platform}/{Analytics.Protocol} on Rust {BuildInfo.Current.Build.Number}/{Rust.Protocol.printable}");
+			}
+			else
+			{
+				arg.ReplyWith($"Carbon" +
+#if MINIMAL
+					$" Minimal" +
+#endif
+					$" <color=#d14419>{Analytics.Version}/{Analytics.Platform}/{Analytics.Protocol}</color> on Rust <color=#d14419>{BuildInfo.Current.Build.Number}/{Rust.Protocol.printable}</color>.");
+			
+			}
+		});
+
 		Commands.RegisterCommand(new Command.RCon
 		{
 			Name = "c.version",
-			Callback = (arg) => arg.ReplyWith($"Carbon v{Analytics.Version}")
+			Callback = versionArg
 		}, out string _);
 		Commands.RegisterCommand(new Command.RCon
+		{
+			Name = "carbon.version",
+			Callback = (arg) => arg.ReplyWith($"Carbon v{Analytics.Version}")
+		}, out string _);
+
+		Commands.RegisterCommand(new Command.ClientConsole
+		{
+			Name = "c.version",
+			Callback = versionArg
+		}, out string _);
+		Commands.RegisterCommand(new Command.ClientConsole
 		{
 			Name = "carbon.version",
 			Callback = (arg) => arg.ReplyWith($"Carbon v{Analytics.Version}")

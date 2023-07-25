@@ -184,11 +184,15 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 
 				if (player != null)
 				{
-					player.ConsoleMessage(args.Reply);
+					player.ConsoleMessage(reply);
+				} 
+				else if(arg.IsRcon)
+				{
+					Facepunch.RCon.OnMessage(reply, string.Empty, UnityEngine.LogType.Log);
 				}
 				else
 				{
-					Debug.Log(args.Reply);
+					Debug.Log(reply);
 				}
 			}
 
