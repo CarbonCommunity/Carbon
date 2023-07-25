@@ -638,12 +638,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var image = cui.CreatePanel(container, parent, null, "1 1 1 1", xMin: 0.12f, xMax: 0.45f, yMin: 0.2f, yMax: 0.8f);
 
 					cui.QueueImages(vendor.Logo);
-					var qr = cui.CreateQRCodeImage(container, image, null, auth.AuthRequestEndpoint,
+					var code = string.Format(auth.AuthRequestEndpoint, auth.AuthCode);
+					var qr = cui.CreateQRCodeImage(container, image, null, code,
 						brandUrl: vendor.Logo,
 						brandColor: "0 0 0 1",
 						brandBgColor: "1 1 1 1", 15, true, true, "0 0 0 1", xMin: 0, xMax: 1, yMin: 0, yMax: 1);
 					var authUrl = cui.CreatePanel(container, image, null, "0.1 0.1 0.1 0.8", yMax: 0, OyMin: -20);
-					cui.CreateInputField(container, authUrl, null, "1 1 1 1", auth.AuthRequestEndpoint.Replace("https://", string.Empty), 9, 0, true);
+					cui.CreateInputField(container, authUrl, null, "1 1 1 1", code.Replace("https://", string.Empty), 9, 0, true);
 
 					if (auth.User.PendingResult != LoggedInUser.RequestResult.None)
 					{
@@ -652,19 +653,17 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						switch (auth.User.PendingResult)
 						{
-							case LoggedInUser.RequestResult.Processing:
-								icon = "reload";
-								color = "1 1 1 0.3";
-								break;
-
 							case LoggedInUser.RequestResult.Complete:
 								icon = "checkmark";
 								color = "#81c740";
 								break;
 						}
 
-						cui.CreatePanel(container, image, null, "0 0 0 0.4", blur: true);
-						cui.CreateImage(container, image, null, icon, color, xMin: 0.3f, xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
+						if (!string.IsNullOrEmpty(icon))
+						{
+							cui.CreatePanel(container, image, null, "0 0 0 0.4", blur: true);
+							cui.CreateImage(container, image, null, icon, color, xMin: 0.3f, xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
+						}
 					}
 
 					cui.CreateText(container, parent, null, "1 1 1 1", $"{vendor.Type} Auth", 25, xMin: 0.51f, yMax: 0.75f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
@@ -1081,10 +1080,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			#region Auth
 
-			[ProtoBuf.ProtoMember(50)]
+			[ProtoBuf.ProtoMember(50, IsRequired = false)]
 			public LoggedInUser User { get; set; }
 
-			public string AuthRequestEndpoint => "https://codefling.com/auth";
+			public string AuthRequestEndpoint => "https://codefling.com/auth/?code={0}";
 			public string AuthValidationEndpoint => "https://codefling.com/auth/bearer?code={0}";
 			public string AuthUserInfoEndpoint => "https://codefling.com/api/core/me";
 			public string AuthOwnedPluginsEndpoint => "https://codefling.com/api/nexus/purchases?perPage=100000&itemType=file&itemApp=downloads";
