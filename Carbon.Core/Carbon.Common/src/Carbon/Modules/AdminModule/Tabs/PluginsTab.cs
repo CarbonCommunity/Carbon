@@ -989,6 +989,20 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 									const string sourceExtension = ".cs";
 									const string dllExtension = ".dll";
+									const string jsonExtension = ".json";
+									const string dataFolder = "data";
+									const string configFolder = "config";
+
+									static void StoreFile(ZipArchiveEntry entry, string path, string context)
+									{
+										using var memoryStream = new MemoryStream();
+										using var entryStream = entry.Open();
+										entryStream.CopyTo(memoryStream);
+										var bytes = memoryStream.ToArray();
+
+										OsEx.File.Create(path, bytes);
+										Singleton.Puts($" Extracted plugin {context} file '{entry.Name}'");
+									}
 
 									foreach (var file in zip.Entries)
 									{
@@ -1006,13 +1020,30 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 											case dllExtension:
 												{
-													using var memoryStream = new MemoryStream();
-													using var entryStream = file.Open();
-													entryStream.CopyTo(memoryStream);
-													var bytes = memoryStream.ToArray();
+													StoreFile(file, Path.Combine(Defines.GetLibFolder(), file.Name), "extension");
+												}
+												break;
 
-													OsEx.File.Create(Path.Combine(Defines.GetLibFolder(), file.Name), bytes);
-													Singleton.Puts($" Extracted plugin extension file {file.Name}");
+											case jsonExtension:
+												{
+													switch (file.FullName)
+													{
+														case var data when data.Contains(dataFolder):
+															{
+																var offsetIndex = data.IndexOf(dataFolder) + 5;
+																var subFolder = Path.GetDirectoryName(data[offsetIndex..]);
+																StoreFile(file, Path.Combine(Defines.GetDataFolder(), subFolder, file.Name), "data");
+															}
+															break;
+
+														case var config when config.Contains(configFolder):
+															{
+																var offsetIndex = config.IndexOf(configFolder) + 5;
+																var subFolder = Path.GetDirectoryName(config[offsetIndex..]);
+																StoreFile(file, Path.Combine(Defines.GetConfigsFolder(), subFolder, file.Name), "config");
+															}
+															break;
+													}
 												}
 												break;
 										}
