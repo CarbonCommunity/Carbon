@@ -1083,7 +1083,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			[ProtoBuf.ProtoMember(50, IsRequired = false)]
 			public LoggedInUser User { get; set; }
 
-			public string AuthRequestEndpoint => "https://codefling.com/auth/?code={0}";
+			public string AuthRequestEndpoint => "https://codefling.com/auth/?pin={0}";
 			public string AuthValidationEndpoint => "https://codefling.com/auth/bearer?code={0}";
 			public string AuthUserInfoEndpoint => "https://codefling.com/api/core/me";
 			public string AuthOwnedPluginsEndpoint => "https://codefling.com/api/nexus/purchases?perPage=100000&itemType=file&itemApp=downloads";
