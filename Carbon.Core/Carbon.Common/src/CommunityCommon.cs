@@ -270,7 +270,11 @@ public class Community
             Analytics.Version;
 #endif
 
-		ServerConsole.Instance.input.statusText[3] = $" Carbon v{version}, {ModLoader.LoadedPackages.Count:n0} mods, {ModLoader.LoadedPackages.Sum(x => x.Plugins.Count):n0} plgs";
+		ServerConsole.Instance.input.statusText[3] = $" Carbon" +
+#if MINIMAL
+			$" Minimal" +
+#endif
+			$" v{version}, {ModLoader.LoadedPackages.Count:n0} mods, {ModLoader.LoadedPackages.Sum(x => x.Plugins.Count):n0} plgs";
 #endif
 	}
 

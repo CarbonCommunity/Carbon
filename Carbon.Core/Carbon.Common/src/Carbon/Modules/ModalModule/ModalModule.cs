@@ -14,7 +14,7 @@ using static ConsoleSystem;
 
 namespace Carbon.Modules;
 
-public partial class ModalModule : CarbonModule<AdminConfig, AdminData>
+public partial class ModalModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 {
 	public static ModalModule Instance { get; internal set; }
 	public AdminModule Admin { get; internal set; }
@@ -161,7 +161,7 @@ public partial class ModalModule : CarbonModule<AdminConfig, AdminData>
 					case Field.FieldTypes.Integer:
 					case Field.FieldTypes.ULong:
 						var value = field.Value.Value?.ToString();
-						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: Instance.Admin.HandleEnableNeedsKeyboard(Player));
+						cui.CreateProtectedInputField(container, option, null, textColor, value, 15, 256, false, xMin: 0.025f, align: TextAnchor.MiddleLeft, command: $"modal.action {field.Key}", needsKeyboard: true);
 						break;
 
 					case Field.FieldTypes.Boolean:

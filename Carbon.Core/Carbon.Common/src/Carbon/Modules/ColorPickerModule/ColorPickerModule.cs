@@ -46,7 +46,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		var ap = Admin.GetPlayerSession(player);
 		ap.SetStorage(ap.SelectedTab, Alpha, 1f);
 
-		if (!Admin.ModuleConfiguration.Enabled)
+		if (!ModuleConfiguration.Enabled)
 		{
 			var empty = string.Empty;
 			onColorPicked?.Invoke(empty, empty, 1f);
@@ -61,8 +61,8 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 	{
 		var ap = Admin.GetPlayerSession(player);
 
-		Admin.Handler.Destroy(PanelId, player);
-		Admin.Handler.Destroy(PanelCursorLockId, player);
+		Handler.Destroy(PanelId, player);
+		Handler.Destroy(PanelCursorLockId, player);
 
 		ap.SetStorage(ap.SelectedTab, FirstOpen, false);
 	}
@@ -79,7 +79,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		var brightness = ap.GetStorage(ap.SelectedTab, Brightness, 1f);
 		var firstOpen = ap.GetStorage(ap.SelectedTab, FirstOpen, false);
 
-		using var cui = new CUI(Admin.Handler);
+		using var cui = new CUI(Handler);
 
 		var container = cui.CreateContainer(PanelId,
 			color: "0 0 0 0.75",
@@ -138,7 +138,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		var input = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
 			xMin: 0.805f, xMax: 0.94f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
 		cui.CreateProtectedInputField(container, input, null, "1 1 1 1", "#", 10, 0, false,
-			xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: Admin.HandleEnableNeedsKeyboard(ap));
+			xMin: 0.075f, command: PanelId + ".pickhexcolor ", align: TextAnchor.MiddleLeft, needsKeyboard: true);
 
 		//
 		// Alpha input field
@@ -146,7 +146,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		var alpha = cui.CreatePanel(container, parent: main, id: null, "0.1 0.1 0.1 0.5",
 			xMin: 0.015f, xMax: 0.14f, yMin: 0.085f, yMax: 0.15f, OyMin: -30, OyMax: -30);
 		cui.CreateProtectedInputField(container, alpha, null, "1 1 1 1", $"{alphaValue}", 10, 0, false,
-			xMin: 0.075f, command: PanelId + ".pickalpha", align: TextAnchor.MiddleRight, needsKeyboard: Admin.HandleEnableNeedsKeyboard(ap));
+			xMin: 0.075f, command: PanelId + ".pickalpha", align: TextAnchor.MiddleRight, needsKeyboard: true);
 
 		var picker = cui.CreatePanel(container, parent: main, id: PanelId + ".picker",
 			color: "0 0 0 0",

@@ -57,6 +57,13 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 	public string Platform
 	{ get => _platform.Value; }
 
+	public bool IsMinimalBuild =>
+#if MINIMAL
+		true;
+#else
+		false;
+#endif
+
 	private static readonly Lazy<string> _platform = new(() =>
 	{
 		return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) switch
