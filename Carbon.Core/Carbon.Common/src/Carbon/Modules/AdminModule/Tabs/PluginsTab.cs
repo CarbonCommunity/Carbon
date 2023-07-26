@@ -644,7 +644,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						brandColor: "0 0 0 1",
 						brandBgColor: "1 1 1 1", 15, true, true, "0 0 0 1", xMin: 0, xMax: 1, yMin: 0, yMax: 1);
 					var authUrl = cui.CreatePanel(container, image, null, "0.1 0.1 0.1 0.8", yMax: 0, OyMin: -20);
-					cui.CreateInputField(container, authUrl, null, "1 1 1 1", code.Replace("https://", string.Empty), 9, 0, true);
+					cui.CreateInputField(container, authUrl, null, "1 1 1 1", auth.AuthRequestEndpointPreview, 9, 0, true);
 
 					if (auth.User.PendingResult != LoggedInUser.RequestResult.None)
 					{
@@ -674,7 +674,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						xMin: 0.5f, xMax: 0.8f,
 						yMin: 0.21f, yMax: 0.31f);
 
-					cui.CreateInputField(container, pan, null, "1 1 1 1", auth.AuthCode/*.SpacedString(1)*/, 30, 0, true,
+					cui.CreateInputField(container, pan, null, "1 1 1 1", auth.AuthCode, 30, 0, true,
 						xMin: 0.05f,
 						align: TextAnchor.MiddleLeft,
 						font: CUI.Handler.FontTypes.RobotoCondensedBold);
@@ -743,6 +743,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			public string AuthCode { get; set; }
 			public string AuthRequestEndpoint { get; }
+			public string AuthRequestEndpointPreview { get; }
 			public string AuthValidationEndpoint { get; }
 			public string AuthUserInfoEndpoint { get; }
 			public string AuthOwnedPluginsEndpoint { get; }
@@ -1115,6 +1116,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			public LoggedInUser User { get; set; }
 
 			public string AuthRequestEndpoint => "https://codefling.com/auth/?pin={0}";
+			public string AuthRequestEndpointPreview => "codefling.com/auth";
 			public string AuthValidationEndpoint => "https://codefling.com/auth/bearer?code={0}";
 			public string AuthUserInfoEndpoint => "https://codefling.com/api/core/me";
 			public string AuthOwnedPluginsEndpoint => "https://codefling.com/api/nexus/purchases?perPage=100000&itemType=file&itemApp=downloads";
