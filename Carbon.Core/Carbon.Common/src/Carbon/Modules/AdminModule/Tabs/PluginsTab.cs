@@ -967,7 +967,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						[AuthHeader.Key.ToString()] = string.Format(AuthHeader.Value, User.AccessToken)
 					};
-
 					var extension = Path.GetExtension(plugin.File);
 
 					switch (extension)
@@ -1210,7 +1209,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							}, core, headers: headers);
 							break;
 					}
-				}, core, headers: headers);
+				}, core, headers: headers, onException: (code, result, ex) =>
+				{
+					User = null;
+					Refresh();
+					Save();
+					Singleton.Draw(session.Player);
+				});
 			}
 
 			public bool IsLoggedIn => User != null;
