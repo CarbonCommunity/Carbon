@@ -1,4 +1,6 @@
-﻿using API.Hooks;
+﻿#if !MINIMAL
+
+using API.Hooks;
 
 /*
  *
@@ -29,3 +31,5 @@ public partial class AdminModule
 		}
 	}
 }
+
+#endif

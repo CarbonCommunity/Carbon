@@ -69,6 +69,7 @@ public partial class Category_Static
 							commandArgs.Type = outCommand.Type;
 							commandArgs.Arguments = arguments;
 							commandArgs.IsRCon = true;
+							commandArgs.IsServer = false;
 
 							Community.Runtime.CommandManager.Execute(outCommand, commandArgs);
 						}

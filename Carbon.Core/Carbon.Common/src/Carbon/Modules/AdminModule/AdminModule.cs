@@ -19,8 +19,13 @@ using StringEx = Carbon.Extensions.StringEx;
 namespace Carbon.Modules;
 #pragma warning disable IDE0051
 
-public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
+public partial class AdminModule
+#if !MINIMAL
+	: CarbonModule<AdminConfig, AdminData>
+#endif
 {
+#if !MINIMAL
+
 	internal static AdminModule Singleton { get; set; }
 
 	public override string Name => "Admin";
@@ -42,7 +47,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	internal readonly string[] EmptyElement = new string[] { string.Empty };
 
 	internal List<Tab> Tabs = new();
-	internal Dictionary<BasePlayer, PlayerSession> AdminPlayers = new();
 
 	const string PanelId = "carbonmodularui";
 	const string CursorPanelId = "carbonmodularuicur";
@@ -1402,7 +1406,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		ap.IsInMenu = false;
 
 		var noneInMenu = true;
-		foreach (var admin in AdminPlayers)
+		foreach (var admin in PlayerSessions)
 		{
 			if (admin.Value.IsInMenu)
 			{
@@ -1451,14 +1455,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		Tabs.Clear();
 	}
 
-	public PlayerSession GetPlayerSession(BasePlayer player)
-	{
-		if (AdminPlayers.TryGetValue(player, out PlayerSession adminPlayer)) return adminPlayer;
-
-		adminPlayer = new PlayerSession(player);
-		AdminPlayers.Add(player, adminPlayer);
-		return adminPlayer;
-	}
 	public void SetTab(BasePlayer player, string id, bool onChange = true)
 	{
 		var ap = GetPlayerSession(player);
@@ -1684,6 +1680,19 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	}
 
 	#endregion
+
+#endif
+
+	internal Dictionary<BasePlayer, PlayerSession> PlayerSessions = new();
+
+	public PlayerSession GetPlayerSession(BasePlayer player)
+	{
+		if (PlayerSessions.TryGetValue(player, out PlayerSession adminPlayer)) return adminPlayer;
+
+		adminPlayer = new PlayerSession(player);
+		PlayerSessions.Add(player, adminPlayer);
+		return adminPlayer;
+	}
 
 	public class PlayerSession : IDisposable
 	{
@@ -1945,10 +1954,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			Dialog = new TabDialog(title, onConfirm, onDecline);
 		}
-		public void CreateModal(BasePlayer player, string title, Dictionary<string, ModalModule.Modal.Field> fields, Action<BasePlayer, ModalModule.Modal> onConfirm = null, Action onCancel = null)
-		{
-			Singleton.Modal.Open(player, title, fields, onConfirm, onCancel);
-		}
 
 		public void Dispose()
 		{
@@ -2177,6 +2182,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	{
 		public DynamicTab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange) { }
 	}
+
+#if !MINIMAL
 
 	#region Core Tabs
 
@@ -2817,7 +2824,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	#endregion
 
 	#endregion
+
+#endif
 }
+
+#if !MINIMAL
 
 public class AdminConfig
 {
@@ -2842,3 +2853,5 @@ public class AdminData
 
 	}
 }
+
+#endif
