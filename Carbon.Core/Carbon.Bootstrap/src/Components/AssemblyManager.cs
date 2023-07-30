@@ -208,6 +208,8 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Rust.UI",
 		"Rust.Workshop",
 		"Rust.World",
+		"Rust.Clans",
+		"Rust.Clans.Local",
 
 		"Unity.Mathematics",
 		"Unity.Timeline",

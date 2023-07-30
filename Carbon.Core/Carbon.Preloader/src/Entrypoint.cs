@@ -40,23 +40,33 @@ public sealed class Entrypoint
 			isolated2.Do.Write();
 		}
 
-		using Sandbox<FacepunchConsole> isolated4 = new Sandbox<FacepunchConsole>();
+		using Sandbox<FacepunchConsole> isolated3 = new Sandbox<FacepunchConsole>();
 		{
-			if (!isolated4.Do.IsPublic("ConsoleSystem/Index", "All"))
+			if (!isolated3.Do.IsPublic("ConsoleSystem/Index", "All"))
 			{
-				isolated4.Do.Patch();
-				isolated4.Do.Write();
+				isolated3.Do.Patch();
+				isolated3.Do.Write();
 			}
 		}
 
-		using Sandbox<FacepunchNetwork> isolated3 = new Sandbox<FacepunchNetwork>();
+		using Sandbox<FacepunchNetwork> isolated4 = new Sandbox<FacepunchNetwork>();
 		{
-			if(!isolated3.Do.IsPublic("Networkable", "sv"))
+			if(!isolated4.Do.IsPublic("Networkable", "sv"))
 			{
-				isolated3.Do.Publicize();
+				isolated4.Do.Publicize();
 			}
 
-			isolated3.Do.Write();
+			isolated4.Do.Write();
+		}
+
+		using Sandbox<RustClansLocal> isolated5 = new Sandbox<RustClansLocal>();
+		{
+			if (!isolated5.Do.IsPublic("LocalClanDatabase"))
+			{
+				isolated5.Do.Publicize();
+			}
+
+			isolated5.Do.Write();
 		}
 
 		foreach (string file in Preload)
