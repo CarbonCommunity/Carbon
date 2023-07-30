@@ -139,21 +139,6 @@ internal sealed class RustClansLocal : MarshalByRefObject
 			Publicize(childType, ctor);
 	}
 
-	internal void Patch()
-	{
-		try
-		{
-			Override_Harmony_Methods();
-			Add_Bootstrap_Tier0_Hook();
-			Add_the_Fucking_IPlayer_shit();
-		}
-		catch (System.Exception ex)
-		{
-			Logger.Error(ex.Message);
-			throw ex;
-		}
-	}
-
 	internal void Write()
 	{
 		try
