@@ -135,7 +135,7 @@ public sealed class Bootstrap
 		{
 			if (arg.IsServer)
 			{
-				arg.ReplyWith($"Running Carbon" +
+				arg.ReplyWith($"Carbon" +
 #if MINIMAL
 					$" Minimal" +
 #endif
@@ -143,7 +143,7 @@ public sealed class Bootstrap
 			}
 			else
 			{
-				arg.ReplyWith($"Running Carbon" +
+				arg.ReplyWith($"Carbon" +
 #if MINIMAL
 					$" Minimal" +
 #endif

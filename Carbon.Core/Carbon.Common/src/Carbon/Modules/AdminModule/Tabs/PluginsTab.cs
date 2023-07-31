@@ -496,9 +496,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					if (Singleton.ImageDatabase.GetImage(selectedPlugin.Image) == 0) cui.CreateClientImage(container, image, null, selectedPlugin.Image, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 					else cui.CreateImage(container, image, null, selectedPlugin.Image, selectedPlugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 				}
-				cui.CreateText(container, mainPanel, null, "1 1 1 1", selectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
+				var pluginName = cui.CreateText(container, mainPanel, null, "1 1 1 1", selectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
 				cui.CreateText(container, mainPanel, null, "1 1 1 0.5", $"by <b>{selectedPlugin.Author}</b>  <b>•</b>  v{selectedPlugin.Version}  <b>•</b>  Updated on {selectedPlugin.UpdateDate}  <b>•</b>  {selectedPlugin.DownloadCount:n0} downloads", 11, xMin: 0.48f, yMax: 0.74f, align: TextAnchor.UpperLeft);
 				cui.CreateText(container, mainPanel, null, "1 1 1 0.3", $"{(!selectedPlugin.HasLookup ? "Fetching metdata..." : $"{selectedPlugin.Description}\n\n{selectedPlugin.Changelog}")}", 11, xMin: 0.48f, xMax: 0.85f, yMax: 0.635f, align: TextAnchor.UpperLeft);
+
+				const float badgeYMin = 5;
+				const float badgeYMax = 20;
+
+				var priceBadge = cui.CreatePanel(container, pluginName, null, "0.3 0.4 0.9 0.25", xMax: 0f, yMin: 1, OyMin: badgeYMin, OyMax: badgeYMax, OxMax: 40);
+				cui.CreateText(container, priceBadge, null, "0.4 0.5 1 1", selectedPlugin.OriginalPrice, 8);
+
+				if (selectedPlugin.Owned)
+				{
+					var ownedBadge = cui.CreatePanel(container, pluginName, null, "0.9 0.4 0.3 0.25", xMax: 0f, yMin: 1, OyMin: badgeYMin, OyMax: badgeYMax, OxMin: 42, OxMax: 90);
+					cui.CreateText(container, ownedBadge, null, "1 0.5 0.4 1", "★ OWNED", 8);
+				}
 
 				cui.CreateProtectedButton(container, mainPanel, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, align: TextAnchor.MiddleCenter, command: "pluginbrowser.deselectplugin");
 
@@ -638,12 +650,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					var image = cui.CreatePanel(container, parent, null, "1 1 1 1", xMin: 0.12f, xMax: 0.45f, yMin: 0.2f, yMax: 0.8f);
 
 					cui.QueueImages(vendor.Logo);
-					var qr = cui.CreateQRCodeImage(container, image, null, auth.AuthRequestEndpoint,
+					var code = string.Format(auth.AuthRequestEndpoint, auth.AuthCode);
+					var qr = cui.CreateQRCodeImage(container, image, null, code,
 						brandUrl: vendor.Logo,
 						brandColor: "0 0 0 1",
 						brandBgColor: "1 1 1 1", 15, true, true, "0 0 0 1", xMin: 0, xMax: 1, yMin: 0, yMax: 1);
 					var authUrl = cui.CreatePanel(container, image, null, "0.1 0.1 0.1 0.8", yMax: 0, OyMin: -20);
-					cui.CreateInputField(container, authUrl, null, "1 1 1 1", auth.AuthRequestEndpoint.Replace("https://", string.Empty), 9, 0, true);
+					cui.CreateInputField(container, authUrl, null, "1 1 1 1", auth.AuthRequestEndpointPreview, 9, 0, true);
 
 					if (auth.User.PendingResult != LoggedInUser.RequestResult.None)
 					{
@@ -652,19 +665,17 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						switch (auth.User.PendingResult)
 						{
-							case LoggedInUser.RequestResult.Processing:
-								icon = "reload";
-								color = "1 1 1 0.3";
-								break;
-
 							case LoggedInUser.RequestResult.Complete:
 								icon = "checkmark";
 								color = "#81c740";
 								break;
 						}
 
-						cui.CreatePanel(container, image, null, "0 0 0 0.4", blur: true);
-						cui.CreateImage(container, image, null, icon, color, xMin: 0.3f, xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
+						if (!string.IsNullOrEmpty(icon))
+						{
+							cui.CreatePanel(container, image, null, "0 0 0 0.4", blur: true);
+							cui.CreateImage(container, image, null, icon, color, xMin: 0.3f, xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
+						}
 					}
 
 					cui.CreateText(container, parent, null, "1 1 1 1", $"{vendor.Type} Auth", 25, xMin: 0.51f, yMax: 0.75f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
@@ -675,7 +686,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						xMin: 0.5f, xMax: 0.8f,
 						yMin: 0.21f, yMax: 0.31f);
 
-					cui.CreateInputField(container, pan, null, "1 1 1 1", auth.AuthCode/*.SpacedString(1)*/, 30, 0, true,
+					cui.CreateInputField(container, pan, null, "1 1 1 1", auth.AuthCode, 30, 0, true,
 						xMin: 0.05f,
 						align: TextAnchor.MiddleLeft,
 						font: CUI.Handler.FontTypes.RobotoCondensedBold);
@@ -744,6 +755,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			public string AuthCode { get; set; }
 			public string AuthRequestEndpoint { get; }
+			public string AuthRequestEndpointPreview { get; }
 			public string AuthValidationEndpoint { get; }
 			public string AuthUserInfoEndpoint { get; }
 			public string AuthOwnedPluginsEndpoint { get; }
@@ -967,7 +979,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						[AuthHeader.Key.ToString()] = string.Format(AuthHeader.Value, User.AccessToken)
 					};
-
 					var extension = Path.GetExtension(plugin.File);
 
 					switch (extension)
@@ -990,6 +1001,20 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 									const string sourceExtension = ".cs";
 									const string dllExtension = ".dll";
+									const string jsonExtension = ".json";
+									const string dataFolder = "data";
+									const string configFolder = "config";
+
+									static void StoreFile(ZipArchiveEntry entry, string path, string context)
+									{
+										using var memoryStream = new MemoryStream();
+										using var entryStream = entry.Open();
+										entryStream.CopyTo(memoryStream);
+										var bytes = memoryStream.ToArray();
+
+										OsEx.File.Create(path, bytes);
+										Singleton.Puts($" Extracted plugin {context} file '{entry.Name}'");
+									}
 
 									foreach (var file in zip.Entries)
 									{
@@ -1007,13 +1032,30 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 											case dllExtension:
 												{
-													using var memoryStream = new MemoryStream();
-													using var entryStream = file.Open();
-													entryStream.CopyTo(memoryStream);
-													var bytes = memoryStream.ToArray();
+													StoreFile(file, Path.Combine(Defines.GetLibFolder(), file.Name), "extension");
+												}
+												break;
 
-													OsEx.File.Create(Path.Combine(Defines.GetLibFolder(), file.Name), bytes);
-													Singleton.Puts($" Extracted plugin extension file {file.Name}");
+											case jsonExtension:
+												{
+													switch (file.FullName)
+													{
+														case var data when data.Contains(dataFolder):
+															{
+																var offsetIndex = data.IndexOf(dataFolder) + 5;
+																var subFolder = Path.GetDirectoryName(data[offsetIndex..]);
+																StoreFile(file, Path.Combine(Defines.GetDataFolder(), subFolder, file.Name), "data");
+															}
+															break;
+
+														case var config when config.Contains(configFolder):
+															{
+																var offsetIndex = config.IndexOf(configFolder) + 5;
+																var subFolder = Path.GetDirectoryName(config[offsetIndex..]);
+																StoreFile(file, Path.Combine(Defines.GetConfigsFolder(), subFolder, file.Name), "config");
+															}
+															break;
+													}
 												}
 												break;
 										}
@@ -1081,10 +1123,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			#region Auth
 
-			[ProtoBuf.ProtoMember(50)]
+			[ProtoBuf.ProtoMember(50, IsRequired = false)]
 			public LoggedInUser User { get; set; }
 
-			public string AuthRequestEndpoint => "https://codefling.com/auth";
+			public string AuthRequestEndpoint => "https://codefling.com/auth/?pin={0}";
+			public string AuthRequestEndpointPreview => "codefling.com/auth";
 			public string AuthValidationEndpoint => "https://codefling.com/auth/bearer?code={0}";
 			public string AuthUserInfoEndpoint => "https://codefling.com/api/core/me";
 			public string AuthOwnedPluginsEndpoint => "https://codefling.com/api/nexus/purchases?perPage=100000&itemType=file&itemApp=downloads";
@@ -1178,7 +1221,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							}, core, headers: headers);
 							break;
 					}
-				}, core, headers: headers);
+				}, core, headers: headers, onException: (code, result, ex) =>
+				{
+					User = null;
+					Refresh();
+					Save();
+					Singleton.Draw(session.Player);
+				});
 			}
 
 			public bool IsLoggedIn => User != null;
