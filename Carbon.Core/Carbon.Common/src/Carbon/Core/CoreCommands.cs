@@ -17,22 +17,29 @@ public partial class CorePlugin : CarbonPlugin
 {
 	#region App
 
-	// DISABLED UNTIL FULLY FUNCTIONAL
-	// [ConsoleCommand("exit", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
-	// [AuthLevel(2)]
-	// private void Exit(ConsoleSystem.Arg arg)
-	// {
-	// 	//FIXMENOW
-	// 	Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
-	// }
+	[ConsoleCommand("shutdown", "Completely unloads Carbon from the game, rendering it fully vanilla.")]
+	[AuthLevel(2)]
+	private void Shutdown(ConsoleSystem.Arg arg)
+	{
+		Community.Runtime.Uninitialize();
+	}
 
-	// DISABLED UNTIL FULLY FUNCTIONAL
 	// [ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
-	// private void Reboot(ConsoleSystem.Arg arg)
-	// {
-	// 	//FIXMENOW
-	// 	Community.Runtime.AssemblyEx.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
-	// }
+	private void Reboot(ConsoleSystem.Arg arg)
+	{
+		var loader = Community.Runtime.AssemblyEx;
+		var patcher = Community.Runtime.HookManager;
+		Community.Runtime.Uninitialize();
+
+		var timer = new System.Timers.Timer(5000);
+		timer.Elapsed += (object sender, System.Timers.ElapsedEventArgs e) =>
+		{
+			loader.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
+			timer.Dispose();
+			timer = null;
+		};
+		timer.Start();
+	}
 
 	[ConsoleCommand("help", "Returns a brief introduction to Carbon.")]
 	[AuthLevel(2)]

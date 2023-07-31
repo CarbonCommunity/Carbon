@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 
 namespace Carbon;
 
-public class Community
+public abstract class Community
 {
 	public static Community Runtime
 	{ get; set; }
@@ -292,4 +292,10 @@ public class Community
 	}
 
 	#endregion
+
+	public abstract void Initialize();
+	public virtual void Uninitialize()
+	{
+		Runtime = null;
+	}
 }
