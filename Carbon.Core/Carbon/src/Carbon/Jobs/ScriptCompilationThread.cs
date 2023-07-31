@@ -119,6 +119,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (direct)
 			{
+				var found = false;
 				foreach (var directory in directories)
 				{
 					foreach (var file in OsEx.Folder.GetFilesWithExtension(directory, "dll"))
@@ -126,9 +127,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 						if (file.Contains(name))
 						{
 							raw = OsEx.File.ReadBytes(file);
+							found = true;
 							break;
 						}
 					}
+
+					if (found) break;
 				}
 			}
 			else
