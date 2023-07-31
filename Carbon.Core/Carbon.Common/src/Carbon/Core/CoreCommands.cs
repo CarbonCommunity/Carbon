@@ -24,7 +24,7 @@ public partial class CorePlugin : CarbonPlugin
 		Community.Runtime.Uninitialize();
 	}
 
-	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
+	// [ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
 	private void Reboot(ConsoleSystem.Arg arg)
 	{
 		var loader = Community.Runtime.AssemblyEx;
