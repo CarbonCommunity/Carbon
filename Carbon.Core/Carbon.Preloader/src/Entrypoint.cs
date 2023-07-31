@@ -69,6 +69,16 @@ public sealed class Entrypoint
 			isolated5.Do.Write();
 		}
 
+		using Sandbox<FacepunchNexus> isolated6 = new Sandbox<FacepunchNexus>();
+		{
+			if (!isolated6.Do.IsPublic("Util"))
+			{
+				isolated6.Do.Publicize();
+			}
+
+			isolated6.Do.Write();
+		}
+
 		foreach (string file in Preload)
 		{
 			try
