@@ -186,7 +186,7 @@ public class HookCallerInternal : HookCallerCommon
 						metrics: new Dictionary<string, object>
 						{
 							{ "name", readableHook },
-							{ "time", $"{totalTicks}ms" },
+							{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
 							{ "hasgc", plugin.HasGCCollected }
 						});
 				}
@@ -300,7 +300,7 @@ public class HookCallerInternal : HookCallerCommon
 								metrics: new Dictionary<string, object>
 								{
 									{ "name", readableHook },
-									{ "time", $"{totalTicks}ms" },
+									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
 									{ "hasgc", plugin.HasGCCollected }
 								});
 						}
