@@ -28,6 +28,7 @@ regex:Rust.UI.dll
 regex:Rust.Workshop.dll
 regex:Rust.World.dll
 regex:Unity.Mathematics.dll
+regex:Unity.TextMeshPro.dll
 regex:Unity.Timeline.dll
 regex:UnityEngine.AIModule.dll
 regex:UnityEngine.AnimationModule.dll
