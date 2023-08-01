@@ -96,4 +96,12 @@ public static class MathEx
 	{
 		return (int)(Math.Ceiling(number / count) * count);
 	}
+	public static double RoundUpToNearestCount(this double number, double count)
+	{
+		return (double)(Math.Ceiling(number / count) * count);
+	}
+	public static float RoundUpToNearestCount(this float number, double count)
+	{
+		return (float)(Math.Ceiling(number / count) * count);
+	}
 }
