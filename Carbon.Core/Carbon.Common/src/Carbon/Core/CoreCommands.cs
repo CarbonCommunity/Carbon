@@ -57,7 +57,7 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		if (!arg.IsPlayerCalledOrAdmin()) return;
 
-		var mode = arg.HasArgs(1) ? arg.Args[0] : null;
+		var mode = arg.HasArgs(1) ? arg.GetString(0) : null;
 
 		switch (mode)
 		{
@@ -119,7 +119,7 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void PluginsUnloaded(ConsoleSystem.Arg arg)
 	{
-		var mode = arg.HasArgs(1) ? arg.Args[0] : null;
+		var mode = arg.HasArgs(1) ? arg.GetString(0) : null;
 
 		switch (mode)
 		{
@@ -151,7 +151,7 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void PluginsFailed(ConsoleSystem.Arg arg)
 	{
-		var mode = arg.HasArgs(1) ? arg.Args[0] : null;
+		var mode = arg.HasArgs(1) ? arg.GetString(0) : null;
 
 		switch (mode)
 		{
@@ -286,7 +286,7 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void AddConditional(ConsoleSystem.Arg arg)
 	{
-		var value = arg.Args[0];
+		var value = arg.GetString(0);
 
 		if (!Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
 		{
@@ -322,7 +322,7 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void RemoveConditional(ConsoleSystem.Arg arg)
 	{
-		var value = arg.Args[0];
+		var value = arg.GetString(0);
 
 		if (Community.Runtime.Config.ConditionalCompilationSymbols.Contains(value))
 		{
@@ -486,7 +486,7 @@ public partial class CorePlugin : CarbonPlugin
 	private void Find(ConsoleSystem.Arg arg)
 	{
 		using var body = new StringTable("Console Command", "Value", "Help");
-		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
+		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.GetString(0) : null;
 
 		foreach (var command in Community.Runtime.CommandManager.ClientConsole)
 		{
@@ -516,7 +516,7 @@ public partial class CorePlugin : CarbonPlugin
 	private void FindChat(ConsoleSystem.Arg arg)
 	{
 		using var body = new StringTable("Chat Command", "Help");
-		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.Args[0] : null;
+		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.GetString(0) : null;
 
 		foreach (var command in Community.Runtime.CommandManager.Chat)
 		{
@@ -549,7 +549,8 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		if (!arg.HasArgs(2)) return;
 
-		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+		var moduleName = arg.GetString(0);
+		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == moduleName);
 		var module = hookable?.To<IModule>();
 
 		if (module == null)
@@ -564,7 +565,7 @@ public partial class CorePlugin : CarbonPlugin
 		}
 
 		var previousEnabled = module.GetEnabled();
-		var newEnabled = arg.Args[1].ToBool();
+		var newEnabled = arg.GetBool(1);
 
 		if (previousEnabled != newEnabled)
 		{
@@ -614,7 +615,8 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		if (!arg.HasArgs(1)) return;
 
-		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == arg.Args[0]);
+		var moduleName = arg.GetString(0);
+		var hookable = Community.Runtime.ModuleProcessor.Modules.FirstOrDefault(x => x.Name == moduleName);
 		var module = hookable.To<IModule>();
 
 		if (module == null)
@@ -657,7 +659,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		RefreshOrderedFiles();
 
-		var name = arg.Args[0];
+		var name = arg.GetString(0);
 		switch (name)
 		{
 			case "*":
@@ -730,7 +732,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		RefreshOrderedFiles();
 
-		var name = arg.Args[0];
+		var name = arg.GetString(0);
 		switch (name)
 		{
 			case "*":
@@ -789,7 +791,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		RefreshOrderedFiles();
 
-		var name = arg.Args[0];
+		var name = arg.GetString(0);
 		switch (name)
 		{
 			case "*":
@@ -894,7 +896,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		RefreshOrderedFiles();
 
-		var name = arg.Args[0];
+		var name = arg.GetString(0);
 		switch (name)
 		{
 			case "*":
@@ -972,9 +974,9 @@ public partial class CorePlugin : CarbonPlugin
 			return;
 		}
 
-		var action = arg.Args[0];
-		var name = arg.Args[1];
-		var perm = arg.Args[2];
+		var action = arg.GetString(0);
+		var name = arg.GetString(1);
+		var perm = arg.GetString(2);
 		var user = permission.FindUser(name);
 
 		switch (action)
@@ -1022,9 +1024,9 @@ public partial class CorePlugin : CarbonPlugin
 			return;
 		}
 
-		var action = arg.Args[0];
-		var name = arg.Args[1];
-		var perm = arg.Args[2];
+		var action = arg.GetString(0);
+		var name = arg.GetString(1);
+		var perm = arg.GetString(2);
 		var user = permission.FindUser(name);
 
 		switch (action)
@@ -1069,7 +1071,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		if (!arg.HasArgs(1)) { PrintWarn(); return; }
 
-		var action = arg.Args[0];
+		var action = arg.GetString(0);
 
 		switch (action)
 		{
@@ -1077,7 +1079,7 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-					var name = arg.Args[1];
+					var name = arg.GetString(1);
 					var user = permission.FindUser(name);
 
 					if (user.Value == null)
@@ -1094,7 +1096,7 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-					var name = arg.Args[1];
+					var name = arg.GetString(1);
 
 					if (!permission.GroupExists(name))
 					{
@@ -1154,9 +1156,9 @@ public partial class CorePlugin : CarbonPlugin
 			return;
 		}
 
-		var action = arg.Args[0];
-		var player = arg.Args[1];
-		var group = arg.Args[2];
+		var action = arg.GetString(0);
+		var player = arg.GetString(1);
+		var group = arg.GetString(2);
 
 		var user = permission.FindUser(player);
 
@@ -1216,7 +1218,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		if (!arg.HasArgs(1)) { PrintWarn(); return; }
 
-		var action = arg.Args[0];
+		var action = arg.GetString(0);
 
 		switch (action)
 		{
@@ -1224,7 +1226,7 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-					var group = arg.Args[1];
+					var group = arg.GetString(1);
 
 					if (permission.GroupExists(group))
 					{
@@ -1232,7 +1234,7 @@ public partial class CorePlugin : CarbonPlugin
 						return;
 					}
 
-					if (permission.CreateGroup(group, arg.HasArgs(3) ? arg.Args[2] : group, arg.HasArgs(4) ? arg.Args[3].ToInt() : 0))
+					if (permission.CreateGroup(group, arg.HasArgs(3) ? arg.GetString(2) : group, arg.HasArgs(4) ? arg.GetInt(3) : 0))
 					{
 						arg.ReplyWith($"Created '{group}' group.");
 					}
@@ -1243,7 +1245,7 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					if (!arg.HasArgs(4)) { PrintWarn(); return; }
 
-					var group = arg.Args[1];
+					var group = arg.GetString(1);
 
 					if (!permission.GroupExists(group))
 					{
@@ -1251,8 +1253,8 @@ public partial class CorePlugin : CarbonPlugin
 						return;
 					}
 
-					var set = arg.Args[2];
-					var value = arg.Args[3];
+					var set = arg.GetString(2);
+					var value = arg.GetString(3);
 
 					switch (set)
 					{
@@ -1273,7 +1275,7 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					if (!arg.HasArgs(2)) { PrintWarn(); return; }
 
-					var group = arg.Args[1];
+					var group = arg.GetString(1);
 
 					if (permission.RemoveGroup(group)) arg.ReplyWith($"Removed '{group}' group.");
 					else arg.ReplyWith($"Couldn't remove '{group}' group.");
@@ -1284,8 +1286,8 @@ public partial class CorePlugin : CarbonPlugin
 				{
 					if (!arg.HasArgs(3)) { PrintWarn(); return; }
 
-					var group = arg.Args[1];
-					var parent = arg.Args[2];
+					var group = arg.GetString(1);
+					var parent = arg.GetString(2);
 
 					if (permission.SetGroupParent(group, parent)) arg.ReplyWith($"Changed '{group}' group's parent to '{parent}'.");
 					else arg.ReplyWith($"Couldn't change '{group}' group's parent to '{parent}'.");

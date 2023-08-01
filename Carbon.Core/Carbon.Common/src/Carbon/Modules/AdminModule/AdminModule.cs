@@ -1168,7 +1168,7 @@ public partial class AdminModule
 					catch (Exception ex) { PutsError($"Draw({player}).Tabs", ex); }
 					#endregion
 				}
-			}			
+			}
 
 			#region Panels
 			try
@@ -2749,7 +2749,7 @@ public partial class AdminModule
 		var tab = GetTab(ap.Player);
 
 		var currentPage = ap.GetStorage(tab, "page", 0);
-		currentPage += arg.Args[0].ToInt();
+		currentPage += arg.GetInt(0);
 		ap.SetStorage(tab, "page", currentPage);
 
 		Community.Runtime.CorePlugin.NextFrame(() => Draw(ap.Player));
@@ -2761,7 +2761,7 @@ public partial class AdminModule
 		var ap = GetPlayerSession(arg.Player());
 		var tab = GetTab(ap.Player) as SetupWizard;
 
-		var module = FindModule(arg.Args[0]);
+		var module = FindModule(arg.GetString(0));
 		var enabled = module.GetEnabled();
 		module.SetEnabled(!enabled);
 
@@ -2773,7 +2773,7 @@ public partial class AdminModule
 	{
 		var ap = GetPlayerSession(arg.Player());
 
-		var feature = arg.Args[0];
+		var feature = arg.GetString(0);
 		switch (feature)
 		{
 			case "plugins":
@@ -2790,7 +2790,7 @@ public partial class AdminModule
 		var ap = GetPlayerSession(arg.Player());
 		var tab = GetTab(ap.Player) as SetupWizard;
 
-		var module = FindModule(arg.Args[0]);
+		var module = FindModule(arg.GetString(0));
 		var moduleConfigFile = Path.Combine(Core.Defines.GetModulesFolder(), module.Name, "config.json");
 		ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
 			(ap, jobject) =>
@@ -2815,7 +2815,7 @@ public partial class AdminModule
 		var ap = GetPlayerSession(arg.Player());
 		var tab = GetTab(ap.Player) as SetupWizard;
 
-		var module = FindModule(arg.Args[0]);
+		var module = FindModule(arg.GetString(0));
 		Application.OpenURL(Path.Combine(Core.Defines.GetModulesFolder(), module.Name));
 
 		Draw(ap.Player);
