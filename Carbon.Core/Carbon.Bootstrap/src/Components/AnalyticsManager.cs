@@ -218,6 +218,7 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 
 		string url = "https://www.google-analytics.com/mp/collect";
 		string query = $"api_secret={MeasurementSecret}&measurement_id={MeasurementID}";
+		Dictionary<string, object> user_properties = new();
 
 		Dictionary<string, object> event_parameters = new() {
 #if DEBUG_VERBOSE
@@ -239,17 +240,17 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 				event_parameters.Add(metric.Key, metric.Value);
 		}
 
-		body.Add("events", value: new List<Dictionary<string, object>> {
+		List<Dictionary<string, object>> @events = new List<Dictionary<string, object>> {
 			new Dictionary<string, object> {
 				{ "name", eventName },
 				{ "params", event_parameters }
 			}
-		});
+		};
+
+		body.Add("events", value: @events);
 
 		if (segments != null)
 		{
-			Dictionary<string, object> user_properties = new();
-
 			foreach (var segment in segments)
 			{
 				user_properties.Add(segment.Key, new Dictionary<string, object> {
@@ -260,6 +261,16 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 		}
 
 		SendRequest($"{url}?{query}", JsonConvert.SerializeObject(body));
+
+		user_properties.Clear();
+		event_parameters.Clear();
+		@events.Clear();
+		body.Clear();
+
+		user_properties = null;
+		event_parameters = null;
+		@events = null;
+		body = null;
 	}
 
 	private void SendRequest(string url, string body = null)
