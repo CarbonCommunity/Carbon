@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using API.Abstracts;
 using API.Analytics;
+using Facepunch.Rust;
 using HarmonyLib;
 using Newtonsoft.Json;
 using Utility;
@@ -140,6 +141,8 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 	public string SystemID
 	{ get => UnityEngine.SystemInfo.deviceUniqueIdentifier; }
 
+	public Dictionary<string, object> Segments { get; set; }
+
 	public void Awake()
 	{
 		_first = false;
@@ -160,6 +163,11 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 				+ " steamids, server name, ip:port, title or description.");
 			Logger.Warn("If you'd like to opt-out create an empty '.nostats' file at the Carbon root folder.");
 		}
+
+		Segments = new Dictionary<string, object> {
+			{ "branch", Branch },
+			{ "platform", Platform },
+		};
 	}
 
 	private void Update()
@@ -262,11 +270,13 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 
 		SendRequest($"{url}?{query}", JsonConvert.SerializeObject(body));
 
+		metrics?.Clear();
 		user_properties.Clear();
 		event_parameters.Clear();
 		@events.Clear();
 		body.Clear();
 
+		metrics = null;
 		user_properties = null;
 		event_parameters = null;
 		@events = null;
