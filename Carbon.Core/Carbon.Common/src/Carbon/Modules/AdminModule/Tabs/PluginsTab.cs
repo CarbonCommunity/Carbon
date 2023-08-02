@@ -495,12 +495,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					else cui.CreateImage(container, image, null, selectedPlugin.Image, selectedPlugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 				}
 				var pluginName = cui.CreateText(container, mainPanel, null, "1 1 1 1", selectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
-				cui.CreateText(container, mainPanel, null, "1 1 1 0.5", $"by <b>{selectedPlugin.Author}</b>  <b>•</b>  v{selectedPlugin.Version}  <b>•</b>  Updated on {selectedPlugin.UpdateDate}  <b>•</b>  {selectedPlugin.DownloadCount:n0} downloads", 11, xMin: 0.48f, yMax: 0.74f, align: TextAnchor.UpperLeft);
+				cui.CreateText(container, mainPanel, null, "1 1 1 0.5", $"by <b>{(selectedPlugin.ExistentPlugin != null ? selectedPlugin.ExistentPlugin.Author : selectedPlugin.Author)}</b>  <b>•</b>  v{selectedPlugin.Version}  <b>•</b>  Updated on {selectedPlugin.UpdateDate}  <b>•</b>  {selectedPlugin.DownloadCount:n0} downloads", 11, xMin: 0.48f, yMax: 0.74f, align: TextAnchor.UpperLeft);
 				cui.CreateText(container, mainPanel, null, "1 1 1 0.3", $"{(!selectedPlugin.HasLookup ? "Fetching metdata..." : $"{selectedPlugin.Description}\n\n{selectedPlugin.Changelog}")}", 11, xMin: 0.48f, xMax: 0.85f, yMax: 0.635f, align: TextAnchor.UpperLeft);
-
 				const float badgeYMin = 5;
 				const float badgeYMax = 20;
-
 				var priceBadge = cui.CreatePanel(container, pluginName, null, "0.3 0.4 0.9 0.25", xMax: 0f, yMin: 1, OyMin: badgeYMin, OyMax: badgeYMax, OxMax: 40);
 				cui.CreateText(container, priceBadge, null, "0.4 0.5 1 1", selectedPlugin.OriginalPrice, 8);
 
