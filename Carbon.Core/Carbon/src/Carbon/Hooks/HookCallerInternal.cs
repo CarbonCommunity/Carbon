@@ -185,7 +185,7 @@ public class HookCallerInternal : HookCallerCommon
 						segments: Community.Runtime.Analytics.Segments,
 						metrics: new Dictionary<string, object>
 						{
-							{ "name", readableHook },
+							{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}" },
 							{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
 							{ "hasgc", plugin.HasGCCollected }
 						});
@@ -299,7 +299,7 @@ public class HookCallerInternal : HookCallerCommon
 								segments: Community.Runtime.Analytics.Segments,
 								metrics: new Dictionary<string, object>
 								{
-									{ "name", readableHook },
+									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}" },
 									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
 									{ "hasgc", plugin.HasGCCollected }
 								});
