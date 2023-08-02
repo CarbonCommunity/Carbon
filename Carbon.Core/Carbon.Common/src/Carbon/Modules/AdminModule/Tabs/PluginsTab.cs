@@ -111,15 +111,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			CodeflingInstance = new Codefling();
 			if (CodeflingInstance is IVendorStored cfStored && !cfStored.Load())
 			{
-				CodeflingInstance.FetchList();
-				CodeflingInstance.Refresh();
+				CodeflingInstance.FetchList(vendor => CodeflingInstance.Refresh());
 			}
 
 			uModInstance = new uMod();
 			if (uModInstance is IVendorStored umodStored && !umodStored.Load())
 			{
-				uModInstance.FetchList();
-				uModInstance.Refresh();
+				uModInstance.FetchList(vendor => uModInstance.Refresh());
 			}
 
 			// Lone_DesignInstance = new Lone_Design();
@@ -1265,9 +1263,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
-				catch (Exception ex)
+				catch
 				{
-					Logger.Error($"{Type}.Load error", ex);
+					return false;
 				}
 				return true;
 			}
@@ -1522,7 +1520,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
-				catch { Save(); }
+				catch { return false; }
 				return true;
 			}
 			public void Save()
