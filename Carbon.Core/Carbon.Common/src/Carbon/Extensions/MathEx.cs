@@ -91,4 +91,17 @@ public static class MathEx
 	{
 		return Convert.ToInt32(value, 2);
 	}
+
+	public static int RoundUpToNearestCount(this int number, double count)
+	{
+		return (int)(Math.Ceiling(number / count) * count);
+	}
+	public static double RoundUpToNearestCount(this double number, double count)
+	{
+		return (double)(Math.Ceiling(number / count) * count);
+	}
+	public static float RoundUpToNearestCount(this float number, double count)
+	{
+		return (float)(Math.Ceiling(number / count) * count);
+	}
 }

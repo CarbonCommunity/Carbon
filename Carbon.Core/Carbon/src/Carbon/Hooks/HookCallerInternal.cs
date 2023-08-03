@@ -181,6 +181,14 @@ public class HookCallerInternal : HookCallerCommon
 				{
 					var readableHook = HookStringPool.GetOrAdd(hookId);
 					Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(plugin.HasGCCollected ? " [GC]" : string.Empty)}");
+					Community.Runtime.Analytics.LogEvent("plugin_time_warn",
+						segments: Community.Runtime.Analytics.Segments,
+						metrics: new Dictionary<string, object>
+						{
+							{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}" },
+							{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
+							{ "hasgc", plugin.HasGCCollected }
+						});
 				}
 			}
 		}
@@ -286,7 +294,15 @@ public class HookCallerInternal : HookCallerCommon
 						if (plugin is Plugin basePlugin && !basePlugin.IsCorePlugin)
 						{
 							var readableHook = HookStringPool.GetOrAdd(hookId);
-							Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]");
+							Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(plugin.HasGCCollected ? " [GC]" : string.Empty)}");
+							Community.Runtime.Analytics.LogEvent("plugin_time_warn",
+								segments: Community.Runtime.Analytics.Segments,
+								metrics: new Dictionary<string, object>
+								{
+									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}" },
+									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
+									{ "hasgc", plugin.HasGCCollected }
+								});
 						}
 					}
 

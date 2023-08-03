@@ -9,15 +9,13 @@ namespace Carbon.Extensions;
 
 public static class ServerTagEx
 {
-	internal static PropertyInfo _gameTags = AccessToolsEx.TypeByName("Steamworks.SteamServer").GetProperty("GameTags", BindingFlags.Public | BindingFlags.Static);
-
 	public static bool SetRequiredTag(string tag)
 	{
-		var tags = _gameTags.GetValue(null) as string;
+		var tags = Steamworks.SteamServer.GameTags;
 
 		if (!tags.Contains($",{tag}"))
 		{
-			_gameTags.SetValue(null, $"{tags},{tag}");
+			Steamworks.SteamServer.GameTags = $"{tags},{tag}";
 			return true;
 		}
 
@@ -26,11 +24,11 @@ public static class ServerTagEx
 
 	public static bool UnsetRequiredTag(string tag)
 	{
-		var tags = _gameTags.GetValue(null) as string;
+		var tags = Steamworks.SteamServer.GameTags;
 
 		if (tags.Contains($",{tag}"))
 		{
-			_gameTags.SetValue(null, tags.Replace($",{tag}", ""));
+			Steamworks.SteamServer.GameTags = tags.Replace($",{tag}", "");
 			return true;
 		}
 

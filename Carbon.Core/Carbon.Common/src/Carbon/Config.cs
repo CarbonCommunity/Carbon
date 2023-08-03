@@ -13,9 +13,8 @@ namespace Carbon.Core;
 public class Config
 {
 	public bool AutoUpdateExtHooks { get; set; } = true;
-	public bool HarmonyReference { get; set; } = false;
 	public bool ScriptWatchers { get; set; } = true;
-	public System.IO.SearchOption ScriptWatcherOption { get; set; } = System.IO.SearchOption.TopDirectoryOnly;
+	public SearchOption ScriptWatcherOption { get; set; } = SearchOption.TopDirectoryOnly;
 	public bool FileNameCheck { get; set; } = true;
 	public bool IsModded { get; set; } = true;
 	public bool HigherPriorityHookWarns { get; set; } = false;

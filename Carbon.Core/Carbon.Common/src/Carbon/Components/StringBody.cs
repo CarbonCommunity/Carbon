@@ -9,12 +9,13 @@ namespace Carbon.Components;
 
 public struct StringBody : IDisposable
 {
-	private List<object> _items { get; set; }
-	public List<object> Items { get { return _items ?? (_items = new List<object>()); } }
+	public List<object> Items => _items ??= new List<object>();
+
+	internal List<object> _items { get; set; }
 
 	public StringBody Add(object data)
 	{
-		Items.Add(data ?? "");
+		Items.Add(data ?? string.Empty);
 
 		return this;
 	}
@@ -53,29 +54,29 @@ public struct StringBody : IDisposable
 
 	public string ToAppended(string inBetweenString = " ")
 	{
-		var result = "";
+		var result = string.Empty;
 
 		foreach (var item in Items)
 		{
 			result += $"{item}{inBetweenString}";
 		}
 
-		return result.Trim();
+		return result.TrimEnd();
 	}
 	public string ToNewLine()
 	{
-		var result = "";
+		var result = string.Empty;
 
 		foreach (var item in Items)
 		{
 			result += $"{item}\n";
 		}
 
-		return result.Trim();
+		return result.TrimEnd();
 	}
 	public override string ToString()
 	{
-		return ToAppended("");
+		return ToAppended(string.Empty);
 	}
 
 	#endregion

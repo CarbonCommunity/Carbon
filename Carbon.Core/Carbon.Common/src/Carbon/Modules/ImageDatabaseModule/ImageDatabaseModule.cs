@@ -21,6 +21,7 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 	public override string Name => "ImageDatabase";
 	public override Type Type => typeof(ImageDatabaseModule);
 	public override bool EnabledByDefault => true;
+	public override bool ForceEnabled => true;
 
 	internal List<QueuedThread> _queue = new();
 	internal ImageDatabaseDataProto _protoData { get; set; }
@@ -41,7 +42,8 @@ public class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, EmptyModule
 		["reload"] = "https://carbonmod.gg/assets/media/cui/reload.png",
 		["update-pending"] = "https://carbonmod.gg/assets/media/cui/update-pending.png",
 		["magnifying-glass"] = "https://carbonmod.gg/assets/media/cui/magnifying-glass.png",
-		["star"] = "https://carbonmod.gg/assets/media/cui/star.png"
+		["star"] = "https://carbonmod.gg/assets/media/cui/star.png",
+		["glow"] = "https://b0f7b4d5.carbon-website.pages.dev/assets/media/cui/glow.png"
 	};
 	internal IEnumerator _executeQueue(QueuedThread thread, Action<List<QueuedThreadResult>> onFinished)
 	{

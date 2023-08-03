@@ -130,7 +130,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		internal const string NewLine = "\\n";
 		internal const string Harmony = "Harmony";
 
-		public override void Process(string input, out string output)
+		public override void Process(string file, string input, out string output)
 		{
 			using (TimeMeasure.New("ScriptParser.Process"))
 			{
@@ -146,9 +146,9 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 					#endregion
 
-					if (input.Contains(Harmony) && !Community.Runtime.Config.HarmonyReference)
+					if (input.Contains(Harmony))
 					{
-						Logger.Warn($" This plugin requires Harmony Reference to be enabled for it to work. Enabling it can cause instability, use at your own discretion!");
+						Logger.Warn($" Warning! {Path.GetFileNameWithoutExtension(file)} uses Harmony. That may cause instability, use at your own discretion!");
 					}
 
 					output = input.Replace("PluginTimers", "Timers")

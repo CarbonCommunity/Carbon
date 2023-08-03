@@ -48,8 +48,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
-	internal static readonly string[] _directories = new[]
+	internal static readonly string[] _libraryDirectories = new[]
 	{
+		Defines.GetLibFolder(),
 		Defines.GetManagedFolder(),
 		Defines.GetRustManagedFolder(),
 		Defines.GetManagedModulesFolder(),
@@ -105,7 +106,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.Remove(name);
 		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
 	}
-	internal void _injectReference(string id, string name, List<MetadataReference> references)
+	internal void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false)
 	{
 		if (_referenceCache.TryGetValue(name, out var reference))
 		{
@@ -114,7 +115,31 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name, _directories);
+			var raw = (byte[])null;
+
+			if (direct)
+			{
+				var found = false;
+				foreach (var directory in directories)
+				{
+					foreach (var file in OsEx.Folder.GetFilesWithExtension(directory, "dll"))
+					{
+						if (file.Contains(name))
+						{
+							raw = OsEx.File.ReadBytes(file);
+							found = true;
+							break;
+						}
+					}
+
+					if (found) break;
+				}
+			}
+			else
+			{
+				raw = Community.Runtime.AssemblyEx.Read(name, directories);
+			}
+
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -148,16 +173,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var references = new List<MetadataReference>();
 		var id = Path.GetFileNameWithoutExtension(FilePath);
 
-		if (Community.Runtime.Config.HarmonyReference)
-		{
-			_injectReference(id, "0Harmony", references);
-		}
+		_injectReference(id, "0Harmony", references, _libraryDirectories);
+		_injectReference(id, "System.Memory", references, _libraryDirectories, direct: true);
 
 		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
 		{
 			try
 			{
-				_injectReference(id, item, references);
+				_injectReference(id, item, references, _libraryDirectories);
 			}
 			catch (System.Exception ex)
 			{
@@ -169,7 +192,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectReference(id, item, references);
+				_injectReference(id, item, references, _libraryDirectories);
 			}
 			catch (System.Exception ex)
 			{
@@ -232,14 +255,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 				var libFile = Path.Combine(Defines.GetLibFolder(), $"{reference}.dll");
 				if (OsEx.File.Exists(libFile))
 				{
-					_injectReference(reference, libFile, references);
+					_injectReference(reference, libFile, references, _libraryDirectories);
 					continue;
 				}
 
 				var managedFile = Path.Combine(Defines.GetRustManagedFolder(), $"{reference}.dll");
 				if (OsEx.File.Exists(managedFile))
 				{
-					_injectReference(reference, managedFile, references);
+					_injectReference(reference, managedFile, references, _libraryDirectories );
 					continue;
 				}
 			}
