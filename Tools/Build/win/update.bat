@@ -24,6 +24,9 @@ FOR %%O IN (windows linux) DO (
 	rem Show me all you've got baby
 	"%UPDATE_ROOT%\Tools\Helpers\Publicizer.exe" ^
 		--input "%UPDATE_ROOT%\Rust\%%O\RustDedicated_Data\Managed\Assembly-CSharp.dll"
+		
+	"%UPDATE_ROOT%\Tools\Helpers\Publicizer.exe" ^
+		--input "%UPDATE_ROOT%\Rust\%%O\RustDedicated_Data\Managed\Rust.Clans.Local.dll"
 )
 
 dotnet restore "%UPDATE_ROOT%\Carbon.Core" --nologo

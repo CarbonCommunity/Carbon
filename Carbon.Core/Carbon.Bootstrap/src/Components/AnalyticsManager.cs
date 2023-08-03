@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using API.Abstracts;
 using API.Analytics;
+using Facepunch.Rust;
 using HarmonyLib;
 using Newtonsoft.Json;
 using Utility;
@@ -56,6 +57,13 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 
 	public string Platform
 	{ get => _platform.Value; }
+
+	public bool IsMinimalBuild =>
+#if MINIMAL
+		true;
+#else
+		false;
+#endif
 
 	private static readonly Lazy<string> _platform = new(() =>
 	{
@@ -133,6 +141,8 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 	public string SystemID
 	{ get => UnityEngine.SystemInfo.deviceUniqueIdentifier; }
 
+	public Dictionary<string, object> Segments { get; set; }
+
 	public void Awake()
 	{
 		_first = false;
@@ -153,6 +163,11 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 				+ " steamids, server name, ip:port, title or description.");
 			Logger.Warn("If you'd like to opt-out create an empty '.nostats' file at the Carbon root folder.");
 		}
+
+		Segments = new Dictionary<string, object> {
+			{ "branch", Branch },
+			{ "platform", Platform },
+		};
 	}
 
 	private void Update()
@@ -211,6 +226,7 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 
 		string url = "https://www.google-analytics.com/mp/collect";
 		string query = $"api_secret={MeasurementSecret}&measurement_id={MeasurementID}";
+		Dictionary<string, object> user_properties = new();
 
 		Dictionary<string, object> event_parameters = new() {
 #if DEBUG_VERBOSE
@@ -232,17 +248,17 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 				event_parameters.Add(metric.Key, metric.Value);
 		}
 
-		body.Add("events", value: new List<Dictionary<string, object>> {
+		List<Dictionary<string, object>> @events = new List<Dictionary<string, object>> {
 			new Dictionary<string, object> {
 				{ "name", eventName },
 				{ "params", event_parameters }
 			}
-		});
+		};
+
+		body.Add("events", value: @events);
 
 		if (segments != null)
 		{
-			Dictionary<string, object> user_properties = new();
-
 			foreach (var segment in segments)
 			{
 				user_properties.Add(segment.Key, new Dictionary<string, object> {
@@ -253,6 +269,18 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 		}
 
 		SendRequest($"{url}?{query}", JsonConvert.SerializeObject(body));
+
+		metrics?.Clear();
+		user_properties.Clear();
+		event_parameters.Clear();
+		@events.Clear();
+		body.Clear();
+
+		metrics = null;
+		user_properties = null;
+		event_parameters = null;
+		@events = null;
+		body = null;
 	}
 
 	private void SendRequest(string url, string body = null)

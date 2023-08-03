@@ -54,7 +54,7 @@ public partial class Category_Static
 					Command.FromRcon = API.Commands.Command.FromRcon = true;
 
 					var consoleArg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
-					var option = Option.Unrestricted;
+					var option = Option.Server;
 					option.FromRcon = true;
 					consoleArg.Option = option;
 					consoleArg.FullString = cmd.Message;
@@ -68,6 +68,9 @@ public partial class Category_Static
 							commandArgs.Token = consoleArg;
 							commandArgs.Type = outCommand.Type;
 							commandArgs.Arguments = arguments;
+							commandArgs.IsRCon = true;
+							commandArgs.IsServer = true;
+							commandArgs.PrintOutput = consoleArg.Option.PrintOutput;
 
 							Community.Runtime.CommandManager.Execute(outCommand, commandArgs);
 						}

@@ -87,6 +87,9 @@ public class Command : IDisposable
 
 		public string Reply { get; set; }
 		public object Token { get; set; }
+		public bool IsRCon { get; set; }
+		public bool IsServer { get; set; }
+		public bool PrintOutput { get; set; }
 
 		public bool Tokenize<T>(out T value)
 		{

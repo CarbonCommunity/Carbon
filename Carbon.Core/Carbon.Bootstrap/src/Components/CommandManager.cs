@@ -147,7 +147,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 		{
 			command.Callback?.Invoke(args);
 
-			if (!string.IsNullOrEmpty(args.Reply))
+			if (args.PrintOutput && !string.IsNullOrEmpty(args.Reply))
 			{
 				switch (args)
 				{
@@ -156,7 +156,10 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 						{
 							player.ConsoleMessage(args.Reply);
 						}
-						else Debug.Log(args.Reply);
+						else
+						{
+							Debug.Log(args.Reply);
+						}
 						break;
 
 					default:
@@ -165,17 +168,22 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 				}
 			}
 
-			if (args.Tokenize<ConsoleSystem.Arg>(out var arg))
-			{
-				Print(arg.Reply, arg.Player());
-			}
-			else
-			{
-				var player = (BasePlayer)null;
-				var playerArgs2 = args as PlayerArgs;
-				playerArgs2?.GetPlayer(out player);
+			var arg = (ConsoleSystem.Arg)null;
 
-				Print(args.Reply, player);
+			if (args.PrintOutput)
+			{
+				if (args.Tokenize(out arg))
+				{
+					Print(arg.Reply, arg.Player());
+				}
+				else
+				{
+					var player = (BasePlayer)null;
+					var playerArgs2 = args as PlayerArgs;
+					playerArgs2?.GetPlayer(out player);
+
+					Print(args.Reply, player);
+				}
 			}
 
 			void Print(string reply, BasePlayer player)
@@ -184,11 +192,15 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 
 				if (player != null)
 				{
-					player.ConsoleMessage(args.Reply);
+					player.ConsoleMessage(reply);
+				} 
+				else if(arg != null && arg.IsRcon)
+				{
+					Facepunch.RCon.OnMessage(reply, string.Empty, UnityEngine.LogType.Log);
 				}
 				else
 				{
-					Debug.Log(args.Reply);
+					Debug.Log(reply);
 				}
 			}
 

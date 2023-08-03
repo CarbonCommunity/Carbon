@@ -20,7 +20,6 @@ public static class CommandLineEx
 	{
 		var result = string.Empty;
 
-
 		for (var i = 0; i < args.Length; i++)
 		{
 			if (args[i] == argument)
