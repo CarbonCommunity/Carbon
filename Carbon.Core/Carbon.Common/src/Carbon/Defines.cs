@@ -25,8 +25,6 @@ public class Defines
 		Logger.Log("Loaded folders");
 	}
 
-	#region Paths
-
 	internal static string _customRootFolder;
 	internal static string _customScriptFolder;
 	internal static string _customConfigFolder;
@@ -52,6 +50,11 @@ public class Defines
 	{
 		_initializeCommandLine();
 		return Path.Combine(GetRootFolder(), "config.json");
+	}
+	public static string GetCarbonAutoFile()
+	{
+		_initializeCommandLine();
+		return Path.Combine(GetRootFolder(), "carbonauto.cfg");
 	}
 
 	public static string GetRootFolder()
@@ -172,6 +175,4 @@ public class Defines
 
 		return folder;
 	}
-
-	#endregion
 }

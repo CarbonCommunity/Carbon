@@ -32,6 +32,7 @@ public partial class CorePlugin : CarbonPlugin
 						if (narg0_0) { AddConditional(arg0_0); }
 						break;
 					}
+
 #if DEBUG
 				// BeginProfile aka 3261118524
 				case 3261118524:
@@ -130,6 +131,22 @@ public partial class CorePlugin : CarbonPlugin
 						var narg1_0 = args[1] is DoorCloser;
 						var arg1_0 = narg1_0 ? (DoorCloser)(args[1] ?? (DoorCloser)default) : (DoorCloser)default;
 						if (narg0_0 && narg1_0) { result = ICanPickupEntity(arg0_0, arg1_0); }
+						break;
+					}
+				// ICraftDurationMultiplier aka 4130008882
+				case 4130008882:
+					{
+						result = ICraftDurationMultiplier();
+						break;
+					}
+				// IMixingSpeedMultiplier aka 2901256393
+				case 2901256393:
+					{
+						var narg0_0 = args[0] is MixingTable;
+						var arg0_0 = narg0_0 ? (MixingTable)(args[0] ?? (MixingTable)default) : (MixingTable)default;
+						var narg1_0 = args[1] is float;
+						var arg1_0 = narg1_0 ? (float)(args[1] ?? (float)default) : (float)default;
+						if (narg0_0 && narg1_0) { result = IMixingSpeedMultiplier(arg0_0, arg1_0); }
 						break;
 					}
 				// IOnBaseCombatEntityHurt aka 2404648208
@@ -258,6 +275,18 @@ public partial class CorePlugin : CarbonPlugin
 						if (narg0_0) { result = IOnUserApprove(arg0_0); }
 						break;
 					}
+				// IRecyclerThinkSpeed aka 880503512
+				case 880503512:
+					{
+						result = IRecyclerThinkSpeed();
+						break;
+					}
+				// IVendingBuyDuration aka 2959446098
+				case 2959446098:
+					{
+						result = IVendingBuyDuration();
+						break;
+					}
 				// LoadModuleConfig aka 646765377
 				case 646765377:
 					{
@@ -314,6 +343,18 @@ public partial class CorePlugin : CarbonPlugin
 						var narg0_0 = args[0] is BaseEntity;
 						var arg0_0 = narg0_0 ? (BaseEntity)(args[0] ?? (BaseEntity)default) : (BaseEntity)default;
 						if (narg0_0) { OnEntitySpawned(arg0_0); }
+						break;
+					}
+				// OnItemResearch aka 1330527334
+				case 1330527334:
+					{
+						var narg0_0 = args[0] is ResearchTable;
+						var arg0_0 = narg0_0 ? (ResearchTable)(args[0] ?? (ResearchTable)default) : (ResearchTable)default;
+						var narg1_0 = args[1] is Item;
+						var arg1_0 = narg1_0 ? (Item)(args[1] ?? (Item)default) : (Item)default;
+						var narg2_0 = args[2] is BasePlayer;
+						var arg2_0 = narg2_0 ? (BasePlayer)(args[2] ?? (BasePlayer)default) : (BasePlayer)default;
+						if (narg0_0 && narg1_0 && narg2_0) { OnItemResearch(arg0_0, arg1_0, arg2_0); }
 						break;
 					}
 				// OnPlayerDisconnected aka 2449451640
@@ -448,6 +489,14 @@ public partial class CorePlugin : CarbonPlugin
 						if (narg0_0) { PluginWarns(arg0_0); }
 						break;
 					}
+				// Reboot aka 811300139
+				case 811300139:
+					{
+						var narg0_0 = args[0] is ConsoleSystem.Arg;
+						var arg0_0 = narg0_0 ? (ConsoleSystem.Arg)(args[0] ?? (ConsoleSystem.Arg)default) : (ConsoleSystem.Arg)default;
+						if (narg0_0) { Reboot(arg0_0); }
+						break;
+					}
 				// Reload aka 1720368164
 				case 1720368164:
 					{
@@ -520,6 +569,14 @@ public partial class CorePlugin : CarbonPlugin
 						if (narg0_0) { Show(arg0_0); }
 						break;
 					}
+				// Shutdown aka 988816473
+				case 988816473:
+					{
+						var narg0_0 = args[0] is ConsoleSystem.Arg;
+						var arg0_0 = narg0_0 ? (ConsoleSystem.Arg)(args[0] ?? (ConsoleSystem.Arg)default) : (ConsoleSystem.Arg)default;
+						if (narg0_0) { Shutdown(arg0_0); }
+						break;
+					}
 				// UnloadPlugin aka 1126445065
 				case 1126445065:
 					{
@@ -548,7 +605,7 @@ public partial class CorePlugin : CarbonPlugin
 		}
 		catch (System.Exception ex)
 		{
-			Carbon.Logger.Error($"Failed to call internal hook '{HookStringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'", ex);
+			Carbon.Logger.Error($"Failed to call internal hook '{Carbon.Pooling.HookStringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'", ex);
 		}
 		return result;
 	}
@@ -634,7 +691,7 @@ public partial class CorePlugin : CarbonPlugin
 
 		var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
 		var lines = OsEx.File.Exists(serverConfigPath) ? OsEx.File.ReadTextLines(serverConfigPath) : null;
-
+		
 		if (lines != null)
 		{
 			CommandLine.ExecuteCommands("+carbon.onserverinit", "cfg/server.cfg", lines);
@@ -665,6 +722,19 @@ public partial class CorePlugin : CarbonPlugin
 				pluginCheck = null;
 			}
 		});
+
+		CarbonAuto.Load();
+	}
+	private void OnServerSave()
+	{
+		Logger.Debug($"Saving Carbon state..", 1);
+		Interface.Oxide.Permission.SaveData();
+		Community.Runtime.ModuleProcessor.OnServerSave();
+
+		Community.Runtime.Events
+			.Trigger(CarbonEvent.OnServerSave, EventArgs.Empty);
+
+		CarbonAuto.Save();
 	}
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)
@@ -716,16 +786,6 @@ public partial class CorePlugin : CarbonPlugin
 	private void OnEntityKill(BaseEntity entity)
 	{
 		Entities.RemoveMap(entity);
-	}
-
-	private void OnServerSave()
-	{
-		Logger.Debug($"Saving Carbon state..", 1);
-		Interface.Oxide.Permission.SaveData();
-		Community.Runtime.ModuleProcessor.OnServerSave();
-
-		Community.Runtime.Events
-			.Trigger(CarbonEvent.OnServerSave, EventArgs.Empty);
 	}
 
 	internal static StackTraceLogType _defaultLogTrace;

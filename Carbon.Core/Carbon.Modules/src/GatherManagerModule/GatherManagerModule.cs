@@ -93,10 +93,6 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 	{
 		item.amount = GetAmount(item.info, item.amount, 1);
 	}
-	private void OnItemResearch(ResearchTable table, Item targetItem, BasePlayer player)
-	{
-		table.researchDuration = ConfigInstance.ResearchDuration;
-	}
 	private void OnDispenserBonus(ResourceDispenser dispenser, BasePlayer player, Item item)
 	{
 		item.amount = GetAmount(item.info, item.amount, 1);
@@ -116,18 +112,6 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 		item.amount = GetAmount(item.info, item.amount, 1);
 	}
 
-	private object ICraftDurationMultiplier()
-	{
-		return ConfigInstance.CraftingSpeedMultiplier;
-	}
-	private object IRecyclerThinkSpeed()
-	{
-		return ConfigInstance.RecycleTick;
-	}
-	private object IVendingBuyDuration()
-	{
-		return ConfigInstance.VendingMachineBuyDuration;
-	}
 	private object IOvenSmeltSpeedOverride(BaseOven oven)
 	{
 		if (ConfigInstance.OvenSpeedOverrideBlacklist.Contains(oven.ShortPrefabName) ||
@@ -137,18 +121,6 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 		}
 
 		return ConfigInstance.OvenSpeedOverride;
-	}
-
-	private object IMixingSpeedMultiplier(MixingTable table, float originalValue)
-	{
-		if (table.currentRecipe == null) return null;
-
-		if (originalValue == table.currentRecipe.MixingDuration * table.currentQuantity)
-		{
-			return ConfigInstance.MixingSpeedMultiplier;
-		}
-
-		return null;
 	}
 
 	#endregion
@@ -187,11 +159,6 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 public class GatherManagerConfig
 {
-	public float RecycleTick = 5f;
-	public float ResearchDuration = 10f;
-	public float VendingMachineBuyDuration = 2.5f;
-	public float CraftingSpeedMultiplier = 1f;
-	public float MixingSpeedMultiplier = 1f;
 	public float OvenSpeedOverride = 0.5f;
 	public float OvenSpeedBlacklistedOverride = 0.5f;
 

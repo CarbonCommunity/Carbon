@@ -1024,7 +1024,7 @@ public partial class AdminModule
 	{
 		var player = args.Player();
 
-		if (CallColumnRow(player, args.Args[0].ToInt(), args.Args[1].ToInt(), args.Args.Skip(2).ToArray()))
+		if (CallColumnRow(player, args.Args[0].ToInt(), args.Args[1].ToInt(), args.Args.Skip(2)))
 			Draw(player);
 	}
 
@@ -1518,7 +1518,7 @@ public partial class AdminModule
 	{
 		return FindTab(id) != null;
 	}
-	public bool CallColumnRow(BasePlayer player, int column, int row, string[] args)
+	public bool CallColumnRow(BasePlayer player, int column, int row, IEnumerable<string> args)
 	{
 		var ap = GetPlayerSession(player);
 		var tab = GetTab(player);
@@ -1527,7 +1527,7 @@ public partial class AdminModule
 		ap.LastPressedRow = row;
 
 		var option = tab.Columns[column][row];
-		if (args.Length > 0 && args[0] == "tooltip")
+		if (args.Count() > 0 && args.ElementAt(0) == "tooltip")
 		{
 			if (ap.Tooltip != option) ap.Tooltip = option;
 			else ap.Tooltip = null;
@@ -1542,8 +1542,7 @@ public partial class AdminModule
 
 			case Tab.OptionInput input:
 				{
-					var enumerable = args.Skip(1);
-					input.Callback?.Invoke(ap, enumerable.Count() == 0 ? EmptyElement : enumerable.ToArray());
+					input.Callback?.Invoke(ap, args);
 				}
 				return input.Callback != null;
 
@@ -1626,12 +1625,12 @@ public partial class AdminModule
 				return callback != null;
 
 			case Tab.OptionInputButton inputButton:
-				switch (args[0])
-				{
+				switch (args.ElementAt(0))
+				{ 
 					case "input":
 						{
 							var enumerable = args.Skip(1);
-							inputButton.Input.Callback?.Invoke(ap, enumerable.Count() == 0 ? EmptyElement : args.Skip(2).ToArray());
+							inputButton.Input.Callback?.Invoke(ap, enumerable.Count() == 0 ? EmptyElement : enumerable);
 						}
 						return inputButton.Input.Callback != null;
 
@@ -1896,11 +1895,11 @@ public partial class AdminModule
 		{
 			return AddRow(column, new OptionText(name, size, color, align, font, isInput));
 		}
-		public Tab AddInput(int column, string name, Func<PlayerSession, string> placeholder, int characterLimit, bool readOnly, Action<PlayerSession, string[]> callback = null, string tooltip = null)
+		public Tab AddInput(int column, string name, Func<PlayerSession, string> placeholder, int characterLimit, bool readOnly, Action<PlayerSession, IEnumerable<string>> callback = null, string tooltip = null)
 		{
 			return AddRow(column, new OptionInput(name, placeholder, characterLimit, readOnly, callback, tooltip));
 		}
-		public Tab AddInput(int column, string name, Func<PlayerSession, string> placeholder, Action<PlayerSession, string[]> callback = null, string tooltip = null)
+		public Tab AddInput(int column, string name, Func<PlayerSession, string> placeholder, Action<PlayerSession, IEnumerable<string>> callback = null, string tooltip = null)
 		{
 			return AddInput(column, name, placeholder, 0, callback == null, callback, tooltip);
 		}
@@ -2032,9 +2031,9 @@ public partial class AdminModule
 			public Func<PlayerSession, string> Placeholder;
 			public int CharacterLimit;
 			public bool ReadOnly;
-			public Action<PlayerSession, string[]> Callback;
+			public Action<PlayerSession, IEnumerable<string>> Callback;
 
-			public OptionInput(string name, Func<PlayerSession, string> placeholder, int characterLimit, bool readOnly, Action<PlayerSession, string[]> args, string tooltip = null) : base(name, tooltip)
+			public OptionInput(string name, Func<PlayerSession, string> placeholder, int characterLimit, bool readOnly, Action<PlayerSession, IEnumerable<string>> args, string tooltip = null) : base(name, tooltip)
 			{
 				Placeholder = ap => { try { return placeholder?.Invoke(ap); } catch (Exception ex) { Logger.Error($"Failed OptionInput.Placeholder callback ({name}): {ex.Message}"); return string.Empty; } };
 				Callback = (ap, args2) => { try { args?.Invoke(ap, args2); } catch (Exception ex) { Logger.Error($"Failed OptionInput.Callback callback ({name}): {ex.Message}"); } };
@@ -2649,8 +2648,8 @@ public partial class AdminModule
 				$"and so far has used {module.TotalHookTime:0.000}ms of server time during those hook calls. " +
 				$"This module is {(module.EnabledByDefault ? "enabled" : "disabled")} by default. " +
 				$"This module has <b>{consoleCommandCount:n0}</b> console and <b>{chatCommandCount:n0}</b> chat {(consoleCommandCount == 1 && chatCommandCount == 1 ? "command" : "commands")} and will{(!module.ForceModded ? " <b>not</b>" : "")} enforce this server to modded when enabled.{((consoleCommandCount + chatCommandCount) == 0 ? "" : "\n\n")}" +
-				((consoleCommandCount > 0 ? $"<b>Console commands:</b> {consoleCommands.Select(x => $"{x.Name}").ToArray().ToString(", ")}\n" : "") +
-				(chatCommandCount > 0 ? $"<b>Chat commands:</b> {chatCommands.Select(x => $"{x.Name}").ToArray().ToString(", ")}\n" : "") +
+				((consoleCommandCount > 0 ? $"<b>Console commands:</b> {consoleCommands.Select(x => $"{x.Name}").ToString(", ")}\n" : "") +
+				(chatCommandCount > 0 ? $"<b>Chat commands:</b> {chatCommands.Select(x => $"{x.Name}").ToString(", ")}\n" : "") +
 				$"\n\n{(string.IsNullOrEmpty(content) ? "" : Header("About", 1))}" +
 				$"\n{content}");
 

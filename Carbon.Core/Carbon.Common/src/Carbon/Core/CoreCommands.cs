@@ -101,7 +101,7 @@ public partial class CorePlugin : CarbonPlugin
 
 						foreach (var mod in ModLoader.FailedMods)
 						{
-							body.AddRow($"{count:n0}", $"{Path.GetFileName(mod.File)}", $"{mod.Errors.Length:n0}", $"{mod.Errors.Select(x => x.Message).ToArray().ToString(", ").Truncate(75, "...")}");
+							body.AddRow($"{count:n0}", $"{Path.GetFileName(mod.File)}", $"{mod.Errors.Length:n0}", $"{mod.Errors.Select(x => x.Message).ToString(", ").Truncate(75, "...")}");
 
 							count++;
 						}
@@ -358,7 +358,7 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private void Conditionals(ConsoleSystem.Arg arg)
 	{
-		arg.ReplyWith($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToArray().ToString(", ", " and ")}");
+		arg.ReplyWith($"Conditionals ({Community.Runtime.Config.ConditionalCompilationSymbols.Count:n0}): {Community.Runtime.Config.ConditionalCompilationSymbols.ToString(", ", " and ")}");
 	}
 
 	#endregion
@@ -1088,8 +1088,8 @@ public partial class CorePlugin : CarbonPlugin
 						return;
 					}
 
-					arg.ReplyWith($"User {user.Value.LastSeenNickname}[{user.Key}] found in {user.Value.Groups.Count:n0} groups:\n  {user.Value.Groups.Select(x => x).ToArray().ToString(", ", " and ")}\n" +
-						$"and has {user.Value.Perms.Count:n0} permissions:\n  {user.Value.Perms.Select(x => x).ToArray().ToString(", ", " and ")}");
+					arg.ReplyWith($"User {user.Value.LastSeenNickname}[{user.Key}] found in {user.Value.Groups.Count:n0} groups:\n  {user.Value.Groups.Select(x => x).ToString(", ", " and ")}\n" +
+						$"and has {user.Value.Perms.Count:n0} permissions:\n  {user.Value.Perms.Select(x => x).ToString(", ", " and ")}");
 					break;
 				}
 			case "group":
@@ -1106,8 +1106,8 @@ public partial class CorePlugin : CarbonPlugin
 
 					var users = permission.GetUsersInGroup(name);
 					var permissions = permission.GetGroupPermissions(name, false);
-					arg.ReplyWith($"Group {name} has {users.Length:n0} users:\n  {users.Select(x => x).ToArray().ToString(", ", " and ")}\n" +
-						$"and has {permissions.Length:n0} permissions:\n  {permissions.Select(x => x).ToArray().ToString(", ", " and ")}");
+					arg.ReplyWith($"Group {name} has {users.Length:n0} users:\n  {users.Select(x => x).ToString(", ", " and ")}\n" +
+						$"and has {permissions.Length:n0} permissions:\n  {permissions.Select(x => x).ToString(", ", " and ")}");
 					break;
 				}
 			case "groups":
