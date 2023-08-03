@@ -163,7 +163,6 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"System.Drawing",
 		"System.Globalization",
 		"System.Management",
-		"System.Memory",
 		"System.Net.Http",
 		"System.Runtime",
 		"System.Threading.Tasks.Extensions",
@@ -197,6 +196,7 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Facepunch.System",
 		"Facepunch.Unity",
 		"Facepunch.UnityEngine",
+		"Facepunch.Nexus",
 
 		"Rust.Data",
 		"Rust.FileSystem",
@@ -208,6 +208,8 @@ internal sealed class AssemblyManager : CarbonBehaviour, IAssemblyManager
 		"Rust.UI",
 		"Rust.Workshop",
 		"Rust.World",
+		"Rust.Clans",
+		"Rust.Clans.Local",
 
 		"Unity.Mathematics",
 		"Unity.Timeline",

@@ -327,13 +327,13 @@ public partial class ModalModule : CarbonModule<EmptyModuleConfig, EmptyModuleDa
 		var ap = Admin.GetPlayerSession(arg.Player());
 		var modal = ap.GetStorage<Modal>(null, "modal");
 
-		var fieldName = arg.Args[0];
+		var fieldName = arg.GetString(0);
 		var field = modal.Fields[fieldName];
 		var oldValue = field.Value;
 
 		if (!field.IsReadOnly)
 		{
-			var value = arg.Args[1];
+			var value = arg.GetString(1);
 
 			switch (field.Type)
 			{
@@ -442,7 +442,7 @@ public partial class ModalModule : CarbonModule<EmptyModuleConfig, EmptyModuleDa
 	{
 		var ap = Admin.GetPlayerSession(arg.Player());
 		var modal = ap.GetStorage<Modal>(null, "modal");
-		switch (arg.Args[0])
+		switch (arg.GetString(0))
 		{
 			case "+":
 				modal.Page++;

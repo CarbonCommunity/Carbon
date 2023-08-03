@@ -109,7 +109,7 @@ internal sealed class GroupManager : IGroupManagement
 		try
 		{
 			string query = "SELECT `Title` FROM `Group` WHERE `GroupID` = ?";
-			return _database.Query<string, string>(query, groupID);
+			return _database.Query<string, string> (query, groupID);
 		}
 		catch (System.Exception e)
 		{
@@ -137,7 +137,7 @@ internal sealed class GroupManager : IGroupManagement
 		try
 		{
 			string query = "SELECT `ParentGroup` FROM `Group` WHERE `GroupID` = ?";
-			return _database.Query<string, string>(query, groupID);
+			return _database.Query<string, string> (query, groupID);
 		}
 		catch (System.Exception e)
 		{

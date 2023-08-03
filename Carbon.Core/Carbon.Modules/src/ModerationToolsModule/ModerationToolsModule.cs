@@ -73,7 +73,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		var player = arg.Player();
 		if (player == null) return;
 
-		var playerName = arg.Args[0];
+		var playerName = arg.GetString(0);
 		var reason = arg.Args.Skip(1).ToArray().ToString(" ");
 
 		var targetPlayer = BasePlayer.FindAwakeOrSleeping(playerName);
@@ -95,7 +95,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		var player = arg.Player();
 		if (player == null) return;
 
-		var playerName = arg.Args[0];
+		var playerName = arg.GetString(0);
 
 		var targetPlayer = BasePlayer.FindAwakeOrSleeping(playerName);
 		if (targetPlayer == null)
@@ -133,7 +133,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		var player = arg.Player();
 		if (player == null) return;
 
-		var targetPlayer = BasePlayer.FindAwakeOrSleeping(arg.Args[0]);
+		var targetPlayer = BasePlayer.FindAwakeOrSleeping(arg.GetString(0));
 		if (targetPlayer == null)
 		{
 			player.ConsoleMessage($"Couldn't find that player.");
@@ -151,7 +151,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		var player = arg.Player();
 		if (player == null) return;
 
-		var targetPlayer = BasePlayer.FindAwakeOrSleeping(arg.Args[0]);
+		var targetPlayer = BasePlayer.FindAwakeOrSleeping(arg.GetString(0));
 		if (targetPlayer == null)
 		{
 			player.ConsoleMessage($"Couldn't find that player.");
