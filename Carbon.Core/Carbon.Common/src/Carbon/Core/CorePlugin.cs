@@ -723,7 +723,8 @@ public partial class CorePlugin : CarbonPlugin
 			}
 		});
 
-		CarbonAuto.Load();
+		CarbonAuto.Init();
+		API.Abstracts.CarbonAuto.Singleton.Load();
 	}
 	private void OnServerSave()
 	{
@@ -734,7 +735,7 @@ public partial class CorePlugin : CarbonPlugin
 		Community.Runtime.Events
 			.Trigger(CarbonEvent.OnServerSave, EventArgs.Empty);
 
-		CarbonAuto.Save();
+		API.Abstracts.CarbonAuto.Singleton?.Save();
 	}
 
 	private void OnPlayerDisconnected(BasePlayer player, string reason)

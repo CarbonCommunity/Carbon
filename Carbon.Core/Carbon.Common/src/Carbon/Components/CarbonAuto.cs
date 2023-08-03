@@ -1,19 +1,75 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Carbon.Components;
 
-namespace Carbon.Components;
-
-internal class CarbonAuto
+public class CarbonAuto : API.Abstracts.CarbonAuto
 {
-	public static void Save()
+	internal Dictionary<string, object> _autoCache = new();
+
+	public static void Init()
+	{
+		Singleton = new CarbonAuto();
+	}
+	public override void Refresh()
+	{
+		var type = typeof(CorePlugin);
+		var flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
+		var fields = type.GetFields(flags);
+		var properties = type.GetProperties(flags);
+
+		_autoCache.Clear();
+
+		foreach (var field in fields)
+		{
+			var commandVarAttr = field.GetCustomAttribute<CommandVarAttribute>();
+			if (commandVarAttr == null || !commandVarAttr.Saved) continue;
+
+			_autoCache.Add($"c.{commandVarAttr.Name}", field);
+		}
+
+		foreach (var property in properties)
+		{
+			var commandVarAttr = property.GetCustomAttribute<CommandVarAttribute>();
+			if (commandVarAttr == null || !commandVarAttr.Saved) continue;
+
+			_autoCache.Add($"c.{commandVarAttr.Name}", property);
+		}
+	}
+	public override bool IsChanged()
+	{
+		using (TimeMeasure.New("CarbonAuto.IsChanged", 100))
+		{
+			var core = Community.Runtime.CorePlugin;
+
+			foreach (var cache in _autoCache)
+			{
+				switch (cache.Value)
+				{
+					case FieldInfo field:
+						{
+							var value = field.IsStatic ? field.GetValue(null) : field.GetValue(core);
+							if (value is float floatValue && floatValue != -1) return true;
+						}
+						break;
+
+					case PropertyInfo property:
+						{
+							var value = property.GetValue(core);
+							if (value is float floatValue && floatValue != -1) return true;
+						}
+						break;
+				}
+			}
+		}
+
+		return false;
+	}
+	public override void Save()
 	{
 		using (TimeMeasure.New("CarbonAuto.Save", 100))
 		{
 			try
 			{
+				Refresh();
+
 				var type = typeof(CorePlugin);
 				var flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
 				var fields = type.GetFields(flags);
@@ -22,12 +78,18 @@ internal class CarbonAuto
 
 				using var sb = new StringBody();
 
-				foreach (var field in fields)
+				foreach (var cache in _autoCache)
 				{
-					var commandVarAttr = field.GetCustomAttribute<CommandVarAttribute>();
-					if (commandVarAttr == null || !commandVarAttr.Saved) continue;
+					switch (cache.Value)
+					{
+						case FieldInfo field:
+							sb.Add($"{cache.Key} \"{(field.IsStatic ? field.GetValue(null) : field.GetValue(core))}\"");
+							break;
 
-					sb.Add($"c.{commandVarAttr.Name} \"{(field.IsStatic ? field.GetValue(null) : field.GetValue(core))}\"");
+						case PropertyInfo property:
+							sb.Add($"{cache.Key} \"{property.GetValue(core)}\"");
+							break;
+					}
 				}
 
 				OsEx.File.Create(Defines.GetCarbonAutoFile(), sb.ToNewLine());
@@ -38,12 +100,14 @@ internal class CarbonAuto
 			}
 		}
 	}
-	public static void Load()
+	public override void Load()
 	{
 		using (TimeMeasure.New("CarbonAuto.Load", 100))
 		{
 			try
 			{
+				Refresh();
+
 				var file = Defines.GetCarbonAutoFile();
 
 				if (!OsEx.File.Exists(file))
@@ -59,6 +123,11 @@ internal class CarbonAuto
 					ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), line, Array.Empty<string>());
 				}
 
+				if (IsChanged())
+				{
+					Logger.Warn($" The server Carbon auto options have been changed." +
+								$" Any values that aren't \"-1\" will force the server to modded!");
+				}
 			}
 			catch (Exception ex)
 			{
