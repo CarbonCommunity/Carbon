@@ -168,17 +168,22 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 				}
 			}
 
-			if (args.Tokenize<ConsoleSystem.Arg>(out var arg) && arg.Option.PrintOutput)
-			{
-				Print(arg.Reply, arg.Player());
-			}
-			else if(args.PrintOutput)
-			{
-				var player = (BasePlayer)null;
-				var playerArgs2 = args as PlayerArgs;
-				playerArgs2?.GetPlayer(out player);
+			var arg = (ConsoleSystem.Arg)null;
 
-				Print(args.Reply, player);
+			if (args.PrintOutput)
+			{
+				if (args.Tokenize(out arg))
+				{
+					Print(arg.Reply, arg.Player());
+				}
+				else
+				{
+					var player = (BasePlayer)null;
+					var playerArgs2 = args as PlayerArgs;
+					playerArgs2?.GetPlayer(out player);
+
+					Print(args.Reply, player);
+				}
 			}
 
 			void Print(string reply, BasePlayer player)
@@ -189,7 +194,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 				{
 					player.ConsoleMessage(reply);
 				} 
-				else if(arg.IsRcon)
+				else if(arg != null && arg.IsRcon)
 				{
 					Facepunch.RCon.OnMessage(reply, string.Empty, UnityEngine.LogType.Log);
 				}

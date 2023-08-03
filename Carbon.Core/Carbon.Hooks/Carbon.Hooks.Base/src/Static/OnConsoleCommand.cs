@@ -59,9 +59,7 @@ public partial class Category_Static
 						if (Community.Runtime.CommandManager.Contains(commands, command, out var cmd))
 						{
 							var arg = FormatterServices.GetUninitializedObject(typeof(Arg)) as Arg;
-							var option = player == null ? Option.Server : Option.Client;
-							if (player != null) option = option.FromConnection(player.net.connection);
-							arg.Option = option;
+							arg.Option = options;
 							arg.FullString = fullString;
 							arg.Args = args2;
 							arg.cmd = cmd.RustCommand;
@@ -72,7 +70,7 @@ public partial class Category_Static
 							commandArgs.Arguments = args2;
 							commandArgs.Player = player;
 							commandArgs.IsServer = player == null;
-							commandArgs.PrintOutput = arg.Option.PrintOutput;
+							commandArgs.PrintOutput = options.PrintOutput;
 
 							Command.FromRcon = false;
 							Community.Runtime.CommandManager.Execute(cmd, commandArgs);
