@@ -1547,7 +1547,7 @@ public partial class AdminModule
 				return input.Callback != null;
 
 			case Tab.OptionEnum @enum:
-				@enum.Callback?.Invoke(ap, args[0].ToBool());
+				@enum.Callback?.Invoke(ap, args.ElementAt(0).ToBool());
 				return @enum.Callback != null;
 
 			case Tab.OptionToggle toggle:
@@ -1565,19 +1565,19 @@ public partial class AdminModule
 
 			case Tab.OptionDropdown dropdown:
 				var page = ap._selectedDropdownPage;
-				switch (args[0].ToBool())
+				switch (args.ElementAt(0).ToBool())
 				{
 					case true:
-						switch (args[1])
+						switch (args.ElementAt(1))
 						{
 							case "call":
 								ap._selectedDropdown = null;
-								dropdown.Callback?.Invoke(ap, args[2].ToInt());
+								dropdown.Callback?.Invoke(ap, args.ElementAt(2).ToInt());
 								page.CurrentPage = 0;
 								break;
 
 							default:
-								switch (args[1])
+								switch (args.ElementAt(1))
 								{
 									case "--":
 										page.CurrentPage = 0;
@@ -1588,7 +1588,7 @@ public partial class AdminModule
 										break;
 
 									default:
-										page.CurrentPage = args[1].ToInt();
+										page.CurrentPage = args.ElementAt(1).ToInt();
 										break;
 								}
 
@@ -1616,17 +1616,17 @@ public partial class AdminModule
 				}
 
 			case Tab.OptionRange range:
-				range.Callback?.Invoke(ap, args[0].ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
+				range.Callback?.Invoke(ap, args.ElementAt(0).ToFloat().Scale(0f, range.Max.Clamp(range.Min, RangeCuts) - 1f, range.Min, range.Max));
 				return range.Callback != null;
 
 			case Tab.OptionButtonArray array:
-				var callback = array.Buttons[args[0].ToInt()].Callback;
+				var callback = array.Buttons[args.ElementAt(0).ToInt()].Callback;
 				callback?.Invoke(ap);
 				return callback != null;
 
 			case Tab.OptionInputButton inputButton:
 				switch (args.ElementAt(0))
-				{ 
+				{
 					case "input":
 						{
 							var enumerable = args.Skip(1);
