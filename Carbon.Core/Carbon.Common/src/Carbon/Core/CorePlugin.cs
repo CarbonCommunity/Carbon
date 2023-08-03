@@ -32,7 +32,6 @@ public partial class CorePlugin : CarbonPlugin
 						if (narg0_0) { AddConditional(arg0_0); }
 						break;
 					}
-
 #if DEBUG
 				// BeginProfile aka 3261118524
 				case 3261118524:
@@ -187,6 +186,14 @@ public partial class CorePlugin : CarbonPlugin
 						var narg1_0 = args[1] is BaseNetworkable.SaveInfo;
 						var arg1_0 = narg1_0 ? (BaseNetworkable.SaveInfo)(args[1] ?? (BaseNetworkable.SaveInfo)default) : (BaseNetworkable.SaveInfo)default;
 						if (narg0_0 && narg1_0) { IOnEntitySaved(arg0_0, arg1_0); }
+						break;
+					}
+				// IOnExcavatorInit aka 1290758824
+				case 1290758824:
+					{
+						var narg0_0 = args[0] is ExcavatorArm;
+						var arg0_0 = narg0_0 ? (ExcavatorArm)(args[0] ?? (ExcavatorArm)default) : (ExcavatorArm)default;
+						if (narg0_0) { result = IOnExcavatorInit(arg0_0); }
 						break;
 					}
 				// IOnLoseCondition aka 1448274911

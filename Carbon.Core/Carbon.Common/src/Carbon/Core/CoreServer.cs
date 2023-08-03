@@ -73,6 +73,25 @@ public partial class CorePlugin : CarbonPlugin
 
 		return null; ;
 	}
+	private object IOnExcavatorInit(ExcavatorArm arm)
+	{
+		if(ExcavatorResourceTickRate != -1)
+		{
+			arm.resourceProductionTickRate = ExcavatorResourceTickRate;
+		}
+
+		if (ExcavatorTimeForFullResources != -1)
+		{
+			arm.timeForFullResources = ExcavatorTimeForFullResources;
+		}
+
+		if (ExcavatorBeltSpeedMax != -1)
+		{
+			arm.beltSpeedMax = ExcavatorBeltSpeedMax;
+		}
+
+		return null; ;
+	}
 
 	private void OnItemResearch(ResearchTable table, Item targetItem, BasePlayer player)
 	{

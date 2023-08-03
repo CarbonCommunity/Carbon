@@ -117,15 +117,16 @@ public class CarbonAuto : API.Abstracts.CarbonAuto
 				}
 
 				var lines = OsEx.File.ReadTextLines(Defines.GetCarbonAutoFile());
+				var option = ConsoleSystem.Option.Server.Quiet();
 
 				foreach (var line in lines)
 				{
-					ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), line, Array.Empty<string>());
+					ConsoleSystem.Run(option, line, Array.Empty<string>());
 				}
 
 				if (IsChanged())
 				{
-					Logger.Warn($" The server Carbon auto options have been changed." +
+					Logger.Warn($" The server Carbon auto options have been changed.\n" +
 								$" Any values that aren't \"-1\" will force the server to modded!");
 				}
 			}

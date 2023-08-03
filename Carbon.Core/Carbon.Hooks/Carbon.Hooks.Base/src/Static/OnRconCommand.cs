@@ -70,6 +70,7 @@ public partial class Category_Static
 							commandArgs.Arguments = arguments;
 							commandArgs.IsRCon = true;
 							commandArgs.IsServer = false;
+							commandArgs.PrintOutput = consoleArg.Option.PrintOutput;
 
 							Community.Runtime.CommandManager.Execute(outCommand, commandArgs);
 						}

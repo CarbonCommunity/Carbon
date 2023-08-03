@@ -72,6 +72,7 @@ public partial class Category_Static
 							commandArgs.Arguments = args2;
 							commandArgs.Player = player;
 							commandArgs.IsServer = player == null;
+							commandArgs.PrintOutput = arg.Option.PrintOutput;
 
 							Command.FromRcon = false;
 							Community.Runtime.CommandManager.Execute(cmd, commandArgs);

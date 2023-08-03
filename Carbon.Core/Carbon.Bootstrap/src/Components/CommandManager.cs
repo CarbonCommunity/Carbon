@@ -147,7 +147,7 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 		{
 			command.Callback?.Invoke(args);
 
-			if (!string.IsNullOrEmpty(args.Reply))
+			if (args.PrintOutput && !string.IsNullOrEmpty(args.Reply))
 			{
 				switch (args)
 				{
@@ -156,7 +156,10 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 						{
 							player.ConsoleMessage(args.Reply);
 						}
-						else Debug.Log(args.Reply);
+						else
+						{
+							Debug.Log(args.Reply);
+						}
 						break;
 
 					default:
@@ -165,11 +168,11 @@ public sealed class CommandManager : CarbonBehaviour, ICommandManager
 				}
 			}
 
-			if (args.Tokenize<ConsoleSystem.Arg>(out var arg))
+			if (args.Tokenize<ConsoleSystem.Arg>(out var arg) && arg.Option.PrintOutput)
 			{
 				Print(arg.Reply, arg.Player());
 			}
-			else
+			else if(args.PrintOutput)
 			{
 				var player = (BasePlayer)null;
 				var playerArgs2 = args as PlayerArgs;

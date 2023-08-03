@@ -261,6 +261,7 @@ public partial class CorePlugin : CarbonPlugin
 				commandArgs.Type = cmd.Type;
 				commandArgs.Arguments = args;
 				commandArgs.Player = player;
+				commandArgs.PrintOutput = true;
 
 				Community.Runtime.CommandManager.Execute(cmd, commandArgs);
 				Facepunch.Pool.Free(ref commandArgs);
