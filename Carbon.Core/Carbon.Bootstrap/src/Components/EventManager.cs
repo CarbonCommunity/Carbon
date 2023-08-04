@@ -12,9 +12,13 @@ using API.Events;
 
 namespace Components;
 
+#pragma warning disable UNT0006
+
 internal sealed class EventManager : CarbonBehaviour, IEventManager
 {
 	private readonly Dictionary<CarbonEvent, Delegate> events = new();
+
+
 
 	public void Subscribe(CarbonEvent eventId, Action<EventArgs> callback)
 	{
@@ -40,5 +44,13 @@ internal sealed class EventManager : CarbonBehaviour, IEventManager
 		if (!events.ContainsKey(eventId)) return;
 		events[eventId] = Delegate.Remove(events[eventId], callback);
 		Utility.Logger.Debug($"[{eventId}] Remove subscription '{callback.Target}'");
+	}
+
+	public void Reset(CarbonEvent eventId)
+	{
+		if (!events.ContainsKey(eventId)) return;
+
+		events[eventId] = null;
+		events.Remove(eventId);
 	}
 }

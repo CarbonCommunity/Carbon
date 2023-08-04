@@ -185,7 +185,7 @@ jobs:
           Release/build-production-linux/Carbon.Linux.Release.tar.gz
           Release/build-production-windows/Carbon.Windows.Release.info
           Release/build-production-windows/Carbon.Windows.Release.zip
-          Release/build-preview-linux/Carbon.Linux.Minimal.info
-          Release/build-preview-linux/Carbon.Linux.Minimal.tar.gz
-          Release/build-preview-windows/Carbon.Windows.Minimal.info
-          Release/build-preview-windows/Carbon.Windows.Minimal.zip
+          Release/build-production-linux/Carbon.Linux.Minimal.info
+          Release/build-production-linux/Carbon.Linux.Minimal.tar.gz
+          Release/build-production-windows/Carbon.Windows.Minimal.info
+          Release/build-production-windows/Carbon.Windows.Minimal.zip

@@ -111,15 +111,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			CodeflingInstance = new Codefling();
 			if (CodeflingInstance is IVendorStored cfStored && !cfStored.Load())
 			{
-				CodeflingInstance.FetchList();
-				CodeflingInstance.Refresh();
+				CodeflingInstance.FetchList(vendor => CodeflingInstance.Refresh());
 			}
 
 			uModInstance = new uMod();
 			if (uModInstance is IVendorStored umodStored && !umodStored.Load())
 			{
-				uModInstance.FetchList();
-				uModInstance.Refresh();
+				uModInstance.FetchList(vendor => uModInstance.Refresh());
 			}
 
 			// Lone_DesignInstance = new Lone_Design();
@@ -384,7 +382,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				cui.CreatePanel(container, cardTitle, null, "0 0 0 0.2", blur: true);
 
 				cui.CreateText(container, cardTitle, null, "1 1 1 1", plugin.Name, 11, xMin: 0.05f, yMax: 0.87f, align: TextAnchor.UpperLeft);
-				cui.CreateText(container, cardTitle, null, "0.6 0.6 0.3 0.8", $"by <b>{plugin.Author}</b>", 9, xMin: 0.05f, yMin: 0.15f, align: TextAnchor.LowerLeft);
+				cui.CreateText(container, cardTitle, null, "0.6 0.6 0.3 0.8", $"by <b>{(plugin.ExistentPlugin != null ? plugin.ExistentPlugin.Author : plugin.Author)}</b>", 9, xMin: 0.05f, yMin: 0.15f, align: TextAnchor.LowerLeft);
 				cui.CreateText(container, cardTitle, null, "0.6 0.75 0.3 0.8", $"<b>{plugin.OriginalPrice}</b>", 11, xMax: 0.95f, yMin: 0.1f, align: TextAnchor.LowerRight);
 
 				var shadowShift = -0.003f;
@@ -496,9 +494,19 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					if (Singleton.ImageDatabase.GetImage(selectedPlugin.Image) == 0) cui.CreateClientImage(container, image, null, selectedPlugin.Image, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 					else cui.CreateImage(container, image, null, selectedPlugin.Image, selectedPlugin.HasInvalidImage() ? vendor.SafeIconScale : vendor.IconScale, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
 				}
-				cui.CreateText(container, mainPanel, null, "1 1 1 1", selectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
-				cui.CreateText(container, mainPanel, null, "1 1 1 0.5", $"by <b>{selectedPlugin.Author}</b>  <b>•</b>  v{selectedPlugin.Version}  <b>•</b>  Updated on {selectedPlugin.UpdateDate}  <b>•</b>  {selectedPlugin.DownloadCount:n0} downloads", 11, xMin: 0.48f, yMax: 0.74f, align: TextAnchor.UpperLeft);
+				var pluginName = cui.CreateText(container, mainPanel, null, "1 1 1 1", selectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
+				cui.CreateText(container, mainPanel, null, "1 1 1 0.5", $"by <b>{(selectedPlugin.ExistentPlugin != null ? selectedPlugin.ExistentPlugin.Author : selectedPlugin.Author)}</b>  <b>•</b>  v{selectedPlugin.Version}  <b>•</b>  Updated on {selectedPlugin.UpdateDate}  <b>•</b>  {selectedPlugin.DownloadCount:n0} downloads", 11, xMin: 0.48f, yMax: 0.74f, align: TextAnchor.UpperLeft);
 				cui.CreateText(container, mainPanel, null, "1 1 1 0.3", $"{(!selectedPlugin.HasLookup ? "Fetching metdata..." : $"{selectedPlugin.Description}\n\n{selectedPlugin.Changelog}")}", 11, xMin: 0.48f, xMax: 0.85f, yMax: 0.635f, align: TextAnchor.UpperLeft);
+				const float badgeYMin = 5;
+				const float badgeYMax = 20;
+				var priceBadge = cui.CreatePanel(container, pluginName, null, "0.3 0.4 0.9 0.25", xMax: 0f, yMin: 1, OyMin: badgeYMin, OyMax: badgeYMax, OxMax: 40);
+				cui.CreateText(container, priceBadge, null, "0.4 0.5 1 1", selectedPlugin.OriginalPrice, 8);
+
+				if (selectedPlugin.Owned)
+				{
+					var ownedBadge = cui.CreatePanel(container, pluginName, null, "0.9 0.4 0.3 0.25", xMax: 0f, yMin: 1, OyMin: badgeYMin, OyMax: badgeYMax, OxMin: 42, OxMax: 90);
+					cui.CreateText(container, ownedBadge, null, "1 0.5 0.4 1", "★ OWNED", 8);
+				}
 
 				cui.CreateProtectedButton(container, mainPanel, null, "0 0 0 0", "0 0 0 0", string.Empty, 0, align: TextAnchor.MiddleCenter, command: "pluginbrowser.deselectplugin");
 
@@ -967,7 +975,6 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						[AuthHeader.Key.ToString()] = string.Format(AuthHeader.Value, User.AccessToken)
 					};
-
 					var extension = Path.GetExtension(plugin.File);
 
 					switch (extension)
@@ -1210,7 +1217,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							}, core, headers: headers);
 							break;
 					}
-				}, core, headers: headers);
+				}, core, headers: headers, onException: (code, result, ex) =>
+				{
+					User = null;
+					Refresh();
+					Save();
+					Singleton.Draw(session.Player);
+				});
 			}
 
 			public bool IsLoggedIn => User != null;
@@ -1248,9 +1261,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
-				catch (Exception ex)
+				catch
 				{
-					Logger.Error($"{Type}.Load error", ex);
+					return false;
 				}
 				return true;
 			}
@@ -1505,7 +1518,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					Singleton.Puts($"Loaded {Type} from file: {path}");
 					Refresh();
 				}
-				catch { Save(); }
+				catch { return false; }
 				return true;
 			}
 			public void Save()

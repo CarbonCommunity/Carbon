@@ -126,7 +126,7 @@ public class Lang : Library
 		if (newPhrases == phrases || save) SaveMessageFile(plugin.Name, lang);
 	}
 
-	public string GetMessage(string key, BaseHookable hookable, string player, string lang = null)
+	public string GetMessage(string key, BaseHookable hookable, string player = null, string lang = null)
 	{
 		if (string.IsNullOrEmpty(lang)) lang = GetLanguage(player);
 
@@ -150,10 +150,6 @@ public class Lang : Library
 		}
 
 		return lang == "en" ? key : GetMessage(key, hookable, player, "en");
-	}
-	public string GetMessage(string key, BaseHookable hookable, string lang = null)
-	{
-		return GetMessage(key, hookable, null, lang);
 	}
 	public Dictionary<string, string> GetMessages(string lang, BaseHookable plugin)
 	{

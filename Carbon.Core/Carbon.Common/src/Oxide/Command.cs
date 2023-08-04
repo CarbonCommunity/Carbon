@@ -100,7 +100,7 @@ namespace Oxide.Game.Rust.Libraries
 					{
 						case PlayerArgs playerArgs:
 							try { callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments); }
-							catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
+							catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
 							break;
 					}
 				},
@@ -134,8 +134,8 @@ namespace Oxide.Game.Rust.Libraries
 				try
 				{
 					var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-					var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters ().Any () || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
-					var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters ().Any () || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
+					var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
+					var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
 					var methodInfo = covalenceMethod ?? consoleMethod;
 					var parameters = methodInfo.GetParameters();
 
@@ -199,7 +199,7 @@ namespace Oxide.Game.Rust.Libraries
 
 					methodInfo?.Invoke(plugin, result);
 				}
-				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
+				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
 
 				if (arguments != null) Pool.FreeList(ref arguments);
 				if (result != null) Array.Clear(result, 0, result.Length);
@@ -373,13 +373,13 @@ namespace Oxide.Game.Rust.Libraries
 					}
 					catch (Exception ex)
 					{
-						if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex);
+						if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex);
 						else if (plugin is BaseHookable hookable)
-							Logger.Error($"[{hookable.Name}] Error", ex.InnerException ?? ex);
+							Logger.Error($"[{hookable.Name}] Error", ex);
 					}
 				}
 				catch (TargetParameterCountException) { }
-				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
+				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
 
 				Pool.FreeList(ref arguments);
 				if (result != null) Array.Clear(result, 0, result.Length);
@@ -413,13 +413,13 @@ namespace Oxide.Game.Rust.Libraries
 						if (!string.IsNullOrEmpty(arg.Reply))
 						{
 							if (player != null) player.ConsoleMessage(arg.Reply);
-							else if(FromRcon) Facepunch.RCon.OnMessage(arg.Reply, string.Empty, UnityEngine.LogType.Log);
+							else if (FromRcon) Facepunch.RCon.OnMessage(arg.Reply, string.Empty, UnityEngine.LogType.Log);
 							else Logger.Log(arg.Reply);
 						}
 					}
 				}
 				catch (TargetParameterCountException) { }
-				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
+				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
 
 				Pool.FreeList(ref arguments);
 				if (result != null) Array.Clear(result, 0, result.Length);

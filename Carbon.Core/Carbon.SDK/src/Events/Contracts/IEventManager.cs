@@ -25,4 +25,9 @@ public interface IEventManager
 	/// Unsubscribe from an event.
 	/// </summary>
 	public void Unsubscribe(CarbonEvent eventId, Action<EventArgs> callback);
+
+	/// <summary>
+	/// Reset an event.
+	/// </summary>
+	public void Reset(CarbonEvent eventId);
 }
