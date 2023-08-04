@@ -282,9 +282,22 @@ public class ScriptCompilationThread : BaseThreadedJob
 			FileName = Path.GetFileNameWithoutExtension(FilePath);
 
 			var trees = new List<SyntaxTree>();
+			var conditionals = new List<string>();
+
+			conditionals.AddRange(Community.Runtime.Config.ConditionalCompilationSymbols);
+
+#if WIN
+			conditionals.Add("WIN");
+#else
+			conditionals.Add("UNIX");
+#endif
+
+#if MINIMAL
+			conditionals.Add("MINIMAL");
+#endif
 
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
-				.WithPreprocessorSymbols(Community.Runtime.Config.ConditionalCompilationSymbols);
+				.WithPreprocessorSymbols(conditionals);
 			var tree = CSharpSyntaxTree.ParseText(
 				Source, options: parseOptions);
 
@@ -297,7 +310,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 				Source = root.ToFullString();
 				trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions));
 			}
-			else trees.Add(tree);
+			else
+			{
+				trees.Add(tree);
+			}
 
 			foreach (var element in root.Usings)
 				Usings.Add($"{element.Name}");
@@ -358,14 +374,16 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 			}
 
-			if (Assembly == null) return;
-
-			CompileTime = (float)(DateTime.Now - TimeSinceCompile).Milliseconds;
-
+			conditionals.Clear();
+			conditionals = null;
 			references.Clear();
 			references = null;
 			trees.Clear();
 			trees = null;
+
+			if (Assembly == null) return;
+
+			CompileTime = (float)(DateTime.Now - TimeSinceCompile).Milliseconds;
 
 			foreach (var type in Assembly.GetTypes())
 			{
