@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using API.Abstracts;
 using API.Hooks;
 using Carbon.Base;
 using Carbon.Extensions;
@@ -24,7 +25,7 @@ public partial class Category_Static
 
 		public class Static_ServerMgr_aaa38191cc9f4f6f911df9742d552a99 : Patch
 		{
-			public static bool ForceModded => Community.Runtime.ModuleProcessor.Modules.Any(x => x is BaseModule module && module.GetEnabled() && module.ForceModded);
+			public static bool ForceModded => CarbonAuto.Singleton.IsChanged() || Community.Runtime.ModuleProcessor.Modules.Any(x => x is BaseModule module && module.GetEnabled() && module.ForceModded);
 
 			public static void Postfix()
 			{

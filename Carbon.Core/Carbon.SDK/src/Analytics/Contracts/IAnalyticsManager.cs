@@ -11,6 +11,8 @@ namespace API.Analytics;
 
 public interface IAnalyticsManager
 {
+	public Dictionary<string, object> Segments { get; set; }
+
 	public string Branch { get; }
 	public string ClientID { get; }
 	public string InformationalVersion { get; }

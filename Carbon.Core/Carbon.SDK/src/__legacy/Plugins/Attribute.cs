@@ -166,19 +166,18 @@ public class CommandVarAttribute : Attribute
 	public string Name { get; }
 	public string Help { get; }
 	public bool Protected { get; set; }
+	public bool Saved { get; }
 
-	public CommandVarAttribute(string name)
+	public CommandVarAttribute(string name, string help = null, bool saved = false)
 	{
 		Name = name;
-	}
-	public CommandVarAttribute(string name, string help)
-	{
-		Name = name;
+		Saved = saved;
 		Help = help;
 	}
-	public CommandVarAttribute(string name, bool @protected, string help = null)
+	public CommandVarAttribute(string name, bool @protected, string help = null, bool save = false)
 	{
 		Name = name;
+		Saved = save;
 		Help = help;
 		Protected = @protected;
 	}
@@ -222,7 +221,7 @@ public class GroupAttribute : Attribute
 	}
 }
 
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true)]
 [MeansImplicitUse]
 public class AuthLevelAttribute : Attribute
 {
@@ -243,31 +242,5 @@ public class CooldownAttribute : Attribute
 	public CooldownAttribute(int miliseconds)
 	{
 		Miliseconds = miliseconds;
-	}
-}
-
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-[MeansImplicitUse]
-public class HookPriority : Attribute
-{
-	public Priorities Priority { get; set; } = Priorities.Normal;
-
-	public HookPriority() { }
-	public HookPriority(Priorities priority)
-	{
-		Priority = priority;
-	}
-}
-
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-[MeansImplicitUse]
-public class PluginPriority : Attribute
-{
-	public Priorities Priority { get; set; } = Priorities.Normal;
-
-	public PluginPriority() { }
-	public PluginPriority(Priorities priority)
-	{
-		Priority = priority;
 	}
 }

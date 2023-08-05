@@ -251,7 +251,7 @@ public class ColorPickerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData
 		var mode = args.Args[0];
 		var hex = args.Args[1];
 		var alpha = ap.GetStorage(ap.SelectedTab, Alpha, 1f);
-		var rawColor = args.Args.Skip(2).ToArray().ToString(" ", " ");
+		var rawColor = args.Args.Skip(2).ToString(" ");
 		ColorUtility.TryParseHtmlString($"#{hex}", out var color);
 
 		var brightness = ap.GetStorage(ap.SelectedTab, Brightness, 1f);
