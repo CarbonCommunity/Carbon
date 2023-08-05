@@ -149,6 +149,7 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 			Override_Harmony_Methods();
 			Add_Bootstrap_Tier0_Hook();
 			Add_the_Fucking_IPlayer_shit();
+			InjectCustomData();
 		}
 		catch (System.Exception ex)
 		{
@@ -263,6 +264,243 @@ internal sealed class AssemblyCSharp : MarshalByRefObject
 		catch (System.Exception e)
 		{
 			Logger.Debug($" - Patching BasePlayer.IPlayer failed: {e.Message}");
+		}
+	}
+
+	private void InjectCustomData()
+	{
+		TypeDefinition baseEntityType = _assembly.MainModule.GetType("BaseEntity");
+		//("Carbon.Components.CustomData.ICustomSerializable"
+		if (baseEntityType.Fields.Any(x => x.Name == "additional_data_cache")) return;
+
+		// interface
+
+		AssemblyDefinition commonAsm = AssemblyDefinition.ReadAssembly(
+			new MemoryStream(File.ReadAllBytes(Path.Combine(Context.CarbonManaged, "Carbon.Common.dll"))));
+
+		AssemblyNameReference carbonCommonRef =
+			_assembly.MainModule.AssemblyReferences.FirstOrDefault(a => a.Name == "Carbon.Common")
+			?? new AssemblyNameReference(commonAsm.Name.Name, commonAsm.Name.Version);
+
+		TypeReference seInterface = _assembly.MainModule.ImportReference(new TypeReference("Carbon.Contracts", "ICustomSerializable", _assembly.MainModule, carbonCommonRef));
+
+
+		// fields
+
+		TypeReference byteDictRef = _assembly.MainModule.ImportReference(typeof(Dictionary<string, byte[]>));
+
+		TypeReference cacheDictRef = _assembly.MainModule.ImportReference(_assembly.MainModule.ImportReference(typeof(Dictionary<,>))
+			.MakeGenericInstanceType(_assembly.MainModule.TypeSystem.String, seInterface));
+
+		FieldDefinition cacheField =
+			new FieldDefinition("additional_data_cache", FieldAttributes.Private, cacheDictRef);
+
+		FieldDefinition rawField =
+			new FieldDefinition("additional_data_raw", FieldAttributes.Private, byteDictRef);
+
+		baseEntityType.Fields.Add(cacheField);
+
+		baseEntityType.Fields.Add(rawField);
+
+		// methods
+
+		TypeDefinition customDataInternals = commonAsm.MainModule.GetType("Carbon.Components", "CustomDataInternals");
+
+
+		GetAdditionalData();
+		TryGetAdditionalData();
+		GetOrCreateAdditionalData();
+		
+		HasAdditionalData();
+		HasAnyAdditionalData();
+		
+		AddAdditionalData();
+		
+		ClearAdditionalData();
+		DeleteAdditionalData();
+
+		void HasAnyAdditionalData()
+		{
+			MethodDefinition method = new MethodDefinition("HasAnyAdditionalData", MethodAttributes.Public | MethodAttributes.HideBySig, _assembly.MainModule.TypeSystem.Boolean)
+			{
+				Body = { InitLocals = true }
+			};
+
+			ILProcessor IL = method.Body.GetILProcessor();
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, cacheField);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, rawField);
+			IL.Emit(OpCodes.Call, _assembly.MainModule.ImportReference(customDataInternals.Methods.First(x => x.Name == "HasAnyAdditionalData")));
+			IL.Emit(OpCodes.Ret);
+
+			baseEntityType.Methods.Add(method);
+		}
+		void HasAdditionalData()
+		{
+			MethodDefinition method = new MethodDefinition("HasAdditionalData", MethodAttributes.Public | MethodAttributes.HideBySig, _assembly.MainModule.TypeSystem.Boolean)
+			{
+				Body = { InitLocals = true }
+			};
+			method.Parameters.Add(new ParameterDefinition("name", ParameterAttributes.None, _assembly.MainModule.TypeSystem.String));
+
+			ILProcessor IL = method.Body.GetILProcessor();
+			IL.Emit(OpCodes.Ldarg_1);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, cacheField);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, rawField);
+			IL.Emit(OpCodes.Call, _assembly.MainModule.ImportReference(customDataInternals.Methods.First(x => x.Name == "HasAdditionalData")));
+			IL.Emit(OpCodes.Ret);
+
+			baseEntityType.Methods.Add(method);
+		}
+		void GetAdditionalData()
+		{
+			MethodDefinition method = new MethodDefinition("GetAdditionalData", MethodAttributes.Public | MethodAttributes.HideBySig, _assembly.MainModule.TypeSystem.Void);
+			GenericParameter arg0 = new Mono.Cecil.GenericParameter("T", method);
+			method.GenericParameters.Add(arg0);
+			arg0.HasDefaultConstructorConstraint = true;
+			arg0.HasReferenceTypeConstraint = true;
+			arg0.Constraints.Add(new GenericParameterConstraint(seInterface));
+			method.ReturnType = arg0;
+			method.Body.InitLocals = true;
+			method.Parameters.Add(new ParameterDefinition("name", ParameterAttributes.None, _assembly.MainModule.TypeSystem.String));
+
+			ILProcessor IL = method.Body.GetILProcessor();
+			IL.Emit(OpCodes.Ldarg_1);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, cacheField);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, rawField);
+			MethodReference call = _assembly.MainModule.ImportReference(customDataInternals.Methods.First(x => x.Name == "GetAdditionalData"));
+			call.Parameters[1].ParameterType = baseEntityType;
+			GenericInstanceMethod ge =
+				new GenericInstanceMethod(call);
+			ge.GenericArguments.Add(arg0);
+			IL.Emit(OpCodes.Call, _assembly.MainModule.ImportReference(ge));
+			IL.Emit(OpCodes.Ret);
+
+			baseEntityType.Methods.Add(method);
+		}
+		void TryGetAdditionalData()
+		{
+			MethodDefinition method = new MethodDefinition("TryGetAdditionalData", MethodAttributes.Public | MethodAttributes.HideBySig, _assembly.MainModule.TypeSystem.Boolean);
+			GenericParameter arg0 = new Mono.Cecil.GenericParameter("T", method);
+			method.GenericParameters.Add(arg0);
+			arg0.HasDefaultConstructorConstraint = true;
+			arg0.HasReferenceTypeConstraint = true;
+			arg0.Constraints.Add(new GenericParameterConstraint(seInterface));
+			method.Body.InitLocals = true;
+			method.Parameters.Add(new ParameterDefinition("name", ParameterAttributes.None, _assembly.MainModule.TypeSystem.String));
+			method.Parameters.Add(new ParameterDefinition("ret", ParameterAttributes.Out, arg0.MakeByReferenceType()));
+
+			ILProcessor IL = method.Body.GetILProcessor();
+			IL.Emit(OpCodes.Ldarg_1);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldarg_2);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, cacheField);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, rawField);
+			MethodReference call = _assembly.MainModule.ImportReference(customDataInternals.Methods.First(x => x.Name == "TryGetAdditionalData"));
+			call.Parameters[1].ParameterType = baseEntityType;
+			GenericInstanceMethod ge =
+				new GenericInstanceMethod(call);
+			ge.GenericArguments.Add(arg0);
+			IL.Emit(OpCodes.Call, _assembly.MainModule.ImportReference(ge));
+			IL.Emit(OpCodes.Ret);
+
+			baseEntityType.Methods.Add(method);
+		}
+		void GetOrCreateAdditionalData()
+		{
+			MethodDefinition method = new MethodDefinition("GetOrCreateAdditionalData", MethodAttributes.Public | MethodAttributes.HideBySig, _assembly.MainModule.TypeSystem.Void);
+			GenericParameter arg0 = new Mono.Cecil.GenericParameter("T", method);
+			method.GenericParameters.Add(arg0);
+			arg0.HasDefaultConstructorConstraint = true;
+			arg0.HasReferenceTypeConstraint = true;
+			arg0.Constraints.Add(new GenericParameterConstraint(seInterface));
+			method.ReturnType = arg0; ;
+			method.Body.InitLocals = true;
+			method.Parameters.Add(new ParameterDefinition("name", ParameterAttributes.None, _assembly.MainModule.TypeSystem.String));
+
+			ILProcessor IL = method.Body.GetILProcessor();
+			IL.Emit(OpCodes.Ldarg_1);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, cacheField);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, rawField);
+			MethodReference call = _assembly.MainModule.ImportReference(customDataInternals.Methods.First(x => x.Name == "GetOrCreateAdditionalData"));
+			call.Parameters[1].ParameterType = baseEntityType;
+			GenericInstanceMethod ge =
+				new GenericInstanceMethod(call);
+			ge.GenericArguments.Add(arg0);
+			IL.Emit(OpCodes.Call, _assembly.MainModule.ImportReference(ge));
+			IL.Emit(OpCodes.Ret);
+
+			baseEntityType.Methods.Add(method);
+		}
+		void AddAdditionalData()
+		{
+			MethodDefinition method = new MethodDefinition("AddAdditionalData", MethodAttributes.Public | MethodAttributes.HideBySig, _assembly.MainModule.TypeSystem.Void)
+			{
+				Body = { InitLocals = true }
+			};
+			method.Parameters.Add(new ParameterDefinition("name", ParameterAttributes.None, _assembly.MainModule.TypeSystem.String));
+			method.Parameters.Add(new ParameterDefinition("instance", ParameterAttributes.None, seInterface));
+
+			ILProcessor IL = method.Body.GetILProcessor();
+			IL.Emit(OpCodes.Ldarg_1);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldarg_2);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, cacheField);
+			MethodReference call = _assembly.MainModule.ImportReference(customDataInternals.Methods.First(x => x.Name == "AddAdditionalData"));
+			call.Parameters[1].ParameterType = baseEntityType;
+			IL.Emit(OpCodes.Call, call);
+			IL.Emit(OpCodes.Ret);
+
+			baseEntityType.Methods.Add(method);
+		}
+		void DeleteAdditionalData()
+		{
+			MethodDefinition method = new MethodDefinition("DeleteAdditionalData", MethodAttributes.Public | MethodAttributes.HideBySig, _assembly.MainModule.TypeSystem.Boolean)
+			{
+				Body = { InitLocals = true }
+			};
+			method.Parameters.Add(new ParameterDefinition("name", ParameterAttributes.None, _assembly.MainModule.TypeSystem.String));
+
+			ILProcessor IL = method.Body.GetILProcessor();
+			IL.Emit(OpCodes.Ldarg_1);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, cacheField);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, rawField);
+			IL.Emit(OpCodes.Call, _assembly.MainModule.ImportReference(customDataInternals.Methods.First(x => x.Name == "DeleteAdditionalData")));
+			IL.Emit(OpCodes.Ret);
+
+			baseEntityType.Methods.Add(method);
+		}
+		void ClearAdditionalData()
+		{
+			MethodDefinition method = new MethodDefinition("ClearAdditionalData", MethodAttributes.Public | MethodAttributes.HideBySig, _assembly.MainModule.TypeSystem.Void)
+			{
+				Body = { InitLocals = true }
+			};
+			method.Parameters.Add(new ParameterDefinition("name", ParameterAttributes.None, _assembly.MainModule.TypeSystem.String));
+
+			ILProcessor IL = method.Body.GetILProcessor();
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, cacheField);
+			IL.Emit(OpCodes.Ldarg_0);
+			IL.Emit(OpCodes.Ldflda, rawField);
+			IL.Emit(OpCodes.Call, _assembly.MainModule.ImportReference(customDataInternals.Methods.First(x => x.Name == "ClearAdditionalData")));
+			IL.Emit(OpCodes.Ret);
+
+			baseEntityType.Methods.Add(method);
 		}
 	}
 
