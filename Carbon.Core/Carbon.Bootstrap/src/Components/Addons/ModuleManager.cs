@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
 using API.Events;
+using Loaders;
+using Mono.Cecil;
 using Utility;
 
 /*
@@ -42,6 +44,8 @@ internal sealed class ModuleManager : AddonManager
 
 	internal void Awake()
 	{
+		var reloaded = false;
+
 		Carbon.Bootstrap.Watcher.Watch(new WatchFolder
 		{
 			Extension = "*.dll",
@@ -50,8 +54,10 @@ internal sealed class ModuleManager : AddonManager
 
 			OnFileCreated = (sender, file) =>
 			{
-				Carbon.Bootstrap.AssemblyEx.Modules.Load(
-					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
+				if (reloaded) return;
+				reloaded = true;
+
+				Reload("ModuleManager.Awake");
 			},
 		});
 	}
@@ -145,6 +151,144 @@ internal sealed class ModuleManager : AddonManager
 			return null;
 		}
 #endif
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Unload(string file, string requester)
+	{
+		var item = _loaded.FirstOrDefault(x => x.File == file);
+
+		if (item == null)
+		{
+			Logger.Log($"Couldn't find module '{file}' (requested by {requester})");
+			return;
+		}
+
+		try
+		{
+			item.Addon.OnUnloaded(EventArgs.Empty);
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Failed unloading module '{file}' (requested by {requester})", ex);
+		}
+
+		_loaded.Remove(item);
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Reload(string requester)
+	{
+		foreach (var module in _loaded)
+		{
+			module.Addon.OnUnloaded(EventArgs.Empty);
+		}
+
+		_loaded.Clear();
+
+		var cache = new Dictionary<string, AssemblyDefinition>();
+		var streams = new List<MemoryStream>();
+		var modules = new Dictionary<string, ICarbonModule>();
+
+		static byte[] Process(byte[] raw)
+		{
+			if (AssemblyLoader.IndexOf(raw, new byte[4] { 0x01, 0xdc, 0x7f, 0x01 }) == 0)
+			{
+				byte[] checksum = new byte[20];
+				Buffer.BlockCopy(raw, 4, checksum, 0, 20);
+				return AssemblyLoader.Package(checksum, raw, 24);
+			}
+
+			return raw;
+		}
+
+		foreach (var directory in _directories)
+		{
+			foreach (var file in Directory.GetFiles(directory))
+			{
+				switch (Path.GetExtension(file))
+				{
+					case ".dll":
+						var stream = new MemoryStream(Process(File.ReadAllBytes(file)));
+						var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(stream);
+						var originalName = assembly.Name.Name;
+						assembly.Name = new AssemblyNameDefinition($"{assembly.Name.Name}_{Guid.NewGuid()}", assembly.Name.Version);
+						cache.Add(originalName, assembly);
+						break;
+				}
+			}
+		}
+
+		foreach (var _assembly in cache)
+		{
+			foreach (var refer in _assembly.Value.MainModule.AssemblyReferences)
+			{
+				if (cache.TryGetValue(refer.Name, out var assembly))
+				{
+					refer.Name = assembly.Name.Name;
+				}
+			}
+
+			using MemoryStream memoryStream = new MemoryStream();
+			_assembly.Value.Write(memoryStream);
+			memoryStream.Position = 0;
+			_assembly.Value.Dispose();
+
+			var bytes = memoryStream.ToArray();
+			var processedAssembly = Assembly.Load(bytes);
+			Array.Clear(bytes, 0, bytes.Length);
+
+			if (AssemblyManager.IsType<ICarbonModule>(processedAssembly, out var types))
+			{
+				foreach (var type in types)
+				{
+					if (Activator.CreateInstance(type) is ICarbonModule mod)
+					{
+						Logger.Debug($"A new instance of '{type}' created");
+						modules.Add(_assembly.Key, mod);
+					}
+				}
+			}
+		}
+
+		foreach (var module in modules)
+		{
+			try
+			{
+				var file = Path.Combine(Context.CarbonModules, $"{module.Key}.dll");
+				var arg = new CarbonEventArgs(file);
+
+				module.Value.Awake(arg);
+				module.Value.OnLoaded(arg);
+
+				Carbon.Bootstrap.Events
+					.Trigger(CarbonEvent.ModuleLoaded, arg);
+
+				_loaded.Add(new() { Addon = module.Value, File = file });
+			}
+			catch (Exception e)
+			{
+				Logger.Error($"Failed to instantiate module from type '{module.Value}'", e);
+				continue;
+			}
+		}
+
+		Dispose();
+
+		void Dispose()
+		{
+			foreach (var stream in streams)
+			{
+				stream.Dispose();
+			}
+
+			modules.Clear();
+			modules = null;
+			streams.Clear();
+			streams = null;
+			cache.Clear();
+			cache = null;
+		}
 	}
 
 	internal override void Hydrate(Assembly assembly, ICarbonAddon addon)
