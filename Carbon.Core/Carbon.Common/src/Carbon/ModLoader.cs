@@ -256,8 +256,7 @@ public static class ModLoader
 
 				if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 				{
-					var priority = method.GetCustomAttribute<HookPriority>();
-					if (!hooks.ContainsKey(hash)) hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
+					if (!hooks.Contains(hash)) hooks.Add(hash);
 				}
 				else
 				{

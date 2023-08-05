@@ -666,9 +666,8 @@ public partial class CorePlugin : CarbonPlugin
 			{
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 
-				var priority = method.GetCustomAttribute<HookPriority>();
 				var hash = HookStringPool.GetOrAdd(method.Name);
-				if (!Hooks.ContainsKey(hash)) Hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
+				if (!Hooks.Contains(hash)) Hooks.Add(hash);
 			}
 		}
 

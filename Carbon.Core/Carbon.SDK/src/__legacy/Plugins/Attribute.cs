@@ -244,29 +244,3 @@ public class CooldownAttribute : Attribute
 		Miliseconds = miliseconds;
 	}
 }
-
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-[MeansImplicitUse]
-public class HookPriority : Attribute
-{
-	public Priorities Priority { get; set; } = Priorities.Normal;
-
-	public HookPriority() { }
-	public HookPriority(Priorities priority)
-	{
-		Priority = priority;
-	}
-}
-
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-[MeansImplicitUse]
-public class PluginPriority : Attribute
-{
-	public Priorities Priority { get; set; } = Priorities.Normal;
-
-	public PluginPriority() { }
-	public PluginPriority(Priorities priority)
-	{
-		Priority = priority;
-	}
-}

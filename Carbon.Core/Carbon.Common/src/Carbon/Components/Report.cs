@@ -43,7 +43,7 @@ public class Report : IDisposable
 				{
 					var result = value.Value;
 
-					builder.AddRow($"{counter:n0}", result.Plugin.Name, result.Plugin.Author, result.Plugin.Version, result.FileName, $"{result.Plugin.CompileTime:0}ms", $"{result.Plugin.Hooks.Where(x => !string.IsNullOrEmpty(HookStringPool.GetOrAdd(x.Key))).Select(x => HookStringPool.GetOrAdd(x.Key)).ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.HookMethods.Select(x => $"{x.Name}").ToArray().ToString(", ", " and ").Trim()}", $"{result.Plugin.PluginReferences.Select(x => $"{x.Field.FieldType.Name} {x.Field.Name}").ToArray().ToString(", ", " and ").Trim()}");
+					builder.AddRow($"{counter:n0}", result.Plugin.Name, result.Plugin.Author, result.Plugin.Version, result.FileName, $"{result.Plugin.CompileTime:0}ms", $"{result.Plugin.Hooks.Where(x => !string.IsNullOrEmpty(HookStringPool.GetOrAdd(x))).Select(x => HookStringPool.GetOrAdd(x)).ToString(", ", " and ").Trim()}", $"{result.Plugin.HookMethods.Select(x => $"{x.Name}").ToString(", ", " and ").Trim()}", $"{result.Plugin.PluginReferences.Select(x => $"{x.Field.FieldType.Name} {x.Field.Name}").ToString(", ", " and ").Trim()}");
 					counter++;
 				}
 
