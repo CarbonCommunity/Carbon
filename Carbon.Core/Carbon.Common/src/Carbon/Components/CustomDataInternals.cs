@@ -90,7 +90,7 @@ public static class CustomDataInternals
 					else
 						raw.Remove(kv.Key);
 				}
-				catch
+				catch (Exception e)
 				{
 					Logger.Error($"Failed to serialize {kv.Key} - {kv.Value.GetType().FullName}");
 				}
