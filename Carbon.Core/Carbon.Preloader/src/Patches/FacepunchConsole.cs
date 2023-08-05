@@ -130,6 +130,7 @@ internal sealed class FacepunchConsole : MarshalByRefObject
 		try
 		{
 			Override_IndexAll_Setter();
+			Override_Constructor_Modifier();
 		}
 		catch (System.Exception ex)
 		{
@@ -156,6 +157,21 @@ internal sealed class FacepunchConsole : MarshalByRefObject
 			{
 				Logger.Debug($" - Patching failed: {e.Message}");
 			}
+		}
+	}
+
+	private void Override_Constructor_Modifier()
+	{
+		TypeDefinition type = _assembly.MainModule.GetType("ConsoleSystem/Arg");
+		MethodDefinition ctor = type.GetConstructors().FirstOrDefault();
+
+		try
+		{
+			ctor.IsPublic = true;
+		}
+		catch (Exception e)
+		{
+			Logger.Debug($" - Patching failed: {e.Message}");
 		}
 	}
 
