@@ -21,7 +21,9 @@ echo ** Cleanup the release folder
 rmdir /s /q "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%" 2>NUL
 del /q "%BUILD_ROOT%\Release\Carbon.%BUILD_TARGET%.zip" 2>NUL
 
-set DEFINES=%2
+if "%DEFINES%" EQU "" (
+	set DEFINES=%2
+)
 
 if "%DEFINES%" EQU "" (
 	echo ** No defines.
