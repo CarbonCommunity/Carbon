@@ -1,6 +1,6 @@
 ﻿namespace Carbon.Extensions;
 
-internal class ThreadEx
+public class ThreadEx
 {
 	internal static readonly Thread MainThread = Thread.CurrentThread;
 
