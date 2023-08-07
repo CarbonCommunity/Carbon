@@ -18,5 +18,6 @@ public interface IAddonManager
 	public System.Reflection.Assembly Load(string file, string requester);
 
 	//public bool IsLoaded(string file);
-	//public void UnLoad(string file, string requester);
+	public void Unload(string file, string requester);
+	public void Reload(string requester);
 }

@@ -119,4 +119,16 @@ internal sealed class ComponentManager : AddonManager
 		}
 #endif
 	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Unload(string file, string requester)
+	{
+		
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Reload(string requester)
+	{
+
+	}
 }

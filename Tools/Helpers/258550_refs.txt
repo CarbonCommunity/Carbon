@@ -15,6 +15,8 @@ regex:Facepunch.UnityEngine.dll
 regex:Fleck.dll
 regex:Mono.Data.Sqlite.dll
 regex:Newtonsoft.Json.dll
+regex:Rust.Clans.dll
+regex:Rust.Clans.Local.dll
 regex:Rust.Data.dll
 regex:Rust.FileSystem.dll
 regex:Rust.Global.dll
@@ -26,6 +28,7 @@ regex:Rust.UI.dll
 regex:Rust.Workshop.dll
 regex:Rust.World.dll
 regex:Unity.Mathematics.dll
+regex:Unity.TextMeshPro.dll
 regex:Unity.Timeline.dll
 regex:UnityEngine.AIModule.dll
 regex:UnityEngine.AnimationModule.dll

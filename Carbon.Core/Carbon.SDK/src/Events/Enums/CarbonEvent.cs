@@ -14,7 +14,7 @@ public enum CarbonEvent
 	FileSystemWarmup, FileSystemWarmupComplete,
 
 	// Carbon related
-	CarbonStartup, CarbonStartupComplete, CarbonShutdown, CarbonShutdownFailed,
+	CarbonStartup, CarbonStartupComplete, CarbonShutdown, CarbonShutdownComplete, CarbonShutdownFailed,
 
 	// Hook related
 	HooksInstalled, HookValidatorRefreshed,

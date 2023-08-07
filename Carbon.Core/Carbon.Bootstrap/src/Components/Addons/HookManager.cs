@@ -92,4 +92,16 @@ internal sealed class HookManager : AddonManager
 		}
 #endif
 	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Unload(string file, string requester)
+	{
+
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Reload(string requester)
+	{
+
+	}
 }

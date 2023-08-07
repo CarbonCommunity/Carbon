@@ -59,7 +59,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 			return;
 		}
 
-		var drm = ConfigInstance.Processors[arg.Args[0]];
+		var drm = ConfigInstance.Processors[arg.GetString(0)];
 
 		if (drm == null)
 		{
@@ -67,7 +67,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 			return;
 		}
 
-		var entry = drm.Entries.FirstOrDefault(x => x.Id == ConfigInstance.Processors.FirstOrDefault(x => x.Key == arg.Args[1]).Key);
+		var entry = drm.Entries.FirstOrDefault(x => x.Id == ConfigInstance.Processors.FirstOrDefault(x => x.Key == arg.GetString(1)).Key);
 
 		if (entry == null)
 		{

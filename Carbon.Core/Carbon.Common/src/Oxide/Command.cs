@@ -134,8 +134,8 @@ namespace Oxide.Game.Rust.Libraries
 				try
 				{
 					var methodInfos = plugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-					var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters ().Any () || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
-					var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters ().Any () || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
+					var covalenceMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType == typeof(IPlayer))));
+					var consoleMethod = methodInfos.FirstOrDefault(x => x.Name == method && (!x.GetParameters().Any() || x.GetParameters().Any(y => y.ParameterType != typeof(IPlayer))));
 					var methodInfo = covalenceMethod ?? consoleMethod;
 					var parameters = methodInfo.GetParameters();
 
@@ -353,7 +353,7 @@ namespace Oxide.Game.Rust.Libraries
 									{
 										arguments.Add(null);
 									}
-								}
+								} 
 							}
 						}
 
@@ -413,7 +413,7 @@ namespace Oxide.Game.Rust.Libraries
 						if (!string.IsNullOrEmpty(arg.Reply))
 						{
 							if (player != null) player.ConsoleMessage(arg.Reply);
-							else if(FromRcon) Facepunch.RCon.OnMessage(arg.Reply, string.Empty, UnityEngine.LogType.Log);
+							else if (FromRcon) Facepunch.RCon.OnMessage(arg.Reply, string.Empty, UnityEngine.LogType.Log);
 							else Logger.Log(arg.Reply);
 						}
 					}

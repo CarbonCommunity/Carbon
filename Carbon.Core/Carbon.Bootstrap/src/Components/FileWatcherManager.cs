@@ -69,9 +69,9 @@ internal sealed class FileWatcherManager : CarbonBehaviour, IFileWatcherManager,
 					break;
 			}
 		}
-		catch (System.Exception)
+		catch (System.Exception ex)
 		{
-			Utility.Logger.Error($"Unable to find watcher item for '{e.FullPath}");
+			Utility.Logger.Error($"Unable to find watcher item for '{e.FullPath}", ex);
 		}
 	}
 
