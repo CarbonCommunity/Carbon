@@ -2,11 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
 using API.Events;
+using Facepunch.Extend;
+using Loaders;
+using Mono.Cecil;
+using UnityEngine;
 using Utility;
+using Logger = Utility.Logger;
 
 /*
  *
@@ -35,13 +41,70 @@ internal sealed class ExtensionManager : AddonManager
 	 *
 	 */
 
+	internal bool _hasLoaded;
+
 	private readonly string[] _directories =
 	{
 		Context.CarbonExtensions,
 	};
+	private static readonly string[] _references =
+{
+		Context.CarbonExtensions,
+		Context.CarbonManaged,
+		Context.CarbonLib,
+		Context.GameManaged
+	};
+
+	public class Resolver : IAssemblyResolver
+	{
+		internal Dictionary<string, AssemblyDefinition> _cache = new();
+
+		public void Dispose()
+		{
+			_cache.Clear();
+			_cache = null;
+		}
+
+		public AssemblyDefinition Resolve(AssemblyNameReference name)
+		{
+			if (!_cache.TryGetValue(name.Name, out var assembly))
+			{
+				var found = false;
+				foreach (var directory in _references)
+				{
+					foreach (var file in Directory.GetFiles(directory))
+					{
+						switch (Path.GetExtension(file))
+						{
+							case ".dll":
+								if (Path.GetFileNameWithoutExtension(file) == name.Name)
+								{
+									_cache.Add(name.Name, assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(file));
+									found = true;
+								}
+								break;
+						}
+
+						if (found) break;
+					}
+
+					if (found) break;
+				}
+			}
+
+			return assembly;
+		}
+
+		public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+		{
+			return Resolve(name);
+		}
+	}
 
 	internal void Awake()
 	{
+		var reloaded = false;
+
 		Carbon.Bootstrap.Watcher.Watch(new WatchFolder
 		{
 			Extension = "*.dll",
@@ -50,8 +113,10 @@ internal sealed class ExtensionManager : AddonManager
 
 			OnFileCreated = (sender, file) =>
 			{
-				Carbon.Bootstrap.AssemblyEx.Extensions.Load(
-					Path.GetFileName(file), $"{typeof(FileWatcherManager)}");
+				if (reloaded) return;
+				reloaded = true;
+
+				Reload("ExtensionManager.Awake");
 			},
 		});
 	}
@@ -143,5 +208,148 @@ internal sealed class ExtensionManager : AddonManager
 			return null;
 		}
 #endif
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Unload(string file, string requester)
+	{
+
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Reload(string requester)
+	{
+		var nonReloadables = new List<string>();
+
+		foreach (var extension in _loaded)
+		{
+			if (!extension.Addon.GetType().HasAttribute(typeof(HotloadableAttribute)))
+			{
+				nonReloadables.Add(extension.File);
+				continue;
+			}
+
+			extension.Addon.OnUnloaded(EventArgs.Empty);
+		}
+
+		var cache = new Dictionary<string, AssemblyDefinition>();
+		var streams = new List<MemoryStream>();
+		var extensions = new Dictionary<string, ICarbonExtension>();
+
+		static byte[] Process(byte[] raw)
+		{
+			if (AssemblyLoader.IndexOf(raw, new byte[4] { 0x01, 0xdc, 0x7f, 0x01 }) == 0)
+			{
+				byte[] checksum = new byte[20];
+				Buffer.BlockCopy(raw, 4, checksum, 0, 20);
+				return AssemblyLoader.Package(checksum, raw, 24);
+			}
+
+			return raw;
+		}
+
+		foreach (var directory in _directories)
+		{
+			foreach (var file in Directory.GetFiles(directory))
+			{
+				if (nonReloadables.Contains(file)) continue;
+
+				switch (Path.GetExtension(file))
+				{
+					case ".dll":
+						var stream = new MemoryStream(Process(File.ReadAllBytes(file)));
+						var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(stream, new ReaderParameters { AssemblyResolver = new Resolver() });
+						var originalName = assembly.Name.Name;
+						assembly.Name = new AssemblyNameDefinition($"{assembly.Name.Name}_{Guid.NewGuid()}", assembly.Name.Version);
+						cache.Add(originalName, assembly);
+						break;
+				}
+			}
+		}
+
+		nonReloadables.Clear();
+		nonReloadables = null;
+
+		foreach (var _assembly in cache)
+		{
+			foreach (var refer in _assembly.Value.MainModule.AssemblyReferences)
+			{
+				if (cache.TryGetValue(refer.Name, out var assembly))
+				{
+					refer.Name = assembly.Name.Name;
+				}
+			}
+
+			using MemoryStream memoryStream = new MemoryStream();
+			_assembly.Value.Write(memoryStream);
+			memoryStream.Position = 0;
+			_assembly.Value.Dispose();
+
+			var bytes = memoryStream.ToArray();
+			var processedAssembly = Assembly.Load(bytes);
+			Array.Clear(bytes, 0, bytes.Length);
+
+			if (AssemblyManager.IsType<ICarbonExtension>(processedAssembly, out var types))
+			{
+				var file = Path.Combine(Context.CarbonExtensions, $"{_assembly.Key}.dll");
+				var existentItem = _loaded.FirstOrDefault(x => x.File == file);
+				if (existentItem == null)
+				{
+					_loaded.Add(existentItem = new() { File = file });
+				}
+				existentItem.Types = processedAssembly.GetExportedTypes();
+
+				foreach (var type in types)
+				{
+					if (Activator.CreateInstance(type) is ICarbonExtension ext)
+					{
+						existentItem.Addon = ext;
+
+						Logger.Debug($"A new instance of '{type}' created");
+						extensions.Add(_assembly.Key, ext);
+					}
+				}
+			}
+		}
+
+		foreach (var extension in extensions)
+		{
+			try
+			{
+				var file = Path.Combine(Context.CarbonExtensions, $"{extension.Key}.dll");
+				var arg = new CarbonEventArgs(file);
+
+				extension.Value.Awake(arg);
+				extension.Value.OnLoaded(arg);
+
+				Carbon.Bootstrap.Events
+					.Trigger(CarbonEvent.ExtensionLoaded, arg);
+			}
+			catch (Exception e)
+			{
+				Logger.Error($"Failed to instantiate extension from type '{extension.Value}'\n{e}\nInner: {e.InnerException}");
+				continue;
+			}
+		}
+
+		_hasLoaded = true;
+
+		Dispose();
+
+		void Dispose()
+		{
+			foreach(var stream in streams)
+			{
+				stream.Dispose();
+			}
+
+			extensions.Clear();
+			streams.Clear();
+			cache.Clear();
+
+			extensions = null;
+			streams = null;
+			cache = null;
+		}
 	}
 }

@@ -88,7 +88,7 @@ public static class ModLoader
 		else AssemblyDictionaryCache[key] = assembly;
 	}
 
-	public static void UnloadCarbonMods()
+	public static void UnloadCarbonMods(bool full = false)
 	{
 		ClearAllRequirees();
 
@@ -97,7 +97,7 @@ public static class ModLoader
 
 		foreach (var mod in list)
 		{
-			if (mod.IsCoreMod) continue;
+			if (!full && mod.IsCoreMod) continue;
 
 			UnloadCarbonMod(mod.Name);
 		}
