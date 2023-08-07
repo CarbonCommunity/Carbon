@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using API.Assembly;
 using API.Events;
+using Facepunch.Extend;
 using Loaders;
 using Mono.Cecil;
 using Utility;
@@ -39,8 +40,61 @@ internal sealed class ModuleManager : AddonManager
 	 */
 	private readonly string[] _directories =
 	{
-		Context.CarbonModules,
+		Context.CarbonModules
 	};
+	private static readonly string[] _references =
+	{
+		Context.CarbonModules,
+		Context.CarbonManaged,
+		Context.CarbonLib,
+		Context.GameManaged
+	};
+
+	public class Resolver : IAssemblyResolver
+	{
+		internal Dictionary<string, AssemblyDefinition> _cache = new();
+
+		public void Dispose()
+		{
+			_cache.Clear();
+			_cache = null;
+		}
+
+		public AssemblyDefinition Resolve(AssemblyNameReference name)
+		{
+			if(!_cache.TryGetValue(name.Name, out var assembly))
+			{
+				var found = false;
+				foreach(var directory in _references)
+				{
+					foreach(var file in Directory.GetFiles(directory))
+					{
+						switch (Path.GetExtension(file))
+						{
+							case ".dll":
+								if (Path.GetFileNameWithoutExtension(file) == name.Name)
+								{
+									_cache.Add(name.Name, assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(file));
+									found = true;
+								}
+								break;
+						}
+
+						if (found) break;
+					}
+
+					if (found) break;
+				}
+			}
+
+			return assembly;
+		}
+
+		public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+		{
+			return Resolve(name);
+		}
+	}
 
 	internal void Awake()
 	{
@@ -179,12 +233,18 @@ internal sealed class ModuleManager : AddonManager
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public override void Reload(string requester)
 	{
+		var nonReloadables = new List<string>();
+
 		foreach (var module in _loaded)
 		{
+			if (!module.Addon.GetType().HasAttribute(typeof(HotloadableAttribute)))
+			{
+				nonReloadables.Add(module.File);
+				continue;
+			}
+
 			module.Addon.OnUnloaded(EventArgs.Empty);
 		}
-
-		_loaded.Clear();
 
 		var cache = new Dictionary<string, AssemblyDefinition>();
 		var streams = new List<MemoryStream>();
@@ -206,11 +266,13 @@ internal sealed class ModuleManager : AddonManager
 		{
 			foreach (var file in Directory.GetFiles(directory))
 			{
+				if (nonReloadables.Contains(file)) continue;
+
 				switch (Path.GetExtension(file))
 				{
 					case ".dll":
 						var stream = new MemoryStream(Process(File.ReadAllBytes(file)));
-						var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(stream);
+						var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(stream, new ReaderParameters { AssemblyResolver = new Resolver() });
 						var originalName = assembly.Name.Name;
 						assembly.Name = new AssemblyNameDefinition($"{assembly.Name.Name}_{Guid.NewGuid()}", assembly.Name.Version);
 						cache.Add(originalName, assembly);
@@ -218,6 +280,9 @@ internal sealed class ModuleManager : AddonManager
 				}
 			}
 		}
+
+		nonReloadables.Clear();
+		nonReloadables = null;
 
 		foreach (var _assembly in cache)
 		{
@@ -240,10 +305,22 @@ internal sealed class ModuleManager : AddonManager
 
 			if (AssemblyManager.IsType<ICarbonModule>(processedAssembly, out var types))
 			{
+				var file = Path.Combine(Context.CarbonModules, $"{_assembly.Key}.dll");
+				var existentItem = _loaded.FirstOrDefault(x => x.File == file);
+				if (existentItem == null)
+				{
+					_loaded.Add(existentItem = new() { File = file });
+				}
+				existentItem.Types = processedAssembly.GetExportedTypes();
+
 				foreach (var type in types)
 				{
 					if (Activator.CreateInstance(type) is ICarbonModule mod)
 					{
+						Hydrate(processedAssembly, mod);
+
+						existentItem.Addon = mod;
+
 						Logger.Debug($"A new instance of '{type}' created");
 						modules.Add(_assembly.Key, mod);
 					}
@@ -260,11 +337,10 @@ internal sealed class ModuleManager : AddonManager
 
 				module.Value.Awake(arg);
 				module.Value.OnLoaded(arg);
+				module.Value.OnEnable(arg);
 
 				Carbon.Bootstrap.Events
 					.Trigger(CarbonEvent.ModuleLoaded, arg);
-
-				_loaded.Add(new() { Addon = module.Value, File = file });
 			}
 			catch (Exception e)
 			{
@@ -282,11 +358,11 @@ internal sealed class ModuleManager : AddonManager
 				stream.Dispose();
 			}
 
-			modules.Clear();
-			modules = null;
 			streams.Clear();
-			streams = null;
+			modules.Clear();
 			cache.Clear();
+			streams = null;
+			modules = null;
 			cache = null;
 		}
 	}

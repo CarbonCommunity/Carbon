@@ -47,6 +47,59 @@ internal sealed class ExtensionManager : AddonManager
 	{
 		Context.CarbonExtensions,
 	};
+	private static readonly string[] _references =
+{
+		Context.CarbonExtensions,
+		Context.CarbonManaged,
+		Context.CarbonLib,
+		Context.GameManaged
+	};
+
+	public class Resolver : IAssemblyResolver
+	{
+		internal Dictionary<string, AssemblyDefinition> _cache = new();
+
+		public void Dispose()
+		{
+			_cache.Clear();
+			_cache = null;
+		}
+
+		public AssemblyDefinition Resolve(AssemblyNameReference name)
+		{
+			if (!_cache.TryGetValue(name.Name, out var assembly))
+			{
+				var found = false;
+				foreach (var directory in _references)
+				{
+					foreach (var file in Directory.GetFiles(directory))
+					{
+						switch (Path.GetExtension(file))
+						{
+							case ".dll":
+								if (Path.GetFileNameWithoutExtension(file) == name.Name)
+								{
+									_cache.Add(name.Name, assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(file));
+									found = true;
+								}
+								break;
+						}
+
+						if (found) break;
+					}
+
+					if (found) break;
+				}
+			}
+
+			return assembly;
+		}
+
+		public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+		{
+			return Resolve(name);
+		}
+	}
 
 	internal void Awake()
 	{
@@ -205,7 +258,7 @@ internal sealed class ExtensionManager : AddonManager
 				{
 					case ".dll":
 						var stream = new MemoryStream(Process(File.ReadAllBytes(file)));
-						var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(stream);
+						var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(stream, new ReaderParameters { AssemblyResolver = new Resolver() });
 						var originalName = assembly.Name.Name;
 						assembly.Name = new AssemblyNameDefinition($"{assembly.Name.Name}_{Guid.NewGuid()}", assembly.Name.Version);
 						cache.Add(originalName, assembly);
@@ -238,10 +291,20 @@ internal sealed class ExtensionManager : AddonManager
 
 			if (AssemblyManager.IsType<ICarbonExtension>(processedAssembly, out var types))
 			{
+				var file = Path.Combine(Context.CarbonExtensions, $"{_assembly.Key}.dll");
+				var existentItem = _loaded.FirstOrDefault(x => x.File == file);
+				if (existentItem == null)
+				{
+					_loaded.Add(existentItem = new() { File = file });
+				}
+				existentItem.Types = processedAssembly.GetExportedTypes();
+
 				foreach (var type in types)
 				{
 					if (Activator.CreateInstance(type) is ICarbonExtension ext)
 					{
+						existentItem.Addon = ext;
+
 						Logger.Debug($"A new instance of '{type}' created");
 						extensions.Add(_assembly.Key, ext);
 					}
@@ -261,15 +324,6 @@ internal sealed class ExtensionManager : AddonManager
 
 				Carbon.Bootstrap.Events
 					.Trigger(CarbonEvent.ExtensionLoaded, arg);
-
-				var existentItem = _loaded.FirstOrDefault(x => x.File == file);
-				if (existentItem == null)
-				{
-					_loaded.Add(existentItem = new());
-				}
-
-				existentItem.Addon = extension.Value;
-				existentItem.File = file;
 			}
 			catch (Exception e)
 			{
