@@ -220,13 +220,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 						break;
 				}
 
+#if !(STAGING || AUX01 || AUX02)
 				if (!hasValidChecksum)
 				{
 					Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
 					Logger.Debug($"live:{checksum} | expected:{hook.Checksum}");
 					hook.SetStatus(HookState.Warning, "Invalid checksum");
 				}
-
+#endif
 			}
 			catch (System.ApplicationException e)
 			{

@@ -21,11 +21,19 @@ echo ** Cleanup the release folder
 rmdir /s /q "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%" 2>NUL
 del /q "%BUILD_ROOT%\Release\Carbon.%BUILD_TARGET%.zip" 2>NUL
 
+set DEFINES=%2
+
+if "%DEFINES%" EQU "" (
+	echo ** No defines.
+) else (
+	echo ** Defines: %DEFINES%
+)
+
 echo ** Build the solution
 dotnet restore "%BUILD_ROOT%\Carbon.Core" -v:m --nologo || exit /b
 dotnet   clean "%BUILD_ROOT%\Carbon.Core" -v:m --configuration %BUILD_TARGET% --nologo || exit /b
 dotnet   build "%BUILD_ROOT%\Carbon.Core" -v:m --configuration %BUILD_TARGET% --no-restore --no-incremental ^
-	/p:UserConstants=\"%DEFINES%\" /p:UserVersion="%VERSION%" || exit /b
+	/p:UserConstants=\"%2\" /p:UserVersion="%VERSION%" || exit /b
 
 echo ** Copy operating system specific files
 echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
