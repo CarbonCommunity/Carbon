@@ -127,6 +127,17 @@ internal sealed class PluginManager : AddonManager
 #endif
 	}
 
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Unload(string file, string requester)
+	{
+
+	}
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Reload(string requester)
+	{
+
+	}
+
 	internal override void Hydrate(Assembly assembly, ICarbonAddon addon)
 	{
 		base.Hydrate(assembly, addon);

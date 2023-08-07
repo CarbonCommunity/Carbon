@@ -100,7 +100,7 @@ namespace Oxide.Game.Rust.Libraries
 					{
 						case PlayerArgs playerArgs:
 							try { callback?.Invoke(playerArgs.Player as BasePlayer, command, arg.Arguments); }
-							catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+							catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 							break;
 					}
 				},
@@ -199,7 +199,7 @@ namespace Oxide.Game.Rust.Libraries
 
 					methodInfo?.Invoke(plugin, result);
 				}
-				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 				if (arguments != null) Pool.FreeList(ref arguments);
 				if (result != null) Array.Clear(result, 0, result.Length);
@@ -353,7 +353,7 @@ namespace Oxide.Game.Rust.Libraries
 									{
 										arguments.Add(null);
 									}
-								}
+								} 
 							}
 						}
 
@@ -373,13 +373,13 @@ namespace Oxide.Game.Rust.Libraries
 					}
 					catch (Exception ex)
 					{
-						if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex);
+						if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex);
 						else if (plugin is BaseHookable hookable)
-							Logger.Error($"[{hookable.Name}] Error", ex);
+							Logger.Error($"[{hookable.Name}] Error", ex.InnerException ?? ex);
 					}
 				}
 				catch (TargetParameterCountException) { }
-				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 				Pool.FreeList(ref arguments);
 				if (result != null) Array.Clear(result, 0, result.Length);
@@ -419,7 +419,7 @@ namespace Oxide.Game.Rust.Libraries
 					}
 				}
 				catch (TargetParameterCountException) { }
-				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex); }
+				catch (Exception ex) { if (plugin is RustPlugin rustPlugin) rustPlugin.LogError("Error", ex.InnerException ?? ex); }
 
 				Pool.FreeList(ref arguments);
 				if (result != null) Array.Clear(result, 0, result.Length);

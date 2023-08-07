@@ -55,6 +55,7 @@ namespace Oxide.Ext.Discord
 			DiscordCommand = new DiscordCommand(DiscordConfig.Commands.CommandPrefixes);
 			DiscordSubscriptions = new DiscordSubscriptions(GlobalLogger);
 
+
 			Community.Runtime.Events.Subscribe(
 				CarbonEvent.PluginPreload, arg => OnPluginLoaded(arg as CarbonEventArgs));
 

@@ -666,9 +666,8 @@ public partial class CorePlugin : CarbonPlugin
 			{
 				Community.Runtime.HookManager.Subscribe(method.Name, Name);
 
-				var priority = method.GetCustomAttribute<HookPriority>();
 				var hash = HookStringPool.GetOrAdd(method.Name);
-				if (!Hooks.ContainsKey(hash)) Hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
+				if (!Hooks.Contains(hash)) Hooks.Add(hash);
 			}
 		}
 
@@ -682,7 +681,7 @@ public partial class CorePlugin : CarbonPlugin
 		timer.Every(5f, () =>
 		{
 			if (Community.Runtime == null || Logger.CoreLog == null || !Logger.CoreLog._hasInit || Logger.CoreLog._buffer.Count == 0 || Community.Runtime.Config.LogFileMode != 1) return;
-			Logger.CoreLog._flush();
+			Logger.CoreLog.Flush();
 		});
 
 		cmd.AddConsoleCommand("help", this, nameof(Help), authLevel: 2);

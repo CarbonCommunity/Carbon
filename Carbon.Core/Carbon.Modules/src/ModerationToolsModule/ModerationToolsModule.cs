@@ -74,7 +74,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		if (player == null) return;
 
 		var playerName = arg.GetString(0);
-		var reason = arg.Args.Skip(1).ToArray().ToString(" ");
+		var reason = arg.Args.Skip(1).ToString(" ");
 
 		var targetPlayer = BasePlayer.FindAwakeOrSleeping(playerName);
 		if (targetPlayer == null)
@@ -140,7 +140,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 			return;
 		}
 
-		var reason = arg.Args.Skip(1).ToArray().ToString(" ") ?? "no reason given";
+		var reason = arg.Args.Skip(1).ToString(" ") ?? "no reason given";
 
 		Puts($"{player} kicked {targetPlayer}: {reason}");
 		Chat.Broadcast($"Kicking {player.displayName} ({reason})", "SERVER", "#eee", 0UL);
@@ -165,7 +165,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 			return;
 		}
 
-		var reason = arg.Args.Skip(1).ToArray().ToString(" ") ?? "no reason given";
+		var reason = arg.Args.Skip(1).ToString(" ") ?? "no reason given";
 		ServerUsers.Set(player.userID, global::ServerUsers.UserGroup.Banned, player.displayName, reason);
 		ServerUsers.Save();
 
@@ -174,7 +174,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		Network.Net.sv.Kick(player.net.connection, $"Banned: {reason}", false);
 	}
 
-	[HookPriority(Priorities.Highest)]
 	private object OnServerMessage(string message, string name)
 	{
 		if (!ConfigInstance.NoGiveNotices || !(name == "SERVER" && message.Contains("gave"))) return null;

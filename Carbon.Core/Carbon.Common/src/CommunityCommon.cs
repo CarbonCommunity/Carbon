@@ -251,9 +251,9 @@ public class Community
 		ModLoader.ClearAllErrored();
 		ModLoader.ClearAllRequirees();
 	}
-	public void ClearPlugins()
+	public void ClearPlugins(bool full = false)
 	{
-		Runtime.ClearCommands();
+		Runtime.ClearCommands(full);
 		ModLoader.UnloadCarbonMods();
 	}
 
