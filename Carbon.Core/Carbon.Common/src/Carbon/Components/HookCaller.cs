@@ -105,6 +105,8 @@ public static class HookCaller
 
 	private static object CallStaticHook(uint hookId, BindingFlags flag = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public, object[] args = null, bool keepArgs = false)
 	{
+		if (Community.Runtime == null || Community.Runtime.ModuleProcessor == null) return null;
+
 		Caller.ClearHookTime(hookId);
 
 		var result = (object)null;
@@ -143,7 +145,11 @@ public static class HookCaller
 						ResultOverride(plugin);
 					}
 				}
-				catch (Exception ex) { Logger.Error($"Failed to call hook '{hookId}' on plugin {plugin}", ex); }
+				catch (Exception ex)
+				{
+					var exception = ex.InnerException ?? ex;
+					var readableHook = HookStringPool.GetOrAdd(hookId);
+					Logger.Error($"Failed to call hook '{readableHook}' on plugin '{plugin.Name} v{plugin.Version}'", exception); }
 			}
 		}
 

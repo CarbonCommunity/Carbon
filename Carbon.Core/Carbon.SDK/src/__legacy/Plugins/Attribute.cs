@@ -244,3 +244,10 @@ public class CooldownAttribute : Attribute
 		Miliseconds = miliseconds;
 	}
 }
+
+[AttributeUsage(AttributeTargets.Class)]
+[MeansImplicitUse]
+public class HotloadableAttribute : Attribute
+{
+
+}

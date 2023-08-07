@@ -43,7 +43,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	#region Internals
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
-	internal DateTime TimeSinceCompile;
+	internal DateTime _timeSinceCompile;
 	internal static Dictionary<string, byte[]> _compilationCache = new();
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
@@ -278,7 +278,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			Exceptions.Clear();
 			Warnings.Clear();
-			TimeSinceCompile = DateTime.Now;
+			_timeSinceCompile = DateTime.Now;
 			FileName = Path.GetFileNameWithoutExtension(FilePath);
 
 			var trees = new List<SyntaxTree>();
@@ -383,7 +383,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (Assembly == null) return;
 
-			CompileTime = (float)(DateTime.Now - TimeSinceCompile).Milliseconds;
+			CompileTime = (float)(DateTime.Now - _timeSinceCompile).Milliseconds;
 
 			foreach (var type in Assembly.GetTypes())
 			{

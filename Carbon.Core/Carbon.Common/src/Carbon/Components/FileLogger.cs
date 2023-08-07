@@ -75,7 +75,7 @@ public class FileLogger : IDisposable
 
 		_hasInit = false;
 	}
-	public virtual void _flush()
+	public virtual void Flush()
 	{
 		var buffer = Facepunch.Pool.GetList<string>();
 		buffer.AddRange(_buffer);
@@ -95,11 +95,11 @@ public class FileLogger : IDisposable
 			Init(archive: true);
 		}
 	}
-	internal void _queueLog(string message)
+	internal void QueueLog(string message)
 	{
 		if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 0) return;
 
 		_buffer.Add($"[{Logger.GetDate()}] {message}");
-		if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 2) _flush();
+		if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 2) Flush();
 	}
 }
