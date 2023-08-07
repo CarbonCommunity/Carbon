@@ -54,7 +54,7 @@ public class CommunityInternal : Community
 	{
 		Plugins = new ModLoader.ModPackage { Name = "Scripts", IsCoreMod = false };
 
-		CorePlugin = new CorePlugin();
+		Runtime.CorePlugin = CorePlugin = new CorePlugin();
 		CorePlugin.Setup("Core", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
 		ModLoader.ProcessPrecompiledType(CorePlugin);
 		CorePlugin.IsCorePlugin = CorePlugin.IsPrecompiled = true;
@@ -116,7 +116,7 @@ public class CommunityInternal : Community
 
 	#endregion
 
-	public void Initialize()
+	public override void Initialize()
 	{
 		if (IsInitialized) return;
 
@@ -179,7 +179,7 @@ public class CommunityInternal : Community
 
 		Entities.Init();
 	}
-	public void Uninitalize()
+	public override void Uninitialize()
 	{
 		try
 		{
@@ -188,7 +188,7 @@ public class CommunityInternal : Community
 			_uninstallProcessors();
 			ClearCommands(all: true);
 
-			ClearPlugins();
+			ClearPlugins(full: true);
 			ModLoader.LoadedPackages.Clear();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
 
@@ -206,11 +206,16 @@ public class CommunityInternal : Community
 			Entities.Dispose();
 
 			Carbon.Logger.Dispose();
+
+			Events.Trigger(CarbonEvent.CarbonShutdownComplete, EventArgs.Empty);
 		}
 		catch (Exception ex)
 		{
 			Carbon.Logger.Error($"Failed Carbon uninitialization.", ex);
 			Events.Trigger(CarbonEvent.CarbonShutdownFailed, EventArgs.Empty);
 		}
+
+		InternalRuntime = null;
+		base.Uninitialize();
 	}
 }

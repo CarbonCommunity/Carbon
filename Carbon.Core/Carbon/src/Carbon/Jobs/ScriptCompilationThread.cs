@@ -32,7 +32,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string[] Requires;
 	public bool IsExtension;
 	public List<string> Usings = new();
-	public Dictionary<Type, Dictionary<uint, Priorities>> Hooks = new();
+	public Dictionary<Type, List<uint>> Hooks = new();
 	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
 	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
 	public float CompileTime;
@@ -43,13 +43,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 	#region Internals
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
-	internal DateTime TimeSinceCompile;
+	internal DateTime _timeSinceCompile;
 	internal static Dictionary<string, byte[]> _compilationCache = new();
 	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
-	internal static readonly string[] _directories = new[]
+	internal static readonly string[] _libraryDirectories = new[]
 	{
+		Defines.GetLibFolder(),
 		Defines.GetManagedFolder(),
 		Defines.GetRustManagedFolder(),
 		Defines.GetManagedModulesFolder(),
@@ -105,7 +106,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.Remove(name);
 		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
 	}
-	internal void _injectReference(string id, string name, List<MetadataReference> references)
+	internal void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false)
 	{
 		if (_referenceCache.TryGetValue(name, out var reference))
 		{
@@ -114,7 +115,31 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name, _directories);
+			var raw = (byte[])null;
+
+			if (direct)
+			{
+				var found = false;
+				foreach (var directory in directories)
+				{
+					foreach (var file in OsEx.Folder.GetFilesWithExtension(directory, "dll"))
+					{
+						if (file.Contains(name))
+						{
+							raw = OsEx.File.ReadBytes(file);
+							found = true;
+							break;
+						}
+					}
+
+					if (found) break;
+				}
+			}
+			else
+			{
+				raw = Community.Runtime.AssemblyEx.Read(name, directories);
+			}
+
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -148,13 +173,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var references = new List<MetadataReference>();
 		var id = Path.GetFileNameWithoutExtension(FilePath);
 
-		_injectReference(id, "0Harmony", references);
+		_injectReference(id, "0Harmony", references, _libraryDirectories);
+		_injectReference(id, "System.Memory", references, _libraryDirectories, direct: true);
 
 		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
 		{
 			try
 			{
-				_injectReference(id, item, references);
+				_injectReference(id, item, references, _libraryDirectories);
 			}
 			catch (System.Exception ex)
 			{
@@ -166,7 +192,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectReference(id, item, references);
+				_injectReference(id, item, references, _libraryDirectories);
 			}
 			catch (System.Exception ex)
 			{
@@ -229,14 +255,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 				var libFile = Path.Combine(Defines.GetLibFolder(), $"{reference}.dll");
 				if (OsEx.File.Exists(libFile))
 				{
-					_injectReference(reference, libFile, references);
+					_injectReference(reference, libFile, references, _libraryDirectories);
 					continue;
 				}
 
 				var managedFile = Path.Combine(Defines.GetRustManagedFolder(), $"{reference}.dll");
 				if (OsEx.File.Exists(managedFile))
 				{
-					_injectReference(reference, managedFile, references);
+					_injectReference(reference, managedFile, references, _libraryDirectories );
 					continue;
 				}
 			}
@@ -252,13 +278,26 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			Exceptions.Clear();
 			Warnings.Clear();
-			TimeSinceCompile = DateTime.Now;
+			_timeSinceCompile = DateTime.Now;
 			FileName = Path.GetFileNameWithoutExtension(FilePath);
 
 			var trees = new List<SyntaxTree>();
+			var conditionals = new List<string>();
+
+			conditionals.AddRange(Community.Runtime.Config.ConditionalCompilationSymbols);
+
+#if WIN
+			conditionals.Add("WIN");
+#else
+			conditionals.Add("UNIX");
+#endif
+
+#if MINIMAL
+			conditionals.Add("MINIMAL");
+#endif
 
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
-				.WithPreprocessorSymbols(Community.Runtime.Config.ConditionalCompilationSymbols);
+				.WithPreprocessorSymbols(conditionals);
 			var tree = CSharpSyntaxTree.ParseText(
 				Source, options: parseOptions);
 
@@ -271,7 +310,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 				Source = root.ToFullString();
 				trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions));
 			}
-			else trees.Add(tree);
+			else
+			{
+				trees.Add(tree);
+			}
 
 			foreach (var element in root.Usings)
 				Usings.Add($"{element.Name}");
@@ -332,18 +374,20 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 			}
 
-			if (Assembly == null) return;
-
-			CompileTime = (float)(DateTime.Now - TimeSinceCompile).Milliseconds;
-
+			conditionals.Clear();
+			conditionals = null;
 			references.Clear();
 			references = null;
 			trees.Clear();
 			trees = null;
 
+			if (Assembly == null) return;
+
+			CompileTime = (float)(DateTime.Now - _timeSinceCompile).Milliseconds;
+
 			foreach (var type in Assembly.GetTypes())
 			{
-				var hooks = new Dictionary<uint, Priorities>();
+				var hooks = new List<uint>();
 				var hookMethods = new List<HookMethodAttribute>();
 				var pluginReferences = new List<PluginReferenceAttribute>();
 				Hooks.Add(type, hooks);
@@ -356,8 +400,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
 					{
-						var priority = method.GetCustomAttribute<HookPriority>();
-						if (!hooks.ContainsKey(hash)) hooks.Add(hash, priority == null ? Priorities.Normal : priority.Priority);
+						if (!hooks.Contains(hash)) hooks.Add(hash);
 					}
 					else
 					{

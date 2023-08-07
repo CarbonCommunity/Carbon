@@ -17,14 +17,14 @@ using Utility;
 
 namespace Patches;
 
-internal sealed class FacepunchConsole : MarshalByRefObject
+internal sealed class RustClansLocal : MarshalByRefObject
 {
 	private static readonly DefaultAssemblyResolver _resolver;
 	private readonly Dictionary<string, string> _checksums = new();
 	private readonly AssemblyDefinition _assembly;
 	private string _filename;
 
-	static FacepunchConsole()
+	static RustClansLocal()
 	{
 		_resolver = new DefaultAssemblyResolver();
 		_resolver.AddSearchDirectory(Context.CarbonLib);
@@ -33,9 +33,9 @@ internal sealed class FacepunchConsole : MarshalByRefObject
 		_resolver.AddSearchDirectory(Context.GameManaged);
 	}
 
-	public FacepunchConsole()
+	public RustClansLocal()
 	{
-		_filename = Path.Combine(Context.GameManaged, "Facepunch.Console.dll");
+		_filename = Path.Combine(Context.GameManaged, "Rust.Clans.Local.dll");
 
 		if (!File.Exists(_filename))
 			throw new Exception($"Assembly file '{_filename}' was not found");
@@ -44,25 +44,39 @@ internal sealed class FacepunchConsole : MarshalByRefObject
 			parameters: new ReaderParameters { AssemblyResolver = _resolver });
 	}
 
-	internal bool IsPublic(string Type, string Property)
+	internal bool IsPublic(string Type)
 	{
 		try
 		{
 			if (_assembly == null) throw new Exception("Loaded assembly is null");
 
-			TypeDefinition t = _assembly.MainModule.GetType(Type);
+			TypeDefinition t = _assembly.MainModule.Types.First(x => x.Name == Type);
 			if (t == null) throw new Exception($"Unable to get type definition for '{Type}'");
 
-			PropertyDefinition m = t.Properties.First(x => x.Name == Property);
-			if (m == null) throw new Exception($"Unable to get property definition for '{Property}'");
-
-			return m.SetMethod.IsPublic;
+			return t.IsPublic;
 		}
 		catch (System.Exception ex)
 		{
 			Logger.Error(ex.Message);
 			throw ex;
 		}
+	}
+
+	internal void Publicize()
+	{
+		if (_assembly == null) throw new Exception("Loaded assembly is null");
+
+		Logger.Debug($" - Publicize assembly");
+
+		AssemblyNameReference scope =
+			_assembly.MainModule.AssemblyReferences.OrderByDescending(a => a.Version).FirstOrDefault(a => a.Name == "mscorlib");
+
+		MethodReference ctor = new MethodReference(".ctor", _assembly.MainModule.TypeSystem.Void,
+			declaringType: new TypeReference("System", "NonSerializedAttribute", _assembly.MainModule, scope))
+		{ HasThis = true };
+
+		foreach (TypeDefinition type in _assembly.MainModule.Types)
+			Publicize(type, ctor);
 	}
 
 	internal static void Publicize(TypeDefinition type, MethodReference ctor)
@@ -123,56 +137,6 @@ internal sealed class FacepunchConsole : MarshalByRefObject
 
 		foreach (TypeDefinition childType in type.NestedTypes)
 			Publicize(childType, ctor);
-	}
-
-	internal void Patch()
-	{
-		try
-		{
-			Override_IndexAll_Setter();
-			Override_Constructor_Modifier();
-		}
-		catch (System.Exception ex)
-		{
-			Logger.Error(ex.Message);
-			throw ex;
-		}
-	}
-
-	private void Override_IndexAll_Setter()
-	{
-		TypeDefinition type = _assembly.MainModule.GetType("ConsoleSystem/Index");
-		string[] Items = { "All" };
-
-		foreach (string Item in Items)
-		{
-			try
-			{
-				Logger.Debug($" - Patching {type.Name}.{Item}");
-
-				PropertyDefinition method = type.Properties.Single(x => x.Name == Item);
-				method.SetMethod.IsPublic = true;
-			}
-			catch (System.Exception e)
-			{
-				Logger.Debug($" - Patching failed: {e.Message}");
-			}
-		}
-	}
-
-	private void Override_Constructor_Modifier()
-	{
-		TypeDefinition type = _assembly.MainModule.GetType("ConsoleSystem/Arg");
-		MethodDefinition ctor = type.GetConstructors().FirstOrDefault();
-
-		try
-		{
-			ctor.IsPublic = true;
-		}
-		catch (Exception e)
-		{
-			Logger.Debug($" - Patching failed: {e.Message}");
-		}
 	}
 
 	internal void Write()

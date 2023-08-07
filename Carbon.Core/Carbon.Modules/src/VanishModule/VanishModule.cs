@@ -52,7 +52,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		_vanishedPlayers.Clear();
 	}
 
-	[HookPriority(Priorities.Highest)]
 	private object CanUseLockedEntity(BasePlayer player, BaseLock @lock)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID)
@@ -64,7 +63,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		return null;
 	}
 
-	[HookPriority(Priorities.Highest)]
 	private object OnPlayerAttack(BasePlayer player, HitInfo hit)
 	{
 		if (hit == null || hit.Initiator == null || hit.HitEntity == null) return null;
@@ -89,7 +87,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		DoVanish(player, true);
 	}
 
-	[HookPriority(Priorities.Highest)]
 	private object CanBradleyApcTarget(BradleyAPC apc, BasePlayer player)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID))

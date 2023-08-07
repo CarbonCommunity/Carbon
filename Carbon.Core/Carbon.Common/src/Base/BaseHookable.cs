@@ -13,7 +13,7 @@ namespace Carbon.Base;
 
 public class BaseHookable
 {
-	public Dictionary<uint, Priorities> Hooks;
+	public List<uint> Hooks;
 	public List<HookMethodAttribute> HookMethods;
 	public List<PluginReferenceAttribute> PluginReferences;
 
@@ -26,10 +26,9 @@ public class BaseHookable
 		public MethodInfo Method;
 		public Type[] Parameters;
 		public Delegate Delegate;
-		public Priorities Priority;
 		public bool IsByRef;
 
-		public static CachedHook Make(MethodInfo method, Priorities priority, object context)
+		public static CachedHook Make(MethodInfo method, object context)
 		{
 			var parameters = method.GetParameters();
 			var isByRef = parameters.Any(x => x.ParameterType.IsByRef);
@@ -37,7 +36,6 @@ public class BaseHookable
 			{
 				Method = method,
 				Delegate = isByRef ? null : HookCallerCommon.CreateDelegate(method, context),
-				Priority = priority,
 				IsByRef = isByRef,
 				Parameters = parameters.Select(x => x.ParameterType).ToArray(),
 			};
@@ -143,7 +141,7 @@ public class BaseHookable
 	{
 		foreach (var hook in Hooks)
 		{
-			var name = HookStringPool.GetOrAdd(hook.Key);
+			var name = HookStringPool.GetOrAdd(hook);
 			if (condition != null && !condition(name)) continue;
 
 			Subscribe(name);
@@ -153,7 +151,7 @@ public class BaseHookable
 	{
 		foreach (var hook in Hooks)
 		{
-			var name = HookStringPool.GetOrAdd(hook.Key);
+			var name = HookStringPool.GetOrAdd(hook);
 			if (condition != null && !condition(name)) continue;
 
 			Unsubscribe(name);

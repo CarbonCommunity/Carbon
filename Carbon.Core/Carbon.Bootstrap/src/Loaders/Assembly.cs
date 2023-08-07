@@ -39,9 +39,7 @@ internal sealed class AssemblyLoader : IDisposable
 		// normalize filename
 		file = Path.GetFileName(file);
 
-#if DEBUG_VERBOSE
-		Logger.Debug($"Load assembly '{file}' requested by '{requester}'");
-#endif
+		Logger.Debug($"Loading assembly '{file}' requested by '{requester}'");
 
 		string path = default;
 		foreach (string directory in (directories is null) ? _directoryList : directories)
@@ -74,10 +72,8 @@ internal sealed class AssemblyLoader : IDisposable
 
 		if (_cache.TryGetValue(sha1, out Item cache))
 		{
-#if DEBUG_VERBOSE
 			Logger.Debug($"Loaded assembly from cache: "
 				+ $"'{cache.Assembly.GetName().Name}' v{cache.Assembly.GetName().Version}");
-#endif
 			return cache;
 		}
 
@@ -97,10 +93,7 @@ internal sealed class AssemblyLoader : IDisposable
 		cache = new Item { Name = file, Raw = raw, Assembly = asm };
 		_cache.Add(sha1, cache);
 
-#if DEBUG_VERBOSE
 		Logger.Debug($"Loaded assembly: '{asm.GetName().Name}' v{asm.GetName().Version}");
-#endif
-
 		return cache;
 	}
 
@@ -110,7 +103,7 @@ internal sealed class AssemblyLoader : IDisposable
 		return item ?? default;
 	}
 
-	private static byte[] Package(IReadOnlyList<byte> a, IReadOnlyList<byte> b, int c = 0)
+	internal static byte[] Package(IReadOnlyList<byte> a, IReadOnlyList<byte> b, int c = 0)
 	{
 		byte[] retvar = new byte[b.Count - c];
 		for (int i = c; i < b.Count; i++)
@@ -118,7 +111,7 @@ internal sealed class AssemblyLoader : IDisposable
 		return retvar;
 	}
 
-	private static int IndexOf(IReadOnlyList<byte> haystack, IReadOnlyList<byte> needle)
+	internal static int IndexOf(IReadOnlyList<byte> haystack, IReadOnlyList<byte> needle)
 	{
 		int len = needle.Count;
 		int limit = haystack.Count - len;

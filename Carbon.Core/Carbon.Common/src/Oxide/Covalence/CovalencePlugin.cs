@@ -1,4 +1,5 @@
-﻿using Formatter = Oxide.Core.Libraries.Covalence.Formatter;
+﻿using static Oxide.Plugins.CovalencePlugin;
+using Formatter = Oxide.Core.Libraries.Covalence.Formatter;
 using Logger = Carbon.Logger;
 
 /*
@@ -57,31 +58,34 @@ namespace Oxide.Plugins
 			}
 #endif
 		}
+	}
+}
 
-		public struct Covalence : ICovalence
-		{
-			public Covalence() { }
+namespace Oxide.Core.Libraries.Covalence
+{
+	public class Covalence : Library, ICovalence
+	{
+		public Covalence() { }
 
-			public IPlayerManager Players { get; }
+		public IPlayerManager Players { get; }
 #if !NOCOVALENCE
-				= new PlayerManager();
+			= new PlayerManager();
 #endif
-			public IServer Server { get; } = new RustServer();
+		public IServer Server { get; } = new RustServer();
 
-			public string FormatText(string text)
-			{
-				return Formatter.ToUnity(text);
-			}
-
-			public void UnregisterCommand(string command, Plugin plugin)
-			{
-				Community.Runtime.CorePlugin.cmd.RemoveConsoleCommand(command, plugin);
-			}
-
-			public uint ClientAppId { get; } = 252490U;
-
-			public string Game { get; } = "Rust";
+		public string FormatText(string text)
+		{
+			return Formatter.ToUnity(text);
 		}
+
+		public void UnregisterCommand(string command, Plugin plugin)
+		{
+			Community.Runtime.CorePlugin.cmd.RemoveConsoleCommand(command, plugin);
+		}
+
+		public uint ClientAppId { get; } = 252490U;
+
+		public string Game { get; } = "Rust";
 	}
 }
 

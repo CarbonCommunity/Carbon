@@ -4,7 +4,11 @@ using API.Commands;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
+using Facepunch;
 using Newtonsoft.Json;
+using Carbon.Extensions;
+using Application = UnityEngine.Application;
+using MathEx = Carbon.Extensions.MathEx;
 
 /*
  *
@@ -132,13 +136,11 @@ public class Community
 			Events.Subscribe(CarbonEvent.CarbonStartupComplete, args =>
 			{
 				Analytics.LogEvent("on_server_startup",
-					segments: new Dictionary<string, object> {
-						{ "branch", Analytics.Branch },
-						{ "platform", Analytics.Platform },
-					},
+					segments: Analytics.Segments,
 					metrics: new Dictionary<string, object> {
-						{ "version", Analytics.Version },
-						{ "protocol", Analytics.Protocol },
+						{ "carbon", $"{Analytics.Version}/{Analytics.Platform}/{Analytics.Protocol}" },
+						{ "carbon_informational", Analytics.InformationalVersion },
+						{ "rust", $"{BuildInfo.Current.Build.Number}/{Rust.Protocol.printable}" },
 					}
 				);
 			});
@@ -146,12 +148,14 @@ public class Community
 			Events.Subscribe(CarbonEvent.AllPluginsLoaded, args =>
 			{
 				Analytics.LogEvent("on_server_initialized",
-					segments: new Dictionary<string, object> {
-						{ "branch", Analytics.Branch },
-						{ "platform", Analytics.Platform },
-					},
+					segments: Analytics.Segments,
 					metrics: new Dictionary<string, object> {
-						{ "plugin_count", ModLoader.LoadedPackages.Sum(x => x.Plugins.Count) }
+						{ "plugin_count", ModLoader.LoadedPackages.Sum(x => x.Plugins.Count) },
+						{ "plugins_totalmemoryused", $"{ByteEx.Format(ModLoader.LoadedPackages.Sum(x => x.Plugins.Sum(y => y.TotalMemoryUsed)), valueFormat: "0", stringFormat: "{0}{1}").ToLower()}" },
+						{ "plugins_totalhooktime", $"{ModLoader.LoadedPackages.Sum(x => x.Plugins.Sum(y => y.TotalHookTime)).RoundUpToNearestCount(100):0}ms" },
+						{ "extension_count", AssemblyEx.Extensions.Loaded.Count },
+						{ "module_count", AssemblyEx.Modules.Loaded.Count },
+						{ "hook_count", Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled) }
 					}
 				);
 			});
@@ -247,9 +251,9 @@ public class Community
 		ModLoader.ClearAllErrored();
 		ModLoader.ClearAllRequirees();
 	}
-	public void ClearPlugins()
+	public void ClearPlugins(bool full = false)
 	{
-		Runtime.ClearCommands();
+		Runtime.ClearCommands(full);
 		ModLoader.UnloadCarbonMods();
 	}
 
@@ -292,4 +296,13 @@ public class Community
 	}
 
 	#endregion
+
+	public virtual void Initialize()
+	{
+
+	}
+	public virtual void Uninitialize()
+	{
+		Runtime = null;
+	}
 }

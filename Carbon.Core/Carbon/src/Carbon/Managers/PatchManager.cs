@@ -169,12 +169,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		// get the fuck out as fast as possible
 		if (_workQueue.Count == 0) return;
 
-		try
+
+		int limit = PatchLimitPerCycle;
+		while (_workQueue.Count > 0 && limit-- > 0)
 		{
-			int limit = PatchLimitPerCycle;
-			while (_workQueue.Count > 0 && limit-- > 0)
+			string identifier = _workQueue.Dequeue();
+
+			try
 			{
-				string identifier = _workQueue.Dequeue();
 
 				HookEx hook = GetHookById(identifier);
 
@@ -218,21 +220,23 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 						break;
 				}
 
+#if !(STAGING || AUX01 || AUX02)
 				if (!hasValidChecksum)
 				{
-					Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}'");
+					Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
 					Logger.Debug($"live:{checksum} | expected:{hook.Checksum}");
 					hook.SetStatus(HookState.Warning, "Invalid checksum");
 				}
+#endif
 			}
-		}
-		catch (System.ApplicationException e)
-		{
-			Logger.Error(e.Message);
-		}
-		catch (System.Exception e)
-		{
-			Logger.Error("HookManager.Update() failed", e);
+			catch (System.ApplicationException e)
+			{
+				Logger.Error(e.Message);
+			}
+			catch (System.Exception e)
+			{
+				Logger.Error($"HookManager.Update() failed at '{identifier}'", e);
+			}
 		}
 	}
 
