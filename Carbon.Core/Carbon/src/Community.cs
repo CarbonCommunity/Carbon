@@ -54,7 +54,7 @@ public class CommunityInternal : Community
 	{
 		Plugins = new ModLoader.ModPackage { Name = "Scripts", IsCoreMod = false };
 
-		CorePlugin = new CorePlugin();
+		Runtime.CorePlugin = CorePlugin = new CorePlugin();
 		CorePlugin.Setup("Core", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
 		ModLoader.ProcessPrecompiledType(CorePlugin);
 		CorePlugin.IsCorePlugin = CorePlugin.IsPrecompiled = true;
@@ -188,7 +188,7 @@ public class CommunityInternal : Community
 			_uninstallProcessors();
 			ClearCommands(all: true);
 
-			ClearPlugins();
+			ClearPlugins(full: true);
 			ModLoader.LoadedPackages.Clear();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
 

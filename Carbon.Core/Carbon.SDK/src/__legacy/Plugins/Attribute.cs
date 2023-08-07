@@ -245,28 +245,9 @@ public class CooldownAttribute : Attribute
 	}
 }
 
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Class)]
 [MeansImplicitUse]
-public class HookPriority : Attribute
+public class HotloadableAttribute : Attribute
 {
-	public Priorities Priority { get; set; } = Priorities.Normal;
 
-	public HookPriority() { }
-	public HookPriority(Priorities priority)
-	{
-		Priority = priority;
-	}
-}
-
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-[MeansImplicitUse]
-public class PluginPriority : Attribute
-{
-	public Priorities Priority { get; set; } = Priorities.Normal;
-
-	public PluginPriority() { }
-	public PluginPriority(Priorities priority)
-	{
-		Priority = priority;
-	}
 }

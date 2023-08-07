@@ -24,7 +24,7 @@ public partial class CorePlugin : CarbonPlugin
 		Community.Runtime.Uninitialize();
 	}
 
-	// [ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
+	[ConsoleCommand("reboot", "Unloads Carbon from the game and then loads it back again with the latest version changes (if any).")]
 	private void Reboot(ConsoleSystem.Arg arg)
 	{
 		var loader = Community.Runtime.AssemblyEx;
@@ -35,6 +35,8 @@ public partial class CorePlugin : CarbonPlugin
 		timer.Elapsed += (object sender, System.Timers.ElapsedEventArgs e) =>
 		{
 			loader.Components.Load("Carbon.dll", "CarbonEvent.StartupShared");
+			Community.Runtime ??= new();
+			Community.Runtime.Initialize();
 			timer.Dispose();
 			timer = null;
 		};
@@ -645,6 +647,24 @@ public partial class CorePlugin : CarbonPlugin
 		}
 
 		arg.ReplyWith(print.Write(StringTable.FormatTypes.None));
+	}
+
+	#endregion
+
+	#region Extensions
+
+	[ConsoleCommand("reloadextensions", "Fully reloads all extensions.")]
+	[AuthLevel(2)]
+	private void ReloadExtensions(ConsoleSystem.Arg arg)
+	{
+		Community.Runtime.AssemblyEx.Extensions.Reload("Command reload");
+	}
+
+	[ConsoleCommand("reloadmodules", "Fully reloads all modules.")]
+	[AuthLevel(2)]
+	private void ReloadModules(ConsoleSystem.Arg arg)
+	{
+		Community.Runtime.AssemblyEx.Modules.Reload("Command reload");
 	}
 
 	#endregion

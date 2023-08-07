@@ -13,7 +13,7 @@ namespace Carbon;
 
 public sealed class Logger : ILogger
 {
-	public static FileLogger CoreLog { get; set; } = new FileLogger("Carbon.Core");
+	public static FileLogger CoreLog { get; set; }
 
 	public static Action<string, Exception, int> OnErrorCallback { get; set; }
 	public static Action<string, int> OnWarningCallback { get; set; }
@@ -26,12 +26,59 @@ public sealed class Logger : ILogger
 	}
 	internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1, bool nativeLog = true)
 	{
+		CoreLog ??= new("Carbon.Core");
 		CoreLog.Init(backup: true);
 
 		if (severity != Severity.Debug)
 		{
 			Severity minSeverity = Community.Runtime?.Config?.LogSeverity ?? Severity.Notice;
 			if (severity > minSeverity) return;
+		}
+
+		static void PrintLog(string text, Severity severity)
+		{
+			if (ThreadEx.IsOnMainThread())
+			{
+				switch (severity)
+				{
+					case Severity.Error:
+						UnityEngine.Debug.LogError(text);
+						break;
+
+					case Severity.Warning:
+						UnityEngine.Debug.LogWarning(text);
+						break;
+
+					case Severity.Notice:
+					case Severity.Debug:
+						UnityEngine.Debug.Log(text);
+						break;
+				}
+			}
+			else
+			{
+				var threadedColor = Console.ForegroundColor;
+
+				switch (severity)
+				{
+					case Severity.Error:
+						threadedColor = ConsoleColor.Red;
+						break;
+
+					case Severity.Warning:
+						threadedColor = ConsoleColor.Yellow;
+						break;
+
+					case Severity.Notice:
+					case Severity.Debug:
+						break;
+				}
+
+				var color = Console.ForegroundColor;
+				Console.ForegroundColor = threadedColor;
+				Console.WriteLine(text);
+				Console.ForegroundColor = color;
+			}
 		}
 
 		var textMessage = message?.ToString();
@@ -44,35 +91,35 @@ public sealed class Logger : ILogger
 				if (dex != null)
 				{
 					var exceptionResult = $"({dex?.Message})\n{dex.GetFullStackTrace(false)}";
-					CoreLog._queueLog($"[ERRO] {textMessage} {exceptionResult}");
-					if (nativeLog) UnityEngine.Debug.LogError($"{textMessage} {exceptionResult}");
+					CoreLog.QueueLog($"[ERRO] {textMessage} {exceptionResult}");
+					if (nativeLog) PrintLog($"{textMessage} {exceptionResult}", severity);
 				}
 				else
 				{
-					CoreLog._queueLog($"[ERRO] {textMessage}");
-					if (nativeLog) UnityEngine.Debug.LogError(textMessage);
+					CoreLog.QueueLog($"[ERRO] {textMessage}");
+					if (nativeLog) PrintLog(textMessage, severity);
 				}
 
 				OnErrorCallback?.Invoke(textMessage, dex, verbosity);
 				break;
 
 			case Severity.Warning:
-				CoreLog._queueLog($"[WARN] {textMessage}");
-				if (nativeLog) UnityEngine.Debug.LogWarning(textMessage);
+				CoreLog.QueueLog($"[WARN] {textMessage}");
+				if (nativeLog) PrintLog(textMessage, severity);
 				OnWarningCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			case Severity.Notice:
-				CoreLog._queueLog($"[INFO] {textMessage}");
-				if (nativeLog) UnityEngine.Debug.Log(textMessage);
+				CoreLog.QueueLog($"[INFO] {textMessage}");
+				if (nativeLog) PrintLog(textMessage, severity);
 				OnNoticeCallback?.Invoke(textMessage, verbosity);
 				break;
 
 			case Severity.Debug:
 				int minVerbosity = Community.Runtime?.Config?.LogVerbosity ?? -1;
 				if (verbosity > minVerbosity) break;
-				CoreLog._queueLog($"[INFO] {textMessage}");
-				if (nativeLog) UnityEngine.Debug.Log(textMessage);
+				CoreLog.QueueLog($"[INFO] {textMessage}");
+				if (nativeLog) PrintLog(textMessage, severity);
 				OnDebugCallback?.Invoke(textMessage, verbosity);
 				break;
 
@@ -84,6 +131,7 @@ public sealed class Logger : ILogger
 	public static void Dispose()
 	{
 		CoreLog.Dispose();
+		CoreLog = null;
 	}
 
 #if DEBUG

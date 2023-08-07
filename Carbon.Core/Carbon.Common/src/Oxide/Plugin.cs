@@ -74,14 +74,13 @@ namespace Oxide.Core.Plugins
 					foreach (var attribute in HookMethods)
 					{
 						var method = attribute.Method;
-						var priority = method.GetCustomAttribute<HookPriority>();
 
 						var hash = (uint)(HookStringPool.GetOrAdd(string.IsNullOrEmpty(attribute.Name) ? method.Name : attribute.Name) + method.GetParameters().Length);
 						if (!HookMethodAttributeCache.TryGetValue(hash, out var list))
 						{
-							HookMethodAttributeCache.Add(hash, new() { CachedHook.Make(method, priority == null ? Priorities.Normal : priority.Priority, this) });
+							HookMethodAttributeCache.Add(hash, new() { CachedHook.Make(method, this) });
 						}
-						else list.Add(CachedHook.Make(method, priority == null ? Priorities.Normal : priority.Priority, this));
+						else list.Add(CachedHook.Make(method, this));
 					}
 				}
 				Carbon.Logger.Debug(Name, "Installed hook method attributes");
@@ -100,7 +99,7 @@ namespace Oxide.Core.Plugins
 				{
 					foreach (var hook in Hooks)
 					{
-						Community.Runtime.HookManager.Subscribe(HookStringPool.GetOrAdd(hook.Key), requester);
+						Community.Runtime.HookManager.Subscribe(HookStringPool.GetOrAdd(hook), requester);
 					}
 						
 				}
@@ -142,7 +141,7 @@ namespace Oxide.Core.Plugins
 				{
 					foreach (var hook in Hooks)
 					{
-						Community.Runtime.HookManager.Unsubscribe(HookStringPool.GetOrAdd(hook.Key), FileName);
+						Community.Runtime.HookManager.Unsubscribe(HookStringPool.GetOrAdd(hook), FileName);
 					}
 					Carbon.Logger.Debug(Name, $"Unprocessed hooks");
 				}

@@ -89,31 +89,9 @@ public class HookCallerInternal : HookCallerCommon
 		}
 	}
 
-	internal static Conflict _defaultConflict = new()
-	{
-		Priority = Priorities.Low
-	};
-	internal static string _getPriorityName(Priorities priority)
-	{
-		switch (priority)
-		{
-			case Priorities.Low:
-				return "lower";
+	internal static Conflict _defaultConflict = new();
 
-			case Priorities.Normal:
-				return "normal";
-
-			case Priorities.High:
-				return "higher";
-
-			case Priorities.Highest:
-				return "highest";
-		}
-
-		return "normal";
-	}
-
-	public override object CallHook<T>(T plugin, uint hookId, BindingFlags flags, object[] args, ref Priorities priority, bool keepArgs = false)
+	public override object CallHook<T>(T plugin, uint hookId, BindingFlags flags, object[] args, bool keepArgs = false)
 	{
 		if (plugin.IsHookIgnored(hookId)) return null;
 
@@ -141,8 +119,7 @@ public class HookCallerInternal : HookCallerCommon
 					var method = methods[i];
 					if (method.Name != readableHook) continue;
 
-					var methodPriority = method.GetCustomAttribute<HookPriority>();
-					hooks.Add(CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
+					hooks.Add(CachedHook.Make(method, plugin));
 				}
 			}
 
@@ -162,6 +139,7 @@ public class HookCallerInternal : HookCallerCommon
 
 			var beforeTicks = Environment.TickCount;
 			plugin.TrackStart();
+			var beforeMemory = plugin.TotalMemoryUsed;
 
 			result = plugin.InternalCallHook(hookId, args);
 
@@ -194,8 +172,6 @@ public class HookCallerInternal : HookCallerCommon
 		}
 		else
 		{
-			priority = Priorities.Normal;
-
 			var processedId = hookId;
 
 			if (args != null)
@@ -216,8 +192,7 @@ public class HookCallerInternal : HookCallerCommon
 					var method = methods[i];
 					if (method.Name != readableHook) continue;
 
-					var methodPriority = method.GetCustomAttribute<HookPriority>();
-					hooks.Add(CachedHook.Make(method, methodPriority == null ? Priorities.Normal : methodPriority.Priority, plugin));
+					hooks.Add(CachedHook.Make(method, plugin));
 				}
 			}
 
@@ -236,11 +211,10 @@ public class HookCallerInternal : HookCallerCommon
 
 					if (methodResult != null)
 					{
-						priority = cachedHook.Priority;
 						result = methodResult;
 					}
 
-					ResultOverride(plugin, priority);
+					ResultOverride(plugin);
 				}
 				catch (Exception ex)
 				{
@@ -319,9 +293,9 @@ public class HookCallerInternal : HookCallerCommon
 
 			_conflictCache.Clear();
 
-			void ResultOverride(BaseHookable hookable, Priorities priority)
+			void ResultOverride(BaseHookable hookable)
 			{
-				_conflictCache.Add(Conflict.Make(hookable, hookId, result, priority));
+				_conflictCache.Add(Conflict.Make(hookable, hookId, result));
 			}
 			void ConflictCheck()
 			{
@@ -340,18 +314,13 @@ public class HookCallerInternal : HookCallerCommon
 						{
 							differentResults = true;
 						}
-
-						if (conflict.Priority > priorityConflict.Priority)
-						{
-							priorityConflict = conflict;
-						}
 					}
 
 					localResult = priorityConflict.Result;
-					if (differentResults && !_conflictCache.All(x => x.Priority == priorityConflict.Priority) && Community.Runtime.Config.HigherPriorityHookWarns)
+					if (differentResults && Community.Runtime.Config.HigherPriorityHookWarns)
 					{
 						var readableHook = HookStringPool.GetOrAdd(hookId);
-						Carbon.Logger.Warn($"Hook conflict while calling '{readableHook}', but used {priorityConflict.Hookable.Name} {priorityConflict.Hookable.Version} due to the {_getPriorityName(priorityConflict.Priority)} priority:\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Priority}:{x.Result}]").ToArray().ToString(", ", " and ")}");
+						Carbon.Logger.Warn($"Hook conflict while calling '{readableHook}':\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToString(", ", " and ")}");
 					}
 					if (localResult != null)
 					{
@@ -363,7 +332,7 @@ public class HookCallerInternal : HookCallerCommon
 
 		return result;
 	}
-	public override object CallDeprecatedHook<T>(T plugin, uint oldHook, uint newHook, DateTime expireDate, BindingFlags flags, object[] args, ref Priorities priority)
+	public override object CallDeprecatedHook<T>(T plugin, uint oldHook, uint newHook, DateTime expireDate, BindingFlags flags, object[] args)
 	{
 		if (expireDate < DateTime.Now)
 		{
@@ -379,7 +348,7 @@ public class HookCallerInternal : HookCallerCommon
 			Carbon.Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 		}
 
-		return CallHook(plugin, newHook, flags, args, ref priority);
+		return CallHook(plugin, newHook, flags, args);
 	}
 
 	internal bool SequenceEqual(Type[] source, object[] target)
