@@ -24,7 +24,7 @@ public class RustPlugin : Plugin
 	public WebRequests webrequest;
 	public Oxide.Game.Rust.Libraries.Rust rust;
 	public Persistence persistence;
-	public CovalencePlugin.Covalence covalence;
+	public Covalence covalence;
 
 	public Player Player { get { return rust.Player; } private set { } }
 	public Server Server { get { return rust.Server; } private set { } }
@@ -53,7 +53,7 @@ public class RustPlugin : Plugin
 		webrequest = new WebRequests();
 		persistence = new GameObject($"Script_{name}").AddComponent<Persistence>();
 		UnityEngine.Object.DontDestroyOnLoad(persistence.gameObject);
-		covalence = new CovalencePlugin.Covalence();
+		covalence = new Covalence();
 
 		Type = GetType();
 	}
