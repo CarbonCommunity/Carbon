@@ -166,7 +166,7 @@ internal sealed class ExtensionManager : AddonManager
 									.Trigger(CarbonEvent.ExtensionLoaded, arg);
 
 								extensionTypes.Add(type);
-								_loaded.Add(new() { Addon = extension, Shared = extensionTypes, Types = extensionTypes, File = file });
+								_loaded.Add(new() { Addon = extension, Shared = asm.GetExportedTypes(), Types = extensionTypes, File = file });
 							}
 							catch (Exception e)
 							{
