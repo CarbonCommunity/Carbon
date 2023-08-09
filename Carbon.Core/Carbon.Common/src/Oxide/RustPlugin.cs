@@ -36,7 +36,8 @@ public class RustPlugin : Plugin
 	}
 	public virtual void Setup(string name, string author, VersionNumber version, string description)
 	{
-		Name = Title = name.Replace(":", string.Empty);
+		Name = GetType().Name;
+		Title = name.Replace(":", string.Empty);
 		Version = version;
 		Author = author;
 		Description = description;
