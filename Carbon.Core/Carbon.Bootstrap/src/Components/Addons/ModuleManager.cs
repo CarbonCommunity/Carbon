@@ -24,6 +24,8 @@ namespace Components;
 
 internal sealed class ModuleManager : AddonManager
 {
+	internal bool _hasLoaded;
+
 	/*
 	 * CARBON MODULES
 	 * API.Contracts.ICarbonModule
@@ -141,6 +143,8 @@ internal sealed class ModuleManager : AddonManager
 					{
 						Logger.Debug($"Loading module from file '{file}'");
 
+						var moduleTypes = new List<Type>();	
+
 						foreach (Type type in types)
 						{
 							try
@@ -160,7 +164,8 @@ internal sealed class ModuleManager : AddonManager
 								Carbon.Bootstrap.Events
 									.Trigger(CarbonEvent.ModuleLoaded, new CarbonEventArgs(file));
 
-								_loaded.Add(new() { Addon = module, Types = asm.GetExportedTypes(), File = file });
+								moduleTypes.Add(type);
+								_loaded.Add(new() { Addon = module, Shared = asm.GetExportedTypes(), Types = moduleTypes, File = file });
 							}
 							catch (Exception e)
 							{
@@ -271,6 +276,13 @@ internal sealed class ModuleManager : AddonManager
 				switch (Path.GetExtension(file))
 				{
 					case ".dll":
+
+						if (!_hasLoaded)
+						{
+							Load(file, "ModuleManager.Reload");
+							continue;
+						}
+
 						var stream = new MemoryStream(Process(File.ReadAllBytes(file)));
 						var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(stream, new ReaderParameters { AssemblyResolver = new Resolver() });
 						var originalName = assembly.Name.Name;
@@ -280,6 +292,8 @@ internal sealed class ModuleManager : AddonManager
 				}
 			}
 		}
+
+		_hasLoaded = true;
 
 		nonReloadables.Clear();
 		nonReloadables = null;
@@ -311,20 +325,24 @@ internal sealed class ModuleManager : AddonManager
 				{
 					_loaded.Add(existentItem = new() { File = file });
 				}
-				existentItem.Types = processedAssembly.GetExportedTypes();
 
+				existentItem.Shared = processedAssembly.GetExportedTypes();
+
+				var moduleTypes = new List<Type>();
 				foreach (var type in types)
 				{
 					if (Activator.CreateInstance(type) is ICarbonModule mod)
 					{
 						Hydrate(processedAssembly, mod);
 
+						moduleTypes.Add(type);
 						existentItem.Addon = mod;
 
 						Logger.Debug($"A new instance of '{type}' created");
 						modules.Add(_assembly.Key, mod);
 					}
 				}
+				existentItem.Types = moduleTypes;
 			}
 		}
 

@@ -146,6 +146,8 @@ internal sealed class ExtensionManager : AddonManager
 					{
 						Logger.Debug($"Loading extension from file '{file}'");
 
+						var extensionTypes = new List<Type>();
+
 						foreach (Type type in types)
 						{
 							try
@@ -159,11 +161,12 @@ internal sealed class ExtensionManager : AddonManager
 
 								extension.Awake(arg);
 								extension.OnLoaded(arg);
-							
+
 								Carbon.Bootstrap.Events
 									.Trigger(CarbonEvent.ExtensionLoaded, arg);
 
-								_loaded.Add(new() { Addon = extension, File = file });
+								extensionTypes.Add(type);
+								_loaded.Add(new() { Addon = extension, Shared = extensionTypes, Types = extensionTypes, File = file });
 							}
 							catch (Exception e)
 							{
@@ -257,6 +260,12 @@ internal sealed class ExtensionManager : AddonManager
 				switch (Path.GetExtension(file))
 				{
 					case ".dll":
+						if (!_hasLoaded)
+						{
+							Load(file, "ExtensionManager.Reload");
+							continue;
+						}
+
 						var stream = new MemoryStream(Process(File.ReadAllBytes(file)));
 						var assembly = Mono.Cecil.AssemblyDefinition.ReadAssembly(stream, new ReaderParameters { AssemblyResolver = new Resolver() });
 						var originalName = assembly.Name.Name;
@@ -266,6 +275,8 @@ internal sealed class ExtensionManager : AddonManager
 				}
 			}
 		}
+
+		_hasLoaded = true;
 
 		nonReloadables.Clear();
 		nonReloadables = null;
@@ -297,18 +308,22 @@ internal sealed class ExtensionManager : AddonManager
 				{
 					_loaded.Add(existentItem = new() { File = file });
 				}
-				existentItem.Types = processedAssembly.GetExportedTypes();
 
+				existentItem.Shared = processedAssembly.GetExportedTypes();
+
+				var extensionTypes = new List<Type>();
 				foreach (var type in types)
 				{
 					if (Activator.CreateInstance(type) is ICarbonExtension ext)
 					{
+						extensionTypes.Add(type);
 						existentItem.Addon = ext;
 
 						Logger.Debug($"A new instance of '{type}' created");
 						extensions.Add(_assembly.Key, ext);
 					}
 				}
+				existentItem.Types = extensionTypes;
 			}
 		}
 

@@ -192,7 +192,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectReference(id, item, references, _libraryDirectories);
+				_injectReference(id, item.Value, references, _libraryDirectories);
 			}
 			catch (System.Exception ex)
 			{
@@ -202,7 +202,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		foreach (var item in Community.Runtime.AssemblyEx.Extensions.Loaded)
 		{
-			try { _injectExtensionReference(id, item, references); }
+			try { _injectExtensionReference(id, item.Value, references); }
 			catch { }
 		}
 
