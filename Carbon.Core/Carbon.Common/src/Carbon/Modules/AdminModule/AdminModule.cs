@@ -2639,6 +2639,8 @@ public partial class AdminModule
 		}
 		internal void ModuleInfoTemplate(CUI cui, Tab tab, CuiElementContainer container, string panel, PlayerSession player, string title, string content, string hint, BaseModule module)
 		{
+			if (module == null) return;
+
 			var consoleCommands = Community.Runtime.CommandManager.ClientConsole.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
 			var chatCommands = Community.Runtime.CommandManager.Chat.Where(x => x.Reference == module && !x.HasFlag(CommandFlags.Hidden));
 			var consoleCommandCount = consoleCommands.Count();

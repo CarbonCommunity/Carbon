@@ -198,7 +198,7 @@ public class ScriptLoader : IScriptLoader
 						var @ref = $"{line.Replace("// Requires:", "").Replace("//Requires:", "")}".Trim();
 						resultRequires.Add(@ref);
 						Logger.Log($" Added required plugin: {@ref}");
-					}
+					} 
 				}
 				catch { }
 			}

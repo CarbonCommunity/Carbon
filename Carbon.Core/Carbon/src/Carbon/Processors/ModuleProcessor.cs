@@ -35,7 +35,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 		// required and will be removed.
 
 		var types = typeof(Community).Assembly.GetExportedTypes().ToList();
-		types.AddRange(Community.Runtime.AssemblyEx.Modules.LoadedTypes);
+		types.AddRange(Community.Runtime.AssemblyEx.Modules.Shared.Keys);
 
 		var temporaryTypes = types.ToArray();
 		Build(temporaryTypes);

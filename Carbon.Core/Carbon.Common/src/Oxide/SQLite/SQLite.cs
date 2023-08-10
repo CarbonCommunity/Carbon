@@ -216,7 +216,7 @@ namespace Oxide.Core.SQLite.Libraries
 			string filename = Path.Combine(_dataDirectory, file);
 			if (!filename.StartsWith(_dataDirectory, StringComparison.Ordinal))
 			{
-				throw new Exception("Only access to oxide directory!");
+				throw new Exception("Only access to Carbon directory!");
 			}
 
 			string conStr = $"Data Source={filename};Version=3;";

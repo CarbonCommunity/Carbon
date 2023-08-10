@@ -13,8 +13,8 @@ namespace API.Assembly;
 public interface IAddonManager
 {
 	public byte[] Read(string file);
-	public IReadOnlyList<string> Loaded { get; }
-	public IReadOnlyList<Type> LoadedTypes { get; }
+	public IReadOnlyDictionary<Type, string> Loaded { get; }
+	public IReadOnlyDictionary<Type, string> Shared { get; }
 	public System.Reflection.Assembly Load(string file, string requester);
 
 	//public bool IsLoaded(string file);

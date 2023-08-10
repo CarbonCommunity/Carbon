@@ -158,7 +158,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		else
 		{
-			var raw = Community.Runtime.AssemblyEx.Read(name);
+			var raw = Community.Runtime.AssemblyEx.Read(name, _libraryDirectories);
 			if (raw == null) return;
 
 			using var mem = new MemoryStream(raw);
@@ -192,18 +192,24 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectReference(id, item, references, _libraryDirectories);
+				_injectReference(id, Path.GetFileName(item.Value), references, _libraryDirectories);
 			}
 			catch (System.Exception ex)
 			{
-				Logger.Debug(id, $"Error loading common reference '{item}': {ex}", 4);
+				Logger.Debug(id, $"Error loading module reference '{item}': {ex}", 4);
 			}
 		}
 
 		foreach (var item in Community.Runtime.AssemblyEx.Extensions.Loaded)
 		{
-			try { _injectExtensionReference(id, item, references); }
-			catch { }
+			try
+			{
+				_injectExtensionReference(id, Path.GetFileName(item.Value), references);
+			}
+			catch (System.Exception ex)
+			{
+				Logger.Debug(id, $"Error loading extension reference '{item}': {ex}", 4);
+			}
 		}
 
 		return references;
