@@ -113,6 +113,14 @@ public class Defines
 
 		return folder;
 	}
+	public static string GetScriptBackupFolder()
+	{
+		_initializeCommandLine();
+		var folder = Path.GetFullPath(Path.Combine(GetScriptFolder(), "backups"));
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
 	public static string GetExtensionsFolder()
 	{
 		_initializeCommandLine();

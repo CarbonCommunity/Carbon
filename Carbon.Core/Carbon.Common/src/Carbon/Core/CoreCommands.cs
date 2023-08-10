@@ -1,4 +1,5 @@
-﻿using API.Commands;
+﻿using API.Assembly;
+using API.Commands;
 using Carbon.Base.Interfaces;
 using Newtonsoft.Json;
 using Oxide.Game.Rust.Cui;
@@ -667,6 +668,40 @@ public partial class CorePlugin : CarbonPlugin
 		Community.Runtime.AssemblyEx.Modules.Reload("Command reload");
 	}
 
+	[ConsoleCommand("extensions", "Prints a list of all currently loaded extensions.")]
+	[AuthLevel(2)]
+	private void Extensions(ConsoleSystem.Arg arg)
+	{
+		using var body = new StringTable("#", "Extension", "Type");
+		var count = 1;
+
+		var addonType = typeof(ICarbonAddon);
+		foreach (var mod in Community.Runtime.AssemblyEx.Extensions.Loaded)
+		{
+			body.AddRow($"{count:n0}", Path.GetFileNameWithoutExtension(mod.Value), mod.Key.FullName);
+			count++;
+		}
+
+		arg.ReplyWith(body.Write(StringTable.FormatTypes.None));
+	}
+
+	[ConsoleCommand("modulesmanaged", "Prints a list of all currently loaded extensions.")]
+	[AuthLevel(2)]
+	private void ModulesManaged(ConsoleSystem.Arg arg)
+	{
+		using var body = new StringTable("#", "Module", "Type");
+		var count = 1;
+
+		var addonType = typeof(ICarbonAddon);
+		foreach (var mod in Community.Runtime.AssemblyEx.Modules.Loaded)
+		{
+			body.AddRow($"{count:n0}", Path.GetFileNameWithoutExtension(mod.Value), mod.Key.FullName);
+			count++;
+		}
+
+		arg.ReplyWith(body.Write(StringTable.FormatTypes.None));
+	}
+
 	#endregion
 
 	#region Plugin
@@ -962,6 +997,104 @@ public partial class CorePlugin : CarbonPlugin
 					{
 						Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
 					}
+					break;
+				}
+		}
+	}
+
+	[ConsoleCommand("uninstallplugin", "Unloads and uninstalls (moves the file to the backup folder) the plugin with the name.")]
+	[AuthLevel(2)]
+	private void UninstallPlugin(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a plugin to uninstall it.");
+			return;
+		}
+
+		RefreshOrderedFiles();
+
+		var name = arg.GetString(0);
+		switch (name)
+		{
+			default:
+				{
+					var path = GetPluginPath(name);
+
+					var pluginFound = false;
+					var pluginPrecompiled = false;
+
+					foreach (var mod in ModLoader.LoadedPackages)
+					{
+						var plugins = Facepunch.Pool.GetList<RustPlugin>();
+						plugins.AddRange(mod.Plugins);
+
+						foreach (var plugin in plugins)
+						{
+							if (plugin.Name == name)
+							{
+								pluginFound = true;
+
+								if (plugin.IsPrecompiled)
+								{
+									pluginPrecompiled = true;
+								}
+								else
+								{
+									plugin.ProcessorInstance?.Dispose();
+									mod.Plugins.Remove(plugin);
+								}
+							}
+						}
+
+						Facepunch.Pool.FreeList(ref plugins);
+					}
+
+					if (!pluginFound)
+					{
+						if (string.IsNullOrEmpty(path)) Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						else Logger.Warn($"Plugin {name} was not loaded but was marked as ignored.");
+
+						return;
+					}
+					else if (pluginPrecompiled)
+					{
+						Logger.Warn($"Plugin {name} is a precompiled plugin which can only be unloaded/uninstalled programmatically.");
+						return;
+					}
+
+					OsEx.File.Move(path, Path.Combine(Defines.GetScriptBackupFolder(), Path.GetFileName(path)));
+					break;
+				}
+		}
+	}
+
+	[ConsoleCommand("installplugin", "Looks up the backups directory and moves the plugin back in the plugins folder installing it with the name.")]
+	[AuthLevel(2)]
+	private void InstallPlugin(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a plugin to uninstall it.");
+			return;
+		}
+
+		RefreshOrderedFiles();
+
+		var name = arg.GetString(0);
+		switch (name)
+		{
+			default:
+				{
+					var path = Path.Combine(Defines.GetScriptBackupFolder(), $"{name}.cs");
+
+					if (!OsEx.File.Exists(path))
+					{
+						Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						return;
+					}
+
+					OsEx.File.Move(path, Path.Combine(Defines.GetScriptFolder(), Path.GetFileName(path)));
 					break;
 				}
 		}

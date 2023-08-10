@@ -93,13 +93,7 @@ public class DynamicConfigFile : ConfigFile, IEnumerable<KeyValuePair<string, ob
 
 	private string CheckPath(string filename)
 	{
-		filename = SanitizeName(filename);
-		string fullPath = Path.GetFullPath(filename);
-		if (!fullPath.StartsWith(_chroot, StringComparison.Ordinal))
-		{
-			throw new Exception("Only access to Carbon directory!\nPath: " + fullPath);
-		}
-		return fullPath;
+		return Path.GetFullPath(SanitizeName(filename));
 	}
 
 	public static string SanitizeName(string name)

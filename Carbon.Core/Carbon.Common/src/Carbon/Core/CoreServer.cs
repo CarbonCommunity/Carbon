@@ -42,6 +42,18 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	public float ExcavatorBeltSpeedMax = -1;
 
+	[CommandVar("defaultserverchatname", saved: true)]
+	[AuthLevel(2)]
+	public string DefaultServerChatName = "-1";
+
+	[CommandVar("defaultserverchatcolor", saved: true)]
+	[AuthLevel(2)]
+	public string DefaultServerChatColor = "-1";
+
+	[CommandVar("defaultserverchatid", saved: true)]
+	[AuthLevel(2)]
+	public long DefaultServerChatId = -1;
+
 	#region Implementation
 
 	private object IRecyclerThinkSpeed()

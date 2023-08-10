@@ -22,6 +22,7 @@ internal abstract class AddonManager : CarbonBehaviour, IAddonManager
 	{
 		public ICarbonAddon Addon { get; internal set; }
 		public IReadOnlyList<Type> Types { get; internal set; }
+		public IReadOnlyList<Type> Shared { get; internal set; }
 		public string File { get; internal set; }
 	}
 
@@ -33,11 +34,38 @@ internal abstract class AddonManager : CarbonBehaviour, IAddonManager
 	internal List<Item> _loaded
 	{ get; set; } = new();
 
-	public IReadOnlyList<string> Loaded
-	{ get => _loaded.Select(x => x.File).ToList(); }
+	public IReadOnlyDictionary<Type, string> Loaded
+	{
+		get
+		{
+			var dictionary = new Dictionary<Type, string>();
+			foreach (var item in _loaded)
+			{
+				foreach (var type in item.Types)
+				{
+					dictionary.Add(type, item.File);
+				}
+			}
 
-	public IReadOnlyList<Type> LoadedTypes
-	{ get => _loaded.SelectMany(x => x.Types).ToList(); }
+			return dictionary;
+		}
+	}
+	public IReadOnlyDictionary<Type, string> Shared
+	{
+		get
+		{
+			var dictionary = new Dictionary<Type, string>();
+			foreach (var item in _loaded)
+			{
+				foreach (var type in item.Shared)
+				{
+					dictionary.Add(type, item.File);
+				}
+			}
+
+			return dictionary;
+		}
+	}
 
 	public byte[] Read(string file)
 		=> _loader.ReadFromCache(file).Raw;

@@ -12,6 +12,7 @@
 	<ItemGroup>
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" />
 	</ItemGroup>
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
