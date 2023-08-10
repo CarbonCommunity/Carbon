@@ -99,7 +99,7 @@ internal sealed class AssemblyLoader : IDisposable
 
 	internal IAssemblyCache ReadFromCache(string name)
 	{
-		Item item = _cache.Select(x => x.Value).Last(x => x.Name == name);
+		Item item = _cache.Select(x => x.Value).LastOrDefault(x => x.Name == name);
 		return item ?? default;
 	}
 

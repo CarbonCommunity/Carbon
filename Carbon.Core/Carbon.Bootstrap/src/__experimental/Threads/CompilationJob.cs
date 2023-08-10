@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using API.Threads;
 using Microsoft.CodeAnalysis;
@@ -64,11 +65,11 @@ public class CompilationJob : IThreadJob
 			}
 		}
 
-		foreach (string extension in Carbon.Bootstrap.AssemblyEx.Extensions.Loaded)
+		foreach (var extension in Carbon.Bootstrap.AssemblyEx.Extensions.Loaded)
 		{
 			try
 			{
-				byte[] raw = Carbon.Bootstrap.AssemblyEx.Read(extension)
+				byte[] raw = Carbon.Bootstrap.AssemblyEx.Read(extension.Value)
 					?? throw new Exception();
 
 				using MemoryStream stream = new(raw);
