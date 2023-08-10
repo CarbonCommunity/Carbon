@@ -1002,6 +1002,104 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
+	[ConsoleCommand("uninstallplugin", "Unloads and uninstalls (moves the file to the backup folder) the plugin with the name.")]
+	[AuthLevel(2)]
+	private void UninstallPlugin(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a plugin to uninstall it.");
+			return;
+		}
+
+		RefreshOrderedFiles();
+
+		var name = arg.GetString(0);
+		switch (name)
+		{
+			default:
+				{
+					var path = GetPluginPath(name);
+
+					var pluginFound = false;
+					var pluginPrecompiled = false;
+
+					foreach (var mod in ModLoader.LoadedPackages)
+					{
+						var plugins = Facepunch.Pool.GetList<RustPlugin>();
+						plugins.AddRange(mod.Plugins);
+
+						foreach (var plugin in plugins)
+						{
+							if (plugin.Name == name)
+							{
+								pluginFound = true;
+
+								if (plugin.IsPrecompiled)
+								{
+									pluginPrecompiled = true;
+								}
+								else
+								{
+									plugin.ProcessorInstance?.Dispose();
+									mod.Plugins.Remove(plugin);
+								}
+							}
+						}
+
+						Facepunch.Pool.FreeList(ref plugins);
+					}
+
+					if (!pluginFound)
+					{
+						if (string.IsNullOrEmpty(path)) Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						else Logger.Warn($"Plugin {name} was not loaded but was marked as ignored.");
+
+						return;
+					}
+					else if (pluginPrecompiled)
+					{
+						Logger.Warn($"Plugin {name} is a precompiled plugin which can only be unloaded/uninstalled programmatically.");
+						return;
+					}
+
+					OsEx.File.Move(path, Path.Combine(Defines.GetScriptBackupFolder(), Path.GetFileName(path)));
+					break;
+				}
+		}
+	}
+
+	[ConsoleCommand("installplugin", "Looks up the backups directory and moves the plugin back in the plugins folder installing it with the name.")]
+	[AuthLevel(2)]
+	private void InstallPlugin(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs(1))
+		{
+			Logger.Warn("You must provide the name of a plugin to uninstall it.");
+			return;
+		}
+
+		RefreshOrderedFiles();
+
+		var name = arg.GetString(0);
+		switch (name)
+		{
+			default:
+				{
+					var path = Path.Combine(Defines.GetScriptBackupFolder(), $"{name}.cs");
+
+					if (!OsEx.File.Exists(path))
+					{
+						Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						return;
+					}
+
+					OsEx.File.Move(path, Path.Combine(Defines.GetScriptFolder(), Path.GetFileName(path)));
+					break;
+				}
+		}
+	}
+
 	#endregion
 
 	#region Permissions
