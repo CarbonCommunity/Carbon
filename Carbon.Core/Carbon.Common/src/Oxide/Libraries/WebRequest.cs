@@ -239,9 +239,10 @@ public class WebRequests : Library
 							{
 								foreach (var header in RequestHeaders)
 								{
-									_client.Headers.Add(header.Key, header.Value);
+									_client.Headers[header.Key] = header.Value;
 								}
 							}
+
 							if (_data)
 							{
 								_client.DownloadDataAsync(_uri);
@@ -317,16 +318,14 @@ public class WebRequests : Library
 
 						try
 						{
+							_client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+
 							if (RequestHeaders != null && RequestHeaders.Count > 0)
 							{
 								foreach (var header in RequestHeaders)
 								{
-									_client.Headers.Add(header.Key, header.Value);
+									_client.Headers[header.Key] = header.Value;
 								}
-							}
-							else
-							{
-								_client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
 							}
 
 							if (_data)

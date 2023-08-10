@@ -16,6 +16,16 @@ echo "** Set the build target config to ${TARGET}"
 echo "** Cleanup the release folder"
 rm -rf "${ROOT}/Release/.tmp/${TARGET}" "${ROOT}/Release/Carbon.${TARGET}.tar.gz" || exit 0
 
+if [[ "${DEFINES}" == "" ]]; then
+	DEFINES=${2}
+fi 
+
+if [[ "${DEFINES}" == "" ]]; then
+	echo "** No defines."
+else
+	echo "** Defines: ${DEFINES}"
+fi 
+
 echo "** Build the solution"
 dotnet restore "${ROOT}/Carbon.Core" -v:m --nologo
 dotnet   clean "${ROOT}/Carbon.Core" -v:m --configuration ${TARGET} --nologo
