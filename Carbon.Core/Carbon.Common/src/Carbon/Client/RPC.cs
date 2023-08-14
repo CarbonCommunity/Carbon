@@ -18,6 +18,15 @@ public struct RPC
 	internal static Dictionary<uint, Func<BasePlayer, Network.Message, object>> _cache = new();
 	internal static object[] _argBuffer = new object[2];
 
+	public static implicit operator string(RPC rpc)
+	{
+		return rpc.Name;
+	}
+	public static implicit operator uint(RPC rpc)
+	{
+		return rpc.Id;
+	}
+
 	public static void Init()
 	{
 		Init(typeof(RPC).Assembly.GetTypes());
@@ -96,8 +105,27 @@ public struct RPC
 	[Method("pong")]
 	private static void Pong(BasePlayer player, Network.Message message)
 	{
-		CarbonClient.Get(player);
-		Logger.Log($"Player '{player}' has a Carbon client!");
+		var firstTime = CarbonClient.Exists(player.Connection);
+
+		if (!firstTime)
+		{
+			Logger.Warn($"Pong packet set by the client multiple times is not allowed.");
+			return;
+		}
+
+		var client = CarbonClient.Get(player);
+		var result = CarbonClient.Receive<RPCList>(message);
+
+		foreach (var item in result.RpcNames)
+		{
+			RPC.Get(item);
+		}
+		foreach (var item in result.RpcIds)
+		{
+			RPC.Get(item);
+		}
+
+		Logger.Log($"Player '{client.Connection}' has a Carbon client!");
 	}
 
 	[AttributeUsage(AttributeTargets.Method)]

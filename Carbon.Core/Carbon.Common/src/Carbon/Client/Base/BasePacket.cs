@@ -5,8 +5,9 @@ using ProtoBuf;
 
 namespace Carbon.Client;
 
-[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-[ProtoInclude(100, typeof(ServerRPCList))]
+[ProtoContract]
+[ProtoInclude(10, typeof(RPCList))]
+[ProtoInclude(11, typeof(ClientInfo))]
 public class BasePacket : IPacket, IDisposable
 {
 	public static T Deserialize<T>(NetRead reader)
@@ -15,11 +16,11 @@ public class BasePacket : IPacket, IDisposable
 		return Serializer.Deserialize<T>(new ReadOnlySpan<byte>(buf, 0, count));
 	}
 
-	public void Serialize(NetWrite writer)
+	public byte[] Serialize()
 	{
 		using var stream = new MemoryStream();
 		Serializer.Serialize(stream, this);
-		writer.BytesWithSize(stream);
+		return stream.ToArray();
 	}
 
 	public virtual void Dispose()

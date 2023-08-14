@@ -2,5 +2,5 @@
 
 public interface IPacket
 {
-	void Serialize(Network.NetWrite writer);
+	byte[] Serialize();
 }

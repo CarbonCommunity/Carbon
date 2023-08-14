@@ -1,4 +1,9 @@
-﻿using Carbon.Client.Contracts;
+﻿using System.Diagnostics;
+using Carbon.Client.Contracts;
+using Carbon.Client.Packets;
+using Network;
+using ProtoBuf;
+using static Carbon.Client.RPC;
 
 namespace Carbon.Client;
 
@@ -10,16 +15,82 @@ public class CarbonClient : ICommunication
 	public Network.Connection Connection { get; internal set; }
 
 	public bool IsConnected => Connection != null && Connection.active;
+	public bool HasCarbonClient { get; internal set; }
 
-	public void Send(IPacket packet, RPC rpc)
+	public int ScreenWidth { get;set; }
+	public int ScreenHeight { get;set; }
+
+	#region RPCs
+
+	[Method("clientinfo")]
+	private static void ClientInfo(BasePlayer player, Network.Message message)
 	{
-		community.ClientRPCEx(new Network.SendInfo(Connection), null, rpc.Name, packet);
+		var info = Receive<ClientInfo>(message);
+		var client = Get(player);
+
+		client.ScreenWidth = info.ScreenWidth;
+		client.ScreenHeight = info.ScreenHeight;
+	}
+
+	#endregion
+
+	#region Methods
+
+	public bool Send(RPC rpc, IPacket packet = default, bool checks = true)
+	{
+		if (checks && !IsValid()) return false;
+
+		try
+		{
+			var write = Net.sv.StartWrite();
+			write.PacketID(Message.Type.RPCMessage);
+			write.EntityID(CommunityEntity.ServerInstance.net.ID);
+			write.UInt32(rpc.Id);
+			if (packet != null) write.BytesWithSize(packet.Serialize());
+			write.Send(new SendInfo(Connection)
+			{
+				priority = Network.Priority.Immediate
+			});
+		}
+		catch (Exception ex)
+		{
+			ex = ex.Demystify();
+			UnityEngine.Debug.LogError($"Failed sending Carbon client RPC {rpc.Name}[{rpc.Id}] to {Connection.username}[{Connection.userid}] ({ex.Message})\n{ex.StackTrace}");
+			return false;
+		}
+
+		return true;
 	}
 	public static void SendPing(Network.Connection connection)
 	{
-		community.ClientRPCEx(new Network.SendInfo(connection), null, RPC.Get("ping").Name);
+		var client = Get(connection);
+
+		if (!client.IsConnected)
+		{
+			Logger.Warn($"Client {client.Connection?.username}[{client.Connection?.userid}] is not connected to deliver ping.");
+			return;
+		}
+
+		if (client.HasCarbonClient) return;
+
+		client.Send(RPC.Get("ping"), RPCList.Get(), checks: false);
+	}
+	public static T Receive<T>(Network.Message message)
+	{
+		if (!message.read.TemporaryBytesWithSize(out var buffer, out _)) return default;
+
+		using var ms = new MemoryStream(buffer);
+		return Serializer.Deserialize<T>(ms);
 	}
 
+	#endregion
+
+	#region Helpers
+
+	public static bool Exists(Network.Connection connection)
+	{
+		return clients.ContainsKey(connection);
+	}
 	public static CarbonClient Make(Network.Connection connection)
 	{
 		return new CarbonClient
@@ -27,7 +98,6 @@ public class CarbonClient : ICommunication
 			Connection = connection
 		};
 	}
-
 	public static CarbonClient Get(BasePlayer player)
 	{
 		return Get(player.Connection);
@@ -42,8 +112,10 @@ public class CarbonClient : ICommunication
 		return value;
 	}
 
+	#endregion
+
 	public bool IsValid()
 	{
-		return IsConnected;
+		return IsConnected && HasCarbonClient;
 	}
 }
