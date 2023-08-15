@@ -28,7 +28,7 @@ public partial class CorePlugin : CarbonPlugin
 		Interface.CallHook("OnPlayerConnected", player);
 		Interface.CallHook("OnUserConnected", player.AsIPlayer());
 
-		Carbon.Client.CarbonClient.SendPing(player.Connection);
+		timer.In(1f, () => Carbon.Client.CarbonClient.SendPing(player.Connection));
 	}
 
 	private object IOnUserApprove(Connection connection)
@@ -192,7 +192,6 @@ public partial class CorePlugin : CarbonPlugin
 			Interface.CallHook("OnUserBanned", playerName, playerId, player == null ? _blankZero : player.Address, reason, expiry);
 		}
 	}
-
 	private void OnServerUserRemove(ulong steamId)
 	{
 		if (Community.IsServerFullyInitializedCache &&

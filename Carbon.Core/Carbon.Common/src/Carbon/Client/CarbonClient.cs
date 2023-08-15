@@ -2,12 +2,13 @@
 using Carbon.Client.Contracts;
 using Carbon.Client.Packets;
 using Network;
+using Newtonsoft.Json;
 using ProtoBuf;
 using static Carbon.Client.RPC;
 
 namespace Carbon.Client;
 
-public class CarbonClient : ICommunication
+public class CarbonClient : ICommunication, IDisposable
 {
 	public static Dictionary<Network.Connection, CarbonClient> clients { get; internal set; } = new();
 	public static CommunityEntity community => RPC.SERVER ? CommunityEntity.ServerInstance : CommunityEntity.ClientInstance;
@@ -42,15 +43,20 @@ public class CarbonClient : ICommunication
 
 		try
 		{
-			var write = Net.sv.StartWrite();
-			write.PacketID(Message.Type.RPCMessage);
-			write.EntityID(CommunityEntity.ServerInstance.net.ID);
-			write.UInt32(rpc.Id);
-			if (packet != null) write.BytesWithSize(packet.Serialize());
-			write.Send(new SendInfo(Connection)
-			{
-				priority = Network.Priority.Immediate
-			});
+			if (packet == null) CommunityEntity.ServerInstance.ClientRPCEx(new SendInfo(Connection), null, rpc.Name);
+			else CommunityEntity.ServerInstance.ClientRPCEx(new SendInfo(Connection), null, rpc.Name, JsonConvert.SerializeObject(packet.Serialize()));
+
+			// return true;
+			// 
+			// var write = Net.sv.StartWrite();
+			// write.PacketID(Message.Type.RPCMessage);
+			// write.EntityID(CommunityEntity.ServerInstance.net.ID);
+			// write.UInt32(rpc.Id);
+			// if (packet != null) write.BytesWithSize(packet.Serialize());
+			// write.Send(new SendInfo(Connection)
+			// {
+			// 	priority = Network.Priority.Immediate
+			// });
 		}
 		catch (Exception ex)
 		{
@@ -77,10 +83,14 @@ public class CarbonClient : ICommunication
 	}
 	public static T Receive<T>(Network.Message message)
 	{
-		if (!message.read.TemporaryBytesWithSize(out var buffer, out _)) return default;
+		using var ms = new MemoryStream(JsonConvert.DeserializeObject<byte[]>(message.read.StringRaw()));
+		var array = ms.ToArray();
+		return Serializer.Deserialize<T>(new ReadOnlySpan<byte>(array, 0, array.Length));
 
-		using var ms = new MemoryStream(buffer);
-		return Serializer.Deserialize<T>(ms);
+		// if (!message.read.TemporaryBytesWithSize(out var buffer, out var length)) return default;
+		// 
+		// using var ms = new MemoryStream(buffer);
+		// return Serializer.Deserialize<T>(new ReadOnlySpan<byte>(ms.ToArray(), 0, length));
 	}
 
 	#endregion
@@ -111,11 +121,24 @@ public class CarbonClient : ICommunication
 
 		return value;
 	}
+	public static void Dispose(CarbonClient client)
+	{
+		var connection = client.Connection;
+		if (connection == null) return;
+
+		client.Dispose();
+		clients.Remove(connection);
+	}
 
 	#endregion
 
 	public bool IsValid()
 	{
 		return IsConnected && HasCarbonClient;
+	}
+
+	public void Dispose()
+	{
+
 	}
 }

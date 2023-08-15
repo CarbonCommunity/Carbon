@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Carbon.Client.Packets;
+using Network;
 using Debug = UnityEngine.Debug;
 
 namespace Carbon.Client;
@@ -61,7 +62,10 @@ public struct RPC
 					}
 					catch (Exception ex)
 					{
-						Console.WriteLine($"Failed executing RPC call ({ex.Message})\n{(ex.InnerException ?? ex).Demystify().StackTrace}");
+						ex = (ex.InnerException ?? ex).Demystify();
+
+						var rpc = RPC.Get(id);
+						Console.WriteLine($"Failed executing RPC call {rpc.Name}[{rpc.Id}] ({ex.Message})\n{(ex.InnerException ?? ex).Demystify().StackTrace}");
 					}
 
 					return result;
@@ -105,26 +109,13 @@ public struct RPC
 	[Method("pong")]
 	private static void Pong(BasePlayer player, Network.Message message)
 	{
-		var firstTime = CarbonClient.Exists(player.Connection);
-
-		if (!firstTime)
-		{
-			Logger.Warn($"Pong packet set by the client multiple times is not allowed.");
-			return;
-		}
-
 		var client = CarbonClient.Get(player);
 		var result = CarbonClient.Receive<RPCList>(message);
 
-		foreach (var item in result.RpcNames)
-		{
-			RPC.Get(item);
-		}
-		foreach (var item in result.RpcIds)
-		{
-			RPC.Get(item);
-		}
+		result.Sync();
+		client.HasCarbonClient = true;
 
+		client.Send(RPC.Get("clientinfo"));
 		Logger.Log($"Player '{client.Connection}' has a Carbon client!");
 	}
 
