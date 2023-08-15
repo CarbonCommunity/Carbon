@@ -108,15 +108,14 @@ public struct RPC
 	[Method("pong")]
 	private static void Pong(BasePlayer player, Network.Message message)
 	{
-		var alreadyRegistered = CarbonClient.Exists(player.Connection);
+		var client = CarbonClient.Get(player);
 
-		if (alreadyRegistered)
+		if (client.HasCarbonClient)
 		{
 			Logger.Warn($"Player '{player.Connection}' attempted registering twice.");
 			return;
 		}
 
-		var client = CarbonClient.Get(player);
 		var result = CarbonClient.Receive<RPCList>(message);
 		result.Sync();
 		result.Dispose();
