@@ -32,8 +32,7 @@ public partial class Category_Static
 		{
 			private static bool Prefix(BasePlayer player, uint rpc, Message msg, CommunityEntity __instance, ref bool __result)
 			{
-				Debug.Log($"{player} {rpc} {StringPool.Get(rpc)} {msg} {__instance}");
-				if(RPC.HandleRPCMessage(player, rpc, msg) is bool value)
+				if (RPC.HandleRPCMessage(player, rpc, msg) is bool value)
 				{
 					__result = value;
 					return false;

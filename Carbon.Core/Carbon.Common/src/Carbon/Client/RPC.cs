@@ -99,7 +99,6 @@ public struct RPC
 	{
 		if (_cache.TryGetValue(rpc, out var value))
 		{
-			Console.WriteLine($"HandleRPCMessage: {player} {rpc} {StringPool.Get(rpc)}");
 			return value(player, message);
 		}
 
@@ -109,14 +108,22 @@ public struct RPC
 	[Method("pong")]
 	private static void Pong(BasePlayer player, Network.Message message)
 	{
+		var alreadyRegistered = CarbonClient.Exists(player.Connection);
+
+		if (alreadyRegistered)
+		{
+			Logger.Warn($"Player '{player.Connection}' attempted registering twice.");
+			return;
+		}
+
 		var client = CarbonClient.Get(player);
 		var result = CarbonClient.Receive<RPCList>(message);
-
 		result.Sync();
-		client.HasCarbonClient = true;
+		result.Dispose();
 
+		client.HasCarbonClient = true;
 		client.Send(RPC.Get("clientinfo"));
-		Logger.Log($"Player '{client.Connection}' has a Carbon client!");
+		Logger.Log($"{client.Connection} joined with Carbon client");
 	}
 
 	[AttributeUsage(AttributeTargets.Method)]
