@@ -28,7 +28,7 @@ public partial class CorePlugin : CarbonPlugin
 		Interface.CallHook("OnPlayerConnected", player);
 		Interface.CallHook("OnUserConnected", player.AsIPlayer());
 
-		timer.In(1f, () => Carbon.Client.CarbonClient.SendPing(player.Connection));
+		Carbon.Client.CarbonClient.SendPing(player.Connection);
 	}
 
 	private object IOnUserApprove(Connection connection)
