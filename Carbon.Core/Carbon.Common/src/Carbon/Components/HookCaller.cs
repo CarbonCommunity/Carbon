@@ -1422,7 +1422,7 @@ public static class HookCaller
 
 					if (parameter.Default == null && !parameter.Modifiers.Any(y => y.IsKind(SyntaxKind.OutKeyword)) && parameter.Type is not NullableTypeSyntax)
 					{
-						var type = parameter.Type.ToString().Replace("?", string.Empty).Replace("global::", string.Empty);
+						var type = parameter.Type.ToString().Replace("global::", string.Empty);
 						varText += $"var narg{parameterIndex}_{i} = args[{parameterIndex}] is {type};\nvar arg{parameterIndex}_{i} = narg{parameterIndex}_{i} ? ({type})(args[{parameterIndex}] ?? ({type})default) : ({type})default;\n";
 						parameterText += !IsUnmanagedType(type) ? $"narg{parameterIndex}_{i} && " : $"(narg{parameterIndex}_{i} || args[{parameterIndex}] == null) && ";
 					}

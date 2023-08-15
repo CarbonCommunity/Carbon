@@ -1,4 +1,5 @@
 ﻿using API.Events;
+using Carbon.Client;
 using ConVar;
 using Application = UnityEngine.Application;
 using CommandLine = Carbon.Components.CommandLine;
@@ -773,6 +774,8 @@ public partial class CorePlugin : CarbonPlugin
 				}
 			}
 		}
+
+		CarbonClient.Dispose(CarbonClient.Get(player));
 	}
 	private void OnPluginLoaded(Plugin plugin)
 	{

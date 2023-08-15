@@ -48,6 +48,12 @@ public class ScriptLoader : IScriptLoader
 
 	public void Load()
 	{
+		if (string.IsNullOrEmpty(File))
+		{
+			Clear();
+			return;
+		}
+
 		try
 		{
 			var directory = Path.GetDirectoryName(File);
@@ -57,7 +63,7 @@ public class ScriptLoader : IScriptLoader
 		}
 		catch (Exception exception)
 		{
-			Logger.Error($"Failed loading script;", exception);
+			Logger.Error($"Failed loading script '{File}';", exception.InnerException ?? exception);
 		}
 	}
 
@@ -429,6 +435,8 @@ public class ScriptLoader : IScriptLoader
 
 	public void Dispose()
 	{
+		HasFinished = true;
+
 		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
 	}
 
