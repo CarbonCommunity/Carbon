@@ -197,9 +197,10 @@ public partial class CorePlugin : CarbonPlugin
 			ServerUsers.users.ContainsKey(steamId) &&
 			ServerUsers.users[steamId].group == ServerUsers.UserGroup.Banned)
 		{
+			var playerId = steamId.ToString();
 			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
-			Interface.CallHook("OnPlayerUnbanned", player == null ? _blankUnnamed : player.Name, steamId, player == null ? _blankZero : player.Address);
-			Interface.CallHook("OnUserUnbanned", player == null ? _blankUnnamed : player.Name, steamId, player == null ? _blankZero : player.Address);
+			Interface.CallHook("OnPlayerUnbanned", player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
+			Interface.CallHook("OnUserUnbanned", player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
 		}
 	}
 
