@@ -60,7 +60,7 @@ public class Timers : Library
 		timer.Delay = time;
 		timer.Callback = activity;
 
-		if (Community.IsServerFullyInitializedCache)
+		if (Community.IsServerInitialized)
 		{
 			Persistence.Invoke(activity, time);
 		}

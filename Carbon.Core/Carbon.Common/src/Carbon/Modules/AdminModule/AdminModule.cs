@@ -147,7 +147,7 @@ public partial class AdminModule
 	{
 		base.Load();
 
-		if (Community.IsServerFullyInitializedCache) GenerateTabs();
+		if (Community.IsServerInitialized) GenerateTabs();
 	}
 	public override void Save()
 	{

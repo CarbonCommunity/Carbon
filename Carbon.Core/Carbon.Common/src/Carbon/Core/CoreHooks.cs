@@ -79,7 +79,7 @@ public partial class CorePlugin : CarbonPlugin
 
 	private void IOnEntitySaved(BaseNetworkable baseNetworkable, BaseNetworkable.SaveInfo saveInfo)
 	{
-		if (!Community.IsServerFullyInitializedCache || saveInfo.forConnection == null)
+		if (!Community.IsServerInitialized || saveInfo.forConnection == null)
 		{
 			return;
 		}
@@ -112,7 +112,7 @@ public partial class CorePlugin : CarbonPlugin
 
 	private object IOnBasePlayerAttacked(BasePlayer basePlayer, HitInfo hitInfo)
 	{
-		if (!Community.IsServerFullyInitializedCache || _isPlayerTakingDamage || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
+		if (!Community.IsServerInitialized || _isPlayerTakingDamage || basePlayer == null || hitInfo == null || basePlayer.IsDead() || basePlayer is NPCPlayer)
 		{
 			return null;
 		}
@@ -184,7 +184,7 @@ public partial class CorePlugin : CarbonPlugin
 
 	private void OnServerUserSet(ulong steamId, ServerUsers.UserGroup group, string playerName, string reason, long expiry)
 	{
-		if (Community.IsServerFullyInitializedCache && group == ServerUsers.UserGroup.Banned)
+		if (Community.IsServerInitialized && group == ServerUsers.UserGroup.Banned)
 		{
 			var playerId = steamId.ToString();
 			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
@@ -194,7 +194,7 @@ public partial class CorePlugin : CarbonPlugin
 	}
 	private void OnServerUserRemove(ulong steamId)
 	{
-		if (Community.IsServerFullyInitializedCache &&
+		if (Community.IsServerInitialized &&
 			ServerUsers.users.ContainsKey(steamId) &&
 			ServerUsers.users[steamId].group == ServerUsers.UserGroup.Banned)
 		{
@@ -314,6 +314,13 @@ public partial class CorePlugin : CarbonPlugin
 
 	#endregion
 
+	private void IOnServerInitialized()
+	{
+		if (!Community.IsServerInitialized)
+		{
+			Community.IsServerInitialized = true;
+		}
+	}
 	private void IOnServerShutdown()
 	{
 		Logger.Log($"Saving plugin configuration and data..");
