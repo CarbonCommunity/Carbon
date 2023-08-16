@@ -17,19 +17,6 @@ public class ItemDefinitionUpdate : BasePacket
 	[ProtoMember(3)]
 	public string DisplayDescription{ get; set; }
 
-	public void Apply()
-	{
-		var item = ItemManager.FindItemDefinition(Shortname);
-
-		if (item == null)
-		{
-			return;
-		}
-
-		item.displayName.english = DisplayName;
-		item.displayDescription.english = DisplayDescription;
-	}
-
 	public override void Dispose()
 	{
 
