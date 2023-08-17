@@ -37,9 +37,11 @@ public class CarbonClient : ICommunication, IDisposable
 
 	#region Methods
 
-	public bool Send(RPC rpc, IPacket packet = default, bool checks = true)
+	public bool Send(string rpcString, IPacket packet = default, bool checks = true)
 	{
 		if (checks && !IsValid()) return false;
+
+		var rpc = RPC.Get(rpcString);
 
 		try
 		{
