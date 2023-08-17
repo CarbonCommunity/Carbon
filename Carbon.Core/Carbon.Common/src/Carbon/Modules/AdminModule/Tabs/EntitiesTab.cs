@@ -217,8 +217,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (!multiSelection)
 				{
+					var ownerPlayer = BasePlayer.FindByID(entity.OwnerID);
+
 					tab.AddInputButton(column, "Owner", 0.3f,
-						new Tab.OptionInput(null, ap => $"{(entity.OwnerID.IsSteamId() ? $"{BasePlayer.FindByID(entity.OwnerID).displayName}" : "None")}", 0, true, null),
+						new Tab.OptionInput(null, ap => $"{(entity.OwnerID.IsSteamId() ? $"{(ownerPlayer == null ? entity.OwnerID.ToString() : ownerPlayer.displayName)}" : "None")}", 0, true, null),
 						new Tab.OptionButton("Select", ap =>
 						{
 							if (owner == null) return;
