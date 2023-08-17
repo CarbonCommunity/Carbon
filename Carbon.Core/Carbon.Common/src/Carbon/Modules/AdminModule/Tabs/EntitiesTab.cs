@@ -288,6 +288,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					{
 						tab.AddInput(column, "Display Name", ap => multiSelection ? MultiselectionReplacement : player.displayName);
 						tab.AddInput(column, "Steam ID", ap => multiSelection ? MultiselectionReplacement : player.UserIDString);
+						tab.AddInput(column, "IP", ap => multiSelection ? MultiselectionReplacement : $"{player.net?.connection?.ipaddress}", null, hidden: true);
 
 						if (!multiSelection && Singleton.HasAccessLevel(ap3?.Player, 2))
 						{
