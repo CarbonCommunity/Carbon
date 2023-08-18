@@ -1916,7 +1916,7 @@ public partial class AdminModule
 		}
 		public Tab AddRow(int column, Option row, bool hidden = false)
 		{
-			row.Hidden = hidden;
+			row.CurrentlyHidden = row.Hidden = hidden;
 
 			if (Columns.TryGetValue(column, out var options))
 			{
