@@ -78,6 +78,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			tab.AddInput(1, "Name", ap => player.displayName, null);
 			tab.AddInput(1, "Steam ID", ap => player.UserIDString, null);
 			tab.AddInput(1, "Net ID", ap => $"{player.net?.ID}", null);
+			tab.AddInput(1, "IP", ap => $"{player.net?.connection?.ipaddress}", null, hidden: true);
 			try
 			{
 				var position = player.transform.position;

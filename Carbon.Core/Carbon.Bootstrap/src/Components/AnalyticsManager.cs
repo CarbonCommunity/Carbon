@@ -26,11 +26,13 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 	private int _sessions;
 	private float _lastUpdate;
 	private float _lastEngagement;
-	private static bool _first;
 	private static string _location;
 
 	private const string MeasurementID = "G-M7ZBRYS3X7";
 	private const string MeasurementSecret = "edBQH3_wRCWxZSzx5Y2IWA";
+
+	public bool HasNewIdentifier
+	{ get; private set; }
 
 	public string Branch
 	{ get => _branch.Value; }
@@ -122,7 +124,7 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 				if (!_serverInfo.Equals(default(Identity))) return info;
 			}
 
-			_first = true;
+			Carbon.Bootstrap.Analytics.HasNewIdentifier = true;
 			info = new Identity { UID = $"{Guid.NewGuid()}" };
 			Logger.Warn($"A new server identity was generated.");
 			File.WriteAllText(_location, JsonConvert.SerializeObject(info, Formatting.Indented));
@@ -145,7 +147,7 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 
 	public void Awake()
 	{
-		_first = false;
+		HasNewIdentifier = false;
 		_lastUpdate = 0;
 		_lastEngagement = float.MinValue;
 		SessionID = Util.GetRandomNumber(10);
@@ -180,7 +182,7 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 	}
 
 	public void SessionStart()
-		=> LogEvent(_first ? "first_visit" : "user_engagement");
+		=> LogEvent(HasNewIdentifier ? "first_visit" : "user_engagement");
 
 	public void LogEvent(string eventName)
 		=> SendEvent(eventName);

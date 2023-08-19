@@ -58,12 +58,12 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 	private object CanUserLogin(string name, string id, string ipAddress)
 	{
-		if (CanBypass(id))
+		var connection = Net.sv.connections.FirstOrDefault(x => x.userid.ToString() == id);
+
+		if (connection.authLevel >= 2 || CanBypass(id))
 		{
 			return null;
 		}
-
-		var connection = Net.sv.connections.FirstOrDefault(x => x.userid.ToString() == id);
 
 		ConsoleNetwork.SendClientCommand(connection, $"echo {GetPhrase("denied", id)}");
 		Community.Runtime.CorePlugin.NextTick(() => ConnectionAuth.Reject(connection, GetPhrase("denied", id), null));

@@ -1,4 +1,5 @@
 ﻿using API.Events;
+using Carbon.Client;
 using ConVar;
 using Application = UnityEngine.Application;
 using CommandLine = Carbon.Components.CommandLine;
@@ -266,6 +267,12 @@ public partial class CorePlugin : CarbonPlugin
 						var narg0_0 = args[0] is ConsoleSystem.Arg;
 						var arg0_0 = narg0_0 ? (ConsoleSystem.Arg)(args[0] ?? (ConsoleSystem.Arg)default) : (ConsoleSystem.Arg)default;
 						if (narg0_0) { result = IOnServerCommand(arg0_0); }
+						break;
+					}
+				// IOnServerInitialized aka 2521951123
+				case 2521951123:
+					{
+						IOnServerInitialized();
 						break;
 					}
 				// IOnServerShutdown aka 2994038319
@@ -747,7 +754,6 @@ public partial class CorePlugin : CarbonPlugin
 	private void OnPlayerDisconnected(BasePlayer player, string reason)
 	{
 		HookCaller.CallStaticHook(4253366379, player?.AsIPlayer(), reason);
-		Logger.Log($"{player.net.connection} left: {reason}");
 	
 		if (player.IsAdmin && !player.IsOnGround())
 		{
@@ -773,6 +779,8 @@ public partial class CorePlugin : CarbonPlugin
 				}
 			}
 		}
+
+		CarbonClient.Dispose(CarbonClient.Get(player));
 	}
 	private void OnPluginLoaded(Plugin plugin)
 	{
