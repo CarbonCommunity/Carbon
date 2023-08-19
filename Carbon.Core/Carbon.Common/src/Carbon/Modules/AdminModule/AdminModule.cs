@@ -149,6 +149,11 @@ public partial class AdminModule
 		base.Load();
 
 		if (Community.IsServerInitialized) GenerateTabs();
+
+		if (Community.Runtime.Analytics.HasNewIdentifier)
+		{
+			DataInstance.ShowedWizard = false;
+		}
 	}
 	public override void Save()
 	{
@@ -1700,15 +1705,6 @@ public partial class AdminModule
 		}
 
 		return false;
-	}
-
-	#endregion
-
-	#region Hooks
-
-	private void OnNewSave(string filename)
-	{
-		DataInstance.ShowedWizard = false;
 	}
 
 	#endregion
