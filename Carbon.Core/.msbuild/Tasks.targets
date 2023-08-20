@@ -28,19 +28,53 @@
 	-->
 	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec">
 		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitBranch" />
 		</Exec>
 
 		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHashShort" />
+		</Exec>
+
+		<Exec Command="git rev-parse --long HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHashLong" />
+		</Exec>
+
+		<Exec Command="git show -s --format=%%an HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitAuthor" />
+		</Exec>
+
+		<Exec Command="git log -1 --pretty=%%B" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitComment" />
+		</Exec>
+
+		<Exec Command="git log -1 --format=%%ci HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitDate" />
+		</Exec>
+
+		<Exec Command="git remote get-url origin" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitUrl" />
 		</Exec>
 
 		<PropertyGroup>
-			<Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
+			<GitCommitBranch>$(GitCommitBranch)</GitCommitBranch>
+			<GitCommitHashLong>$(GitCommitHashLong.Replace("--long", "").Replace(";", "").Trim())</GitCommitHashLong>
+			<GitCommitHashShort>$(GitCommitHashShort)</GitCommitHashShort>
+			<GitCommitUrl>$(GitCommitUrl)/commit/$(GitCommitHashLong)</GitCommitUrl>
+			<GitCommitAuthor>$(GitCommitAuthor)</GitCommitAuthor>
+			<GitCommitComment>$(GitCommitComment)</GitCommitComment>
+			<GitCommitDate>$(GitCommitDate)</GitCommitDate>
+			<GitTag>-$(GitCommitBranch)-$(GitCommitHashShort)</GitTag>
 		</PropertyGroup>
 
 		<Message Text="[$(AssemblyName)] Saving git metadata to disk" Importance="high" />
-		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitag" Overwrite="true" Lines="$(Gitag)" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gittag" Overwrite="true" Lines="$(GitTag)" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitbranch" Overwrite="true" Lines="$(GitCommitBranch)" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitchl" Overwrite="true" Lines="$(GitCommitHashLong)" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitchs" Overwrite="true" Lines="$(GitCommitHashShort)" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.giturl" Overwrite="true" Lines="$(GitCommitUrl)" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitauthor" Overwrite="true" Lines="$(GitCommitAuthor)" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitcomment" Overwrite="true" Lines="$(GitCommitComment)" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitdate" Overwrite="true" Lines="$(GitCommitDate)" />
 	</Target>
 
 	<!--

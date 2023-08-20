@@ -14,6 +14,7 @@
 		<PlatformTarget></PlatformTarget>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 		<TargetFramework>net48</TargetFramework>
+		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -30,6 +31,16 @@
 		<RepositoryUrl>https://github.com/CarbonCommunity/Carbon.Core</RepositoryUrl>
 		<Description>A very lightweight and modular Harmony-based modding framework</Description>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<AssemblyMetadata Include="GitCommitBranch" Value="$(GitCommitBranch)" />
+		<AssemblyMetadata Include="GitCommitHashLong" Value="$(GitCommitHashLong)" />
+		<AssemblyMetadata Include="GitCommitHashShort" Value="$(GitCommitHashShort)" />
+		<AssemblyMetadata Include="GitCommitUrl" Value="$(GitCommitUrl)" />
+		<AssemblyMetadata Include="GitCommitAuthor" Value="$(GitCommitAuthor)" />
+		<AssemblyMetadata Include="GitCommitComment" Value="$(GitCommitComment)" />
+		<AssemblyMetadata Include="GitCommitDate" Value="$(GitCommitDate)" />
+	</ItemGroup>
 
 	<Import Project="Configurations.props" />
 	<Import Project="Metadata.props" />
