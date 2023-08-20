@@ -26,7 +26,7 @@
 	<!--
 		Generate the git metadata
 	-->
-	<Target Name="BuildMetadata" BeforeTargets="Build">
+	<Target Name="BuildGitMetadata" AfterTargets="_GenerateRestoreProjectSpec">
 		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitBranch" />
 		</Exec>
