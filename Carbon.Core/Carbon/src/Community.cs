@@ -164,7 +164,6 @@ public class CommunityInternal : Community
 		Carbon.Logger.Log($"Loading...");
 		{
 			Defines.Initialize();
-			HookValidator.Initialize();
 
 			InstallProcessors();
 

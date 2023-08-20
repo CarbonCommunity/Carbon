@@ -7,7 +7,8 @@ namespace Carbon.Client;
 
 [ProtoContract]
 [ProtoInclude(10, typeof(RPCList))]
-[ProtoInclude(20, typeof(ClientInfo))]
+[ProtoInclude(11, typeof(ClientInfo))]
+[ProtoInclude(12, typeof(ItemDefinitionUpdate))]
 public class BasePacket : IPacket, IDisposable
 {
 	public static T Deserialize<T>(NetRead reader)

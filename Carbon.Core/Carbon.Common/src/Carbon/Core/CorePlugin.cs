@@ -269,6 +269,12 @@ public partial class CorePlugin : CarbonPlugin
 						if (narg0_0) { result = IOnServerCommand(arg0_0); }
 						break;
 					}
+				// IOnServerInitialized aka 2521951123
+				case 2521951123:
+					{
+						IOnServerInitialized();
+						break;
+					}
 				// IOnServerShutdown aka 2994038319
 				case 2994038319:
 					{
@@ -748,7 +754,6 @@ public partial class CorePlugin : CarbonPlugin
 	private void OnPlayerDisconnected(BasePlayer player, string reason)
 	{
 		HookCaller.CallStaticHook(4253366379, player?.AsIPlayer(), reason);
-		Logger.Log($"{player.net.connection} left: {reason}");
 	
 		if (player.IsAdmin && !player.IsOnGround())
 		{

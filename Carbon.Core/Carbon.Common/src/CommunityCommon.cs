@@ -86,10 +86,7 @@ public class Community
 	public ICarbonProcessor CarbonProcessor
 	{ get; set; }
 
-	public static bool IsServerFullyInitialized => IsServerFullyInitializedCache = RelationshipManager.ServerInstance != null;
-
-	public static bool IsServerFullyInitializedCache
-	{ get; internal set; }
+	public static bool IsServerInitialized { get; internal set; }
 
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
 
@@ -264,7 +261,7 @@ public class Community
 #if WIN
 		if (!IsConfigReady || !Config.ShowConsoleInfo) return;
 
-		if (!IsServerFullyInitialized) return;
+		if (!IsServerInitialized) return;
 		if (ServerConsole.Instance.input.statusText.Length != 4) ServerConsole.Instance.input.statusText = new string[4];
 
 		var version =

@@ -19,6 +19,7 @@ public static class ModLoader
 	public static Dictionary<string, List<string>> PendingRequirees { get; } = new();
 	public static bool IsBatchComplete { get; set; }
 	public static List<string> PostBatchFailedRequirees { get; } = new();
+	public static bool FirstLoadSinceStartup { get; internal set; } = true;
 
 	static ModLoader()
 	{
@@ -517,7 +518,7 @@ public static class ModLoader
 		temp.Clear();
 		Facepunch.Pool.FreeList(ref temp);
 
-		if (Community.IsServerFullyInitialized)
+		if (Community.IsServerInitialized)
 		{
 			var counter = 0;
 			var plugins = Facepunch.Pool.GetList<RustPlugin>();
@@ -540,17 +541,11 @@ public static class ModLoader
 				if (plugin.HasInitialized) continue;
 				counter++;
 
-				try
-				{
-					plugin.CallHook("OnServerInitialized", Community.IsServerFullyInitialized);
-				}
-				catch (Exception initException)
-				{
-					plugin.LogError($"Failed OnServerInitialized.", initException);
-				}
-
+				plugin.CallHook("OnServerInitialized", FirstLoadSinceStartup);
 				plugin.HasInitialized = true;
 			}
+
+			FirstLoadSinceStartup = false;
 
 			Facepunch.Pool.FreeList(ref plugins);
 
@@ -560,7 +555,7 @@ public static class ModLoader
 
 				try
 				{
-					HookCaller.CallHook(plugin, 1330569572, Community.IsServerFullyInitialized);
+					HookCaller.CallHook(plugin, 1330569572, Community.IsServerInitialized);
 				}
 				catch (Exception initException)
 				{

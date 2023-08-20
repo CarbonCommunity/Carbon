@@ -20,7 +20,7 @@ public class Entities : IDisposable
 				Mapping.Add(type, new List<BaseEntity>(Community.Runtime.Config.EntityMapBufferSize));
 			}
 
-			if (Community.IsServerFullyInitialized)
+			if (Community.IsServerInitialized)
 			{
 				Carbon.Logger.Warn($"Mapping {BaseNetworkable.serverEntities.Count:n0} entities... This will take a while.");
 			}
@@ -39,7 +39,7 @@ public class Entities : IDisposable
 				}
 			}
 
-			if (Community.IsServerFullyInitialized)
+			if (Community.IsServerInitialized)
 			{
 				Carbon.Logger.Warn($"Done mapping.");
 			}

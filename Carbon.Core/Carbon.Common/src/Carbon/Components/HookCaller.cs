@@ -82,6 +82,31 @@ public static class HookCaller
 	internal static List<Conflict> _conflictCache = new(10);
 	internal static Conflict _defaultConflict = new();
 
+	public static readonly string[] InternalHooks = new string[]
+	{
+		"OnPluginLoaded",
+		"OnPluginUnloaded",
+		"CanClientLogin",
+		"CanUserLogin",
+		"OnUserApprove",
+		"OnUserApproved",
+		"OnPlayerChat",
+		"OnUserChat",
+		"OnPlayerOfflineChat",
+		"OnPermissionRegistered",
+		"OnPermissionsUnregistered",
+		"OnGroupPermissionGranted",
+		"OnGroupPermissionRevoked",
+		"OnGroupCreated",
+		"OnGroupDeleted",
+		"OnGroupTitleSet",
+		"OnGroupRankSet",
+		"OnGroupParentSet",
+		"CanUseUI",
+		"OnDestroyUI",
+		"OnUserNameUpdated"
+	};
+
 	#endregion
 
 	public static int GetHookTime(uint hook)
@@ -1445,7 +1470,7 @@ public static class HookCaller
 			methodContents += "\t\t\t\tbreak;\n\t\t\t}\n";
 		}
 
-		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.Pooling.HookStringPool.GetOrAdd(hook)}' on plugin '{Name} v{Version}'\", ex);\n}\nreturn result;";
+		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.Pooling.HookStringPool.GetOrAdd(hook)}[{hook}]' on plugin '{base.Name} v{base.Version}'\", ex);\n}\nreturn result;";
 
 		generatedMethod = SyntaxFactory.MethodDeclaration(
 			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),

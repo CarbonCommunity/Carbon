@@ -249,7 +249,8 @@ public class Permission : Library
 			permset.Add(owner, hashSet);
 		}
 		hashSet.Add(name);
-		Interface.CallHook("OnPermissionRegistered", name, owner);
+		// OnPermissionRegistered
+		HookCaller.CallStaticHook(3007604742, name, owner);
 	}
 
 	public virtual void UnregisterPermissions(BaseHookable owner)
@@ -260,7 +261,9 @@ public class Permission : Library
 		{
 			hashSet.Clear();
 			permset.Remove(owner);
-			Interface.CallHook("OnPermissionsUnregistered", owner);
+
+			// OnPermissionsUnregistered
+			HookCaller.CallStaticHook(1374013157, owner);
 		}
 	}
 
@@ -392,7 +395,9 @@ public class Permission : Library
 			var lastSeenNickname = userData.LastSeenNickname;
 			var obj = nickname.Sanitize();
 			userData.LastSeenNickname = nickname.Sanitize();
-			Interface.CallHook("OnUserNameUpdated", id, lastSeenNickname, obj);
+
+			// OnUserNameUpdated
+			HookCaller.CallStaticHook(945289215, id, lastSeenNickname, obj);
 		}
 	}
 
@@ -653,6 +658,7 @@ public class Permission : Library
 		{
 			if (!data.Perms.Add(perm)) return false;
 
+			// OnGroupPermissionGranted
 			HookCaller.CallStaticHook(2569513351, name, perm);
 			return true;
 		}
@@ -678,6 +684,7 @@ public class Permission : Library
 		{
 			if (!groupData.Perms.Remove(perm)) return false;
 
+			// OnGroupPermissionRevoked
 			HookCaller.CallStaticHook(858041166, name, perm);
 			return true;
 		}
@@ -694,7 +701,9 @@ public class Permission : Library
 		};
 		group = group.ToLower();
 		groupdata.Add(group, value);
-		Interface.CallHook("OnGroupCreated", group, title, rank);
+
+		// OnGroupCreated
+		HookCaller.CallStaticHook(2242151940, group, title, rank);
 		return true;
 	}
 	public virtual bool RemoveGroup(string group)
@@ -718,7 +727,8 @@ public class Permission : Library
 		}
 		if (flag)
 		{
-			Interface.CallHook("OnGroupDeleted", group);
+			// OnGroupDeleted
+			HookCaller.CallStaticHook(3899174310, group);
 		}
 		return true;
 	}
@@ -731,7 +741,9 @@ public class Permission : Library
 		if (!groupdata.TryGetValue(group, out var groupData)) return false;
 		if (groupData.Title == title) return true;
 		groupData.Title = title;
-		Interface.CallHook("OnGroupTitleSet", group, title);
+
+		// OnGroupTitleSet
+		HookCaller.CallStaticHook(367139412, group, title);
 		return true;
 	}
 	public virtual bool SetGroupRank(string group, int rank)
@@ -741,7 +753,9 @@ public class Permission : Library
 		if (!groupdata.TryGetValue(group, out var groupData)) return false;
 		if (groupData.Rank == rank) return true;
 		groupData.Rank = rank;
-		Interface.CallHook("OnGroupRankSet", group, rank);
+
+		// OnGroupRankSet
+		HookCaller.CallStaticHook(1812963218, group, rank);
 		return true;
 	}
 
@@ -775,7 +789,9 @@ public class Permission : Library
 		if (HasCircularParent(group, parent)) return false;
 
 		groupData.ParentGroup = parent;
-		Interface.CallHook("OnGroupParentSet", group, parent);
+
+		// OnGroupParentSet
+		HookCaller.CallStaticHook(3339885885, group, parent);
 		return true;
 	}
 	public virtual bool HasCircularParent(string group, string parent)

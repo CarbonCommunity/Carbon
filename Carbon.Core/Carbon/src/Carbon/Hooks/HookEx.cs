@@ -30,7 +30,7 @@ public class HookEx : IDisposable, IHook
 	{ get; }
 
 	public HookFlags Options
-	{ get; }
+	{ get; set; }
 
 	public Type TargetType
 	{ get; }
@@ -38,7 +38,7 @@ public class HookEx : IDisposable, IHook
 	public string TargetMethod
 	{ get; }
 
-	private List<MethodBase> TargetMethods
+	public List<MethodBase> TargetMethods
 	{ get; }
 
 	public Type[] TargetMethodArgs

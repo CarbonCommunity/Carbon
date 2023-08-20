@@ -223,8 +223,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		{
 			if (ModuleConfiguration == null) return;
 
-			if (ModuleConfiguration.Enabled) OnEnabled(Community.IsServerFullyInitialized);
-			else OnDisabled(Community.IsServerFullyInitialized);
+			if (ModuleConfiguration.Enabled) OnEnabled(Community.IsServerInitialized);
+			else OnDisabled(Community.IsServerInitialized);
 		}
 		catch (Exception ex) { Logger.Error($"Failed {(ModuleConfiguration.Enabled ? "Enable" : "Disable")} initialization.", ex); }
 	}

@@ -22,8 +22,9 @@ public interface IAnalyticsManager
 	public string SystemID { get; }
 	public string UserAgent { get; }
 	public string Version { get; }
+    public bool HasNewIdentifier { get; }
 
-	public void SessionStart();
+    public void SessionStart();
 	public void LogEvent(string eventName);
 	public void LogEvent(string eventName, IDictionary<string, object> segments = null, IDictionary<string, object> metrics = null);
 }
