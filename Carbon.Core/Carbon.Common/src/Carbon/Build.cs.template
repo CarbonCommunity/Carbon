@@ -10,12 +10,14 @@ public class Build
 		static Git()
 		{
 			var changes = @"[GIT_ASSET_CHANGES]";
-			var lines = changes.Split('\n');
+			var newlineSplit = new string[] { Environment.NewLine };
+			var spaceSplit = new char[] { ' ' };
+			var lines = changes.Split(newlineSplit, StringSplitOptions.RemoveEmptyEntries);
 			var temp = new List<AssetChange>();
 
 			foreach(var line in lines)
 			{
-				var lineSplit = line.Split(' ');
+				var lineSplit = line.Split(spaceSplit);
 				var type = lineSplit[0];
 				var path = lineSplit[1];
 				var changeType = (AssetChange.ChangeTypes)default;
@@ -36,16 +38,15 @@ public class Build
 				temp.Add(new AssetChange(path, changeType));
 
 				Array.Clear(lineSplit, 0, lineSplit.Length);
-				lineSplit = null;
 			}
 
 			Changes = temp.ToArray();
 
 			Array.Clear(lines, 0, lines.Length);
-			lines = null;
+			Array.Clear(newlineSplit, 0, newlineSplit.Length);
+			Array.Clear(spaceSplit, 0, spaceSplit.Length);
 
 			temp.Clear();
-			temp = null;
 		}
 
 		public static readonly string Branch = "[GIT_BRANCH]";
