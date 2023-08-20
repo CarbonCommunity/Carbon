@@ -60,7 +60,9 @@ public static class CuiHelper
 	public static bool AddUi(BasePlayer player, List<CuiElement> elements)
 	{
 		var json = ToJson(elements);
-		if (player?.net == null || Interface.CallHook("CanUseUI", player, json) != null) return false;
+
+		// CanUseUI
+		if (player?.net == null || HookCaller.CallStaticHook(1318053248, player, json) != null) return false;
 
 		if (elements != null && elements.Count > 0)
 		{
@@ -75,7 +77,8 @@ public static class CuiHelper
 	public static bool AddUi(BasePlayer player, string json, object token = null)
 	{
 		if (token is bool hookResult1 && !hookResult1) return false;
-		else token = Interface.CallHook("CanUseUI", player, json) == null;
+		// CanUseUI
+		else token = HookCaller.CallStaticHook(1318053248, player, json) == null;
 
 		if (player?.net != null && token is bool hookResult2 && hookResult2)
 		{
@@ -93,7 +96,8 @@ public static class CuiHelper
 			var panelList = GetActivePanelList(player);
 			if (panelList.Contains(name)) panelList.Remove(name);
 
-			Interface.CallHook("OnDestroyUI", player, name);
+			// OnDestroyUI
+			HookCaller.CallStaticHook(2982238573, player, name);
 			CommunityEntity.ServerInstance.ClientRPCEx(new Network.SendInfo { connection = player.net.connection }, null, "DestroyUI", name);
 			return true;
 		}

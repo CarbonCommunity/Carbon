@@ -41,18 +41,8 @@ public class HookValidator
 
 	public static readonly string[] IgnoredInternalHooks = new string[]
 	{
-		"OnPlayerDisconnected",
-		"OnPlayerSleepEnded",
-		"OnServerMessage",
-		"OnPlayerRespawned",
-		"OnPlayerDeath",
-		"CanCombineDroppedItem",
-		"OnEntityTakeDamage",
 		"OnPluginLoaded",
 		"OnPluginUnloaded",
-		"OnEntityKill",
-		"OnEntityDeath",
-		"OnEntitySpawned",
 		"CanClientLogin",
 		"CanUserLogin",
 		"OnUserApprove",
@@ -60,19 +50,18 @@ public class HookValidator
 		"OnPlayerChat",
 		"OnUserChat",
 		"OnPlayerOfflineChat",
-		"OnServerSave",
-		"OnPlayerKicked",
-		"OnClientAuth",
-		"OnPlayerSetInfo",
-		"OnServerUserRemove",
 		"OnPermissionRegistered",
+		"OnPermissionsUnregistered",
 		"OnGroupPermissionGranted",
 		"OnGroupPermissionRevoked",
 		"OnGroupCreated",
 		"OnGroupDeleted",
 		"OnGroupTitleSet",
 		"OnGroupRankSet",
-		"OnGroupParentSet"
+		"OnGroupParentSet",
+		"CanUseUI",
+		"OnDestroyUI",
+		"OnUserNameUpdated"
 	};
 
 	private static int OxideHooksCount

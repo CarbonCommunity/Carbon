@@ -25,8 +25,12 @@ public partial class CorePlugin : CarbonPlugin
 		player.SendEntitySnapshot(CommunityEntity.ServerInstance);
 
 		permission.RefreshUser(player);
-		Interface.CallHook("OnPlayerConnected", player);
-		Interface.CallHook("OnUserConnected", player.AsIPlayer());
+
+		// OnPlayerConnected
+		HookCaller.CallStaticHook(3704844088, player);
+
+		// OnUserConnected
+		HookCaller.CallStaticHook(1971459992, player.AsIPlayer());
 
 		Carbon.Client.CarbonClient.SendPing(player.Connection);
 	}
@@ -37,8 +41,11 @@ public partial class CorePlugin : CarbonPlugin
 		var text = connection.userid.ToString();
 		var obj = Regex.Replace(connection.ipaddress, global::Oxide.Game.Rust.Libraries.Player.ipPattern, string.Empty);
 
-		var canClient = Interface.CallHook("CanClientLogin", connection);
-		var canUser = Interface.CallHook("CanUserLogin", username, text, obj);
+		// CanClientLogin
+		var canClient = HookCaller.CallStaticHook(351619588, connection);
+
+		// CanUserLogin
+		var canUser = HookCaller.CallStaticHook(459292092, username, text, obj);
 
 		var obj4 = (canClient == null) ? canUser : canClient;
 		if (obj4 is string || (obj4 is bool obj4Value && !obj4Value))
@@ -47,26 +54,32 @@ public partial class CorePlugin : CarbonPlugin
 			return true;
 		}
 
-		if (Interface.CallHook("OnUserApprove", connection) != null)
-			return Interface.CallHook("OnUserApproved", username, text, obj);
+		// OnUserApprove
+		if (HookCaller.CallStaticHook(1855397793, connection) != null)
+			// OnUserApproved
+			return HookCaller.CallStaticHook(2225250284, username, text, obj);
 
 		return null;
 	}
 	private void OnPlayerKicked(BasePlayer basePlayer, string reason)
 	{
-		Interface.CallHook("OnUserKicked", basePlayer.AsIPlayer(), reason);
+		// OnUserKicked
+		HookCaller.CallStaticHook(3026194467, basePlayer.AsIPlayer(), reason);
 	}
 	private object OnPlayerRespawn(BasePlayer basePlayer)
 	{
-		return Interface.CallHook("OnUserRespawn", basePlayer.AsIPlayer());
+		// OnUserRespawn
+		return HookCaller.CallStaticHook(2545052102, basePlayer.AsIPlayer());
 	}
 	private void OnPlayerRespawned(BasePlayer basePlayer)
 	{
-		Interface.CallHook("OnUserRespawned", basePlayer.AsIPlayer());
+		// OnUserRespawned
+		HookCaller.CallStaticHook(3161392945, basePlayer.AsIPlayer());
 	}
 	private void IOnPlayerBanned(Connection connection, AuthResponse status)
 	{
-		Interface.CallHook("OnPlayerBanned", connection, status.ToString());
+		// OnPlayerBanned
+		HookCaller.CallStaticHook(2433979267, connection, status.ToString());
 	}
 	private void OnClientAuth(Connection connection)
 	{
@@ -84,7 +97,8 @@ public partial class CorePlugin : CarbonPlugin
 			return;
 		}
 
-		Interface.CallHook("OnEntitySaved", baseNetworkable, saveInfo);
+		// OnEntitySaved
+		HookCaller.CallStaticHook(3947573992, baseNetworkable, saveInfo);
 	}
 
 	#endregion
@@ -93,7 +107,8 @@ public partial class CorePlugin : CarbonPlugin
 
 	private object IOnNpcTarget(BaseNpc npc, BaseEntity target)
 	{
-		if (Interface.CallHook("OnNpcTarget", npc, target) == null)
+		// OnNpcTarget
+		if (HookCaller.CallStaticHook(1265749384, npc, target) == null)
 		{
 			return null;
 		}
@@ -117,7 +132,8 @@ public partial class CorePlugin : CarbonPlugin
 			return null;
 		}
 
-		if (Interface.CallHook("OnEntityTakeDamage", basePlayer, hitInfo) != null)
+		// OnEntityTakeDamage
+		if (HookCaller.CallStaticHook(2713007450, basePlayer, hitInfo) != null)
 		{
 			return true;
 		}
@@ -138,7 +154,8 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		if (!_isPlayerTakingDamage)
 		{
-			return Interface.CallHook("OnEntityTakeDamage", basePlayer, hitInfo);
+			// OnEntityTakeDamage
+			return HookCaller.CallStaticHook(2713007450, basePlayer, hitInfo);
 		}
 
 		return null;
@@ -147,14 +164,16 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		if (entity is not BasePlayer)
 		{
-			return Interface.CallHook("OnEntityTakeDamage", entity, hitInfo);
+			// OnEntityTakeDamage
+			return HookCaller.CallStaticHook(2713007450, entity, hitInfo);
 		}
 
 		return null;
 	}
 	private object ICanPickupEntity(BasePlayer basePlayer, DoorCloser entity)
 	{
-		if (Interface.CallHook("CanPickupEntity", basePlayer, entity) is bool result)
+		// CanPickupEntity
+		if (HookCaller.CallStaticHook(385185486, basePlayer, entity) is bool result)
 		{
 			return result;
 		}
@@ -169,8 +188,9 @@ public partial class CorePlugin : CarbonPlugin
 
 			if (connection.player is BasePlayer player)
 			{
-				Interface.CallHook("OnPlayerLanguageChanged", player, val);
-				Interface.CallHook("OnPlayerLanguageChanged", player.AsIPlayer(), val);
+				// OnPlayerLanguageChanged
+				HookCaller.CallStaticHook(1960580409, player, val);
+				HookCaller.CallStaticHook(1960580409, player.AsIPlayer(), val);
 			}
 		}
 	}
@@ -188,8 +208,12 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			var playerId = steamId.ToString();
 			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
-			Interface.CallHook("OnPlayerBanned", playerName, steamId, player == null ? _blankZero : player.Address, reason, expiry);
-			Interface.CallHook("OnUserBanned", playerName, playerId, player == null ? _blankZero : player.Address, reason, expiry);
+
+			// OnPlayerBanned
+			HookCaller.CallStaticHook(2433979267, playerName, steamId, player == null ? _blankZero : player.Address, reason, expiry);
+
+			// OnUserBanned
+			HookCaller.CallStaticHook(274222292, playerName, playerId, player == null ? _blankZero : player.Address, reason, expiry);
 		}
 	}
 	private void OnServerUserRemove(ulong steamId)
@@ -200,8 +224,12 @@ public partial class CorePlugin : CarbonPlugin
 		{
 			var playerId = steamId.ToString();
 			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
-			Interface.CallHook("OnPlayerUnbanned", player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
-			Interface.CallHook("OnUserUnbanned", player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
+
+			// OnPlayerUnbanned
+			HookCaller.CallStaticHook(3462729840, player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
+
+			// OnUserUnbanned
+			HookCaller.CallStaticHook(4090556101, player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
 		}
 	}
 
@@ -298,10 +326,14 @@ public partial class CorePlugin : CarbonPlugin
 		}
 		if (basePlayer == null || !basePlayer.IsConnected)
 		{
+			// OnPlayerOfflineChat
 			return HookCaller.CallStaticHook(3391949391, playerId, playerName, message, channel);
 		}
 
+		// OnPlayerChat
 		var hook1 = HookCaller.CallStaticHook(735197859, basePlayer, message, channel);
+
+		// OnUserChat
 		var hook2 = HookCaller.CallStaticHook(2410402155, basePlayer.AsIPlayer(), message);
 
 		if (hook1 != null)
