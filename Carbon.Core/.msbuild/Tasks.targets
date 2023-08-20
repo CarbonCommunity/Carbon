@@ -30,10 +30,6 @@
 		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitBranch" />
 		</Exec>
-
-		<Exec Command="git show --pretty= --name-status" ConsoleToMSBuild="true" StandardOutputImportance="low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitChanges" />
-		</Exec>
 		
 		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHashShort" />
@@ -57,6 +53,10 @@
 
 		<Exec Command="git remote get-url origin" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitUrl" />
+		</Exec>
+
+		<Exec Command="git show --pretty= --name-status $(GitCommitHashLong.Replace('--long;', ''))" ConsoleToMSBuild="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitChanges" />
 		</Exec>
 
 		<PropertyGroup>
