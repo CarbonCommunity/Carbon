@@ -55,7 +55,7 @@
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitUrl" />
 		</Exec>
 
-		<Exec Command="git show --pretty= --name-status $(GitCommitHashLong.Replace('--long;', ''))" ConsoleToMSBuild="true" StandardOutputImportance="low">
+		<Exec Command="git diff-tree --no-commit-id --pretty= --name-status $(GitCommitHashLong.Replace('--long;', '')) -r" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitChanges" />
 		</Exec>
 
