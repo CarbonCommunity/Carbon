@@ -82,6 +82,31 @@ public static class HookCaller
 	internal static List<Conflict> _conflictCache = new(10);
 	internal static Conflict _defaultConflict = new();
 
+	public static readonly string[] InternalHooks = new string[]
+	{
+		"OnPluginLoaded",
+		"OnPluginUnloaded",
+		"CanClientLogin",
+		"CanUserLogin",
+		"OnUserApprove",
+		"OnUserApproved",
+		"OnPlayerChat",
+		"OnUserChat",
+		"OnPlayerOfflineChat",
+		"OnPermissionRegistered",
+		"OnPermissionsUnregistered",
+		"OnGroupPermissionGranted",
+		"OnGroupPermissionRevoked",
+		"OnGroupCreated",
+		"OnGroupDeleted",
+		"OnGroupTitleSet",
+		"OnGroupRankSet",
+		"OnGroupParentSet",
+		"CanUseUI",
+		"OnDestroyUI",
+		"OnUserNameUpdated"
+	};
+
 	#endregion
 
 	public static int GetHookTime(uint hook)

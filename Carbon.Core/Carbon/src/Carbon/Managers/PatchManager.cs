@@ -336,7 +336,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			}
 		}
 
-		foreach(var internalHook in HookValidator.IgnoredInternalHooks)
+		foreach(var internalHook in HookCaller.InternalHooks)
 		{
 			HookStringPool.GetOrAdd(internalHook);
 		}
