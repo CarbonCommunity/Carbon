@@ -25,13 +25,15 @@
 	</ItemGroup>
 
 	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec">
-		<WriteLinesToFile File="$(MSBuildProjectDirectory)\src\Carbon\Build.cs" Overwrite="true" Lines="$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\src\Carbon\Build.cs.template')
-			.Replace('[GIT_BRANCH]', '$(GitCommitBranch)')
-			.Replace('[GIT_AUTHOR]', '$(GitCommitAuthor)')
-			.Replace('[GIT_COMMENT]', '$(GitCommitComment)')
-			.Replace('[GIT_DATE]', '$(GitCommitDate)')
-			.Replace('[GIT_URL]', '$(GitCommitUrl)')
-			.Replace('[GIT_ASSET_CHANGES]', '$(GitCommitChanges)'))" />
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)\src\Carbon\Build.cs"
+											Overwrite="true"
+											Lines="$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\src\Carbon\Build.cs.template')
+														.Replace('[GIT_BRANCH]', '$(GitCommitBranch)')
+														.Replace('[GIT_AUTHOR]', '$(GitCommitAuthor)')
+														.Replace('[GIT_COMMENT]', '$(GitCommitComment)')
+														.Replace('[GIT_DATE]', '$(GitCommitDate)')
+														.Replace('[GIT_URL]', '$(GitCommitUrl)')
+														.Replace('[GIT_ASSET_CHANGES]', '$(GitCommitChanges)'))" />
 	</Target>
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">

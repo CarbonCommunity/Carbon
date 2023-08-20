@@ -15,7 +15,7 @@ public class Build
 
 			foreach(var line in lines)
 			{
-				var lineSplit = line.Split('\t');
+				var lineSplit = line.Split(' ');
 				var type = lineSplit[0];
 				var path = lineSplit[1];
 				var changeType = (AssetChange.ChangeTypes)default;
