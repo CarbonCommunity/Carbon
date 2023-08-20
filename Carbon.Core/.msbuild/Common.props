@@ -40,6 +40,7 @@
 		<AssemblyMetadata Include="GitCommitAuthor" Value="$(GitCommitAuthor)" />
 		<AssemblyMetadata Include="GitCommitComment" Value="$(GitCommitComment)" />
 		<AssemblyMetadata Include="GitCommitDate" Value="$(GitCommitDate)" />
+		<AssemblyMetadata Include="GitCommitChanges" Value="$(GitCommitChanges)" />
 	</ItemGroup>
 
 	<Import Project="Configurations.props" />

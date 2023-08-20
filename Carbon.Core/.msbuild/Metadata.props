@@ -30,6 +30,7 @@
 				<GitCommitAuthor>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitauthor').Trim())</GitCommitAuthor>
 				<GitCommitComment>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitcomment').Trim())</GitCommitComment>
 				<GitCommitDate>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitdate').Trim())</GitCommitDate>
+				<GitCommitChanges>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitchanges').Replace("	", " ").Trim())</GitCommitChanges>
 			</PropertyGroup>
 		</When>
 		<Otherwise>
