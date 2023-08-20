@@ -173,6 +173,9 @@ public class CommunityInternal : Community
 
 			Carbon.Client.RPC.Init();
 
+			Community.Runtime.Events.Trigger(
+				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
+
 			IsInitialized = true;
 		}
 		Carbon.Logger.Log($"Loaded.");
