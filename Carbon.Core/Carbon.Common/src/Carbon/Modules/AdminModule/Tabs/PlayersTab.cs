@@ -99,7 +99,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 						ap.SetStorage(tab, "player", player.UserIDString);
 						PermissionsTab.GeneratePlayers(perms, permission, ap);
-						PermissionsTab.GeneratePlugins(perms, ap, permission, permission.FindUser(ap.Player.UserIDString), null);
+						PermissionsTab.GeneratePlugins(perms, ap, permission, permission.FindUser(player.UserIDString), null);
 					}, (ap) => Singleton.HasAccessLevel(player, 3) ? Tab.OptionButton.Types.None : Tab.OptionButton.Types.Important);
 				}
 			}

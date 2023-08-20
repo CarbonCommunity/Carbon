@@ -98,7 +98,8 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 				return;
 			}
 
-			Interface.Call("OnUserGroupAdded", Id, group);
+			// OnUserGroupAdded
+			HookCaller.CallStaticHook(3469176166, Id, group);
 		}
 
 		public void Ban(string reason, TimeSpan duration = default)
@@ -216,7 +217,8 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 					return;
 				}
 
-				Interface.Call("OnUserGroupRemoved", Id, name);
+				// OnUserGroupRemoved
+				HookCaller.CallStaticHook(2616322405, Id, name);
 				return;
 			}
 		}
@@ -274,7 +276,8 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 					return;
 				}
 
-				Interface.Call("OnUserPermissionRevoked", Id, permission);
+				// OnUserPermissionRevoked
+				HookCaller.CallStaticHook(1216290467, Id, permission);
 				return;
 			}
 		}

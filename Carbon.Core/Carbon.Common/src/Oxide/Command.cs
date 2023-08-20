@@ -359,7 +359,8 @@ namespace Oxide.Game.Rust.Libraries
 
 						result = arguments.ToArray();
 
-						if (Interface.CallHook("OnConsoleCommand", arg) == null)
+						// OnConsoleCommand
+						if (HookCaller.CallStaticHook(3219924373, arg) == null)
 						{
 							methodInfo?.Invoke(plugin, result);
 
@@ -406,7 +407,8 @@ namespace Oxide.Game.Rust.Libraries
 					arguments.Add(arg);
 					result = arguments.ToArray();
 
-					if (Interface.CallHook("OnConsoleCommand", arg) == null)
+					// OnConsoleCommand
+					if (HookCaller.CallStaticHook(3219924373, arg) == null)
 					{
 						callback.Invoke(arg);
 
