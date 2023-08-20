@@ -49,13 +49,13 @@ public class Build
 			temp.Clear();
 		}
 
-		public static readonly string Branch = "[GIT_BRANCH]";
+		public static readonly string Branch = @"[GIT_BRANCH]";
 
-		public static readonly string Author = "[GIT_AUTHOR]";
-		public static readonly string Comment = "[GIT_COMMENT]";
-		public static readonly string Date = "[GIT_DATE]";
+		public static readonly string Author = @"[GIT_AUTHOR]";
+		public static readonly string Comment = @"[GIT_COMMENT]";
+		public static readonly string Date = @"[GIT_DATE]";
 
-		public static readonly string Url = "[GIT_URL]";		
+		public static readonly string Url = @"[GIT_URL]";		
 
 		public static readonly AssetChange[] Changes;
 
