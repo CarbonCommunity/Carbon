@@ -22,15 +22,15 @@
 	<Choose>
 		<When Condition="Exists('$(MSBuildProjectDirectory)\bin\.gittag')">
 			<PropertyGroup>
-				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gittag').Trim())</InformationalVersion>
-				<GitCommitBranch>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitbranch').Trim())</GitCommitBranch>
-				<GitCommitHashLong>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitchl').Trim())</GitCommitHashLong>
-				<GitCommitHashShort>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitchs').Trim())</GitCommitHashShort>
-				<GitCommitUrl>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.giturl').Trim())</GitCommitUrl>
-				<GitCommitAuthor>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitauthor').Trim())</GitCommitAuthor>
-				<GitCommitComment>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitcomment').Trim())</GitCommitComment>
-				<GitCommitDate>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitdate').Trim())</GitCommitDate>
-				<GitCommitChanges>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitchanges').Replace("	", " ").Trim())</GitCommitChanges>
+				<GitCommitBranch>$([System.IO.File]::ReadAllText('$(SolutionDir)..\.tmp\.gitbranch').Trim())</GitCommitBranch>
+				<GitCommitHashLong>$([System.IO.File]::ReadAllText('$(SolutionDir)..\.tmp\.gitchl').Trim())</GitCommitHashLong>
+				<GitCommitHashShort>$([System.IO.File]::ReadAllText('$(SolutionDir)..\.tmp\.gitchs').Trim())</GitCommitHashShort>
+				<GitCommitUrl>$([System.IO.File]::ReadAllText('$(SolutionDir)..\.tmp\.giturl').Trim())</GitCommitUrl>
+				<GitCommitAuthor>$([System.IO.File]::ReadAllText('$(SolutionDir)..\.tmp\.gitauthor').Trim())</GitCommitAuthor>
+				<GitCommitComment>$([System.IO.File]::ReadAllText('$(SolutionDir)..\.tmp\.gitcomment').Trim())</GitCommitComment>
+				<GitCommitDate>$([System.IO.File]::ReadAllText('$(SolutionDir)..\.tmp\.gitdate').Trim())</GitCommitDate>
+				<GitCommitChanges>$([System.IO.File]::ReadAllText('$(SolutionDir)..\.tmp\.gitchanges').Replace("	", " ").Trim())</GitCommitChanges>
+				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)-$(GitCommitBranch)-$(GitCommitHashShort))</InformationalVersion>
 			</PropertyGroup>
 		</When>
 		<Otherwise>

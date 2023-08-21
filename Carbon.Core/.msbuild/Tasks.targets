@@ -39,27 +39,27 @@
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHashLong" />
 		</Exec>
 
-		<Exec Condition="$(Configuration.Contains('Unix'))" Command="git show -s --format=%an HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+		<Exec Condition="$(OS.Contains('Unix'))" Command="git show -s --format=%an HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitAuthor" />
 		</Exec>
 		
-		<Exec Condition="!$(Configuration.Contains('Unix'))" Command="git show -s --format=%%an HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+		<Exec Condition="!$(OS.Contains('Unix'))" Command="git show -s --format=%%an HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitAuthor" />
 		</Exec>
 
-		<Exec Condition="$(Configuration.Contains('Unix'))" Command="git log -1 --pretty=%B" ConsoleToMSBuild="true" StandardOutputImportance="low">
+		<Exec Condition="$(OS.Contains('Unix'))" Command="git log -1 --pretty=%B" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitComment" />
 		</Exec>
 
-		<Exec Condition="!$(Configuration.Contains('Unix'))" Command="git log -1 --pretty=%%B" ConsoleToMSBuild="true" StandardOutputImportance="low">
+		<Exec Condition="!$(OS.Contains('Unix'))" Command="git log -1 --pretty=%%B" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitComment" />
 		</Exec>
 
-		<Exec Condition="$(Configuration.Contains('Unix'))" Command="git log -1 --format=%ci HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+		<Exec Condition="$(OS.Contains('Unix'))" Command="git log -1 --format=%ci HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitDate" />
 		</Exec>
 
-		<Exec Condition="!$(Configuration.Contains('Unix'))" Command="git log -1 --format=%%ci HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
+		<Exec Condition="!$(OS.Contains('Unix'))" Command="git log -1 --format=%%ci HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitDate" />
 		</Exec>
 
