@@ -32,7 +32,9 @@
 			.Replace('[GIT_COMMENT]', '$(GitCommitComment)')
 			.Replace('[GIT_DATE]', '$(GitCommitDate)')
 			.Replace('[GIT_URL]', '$(GitCommitUrl)')
-			.Replace('[GIT_ASSET_CHANGES]', '$(GitCommitChanges)'))
+			.Replace('[GIT_ASSET_CHANGES]', '$(GitCommitChanges)')
+			.Replace('[GIT_HASH_SHORT]', '$(GitCommitHashShort)')
+			.Replace('[GIT_HASH_LONG]', '$(GitCommitHashLong)'))
 		</BuildMetadataCode>
 	</PropertyGroup>
 

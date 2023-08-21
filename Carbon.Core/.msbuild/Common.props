@@ -32,17 +32,6 @@
 		<Description>A very lightweight and modular Harmony-based modding framework</Description>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<AssemblyMetadata Include="GitCommitBranch" Value="$(GitCommitBranch)" />
-		<AssemblyMetadata Include="GitCommitHashLong" Value="$(GitCommitHashLong)" />
-		<AssemblyMetadata Include="GitCommitHashShort" Value="$(GitCommitHashShort)" />
-		<AssemblyMetadata Include="GitCommitUrl" Value="$(GitCommitUrl)" />
-		<AssemblyMetadata Include="GitCommitAuthor" Value="$(GitCommitAuthor)" />
-		<AssemblyMetadata Include="GitCommitComment" Value="$(GitCommitComment)" />
-		<AssemblyMetadata Include="GitCommitDate" Value="$(GitCommitDate)" />
-		<AssemblyMetadata Include="GitCommitChanges" Value="$(GitCommitChanges)" />
-	</ItemGroup>
-
 	<Import Project="Configurations.props" />
 	<Import Project="Metadata.props" />
 	<Import Project="References.props" />

@@ -14,6 +14,9 @@
 *.code-workspace
 *.csproj.user
 
+# Code gen
+[Bb]uild.cs
+
 # Oxide autogen hooks
 **/Carbon.Hooks/Carbon.Hooks.Extra/src/Oxide
 
