@@ -61,7 +61,7 @@
 
 		<PropertyGroup>
 			<GitCommitBranch>$(GitCommitBranch)</GitCommitBranch>
-			<GitCommitHashLong>$(GitCommitHashLong.Replace("--long", "").Replace(";", "").Trim())</GitCommitHashLong>
+			<GitCommitHashLong>$(GitCommitHashLong.Replace("--long;", "").Trim())</GitCommitHashLong>
 			<GitCommitHashShort>$(GitCommitHashShort)</GitCommitHashShort>
 			<GitCommitUrl>$(GitCommitUrl)/commit/$(GitCommitHashLong)</GitCommitUrl>
 			<GitCommitAuthor>$(GitCommitAuthor)</GitCommitAuthor>
