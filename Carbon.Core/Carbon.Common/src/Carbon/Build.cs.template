@@ -9,44 +9,51 @@ public class Build
 	{
 		static Git()
 		{
-			var changes = @"[GIT_ASSET_CHANGES]";
-			var newlineSplit = new string[] { Environment.NewLine };
-			var spaceSplit = new char[] { ' ' };
-			var lines = changes.Split(newlineSplit, StringSplitOptions.RemoveEmptyEntries);
-			var temp = new List<AssetChange>();
-
-			foreach(var line in lines)
+			try
 			{
-				var lineSplit = line.Split(spaceSplit);
-				var type = lineSplit[0];
-				var path = lineSplit[1];
-				var changeType = (AssetChange.ChangeTypes)default;
+				var changes = @"[GIT_ASSET_CHANGES]";
+				var newlineSplit = new string[] { Environment.NewLine };
+				var spaceSplit = new char[] { ' ' };
+				var lines = changes.Split(newlineSplit, StringSplitOptions.RemoveEmptyEntries);
+				var temp = new List<AssetChange>();
 
-				switch(type)
+				foreach(var line in lines)
 				{
-					case "A":
-						changeType = AssetChange.ChangeTypes.Added;
-						break;
-					case "M":
-						changeType = AssetChange.ChangeTypes.Modified;
-						break;
-					case "D":
-						changeType = AssetChange.ChangeTypes.Deleted;
-						break;
+					var lineSplit = line.Split(spaceSplit);
+					var type = lineSplit[0];
+					var path = lineSplit[1];
+					var changeType = (AssetChange.ChangeTypes)default;
+
+					switch(type)
+					{
+						case "A":
+							changeType = AssetChange.ChangeTypes.Added;
+							break;
+						case "M":
+							changeType = AssetChange.ChangeTypes.Modified;
+							break;
+						case "D":
+							changeType = AssetChange.ChangeTypes.Deleted;
+							break;
+					}
+
+					temp.Add(new AssetChange(path, changeType));
+
+					Array.Clear(lineSplit, 0, lineSplit.Length);
 				}
 
-				temp.Add(new AssetChange(path, changeType));
+				Changes = temp.ToArray();
 
-				Array.Clear(lineSplit, 0, lineSplit.Length);
+				Array.Clear(lines, 0, lines.Length);
+				Array.Clear(newlineSplit, 0, newlineSplit.Length);
+				Array.Clear(spaceSplit, 0, spaceSplit.Length);
+
+				temp.Clear();
 			}
-
-			Changes = temp.ToArray();
-
-			Array.Clear(lines, 0, lines.Length);
-			Array.Clear(newlineSplit, 0, newlineSplit.Length);
-			Array.Clear(spaceSplit, 0, spaceSplit.Length);
-
-			temp.Clear();
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed processing build commit file changelog.", ex);
+			}
 		}
 
 		public static readonly string Branch = @"[GIT_BRANCH]";
