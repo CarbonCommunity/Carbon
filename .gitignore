@@ -25,5 +25,12 @@
 
 # msbuild stuff
 .tmp
-.gitag
+.gittag
+.gitauthor
+.gitbranch
+.gitchl
+.gitchs
+.gitcomment
+.gitdate
+.giturl
 .rndasm

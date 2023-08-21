@@ -1470,7 +1470,7 @@ public static class HookCaller
 			methodContents += "\t\t\t\tbreak;\n\t\t\t}\n";
 		}
 
-		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.Pooling.HookStringPool.GetOrAdd(hook)}[{hook}]' on plugin '{base.Name} v{base.Version}'\", ex);\n}\nreturn result;";
+		methodContents += "}\n}\ncatch (System.Exception ex)\n{\nCarbon.Logger.Error($\"Failed to call internal hook '{Carbon.Pooling.HookStringPool.GetOrAdd(hook)}' on plugin '{base.Name} v{base.Version}' [{hook}]\", ex);\n}\nreturn result;";
 
 		generatedMethod = SyntaxFactory.MethodDeclaration(
 			SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword).WithTrailingTrivia(SyntaxFactory.Space)),

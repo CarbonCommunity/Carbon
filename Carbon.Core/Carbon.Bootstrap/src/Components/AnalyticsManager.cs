@@ -42,8 +42,8 @@ internal sealed class AnalyticsManager : CarbonBehaviour, IAnalyticsManager
 		return _infoVersion.Value switch
 		{
 			string s when s.Contains("Debug") => "debug",
-			string s when s.Contains("Staging") => "staging",
 			string s when s.Contains("Release") => "release",
+			string s when s.Contains("Minimal") => "minimal",
 			_ => "Unknown"
 		};
 	});

@@ -161,23 +161,21 @@ public class CommunityInternal : Community
 			});
 		}
 
-		Carbon.Logger.Log($"Loading...");
-		{
-			Defines.Initialize();
+		Defines.Initialize();
 
-			InstallProcessors();
+		InstallProcessors();
 
-			Interface.Initialize();
+		Interface.Initialize();
 
-			RefreshConsoleInfo();
+		RefreshConsoleInfo();
 
-			Carbon.Client.RPC.Init();
+		Carbon.Client.RPC.Init();
 
-			Community.Runtime.Events.Trigger(
-				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
+		Community.Runtime.Events.Trigger(
+			CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 
-			IsInitialized = true;
-		}
+		IsInitialized = true;
+
 		Carbon.Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 
