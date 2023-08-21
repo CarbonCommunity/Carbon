@@ -146,12 +146,14 @@ public class HookEx : IDisposable, IHook
 			// then patch each one of them idividually.
 			if (TargetType.IsGenericType)
 			{
-				Type generic = typeof(VehicleEngineController<>);
+				Type generic = TargetType;
 				List<Type> constrains = AccessToolsEx.GetConstraints(generic);
+
+				Logger.Debug($"Generic {generic} matched {constrains.Count} constrains", 2);
 
 				foreach (Type item in AccessToolsEx.MatchConstrains(constrains))
 				{
-					Logger.Debug($"Unrolling generic {generic}[{item}] requested by {type}", 3);
+					Logger.Debug($" > Unrolling generic {generic}[{item}] requested by {type}", 3);
 					Type constructed = generic.MakeGenericType(new Type[] { item });
 					MethodInfo method = AccessTools.Method(constructed, TargetMethod) ?? null;
 					if (method != null) TargetMethods.Add(method);
