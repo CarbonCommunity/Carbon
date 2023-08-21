@@ -11,9 +11,6 @@
 	<ItemGroup>
 	  <None Remove="src\Carbon\Entity\Hook.cs.template" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Compile Include="src\Hook.cs.template" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
