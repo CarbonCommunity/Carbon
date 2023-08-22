@@ -35,7 +35,7 @@
 				<GitCommitComment>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitcomment').Trim())</GitCommitComment>
 				<GitCommitDate>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitdate').Trim())</GitCommitDate>
 				<GitCommitChanges>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchanges').Replace("	", " ").Trim())</GitCommitChanges>
-				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)-$(GitCommitBranch)-$(GitCommitHashShort))</InformationalVersion>
+				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)-$(GitCommitBranch)-$(GitCommitHashShort)</InformationalVersion>
 
 				<BuildMetadataCode>
 					$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\src\Carbon\Build.cs.template')
