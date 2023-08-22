@@ -24,17 +24,33 @@
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
 	</ItemGroup>
 
-	<PropertyGroup>
-		<BuildMetadataCode>
-			$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\src\Carbon\Build.cs.template')
-			.Replace('[GIT_BRANCH]', '$(GitCommitBranch)')
-			.Replace('[GIT_AUTHOR]', '$(GitCommitAuthor)')
-			.Replace('[GIT_COMMENT]', '$(GitCommitComment)')
-			.Replace('[GIT_DATE]', '$(GitCommitDate)')
-			.Replace('[GIT_URL]', '$(GitCommitUrl)')
-			.Replace('[GIT_ASSET_CHANGES]', '$(GitCommitChanges)'))
-		</BuildMetadataCode>
-	</PropertyGroup>
+	<Choose>
+		<When Condition="Exists('$(SolutionDir).tmp\.gitbranch')">
+			<PropertyGroup>
+				<GitCommitBranch>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitbranch').Trim())</GitCommitBranch>
+				<GitCommitHashLong>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchl').Replace("--long", "").Trim())</GitCommitHashLong>
+				<GitCommitHashShort>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchs').Trim())</GitCommitHashShort>
+				<GitCommitUrl>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.giturl').Trim())/commit/$(GitCommitHashLong.Trim())</GitCommitUrl>
+				<GitCommitAuthor>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitauthor').Trim())</GitCommitAuthor>
+				<GitCommitComment>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitcomment').Trim())</GitCommitComment>
+				<GitCommitDate>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitdate').Trim())</GitCommitDate>
+				<GitCommitChanges>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchanges').Replace("	", " ").Trim())</GitCommitChanges>
+				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)-$(GitCommitBranch)-$(GitCommitHashShort))</InformationalVersion>
+
+				<BuildMetadataCode>
+					$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\src\Carbon\Build.cs.template')
+					.Replace('[GIT_BRANCH]', '$(GitCommitBranch)')
+					.Replace('[GIT_AUTHOR]', '$(GitCommitAuthor)')
+					.Replace('[GIT_COMMENT]', '$(GitCommitComment)')
+					.Replace('[GIT_DATE]', '$(GitCommitDate)')
+					.Replace('[GIT_URL]', '$(GitCommitUrl)')
+					.Replace('[GIT_ASSET_CHANGES]', '$(GitCommitChanges)')
+					.Replace('[GIT_HASH_SHORT]', '$(GitCommitHashShort)')
+					.Replace('[GIT_HASH_LONG]', '$(GitCommitHashLong)'))
+				</BuildMetadataCode>
+			</PropertyGroup>
+		</When>
+	</Choose>
 
 	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec">
 		<Message Text="$(BuildMetadataCode)" Importance="high" />
