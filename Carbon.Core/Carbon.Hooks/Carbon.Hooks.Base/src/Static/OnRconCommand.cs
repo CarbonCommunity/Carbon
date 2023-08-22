@@ -29,8 +29,6 @@ public partial class Category_Static
 
 		public class Static_RCon_ccce0832a0eb4c28bc2372f5e0812c7e : Patch
 		{
-			internal static string[] EmptyArgs = new string[0];
-
 			public static bool Prefix(RCon.Command cmd)
 			{
 				if (Community.Runtime == null) return true;
@@ -44,7 +42,7 @@ public partial class Category_Static
 					var split = cmd.Message.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 					var command = split[0].Trim();
 
-					var arguments = split.Length > 1 ? cmd.Message.Substring(command.Length + 1).SplitQuotesStrings() : EmptyArgs;
+					var arguments = split.Length > 1 ? cmd.Message.Substring(command.Length + 1).SplitQuotesStrings() : null;
 
 					if (HookCaller.CallStaticHook(3694352140, cmd.Ip, command, arguments) != null)
 					{
