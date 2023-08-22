@@ -10,6 +10,8 @@ echo "** Get the base path of the script"
 BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 ROOT="$(realpath "${BASE}/../../../")"
 
+"${BASE}/publish_git.sh"
+
 TARGET=${1:-Debug}
 echo "** Set the build target config to ${TARGET}"
 
