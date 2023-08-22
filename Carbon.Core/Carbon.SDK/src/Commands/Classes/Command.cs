@@ -108,10 +108,14 @@ public class Command : IDisposable
 		public virtual void Dispose()
 		{
 			Type = Types.Generic;
-			Array.Clear(Arguments, 0, Arguments.Length);
-			Arguments = null;
 			Reply = null;
 			Token = null;
+
+			if (Arguments != null)
+			{
+				Array.Clear(Arguments, 0, Arguments.Length);
+				Arguments = null;
+			}
 		}
 	}
 
