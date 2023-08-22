@@ -12,7 +12,7 @@ public class Build
 			try
 			{
 				var changes = @"[GIT_ASSET_CHANGES]";
-				var newlineSplit = new string[] { Environment.NewLine };
+				var newlineSplit = new string[] { "\n" };
 				var spaceSplit = new char[] { ' ' };
 				var lines = changes.Split(newlineSplit, StringSplitOptions.RemoveEmptyEntries);
 				var temp = new List<AssetChange>();
@@ -21,7 +21,7 @@ public class Build
 				{
 					var lineSplit = line.Split(spaceSplit);
 					var type = lineSplit[0];
-					var path = lineSplit[1];
+					var path = lineSplit.Skip(1).ToString(" ");
 					var changeType = (AssetChange.ChangeTypes)default;
 
 					switch(type)
@@ -30,6 +30,7 @@ public class Build
 							changeType = AssetChange.ChangeTypes.Added;
 							break;
 						case "M":
+						case "C":
 							changeType = AssetChange.ChangeTypes.Modified;
 							break;
 						case "D":
