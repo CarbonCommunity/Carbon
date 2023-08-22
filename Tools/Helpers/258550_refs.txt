@@ -5,6 +5,7 @@ regex:EZhex1991.EZSoftBone.dll
 regex:Facepunch.BurstCloth.dll
 regex:Facepunch.Console.dll
 regex:Facepunch.Network.dll
+regex:Facepunch.Nexus.dll
 regex:Facepunch.Raknet.dll
 regex:Facepunch.Rcon.dll
 regex:Facepunch.Sqlite.dll
