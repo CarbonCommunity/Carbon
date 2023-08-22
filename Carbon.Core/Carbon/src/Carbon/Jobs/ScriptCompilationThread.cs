@@ -435,12 +435,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	public override void Dispose()
 	{
-		Exceptions.Clear();
-		Warnings.Clear();
+		Exceptions?.Clear();
+		Warnings?.Clear();
 
-		Hooks.Clear();
-		HookMethods.Clear();
-		PluginReferences.Clear();
+		Hooks?.Clear();
+		HookMethods?.Clear();
+		PluginReferences?.Clear();
 
 		Hooks = null;
 		HookMethods = null;

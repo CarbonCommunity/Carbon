@@ -112,7 +112,7 @@ public class ScriptLoader : IScriptLoader
 		for (int i = 0; i < Scripts.Count; i++)
 		{
 			var plugin = Scripts[i];
-			if (plugin.IsCore) continue;
+			if (plugin.IsCore || plugin.Instance == null) continue;
 
 			plugin.Instance.Package.Plugins.Remove(plugin.Instance);
 
@@ -127,7 +127,7 @@ public class ScriptLoader : IScriptLoader
 				catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
 			}
 
-			plugin?.Dispose();
+			plugin.Dispose();
 		}
 
 		if (Scripts.Count > 0)
@@ -436,6 +436,9 @@ public class ScriptLoader : IScriptLoader
 	public void Dispose()
 	{
 		HasFinished = true;
+
+		Scripts.Clear();
+		Scripts = null;
 
 		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
 	}
