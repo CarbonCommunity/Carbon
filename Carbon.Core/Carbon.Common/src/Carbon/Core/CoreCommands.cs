@@ -261,26 +261,6 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-	// DISABLED UNTIL FULLY FUNCTIONAL
-	// [ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
-	// private void Update(ConsoleSystem.Arg arg)
-	// {
-	// 	if (!arg.IsPlayerCalledAndAdmin()) return;
-
-	// 	Updater.DoUpdate((bool result) =>
-	// 	{
-	// 		if (!result)
-	// 		{
-	// 			Logger.Error($"Unknown error while updating Carbon");
-	// 			return;
-	// 		}
-	// 		HookCaller.CallStaticHook("OnServerSave");
-
-	// 		//FIXMENOW
-	// 		//Supervisor.ASM.UnloadModule("Carbon.dll", true);
-	// 	});
-	// }
-
 	#endregion
 
 	#region Conditionals
