@@ -10,47 +10,47 @@ namespace Carbon.Core;
 
 public partial class CorePlugin : CarbonPlugin
 {
-	[CommandVar("recycletick", saved: true)]
+	[CommandVar("recycletick", help: "Configures the recycling ticks speed.", saved: true)]
 	[AuthLevel(2)]
 	public float RecycleTick = -1;
 
-	[CommandVar("researchduration", saved: true)]
+	[CommandVar("researchduration", help: "The duration of waiting whenever researching blueprints.", saved: true)]
 	[AuthLevel(2)]
 	public float ResearchDuration = -1;
 
-	[CommandVar("vendingmachinebuyduration", saved: true)]
+	[CommandVar("vendingmachinebuyduration", help: "The duration of transaction delay when buying from vending machines.", saved: true)]
 	[AuthLevel(2)]
 	public float VendingMachineBuyDuration = -1;
 
-	[CommandVar("craftingspeedmultiplier", saved: true)]
+	[CommandVar("craftingspeedmultiplier", help: "The time multiplier of crafting items.", saved: true)]
 	[AuthLevel(2)]
 	public float CraftingSpeedMultiplier = -1;
 
-	[CommandVar("mixingspeedmultiplier", saved: true)]
+	[CommandVar("mixingspeedmultiplier", help: "The speed multiplier of mixing table crafts.", saved: true)]
 	[AuthLevel(2)]
 	public float MixingSpeedMultiplier = -1;
 
-	[CommandVar("exacavatorresourcetickrate", saved: true)]
+	[CommandVar("exacavatorresourcetickrate", help: "Excavator resource tick rate.", saved: true)]
 	[AuthLevel(2)]
 	public float ExcavatorResourceTickRate = -1;
 
-	[CommandVar("excavatortimeforfullresources", saved: true)]
+	[CommandVar("excavatortimeforfullresources", help: "Excavator time for processing full resources.", saved: true)]
 	[AuthLevel(2)]
 	public float ExcavatorTimeForFullResources = -1;
 
-	[CommandVar("excavatorbeltspeedmax", saved: true)]
+	[CommandVar("excavatorbeltspeedmax", help: "Excavator belt maximum speed.", saved: true)]
 	[AuthLevel(2)]
 	public float ExcavatorBeltSpeedMax = -1;
 
-	[CommandVar("defaultserverchatname", saved: true)]
+	[CommandVar("defaultserverchatname", help: "Default server chat name.", saved: true)]
 	[AuthLevel(2)]
 	public string DefaultServerChatName = "-1";
 
-	[CommandVar("defaultserverchatcolor", saved: true)]
+	[CommandVar("defaultserverchatcolor", help: "Default server chat message name color.", saved: true)]
 	[AuthLevel(2)]
 	public string DefaultServerChatColor = "-1";
 
-	[CommandVar("defaultserverchatid", saved: true)]
+	[CommandVar("defaultserverchatid", help: "Default server chat icon SteamID.", saved: true)]
 	[AuthLevel(2)]
 	public long DefaultServerChatId = -1;
 
