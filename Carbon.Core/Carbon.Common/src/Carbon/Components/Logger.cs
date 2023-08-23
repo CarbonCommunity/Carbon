@@ -20,11 +20,11 @@ public sealed class Logger : ILogger
 	public static Action<string, int> OnNoticeCallback { get; set; }
 	public static Action<string, int> OnDebugCallback { get; set; }
 
-	internal static string GetDate()
+	public static string GetDate()
 	{
 		return DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss");
 	}
-	internal static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1, bool nativeLog = true)
+	public static void Write(Severity severity, object message, Exception ex = null, int verbosity = 1, bool nativeLog = true)
 	{
 		CoreLog ??= new("Carbon.Core");
 		CoreLog.Init(backup: true);
