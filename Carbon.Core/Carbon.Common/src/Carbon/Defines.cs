@@ -150,7 +150,7 @@ public class Defines
 	public static string GetLangFolder()
 	{
 		_initializeCommandLine();
-		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customDataFolder) ? Path.Combine(GetRootFolder(), "lang") : _customDataFolder);
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customLangFolder) ? Path.Combine(GetRootFolder(), "lang") : _customLangFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;

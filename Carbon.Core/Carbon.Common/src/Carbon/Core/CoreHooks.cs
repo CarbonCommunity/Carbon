@@ -15,7 +15,6 @@ namespace Carbon.Core;
 public partial class CorePlugin : CarbonPlugin
 {
 	internal static bool _isPlayerTakingDamage = false;
-	internal readonly string[] _emptyStringArray = new string[0];
 
 	#region Connection
 
@@ -272,7 +271,7 @@ public partial class CorePlugin : CarbonPlugin
 
 			var split = fullString.Split(ConsoleArgEx.CommandSpacing, StringSplitOptions.RemoveEmptyEntries);
 			var command = split[0].Trim();
-			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString[(command.Length + 1)..]) : _emptyStringArray;
+			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString[(command.Length + 1)..]) : null;
 			Array.Clear(split, 0, split.Length);
 
 			if (HookCaller.CallStaticHook(1077563450, player, command, args) != null)

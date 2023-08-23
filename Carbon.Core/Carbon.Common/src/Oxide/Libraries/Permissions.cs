@@ -41,12 +41,13 @@ public class Permission : Library
 		CleanUp();
 	}
 
-	public static char[] Star = new char[] { '*' };
-	public static string[] EmptyStringArray = new string[0];
+	internal readonly static char[] Star = new char[] { '*' };
+	internal readonly static string[] EmptyStringArray = new string[0];
 
-	private readonly Dictionary<BaseHookable, HashSet<string>> permset;
-	internal Dictionary<string, UserData> userdata = new();
-	internal Dictionary<string, GroupData> groupdata = new();
+	public Dictionary<string, UserData> userdata = new();
+	public Dictionary<string, GroupData> groupdata = new();
+	public readonly Dictionary<BaseHookable, HashSet<string>> permset;
+
 	private Func<string, bool> validate;
 
 	internal static readonly UserData _blankUser = new();

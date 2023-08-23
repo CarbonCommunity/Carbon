@@ -152,6 +152,11 @@ public class CommunityInternal : Community
 				ReloadPlugins();
 			}
 		});
+		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
+		{
+			Events.Trigger(
+				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
+		});
 
 		if (ConVar.Global.skipAssetWarmup_crashes)
 		{
@@ -171,8 +176,6 @@ public class CommunityInternal : Community
 
 		Carbon.Client.RPC.Init();
 
-		Community.Runtime.Events.Trigger(
-			CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 
 		IsInitialized = true;
 

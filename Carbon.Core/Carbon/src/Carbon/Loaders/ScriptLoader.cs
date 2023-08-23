@@ -114,19 +114,16 @@ public class ScriptLoader : IScriptLoader
 			var plugin = Scripts[i];
 			if (plugin.IsCore || plugin.Instance == null) continue;
 
-			plugin.Instance.Package.Plugins.Remove(plugin.Instance);
+			plugin.Instance.Package?.Plugins?.Remove(plugin.Instance);
 
 			if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
 
-			if (plugin.Instance != null)
+			try
 			{
-				try
-				{
-					ModLoader.UninitializePlugin(plugin.Instance);
-				}
-				catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
+				ModLoader.UninitializePlugin(plugin.Instance);
 			}
-
+			catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
+			
 			plugin.Dispose();
 		}
 
@@ -371,7 +368,21 @@ public class ScriptLoader : IScriptLoader
 
 				if (ModLoader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
 					{
+						Scripts.Add(plugin);
+						p.HasConditionals = Source.Contains("#if ");
+						p.IsExtension = IsExtension;
+#if DEBUG
+						p.CompileWarnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
+						{
+							Message = x.Error.ErrorText,
+							Number = x.Error.ErrorNumber,
+							Column = x.Error.Column,
+							Line = x.Error.Line
+						}).ToArray();
+#endif
+
 						p.ProcessorInstance = Instance;
+						plugin.IsCore = IsCore;
 
 						p.Hooks = AsyncLoader.Hooks[type];
 						p.HookMethods = AsyncLoader.HookMethods[type];
@@ -385,29 +396,17 @@ public class ScriptLoader : IScriptLoader
 						p.FileName = AsyncLoader.FileName;
 					}))
 				{
-					rustPlugin.HasConditionals = Source.Contains("#if ");
-					rustPlugin.IsExtension = IsExtension;
-#if DEBUG
-					rustPlugin.CompileWarnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
-					{
-						Message = x.Error.ErrorText,
-						Number = x.Error.ErrorNumber,
-						Column = x.Error.Column,
-						Line = x.Error.Line
-					}).ToArray();
-#endif
+					plugin.Instance = rustPlugin;
 
 					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, new CarbonEventArgs(rustPlugin));
 
-					plugin.Instance = rustPlugin;
-					plugin.IsCore = IsCore;
-
 					ModLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
-					Scripts.Add(plugin);
 
 					Carbon.Components.Report.OnPluginCompiled?.Invoke(plugin.Instance);
 
 					Plugin.InternalApplyAllPluginReferences();
+
+					// OnPluginLoaded
 					HookCaller.CallStaticHook(4143864509, rustPlugin);
 				}
 			}

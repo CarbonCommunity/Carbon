@@ -215,6 +215,8 @@ public static class ModLoader
 			plugin.InternalCallHookOverriden = false;
 		}
 
+		package?.Plugins.Add(plugin);
+
 		preInit?.Invoke(plugin);
 
 		plugin.ILoadConfig();
@@ -222,7 +224,6 @@ public static class ModLoader
 		plugin.IInit();
 		plugin.Load();
 
-		package?.Plugins.Add(plugin);
 		ProcessCommands(type, plugin);
 
 		Logger.Log($"Loaded plugin {plugin.ToString()} [{plugin.CompileTime:0}ms]");
