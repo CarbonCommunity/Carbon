@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Carbon.Base;
+using Carbon.Core;
 using Carbon.Extensions;
 using ConVar;
 using Newtonsoft.Json;
@@ -176,7 +177,10 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 	private object OnServerMessage(string message, string name)
 	{
-		if (!ConfigInstance.NoGiveNotices || !(name == "SERVER" && message.Contains("gave"))) return null;
+		var core = Community.Runtime.CorePlugin.To<CorePlugin>();
+		var defaultName = core.DefaultServerChatName != "-1" ? core.DefaultServerChatName : "SERVER";
+
+		if (!ConfigInstance.NoGiveNotices || !(name == defaultName && message.Contains("gave"))) return null;
 
 		return true;
 	}
