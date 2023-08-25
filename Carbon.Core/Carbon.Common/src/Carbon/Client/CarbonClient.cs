@@ -37,11 +37,9 @@ public class CarbonClient : ICommunication, IDisposable
 
 	#region Methods
 
-	public bool Send(string rpcString, IPacket packet = default, bool checks = true)
+	public bool Send(RPC rpc, IPacket packet = default, bool checks = true)
 	{
 		if (checks && !IsValid()) return false;
-
-		var rpc = RPC.Get(rpcString);
 
 		try
 		{
@@ -79,7 +77,11 @@ public class CarbonClient : ICommunication, IDisposable
 			return;
 		}
 
-		if (client.HasCarbonClient) return;
+		if (client.HasCarbonClient)
+		{
+			Logger.Warn($"Already connected with Carbon for client {client.Connection?.username}[{client.Connection?.userid}].");
+			return;
+		}
 
 		client.Send(RPC.Get("ping"), RPCList.Get(), checks: false);
 	}

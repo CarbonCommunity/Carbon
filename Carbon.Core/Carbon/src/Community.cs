@@ -176,7 +176,6 @@ public class CommunityInternal : Community
 
 		Carbon.Client.RPC.Init();
 
-
 		IsInitialized = true;
 
 		Carbon.Logger.Log($"Loaded.");

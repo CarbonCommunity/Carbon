@@ -43,6 +43,9 @@ public struct RPC
 
 				var name = $"{DOMAIN}{attr.Id}";
 				var id = StringPool.Add(name);
+#if DEBUG
+				Console.WriteLine($"Registed client RPC '{name}[{id}]'");
+#endif
 				rpcList.Add(new RPC
 				{
 					Id = id,
