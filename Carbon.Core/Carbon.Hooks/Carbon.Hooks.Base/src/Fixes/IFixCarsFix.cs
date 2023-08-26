@@ -52,10 +52,12 @@ public partial class Category_Fixes
 					{
 						case BaseVehicle vehicle:
 							vehicle.AdminFixUp(tier);
+							count++;
 							break;
 
 						case MLRS mlrs:
 							mlrs.AdminFixUp();
+							count++;
 							break;
 					}
 				}
