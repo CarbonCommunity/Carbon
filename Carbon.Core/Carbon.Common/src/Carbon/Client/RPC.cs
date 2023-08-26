@@ -51,7 +51,6 @@ public struct RPC
 					Id = id,
 					Name = name
 				});
-
 				_cache.Add(id, (player, msg) =>
 				{
 					_argBuffer[0] = player;
@@ -106,26 +105,6 @@ public struct RPC
 		}
 
 		return null;
-	}
-
-	[Method("pong")]
-	private static void Pong(BasePlayer player, Network.Message message)
-	{
-		var client = CarbonClient.Get(player);
-
-		if (client.HasCarbonClient)
-		{
-			Logger.Warn($"Player '{player.Connection}' attempted registering twice.");
-			return;
-		}
-
-		var result = CarbonClient.Receive<RPCList>(message);
-		result.Sync();
-		result.Dispose();
-
-		client.HasCarbonClient = true;
-		client.Send(RPC.Get("clientinfo"));
-		Logger.Log($"{client.Connection} joined with Carbon client");
 	}
 
 	[AttributeUsage(AttributeTargets.Method)]

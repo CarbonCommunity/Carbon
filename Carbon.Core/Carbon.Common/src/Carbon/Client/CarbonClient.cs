@@ -21,20 +21,6 @@ public class CarbonClient : ICommunication, IDisposable
 	public int ScreenWidth { get;set; }
 	public int ScreenHeight { get;set; }
 
-	#region RPCs
-
-	[Method("clientinfo")]
-	private static void ClientInfo(BasePlayer player, Network.Message message)
-	{
-		var info = Receive<ClientInfo>(message);
-		var client = Get(player);
-
-		client.ScreenWidth = info.ScreenWidth;
-		client.ScreenHeight = info.ScreenHeight;
-	}
-
-	#endregion
-
 	#region Methods
 
 	public bool Send(RPC rpc, IPacket packet = default, bool checks = true)
@@ -43,20 +29,15 @@ public class CarbonClient : ICommunication, IDisposable
 
 		try
 		{
-			if (packet == null) CommunityEntity.ServerInstance.ClientRPCEx(new SendInfo(Connection), null, rpc.Name);
-			else CommunityEntity.ServerInstance.ClientRPCEx(new SendInfo(Connection), null, rpc.Name, JsonConvert.SerializeObject(packet.Serialize()));
-
-			// return true;
-			// 
-			// var write = Net.sv.StartWrite();
-			// write.PacketID(Message.Type.RPCMessage);
-			// write.EntityID(CommunityEntity.ServerInstance.net.ID);
-			// write.UInt32(rpc.Id);
-			// if (packet != null) write.BytesWithSize(packet.Serialize());
-			// write.Send(new SendInfo(Connection)
-			// {
-			// 	priority = Network.Priority.Immediate
-			// });
+			if (packet == null)
+			{
+				CommunityEntity.ServerInstance.ClientRPCEx(new SendInfo(Connection), null, rpc.Name);
+			}
+			else
+			{
+				var bytes = packet.Serialize();
+				CommunityEntity.ServerInstance.ClientRPCEx(new SendInfo(Connection), null, rpc.Name, bytes.Length, bytes);
+			}
 		}
 		catch (Exception ex)
 		{
@@ -66,6 +47,10 @@ public class CarbonClient : ICommunication, IDisposable
 		}
 
 		return true;
+	}
+	public bool Send(string rpc, IPacket packet = default, bool checks = true)
+	{
+		return Send(RPC.Get(rpc), packet, checks);
 	}
 	public static void SendPing(Network.Connection connection)
 	{
@@ -83,18 +68,16 @@ public class CarbonClient : ICommunication, IDisposable
 			return;
 		}
 
-		client.Send(RPC.Get("ping"), RPCList.Get(), checks: false);
+		client.Send("ping", RPCList.Get(), checks: false);
 	}
 	public static T Receive<T>(Network.Message message)
 	{
-		using var ms = new MemoryStream(JsonConvert.DeserializeObject<byte[]>(message.read.StringRaw()));
-		var array = ms.ToArray();
-		return Serializer.Deserialize<T>(new ReadOnlySpan<byte>(array, 0, array.Length));
-
-		// if (!message.read.TemporaryBytesWithSize(out var buffer, out var length)) return default;
-		// 
-		// using var ms = new MemoryStream(buffer);
-		// return Serializer.Deserialize<T>(new ReadOnlySpan<byte>(ms.ToArray(), 0, length));
+		if (!message.read.TemporaryBytesWithSize(out var buffer, out var length))
+		{
+			return default;
+		}
+		
+		return Serializer.Deserialize<T>(new ReadOnlySpan<byte>(buffer, 0, length));
 	}
 
 	#endregion
