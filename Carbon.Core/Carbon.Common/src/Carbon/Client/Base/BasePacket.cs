@@ -10,6 +10,7 @@ namespace Carbon.Client;
 [ProtoInclude(11, typeof(ClientInfo))]
 [ProtoInclude(12, typeof(ItemDefinitionUpdate))]
 [ProtoInclude(13, typeof(ClientModifications))]
+[ProtoInclude(14, typeof(HookCall))]
 public class BasePacket : IPacket, IDisposable
 {
 	public static T Deserialize<T>(NetRead reader)

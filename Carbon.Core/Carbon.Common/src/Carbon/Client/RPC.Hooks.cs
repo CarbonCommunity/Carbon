@@ -48,4 +48,11 @@ public class RPCHooks
 		client.ScreenHeight = info.ScreenHeight;
 	}
 
+	[RPC.Method("hookcall")]
+	private static void HookCall(BasePlayer player, Network.Message message)
+	{
+		var info = CarbonClient.Receive<HookCall>(message);
+
+		Interface.CallHook(info.Hook, player);
+	}
 }
