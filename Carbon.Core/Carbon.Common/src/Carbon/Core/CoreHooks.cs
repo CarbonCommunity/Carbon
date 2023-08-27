@@ -182,16 +182,18 @@ public partial class CorePlugin : CarbonPlugin
 	}
 	private void OnPlayerSetInfo(Connection connection, string key, string val)
 	{
-		if (key == "global.language")
+		switch (key)
 		{
-			lang.SetLanguage(val, connection.userid.ToString());
+			case "global.language":
+				lang.SetLanguage(val, connection.userid.ToString());
 
-			if (connection.player is BasePlayer player)
-			{
-				// OnPlayerLanguageChanged
-				HookCaller.CallStaticHook(1960580409, player, val);
-				HookCaller.CallStaticHook(1960580409, player.AsIPlayer(), val);
-			}
+				if (connection.player is BasePlayer player)
+				{
+					// OnPlayerLanguageChanged
+					HookCaller.CallStaticHook(1960580409, player, val);
+					HookCaller.CallStaticHook(1960580409, player.AsIPlayer(), val);
+				}
+				break;
 		}
 	}
 
