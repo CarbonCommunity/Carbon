@@ -252,7 +252,7 @@ public class HotloadableAttribute : Attribute
 
 }
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.All)]
 [MeansImplicitUse]
 public class Conditional : Attribute
 {

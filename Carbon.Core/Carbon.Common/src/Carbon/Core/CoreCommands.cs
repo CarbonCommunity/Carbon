@@ -1478,6 +1478,7 @@ public partial class CorePlugin : CarbonPlugin
 
 	#region Profiling
 
+	[Conditional("DEBUG")]
 	[ConsoleCommand("beginprofile", "Starts profiling the server.")]
 	[AuthLevel(2)]
 	private void BeginProfile(ConsoleSystem.Arg arg)
@@ -1493,6 +1494,7 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith("Began profiling...");
 	}
 
+	[Conditional("DEBUG")]
 	[ConsoleCommand("endprofile", "Ends profiling the server and asynchronously writes it to disk.")]
 	[AuthLevel(2)]
 	private void EndProfile(ConsoleSystem.Arg arg)
