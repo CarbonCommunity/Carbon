@@ -77,7 +77,7 @@ namespace Oxide.Game.Rust.Libraries
 						}
 					}
 
-					if (player.Connection.authLevel <= 1 && CarbonPlugin.IsCommandCooledDown(player, cmd.Name, authenticatedCommand.Auth.Cooldown, out var timeLeft, true))
+					if (!(Community.Runtime.Config.BypassAdminCooldowns && player.Connection.authLevel > 1) && CarbonPlugin.IsCommandCooledDown(player, cmd.Name, authenticatedCommand.Auth.Cooldown, out var timeLeft, true))
 					{
 						player.ChatMessage($"You're cooled down. Please wait {TimeEx.Format(timeLeft).ToLower()}.");
 						return false;

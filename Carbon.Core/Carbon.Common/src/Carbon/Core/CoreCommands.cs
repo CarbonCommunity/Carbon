@@ -431,6 +431,10 @@ public partial class CorePlugin : CarbonPlugin
 	[AuthLevel(2)]
 	private string Language { get { return Community.Runtime.Config.Language; } set { Community.Runtime.Config.Language = value; Community.Runtime.SaveConfig(); } }
 
+	[CommandVar("bypassadmincooldowns", "Bypasses the command cooldowns for admin-authed players.")]
+	[AuthLevel(2)]
+	private bool BypassAdminCooldowns { get { return Community.Runtime.Config.BypassAdminCooldowns; } set { Community.Runtime.Config.BypassAdminCooldowns = value; Community.Runtime.SaveConfig(); } }
+
 #if WIN
 	[CommandVar("consoleinfo", "Show the Windows-only Carbon information at the bottom of the console.")]
 	[AuthLevel(2)]
