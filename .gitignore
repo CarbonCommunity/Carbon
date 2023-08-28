@@ -16,6 +16,7 @@
 
 # Code gen
 [Bb]uild.cs
+[Gg]enerated/
 
 # Oxide autogen hooks
 **/Carbon.Hooks/Carbon.Hooks.Extra/src/Oxide
