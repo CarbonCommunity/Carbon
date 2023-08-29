@@ -143,6 +143,7 @@ public class CommunityInternal : Community
 			if (lines != null)
 			{
 				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
+				CommandLine.ExecuteCommands(lines, apiRegisteredCmdsOnly: true);
 				Array.Clear(lines, 0, lines.Length);
 				lines = null;
 			}
