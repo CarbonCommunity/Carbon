@@ -100,6 +100,39 @@ public class Entities : IDisposable
 
 		return map;
 	}
+	public static Map<BaseEntity> GetAll(bool inherited = false)
+	{
+		var map = new Map<BaseEntity>
+		{
+			Pool = Facepunch.Pool.GetList<BaseEntity>()
+		};
+
+		if (inherited)
+		{
+			foreach (var entry in Mapping)
+			{
+				if (entry.Key.IsSubclassOf(typeof(BaseEntity)))
+				{
+					foreach (var entity in entry.Value)
+					{
+						map.Pool.Add(entity);
+					}
+				}
+			}
+		}
+		else
+		{
+			if (Mapping.TryGetValue(typeof(BaseEntity), out var mapping))
+			{
+				foreach (var entity in mapping)
+				{
+					if (entity is BaseEntity result) map.Pool.Add(result);
+				}
+			}
+		}
+
+		return map;
+	}
 	public static T GetOne<T>(bool inherited = false) where T : BaseEntity
 	{
 		using (var map = Get<T>(inherited))
