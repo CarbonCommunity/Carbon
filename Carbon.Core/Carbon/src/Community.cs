@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using API.Events;
 using Carbon.Components;
 using Carbon.Core;
@@ -132,10 +133,16 @@ public class CommunityInternal : Community
 			ClearCommands();
 			_installDefaultCommands();
 			ModuleProcessor.Init();
+
+			Events.Trigger(
+				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		});
 
 		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
 		{
+			Logger.Log($"is IOnServerCommand loaded? {HookManager.IsHookLoaded("IOnServerCommand")}");
+			Logger.Log($"is OnServerCommand loaded? {HookManager.IsHookLoaded("OnServerCommand")}");
+			Logger.Log($"{HookManager.InstalledPatches.Count()} {HookManager.InstalledStaticHooks.Count()} {HookManager.LoadedStaticHooks.Count()}");
 			CommandLine.ExecuteCommands("+carbon.onboot", "Carbon boot");
 
 			var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
@@ -143,7 +150,7 @@ public class CommunityInternal : Community
 			if (lines != null)
 			{
 				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
-				CommandLine.ExecuteCommands(lines, apiRegisteredCmdsOnly: true);
+				CommandLine.ExecuteCommands(lines);
 				Array.Clear(lines, 0, lines.Length);
 				lines = null;
 			}
@@ -152,11 +159,6 @@ public class CommunityInternal : Community
 			{
 				ReloadPlugins();
 			}
-		});
-		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
-		{
-			Events.Trigger(
-				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		});
 
 		if (ConVar.Global.skipAssetWarmup_crashes)
@@ -175,11 +177,11 @@ public class CommunityInternal : Community
 
 		RefreshConsoleInfo();
 
-		Carbon.Client.RPC.Init();
+		Client.RPC.Init();
 
 		IsInitialized = true;
 
-		Carbon.Logger.Log($"Loaded.");
+		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 
 		Entities.Init();

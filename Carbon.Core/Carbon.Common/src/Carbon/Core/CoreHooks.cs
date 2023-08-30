@@ -277,11 +277,13 @@ public partial class CorePlugin : CarbonPlugin
 			var args = split.Length > 1 ? Facepunch.Extend.StringExtensions.SplitQuotesStrings(fullString[(command.Length + 1)..]) : _emptyStringArray;
 			Array.Clear(split, 0, split.Length);
 
+			// OnUserCommand
 			if (HookCaller.CallStaticHook(1077563450, player, command, args) != null)
 			{
 				return false;
 			}
 
+			// OnUserCommand
 			if (HookCaller.CallStaticHook(2623980812, player.AsIPlayer(), command, args) != null)
 			{
 				return false;
@@ -296,6 +298,8 @@ public partial class CorePlugin : CarbonPlugin
 				commandArgs.PrintOutput = true;
 
 				Community.Runtime.CommandManager.Execute(cmd, commandArgs);
+
+				commandArgs.Dispose();
 				Facepunch.Pool.Free(ref commandArgs);
 				return false;
 			}
@@ -313,6 +317,7 @@ public partial class CorePlugin : CarbonPlugin
 	{
 		if (arg != null && arg.cmd != null && arg.Player() != null && arg.cmd.FullName == "chat.say") return null;
 
+		// OnServerCommand
 		if (HookCaller.CallStaticHook(3282920085, arg) == null)
 		{
 			return null;
