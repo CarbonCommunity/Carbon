@@ -87,7 +87,7 @@ public partial class CorePlugin : CarbonPlugin
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}", $"{plugin.CompileTime:0}ms", $"{TimeEx.Format(plugin.Runtime)}");
+							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}", plugin.IsPrecompiled ? "precomp" : $"{plugin.CompileTime:0}ms", $"{TimeEx.Format(plugin.Runtime)}");
 						}
 
 						count++;
