@@ -56,15 +56,19 @@ public class BaseHookable
 	[JsonProperty]
 	public double TotalMemoryUsed { get; internal set; }
 
-	public bool HasInitialized;
-	public Type Type;
-	public bool InternalCallHookOverriden = true;
+	[JsonProperty]
+	public double Runtime => (DateTime.Now - new DateTime(_initializationTick)).TotalSeconds;
+
+	public bool HasInitialized { get; internal set; }
+	public Type Type { get; internal set; }
+	public bool InternalCallHookOverriden { get; internal set; } = true;
 
 	#region Tracking
 
 	internal Stopwatch _trackStopwatch = new();
 	internal long _currentMemory;
 	internal int _currentGcCount;
+	internal long _initializationTick = DateTime.Now.Ticks;
 
 	public static long CurrentMemory => GC.GetTotalMemory(false);
 	public static int CurrentGcCount => GC.CollectionCount(0);

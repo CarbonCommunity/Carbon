@@ -577,9 +577,9 @@ public class Permission : Library
 			return false;
 		}
 
-		foreach(var group in GetUserData(id).Groups)
+		foreach (var group in GetUserData(id).Groups)
 		{
-			if(group.Equals(name, StringComparison.OrdinalIgnoreCase))
+			if (group.Equals(name, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}
