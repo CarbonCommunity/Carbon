@@ -140,9 +140,6 @@ public class CommunityInternal : Community
 
 		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
 		{
-			Logger.Log($"is IOnServerCommand loaded? {HookManager.IsHookLoaded("IOnServerCommand")}");
-			Logger.Log($"is OnServerCommand loaded? {HookManager.IsHookLoaded("OnServerCommand")}");
-			Logger.Log($"{HookManager.InstalledPatches.Count()} {HookManager.InstalledStaticHooks.Count()} {HookManager.LoadedStaticHooks.Count()}");
 			CommandLine.ExecuteCommands("+carbon.onboot", "Carbon boot");
 
 			var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
