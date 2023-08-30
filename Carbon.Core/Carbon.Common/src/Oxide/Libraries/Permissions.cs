@@ -420,7 +420,10 @@ public class Permission : Library
 	}
 	public virtual bool GroupHasPermission(string name, string perm)
 	{
-		return GroupExists(name) && !string.IsNullOrEmpty(perm) && groupdata.TryGetValue(name.ToLower(), out var groupData) && (groupData.Perms.Contains(perm.ToLower()) || GroupHasPermission(groupData.ParentGroup, perm));
+		name = name?.ToLower();
+		perm = perm?.ToLower();
+
+		return GroupExists(perm) && !string.IsNullOrEmpty(perm) && groupdata.TryGetValue(name, out var groupData) && (groupData.Perms.Contains(perm) || GroupHasPermission(groupData.ParentGroup, perm));
 	}
 	public virtual bool UserHasPermission(string id, string perm)
 	{
