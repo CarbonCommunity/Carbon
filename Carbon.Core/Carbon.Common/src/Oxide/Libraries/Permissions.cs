@@ -408,7 +408,15 @@ public class Permission : Library
 	}
 	public virtual bool GroupsHavePermission(HashSet<string> groups, string perm)
 	{
-		return groups.Any((string group) => GroupHasPermission(group, perm));
+		foreach (var group in groups)
+		{
+			if (GroupHasPermission(group, perm))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 	public virtual bool GroupHasPermission(string name, string perm)
 	{
