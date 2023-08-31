@@ -142,21 +142,6 @@ public class Community
 				);
 			});
 
-			Events.Subscribe(CarbonEvent.AllPluginsLoaded, args =>
-			{
-				Analytics.LogEvent("on_server_initialized",
-					segments: Analytics.Segments,
-					metrics: new Dictionary<string, object> {
-						{ "plugin_count", ModLoader.LoadedPackages.Sum(x => x.Plugins.Count) },
-						{ "plugins_totalmemoryused", $"{ByteEx.Format(ModLoader.LoadedPackages.Sum(x => x.Plugins.Sum(y => y.TotalMemoryUsed)), valueFormat: "0", stringFormat: "{0}{1}").ToLower()}" },
-						{ "plugins_totalhooktime", $"{ModLoader.LoadedPackages.Sum(x => x.Plugins.Sum(y => y.TotalHookTime)).RoundUpToNearestCount(100):0}ms" },
-						{ "extension_count", AssemblyEx.Extensions.Loaded.Count },
-						{ "module_count", AssemblyEx.Modules.Loaded.Count },
-						{ "hook_count", Runtime.HookManager.LoadedDynamicHooks.Count(x => x.IsInstalled) + Runtime.HookManager.LoadedStaticHooks.Count(x => x.IsInstalled) }
-					}
-				);
-			});
-
 			var newlineSplit = new char[] { '\n' };
 
 			Application.logMessageReceived += (string condition, string stackTrace, LogType type) =>

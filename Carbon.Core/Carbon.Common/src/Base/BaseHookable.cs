@@ -57,7 +57,7 @@ public class BaseHookable
 	public double TotalMemoryUsed { get; internal set; }
 
 	[JsonProperty]
-	public double Runtime => _initializationTime;
+	public double Uptime => _initializationTime;
 
 	public bool HasInitialized { get; internal set; }
 	public Type Type { get; internal set; }

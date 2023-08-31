@@ -76,7 +76,7 @@ public partial class CorePlugin : CarbonPlugin
 
 				// Loaded plugins
 				{
-					using var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Memory Usage", "Compile Time", "Runtime");
+					using var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Memory Usage", "Compile Time", "Uptime");
 					var count = 1;
 
 					foreach (var mod in ModLoader.LoadedPackages)
@@ -101,7 +101,7 @@ public partial class CorePlugin : CarbonPlugin
 #endif
 							var hookTimeAverage = Mathf.RoundToInt(hookTimeAverageValue) == 0 ? string.Empty : $" (avg {hookTimeAverageValue:0}ms)";
 							var memoryAverage = Mathf.RoundToInt(memoryAverageValue) == 0 ? string.Empty : $" (avg {ByteEx.Format(memoryAverageValue, shortName: true, stringFormat: "{0}{1}").ToLower()})";
-							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms{hookTimeAverage}", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}{memoryAverage}", plugin.IsPrecompiled ? string.Empty : $"{plugin.CompileTime:0}ms", $"{TimeEx.Format(plugin.Runtime)}");
+							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms{hookTimeAverage}", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}{memoryAverage}", plugin.IsPrecompiled ? string.Empty : $"{plugin.CompileTime:0}ms", $"{TimeEx.Format(plugin.Uptime)}");
 						}
 
 						count++;

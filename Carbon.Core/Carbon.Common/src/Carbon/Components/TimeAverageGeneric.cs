@@ -61,7 +61,7 @@ public class HookTimeAverage : TimeAverageGeneric<double>
 
 	public override double CalculateTotal()
 	{
-		using (TimeMeasure.New($"CalculateTotal<{typeof(double)}"))
+		using (TimeMeasure.New($"CalculateTotal<{typeof(double)}>"))
 		{
 			TotalValue = 0f;
 
@@ -108,7 +108,7 @@ public class MemoryAverage : TimeAverageGeneric<long>
 	{
 		Calibrate();
 
-		using (TimeMeasure.New($"CalculateTotal<{typeof(long)}"))
+		using (TimeMeasure.New($"CalculateTotal<{typeof(long)}>"))
 		{
 			TotalValue = 0;
 

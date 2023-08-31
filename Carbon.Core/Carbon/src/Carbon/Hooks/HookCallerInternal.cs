@@ -273,9 +273,8 @@ public class HookCallerInternal : HookCallerCommon
 								segments: Community.Runtime.Analytics.Segments,
 								metrics: new Dictionary<string, object>
 								{
-									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}" },
-									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
-									{ "hasgc", plugin.HasGCCollected }
+									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}) [{TimeEx.Format(basePlugin.Uptime)} uptime]" },
+									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms{(plugin.HasGCCollected ? " [GC]" : string.Empty)}" },
 								});
 						}
 					}
