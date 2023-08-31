@@ -24,6 +24,7 @@ public class Config
 	public int LogFileMode { get; set; } = 2;
 	public int LogVerbosity { get; set; } = 0;
 	public bool BypassAdminCooldowns { get; set; } = false;
+	public float PluginTrackingTime { get; set; } = 60f;
 	public bool UnityStacktrace { get; set; } =
 #if DEBUG
 		true;

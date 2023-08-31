@@ -87,7 +87,11 @@ public partial class CorePlugin : CarbonPlugin
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}", plugin.IsPrecompiled ? "precomp" : $"{plugin.CompileTime:0}ms", $"{TimeEx.Format(plugin.Runtime)}");
+							var hookTimeAverageValue = (float)plugin.HookTimeAverage.CalculateAverage();
+							var memoryAverageValue = (float)plugin.MemoryAverage.CalculateAverage();
+							var hookTimeAverage = Mathf.RoundToInt(hookTimeAverageValue) == 0 ? string.Empty : $" (avg {hookTimeAverageValue:0}ms)";
+							var memoryAverage = Mathf.RoundToInt(memoryAverageValue) == 0 ? string.Empty : $" (avg {ByteEx.Format(memoryAverageValue, shortName: true, stringFormat: "{0}{1}").ToLower()})";
+							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms{hookTimeAverage}", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}{memoryAverage}", plugin.IsPrecompiled ? "precomp" : $"{plugin.CompileTime:0}ms", $"{TimeEx.Format(plugin.Runtime)}");
 						}
 
 						count++;
@@ -434,6 +438,30 @@ public partial class CorePlugin : CarbonPlugin
 	[CommandVar("bypassadmincooldowns", "Bypasses the command cooldowns for admin-authed players.")]
 	[AuthLevel(2)]
 	private bool BypassAdminCooldowns { get { return Community.Runtime.Config.BypassAdminCooldowns; } set { Community.Runtime.Config.BypassAdminCooldowns = value; Community.Runtime.SaveConfig(); } }
+
+#if DEBUG
+	[CommandVar("plugintrackingtime", "Plugin average time value for memory and hook time tracking. [DEBUG]")]
+	[AuthLevel(2)]
+	private float PluginTrackingTime
+	{
+		get { return Community.Runtime.Config.PluginTrackingTime; }
+		set
+		{
+			Community.Runtime.Config.PluginTrackingTime = value;
+
+			foreach(var mod in ModLoader.LoadedPackages)
+			{
+				foreach(var plugin in mod.Plugins)
+				{
+					plugin.MemoryAverage.Time = value;
+					plugin.HookTimeAverage.Time = value;
+				}
+			}
+
+			Community.Runtime.SaveConfig();
+		}
+	}
+#endif
 
 #if WIN
 	[CommandVar("consoleinfo", "Show the Windows-only Carbon information at the bottom of the console.")]

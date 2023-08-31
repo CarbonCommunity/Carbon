@@ -74,6 +74,15 @@ public class RustPlugin : Plugin
 		base.Dispose();
 	}
 
+	public override void IInit()
+	{
+		timer.Every(1f, () =>
+		{
+			HookTimeAverage?.Calibrate();
+			MemoryAverage?.Calibrate();
+		});
+	}
+
 	public static T Singleton<T>()
 	{
 		foreach (var mod in ModLoader.LoadedPackages)

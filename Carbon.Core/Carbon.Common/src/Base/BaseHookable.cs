@@ -57,7 +57,7 @@ public class BaseHookable
 	public double TotalMemoryUsed { get; internal set; }
 
 	[JsonProperty]
-	public double Runtime => (DateTime.Now - new DateTime(_initializationTick)).TotalSeconds;
+	public double Runtime => _initializationTime;
 
 	public bool HasInitialized { get; internal set; }
 	public Type Type { get; internal set; }
@@ -68,7 +68,12 @@ public class BaseHookable
 	internal Stopwatch _trackStopwatch = new();
 	internal long _currentMemory;
 	internal int _currentGcCount;
-	internal long _initializationTick = DateTime.Now.Ticks;
+	internal TimeSince _initializationTime = 0;
+
+#if DEBUG
+	public HookTimeAverage HookTimeAverage { get; } = new(Community.Runtime.Config.PluginTrackingTime);
+	public HookTimeAverage MemoryAverage { get; } = new(Community.Runtime.Config.PluginTrackingTime);
+#endif
 
 	public static long CurrentMemory => GC.GetTotalMemory(false);
 	public static int CurrentGcCount => GC.CollectionCount(0);
@@ -98,13 +103,26 @@ public class BaseHookable
 		}
 
 		var stopwatch = _trackStopwatch;
+
 		if (!stopwatch.IsRunning)
 		{
 			return;
 		}
+
+		var timeElapsed = stopwatch.Elapsed.TotalMilliseconds;
+		var memoryUsed = (CurrentMemory - _currentMemory).Clamp(0, long.MaxValue);
+
+#if DEBUG
+		if (Community.Runtime.Config.PluginTrackingTime != 0)
+		{
+			HookTimeAverage.Increment(timeElapsed);
+			MemoryAverage.Increment(memoryUsed);
+		}
+#endif
+
+		TotalHookTime += timeElapsed;
+		TotalMemoryUsed += memoryUsed;
 		stopwatch.Stop();
-		TotalHookTime += stopwatch.Elapsed.TotalMilliseconds;
-		TotalMemoryUsed += (CurrentMemory - _currentMemory).Clamp(0, long.MaxValue);
 		stopwatch.Reset();
 	}
 
