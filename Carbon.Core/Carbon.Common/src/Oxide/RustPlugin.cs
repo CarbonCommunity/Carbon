@@ -76,11 +76,13 @@ public class RustPlugin : Plugin
 
 	public override void IInit()
 	{
+#if DEBUG
 		timer.Every(1f, () =>
 		{
 			HookTimeAverage?.Calibrate();
 			MemoryAverage?.Calibrate();
 		});
+#endif
 	}
 
 	public static T Singleton<T>()

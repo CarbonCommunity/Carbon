@@ -41,7 +41,7 @@ public abstract class TimeAverageGeneric<T> : Dictionary<double, T>
 		}
 
 		var instance = this.ElementAt(0);
-		var timePassed = (UnityEngine.Time.realtimeSinceStartup - instance.Key);
+		var timePassed = UnityEngine.Time.realtimeSinceStartup - instance.Key;
 
 		if (timePassed >= Time)
 		{

@@ -87,8 +87,18 @@ public partial class CorePlugin : CarbonPlugin
 
 						foreach (var plugin in mod.Plugins)
 						{
-							var hookTimeAverageValue = (float)plugin.HookTimeAverage.CalculateAverage();
-							var memoryAverageValue = (float)plugin.MemoryAverage.CalculateAverage();
+							var hookTimeAverageValue =
+#if DEBUG
+								(float)plugin.HookTimeAverage.CalculateAverage();
+#else
+								0;
+#endif
+							var memoryAverageValue =
+#if DEBUG
+								(float)plugin.MemoryAverage.CalculateAverage();
+#else
+								0;
+#endif
 							var hookTimeAverage = Mathf.RoundToInt(hookTimeAverageValue) == 0 ? string.Empty : $" (avg {hookTimeAverageValue:0}ms)";
 							var memoryAverage = Mathf.RoundToInt(memoryAverageValue) == 0 ? string.Empty : $" (avg {ByteEx.Format(memoryAverageValue, shortName: true, stringFormat: "{0}{1}").ToLower()})";
 							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms{hookTimeAverage}", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}{memoryAverage}", plugin.IsPrecompiled ? string.Empty : $"{plugin.CompileTime:0}ms", $"{TimeEx.Format(plugin.Runtime)}");
@@ -265,7 +275,7 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-	#endregion
+#endregion
 
 	#region Conditionals
 
