@@ -919,7 +919,7 @@ public static class CUIStatics
 		var image = cui.TakeFromPoolImage();
 		image.Color = ProcessColor(color);
 		if (blur) image.Material = "assets/content/ui/uibackgroundblur.mat";
-		else image.Material = material;
+		else if (material != null) image.Material = material;
 		image.FadeIn = fadeIn;
 		element.Components.Add(image);
 
@@ -991,7 +991,7 @@ public static class CUIStatics
 		button.FadeIn = fadeIn;
 		button.Color = ProcessColor(color);
 		button.Command = @protected ? Community.Protect(command) : command;
-		button.Material = material;
+		if (material != null) button.Material = material;
 		element.Components.Add(button);
 
 		var rect = cui.TakeFromPoolRect();
@@ -1080,7 +1080,7 @@ public static class CUIStatics
 		rawImage.Url = url;
 		rawImage.FadeIn = fadeIn;
 		rawImage.Color = ProcessColor(color);
-		rawImage.Material = material;
+		if (material != null) rawImage.Material = material;
 		element.Components.Add(rawImage);
 
 		var rect = cui.TakeFromPoolRect();
@@ -1115,7 +1115,7 @@ public static class CUIStatics
 		simpleImage.Sprite = sprite;
 		simpleImage.FadeIn = fadeIn;
 		simpleImage.Color = ProcessColor(color);
-		simpleImage.Material = material;
+		if (material != null) simpleImage.Material = material;
 		element.Components.Add(simpleImage);
 
 		var rect = cui.TakeFromPoolRect();
@@ -1149,7 +1149,7 @@ public static class CUIStatics
 		rawImage.Sprite = sprite;
 		rawImage.FadeIn = fadeIn;
 		rawImage.Color = ProcessColor(color);
-		rawImage.Material = material;
+		if (material != null) rawImage.Material = material;
 		element.Components.Add(rawImage);
 
 		var rect = cui.TakeFromPoolRect();
@@ -1184,7 +1184,7 @@ public static class CUIStatics
 		rawImage.SkinId = skinID;
 		rawImage.FadeIn = fadeIn;
 		rawImage.Color = ProcessColor(color);
-		rawImage.Material = material;
+		if (material != null) rawImage.Material = material;
 		element.Components.Add(rawImage);
 
 		var rect = cui.TakeFromPoolRect();
