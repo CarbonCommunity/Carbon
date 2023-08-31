@@ -5,6 +5,7 @@
  *
  */
 
+using Facepunch;
 using Logger = Carbon.Logger;
 
 namespace Oxide.Core.Libraries;
@@ -313,12 +314,10 @@ public class Permission : Library
 	{
 		return validate == null || validate(id);
 	}
-
 	public virtual bool UserExists(string id)
 	{
 		return userdata.ContainsKey(id);
 	}
-
 	public virtual bool UserExists(string id, out UserData data)
 	{
 		return userdata.TryGetValue(id, out data);
@@ -347,8 +346,6 @@ public class Permission : Library
 
 	public virtual KeyValuePair<string, UserData> FindUser(string id)
 	{
-		id = id.ToLower().Trim();
-
 		if (id.IsSteamId()) GetUserData(id, true);
 
 		foreach (var user in userdata)
@@ -420,16 +417,53 @@ public class Permission : Library
 	}
 	public virtual bool GroupHasPermission(string name, string perm)
 	{
-		return GroupExists(name) && !string.IsNullOrEmpty(perm) && groupdata.TryGetValue(name.ToLower(), out var groupData) && (groupData.Perms.Contains(perm.ToLower()) || GroupHasPermission(groupData.ParentGroup, perm));
+		if (string.IsNullOrEmpty(name) || !GroupExists(name))
+		{
+			return false;
+		}
+
+		foreach (var group in groupdata)
+		{
+			if (GroupHasPermission(group.Value.ParentGroup, perm))
+			{
+				return true;
+			}
+
+			if (group.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+			{
+				foreach (var permission in group.Value.Perms)
+				{
+					if (permission.Equals(perm, StringComparison.OrdinalIgnoreCase))
+					{
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 	public virtual bool UserHasPermission(string id, string perm)
 	{
 		if (string.IsNullOrEmpty(perm)) return false;
 		if (id.Equals("server_console")) return true;
 
-		perm = perm.ToLower();
 		var userData = GetUserData(id);
-		return userData.Perms.Contains(perm) || GroupsHavePermission(userData.Groups, perm);
+
+		if (GroupsHavePermission(userData.Groups, perm))
+		{
+			return true;
+		}
+
+		foreach (var permission in userData.Perms)
+		{
+			if (permission.Equals(perm, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public virtual string[] GetUserGroups(string id)
@@ -478,7 +512,7 @@ public class Permission : Library
 		if (string.IsNullOrEmpty(perm)) return EmptyStringArray;
 
 		perm = perm.ToLower();
-		var hashSet = new HashSet<string>();
+		var hashSet = Pool.Get<HashSet<string>>();
 		foreach (KeyValuePair<string, UserData> keyValuePair in userdata)
 		{
 			if (keyValuePair.Value.Perms.Contains(perm))
@@ -486,14 +520,17 @@ public class Permission : Library
 				hashSet.Add(keyValuePair.Key + "(" + keyValuePair.Value.LastSeenNickname + ")");
 			}
 		}
-		return hashSet.ToArray();
+
+		var result = hashSet.ToArray();
+		Pool.Free(ref hashSet);
+		return result;
 	}
 	public virtual string[] GetPermissionGroups(string perm)
 	{
 		if (string.IsNullOrEmpty(perm)) return EmptyStringArray;
 
 		perm = perm.ToLower();
-		var hashSet = new HashSet<string>();
+		var hashSet = Pool.Get<HashSet<string>>();
 		foreach (KeyValuePair<string, GroupData> keyValuePair in groupdata)
 		{
 			if (keyValuePair.Value.Perms.Contains(perm))
@@ -501,7 +538,9 @@ public class Permission : Library
 				hashSet.Add(keyValuePair.Key);
 			}
 		}
-		return hashSet.ToArray();
+		var result = hashSet.ToArray();
+		Pool.Free(ref hashSet);
+		return result;
 	}
 
 	public virtual void AddUserGroup(string id, string name)
@@ -533,11 +572,42 @@ public class Permission : Library
 	}
 	public virtual bool UserHasGroup(string id, string name)
 	{
-		return GroupExists(name) && GetUserData(id).Groups.Contains(name.ToLower());
+		if (!GroupExists(name))
+		{
+			return false;
+		}
+
+		foreach (var group in GetUserData(id).Groups)
+		{
+			if (group.Equals(name, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
-	public virtual bool GroupExists(string group)
+	public virtual bool GroupExists(string groupName)
 	{
-		return !string.IsNullOrEmpty(group) && (group.Equals("*") || groupdata.ContainsKey(group.ToLower()));
+		if (string.IsNullOrEmpty(groupName))
+		{
+			return false;
+		}
+
+		if (groupName.Equals("*"))
+		{
+			return true;
+		}
+
+		foreach (var group in groupdata)
+		{
+			if (group.Key.Equals(groupName, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public virtual string[] GetGroups()

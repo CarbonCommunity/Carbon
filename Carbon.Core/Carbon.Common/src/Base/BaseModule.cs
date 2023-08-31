@@ -47,6 +47,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	public Configuration ModuleConfiguration { get; set; }
 	public DynamicConfigFile Config { get; private set; }
 	public DynamicConfigFile Data { get; private set; }
+	public Lang Lang { get; private set; }
 
 	public new virtual Type Type => default;
 
@@ -97,7 +98,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		{
 			foreach (var language in phrases)
 			{
-				Community.Runtime.CorePlugin.lang.RegisterMessages(language.Value, this, language.Key);
+				Lang.RegisterMessages(language.Value, this, language.Key);
 			}
 		}
 
@@ -112,6 +113,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		Config ??= new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "config.json"));
 		Data ??= new DynamicConfigFile(Path.Combine(Defines.GetModulesFolder(), Name, "data.json"));
+		Lang ??= new(this);
 
 		var newConfig = !Config.Exists();
 		var newData = !Data.Exists();
@@ -288,15 +290,15 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 	public virtual string GetPhrase(string key)
 	{
-		return Community.Runtime.CorePlugin.lang.GetMessage(key, this);
+		return Lang.GetMessage(key, this);
 	}
 	public virtual string GetPhrase(string key, string playerId)
 	{
-		return Community.Runtime.CorePlugin.lang.GetMessage(key, this, playerId);
+		return Lang.GetMessage(key, this, playerId);
 	}
 	public virtual string GetPhrase(string key, ulong playerId)
 	{
-		return Community.Runtime.CorePlugin.lang.GetMessage(key, this, playerId == 0 ? string.Empty : playerId.ToString());
+		return Lang.GetMessage(key, this, playerId == 0 ? string.Empty : playerId.ToString());
 	}
 
 	#endregion

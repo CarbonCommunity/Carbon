@@ -251,3 +251,16 @@ public class HotloadableAttribute : Attribute
 {
 
 }
+
+[AttributeUsage(AttributeTargets.All)]
+[MeansImplicitUse]
+public class Conditional : Attribute
+{
+	public string Symbol { get;set; }
+
+	public Conditional() { }
+	public Conditional(string symbol)
+	{
+		Symbol = symbol;
+	}
+}

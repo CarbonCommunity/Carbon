@@ -15,6 +15,10 @@ if "%1" EQU "" (
 	set UPDATE_TARGET=%1
 )
 
+"%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
+	--coreplugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Common\src\Carbon\Core" ^
+	--corepluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Common\src\Generated\CorePlugin.cs"
+
 FOR %%O IN (windows linux) DO (
 	rem Download rust binary libs
 	"%UPDATE_ROOT%\Tools\DepotDownloader\DepotDownloader\bin\Release\net6.0\DepotDownloader.exe" ^

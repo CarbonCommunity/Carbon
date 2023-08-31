@@ -73,7 +73,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		public static void ShowInfo(Tab tab, PlayerSession aap, BasePlayer player)
 		{
 			tab.ClearColumn(1);
-
+			
 			tab.AddName(1, $"Player Information", TextAnchor.MiddleLeft);
 			tab.AddInput(1, "Name", ap => player.displayName, null);
 			tab.AddInput(1, "Steam ID", ap => player.UserIDString, null);
@@ -144,8 +144,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				{
 					tab.CreateDialog($"Are you sure about that?", ap =>
 					{
-						player.transform.position = ap.Player.transform.position;
-						player.SendNetworkUpdateImmediate();
+						player.Teleport(ap.Player.transform.position);
 					}, null);
 				}));
 
@@ -183,6 +182,21 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						player.EndSleeping();
 					}, null);
 				}));
+
+			tab.AddName(1, "Inventory Lock");
+			tab.AddButtonArray(1,
+				new Tab.OptionButton("Main", ap =>
+				{
+					player.inventory.containerMain.SetLocked(!player.inventory.containerMain.IsLocked());
+				}, ap => player.inventory.containerMain.IsLocked() ? Tab.OptionButton.Types.Important : Tab.OptionButton.Types.None),
+				new Tab.OptionButton("Belt", ap =>
+				{
+					player.inventory.containerBelt.SetLocked(!player.inventory.containerBelt.IsLocked());
+				}, ap => player.inventory.containerBelt.IsLocked() ? Tab.OptionButton.Types.Important : Tab.OptionButton.Types.None),
+				new Tab.OptionButton("Wear", ap =>
+				{
+					player.inventory.containerWear.SetLocked(!player.inventory.containerWear.IsLocked());
+				}, ap => player.inventory.containerWear.IsLocked() ? Tab.OptionButton.Types.Important : Tab.OptionButton.Types.None));
 
 			if (Singleton.HasTab("entities"))
 			{

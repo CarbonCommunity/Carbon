@@ -6,8 +6,6 @@ namespace Carbon.Client.Packets;
 [ProtoContract]
 public class ItemDefinitionUpdate : BasePacket
 {
-	// static ItemDefinitionUpdate() => RuntimeTypeModel.Default[typeof(BasePacket)].AddSubType(102, typeof(ItemDefinitionUpdate));
-
 	[ProtoMember(1)]
 	public string Shortname { get; set; }
 

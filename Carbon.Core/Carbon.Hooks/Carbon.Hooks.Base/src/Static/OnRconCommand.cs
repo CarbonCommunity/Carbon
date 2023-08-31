@@ -73,6 +73,9 @@ public partial class Category_Static
 							commandArgs.PrintOutput = consoleArg.Option.PrintOutput;
 
 							Community.Runtime.CommandManager.Execute(outCommand, commandArgs);
+
+							commandArgs.Dispose();
+							Facepunch.Pool.Free(ref commandArgs);
 						}
 					}
 					catch (Exception ex)

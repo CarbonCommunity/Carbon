@@ -6,8 +6,6 @@ namespace Carbon.Client.Packets;
 [ProtoContract]
 public class RPCList : BasePacket
 {
-	// static RPCList() => RuntimeTypeModel.Default[typeof(BasePacket)].AddSubType(101, typeof(RPCList));
-
 	[ProtoMember(1)]
 	public string[] RpcNames;
 

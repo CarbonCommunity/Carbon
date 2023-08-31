@@ -38,7 +38,7 @@ namespace Oxide.Game.Rust.Libraries.Covalence
 
 		public int Ping => BasePlayer == null ? 0 : Network.Net.sv.GetAveragePing(BasePlayer.Connection);
 
-		public CultureInfo Language => CultureInfo.GetCultureInfo(BasePlayer.net.connection.info.GetString("global.language", "") ?? "en");
+		public CultureInfo Language => CultureInfo.GetCultureInfo(IsConnected ? BasePlayer.net.connection.info.GetString("global.language", "en") : perms.GetUserData(Id).Language);
 
 		public bool IsConnected => IsServer || (BasePlayer != null && BasePlayer.IsConnected);
 
