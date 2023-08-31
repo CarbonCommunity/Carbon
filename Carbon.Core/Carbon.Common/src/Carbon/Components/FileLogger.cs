@@ -16,7 +16,8 @@ public class FileLogger : IDisposable
 	/// </summary>
 	public int SplitSize { get; set; } = (int)(2.5f * 1000000f);
 
-	internal bool _hasInit;
+	public bool HasInit { get; private set; }
+
 	internal List<string> _buffer = new();
 	internal StreamWriter _file;
 
@@ -28,7 +29,7 @@ public class FileLogger : IDisposable
 
 	public virtual void Init(bool archive = false, bool backup = false)
 	{
-		if (_hasInit && !archive) return;
+		if (HasInit && !archive) return;
 
 		var path = Path.Combine(Defines.GetLogsFolder(), $"{Name}.log");
 		var archiveFolder = Path.Combine(Defines.GetLogsFolder(), "archive");
@@ -63,7 +64,7 @@ public class FileLogger : IDisposable
 		}
 		catch { }
 
-		_hasInit = true;
+		HasInit = true;
 
 		_file = new StreamWriter(path, append: true);
 	}
@@ -73,7 +74,7 @@ public class FileLogger : IDisposable
 		_file.Close();
 		_file.Dispose();
 
-		_hasInit = false;
+		HasInit = false;
 	}
 	public virtual void Flush()
 	{
@@ -95,7 +96,7 @@ public class FileLogger : IDisposable
 			Init(archive: true);
 		}
 	}
-	internal void QueueLog(string message)
+	public virtual void QueueLog(object message)
 	{
 		if (Community.IsConfigReady && Community.Runtime.Config.LogFileMode == 0) return;
 

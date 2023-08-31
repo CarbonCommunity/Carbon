@@ -6,8 +6,6 @@ namespace Carbon.Client.Packets;
 [ProtoContract]
 public class ClientInfo : BasePacket
 {
-	// static ClientInfo() => RuntimeTypeModel.Default[typeof(BasePacket)].AddSubType(100, typeof(ClientInfo));
-
 	[ProtoMember(1)]
 	public int ScreenWidth { get; set; }
 

@@ -74,6 +74,17 @@ public class RustPlugin : Plugin
 		base.Dispose();
 	}
 
+	public override void IInit()
+	{
+#if DEBUG
+		timer.Every(1f, () =>
+		{
+			HookTimeAverage?.Calibrate();
+			MemoryAverage?.Calibrate();
+		});
+#endif
+	}
+
 	public static T Singleton<T>()
 	{
 		foreach (var mod in ModLoader.LoadedPackages)
@@ -107,7 +118,7 @@ public class RustPlugin : Plugin
 	/// <param name="message"></param>
 	/// <param name="args"></param>
 	public void Puts(object message, params object[] args)
-		=> Carbon.Logger.Log($"[{Name}] {(args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
+		=> Carbon.Logger.Log($"[{Name}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
@@ -123,7 +134,7 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	public void Log(object message, params object[] args)
-		=> Carbon.Logger.Log($"[{Name}] {(args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
+		=> Carbon.Logger.Log($"[{Name}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
@@ -139,7 +150,7 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	public void LogWarning(object message, params object[] args)
-		=> Carbon.Logger.Warn($"[{Name}] {(args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
+		=> Carbon.Logger.Warn($"[{Name}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -157,7 +168,7 @@ public class RustPlugin : Plugin
 	/// <param name="message"></param>
 	/// <param name="ex"></param>
 	public void LogError(object message, Exception ex, params object[] args)
-		=> Carbon.Logger.Error($"[{Name}] {(args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", ex);
+		=> Carbon.Logger.Error($"[{Name}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", ex);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -173,7 +184,7 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	public void LogError(object message, params object[] args)
-		=> Carbon.Logger.Error($"[{Name}] {(args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", null);
+		=> Carbon.Logger.Error($"[{Name}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", null);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
@@ -182,7 +193,7 @@ public class RustPlugin : Plugin
 	/// <param name="message"></param>
 	/// <param name="args"></param>
 	public void PrintWarning(object format, params object[] args)
-		=> Carbon.Logger.Warn($"[{Name}] {(args.Length == 0 ? format : string.Format(format?.ToString() ?? string.Empty, args))}");
+		=> Carbon.Logger.Warn($"[{Name}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -191,7 +202,7 @@ public class RustPlugin : Plugin
 	/// <param name="message"></param>
 	/// <param name="args"></param>
 	public void PrintError(object format, params object[] args)
-		=> Carbon.Logger.Error($"[{Name}] {(args.Length == 0 ? format : string.Format(format?.ToString () ?? string.Empty, args))}");
+		=> Carbon.Logger.Error($"[{Name}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString () ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.

@@ -5,7 +5,6 @@
 		<ProjectGuid>{DB7AC4B9-E0F3-4E8F-B977-DD32709359A4}</ProjectGuid>
 		<Title>Carbon</Title>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-		<RepositoryUrl>https://github.com/CarbonCommunity/Carbon.Core</RepositoryUrl>
 		<PackageId>Carbon</PackageId>
 		<IsPackable>true</IsPackable>
 		<NuspecFile>..\.nuspec</NuspecFile>

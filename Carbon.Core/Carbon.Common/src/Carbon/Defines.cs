@@ -29,6 +29,7 @@ public class Defines
 	internal static string _customScriptFolder;
 	internal static string _customConfigFolder;
 	internal static string _customDataFolder;
+	internal static string _customLangFolder;
 	internal static string _customModuleFolder;
 	internal static string _customExtensionsFolder;
 	internal static bool _commandLineInitialized;
@@ -42,6 +43,7 @@ public class Defines
 		_customScriptFolder = CommandLineEx.GetArgumentResult("-carbon.scriptdir");
 		_customConfigFolder = CommandLineEx.GetArgumentResult("-carbon.configdir");
 		_customDataFolder = CommandLineEx.GetArgumentResult("-carbon.datadir");
+		_customLangFolder = CommandLineEx.GetArgumentResult("-carbon.langdir");
 		_customModuleFolder = CommandLineEx.GetArgumentResult("-carbon.moduledir");
 		_customExtensionsFolder = CommandLineEx.GetArgumentResult("-carbon.extdir");
 	}
@@ -148,7 +150,7 @@ public class Defines
 	public static string GetLangFolder()
 	{
 		_initializeCommandLine();
-		var folder = Path.Combine($"{GetRootFolder()}", "lang");
+		var folder = Path.GetFullPath(string.IsNullOrEmpty(_customLangFolder) ? Path.Combine(GetRootFolder(), "lang") : _customLangFolder);
 		Directory.CreateDirectory(folder);
 
 		return folder;

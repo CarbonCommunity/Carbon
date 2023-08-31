@@ -13,7 +13,7 @@ public class Lang : Library
 {
 	public Dictionary<string, Dictionary<string, string>> Phrases { get; set; } = new Dictionary<string, Dictionary<string, string>>();
 
-	public Lang(Plugin plugin)
+	public Lang(BaseHookable plugin)
 	{
 		foreach (var directory in Directory.EnumerateDirectories(Defines.GetLangFolder()))
 		{

@@ -74,6 +74,8 @@ public partial class Category_Static
 
 							Command.FromRcon = false;
 							Community.Runtime.CommandManager.Execute(cmd, commandArgs);
+
+							commandArgs.Dispose();
 							Facepunch.Pool.Free(ref commandArgs);
 							arg = null;
 

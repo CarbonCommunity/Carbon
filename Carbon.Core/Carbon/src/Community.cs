@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using API.Events;
 using Carbon.Components;
 using Carbon.Core;
@@ -132,6 +133,9 @@ public class CommunityInternal : Community
 			ClearCommands();
 			_installDefaultCommands();
 			ModuleProcessor.Init();
+
+			Events.Trigger(
+				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		});
 
 		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
@@ -143,6 +147,7 @@ public class CommunityInternal : Community
 			if (lines != null)
 			{
 				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
+				CommandLine.ExecuteCommands(lines);
 				Array.Clear(lines, 0, lines.Length);
 				lines = null;
 			}
@@ -161,24 +166,19 @@ public class CommunityInternal : Community
 			});
 		}
 
-		Carbon.Logger.Log($"Loading...");
-		{
-			Defines.Initialize();
+		Defines.Initialize();
 
-			InstallProcessors();
+		InstallProcessors();
 
-			Interface.Initialize();
+		Interface.Initialize();
 
-			RefreshConsoleInfo();
+		RefreshConsoleInfo();
 
-			Carbon.Client.RPC.Init();
+		Client.RPC.Init();
 
-			Community.Runtime.Events.Trigger(
-				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
+		IsInitialized = true;
 
-			IsInitialized = true;
-		}
-		Carbon.Logger.Log($"Loaded.");
+		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 
 		Entities.Init();

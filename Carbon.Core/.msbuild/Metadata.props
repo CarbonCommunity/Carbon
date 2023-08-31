@@ -20,15 +20,10 @@
 		otherwise use nothing.
 	-->
 	<Choose>
-		<When Condition="Exists('$(MSBuildProjectDirectory)\bin\.gitag')">
-			<PropertyGroup>
-				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\bin\.gitag').Trim())</InformationalVersion>
-			</PropertyGroup>
-		</When>
-		<Otherwise>
+		<When Condition="!Exists('$(SolutionDir)..\.tmp\.gitbranch')">
 			<PropertyGroup>
 				<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)</InformationalVersion>
 			</PropertyGroup>
-		</Otherwise>
+		</When>
 	</Choose>
 </Project>

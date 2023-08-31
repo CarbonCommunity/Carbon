@@ -12,6 +12,10 @@ ROOT="$(realpath "${BASE}/../../../")"
 # Get the target depot argument
 TARGET=${1:-public}
 
+mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
+	--coreplugininput "${ROOT}/Carbon.Core/Carbon.Common/src/Carbon/Core" \
+	--corepluginoutput "${ROOT}/Carbon.Core/Carbon.Common/src/Generated/CorePlugin.cs"
+
 for OS in windows linux; do
 	# Download rust binary libs
 	"${ROOT}/Tools/DepotDownloader/DepotDownloader/bin/Release/net6.0/DepotDownloader" \

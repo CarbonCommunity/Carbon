@@ -76,18 +76,32 @@ public partial class CorePlugin : CarbonPlugin
 
 				// Loaded plugins
 				{
-					using var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Memory Usage", "Compile Time");
+					using var body = new StringTable("#", "Mod", "Author", "Version", "Hook Time", "Memory Usage", "Compile Time", "Uptime");
 					var count = 1;
 
 					foreach (var mod in ModLoader.LoadedPackages)
 					{
 						if (mod.IsCoreMod) continue;
 
-						body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", "", "", "", "", "");
+						body.AddRow($"{count:n0}", $"{mod.Name}{(mod.Plugins.Count > 1 ? $" ({mod.Plugins.Count:n0})" : "")}", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
 
 						foreach (var plugin in mod.Plugins)
 						{
-							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}", $"{plugin.CompileTime:0}ms");
+							var hookTimeAverageValue =
+#if DEBUG
+								(float)plugin.HookTimeAverage.CalculateAverage();
+#else
+								0;
+#endif
+							var memoryAverageValue =
+#if DEBUG
+								(float)plugin.MemoryAverage.CalculateAverage();
+#else
+								0;
+#endif
+							var hookTimeAverage = Mathf.RoundToInt(hookTimeAverageValue) == 0 ? string.Empty : $" (avg {hookTimeAverageValue:0}ms)";
+							var memoryAverage = Mathf.RoundToInt(memoryAverageValue) == 0 ? string.Empty : $" (avg {ByteEx.Format(memoryAverageValue, shortName: true, stringFormat: "{0}{1}").ToLower()})";
+							body.AddRow(string.Empty, plugin.Name, plugin.Author, $"v{plugin.Version}", $"{plugin.TotalHookTime:0}ms{hookTimeAverage}", $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}{memoryAverage}", plugin.IsPrecompiled ? string.Empty : $"{plugin.CompileTime:0}ms", $"{TimeEx.Format(plugin.Uptime)}");
 						}
 
 						count++;
@@ -261,27 +275,7 @@ public partial class CorePlugin : CarbonPlugin
 		}
 	}
 
-	// DISABLED UNTIL FULLY FUNCTIONAL
-	// [ConsoleCommand("update", "Downloads, updates, saves the server and patches Carbon at runtime. (Eg. c.update win develop, c.update unix prod)")]
-	// private void Update(ConsoleSystem.Arg arg)
-	// {
-	// 	if (!arg.IsPlayerCalledAndAdmin()) return;
-
-	// 	Updater.DoUpdate((bool result) =>
-	// 	{
-	// 		if (!result)
-	// 		{
-	// 			Logger.Error($"Unknown error while updating Carbon");
-	// 			return;
-	// 		}
-	// 		HookCaller.CallStaticHook("OnServerSave");
-
-	// 		//FIXMENOW
-	// 		//Supervisor.ASM.UnloadModule("Carbon.dll", true);
-	// 	});
-	// }
-
-	#endregion
+#endregion
 
 	#region Conditionals
 
@@ -450,6 +444,34 @@ public partial class CorePlugin : CarbonPlugin
 	[CommandVar("language", "Server language used by the Language API.")]
 	[AuthLevel(2)]
 	private string Language { get { return Community.Runtime.Config.Language; } set { Community.Runtime.Config.Language = value; Community.Runtime.SaveConfig(); } }
+
+	[CommandVar("bypassadmincooldowns", "Bypasses the command cooldowns for admin-authed players.")]
+	[AuthLevel(2)]
+	private bool BypassAdminCooldowns { get { return Community.Runtime.Config.BypassAdminCooldowns; } set { Community.Runtime.Config.BypassAdminCooldowns = value; Community.Runtime.SaveConfig(); } }
+
+#if DEBUG
+	[CommandVar("plugintrackingtime", "Plugin average time value for memory and hook time tracking. [DEBUG]")]
+	[AuthLevel(2)]
+	private float PluginTrackingTime
+	{
+		get { return Community.Runtime.Config.PluginTrackingTime; }
+		set
+		{
+			Community.Runtime.Config.PluginTrackingTime = value;
+
+			foreach(var mod in ModLoader.LoadedPackages)
+			{
+				foreach(var plugin in mod.Plugins)
+				{
+					plugin.MemoryAverage.Time = value;
+					plugin.HookTimeAverage.Time = value;
+				}
+			}
+
+			Community.Runtime.SaveConfig();
+		}
+	}
+#endif
 
 #if WIN
 	[CommandVar("consoleinfo", "Show the Windows-only Carbon information at the bottom of the console.")]
@@ -1498,6 +1520,7 @@ public partial class CorePlugin : CarbonPlugin
 
 	#region Profiling
 
+	[Conditional("DEBUG")]
 	[ConsoleCommand("beginprofile", "Starts profiling the server.")]
 	[AuthLevel(2)]
 	private void BeginProfile(ConsoleSystem.Arg arg)
@@ -1513,6 +1536,7 @@ public partial class CorePlugin : CarbonPlugin
 		arg.ReplyWith("Began profiling...");
 	}
 
+	[Conditional("DEBUG")]
 	[ConsoleCommand("endprofile", "Ends profiling the server and asynchronously writes it to disk.")]
 	[AuthLevel(2)]
 	private void EndProfile(ConsoleSystem.Arg arg)
