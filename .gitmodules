@@ -4,3 +4,6 @@
 [submodule "Carbon.Core/Carbon.Compat"]
 	path = Carbon.Core/Carbon.Compat
 	url = https://github.com/CarbonCommunity/Carbon.Compat.git
+[submodule "Carbon.Core/Carbon.Modules"]
+	path = Carbon.Core/Carbon.Modules
+	url = https://github.com/CarbonCommunity/Carbon.Modules.git

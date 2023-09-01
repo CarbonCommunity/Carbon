@@ -23,7 +23,7 @@ git -C "${ROOT}" submodule init
 git -C "${ROOT}" submodule update
 
 echo Handling component submodules..
-for TOOL in Carbon.Core/Carbon.Compat; do
+for TOOL in Carbon.Core/Carbon.Compat Carbon.Core/Carbon.Modules; do
   echo Updating ${TOOL}
   cd ${ROOT}/${TOOL}
   git clean -fd
