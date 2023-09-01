@@ -23,6 +23,7 @@ public partial class Category_Vending
 		[HookAttribute.Patch("OnMarketplaceTerminalPurchase", "OnMarketplaceTerminalPurchase", typeof(MarketTerminal), "Server_Purchase", new System.Type[] { typeof(BaseEntity.RPCMessage) })]
 		[HookAttribute.Identifier("72eec86b418f48f18d2cdd57785bc9ab")]
 
+		[MetadataAttribute.Category("Vending")]
 		[MetadataAttribute.Parameter("terminal", typeof(MarketTerminal))]
 		[MetadataAttribute.Parameter("vending", typeof(VendingMachine))]
 		[MetadataAttribute.Parameter("player", typeof(BasePlayer))]
