@@ -108,7 +108,7 @@ namespace Oxide.Core.Plugins
 
 			CallHook("Init");
 		}
-		public virtual void Load()
+		internal virtual void ILoad()
 		{
 			using (TimeMeasure.New($"Load on '{this}'"))
 			{
@@ -132,6 +132,12 @@ namespace Oxide.Core.Plugins
 					ModLoader.ClearPendingRequirees(this);
 				}
 			}
+
+			Load();
+		}
+		public virtual void Load()
+		{
+
 		}
 		public virtual void IUnload()
 		{
