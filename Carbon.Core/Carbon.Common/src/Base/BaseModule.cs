@@ -74,6 +74,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		base.Hooks ??= new();
 		base.Name ??= Name;
 		base.Type ??= Type;
+
+		TrackInit();
 	}
 	public virtual bool InitEnd()
 	{

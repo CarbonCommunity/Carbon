@@ -57,7 +57,7 @@ public class BaseHookable
 	public double TotalMemoryUsed { get; internal set; }
 
 	[JsonProperty]
-	public double Uptime => _initializationTime;
+	public double Uptime => _initializationTime.GetValueOrDefault();
 
 	public bool HasInitialized { get; internal set; }
 	public Type Type { get; internal set; }
@@ -68,7 +68,7 @@ public class BaseHookable
 	internal Stopwatch _trackStopwatch = new();
 	internal long _currentMemory;
 	internal int _currentGcCount;
-	internal TimeSince _initializationTime = 0;
+	internal TimeSince? _initializationTime;
 
 #if DEBUG
 	public HookTimeAverage HookTimeAverage { get; } = new(Community.Runtime.Config.PluginTrackingTime);
@@ -79,6 +79,13 @@ public class BaseHookable
 	public static int CurrentGcCount => GC.CollectionCount(0);
 	public bool HasGCCollected => _currentGcCount != CurrentGcCount;
 
+	public virtual void TrackInit()
+	{
+		if(_initializationTime== null)
+		{
+			_initializationTime = 0;
+		}
+	}
 	public virtual void TrackStart()
 	{
 		if (!Community.IsServerInitialized)
