@@ -81,12 +81,13 @@ public class BaseHookable
 
 	public virtual void TrackInit()
 	{
-		if(_initializationTime== null)
+		if (_initializationTime == null)
 		{
 			_initializationTime = 0;
 		}
 
-		if(HookTimeAverage== null)
+#if DEBUG
+		if (HookTimeAverage == null)
 		{
 			HookTimeAverage = new(Community.Runtime.Config.PluginTrackingTime);
 		}
@@ -95,6 +96,7 @@ public class BaseHookable
 		{
 			MemoryAverage = new(Community.Runtime.Config.PluginTrackingTime);
 		}
+#endif
 	}
 	public virtual void TrackStart()
 	{
@@ -143,7 +145,7 @@ public class BaseHookable
 		stopwatch.Reset();
 	}
 
-	#endregion
+#endregion
 
 	public virtual object InternalCallHook(uint hook, object[] args)
 	{
