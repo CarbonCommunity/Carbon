@@ -221,7 +221,8 @@ public partial class AdminModule
 			var log = condition.Split('\n');
 			var result = log[0];
 			Array.Clear(log, 0, log.Length);
-			_logQueue.Add($"<color={_logColor[type]}>{StringEx.Truncate(result, 105)}</color>");
+			// _logQueue.Add($"<color={_logColor[type]}>{StringEx.Truncate(result, 105)}</color>");
+			_logQueue.Add(StringEx.Truncate(result, 85));
 		}
 		catch { }
 	}

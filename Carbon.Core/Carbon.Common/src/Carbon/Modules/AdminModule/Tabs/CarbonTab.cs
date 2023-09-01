@@ -75,7 +75,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						tab.AddName(0, Singleton.GetPhrase("console", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 						foreach (var log in _logQueue)
 						{
-							tab.AddText(0, log, 10, "1 1 1 0.85", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.RobotoCondensedRegular, isInput: true);
+							tab.AddText(0, log, 8, "1 1 1 0.85", TextAnchor.MiddleLeft, CUI.Handler.FontTypes.DroidSansMono, isInput: true);
 						}
 						tab.AddInputButton(0, Singleton.GetPhrase("execservercmd", ap.Player.UserIDString), 0.2f, new Tab.OptionInput(null, null, 0, false, (ap, args) =>
 						{
