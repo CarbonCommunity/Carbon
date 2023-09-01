@@ -1,9 +1,9 @@
 [submodule "Tools/DepotDownloader"]
 	path = Tools/DepotDownloader
 	url = https://github.com/SteamRE/DepotDownloader.git
-[submodule "Carbon.Core/Carbon.Compat"]
-	path = Carbon.Core/Carbon.Compat
+[submodule "Carbon.Core/Carbon.Components/Carbon.Compat"]
+	path = Carbon.Core/Carbon.Components/Carbon.Compat
 	url = https://github.com/CarbonCommunity/Carbon.Compat.git
-[submodule "Carbon.Core/Carbon.Modules"]
-	path = Carbon.Core/Carbon.Modules
+[submodule "Carbon.Core/Carbon.Components/Carbon.Modules"]
+	path = Carbon.Core/Carbon.Components/Carbon.Modules
 	url = https://github.com/CarbonCommunity/Carbon.Modules.git
