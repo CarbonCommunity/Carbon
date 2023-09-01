@@ -71,8 +71,8 @@ public class BaseHookable
 	internal TimeSince? _initializationTime;
 
 #if DEBUG
-	public HookTimeAverage HookTimeAverage { get; } = new(Community.Runtime.Config.PluginTrackingTime);
-	public HookTimeAverage MemoryAverage { get; } = new(Community.Runtime.Config.PluginTrackingTime);
+	public HookTimeAverage HookTimeAverage { get; protected set; }
+	public HookTimeAverage MemoryAverage { get; protected set; }
 #endif
 
 	public static long CurrentMemory => GC.GetTotalMemory(false);
@@ -84,6 +84,16 @@ public class BaseHookable
 		if(_initializationTime== null)
 		{
 			_initializationTime = 0;
+		}
+
+		if(HookTimeAverage== null)
+		{
+			HookTimeAverage = new(Community.Runtime.Config.PluginTrackingTime);
+		}
+
+		if (MemoryAverage == null)
+		{
+			MemoryAverage = new(Community.Runtime.Config.PluginTrackingTime);
 		}
 	}
 	public virtual void TrackStart()
