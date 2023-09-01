@@ -20,13 +20,13 @@ git -C "%BOOTSTRAP_ROOT%" submodule init
 git -C "%BOOTSTRAP_ROOT%" submodule update
 
 echo * Handling component submodules..
-FOR %%P IN (Carbon.Core/Carbon.Compat Carbon.Core/Carbon.Modules) DO (
+FOR %%P IN (Carbon.Core/Carbon.Components/Carbon.Compat Carbon.Core/Carbon.Components/Carbon.Modules) DO (
 	echo ** Updating '%%P'
 	cd %BOOTSTRAP_ROOT%/%%P
-	git clean -fd
-	git reset --hard HEAD
-	git fetch
-	git pull . main
+	git clean -fd > NUL
+	git reset --hard HEAD > NUL
+	git fetch > NUL
+	git pull . main > NUL
 	echo    done.
 )
 echo * Finished - handling component submodules.
