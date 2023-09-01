@@ -15,6 +15,10 @@
 		<ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="src\" />
+	</ItemGroup>
+
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>
