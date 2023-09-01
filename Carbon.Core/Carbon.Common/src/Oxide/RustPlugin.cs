@@ -76,6 +76,8 @@ public class RustPlugin : Plugin
 
 	public override void IInit()
 	{
+		base.IInit();
+
 #if DEBUG
 		timer.Every(1f, () =>
 		{

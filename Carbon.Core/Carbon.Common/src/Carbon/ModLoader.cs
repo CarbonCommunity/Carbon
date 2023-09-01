@@ -222,7 +222,7 @@ public static class ModLoader
 		plugin.ILoadConfig();
 		plugin.ILoadDefaultMessages();
 		plugin.IInit();
-		plugin.Load();
+		plugin.ILoad();
 
 		ProcessCommands(type, plugin);
 
