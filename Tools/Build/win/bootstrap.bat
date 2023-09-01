@@ -19,6 +19,21 @@ rem Inits and downloads the submodules
 git -C "%BOOTSTRAP_ROOT%" submodule init
 git -C "%BOOTSTRAP_ROOT%" submodule update
 
+set PREV=%CD%
+
+echo * Handling submodules..
+FOR %%P IN (Carbon.Core/Carbon.Compat) DO (
+	echo ** Updating '%%P'
+	cd %BOOTSTRAP_ROOT%/%%P
+	git fetch
+	git reset --hard HEAD~
+	git pull
+	echo    done.
+)
+echo * Finished - submodules.
+
+cd %PREV%
+
 FOR %%O IN (DepotDownloader) DO (
 	dotnet restore "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --nologo --force 
 	dotnet clean   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --nologo
