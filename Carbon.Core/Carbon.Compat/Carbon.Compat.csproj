@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>Carbon.Compat</Product>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{30B4B72A-9E9A-422D-9FDE-98DDD677B1AE}</ProjectGuid>
+	</PropertyGroup>
+
+	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
+	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
+
+	<ItemGroup>
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
+		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" />
+	</ItemGroup>
+
+	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
+		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
+	</Target>
+</Project>
