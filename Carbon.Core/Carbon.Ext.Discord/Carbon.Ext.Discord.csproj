@@ -10,7 +10,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
-		<ProjectReference Include="$(SolutionDir)\Carbon.Common\Carbon.Common.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
 	</ItemGroup>
 
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
