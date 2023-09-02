@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Hooks.Extra", "Carbo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Preloader", "Carbon.Components\Carbon.Preloader\Carbon.Preloader.csproj", "{6F8322EF-79DA-478B-B39C-EAC40771A46F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.SDK", "Carbon.SDK\Carbon.SDK.csproj", "{50B851B5-BF90-4856-91D7-FDB4848AC8F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.SDK", "Carbon.Components\Carbon.SDK\Carbon.SDK.csproj", "{50B851B5-BF90-4856-91D7-FDB4848AC8F7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Carbon.Extensions", "Carbon.Extensions", "{32439F37-38A4-4AC8-B895-11417F97BDA1}"
 EndProject
