@@ -10,3 +10,6 @@
 [submodule "Carbon.Core/Carbon.Components/Carbon.Preloader"]
 	path = Carbon.Core/Carbon.Components/Carbon.Preloader
 	url = https://github.com/CarbonCommunity/Carbon.Preloader.git
+[submodule "Carbon.Core/Carbon.Components/Carbon.Bootstrap"]
+	path = Carbon.Core/Carbon.Components/Carbon.Bootstrap
+	url = https://github.com/CarbonCommunity/Carbon.Bootstrap.git
