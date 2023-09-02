@@ -8,7 +8,7 @@ echo   ______ _______ ______ ______ _______ _______
 echo  ^|      ^|   _   ^|   __ \   __ \       ^|    ^|  ^|
 echo  ^|   ---^|       ^|      ^<   __ ^<   -   ^|       ^|
 echo  ^|______^|___^|___^|___^|__^|______/_______^|__^|____^|
-echo                         discord.gg/eXPcNKK4yd
+echo                           discord.gg/carbonmod
 echo.
 
 pushd %~dp0..\..\..
@@ -19,11 +19,15 @@ rem Inits and downloads the submodules
 git -C "%BOOTSTRAP_ROOT%" submodule init
 git -C "%BOOTSTRAP_ROOT%" submodule update
 
+echo * Building submodules..
 FOR %%O IN (DepotDownloader) DO (
-	dotnet restore "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --nologo --force 
-	dotnet clean   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --nologo
-	dotnet build   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --no-restore --no-incremental
-) > NUL
+	echo ** Build '%%O'
+	dotnet restore "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --nologo --force > NUL
+	dotnet clean   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --nologo > NUL
+	dotnet build   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --no-restore --no-incremental > NUL
+	echo    done.
+)
+echo * Finsihed - building submodules.
 
 rem Download rust binary libs
 call "%~dp0\update.bat" release
