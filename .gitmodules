@@ -22,3 +22,6 @@
 [submodule "Carbon.Core/Carbon.Extensions/Carbon.Ext.Discord"]
 	path = Carbon.Core/Carbon.Extensions/Carbon.Ext.Discord
 	url = https://github.com/CarbonCommunity/Carbon.Ext.Discord.git
+[submodule "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base"]
+	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base
+	url = https://github.com/CarbonCommunity/Carbon.Hooks.Base.git
