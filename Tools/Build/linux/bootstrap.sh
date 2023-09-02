@@ -29,8 +29,8 @@ for TOOL in Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Co
   echo Updating ${TOOL}
   cd ${ROOT}/${TOOL}
   git clean -fd > /dev/null
-  git pull . ${CURRENT_BRANCH} > /dev/null
   git checkout ${CURRENT_BRANCH} > /dev/null
+  git pull . ${CURRENT_BRANCH} > /dev/null
   echo done.
 done
 echo Finished - handling component submodules.
