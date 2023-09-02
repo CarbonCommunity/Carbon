@@ -22,18 +22,6 @@ ROOT="$(realpath "${BASE}/../../../")"
 git -C "${ROOT}" submodule init
 git -C "${ROOT}" submodule update
 
-echo Handling component submodules..
-for TOOL in Carbon.Core/Carbon.Components/Carbon.Compat Carbon.Core/Carbon.Components/Carbon.Modules; do
-  echo Updating ${TOOL}
-  cd ${ROOT}/${TOOL}
-  git clean -fd > /dev/null
-  git reset --hard HEAD > NUL
-  git fetch > /dev/null
-  git pull . main > /dev/null
-  echo done.
-done
-echo Finished - handling component submodules.
-
 echo Building submodules..
 for TOOL in DepotDownloader; do
   echo Build "${TOOL}"
