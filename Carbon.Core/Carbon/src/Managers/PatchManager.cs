@@ -54,7 +54,8 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private static readonly string[] Files =
 	{
 		"Carbon.Hooks.Base.dll",
-		"Carbon.Hooks.Extra.dll",
+		"Carbon.Hooks.Community.dll",
+		"Carbon.Hooks.Oxide.dll",
 	};
 
 	private void Awake()
