@@ -28,3 +28,6 @@
 [submodule "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide"]
 	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide
 	url = https://github.com/CarbonCommunity/Carbon.Hooks.Oxide.git
+[submodule "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community"]
+	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community
+	url = https://github.com/CarbonCommunity/Carbon.Hooks.Community.git
