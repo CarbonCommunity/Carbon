@@ -16,3 +16,6 @@
 [submodule "Carbon.Core/Carbon.Components/Carbon.Common"]
 	path = Carbon.Core/Carbon.Components/Carbon.Common
 	url = https://github.com/CarbonCommunity/Carbon.Common.git
+[submodule "Carbon.Core/Carbon.Components/Carbon.SDK"]
+	path = Carbon.Core/Carbon.Components/Carbon.SDK
+	url = https://github.com/CarbonCommunity/Carbon.SDK.git
