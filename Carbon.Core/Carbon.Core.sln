@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.SDK", "Carbon.Compon
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Carbon.Extensions", "Carbon.Extensions", "{32439F37-38A4-4AC8-B895-11417F97BDA1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Ext.Discord", "Carbon.Ext.Discord\Carbon.Ext.Discord.csproj", "{B5C715CF-1DBE-4FFC-AF4E-E194345E4FE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Ext.Discord", "Carbon.Extensions\Carbon.Ext.Discord\Carbon.Ext.Discord.csproj", "{B5C715CF-1DBE-4FFC-AF4E-E194345E4FE6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Carbon.Components", "Carbon.Components", "{31982314-60E6-4740-98FC-2FCDDFB5E35A}"
 EndProject
