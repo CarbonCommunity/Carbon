@@ -13,8 +13,8 @@ ROOT="$(realpath "${BASE}/../../../")"
 TARGET=${1:-public}
 
 mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
-	--coreplugininput "${ROOT}/Carbon.Core/Carbon.Common/src/Carbon/Core" \
-	--corepluginoutput "${ROOT}/Carbon.Core/Carbon.Common/src/Generated/CorePlugin.cs"
+	--coreplugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core" \
+	--corepluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Generated/CorePlugin.cs"
 
 for OS in windows linux; do
 	# Download rust binary libs
