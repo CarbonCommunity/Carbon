@@ -15,6 +15,10 @@ pushd %~dp0..\..\..
 set BOOTSTRAP_ROOT=%CD%
 popd
 
+rem Handle git Hooks
+xcopy /s /i /y "%BOOTSTRAP_ROOT%\.githooks\*" "%BOOTSTRAP_ROOT%\.git\hooks" > NUL
+echo * Updated - git hooks.
+
 rem Inits and downloads the submodules
 git -C "%BOOTSTRAP_ROOT%" submodule init
 git -C "%BOOTSTRAP_ROOT%" submodule update

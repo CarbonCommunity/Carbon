@@ -1,0 +1,19 @@
+#!/bin/sh
+# This post-checkout hook displays the old and new branch names when switching branches
+
+set -e
+
+# Get the previous branch name
+previous_branch=$(git branch --contains ${1})
+previous_branch=`echo $previous_branch | sed 's/ *$//g'`
+
+# Get the new branch name
+new_branch=$(git symbolic-ref -q --short HEAD)
+
+pushd "$(dirname "$0")/../../.."
+BOOTSTRAP_ROOT=$(pwd)
+
+for P in "Carbon.Core/Carbon.Components/Carbon.Bootstrap" "Carbon.Core/Carbon.Components/Carbon.Common" "Carbon.Core/Carbon.Components/Carbon.Compat" "Carbon.Core/Carbon.Components/Carbon.Modules" "Carbon.Core/Carbon.Components/Carbon.Preloader" "Carbon.Core/Carbon.Components/Carbon.SDK" "Carbon.Core/Carbon.Extensions/Carbon.Ext.Discord" "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base" "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide" "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community"; do
+    cd "$BOOTSTRAP_ROOT/Carbon.Core/$P"
+    git checkout "${new_branch}" || true
+done
