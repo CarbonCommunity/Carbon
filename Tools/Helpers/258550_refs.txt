@@ -32,6 +32,7 @@ regex:Unity.Mathematics.dll
 regex:Unity.TextMeshPro.dll
 regex:Unity.Timeline.dll
 regex:UnityEngine.AIModule.dll
+regex:UnityEngine.AssetBundleModule.dll
 regex:UnityEngine.AnimationModule.dll
 regex:UnityEngine.CoreModule.dll
 regex:UnityEngine.dll

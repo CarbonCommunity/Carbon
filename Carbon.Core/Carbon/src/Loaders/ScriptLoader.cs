@@ -63,7 +63,7 @@ public class ScriptLoader : IScriptLoader
 		}
 		catch (Exception exception)
 		{
-			Logger.Error($"Failed loading script '{File}';", exception.InnerException ?? exception);
+			Logger.Error($"Failed loading script '{File}':", exception);
 		}
 	}
 

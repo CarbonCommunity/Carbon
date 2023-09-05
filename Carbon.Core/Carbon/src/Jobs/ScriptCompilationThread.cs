@@ -290,8 +290,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var trees = new List<SyntaxTree>();
 			var conditionals = new List<string>();
 
-			conditionals.AddRange(Community.Runtime.Config.ConditionalCompilationSymbols);
-
+			try
+			{
+				conditionals.AddRange(Community.Runtime.Config.ConditionalCompilationSymbols);
+			}
+			catch(Exception ex)
+			{
+				Logger.Error($"Failed referencing conditional compilation symbols", ex);
+			}
 #if WIN
 			conditionals.Add("WIN");
 #else
