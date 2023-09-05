@@ -123,9 +123,10 @@ public class CommunityInternal : Community
 
 		HookCaller.Caller = new HookCallerInternal();
 
+		LoadConfig();
+
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
-		LoadConfig();
 		Carbon.Logger.Log("Loaded config");
 
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
