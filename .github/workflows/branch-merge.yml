@@ -11,19 +11,24 @@ on:
       source:
         description: 'From branch'
         required: true
-        default: 'preproduction'
+        default: 'develop'
         type: choice
         options:
           - develop
           - preview
           - preproduction
+          - production
+          - rust_beta/aux01
+          - rust_beta/aux02
+          - rust_beta/staging
 
       target:
         description: 'Target branch'
         required: true
-        default: 'production'
+        default: 'preview'
         type: choice
         options:
+          - develop
           - preview
           - preproduction
           - production
@@ -40,7 +45,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
 
-    - name: ⤵️ Merge ${{ inputs.source }} into ${{ inputs.target }}
+    - name: ⤵️ Merge ${{ inputs.source }} into ${{ inputs.target }} - Primary repo
       uses: devmasx/merge-branch@master
       with:
         type: now
@@ -49,3 +54,9 @@ jobs:
         github_token: ${{ secrets.PAT_PUBLIC_REPO }}
         message: |
           Merge ${{ inputs.source }} into ${{ inputs.target }}
+
+    - name: ⤵️ Merge ${{ inputs.source }} into ${{ inputs.target }} - Component repos
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\branch_merge.bat ${{ inputs.source }} ${{ inputs.target }}
+      env:
+        GIT_AUTH_TOKEN: ${{ secrets.PAT_PUBLIC_REPO }}

@@ -14,7 +14,7 @@
 		<Reference Include="System" />
 
 		<!-- Carbon API -->
-		<ProjectReference Include="$(SolutionDir)\Carbon.SDK\Carbon.SDK.csproj" Private="false" Condition="!$(Product.Contains('Carbon.SDK'))" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.SDK\Carbon.SDK.csproj" Private="false" Condition="!$(Product.Contains('Carbon.SDK'))" />
 
 		<!-- Roslyn -->
 		<PackageReference Include="Roslynator.CSharp" Version="4.3.0" />

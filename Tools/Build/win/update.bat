@@ -10,10 +10,16 @@ popd
 
 rem Get the target depot argument
 if "%1" EQU "" (
-	set UPDATE_TARGET=release
+	set UPDATE_TARGET=public
 ) else (
 	set UPDATE_TARGET=%1
 )
+
+"%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
+	--coreplugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
+	--corepluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin.cs"
+
+echo Downloading depots using '%UPDATE_TARGET%' Steam branch..
 
 FOR %%O IN (windows linux) DO (
 	rem Download rust binary libs
