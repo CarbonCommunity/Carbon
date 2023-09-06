@@ -93,6 +93,8 @@ public class HookCallerInternal : HookCallerCommon
 
 	public override object CallHook<T>(T plugin, uint hookId, BindingFlags flags, object[] args, bool keepArgs = false)
 	{
+		var readableHook = HookStringPool.GetOrAdd(hookId);
+
 		if (plugin.IsHookIgnored(hookId)) return null;
 
 		var result = (object)null;
@@ -112,7 +114,6 @@ public class HookCallerInternal : HookCallerCommon
 				plugin.HookCache.Add(processedId, hooks = new());
 
 				var methods = plugin.Type.GetMethods(flags);
-				var readableHook = HookStringPool.GetOrAdd(hookId);
 
 				for (int i = 0; i < methods.Length; i++)
 				{
@@ -157,7 +158,6 @@ public class HookCallerInternal : HookCallerCommon
 			{
 				if (plugin is Plugin basePlugin && !basePlugin.IsCorePlugin)
 				{
-					var readableHook = HookStringPool.GetOrAdd(hookId);
 					Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(plugin.HasGCCollected ? " [GC]" : string.Empty)}");
 					Community.Runtime.Analytics.LogEvent("plugin_time_warn",
 						segments: Community.Runtime.Analytics.Segments,
@@ -185,7 +185,6 @@ public class HookCallerInternal : HookCallerCommon
 				plugin.HookCache.Add(processedId, hooks = new());
 
 				var methods = plugin.Type.GetMethods(flags);
-				var readableHook = HookStringPool.GetOrAdd(hookId);
 
 				for (int i = 0; i < methods.Length; i++)
 				{
@@ -219,7 +218,6 @@ public class HookCallerInternal : HookCallerCommon
 				catch (Exception ex)
 				{
 					var exception = ex.InnerException ?? ex;
-					var readableHook = HookStringPool.GetOrAdd(hookId);
 					Carbon.Logger.Error(
 						$"Failed to call hook '{readableHook}' on plugin '{plugin.Name} v{plugin.Version}'",
 						exception
