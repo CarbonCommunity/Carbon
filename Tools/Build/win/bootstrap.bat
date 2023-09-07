@@ -23,6 +23,7 @@ rem Inits and downloads the submodules
 git -C "%BOOTSTRAP_ROOT%" submodule init
 git -C "%BOOTSTRAP_ROOT%" submodule update
 
+cd %BOOTSTRAP_ROOT%
 for /f %%i in ('git branch --show-current') do set CURRENT_BRANCH=%%i
 
 echo * Handling component submodules..
@@ -47,7 +48,7 @@ FOR %%O IN (DepotDownloader) DO (
 echo * Finsihed - building submodules.
 
 rem Download rust binary libs
-call "%~dp0\update.bat" release
+call "%~dp0\update.bat" %1
 
 rem Don't track changes to this file
 git -C "%BOOTSTRAP_ROOT%" update-index --assume-unchanged "%BOOTSTRAP_ROOT%\Tools\Helpers\doorstop_config.ini"
