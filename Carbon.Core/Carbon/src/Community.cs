@@ -119,6 +119,8 @@ public class CommunityInternal : Community
 
 	public override void Initialize()
 	{
+		base.Initialize();
+
 		if (IsInitialized) return;
 
 		HookCaller.Caller = new HookCallerInternal();
@@ -128,6 +130,14 @@ public class CommunityInternal : Community
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		Carbon.Logger.Log("Loaded config");
+
+		if (ConVar.Global.skipAssetWarmup_crashes)
+		{
+			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>
+			{
+				ReloadPlugins();
+			});
+		}
 
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
@@ -157,15 +167,11 @@ public class CommunityInternal : Community
 			{
 				ReloadPlugins();
 			}
-		});
-
-		if (ConVar.Global.skipAssetWarmup_crashes)
-		{
-			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>
+			else
 			{
-				ReloadPlugins();
-			});
-		}
+				MarkServerInitialized(true);
+			}
+		});
 
 		Defines.Initialize();
 
