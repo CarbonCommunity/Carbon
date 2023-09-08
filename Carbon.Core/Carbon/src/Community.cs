@@ -131,14 +131,6 @@ public class CommunityInternal : Community
 
 		Carbon.Logger.Log("Loaded config");
 
-		if (ConVar.Global.skipAssetWarmup_crashes)
-		{
-			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>
-			{
-				ReloadPlugins();
-			});
-		}
-
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
 			ClearCommands();
