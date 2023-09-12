@@ -161,7 +161,8 @@ public class CommunityInternal : Community
 			}
 			else
 			{
-				MarkServerInitialized(true);
+				MarkServerInitialized(true, hookCall: false); //
+				ReloadPlugins();
 			}
 		});
 
