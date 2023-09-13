@@ -15,13 +15,17 @@ if "%1" EQU "" (
 	set BUILD_TARGET=%1
 )
 
+call "%~dp0publish_git.bat"
+
 echo ** Set the build target config to %BUILD_TARGET%
 
 echo ** Cleanup the release folder
 rmdir /s /q "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%" 2>NUL
 del /q "%BUILD_ROOT%\Release\Carbon.%BUILD_TARGET%.zip" 2>NUL
 
-set DEFINES=%2
+if "%DEFINES%" EQU "" (
+	set DEFINES=%2
+)
 
 if "%DEFINES%" EQU "" (
 	echo ** No defines.

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using API.Events;
 using Carbon.Components;
 using Carbon.Core;
@@ -118,13 +119,16 @@ public class CommunityInternal : Community
 
 	public override void Initialize()
 	{
+		base.Initialize();
+
 		if (IsInitialized) return;
 
 		HookCaller.Caller = new HookCallerInternal();
 
+		LoadConfig();
+
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
-		LoadConfig();
 		Carbon.Logger.Log("Loaded config");
 
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
@@ -132,6 +136,9 @@ public class CommunityInternal : Community
 			ClearCommands();
 			_installDefaultCommands();
 			ModuleProcessor.Init();
+
+			Events.Trigger(
+				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		});
 
 		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
@@ -143,6 +150,7 @@ public class CommunityInternal : Community
 			if (lines != null)
 			{
 				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
+				CommandLine.ExecuteCommands(lines);
 				Array.Clear(lines, 0, lines.Length);
 				lines = null;
 			}
@@ -151,30 +159,31 @@ public class CommunityInternal : Community
 			{
 				ReloadPlugins();
 			}
+			else
+			{
+				MarkServerInitialized(true, hookCall: false); //
+				ReloadPlugins();
+			}
 		});
 
-		if (ConVar.Global.skipAssetWarmup_crashes)
-		{
-			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>
-			{
-				ReloadPlugins();
-			});
-		}
+		Defines.Initialize();
 
-		Carbon.Logger.Log($"Loading...");
-		{
-			Defines.Initialize();
-			HookValidator.Initialize();
+		InstallProcessors();
 
-			InstallProcessors();
+		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort}");
+		Logger.Log($"         {Build.Git.Author} on {Build.Git.Branch} ({Build.Git.Date})");
+		Logger.Log($"  Rust   {Facepunch.BuildInfo.Current.Build.Number}/{Rust.Protocol.printable}");
+		Logger.Log($"         {Facepunch.BuildInfo.Current.Scm.Author} on {Facepunch.BuildInfo.Current.Scm.Branch} ({Facepunch.BuildInfo.Current.Scm.Date})");
 
-			Interface.Initialize();
+		Interface.Initialize();
 
-			RefreshConsoleInfo();
+		RefreshConsoleInfo();
 
-			IsInitialized = true;
-		}
-		Carbon.Logger.Log($"Loaded.");
+		Client.RPC.Init();
+
+		IsInitialized = true;
+
+		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
 
 		Entities.Init();

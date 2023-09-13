@@ -10,13 +10,17 @@ echo "** Get the base path of the script"
 BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 ROOT="$(realpath "${BASE}/../../../")"
 
+"${BASE}/publish_git.sh"
+
 TARGET=${1:-Debug}
 echo "** Set the build target config to ${TARGET}"
 
 echo "** Cleanup the release folder"
 rm -rf "${ROOT}/Release/.tmp/${TARGET}" "${ROOT}/Release/Carbon.${TARGET}.tar.gz" || exit 0
 
-DEFINES=${2}
+if [[ "${DEFINES}" == "" ]]; then
+	DEFINES=${2}
+fi 
 
 if [[ "${DEFINES}" == "" ]]; then
 	echo "** No defines."
