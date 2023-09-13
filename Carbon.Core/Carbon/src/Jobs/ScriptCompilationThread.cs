@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -44,8 +45,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal DateTime _timeSinceCompile;
-	internal static Dictionary<string, byte[]> _compilationCache = new();
-	internal static Dictionary<string, byte[]> _extensionCompilationCache = new();
+	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
+	internal static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
 	internal static readonly string[] _libraryDirectories = new[]
@@ -59,17 +60,29 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal static byte[] _getPlugin(string name)
 	{
-		name = name.Replace(" ", "");
+		name = name.Replace(" ", string.Empty);
 
-		if (!_compilationCache.TryGetValue(name, out var result)) return null;
+		foreach (var plugin in _compilationCache)
+		{
+			if (plugin.Key == name)
+			{
+				return plugin.Value;
+			}
+		}
 
-		return result;
+		return null;
 	}
 	internal static byte[] _getExtensionPlugin(string name)
 	{
-		if (!_extensionCompilationCache.TryGetValue(name, out var result)) return null;
+		foreach (var extension in _extensionCompilationCache)
+		{
+			if (extension.Key == name)
+			{
+				return extension.Value;
+			}
+		}
 
-		return result;
+		return null;
 	}
 	internal static void _overridePlugin(string name, byte[] pluginAssembly)
 	{
@@ -80,7 +93,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var plugin = _getPlugin(name);
 		if (plugin == null)
 		{
-			try { _compilationCache.Add(name, pluginAssembly); } catch { }
+			try { _compilationCache.AddOrUpdate(name, pluginAssembly, (a, v) => pluginAssembly); } catch { }
 			return;
 		}
 
@@ -94,7 +107,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var plugin = _getExtensionPlugin(name);
 		if (plugin == null)
 		{
-			try { _extensionCompilationCache.Add(name, pluginAssembly); } catch { }
+			try { _extensionCompilationCache.AddOrUpdate(name, pluginAssembly, (a, v) => pluginAssembly); } catch { }
 			return;
 		}
 
@@ -103,7 +116,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	}
 	internal static void _clearExtensionPlugin(string name)
 	{
-		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.Remove(name);
+		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.TryRemove(name, out _);
 		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
 	}
 	internal void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false)

@@ -95,7 +95,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				enabled = true;
 			});
 		}
-		else Invoke("OnEnable", 0.1f);
+		else
+		{
+			Logger.Log("Hook updates disabled, loading from disk...");
+			Invoke(() => enabled = true, 0.1f);
+		}
 	}
 
 	private void OnEnable()
@@ -138,7 +142,9 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		// 		_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
 		// }
 
-		Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty);
+		Logger.Log($"Loaded {_patches.Count + _staticHooks.Count:n0} patches.");
+
+		Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 1f);
 	}
 
 	private void OnDisable()

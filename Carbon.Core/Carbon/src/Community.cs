@@ -119,6 +119,8 @@ public class CommunityInternal : Community
 
 	public override void Initialize()
 	{
+		base.Initialize();
+
 		if (IsInitialized) return;
 
 		HookCaller.Caller = new HookCallerInternal();
@@ -157,19 +159,21 @@ public class CommunityInternal : Community
 			{
 				ReloadPlugins();
 			}
-		});
-
-		if (ConVar.Global.skipAssetWarmup_crashes)
-		{
-			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>
+			else
 			{
+				MarkServerInitialized(true, hookCall: false); //
 				ReloadPlugins();
-			});
-		}
+			}
+		});
 
 		Defines.Initialize();
 
 		InstallProcessors();
+
+		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort}");
+		Logger.Log($"         {Build.Git.Author} on {Build.Git.Branch} ({Build.Git.Date})");
+		Logger.Log($"  Rust   {Facepunch.BuildInfo.Current.Build.Number}/{Rust.Protocol.printable}");
+		Logger.Log($"         {Facepunch.BuildInfo.Current.Scm.Author} on {Facepunch.BuildInfo.Current.Scm.Branch} ({Facepunch.BuildInfo.Current.Scm.Date})");
 
 		Interface.Initialize();
 
