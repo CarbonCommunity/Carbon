@@ -131,14 +131,6 @@ public class CommunityInternal : Community
 
 		Carbon.Logger.Log("Loaded config");
 
-		if (ConVar.Global.skipAssetWarmup_crashes)
-		{
-			Events.Subscribe(CarbonEvent.OnServerInitialized, args =>
-			{
-				ReloadPlugins();
-			});
-		}
-
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
 			ClearCommands();
@@ -169,13 +161,19 @@ public class CommunityInternal : Community
 			}
 			else
 			{
-				MarkServerInitialized(true);
+				MarkServerInitialized(true, hookCall: false); //
+				ReloadPlugins();
 			}
 		});
 
 		Defines.Initialize();
 
 		InstallProcessors();
+
+		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort}");
+		Logger.Log($"         {Build.Git.Author} on {Build.Git.Branch} ({Build.Git.Date})");
+		Logger.Log($"  Rust   {Facepunch.BuildInfo.Current.Build.Number}/{Rust.Protocol.printable}");
+		Logger.Log($"         {Facepunch.BuildInfo.Current.Scm.Author} on {Facepunch.BuildInfo.Current.Scm.Branch} ({Facepunch.BuildInfo.Current.Scm.Date})");
 
 		Interface.Initialize();
 
