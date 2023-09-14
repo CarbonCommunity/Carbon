@@ -24,26 +24,6 @@
 	</Target>
 
 	<!--
-		Generate the git metadata
-	-->
-	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec">
-		<Exec Command="git branch --show-current" ConsoleToMSBuild="true" StandardOutputImportance="low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="GitBranch" />
-		</Exec>
-
-		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="low">
-			<Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
-		</Exec>
-
-		<PropertyGroup>
-			<Gitag>-$(GitBranch)-$(GitCommitHash)</Gitag>
-		</PropertyGroup>
-
-		<Message Text="[$(AssemblyName)] Saving git metadata to disk" Importance="high" />
-		<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.gitag" Overwrite="true" Lines="$(Gitag)" />
-	</Target>
-
-	<!--
 		Outputs basic information about the build
 	-->
 	<Target Name="CarbonPreBuildEvent" BeforeTargets="PreBuildEvent">
