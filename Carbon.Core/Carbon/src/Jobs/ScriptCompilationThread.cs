@@ -4,20 +4,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Text;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -45,6 +44,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal DateTime _timeSinceCompile;
+	internal static EmitOptions _emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
 	internal static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
@@ -324,7 +324,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
 			var tree = CSharpSyntaxTree.ParseText(
-				Source, options: parseOptions);
+				Source, options: parseOptions, FileName + ".cs", Encoding.UTF8);
 
 			var root = tree.GetCompilationUnitRoot();
 
@@ -333,7 +333,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				HookCaller.GenerateInternalCallHook(root, out root, out _, publicize: false);
 
 				Source = root.ToFullString();
-				trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions));
+				trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions, FileName + ".cs", Encoding.UTF8));
 			}
 			else
 			{
@@ -354,7 +354,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			using (var dllStream = new MemoryStream())
 			{
-				var emit = compilation.Emit(dllStream);
+				var emit = compilation.Emit(dllStream, options: _emitOptions);
 				var errors = new List<string>();
 				var warnings = new List<string>();
 
