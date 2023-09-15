@@ -181,6 +181,8 @@ public class CommunityInternal : Community
 
 		Client.RPC.Init();
 
+		Client.NoMap.Init();
+
 		IsInitialized = true;
 
 		Logger.Log($"Loaded.");

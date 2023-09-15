@@ -6,7 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Text;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -14,10 +14,11 @@ using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -45,6 +46,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal DateTime _timeSinceCompile;
+	internal static EmitOptions _emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
 	internal static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
@@ -307,7 +309,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				conditionals.AddRange(Community.Runtime.Config.ConditionalCompilationSymbols);
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.Error($"Failed referencing conditional compilation symbols", ex);
 			}
@@ -324,20 +326,23 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
 			var tree = CSharpSyntaxTree.ParseText(
-				Source, options: parseOptions);
+				Source, options: parseOptions, FileName + ".cs", Encoding.UTF8);
 
 			var root = tree.GetCompilationUnitRoot();
 
+			var @namespace = root.Members[0] as BaseNamespaceDeclarationSyntax;
+			var @class = @namespace.Members[0] as ClassDeclarationSyntax;
+
+			@class = @class.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.ParseToken("public "), SyntaxFactory.ParseToken("partial ")));
+			root = root.WithMembers(root.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class))));
+
+			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, $"{FileName}.cs", Encoding.UTF8));
+
 			if (!Source.Contains(_internalCallHookPattern))
 			{
-				HookCaller.GenerateInternalCallHook(root, out root, out _, publicize: false);
+				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, FileName);
 
-				Source = root.ToFullString();
-				trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions));
-			}
-			else
-			{
-				trees.Add(tree);
+				trees.Add(partialTree);
 			}
 
 			foreach (var element in root.Usings)
@@ -351,10 +356,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			var compilation = CSharpCompilation.Create(
 				$"Script.{FileName}.{Guid.NewGuid():N}", trees, references, options);
-
+	
 			using (var dllStream = new MemoryStream())
 			{
-				var emit = compilation.Emit(dllStream);
+				var emit = compilation.Emit(dllStream, options: _emitOptions);
 				var errors = new List<string>();
 				var warnings = new List<string>();
 
