@@ -336,13 +336,18 @@ public class ScriptCompilationThread : BaseThreadedJob
 			@class = @class.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.ParseToken("public "), SyntaxFactory.ParseToken("partial ")));
 			root = root.WithMembers(root.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class))));
 
-			trees.Add(root.SyntaxTree);
+			// trees.Add(root.SyntaxTree);
 
 			if (!Source.Contains(_internalCallHookPattern))
 			{
-				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, FileName);
+				HookCaller.GenerateInternalCallHook(root, out root, out _, publicize: false);
 
-				trees.Add(partialTree);
+				Source = root.ToFullString();
+				trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions, FileName + ".cs", Encoding.UTF8));
+			}
+			else
+			{
+				trees.Add(tree);
 			}
 
 			foreach (var element in root.Usings)
