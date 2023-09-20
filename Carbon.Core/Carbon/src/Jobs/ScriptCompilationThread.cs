@@ -44,14 +44,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	#region Internals
 
-	internal const string _global_usings = @"
-global using global::System;
-global using global::System.Collections.Generic;
-global using global::System.IO;
-global using global::System.Linq;
-global using global::System.Threading;
-global using global::System.Threading.Tasks;";
-
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal const string _partialPattern = @" partial ";
 	internal DateTime _timeSinceCompile;
@@ -356,8 +348,6 @@ global using global::System.Threading.Tasks;";
 
 				trees.Add(partialTree);
 			}
-
-			trees.Add(CSharpSyntaxTree.ParseText(_global_usings, null, "__global_usings.cs", Encoding.UTF8));
 
 			foreach (var element in root.Usings)
 				Usings.Add($"{element.Name}");
