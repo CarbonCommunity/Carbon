@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using API.Events;
+using Carbon.Client;
 using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -82,6 +83,7 @@ public class CommunityInternal : Community
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = new ModuleProcessor();
+			CarbonClientManager = new CarbonClientManager();
 			Entities = new Entities();
 		}
 
