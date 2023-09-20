@@ -45,6 +45,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	#region Internals
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
+	internal const string _partialPattern = @" partial ";
 	internal DateTime _timeSinceCompile;
 	internal static EmitOptions _emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
@@ -333,7 +334,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var @namespace = root.Members[0] as BaseNamespaceDeclarationSyntax;
 			var @class = @namespace.Members[0] as ClassDeclarationSyntax;
 
-			@class = @class.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.ParseToken("public "), SyntaxFactory.ParseToken("partial ")));
+			if (!@class.Modifiers.Any(x => x.ValueText.Contains(_partialPattern.Trim())))
+			{
+				@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
+			}
 			root = root.WithMembers(root.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class))));
 
 			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, $"{FileName}.cs", Encoding.UTF8));
