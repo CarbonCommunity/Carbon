@@ -21,6 +21,14 @@
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common.Client\Carbon.Common.Client.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Update="Microsoft.Unity.Analyzers" Version="1.17.0">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Update="Roslynator.CSharp" Version="4.5.0" />
+	</ItemGroup>
+
 	<Target Name="CustomRelease" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<Copy SourceFiles="$(OutputPath)$(Product).dll" DestinationFolder="$(c_managed)" />
 	</Target>

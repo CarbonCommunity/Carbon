@@ -149,6 +149,7 @@ public class CommunityInternal : Community
 
 			var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
 			var lines = OsEx.File.Exists(serverConfigPath) ? OsEx.File.ReadTextLines(serverConfigPath) : null;
+
 			if (lines != null)
 			{
 				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
