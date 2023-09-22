@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using API.Events;
+using Carbon.Client;
 using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -82,6 +83,7 @@ public class CommunityInternal : Community
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = new ModuleProcessor();
+			CarbonClientManager = new CarbonClientManager();
 			Entities = new Entities();
 		}
 
@@ -147,6 +149,7 @@ public class CommunityInternal : Community
 
 			var serverConfigPath = Path.Combine(ConVar.Server.GetServerFolder("cfg"), "server.cfg");
 			var lines = OsEx.File.Exists(serverConfigPath) ? OsEx.File.ReadTextLines(serverConfigPath) : null;
+
 			if (lines != null)
 			{
 				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
@@ -180,6 +183,8 @@ public class CommunityInternal : Community
 		RefreshConsoleInfo();
 
 		Client.RPC.Init();
+
+		Client.NoMap.Init();
 
 		IsInitialized = true;
 
