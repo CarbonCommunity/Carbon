@@ -71,7 +71,6 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach(var type in Community.Runtime.AssemblyEx.Modules.Shared)
 		{
-			Logger.Log($"Loading {type.Key}: {type.Value}");
 			Build(type.Value, type.Key);
 		}
 	}
