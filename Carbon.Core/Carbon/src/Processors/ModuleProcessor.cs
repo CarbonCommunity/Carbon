@@ -23,6 +23,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	List<BaseHookable> IModuleProcessor.Modules { get => _modules; }
 
 	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(200);
+	internal List<BaseHookable> _cache { get; } = new();
 
 	public void Init()
 	{
@@ -38,7 +39,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			if (e is ModuleEventArgs m)
 			{
 				var types = (m.Data as IReadOnlyList<Type>).ToArray();
-				Build(m.Payload, types);
+				Build(m.Payload.ToString(), types);
 				Array.Clear(types, 0, types.Length);
 				types = null;
 			}
@@ -70,6 +71,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach(var type in Community.Runtime.AssemblyEx.Modules.Shared)
 		{
+			Logger.Log($"Loading {type.Key}: {type.Value}");
 			Build(type.Value, type.Key);
 		}
 	}
@@ -125,18 +127,15 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 	public void Setup(BaseHookable hookable)
 	{
-		if (hookable is IModule)
-		{
-			_modules.Add(hookable);
-		}
+		_modules.Add(hookable);
 	}
 	public void Build(params Type[] types)
 	{
 		Build(null, types);
 	}
-	public void Build(object context, params Type[] types)
+	public void Build(string context, params Type[] types)
 	{
-		var modules = Facepunch.Pool.GetList<BaseHookable>();
+		_cache.Clear();
 
 		foreach (var type in types)
 		{
@@ -148,12 +147,11 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			}
 
 			var module = Activator.CreateInstance(type) as BaseModule;
-			Setup(module);
 			module.Context = context;
-			modules.Add(module);
+			_cache.Add(module);
 		}
 
-		foreach (var hookable in modules)
+		foreach (var hookable in _cache)
 		{
 			if (hookable is IModule module)
 			{
@@ -161,11 +159,14 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				{
 					module.Init();
 				}
-				catch (Exception ex) { Logger.Error($"Failed module Init for {module?.GetType().FullName}", ex); }
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed module Init for {module?.GetType().FullName}", ex);
+				}
 			}
 		}
 
-		foreach (var hookable in modules)
+		foreach (var hookable in _cache)
 		{
 			if (hookable is IModule module)
 			{
@@ -173,11 +174,14 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				{
 					module.Load();
 				}
-				catch (Exception ex) { Logger.Error($"Failed module Load for {module?.GetType().FullName}", ex); }
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed module Load for {module?.GetType().FullName}", ex);
+				}
 			}
 		}
 
-		foreach (var hookable in modules)
+		foreach (var hookable in _cache)
 		{
 			if (hookable is IModule module && module.GetEnabled())
 			{
@@ -185,11 +189,14 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				{
 					module.InitEnd();
 				}
-				catch (Exception ex) { Logger.Error($"Failed module InitEnd for {module?.GetType().FullName}", ex); }
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed module InitEnd for {module?.GetType().FullName}", ex);
+				}
 			}
 		}
 
-		foreach (var hookable in modules)
+		foreach (var hookable in _cache)
 		{
 			if (hookable is IModule module && module.GetEnabled())
 			{
@@ -197,11 +204,20 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				{
 					module.OnEnableStatus();
 				}
-				catch (Exception ex) { Logger.Error($"Failed module OnEnableStatus [{module?.GetEnabled()}] for {module?.GetType().FullName}", ex); }
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed module OnEnableStatus [{module?.GetEnabled()}] for {module?.GetType().FullName}", ex);
+				}
 			}
 		}
 
-		Facepunch.Pool.FreeList(ref modules);
+		foreach (var hookable in _cache)
+		{
+			if (hookable is IModule)
+			{
+				Setup(hookable);
+			}
+		}
 	}
 	public void Uninstall(IModule module)
 	{
