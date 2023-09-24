@@ -122,9 +122,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.TryRemove(name, out _);
 		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
 	}
-	internal void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false)
+	internal void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false, bool allowCache = true)
 	{
-		if (_referenceCache.TryGetValue(name, out var reference))
+		if (allowCache && _referenceCache.TryGetValue(name, out var reference))
 		{
 			Logger.Debug(id, $"Added common references from cache '{name}'", 4);
 			references.Add(reference);
@@ -163,6 +163,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			references.Add(processedReference);
 			if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
+			else _referenceCache[name] = processedReference;
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
@@ -208,7 +209,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectReference(id, Path.GetFileName(item.Value), references, _libraryDirectories);
+				_injectReference(id, Path.GetFileName(item.Value), references, _libraryDirectories, direct: false, allowCache: false);
 			}
 			catch (System.Exception ex)
 			{
