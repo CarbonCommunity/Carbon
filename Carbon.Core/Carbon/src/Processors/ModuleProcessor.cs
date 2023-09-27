@@ -152,6 +152,14 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach (var hookable in _cache)
 		{
+			if (hookable is IModule)
+			{
+				Setup(hookable);
+			}
+		}
+
+		foreach (var hookable in _cache)
+		{
 			if (hookable is IModule module)
 			{
 				try
@@ -207,14 +215,6 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				{
 					Logger.Error($"Failed module OnEnableStatus [{module?.GetEnabled()}] for {module?.GetType().FullName}", ex);
 				}
-			}
-		}
-
-		foreach (var hookable in _cache)
-		{
-			if (hookable is IModule)
-			{
-				Setup(hookable);
 			}
 		}
 	}
