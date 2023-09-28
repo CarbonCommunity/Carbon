@@ -209,7 +209,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectReference(id, Path.GetFileName(item.Value), references, _libraryDirectories, direct: false, allowCache: false);
+				var name = Path.GetFileName(item.Value.Key);
+				using var mem = new MemoryStream(item.Value.Value);
+				var processedReference = MetadataReference.CreateFromStream(mem);
+
+				references.Add(processedReference);
+				if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
+				else _referenceCache[name] = processedReference;
 			}
 			catch (System.Exception ex)
 			{
@@ -221,7 +227,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectExtensionReference(id, Path.GetFileName(item.Value), references);
+				_injectExtensionReference(id, Path.GetFileName(item.Value.Key), references);
 			}
 			catch (System.Exception ex)
 			{

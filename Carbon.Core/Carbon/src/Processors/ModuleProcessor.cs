@@ -23,7 +23,6 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	List<BaseHookable> IModuleProcessor.Modules { get => _modules; }
 
 	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(200);
-	internal List<BaseHookable> _cache { get; } = new();
 
 	public void Init()
 	{
@@ -134,7 +133,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	}
 	public void Build(string context, params Type[] types)
 	{
-		_cache.Clear();
+		var _cache = Pool.GetList<BaseModule>();
 
 		foreach (var type in types)
 		{
@@ -217,6 +216,8 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				}
 			}
 		}
+
+		Pool.FreeList(ref _cache);
 	}
 	public void Uninstall(IModule module)
 	{
