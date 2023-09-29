@@ -45,6 +45,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	#region Internals
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
+	internal const string _partialPattern = @" partial ";
 	internal DateTime _timeSinceCompile;
 	internal static EmitOptions _emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
@@ -121,9 +122,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.TryRemove(name, out _);
 		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
 	}
-	internal void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false)
+	internal void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false, bool allowCache = true)
 	{
-		if (_referenceCache.TryGetValue(name, out var reference))
+		if (allowCache && _referenceCache.TryGetValue(name, out var reference))
 		{
 			Logger.Debug(id, $"Added common references from cache '{name}'", 4);
 			references.Add(reference);
@@ -162,6 +163,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			references.Add(processedReference);
 			if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
+			else _referenceCache[name] = processedReference;
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
@@ -207,7 +209,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectReference(id, Path.GetFileName(item.Value), references, _libraryDirectories);
+				var name = Path.GetFileName(item.Value.Key);
+				using var mem = new MemoryStream(item.Value.Value);
+				var processedReference = MetadataReference.CreateFromStream(mem);
+
+				references.Add(processedReference);
+				if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
+				else _referenceCache[name] = processedReference;
 			}
 			catch (System.Exception ex)
 			{
@@ -219,7 +227,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectExtensionReference(id, Path.GetFileName(item.Value), references);
+				_injectExtensionReference(id, Path.GetFileName(item.Value.Key), references);
 			}
 			catch (System.Exception ex)
 			{
@@ -333,7 +341,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var @namespace = root.Members[0] as BaseNamespaceDeclarationSyntax;
 			var @class = @namespace.Members[0] as ClassDeclarationSyntax;
 
-			@class = @class.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.ParseToken("public "), SyntaxFactory.ParseToken("partial ")));
+			if (!@class.Modifiers.Any(x => x.ValueText.Contains(_partialPattern.Trim())))
+			{
+				@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
+			}
 			root = root.WithMembers(root.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class))));
 
 			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, $"{FileName}.cs", Encoding.UTF8));
@@ -356,7 +367,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			var compilation = CSharpCompilation.Create(
 				$"Script.{FileName}.{Guid.NewGuid():N}", trees, references, options);
-	
+
 			using (var dllStream = new MemoryStream())
 			{
 				var emit = compilation.Emit(dllStream, options: _emitOptions);
