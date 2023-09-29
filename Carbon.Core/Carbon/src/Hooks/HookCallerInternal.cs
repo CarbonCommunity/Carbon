@@ -120,17 +120,24 @@ public class HookCallerInternal : HookCallerCommon
 					var method = methods[i];
 					if (method.Name != readableHook) continue;
 
-					hooks.Add(CachedHook.Make(method, plugin));
+					hooks.Add(CachedHook.Make(method));
 				}
 			}
 
-			if (args != null && hooks.Count > 0)
-			{
-				var actualLength = hooks[0].Parameters.Length;
+			var cachedHook = (CachedHook)default;
 
-				if (actualLength != args.Length)
+			if (hooks.Count > 0)
+			{
+				cachedHook = hooks[0];
+
+				if (args != null)
 				{
-					args = RescaleBuffer(args, actualLength);
+					var actualLength = cachedHook.Parameters.Length;
+
+					if (actualLength != args.Length)
+					{
+						args = RescaleBuffer(args, actualLength);
+					}
 				}
 			}
 
@@ -142,7 +149,14 @@ public class HookCallerInternal : HookCallerCommon
 			plugin.TrackStart();
 			var beforeMemory = plugin.TotalMemoryUsed;
 
-			result = plugin.InternalCallHook(hookId, args);
+			if (cachedHook.IsAsync)
+			{
+				plugin.InternalCallHook(hookId, args);
+			}
+			else
+			{
+				result = plugin.InternalCallHook(hookId, args);
+			}
 
 			plugin.TrackEnd();
 			var afterTicks = Environment.TickCount;
@@ -191,7 +205,7 @@ public class HookCallerInternal : HookCallerCommon
 					var method = methods[i];
 					if (method.Name != readableHook) continue;
 
-					hooks.Add(CachedHook.Make(method, plugin));
+					hooks.Add(CachedHook.Make(method));
 				}
 			}
 
@@ -206,11 +220,18 @@ public class HookCallerInternal : HookCallerCommon
 						keepArgs = true;
 					}
 
-					var methodResult = DoCall(cachedHook);
-
-					if (methodResult != null)
+					if (cachedHook.IsAsync)
 					{
-						result = methodResult;
+						DoCall(cachedHook);
+					}
+					else
+					{
+						var methodResult = DoCall(cachedHook);
+
+						if (methodResult != null)
+						{
+							result = methodResult;
+						}
 					}
 
 					ResultOverride(plugin);
@@ -227,7 +248,7 @@ public class HookCallerInternal : HookCallerCommon
 
 			object DoCall(CachedHook hook)
 			{
-				if (hook.Delegate == null && !hook.IsByRef)
+				if (!hook.IsByRef)
 				{
 					return null;
 				}
@@ -249,11 +270,10 @@ public class HookCallerInternal : HookCallerCommon
 #endif
 
 					var beforeTicks = Environment.TickCount;
-					plugin.TrackStart();
 					var result2 = (object)default;
+					plugin.TrackStart();
 
-					if (hook.IsByRef) result2 = hook.Method.Invoke(plugin, args);
-					else result2 = hook.Delegate.DynamicInvoke(args);
+					result2 = hook.Method.Invoke(plugin, args);
 
 					plugin.TrackEnd();
 					var afterTicks = Environment.TickCount;
