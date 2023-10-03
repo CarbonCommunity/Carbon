@@ -20,7 +20,7 @@ using Oxide.Plugins;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -109,27 +109,30 @@ public class ScriptLoader : IScriptLoader
 		AsyncLoader?.Abort();
 		AsyncLoader = null;
 
-		for (int i = 0; i < Scripts.Count; i++)
+		if (Scripts != null)
 		{
-			var plugin = Scripts[i];
-			if (plugin.IsCore || plugin.Instance == null) continue;
-
-			plugin.Instance.Package?.Plugins?.Remove(plugin.Instance);
-
-			if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
-
-			try
+			for (int i = 0; i < Scripts.Count; i++)
 			{
-				ModLoader.UninitializePlugin(plugin.Instance);
-			}
-			catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
-			
-			plugin.Dispose();
-		}
+				var plugin = Scripts[i];
+				if (plugin.IsCore || plugin.Instance == null) continue;
 
-		if (Scripts.Count > 0)
-		{
-			Scripts.RemoveAll(x => !x.IsCore);
+				plugin.Instance.Package?.Plugins?.Remove(plugin.Instance);
+
+				if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
+
+				try
+				{
+					ModLoader.UninitializePlugin(plugin.Instance);
+				}
+				catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
+
+				plugin.Dispose();
+			}
+
+			if (Scripts.Count > 0)
+			{
+				Scripts.RemoveAll(x => !x.IsCore);
+			}
 		}
 
 		Dispose();
@@ -201,7 +204,7 @@ public class ScriptLoader : IScriptLoader
 						var @ref = $"{line.Replace("// Requires:", "").Replace("//Requires:", "")}".Trim();
 						resultRequires.Add(@ref);
 						Logger.Log($" Added required plugin: {@ref}");
-					} 
+					}
 				}
 				catch { }
 			}
