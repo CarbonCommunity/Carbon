@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using API.Events;
 using Carbon.Client;
 using Carbon.Components;
@@ -15,7 +14,7 @@ using UnityEngine;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -52,7 +51,7 @@ public class CommunityInternal : Community
 		ScriptLoader.LoadAll();
 	}
 
-	internal void _installDefaultCommands()
+	internal void _installDefaults()
 	{
 		Plugins = new ModLoader.ModPackage { Name = "Scripts", IsCoreMod = false };
 
@@ -71,7 +70,7 @@ public class CommunityInternal : Community
 
 	#region Processors
 
-	internal void InstallProcessors()
+	internal void _installProcessors()
 	{
 		Carbon.Logger.Log("Installed processors");
 		{
@@ -136,7 +135,7 @@ public class CommunityInternal : Community
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
 			ClearCommands();
-			_installDefaultCommands();
+			_installDefaults();
 			ModuleProcessor.Init();
 
 			Events.Trigger(
@@ -171,7 +170,7 @@ public class CommunityInternal : Community
 
 		Defines.Initialize();
 
-		InstallProcessors();
+		_installProcessors();
 
 		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort}");
 		Logger.Log($"         {Build.Git.Author} on {Build.Git.Branch} ({Build.Git.Date})");
