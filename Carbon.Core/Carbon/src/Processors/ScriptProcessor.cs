@@ -129,6 +129,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		internal const string NewLineReplacer = "[CARBONNEWLINE]";
 		internal const string NewLine = "\\n";
 		internal const string Harmony = "Harmony";
+		internal const string FOOT = "FindObjectsOfType";
 
 		public override void Process(string file, string input, out string output)
 		{
@@ -148,7 +149,12 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 					if (input.Contains(Harmony))
 					{
-						Logger.Warn($" Warning! {Path.GetFileNameWithoutExtension(file)} uses Harmony. That may cause instability, use at your own discretion!");
+						Logger.Warn($" Warning! '{Path.GetFileNameWithoutExtension(file)}' uses Harmony. That may cause instability, use at your own discretion!");
+					}
+
+					if (input.Contains(FOOT))
+					{
+						Logger.Warn($" Warning! '{Path.GetFileNameWithoutExtension(file)}' uses UnityEngine.GameObject.FindObjectsOfType. That may cause significant performance drops, and/or server stalls. Report to the developer or use at your own discretion!");
 					}
 
 					output = input.Replace("PluginTimers", "Timers")
