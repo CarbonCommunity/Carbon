@@ -6,7 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Text;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -14,10 +14,11 @@ using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -44,7 +45,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 	#region Internals
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
+	internal const string _partialPattern = @" partial ";
 	internal DateTime _timeSinceCompile;
+	internal static EmitOptions _emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
 	internal static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
@@ -119,9 +122,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 		if (_extensionCompilationCache.ContainsKey(name)) _extensionCompilationCache.TryRemove(name, out _);
 		if (_extensionReferenceCache.ContainsKey(name)) _extensionReferenceCache.Remove(name);
 	}
-	internal void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false)
+	internal void _injectReference(string id, string name, List<MetadataReference> references, string[] directories, bool direct = false, bool allowCache = true)
 	{
-		if (_referenceCache.TryGetValue(name, out var reference))
+		if (allowCache && _referenceCache.TryGetValue(name, out var reference))
 		{
 			Logger.Debug(id, $"Added common references from cache '{name}'", 4);
 			references.Add(reference);
@@ -160,6 +163,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			references.Add(processedReference);
 			if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
+			else _referenceCache[name] = processedReference;
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
@@ -205,7 +209,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectReference(id, Path.GetFileName(item.Value), references, _libraryDirectories);
+				var name = Path.GetFileName(item.Value.Key);
+				using var mem = new MemoryStream(item.Value.Value);
+				var processedReference = MetadataReference.CreateFromStream(mem);
+
+				references.Add(processedReference);
+				if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
+				else _referenceCache[name] = processedReference;
 			}
 			catch (System.Exception ex)
 			{
@@ -217,7 +227,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectExtensionReference(id, Path.GetFileName(item.Value), references);
+				_injectExtensionReference(id, Path.GetFileName(item.Value.Key), references);
 			}
 			catch (System.Exception ex)
 			{
@@ -307,7 +317,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				conditionals.AddRange(Community.Runtime.Config.ConditionalCompilationSymbols);
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.Error($"Failed referencing conditional compilation symbols", ex);
 			}
@@ -324,20 +334,25 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
 			var tree = CSharpSyntaxTree.ParseText(
-				Source, options: parseOptions);
+				Source, options: parseOptions, FileName + ".cs", Encoding.UTF8);
 
 			var root = tree.GetCompilationUnitRoot();
 
+			HookCaller.FindPluginInfo(root, out var @namespace, out var @class, out var namespaceIndex, out var classIndex);
+
+			if (!@class.Modifiers.Any(x => x.ValueText.Contains(_partialPattern.Trim())))
+			{
+				@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
+			}
+			root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
+
+			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, $"{FileName}.cs", Encoding.UTF8));
+
 			if (!Source.Contains(_internalCallHookPattern))
 			{
-				HookCaller.GenerateInternalCallHook(root, out root, out _, publicize: false);
+				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, FileName);
 
-				Source = root.ToFullString();
-				trees.Add(CSharpSyntaxTree.ParseText(Source, options: parseOptions));
-			}
-			else
-			{
-				trees.Add(tree);
+				trees.Add(partialTree);
 			}
 
 			foreach (var element in root.Usings)
@@ -354,7 +369,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			using (var dllStream = new MemoryStream())
 			{
-				var emit = compilation.Emit(dllStream);
+				var emit = compilation.Emit(dllStream, options: _emitOptions);
 				var errors = new List<string>();
 				var warnings = new List<string>();
 
