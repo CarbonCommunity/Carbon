@@ -14,7 +14,7 @@ using Carbon.Pooling;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -141,8 +141,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		// 	foreach (HookEx hook in _dynamicHooks.Where(x => HookHasSubscribers(x.Identifier)))
 		// 		_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
 		// }
-
-		Logger.Log($"Loaded {_patches.Count + _staticHooks.Count:n0} patches.");
 
 		Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 1f);
 	}

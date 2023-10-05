@@ -13,7 +13,7 @@ using static Carbon.Base.BaseHookable;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -91,15 +91,15 @@ public class HookCallerInternal : HookCallerCommon
 
 	internal static Conflict _defaultConflict = new();
 
-	public override object CallHook<T>(T plugin, uint hookId, BindingFlags flags, object[] args, bool keepArgs = false)
+	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args, bool keepArgs = false)
 	{
 		var readableHook = HookStringPool.GetOrAdd(hookId);
 
-		if (plugin.IsHookIgnored(hookId)) return null;
+		if (hookable.IsHookIgnored(hookId)) return null;
 
 		var result = (object)null;
 
-		if (plugin.InternalCallHookOverriden)
+		if (hookable.InternalCallHookOverriden)
 		{
 			var processedId = hookId;
 
@@ -108,64 +108,78 @@ public class HookCallerInternal : HookCallerCommon
 				processedId += (uint)args.Length;
 			}
 
-			if (plugin.HookMethodAttributeCache.TryGetValue(processedId, out var hooks)) { }
-			else if (!plugin.HookCache.TryGetValue(processedId, out hooks))
+			if (hookable.HookMethodAttributeCache.TryGetValue(processedId, out var hooks)) { }
+			else if (!hookable.HookCache.TryGetValue(processedId, out hooks))
 			{
-				plugin.HookCache.Add(processedId, hooks = new());
+				hookable.HookCache.Add(processedId, hooks = new());
 
-				var methods = plugin.Type.GetMethods(flags);
+				var methods = hookable.Type.GetMethods(flags);
 
 				for (int i = 0; i < methods.Length; i++)
 				{
 					var method = methods[i];
 					if (method.Name != readableHook) continue;
 
-					hooks.Add(CachedHook.Make(method, plugin));
+					hooks.Add(CachedHook.Make(method));
 				}
 			}
 
-			if (args != null && hooks.Count > 0)
-			{
-				var actualLength = hooks[0].Parameters.Length;
+			var cachedHook = (CachedHook)default;
 
-				if (actualLength != args.Length)
+			if (hooks.Count > 0)
+			{
+				cachedHook = hooks[0];
+
+				if (args != null)
 				{
-					args = RescaleBuffer(args, actualLength);
+					var actualLength = cachedHook.Parameters.Length;
+
+					if (actualLength != args.Length)
+					{
+						args = RescaleBuffer(args, actualLength);
+					}
 				}
 			}
 
 #if DEBUG
-			Profiler.StartHookCall(plugin, hookId);
+			Profiler.StartHookCall(hookable, hookId);
 #endif
 
 			var beforeTicks = Environment.TickCount;
-			plugin.TrackStart();
-			var beforeMemory = plugin.TotalMemoryUsed;
+			hookable.TrackStart();
+			var beforeMemory = hookable.TotalMemoryUsed;
 
-			result = plugin.InternalCallHook(hookId, args);
+			if (cachedHook.IsAsync)
+			{
+				hookable.InternalCallHook(hookId, args);
+			}
+			else
+			{
+				result = hookable.InternalCallHook(hookId, args);
+			}
 
-			plugin.TrackEnd();
+			hookable.TrackEnd();
 			var afterTicks = Environment.TickCount;
 			var totalTicks = afterTicks - beforeTicks;
 
 #if DEBUG
-			Profiler.EndHookCall(plugin);
+			Profiler.EndHookCall(hookable);
 #endif
 
 			AppendHookTime(hookId, totalTicks);
 
 			if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
 			{
-				if (plugin is Plugin basePlugin && !basePlugin.IsCorePlugin)
+				if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 				{
-					Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(plugin.HasGCCollected ? " [GC]" : string.Empty)}");
+					Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 					Community.Runtime.Analytics.LogEvent("plugin_time_warn",
 						segments: Community.Runtime.Analytics.Segments,
 						metrics: new Dictionary<string, object>
 						{
 							{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}" },
 							{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
-							{ "hasgc", plugin.HasGCCollected }
+							{ "hasgc", hookable.HasGCCollected }
 						});
 				}
 			}
@@ -179,19 +193,19 @@ public class HookCallerInternal : HookCallerCommon
 				processedId += (uint)args.Length;
 			}
 
-			if (plugin.HookMethodAttributeCache.TryGetValue(processedId, out var hooks)) { }
-			else if (!plugin.HookCache.TryGetValue(processedId, out hooks))
+			if (hookable.HookMethodAttributeCache.TryGetValue(processedId, out var hooks)) { }
+			else if (!hookable.HookCache.TryGetValue(processedId, out hooks))
 			{
-				plugin.HookCache.Add(processedId, hooks = new());
+				hookable.HookCache.Add(processedId, hooks = new());
 
-				var methods = plugin.Type.GetMethods(flags);
+				var methods = hookable.Type.GetMethods(flags);
 
 				for (int i = 0; i < methods.Length; i++)
 				{
 					var method = methods[i];
 					if (method.Name != readableHook) continue;
 
-					hooks.Add(CachedHook.Make(method, plugin));
+					hooks.Add(CachedHook.Make(method));
 				}
 			}
 
@@ -206,20 +220,27 @@ public class HookCallerInternal : HookCallerCommon
 						keepArgs = true;
 					}
 
-					var methodResult = DoCall(cachedHook);
-
-					if (methodResult != null)
+					if (cachedHook.IsAsync)
 					{
-						result = methodResult;
+						DoCall(cachedHook);
+					}
+					else
+					{
+						var methodResult = DoCall(cachedHook);
+
+						if (methodResult != null)
+						{
+							result = methodResult;
+						}
 					}
 
-					ResultOverride(plugin);
+					ResultOverride(hookable);
 				}
 				catch (Exception ex)
 				{
 					var exception = ex.InnerException ?? ex;
 					Carbon.Logger.Error(
-						$"Failed to call hook '{readableHook}' on plugin '{plugin.Name} v{plugin.Version}'",
+						$"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'",
 						exception
 					);
 				}
@@ -227,11 +248,6 @@ public class HookCallerInternal : HookCallerCommon
 
 			object DoCall(CachedHook hook)
 			{
-				if (hook.Delegate == null && !hook.IsByRef)
-				{
-					return null;
-				}
-
 				if (args != null)
 				{
 					var actualLength = hook.Parameters.Length;
@@ -245,17 +261,16 @@ public class HookCallerInternal : HookCallerCommon
 				if (args == null || SequenceEqual(hook.Parameters, args))
 				{
 #if DEBUG
-					Profiler.StartHookCall(plugin, hookId);
+					Profiler.StartHookCall(hookable, hookId);
 #endif
 
 					var beforeTicks = Environment.TickCount;
-					plugin.TrackStart();
 					var result2 = (object)default;
+					hookable.TrackStart();
 
-					if (hook.IsByRef) result2 = hook.Method.Invoke(plugin, args);
-					else result2 = hook.Delegate.DynamicInvoke(args);
+					result2 = hook.Method.Invoke(hookable, args);
 
-					plugin.TrackEnd();
+					hookable.TrackEnd();
 					var afterTicks = Environment.TickCount;
 					var totalTicks = afterTicks - beforeTicks;
 
@@ -263,22 +278,22 @@ public class HookCallerInternal : HookCallerCommon
 
 					if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
 					{
-						if (plugin is Plugin basePlugin && !basePlugin.IsCorePlugin)
+						if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 						{
 							var readableHook = HookStringPool.GetOrAdd(hookId);
-							Carbon.Logger.Warn($" {plugin.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(plugin.HasGCCollected ? " [GC]" : string.Empty)}");
+							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 							Community.Runtime.Analytics.LogEvent("plugin_time_warn",
 								segments: Community.Runtime.Analytics.Segments,
 								metrics: new Dictionary<string, object>
 								{
 									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}) [{TimeEx.Format(basePlugin.Uptime)} uptime]" },
-									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms{(plugin.HasGCCollected ? " [GC]" : string.Empty)}" },
+									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms{(hookable.HasGCCollected ? " [GC]" : string.Empty)}" },
 								});
 						}
 					}
 
 #if DEBUG
-					Profiler.EndHookCall(plugin);
+					Profiler.EndHookCall(hookable);
 #endif
 					return result2;
 				}
