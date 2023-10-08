@@ -331,10 +331,17 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("MINIMAL");
 #endif
 
+			string pdb_filename =
+			#if DEBUG
+				FilePath;
+			#else
+				FileName + ".cs";
+			#endif
+
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
 			var tree = CSharpSyntaxTree.ParseText(
-				Source, options: parseOptions, FileName + ".cs", Encoding.UTF8);
+				Source, options: parseOptions, pdb_filename, Encoding.UTF8);
 
 			var root = tree.GetCompilationUnitRoot();
 
@@ -346,7 +353,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 			root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
 
-			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, $"{FileName}.cs", Encoding.UTF8));
+			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, pdb_filename, Encoding.UTF8));
 
 			if (!Source.Contains(_internalCallHookPattern))
 			{
@@ -360,7 +367,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			var options = new CSharpCompilationOptions(
 				OutputKind.DynamicallyLinkedLibrary,
-				optimizationLevel: OptimizationLevel.Release,
+				optimizationLevel:
+				#if DEBUG
+				OptimizationLevel.Debug,
+				#else
+				OptimizationLevel.Release,
+				#endif
 				deterministic: true, warningLevel: 4
 			);
 
