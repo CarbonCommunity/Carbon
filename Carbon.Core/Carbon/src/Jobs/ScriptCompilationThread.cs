@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -333,7 +334,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			string pdb_filename =
 			#if DEBUG
-				FilePath;
+				Debugger.IsAttached ? FilePath : FileName + ".cs";
 			#else
 				FileName + ".cs";
 			#endif
@@ -369,9 +370,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 				OutputKind.DynamicallyLinkedLibrary,
 				optimizationLevel:
 				#if DEBUG
-				OptimizationLevel.Debug,
+					Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
 				#else
-				OptimizationLevel.Release,
+					OptimizationLevel.Release,
 				#endif
 				deterministic: true, warningLevel: 4
 			);
