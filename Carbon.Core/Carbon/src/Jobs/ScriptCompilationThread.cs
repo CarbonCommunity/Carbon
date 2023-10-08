@@ -334,7 +334,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			string pdb_filename =
 			#if DEBUG
-				Debugger.IsAttached ? FilePath : FileName + ".cs";
+				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? FilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, $"{FileName}.cs")) : $"{FileName}.cs";
 			#else
 				FileName + ".cs";
 			#endif
