@@ -10,6 +10,7 @@ using API.Commands;
 using API.Events;
 using API.Hooks;
 using Carbon.Core;
+using Carbon.Extensions;
 using Carbon.Pooling;
 
 /*
@@ -72,19 +73,15 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
 		{
-			Name = "c.autoupdate",
-			Callback = (arg) => CMDAutoUpdate(arg)
-		}, out string _);
-
-		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
-		{
 			Name = "c.hooks",
 			Callback = (arg) => CMDHookInfo(arg)
 		}, out string _);
 
 		enabled = false;
 
-		if (Community.Runtime.Config.AutoUpdateExtHooks)
+		var doHookUpdate = !CommandLineEx.GetArgumentExists("+carbon.skiphookupdates");
+
+		if (!doHookUpdate)
 		{
 			Logger.Log("Updating hooks...");
 
@@ -249,7 +246,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	{
 		try
 		{
-			// delegates asm loading to Carbon.Loader 
+			// delegates asm loading to Carbon.Loader
 			Assembly hooks = Community.Runtime.AssemblyEx.Hooks.Load(fileName, "HookManager.LoadHooksFromFile");
 
 			if (hooks == null)
@@ -582,21 +579,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		using SHA1Managed sha1 = new SHA1Managed();
 		byte[] bytes = sha1.ComputeHash(raw);
 		return string.Concat(bytes.Select(b => b.ToString("x2"))).ToLower();
-	}
-
-	private void CMDAutoUpdate(Command.Args arg)
-	{
-		if (!arg.Tokenize<ConsoleSystem.Arg>(out var args)) return;
-
-		bool value = args.GetBool(0, false);
-
-		if (args.HasArgs(1))
-		{
-			Community.Runtime.Config.AutoUpdateExtHooks = value;
-			Community.Runtime.SaveConfig();
-		}
-
-		arg.ReplyWith($"c.autoupdateexthooks: {Community.Runtime.Config.AutoUpdateExtHooks}");
 	}
 
 	private void CMDHookInfo(Command.Args arg)
