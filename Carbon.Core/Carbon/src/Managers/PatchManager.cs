@@ -306,6 +306,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				HookEx hook = new HookEx(type)
 					?? throw new Exception($"Hook is null, this is a bug");
 
+				if (hook.Options.HasFlag(HookFlags.MetadataOnly))
+				{
+					continue;
+				}
+
 				if (IsHookLoaded(hook))
 					throw new Exception($"Found duplicated hook '{hook}'");
 
