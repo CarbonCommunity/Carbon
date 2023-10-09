@@ -67,9 +67,6 @@ public class CommunityInternal : Community
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon");
 	}
-
-	#region Processors
-
 	internal void _installProcessors()
 	{
 		Carbon.Logger.Log("Installed processors");
@@ -115,8 +112,10 @@ public class CommunityInternal : Community
 		}
 		catch { }
 	}
-
-	#endregion
+	internal void _handleThreads()
+	{
+		ThreadEx.MainThread.Name = "Main";
+	}
 
 	public override void Initialize()
 	{
@@ -170,6 +169,7 @@ public class CommunityInternal : Community
 
 		Defines.Initialize();
 
+		_handleThreads();
 		_installProcessors();
 
 		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort}");
