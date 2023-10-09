@@ -359,7 +359,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, pdb_filename);
 
-				trees.Add(partialTree);
+				trees.Add(partialTree.SyntaxTree);
 			}
 
 			foreach (var element in root.Usings)
