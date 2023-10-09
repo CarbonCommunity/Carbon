@@ -8,7 +8,7 @@ using Carbon.Core;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -27,7 +27,8 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		BlacklistPattern = new[]
 		{
-			"backups"
+			"backups",
+			"debug"
 		};
 
 		base.Start();

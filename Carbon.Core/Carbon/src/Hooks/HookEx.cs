@@ -10,7 +10,7 @@ using HarmonyLib;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -130,6 +130,12 @@ public class HookEx : IDisposable, IHook
 
 			if (Attribute.IsDefined(type, typeof(HookAttribute.Checksum), false))
 				Checksum = type.GetCustomAttribute<HookAttribute.Checksum>()?.Value ?? default;
+
+			if (Options.HasFlag(HookFlags.MetadataOnly))
+			{
+				SetStatus(HookState.Inactive);
+				return;
+			}
 
 			_patchMethod = type;
 			_runtime.Status = HookState.Inactive;

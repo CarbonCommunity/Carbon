@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,6 @@ using Carbon.Extensions;
 using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 
 /*
@@ -331,10 +331,17 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("MINIMAL");
 #endif
 
+			string pdb_filename =
+			#if DEBUG
+				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? FilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, $"{FileName}.cs")) : $"{FileName}.cs";
+			#else
+				FileName + ".cs";
+			#endif
+
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
 			var tree = CSharpSyntaxTree.ParseText(
-				Source, options: parseOptions, FileName + ".cs", Encoding.UTF8);
+				Source, options: parseOptions, pdb_filename, Encoding.UTF8);
 
 			var root = tree.GetCompilationUnitRoot();
 
@@ -346,13 +353,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 			root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
 
-			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, $"{FileName}.cs", Encoding.UTF8));
+			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, pdb_filename, Encoding.UTF8));
 
 			if (!Source.Contains(_internalCallHookPattern))
 			{
-				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, FileName);
+				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, pdb_filename);
 
-				trees.Add(partialTree);
+				trees.Add(partialTree.SyntaxTree);
 			}
 
 			foreach (var element in root.Usings)
@@ -360,7 +367,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			var options = new CSharpCompilationOptions(
 				OutputKind.DynamicallyLinkedLibrary,
-				optimizationLevel: OptimizationLevel.Release,
+				optimizationLevel:
+				#if DEBUG
+					Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
+				#else
+					OptimizationLevel.Release,
+				#endif
 				deterministic: true, warningLevel: 4
 			);
 
