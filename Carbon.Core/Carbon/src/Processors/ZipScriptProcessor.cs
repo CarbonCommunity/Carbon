@@ -7,6 +7,7 @@ using Carbon.Base;
 using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Core;
+using Carbon.Extensions;
 
 /*
  *
@@ -108,6 +109,12 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 			try
 			{
 				Carbon.Core.ModLoader.FailedMods.RemoveAll(x => x.File == File);
+
+				if (!OsEx.File.Exists(File))
+				{
+					Dispose();
+					return;
+				}
 
 				Loader = new ScriptLoader
 				{
