@@ -5,7 +5,7 @@ using Carbon.Contracts;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -44,7 +44,7 @@ public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 				{
 					Logger.Log($"Downloaded '{File}': {result.Length}");
 
-					_loader.Source = result;
+					_loader.Sources.Add(result);
 					_loader.Load();
 				}, Community.Runtime.CorePlugin);
 			}

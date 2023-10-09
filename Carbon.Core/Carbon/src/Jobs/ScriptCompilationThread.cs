@@ -8,12 +8,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using Carbon.Base;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 
 /*
@@ -29,7 +31,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 {
 	public string FilePath;
 	public string FileName;
-	public string Source;
+	public List<string> Sources;
 	public string[] References;
 	public string[] Requires;
 	public bool IsExtension;
@@ -47,6 +49,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal const string _partialPattern = @" partial ";
 	internal DateTime _timeSinceCompile;
+	internal List<ClassDeclarationSyntax> ClassList = new();
 	internal static EmitOptions _emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
 	internal static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
@@ -340,30 +343,47 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
-			var tree = CSharpSyntaxTree.ParseText(
-				Source, options: parseOptions, pdb_filename, Encoding.UTF8);
 
-			var root = tree.GetCompilationUnitRoot();
+			var containsInternalCallHookOverride = Sources.Any(x => x.Contains(_internalCallHookPattern));
 
-			HookCaller.FindPluginInfo(root, out var @namespace, out var @class, out var namespaceIndex, out var classIndex);
-
-			if (!@class.Modifiers.Any(x => x.ValueText.Contains(_partialPattern.Trim())))
+			foreach (var source in Sources)
 			{
-				@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
+				var tree = CSharpSyntaxTree.ParseText(
+					source, options: parseOptions, pdb_filename, Encoding.UTF8);
+
+				var root = tree.GetCompilationUnitRoot();
+
+				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
+				{
+					var @class = ClassList[0];
+
+					if (!@class.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
+					{
+						@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
+					}
+					root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
+					trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, pdb_filename, Encoding.UTF8));
+				}
+				else
+				{
+					trees.Add(tree);
+				}
+
+				foreach (var name in root.Usings.Select(element => element.Name.ToString()).Where(name => !Usings.Contains(name)))
+				{
+					Usings.Add(name);
+				}
 			}
-			root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
 
-			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, pdb_filename, Encoding.UTF8));
-
-			if (!Source.Contains(_internalCallHookPattern))
+			if (!containsInternalCallHookOverride)
 			{
-				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, pdb_filename);
+				var completeBody = CSharpSyntaxTree.ParseText(
+					Sources.ToString("\n"), options: parseOptions, pdb_filename, Encoding.UTF8);
+
+				HookCaller.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions, pdb_filename, ClassList);
 
 				trees.Add(partialTree.SyntaxTree);
 			}
-
-			foreach (var element in root.Usings)
-				Usings.Add($"{element.Name}");
 
 			var options = new CSharpCompilationOptions(
 				OutputKind.DynamicallyLinkedLibrary,
@@ -481,6 +501,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	public override void Dispose()
 	{
+		ClassList.Clear();
+
 		Exceptions?.Clear();
 		Warnings?.Clear();
 
@@ -488,6 +510,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		HookMethods?.Clear();
 		PluginReferences?.Clear();
 
+		ClassList = null;
 		Hooks = null;
 		HookMethods = null;
 		PluginReferences = null;

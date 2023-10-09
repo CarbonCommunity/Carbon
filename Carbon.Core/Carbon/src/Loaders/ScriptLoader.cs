@@ -32,7 +32,7 @@ public class ScriptLoader : IScriptLoader
 	public List<IScript> Scripts { get; set; } = new List<IScript>();
 
 	public string File { get; set; }
-	public string Source { get; set; }
+	public List<string> Sources { get; set; } = new();
 	public bool IsCore { get; set; }
 	public bool IsExtension { get; set; }
 
@@ -156,29 +156,32 @@ public class ScriptLoader : IScriptLoader
 
 	public IEnumerator Compile()
 	{
-		if (string.IsNullOrEmpty(Source) && !string.IsNullOrEmpty(File) && OsEx.File.Exists(File))
-			yield return ReadFileAsync(File, content => Source = content);
+		if ((Sources == null || Sources.Count == 0) && !string.IsNullOrEmpty(File) && OsEx.File.Exists(File))
+			yield return ReadFileAsync(File, content => Sources.Add(content));
 
 		if (Parser != null)
 		{
-			Parser.Process(File, Source, out var newSource);
-
-			yield return null;
-
-			if (!string.IsNullOrEmpty(newSource))
+			for(int i = 0; i < Sources.Count; i++)
 			{
-				Source = newSource;
+				Parser.Process(File, Sources[i], out var newSource);
+
+				yield return null;
+
+				if (!string.IsNullOrEmpty(newSource))
+				{
+					Sources[i] = newSource;
+				}
 			}
 		}
 
-		if (string.IsNullOrEmpty(Source))
+		if (Sources == null || Sources.Count == 0)
 		{
 			HasFinished = true;
 			// Logger.Warn("Attempted to compile an empty string of source code.");
 			yield break;
 		}
 
-		var lines = Source?.Split('\n');
+		var lines = Sources.SelectMany(x => x?.Split('\n'));
 		var resultReferences = Facepunch.Pool.GetList<string>();
 		var resultRequires = Facepunch.Pool.GetList<string>();
 
@@ -212,11 +215,12 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		Array.Clear(lines, 0, lines.Length);
+		lines = null;
+
 		if (AsyncLoader != null)
 		{
 			AsyncLoader.FilePath = File;
-			AsyncLoader.Source = Source;
+			AsyncLoader.Sources = Sources;
 			AsyncLoader.References = resultReferences?.ToArray();
 			AsyncLoader.Requires = resultRequires?.ToArray();
 			AsyncLoader.IsExtension = IsExtension;
@@ -362,7 +366,7 @@ public class ScriptLoader : IScriptLoader
 				if (requires.Any(x => x.Name == info.Title)) continue;
 
 				var description = type.GetCustomAttribute(typeof(DescriptionAttribute), true) as DescriptionAttribute;
-				var plugin = Script.Create(Source, assembly, type);
+				var plugin = Script.Create(assembly, type);
 
 				plugin.Name = info.Title;
 				plugin.Author = info.Author;
@@ -372,7 +376,7 @@ public class ScriptLoader : IScriptLoader
 				if (ModLoader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
 					{
 						Scripts.Add(plugin);
-						p.HasConditionals = Source.Contains("#if ");
+						p.HasConditionals = Sources.Contains("#if ");
 						p.IsExtension = IsExtension;
 #if DEBUG
 						p.CompileWarnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
@@ -455,16 +459,14 @@ public class ScriptLoader : IScriptLoader
 		public string Author { get; set; }
 		public VersionNumber Version { get; set; }
 		public string Description { get; set; }
-		public string Source { get; set; }
 		public IScriptLoader Loader { get; set; }
 		public RustPlugin Instance { get; set; }
 		public bool IsCore { get; set; }
 
-		public static Script Create(string source, Assembly assembly, Type type)
+		public static Script Create(Assembly assembly, Type type)
 		{
 			return new Script
 			{
-				Source = source,
 				Assembly = assembly,
 				Type = type,
 
