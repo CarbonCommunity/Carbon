@@ -14,7 +14,6 @@ using Carbon.Extensions;
 using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 
 /*
@@ -358,7 +357,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (!Source.Contains(_internalCallHookPattern))
 			{
-				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, FileName);
+				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, pdb_filename);
 
 				trees.Add(partialTree);
 			}
