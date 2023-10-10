@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Core;
+using Carbon.Extensions;
 
 /*
  *
@@ -15,33 +18,32 @@ using Carbon.Core;
 
 namespace Carbon.Managers;
 
-public class ScriptProcessor : BaseProcessor, IScriptProcessor
+public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 {
-	public override string Name => "Script Processor";
+	public override string Name => "ZipDebugScript Processor";
 	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.ScriptWatchers;
-	public override string Folder => Defines.GetScriptFolder();
+	public override string Folder => Defines.GetZipDevFolder();
 	public override string Extension => ".cs";
-	public override Type IndexedType => typeof(Script);
+	public override Type IndexedType => typeof(ZipDevScript);
 
 	public override void Start()
 	{
 		BlacklistPattern = new[]
 		{
 			"backups",
-			"debug",
-			"cszip_dev"
+			"debug"
 		};
 
 		base.Start();
 
-		IncludeSubdirectories = Community.Runtime.Config.ScriptWatcherOption == SearchOption.AllDirectories;
+		IncludeSubdirectories = true;
 	}
 
 	public bool AllPendingScriptsComplete()
 	{
 		foreach (var instance in InstanceBuffer)
 		{
-			if (instance.Value is Script script)
+			if (instance.Value is ZipDevScript script)
 			{
 				if (script.Loader != null && !script.Loader.HasFinished) return false;
 			}
@@ -53,7 +55,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		foreach (var instance in InstanceBuffer)
 		{
-			if (instance.Value is Script script)
+			if (instance.Value is ZipDevScript script)
 			{
 				if (script.Loader != null && !script.Loader.HasRequires && !script.Loader.HasFinished) return false;
 			}
@@ -65,7 +67,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		foreach (var instance in InstanceBuffer)
 		{
-			if (instance.Value is Script script)
+			if (instance.Value is ZipDevScript script)
 			{
 				if (script.Loader != null && !script.Loader.IsExtension && !script.Loader.HasFinished) return false;
 			}
@@ -78,16 +80,66 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		StartCoroutine(coroutine);
 	}
-	void IScriptProcessor.StopCoroutine(System.Collections.IEnumerator coroutine)
+	void IScriptProcessor.StopCoroutine(IEnumerator coroutine)
 	{
 		StopCoroutine(coroutine);
 	}
 
-	public class Script : Process, IScriptProcessor.IScript
+	public override void OnCreated(object sender, FileSystemEventArgs e)
+	{
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
+
+		var directory = Path.GetDirectoryName(e.FullPath);
+		var id = Path.GetFileNameWithoutExtension(directory);
+
+		if (InstanceBuffer.TryGetValue(directory, out var instance1))
+		{
+			instance1?.SetDirty();
+			return;
+		}
+
+		if (InstanceBuffer.TryGetValue(id, out var instance2))
+		{
+			instance2?.SetDirty();
+			return;
+		}
+
+		InstanceBuffer.Add(directory, null);
+	}
+	public override void OnChanged(object sender, FileSystemEventArgs e)
+	{
+		var path = e.FullPath;
+		var directory = Path.GetDirectoryName(path);
+
+		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
+
+		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.SetDirty();
+	}
+	public override void OnRenamed(object sender, RenamedEventArgs e)
+	{
+		var path = e.FullPath;
+		var directory = Path.GetDirectoryName(path);
+
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.MarkDeleted();
+		InstanceBuffer.Add(directory, null);
+	}
+	public override void OnRemoved(object sender, FileSystemEventArgs e)
+	{
+		var path = e.FullPath;
+		var directory = Path.GetDirectoryName(path);
+
+		if (!EnableWatcher || IsBlacklisted(path)) return;
+
+		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.MarkDeleted();
+	}
+
+	public class ZipDevScript : Process, IScriptProcessor.IScript
 	{
 		public IScriptLoader Loader { get; set; }
 
-		public override IBaseProcessor.IParser Parser => new ScriptParser();
+		public override IBaseProcessor.IParser Parser => new ZipDevScriptParser();
 
 		public override void Dispose()
 		{
@@ -104,23 +156,39 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		}
 		public override void Execute(IBaseProcessor processor)
 		{
+			base.Execute(processor);
+
 			try
 			{
 				Carbon.Core.ModLoader.FailedMods.RemoveAll(x => x.File == File);
 
+				if (!OsEx.Folder.Exists(File))
+				{
+					Dispose();
+					return;
+				}
+
 				Loader = new ScriptLoader
 				{
 					Parser = Parser,
-					Mod = Community.Runtime.Plugins,
+					Mod = Community.Runtime.ZipPlugins,
 					Process = this
 				};
-				Loader.Sources.Add(new BaseSource
+
+				foreach (var file in OsEx.Folder.GetFilesWithExtension(File, processor.Extension))
 				{
-					FilePath = File,
-					FileName = Path.GetFileName(File),
-					ContextFilePath = File,
-					ContextFileName = Path.GetFileName(File)
-				});
+					var content = OsEx.File.ReadText(file);
+
+					Loader.Sources.Add(new BaseSource
+					{
+						ContextFilePath = File,
+						ContextFileName = Path.GetFileName(File),
+						FilePath = file,
+						FileName = Path.GetFileName(file),
+						Content = content
+					});
+				}
+
 				Loader.Load();
 			}
 			catch (Exception ex)
@@ -130,7 +198,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		}
 	}
 
-	public class ScriptParser : Parser, IBaseProcessor.IParser
+	public class ZipDevScriptParser : Parser, IBaseProcessor.IParser
 	{
 		internal const string QuoteReplacer = "[CARBONQUOTE]";
 		internal const string Quote = "\\\"";

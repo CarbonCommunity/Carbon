@@ -17,7 +17,7 @@ public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 	public override string Name => "WebScript Processor";
 	public override Type IndexedType => typeof(WebScript);
 
-	public class WebScript : Instance
+	public class WebScript : Process
 	{
 		internal ScriptLoader _loader;
 
@@ -34,7 +34,7 @@ public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 
 			_loader = null;
 		}
-		public override void Execute()
+		public override void Execute(IBaseProcessor processor)
 		{
 			try
 			{
@@ -44,7 +44,14 @@ public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 				{
 					Logger.Log($"Downloaded '{File}': {result.Length}");
 
-					_loader.Sources.Add(result);
+					_loader.Sources.Add(new BaseSource
+					{
+						ContextFilePath = File,
+						ContextFileName = Path.GetFileName(File),
+						FilePath = File,
+						FileName = Path.GetFileName(File),
+						Content = result
+					});
 					_loader.Load();
 				}, Community.Runtime.CorePlugin);
 			}

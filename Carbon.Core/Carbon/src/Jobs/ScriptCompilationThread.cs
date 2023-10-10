@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Carbon.Base;
+using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
@@ -29,9 +30,8 @@ namespace Carbon.Jobs;
 
 public class ScriptCompilationThread : BaseThreadedJob
 {
-	public string FilePath;
-	public string FileName;
-	public List<string> Sources;
+	public ISource InitialSource => Sources != null && Sources.Count > 0 ? Sources[0] : null;
+	public List<ISource> Sources;
 	public string[] References;
 	public string[] Requires;
 	public bool IsExtension;
@@ -191,7 +191,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	internal List<MetadataReference> _addReferences()
 	{
 		var references = new List<MetadataReference>();
-		var id = Path.GetFileNameWithoutExtension(FilePath);
+		var id = Path.GetFileNameWithoutExtension(InitialSource.FilePath);
 
 		_injectReference(id, "0Harmony", references, _libraryDirectories);
 		_injectReference(id, "System.Memory", references, _libraryDirectories, direct: true);
@@ -311,7 +311,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Exceptions.Clear();
 			Warnings.Clear();
 			_timeSinceCompile = DateTime.Now;
-			FileName = Path.GetFileNameWithoutExtension(FilePath);
 
 			var trees = new List<SyntaxTree>();
 			var conditionals = new List<string>();
@@ -336,7 +335,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			string pdb_filename =
 			#if DEBUG
-				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? FilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, $"{FileName}.cs")) : $"{FileName}.cs";
+				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? InitialSource.ContextFilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, $"{InitialSource.ContextFileName}.cs")) : $"{InitialSource.ContextFileName}.cs";
 			#else
 				FileName + ".cs";
 			#endif
@@ -344,12 +343,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
 
-			var containsInternalCallHookOverride = Sources.Any(x => x.Contains(_internalCallHookPattern));
+			var containsInternalCallHookOverride = Sources.Any(x => x.Content.Contains(_internalCallHookPattern));
 
 			foreach (var source in Sources)
 			{
 				var tree = CSharpSyntaxTree.ParseText(
-					source, options: parseOptions, pdb_filename, Encoding.UTF8);
+					source.Content, options: parseOptions, source.FilePath, Encoding.UTF8);
 
 				var root = tree.GetCompilationUnitRoot();
 
@@ -362,7 +361,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 						@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
 					}
 					root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
-					trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, pdb_filename, Encoding.UTF8));
+					trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, source.FilePath, Encoding.UTF8));
 				}
 				else
 				{
@@ -378,7 +377,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			if (!containsInternalCallHookOverride)
 			{
 				var completeBody = CSharpSyntaxTree.ParseText(
-					Sources.ToString("\n"), options: parseOptions, pdb_filename, Encoding.UTF8);
+					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdb_filename, Encoding.UTF8);
 
 				HookCaller.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions, pdb_filename, ClassList);
 
@@ -397,7 +396,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			);
 
 			var compilation = CSharpCompilation.Create(
-				$"Script.{FileName}.{Guid.NewGuid():N}", trees, references, options);
+				$"Script.{InitialSource.FileName}.{Guid.NewGuid():N}", trees, references, options);
 
 			using (var dllStream = new MemoryStream())
 			{
@@ -415,8 +414,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					{
 						case DiagnosticSeverity.Error:
 							errors.Add(error.Id);
-							Exceptions.Add(new CompilerException(FilePath,
-								new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+							Exceptions.Add(new CompilerException(InitialSource.ContextFilePath,
+								new CompilerError(InitialSource.FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 
 							break;
 
@@ -424,8 +423,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 							if (error.GetMessage(CultureInfo.InvariantCulture).Contains("Assuming assembly reference")) continue;
 
 							errors.Add(error.Id);
-							Warnings.Add(new CompilerException(FilePath,
-								new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+							Warnings.Add(new CompilerException(InitialSource.ContextFilePath,
+								new CompilerError(InitialSource.FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 							break;
 					}
 				}
@@ -439,8 +438,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					var assembly = dllStream.ToArray();
 					if (assembly != null)
 					{
-						if (IsExtension) _overrideExtensionPlugin(FilePath, assembly);
-						_overridePlugin(FileName, assembly);
+						if (IsExtension) _overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
 						Assembly = Assembly.Load(assembly);
 					}
 				}
@@ -496,7 +495,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (Exceptions.Count > 0) throw null;
 		}
-		catch (Exception ex) { System.Console.WriteLine($"Threading compilation failed for '{FileName}': {ex}"); }
+		catch (Exception ex) { System.Console.WriteLine($"Threading compilation failed for '{InitialSource.ContextFilePath}': {ex}"); }
 	}
 
 	public override void Dispose()

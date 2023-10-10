@@ -75,7 +75,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 
 		return true;
 	}
-	
+
 	void IScriptProcessor.StartCoroutine(IEnumerator coroutine)
 	{
 		StartCoroutine(coroutine);
@@ -85,7 +85,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 		StopCoroutine(coroutine);
 	}
 
-	public class ZipScript : Instance, IScriptProcessor.IScript
+	public class ZipScript : Process, IScriptProcessor.IScript
 	{
 		public IScriptLoader Loader { get; set; }
 
@@ -104,7 +104,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 
 			Loader = null;
 		}
-		public override void Execute()
+		public override void Execute(IBaseProcessor processor)
 		{
 			try
 			{
@@ -119,9 +119,8 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 				Loader = new ScriptLoader
 				{
 					Parser = Parser,
-					File = File,
 					Mod = Community.Runtime.ZipPlugins,
-					Instance = this
+					Process = this
 				};
 
 				using (var zipFile = ZipFile.OpenRead(File))
@@ -130,7 +129,14 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 					{
 						using (var stream = new StreamReader(entry.Open()))
 						{
-							Loader.Sources.Add(stream.ReadToEnd());
+							Loader.Sources.Add(new BaseSource
+							{
+								ContextFilePath = File,
+								ContextFileName = Path.GetFileName(File),
+								FilePath = entry.FullName,
+								FileName = entry.Name,
+								Content = stream.ReadToEnd()
+							});
 						}
 					}
 				}
