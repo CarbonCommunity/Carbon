@@ -72,35 +72,35 @@ public class ScriptLoader : IScriptLoader
 		var config = Community.Runtime.Config;
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
 		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.ScriptWatcherOption);
-		var processor = Community.Runtime.ScriptProcessor;
+		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cszip", option: config.ScriptWatcherOption);
+		ExecuteProcess(Community.Runtime.ScriptProcessor, extensionPlugins, plugins);
+		ExecuteProcess(Community.Runtime.ZipScriptProcessor, zipPlugins);
 
-		processor.Clear();
-
-		foreach (var file in extensionPlugins)
+		void ExecuteProcess(IScriptProcessor processor, params string[][] folders)
 		{
-			if (processor.IsBlacklisted(file)) continue;
+			processor.Clear();
 
-			var id = Path.GetFileNameWithoutExtension(file);
-			if (processor.InstanceBuffer.ContainsKey(id)) continue;
+			foreach (var files in folders)
+			{
+				foreach (var file in files)
+				{
+					if (processor.IsBlacklisted(file)) continue;
 
-			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(id, plugin);
-		}
+					var id = Path.GetFileNameWithoutExtension(file);
+					if (processor.InstanceBuffer.ContainsKey(id)) continue;
 
-		foreach (var file in plugins)
-		{
-			if (processor.IsBlacklisted(file)) continue;
+					var plugin = new ScriptProcessor.Script { File = file };
+					processor.InstanceBuffer.Add(id, plugin);
+				}
+			}
 
-			var id = Path.GetFileNameWithoutExtension(file);
-			if (processor.InstanceBuffer.ContainsKey(id)) continue;
+			foreach (var plugin in processor.InstanceBuffer)
+			{
+				plugin.Value.SetDirty();
+			}
 
-			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(id, plugin);
-		}
-
-		foreach (var plugin in processor.InstanceBuffer)
-		{
-			plugin.Value.SetDirty();
+			Array.Clear(folders, 0, folders.Length);
+			folders = null;
 		}
 	}
 

@@ -75,12 +75,12 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 
 		return true;
 	}
-
-	void IZipScriptProcessor.StartCoroutine(IEnumerator coroutine)
+	
+	void IScriptProcessor.StartCoroutine(IEnumerator coroutine)
 	{
 		StartCoroutine(coroutine);
 	}
-	void IZipScriptProcessor.StopCoroutine(IEnumerator coroutine)
+	void IScriptProcessor.StopCoroutine(IEnumerator coroutine)
 	{
 		StopCoroutine(coroutine);
 	}
@@ -133,7 +133,6 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 							Loader.Sources.Add(stream.ReadToEnd());
 						}
 					}
-
 				}
 
 				Loader.Load();
