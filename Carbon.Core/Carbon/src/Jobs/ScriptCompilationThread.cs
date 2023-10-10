@@ -335,9 +335,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			string pdb_filename =
 			#if DEBUG
-				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? InitialSource.ContextFilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, $"{InitialSource.ContextFileName}.cs")) : $"{InitialSource.ContextFileName}.cs";
+				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? InitialSource.ContextFilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, InitialSource.ContextFileName)) : InitialSource.ContextFileName;
 			#else
-				FileName + ".cs";
+				InitialSource.ContextFileName;
 			#endif
 
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
