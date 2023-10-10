@@ -352,7 +352,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				var root = tree.GetCompilationUnitRoot();
 
-				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
+				if (HookCaller.FindPluginInfo(root, out var @namespace, ClassList))
 				{
 					var @class = ClassList[0];
 
@@ -360,8 +360,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 					{
 						@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
 					}
-					root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
-					trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, source.FilePath, Encoding.UTF8));
+
+					root = root.WithMembers(root.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class))));
+					trees.Insert(0, CSharpSyntaxTree.ParseText(
+						root.ToFullString(), options: parseOptions, source.FilePath, Encoding.UTF8));
 				}
 				else
 				{
@@ -414,8 +416,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					{
 						case DiagnosticSeverity.Error:
 							errors.Add(error.Id);
-							Exceptions.Add(new CompilerException(InitialSource.ContextFilePath,
-								new CompilerError(InitialSource.FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+							Exceptions.Add(new CompilerException(error.Location.SourceTree.FilePath,
+								new CompilerError(Path.GetFileNameWithoutExtension(error.Location.SourceTree.FilePath), span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 
 							break;
 
@@ -423,8 +425,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 							if (error.GetMessage(CultureInfo.InvariantCulture).Contains("Assuming assembly reference")) continue;
 
 							errors.Add(error.Id);
-							Warnings.Add(new CompilerException(InitialSource.ContextFilePath,
-								new CompilerError(InitialSource.FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+							Warnings.Add(new CompilerException(error.Location.SourceTree.FilePath,
+								new CompilerError(Path.GetFileNameWithoutExtension(error.Location.SourceTree.FilePath), span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 							break;
 					}
 				}

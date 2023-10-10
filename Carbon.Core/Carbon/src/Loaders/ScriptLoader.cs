@@ -193,7 +193,7 @@ public class ScriptLoader : IScriptLoader
 			yield break;
 		}
 
-		var lines = Sources.SelectMany(x => x.Content.Split('\n'));
+		var lines = Sources.Where(x => !string.IsNullOrEmpty(x.Content)).SelectMany(x => x.Content.Split('\n'));
 		var resultReferences = Facepunch.Pool.GetList<string>();
 		var resultRequires = Facepunch.Pool.GetList<string>();
 
