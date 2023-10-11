@@ -302,34 +302,37 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader.Assembly == null)
 		{
-			Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFilePath}':");
-			for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
+			if (AsyncLoader.Exceptions.Count > 0)
 			{
-				var error = AsyncLoader.Exceptions[i];
-				var print = $"{error.Error.ErrorText} [{error.Error.ErrorNumber}]\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
-				Logger.Error($"  {i + 1:n0}. {print}");
-			}
+				Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFilePath}':");
+				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
+				{
+					var error = AsyncLoader.Exceptions[i];
+					var print = $"{error.Error.ErrorText} [{error.Error.ErrorNumber}]\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
+					Logger.Error($"  {i + 1:n0}. {print}");
+				}
 
-			ModLoader.FailedMods.Add(new ModLoader.FailedMod
-			{
-				File = InitialSource.ContextFilePath,
-				Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedMod.Error
+				ModLoader.FailedMods.Add(new ModLoader.FailedMod
 				{
-					Message = x.Error.ErrorText,
-					Number = x.Error.ErrorNumber,
-					Column = x.Error.Column,
-					Line = x.Error.Line
-				}).ToArray(),
+					File = InitialSource.ContextFilePath,
+					Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedMod.Error
+					{
+						Message = x.Error.ErrorText,
+						Number = x.Error.ErrorNumber,
+						Column = x.Error.Column,
+						Line = x.Error.Line
+					}).ToArray(),
 #if DEBUG
-				Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
-				{
-					Message = x.Error.ErrorText,
-					Number = x.Error.ErrorNumber,
-					Column = x.Error.Column,
-					Line = x.Error.Line
-				}).ToArray()
+					Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
+					{
+						Message = x.Error.ErrorText,
+						Number = x.Error.ErrorNumber,
+						Column = x.Error.Column,
+						Line = x.Error.Line
+					}).ToArray()
 #endif
-			});
+				});
+			}
 
 			AsyncLoader.Exceptions.Clear();
 			AsyncLoader.Warnings.Clear();

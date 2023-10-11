@@ -306,6 +306,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	public override void ThreadFunction()
 	{
+		if (Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
+		{
+			return;
+		}
+
 		try
 		{
 			Exceptions.Clear();
@@ -343,7 +348,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
 
-			var containsInternalCallHookOverride = Sources.Any(x => x.Content.Contains(_internalCallHookPattern));
+			var containsInternalCallHookOverride = Sources.Any(x => !string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
 
 			foreach (var source in Sources)
 			{
@@ -505,7 +510,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	public override void Dispose()
 	{
-		ClassList.Clear();
+		ClassList?.Clear();
 
 		Exceptions?.Clear();
 		Warnings?.Clear();
