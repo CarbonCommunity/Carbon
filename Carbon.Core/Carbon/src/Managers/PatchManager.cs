@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using API.Abstracts;
 using API.Commands;
@@ -12,6 +13,7 @@ using API.Hooks;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
+using Facepunch;
 
 /*
  *
@@ -51,6 +53,15 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private List<Subscription> _subscribers;
 	private readonly Dictionary<string, string> _checksums = new();
 
+	public void Enqueue(string identifier)
+	{
+		if (_workQueue.Contains(identifier))
+		{
+			return;
+		}
+
+		_workQueue.Enqueue(identifier);
+	}
 
 	private static readonly string[] Files =
 	{
@@ -179,7 +190,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 			try
 			{
-
 				HookEx hook = GetHookById(identifier);
 
 				bool hasSubscribers = HookHasSubscribers(hook.Identifier);
@@ -263,7 +273,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				?? typeof(HookAttribute.Patch);
 
 			IEnumerable<TypeInfo> types = hooks.DefinedTypes
-				.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr)).ToList();
+				.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr));
 
 			TaskStatus stats = LoadHooks(types);
 			if (stats.Total == 0) return;
@@ -285,7 +295,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		IEnumerable<TypeInfo> types = type.GetNestedTypes()
 			.Where(type => @base.IsAssignableFrom(type) && Attribute.IsDefined(type, attr))
-			.Select(x => x.GetTypeInfo()).ToList();
+			.Select(x => x.GetTypeInfo());
 
 		TaskStatus stats = LoadHooks(types);
 		if (stats.Total == 0) return;
@@ -312,7 +322,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				}
 
 				if (IsHookLoaded(hook))
-					throw new Exception($"Found duplicated hook '{hook}'");
+				{
+					var assembly = type.Assembly.GetName();
+					Logger.Warn($" Attempted to install duplicate hook '{hook}' (from {assembly.Name})");
+					continue;
+				}
 
 				if (hook.IsPatch)
 				{
@@ -352,40 +366,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		return retvar;
 	}
 
-	private List<HookEx> GetHookDependencyTree(HookEx hook)
+	private IEnumerable<HookEx> GetHookDependencyTree(HookEx hook)
 	{
-		List<HookEx> dependencies = new List<HookEx>();
-
-		foreach (string dependency in hook.Dependencies)
-		{
-			List<HookEx> list = GetHookByFullName(dependency).ToList();
-
-			if (list.Count < 1)
-			{
-				Logger.Error($"Dependency '{dependency}' for '{hook}' not loaded, this is a bug");
-				continue;
-			}
-
-			foreach (HookEx item in list)
-			{
-				dependencies = dependencies.Concat(GetHookDependencyTree(item)).ToList();
-				dependencies.Add(item);
-			}
-		}
-		return dependencies.Distinct().ToList();
+		return hook.Dependencies.SelectMany(x => GetHookByFullName(x).SelectMany(y => GetHookDependencyTree(y).Concat(new [] { y })));
 	}
 
-	private List<HookEx> GetHookDependantTree(HookEx hook)
+	private IEnumerable<HookEx> GetHookDependantTree(HookEx hook)
 	{
-		List<HookEx> dependants = new List<HookEx>();
-		List<HookEx> list = _patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).ToList();
-
-		foreach (HookEx item in list)
-		{
-			dependants = dependants.Concat(GetHookDependantTree(item)).ToList();
-			dependants.Add(item);
-		}
-		return dependants.Distinct().ToList();
+		return _patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).SelectMany(x => GetHookDependantTree(x).Concat(new [] { x }));
 	}
 
 	private IEnumerable<HookEx> LoadedHooks
@@ -402,12 +390,12 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 
 	internal bool IsHookLoaded(HookEx hook)
-		=> LoadedHooks.Any(x => x.PatchMethodName == hook.PatchMethodName);
+		=> LoadedHooks.Any(x => x.HookFullName == hook.HookFullName && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
 
 	public bool IsHookLoaded(string hookName)
 	{
-		List<HookEx> hooks = GetHookByName(hookName).ToList();
-		return hooks.Count != 0 && hooks.Any(IsHookLoaded);
+		var hooks = GetHookByName(hookName);
+		return hooks.Any() && hooks.Any(IsHookLoaded);
 	}
 
 
@@ -437,7 +425,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		=> _subscribers?.Any(x => x.Identifier == identifier) ?? false;
 
 	public int GetHookSubscriberCount(string identifier)
-		=> _subscribers.Where(x => x.Identifier == identifier).ToList().Count;
+		=> _subscribers.Count(x => x.Identifier == identifier);
 
 	private void AddSubscriber(string identifier, string subscriber)
 		=> _subscribers.Add(item: new Subscription { Identifier = identifier, Subscriber = subscriber });
@@ -458,9 +446,9 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				return;
 			}
 
-			List<HookEx> hooks = GetHookByName(hookName).ToList();
+			IEnumerable<HookEx> hooks = GetHookByName(hookName);
 
-			if (hooks.Count == 0)
+			if (!hooks.Any())
 			{
 				Logger.Debug($"Failed to subscribe '{hookName}' by '{requester}', hook not found");
 				return;
@@ -492,17 +480,17 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			{
 				Logger.Debug($"Subscribe dependency '{dependency}' for '{hook}'", 1);
 				AddSubscriber(dependency.Identifier, requester);
-				_workQueue.Enqueue(dependency.Identifier);
+				Enqueue(dependency.Identifier);
 			}
 
 			AddSubscriber(hook.Identifier, requester);
-			_workQueue.Enqueue(hook.Identifier);
+			Enqueue(hook.Identifier);
 
 			foreach (HookEx dependant in GetHookDependantTree(hook))
 			{
 				Logger.Debug($"Subscribe dependant '{dependant}' for '{hook}'", 1);
 				AddSubscriber(dependant.Identifier, requester);
-				_workQueue.Enqueue(dependant.Identifier);
+				Enqueue(dependant.Identifier);
 			}
 		}
 		catch (Exception e)
@@ -524,9 +512,9 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				return;
 			}
 
-			List<HookEx> hooks = GetHookByName(hookName).ToList();
+			IEnumerable<HookEx> hooks = GetHookByName(hookName);
 
-			if (hooks.Count == 0)
+			if (!hooks.Any())
 			{
 				Logger.Debug($"Failure to subscribe to '{hookName}' by '{requester}', no hook found");
 				return;
@@ -555,17 +543,17 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			{
 				Logger.Debug($"Unsubscribe dependant '{dependant}' for '{hook}'", 1);
 				RemoveSubscriber(dependant.Identifier, requester);
-				_workQueue.Enqueue(dependant.Identifier);
+				Enqueue(dependant.Identifier);
 			}
 
 			RemoveSubscriber(hook.Identifier, requester);
-			_workQueue.Enqueue(hook.Identifier);
+			Enqueue(hook.Identifier);
 
 			foreach (HookEx dependency in GetHookDependencyTree(hook))
 			{
 				Logger.Debug($"Unsubscribe dependency '{dependency}' for '{hook}'", 1);
 				RemoveSubscriber(dependency.Identifier, requester);
-				_workQueue.Enqueue(dependency.Identifier);
+				Enqueue(dependency.Identifier);
 			}
 		}
 		catch (Exception e)

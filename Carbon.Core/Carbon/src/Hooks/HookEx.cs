@@ -153,9 +153,9 @@ public class HookEx : IDisposable, IHook
 			if (TargetType.IsGenericType)
 			{
 				Type generic = TargetType;
-				List<Type> constrains = AccessToolsEx.GetConstraints(generic);
+				IEnumerable<Type> constrains = AccessToolsEx.GetConstraints(generic);
 
-				Logger.Debug($"Generic {generic} matched {constrains.Count} constrains", 2);
+				Logger.Debug($"Generic {generic} matched {constrains.Count()} constrains", 2);
 
 				foreach (Type item in AccessToolsEx.MatchConstrains(constrains))
 				{

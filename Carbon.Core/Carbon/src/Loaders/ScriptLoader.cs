@@ -440,7 +440,7 @@ public class ScriptLoader : IScriptLoader
 			yield return null;
 		}
 
-		AsyncLoader.Dispose();
+		AsyncLoader?.Dispose();
 
 		HasFinished = true;
 
