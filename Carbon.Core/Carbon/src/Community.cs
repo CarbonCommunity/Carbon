@@ -54,6 +54,7 @@ public class CommunityInternal : Community
 	internal void _installDefaults()
 	{
 		Plugins = new ModLoader.ModPackage { Name = "Scripts", IsCoreMod = false };
+		ZipPlugins = new ModLoader.ModPackage { Name = "Zip Scripts", IsCoreMod = false };
 
 		Runtime.CorePlugin = CorePlugin = new CorePlugin();
 		CorePlugin.Setup("Core", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
@@ -63,6 +64,7 @@ public class CommunityInternal : Community
 
 		ModLoader.LoadedPackages.Add(new ModLoader.ModPackage { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
 		ModLoader.LoadedPackages.Add(Plugins);
+		ModLoader.LoadedPackages.Add(ZipPlugins);
 
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon");
@@ -76,6 +78,8 @@ public class CommunityInternal : Community
 			var gameObject = new GameObject("Processors");
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
+			ZipScriptProcessor = gameObject.AddComponent<ZipScriptProcessor>();
+			ZipDevScriptProcessor = gameObject.AddComponent<ZipDevScriptProcessor>();
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = new ModuleProcessor();
@@ -89,6 +93,8 @@ public class CommunityInternal : Community
 	{
 		if (ScriptProcessor != null) ScriptProcessor?.Start();
 		if (WebScriptProcessor != null) WebScriptProcessor?.Start();
+		if (ZipScriptProcessor != null) ZipScriptProcessor?.Start();
+		if (ZipDevScriptProcessor != null) ZipDevScriptProcessor?.Start();
 
 		if (ScriptProcessor != null) ScriptProcessor.InvokeRepeating(() => { RefreshConsoleInfo(); }, 1f, 1f);
 		Carbon.Logger.Log("Registered processors");
@@ -101,6 +107,9 @@ public class CommunityInternal : Community
 		{
 			if (ScriptProcessor != null) ScriptProcessor?.Dispose();
 			if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
+			if (ZipScriptProcessor != null) ZipScriptProcessor?.Dispose();
+			if (ZipDevScriptProcessor != null) ZipDevScriptProcessor?.Dispose();
+
 			if (ModuleProcessor != null) ModuleProcessor?.Dispose();
 			if (CarbonProcessor != null) CarbonProcessor?.Dispose();
 		}
