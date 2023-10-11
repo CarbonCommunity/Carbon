@@ -412,12 +412,15 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 					var span = error.Location.GetMappedLineSpan().Span;
 
+					var filePath = error?.Location?.SourceTree?.FilePath;
+					var fileName = Path.GetFileNameWithoutExtension(filePath);
+
 					switch (error.Severity)
 					{
 						case DiagnosticSeverity.Error:
 							errors.Add(error.Id);
-							Exceptions.Add(new CompilerException(error.Location.SourceTree.FilePath,
-								new CompilerError(Path.GetFileNameWithoutExtension(error.Location.SourceTree.FilePath), span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+							Exceptions.Add(new CompilerException(filePath,
+								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 
 							break;
 
@@ -425,8 +428,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 							if (error.GetMessage(CultureInfo.InvariantCulture).Contains("Assuming assembly reference")) continue;
 
 							errors.Add(error.Id);
-							Warnings.Add(new CompilerException(error.Location.SourceTree.FilePath,
-								new CompilerError(Path.GetFileNameWithoutExtension(error.Location.SourceTree.FilePath), span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+							Warnings.Add(new CompilerException(filePath,
+								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 							break;
 					}
 				}
