@@ -10,7 +10,7 @@ using HarmonyLib;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -131,6 +131,12 @@ public class HookEx : IDisposable, IHook
 			if (Attribute.IsDefined(type, typeof(HookAttribute.Checksum), false))
 				Checksum = type.GetCustomAttribute<HookAttribute.Checksum>()?.Value ?? default;
 
+			if (Options.HasFlag(HookFlags.MetadataOnly))
+			{
+				SetStatus(HookState.Inactive);
+				return;
+			}
+
 			_patchMethod = type;
 			_runtime.Status = HookState.Inactive;
 			_runtime.HarmonyHandler = new Harmony(Identifier);
@@ -147,9 +153,9 @@ public class HookEx : IDisposable, IHook
 			if (TargetType.IsGenericType)
 			{
 				Type generic = TargetType;
-				List<Type> constrains = AccessToolsEx.GetConstraints(generic);
+				IEnumerable<Type> constrains = AccessToolsEx.GetConstraints(generic);
 
-				Logger.Debug($"Generic {generic} matched {constrains.Count} constrains", 2);
+				Logger.Debug($"Generic {generic} matched {constrains.Count()} constrains", 2);
 
 				foreach (Type item in AccessToolsEx.MatchConstrains(constrains))
 				{
@@ -258,14 +264,13 @@ public class HookEx : IDisposable, IHook
 			if (!IsInstalled) return true;
 			_runtime.HarmonyHandler.UnpatchAll(Identifier);
 
-			Logger.Debug($"Hook '{this}' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{HookFullName}[{Identifier}]' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
 			_runtime.Status = HookState.Inactive;
 			return true;
 		}
 		catch (System.Exception e)
 		{
-			Logger.Error($"Error while unpatching hook '{HookName}'", e);
-			_runtime.Status = HookState.Failure;
+			Logger.Error($"Error while unpatching hook '{HookFullName}[{Identifier}]'", e);
 			_runtime.LastError = e.Message;
 			return false;
 		}
