@@ -46,7 +46,7 @@ public class ScriptLoader : IScriptLoader
 
 	public void Load()
 	{
-		if (InitialSource == null)
+		if (InitialSource == null || string.IsNullOrEmpty(InitialSource.FilePath))
 		{
 			Clear();
 			return;
