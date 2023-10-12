@@ -457,19 +457,25 @@ public class ScriptLoader : IScriptLoader
 	{
 		HasFinished = true;
 
-		foreach (var script in Scripts)
+		if (Scripts != null)
 		{
-			script.Dispose();
+			foreach (var script in Scripts)
+			{
+				script.Dispose();
+			}
 		}
 
-		foreach (var source in Sources)
+		if (Sources != null)
 		{
-			source.Dispose();
+			foreach (var source in Sources)
+			{
+				source.Dispose();
+			}
 		}
 
-		Sources.Clear();
+		Sources?.Clear();
 		Sources = null;
-		Scripts.Clear();
+		Scripts?.Clear();
 		Scripts = null;
 
 		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
