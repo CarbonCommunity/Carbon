@@ -4,16 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using API.Abstracts;
 using API.Commands;
 using API.Events;
 using API.Hooks;
-using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
-using Facepunch;
 
 /*
  *
@@ -508,7 +505,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 			if (single != null && !HookIsSubscribedBy(single.Identifier, requester))
 			{
-				Subscribe(single, requester);
+				Unsubscribe(single, requester);
 				return;
 			}
 
@@ -520,10 +517,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				return;
 			};
 
-			IEnumerable<HookEx> list = hooks
-				.Where(hook => HookIsSubscribedBy(hook.Identifier, requester));
-
-			foreach (HookEx hook in list)
+			foreach (HookEx hook in hooks.Where(hook => HookIsSubscribedBy(hook.Identifier, requester)).Reverse())
 				Unsubscribe(hook, requester);
 
 			hooks = default;
