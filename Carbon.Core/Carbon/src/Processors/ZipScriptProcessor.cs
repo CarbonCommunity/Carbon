@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Core;
+using Carbon.Extensions;
 
 /*
  *
@@ -15,21 +18,20 @@ using Carbon.Core;
 
 namespace Carbon.Managers;
 
-public class ScriptProcessor : BaseProcessor, IScriptProcessor
+public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 {
-	public override string Name => "Script Processor";
+	public override string Name => "ZipScript Processor";
 	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.ScriptWatchers;
 	public override string Folder => Defines.GetScriptFolder();
-	public override string Extension => ".cs";
-	public override Type IndexedType => typeof(Script);
+	public override string Extension => ".cszip";
+	public override Type IndexedType => typeof(ZipScript);
 
 	public override void Start()
 	{
 		BlacklistPattern = new[]
 		{
 			"backups",
-			"debug",
-			"cszip_dev"
+			"debug"
 		};
 
 		base.Start();
@@ -41,7 +43,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		foreach (var instance in InstanceBuffer)
 		{
-			if (instance.Value is Script script)
+			if (instance.Value is ZipScript script)
 			{
 				if (script.Loader != null && !script.Loader.HasFinished) return false;
 			}
@@ -53,7 +55,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		foreach (var instance in InstanceBuffer)
 		{
-			if (instance.Value is Script script)
+			if (instance.Value is ZipScript script)
 			{
 				if (script.Loader != null && !script.Loader.HasRequires && !script.Loader.HasFinished) return false;
 			}
@@ -65,7 +67,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		foreach (var instance in InstanceBuffer)
 		{
-			if (instance.Value is Script script)
+			if (instance.Value is ZipScript script)
 			{
 				if (script.Loader != null && !script.Loader.IsExtension && !script.Loader.HasFinished) return false;
 			}
@@ -78,16 +80,16 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	{
 		StartCoroutine(coroutine);
 	}
-	void IScriptProcessor.StopCoroutine(System.Collections.IEnumerator coroutine)
+	void IScriptProcessor.StopCoroutine(IEnumerator coroutine)
 	{
 		StopCoroutine(coroutine);
 	}
 
-	public class Script : Process, IScriptProcessor.IScript
+	public class ZipScript : Process, IScriptProcessor.IScript
 	{
 		public IScriptLoader Loader { get; set; }
 
-		public override IBaseProcessor.IParser Parser => new ScriptParser();
+		public override IBaseProcessor.IParser Parser => new ZipScriptParser();
 
 		public override void Dispose()
 		{
@@ -108,19 +110,37 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			{
 				Carbon.Core.ModLoader.FailedMods.RemoveAll(x => x.File == File);
 
+				if (!OsEx.File.Exists(File))
+				{
+					Dispose();
+					return;
+				}
+
 				Loader = new ScriptLoader
 				{
 					Parser = Parser,
-					Mod = Community.Runtime.Plugins,
+					Mod = Community.Runtime.ZipPlugins,
 					Process = this
 				};
-				Loader.Sources.Add(new BaseSource
+
+				using (var zipFile = ZipFile.OpenRead(File))
 				{
-					FilePath = File,
-					FileName = Path.GetFileName(File),
-					ContextFilePath = File,
-					ContextFileName = Path.GetFileName(File)
-				});
+					foreach (var entry in zipFile.Entries)
+					{
+						using (var stream = new StreamReader(entry.Open()))
+						{
+							Loader.Sources.Add(new BaseSource
+							{
+								ContextFilePath = File,
+								ContextFileName = Path.GetFileName(File),
+								FilePath = entry.FullName,
+								FileName = entry.Name,
+								Content = stream.ReadToEnd()
+							});
+						}
+					}
+				}
+
 				Loader.Load();
 			}
 			catch (Exception ex)
@@ -130,7 +150,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		}
 	}
 
-	public class ScriptParser : Parser, IBaseProcessor.IParser
+	public class ZipScriptParser : Parser, IBaseProcessor.IParser
 	{
 		internal const string QuoteReplacer = "[CARBONQUOTE]";
 		internal const string Quote = "\\\"";
