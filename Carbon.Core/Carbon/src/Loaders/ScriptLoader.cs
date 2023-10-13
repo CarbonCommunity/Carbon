@@ -71,11 +71,14 @@ public class ScriptLoader : IScriptLoader
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
 		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.ScriptWatcherOption);
 		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cszip", option: config.ScriptWatcherOption);
-		var zipDevPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetZipDevFolder(), "cs", option: SearchOption.AllDirectories);
+
 		ExecuteProcess(Community.Runtime.ScriptProcessor, false, extensionPlugins, plugins);
 		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, zipPlugins);
-		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, zipDevPlugins);
 
+#if DEBUG
+		var zipDevPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetZipDevFolder(), "cs", option: SearchOption.AllDirectories);
+		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, zipDevPlugins);
+#endif
 		void ExecuteProcess(IScriptProcessor processor, bool folderMode, params string[][] folders)
 		{
 			processor.Clear();
@@ -457,19 +460,25 @@ public class ScriptLoader : IScriptLoader
 	{
 		HasFinished = true;
 
-		foreach (var script in Scripts)
+		if (Scripts != null)
 		{
-			script.Dispose();
+			foreach (var script in Scripts)
+			{
+				script.Dispose();
+			}
 		}
 
-		foreach (var source in Sources)
+		if (Sources != null)
 		{
-			source.Dispose();
+			foreach (var source in Sources)
+			{
+				source.Dispose();
+			}
 		}
 
-		Sources.Clear();
+		Sources?.Clear();
 		Sources = null;
-		Scripts.Clear();
+		Scripts?.Clear();
 		Scripts = null;
 
 		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());

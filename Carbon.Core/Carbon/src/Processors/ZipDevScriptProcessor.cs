@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DEBUG
+using System;
 using System.Collections;
 using System.IO;
 using System.IO.Compression;
@@ -246,3 +247,4 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 		}
 	}
 }
+#endif
