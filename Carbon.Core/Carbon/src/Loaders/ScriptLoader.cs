@@ -1,6 +1,4 @@
-﻿// #define DISABLE_ASYNC_LOADING
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using API.Events;
+using Carbon.Base;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -29,26 +28,25 @@ namespace Carbon.Managers;
 
 public class ScriptLoader : IScriptLoader
 {
-	public List<IScript> Scripts { get; set; } = new List<IScript>();
+	public ISource InitialSource => Sources.Count > 0 ? Sources[0] : null;
 
-	public string File { get; set; }
-	public string Source { get; set; }
+	public List<IScript> Scripts { get; set; } = new();
+	public List<ISource> Sources { get; set; } = new();
+
 	public bool IsCore { get; set; }
 	public bool IsExtension { get; set; }
 
 	public bool HasFinished { get; set; }
 	public bool HasRequires { get; set; }
 
-	public IBaseProcessor.IInstance Instance { get; set; }
+	public IBaseProcessor.IProcess Process { get; set; }
 	public ModLoader.ModPackage Mod { get; set; }
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
 
-	internal const int ReaderBufferSize = 8 * 1024;
-
 	public void Load()
 	{
-		if (string.IsNullOrEmpty(File))
+		if (InitialSource == null || string.IsNullOrEmpty(InitialSource.FilePath))
 		{
 			Clear();
 			return;
@@ -56,14 +54,14 @@ public class ScriptLoader : IScriptLoader
 
 		try
 		{
-			var directory = Path.GetDirectoryName(File);
+			var directory = Path.GetDirectoryName(InitialSource.FilePath);
 			IsExtension = directory.EndsWith("extensions");
 
 			Community.Runtime.ScriptProcessor.StartCoroutine(Compile());
 		}
 		catch (Exception exception)
 		{
-			Logger.Error($"Failed loading script '{File}':", exception);
+			Logger.Error($"Failed loading script '{InitialSource.FilePath}':", exception);
 		}
 	}
 
@@ -72,35 +70,42 @@ public class ScriptLoader : IScriptLoader
 		var config = Community.Runtime.Config;
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
 		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.ScriptWatcherOption);
-		var processor = Community.Runtime.ScriptProcessor;
+		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cszip", option: config.ScriptWatcherOption);
 
-		processor.Clear();
+		ExecuteProcess(Community.Runtime.ScriptProcessor, false, extensionPlugins, plugins);
+		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, zipPlugins);
 
-		foreach (var file in extensionPlugins)
+#if DEBUG
+		var zipDevPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetZipDevFolder(), "cs", option: SearchOption.AllDirectories);
+		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, zipDevPlugins);
+#endif
+		void ExecuteProcess(IScriptProcessor processor, bool folderMode, params string[][] folders)
 		{
-			if (processor.IsBlacklisted(file)) continue;
+			processor.Clear();
 
-			var id = Path.GetFileNameWithoutExtension(file);
-			if (processor.InstanceBuffer.ContainsKey(id)) continue;
+			foreach (var files in folders)
+			{
+				foreach (var file in files)
+				{
+					if (processor.IsBlacklisted(file)) continue;
 
-			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(id, plugin);
-		}
+					var folder = Path.GetDirectoryName(file);
 
-		foreach (var file in plugins)
-		{
-			if (processor.IsBlacklisted(file)) continue;
+					var id = folderMode ? folder : Path.GetFileNameWithoutExtension(file);
+					if (processor.InstanceBuffer.ContainsKey(id)) continue;
 
-			var id = Path.GetFileNameWithoutExtension(file);
-			if (processor.InstanceBuffer.ContainsKey(id)) continue;
+					var plugin = new ScriptProcessor.Script { File = folderMode ? folder : file };
+					processor.InstanceBuffer.Add(id, plugin);
+				}
+			}
 
-			var plugin = new ScriptProcessor.Script { File = file };
-			processor.InstanceBuffer.Add(id, plugin);
-		}
+			foreach (var plugin in processor.InstanceBuffer)
+			{
+				plugin.Value.SetDirty();
+			}
 
-		foreach (var plugin in processor.InstanceBuffer)
-		{
-			plugin.Value.SetDirty();
+			Array.Clear(folders, 0, folders.Length);
+			folders = null;
 		}
 	}
 
@@ -142,7 +147,7 @@ public class ScriptLoader : IScriptLoader
 	{
 		var task = Task.Run(async () =>
 		{
-			using var reader = new StreamReader(filePath, Encoding.UTF8, true, ReaderBufferSize);
+			using var reader = new StreamReader(filePath, Encoding.UTF8, true);
 			return await reader.ReadToEndAsync();
 		});
 
@@ -156,29 +161,42 @@ public class ScriptLoader : IScriptLoader
 
 	public IEnumerator Compile()
 	{
-		if (string.IsNullOrEmpty(Source) && !string.IsNullOrEmpty(File) && OsEx.File.Exists(File))
-			yield return ReadFileAsync(File, content => Source = content);
+		if (string.IsNullOrEmpty(InitialSource.Content) && !string.IsNullOrEmpty(InitialSource.FilePath) && OsEx.File.Exists(InitialSource.FilePath))
+		{
+			yield return ReadFileAsync(InitialSource.FilePath, content => InitialSource.Content = content);
+		}
 
 		if (Parser != null)
 		{
-			Parser.Process(File, Source, out var newSource);
-
-			yield return null;
-
-			if (!string.IsNullOrEmpty(newSource))
+			for(int i = 0; i < Sources.Count; i++)
 			{
-				Source = newSource;
+				var source = Sources[i];
+				Parser.Process(source.FilePath, source.Content, out var content);
+
+				yield return null;
+
+				if (!string.IsNullOrEmpty(content))
+				{
+					Sources[i] = new BaseSource
+					{
+						ContextFilePath = source.ContextFilePath,
+						ContextFileName = source.ContextFileName,
+						FilePath = source.FilePath,
+						FileName = source.FileName,
+						Content = content
+					};
+				}
 			}
 		}
 
-		if (string.IsNullOrEmpty(Source))
+		if (Sources == null || Sources.Count == 0)
 		{
 			HasFinished = true;
 			// Logger.Warn("Attempted to compile an empty string of source code.");
 			yield break;
 		}
 
-		var lines = Source?.Split('\n');
+		var lines = Sources.Where(x => !string.IsNullOrEmpty(x.Content)).SelectMany(x => x.Content.Split('\n'));
 		var resultReferences = Facepunch.Pool.GetList<string>();
 		var resultRequires = Facepunch.Pool.GetList<string>();
 
@@ -212,11 +230,11 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		Array.Clear(lines, 0, lines.Length);
+		lines = null;
+
 		if (AsyncLoader != null)
 		{
-			AsyncLoader.FilePath = File;
-			AsyncLoader.Source = Source;
+			AsyncLoader.Sources = Sources;
 			AsyncLoader.References = resultReferences?.ToArray();
 			AsyncLoader.Requires = resultRequires?.ToArray();
 			AsyncLoader.IsExtension = IsExtension;
@@ -242,7 +260,7 @@ public class ScriptLoader : IScriptLoader
 				var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
 				if (plugin == null)
 				{
-					Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}'");
+					Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
 					noRequiresFound = true;
 				}
 				else requires.Add(plugin);
@@ -253,7 +271,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (noRequiresFound)
 		{
-			ModLoader.PostBatchFailedRequirees.Add(File);
+			ModLoader.PostBatchFailedRequirees.Add(InitialSource.ContextFilePath);
 			HasFinished = true;
 			Facepunch.Pool.FreeList(ref requires);
 			yield break;
@@ -261,7 +279,7 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		if (AsyncLoader != null) Carbon.Components.Report.OnPluginAdded?.Invoke(AsyncLoader.FilePath);
+		if (AsyncLoader != null) Carbon.Components.Report.OnPluginAdded?.Invoke(InitialSource.ContextFilePath);
 
 		var requiresResult = requires.ToArray();
 
@@ -287,34 +305,37 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader.Assembly == null)
 		{
-			Logger.Error($"Failed compiling '{AsyncLoader.FilePath}':");
-			for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
+			if (AsyncLoader.Exceptions.Count > 0)
 			{
-				var error = AsyncLoader.Exceptions[i];
-				var print = $"{error.Error.ErrorText} [{error.Error.ErrorNumber}]\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
-				Logger.Error($"  {i + 1:n0}. {print}");
-			}
+				Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFilePath}':");
+				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
+				{
+					var error = AsyncLoader.Exceptions[i];
+					var print = $"{error.Error.ErrorText} [{error.Error.ErrorNumber}]\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
+					Logger.Error($"  {i + 1:n0}. {print}");
+				}
 
-			ModLoader.FailedMods.Add(new ModLoader.FailedMod
-			{
-				File = File,
-				Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedMod.Error
+				ModLoader.FailedMods.Add(new ModLoader.FailedMod
 				{
-					Message = x.Error.ErrorText,
-					Number = x.Error.ErrorNumber,
-					Column = x.Error.Column,
-					Line = x.Error.Line
-				}).ToArray(),
+					File = InitialSource.ContextFilePath,
+					Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedMod.Error
+					{
+						Message = x.Error.ErrorText,
+						Number = x.Error.ErrorNumber,
+						Column = x.Error.Column,
+						Line = x.Error.Line
+					}).ToArray(),
 #if DEBUG
-				Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
-				{
-					Message = x.Error.ErrorText,
-					Number = x.Error.ErrorNumber,
-					Column = x.Error.Column,
-					Line = x.Error.Line
-				}).ToArray()
+					Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
+					{
+						Message = x.Error.ErrorText,
+						Number = x.Error.ErrorNumber,
+						Column = x.Error.Column,
+						Line = x.Error.Line
+					}).ToArray()
 #endif
-			});
+				});
+			}
 
 			AsyncLoader.Exceptions.Clear();
 			AsyncLoader.Warnings.Clear();
@@ -328,7 +349,7 @@ public class ScriptLoader : IScriptLoader
 			yield break;
 		}
 
-		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...", 1);
+		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...", 1);
 
 		ModLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
@@ -348,7 +369,7 @@ public class ScriptLoader : IScriptLoader
 
 				if (!IsExtension && firstPlugin && Community.Runtime.Config.FileNameCheck)
 				{
-					var name = Path.GetFileNameWithoutExtension(File).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
+					var name = Path.GetFileNameWithoutExtension(InitialSource.FilePath).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
 
 					if (type.Name.ToLower().Replace(" ", "").Replace(".", "").Replace("-", "") != name)
 					{
@@ -362,7 +383,7 @@ public class ScriptLoader : IScriptLoader
 				if (requires.Any(x => x.Name == info.Title)) continue;
 
 				var description = type.GetCustomAttribute(typeof(DescriptionAttribute), true) as DescriptionAttribute;
-				var plugin = Script.Create(Source, assembly, type);
+				var plugin = Script.Create(assembly, type);
 
 				plugin.Name = info.Title;
 				plugin.Author = info.Author;
@@ -372,7 +393,7 @@ public class ScriptLoader : IScriptLoader
 				if (ModLoader.InitializePlugin(type, out RustPlugin rustPlugin, Mod, preInit: p =>
 					{
 						Scripts.Add(plugin);
-						p.HasConditionals = Source.Contains("#if ");
+						p.HasConditionals = Sources.Any(x => x.Content.Contains("#if "));
 						p.IsExtension = IsExtension;
 #if DEBUG
 						p.CompileWarnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
@@ -384,7 +405,7 @@ public class ScriptLoader : IScriptLoader
 						}).ToArray();
 #endif
 
-						p.ProcessorInstance = Instance;
+						p.ProcessorProcess = Process;
 						plugin.IsCore = IsCore;
 
 						p.Hooks = AsyncLoader.Hooks[type];
@@ -395,8 +416,8 @@ public class ScriptLoader : IScriptLoader
 						p.SetProcessor(Community.Runtime.ScriptProcessor);
 						p.CompileTime = AsyncLoader.CompileTime;
 
-						p.FilePath = AsyncLoader.FilePath;
-						p.FileName = AsyncLoader.FileName;
+						p.FilePath = AsyncLoader.InitialSource.ContextFilePath;
+						p.FileName = AsyncLoader.InitialSource.ContextFileName;
 					}))
 				{
 					plugin.Instance = rustPlugin;
@@ -416,13 +437,13 @@ public class ScriptLoader : IScriptLoader
 			catch (Exception exception)
 			{
 				HasFinished = true;
-				Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(File) ? Path.GetFileNameWithoutExtension(File) : "<unknown>")}': ", exception);
+				Logger.Error($"Failed to compile '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}': ", exception);
 			}
 
 			yield return null;
 		}
 
-		AsyncLoader.Dispose();
+		AsyncLoader?.Dispose();
 
 		HasFinished = true;
 
@@ -439,7 +460,25 @@ public class ScriptLoader : IScriptLoader
 	{
 		HasFinished = true;
 
-		Scripts.Clear();
+		if (Scripts != null)
+		{
+			foreach (var script in Scripts)
+			{
+				script.Dispose();
+			}
+		}
+
+		if (Sources != null)
+		{
+			foreach (var source in Sources)
+			{
+				source.Dispose();
+			}
+		}
+
+		Sources?.Clear();
+		Sources = null;
+		Scripts?.Clear();
 		Scripts = null;
 
 		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
@@ -455,16 +494,14 @@ public class ScriptLoader : IScriptLoader
 		public string Author { get; set; }
 		public VersionNumber Version { get; set; }
 		public string Description { get; set; }
-		public string Source { get; set; }
 		public IScriptLoader Loader { get; set; }
 		public RustPlugin Instance { get; set; }
 		public bool IsCore { get; set; }
 
-		public static Script Create(string source, Assembly assembly, Type type)
+		public static Script Create(Assembly assembly, Type type)
 		{
 			return new Script
 			{
-				Source = source,
 				Assembly = assembly,
 				Type = type,
 
@@ -479,6 +516,14 @@ public class ScriptLoader : IScriptLoader
 		{
 			Assembly = null;
 			Type = null;
+
+			Name = null;
+			Author = null;
+			Version = default;
+			Description = null;
+			Loader = null;
+			Instance = null;
+			IsCore = default;
 		}
 
 		public override string ToString()

@@ -2,12 +2,14 @@
 using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using Carbon.Base;
+using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
@@ -27,9 +29,8 @@ namespace Carbon.Jobs;
 
 public class ScriptCompilationThread : BaseThreadedJob
 {
-	public string FilePath;
-	public string FileName;
-	public string Source;
+	public ISource InitialSource => Sources != null && Sources.Count > 0 ? Sources[0] : null;
+	public List<ISource> Sources;
 	public string[] References;
 	public string[] Requires;
 	public bool IsExtension;
@@ -47,6 +48,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal const string _partialPattern = @" partial ";
 	internal DateTime _timeSinceCompile;
+	internal List<ClassDeclarationSyntax> ClassList = new();
 	internal static EmitOptions _emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
 	internal static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
@@ -188,7 +190,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	internal List<MetadataReference> _addReferences()
 	{
 		var references = new List<MetadataReference>();
-		var id = Path.GetFileNameWithoutExtension(FilePath);
+		var id = Path.GetFileNameWithoutExtension(InitialSource.FilePath);
 
 		_injectReference(id, "0Harmony", references, _libraryDirectories);
 		_injectReference(id, "System.Memory", references, _libraryDirectories, direct: true);
@@ -303,12 +305,16 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	public override void ThreadFunction()
 	{
+		if (Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
+		{
+			return;
+		}
+
 		try
 		{
 			Exceptions.Clear();
 			Warnings.Clear();
 			_timeSinceCompile = DateTime.Now;
-			FileName = Path.GetFileNameWithoutExtension(FilePath);
 
 			var trees = new List<SyntaxTree>();
 			var conditionals = new List<string>();
@@ -331,41 +337,72 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("MINIMAL");
 #endif
 
+			string pdb_filename =
+			#if DEBUG
+				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? InitialSource.ContextFilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, InitialSource.ContextFileName)) : InitialSource.ContextFileName;
+			#else
+				InitialSource.ContextFileName;
+			#endif
+
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
-			var tree = CSharpSyntaxTree.ParseText(
-				Source, options: parseOptions, FileName + ".cs", Encoding.UTF8);
 
-			var root = tree.GetCompilationUnitRoot();
+			var containsInternalCallHookOverride = Sources.Any(x => !string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
 
-			HookCaller.FindPluginInfo(root, out var @namespace, out var @class, out var namespaceIndex, out var classIndex);
-
-			if (!@class.Modifiers.Any(x => x.ValueText.Contains(_partialPattern.Trim())))
+			foreach (var source in Sources)
 			{
-				@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
+				var tree = CSharpSyntaxTree.ParseText(
+					source.Content, options: parseOptions, source.FilePath, Encoding.UTF8);
+
+				var root = tree.GetCompilationUnitRoot();
+
+				if (HookCaller.FindPluginInfo(root, out var @namespace, ClassList))
+				{
+					var @class = ClassList[0];
+
+					if (!@class.Modifiers.Any(x => x.IsKind(SyntaxKind.PartialKeyword)))
+					{
+						@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
+					}
+
+					root = root.WithMembers(root.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class))));
+					trees.Insert(0, CSharpSyntaxTree.ParseText(
+						root.ToFullString(), options: parseOptions, source.FilePath, Encoding.UTF8));
+				}
+				else
+				{
+					trees.Add(tree);
+				}
+
+				foreach (var name in root.Usings.Select(element => element.Name.ToString()).Where(name => !Usings.Contains(name)))
+				{
+					Usings.Add(name);
+				}
 			}
-			root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
 
-			trees.Add(CSharpSyntaxTree.ParseText(root.ToFullString(), options: parseOptions, $"{FileName}.cs", Encoding.UTF8));
-
-			if (!Source.Contains(_internalCallHookPattern))
+			if (!containsInternalCallHookOverride)
 			{
-				HookCaller.GeneratePartial(root, out var partialTree, parseOptions, FileName);
+				var completeBody = CSharpSyntaxTree.ParseText(
+					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdb_filename, Encoding.UTF8);
 
-				trees.Add(partialTree);
+				HookCaller.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions, pdb_filename, ClassList);
+
+				trees.Add(partialTree.SyntaxTree);
 			}
-
-			foreach (var element in root.Usings)
-				Usings.Add($"{element.Name}");
 
 			var options = new CSharpCompilationOptions(
 				OutputKind.DynamicallyLinkedLibrary,
-				optimizationLevel: OptimizationLevel.Release,
+				optimizationLevel:
+				#if DEBUG
+					Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
+				#else
+					OptimizationLevel.Release,
+				#endif
 				deterministic: true, warningLevel: 4
 			);
 
 			var compilation = CSharpCompilation.Create(
-				$"Script.{FileName}.{Guid.NewGuid():N}", trees, references, options);
+				$"Script.{InitialSource.FileName}.{Guid.NewGuid():N}", trees, references, options);
 
 			using (var dllStream = new MemoryStream())
 			{
@@ -379,12 +416,15 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 					var span = error.Location.GetMappedLineSpan().Span;
 
+					var filePath = error?.Location?.SourceTree?.FilePath;
+					var fileName = Path.GetFileNameWithoutExtension(filePath);
+
 					switch (error.Severity)
 					{
 						case DiagnosticSeverity.Error:
 							errors.Add(error.Id);
-							Exceptions.Add(new CompilerException(FilePath,
-								new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+							Exceptions.Add(new CompilerException(filePath,
+								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 
 							break;
 
@@ -392,8 +432,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 							if (error.GetMessage(CultureInfo.InvariantCulture).Contains("Assuming assembly reference")) continue;
 
 							errors.Add(error.Id);
-							Warnings.Add(new CompilerException(FilePath,
-								new CompilerError(FileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+							Warnings.Add(new CompilerException(filePath,
+								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
 							break;
 					}
 				}
@@ -407,8 +447,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					var assembly = dllStream.ToArray();
 					if (assembly != null)
 					{
-						if (IsExtension) _overrideExtensionPlugin(FilePath, assembly);
-						_overridePlugin(FileName, assembly);
+						if (IsExtension) _overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
 						Assembly = Assembly.Load(assembly);
 					}
 				}
@@ -464,11 +504,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (Exceptions.Count > 0) throw null;
 		}
-		catch (Exception ex) { System.Console.WriteLine($"Threading compilation failed for '{FileName}': {ex}"); }
+		catch (Exception ex) { System.Console.WriteLine($"Threading compilation failed for '{InitialSource.ContextFilePath}': {ex}"); }
 	}
 
 	public override void Dispose()
 	{
+		ClassList?.Clear();
+
 		Exceptions?.Clear();
 		Warnings?.Clear();
 
@@ -476,6 +518,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		HookMethods?.Clear();
 		PluginReferences?.Clear();
 
+		ClassList = null;
 		Hooks = null;
 		HookMethods = null;
 		PluginReferences = null;

@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Ext.Discord", "Carbo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Carbon.Components", "Carbon.Components", "{31982314-60E6-4740-98FC-2FCDDFB5E35A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Compat", "Carbon.Components\Carbon.Compat\Carbon.Compat\Carbon.Compat.csproj", "{30B4B72A-9E9A-422D-9FDE-98DDD677B1AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Compat", "Carbon.Components\Carbon.Compat\Carbon.Compat.csproj", "{30B4B72A-9E9A-422D-9FDE-98DDD677B1AE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Modules", "Carbon.Components\Carbon.Modules\Carbon.Modules\Carbon.Modules.csproj", "{8FF370BD-7F23-4E47-8757-7197305E555D}"
 EndProject
