@@ -19,10 +19,10 @@ git branch --show-current > .gitbranch
 echo "**   Branch done."
 
 git rev-parse --short HEAD > .gitchs
-echo "**   Hash-Long done."
+echo "**   Hash-short done."
 
 git rev-parse --long HEAD > .gitchl
-echo "**   Hash-Long done."
+echo "**   Hash-long done."
 
 git show -s --format="%an" HEAD > .gitauthor
 echo "**   Author done."
