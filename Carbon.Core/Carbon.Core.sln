@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Hooks.Oxide", "Carbo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Common.Client", "Carbon.Components\Carbon.Common.Client\Carbon.Common.Client.csproj", "{268C4DA0-D58A-42A4-A395-3089DC9BDD83}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Compiler", "Carbon.Components\Carbon.Compiler\Carbon.Compiler.csproj", "{268C4DA0-D58A-42A4-A395-3089DC9BDD83}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
