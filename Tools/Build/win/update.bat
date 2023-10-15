@@ -6,7 +6,6 @@
 
 pushd %~dp0..\..\..
 set UPDATE_ROOT=%CD%
-set RUNTIME_URL=https://carbonmod.gg/assets/content/runtime.zip
 popd
 
 rem Get the target depot argument
@@ -20,24 +19,36 @@ if "%1" EQU "" (
 	--coreplugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
 	--corepluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin-Generated.cs"
 
-echo Downloading Runtime from '%RUNTIME_URL%'..
+set RUNTIME_URL=https://carbonmod.gg/assets/content/runtime-%%O.zip
+set RUNTIME_FOLDER=%UPDATE_ROOT%\Tools\Runtime\%%O
 
-call powershell -Command "(New-Object Net.WebClient).DownloadFile('%RUNTIME_URL%', '%UPDATE_ROOT%\Tools\Runtime\runtime.zip')" || exit /b
-call powershell -Command "Expand-Archive '%UPDATE_ROOT%\Tools\Runtime\runtime.zip' -DestinationPath '%UPDATE_ROOT%\Tools\Runtime'" -Force
-del "%UPDATE_ROOT%\Tools\Runtime\runtime.zip"
+FOR %%O IN (windows linux) DO (	
+	if not exist %RUNTIME_FOLDER% (
+		echo Downloading %%O runtime from %RUNTIME_URL%..
+		mkdir %RUNTIME_FOLDER%
+	
+		call powershell -Command "(New-Object Net.WebClient).DownloadFile('%RUNTIME_URL%', '%RUNTIME_FOLDER%\runtime_%%O.zip')"
+		call powershell -Command "Expand-Archive '%RUNTIME_FOLDER%\runtime_%%O.zip' -DestinationPath '%RUNTIME_FOLDER%'" -Force
+		del "%RUNTIME_FOLDER%\runtime_%%O.zip"
+	) else (
+		echo Skipped %%O runtime..
+	)
+		
+	echo Downloading %%O Rust files..
 
-echo Downloading depots using '%UPDATE_TARGET%' Steam branch..
-
-FOR %%O IN (windows linux) DO (
 	rem Download rust binary libs
 	"%UPDATE_ROOT%\Tools\DepotDownloader\DepotDownloader\bin\Release\net6.0\DepotDownloader.exe" ^
 		-os %%O -validate -app 258550 -branch %UPDATE_TARGET% -filelist ^
 		"%UPDATE_ROOT%\Tools\Helpers\258550_refs.txt" -dir "%UPDATE_ROOT%\Rust\%%O"
 
+	echo Publicizing %%O Rust Assembly-CSharp..
+
 	rem Show me all you've got baby
 	"%UPDATE_ROOT%\Tools\Helpers\Publicizer.exe" ^
 		--input "%UPDATE_ROOT%\Rust\%%O\RustDedicated_Data\Managed\Assembly-CSharp.dll"
 		
+	echo Publicizing %%O Rust Rust.Clans.Local..
+
 	"%UPDATE_ROOT%\Tools\Helpers\Publicizer.exe" ^
 		--input "%UPDATE_ROOT%\Rust\%%O\RustDedicated_Data\Managed\Rust.Clans.Local.dll"
 )
