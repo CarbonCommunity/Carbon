@@ -356,7 +356,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				var root = tree.GetCompilationUnitRoot();
 
-				if (HookCaller.FindPluginInfo(root, out var @namespace, out var classIndex, ClassList))
+				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
 					var @class = ClassList[0];
 
@@ -365,7 +365,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 						@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
 					}
 
-					root = root.WithMembers(root.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
+					root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
 					trees.Insert(0, CSharpSyntaxTree.ParseText(
 						root.ToFullString(), options: parseOptions, source.FilePath, Encoding.UTF8));
 				}
