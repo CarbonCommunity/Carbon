@@ -9,6 +9,9 @@ using Path = System.IO.Path;
 
 namespace Carbon.Jobs;
 
+#pragma warning disable CS0208
+#pragma warning disable CS8500
+
 public interface ICompiler
 {
     public (bool, CompilerResult) Compile(CompilerArgs args);
