@@ -63,7 +63,12 @@ fi
 
 if [ "${2}" != "--no-archive" ]; then
 	mkdir -p ${ROOT}/Release/.tmp/${TARGET}/carbon/compiler/runtime
-	cp -r ${ROOT}/Tools/Runtime/${TOS} ${ROOT}/Release/.tmp/${TARGET}/carbon/compiler/runtime
+	
+	if [ "${TOS}" == "Linux" ]; then
+		cp -r ${ROOT}/Tools/Runtime/linux ${ROOT}/Release/.tmp/${TARGET}/carbon/compiler/runtime
+	else
+		cp -r ${ROOT}/Tools/Runtime/windows ${ROOT}/Release/.tmp/${TARGET}/carbon/compiler/runtime
+	fi
 
 	echo "** Create the compressed archive"
 	tar -zcvf "${ROOT}/Release/Carbon.${TOS}.${TAG}.tar.gz" -C "${ROOT}/Release/.tmp/${TARGET}" $(ls -A ${ROOT}/Release/.tmp/${TARGET})
