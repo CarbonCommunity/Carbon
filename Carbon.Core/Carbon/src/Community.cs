@@ -44,11 +44,11 @@ public class CommunityInternal : Community
 		get; set;
 	}
 
-	public override void ReloadPlugins()
+	public override void ReloadPlugins(IEnumerable<string> except = null)
 	{
-		base.ReloadPlugins();
+		base.ReloadPlugins(except);
 
-		ScriptLoader.LoadAll();
+		ScriptLoader.LoadAll(except);
 	}
 
 	internal void _installDefaults()
