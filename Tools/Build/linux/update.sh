@@ -17,19 +17,6 @@ mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
 	--corepluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Generated/CorePlugin.cs"
 
 for OS in windows linux; do
-    RUNTIME_URL=https://carbonmod.gg/assets/content/runtime-${OS}.zip
-    RUNTIME_FOLDER=${ROOT}/Tools/Runtime/${OS}
-
-    if [ -d "${RUNTIME_FOLDER}" ]; then
-        echo Skipped ${OS} runtime..
-    else
-        echo Downloading ${OS} runtime from ${RUNTIME_URL}..
-        mkdir -p "${RUNTIME_FOLDER}"
-        curl --silent --fail --location --output /tmp/runtime_${OS}.zip ${RUNTIME_URL}
-        unzip /tmp/runtime_${OS}.zip -d "${RUNTIME_FOLDER}"
-        rm /tmp/runtime_${OS}.zip
-    fi
-
 	# Download rust binary libs
 	"${ROOT}/Tools/DepotDownloader/DepotDownloader/bin/Release/net6.0/DepotDownloader" \
 		-os ${OS} -validate -app 258550 -branch ${TARGET} -filelist \
