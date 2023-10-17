@@ -46,7 +46,7 @@ public class ScriptLoader : IScriptLoader
 
 	public void Load()
 	{
-		if (InitialSource == null)
+		if (InitialSource == null || string.IsNullOrEmpty(InitialSource.FilePath))
 		{
 			Clear();
 			return;
@@ -65,17 +65,20 @@ public class ScriptLoader : IScriptLoader
 		}
 	}
 
-	public static void LoadAll()
+	public static void LoadAll(IEnumerable<string> except = null)
 	{
 		var config = Community.Runtime.Config;
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
 		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.ScriptWatcherOption);
 		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cszip", option: config.ScriptWatcherOption);
-		var zipDevPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetZipDevFolder(), "cs", option: SearchOption.AllDirectories);
+
 		ExecuteProcess(Community.Runtime.ScriptProcessor, false, extensionPlugins, plugins);
 		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, zipPlugins);
-		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, zipDevPlugins);
 
+#if DEBUG
+		var zipDevPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetZipDevFolder(), "cs", option: SearchOption.AllDirectories);
+		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, zipDevPlugins);
+#endif
 		void ExecuteProcess(IScriptProcessor processor, bool folderMode, params string[][] folders)
 		{
 			processor.Clear();
@@ -84,7 +87,7 @@ public class ScriptLoader : IScriptLoader
 			{
 				foreach (var file in files)
 				{
-					if (processor.IsBlacklisted(file)) continue;
+					if (processor.IsBlacklisted(file) || (except != null && except.Any(x => file.Contains(x)))) continue;
 
 					var folder = Path.GetDirectoryName(file);
 
@@ -302,34 +305,37 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader.Assembly == null)
 		{
-			Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFilePath}':");
-			for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
+			if (AsyncLoader.Exceptions.Count > 0)
 			{
-				var error = AsyncLoader.Exceptions[i];
-				var print = $"{error.Error.ErrorText} [{error.Error.ErrorNumber}]\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
-				Logger.Error($"  {i + 1:n0}. {print}");
-			}
+				Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFilePath}':");
+				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
+				{
+					var error = AsyncLoader.Exceptions[i];
+					var print = $"{error.Error.ErrorText} [{error.Error.ErrorNumber}]\n     ({error.Error.FileName} {error.Error.Column} line {error.Error.Line})";
+					Logger.Error($"  {i + 1:n0}. {print}");
+				}
 
-			ModLoader.FailedMods.Add(new ModLoader.FailedMod
-			{
-				File = InitialSource.ContextFilePath,
-				Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedMod.Error
+				ModLoader.FailedMods.Add(new ModLoader.FailedMod
 				{
-					Message = x.Error.ErrorText,
-					Number = x.Error.ErrorNumber,
-					Column = x.Error.Column,
-					Line = x.Error.Line
-				}).ToArray(),
+					File = InitialSource.ContextFilePath,
+					Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedMod.Error
+					{
+						Message = x.Error.ErrorText,
+						Number = x.Error.ErrorNumber,
+						Column = x.Error.Column,
+						Line = x.Error.Line
+					}).ToArray(),
 #if DEBUG
-				Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
-				{
-					Message = x.Error.ErrorText,
-					Number = x.Error.ErrorNumber,
-					Column = x.Error.Column,
-					Line = x.Error.Line
-				}).ToArray()
+					Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
+					{
+						Message = x.Error.ErrorText,
+						Number = x.Error.ErrorNumber,
+						Column = x.Error.Column,
+						Line = x.Error.Line
+					}).ToArray()
 #endif
-			});
+				});
+			}
 
 			AsyncLoader.Exceptions.Clear();
 			AsyncLoader.Warnings.Clear();
@@ -437,7 +443,7 @@ public class ScriptLoader : IScriptLoader
 			yield return null;
 		}
 
-		AsyncLoader.Dispose();
+		AsyncLoader?.Dispose();
 
 		HasFinished = true;
 
@@ -454,19 +460,25 @@ public class ScriptLoader : IScriptLoader
 	{
 		HasFinished = true;
 
-		foreach (var script in Scripts)
+		if (Scripts != null)
 		{
-			script.Dispose();
+			foreach (var script in Scripts)
+			{
+				script.Dispose();
+			}
 		}
 
-		foreach (var source in Sources)
+		if (Sources != null)
 		{
-			source.Dispose();
+			foreach (var source in Sources)
+			{
+				source.Dispose();
+			}
 		}
 
-		Sources.Clear();
+		Sources?.Clear();
 		Sources = null;
-		Scripts.Clear();
+		Scripts?.Clear();
 		Scripts = null;
 
 		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());

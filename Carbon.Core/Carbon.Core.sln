@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Ext.Discord", "Carbo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Carbon.Components", "Carbon.Components", "{31982314-60E6-4740-98FC-2FCDDFB5E35A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Compat", "Carbon.Components\Carbon.Compat\Carbon.Compat\Carbon.Compat.csproj", "{30B4B72A-9E9A-422D-9FDE-98DDD677B1AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Compat", "Carbon.Components\Carbon.Compat\Carbon.Compat.csproj", "{30B4B72A-9E9A-422D-9FDE-98DDD677B1AE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Modules", "Carbon.Components\Carbon.Modules\Carbon.Modules\Carbon.Modules.csproj", "{8FF370BD-7F23-4E47-8757-7197305E555D}"
 EndProject
@@ -32,6 +32,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Hooks.Oxide", "Carbon.Hooks\Carbon.Hooks.Oxide\Carbon.Hooks.Oxide.csproj", "{3AFD9CF3-D1AB-494F-869E-698F687CBBBA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Common.Client", "Carbon.Components\Carbon.Common.Client\Carbon.Common.Client.csproj", "{268C4DA0-D58A-42A4-A395-3089DC9BDD83}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Carbon.Compiler", "Carbon.Components\Carbon.Compiler\Carbon.Compiler.csproj", "{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -337,6 +339,30 @@ Global
 		{268C4DA0-D58A-42A4-A395-3089DC9BDD83}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|x64
 		{268C4DA0-D58A-42A4-A395-3089DC9BDD83}.ReleaseUnix|x64.ActiveCfg = ReleaseUnix|x64
 		{268C4DA0-D58A-42A4-A395-3089DC9BDD83}.ReleaseUnix|x64.Build.0 = ReleaseUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Debug|Any CPU.Build.0 = Debug|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Debug|x64.ActiveCfg = Debug|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Debug|x64.Build.0 = Debug|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.DebugUnix|Any CPU.ActiveCfg = DebugUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.DebugUnix|Any CPU.Build.0 = DebugUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.DebugUnix|x64.ActiveCfg = DebugUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.DebugUnix|x64.Build.0 = DebugUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Minimal|Any CPU.ActiveCfg = Minimal|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Minimal|Any CPU.Build.0 = Minimal|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Minimal|x64.ActiveCfg = Minimal|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Minimal|x64.Build.0 = Minimal|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.MinimalUnix|Any CPU.ActiveCfg = MinimalUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.MinimalUnix|Any CPU.Build.0 = MinimalUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.MinimalUnix|x64.ActiveCfg = MinimalUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.MinimalUnix|x64.Build.0 = MinimalUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Release|Any CPU.ActiveCfg = Release|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Release|Any CPU.Build.0 = Release|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Release|x64.ActiveCfg = Release|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.Release|x64.Build.0 = Release|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.ReleaseUnix|Any CPU.ActiveCfg = ReleaseUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.ReleaseUnix|x64.ActiveCfg = ReleaseUnix|x64
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF}.ReleaseUnix|x64.Build.0 = ReleaseUnix|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -353,6 +379,7 @@ Global
 		{CD6421B4-1106-4D99-9830-C2C2201EED9C} = {F89EDA47-1AE3-4F86-9F6D-578BB3E307E8}
 		{3AFD9CF3-D1AB-494F-869E-698F687CBBBA} = {F89EDA47-1AE3-4F86-9F6D-578BB3E307E8}
 		{268C4DA0-D58A-42A4-A395-3089DC9BDD83} = {31982314-60E6-4740-98FC-2FCDDFB5E35A}
+		{8971DCE9-25FB-46A2-98B0-EE87DCF0E8FF} = {31982314-60E6-4740-98FC-2FCDDFB5E35A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {28C89D3B-47B2-45D4-88D4-08EE9E94E67A}

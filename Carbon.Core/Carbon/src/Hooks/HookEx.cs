@@ -153,9 +153,9 @@ public class HookEx : IDisposable, IHook
 			if (TargetType.IsGenericType)
 			{
 				Type generic = TargetType;
-				List<Type> constrains = AccessToolsEx.GetConstraints(generic);
+				IEnumerable<Type> constrains = AccessToolsEx.GetConstraints(generic);
 
-				Logger.Debug($"Generic {generic} matched {constrains.Count} constrains", 2);
+				Logger.Debug($"Generic {generic} matched {constrains.Count()} constrains", 2);
 
 				foreach (Type item in AccessToolsEx.MatchConstrains(constrains))
 				{
@@ -264,14 +264,13 @@ public class HookEx : IDisposable, IHook
 			if (!IsInstalled) return true;
 			_runtime.HarmonyHandler.UnpatchAll(Identifier);
 
-			Logger.Debug($"Hook '{this}' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
+			Logger.Debug($"Hook '{HookFullName}[{Identifier}]' unpatched '{TargetType.Name}.{TargetMethod}'", 2);
 			_runtime.Status = HookState.Inactive;
 			return true;
 		}
 		catch (System.Exception e)
 		{
-			Logger.Error($"Error while unpatching hook '{HookName}'", e);
-			_runtime.Status = HookState.Failure;
+			Logger.Error($"Error while unpatching hook '{HookFullName}[{Identifier}]'", e);
 			_runtime.LastError = e.Message;
 			return false;
 		}

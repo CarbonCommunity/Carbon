@@ -11,10 +11,10 @@
 		<ImplicitUsings>disable</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 		<Platforms>x64</Platforms>
-		<PlatformTarget></PlatformTarget>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 		<TargetFramework>net48</TargetFramework>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<PropertyGroup>

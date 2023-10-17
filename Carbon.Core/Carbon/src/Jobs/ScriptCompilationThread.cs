@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using Carbon.Base;
 using Carbon.Contracts;
 using Carbon.Core;
@@ -306,6 +305,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	public override void ThreadFunction()
 	{
+		if (Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
+		{
+			return;
+		}
+
 		try
 		{
 			Exceptions.Clear();
@@ -343,7 +347,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
 				.WithPreprocessorSymbols(conditionals);
 
-			var containsInternalCallHookOverride = Sources.Any(x => x.Content.Contains(_internalCallHookPattern));
+			var containsInternalCallHookOverride = Sources.Any(x => !string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
 
 			foreach (var source in Sources)
 			{
@@ -352,7 +356,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				var root = tree.GetCompilationUnitRoot();
 
-				if (HookCaller.FindPluginInfo(root, out var @namespace, ClassList))
+				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
 					var @class = ClassList[0];
 
@@ -361,7 +365,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 						@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
 					}
 
-					root = root.WithMembers(root.Members.RemoveAt(0).Insert(0, @namespace.WithMembers(@namespace.Members.RemoveAt(0).Insert(0, @class))));
+					root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
 					trees.Insert(0, CSharpSyntaxTree.ParseText(
 						root.ToFullString(), options: parseOptions, source.FilePath, Encoding.UTF8));
 				}
@@ -505,7 +509,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	public override void Dispose()
 	{
-		ClassList.Clear();
+		ClassList?.Clear();
 
 		Exceptions?.Clear();
 		Warnings?.Clear();

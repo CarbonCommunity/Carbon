@@ -95,38 +95,23 @@ public class HookCallerInternal : HookCallerCommon
 	{
 		var readableHook = HookStringPool.GetOrAdd(hookId);
 
-		if (hookable.IsHookIgnored(hookId)) return null;
+		if (hookable.IsHookIgnored(hookId))
+		{
+			return null;
+		}
+
+		hookable.BuildHookCache(flags);
+
+		if (hookable.HookMethodAttributeCache.TryGetValue(hookId, out var hooks)) { }
+		else if (hookable.HookCache.TryGetValue(hookId, out hooks)) { }
 
 		var result = (object)null;
 
 		if (hookable.InternalCallHookOverriden)
 		{
-			var processedId = hookId;
-
-			if (args != null)
-			{
-				processedId += (uint)args.Length;
-			}
-
-			if (hookable.HookMethodAttributeCache.TryGetValue(processedId, out var hooks)) { }
-			else if (!hookable.HookCache.TryGetValue(processedId, out hooks))
-			{
-				hookable.HookCache.Add(processedId, hooks = new());
-
-				var methods = hookable.Type.GetMethods(flags);
-
-				for (int i = 0; i < methods.Length; i++)
-				{
-					var method = methods[i];
-					if (method.Name != readableHook) continue;
-
-					hooks.Add(CachedHook.Make(method));
-				}
-			}
-
 			var cachedHook = (CachedHook)default;
 
-			if (hooks.Count > 0)
+			if (hooks != null && hooks.Count > 0)
 			{
 				cachedHook = hooks[0];
 
@@ -149,7 +134,7 @@ public class HookCallerInternal : HookCallerCommon
 			hookable.TrackStart();
 			var beforeMemory = hookable.TotalMemoryUsed;
 
-			if (cachedHook.IsAsync)
+			if (cachedHook != null && cachedHook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
 			}
@@ -160,13 +145,21 @@ public class HookCallerInternal : HookCallerCommon
 
 			hookable.TrackEnd();
 			var afterTicks = Environment.TickCount;
+			var afterMemory = hookable.TotalMemoryUsed;
 			var totalTicks = afterTicks - beforeTicks;
+			var totalMemory = afterMemory - beforeMemory;
 
 #if DEBUG
 			Profiler.EndHookCall(hookable);
 #endif
 
 			AppendHookTime(hookId, totalTicks);
+
+			if (cachedHook != null)
+			{
+				cachedHook.HookTime += totalTicks;
+				cachedHook.MemoryUsage += totalMemory;
+			}
 
 			if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
 			{
@@ -177,8 +170,9 @@ public class HookCallerInternal : HookCallerCommon
 						segments: Community.Runtime.Analytics.Segments,
 						metrics: new Dictionary<string, object>
 						{
-							{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}" },
+							{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
 							{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
+							{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
 							{ "hasgc", hookable.HasGCCollected }
 						});
 				}
@@ -186,63 +180,43 @@ public class HookCallerInternal : HookCallerCommon
 		}
 		else
 		{
-			var processedId = hookId;
-
-			if (args != null)
+			if (hooks != null)
 			{
-				processedId += (uint)args.Length;
-			}
-
-			if (hookable.HookMethodAttributeCache.TryGetValue(processedId, out var hooks)) { }
-			else if (!hookable.HookCache.TryGetValue(processedId, out hooks))
-			{
-				hookable.HookCache.Add(processedId, hooks = new());
-
-				var methods = hookable.Type.GetMethods(flags);
-
-				for (int i = 0; i < methods.Length; i++)
+				for (int i = 0; i < hooks.Count; i++)
 				{
-					var method = methods[i];
-					if (method.Name != readableHook) continue;
-
-					hooks.Add(CachedHook.Make(method));
-				}
-			}
-
-			for (int i = 0; i < hooks.Count; i++)
-			{
-				try
-				{
-					var cachedHook = hooks[i];
-
-					if (cachedHook.IsByRef)
+					try
 					{
-						keepArgs = true;
-					}
+						var cachedHook = hooks[i];
 
-					if (cachedHook.IsAsync)
-					{
-						DoCall(cachedHook);
-					}
-					else
-					{
-						var methodResult = DoCall(cachedHook);
-
-						if (methodResult != null)
+						if (cachedHook.IsByRef)
 						{
-							result = methodResult;
+							keepArgs = true;
 						}
-					}
 
-					ResultOverride(hookable);
-				}
-				catch (Exception ex)
-				{
-					var exception = ex.InnerException ?? ex;
-					Carbon.Logger.Error(
-						$"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'",
-						exception
-					);
+						if (cachedHook.IsAsync)
+						{
+							DoCall(cachedHook);
+						}
+						else
+						{
+							var methodResult = DoCall(cachedHook);
+
+							if (methodResult != null)
+							{
+								result = methodResult;
+							}
+						}
+
+						ResultOverride(hookable);
+					}
+					catch (Exception ex)
+					{
+						var exception = ex.InnerException ?? ex;
+						Carbon.Logger.Error(
+							$"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'",
+							exception
+						);
+					}
 				}
 			}
 
@@ -267,14 +241,23 @@ public class HookCallerInternal : HookCallerCommon
 					var beforeTicks = Environment.TickCount;
 					var result2 = (object)default;
 					hookable.TrackStart();
+					var beforeMemory = hookable.TotalMemoryUsed;
 
 					result2 = hook.Method.Invoke(hookable, args);
 
 					hookable.TrackEnd();
 					var afterTicks = Environment.TickCount;
 					var totalTicks = afterTicks - beforeTicks;
+					var afterMemory = hookable.TotalMemoryUsed;
+					var totalMemory = afterMemory - beforeMemory;
 
 					AppendHookTime(hookId, totalTicks);
+
+					if (hook != null)
+					{
+						hook.HookTime += totalTicks;
+						hook.MemoryUsage += totalMemory;
+					}
 
 					if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
 					{
@@ -286,8 +269,10 @@ public class HookCallerInternal : HookCallerCommon
 								segments: Community.Runtime.Analytics.Segments,
 								metrics: new Dictionary<string, object>
 								{
-									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author}) [{TimeEx.Format(basePlugin.Uptime)} uptime]" },
-									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms{(hookable.HasGCCollected ? " [GC]" : string.Empty)}" },
+									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
+									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
+									{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
+									{ "hasgc", hookable.HasGCCollected }
 								});
 						}
 					}

@@ -44,11 +44,11 @@ public class CommunityInternal : Community
 		get; set;
 	}
 
-	public override void ReloadPlugins()
+	public override void ReloadPlugins(IEnumerable<string> except = null)
 	{
-		base.ReloadPlugins();
+		base.ReloadPlugins(except);
 
-		ScriptLoader.LoadAll();
+		ScriptLoader.LoadAll(except);
 	}
 
 	internal void _installDefaults()
@@ -79,7 +79,9 @@ public class CommunityInternal : Community
 			ScriptProcessor = gameObject.AddComponent<ScriptProcessor>();
 			WebScriptProcessor = gameObject.AddComponent<WebScriptProcessor>();
 			ZipScriptProcessor = gameObject.AddComponent<ZipScriptProcessor>();
+#if DEBUG
 			ZipDevScriptProcessor = gameObject.AddComponent<ZipDevScriptProcessor>();
+#endif
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = new ModuleProcessor();
@@ -94,7 +96,9 @@ public class CommunityInternal : Community
 		if (ScriptProcessor != null) ScriptProcessor?.Start();
 		if (WebScriptProcessor != null) WebScriptProcessor?.Start();
 		if (ZipScriptProcessor != null) ZipScriptProcessor?.Start();
+#if DEBUG
 		if (ZipDevScriptProcessor != null) ZipDevScriptProcessor?.Start();
+#endif
 
 		if (ScriptProcessor != null) ScriptProcessor.InvokeRepeating(() => { RefreshConsoleInfo(); }, 1f, 1f);
 		Carbon.Logger.Log("Registered processors");
@@ -108,8 +112,9 @@ public class CommunityInternal : Community
 			if (ScriptProcessor != null) ScriptProcessor?.Dispose();
 			if (WebScriptProcessor != null) WebScriptProcessor?.Dispose();
 			if (ZipScriptProcessor != null) ZipScriptProcessor?.Dispose();
+#if DEBUG
 			if (ZipDevScriptProcessor != null) ZipDevScriptProcessor?.Dispose();
-
+#endif
 			if (ModuleProcessor != null) ModuleProcessor?.Dispose();
 			if (CarbonProcessor != null) CarbonProcessor?.Dispose();
 		}
