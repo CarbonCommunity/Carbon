@@ -65,7 +65,7 @@ public class ScriptLoader : IScriptLoader
 		}
 	}
 
-	public static void LoadAll()
+	public static void LoadAll(IEnumerable<string> except = null)
 	{
 		var config = Community.Runtime.Config;
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
@@ -87,7 +87,7 @@ public class ScriptLoader : IScriptLoader
 			{
 				foreach (var file in files)
 				{
-					if (processor.IsBlacklisted(file)) continue;
+					if (processor.IsBlacklisted(file) || (except != null && except.Any(x => file.Contains(x)))) continue;
 
 					var folder = Path.GetDirectoryName(file);
 
