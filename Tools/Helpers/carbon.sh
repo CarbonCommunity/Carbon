@@ -5,6 +5,6 @@
 ### All rights reserved
 ###
 
-SCRIPT=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source "${SCRIPT}/carbon/tools/environment.sh"
-"${SCRIPT}/RustDedicated" "$@"
+CARBON_INIT_SCRIPT=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source "${CARBON_INIT_SCRIPT}/carbon/tools/environment.sh"
+"${CARBON_INIT_SCRIPT}/RustDedicated" "$@"
