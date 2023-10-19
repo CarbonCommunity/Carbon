@@ -20,7 +20,7 @@ for tag in $(git tag -l); do
     git tag -d "$tag"
 done
 
-
+git fetch --tags
 
 cd "$TEMP"
 git branch --show-current > .gitbranch
@@ -40,6 +40,9 @@ echo "**   Comment done."
 
 git log -1 --format="%ci" HEAD > .gitdate
 echo "**   Date done."
+
+git describe --tags > .gittag
+echo "**   Tag done."
 
 git remote get-url origin > .giturl
 echo "**   URL done."
