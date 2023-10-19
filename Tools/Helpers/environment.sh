@@ -6,8 +6,8 @@
 ###
 
 # Get the directory of the executable
-SCRIPT=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-BASEDIR=$(realpath "${SCRIPT}/../../")
+CARBON_ENV_SCRIPT=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+BASEDIR=$(realpath "${CARBON_ENV_SCRIPT}/../../")
 
 # Docker workaround
 export TERM=xterm
