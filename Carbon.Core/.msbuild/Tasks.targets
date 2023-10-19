@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<!--
+	<!-- 
 		Deep cleaning task
 	-->
 	<Target Name="CarbonCustomClean" AfterTargets="Clean">
@@ -43,7 +43,7 @@
 		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)$(Product).dll" />
 	</Target>
 
-	<!--
+	<!-- 
 		Clean any rust managed files from the output folder
 	-->
 	<Target Name="CleanupRustManaged" AfterTargets="PostBuildEvent">
@@ -55,7 +55,7 @@
 		<Delete Files="$(OutputPath)%(RustManaged.Filename).dll" />
 	</Target>
 
-	<!--
+	<!-- 
 		Creates all the sub folders on the release folder
 	-->
 	<Target Name="PrepareRelease" AfterTargets="PostBuildEvent">
@@ -101,7 +101,7 @@
 		</ItemGroup>
 
 		<Message Text="[$(AssemblyName)] Cleanup carbon stuff from lib folder" Importance="high" />
-		<!-- Delete Files="@(FilesToClean)" / -->
+		<Delete Files="@(FilesToClean)" />
 	</Target>
 
 	<!--

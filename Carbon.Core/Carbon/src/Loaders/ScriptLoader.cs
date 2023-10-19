@@ -12,7 +12,6 @@ using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Jobs;
-using Facepunch;
 using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
@@ -350,6 +349,20 @@ public class ScriptLoader : IScriptLoader
 		}
 
 		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...", 1);
+
+		foreach (var package in ModLoader.LoadedPackages)
+		{
+			for (int i = 0; i < package.Plugins.Count; i++)
+			{
+				var existentPlugin = package.Plugins[i];
+
+				if (Sources.Any(x => x.ContextFilePath == existentPlugin.FilePath))
+				{
+					ModLoader.UninitializePlugin(existentPlugin);
+					i--;
+				}
+			}
+		}
 
 		ModLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
