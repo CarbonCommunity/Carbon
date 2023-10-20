@@ -350,20 +350,6 @@ public class ScriptLoader : IScriptLoader
 
 		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...", 1);
 
-		foreach (var package in ModLoader.LoadedPackages)
-		{
-			for (int i = 0; i < package.Plugins.Count; i++)
-			{
-				var existentPlugin = package.Plugins[i];
-
-				if (Sources.Any(x => x.ContextFilePath == existentPlugin.FilePath))
-				{
-					ModLoader.UninitializePlugin(existentPlugin);
-					i--;
-				}
-			}
-		}
-
 		ModLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
 		var assembly = AsyncLoader.Assembly;
@@ -431,6 +417,21 @@ public class ScriptLoader : IScriptLoader
 
 						p.FilePath = AsyncLoader.InitialSource.ContextFilePath;
 						p.FileName = AsyncLoader.InitialSource.ContextFileName;
+
+						foreach (var package in ModLoader.LoadedPackages)
+						{
+							for (int i = 0; i < package.Plugins.Count; i++)
+							{
+								var existentPlugin = package.Plugins[i];
+
+								if (existentPlugin != p && p.FilePath == existentPlugin.FilePath)
+								{
+									ModLoader.UninitializePlugin(existentPlugin);
+									i--;
+								}
+							}
+						}
+
 					}))
 				{
 					plugin.Instance = rustPlugin;
