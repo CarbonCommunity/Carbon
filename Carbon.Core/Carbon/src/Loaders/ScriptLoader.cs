@@ -417,21 +417,6 @@ public class ScriptLoader : IScriptLoader
 
 						p.FilePath = AsyncLoader.InitialSource.ContextFilePath;
 						p.FileName = AsyncLoader.InitialSource.ContextFileName;
-
-						foreach (var package in ModLoader.LoadedPackages)
-						{
-							for (int i = 0; i < package.Plugins.Count; i++)
-							{
-								var existentPlugin = package.Plugins[i];
-
-								if (existentPlugin != p && p.FilePath == existentPlugin.FilePath)
-								{
-									ModLoader.UninitializePlugin(existentPlugin);
-									i--;
-								}
-							}
-						}
-
 					}))
 				{
 					plugin.Instance = rustPlugin;
