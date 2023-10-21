@@ -58,7 +58,7 @@ public class HookCallerInternal : HookCallerCommon
 
 		return buffer;
 	}
-	public override object[] RescaleBuffer(object[] oldBuffer, int newScale)
+	public override object[] RescaleBuffer(object[] oldBuffer, int newScale, CachedHook hook)
 	{
 		if (oldBuffer.Length == newScale)
 		{
@@ -69,17 +69,36 @@ public class HookCallerInternal : HookCallerCommon
 
 		for (int i = 0; i < newScale; i++)
 		{
+			var value = newBuffer[i];
+
 			if (i > oldBuffer.Length - 1)
 			{
-				newBuffer[i] = null;
+				newBuffer[i] = value = null;
 			}
 			else
 			{
-				newBuffer[i] = oldBuffer[i];
+				newBuffer[i] = value = oldBuffer[i];
+			}
+
+			if (i <= hook.DefaultParameterValues.Length - 1 && value == null)
+			{
+				newBuffer[i] = hook.DefaultParameterValues[i];
 			}
 		}
 
 		return newBuffer;
+	}
+	public override void ProcessDefaults(object[] buffer, CachedHook hook)
+	{
+		var length = buffer.Length;
+
+		for (int i = 0; i < length; i++)
+		{
+			if (i <= hook.DefaultParameterValues.Length - 1 && buffer[i] == null)
+			{
+				buffer[i] = hook.DefaultParameterValues[i];
+			}
+		}
 	}
 	public override void ClearBuffer(object[] buffer)
 	{
@@ -121,7 +140,11 @@ public class HookCallerInternal : HookCallerCommon
 
 					if (actualLength != args.Length)
 					{
-						args = RescaleBuffer(args, actualLength);
+						args = RescaleBuffer(args, actualLength, cachedHook);
+					}
+					else
+					{
+						ProcessDefaults(args, cachedHook);
 					}
 				}
 			}
@@ -228,7 +251,11 @@ public class HookCallerInternal : HookCallerCommon
 
 					if (actualLength != args.Length)
 					{
-						args = RescaleBuffer(args, actualLength);
+						args = RescaleBuffer(args, actualLength, hook);
+					}
+					else
+					{
+						ProcessDefaults(args, hook);
 					}
 				}
 
