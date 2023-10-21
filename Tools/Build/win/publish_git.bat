@@ -39,8 +39,15 @@ echo **   Comment done.
 git log -1 --format=%%%ci HEAD > .gitdate
 echo **   Date done.
 
-git describe --tags > .gittag
-echo **   Tag done.
+if "%1" EQU "" (
+	git describe --tags > .gittag
+	echo **   Tag done.
+) else (
+	echo %1 > .gittag
+	echo **   Tag done.
+)
+
+
 
 git remote get-url origin > .giturl
 echo **   URL done.
