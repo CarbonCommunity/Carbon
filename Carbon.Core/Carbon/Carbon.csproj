@@ -20,7 +20,6 @@
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common.Client\Carbon.Common.Client.csproj" />
-		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Compiler\Carbon.Compiler.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
