@@ -15,7 +15,7 @@ if "%1" EQU "" (
 	set BUILD_TARGET=%1
 )
 
-call "%~dp0publish_git.bat"
+call "%~dp0publish_git.bat" %3
 
 echo ** Set the build target config to %BUILD_TARGET%
 
