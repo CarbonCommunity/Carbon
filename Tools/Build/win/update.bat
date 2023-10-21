@@ -19,7 +19,21 @@ if "%1" EQU "" (
 	--coreplugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
 	--corepluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin-Generated.cs"
 
-FOR %%O IN (windows linux) DO (			
+set RUNTIME_URL=https://carbonmod.gg/assets/content/runtime-%%O.zip
+set RUNTIME_FOLDER=%UPDATE_ROOT%\Tools\Runtime\%%O
+
+FOR %%O IN (windows linux) DO (	
+	if not exist %RUNTIME_FOLDER% (
+		echo Downloading %%O runtime from %RUNTIME_URL%..
+		mkdir %RUNTIME_FOLDER%
+	
+		call powershell -Command "(New-Object Net.WebClient).DownloadFile('%RUNTIME_URL%', '%RUNTIME_FOLDER%\runtime_%%O.zip')"
+		call powershell -Command "Expand-Archive '%RUNTIME_FOLDER%\runtime_%%O.zip' -DestinationPath '%RUNTIME_FOLDER%'" -Force
+		del "%RUNTIME_FOLDER%\runtime_%%O.zip"
+	) else (
+		echo Skipped %%O runtime..
+	)
+		
 	echo Downloading %%O Rust files..
 
 	rem Download rust binary libs
