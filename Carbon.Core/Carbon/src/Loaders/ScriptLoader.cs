@@ -12,7 +12,6 @@ using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Jobs;
-using Facepunch;
 using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
