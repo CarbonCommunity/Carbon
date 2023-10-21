@@ -13,6 +13,13 @@ if not exist %TEMP% (
 
 echo ** Git Metadata:
 
+FOR /F "tokens=*" %%i IN ('git tag -l') DO (
+    git tag -d %%i
+)
+
+git fetch --tags
+
+
 cd %TEMP%
 git branch --show-current > .gitbranch
 echo **   Branch done.
@@ -31,6 +38,16 @@ echo **   Comment done.
 
 git log -1 --format=%%%ci HEAD > .gitdate
 echo **   Date done.
+
+if "%1" EQU "" (
+	git describe --tags > .gittag
+	echo **   Tag done.
+) else (
+	echo %1 > .gittag
+	echo **   Tag done.
+)
+
+
 
 git remote get-url origin > .giturl
 echo **   URL done.
