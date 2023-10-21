@@ -71,8 +71,8 @@ jobs:
       shell: bash
       run: |
         export VERSION=${{ needs.bootstrap.outputs.version }}
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix . edge_build
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix . edge_build
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix "" "edge_build"
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix "" "edge_build"
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
