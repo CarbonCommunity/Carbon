@@ -47,8 +47,6 @@ if "%1" EQU "" (
 	echo **   Tag done.
 )
 
-
-
 git remote get-url origin > .giturl
 echo **   URL done.
 
