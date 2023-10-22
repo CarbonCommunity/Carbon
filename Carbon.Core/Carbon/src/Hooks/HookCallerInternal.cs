@@ -24,7 +24,7 @@ public class HookCallerInternal : HookCallerCommon
 {
 	internal static List<Conflict> _conflictCache = new(10);
 
-	public override void AppendHookTime(uint hook, int time)
+	public override void AppendHookTime(uint hook, double time)
 	{
 		if(!_hookTimeBuffer.ContainsKey(hook))
 		{
@@ -265,7 +265,6 @@ public class HookCallerInternal : HookCallerCommon
 					Profiler.StartHookCall(hookable, hookId);
 #endif
 
-					var beforeTicks = Environment.TickCount;
 					var result2 = (object)default;
 					hookable.TrackStart();
 					var beforeMemory = hookable.TotalMemoryUsed;
@@ -273,31 +272,30 @@ public class HookCallerInternal : HookCallerCommon
 					result2 = hook.Method.Invoke(hookable, args);
 
 					hookable.TrackEnd();
-					var afterTicks = Environment.TickCount;
-					var totalTicks = afterTicks - beforeTicks;
+					var afterHookTime = hookable.CurrentHookTime;
 					var afterMemory = hookable.TotalMemoryUsed;
 					var totalMemory = afterMemory - beforeMemory;
 
-					AppendHookTime(hookId, totalTicks);
+					AppendHookTime(hookId, afterHookTime);
 
 					if (hook != null)
 					{
-						hook.HookTime += totalTicks;
+						hook.HookTime += afterHookTime;
 						hook.MemoryUsage += totalMemory;
 					}
 
-					if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
+					if (afterHookTime > 100)
 					{
 						if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 						{
 							var readableHook = HookStringPool.GetOrAdd(hookId);
-							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 							Community.Runtime.Analytics.LogEvent("plugin_time_warn",
 								segments: Community.Runtime.Analytics.Segments,
 								metrics: new Dictionary<string, object>
 								{
 									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
-									{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
+									{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
 									{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
 									{ "hasgc", hookable.HasGCCollected }
 								});
