@@ -153,7 +153,6 @@ public class HookCallerInternal : HookCallerCommon
 			Profiler.StartHookCall(hookable, hookId);
 #endif
 
-			var beforeTicks = Environment.TickCount;
 			hookable.TrackStart();
 			var beforeMemory = hookable.TotalMemoryUsed;
 
@@ -167,34 +166,33 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 			hookable.TrackEnd();
-			var afterTicks = Environment.TickCount;
+			var afterHookTime = hookable.CurrentHookTime;
 			var afterMemory = hookable.TotalMemoryUsed;
-			var totalTicks = afterTicks - beforeTicks;
 			var totalMemory = afterMemory - beforeMemory;
 
 #if DEBUG
 			Profiler.EndHookCall(hookable);
 #endif
 
-			AppendHookTime(hookId, totalTicks);
+			AppendHookTime(hookId, afterHookTime);
 
 			if (cachedHook != null)
 			{
-				cachedHook.HookTime += totalTicks;
+				cachedHook.HookTime += afterHookTime;
 				cachedHook.MemoryUsage += totalMemory;
 			}
 
-			if (afterTicks > beforeTicks + 100 && afterTicks > beforeTicks)
+			if (afterHookTime > 100)
 			{
 				if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 				{
-					Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{totalTicks:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+					Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 					Community.Runtime.Analytics.LogEvent("plugin_time_warn",
 						segments: Community.Runtime.Analytics.Segments,
 						metrics: new Dictionary<string, object>
 						{
 							{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
-							{ "time", $"{totalTicks.RoundUpToNearestCount(50)}ms" },
+							{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
 							{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
 							{ "hasgc", hookable.HasGCCollected }
 						});
