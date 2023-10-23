@@ -32,6 +32,7 @@ FOR %%P IN (Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Co
 	echo ** Merging '%%P'
 	cd %BOOTSTRAP_ROOT%/%%P
 	git checkout %TO_BRANCH% > NUL
+	git add -A
 	git merge origin/%FROM_BRANCH% -m "Merging from %FROM_BRANCH%" --no-ff > NUL
 	git push --set-upstream origin %TO_BRANCH% > NUL
 	echo    done.
