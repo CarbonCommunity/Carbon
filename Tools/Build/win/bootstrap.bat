@@ -30,9 +30,9 @@ echo * Handling component submodules..
 FOR %%P IN (Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Components/Carbon.Common Carbon.Core/Carbon.Components/Carbon.Common.Client Carbon.Core/Carbon.Components/Carbon.Compat Carbon.Core/Carbon.Components/Carbon.Modules Carbon.Core/Carbon.Components/Carbon.Preloader Carbon.Core/Carbon.Components/Carbon.SDK Carbon.Core/Carbon.Extensions/Carbon.Ext.Discord Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community) DO (
 	echo ** Updating '%%P'
 	cd %BOOTSTRAP_ROOT%/%%P
-	git clean -fd > NUL
-	git pull . %CURRENT_BRANCH% > NUL
 	git checkout %CURRENT_BRANCH% > NUL
+	git fetch > NUL
+	git pull > NUL
 	echo    done.
 )
 echo * Finished - handling component submodules.

@@ -28,11 +28,11 @@ if "%TO_BRANCH%" EQU "" (
 
 echo Merging %FROM_BRANCH% into %TO_BRANCH%..
 
-FOR %%P IN (Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Components/Carbon.Common Carbon.Core/Carbon.Components/Carbon.Common.Client Carbon.Core/Carbon.Components/Carbon.Compat Carbon.Core/Carbon.Components/Carbon.Modules Carbon.Core/Carbon.Components/Carbon.Preloader Carbon.Core/Carbon.Components/Carbon.SDK Carbon.Core/Carbon.Extensions/Carbon.Ext.Discord Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community) DO (
+FOR %%P IN (Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Components/Carbon.Common Carbon.Core/Carbon.Components/Carbon.Common.Client Carbon.Core/Carbon.Components/Carbon.Compat Carbon.Core/Carbon.Components/Carbon.Modules Carbon.Core/Carbon.Components/Carbon.Preloader Carbon.Core/Carbon.Components/Carbon.SDK Carbon.Core/Carbon.Extensions/Carbon.Ext.Discord Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community .) DO (
 	echo ** Merging '%%P'
 	cd %BOOTSTRAP_ROOT%/%%P
 	git checkout %TO_BRANCH% > NUL
-	git merge origin/%FROM_BRANCH% -m "Merging %FROM_BRANCH% into %TO_BRANCH%" > NUL
+	git merge origin/%FROM_BRANCH% -m "Merging from %FROM_BRANCH%" --no-ff > NUL
 	git push --set-upstream origin %TO_BRANCH% > NUL
 	echo    done.
 )

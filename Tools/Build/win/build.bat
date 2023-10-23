@@ -15,7 +15,7 @@ if "%1" EQU "" (
 	set BUILD_TARGET=%1
 )
 
-call "%~dp0publish_git.bat"
+call "%~dp0publish_git.bat" %3
 
 echo ** Set the build target config to %BUILD_TARGET%
 
@@ -25,6 +25,9 @@ del /q "%BUILD_ROOT%\Release\Carbon.%BUILD_TARGET%.zip" 2>NUL
 
 if "%DEFINES%" EQU "" (
 	set DEFINES=%2
+	echo ** No defines.
+) else (
+	echo ** Defines: %DEFINES%
 )
 
 if "%DEFINES%" EQU "" (

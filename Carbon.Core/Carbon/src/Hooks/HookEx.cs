@@ -119,17 +119,12 @@ public class HookEx : IDisposable, IHook
 			TargetMethods = new();
 			TargetType = metadata.Target;
 
-			if (Attribute.IsDefined(type, typeof(HookAttribute.Identifier), false))
-				Identifier = type.GetCustomAttribute<HookAttribute.Identifier>()?.Value ?? $"{Guid.NewGuid():N}";
-
-			if (Attribute.IsDefined(type, typeof(HookAttribute.Options), false))
-				Options = type.GetCustomAttribute<HookAttribute.Options>()?.Value ?? HookFlags.None;
+			Identifier = type.GetCustomAttribute<HookAttribute.Identifier>()?.Value ?? $"{Guid.NewGuid():N}";
+			Options = type.GetCustomAttribute<HookAttribute.Options>()?.Value ?? HookFlags.None;
+			Checksum = type.GetCustomAttribute<HookAttribute.Checksum>()?.Value ?? default;
 
 			if (Attribute.IsDefined(type, typeof(HookAttribute.Dependencies), false))
 				Dependencies = type.GetCustomAttribute<HookAttribute.Dependencies>()?.Value ?? default;
-
-			if (Attribute.IsDefined(type, typeof(HookAttribute.Checksum), false))
-				Checksum = type.GetCustomAttribute<HookAttribute.Checksum>()?.Value ?? default;
 
 			if (Options.HasFlag(HookFlags.MetadataOnly))
 			{
