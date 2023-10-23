@@ -9,6 +9,7 @@
 		<IsPackable>true</IsPackable>
 		<NuspecFile>..\.nuspec</NuspecFile>
 		<NuspecProperties>version=$(PackageVersion)</NuspecProperties>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />

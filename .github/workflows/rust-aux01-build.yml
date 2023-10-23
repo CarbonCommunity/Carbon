@@ -64,7 +64,7 @@ jobs:
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 7.0.x
 
     - name: 🔨 Setup the Carbon build environment
       shell: bash
@@ -80,8 +80,8 @@ jobs:
       shell: bash
       run: |
         export VERSION=${{ needs.bootstrap.outputs.version }}
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix AUX01
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix AUX01
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix AUX01 "rustbeta_aux01"
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix AUX01 "rustbeta_aux01"
         
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -109,7 +109,7 @@ jobs:
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 7.0.x
 
     - name: 🔨 Setup the Carbon build environment
       shell: cmd
@@ -125,8 +125,8 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug AUX01
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal AUX01
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug AUX01 rustbeta_aux01
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal AUX01 rustbeta_aux01
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
