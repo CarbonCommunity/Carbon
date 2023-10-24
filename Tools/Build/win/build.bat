@@ -30,12 +30,6 @@ if "%DEFINES%" EQU "" (
 	echo ** Defines: %DEFINES%
 )
 
-if "%DEFINES%" EQU "" (
-	echo ** No defines.
-) else (
-	echo ** Defines: %DEFINES%
-)
-
 echo ** Build the solution
 dotnet restore "%BUILD_ROOT%\Carbon.Core" -v:m --nologo || exit /b
 dotnet   clean "%BUILD_ROOT%\Carbon.Core" -v:m --configuration %BUILD_TARGET% --nologo || exit /b
