@@ -178,11 +178,13 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private void Update()
 	{
-		// get the fuck out as fast as possible
-		if (_workQueue.Count == 0) return;
+		if (_workQueue.Count == 0)
+		{
+			return;
+		}
 
+		var limit = !InitialHooksInstalled || ForceUpdate ? int.MaxValue : PatchLimitPerCycle;
 
-		int limit = !InitialHooksInstalled || ForceUpdate ? int.MaxValue : PatchLimitPerCycle;
 		while (_workQueue.Count > 0 && limit-- > 0)
 		{
 			string identifier = _workQueue.Dequeue();
@@ -253,7 +255,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		if (!InitialHooksInstalled)
 		{
 			InitialHooksInstalled = true;
-			Community.Runtime.Events.Trigger(CarbonEvent.InitialHooksInstalled, EventArgs.Empty);
 		}
 
 		if (ForceUpdate)
