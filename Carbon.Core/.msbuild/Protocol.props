@@ -7,6 +7,6 @@
 			carbon that forces the users to update all the compontents at the
 			same time, like updating core and hooks in one shot.
 		-->
-		<CarbonProtocol>2023.10.23.0</CarbonProtocol>
+		<CarbonProtocol>2023.11.02.0</CarbonProtocol>
 	</PropertyGroup>
 </Project>
