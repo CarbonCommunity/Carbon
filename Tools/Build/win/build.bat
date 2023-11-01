@@ -25,9 +25,6 @@ del /q "%BUILD_ROOT%\Release\Carbon.%BUILD_TARGET%.zip" 2>NUL
 
 if "%DEFINES%" EQU "" (
 	set DEFINES=%2
-	echo ** No defines.
-) else (
-	echo ** Defines: %DEFINES%
 )
 
 if "%DEFINES%" EQU "" (

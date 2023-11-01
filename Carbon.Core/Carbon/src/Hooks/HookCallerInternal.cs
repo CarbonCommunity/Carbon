@@ -80,9 +80,18 @@ public class HookCallerInternal : HookCallerCommon
 				newBuffer[i] = value = oldBuffer[i];
 			}
 
-			if (i <= hook.DefaultParameterValues.Length - 1 && value == null)
+			if (i <= hook.InfoParameters.Length - 1 && value == null)
 			{
-				newBuffer[i] = hook.DefaultParameterValues[i];
+				var parameter = hook.InfoParameters[i];
+
+				if (parameter.HasDefaultValue)
+				{
+					newBuffer[i] = parameter.DefaultValue;
+				}
+				else if (parameter.ParameterType is Type parameterType && parameterType.IsValueType)
+				{
+					newBuffer[i] = Activator.CreateInstance(parameterType);
+				}
 			}
 		}
 
@@ -94,9 +103,16 @@ public class HookCallerInternal : HookCallerCommon
 
 		for (int i = 0; i < length; i++)
 		{
-			if (i <= hook.DefaultParameterValues.Length - 1 && buffer[i] == null)
+			if (i <= hook.InfoParameters.Length - 1 && buffer[i] == null)
 			{
-				buffer[i] = hook.DefaultParameterValues[i];
+				if (hook.InfoParameters[i] is ParameterInfo info && info.HasDefaultValue)
+				{
+					buffer[i] = info.DefaultValue;
+				}
+				else
+				{
+					buffer[i] = null;
+				}
 			}
 		}
 	}
