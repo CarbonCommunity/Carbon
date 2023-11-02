@@ -84,7 +84,7 @@ public class CommunityInternal : Community
 #endif
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 			HookManager = gameObject.AddComponent<PatchManager>();
-			ModuleProcessor = new ModuleProcessor();
+			ModuleProcessor = gameObject.AddComponent<ModuleProcessor>();
 			CarbonClientManager = new CarbonClientManager();
 			Entities = new Entities();
 		}
