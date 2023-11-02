@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using API.Assembly;
 using Carbon.Base;
 using Carbon.Contracts;
 using Carbon.Core;
@@ -335,6 +336,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 #if MINIMAL
 			conditionals.Add("MINIMAL");
+#endif
+
+#if STAGING
+			conditionals.Add("STAGING");
+#elif AUX01
+			conditionals.Add("AUX01");
+#elif AUX02
+			conditionals.Add("AUX02");
 #endif
 
 			string pdb_filename =

@@ -49,6 +49,8 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private Queue<string> _workQueue;
 	private List<Subscription> _subscribers;
 	private readonly Dictionary<string, string> _checksums = new();
+	private static bool InitialHooksInstalled = true;
+	private static bool ForceUpdate;
 
 	public void Enqueue(string identifier)
 	{
@@ -176,11 +178,13 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private void Update()
 	{
-		// get the fuck out as fast as possible
-		if (_workQueue.Count == 0) return;
+		if (_workQueue.Count == 0)
+		{
+			return;
+		}
 
+		var limit = !InitialHooksInstalled || ForceUpdate ? int.MaxValue : PatchLimitPerCycle;
 
-		int limit = PatchLimitPerCycle;
 		while (_workQueue.Count > 0 && limit-- > 0)
 		{
 			string identifier = _workQueue.Dequeue();
@@ -246,6 +250,16 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			{
 				Logger.Error($"HookManager.Update() failed at '{identifier}'", e);
 			}
+		}
+
+		if (!InitialHooksInstalled)
+		{
+			InitialHooksInstalled = true;
+		}
+
+		if (ForceUpdate)
+		{
+			ForceUpdate = false;
 		}
 	}
 
@@ -395,6 +409,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		return hooks.Any() && hooks.Any(IsHookLoaded);
 	}
 
+	public void ForceUpdateHooks()
+	{
+		ForceUpdate = true;
+		Update();
+	}
 
 	public IEnumerable<IHook> LoadedPatches
 	{ get => _patches; }
@@ -558,9 +577,9 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	}
 
 	public static string GetMethodMSILHash(MethodInfo method)
-		=> sha1(method?.GetMethodBody()?.GetILAsByteArray());
+		=> SHA1(method?.GetMethodBody()?.GetILAsByteArray());
 
-	public static string sha1(byte[] raw)
+	public static string SHA1(byte[] raw)
 	{
 		if (raw == null || raw.Length == 0) return null;
 		using SHA1Managed sha1 = new SHA1Managed();
