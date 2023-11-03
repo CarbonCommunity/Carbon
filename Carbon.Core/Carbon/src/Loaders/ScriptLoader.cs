@@ -120,7 +120,7 @@ public class ScriptLoader : IScriptLoader
 				var plugin = Scripts[i];
 				if (plugin.IsCore || plugin.Instance == null) continue;
 
-				plugin.Instance.Package?.Plugins?.Remove(plugin.Instance);
+				plugin.Instance.Package?.Plugins?.RemoveAll(x => x == plugin.Instance);
 
 				if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
 
