@@ -129,8 +129,6 @@ public class ScriptLoader : IScriptLoader
 					ModLoader.UninitializePlugin(plugin.Instance);
 				}
 				catch (Exception ex) { Logger.Error($"Failed unloading '{plugin.Instance}'", ex); }
-
-				plugin.Dispose();
 			}
 
 			if (Scripts.Count > 0)

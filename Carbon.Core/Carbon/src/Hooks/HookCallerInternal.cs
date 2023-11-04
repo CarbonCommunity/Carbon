@@ -137,8 +137,10 @@ public class HookCallerInternal : HookCallerCommon
 
 		hookable.BuildHookCache(flags);
 
-		if (hookable.HookMethodAttributeCache.TryGetValue(hookId, out var hooks)) { }
-		else if (hookable.HookCache.TryGetValue(hookId, out hooks)) { }
+		List<CachedHook> hooks = null;
+
+		if ((hookable.HookMethodAttributeCache?.TryGetValue(hookId, out hooks)).GetValueOrDefault()) { }
+		else if ((hookable.HookCache?.TryGetValue(hookId, out hooks)).GetValueOrDefault()) { }
 
 		var result = (object)null;
 
