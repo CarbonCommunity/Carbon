@@ -27,6 +27,8 @@ namespace Carbon.Managers;
 
 public class ScriptLoader : IScriptLoader
 {
+	public const int BusyFileAttempts = 10;
+
 	public ISource InitialSource => Sources.Count > 0 ? Sources[0] : null;
 
 	public List<IScript> Scripts { get; set; } = new();
@@ -144,8 +146,50 @@ public class ScriptLoader : IScriptLoader
 	{
 		var task = Task.Run(async () =>
 		{
-			using var reader = new StreamReader(filePath, Encoding.UTF8, true);
-			return await reader.ReadToEndAsync();
+			var fileInfo = new FileInfo(filePath);
+			var inUse = true;
+			var success = true;
+			var attempts = 0;
+
+			while (inUse)
+			{
+				inUse = !RunFileUseChecks();
+
+				if (!inUse) continue;
+
+				attempts++;
+				await AsyncEx.WaitForSeconds(0.2f);
+
+				if (attempts < BusyFileAttempts) continue;
+
+				inUse = false;
+				success = false;
+				Logger.Warn($"Failed compiling '{InitialSource.ContextFileName}' due to it being in use.");
+			}
+
+			if (success && !inUse)
+			{
+				using var reader = new StreamReader(filePath, detectEncodingFromByteOrderMarks: true);
+				return await reader.ReadToEndAsync();
+			}
+			else
+			{
+				return null;
+			}
+
+			bool RunFileUseChecks()
+			{
+				try
+				{
+					using var stream = fileInfo.Open(FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+					stream.Close();
+					return true;
+				}
+				catch (IOException)
+				{
+					return false;
+				}
+			}
 		});
 
 		while (!task.IsCompleted)
