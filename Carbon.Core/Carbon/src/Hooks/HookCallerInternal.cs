@@ -339,31 +339,26 @@ public class HookCallerInternal : HookCallerCommon
 			{
 				var differentResults = false;
 
-				if (_conflictCache.Count > 1)
+				if (_conflictCache.Count <= 1) return;
+
+				var localResult = _conflictCache[0].Result;
+				var priorityConflict = _defaultConflict;
+
+				foreach (Conflict conflict in _conflictCache.Where(conflict => conflict.Result?.ToString() != localResult?.ToString()))
 				{
-					var localResult = _conflictCache[0].Result;
-					var priorityConflict = _defaultConflict;
+					differentResults = true;
+				}
 
-					for (int i = 0; i < _conflictCache.Count; i++)
-					{
-						var conflict = _conflictCache[i];
-
-						if (conflict.Result?.ToString() != localResult?.ToString())
-						{
-							differentResults = true;
-						}
-					}
-
+				if (differentResults)
+				{
+					var readableHook = HookStringPool.GetOrAdd(hookId);
+					Carbon.Logger.Warn($"Hook conflict while calling '{readableHook}':\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToString(", ", " and ")}");
 					localResult = priorityConflict.Result;
-					if (differentResults && Community.Runtime.Config.HigherPriorityHookWarns)
-					{
-						var readableHook = HookStringPool.GetOrAdd(hookId);
-						Carbon.Logger.Warn($"Hook conflict while calling '{readableHook}':\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToString(", ", " and ")}");
-					}
-					if (localResult != null)
-					{
-						result = localResult;
-					}
+				}
+
+				if (localResult != null)
+				{
+					result = localResult;
 				}
 			}
 		}
