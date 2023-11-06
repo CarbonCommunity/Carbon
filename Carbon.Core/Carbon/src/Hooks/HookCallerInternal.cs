@@ -198,33 +198,28 @@ public class HookCallerInternal : HookCallerCommon
 				cachedHook.MemoryUsage += totalMemory;
 			}
 
-			if (afterHookTime > 100)
-			{
-				if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
+			if (!(afterHookTime > 100)) return result;
+			if (hookable is not Plugin basePlugin || basePlugin.IsCorePlugin) return result;
+
+			Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+			Community.Runtime.Analytics.LogEvent("plugin_time_warn",
+				segments: Community.Runtime.Analytics.Segments,
+				metrics: new Dictionary<string, object>
 				{
-					Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
-					Community.Runtime.Analytics.LogEvent("plugin_time_warn",
-						segments: Community.Runtime.Analytics.Segments,
-						metrics: new Dictionary<string, object>
-						{
-							{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
-							{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
-							{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
-							{ "hasgc", hookable.HasGCCollected }
-						});
-				}
-			}
+					{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
+					{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
+					{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
+					{ "hasgc", hookable.HasGCCollected }
+				});
 		}
 		else
 		{
 			if (hooks != null)
 			{
-				for (int i = 0; i < hooks.Count; i++)
+				foreach (var  cachedHook in hooks)
 				{
 					try
 					{
-						var cachedHook = hooks[i];
-
 						if (cachedHook.IsByRef)
 						{
 							keepArgs = true;
@@ -236,12 +231,7 @@ public class HookCallerInternal : HookCallerCommon
 						}
 						else
 						{
-							var methodResult = DoCall(cachedHook);
-
-							if (methodResult != null)
-							{
-								result = methodResult;
-							}
+							result = DoCall(cachedHook);
 						}
 
 						HookCaller.ResultOverride(hookable, hookId, result);
@@ -324,9 +314,9 @@ public class HookCallerInternal : HookCallerCommon
 
 				return null;
 			}
-
-			HookCaller.ConflictCheck(ref result, hookId);
 		}
+
+		HookCaller.ConflictCheck(ref result, hookId);
 
 		return result;
 	}
