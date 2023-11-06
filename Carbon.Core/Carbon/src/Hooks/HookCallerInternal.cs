@@ -22,8 +22,6 @@ namespace Carbon.Hooks;
 
 public class HookCallerInternal : HookCallerCommon
 {
-	internal static List<Conflict> _conflictCache = new(10);
-
 	public override void AppendHookTime(uint hook, double time)
 	{
 		if(!_hookTimeBuffer.ContainsKey(hook))
@@ -246,7 +244,7 @@ public class HookCallerInternal : HookCallerCommon
 							}
 						}
 
-						ResultOverride(hookable);
+						HookCaller.ResultOverride(hookable, hookId, result);
 					}
 					catch (Exception ex)
 					{
@@ -327,40 +325,7 @@ public class HookCallerInternal : HookCallerCommon
 				return null;
 			}
 
-			ConflictCheck();
-
-			_conflictCache.Clear();
-
-			void ResultOverride(BaseHookable hookable)
-			{
-				_conflictCache.Add(Conflict.Make(hookable, hookId, result));
-			}
-			void ConflictCheck()
-			{
-				var differentResults = false;
-
-				if (_conflictCache.Count <= 1) return;
-
-				var localResult = _conflictCache[0].Result;
-				var priorityConflict = _defaultConflict;
-
-				foreach (Conflict conflict in _conflictCache.Where(conflict => conflict.Result?.ToString() != localResult?.ToString()))
-				{
-					differentResults = true;
-				}
-
-				if (differentResults)
-				{
-					var readableHook = HookStringPool.GetOrAdd(hookId);
-					Carbon.Logger.Warn($"Hook conflict while calling '{readableHook}':\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToString(", ", " and ")}");
-					localResult = priorityConflict.Result;
-				}
-
-				if (localResult != null)
-				{
-					result = localResult;
-				}
-			}
+			HookCaller.ConflictCheck(ref result, hookId);
 		}
 
 		return result;
