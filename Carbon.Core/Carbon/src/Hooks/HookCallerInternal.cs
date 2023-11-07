@@ -176,13 +176,16 @@ public class HookCallerInternal : HookCallerCommon
 			if (cachedHook != null && cachedHook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
+				hookable.TrackEnd();
 			}
 			else
 			{
 				result = hookable.InternalCallHook(hookId, args);
+				hookable.TrackEnd();
+
+				HookCaller.ResultOverride(conflicts, hookable, hookId, result);
 			}
 
-			hookable.TrackEnd();
 			var afterHookTime = hookable.CurrentHookTime;
 			var afterMemory = hookable.TotalMemoryUsed;
 			var totalMemory = afterMemory - beforeMemory;
@@ -198,8 +201,6 @@ public class HookCallerInternal : HookCallerCommon
 				cachedHook.HookTime += afterHookTime;
 				cachedHook.MemoryUsage += totalMemory;
 			}
-
-			HookCaller.ResultOverride(conflicts, hookable, hookId, result);
 
 			if (!(afterHookTime > 100))
 			{
@@ -243,9 +244,8 @@ public class HookCallerInternal : HookCallerCommon
 						else
 						{
 							result = DoCall(cachedHook);
+							HookCaller.ResultOverride(conflicts, hookable, hookId, result);
 						}
-
-						HookCaller.ResultOverride(conflicts, hookable, hookId, result);
 					}
 					catch (Exception ex)
 					{
