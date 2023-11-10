@@ -407,7 +407,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 				#else
 					OptimizationLevel.Release,
 				#endif
-				deterministic: true, warningLevel: 4
+				deterministic: true, warningLevel: 4,
+				allowUnsafe: true
 			);
 
 			var compilation = CSharpCompilation.Create(
