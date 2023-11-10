@@ -180,10 +180,13 @@ public class HookCallerInternal : HookCallerCommon
 			}
 			else
 			{
-				result = hookable.InternalCallHook(hookId, args);
+				var currentResult = hookable.InternalCallHook(hookId, args);
 				hookable.TrackEnd();
 
-				HookCaller.ResultOverride(conflicts, hookable, hookId, result);
+				if (currentResult != null)
+				{
+					HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
+				}
 			}
 
 			var afterHookTime = hookable.CurrentHookTime;
@@ -243,8 +246,12 @@ public class HookCallerInternal : HookCallerCommon
 						}
 						else
 						{
-							result = DoCall(cachedHook);
-							HookCaller.ResultOverride(conflicts, hookable, hookId, result);
+							var currentResult = DoCall(cachedHook);
+
+							if (currentResult != null)
+							{
+								HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
+							}
 						}
 					}
 					catch (Exception ex)
