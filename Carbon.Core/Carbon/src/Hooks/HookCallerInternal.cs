@@ -90,8 +90,6 @@ public class HookCallerInternal : HookCallerCommon
 			}
 		}
 
-		ReturnBuffer(oldBuffer);
-
 		return newBuffer;
 	}
 	public override void ProcessDefaults(object[] buffer, CachedHook hook)
