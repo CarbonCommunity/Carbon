@@ -338,6 +338,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("MINIMAL");
 #endif
 
+#if STAGING
+			conditionals.Add("STAGING");
+#elif AUX01
+			conditionals.Add("AUX01");
+#elif AUX02
+			conditionals.Add("AUX02");
+#endif
+
 			string pdb_filename =
 			#if DEBUG
 				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? InitialSource.ContextFilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, InitialSource.ContextFileName)) : InitialSource.ContextFileName;
@@ -399,7 +407,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 				#else
 					OptimizationLevel.Release,
 				#endif
-				deterministic: true, warningLevel: 4
+				deterministic: true, warningLevel: 4,
+				allowUnsafe: true
 			);
 
 			var compilation = CSharpCompilation.Create(

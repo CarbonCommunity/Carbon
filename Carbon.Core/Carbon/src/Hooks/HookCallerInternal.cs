@@ -22,8 +22,6 @@ namespace Carbon.Hooks;
 
 public class HookCallerInternal : HookCallerCommon
 {
-	internal static List<Conflict> _conflictCache = new(10);
-
 	public override void AppendHookTime(uint hook, double time)
 	{
 		if(!_hookTimeBuffer.ContainsKey(hook))
@@ -137,8 +135,11 @@ public class HookCallerInternal : HookCallerCommon
 
 		hookable.BuildHookCache(flags);
 
-		if (hookable.HookMethodAttributeCache.TryGetValue(hookId, out var hooks)) { }
-		else if (hookable.HookCache.TryGetValue(hookId, out hooks)) { }
+		List<CachedHook> hooks = null;
+		var conflicts = Pool.GetList<Conflict>();
+
+		if ((hookable.HookMethodAttributeCache?.TryGetValue(hookId, out hooks)).GetValueOrDefault()) { }
+		else if ((hookable.HookCache?.TryGetValue(hookId, out hooks)).GetValueOrDefault()) { }
 
 		var result = (object)null;
 
@@ -175,13 +176,16 @@ public class HookCallerInternal : HookCallerCommon
 			if (cachedHook != null && cachedHook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
+				hookable.TrackEnd();
 			}
 			else
 			{
 				result = hookable.InternalCallHook(hookId, args);
+				hookable.TrackEnd();
+
+				HookCaller.ResultOverride(conflicts, hookable, hookId, result);
 			}
 
-			hookable.TrackEnd();
 			var afterHookTime = hookable.CurrentHookTime;
 			var afterMemory = hookable.TotalMemoryUsed;
 			var totalMemory = afterMemory - beforeMemory;
@@ -198,33 +202,36 @@ public class HookCallerInternal : HookCallerCommon
 				cachedHook.MemoryUsage += totalMemory;
 			}
 
-			if (afterHookTime > 100)
+			if (!(afterHookTime > 100))
 			{
-				if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
-				{
-					Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
-					Community.Runtime.Analytics.LogEvent("plugin_time_warn",
-						segments: Community.Runtime.Analytics.Segments,
-						metrics: new Dictionary<string, object>
-						{
-							{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
-							{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
-							{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
-							{ "hasgc", hookable.HasGCCollected }
-						});
-				}
+				FrameDispose();
+				return result;
 			}
+			if (hookable is not Plugin basePlugin || basePlugin.IsCorePlugin)
+			{
+				FrameDispose();
+				return result;
+			}
+
+			Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+			Community.Runtime.Analytics.LogEvent("plugin_time_warn",
+				segments: Community.Runtime.Analytics.Segments,
+				metrics: new Dictionary<string, object>
+				{
+					{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
+					{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
+					{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
+					{ "hasgc", hookable.HasGCCollected }
+				});
 		}
 		else
 		{
 			if (hooks != null)
 			{
-				for (int i = 0; i < hooks.Count; i++)
+				foreach (var cachedHook in hooks)
 				{
 					try
 					{
-						var cachedHook = hooks[i];
-
 						if (cachedHook.IsByRef)
 						{
 							keepArgs = true;
@@ -236,15 +243,9 @@ public class HookCallerInternal : HookCallerCommon
 						}
 						else
 						{
-							var methodResult = DoCall(cachedHook);
-
-							if (methodResult != null)
-							{
-								result = methodResult;
-							}
+							result = DoCall(cachedHook);
+							HookCaller.ResultOverride(conflicts, hookable, hookId, result);
 						}
-
-						ResultOverride(hookable);
 					}
 					catch (Exception ex)
 					{
@@ -324,46 +325,15 @@ public class HookCallerInternal : HookCallerCommon
 
 				return null;
 			}
+		}
 
-			ConflictCheck();
+		HookCaller.ConflictCheck(conflicts, ref result, hookId);
 
-			_conflictCache.Clear();
+		FrameDispose();
 
-			void ResultOverride(BaseHookable hookable)
-			{
-				_conflictCache.Add(Conflict.Make(hookable, hookId, result));
-			}
-			void ConflictCheck()
-			{
-				var differentResults = false;
-
-				if (_conflictCache.Count > 1)
-				{
-					var localResult = _conflictCache[0].Result;
-					var priorityConflict = _defaultConflict;
-
-					for (int i = 0; i < _conflictCache.Count; i++)
-					{
-						var conflict = _conflictCache[i];
-
-						if (conflict.Result?.ToString() != localResult?.ToString())
-						{
-							differentResults = true;
-						}
-					}
-
-					localResult = priorityConflict.Result;
-					if (differentResults && Community.Runtime.Config.HigherPriorityHookWarns)
-					{
-						var readableHook = HookStringPool.GetOrAdd(hookId);
-						Carbon.Logger.Warn($"Hook conflict while calling '{readableHook}':\n  {_conflictCache.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToString(", ", " and ")}");
-					}
-					if (localResult != null)
-					{
-						result = localResult;
-					}
-				}
-			}
+		void FrameDispose()
+		{
+			Pool.FreeList(ref conflicts);
 		}
 
 		return result;
