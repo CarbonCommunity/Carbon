@@ -365,6 +365,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				var root = tree.GetCompilationUnitRoot();
 
+				HookCaller.HandleVersionConditionals(root, conditionals);
+
+				parseOptions = parseOptions.WithPreprocessorSymbols(conditionals);
+
+				tree = tree.WithRootAndOptions(root, parseOptions);
+
 				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
 					var @class = ClassList[0];
