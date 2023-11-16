@@ -170,15 +170,7 @@ public class CommunityInternal : Community
 				lines = null;
 			}
 
-			if (!ConVar.Global.skipAssetWarmup_crashes)
-			{
-				ReloadPlugins();
-			}
-			else
-			{
-				MarkServerInitialized(true, hookCall: false); //
-				ReloadPlugins();
-			}
+			ReloadPlugins();
 		});
 
 		Defines.Initialize();
