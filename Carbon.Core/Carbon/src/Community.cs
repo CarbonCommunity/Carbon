@@ -189,7 +189,7 @@ public class CommunityInternal : Community
 
 		Client.RPC.Init();
 
-		Client.NoMap.Init();
+		Client.Client.Init();
 
 		IsInitialized = true;
 
