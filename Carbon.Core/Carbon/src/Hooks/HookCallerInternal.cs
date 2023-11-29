@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using Carbon.Base;
 using Carbon.Components;
-using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
 using Facepunch;
@@ -49,12 +46,12 @@ public class HookCallerInternal : HookCallerCommon
 
 	public override object[] AllocateBuffer(int count)
 	{
-		if (!_argumentBuffer.TryGetValue(count, out var buffer))
+		if (!_argumentBuffer.TryGetValue(count, out var pool))
 		{
-			_argumentBuffer.Add(count, buffer = new object[count]);
+			_argumentBuffer.Add(count, pool = new HookArgPool(count, 15));
 		}
 
-		return buffer;
+		return pool.Take();
 	}
 	public override object[] RescaleBuffer(object[] oldBuffer, int newScale, CachedHook hook)
 	{
@@ -86,7 +83,7 @@ public class HookCallerInternal : HookCallerCommon
 				{
 					newBuffer[i] = parameter.DefaultValue;
 				}
-				else if (parameter.ParameterType is Type parameterType && parameterType.IsValueType)
+				else if (parameter.ParameterType is { IsValueType: true } parameterType)
 				{
 					newBuffer[i] = Activator.CreateInstance(parameterType);
 				}
@@ -114,11 +111,11 @@ public class HookCallerInternal : HookCallerCommon
 			}
 		}
 	}
-	public override void ClearBuffer(object[] buffer)
+	public override void ReturnBuffer(object[] buffer)
 	{
-		for (int i = 0; i < buffer.Length; i++)
+		if (_argumentBuffer.TryGetValue(buffer.Length, out var pool))
 		{
-			buffer[i] = null;
+			pool.Return(buffer);
 		}
 	}
 
@@ -180,10 +177,13 @@ public class HookCallerInternal : HookCallerCommon
 			}
 			else
 			{
-				result = hookable.InternalCallHook(hookId, args);
+				var currentResult = hookable.InternalCallHook(hookId, args);
 				hookable.TrackEnd();
 
-				HookCaller.ResultOverride(conflicts, hookable, hookId, result);
+				if (currentResult != null)
+				{
+					HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
+				}
 			}
 
 			var afterHookTime = hookable.CurrentHookTime;
@@ -243,8 +243,12 @@ public class HookCallerInternal : HookCallerCommon
 						}
 						else
 						{
-							result = DoCall(cachedHook);
-							HookCaller.ResultOverride(conflicts, hookable, hookId, result);
+							var currentResult = DoCall(cachedHook);
+
+							if (currentResult != null)
+							{
+								HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
+							}
 						}
 					}
 					catch (Exception ex)

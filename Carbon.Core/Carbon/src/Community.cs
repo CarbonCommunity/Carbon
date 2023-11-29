@@ -170,15 +170,7 @@ public class CommunityInternal : Community
 				lines = null;
 			}
 
-			if (!ConVar.Global.skipAssetWarmup_crashes)
-			{
-				ReloadPlugins();
-			}
-			else
-			{
-				MarkServerInitialized(true, hookCall: false); //
-				ReloadPlugins();
-			}
+			ReloadPlugins();
 		});
 
 		Defines.Initialize();
@@ -197,7 +189,7 @@ public class CommunityInternal : Community
 
 		Client.RPC.Init();
 
-		Client.NoMap.Init();
+		Client.Client.Init();
 
 		IsInitialized = true;
 
