@@ -34,6 +34,8 @@ regex:Unity.Timeline.dll
 regex:UnityEngine.AIModule.dll
 regex:UnityEngine.AssetBundleModule.dll
 regex:UnityEngine.AnimationModule.dll
+regex:UnityEngine.AudioModule.dll
+regex:UnityEngine.VideoModule.dll
 regex:UnityEngine.CoreModule.dll
 regex:UnityEngine.dll
 regex:UnityEngine.ImageConversionModule.dll
