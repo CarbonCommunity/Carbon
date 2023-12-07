@@ -25,6 +25,9 @@
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Clans.Local.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.AIModule.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.AssetBundleModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.AnimationModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.AudioModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.VideoModule.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.ImageConversionModule.dll" Private="false" />
