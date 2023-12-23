@@ -148,6 +148,7 @@ public class CommunityInternal : Community
 		Carbon.Logger.Log("Loaded config");
 		Carbon.Logger.Log("Loaded Client config");
 
+
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
 			ClearCommands();
@@ -190,14 +191,14 @@ public class CommunityInternal : Community
 
 		RefreshConsoleInfo();
 
-		Client.RPC.Init();
-
-		Client.Client.Init();
-
 		IsInitialized = true;
 
 		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
+
+		Client.RPC.Init();
+
+		Client.Client.Init();
 
 		Entities.Init();
 	}
