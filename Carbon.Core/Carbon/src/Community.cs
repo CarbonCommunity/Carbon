@@ -141,9 +141,12 @@ public class CommunityInternal : Community
 
 		LoadConfig();
 
+		LoadClientConfig();
+
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		Carbon.Logger.Log("Loaded config");
+		Carbon.Logger.Log("Loaded Client config");
 
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
