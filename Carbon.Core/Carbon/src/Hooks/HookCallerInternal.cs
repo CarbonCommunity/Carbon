@@ -83,10 +83,10 @@ public class HookCallerInternal : HookCallerCommon
 				{
 					newBuffer[i] = parameter.DefaultValue;
 				}
-				else if (parameter.ParameterType is { IsValueType: true } parameterType)
-				{
-					newBuffer[i] = Activator.CreateInstance(parameterType);
-				}
+				// else if (parameter.ParameterType is { IsValueType: true } parameterType)
+				// {
+				// 	newBuffer[i] = Activator.CreateInstance(parameterType);
+				// }
 			}
 		}
 
@@ -123,8 +123,6 @@ public class HookCallerInternal : HookCallerCommon
 
 	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args, bool keepArgs = false)
 	{
-		var readableHook = HookStringPool.GetOrAdd(hookId);
-
 		if (hookable.IsHookIgnored(hookId))
 		{
 			return null;
@@ -135,8 +133,10 @@ public class HookCallerInternal : HookCallerCommon
 		List<CachedHook> hooks = null;
 		var conflicts = Pool.GetList<Conflict>();
 
-		if ((hookable.HookMethodAttributeCache?.TryGetValue(hookId, out hooks)).GetValueOrDefault()) { }
-		else if ((hookable.HookCache?.TryGetValue(hookId, out hooks)).GetValueOrDefault()) { }
+		if (hookable.HookCache != null && !hookable.HookCache.TryGetValue(hookId, out hooks))
+		{
+			return null;
+		}
 
 		var result = (object)null;
 
@@ -213,6 +213,8 @@ public class HookCallerInternal : HookCallerCommon
 				return result;
 			}
 
+			var readableHook = HookStringPool.GetOrAdd(hookId);
+
 			Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 			Community.Runtime.Analytics.LogEvent("plugin_time_warn",
 				segments: Community.Runtime.Analytics.Segments,
@@ -254,6 +256,7 @@ public class HookCallerInternal : HookCallerCommon
 					catch (Exception ex)
 					{
 						var exception = ex.InnerException ?? ex;
+						var readableHook = HookStringPool.GetOrAdd(hookId);
 						Carbon.Logger.Error(
 							$"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'",
 							exception
