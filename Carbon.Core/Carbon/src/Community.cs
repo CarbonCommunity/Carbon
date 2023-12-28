@@ -154,6 +154,7 @@ public class CommunityInternal : Community
 			ClearCommands();
 			_installDefaults();
 			ModuleProcessor.Init();
+			CarbonClientManager.Init();
 
 			Events.Trigger(
 				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
