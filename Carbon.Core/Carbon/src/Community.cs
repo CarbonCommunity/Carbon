@@ -67,7 +67,7 @@ public class CommunityInternal : Community
 		ModLoader.LoadedPackages.Add(ZipPlugins);
 
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
-		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon");
+		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon", hidden: true);
 	}
 	internal void _installProcessors()
 	{
