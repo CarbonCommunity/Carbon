@@ -59,7 +59,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: origin/rust_beta/staging
+        ref: rust_beta/staging
         token: ${{ secrets.PAT_ALL_REPO }}
         submodules: recursive
 
