@@ -59,7 +59,9 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        %GITHUB_WORKSPACE%\Tools\Build\win\build_client_debug.bat
+        set here=%cd%
+        %GITHUB_WORKSPACE%\Tools\Build\win\build_client_debug.bat Debug
+        cd %here%
         %GITHUB_WORKSPACE%\Tools\Build\win\build_client_debug.bat Release
 
     - name: ⬆️ Upload the artifacts
