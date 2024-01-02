@@ -59,7 +59,7 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        %GITHUB_WORKSPACE%\Tools\Build\win\build_client_release.bat
+        %GITHUB_WORKSPACE%\Tools\Build\win\build_client_debug.bat Release
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
