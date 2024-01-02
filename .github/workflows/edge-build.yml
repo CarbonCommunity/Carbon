@@ -56,7 +56,10 @@ jobs:
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
-
+      with:
+        token: ${{ secrets.PAT_ALL_REPO }}
+        submodules: recursive
+        
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
@@ -94,7 +97,10 @@ jobs:
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
-
+      with:
+        token: ${{ secrets.PAT_ALL_REPO }}
+        submodules: recursive
+        
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
