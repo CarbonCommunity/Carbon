@@ -59,8 +59,9 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
-        ref: rust_beta/staging
+        ref: origin/rust_beta/staging
         token: ${{ secrets.PAT_ALL_REPO }}
+        submodules: recursive
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
@@ -107,6 +108,7 @@ jobs:
       with:
         ref: rust_beta/staging
         token: ${{ secrets.PAT_ALL_REPO }}
+        submodules: recursive
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
