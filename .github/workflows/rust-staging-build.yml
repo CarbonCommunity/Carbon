@@ -61,6 +61,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         ref: rust_beta/staging
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
@@ -106,6 +107,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         ref: rust_beta/staging
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
