@@ -35,13 +35,16 @@ dotnet   clean "%BUILD_ROOT%\Carbon.Core\Carbon.Components\Carbon.Client\CarbonC
 dotnet   build "%BUILD_ROOT%\Carbon.Core\Carbon.Components\Carbon.Client\CarbonCommunity.sln" -v:m --configuration %BUILD_TARGET% --no-restore --no-incremental ^
 	/p:UserConstants=\"%2\" /p:UserVersion="%VERSION%" || exit /b
 
-set INPUT=%BUILD_ROOT%\Carbon.Core\Carbon.Components\Carbon.Client\bin\%BUILD_TARGET%\net48
+set CLIENT=%BUILD_ROOT%\Carbon.Core\Carbon.Components\Carbon.Client
+set TOOLS=%CLIENT%\.tools
+set INPUT=%CLIENT%\bin\%BUILD_TARGET%\net48
 set OUTPUT=%BUILD_ROOT%\Release\.tmp\client\%BUILD_TARGET%
 
 echo Create post-build structure
 	mkdir "%OUTPUT%\BepInEx\plugins"
+	"%TOOLS%\confuser\Confuser.CLI.exe" "%CLIENT%\Protect_%BUILD_TARGET%.crproj" || exit /b
 	copy /y "%INPUT%\CarbonCommunity.Client.dll" "%OUTPUT%\BepInEx\plugins\CarbonCommunity.Client.dll"
-	xcopy "%BUILD_ROOT%\Carbon.Core\Carbon.Components\Carbon.Client\.env\BepInEx" "%OUTPUT%" /E /H /C /I
+	xcopy "%CLIENT%\.env\BepInEx" "%OUTPUT%" /E /H /C /I
 
 if "%2" NEQ "--no-archive" (
 	echo ** Create the compressed archive 'Carbon.Client.%BUILD_TARGET%.zip'
