@@ -33,6 +33,7 @@ jobs:
         with:
           ref: rust_beta/staging
           token: ${{ secrets.PAT_PUBLIC_REPO }}
+          submodules: recursive
           
       - name: 📅 Prepare the environment
         id: step1
@@ -62,6 +63,7 @@ jobs:
       with:
         ref: rust_beta/staging
         token: ${{ secrets.PAT_PUBLIC_REPO }}
+        submodules: recursive
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
@@ -108,6 +110,7 @@ jobs:
       with:
         ref: rust_beta/staging
         token: ${{ secrets.PAT_PUBLIC_REPO }}
+        submodules: recursive
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
