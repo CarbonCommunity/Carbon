@@ -33,7 +33,6 @@ jobs:
         with:
           ref: rust_beta/staging
           token: ${{ secrets.PAT_PUBLIC_REPO }}
-          submodules: recursive
           
       - name: 📅 Prepare the environment
         id: step1
@@ -62,7 +61,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         ref: rust_beta/staging
-        token: ${{ secrets.PAT_PUBLIC_REPO }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         submodules: recursive
 
     - name: 🛤️ Setup the dotnet build environment
@@ -109,7 +108,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         ref: rust_beta/staging
-        token: ${{ secrets.PAT_PUBLIC_REPO }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         submodules: recursive
 
     - name: 🛤️ Setup the dotnet build environment
