@@ -42,3 +42,7 @@
 	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community
 	url = https://github.com/CarbonCommunity/Carbon.Hooks.Community.git
 	branch = .
+[submodule "Carbon.Core/Carbon.Components/Carbon.Client"]
+	path = Carbon.Core/Carbon.Components/Carbon.Client
+	url = https://github.com/CarbonCommunity/Carbon.Client.git
+	branch = main
