@@ -59,6 +59,7 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
+        %GITHUB_WORKSPACE%\Tools\Build\win\build_client_debug.bat
         %GITHUB_WORKSPACE%\Tools\Build\win\build_client_debug.bat Release
 
     - name: ⬆️ Upload the artifacts
@@ -66,6 +67,9 @@ jobs:
       with:
         name: build-develop-windows
         path: |
+          Release/Carbon.Client.Debug.info
+          Release/Carbon.Client.Debug.zip
+          Release/Carbon.Client.Release.info
           Release/Carbon.Client.Release.zip
 
   # RELEASE --------------------------------------------------------------------
@@ -112,7 +116,7 @@ jobs:
           ### How to install
           1. Download the `Carbon.Client.Release.zip` archive from the attachments below.
           2. Unzip the archive to the root of your Rust Client.
-          3. Launch RustClient.exe (and not through Steam or Rust.exe, as EAC must be disabled)
+          3. Launch RustClient.exe (and not through Steam or Rust.exe, as EAC must be disabled).
           
           ### How to uninstall
           1. Move or remove the `winhttp.dll` from the root of your Rust client.
@@ -122,4 +126,5 @@ jobs:
 
           [more]: https://docs.carbonmod.gg/docs/carbon-client/getting-started
         files: |
+          Release/build-develop-windows/Carbon.Client.Release.info
           Release/build-develop-windows/Carbon.Client.Release.zip
