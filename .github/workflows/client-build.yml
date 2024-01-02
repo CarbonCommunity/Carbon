@@ -55,16 +55,11 @@ jobs:
       with:
         dotnet-version: 7.0.x
 
-    - name: 🔨 Setup the Carbon build environment
-      shell: cmd
-      run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
-
     - name: 🔨 Built Carbon Client on Windows
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build_client_release.bat
+        %GITHUB_WORKSPACE%\Tools\Build\win\build_client_release.bat
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
