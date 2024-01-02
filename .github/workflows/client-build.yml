@@ -55,6 +55,11 @@ jobs:
       with:
         dotnet-version: 7.0.x
 
+    - name: 🔨 Setup the Carbon build environment
+      shell: cmd
+      run: |
+        %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
+
     - name: 🔨 Built Carbon Client on Windows
       shell: cmd
       run: |
