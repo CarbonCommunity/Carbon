@@ -46,7 +46,3 @@
 	path = Carbon.Core/Carbon.Components/Carbon.Client
 	url = https://github.com/CarbonCommunity/Carbon.Client.git
 	branch = main
-[submodule "Carbon.Core/Carbon.Components/Carbon.Client.Internal"]
-	path = Carbon.Core/Carbon.Components/Carbon.Client.Internal
-	url = https://github.com/CarbonCommunity/Carbon.Client.Internal.git
-	branch = main
