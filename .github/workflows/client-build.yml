@@ -59,6 +59,7 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
+        cd %GITHUB_WORKSPACE%\Tools\Build\win
         call %GITHUB_WORKSPACE%\Tools\Build\win\build_client_debug.bat Debug
         call %GITHUB_WORKSPACE%\Tools\Build\win\build_client_debug.bat Release
 
