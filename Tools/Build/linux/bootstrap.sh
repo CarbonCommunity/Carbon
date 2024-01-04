@@ -30,8 +30,8 @@ for TOOL in Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Co
   cd ${ROOT}/${TOOL}
   # git fetch --all --unshallow > /dev/null
   # git checkout -b ${CURRENT_BRANCH} > /dev/null
-  git fetch > /dev/null
-  git pull > /dev/null
+  # git fetch > /dev/null
+  # git pull > /dev/null
   echo done.
 done
 echo Finished - handling component submodules.
