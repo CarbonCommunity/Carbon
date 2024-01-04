@@ -29,7 +29,7 @@ for TOOL in Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Co
   echo Updating ${TOOL}
   cd ${ROOT}/${TOOL}
   git fetch --unshallow > /dev/null
-  git checkout ${CURRENT_BRANCH} > /dev/null
+  git checkout -b ${CURRENT_BRANCH} > /dev/null
   git fetch > /dev/null
   git pull > /dev/null
   echo done.
