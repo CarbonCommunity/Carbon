@@ -141,7 +141,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
 				Subscribe(hook.Identifier, "Carbon.Static");
 		}
-		
+
 		if (ConVar.Global.skipAssetWarmup_crashes)
 		{
 			Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty);
