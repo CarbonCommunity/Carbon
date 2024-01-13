@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using API.Events;
 using Carbon.Client;
 using Carbon.Components;
@@ -51,7 +52,7 @@ public class CommunityInternal : Community
 		ScriptLoader.LoadAll(except);
 	}
 
-	internal void _installDefaults()
+	internal void _installCore()
 	{
 		Plugins = new ModLoader.ModPackage { Name = "Scripts", IsCoreMod = false };
 		ZipPlugins = new ModLoader.ModPackage { Name = "Zip Scripts", IsCoreMod = false };
@@ -148,11 +149,15 @@ public class CommunityInternal : Community
 		Carbon.Logger.Log("Loaded config");
 		Carbon.Logger.Log("Loaded Client config");
 
+		Defines.Initialize();
+
+		_handleThreads();
+		_installProcessors();
 
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
 			ClearCommands();
-			_installDefaults();
+			_installCore();
 			ModuleProcessor.Init();
 			CarbonClientManager.Init();
 
@@ -177,11 +182,6 @@ public class CommunityInternal : Community
 
 			ReloadPlugins();
 		});
-
-		Defines.Initialize();
-
-		_handleThreads();
-		_installProcessors();
 
 		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort}");
 		Logger.Log($"         {Build.Git.Author} on {Build.Git.Branch} ({Build.Git.Date})");
