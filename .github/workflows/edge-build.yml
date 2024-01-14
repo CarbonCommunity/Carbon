@@ -56,7 +56,10 @@ jobs:
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
-
+      with:
+        token: ${{ secrets.PAT_ALL_REPO }}
+        submodules: recursive
+        
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
@@ -94,7 +97,10 @@ jobs:
     steps:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
-
+      with:
+        token: ${{ secrets.PAT_ALL_REPO }}
+        submodules: recursive
+        
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
@@ -171,8 +177,8 @@ jobs:
           
           ${{ needs.build-linux.outputs.build_info }}
 
-          [stable]: https://github.com/Carbon-Modding/Carbon.Core/releases/latest
-          [preview]: https://github.com/Carbon-Modding/Carbon.Core/releases/preview_build
+          [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
+          [preview]: https://github.com/CarbonCommunity/Carbon.Core/releases/preview_build
         files: |
           Release/build-develop-linux/Carbon.Linux.Debug.info
           Release/build-develop-linux/Carbon.Linux.Debug.tar.gz
