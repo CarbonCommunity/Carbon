@@ -142,14 +142,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				Subscribe(hook.Identifier, "Carbon.Static");
 		}
 
-		// if (_dynamicHooks.Count > 0)
-		// {
-		// 	Logger.Log($" - Installing dynamic hooks");
-		// 	foreach (HookEx hook in _dynamicHooks.Where(x => HookHasSubscribers(x.Identifier)))
-		// 		_workQueue.Enqueue(item: new Payload(hook.HookName, null, "Carbon.Core"));
-		// }
-
-		Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 1f);
+		if (ConVar.Global.skipAssetWarmup_crashes)
+		{
+			Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty);
+		}
+		else
+		{
+			Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 1f);
+		}
 	}
 
 	private void OnDisable()
