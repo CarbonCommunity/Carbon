@@ -12,6 +12,7 @@ using API.Hooks;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
+using Network;
 
 /*
  *
@@ -183,6 +184,21 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	public void Fetch()
 	{
+		Community.Runtime.Events.Trigger(CarbonEvent.HookFetchStart, EventArgs.Empty);
+
+		ShowAllPlayersLoading();
+
+		foreach (var package in ModLoader.LoadedPackages)
+		{
+			foreach (var plugin in package.Plugins)
+			{
+				foreach (var hook in plugin.Hooks)
+				{
+					Unsubscribe(HookStringPool.GetOrAdd(hook), plugin.FileName);
+				}
+			}
+		}
+
 		try
 		{
 			OnDisable();
@@ -193,7 +209,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			return;
 		}
 
-		Logger.Log("Re-downloading hooks...");
+		Logger.Warn(" Re-downloading hooks...");
 
 		Updater.DoUpdate((bool result) =>
 		{
@@ -211,16 +227,51 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				{
 					foreach (var hook in plugin.Hooks)
 					{
+						var name = HookStringPool.GetOrAdd(hook);
+
 						if (plugin.IsHookIgnored(hook))
 						{
 							continue;
 						}
 
-						Community.Runtime.HookManager.Subscribe(HookStringPool.GetOrAdd(hook), plugin.Name);
+						Subscribe(name, plugin.FileName);
 					}
 				}
 			}
+
+			Community.Runtime.Events.Trigger(CarbonEvent.HookFetchEnd, EventArgs.Empty);
+			
+			EndAllPlayersLoading();
 		});
+	}
+
+	private void ShowAllPlayersLoading()
+	{
+		foreach (var player in BasePlayer.activePlayerList)
+		{
+			player.ClientRPCPlayer(null, player, "StartLoading");
+
+			DisplayMessage(player.Connection, "Carbon Update", "Updating hooks...");
+		}
+	}
+
+	private void EndAllPlayersLoading()
+	{
+		foreach (var player in BasePlayer.activePlayerList)
+		{
+			player.SendFullSnapshot();
+			player.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, true);
+			player.SendNetworkUpdate();
+		}
+	}
+
+	private void DisplayMessage(Connection con, string top, string bottom)
+	{
+		var writer = Net.sv.StartWrite();
+		writer.PacketID(Message.Type.Message);
+		writer.String(top);
+		writer.String(bottom);
+		writer.Send(new SendInfo(con));
 	}
 
 	private void OnDestroy()
