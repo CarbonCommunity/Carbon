@@ -736,7 +736,18 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 							break;
 					}
 
-					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
+					switch (option2)
+					{
+						case "--usage":
+							hooks = hooks.OrderByDescending(x => HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(x.HookName)));
+							break;
+
+						default:
+							hooks = hooks.OrderBy(x => x.HookFullName);
+							break;
+					}
+
+					foreach (var mod in hooks)
 					{
 						if (mod.Status == HookState.Failure) failure++;
 						if (mod.Status == HookState.Success) success++;
@@ -754,7 +765,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName))}ms",
+							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName)):0}ms",
 							(mod.IsStaticHook)
 								? "N/A" :
 								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
@@ -797,7 +808,16 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 							break;
 					}
 
-					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
+					if (option1 == "--usage" || option2 == "--usage")
+					{
+						hooks = hooks.OrderByDescending(x => HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(x.HookName)));
+					}
+					else
+					{
+						hooks = hooks.OrderBy(x => x.HookFullName);
+					}
+
+					foreach (var mod in hooks)
 					{
 						if (mod.Status == HookState.Failure) failure++;
 						if (mod.Status == HookState.Success) success++;
@@ -814,8 +834,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 								? "Static"
 								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
-							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName))}ms",
+							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName)):0}ms",
 							(mod.IsStaticHook)
 								? "N/A" :
 								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
