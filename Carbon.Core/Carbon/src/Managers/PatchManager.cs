@@ -240,7 +240,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			}
 
 			Community.Runtime.Events.Trigger(CarbonEvent.HookFetchEnd, EventArgs.Empty);
-			
+
 			EndAllPlayersLoading();
 		});
 	}
