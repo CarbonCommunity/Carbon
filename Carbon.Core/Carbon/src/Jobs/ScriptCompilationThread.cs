@@ -353,7 +353,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				InitialSource.ContextFileName;
 			#endif
 
-			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
+			var parseOptions = new CSharpParseOptions(LanguageVersion.Preview)
 				.WithPreprocessorSymbols(conditionals);
 
 			var containsInternalCallHookOverride = Sources.Any(x => !string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
