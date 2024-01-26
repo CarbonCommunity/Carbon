@@ -44,7 +44,7 @@ echo Create post-build structure
 	mkdir "%OUTPUT%\BepInEx\plugins"
 	"%TOOLS%\confuser\Confuser.CLI.exe" "%CLIENT%\Protect_%BUILD_TARGET%.crproj" || exit /b
 	copy /y "%INPUT%\CarbonCommunity.Client.dll" "%OUTPUT%\BepInEx\plugins\CarbonCommunity.Client.dll"
-	copy /y "%INPUT%\BouncyCastle.Crypto.dll" "%OUTPUT%\BepInEx\core\BouncyCastle.Crypto.dll.dll"
+	copy /y "%INPUT%\BouncyCastle.Crypto.dll" "%OUTPUT%\BepInEx\core\BouncyCastle.Crypto.dll"
 	xcopy "%CLIENT%\.env\BepInEx" "%OUTPUT%" /E /H /C /I
 
 if "%2" NEQ "--no-archive" (
