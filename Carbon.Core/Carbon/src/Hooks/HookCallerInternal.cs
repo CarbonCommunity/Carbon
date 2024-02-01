@@ -10,7 +10,7 @@ using static Carbon.Base.BaseHookable;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -19,31 +19,6 @@ namespace Carbon.Hooks;
 
 public class HookCallerInternal : HookCallerCommon
 {
-	public override void AppendHookTime(uint hook, double time)
-	{
-		if(!_hookTimeBuffer.ContainsKey(hook))
-		{
-			_hookTimeBuffer.Add(hook, time);
-		}
-		else
-		{
-			_hookTimeBuffer[hook] += time;
-		}
-
-		if (!_hookTotalTimeBuffer.ContainsKey(hook))
-		{
-			_hookTotalTimeBuffer.Add(hook, time);
-		}
-		else
-		{
-			_hookTotalTimeBuffer[hook] += time;
-		}
-	}
-	public override void ClearHookTime(uint hook)
-	{
-		_hookTimeBuffer[hook] = 0;
-	}
-
 	public override object[] AllocateBuffer(int count)
 	{
 		if (!_argumentBuffer.TryGetValue(count, out var pool))
@@ -194,12 +169,11 @@ public class HookCallerInternal : HookCallerCommon
 			Profiler.EndHookCall(hookable);
 #endif
 
-			AppendHookTime(hookId, afterHookTime);
-
 			if (cachedHook != null)
 			{
 				cachedHook.HookTime += afterHookTime;
 				cachedHook.MemoryUsage += totalMemory;
+				cachedHook.Tick();
 			}
 
 			if (!(afterHookTime > 100))
@@ -291,19 +265,30 @@ public class HookCallerInternal : HookCallerCommon
 					hookable.TrackStart();
 					var beforeMemory = hookable.TotalMemoryUsed;
 
-					result2 = hook.Method.Invoke(hookable, args);
+					try
+					{
+						result2 = hook.Method.Invoke(hookable, args);
+					}
+					catch (Exception ex)
+					{
+						var exception = ex.InnerException ?? ex;
+						var readableHook = HookStringPool.GetOrAdd(hookId);
+						Carbon.Logger.Error(
+							$"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'",
+							exception
+						);
+					}
 
 					hookable.TrackEnd();
 					var afterHookTime = hookable.CurrentHookTime;
 					var afterMemory = hookable.TotalMemoryUsed;
 					var totalMemory = afterMemory - beforeMemory;
 
-					AppendHookTime(hookId, afterHookTime);
-
 					if (hook != null)
 					{
 						hook.HookTime += afterHookTime;
 						hook.MemoryUsage += totalMemory;
+						hook.Tick();
 					}
 
 					if (afterHookTime > 100)

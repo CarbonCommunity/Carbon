@@ -9,12 +9,14 @@ using API.Abstracts;
 using API.Commands;
 using API.Events;
 using API.Hooks;
+using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
+using Network;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -51,6 +53,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private readonly Dictionary<string, string> _checksums = new();
 	private static bool InitialHooksInstalled = true;
 	private static bool ForceUpdate;
+	private static bool InitialOnEnable;
 
 	public void Enqueue(string identifier)
 	{
@@ -142,13 +145,18 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				Subscribe(hook.Identifier, "Carbon.Static");
 		}
 
-		if (ConVar.Global.skipAssetWarmup_crashes)
+		if (!InitialOnEnable)
 		{
-			Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty);
-		}
-		else
-		{
-			Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 1f);
+			InitialOnEnable = true;
+
+			if (ConVar.Global.skipAssetWarmup_crashes)
+			{
+				Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty);
+			}
+			else
+			{
+				Invoke(() => Community.Runtime.Events.Trigger(CarbonEvent.HooksInstalled, EventArgs.Empty), 1f);
+			}
 		}
 	}
 
@@ -159,7 +167,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		foreach (HookEx item in _installed.AsEnumerable().Reverse())
 		{
 			if (!item.RemovePatch())
-				throw new Exception($"Uninstallation failed for '{item}'");
+			{
+				Logger.Warn($" Failed uninstalling patch: {item.HookFullName}[{item.Checksum}]");
+				continue;
+			}
+
 			_installed.Remove(item);
 		}
 
@@ -168,6 +180,98 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		Logger.Log("Reloading hook processor...");
 		_doReload = false;
 		enabled = true;
+	}
+
+	public void Fetch()
+	{
+		Community.Runtime.Events.Trigger(CarbonEvent.HookFetchStart, EventArgs.Empty);
+
+		ShowAllPlayersLoading();
+
+		foreach (var package in ModLoader.LoadedPackages)
+		{
+			foreach (var plugin in package.Plugins)
+			{
+				foreach (var hook in plugin.Hooks)
+				{
+					Unsubscribe(HookStringPool.GetOrAdd(hook), plugin.FileName);
+				}
+			}
+		}
+
+		try
+		{
+			OnDisable();
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Reinstall failed: OnDisable failed", ex);
+			return;
+		}
+
+		Logger.Warn(" Re-downloading hooks...");
+
+		Updater.DoUpdate((bool result) =>
+		{
+			if (!result)
+			{
+				Logger.Error($"Unable to update the hooks at this time, please try again later");
+				return;
+			}
+
+			OnEnable();
+
+			foreach (var package in ModLoader.LoadedPackages)
+			{
+				foreach (var plugin in package.Plugins)
+				{
+					foreach (var hook in plugin.Hooks)
+					{
+						var name = HookStringPool.GetOrAdd(hook);
+
+						if (plugin.IsHookIgnored(hook))
+						{
+							continue;
+						}
+
+						Subscribe(name, plugin.FileName);
+					}
+				}
+			}
+
+			Community.Runtime.Events.Trigger(CarbonEvent.HookFetchEnd, EventArgs.Empty);
+
+			EndAllPlayersLoading();
+		});
+	}
+
+	private void ShowAllPlayersLoading()
+	{
+		foreach (var player in BasePlayer.activePlayerList)
+		{
+			player.ClientRPCPlayer(null, player, "StartLoading");
+
+			DisplayMessage(player.Connection, "Carbon Update", "Updating hooks...");
+		}
+	}
+
+	private void EndAllPlayersLoading()
+	{
+		foreach (var player in BasePlayer.activePlayerList)
+		{
+			player.SendFullSnapshot();
+			player.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, true);
+			player.SendNetworkUpdate();
+		}
+	}
+
+	private void DisplayMessage(Connection con, string top, string bottom)
+	{
+		var writer = Net.sv.StartWrite();
+		writer.PacketID(Message.Type.Message);
+		writer.String(top);
+		writer.String(bottom);
+		writer.Send(new SendInfo(con));
 	}
 
 	private void OnDestroy()
@@ -632,7 +736,18 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 							break;
 					}
 
-					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
+					switch (option2)
+					{
+						case "--usage":
+							hooks = hooks.OrderByDescending(x => HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(x.HookName)));
+							break;
+
+						default:
+							hooks = hooks.OrderBy(x => x.HookFullName);
+							break;
+					}
+
+					foreach (var mod in hooks)
 					{
 						if (mod.Status == HookState.Failure) failure++;
 						if (mod.Status == HookState.Success) success++;
@@ -650,7 +765,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
 							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName))}ms",
+							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName)):0}ms",
 							(mod.IsStaticHook)
 								? "N/A" :
 								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
@@ -693,7 +808,16 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 							break;
 					}
 
-					foreach (var mod in hooks.OrderBy(x => x.HookFullName))
+					if (option1 == "--usage" || option2 == "--usage")
+					{
+						hooks = hooks.OrderByDescending(x => HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(x.HookName)));
+					}
+					else
+					{
+						hooks = hooks.OrderBy(x => x.HookFullName);
+					}
+
+					foreach (var mod in hooks)
 					{
 						if (mod.Status == HookState.Failure) failure++;
 						if (mod.Status == HookState.Success) success++;
@@ -710,8 +834,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 								? "Static"
 								: mod.IsPatch ? "Patch" : "Dynamic",
 							$"{mod.Status}",
-							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName))}ms",
+							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName)):0}ms",
 							(mod.IsStaticHook)
 								? "N/A" :
 								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
