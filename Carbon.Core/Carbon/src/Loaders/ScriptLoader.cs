@@ -251,7 +251,7 @@ public class ScriptLoader : IScriptLoader
 					{
 						var @ref = $"{line.Replace("// Reference:", "").Replace("//Reference:", "")}".Trim();
 						resultReferences.Add(@ref);
-						Logger.Log($" Added reference: {@ref}");
+						Logger.Debug($" Added reference: {@ref}");
 					}
 				}
 				catch { }
@@ -262,7 +262,7 @@ public class ScriptLoader : IScriptLoader
 
 						var @ref = $"{line.Replace("// Requires:", "").Replace("//Requires:", "")}".Trim();
 						resultRequires.Add(@ref);
-						Logger.Log($" Added required plugin: {@ref}");
+						Logger.Debug($" Added required plugin: {@ref}");
 					}
 				}
 				catch { }
