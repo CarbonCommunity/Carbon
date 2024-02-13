@@ -32,7 +32,20 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 			Help = "Displays the server's average FPS.",
 			Callback = arg =>
 			{
-				Logger.Log($"{Performance.report.frameRateAverage:0}");
+				arg.ReplyWith($"{Performance.report.frameRateAverage:0}");
+			}
+		}, out _);
+		Community.Runtime.CommandManager.RegisterCommand(new Command.ClientConsole
+		{
+			Name = "avgfps",
+			Help = "Displays the server's average FPS.",
+			Callback = arg =>
+			{
+				arg.ReplyWith($"{Performance.report.frameRateAverage:0}");
+			},
+			Auth = new Command.Authentication
+			{
+				AuthLevel = 2
 			}
 		}, out _);
 	}
