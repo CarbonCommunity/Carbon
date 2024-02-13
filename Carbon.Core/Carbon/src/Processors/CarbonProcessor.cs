@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using API.Commands;
 using Carbon.Base;
 using Carbon.Contracts;
-using Carbon.Extensions;
-using Facepunch;
 
 /*
  *
@@ -18,7 +17,6 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 {
 	public override string Name => "Carbon Processor";
 
-	public override void Start() { }
 	public override void OnDestroy() { }
 	public override void Dispose() { }
 
@@ -26,6 +24,18 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 	public List<Action> PreviousFrameQueue { get; set; } = new();
 	public object CurrentFrameLock { get; set; } = new();
 
+	public override void Start()
+	{
+		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
+		{
+			Name = "avgfps",
+			Help = "Displays the server's average FPS.",
+			Callback = arg =>
+			{
+				Logger.Log($"{Performance.report.frameRateAverage:0}");
+			}
+		}, out _);
+	}
 	public void Update()
 	{
 		if (CurrentFrameQueue.Count <= 0) return;
