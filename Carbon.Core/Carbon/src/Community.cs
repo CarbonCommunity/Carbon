@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using API.Events;
 using Carbon.Client;
 using Carbon.Components;
@@ -14,7 +15,7 @@ using UnityEngine;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -51,7 +52,7 @@ public class CommunityInternal : Community
 		ScriptLoader.LoadAll(except);
 	}
 
-	internal void _installDefaults()
+	internal void _installCore()
 	{
 		Plugins = new ModLoader.ModPackage { Name = "Scripts", IsCoreMod = false };
 		ZipPlugins = new ModLoader.ModPackage { Name = "Zip Scripts", IsCoreMod = false };
@@ -67,7 +68,7 @@ public class CommunityInternal : Community
 		ModLoader.LoadedPackages.Add(ZipPlugins);
 
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
-		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon");
+		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon", hidden: true);
 	}
 	internal void _installProcessors()
 	{
@@ -141,15 +142,24 @@ public class CommunityInternal : Community
 
 		LoadConfig();
 
+		LoadClientConfig();
+
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		Carbon.Logger.Log("Loaded config");
+		Carbon.Logger.Log("Loaded Client config");
+
+		Defines.Initialize();
+
+		_handleThreads();
+		_installProcessors();
 
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
 			ClearCommands();
-			_installDefaults();
+			_installCore();
 			ModuleProcessor.Init();
+			CarbonClientManager.Init();
 
 			Events.Trigger(
 				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
@@ -170,21 +180,8 @@ public class CommunityInternal : Community
 				lines = null;
 			}
 
-			if (!ConVar.Global.skipAssetWarmup_crashes)
-			{
-				ReloadPlugins();
-			}
-			else
-			{
-				MarkServerInitialized(true, hookCall: false); //
-				ReloadPlugins();
-			}
+			ReloadPlugins();
 		});
-
-		Defines.Initialize();
-
-		_handleThreads();
-		_installProcessors();
 
 		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort}");
 		Logger.Log($"         {Build.Git.Author} on {Build.Git.Branch} ({Build.Git.Date})");
@@ -195,14 +192,14 @@ public class CommunityInternal : Community
 
 		RefreshConsoleInfo();
 
-		Client.RPC.Init();
-
-		Client.NoMap.Init();
-
 		IsInitialized = true;
 
 		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
+
+		Client.RPC.Init();
+
+		Client.Client.Init();
 
 		Entities.Init();
 	}

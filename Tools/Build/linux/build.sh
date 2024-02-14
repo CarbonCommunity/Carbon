@@ -20,13 +20,13 @@ rm -rf "${ROOT}/Release/.tmp/${TARGET}" "${ROOT}/Release/Carbon.${TARGET}.tar.gz
 
 if [[ "${DEFINES}" == "" ]]; then
 	DEFINES=${2}
-fi 
+fi
 
 if [[ "${DEFINES}" == "" ]]; then
 	echo "** No defines."
 else
 	echo "** Defines: ${DEFINES}"
-fi 
+fi
 
 echo "** Build the solution"
 dotnet restore "${ROOT}/Carbon.Core" -v:m --nologo

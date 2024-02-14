@@ -38,6 +38,12 @@ for OS in windows linux; do
 	# Show me all you've got baby
 	mono "${ROOT}/Tools/Helpers/Publicizer.exe" \
 		--input "${ROOT}/Rust/${OS}/RustDedicated_Data/Managed/Assembly-CSharp.dll"
+
+	mono "${ROOT}/Tools/Helpers/Publicizer.exe" \
+		--input "${ROOT}/Rust/${OS}/RustDedicated_Data/Managed/Rust.Clans.Local.dll"
+
+	mono "${ROOT}/Tools/Helpers/Publicizer.exe" \
+		--input "${ROOT}/Rust/${OS}/RustDedicated_Data/Managed/Facepunch.Network.dll"
 done
 
 dotnet restore "${ROOT}/Carbon.Core" --nologo

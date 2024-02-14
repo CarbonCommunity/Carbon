@@ -9,7 +9,7 @@ using Facepunch;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -29,7 +29,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 		// TODO ---------------------------------------------------------------
 		// This needs to go into the ModuleManager. Each module must implement
 		// the ICarbonModule. Currently is just a workaround to be compatible
-		// with the single modules file we ship. After migrating this the 
+		// with the single modules file we ship. After migrating this the
 		// IAddonCache.Types and ITypeManager.LoadedTypes should no longer be
 		// required and will be removed.
 
@@ -81,7 +81,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			{
 				try
 				{
-					module.OnServerInit();
+					module.OnServerInit(true);
 				}
 				catch (Exception ex)
 				{
@@ -96,7 +96,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			{
 				try
 				{
-					module.OnPostServerInit();
+					module.OnPostServerInit(true);
 				}
 				catch (Exception ex)
 				{
@@ -239,7 +239,14 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 		{
 			var module = hookable.To<IModule>();
 
-			module.Load();
+			try
+			{
+				module.Load();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed module Load for {module?.GetType().FullName}", ex);
+			}
 		}
 	}
 

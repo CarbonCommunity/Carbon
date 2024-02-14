@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using API.Commands;
 using Carbon.Base;
 using Carbon.Contracts;
-using Carbon.Extensions;
-using Facepunch;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -18,7 +17,6 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 {
 	public override string Name => "Carbon Processor";
 
-	public override void Start() { }
 	public override void OnDestroy() { }
 	public override void Dispose() { }
 
@@ -26,6 +24,31 @@ public class CarbonProcessor : BaseProcessor, ICarbonProcessor
 	public List<Action> PreviousFrameQueue { get; set; } = new();
 	public object CurrentFrameLock { get; set; } = new();
 
+	public override void Start()
+	{
+		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
+		{
+			Name = "avgfps",
+			Help = "Displays the server's average FPS.",
+			Callback = arg =>
+			{
+				arg.ReplyWith($"{Performance.report.frameRateAverage:0}");
+			}
+		}, out _);
+		Community.Runtime.CommandManager.RegisterCommand(new Command.ClientConsole
+		{
+			Name = "avgfps",
+			Help = "Displays the server's average FPS.",
+			Callback = arg =>
+			{
+				arg.ReplyWith($"{Performance.report.frameRateAverage:0}");
+			},
+			Auth = new Command.Authentication
+			{
+				AuthLevel = 2
+			}
+		}, out _);
+	}
 	public void Update()
 	{
 		if (CurrentFrameQueue.Count <= 0) return;

@@ -12,7 +12,7 @@ using Carbon.Extensions;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -173,7 +173,8 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 				{
 					Parser = Parser,
 					Mod = Community.Runtime.ZipPlugins,
-					Process = this
+					Process = this,
+					BypassFileNameChecks = true
 				};
 
 				foreach (var file in OsEx.Folder.GetFilesWithExtension(File, processor.Extension))

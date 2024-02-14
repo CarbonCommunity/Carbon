@@ -47,10 +47,15 @@ FOR %%O IN (windows linux) DO (
 	"%UPDATE_ROOT%\Tools\Helpers\Publicizer.exe" ^
 		--input "%UPDATE_ROOT%\Rust\%%O\RustDedicated_Data\Managed\Assembly-CSharp.dll"
 		
-	echo Publicizing %%O Rust Rust.Clans.Local..
+	echo Publicizing %%O Rust Rust.Clans.Local...
 
 	"%UPDATE_ROOT%\Tools\Helpers\Publicizer.exe" ^
 		--input "%UPDATE_ROOT%\Rust\%%O\RustDedicated_Data\Managed\Rust.Clans.Local.dll"
+
+	echo Publicizing %%O Rust Facepunch.Network...
+
+	"%UPDATE_ROOT%\Tools\Helpers\Publicizer.exe" ^
+		--input "%UPDATE_ROOT%\Rust\%%O\RustDedicated_Data\Managed\Facepunch.Network.dll"
 )
 
 dotnet restore "%UPDATE_ROOT%\Carbon.Core" --nologo

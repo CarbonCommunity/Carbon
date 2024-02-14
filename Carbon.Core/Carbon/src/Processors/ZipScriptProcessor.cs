@@ -11,7 +11,7 @@ using Carbon.Extensions;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -120,7 +120,8 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 				{
 					Parser = Parser,
 					Mod = Community.Runtime.ZipPlugins,
-					Process = this
+					Process = this,
+					BypassFileNameChecks = true
 				};
 
 				using (var zipFile = ZipFile.OpenRead(File))

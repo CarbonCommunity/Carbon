@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Emit;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -194,7 +194,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var id = Path.GetFileNameWithoutExtension(InitialSource.FilePath);
 
 		_injectReference(id, "0Harmony", references, _libraryDirectories);
-		_injectReference(id, "System.Memory", references, _libraryDirectories, direct: true);
 
 		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
 		{
@@ -338,6 +337,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("MINIMAL");
 #endif
 
+#if STAGING
+			conditionals.Add("STAGING");
+#elif AUX01
+			conditionals.Add("AUX01");
+#elif AUX02
+			conditionals.Add("AUX02");
+#endif
+
 			string pdb_filename =
 			#if DEBUG
 				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? InitialSource.ContextFilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, InitialSource.ContextFileName)) : InitialSource.ContextFileName;
@@ -345,7 +352,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				InitialSource.ContextFileName;
 			#endif
 
-			var parseOptions = new CSharpParseOptions(LanguageVersion.Latest)
+			var parseOptions = new CSharpParseOptions(LanguageVersion.Preview)
 				.WithPreprocessorSymbols(conditionals);
 
 			var containsInternalCallHookOverride = Sources.Any(x => !string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
@@ -356,6 +363,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 					source.Content, options: parseOptions, source.FilePath, Encoding.UTF8);
 
 				var root = tree.GetCompilationUnitRoot();
+
+				HookCaller.HandleVersionConditionals(root, conditionals);
+
+				parseOptions = parseOptions.WithPreprocessorSymbols(conditionals);
+
+				tree = tree.WithRootAndOptions(root, parseOptions);
 
 				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
@@ -399,7 +412,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 				#else
 					OptimizationLevel.Release,
 				#endif
-				deterministic: true, warningLevel: 4
+				deterministic: true, warningLevel: 4,
+				allowUnsafe: true
 			);
 
 			var compilation = CSharpCompilation.Create(

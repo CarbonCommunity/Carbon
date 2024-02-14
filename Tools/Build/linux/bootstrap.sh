@@ -25,12 +25,17 @@ git -C "${ROOT}" submodule update
 CURRENT_BRANCH=$(git branch --show-current)
 
 echo Handling component submodules..
+<<<<<<< HEAD
 for TOOL in Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Components/Carbon.Common Carbon.Core/Carbon.Components/Carbon.Compat Carbon.Core/Carbon.Components/Carbon.Modules Carbon.Core/Carbon.Components/Carbon.Preloader Carbon.Core/Carbon.Components/Carbon.SDK Carbon.Core/Carbon.Components/Carbon.Compiler Carbon.Core/Carbon.Extensions/Carbon.Ext.Discord Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community; do
+=======
+for TOOL in Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Components/Carbon.Common Carbon.Core/Carbon.Components/Carbon.Compat Carbon.Core/Carbon.Components/Carbon.Modules Carbon.Core/Carbon.Components/Carbon.Preloader Carbon.Core/Carbon.Components/Carbon.SDK Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community; do
+>>>>>>> develop
   echo Updating ${TOOL}
   cd ${ROOT}/${TOOL}
-  git checkout ${CURRENT_BRANCH} > /dev/null
-  git fetch > /dev/null
-  git pull > /dev/null
+  # git fetch --all --unshallow > /dev/null
+  # git checkout -b ${CURRENT_BRANCH} > /dev/null
+  # git fetch > /dev/null
+  # git pull > /dev/null
   echo done.
 done
 echo Finished - handling component submodules.

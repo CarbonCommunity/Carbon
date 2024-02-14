@@ -17,9 +17,9 @@
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.SDK\Carbon.SDK.csproj" Private="false" Condition="!$(Product.Contains('Carbon.SDK')) and !$(Product.Contains('Carbon.Compiler'))" />
 
 		<!-- Roslyn -->
-		<PackageReference Include="Roslynator.CSharp" Version="4.3.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.5.0" />
+		<PackageReference Include="Roslynator.CSharp" Version="4.9.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.0-3.final" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.0-3.final" />
 
 		<!-- Unity code analyzers -->
 		<PackageReference Include="Microsoft.Unity.Analyzers" Version="1.16.1">
