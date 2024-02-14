@@ -31,6 +31,8 @@ public class ScriptLoader : IScriptLoader
 
 	public ISource InitialSource => Sources.Count > 0 ? Sources[0] : null;
 
+	public bool BypassFileNameChecks { get; set; }
+
 	public List<IScript> Scripts { get; set; } = new();
 	public List<ISource> Sources { get; set; } = new();
 
@@ -43,7 +45,7 @@ public class ScriptLoader : IScriptLoader
 	public IBaseProcessor.IProcess Process { get; set; }
 	public ModLoader.ModPackage Mod { get; set; }
 	public IBaseProcessor.IParser Parser { get; set; }
-	public ScriptCompilationThread AsyncLoader { get; set; } = new ScriptCompilationThread();
+	public ScriptCompilationThread AsyncLoader { get; set; } = new();
 
 	public void Load()
 	{
@@ -408,7 +410,7 @@ public class ScriptLoader : IScriptLoader
 
 				if (type.GetCustomAttribute(typeof(InfoAttribute), true) is not InfoAttribute info) continue;
 
-				if (!IsExtension && firstPlugin && Community.Runtime.Config.FileNameCheck)
+				if (!IsExtension && firstPlugin && Community.Runtime.Config.FileNameCheck && !BypassFileNameChecks)
 				{
 					var name = Path.GetFileNameWithoutExtension(InitialSource.FilePath).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
 
