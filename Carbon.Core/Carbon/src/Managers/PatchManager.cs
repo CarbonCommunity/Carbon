@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -53,10 +53,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private readonly Dictionary<string, string> _checksums = new();
 	private static bool InitialHooksInstalled = true;
 	private static bool ForceUpdate;
-<<<<<<< HEAD
-=======
 	private static bool InitialOnEnable;
->>>>>>> develop
 
 	public void Enqueue(string identifier)
 	{
@@ -292,10 +289,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		var limit = !InitialHooksInstalled || ForceUpdate ? int.MaxValue : PatchLimitPerCycle;
 
-<<<<<<< HEAD
-		int limit = !InitialHooksInstalled || ForceUpdate ? int.MaxValue : PatchLimitPerCycle;
-=======
->>>>>>> develop
 		while (_workQueue.Count > 0 && limit-- > 0)
 		{
 			string identifier = _workQueue.Dequeue();
@@ -366,10 +359,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		if (!InitialHooksInstalled)
 		{
 			InitialHooksInstalled = true;
-<<<<<<< HEAD
-			Community.Runtime.Events.Trigger(CarbonEvent.InitialHooksInstalled, EventArgs.Empty);
-=======
->>>>>>> develop
 		}
 
 		if (ForceUpdate)
