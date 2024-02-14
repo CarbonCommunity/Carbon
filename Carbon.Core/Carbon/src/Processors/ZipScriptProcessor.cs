@@ -120,7 +120,8 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 				{
 					Parser = Parser,
 					Mod = Community.Runtime.ZipPlugins,
-					Process = this
+					Process = this,
+					BypassFileNameChecks = true
 				};
 
 				using (var zipFile = ZipFile.OpenRead(File))
