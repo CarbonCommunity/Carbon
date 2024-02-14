@@ -173,7 +173,8 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 				{
 					Parser = Parser,
 					Mod = Community.Runtime.ZipPlugins,
-					Process = this
+					Process = this,
+					BypassFileNameChecks = true
 				};
 
 				foreach (var file in OsEx.Folder.GetFilesWithExtension(File, processor.Extension))
