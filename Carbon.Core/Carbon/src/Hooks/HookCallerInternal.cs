@@ -194,6 +194,7 @@ public class HookCallerInternal : HookCallerCommon
 					});
 			}
 
+			HookCaller.ConflictCheck(conflicts, ref result, hookId);
 			FrameDispose(hasRescaledBuffer, args, ref conflicts);
 		}
 		else
@@ -229,6 +230,9 @@ public class HookCallerInternal : HookCallerCommon
 					}
 				}
 			}
+
+			HookCaller.ConflictCheck(conflicts, ref result, hookId);
+			FrameDispose(false, args, ref conflicts);
 
 			static object DoCall(T hookable, uint hookId, CachedHook hook, object[] args, ref bool hasRescaledBuffer)
 			{
@@ -308,14 +312,12 @@ public class HookCallerInternal : HookCallerCommon
 					{
 						HookCaller.Caller.ReturnBuffer(args);
 					}
-					
+
 					return result2;
 				}
 				return null;
 			}
 		}
-
-		HookCaller.ConflictCheck(conflicts, ref result, hookId);
 
 		static void FrameDispose(bool hasRescaledBuffer, object[] buffer, ref List<Conflict> conflicts)
 		{
