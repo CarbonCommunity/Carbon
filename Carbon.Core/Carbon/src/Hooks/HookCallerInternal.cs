@@ -193,6 +193,8 @@ public class HookCallerInternal : HookCallerCommon
 						{ "hasgc", hookable.HasGCCollected }
 					});
 			}
+
+			FrameDispose(hasRescaledBuffer, args, ref conflicts);
 		}
 		else
 		{
@@ -302,6 +304,11 @@ public class HookCallerInternal : HookCallerCommon
 #if DEBUG
 					Profiler.EndHookCall(hookable);
 #endif
+					if (hasRescaledBuffer)
+					{
+						HookCaller.Caller.ReturnBuffer(args);
+					}
+					
 					return result2;
 				}
 				return null;
@@ -309,8 +316,6 @@ public class HookCallerInternal : HookCallerCommon
 		}
 
 		HookCaller.ConflictCheck(conflicts, ref result, hookId);
-
-		FrameDispose(hasRescaledBuffer, args, ref conflicts);
 
 		static void FrameDispose(bool hasRescaledBuffer, object[] buffer, ref List<Conflict> conflicts)
 		{
