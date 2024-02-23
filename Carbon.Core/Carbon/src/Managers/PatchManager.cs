@@ -267,8 +267,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private void DisplayMessage(Connection con, string top, string bottom)
 	{
-		var writer = Net.sv.StartWrite();
-		writer.PacketID(Message.Type.Message);
+		var writer = Net.sv.StartWrite(Message.Type.Message);
 		writer.String(top);
 		writer.String(bottom);
 		writer.Send(new SendInfo(con));

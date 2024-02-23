@@ -96,7 +96,7 @@ public class HookCallerInternal : HookCallerCommon
 
 	internal static Conflict _defaultConflict = new();
 
-	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args, bool keepArgs = false)
+	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args)
 	{
 		if (hookable.IsHookIgnored(hookId))
 		{
@@ -106,7 +106,6 @@ public class HookCallerInternal : HookCallerCommon
 		hookable.BuildHookCache(flags);
 
 		List<CachedHook> hooks = null;
-		var conflicts = Pool.GetList<Conflict>();
 
 		if (hookable.HookCache != null && !hookable.HookCache.TryGetValue(hookId, out hooks))
 		{
@@ -114,6 +113,8 @@ public class HookCallerInternal : HookCallerCommon
 		}
 
 		var result = (object)null;
+		var conflicts = Pool.GetList<Conflict>();
+		var hasRescaledBuffer = false;
 
 		if (hookable.InternalCallHookOverriden)
 		{
@@ -130,6 +131,7 @@ public class HookCallerInternal : HookCallerCommon
 					if (actualLength != args.Length)
 					{
 						args = RescaleBuffer(args, actualLength, cachedHook);
+						hasRescaledBuffer = true;
 					}
 					else
 					{
@@ -176,29 +178,24 @@ public class HookCallerInternal : HookCallerCommon
 				cachedHook.Tick();
 			}
 
-			if (!(afterHookTime > 100))
+			if (afterHookTime > 100 && hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 			{
-				FrameDispose();
-				return result;
-			}
-			if (hookable is not Plugin basePlugin || basePlugin.IsCorePlugin)
-			{
-				FrameDispose();
-				return result;
+				var readableHook = HookStringPool.GetOrAdd(hookId);
+
+				Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+				Community.Runtime.Analytics.LogEvent("plugin_time_warn",
+					segments: Community.Runtime.Analytics.Segments,
+					metrics: new Dictionary<string, object>
+					{
+						{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
+						{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
+						{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
+						{ "hasgc", hookable.HasGCCollected }
+					});
 			}
 
-			var readableHook = HookStringPool.GetOrAdd(hookId);
-
-			Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
-			Community.Runtime.Analytics.LogEvent("plugin_time_warn",
-				segments: Community.Runtime.Analytics.Segments,
-				metrics: new Dictionary<string, object>
-				{
-					{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
-					{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
-					{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
-					{ "hasgc", hookable.HasGCCollected }
-				});
+			HookCaller.ConflictCheck(conflicts, ref result, hookId);
+			FrameDispose(hasRescaledBuffer, args, ref conflicts);
 		}
 		else
 		{
@@ -208,18 +205,13 @@ public class HookCallerInternal : HookCallerCommon
 				{
 					try
 					{
-						if (cachedHook.IsByRef)
-						{
-							keepArgs = true;
-						}
-
 						if (cachedHook.IsAsync)
 						{
-							DoCall(cachedHook);
+							DoCall(hookable, hookId, cachedHook, args, ref hasRescaledBuffer);
 						}
 						else
 						{
-							var currentResult = DoCall(cachedHook);
+							var currentResult = DoCall(hookable, hookId, cachedHook, args, ref hasRescaledBuffer);
 
 							if (currentResult != null)
 							{
@@ -239,7 +231,10 @@ public class HookCallerInternal : HookCallerCommon
 				}
 			}
 
-			object DoCall(CachedHook hook)
+			HookCaller.ConflictCheck(conflicts, ref result, hookId);
+			FrameDispose(false, args, ref conflicts);
+
+			static object DoCall(T hookable, uint hookId, CachedHook hook, object[] args, ref bool hasRescaledBuffer)
 			{
 				if (args != null)
 				{
@@ -247,11 +242,12 @@ public class HookCallerInternal : HookCallerCommon
 
 					if (actualLength != args.Length)
 					{
-						args = RescaleBuffer(args, actualLength, hook);
+						args = HookCaller.Caller.RescaleBuffer(args, actualLength, hook);
+						hasRescaledBuffer = true;
 					}
 					else
 					{
-						ProcessDefaults(args, hook);
+						HookCaller.Caller.ProcessDefaults(args, hook);
 					}
 				}
 
@@ -312,19 +308,24 @@ public class HookCallerInternal : HookCallerCommon
 #if DEBUG
 					Profiler.EndHookCall(hookable);
 #endif
+					if (hasRescaledBuffer)
+					{
+						HookCaller.Caller.ReturnBuffer(args);
+					}
+
 					return result2;
 				}
-
 				return null;
 			}
 		}
 
-		HookCaller.ConflictCheck(conflicts, ref result, hookId);
-
-		FrameDispose();
-
-		void FrameDispose()
+		static void FrameDispose(bool hasRescaledBuffer, object[] buffer, ref List<Conflict> conflicts)
 		{
+			if (hasRescaledBuffer)
+			{
+				HookCaller.Caller.ReturnBuffer(buffer);
+			}
+
 			Pool.FreeList(ref conflicts);
 		}
 
@@ -349,7 +350,7 @@ public class HookCallerInternal : HookCallerCommon
 		return CallHook(plugin, newHook, flags, args);
 	}
 
-	internal bool SequenceEqual(Type[] source, object[] target)
+	internal static bool SequenceEqual(Type[] source, object[] target)
 	{
 		var equal = true;
 
