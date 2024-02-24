@@ -348,7 +348,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader.Assembly == null)
 		{
-			if (AsyncLoader.Exceptions.Count > 0)
+			if (AsyncLoader.Exceptions != null && AsyncLoader.Exceptions.Count > 0)
 			{
 				Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFilePath}':");
 				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
@@ -380,8 +380,8 @@ public class ScriptLoader : IScriptLoader
 				});
 			}
 
-			AsyncLoader.Exceptions.Clear();
-			AsyncLoader.Warnings.Clear();
+			AsyncLoader.Exceptions?.Clear();
+			AsyncLoader.Warnings?.Clear();
 			AsyncLoader.Exceptions = AsyncLoader.Warnings = null;
 			HasFinished = true;
 
