@@ -138,6 +138,8 @@ public class CommunityInternal : Community
 
 		if (IsInitialized) return;
 
+		Compat.Init();
+
 		HookCaller.Caller = new HookCallerInternal();
 
 		LoadConfig();

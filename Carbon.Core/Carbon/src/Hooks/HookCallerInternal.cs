@@ -183,15 +183,17 @@ public class HookCallerInternal : HookCallerCommon
 				var readableHook = HookStringPool.GetOrAdd(hookId);
 
 				Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
-				Community.Runtime.Analytics.LogEvent("plugin_time_warn",
-					segments: Community.Runtime.Analytics.Segments,
-					metrics: new Dictionary<string, object>
-					{
-						{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
-						{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
-						{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
-						{ "hasgc", hookable.HasGCCollected }
-					});
+
+				if (Analytic.Enabled)
+				{
+					Analytic.Include("name",
+						$"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})");
+					Analytic.Include("time", $"{afterHookTime.RoundUpToNearestCount(50)}ms");
+					Analytic.Include("memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}");
+					Analytic.Include("fires", $"{cachedHook.TimesFired}");
+					Analytic.Include("hasgc", hookable.HasGCCollected);
+					Analytic.Send("plugin_time_warn");
+				}
 			}
 
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
@@ -293,15 +295,17 @@ public class HookCallerInternal : HookCallerCommon
 						{
 							var readableHook = HookStringPool.GetOrAdd(hookId);
 							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
-							Community.Runtime.Analytics.LogEvent("plugin_time_warn",
-								segments: Community.Runtime.Analytics.Segments,
-								metrics: new Dictionary<string, object>
-								{
-									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
-									{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
-									{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
-									{ "hasgc", hookable.HasGCCollected }
-								});
+
+							if (Analytic.Enabled)
+							{
+								Analytic.Include("name",
+									$"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})");
+								Analytic.Include("time", $"{afterHookTime.RoundUpToNearestCount(50)}ms");
+								Analytic.Include("memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}");
+								Analytic.Include("fires", $"{hook.TimesFired}");
+								Analytic.Include("hasgc", hookable.HasGCCollected);
+								Analytic.Send("plugin_time_warn");
+							}
 						}
 					}
 
