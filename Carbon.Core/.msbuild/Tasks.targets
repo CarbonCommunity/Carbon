@@ -90,7 +90,7 @@
 	-->
 	<Target Name="Release" AfterTargets="Build" DependsOnTargets="PrepareRelease">
 		<ItemGroup>
-			<FilesToCopy Include="$(OutputPath)**\*.dll;$(SolutionDir)\..\Tools\Helpers\0Harmony.dll" Exclude="$(OutputPath)$(Product).dll" />
+			<FilesToCopy Include="$(OutputPath)**\*.dll" Exclude="$(OutputPath)$(Product).dll" />
 		</ItemGroup>
 
 		<Message Text="[$(AssemblyName)] Copy files to release folder" Importance="high" />
