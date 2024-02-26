@@ -17,7 +17,6 @@
 	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
-		<PackageReference Include="Lib.Harmony.Thin" Version="2.3.0" />
 		<PackageReference Include="Mono.Cecil" Version="0.11.5" />
 		<PackageReference Include="MonoMod.Backports" Version="1.1.0" />
 		<PackageReference Include="MonoMod.Core" Version="1.1.0" />
