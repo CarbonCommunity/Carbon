@@ -508,7 +508,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				{
 					var hash = HookStringPool.GetOrAdd(method.Name);
 
-					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+					if (Community.Runtime.HookManager.IsHook(method.Name))
 					{
 						if (!hooks.Contains(hash)) hooks.Add(hash);
 					}
