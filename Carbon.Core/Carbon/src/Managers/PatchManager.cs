@@ -477,12 +477,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				Logger.Error($"Error while parsing '{type.Name}'", e);
 			}
 		}
-
-		foreach(var internalHook in HookCaller.InternalHooks)
-		{
-			HookStringPool.GetOrAdd(internalHook);
-		}
-
+		
 		sw.Stop();
 		return retvar;
 	}
