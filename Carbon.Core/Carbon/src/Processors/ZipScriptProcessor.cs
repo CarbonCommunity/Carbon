@@ -21,7 +21,7 @@ namespace Carbon.Managers;
 public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 {
 	public override string Name => "ZipScript Processor";
-	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.ScriptWatchers;
+	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.ZipScriptWatchers;
 	public override string Folder => Defines.GetScriptFolder();
 	public override string Extension => ".cszip";
 	public override Type IndexedType => typeof(ZipScript);
