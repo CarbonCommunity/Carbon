@@ -73,6 +73,13 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		"Carbon.Hooks.Oxide.dll",
 	};
 
+	private static readonly string[] WarnExclusions =
+	{
+		"IOnServerCommand",
+		"IOnRunCommandLine",
+		"SingleCharCmdPrefix [patch]"
+	};
+
 	private void Awake()
 	{
 		Logger.Log($"Initializing {this}..");
@@ -341,9 +348,12 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 #if !(STAGING || AUX01 || AUX02)
 				if (!hasValidChecksum)
 				{
-					Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
-					Logger.Debug($"live:{checksum} | expected:{hook.Checksum}");
-					hook.SetStatus(HookState.Warning, "Invalid checksum");
+					if (!WarnExclusions.Contains(hook.HookFullName))
+					{
+						Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
+						Logger.Debug($"live:{checksum} | expected:{hook.Checksum}");
+						hook.SetStatus(HookState.Warning, "Invalid checksum");
+					}
 				}
 #endif
 			}
@@ -475,11 +485,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			{
 				Logger.Error($"Error while parsing '{type.Name}'", e);
 			}
-		}
-
-		foreach(var internalHook in HookCaller.InternalHooks)
-		{
-			HookStringPool.GetOrAdd(internalHook);
 		}
 
 		sw.Stop();

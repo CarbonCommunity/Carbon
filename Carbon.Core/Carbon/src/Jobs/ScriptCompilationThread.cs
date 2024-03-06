@@ -323,7 +323,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			try
 			{
-				conditionals.AddRange(Community.Runtime.Config.ConditionalCompilationSymbols);
+				conditionals.AddRange(Community.Runtime.Config.Debugging.ConditionalCompilationSymbols);
 			}
 			catch (Exception ex)
 			{
@@ -350,9 +350,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 			string pdb_filename =
 #if DEBUG
 				Debugger.IsAttached
-					? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin)
+					? (string.IsNullOrEmpty(Community.Runtime.Config.Debugging.ScriptDebuggingOrigin)
 						? InitialSource.ContextFilePath
-						: Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, InitialSource.ContextFileName))
+						: Path.Combine(Community.Runtime.Config.Debugging.ScriptDebuggingOrigin, InitialSource.ContextFileName))
 					: InitialSource.ContextFileName;
 #else
 				InitialSource.ContextFileName;
@@ -537,12 +537,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		catch (Exception ex)
 		{
-			if (Analytic.Enabled)
-			{
-				Analytic.Include("file", $"{InitialSource.ContextFilePath}");
-				Analytic.Include("stacktrace", $"({ex.Message}) {ex.StackTrace}");
-				Analytic.Send("plugin_native_compile_fail");
-			}
+			Analytics.plugin_native_compile_fail(InitialSource, ex);
 
 			System.Console.WriteLine($"Threading compilation failed for '{InitialSource.ContextFilePath}': {ex}");
 		}

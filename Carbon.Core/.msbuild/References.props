@@ -13,8 +13,7 @@
 		<Reference Include="System.Xml" />
 		<Reference Include="System" />
 
-		<!-- Temporarily until the NuGets get fixed -->
-		<Reference Include="$(SolutionDir)..\Tools\Helpers\0Harmony.dll" Private="false" />
+		<PackageReference Include="Lib.Harmony" Version="2.3.1.1" />
 
 		<!-- Carbon API -->
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.SDK\Carbon.SDK.csproj" Private="false" Condition="!$(Product.Contains('Carbon.SDK')) and !$(Product.Contains('Carbon.Compiler'))" />

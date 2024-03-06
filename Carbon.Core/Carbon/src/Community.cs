@@ -221,7 +221,7 @@ public class CommunityInternal : Community
 #if WIN
 			try
 			{
-				if (IsConfigReady && Config.ShowConsoleInfo && ServerConsole.Instance != null && ServerConsole.Instance.input != null)
+				if (IsConfigReady && Config.Misc.ShowConsoleInfo && ServerConsole.Instance != null && ServerConsole.Instance.input != null)
 				{
 					ServerConsole.Instance.input.statusText = new string[3];
 				}
