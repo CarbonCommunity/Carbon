@@ -537,12 +537,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		catch (Exception ex)
 		{
-			if (Analytic.Enabled)
-			{
-				Analytic.Include("file", $"{InitialSource.ContextFilePath}");
-				Analytic.Include("stacktrace", $"({ex.Message}) {ex.StackTrace}");
-				Analytic.Send("plugin_native_compile_fail");
-			}
+			Analytics.plugin_native_compile_fail(InitialSource, ex);
 
 			System.Console.WriteLine($"Threading compilation failed for '{InitialSource.ContextFilePath}': {ex}");
 		}
