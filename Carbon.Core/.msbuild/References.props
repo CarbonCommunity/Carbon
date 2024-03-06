@@ -12,11 +12,8 @@
 		<Reference Include="System.Xml.Serialization" />
 		<Reference Include="System.Xml" />
 		<Reference Include="System" />
-		
-		<PackageReference Include="Lib.Harmony.Thin" Version="2.3.0.1" IncludeAssets="none" GeneratePathProperty="true" />
-		<Reference Include="Lib.Harmony.Thin">
-			<HintPath>$(PkgLib_Harmony_Thin)\lib\net48\0Harmony.dll</HintPath>
-		</Reference>
+
+		<PackageReference Include="Lib.Harmony" Version="2.3.1.1" />
 
 		<!-- Carbon API -->
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.SDK\Carbon.SDK.csproj" Private="false" Condition="!$(Product.Contains('Carbon.SDK')) and !$(Product.Contains('Carbon.Compiler'))" />
