@@ -29,6 +29,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	internal List<HookEx> _patches { get; set; }
 	internal List<HookEx> _staticHooks { get; set; }
 	internal List<HookEx> _dynamicHooks { get; set; }
+	internal List<HookEx> _metadataHooks { get; set; }
 
 	// TODO --------------------------------------------------------------------
 	// Allows patch uninstallation on the correct order and should be replaced
@@ -72,6 +73,13 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		"Carbon.Hooks.Oxide.dll",
 	};
 
+	private static readonly string[] WarnExclusions =
+	{
+		"IOnServerCommand",
+		"IOnRunCommandLine",
+		"SingleCharCmdPrefix [patch]"
+	};
+
 	private void Awake()
 	{
 		Logger.Log($"Initializing {this}..");
@@ -81,6 +89,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		_installed = new List<HookEx>();
 		_patches = new List<HookEx>();
 		_staticHooks = new List<HookEx>();
+		_metadataHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 		_workQueue = new Queue<string>();
 
@@ -340,9 +349,12 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 #if !(STAGING || AUX01 || AUX02)
 				if (!hasValidChecksum)
 				{
-					Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
-					Logger.Debug($"live:{checksum} | expected:{hook.Checksum}");
-					hook.SetStatus(HookState.Warning, "Invalid checksum");
+					if (!WarnExclusions.Contains(hook.HookFullName))
+					{
+						Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
+						Logger.Debug($"live:{checksum} | expected:{hook.Checksum}");
+						hook.SetStatus(HookState.Warning, "Invalid checksum");
+					}
 				}
 #endif
 			}
@@ -433,6 +445,10 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 				if (hook.Options.HasFlag(HookFlags.MetadataOnly))
 				{
+					hook.SetStatus(HookState.Inactive);
+					retvar.Metadata++;
+					_metadataHooks.Add(hook);
+					HookStringPool.GetOrAdd(hook.HookName);
 					continue;
 				}
 
@@ -472,11 +488,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			}
 		}
 
-		foreach(var internalHook in HookCaller.InternalHooks)
-		{
-			HookStringPool.GetOrAdd(internalHook);
-		}
-
 		sw.Stop();
 		return retvar;
 	}
@@ -494,6 +505,9 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private IEnumerable<HookEx> LoadedHooks
 	{ get => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Where(x => x.IsLoaded); }
 
+	private IEnumerable<HookEx> Hooks
+	{ get => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Concat(_metadataHooks); }
+
 	private IEnumerable<HookEx> GetHookByName(string name)
 		=> LoadedHooks.Where(x => x.HookName == name) ?? null;
 
@@ -503,9 +517,23 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private HookEx GetHookById(string identifier)
 		=> LoadedHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
 
+	private IEnumerable<HookEx> GetHookByNameAll(string name)
+		=> Hooks.Where(x => x.HookName == name) ?? null;
+
+	private IEnumerable<HookEx> GetHookByFullNameAll(string name)
+		=> Hooks.Where(x => x.HookFullName == name) ?? null;
+
+	private HookEx GetHookByIdAll(string identifier)
+		=> Hooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
 
 	internal bool IsHookLoaded(HookEx hook)
 		=> LoadedHooks.Any(x => x.HookFullName == hook.HookFullName && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
+
+	public bool IsHook(string hookName)
+	{
+		var hooks = GetHookByNameAll(hookName);
+		return hooks.Any();
+	}
 
 	public bool IsHookLoaded(string hookName)
 	{

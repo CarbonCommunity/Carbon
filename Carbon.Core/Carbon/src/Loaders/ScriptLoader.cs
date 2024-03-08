@@ -72,8 +72,8 @@ public class ScriptLoader : IScriptLoader
 	{
 		var config = Community.Runtime.Config;
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
-		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.ScriptWatcherOption);
-		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cszip", option: config.ScriptWatcherOption);
+		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.Watchers.ScriptWatcherOption);
+		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cszip", option: config.Watchers.ScriptWatcherOption);
 
 		ExecuteProcess(Community.Runtime.ScriptProcessor, false, extensionPlugins, plugins);
 		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, zipPlugins);
@@ -348,7 +348,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader.Assembly == null)
 		{
-			if (AsyncLoader.Exceptions.Count > 0)
+			if (AsyncLoader.Exceptions != null && AsyncLoader.Exceptions.Count > 0)
 			{
 				Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFilePath}':");
 				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
@@ -380,8 +380,8 @@ public class ScriptLoader : IScriptLoader
 				});
 			}
 
-			AsyncLoader.Exceptions.Clear();
-			AsyncLoader.Warnings.Clear();
+			AsyncLoader.Exceptions?.Clear();
+			AsyncLoader.Warnings?.Clear();
 			AsyncLoader.Exceptions = AsyncLoader.Warnings = null;
 			HasFinished = true;
 
@@ -410,7 +410,7 @@ public class ScriptLoader : IScriptLoader
 
 				if (type.GetCustomAttribute(typeof(InfoAttribute), true) is not InfoAttribute info) continue;
 
-				if (!IsExtension && firstPlugin && Community.Runtime.Config.FileNameCheck && !BypassFileNameChecks)
+				if (!IsExtension && firstPlugin && Community.Runtime.Config.Watchers.FileNameCheck && !BypassFileNameChecks)
 				{
 					var name = Path.GetFileNameWithoutExtension(InitialSource.FilePath).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
 
