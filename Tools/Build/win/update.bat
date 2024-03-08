@@ -27,8 +27,8 @@ FOR %%O IN (windows linux) DO (
 		echo Downloading %%O runtime from %RUNTIME_URL%..
 		mkdir %RUNTIME_FOLDER%
 	
-		call powershell -Command "(New-Object Net.WebClient).DownloadFile('%RUNTIME_URL%', '%RUNTIME_FOLDER%\runtime_%%O.zip')"
-		call powershell -Command "Expand-Archive '%RUNTIME_FOLDER%\runtime_%%O.zip' -DestinationPath '%RUNTIME_FOLDER%'" -Force
+		call pwsh -Command "(New-Object Net.WebClient).DownloadFile('%RUNTIME_URL%', '%RUNTIME_FOLDER%\runtime_%%O.zip')"
+		call pwsh -Command "Expand-Archive '%RUNTIME_FOLDER%\runtime_%%O.zip' -DestinationPath '%RUNTIME_FOLDER%'" -Force
 		del "%RUNTIME_FOLDER%\runtime_%%O.zip"
 	) else (
 		echo Skipped %%O runtime..
