@@ -21,7 +21,8 @@ for MODULE in GatherManagerModule ModerationToolsModule OptimisationsModule Stac
 		--plugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Modules/src/${MODULE}" \
 		--pluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Modules/src/${MODULE}/${MODULE}-Generated.cs" \
 		--pluginname "${MODULE}" \
-		--pluginnamespace "Carbon.Modules"
+		--pluginnamespace "Carbon.Modules" \
+		--basename "module"
 
 done
 

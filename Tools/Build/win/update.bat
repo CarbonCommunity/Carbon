@@ -24,7 +24,8 @@ FOR %%O IN (GatherManagerModule ModerationToolsModule OptimisationsModule StackM
 		--plugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Modules\src\%%O" ^
 		--pluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Modules\src\%%O\%%O-Generated.cs" ^
 		--pluginname "%%O" ^
-		--pluginnamespace "Carbon.Modules"
+		--pluginnamespace "Carbon.Modules" ^
+		--basename "module"
 )
 
 FOR %%O IN (windows linux) DO (			
