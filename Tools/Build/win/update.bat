@@ -16,8 +16,26 @@ if "%1" EQU "" (
 )
 
 "%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
-	--coreplugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
-	--corepluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin-Generated.cs"
+	--plugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
+	--pluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin-Generated.cs"
+
+for /d %%O in (%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Modules\*) do (
+	"%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
+		--plugininput "%%O" ^
+		--pluginoutput "%%O\%%~nO-Generated.cs" ^
+		--pluginname "%%~nO" ^
+		--pluginnamespace "Carbon.Modules" ^
+		--basename "module"
+)
+
+for /d %%O in (%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Modules\src\*) do (
+	"%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
+		--plugininput "%%O" ^
+		--pluginoutput "%%O\%%~nO-Generated.cs" ^
+		--pluginname "%%~nO" ^
+		--pluginnamespace "Carbon.Modules" ^
+		--basename "module"
+)
 
 FOR %%O IN (windows linux) DO (			
 	echo Downloading %%O Rust files..
