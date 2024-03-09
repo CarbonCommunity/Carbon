@@ -16,8 +16,16 @@ if "%1" EQU "" (
 )
 
 "%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
-	--coreplugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
-	--corepluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin-Generated.cs"
+	--plugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
+	--pluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin-Generated.cs"
+
+FOR %%O IN (GatherManagerModule ModerationToolsModule OptimisationsModule StackManagerModule VanishModule WhitelistModule) DO (
+	"%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
+		--plugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Modules\src\%%O" ^
+		--pluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Modules\src\%%O\%%O-Generated.cs" ^
+		--pluginname "%%O" ^
+		--pluginnamespace "Carbon.Modules"
+)
 
 FOR %%O IN (windows linux) DO (			
 	echo Downloading %%O Rust files..

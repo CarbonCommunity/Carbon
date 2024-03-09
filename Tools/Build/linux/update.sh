@@ -13,8 +13,17 @@ ROOT="$(realpath "${BASE}/../../../")"
 TARGET=${1:-public}
 
 mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
-	--coreplugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core" \
-	--corepluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Generated/CorePlugin.cs"
+	--plugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core" \
+	--pluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Generated/CorePlugin-Generated.cs"
+
+for MODULE in GatherManagerModule ModerationToolsModule OptimisationsModule StackManagerModule VanishModule WhitelistModule; do
+	mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
+		--plugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Modules/src/${MODULE}" \
+		--pluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Modules/src/${MODULE}/${MODULE}-Generated.cs" \
+		--pluginname "${MODULE}" \
+		--pluginnamespace "Carbon.Modules"
+
+done
 
 for OS in windows linux; do
 	# Download rust binary libs
