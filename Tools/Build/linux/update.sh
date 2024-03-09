@@ -16,14 +16,13 @@ mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
 	--plugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core" \
 	--pluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Generated/CorePlugin-Generated.cs"
 
-for MODULE in GatherManagerModule ModerationToolsModule OptimisationsModule StackManagerModule VanishModule WhitelistModule; do
+for MODULE in "$UPDATE_ROOT/Carbon.Core/Carbon.Components/Carbon.Modules/src/"*; do
 	mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
-		--plugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Modules/src/${MODULE}" \
-		--pluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Modules/src/${MODULE}/${MODULE}-Generated.cs" \
-		--pluginname "${MODULE}" \
+		--plugininput "$O" \
+		--pluginoutput "$O/$(basename "$O")-Generated.cs" \
+		--pluginname "$(basename "$O")" \
 		--pluginnamespace "Carbon.Modules" \
 		--basename "module"
-
 done
 
 for OS in windows linux; do

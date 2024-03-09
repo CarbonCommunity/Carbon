@@ -19,11 +19,12 @@ if "%1" EQU "" (
 	--plugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
 	--pluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin-Generated.cs"
 
-FOR %%O IN (GatherManagerModule ModerationToolsModule OptimisationsModule StackManagerModule VanishModule WhitelistModule) DO (
+for /d %%O in (%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Modules\src\*) do (
+	echo "Test %%~nO"
 	"%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
-		--plugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Modules\src\%%O" ^
-		--pluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Modules\src\%%O\%%O-Generated.cs" ^
-		--pluginname "%%O" ^
+		--plugininput "%%O" ^
+		--pluginoutput "%%O\%%~nO-Generated.cs" ^
+		--pluginname "%%~nO" ^
 		--pluginnamespace "Carbon.Modules" ^
 		--basename "module"
 )
