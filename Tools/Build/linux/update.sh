@@ -18,9 +18,9 @@ mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
 
 for MODULE in "$UPDATE_ROOT/Carbon.Core/Carbon.Components/Carbon.Modules/src/"*; do
 	mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
-		--plugininput "$O" \
-		--pluginoutput "$O/$(basename "$O")-Generated.cs" \
-		--pluginname "$(basename "$O")" \
+		--plugininput "$MODULE" \
+		--pluginoutput "$MODULE/$(basename "$MODULE")-Generated.cs" \
+		--pluginname "$(basename "$MODULE")" \
 		--pluginnamespace "Carbon.Modules" \
 		--basename "module"
 done
