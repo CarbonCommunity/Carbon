@@ -17,12 +17,14 @@ mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
 	--pluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Generated/CorePlugin-Generated.cs"
 
 for MODULE in "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Modules/src/"*; do
+	if [ -d "${MODULE}" ]
 	mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
 		--plugininput "${MODULE}" \
 		--pluginoutput "${MODULE}/$(basename "${MODULE}")-Generated.cs" \
 		--pluginname "$(basename "${MODULE}")" \
 		--pluginnamespace "Carbon.Modules" \
 		--basename "module"
+	fi
 done
 
 for OS in windows linux; do
