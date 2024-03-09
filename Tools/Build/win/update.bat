@@ -19,8 +19,16 @@ if "%1" EQU "" (
 	--plugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
 	--pluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin-Generated.cs"
 
+for /d %%O in (%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Modules\*) do (
+	"%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
+		--plugininput "%%O" ^
+		--pluginoutput "%%O\%%~nO-Generated.cs" ^
+		--pluginname "%%~nO" ^
+		--pluginnamespace "Carbon.Modules" ^
+		--basename "module"
+)
+
 for /d %%O in (%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Modules\src\*) do (
-	echo "Test %%~nO"
 	"%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
 		--plugininput "%%O" ^
 		--pluginoutput "%%O\%%~nO-Generated.cs" ^
