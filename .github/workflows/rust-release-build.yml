@@ -30,8 +30,6 @@ jobs:
 
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
-        with:
-          ref: rust_beta/release
           
       - name: 📅 Prepare the environment
         id: step1
