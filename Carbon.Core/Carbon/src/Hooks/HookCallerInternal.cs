@@ -183,15 +183,8 @@ public class HookCallerInternal : HookCallerCommon
 				var readableHook = HookStringPool.GetOrAdd(hookId);
 
 				Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
-				Community.Runtime.Analytics.LogEvent("plugin_time_warn",
-					segments: Community.Runtime.Analytics.Segments,
-					metrics: new Dictionary<string, object>
-					{
-						{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
-						{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
-						{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
-						{ "hasgc", hookable.HasGCCollected }
-					});
+
+				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTime, totalMemory, cachedHook, hookable);
 			}
 
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
@@ -234,24 +227,24 @@ public class HookCallerInternal : HookCallerCommon
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
 			FrameDispose(false, args, ref conflicts);
 
-			static object DoCall(T hookable, uint hookId, CachedHook hook, object[] args, ref bool hasRescaledBuffer)
+			static object DoCall(T hookable, uint hookId, CachedHook cachedHook, object[] args, ref bool hasRescaledBuffer)
 			{
 				if (args != null)
 				{
-					var actualLength = hook.Parameters.Length;
+					var actualLength = cachedHook.Parameters.Length;
 
 					if (actualLength != args.Length)
 					{
-						args = HookCaller.Caller.RescaleBuffer(args, actualLength, hook);
+						args = HookCaller.Caller.RescaleBuffer(args, actualLength, cachedHook);
 						hasRescaledBuffer = true;
 					}
 					else
 					{
-						HookCaller.Caller.ProcessDefaults(args, hook);
+						HookCaller.Caller.ProcessDefaults(args, cachedHook);
 					}
 				}
 
-				if (args == null || SequenceEqual(hook.Parameters, args))
+				if (args == null || SequenceEqual(cachedHook.Parameters, args))
 				{
 #if DEBUG
 					Profiler.StartHookCall(hookable, hookId);
@@ -263,7 +256,7 @@ public class HookCallerInternal : HookCallerCommon
 
 					try
 					{
-						result2 = hook.Method.Invoke(hookable, args);
+						result2 = cachedHook.Method.Invoke(hookable, args);
 					}
 					catch (Exception ex)
 					{
@@ -280,11 +273,11 @@ public class HookCallerInternal : HookCallerCommon
 					var afterMemory = hookable.TotalMemoryUsed;
 					var totalMemory = afterMemory - beforeMemory;
 
-					if (hook != null)
+					if (cachedHook != null)
 					{
-						hook.HookTime += afterHookTime;
-						hook.MemoryUsage += totalMemory;
-						hook.Tick();
+						cachedHook.HookTime += afterHookTime;
+						cachedHook.MemoryUsage += totalMemory;
+						cachedHook.Tick();
 					}
 
 					if (afterHookTime > 100)
@@ -293,15 +286,8 @@ public class HookCallerInternal : HookCallerCommon
 						{
 							var readableHook = HookStringPool.GetOrAdd(hookId);
 							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
-							Community.Runtime.Analytics.LogEvent("plugin_time_warn",
-								segments: Community.Runtime.Analytics.Segments,
-								metrics: new Dictionary<string, object>
-								{
-									{ "name", $"{readableHook} ({basePlugin.Name} v{basePlugin.Version} by {basePlugin.Author})" },
-									{ "time", $"{afterHookTime.RoundUpToNearestCount(50)}ms" },
-									{ "memory", $"{ByteEx.Format(totalMemory, shortName: true).ToLower()}" },
-									{ "hasgc", hookable.HasGCCollected }
-								});
+
+							Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTime, totalMemory, cachedHook, hookable);
 						}
 					}
 
