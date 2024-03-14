@@ -346,7 +346,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 						break;
 				}
 
-#if !(STAGING || AUX01 || AUX02)
+#if !(STAGING || RELEASE || AUX01 || AUX02)
 				if (!hasValidChecksum)
 				{
 					if (!WarnExclusions.Contains(hook.HookFullName))
