@@ -341,6 +341,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 #if STAGING
 			conditionals.Add("STAGING");
+#elif RELEASE
+			conditionals.Add("RELEASE");
 #elif AUX01
 			conditionals.Add("AUX01");
 #elif AUX02
