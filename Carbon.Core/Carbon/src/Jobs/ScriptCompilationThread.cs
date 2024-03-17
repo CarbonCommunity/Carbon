@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
+using Oxide.Plugins;
 
 /*
  *
@@ -348,7 +349,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("AUX02");
 #endif
 
-			string pdb_filename =
+			string pdbFilename =
 #if DEBUG
 				Debugger.IsAttached
 					? (string.IsNullOrEmpty(Community.Runtime.Config.Debugging.ScriptDebuggingOrigin)
@@ -410,10 +411,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 				_timeSinceIntCall = DateTime.Now;
 
 				var completeBody = CSharpSyntaxTree.ParseText(
-					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdb_filename, Encoding.UTF8);
+					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
 
 				HookCaller.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
-					pdb_filename, ClassList);
+					pdbFilename, ClassList);
 
 				InternalCallHookGenTime = (DateTime.Now - _timeSinceIntCall).Milliseconds;
 				trees.Add(partialTree.SyntaxTree);
