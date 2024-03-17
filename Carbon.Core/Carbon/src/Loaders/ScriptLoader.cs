@@ -392,7 +392,7 @@ public class ScriptLoader : IScriptLoader
 			yield break;
 		}
 
-		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...", 1);
+		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms [int. {AsyncLoader.InternalCallHookGenTime:0}ms]...", 1);
 
 		ModLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
@@ -458,6 +458,7 @@ public class ScriptLoader : IScriptLoader
 						p.Requires = requiresResult;
 						p.SetProcessor(Community.Runtime.ScriptProcessor);
 						p.CompileTime = AsyncLoader.CompileTime;
+						p.InternalCallHookGenTime = AsyncLoader.InternalCallHookGenTime;
 
 						p.FilePath = AsyncLoader.InitialSource.ContextFilePath;
 						p.FileName = AsyncLoader.InitialSource.ContextFileName;

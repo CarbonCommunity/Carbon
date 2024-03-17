@@ -13,8 +13,32 @@ ROOT="$(realpath "${BASE}/../../../")"
 TARGET=${1:-public}
 
 mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
-	--coreplugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core" \
-	--corepluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Generated/CorePlugin.cs"
+	--plugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core" \
+	--pluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Generated/CorePlugin-Generated.cs"
+
+for MODULE in "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Modules/"*; do
+	if [ -d "${MODULE}" ] 
+	then
+	mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
+		--plugininput "${MODULE}" \
+		--pluginoutput "${MODULE}/$(basename "${MODULE}")-Generated.cs" \
+		--pluginname "$(basename "${MODULE}")" \
+		--pluginnamespace "Carbon.Modules" \
+		--basename "module"
+	fi
+done
+
+for MODULE in "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Modules/src/"*; do
+	if [ -d "${MODULE}" ] 
+	then
+	mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
+		--plugininput "${MODULE}" \
+		--pluginoutput "${MODULE}/$(basename "${MODULE}")-Generated.cs" \
+		--pluginname "$(basename "${MODULE}")" \
+		--pluginnamespace "Carbon.Modules" \
+		--basename "module"
+	fi
+done
 
 for OS in windows linux; do
     RUNTIME_URL=https://carbonmod.gg/assets/content/runtime-${OS}.zip
