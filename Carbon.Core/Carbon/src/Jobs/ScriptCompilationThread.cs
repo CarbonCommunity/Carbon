@@ -8,8 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using API.Assembly;
 using Carbon.Base;
+using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -40,6 +40,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
 	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
 	public float CompileTime;
+	public float InternalCallHookGenTime;
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new();
 	public List<CompilerException> Warnings = new();
@@ -48,9 +49,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal const string _partialPattern = @" partial ";
-	internal DateTime _timeSinceCompile;
+	internal DateTime _timeSinceCompile, _timeSinceIntCall;
 	internal List<ClassDeclarationSyntax> ClassList = new();
-	internal static EmitOptions _emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
+	internal static EmitOptions _emitOptions = new(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
 	internal static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
@@ -307,6 +308,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		if (Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
 		{
+			Dispose();
 			return;
 		}
 
@@ -314,14 +316,13 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			Exceptions.Clear();
 			Warnings.Clear();
-			_timeSinceCompile = DateTime.Now;
 
-			var trees = new List<SyntaxTree>();
-			var conditionals = new List<string>();
+			var trees = Facepunch.Pool.GetList<SyntaxTree>();
+			var conditionals = Facepunch.Pool.GetList<string>();
 
 			try
 			{
-				conditionals.AddRange(Community.Runtime.Config.ConditionalCompilationSymbols);
+				conditionals.AddRange(Community.Runtime.Config.Debugging.ConditionalCompilationSymbols);
 			}
 			catch (Exception ex)
 			{
@@ -339,6 +340,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 #if STAGING
 			conditionals.Add("STAGING");
+#elif RELEASE
+			conditionals.Add("RELEASE");
 #elif AUX01
 			conditionals.Add("AUX01");
 #elif AUX02
@@ -346,16 +349,21 @@ public class ScriptCompilationThread : BaseThreadedJob
 #endif
 
 			string pdb_filename =
-			#if DEBUG
-				Debugger.IsAttached ? (string.IsNullOrEmpty(Community.Runtime.Config.ScriptDebuggingOrigin) ? InitialSource.ContextFilePath : Path.Combine(Community.Runtime.Config.ScriptDebuggingOrigin, InitialSource.ContextFileName)) : InitialSource.ContextFileName;
-			#else
+#if DEBUG
+				Debugger.IsAttached
+					? (string.IsNullOrEmpty(Community.Runtime.Config.Debugging.ScriptDebuggingOrigin)
+						? InitialSource.ContextFilePath
+						: Path.Combine(Community.Runtime.Config.Debugging.ScriptDebuggingOrigin, InitialSource.ContextFileName))
+					: InitialSource.ContextFileName;
+#else
 				InitialSource.ContextFileName;
-			#endif
+#endif
 
 			var parseOptions = new CSharpParseOptions(LanguageVersion.Preview)
 				.WithPreprocessorSymbols(conditionals);
 
-			var containsInternalCallHookOverride = Sources.Any(x => !string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
+			var containsInternalCallHookOverride = Sources.Any(x =>
+				!string.IsNullOrEmpty(x.Content) && x.Content.Contains(_internalCallHookPattern));
 
 			foreach (var source in Sources)
 			{
@@ -370,7 +378,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				tree = tree.WithRootAndOptions(root, parseOptions);
 
-				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
+				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex,
+					    ClassList))
 				{
 					var @class = ClassList[0];
 
@@ -379,7 +388,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 						@class = @class.WithModifiers(@class.Modifiers.Add(SyntaxFactory.ParseToken(_partialPattern)));
 					}
 
-					root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex, @namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
+					root = root.WithMembers(root.Members.RemoveAt(namespaceIndex).Insert(namespaceIndex,
+						@namespace.WithMembers(@namespace.Members.RemoveAt(classIndex).Insert(classIndex, @class))));
 					trees.Insert(0, CSharpSyntaxTree.ParseText(
 						root.ToFullString(), options: parseOptions, source.FilePath, Encoding.UTF8));
 				}
@@ -388,7 +398,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					trees.Add(tree);
 				}
 
-				foreach (var name in root.Usings.Select(element => element.Name.ToString()).Where(name => !Usings.Contains(name)))
+				foreach (var name in root.Usings.Select(element => element.Name.ToString())
+					         .Where(name => !Usings.Contains(name)))
 				{
 					Usings.Add(name);
 				}
@@ -396,25 +407,31 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (!containsInternalCallHookOverride)
 			{
+				_timeSinceIntCall = DateTime.Now;
+
 				var completeBody = CSharpSyntaxTree.ParseText(
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdb_filename, Encoding.UTF8);
 
-				HookCaller.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions, pdb_filename, ClassList);
+				HookCaller.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
+					pdb_filename, ClassList);
 
+				InternalCallHookGenTime = (DateTime.Now - _timeSinceIntCall).Milliseconds;
 				trees.Add(partialTree.SyntaxTree);
 			}
 
 			var options = new CSharpCompilationOptions(
 				OutputKind.DynamicallyLinkedLibrary,
 				optimizationLevel:
-				#if DEBUG
-					Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
-				#else
+#if DEBUG
+				Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
+#else
 					OptimizationLevel.Release,
-				#endif
+#endif
 				deterministic: true, warningLevel: 4,
 				allowUnsafe: true
 			);
+
+			_timeSinceCompile = DateTime.Now;
 
 			var compilation = CSharpCompilation.Create(
 				$"Script.{InitialSource.FileName}.{Guid.NewGuid():N}", trees, references, options);
@@ -422,8 +439,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 			using (var dllStream = new MemoryStream())
 			{
 				var emit = compilation.Emit(dllStream, options: _emitOptions);
-				var errors = new List<string>();
-				var warnings = new List<string>();
+
+				var errors = Facepunch.Pool.GetList<string>();
+				var warnings = Facepunch.Pool.GetList<string>();
 
 				foreach (var error in emit.Diagnostics)
 				{
@@ -439,23 +457,25 @@ public class ScriptCompilationThread : BaseThreadedJob
 						case DiagnosticSeverity.Error:
 							errors.Add(error.Id);
 							Exceptions.Add(new CompilerException(filePath,
-								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id,
+									error.GetMessage(CultureInfo.InvariantCulture))));
 
 							break;
 
 						case DiagnosticSeverity.Warning:
-							if (error.GetMessage(CultureInfo.InvariantCulture).Contains("Assuming assembly reference")) continue;
+							if (error.GetMessage(CultureInfo.InvariantCulture).Contains("Assuming assembly reference"))
+								continue;
 
 							errors.Add(error.Id);
 							Warnings.Add(new CompilerException(filePath,
-								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id, error.GetMessage(CultureInfo.InvariantCulture))));
+								new CompilerError(fileName, span.Start.Line + 1, span.Start.Character + 1, error.Id,
+									error.GetMessage(CultureInfo.InvariantCulture))));
 							break;
 					}
 				}
 
-				errors.Clear();
-				warnings.Clear();
-				errors = warnings = null;
+				Facepunch.Pool.FreeList(ref errors);
+				Facepunch.Pool.FreeList(ref warnings);
 
 				if (emit.Success)
 				{
@@ -469,12 +489,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 			}
 
-			conditionals.Clear();
-			conditionals = null;
 			references.Clear();
 			references = null;
-			trees.Clear();
-			trees = null;
+			Facepunch.Pool.FreeList(ref conditionals);
+			Facepunch.Pool.FreeList(ref trees);
 
 			if (Assembly == null) return;
 
@@ -489,11 +507,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 				HookMethods.Add(type, hookMethods);
 				PluginReferences.Add(type, pluginReferences);
 
-				foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
+				foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance |
+				                                       BindingFlags.NonPublic))
 				{
 					var hash = HookStringPool.GetOrAdd(method.Name);
 
-					if (Community.Runtime.HookManager.IsHookLoaded(method.Name))
+					if (Community.Runtime.HookManager.IsHook(method.Name))
 					{
 						if (!hooks.Contains(hash)) hooks.Add(hash);
 					}
@@ -507,7 +526,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					}
 				}
 
-				foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+				foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic |
+				                                     BindingFlags.Public))
 				{
 					var attribute = field.GetCustomAttribute<PluginReferenceAttribute>();
 					if (attribute == null) continue;
@@ -519,7 +539,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (Exceptions.Count > 0) throw null;
 		}
-		catch (Exception ex) { System.Console.WriteLine($"Threading compilation failed for '{InitialSource.ContextFilePath}': {ex}"); }
+		catch (Exception ex)
+		{
+			Analytics.plugin_native_compile_fail(InitialSource, ex);
+
+			System.Console.WriteLine($"Threading compilation failed for '{InitialSource.ContextFilePath}': {ex}");
+		}
 	}
 
 	public override void Dispose()

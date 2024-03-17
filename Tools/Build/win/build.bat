@@ -76,5 +76,5 @@ echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
 
 if "%2" NEQ "--no-archive" (
 	echo ** Create the compressed archive 'Carbon.%TOS%.%TAG%.zip'
-	powershell -Command "Compress-Archive -Update -Path '%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\*' -DestinationPath '%BUILD_ROOT%\Release\Carbon.%TOS%.%TAG%.zip'"
+	pwsh -Command "Compress-Archive -Update -Path '%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\*' -DestinationPath '%BUILD_ROOT%\Release\Carbon.%TOS%.%TAG%.zip'"
 )

@@ -72,8 +72,8 @@ public class ScriptLoader : IScriptLoader
 	{
 		var config = Community.Runtime.Config;
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
-		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.ScriptWatcherOption);
-		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cszip", option: config.ScriptWatcherOption);
+		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.Watchers.ScriptWatcherOption);
+		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cszip", option: config.Watchers.ScriptWatcherOption);
 
 		ExecuteProcess(Community.Runtime.ScriptProcessor, false, extensionPlugins, plugins);
 		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, zipPlugins);
@@ -348,7 +348,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader.Assembly == null)
 		{
-			if (AsyncLoader.Exceptions.Count > 0)
+			if (AsyncLoader.Exceptions != null && AsyncLoader.Exceptions.Count > 0)
 			{
 				Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFilePath}':");
 				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
@@ -380,8 +380,8 @@ public class ScriptLoader : IScriptLoader
 				});
 			}
 
-			AsyncLoader.Exceptions.Clear();
-			AsyncLoader.Warnings.Clear();
+			AsyncLoader.Exceptions?.Clear();
+			AsyncLoader.Warnings?.Clear();
 			AsyncLoader.Exceptions = AsyncLoader.Warnings = null;
 			HasFinished = true;
 
@@ -392,7 +392,7 @@ public class ScriptLoader : IScriptLoader
 			yield break;
 		}
 
-		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms...", 1);
+		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms [int. {AsyncLoader.InternalCallHookGenTime:0}ms]...", 1);
 
 		ModLoader.AssemblyCache.Add(AsyncLoader.Assembly);
 
@@ -410,7 +410,7 @@ public class ScriptLoader : IScriptLoader
 
 				if (type.GetCustomAttribute(typeof(InfoAttribute), true) is not InfoAttribute info) continue;
 
-				if (!IsExtension && firstPlugin && Community.Runtime.Config.FileNameCheck && !BypassFileNameChecks)
+				if (!IsExtension && firstPlugin && Community.Runtime.Config.Watchers.FileNameCheck && !BypassFileNameChecks)
 				{
 					var name = Path.GetFileNameWithoutExtension(InitialSource.FilePath).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
 
@@ -458,6 +458,7 @@ public class ScriptLoader : IScriptLoader
 						p.Requires = requiresResult;
 						p.SetProcessor(Community.Runtime.ScriptProcessor);
 						p.CompileTime = AsyncLoader.CompileTime;
+						p.InternalCallHookGenTime = AsyncLoader.InternalCallHookGenTime;
 
 						p.FilePath = AsyncLoader.InitialSource.ContextFilePath;
 						p.FileName = AsyncLoader.InitialSource.ContextFileName;

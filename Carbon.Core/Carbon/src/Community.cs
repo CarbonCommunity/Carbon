@@ -63,7 +63,13 @@ public class CommunityInternal : Community
 		CorePlugin.IsCorePlugin = CorePlugin.IsPrecompiled = true;
 		CorePlugin.IInit();
 
-		ModLoader.LoadedPackages.Add(new ModLoader.ModPackage { Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin } });
+		var package = new ModLoader.ModPackage
+		{
+			Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin }
+		};
+		CorePlugin.Package = package;
+
+		ModLoader.LoadedPackages.Add(package);
 		ModLoader.LoadedPackages.Add(Plugins);
 		ModLoader.LoadedPackages.Add(ZipPlugins);
 
@@ -137,6 +143,8 @@ public class CommunityInternal : Community
 		base.Initialize();
 
 		if (IsInitialized) return;
+
+		Compat.Init();
 
 		HookCaller.Caller = new HookCallerInternal();
 
@@ -219,7 +227,7 @@ public class CommunityInternal : Community
 #if WIN
 			try
 			{
-				if (IsConfigReady && Config.ShowConsoleInfo && ServerConsole.Instance != null && ServerConsole.Instance.input != null)
+				if (IsConfigReady && Config.Misc.ShowConsoleInfo && ServerConsole.Instance != null && ServerConsole.Instance.input != null)
 				{
 					ServerConsole.Instance.input.statusText = new string[3];
 				}

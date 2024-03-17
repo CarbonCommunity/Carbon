@@ -31,6 +31,6 @@ public struct Subscription
 
 public struct TaskStatus
 {
-	public int Static, Patch, Dynamic;
-	public int Total { get => (Static + Patch + Dynamic); }
+	public int Static, Patch, Dynamic, Metadata;
+	public int Total { get => (Static + Patch + Dynamic + Metadata); }
 }
