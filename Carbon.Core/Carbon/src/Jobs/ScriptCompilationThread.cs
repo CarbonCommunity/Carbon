@@ -510,10 +510,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 				foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance |
 				                                       BindingFlags.NonPublic))
 				{
-					var hash = HookStringPool.GetOrAdd(method.Name);
 
 					if (Community.Runtime.HookManager.IsHook(method.Name))
 					{
+						var hash = HookStringPool.GetOrAdd(method.Name);
+
 						if (!hooks.Contains(hash)) hooks.Add(hash);
 					}
 					else
