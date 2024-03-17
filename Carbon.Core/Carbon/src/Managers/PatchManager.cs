@@ -509,25 +509,25 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	{ get => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Concat(_metadataHooks); }
 
 	private IEnumerable<HookEx> GetHookByName(string name)
-		=> LoadedHooks.Where(x => x.HookName == name) ?? null;
+		=> LoadedHooks.Where(x => x.HookName.Equals(name, StringComparison.InvariantCultureIgnoreCase)) ?? null;
 
 	private IEnumerable<HookEx> GetHookByFullName(string name)
-		=> LoadedHooks.Where(x => x.HookFullName == name) ?? null;
+		=> LoadedHooks.Where(x => x.HookFullName.Equals(name, StringComparison.InvariantCultureIgnoreCase)) ?? null;
 
 	private HookEx GetHookById(string identifier)
-		=> LoadedHooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
+		=> LoadedHooks.FirstOrDefault(x => x.Identifier.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)) ?? null;
 
 	private IEnumerable<HookEx> GetHookByNameAll(string name)
-		=> Hooks.Where(x => x.HookName == name) ?? null;
+		=> Hooks.Where(x => x.HookName.Equals(name, StringComparison.InvariantCultureIgnoreCase)) ?? null;
 
 	private IEnumerable<HookEx> GetHookByFullNameAll(string name)
-		=> Hooks.Where(x => x.HookFullName == name) ?? null;
+		=> Hooks.Where(x => x.HookFullName.Equals(name, StringComparison.InvariantCultureIgnoreCase)) ?? null;
 
 	private HookEx GetHookByIdAll(string identifier)
-		=> Hooks.FirstOrDefault(x => x.Identifier == identifier) ?? null;
+		=> Hooks.FirstOrDefault(x => x.Identifier.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)) ?? null;
 
 	internal bool IsHookLoaded(HookEx hook)
-		=> LoadedHooks.Any(x => x.HookFullName == hook.HookFullName && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
+		=> LoadedHooks.Any(x => x.HookFullName.Equals(hook.HookFullName, StringComparison.InvariantCultureIgnoreCase) && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
 
 	public bool IsHook(string hookName)
 	{
@@ -567,19 +567,19 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 
 	private bool HookIsSubscribedBy(string identifier, string subscriber)
-		=> _subscribers?.Where(x => x.Identifier == identifier).Any(x => x.Subscriber == subscriber) ?? false;
+		=> _subscribers?.Where(x => x.Identifier.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)).Any(x => x.Subscriber == subscriber) ?? false;
 
 	private bool HookHasSubscribers(string identifier)
-		=> _subscribers?.Any(x => x.Identifier == identifier) ?? false;
+		=> _subscribers?.Any(x => x.Identifier.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)) ?? false;
 
 	public int GetHookSubscriberCount(string identifier)
-		=> _subscribers.Count(x => x.Identifier == identifier);
+		=> _subscribers.Count(x => x.Identifier.Equals(identifier, StringComparison.InvariantCultureIgnoreCase));
 
 	private void AddSubscriber(string identifier, string subscriber)
 		=> _subscribers.Add(item: new Subscription { Identifier = identifier, Subscriber = subscriber });
 
 	private void RemoveSubscriber(string identifier, string subscriber)
-		=> _subscribers.RemoveAll(x => x.Identifier == identifier && x.Subscriber == subscriber);
+		=> _subscribers.RemoveAll(x => x.Identifier.Equals(identifier, StringComparison.InvariantCultureIgnoreCase) && x.Subscriber.Equals(subscriber, StringComparison.InvariantCultureIgnoreCase));
 
 
 	public void Subscribe(string hookName, string requester)
