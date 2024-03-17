@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using API.Assembly;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Contracts;
@@ -41,6 +40,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
 	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
 	public float CompileTime;
+	public float InternalCallHookGenTime;
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new();
 	public List<CompilerException> Warnings = new();
@@ -49,9 +49,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal const string _partialPattern = @" partial ";
-	internal DateTime _timeSinceCompile;
+	internal DateTime _timeSinceCompile, _timeSinceIntCall;
 	internal List<ClassDeclarationSyntax> ClassList = new();
-	internal static EmitOptions _emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
+	internal static EmitOptions _emitOptions = new(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
 	internal static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
@@ -316,10 +316,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			Exceptions.Clear();
 			Warnings.Clear();
-			_timeSinceCompile = DateTime.Now;
 
-			var trees = new List<SyntaxTree>();
-			var conditionals = new List<string>();
+			var trees = Facepunch.Pool.GetList<SyntaxTree>();
+			var conditionals = Facepunch.Pool.GetList<string>();
 
 			try
 			{
@@ -408,12 +407,15 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (!containsInternalCallHookOverride)
 			{
+				_timeSinceIntCall = DateTime.Now;
+
 				var completeBody = CSharpSyntaxTree.ParseText(
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdb_filename, Encoding.UTF8);
 
 				HookCaller.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
 					pdb_filename, ClassList);
 
+				InternalCallHookGenTime = (DateTime.Now - _timeSinceIntCall).Milliseconds;
 				trees.Add(partialTree.SyntaxTree);
 			}
 
@@ -429,14 +431,17 @@ public class ScriptCompilationThread : BaseThreadedJob
 				allowUnsafe: true
 			);
 
+			_timeSinceCompile = DateTime.Now;
+
 			var compilation = CSharpCompilation.Create(
 				$"Script.{InitialSource.FileName}.{Guid.NewGuid():N}", trees, references, options);
 
 			using (var dllStream = new MemoryStream())
 			{
 				var emit = compilation.Emit(dllStream, options: _emitOptions);
-				var errors = new List<string>();
-				var warnings = new List<string>();
+
+				var errors = Facepunch.Pool.GetList<string>();
+				var warnings = Facepunch.Pool.GetList<string>();
 
 				foreach (var error in emit.Diagnostics)
 				{
@@ -469,9 +474,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					}
 				}
 
-				errors.Clear();
-				warnings.Clear();
-				errors = warnings = null;
+				Facepunch.Pool.FreeList(ref errors);
+				Facepunch.Pool.FreeList(ref warnings);
 
 				if (emit.Success)
 				{
@@ -485,12 +489,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 				}
 			}
 
-			conditionals.Clear();
-			conditionals = null;
 			references.Clear();
 			references = null;
-			trees.Clear();
-			trees = null;
+			Facepunch.Pool.FreeList(ref conditionals);
+			Facepunch.Pool.FreeList(ref trees);
 
 			if (Assembly == null) return;
 
