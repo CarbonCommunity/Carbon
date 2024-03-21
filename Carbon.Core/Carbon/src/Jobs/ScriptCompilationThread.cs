@@ -40,8 +40,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public Dictionary<Type, List<uint>> Hooks = new();
 	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
 	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
-	public float CompileTime;
-	public float InternalCallHookGenTime;
+	public TimeSpan CompileTime;
+	public TimeSpan InternalCallHookGenTime;
 	public Assembly Assembly;
 	public List<CompilerException> Exceptions = new();
 	public List<CompilerException> Warnings = new();
@@ -50,7 +50,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	internal const string _internalCallHookPattern = @"override object InternalCallHook";
 	internal const string _partialPattern = @" partial ";
-	internal DateTime _timeSinceCompile, _timeSinceIntCall;
+	internal Stopwatch _stopwatch;
 	internal List<ClassDeclarationSyntax> ClassList = new();
 	internal static EmitOptions _emitOptions = new(debugInformationFormat: DebugInformationFormat.Embedded);
 	internal static ConcurrentDictionary<string, byte[]> _compilationCache = new();
@@ -321,6 +321,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var trees = Facepunch.Pool.GetList<SyntaxTree>();
 			var conditionals = Facepunch.Pool.GetList<string>();
 
+			_stopwatch = Facepunch.Pool.Get<Stopwatch>();
+
 			try
 			{
 				conditionals.AddRange(Community.Runtime.Config.Debugging.ConditionalCompilationSymbols);
@@ -408,7 +410,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			if (!containsInternalCallHookOverride)
 			{
-				_timeSinceIntCall = DateTime.Now;
+				_stopwatch.Start();
 
 				var completeBody = CSharpSyntaxTree.ParseText(
 					Sources.Select(x => x.Content).ToString("\n"), options: parseOptions, pdbFilename, Encoding.UTF8);
@@ -416,7 +418,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				HookCaller.GeneratePartial(completeBody.GetCompilationUnitRoot(), out var partialTree, parseOptions,
 					pdbFilename, ClassList);
 
-				InternalCallHookGenTime = (DateTime.Now - _timeSinceIntCall).Milliseconds;
+				InternalCallHookGenTime = _stopwatch.Elapsed;
 				trees.Add(partialTree.SyntaxTree);
 			}
 
@@ -432,7 +434,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				allowUnsafe: true
 			);
 
-			_timeSinceCompile = DateTime.Now;
+			_stopwatch.Restart();
 
 			var compilation = CSharpCompilation.Create(
 				$"Script.{InitialSource.FileName}.{Guid.NewGuid():N}", trees, references, options);
@@ -495,9 +497,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Facepunch.Pool.FreeList(ref conditionals);
 			Facepunch.Pool.FreeList(ref trees);
 
-			if (Assembly == null) return;
+			CompileTime = _stopwatch.Elapsed;
+			_stopwatch.Reset();
+			Facepunch.Pool.Free(ref _stopwatch);
 
-			CompileTime = (float)(DateTime.Now - _timeSinceCompile).Milliseconds;
+			if (Assembly == null) return;
 
 			foreach (var type in Assembly.GetTypes())
 			{

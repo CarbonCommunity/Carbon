@@ -178,13 +178,13 @@ public class HookCallerInternal : HookCallerCommon
 				cachedHook.Tick();
 			}
 
-			if (afterHookTime > 100 && hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
+			if (afterHookTime.TotalMilliseconds > 100 && hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 			{
 				var readableHook = HookStringPool.GetOrAdd(hookId);
 
-				Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+				Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime.TotalMilliseconds:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 
-				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTime, totalMemory, cachedHook, hookable);
+				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTime.TotalMilliseconds, totalMemory, cachedHook, hookable);
 			}
 
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
@@ -280,14 +280,14 @@ public class HookCallerInternal : HookCallerCommon
 						cachedHook.Tick();
 					}
 
-					if (afterHookTime > 100)
+					if (afterHookTime.TotalMilliseconds > 100)
 					{
 						if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 						{
 							var readableHook = HookStringPool.GetOrAdd(hookId);
-							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime.TotalMilliseconds:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 
-							Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTime, totalMemory, cachedHook, hookable);
+							Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTime.TotalMilliseconds, totalMemory, cachedHook, hookable);
 						}
 					}
 
