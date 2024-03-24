@@ -54,24 +54,15 @@ public class CommunityInternal : Community
 
 	internal void _installCore()
 	{
-		Plugins = new ModLoader.ModPackage { Name = "Scripts", IsCoreMod = false };
-		ZipPlugins = new ModLoader.ModPackage { Name = "Zip Scripts", IsCoreMod = false };
-
 		Runtime.CorePlugin = CorePlugin = new CorePlugin();
 		CorePlugin.Setup("Core", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
 		ModLoader.ProcessPrecompiledType(CorePlugin);
 		CorePlugin.IsCorePlugin = CorePlugin.IsPrecompiled = true;
 		CorePlugin.IInit();
 
-		var package = new ModLoader.ModPackage
-		{
-			Name = "Carbon Community", IsCoreMod = true, Plugins = new List<RustPlugin> { CorePlugin }
-		};
-		CorePlugin.Package = package;
-
-		ModLoader.LoadedPackages.Add(package);
-		ModLoader.LoadedPackages.Add(Plugins);
-		ModLoader.LoadedPackages.Add(ZipPlugins);
+		ModLoader.RegisterPackage(CorePlugin.Package = ModLoader.ModPackage.Get("Carbon Community", true).AddPlugin(CorePlugin));
+		ModLoader.RegisterPackage(Plugins = ModLoader.ModPackage.Get("Scripts", false));
+		ModLoader.RegisterPackage(ZipPlugins = ModLoader.ModPackage.Get("Zip Scripts", false));
 
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon", hidden: true);
