@@ -124,7 +124,7 @@ public class ScriptLoader : IScriptLoader
 				var plugin = Scripts[i];
 				if (plugin.IsCore || plugin.Instance == null) continue;
 
-				plugin.Instance.Package?.Plugins?.RemoveAll(x => x == plugin.Instance);
+				plugin.Instance.Package.Plugins?.RemoveWhere(x => x == plugin.Instance);
 
 				if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
 
@@ -314,7 +314,7 @@ public class ScriptLoader : IScriptLoader
 
 		if (noRequiresFound)
 		{
-			ModLoader.PostBatchFailedRequirees.Add(InitialSource.ContextFilePath);
+			ModLoader.AddPostBatchFailedRequiree(InitialSource.ContextFilePath);
 			HasFinished = true;
 			Facepunch.Pool.FreeList(ref requires);
 			yield break;
@@ -392,9 +392,9 @@ public class ScriptLoader : IScriptLoader
 			yield break;
 		}
 
-		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime:0}ms [int. {AsyncLoader.InternalCallHookGenTime:0}ms]...", 1);
+		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime.TotalMilliseconds:0}ms [int. {AsyncLoader.InternalCallHookGenTime.TotalMilliseconds:0}ms]...", 1);
 
-		ModLoader.AssemblyCache.Add(AsyncLoader.Assembly);
+		ModLoader.RegisterAssembly(AsyncLoader.Assembly);
 
 		var assembly = AsyncLoader.Assembly;
 		var firstPlugin = true;
@@ -468,7 +468,7 @@ public class ScriptLoader : IScriptLoader
 
 					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, new CarbonEventArgs(rustPlugin));
 
-					ModLoader.AppendAssembly(plugin.Name, AsyncLoader.Assembly);
+					ModLoader.RegisterAssembly(plugin.Name, AsyncLoader.Assembly);
 
 					Carbon.Components.Report.OnPluginCompiled?.Invoke(plugin.Instance);
 
