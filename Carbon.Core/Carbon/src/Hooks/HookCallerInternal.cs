@@ -147,7 +147,7 @@ public class HookCallerInternal : HookCallerCommon
 			hookable.TrackStart();
 			var beforeMemory = hookable.TotalMemoryUsed;
 
-			if (cachedHook != null && cachedHook.IsAsync)
+			if (cachedHook.IsValid && cachedHook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
 				hookable.TrackEnd();
@@ -171,7 +171,7 @@ public class HookCallerInternal : HookCallerCommon
 			Profiler.EndHookCall(hookable);
 #endif
 
-			if (cachedHook != null)
+			if (cachedHook.IsValid)
 			{
 				cachedHook.HookTime += afterHookTime;
 				cachedHook.MemoryUsage += totalMemory;
@@ -217,7 +217,7 @@ public class HookCallerInternal : HookCallerCommon
 						var exception = ex.InnerException ?? ex;
 						var readableHook = HookStringPool.GetOrAdd(hookId);
 						Carbon.Logger.Error(
-							$"Failed to call hook '{readableHook}' on {(hookable is BaseModule ? "module" : "plugin" )} '{hookable.Name} v{hookable.Version}'",
+							$"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'",
 							exception
 						);
 					}
@@ -263,7 +263,7 @@ public class HookCallerInternal : HookCallerCommon
 						var exception = ex.InnerException ?? ex;
 						var readableHook = HookStringPool.GetOrAdd(hookId);
 						Carbon.Logger.Error(
-							$"Failed to call hook '{readableHook}' on {(hookable is BaseModule ? "module" : "plugin" )} '{hookable.Name} v{hookable.Version}'",
+							$"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'",
 							exception
 						);
 					}
@@ -273,7 +273,7 @@ public class HookCallerInternal : HookCallerCommon
 					var afterMemory = hookable.TotalMemoryUsed;
 					var totalMemory = afterMemory - beforeMemory;
 
-					if (cachedHook != null)
+					if (cachedHook.IsValid)
 					{
 						cachedHook.HookTime += afterHookTime;
 						cachedHook.MemoryUsage += totalMemory;
