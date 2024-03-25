@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Pooling;
@@ -107,7 +105,7 @@ public class HookCallerInternal : HookCallerCommon
 
 		hookable.BuildHookCache(flags);
 
-		HashSet<CachedHook> hooks = null;
+		List<CachedHook> hooks = null;
 
 		if (hookable.HookCache != null && !hookable.HookCache.TryGetValue(hookId, out hooks))
 		{
@@ -124,7 +122,7 @@ public class HookCallerInternal : HookCallerCommon
 
 			if (hooks != null && hooks.Count > 0)
 			{
-				cachedHook = hooks.FirstOrDefault();
+				cachedHook = hooks[0];
 
 				if (args != null)
 				{
@@ -219,7 +217,7 @@ public class HookCallerInternal : HookCallerCommon
 						var exception = ex.InnerException ?? ex;
 						var readableHook = HookStringPool.GetOrAdd(hookId);
 						Carbon.Logger.Error(
-							$"Failed to call hook '{readableHook}' on {(hookable is BaseModule ? "module" : "plugin" )} '{hookable.Name} v{hookable.Version}'",
+							$"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'",
 							exception
 						);
 					}
@@ -265,7 +263,7 @@ public class HookCallerInternal : HookCallerCommon
 						var exception = ex.InnerException ?? ex;
 						var readableHook = HookStringPool.GetOrAdd(hookId);
 						Carbon.Logger.Error(
-							$"Failed to call hook '{readableHook}' on {(hookable is BaseModule ? "module" : "plugin" )} '{hookable.Name} v{hookable.Version}'",
+							$"Failed to call hook '{readableHook}' on plugin '{hookable.Name} v{hookable.Version}'",
 							exception
 						);
 					}

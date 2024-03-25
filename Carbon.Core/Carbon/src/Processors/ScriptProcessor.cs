@@ -106,7 +106,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		{
 			try
 			{
-				ModLoader.FailedMods.RemoveWhere(x => x.File == File);
+				ModLoader.FailedMods.RemoveAll(x => x.File == File);
 
 				Loader = new ScriptLoader
 				{
