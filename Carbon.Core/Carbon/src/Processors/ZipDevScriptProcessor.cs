@@ -161,7 +161,7 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 			try
 			{
-				ModLoader.FailedMods.RemoveWhere(x => x.File == File);
+				Carbon.Core.ModLoader.FailedMods.RemoveAll(x => x.File == File);
 
 				if (!OsEx.Folder.Exists(File))
 				{

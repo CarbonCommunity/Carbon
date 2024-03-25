@@ -37,9 +37,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public string[] Requires;
 	public bool IsExtension;
 	public List<string> Usings = new();
-	public Dictionary<Type, HashSet<uint>> Hooks = new();
-	public Dictionary<Type, HashSet<HookMethodAttribute>> HookMethods = new();
-	public Dictionary<Type, HashSet<PluginReferenceAttribute>> PluginReferences = new();
+	public Dictionary<Type, List<uint>> Hooks = new();
+	public Dictionary<Type, List<HookMethodAttribute>> HookMethods = new();
+	public Dictionary<Type, List<PluginReferenceAttribute>> PluginReferences = new();
 	public TimeSpan CompileTime;
 	public TimeSpan InternalCallHookGenTime;
 	public Assembly Assembly;
@@ -505,9 +505,9 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			foreach (var type in Assembly.GetTypes())
 			{
-				var hooks = new HashSet<uint>();
-				var hookMethods = new HashSet<HookMethodAttribute>();
-				var pluginReferences = new HashSet<PluginReferenceAttribute>();
+				var hooks = new List<uint>();
+				var hookMethods = new List<HookMethodAttribute>();
+				var pluginReferences = new List<PluginReferenceAttribute>();
 				Hooks.Add(type, hooks);
 				HookMethods.Add(type, hookMethods);
 				PluginReferences.Add(type, pluginReferences);
