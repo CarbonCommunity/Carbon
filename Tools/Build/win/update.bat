@@ -17,7 +17,7 @@ if "%1" EQU "" (
 
 "%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
 	--plugininput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core" ^
-	--pluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Generated\CorePlugin-Generated.cs"
+	--pluginoutput "%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Core\Core.Plugin-Generated.cs"
 
 for /d %%O in (%UPDATE_ROOT%\Carbon.Core\Carbon.Components\Carbon.Common\src\Carbon\Modules\*) do (
 	"%UPDATE_ROOT%\Tools\Helpers\CodeGen.exe" ^
