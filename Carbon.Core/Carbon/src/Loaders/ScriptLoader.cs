@@ -358,10 +358,10 @@ public class ScriptLoader : IScriptLoader
 					Logger.Error($"  {i + 1:n0}. {print}");
 				}
 
-				ModLoader.FailedMods.Add(new ModLoader.FailedMod
+				var compilationFailure = new ModLoader.FailedCompilation
 				{
 					File = InitialSource.ContextFilePath,
-					Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedMod.Error
+					Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedCompilation.Trace
 					{
 						Message = x.Error.ErrorText,
 						Number = x.Error.ErrorNumber,
@@ -369,7 +369,7 @@ public class ScriptLoader : IScriptLoader
 						Line = x.Error.Line
 					}).ToArray(),
 #if DEBUG
-					Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
+					Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedCompilation.Trace
 					{
 						Message = x.Error.ErrorText,
 						Number = x.Error.ErrorNumber,
@@ -377,7 +377,12 @@ public class ScriptLoader : IScriptLoader
 						Line = x.Error.Line
 					}).ToArray()
 #endif
-				});
+				};
+
+				// OnCompilationFail
+				HookCaller.CallStaticHook(150731668, InitialSource.ContextFilePath, compilationFailure.Errors, compilationFailure.Warnings);
+
+				ModLoader.FailedCompilations.Add(compilationFailure);
 			}
 
 			AsyncLoader.Exceptions?.Clear();
@@ -439,7 +444,7 @@ public class ScriptLoader : IScriptLoader
 						p.HasConditionals = Sources.Any(x => x.Content.Contains("#if "));
 						p.IsExtension = IsExtension;
 #if DEBUG
-						p.CompileWarnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedMod.Error
+						p.CompileWarnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedCompilation.Trace
 						{
 							Message = x.Error.ErrorText,
 							Number = x.Error.ErrorNumber,
