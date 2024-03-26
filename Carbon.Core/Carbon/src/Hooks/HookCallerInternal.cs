@@ -105,7 +105,7 @@ public class HookCallerInternal : HookCallerCommon
 
 		List<CachedHook> hooks = null;
 
-		if (hookable.HookCache != null && !hookable.HookCache.TryGetValue(hookId, out hooks))
+		if (hookable.HookPool != null && !hookable.HookPool.TryGetValue(hookId, out hooks))
 		{
 			return null;
 		}
@@ -116,24 +116,24 @@ public class HookCallerInternal : HookCallerCommon
 
 		if (hookable.InternalCallHookOverriden)
 		{
-			var cachedHook = (CachedHook)default;
+			var hook = (CachedHook)default;
 
 			if (hooks != null && hooks.Count > 0)
 			{
-				cachedHook = hooks[0];
+				hook = hooks[0];
 
 				if (args != null)
 				{
-					var actualLength = cachedHook.Parameters.Length;
+					var actualLength = hook.Parameters.Length;
 
 					if (actualLength != args.Length)
 					{
-						args = RescaleBuffer(args, actualLength, cachedHook);
+						args = RescaleBuffer(args, actualLength, hook);
 						hasRescaledBuffer = true;
 					}
 					else
 					{
-						ProcessDefaults(args, cachedHook);
+						ProcessDefaults(args, hook);
 					}
 				}
 			}
@@ -145,7 +145,7 @@ public class HookCallerInternal : HookCallerCommon
 			hookable.TrackStart();
 			var beforeMemory = hookable.TotalMemoryUsed;
 
-			if (cachedHook.IsValid && cachedHook.IsAsync)
+			if (hook.IsValid && hook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
 				hookable.TrackEnd();
@@ -169,12 +169,7 @@ public class HookCallerInternal : HookCallerCommon
 			Profiler.EndHookCall(hookable);
 #endif
 
-			if (cachedHook.IsValid)
-			{
-				cachedHook.AppendHookTime(afterHookTime);
-				cachedHook.AppendMemoryUsage(totalMemory);
-				cachedHook.OnFire();
-			}
+			hook.OnFired(afterHookTime, totalMemory);
 
 			var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 
@@ -188,10 +183,10 @@ public class HookCallerInternal : HookCallerCommon
 
 				if (wasLagSpike)
 				{
-					cachedHook.OnLagSpike();
+					hook.OnLagSpike();
 				}
 
-				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, cachedHook, hookable, wasLagSpike);
+				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
 			}
 
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
@@ -234,24 +229,24 @@ public class HookCallerInternal : HookCallerCommon
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
 			FrameDispose(false, args, ref conflicts);
 
-			static object DoCall(T hookable, uint hookId, CachedHook cachedHook, object[] args, ref bool hasRescaledBuffer)
+			static object DoCall(T hookable, uint hookId, CachedHook hook, object[] args, ref bool hasRescaledBuffer)
 			{
 				if (args != null)
 				{
-					var actualLength = cachedHook.Parameters.Length;
+					var actualLength = hook.Parameters.Length;
 
 					if (actualLength != args.Length)
 					{
-						args = HookCaller.Caller.RescaleBuffer(args, actualLength, cachedHook);
+						args = HookCaller.Caller.RescaleBuffer(args, actualLength, hook);
 						hasRescaledBuffer = true;
 					}
 					else
 					{
-						HookCaller.Caller.ProcessDefaults(args, cachedHook);
+						HookCaller.Caller.ProcessDefaults(args, hook);
 					}
 				}
 
-				if (args == null || SequenceEqual(cachedHook.Parameters, args))
+				if (args == null || SequenceEqual(hook.Parameters, args))
 				{
 #if DEBUG
 					Profiler.StartHookCall(hookable, hookId);
@@ -263,7 +258,7 @@ public class HookCallerInternal : HookCallerCommon
 
 					try
 					{
-						result2 = cachedHook.Method.Invoke(hookable, args);
+						result2 = hook.Method.Invoke(hookable, args);
 					}
 					catch (Exception ex)
 					{
@@ -280,12 +275,7 @@ public class HookCallerInternal : HookCallerCommon
 					var afterMemory = hookable.TotalMemoryUsed;
 					var totalMemory = afterMemory - beforeMemory;
 
-					if (cachedHook.IsValid)
-					{
-						cachedHook.HookTime += afterHookTime;
-						cachedHook.MemoryUsage += totalMemory;
-						cachedHook.OnFire();
-					}
+					hook.OnFired(afterHookTime, totalMemory);
 
 					var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 
@@ -300,10 +290,10 @@ public class HookCallerInternal : HookCallerCommon
 
 							if (wasLagSpike)
 							{
-								cachedHook.OnLagSpike();
+								hook.OnLagSpike();
 							}
 
-							Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, cachedHook, hookable, wasLagSpike);
+							Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
 						}
 					}
 
