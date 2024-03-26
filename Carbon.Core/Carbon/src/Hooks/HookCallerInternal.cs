@@ -94,8 +94,6 @@ public class HookCallerInternal : HookCallerCommon
 		}
 	}
 
-	internal static Conflict _defaultConflict = new();
-
 	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args)
 	{
 		if (hookable.IsHookIgnored(hookId))
@@ -173,18 +171,27 @@ public class HookCallerInternal : HookCallerCommon
 
 			if (cachedHook.IsValid)
 			{
-				cachedHook.HookTime += afterHookTime;
-				cachedHook.MemoryUsage += totalMemory;
-				cachedHook.Tick();
+				cachedHook.AppendHookTime(afterHookTime);
+				cachedHook.AppendMemoryUsage(totalMemory);
+				cachedHook.OnFire();
 			}
 
-			if (afterHookTime.TotalMilliseconds > 100 && hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
+			var afterHookTimeMs = afterHookTime.TotalMilliseconds;
+
+			if (afterHookTimeMs > 100 && hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 			{
 				var readableHook = HookStringPool.GetOrAdd(hookId);
 
-				Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime.TotalMilliseconds:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+				Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 
-				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTime.TotalMilliseconds, totalMemory, cachedHook, hookable);
+				var wasLagSpike = afterHookTimeMs >= Community.Runtime.Config.Debugging.HookLagSpikeThreshold;
+
+				if (wasLagSpike)
+				{
+					cachedHook.OnLagSpike();
+				}
+
+				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, cachedHook, hookable, wasLagSpike);
 			}
 
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
@@ -277,17 +284,26 @@ public class HookCallerInternal : HookCallerCommon
 					{
 						cachedHook.HookTime += afterHookTime;
 						cachedHook.MemoryUsage += totalMemory;
-						cachedHook.Tick();
+						cachedHook.OnFire();
 					}
 
-					if (afterHookTime.TotalMilliseconds > 100)
+					var afterHookTimeMs = afterHookTime.TotalMilliseconds;
+
+					if (afterHookTimeMs > 100)
 					{
 						if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 						{
 							var readableHook = HookStringPool.GetOrAdd(hookId);
-							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTime.TotalMilliseconds:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 
-							Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTime.TotalMilliseconds, totalMemory, cachedHook, hookable);
+							var wasLagSpike = afterHookTimeMs >= Community.Runtime.Config.Debugging.HookLagSpikeThreshold;
+
+							if (wasLagSpike)
+							{
+								cachedHook.OnLagSpike();
+							}
+
+							Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, cachedHook, hookable, wasLagSpike);
 						}
 					}
 
