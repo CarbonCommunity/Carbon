@@ -72,8 +72,8 @@ public class ScriptLoader : IScriptLoader
 	{
 		var config = Community.Runtime.Config;
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
-		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cs", option: config.Watchers.ScriptWatcherOption);
-		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptFolder(), "cszip", option: config.Watchers.ScriptWatcherOption);
+		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cs", option: config.Watchers.ScriptWatcherOption);
+		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cszip", option: config.Watchers.ScriptWatcherOption);
 
 		ExecuteProcess(Community.Runtime.ScriptProcessor, false, extensionPlugins, plugins);
 		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, zipPlugins);
@@ -322,8 +322,6 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		if (AsyncLoader != null) Carbon.Components.Report.OnPluginAdded?.Invoke(InitialSource.ContextFilePath);
-
 		var requiresResult = requires.ToArray();
 
 #if DISABLE_ASYNC_LOADING
@@ -474,9 +472,7 @@ public class ScriptLoader : IScriptLoader
 					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, new CarbonEventArgs(rustPlugin));
 
 					ModLoader.RegisterAssembly(plugin.Name, AsyncLoader.Assembly);
-
-					Carbon.Components.Report.OnPluginCompiled?.Invoke(plugin.Instance);
-
+					
 					Plugin.InternalApplyAllPluginReferences();
 
 					// OnPluginLoaded

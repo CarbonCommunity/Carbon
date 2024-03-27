@@ -22,7 +22,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 {
 	public override string Name => "ZipScript Processor";
 	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.Watchers.ZipScriptWatchers;
-	public override string Folder => Defines.GetScriptFolder();
+	public override string Folder => Defines.GetScriptsFolder();
 	public override string Extension => ".cszip";
 	public override Type IndexedType => typeof(ZipScript);
 
