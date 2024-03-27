@@ -14,7 +14,7 @@ TARGET=${1:-public}
 
 mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
 	--plugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core" \
-	--pluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Generated/CorePlugin-Generated.cs"
+	--pluginoutput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core/Core.Plugin-Generated.cs"
 
 for MODULE in "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Modules/"*; do
 	if [ -d "${MODULE}" ] 
