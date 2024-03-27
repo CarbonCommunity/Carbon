@@ -472,7 +472,7 @@ public class ScriptLoader : IScriptLoader
 					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, new CarbonEventArgs(rustPlugin));
 
 					ModLoader.RegisterAssembly(plugin.Name, AsyncLoader.Assembly);
-					
+
 					Plugin.InternalApplyAllPluginReferences();
 
 					// OnPluginLoaded
