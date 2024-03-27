@@ -258,7 +258,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	{
 		foreach (var player in BasePlayer.activePlayerList)
 		{
-			player.ClientRPCPlayer(null, player, "StartLoading");
+			player.ClientRPC(RpcTarget.Player("StartLoading", player));
 
 			DisplayMessage(player.Connection, "Carbon Update", "Updating hooks...");
 		}
