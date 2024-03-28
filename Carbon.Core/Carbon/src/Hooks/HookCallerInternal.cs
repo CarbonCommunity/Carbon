@@ -169,7 +169,7 @@ public class HookCallerInternal : HookCallerCommon
 			Profiler.EndHookCall(hookable);
 #endif
 
-			hook.OnFired(afterHookTime, totalMemory);
+			hook?.OnFired(afterHookTime, totalMemory);
 
 			var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 
@@ -183,7 +183,7 @@ public class HookCallerInternal : HookCallerCommon
 
 				if (wasLagSpike)
 				{
-					hook.OnLagSpike();
+					hook?.OnLagSpike();
 				}
 
 				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
