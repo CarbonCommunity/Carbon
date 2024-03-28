@@ -96,7 +96,7 @@ public class HookCallerInternal : HookCallerCommon
 
 	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args)
 	{
-		if (hookable.IsHookIgnored(hookId))
+		if (!hookable.HasInitialized || hookable.IsHookIgnored(hookId))
 		{
 			return null;
 		}
@@ -145,7 +145,7 @@ public class HookCallerInternal : HookCallerCommon
 			hookable.TrackStart();
 			var beforeMemory = hookable.TotalMemoryUsed;
 
-			if (hook != null && hook.IsValid && hook.IsAsync)
+			if (hook != null && hook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
 				hookable.TrackEnd();
