@@ -145,7 +145,7 @@ public class HookCallerInternal : HookCallerCommon
 			hookable.TrackStart();
 			var beforeMemory = hookable.TotalMemoryUsed;
 
-			if (hook.IsValid && hook.IsAsync)
+			if (hook != null && hook.IsValid && hook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
 				hookable.TrackEnd();
