@@ -96,7 +96,7 @@ public class HookCallerInternal : HookCallerCommon
 
 	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args)
 	{
-		if (!hookable.HasInitialized || hookable.IsHookIgnored(hookId))
+		if (hookable.IsHookIgnored(hookId))
 		{
 			return null;
 		}
