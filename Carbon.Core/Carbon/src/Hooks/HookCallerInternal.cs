@@ -96,7 +96,7 @@ public class HookCallerInternal : HookCallerCommon
 
 	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args)
 	{
-		if (hookable.IsHookIgnored(hookId))
+		if (!hookable.HasInitialized || hookable.IsHookIgnored(hookId))
 		{
 			return null;
 		}
@@ -145,7 +145,7 @@ public class HookCallerInternal : HookCallerCommon
 			hookable.TrackStart();
 			var beforeMemory = hookable.TotalMemoryUsed;
 
-			if (hook.IsValid && hook.IsAsync)
+			if (hook != null && hook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
 				hookable.TrackEnd();
@@ -169,7 +169,7 @@ public class HookCallerInternal : HookCallerCommon
 			Profiler.EndHookCall(hookable);
 #endif
 
-			hook.OnFired(afterHookTime, totalMemory);
+			hook?.OnFired(afterHookTime, totalMemory);
 
 			var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 
@@ -183,7 +183,7 @@ public class HookCallerInternal : HookCallerCommon
 
 				if (wasLagSpike)
 				{
-					hook.OnLagSpike();
+					hook?.OnLagSpike();
 				}
 
 				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
