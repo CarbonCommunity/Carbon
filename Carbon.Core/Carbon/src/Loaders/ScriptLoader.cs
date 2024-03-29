@@ -359,7 +359,7 @@ public class ScriptLoader : IScriptLoader
 				var compilationFailure = new ModLoader.FailedCompilation
 				{
 					File = InitialSource.ContextFilePath,
-					Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.FailedCompilation.Trace
+					Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.Trace
 					{
 						Message = x.Error.ErrorText,
 						Number = x.Error.ErrorNumber,
@@ -367,7 +367,7 @@ public class ScriptLoader : IScriptLoader
 						Line = x.Error.Line
 					}).ToArray(),
 #if DEBUG
-					Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedCompilation.Trace
+					Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.Trace
 					{
 						Message = x.Error.ErrorText,
 						Number = x.Error.ErrorNumber,
@@ -442,7 +442,7 @@ public class ScriptLoader : IScriptLoader
 						p.HasConditionals = Sources.Any(x => x.Content.Contains("#if "));
 						p.IsExtension = IsExtension;
 #if DEBUG
-						p.CompileWarnings = AsyncLoader.Warnings.Select(x => new ModLoader.FailedCompilation.Trace
+						p.CompileWarnings = AsyncLoader.Warnings.Select(x => new ModLoader.Trace
 						{
 							Message = x.Error.ErrorText,
 							Number = x.Error.ErrorNumber,
