@@ -22,7 +22,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 {
 	public override string Name => "ZipScript Processor";
 	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.Watchers.ZipScriptWatchers;
-	public override string Folder => Defines.GetScriptFolder();
+	public override string Folder => Defines.GetScriptsFolder();
 	public override string Extension => ".cszip";
 	public override Type IndexedType => typeof(ZipScript);
 
@@ -108,7 +108,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 		{
 			try
 			{
-				Carbon.Core.ModLoader.FailedMods.RemoveAll(x => x.File == File);
+				Carbon.Core.ModLoader.FailedCompilations.RemoveAll(x => x.File == File);
 
 				if (!OsEx.File.Exists(File))
 				{
