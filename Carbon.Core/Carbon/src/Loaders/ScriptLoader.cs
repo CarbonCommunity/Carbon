@@ -104,7 +104,7 @@ public class ScriptLoader : IScriptLoader
 
 			foreach (var plugin in processor.InstanceBuffer)
 			{
-				plugin.Value.SetDirty();
+				plugin.Value.MarkDirty();
 			}
 
 			Array.Clear(folders, 0, folders.Length);
