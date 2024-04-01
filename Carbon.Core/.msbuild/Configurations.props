@@ -15,8 +15,8 @@
 	<Choose>
 		<When Condition="$(Configuration.Contains('Release'))">
 			<PropertyGroup>
-				<DebugType>none</DebugType>
-				<DebugSymbols>false</DebugSymbols>
+				<DebugType>embedded</DebugType>
+				<DebugSymbols>true</DebugSymbols>
 				<DefineConstants>$(DefineConstants)</DefineConstants>
 				<Optimize>true</Optimize>
 				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -31,8 +31,8 @@
 		</When>
 		<When Condition="$(Configuration.Contains('Minimal'))">
 			<PropertyGroup>
-				<DebugType>none</DebugType>
-				<DebugSymbols>false</DebugSymbols>
+				<DebugType>embedded</DebugType>
+				<DebugSymbols>true</DebugSymbols>
 				<DefineConstants>MINIMAL;$(DefineConstants)</DefineConstants>
 				<Optimize>true</Optimize>
 				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
