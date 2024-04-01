@@ -95,13 +95,13 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 		if (InstanceBuffer.TryGetValue(directory, out var instance1))
 		{
-			instance1?.SetDirty();
+			instance1?.MarkDirty();
 			return;
 		}
 
 		if (InstanceBuffer.TryGetValue(id, out var instance2))
 		{
-			instance2?.SetDirty();
+			instance2?.MarkDirty();
 			return;
 		}
 
@@ -114,7 +114,7 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.SetDirty();
+		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.MarkDirty();
 	}
 	public override void OnRenamed(object sender, RenamedEventArgs e)
 	{
