@@ -91,7 +91,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 
 		public override IBaseProcessor.IParser Parser => new ZipScriptParser();
 
-		public override void Dispose()
+		public override void Clear()
 		{
 			try
 			{
@@ -99,16 +99,25 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 			}
 			catch (Exception ex)
 			{
+				Logger.Error($"Error clearing {File}", ex);
+			}
+		}
+		public override void Dispose()
+		{
+			try
+			{
+				Loader?.Dispose();
+			}
+			catch (Exception ex)
+			{
 				Logger.Error($"Error disposing {File}", ex);
 			}
-
-			Loader = null;
 		}
 		public override void Execute(IBaseProcessor processor)
 		{
 			try
 			{
-				Carbon.Core.ModLoader.FailedCompilations.RemoveAll(x => x.File == File);
+				ModLoader.GetOrCreateFailedCompilation(File).Clear();
 
 				if (!OsEx.File.Exists(File))
 				{
