@@ -378,7 +378,24 @@ public class ScriptLoader : IScriptLoader
 				// OnCompilationFail
 				HookCaller.CallStaticHook(150731668, InitialSource.ContextFilePath, compilationFailure);
 
-				compilationFailure.LoadRollbackType();
+				if (Community.Runtime.Config.Compiler.UnloadOnFailure)
+				{
+					var rollbackTypeName = compilationFailure.GetRollbackTypeName();
+
+					if (!string.IsNullOrEmpty(rollbackTypeName))
+					{
+						var existentPlugin = ModLoader.FindPlugin(rollbackTypeName);
+
+						if (existentPlugin != null)
+						{
+							ModLoader.UninitializePlugin(existentPlugin);
+						}
+					}
+				}
+				else
+				{
+					compilationFailure.LoadRollbackType();
+				}
 			}
 
 			AsyncLoader.Exceptions?.Clear();

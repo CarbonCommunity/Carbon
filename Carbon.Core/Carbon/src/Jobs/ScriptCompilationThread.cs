@@ -325,7 +325,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			try
 			{
-				conditionals.AddRange(Community.Runtime.Config.Debugging.ConditionalCompilationSymbols);
+				conditionals.AddRange(Community.Runtime.Config.Compiler.ConditionalCompilationSymbols);
 			}
 			catch (Exception ex)
 			{
