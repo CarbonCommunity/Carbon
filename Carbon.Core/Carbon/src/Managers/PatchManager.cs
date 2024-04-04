@@ -92,13 +92,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		_metadataHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 		_workQueue = new Queue<string>();
-
-		Community.Runtime.CommandManager.RegisterCommand(new Command.RCon
-		{
-			Name = "c.hooks",
-			Callback = (arg) => CMDHookInfo(arg)
-		}, out string _);
-
+		
 		enabled = false;
 
 		var doHookUpdate = !CommandLineEx.GetArgumentExists("+carbon.skiphookupdates");
@@ -258,7 +252,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	{
 		foreach (var player in BasePlayer.activePlayerList)
 		{
-			player.ClientRPCPlayer(null, player, "StartLoading");
+			player.ClientRPC(RpcTarget.Player("StartLoading", player));
 
 			DisplayMessage(player.Connection, "Carbon Update", "Updating hooks...");
 		}
@@ -718,164 +712,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		byte[] bytes = sha1.ComputeHash(raw);
 		return string.Concat(bytes.Select(b => b.ToString("x2"))).ToLower();
 	}
-
-	private void CMDHookInfo(Command.Args arg)
-	{
-		if (!arg.Tokenize<ConsoleSystem.Arg>(out var args)) return;
-
-		TextTable table = new();
-		int count = 0, success = 0, warning = 0, failure = 0;
-
-		string option1 = args.GetString(0, null);
-		string option2 = args.GetString(1, null);
-
-		table.AddColumns("#", "Name", "Hook", "Id", "Type", "Status", "Total", "Sub");
-
-		switch (option1)
-		{
-			case "loaded":
-				{
-					IEnumerable<IHook> hooks;
-
-					switch (option2)
-					{
-						case "--patch":
-							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
-							break;
-
-						case "--static":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--dynamic":
-							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
-							break;
-
-						default:
-#if DEBUG_VERBOSE
-							hooks = Community.Runtime.HookManager.LoadedPatches;
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks);
-#else
-							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
-#endif
-							break;
-					}
-
-					switch (option2)
-					{
-						case "--usage":
-							hooks = hooks.OrderByDescending(x => HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(x.HookName)));
-							break;
-
-						default:
-							hooks = hooks.OrderBy(x => x.HookFullName);
-							break;
-					}
-
-					foreach (var mod in hooks)
-					{
-						if (mod.Status == HookState.Failure) failure++;
-						if (mod.Status == HookState.Success) success++;
-						if (mod.Status == HookState.Warning) warning++;
-
-						table.AddRow(
-							$"{count++:n0}",
-							mod.IsHidden
-								? $"{mod.HookFullName} (*)"
-								: mod.HookFullName,
-							mod.HookName,
-							mod.Identifier[^6..],
-							mod.IsStaticHook
-								? "Static"
-								: mod.IsPatch ? "Patch" : "Dynamic",
-							$"{mod.Status}",
-							//$"{HookCaller.GetHookTime(mod.HookName)}ms",
-							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName)).TotalMilliseconds:0}ms",
-							(mod.IsStaticHook)
-								? "N/A" :
-								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
-						);
-					}
-
-					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}"
-						+ Environment.NewLine + Environment.NewLine + table.ToString());
-					break;
-				}
-
-			default: // list installed
-				{
-					IEnumerable<IHook> hooks;
-
-					switch (option1)
-					{
-						case "--patch":
-							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
-							break;
-
-						case "--static":
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
-							break;
-
-						case "--dynamic":
-							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
-							break;
-
-						default:
-#if DEBUG_VERBOSE
-							hooks = Community.Runtime.HookManager.InstalledPatches;
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks);
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks);
-#else
-							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
-#endif
-							break;
-					}
-
-					if (option1 == "--usage" || option2 == "--usage")
-					{
-						hooks = hooks.OrderByDescending(x => HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(x.HookName)));
-					}
-					else
-					{
-						hooks = hooks.OrderBy(x => x.HookFullName);
-					}
-
-					foreach (var mod in hooks)
-					{
-						if (mod.Status == HookState.Failure) failure++;
-						if (mod.Status == HookState.Success) success++;
-						if (mod.Status == HookState.Warning) warning++;
-
-						table.AddRow(
-							$"{count++:n0}",
-							mod.IsHidden
-								? $"{mod.HookFullName} (*)"
-								: mod.HookFullName,
-							mod.HookName,
-							mod.Identifier[^6..],
-							mod.IsStaticHook
-								? "Static"
-								: mod.IsPatch ? "Patch" : "Dynamic",
-							$"{mod.Status}",
-							$"{HookCaller.GetHookTotalTime(HookStringPool.GetOrAdd(mod.HookName)).TotalMilliseconds:0}ms",
-							(mod.IsStaticHook)
-								? "N/A" :
-								$"{Community.Runtime.HookManager.GetHookSubscriberCount(mod.Identifier),3}"
-						);
-					}
-
-					arg.ReplyWith($"total:{count} success:{success} warning:{warning} failed:{failure}"
-						+ Environment.NewLine + Environment.NewLine + table.ToString());
-					break;
-				}
-		}
-	}
-
 
 	private bool _disposing;
 

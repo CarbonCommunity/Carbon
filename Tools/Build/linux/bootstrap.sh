@@ -46,7 +46,7 @@ for TOOL in DepotDownloader; do
 done
 
 # Download rust binary libs
-"${BASE}/update.sh" release
+"${BASE}/update.sh"
 
 # Don't track changes to this file
 git -C "${ROOT}" update-index --assume-unchanged "${ROOT}/Tools/Helpers/doorstop_config.ini"

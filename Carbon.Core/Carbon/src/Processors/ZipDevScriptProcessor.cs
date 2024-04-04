@@ -95,13 +95,13 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 		if (InstanceBuffer.TryGetValue(directory, out var instance1))
 		{
-			instance1?.SetDirty();
+			instance1?.MarkDirty();
 			return;
 		}
 
 		if (InstanceBuffer.TryGetValue(id, out var instance2))
 		{
-			instance2?.SetDirty();
+			instance2?.MarkDirty();
 			return;
 		}
 
@@ -114,7 +114,7 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 		if (!EnableWatcher || IsBlacklisted(e.FullPath)) return;
 
-		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.SetDirty();
+		if (InstanceBuffer.TryGetValue(directory, out var mod)) mod.MarkDirty();
 	}
 	public override void OnRenamed(object sender, RenamedEventArgs e)
 	{
@@ -142,7 +142,7 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 		public override IBaseProcessor.IParser Parser => new ZipDevScriptParser();
 
-		public override void Dispose()
+		public override void Clear()
 		{
 			try
 			{
@@ -150,10 +150,19 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 			}
 			catch (Exception ex)
 			{
+				Logger.Error($"Error clearing {File}", ex);
+			}
+		}
+		public override void Dispose()
+		{
+			try
+			{
+				Loader?.Dispose();
+			}
+			catch (Exception ex)
+			{
 				Logger.Error($"Error disposing {File}", ex);
 			}
-
-			Loader = null;
 		}
 		public override void Execute(IBaseProcessor processor)
 		{
@@ -161,7 +170,7 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 			try
 			{
-				Carbon.Core.ModLoader.FailedCompilations.RemoveAll(x => x.File == File);
+				ModLoader.GetOrCreateFailedCompilation(File).Clear();
 
 				if (!OsEx.Folder.Exists(File))
 				{

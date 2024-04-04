@@ -35,6 +35,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 	public List<ISource> Sources;
 	public string[] References;
 	public string[] Requires;
+	public string InternalCallHookSource;
 	public bool IsExtension;
 	public List<string> Usings = new();
 	public Dictionary<Type, List<uint>> Hooks = new();
@@ -325,7 +326,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			try
 			{
-				conditionals.AddRange(Community.Runtime.Config.Debugging.ConditionalCompilationSymbols);
+				conditionals.AddRange(Community.Runtime.Config.Compiler.ConditionalCompilationSymbols);
 			}
 			catch (Exception ex)
 			{
@@ -419,6 +420,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					pdbFilename, ClassList);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
+				InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
 				trees.Add(partialTree.SyntaxTree);
 			}
 
@@ -570,5 +572,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 		PluginReferences = null;
 		Exceptions = null;
 		Warnings = null;
+		InternalCallHookSource = null;
 	}
 }
