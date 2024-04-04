@@ -392,10 +392,6 @@ public class ScriptLoader : IScriptLoader
 						}
 					}
 				}
-				else
-				{
-					compilationFailure.LoadRollbackType();
-				}
 			}
 
 			AsyncLoader.Exceptions?.Clear();
@@ -426,7 +422,7 @@ public class ScriptLoader : IScriptLoader
 
 				if (type.GetCustomAttribute(typeof(InfoAttribute), true) is not InfoAttribute info) continue;
 
-				if (!IsExtension && firstPlugin && Community.Runtime.Config.Watchers.FileNameCheck && !BypassFileNameChecks)
+				if (!IsExtension && firstPlugin && !BypassFileNameChecks)
 				{
 					var name = Path.GetFileNameWithoutExtension(InitialSource.FilePath).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
 
