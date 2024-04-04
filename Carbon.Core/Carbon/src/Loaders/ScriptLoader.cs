@@ -535,8 +535,8 @@ public class ScriptLoader : IScriptLoader
 		}
 
 		Sources?.Clear();
-		Sources = null;
 		Scripts?.Clear();
+		Sources = null;
 		Scripts = null;
 
 		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
