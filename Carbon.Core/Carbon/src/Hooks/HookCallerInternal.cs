@@ -121,21 +121,6 @@ public class HookCallerInternal : HookCallerCommon
 			if (hooks != null && hooks.Count > 0)
 			{
 				hook = hooks[0];
-
-				if (args != null)
-				{
-					var actualLength = hook.Parameters.Length;
-
-					if (actualLength != args.Length)
-					{
-						args = RescaleBuffer(args, actualLength, hook);
-						hasRescaledBuffer = true;
-					}
-					else
-					{
-						ProcessDefaults(args, hook);
-					}
-				}
 			}
 
 #if DEBUG

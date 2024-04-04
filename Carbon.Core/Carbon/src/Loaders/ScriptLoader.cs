@@ -471,6 +471,7 @@ public class ScriptLoader : IScriptLoader
 						p.SetProcessor(Community.Runtime.ScriptProcessor);
 						p.CompileTime = AsyncLoader.CompileTime;
 						p.InternalCallHookGenTime = AsyncLoader.InternalCallHookGenTime;
+						p.InternalCallHookSource = AsyncLoader.InternalCallHookSource;
 
 						p.FilePath = AsyncLoader.InitialSource.ContextFilePath;
 						p.FileName = AsyncLoader.InitialSource.ContextFileName;
