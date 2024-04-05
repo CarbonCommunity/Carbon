@@ -29,7 +29,7 @@ public class ScriptLoader : IScriptLoader
 {
 	public const int BusyFileAttempts = 10;
 
-	public ISource InitialSource => Sources.Count > 0 ? Sources[0] : null;
+	public ISource InitialSource => Sources?.Count > 0 ? Sources[0] : null;
 
 	public bool BypassFileNameChecks { get; set; }
 

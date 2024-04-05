@@ -549,9 +549,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 		}
 		catch (Exception ex)
 		{
+			Logger.Error($"Threading compilation failed for '{InitialSource?.ContextFilePath}'", ex);
 			Analytics.plugin_native_compile_fail(InitialSource, ex);
-
-			System.Console.WriteLine($"Threading compilation failed for '{InitialSource.ContextFilePath}': {ex}");
 		}
 	}
 
