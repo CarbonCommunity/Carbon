@@ -29,7 +29,7 @@ public class ScriptLoader : IScriptLoader
 {
 	public const int BusyFileAttempts = 10;
 
-	public ISource InitialSource => Sources.Count > 0 ? Sources[0] : null;
+	public ISource InitialSource => Sources?.Count > 0 ? Sources[0] : null;
 
 	public bool BypassFileNameChecks { get; set; }
 
@@ -114,9 +114,6 @@ public class ScriptLoader : IScriptLoader
 
 	public void Clear()
 	{
-		AsyncLoader?.Abort();
-		AsyncLoader = null;
-
 		if (Scripts != null)
 		{
 			for (int i = 0; i < Scripts.Count; i++)
@@ -356,31 +353,45 @@ public class ScriptLoader : IScriptLoader
 					Logger.Error($"  {i + 1:n0}. {print}");
 				}
 
-				var compilationFailure = new ModLoader.FailedCompilation
+				var compilationFailure = ModLoader.GetOrCreateFailedCompilation(InitialSource.ContextFilePath);
+				compilationFailure.Clear();
+
+				compilationFailure.RollbackType = ModLoader.GetRegisteredType(InitialSource.ContextFilePath);
+				compilationFailure.AppendErrors(AsyncLoader.Exceptions.Select(x => new ModLoader.Trace
 				{
-					File = InitialSource.ContextFilePath,
-					Errors = AsyncLoader.Exceptions.Select(x => new ModLoader.Trace
-					{
-						Message = x.Error.ErrorText,
-						Number = x.Error.ErrorNumber,
-						Column = x.Error.Column,
-						Line = x.Error.Line
-					}).ToArray(),
+					Message = x.Error.ErrorText,
+					Number = x.Error.ErrorNumber,
+					Column = x.Error.Column,
+					Line = x.Error.Line
+				}));
+
 #if DEBUG
-					Warnings = AsyncLoader.Warnings.Select(x => new ModLoader.Trace
-					{
-						Message = x.Error.ErrorText,
-						Number = x.Error.ErrorNumber,
-						Column = x.Error.Column,
-						Line = x.Error.Line
-					}).ToArray()
+				compilationFailure.AppendWarnings(AsyncLoader.Warnings.Select(x => new ModLoader.Trace
+				{
+					Message = x.Error.ErrorText,
+					Number = x.Error.ErrorNumber,
+					Column = x.Error.Column,
+					Line = x.Error.Line
+				}));
 #endif
-				};
 
 				// OnCompilationFail
-				HookCaller.CallStaticHook(150731668, InitialSource.ContextFilePath, compilationFailure.Errors, compilationFailure.Warnings);
+				HookCaller.CallStaticHook(150731668, InitialSource.ContextFilePath, compilationFailure);
 
-				ModLoader.FailedCompilations.Add(compilationFailure);
+				if (Community.Runtime.Config.Compiler.UnloadOnFailure)
+				{
+					var rollbackTypeName = compilationFailure.GetRollbackTypeName();
+
+					if (!string.IsNullOrEmpty(rollbackTypeName))
+					{
+						var existentPlugin = ModLoader.FindPlugin(rollbackTypeName);
+
+						if (existentPlugin != null)
+						{
+							ModLoader.UninitializePlugin(existentPlugin);
+						}
+					}
+				}
 			}
 
 			AsyncLoader.Exceptions?.Clear();
@@ -397,8 +408,6 @@ public class ScriptLoader : IScriptLoader
 
 		Logger.Debug($" Compiling '{(!string.IsNullOrEmpty(InitialSource.FilePath) ? Path.GetFileNameWithoutExtension(InitialSource.FilePath) : "<unknown>")}' took {AsyncLoader.CompileTime.TotalMilliseconds:0}ms [int. {AsyncLoader.InternalCallHookGenTime.TotalMilliseconds:0}ms]...", 1);
 
-		ModLoader.RegisterAssembly(AsyncLoader.Assembly);
-
 		var assembly = AsyncLoader.Assembly;
 		var firstPlugin = true;
 
@@ -413,7 +422,7 @@ public class ScriptLoader : IScriptLoader
 
 				if (type.GetCustomAttribute(typeof(InfoAttribute), true) is not InfoAttribute info) continue;
 
-				if (!IsExtension && firstPlugin && Community.Runtime.Config.Watchers.FileNameCheck && !BypassFileNameChecks)
+				if (!IsExtension && firstPlugin && !BypassFileNameChecks)
 				{
 					var name = Path.GetFileNameWithoutExtension(InitialSource.FilePath).ToLower().Replace(" ", "").Replace(".", "").Replace("-", "");
 
@@ -462,6 +471,7 @@ public class ScriptLoader : IScriptLoader
 						p.SetProcessor(Community.Runtime.ScriptProcessor);
 						p.CompileTime = AsyncLoader.CompileTime;
 						p.InternalCallHookGenTime = AsyncLoader.InternalCallHookGenTime;
+						p.InternalCallHookSource = AsyncLoader.InternalCallHookSource;
 
 						p.FilePath = AsyncLoader.InitialSource.ContextFilePath;
 						p.FileName = AsyncLoader.InitialSource.ContextFileName;
@@ -471,7 +481,7 @@ public class ScriptLoader : IScriptLoader
 
 					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, new CarbonEventArgs(rustPlugin));
 
-					ModLoader.RegisterAssembly(plugin.Name, AsyncLoader.Assembly);
+					ModLoader.RegisterType(AsyncLoader.InitialSource.ContextFilePath, type);
 
 					Plugin.InternalApplyAllPluginReferences();
 
@@ -505,6 +515,9 @@ public class ScriptLoader : IScriptLoader
 	{
 		HasFinished = true;
 
+		AsyncLoader?.Abort();
+		AsyncLoader = null;
+
 		if (Scripts != null)
 		{
 			foreach (var script in Scripts)
@@ -522,8 +535,8 @@ public class ScriptLoader : IScriptLoader
 		}
 
 		Sources?.Clear();
-		Sources = null;
 		Scripts?.Clear();
+		Sources = null;
 		Scripts = null;
 
 		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
