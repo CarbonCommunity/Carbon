@@ -154,7 +154,7 @@ public class HookCallerInternal : HookCallerCommon
 			Profiler.EndHookCall(hookable);
 #endif
 
-			hook?.OnFired(afterHookTime, totalMemory);
+			hook?.OnFired(hookable, afterHookTime, totalMemory);
 
 			var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 
@@ -168,7 +168,7 @@ public class HookCallerInternal : HookCallerCommon
 
 				if (wasLagSpike)
 				{
-					hook?.OnLagSpike();
+					hook?.OnLagSpike(hookable);
 				}
 
 				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
@@ -260,7 +260,7 @@ public class HookCallerInternal : HookCallerCommon
 					var afterMemory = hookable.TotalMemoryUsed;
 					var totalMemory = afterMemory - beforeMemory;
 
-					hook.OnFired(afterHookTime, totalMemory);
+					hook.OnFired(hookable, afterHookTime, totalMemory);
 
 					var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 
@@ -275,7 +275,7 @@ public class HookCallerInternal : HookCallerCommon
 
 							if (wasLagSpike)
 							{
-								hook.OnLagSpike();
+								hook.OnLagSpike(hookable);
 							}
 
 							Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
