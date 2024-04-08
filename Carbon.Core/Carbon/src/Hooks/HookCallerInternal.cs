@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Pooling;
 using Facepunch;
 using Oxide.Core.Plugins;
+using UnityEngine;
 using static Carbon.Base.BaseHookable;
 
 /*
@@ -128,7 +130,7 @@ public class HookCallerInternal : HookCallerCommon
 #endif
 
 			hookable.TrackStart();
-			var beforeMemory = hookable.TotalMemoryUsed;
+			var beforeMemory = CurrentMemory;
 
 			if (hook != null && hook.IsAsync)
 			{
@@ -147,8 +149,8 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 			var afterHookTime = hookable.CurrentHookTime;
-			var afterMemory = hookable.TotalMemoryUsed;
-			var totalMemory = afterMemory - beforeMemory;
+			var afterMemory = CurrentMemory;
+			var totalMemory = Mathf.Abs(afterMemory - beforeMemory);
 
 #if DEBUG
 			Profiler.EndHookCall(hookable);
