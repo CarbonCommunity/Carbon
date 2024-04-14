@@ -51,7 +51,7 @@ echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
 	(CALL )
 )
 
-copy /y "%BUILD_ROOT%\Release\.native\CarbonNative.dll"                 "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon\native\"
+copy /y "%BUILD_ROOT%\Carbon.Core\Carbon.Native\target\release\CarbonNative.dll"                 "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon\native\"
 
 set TAG=%1
 set TAG=%TAG:Unix=%

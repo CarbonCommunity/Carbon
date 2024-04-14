@@ -9,8 +9,8 @@ if not exist %ROOT%\Release\.native (
 
 cd %ROOT%\Carbon.Core\Carbon.Native
 
-cargo build
+cargo build -r
 
-xcopy %ROOT%\Carbon.Core\Carbon.Native\target\debug\CarbonNative.dll %ROOT%\Release\.native\ /K /D /H /Y
+xcopy %ROOT%\Carbon.Core\Carbon.Native\target\release\CarbonNative.dll %ROOT%\Release\.native\ /K /D /H /Y
 
 cd %HOME%
