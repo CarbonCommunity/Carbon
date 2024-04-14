@@ -44,7 +44,7 @@ else
 	cp "${ROOT}/Tools/UnityDoorstop/windows/x64/doorstop.dll" "${ROOT}/Release/.tmp/${TARGET}/winhttp.dll"
 fi
 
-cp "${ROOT}/Carbon.Core/Carbon.Native/target/release/CarbonNative.dll"                 "${ROOT}/Release/.tmp/${TARGET}/carbon/native"
+cp "${ROOT}/Carbon.Core/Carbon.Native/target/debug/CarbonNative.dll"                 "${ROOT}/Release/.tmp/${TARGET}/carbon/native"
 
 TAG="$1"
 TAG="${TAG//Unix/}"
