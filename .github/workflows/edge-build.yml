@@ -71,6 +71,14 @@ jobs:
         command: build -r
         args: --lib --bins --benches
         directory: Carbon.Core/Carbon.Native
+
+    - name: 🔨 Test
+      shell: bash
+      run: |
+        cd Carbon.Core/Carbon.Native
+        ls
+        cd target
+        ls
         
     - name: 🔨 Setup the Carbon build environment
       shell: bash
