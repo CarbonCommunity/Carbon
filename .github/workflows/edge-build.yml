@@ -79,6 +79,8 @@ jobs:
         ls
         cd target
         ls
+        cd release
+        ls
         
     - name: 🔨 Setup the Carbon build environment
       shell: bash
