@@ -29,7 +29,7 @@ public class ScriptLoader : IScriptLoader
 {
 	public const int BusyFileAttempts = 10;
 
-	public ISource InitialSource => Sources.Count > 0 ? Sources[0] : null;
+	public ISource InitialSource => Sources?.Count > 0 ? Sources[0] : null;
 
 	public bool BypassFileNameChecks { get; set; }
 
@@ -535,8 +535,8 @@ public class ScriptLoader : IScriptLoader
 		}
 
 		Sources?.Clear();
-		Sources = null;
 		Scripts?.Clear();
+		Sources = null;
 		Scripts = null;
 
 		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());

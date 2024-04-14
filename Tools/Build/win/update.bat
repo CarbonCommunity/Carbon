@@ -10,7 +10,7 @@ popd
 
 rem Get the target depot argument
 if "%1" EQU "" (
-	set UPDATE_TARGET=release
+	set UPDATE_TARGET=public
 ) else (
 	set UPDATE_TARGET=%1
 )
