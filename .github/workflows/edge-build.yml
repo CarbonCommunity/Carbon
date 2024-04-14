@@ -123,6 +123,7 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build_native.bat
         call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug . edge_build
         call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal . edge_build
 
