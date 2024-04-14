@@ -65,6 +65,10 @@ jobs:
       with:
         dotnet-version: 7.0.x
 
+    - uses: actions-rs/cargo@v1
+      with:
+        command: check
+
     - name: 🔨 Setup the Carbon build environment
       shell: bash
       run: |
