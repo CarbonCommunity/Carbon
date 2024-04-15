@@ -92,7 +92,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		_metadataHooks = new List<HookEx>();
 		_subscribers = new List<Subscription>();
 		_workQueue = new Queue<string>();
-		
+
 		enabled = false;
 
 		var doHookUpdate = !CommandLineEx.GetArgumentExists("+carbon.skiphookupdates");
@@ -252,7 +252,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	{
 		foreach (var player in BasePlayer.activePlayerList)
 		{
-			player.ClientRPC(RpcTarget.Player("StartLoading", player));
+			player.ClientRPCPlayer(null, player, "StartLoading");
 
 			DisplayMessage(player.Connection, "Carbon Update", "Updating hooks...");
 		}
