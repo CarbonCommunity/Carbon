@@ -1,5 +1,5 @@
 ###
-### Copyright (c) 2023 Carbon Community 
+### Copyright (c) 2024 Carbon Community 
 ### All rights reserved
 ###
 name: Rust (aux01) Build
@@ -68,6 +68,13 @@ jobs:
       with:
         dotnet-version: 7.0.x
 
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: ClementTsang/cargo-action@v0.0.3
+      with:
+        command: build -r
+        args: --lib --bins --benches
+        directory: Carbon.Core/Carbon.Native
+        
     - name: 🔨 Setup the Carbon build environment
       shell: bash
       run: |
@@ -115,6 +122,13 @@ jobs:
       with:
         dotnet-version: 7.0.x
 
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: ClementTsang/cargo-action@v0.0.3
+      with:
+        command: build -r
+        args: --lib --bins --benches
+        directory: Carbon.Core/Carbon.Native
+        
     - name: 🔨 Setup the Carbon build environment
       shell: cmd
       run: |
