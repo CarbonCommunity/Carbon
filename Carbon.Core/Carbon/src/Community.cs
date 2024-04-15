@@ -145,6 +145,7 @@ public class CommunityInternal : Community
 
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
+		Carbon.Logger.InitTaskExceptions();
 		Carbon.Logger.Log("Loaded config");
 		Carbon.Logger.Log("Loaded Client config");
 

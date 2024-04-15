@@ -45,6 +45,9 @@
 [submodule "Carbon.Core/Carbon.Components/Carbon.Compiler"]
 	path = Carbon.Core/Carbon.Components/Carbon.Compiler
 	url = https://github.com/CarbonCommunity/Carbon.Compiler.git
+[submodule "Carbon.Core/Carbon.Native"]
+	path = Carbon.Core/Carbon.Native
+	url = https://github.com/CarbonCommunity/Carbon.Native.git
 	branch = .
 [submodule "Carbon.Core/Carbon.Components/Carbon.Client"]
 	path = Carbon.Core/Carbon.Components/Carbon.Client
