@@ -89,7 +89,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 		public override IBaseProcessor.IParser Parser => new ScriptParser();
 
-		public override void Dispose()
+		public override void Clear()
 		{
 			try
 			{
@@ -97,16 +97,25 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 			}
 			catch (Exception ex)
 			{
+				Logger.Error($"Error clearing {File}", ex);
+			}
+		}
+		public override void Dispose()
+		{
+			try
+			{
+				Loader?.Dispose();
+			}
+			catch (Exception ex)
+			{
 				Logger.Error($"Error disposing {File}", ex);
 			}
-
-			Loader = null;
 		}
 		public override void Execute(IBaseProcessor processor)
 		{
 			try
 			{
-				ModLoader.FailedCompilations.RemoveAll(x => x.File == File);
+				ModLoader.GetOrCreateFailedCompilation(File).Clear();
 
 				Loader = new ScriptLoader
 				{

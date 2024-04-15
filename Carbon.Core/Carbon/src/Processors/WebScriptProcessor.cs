@@ -19,32 +19,41 @@ public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 
 	public class WebScript : Process
 	{
-		internal ScriptLoader _loader;
+		public IScriptLoader Loader { get; set; }
 
+		public override void Clear()
+		{
+			try
+			{
+				Loader?.Clear();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Error clearing {File}", ex);
+			}
+		}
 		public override void Dispose()
 		{
 			try
 			{
-				_loader?.Clear();
+				Loader?.Dispose();
 			}
 			catch (Exception ex)
 			{
 				Logger.Error($"Error disposing {File}", ex);
 			}
-
-			_loader = null;
 		}
 		public override void Execute(IBaseProcessor processor)
 		{
 			try
 			{
-				_loader = new ScriptLoader();
+				Loader = new ScriptLoader();
 
 				Community.Runtime.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
 				{
 					Logger.Log($"Downloaded '{File}': {result.Length}");
 
-					_loader.Sources.Add(new BaseSource
+					Loader.Sources.Add(new BaseSource
 					{
 						ContextFilePath = File,
 						ContextFileName = Path.GetFileName(File),
@@ -52,7 +61,7 @@ public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 						FileName = Path.GetFileName(File),
 						Content = result
 					});
-					_loader.Load();
+					Loader.Load();
 				}, Community.Runtime.CorePlugin);
 			}
 			catch (Exception ex)

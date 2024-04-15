@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
 using Carbon.Pooling;
 using Facepunch;
 using Oxide.Core.Plugins;
+using UnityEngine;
 using static Carbon.Base.BaseHookable;
 
 /*
@@ -121,21 +123,6 @@ public class HookCallerInternal : HookCallerCommon
 			if (hooks != null && hooks.Count > 0)
 			{
 				hook = hooks[0];
-
-				if (args != null)
-				{
-					var actualLength = hook.Parameters.Length;
-
-					if (actualLength != args.Length)
-					{
-						args = RescaleBuffer(args, actualLength, hook);
-						hasRescaledBuffer = true;
-					}
-					else
-					{
-						ProcessDefaults(args, hook);
-					}
-				}
 			}
 
 #if DEBUG
@@ -143,7 +130,7 @@ public class HookCallerInternal : HookCallerCommon
 #endif
 
 			hookable.TrackStart();
-			var beforeMemory = hookable.TotalMemoryUsed;
+			var beforeMemory = CurrentMemory;
 
 			if (hook != null && hook.IsAsync)
 			{
@@ -162,14 +149,14 @@ public class HookCallerInternal : HookCallerCommon
 			}
 
 			var afterHookTime = hookable.CurrentHookTime;
-			var afterMemory = hookable.TotalMemoryUsed;
-			var totalMemory = afterMemory - beforeMemory;
+			var afterMemory = CurrentMemory;
+			var totalMemory = Mathf.Abs(afterMemory - beforeMemory);
 
 #if DEBUG
 			Profiler.EndHookCall(hookable);
 #endif
 
-			hook?.OnFired(afterHookTime, totalMemory);
+			hook?.OnFired(hookable, afterHookTime, totalMemory);
 
 			var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 
@@ -183,7 +170,7 @@ public class HookCallerInternal : HookCallerCommon
 
 				if (wasLagSpike)
 				{
-					hook?.OnLagSpike();
+					hook?.OnLagSpike(hookable);
 				}
 
 				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
@@ -275,7 +262,7 @@ public class HookCallerInternal : HookCallerCommon
 					var afterMemory = hookable.TotalMemoryUsed;
 					var totalMemory = afterMemory - beforeMemory;
 
-					hook.OnFired(afterHookTime, totalMemory);
+					hook.OnFired(hookable, afterHookTime, totalMemory);
 
 					var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 
@@ -290,7 +277,7 @@ public class HookCallerInternal : HookCallerCommon
 
 							if (wasLagSpike)
 							{
-								hook.OnLagSpike();
+								hook.OnLagSpike(hookable);
 							}
 
 							Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
