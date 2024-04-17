@@ -305,7 +305,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		base.Start();
 	}
-
 	public override void ThreadFunction()
 	{
 		if (Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
@@ -490,6 +489,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 						if (IsExtension) _overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
 						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
 						Assembly = Assembly.Load(assembly);
+
+						MonoProfiler.MarkAssemblyForProfiling(Assembly, InitialSource.ContextFileName);
 					}
 				}
 			}
@@ -553,7 +554,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Analytics.plugin_native_compile_fail(InitialSource, ex);
 		}
 	}
-
 	public override void Dispose()
 	{
 		ClassList?.Clear();
