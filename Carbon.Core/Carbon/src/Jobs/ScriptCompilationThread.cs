@@ -490,7 +490,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
 						Assembly = Assembly.Load(assembly);
 
-						MonoProfiler.MarkAssemblyForProfiling(Assembly, InitialSource.ContextFileName);
+						MonoProfiler.MarkAssemblyForProfiling(Assembly, InitialSource.ContextFileName ?? InitialSource.FileName);
 					}
 				}
 			}
