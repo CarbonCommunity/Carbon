@@ -14,6 +14,7 @@ using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
+using Carbon.Profiler;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -492,10 +493,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 						try
 						{
-							MonoProfiler.MarkPluginForProfiling(Assembly,
+							MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly,
 								Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
 									? InitialSource.FileName
-									: InitialSource.ContextFileName));
+									: InitialSource.ContextFileName), true);
 						}
 						catch (Exception ex)
 						{
