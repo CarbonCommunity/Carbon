@@ -68,8 +68,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
         with:
-          command: build -r
-          args: --lib --bins --benches
+          command: build
+          args: -r
           directory: Carbon.Core/Carbon.Native
 
       - name: 🔨 Setup the Carbon build environment
@@ -116,8 +116,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
         with:
-          command: build -r
-          args: --lib --bins --benches
+          command: build
+          args: -r
           directory: Carbon.Core/Carbon.Native
 
       - name: 🔨 Setup the Carbon build environment
