@@ -41,17 +41,18 @@ dotnet   build "%BUILD_ROOT%\Carbon.Core" -v:m --configuration %BUILD_TARGET% --
 
 echo ** Copy operating system specific files
 echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
-	copy /y "%BUILD_ROOT%\Tools\Helpers\carbon.sh"                      "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon.sh"
-	copy /y "%BUILD_ROOT%\Tools\Helpers\environment.sh"                 "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon\tools\"
-	copy /y "%BUILD_ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\libdoorstop.so"
-	(CALL )
-) || (                                                                                                                          
-	copy /y "%BUILD_ROOT%\Tools\Helpers\doorstop_config.ini"            "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%"                                
-	copy /y "%BUILD_ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\winhttp.dll"    
+	copy /y "%BUILD_ROOT%\Tools\Helpers\carbon.sh"                      										"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon.sh"
+	copy /y "%BUILD_ROOT%\Tools\Helpers\environment.sh"                 										"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon\tools\"
+	copy /y "%BUILD_ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" 										"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\libdoorstop.so"
+	copy /y "%BUILD_ROOT%\Carbon.Core\Carbon.Native\target\x86_64-unknown-linux-gnu\release\libCarbonNative.so"	"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon\native\"
+	(CALL )				
+) || (                                                                  				                                                        
+	copy /y "%BUILD_ROOT%\Tools\Helpers\doorstop_config.ini"            										"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%"                                
+	copy /y "%BUILD_ROOT%\Tools\UnityDoorstop\windows\x64\doorstop.dll" 										"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\winhttp.dll"    
+	copy /y "%BUILD_ROOT%\Carbon.Core\Carbon.Native\target\x86_64-pc-windows-msvc\release\CarbonNative.dll"		"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon\native\"
 	(CALL )
 )
 
-copy /y "%BUILD_ROOT%\Carbon.Core\Carbon.Native\target\release\CarbonNative.dll"                 "%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon\native\"
 
 set TAG=%1
 set TAG=%TAG:Unix=%
