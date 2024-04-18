@@ -68,9 +68,19 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
         with:
-          command: build -r
-          args: --lib --bins --benches
+          command: build
+          args: -r
           directory: Carbon.Core/Carbon.Native
+
+      - name: 🔨 Test
+        shell: bash
+        run: |
+          cd Carbon.Core/Carbon.Native
+          ls
+          cd target
+          ls
+          cd release
+          ls
 
       - name: 🔨 Setup the Carbon build environment
         shell: bash
@@ -116,10 +126,20 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
         with:
-          command: build -r
-          args: --lib --bins --benches
+          command: build
+          args: -r
           directory: Carbon.Core/Carbon.Native
 
+      - name: 🔨 Test
+        shell: bash
+        run: |
+          cd Carbon.Core/Carbon.Native
+          ls
+          cd target
+          ls
+          cd release
+          ls
+          
       - name: 🔨 Setup the Carbon build environment
         shell: cmd
         run: |
