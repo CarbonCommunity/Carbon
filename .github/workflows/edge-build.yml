@@ -69,18 +69,8 @@ jobs:
       - uses: ClementTsang/cargo-action@v0.0.3
         with:
           command: build
-          args: -r
+          args: -r --target x86_64-unknown-linux-gnu
           directory: Carbon.Core/Carbon.Native
-
-      - name: 🔨 Test
-        shell: bash
-        run: |
-          cd Carbon.Core/Carbon.Native
-          ls
-          cd target
-          ls
-          cd release
-          ls
 
       - name: 🔨 Setup the Carbon build environment
         shell: bash
@@ -127,18 +117,8 @@ jobs:
       - uses: ClementTsang/cargo-action@v0.0.3
         with:
           command: build
-          args: -r
+          args: -r --target x86_64-pc-windows-msvc
           directory: Carbon.Core/Carbon.Native
-
-      - name: 🔨 Test
-        shell: bash
-        run: |
-          cd Carbon.Core/Carbon.Native
-          ls
-          cd target
-          ls
-          cd release
-          ls
           
       - name: 🔨 Setup the Carbon build environment
         shell: cmd
