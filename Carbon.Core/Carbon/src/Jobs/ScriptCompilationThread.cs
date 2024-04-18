@@ -14,6 +14,7 @@ using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
+using Carbon.Profiler;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -305,7 +306,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		base.Start();
 	}
-
 	public override void ThreadFunction()
 	{
 		if (Sources.TrueForAll(x => string.IsNullOrEmpty(x.Content)))
@@ -490,6 +490,18 @@ public class ScriptCompilationThread : BaseThreadedJob
 						if (IsExtension) _overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
 						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
 						Assembly = Assembly.Load(assembly);
+
+						try
+						{
+							MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly,
+								Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
+									? InitialSource.FileName
+									: InitialSource.ContextFileName), true);
+						}
+						catch (Exception ex)
+						{
+							Logger.Error($"Couldn't mark assembly for profiling", ex);
+						}
 					}
 				}
 			}
@@ -553,7 +565,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Analytics.plugin_native_compile_fail(InitialSource, ex);
 		}
 	}
-
 	public override void Dispose()
 	{
 		ClassList?.Clear();
