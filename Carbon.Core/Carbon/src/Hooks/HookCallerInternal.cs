@@ -125,10 +125,6 @@ public class HookCallerInternal : HookCallerCommon
 				hook = hooks[0];
 			}
 
-#if DEBUG
-			Profiler.StartHookCall(hookable, hookId);
-#endif
-
 			hookable.TrackStart();
 			var beforeMemory = CurrentMemory;
 
@@ -151,10 +147,6 @@ public class HookCallerInternal : HookCallerCommon
 			var afterHookTime = hookable.CurrentHookTime;
 			var afterMemory = CurrentMemory;
 			var totalMemory = Mathf.Abs(afterMemory - beforeMemory);
-
-#if DEBUG
-			Profiler.EndHookCall(hookable);
-#endif
 
 			hook?.OnFired(hookable, afterHookTime, totalMemory);
 
@@ -235,10 +227,6 @@ public class HookCallerInternal : HookCallerCommon
 
 				if (args == null || SequenceEqual(hook.Parameters, args))
 				{
-#if DEBUG
-					Profiler.StartHookCall(hookable, hookId);
-#endif
-
 					var result2 = (object)default;
 					hookable.TrackStart();
 					var beforeMemory = hookable.TotalMemoryUsed;
@@ -284,9 +272,6 @@ public class HookCallerInternal : HookCallerCommon
 						}
 					}
 
-#if DEBUG
-					Profiler.EndHookCall(hookable);
-#endif
 					if (hasRescaledBuffer)
 					{
 						HookCaller.Caller.ReturnBuffer(args);

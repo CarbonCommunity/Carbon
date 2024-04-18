@@ -143,6 +143,8 @@ public class CommunityInternal : Community
 
 		LoadClientConfig();
 
+		LoadMonoProfilerConfig();
+
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		Carbon.Logger.InitTaskExceptions();
