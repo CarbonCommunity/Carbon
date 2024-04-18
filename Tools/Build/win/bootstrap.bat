@@ -47,7 +47,7 @@ FOR %%O IN (DepotDownloader) DO (
 )
 echo * Finsihed - building submodules.
 
-rem Download rust binary libs
+rem Download Rust binary libs
 call "%~dp0\update.bat" %1
 
 rem Don't track changes to this file
