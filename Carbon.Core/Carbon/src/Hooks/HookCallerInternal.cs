@@ -60,10 +60,6 @@ public class HookCallerInternal : HookCallerCommon
 				{
 					newBuffer[i] = parameter.DefaultValue;
 				}
-				// else if (parameter.ParameterType is { IsValueType: true } parameterType)
-				// {
-				// 	newBuffer[i] = Activator.CreateInstance(parameterType);
-				// }
 			}
 		}
 
