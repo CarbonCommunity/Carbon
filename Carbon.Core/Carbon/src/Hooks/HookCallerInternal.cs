@@ -124,6 +124,21 @@ public class HookCallerInternal : HookCallerCommon
 			hookable.TrackStart();
 			var beforeMemory = CurrentMemory;
 
+			if (hook != null && args != null)
+			{
+				var actualLength = hook.Parameters.Length;
+
+				if (actualLength != args.Length)
+				{
+					args = HookCaller.Caller.RescaleBuffer(args, actualLength, hook);
+					hasRescaledBuffer = true;
+				}
+				else
+				{
+					HookCaller.Caller.ProcessDefaults(args, hook);
+				}
+			}
+
 			if (hook != null && hook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
