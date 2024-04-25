@@ -18,7 +18,4 @@ export DOORSTOP_TARGET_ASSEMBLY="${CARBONENV_BASEDIR}/carbon/managed/Carbon.Prel
 
 # Prepare the environment
 export LD_PRELOAD="${CARBONENV_BASEDIR}/libdoorstop.so"
-export LD_LIBRARY_PATH="${CARBONENV_BASEDIR}::${CARBONENV_BASEDIR}/RustDedicated_Data/Plugins/x86_64"
-
-export LD_PRELOAD="${CARBONENV_BASEDIR}/libdoorstop.so:${CARBONENV_BASEDIR}/carbon/native/libCarbonNative.so"
-export LD_LIBRARY_PATH="${CARBONENV_BASEDIR}:${CARBONENV_BASEDIR}/RustDedicated_Data/Plugins/x86_64:${CARBONENV_BASEDIR}/carbon/native/compiler"
+export LD_LIBRARY_PATH="${CARBONENV_BASEDIR}:${CARBONENV_BASEDIR}/carbon/native:${CARBONENV_BASEDIR}/RustDedicated_Data/Plugins/x86_64"
