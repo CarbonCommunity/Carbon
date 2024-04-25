@@ -44,7 +44,7 @@ echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
 	copy /y "%BUILD_ROOT%\Tools\Helpers\carbon.sh"                      										"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon.sh"
 	copy /y "%BUILD_ROOT%\Tools\Helpers\environment.sh"                 										"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\carbon\tools\"
 	copy /y "%BUILD_ROOT%\Tools\UnityDoorstop\linux\x64\libdoorstop.so" 										"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\libdoorstop.so"
-	copy /y "%BUILD_ROOT%\Carbon.Core\Carbon.Native\target\x86_64-unknown-linux-gnu\release\libCarbonNative.so"	"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\RustDedicated_Data\Plugins\x86_64\libCarbonNative.so"
+	copy /y "%BUILD_ROOT%\Carbon.Core\Carbon.Native\target\x86_64-unknown-linux-gnu\release\libCarbonNative.so"	"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%\RustDedicated_Data\Plugins\libCarbonNative.so"
 	(CALL )				
 ) || (                                                                  				                                                        
 	copy /y "%BUILD_ROOT%\Tools\Helpers\doorstop_config.ini"            										"%BUILD_ROOT%\Release\.tmp\%BUILD_TARGET%"                                
