@@ -68,11 +68,10 @@
 			<c_harmony>$(CarbonBaseDir)\carbon\harmony</c_harmony>
 
 			<c_managed>$(CarbonBaseDir)\carbon\managed</c_managed>
-			<c_native>$(CarbonBaseDir)\carbon\native</c_native>
+			<c_native>$(CarbonBaseDir)\RustDedicated_Data\Plugins\x86_64</c_native>
 			<c_hooks>$(CarbonBaseDir)\carbon\managed\hooks</c_hooks>
 			<c_lib>$(CarbonBaseDir)\carbon\managed\lib</c_lib>
 			<c_modules>$(CarbonBaseDir)\carbon\managed\modules</c_modules>
-			<c_compiler>$(CarbonBaseDir)\carbon\compiler</c_compiler>
 
 			<c_plugins>$(CarbonBaseDir)\carbon\plugins</c_plugins>
 			<c_data>$(CarbonBaseDir)\carbon\data</c_data>
