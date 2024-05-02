@@ -9,7 +9,7 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<FileAlignment>512</FileAlignment>
 		<ImplicitUsings>disable</ImplicitUsings>
-		<LangVersion>latest</LangVersion>
+		<LangVersion>preview</LangVersion>
 		<Platforms>x64</Platforms>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 		<TargetFramework>net48</TargetFramework>

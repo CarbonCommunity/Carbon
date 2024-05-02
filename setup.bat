@@ -10,4 +10,7 @@ cd %ROOT%
 bootstrap.bat
 
 cd %ROOT%
+build_native.bat
+
+cd %ROOT%
 build.bat

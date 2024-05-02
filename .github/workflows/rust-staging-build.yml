@@ -1,5 +1,5 @@
 ###
-### Copyright (c) 2023 Carbon Community 
+### Copyright (c) 2024 Carbon Community
 ### All rights reserved
 ###
 name: Rust (Staging) Build
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: '00 19 * * *'
+    - cron: "00 19 * * *"
 
 jobs:
   bootstrap:
@@ -17,11 +17,11 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      date:    ${{ steps.step1.outputs.date }}
-      clock:   ${{ steps.step1.outputs.clock }}
-      tag:     ${{ steps.step1.outputs.tag }}
-      ref:     ${{ steps.step1.outputs.ref }}
-      wipe:    ${{ steps.step1.outputs.wipe }}
+      date: ${{ steps.step1.outputs.date }}
+      clock: ${{ steps.step1.outputs.clock }}
+      tag: ${{ steps.step1.outputs.tag }}
+      ref: ${{ steps.step1.outputs.ref }}
+      wipe: ${{ steps.step1.outputs.wipe }}
       version: ${{ steps.step1.outputs.version }}
 
     steps:
@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: rust_beta/staging
-          
+
       - name: 📅 Prepare the environment
         id: step1
         run: |
@@ -47,53 +47,60 @@ jobs:
   build-linux:
     name: 🐧 Linux
     needs: bootstrap
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     continue-on-error: true
 
     outputs:
       wipe: ${{ needs.bootstrap.outputs.wipe }}
       artifact: build-staging-${{ needs.bootstrap.outputs.ref }}-linux
       build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
-    
+
     steps:
-    - name: 🔗 Checkout source code from github
-      uses: actions/checkout@v3
-      with:
-        ref: rust_beta/staging
-        token: ${{ secrets.PAT_ALL_REPO }}
-        submodules: recursive
+      - name: 🔗 Checkout source code from github
+        uses: actions/checkout@v3
+        with:
+          ref: rust_beta/staging
+          token: ${{ secrets.PAT_ALL_REPO }}
+          submodules: recursive
 
-    - name: 🛤️ Setup the dotnet build environment
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 7.0.x
+      - name: 🛤️ Setup the dotnet build environment
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 7.0.x
 
-    - name: 🔨 Setup the Carbon build environment
-      shell: bash
-      run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: ClementTsang/cargo-action@v0.0.3
+        with:
+          command: build
+          args: -r --target x86_64-unknown-linux-gnu
+          directory: Carbon.Core/Carbon.Native
 
-    - name: 🔨 Setup the Carbon build environment (Staging)
-      shell: bash
-      run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/update_staging.sh
-        
-    - name: 🐧 Built Carbon on Linux
-      shell: bash
-      run: |
-        export VERSION=${{ needs.bootstrap.outputs.version }}
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix STAGING "rustbeta_staging"
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix STAGING "rustbeta_staging"
-        
-    - name: ⬆️ Upload the artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-staging-linux
-        path: |
-          Release/Carbon.Linux.Debug.tar.gz
-          Release/Carbon.Linux.Debug.info
-          Release/Carbon.Linux.Minimal.tar.gz
-          Release/Carbon.Linux.Minimal.info
+      - name: 🔨 Setup the Carbon build environment
+        shell: bash
+        run: |
+          ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
+
+      - name: 🔨 Setup the Carbon build environment (Staging)
+        shell: bash
+        run: |
+          ${GITHUB_WORKSPACE}/Tools/Build/linux/update_staging.sh
+
+      - name: 🐧 Built Carbon on Linux
+        shell: bash
+        run: |
+          export VERSION=${{ needs.bootstrap.outputs.version }}
+          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix STAGING "rustbeta_staging"
+          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix STAGING "rustbeta_staging"
+
+      - name: ⬆️ Upload the artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-staging-linux
+          path: |
+            Release/Carbon.Linux.Debug.tar.gz
+            Release/Carbon.Linux.Debug.info
+            Release/Carbon.Linux.Minimal.tar.gz
+            Release/Carbon.Linux.Minimal.info
 
   # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
@@ -101,107 +108,114 @@ jobs:
     needs: bootstrap
     runs-on: windows-latest
     continue-on-error: true
-    
+
     steps:
-    - name: 🔗 Checkout source code from github
-      uses: actions/checkout@v3
-      with:
-        ref: rust_beta/staging
-        token: ${{ secrets.PAT_ALL_REPO }}
-        submodules: recursive
+      - name: 🔗 Checkout source code from github
+        uses: actions/checkout@v3
+        with:
+          ref: rust_beta/staging
+          token: ${{ secrets.PAT_ALL_REPO }}
+          submodules: recursive
 
-    - name: 🛤️ Setup the dotnet build environment
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 7.0.x
+      - name: 🛤️ Setup the dotnet build environment
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 7.0.x
 
-    - name: 🔨 Setup the Carbon build environment
-      shell: cmd
-      run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: ClementTsang/cargo-action@v0.0.3
+        with:
+          command: build
+          args: -r --target x86_64-pc-windows-msvc
+          directory: Carbon.Core/Carbon.Native
 
-    - name: 🔨 Setup the Carbon build environment (Staging)
-      shell: cmd
-      run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\update_staging.bat
-        
-    - name: 🔨 Built Carbon on Windows
-      shell: cmd
-      run: |
-        set VERSION=${{ needs.bootstrap.outputs.version }}
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug STAGING rustbeta_staging
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal STAGING rustbeta_staging
+      - name: 🔨 Setup the Carbon build environment
+        shell: cmd
+        run: |
+          %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
 
-    - name: ⬆️ Upload the artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-staging-windows
-        path: |
-          Release/Carbon.Windows.Debug.zip
-          Release/Carbon.Windows.Debug.info
-          Release/Carbon.Windows.Minimal.zip
-          Release/Carbon.Windows.Minimal.info
+      - name: 🔨 Setup the Carbon build environment (Staging)
+        shell: cmd
+        run: |
+          %GITHUB_WORKSPACE%\Tools\Build\win\update_staging.bat
+
+      - name: 🔨 Built Carbon on Windows
+        shell: cmd
+        run: |
+          set VERSION=${{ needs.bootstrap.outputs.version }}
+          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug STAGING rustbeta_staging
+          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal STAGING rustbeta_staging
+
+      - name: ⬆️ Upload the artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-staging-windows
+          path: |
+            Release/Carbon.Windows.Debug.zip
+            Release/Carbon.Windows.Debug.info
+            Release/Carbon.Windows.Minimal.zip
+            Release/Carbon.Windows.Minimal.info
 
   # RELEASE --------------------------------------------------------------------
   release-on-schedule:
     name: 💾 Rust (Staging) Release
-    needs: [ "bootstrap", "build-linux", "build-windows" ]
+    needs: ["bootstrap", "build-linux", "build-windows"]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     # only release if triggered by the scheduler
     # or if manually triggered by a developer
 
     steps:
-    - name: 🗑️ Delete existing release tag
-      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
-      with:
-        delete_release: true
-        tag_name: rustbeta_staging_build
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 🗑️ Delete existing release tag
+        uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
+        with:
+          delete_release: true
+          tag_name: rustbeta_staging_build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 💤 Sleep for 5 seconds
-      run: sleep 5s
-      shell: bash
+      - name: 💤 Sleep for 5 seconds
+        run: sleep 5s
+        shell: bash
 
-    - name: ⬇️ Download artifacts
-      uses: actions/download-artifact@v3
-      with:
-        path: Release
+      - name: ⬇️ Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: Release
 
-    - name: Display structure of downloaded files
-      run: ls -R
-      working-directory: Release
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: Release
 
-    - name: 🏷️ Update release tag
-      uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
-      with:
-        draft: false
-        prerelease: true
-        tag_name: rustbeta_staging_build
-        name: 'Rust (Staging) Build — v${{ needs.bootstrap.outputs.version }}'
-        body: |
-          This is a manually triggered development build of Carbon based on the `rust_beta/staging` branch.
-          This build might and probably will be very unstable and its sole purpose is for testing and/or exploring Rust's future update features in a modded environment.
-                  
-          This build is targeted at developers or testers.
-          The general public is advised to use one of the [stable] builds.
-          Since it's manually triggered, we're confident you should use this build to test out the latest Carbon changes.
+      - name: 🏷️ Update release tag
+        uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
+        with:
+          draft: false
+          prerelease: true
+          tag_name: rustbeta_staging_build
+          name: "Rust (Staging) Build — v${{ needs.bootstrap.outputs.version }}"
+          body: |
+            This is a manually triggered development build of Carbon based on the `rust_beta/staging` branch.
+            This build might and probably will be very unstable and its sole purpose is for testing and/or exploring Rust's future update features in a modded environment.
+                    
+            This build is targeted at developers or testers.
+            The general public is advised to use one of the [stable] builds.
+            Since it's manually triggered, we're confident you should use this build to test out the latest Carbon changes.
 
-          ### How to install
-          1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
-          2. Unzip the archive to the root of your Rust Dedicated Server.
-          3. Restart the server and enjoy.
-          
-          ${{ needs.build-linux.outputs.build_info }}
+            ### How to install
+            1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
+            2. Unzip the archive to the root of your Rust Dedicated Server.
+            3. Restart the server and enjoy.
 
-          [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
-        files: |
-          Release/build-staging-linux/Carbon.Linux.Debug.info
-          Release/build-staging-linux/Carbon.Linux.Debug.tar.gz
-          Release/build-staging-windows/Carbon.Windows.Debug.info
-          Release/build-staging-windows/Carbon.Windows.Debug.zip
-          Release/build-staging-linux/Carbon.Linux.Minimal.info
-          Release/build-staging-linux/Carbon.Linux.Minimal.tar.gz
-          Release/build-staging-windows/Carbon.Windows.Minimal.info
-          Release/build-staging-windows/Carbon.Windows.Minimal.zip
+            ${{ needs.build-linux.outputs.build_info }}
+
+            [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
+          files: |
+            Release/build-staging-linux/Carbon.Linux.Debug.info
+            Release/build-staging-linux/Carbon.Linux.Debug.tar.gz
+            Release/build-staging-windows/Carbon.Windows.Debug.info
+            Release/build-staging-windows/Carbon.Windows.Debug.zip
+            Release/build-staging-linux/Carbon.Linux.Minimal.info
+            Release/build-staging-linux/Carbon.Linux.Minimal.tar.gz
+            Release/build-staging-windows/Carbon.Windows.Minimal.info
+            Release/build-staging-windows/Carbon.Windows.Minimal.zip
