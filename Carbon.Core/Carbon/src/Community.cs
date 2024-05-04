@@ -10,7 +10,8 @@ using Carbon.Extensions;
 using Carbon.Hooks;
 using Carbon.Managers;
 using Oxide.Core;
-using Oxide.Plugins;
+using System.Linq;
+using API.Commands;
 using UnityEngine;
 
 /*
@@ -54,18 +55,28 @@ public class CommunityInternal : Community
 
 	internal void _installCore()
 	{
-		Runtime.CorePlugin = CorePlugin = new CorePlugin();
-		CorePlugin.Setup("Core", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
-		ModLoader.ProcessPrecompiledType(CorePlugin);
-		CorePlugin.IsCorePlugin = CorePlugin.IsPrecompiled = true;
-		CorePlugin.IInit();
+		Runtime.Core = Core = new CorePlugin();
+		Core.Setup("Core", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
+		ModLoader.ProcessPrecompiledType(Core);
+		Core.IsCorePlugin = Core.IsPrecompiled = true;
+		Core.IInit();
 
-		ModLoader.RegisterPackage(CorePlugin.Package = ModLoader.ModPackage.Get("Carbon Community", true).AddPlugin(CorePlugin));
+		ModLoader.RegisterPackage(Core.Package = ModLoader.ModPackage.Get("Carbon Community", true).AddPlugin(Core));
 		ModLoader.RegisterPackage(Plugins = ModLoader.ModPackage.Get("Scripts", false));
 		ModLoader.RegisterPackage(ZipPlugins = ModLoader.ModPackage.Get("Zip Scripts", false));
 
-		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
-		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon", hidden: true);
+		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "c");
+		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "carbon", hidden: true);
+
+		var commandCount = CommandManager.Chat.Count(x => x.Reference == Core && !x.HasFlag(CommandFlags.Hidden)) +
+		                   CommandManager.ClientConsole.Count(x => x.Reference == Core && !x.HasFlag(CommandFlags.Hidden));
+
+		Logger.Log($"Initialized Carbon Core plugin ({Core.Hooks.Count:n0} {Core.Hooks.Count.Plural("hook", "hooks")}, {commandCount:n0} {commandCount.Plural("command", "commands")})");
+
+#if !MINIMAL
+		CarbonAuto.Init();
+		API.Abstracts.CarbonAuto.Singleton.Load();
+#endif
 	}
 	internal void _installProcessors()
 	{
@@ -179,13 +190,12 @@ public class CommunityInternal : Community
 				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
 				CommandLine.ExecuteCommands(lines);
 				Array.Clear(lines, 0, lines.Length);
-				lines = null;
 			}
 
 			ReloadPlugins();
 		});
 
-		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort}");
+		Logger.Log($"  Carbon {Analytics.Version} [{Analytics.Protocol}] {Build.Git.HashShort} on {Analytics.Platform.ToCamelCase()}");
 		Logger.Log($"         {Build.Git.Author} on {Build.Git.Branch} ({Build.Git.Date})");
 		Logger.Log($"  Rust   {Facepunch.BuildInfo.Current.Build.Number}/{Rust.Protocol.printable} on {Facepunch.BuildInfo.Current.Scm.Branch} ({Facepunch.BuildInfo.Current.Scm.Date})");
 

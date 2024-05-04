@@ -167,7 +167,7 @@ public class HookCallerInternal : HookCallerCommon
 			{
 				var readableHook = HookStringPool.GetOrAdd(hookId);
 
-				Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+				Carbon.Logger.Warn($" {hookable.ToPrettyString()} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 
 				var wasLagSpike = afterHookTimeMs >= Community.Runtime.Config.Debugging.HookLagSpikeThreshold;
 
@@ -270,7 +270,7 @@ public class HookCallerInternal : HookCallerCommon
 						if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 						{
 							var readableHook = HookStringPool.GetOrAdd(hookId);
-							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+							Carbon.Logger.Warn($" {hookable.ToPrettyString()} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 
 							var wasLagSpike = afterHookTimeMs >= Community.Runtime.Config.Debugging.HookLagSpikeThreshold;
 
