@@ -10,7 +10,8 @@ using Carbon.Extensions;
 using Carbon.Hooks;
 using Carbon.Managers;
 using Oxide.Core;
-using Oxide.Plugins;
+using System.Linq;
+using API.Commands;
 using UnityEngine;
 
 /*
@@ -66,6 +67,11 @@ public class CommunityInternal : Community
 
 		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "c");
 		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "carbon", hidden: true);
+
+		var commandCount = CommandManager.Chat.Count(x => x.Reference == Core && !x.HasFlag(CommandFlags.Hidden)) +
+		                   CommandManager.ClientConsole.Count(x => x.Reference == Core && !x.HasFlag(CommandFlags.Hidden));
+
+		Logger.Log($"Initialized Carbon Core plugin ({Core.Hooks.Count:n0} {Core.Hooks.Count.Plural("hook", "hooks")}, {commandCount:n0} {commandCount.Plural("command", "commands")})");
 
 #if !MINIMAL
 		CarbonAuto.Init();
