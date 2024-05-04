@@ -54,18 +54,18 @@ public class CommunityInternal : Community
 
 	internal void _installCore()
 	{
-		Runtime.CorePlugin = CorePlugin = new CorePlugin();
-		CorePlugin.Setup("Core", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
-		ModLoader.ProcessPrecompiledType(CorePlugin);
-		CorePlugin.IsCorePlugin = CorePlugin.IsPrecompiled = true;
-		CorePlugin.IInit();
+		Runtime.Core = Core = new CorePlugin();
+		Core.Setup("Core", "Carbon Community", new VersionNumber(1, 0, 0), string.Empty);
+		ModLoader.ProcessPrecompiledType(Core);
+		Core.IsCorePlugin = Core.IsPrecompiled = true;
+		Core.IInit();
 
-		ModLoader.RegisterPackage(CorePlugin.Package = ModLoader.ModPackage.Get("Carbon Community", true).AddPlugin(CorePlugin));
+		ModLoader.RegisterPackage(Core.Package = ModLoader.ModPackage.Get("Carbon Community", true).AddPlugin(Core));
 		ModLoader.RegisterPackage(Plugins = ModLoader.ModPackage.Get("Scripts", false));
 		ModLoader.RegisterPackage(ZipPlugins = ModLoader.ModPackage.Get("Zip Scripts", false));
 
-		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
-		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon", hidden: true);
+		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "c");
+		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "carbon", hidden: true);
 
 #if !MINIMAL
 		CarbonAuto.Init();
