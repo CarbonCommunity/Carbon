@@ -66,6 +66,11 @@ public class CommunityInternal : Community
 
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "c");
 		ModLoader.ProcessCommands(typeof(CorePlugin), CorePlugin, prefix: "carbon", hidden: true);
+
+#if !MINIMAL
+		CarbonAuto.Init();
+		API.Abstracts.CarbonAuto.Singleton.Load();
+#endif
 	}
 	internal void _installProcessors()
 	{
@@ -179,7 +184,6 @@ public class CommunityInternal : Community
 				CommandLine.ExecuteCommands("+carbon.onboot", "cfg/server.cfg", lines);
 				CommandLine.ExecuteCommands(lines);
 				Array.Clear(lines, 0, lines.Length);
-				lines = null;
 			}
 
 			ReloadPlugins();
