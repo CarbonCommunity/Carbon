@@ -297,7 +297,7 @@ public class ScriptLoader : IScriptLoader
 		{
 			foreach (var require in AsyncLoader.Requires)
 			{
-				var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
+				var plugin = Community.Runtime.Core.plugins.Find(require);
 				if (plugin == null)
 				{
 					Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
