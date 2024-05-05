@@ -35,6 +35,9 @@ public class HookEx : IDisposable, IHook
 	public Type TargetType
 	{ get; }
 
+	public MethodType MethodType
+	{ get; }
+
 	public string TargetMethod
 	{ get; }
 
@@ -118,6 +121,7 @@ public class HookEx : IDisposable, IHook
 			TargetMethodArgs = metadata.MethodArgs;
 			TargetMethods = new();
 			TargetType = metadata.Target;
+			MethodType = metadata.MethodType;
 
 			Identifier = type.GetCustomAttribute<HookAttribute.Identifier>()?.Value ?? $"{Guid.NewGuid():N}";
 			Options = type.GetCustomAttribute<HookAttribute.Options>()?.Value ?? HookFlags.None;
@@ -191,14 +195,22 @@ public class HookEx : IDisposable, IHook
 		try
 		{
 			if (_runtime.Prefix != null)
+			{
 				prefix = new HarmonyMethod(_runtime.Prefix);
+				prefix.methodType = MethodType;
+			}
 
 			if (_runtime.Postfix != null)
+			{
 				postfix = new HarmonyMethod(_runtime.Postfix);
+				postfix.methodType = MethodType;
+			}
 
 			if (_runtime.Transpiler != null)
+			{
 				transpiler = new HarmonyMethod(_runtime.Transpiler);
-
+				transpiler.methodType = MethodType;
+			}
 			if (prefix is null && postfix is null && transpiler is null)
 				throw new Exception($"(prefix, postfix, transpiler not found");
 
