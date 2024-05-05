@@ -195,26 +195,18 @@ public class HookEx : IDisposable, IHook
 		try
 		{
 			if (_runtime.Prefix != null)
-			{
 				prefix = new HarmonyMethod(_runtime.Prefix);
-				prefix.methodType = MethodType;
-			}
 
 			if (_runtime.Postfix != null)
-			{
 				postfix = new HarmonyMethod(_runtime.Postfix);
-				postfix.methodType = MethodType;
-			}
 
 			if (_runtime.Transpiler != null)
-			{
 				transpiler = new HarmonyMethod(_runtime.Transpiler);
-				transpiler.methodType = MethodType;
-			}
+
 			if (prefix is null && postfix is null && transpiler is null)
 				throw new Exception($"(prefix, postfix, transpiler not found");
 
-			if (TargetMethod is null || TargetMethod.Count() == 0)
+			if (TargetMethod is null || TargetMethod.Length == 0)
 				throw new Exception($"target method not found");
 		}
 		catch (System.Exception e)
@@ -284,7 +276,12 @@ public class HookEx : IDisposable, IHook
 	}
 
 	public MethodInfo GetTargetMethodInfo()
-		=> AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
+		=> MethodType switch
+		{
+			MethodType.Getter => AccessTools.PropertyGetter(TargetType, TargetMethod),
+			MethodType.Setter => AccessTools.PropertySetter(TargetType, TargetMethod),
+			_ => AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null
+		};
 
 	public void SetStatus(HookState Status, string error = null)
 	{
