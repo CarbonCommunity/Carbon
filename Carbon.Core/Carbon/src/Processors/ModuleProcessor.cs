@@ -202,6 +202,21 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			}
 		}
 
+		foreach (var hookable in _cache)
+		{
+			if (hookable is IModule module && module.GetEnabled())
+			{
+				try
+				{
+					module.OnEnableStatus();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
+				}
+			}
+		}
+
 		Pool.FreeList(ref _cache);
 	}
 	public void Uninstall(IModule module)
