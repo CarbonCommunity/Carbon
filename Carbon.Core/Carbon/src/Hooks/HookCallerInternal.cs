@@ -60,10 +60,6 @@ public class HookCallerInternal : HookCallerCommon
 				{
 					newBuffer[i] = parameter.DefaultValue;
 				}
-				// else if (parameter.ParameterType is { IsValueType: true } parameterType)
-				// {
-				// 	newBuffer[i] = Activator.CreateInstance(parameterType);
-				// }
 			}
 		}
 
@@ -128,6 +124,21 @@ public class HookCallerInternal : HookCallerCommon
 			hookable.TrackStart();
 			var beforeMemory = CurrentMemory;
 
+			if (hook != null && args != null)
+			{
+				var actualLength = hook.Parameters.Length;
+
+				if (actualLength != args.Length)
+				{
+					args = HookCaller.Caller.RescaleBuffer(args, actualLength, hook);
+					hasRescaledBuffer = true;
+				}
+				else
+				{
+					HookCaller.Caller.ProcessDefaults(args, hook);
+				}
+			}
+
 			if (hook != null && hook.IsAsync)
 			{
 				hookable.InternalCallHook(hookId, args);
@@ -156,7 +167,7 @@ public class HookCallerInternal : HookCallerCommon
 			{
 				var readableHook = HookStringPool.GetOrAdd(hookId);
 
-				Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+				Carbon.Logger.Warn($" {hookable.ToPrettyString()} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 
 				var wasLagSpike = afterHookTimeMs >= Community.Runtime.Config.Debugging.HookLagSpikeThreshold;
 
@@ -259,7 +270,7 @@ public class HookCallerInternal : HookCallerCommon
 						if (hookable is Plugin basePlugin && !basePlugin.IsCorePlugin)
 						{
 							var readableHook = HookStringPool.GetOrAdd(hookId);
-							Carbon.Logger.Warn($" {hookable.Name} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
+							Carbon.Logger.Warn($" {hookable.ToPrettyString()} hook '{readableHook}' took longer than 100ms [{afterHookTimeMs:0}ms]{(hookable.HasGCCollected ? " [GC]" : string.Empty)}");
 
 							var wasLagSpike = afterHookTimeMs >= Community.Runtime.Config.Debugging.HookLagSpikeThreshold;
 
