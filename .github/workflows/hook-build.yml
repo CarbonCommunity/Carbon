@@ -82,7 +82,7 @@ jobs:
     - name: 🔨 Built Carbon Hooks on Windows
       shell: cmd
       run: |
-        call %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
+        call %GITHUB_WORKSPACE%\setup.bat
         
         cd %GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
 
