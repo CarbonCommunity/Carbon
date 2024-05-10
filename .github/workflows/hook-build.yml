@@ -93,3 +93,9 @@ jobs:
         if %RELEASE% EQU true (
             call build.bat Release %BRANCH% %PROTOCOL% %OXIDE_HOOKS%
         )
+    - name: ⬆️ Upload the artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows
+        path: |
+          FTP/*
