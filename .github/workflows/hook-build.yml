@@ -1,0 +1,95 @@
+###
+### Copyright (c) 2024 Carbon Community 
+### All rights reserved
+###
+name: Build Protocol Hooks
+concurrency: build-protocol-hooks
+
+on:
+  workflow_dispatch:
+    inputs:
+      protocol:
+        description: 'Carbon Protocol'
+        required: true
+        default: '2024.MM.DD.0'
+        type: string
+
+      branch:
+        description: 'Rust Branch'
+        required: true
+        default: 'public'
+        type: choice
+        options:
+        - public
+        - release
+        - staging
+        - aux01
+        - aux02
+
+      debug:
+        description: 'Debug Hooks'
+        required: true
+        default: 'true'
+        type: boolean
+        
+      release:
+        description: 'Release Hooks'
+        required: true
+        default: 'false'
+        type: boolean
+        
+      oxide_hooks:
+        description: 'Oxide Hooks'
+        required: false
+        default: 'https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj'
+        type: string
+
+env:
+  FTP_PWD: ${{ secrets.FTP_PWD }}
+  PROTOCOL: ${{ inputs.protocol }}
+  OXIDE_HOOKS: ${{ inputs.oxide_hooks }}
+  BRANCH: ${{ inputs.branch }}
+  DEBUG: ${{ inputs.debug }}
+  RELEASE: ${{ inputs.release }}
+
+jobs:
+  bootstrap:
+    name: 🥾 Bootstrap
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔗 Checkout source code from github
+        uses: actions/checkout@v3
+
+  build-windows:
+    name: 💻 Windows
+    needs: bootstrap
+    runs-on: windows-latest
+    continue-on-error: false
+    
+    steps:
+    - name: 🔗 Checkout source code from github
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.PAT_ALL_REPO }}
+        submodules: recursive
+        
+    - name: 🛤️ Setup the dotnet build environment
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 7.0.x
+
+    - name: 🔨 Built Carbon Hooks on Windows
+      shell: cmd
+      run: |
+        call %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
+        
+        cd %GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
+
+        if %DEBUG% EQU true (
+            call build.bat Debug %BRANCH% %PROTOCOL% %OXIDE_HOOKS%
+        )
+
+        if %RELEASE% EQU true (
+            call build.bat Release %BRANCH% %PROTOCOL% %OXIDE_HOOKS%
+        )
