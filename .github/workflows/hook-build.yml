@@ -96,6 +96,6 @@ jobs:
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: windows
+        name: FTP Output
         path: |
-          FTP/*
+          Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/*
