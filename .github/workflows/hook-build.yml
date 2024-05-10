@@ -110,6 +110,16 @@ jobs:
         host: 147.135.88.204
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+
+    - name: ⬆️ FTP - Upload DebugUnix - Carbon.Hooks.Community
+      uses: tomasbkk/action-ftp-upload@v1.0
+      if: ${{ inputs.debug }}
+      with:
+        user: redist@carbonmod.gg
+        password: ${{ secrets.FTP_PWD }}
+        host: 147.135.88.204
+        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+        dest: "server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         
     - name: ⬆️ FTP - Upload Debug - Carbon.Hooks.Oxide
       uses: tomasbkk/action-ftp-upload@v1.0
@@ -121,6 +131,16 @@ jobs:
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
+    - name: ⬆️ FTP - Upload DebugUnix - Carbon.Hooks.Oxide
+      uses: tomasbkk/action-ftp-upload@v1.0
+      if: ${{ inputs.debug }}
+      with:
+        user: redist@carbonmod.gg
+        password: ${{ secrets.FTP_PWD }}
+        host: 147.135.88.204
+        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+        dest: "server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+
     - name: ⬆️ FTP - Upload Release - Carbon.Hooks.Community
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.release }}
@@ -130,6 +150,16 @@ jobs:
         host: 147.135.88.204
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+
+    - name: ⬆️ FTP - Upload ReleaseUnix - Carbon.Hooks.Community
+      uses: tomasbkk/action-ftp-upload@v1.0
+      if: ${{ inputs.release }}
+      with:
+        user: redist@carbonmod.gg
+        password: ${{ secrets.FTP_PWD }}
+        host: 147.135.88.204
+        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+        dest: "server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         
     - name: ⬆️ FTP - Upload Release - Carbon.Hooks.Oxide
       uses: tomasbkk/action-ftp-upload@v1.0
@@ -140,3 +170,13 @@ jobs:
         host: 147.135.88.204
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+
+    - name: ⬆️ FTP - Upload ReleaseUnix - Carbon.Hooks.Oxide
+      uses: tomasbkk/action-ftp-upload@v1.0
+      if: ${{ inputs.release }}
+      with:
+        user: redist@carbonmod.gg
+        password: ${{ secrets.FTP_PWD }}
+        host: 147.135.88.204
+        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+        dest: "server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
