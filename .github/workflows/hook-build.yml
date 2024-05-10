@@ -93,7 +93,14 @@ jobs:
         if %RELEASE% EQU true (
             call build.bat Release %BRANCH% %PROTOCOL% %OXIDE_HOOKS%
         )
-
+        
+    - name: ⬆️ Artifacts - Upload
+      uses: actions/upload-artifact@v3
+      with:
+        name: FTP Output
+        path: |
+          Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/*
+          
     - name: ⬆️ FTP - Upload Debug - Carbon.Hooks.Community
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.debug }}
@@ -133,10 +140,3 @@ jobs:
         host: 147.135.88.204
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
-        
-    - name: ⬆️ Upload the artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: FTP Output
-        path: |
-          Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/*
