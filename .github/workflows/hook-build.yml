@@ -101,7 +101,7 @@ jobs:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
         host: 147.135.88.204
-        src: "FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         
     - name: ⬆️ FTP - Upload Debug - Carbon.Hooks.Oxide
@@ -111,7 +111,7 @@ jobs:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
         host: 147.135.88.204
-        src: "FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
     - name: ⬆️ FTP - Upload Release - Carbon.Hooks.Community
@@ -121,7 +121,7 @@ jobs:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
         host: 147.135.88.204
-        src: "FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         
     - name: ⬆️ FTP - Upload Release - Carbon.Hooks.Oxide
@@ -131,7 +131,7 @@ jobs:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
         host: 147.135.88.204
-        src: "FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+        src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         
     - name: ⬆️ Upload the artifacts
