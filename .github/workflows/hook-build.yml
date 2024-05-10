@@ -93,6 +93,47 @@ jobs:
         if %RELEASE% EQU true (
             call build.bat Release %BRANCH% %PROTOCOL% %OXIDE_HOOKS%
         )
+
+    - name: ⬆️ FTP - Upload Debug - Carbon.Hooks.Community
+      uses: tomasbkk/action-ftp-upload@v1.0
+      if: ${{ inputs.debug }}
+      with:
+        user: redist@carbonmod.gg
+        password: ${{ secrets.FTP_PWD }}
+        host: 147.135.88.204
+        src: "FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+        dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+        
+    - name: ⬆️ FTP - Upload Debug - Carbon.Hooks.Oxide
+      uses: tomasbkk/action-ftp-upload@v1.0
+      if: ${{ inputs.debug }}
+      with:
+        user: redist@carbonmod.gg
+        password: ${{ secrets.FTP_PWD }}
+        host: 147.135.88.204
+        src: "FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+        dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+
+    - name: ⬆️ FTP - Upload Release - Carbon.Hooks.Community
+      uses: tomasbkk/action-ftp-upload@v1.0
+      if: ${{ inputs.release }}
+      with:
+        user: redist@carbonmod.gg
+        password: ${{ secrets.FTP_PWD }}
+        host: 147.135.88.204
+        src: "FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+        dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
+        
+    - name: ⬆️ FTP - Upload Release - Carbon.Hooks.Oxide
+      uses: tomasbkk/action-ftp-upload@v1.0
+      if: ${{ inputs.release }}
+      with:
+        user: redist@carbonmod.gg
+        password: ${{ secrets.FTP_PWD }}
+        host: 147.135.88.204
+        src: "FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+        dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
+        
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
       with:
