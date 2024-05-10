@@ -2,7 +2,7 @@
 ### Copyright (c) 2024 Carbon Community 
 ### All rights reserved
 ###
-name: Build Protocol Hooks
+name: Protocol Hooks Build
 concurrency: build-protocol-hooks
 
 on:
