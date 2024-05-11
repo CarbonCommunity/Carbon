@@ -49,8 +49,8 @@ env:
   PROTOCOL: ${{ inputs.protocol }}
   OXIDE_HOOKS: ${{ inputs.oxide_hooks }}
   BRANCH: ${{ inputs.branch }}
-  DEBUG: ${{ inputs.debug }}
-  RELEASE: ${{ inputs.release }}
+  DEBUG_BUILD: ${{ inputs.debug }}
+  RELEASE_BUILD: ${{ inputs.release }}
 
 jobs:
   bootstrap:
@@ -86,7 +86,7 @@ jobs:
 
         set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
 
-        if %DEBUG% EQU true (
+        if %DEBUG_BUILD% EQU true (
             cd %ROOT%
             echo Debug build is enabled.
             call build.bat Debug %BRANCH% %PROTOCOL% %OXIDE_HOOKS%
@@ -94,7 +94,7 @@ jobs:
             echo Debug build is disabled.
         )
 
-        if %RELEASE% EQU true (
+        if %RELEASE_BUILD% EQU true (
             cd %ROOT%
             echo Release build is enabled.
             call build.bat Release %BRANCH% %PROTOCOL% %OXIDE_HOOKS%
