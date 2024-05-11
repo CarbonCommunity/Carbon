@@ -46,6 +46,7 @@ on:
 
 env:
   FTP_PWD: ${{ secrets.FTP_PWD }}
+  DISCORD_HOOK_WH: ${{ secrets.DISCORD_HOOK_WH }}
   PROTOCOL: ${{ inputs.protocol }}
   OXIDE_HOOKS: ${{ inputs.oxide_hooks }}
   BRANCH: ${{ inputs.branch }}
@@ -101,6 +102,8 @@ jobs:
         ) else (
             echo Release build is disabled.
         )
+
+        call discord.bat
         
     - name: ⬆️ Artifacts - Upload
       uses: actions/upload-artifact@v3
