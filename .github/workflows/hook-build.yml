@@ -103,7 +103,7 @@ jobs:
             echo Release build is disabled.
         )
 
-        call discord.bat
+        call discord.bat %BRANCH% %PROTOCOL%
         
     - name: ⬆️ Artifacts - Upload
       uses: actions/upload-artifact@v3
