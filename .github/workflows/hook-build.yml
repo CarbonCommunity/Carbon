@@ -38,17 +38,10 @@ on:
         default: 'false'
         type: boolean
         
-      oxide_hooks:
-        description: 'Oxide Hooks'
-        required: false
-        default: 'https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj'
-        type: string
-
 env:
   FTP_PWD: ${{ secrets.FTP_PWD }}
   DISCORD_HOOK_WH: ${{ secrets.DISCORD_HOOK_WH }}
   PROTOCOL: ${{ inputs.protocol }}
-  OXIDE_HOOKS: ${{ inputs.oxide_hooks }}
   BRANCH: ${{ inputs.branch }}
   DEBUG_BUILD: ${{ inputs.debug }}
   RELEASE_BUILD: ${{ inputs.release }}
@@ -85,6 +78,7 @@ jobs:
       run: |
         call %GITHUB_WORKSPACE%\setup.bat
 
+        set OXIDE_HOOKS=https://carbonmod.gg/redist/oxide/%BRANCH%.opj
         set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
 
         if %DEBUG_BUILD% EQU true (
