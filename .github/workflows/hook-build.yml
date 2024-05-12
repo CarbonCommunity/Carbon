@@ -52,6 +52,7 @@ env:
   DEBUG_BUILD: ${{ inputs.debug }}
   RELEASE_BUILD: ${{ inputs.release }}
   OXIDE_HOOKS_OVERRIDE: ${{ inputs.oxide_hooks_override }}
+  ACTION_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
   bootstrap:
