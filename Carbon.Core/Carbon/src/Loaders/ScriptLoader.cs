@@ -486,7 +486,7 @@ public class ScriptLoader : IScriptLoader
 					Plugin.InternalApplyAllPluginReferences();
 
 					// OnPluginLoaded
-					HookCaller.CallStaticHook(4143864509, rustPlugin);
+					HookCaller.CallStaticHook(3051933177, rustPlugin);
 				}
 			}
 			catch (Exception exception)
