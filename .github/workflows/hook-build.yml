@@ -14,7 +14,20 @@ on:
         default: '2024.MM.DD.0'
         type: string
 
-      branch:
+      carbon_branch:
+        description: 'Carbon Branch'
+        required: true
+        default: 'develop'
+        type: choice
+        options:
+        - develop
+        - preview
+        - production
+        - rust_beta/staging
+        - rust_beta/aux01
+        - rust_beta/aux02
+
+      rust_branch:
         description: 'Rust Branch'
         required: true
         default: 'public'
@@ -37,21 +50,22 @@ on:
         required: true
         default: 'false'
         type: boolean
-        
-      oxide_hooks:
-        description: 'Oxide Hooks'
-        required: false
-        default: 'https://raw.githubusercontent.com/OxideMod/Oxide.Rust/develop/resources/Rust.opj'
-        type: string
 
+      oxide_hooks_override:
+        description: 'Oxide Hooks Override'
+        required: false
+        default: ''
+        type: string
+        
 env:
   FTP_PWD: ${{ secrets.FTP_PWD }}
   DISCORD_HOOK_WH: ${{ secrets.DISCORD_HOOK_WH }}
   PROTOCOL: ${{ inputs.protocol }}
-  OXIDE_HOOKS: ${{ inputs.oxide_hooks }}
-  BRANCH: ${{ inputs.branch }}
+  RUST_BRANCH: ${{ inputs.rust_branch }}
   DEBUG_BUILD: ${{ inputs.debug }}
   RELEASE_BUILD: ${{ inputs.release }}
+  OXIDE_HOOKS_OVERRIDE: ${{ inputs.oxide_hooks_override }}
+  ACTION_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
   bootstrap:
@@ -72,6 +86,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
+        ref: ${{ inputs.carbon_branch }}
         token: ${{ secrets.PAT_ALL_REPO }}
         submodules: recursive
         
@@ -85,12 +100,18 @@ jobs:
       run: |
         call %GITHUB_WORKSPACE%\setup.bat
 
+        set OXIDE_HOOKS=https://carbonmod.gg/redist/oxide/%RUST_BRANCH%.opj
+
+        if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
+            set OXIDE_HOOKS=%OXIDE_HOOKS_OVERRIDE%
+        )
+        
         set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
 
         if %DEBUG_BUILD% EQU true (
             cd %ROOT%
             echo Debug build is enabled.
-            call build.bat Debug %BRANCH% %PROTOCOL% %OXIDE_HOOKS%
+            call build.bat Debug %RUST_BRANCH% %PROTOCOL% %OXIDE_HOOKS%
         ) else (
             echo Debug build is disabled.
         )
@@ -98,12 +119,12 @@ jobs:
         if %RELEASE_BUILD% EQU true (
             cd %ROOT%
             echo Release build is enabled.
-            call build.bat Release %BRANCH% %PROTOCOL% %OXIDE_HOOKS%
+            call build.bat Release %RUST_BRANCH% %PROTOCOL% %OXIDE_HOOKS%
         ) else (
             echo Release build is disabled.
         )
 
-        call discord.bat %BRANCH% %PROTOCOL%
+        call discord.bat %RUST_BRANCH% %PROTOCOL%
         
     - name: ⬆️ Artifacts - Upload
       uses: actions/upload-artifact@v3
