@@ -35,6 +35,9 @@ public class HookEx : IDisposable, IHook
 	public Type TargetType
 	{ get; }
 
+	public MethodType MethodType
+	{ get; }
+
 	public string TargetMethod
 	{ get; }
 
@@ -118,6 +121,7 @@ public class HookEx : IDisposable, IHook
 			TargetMethodArgs = metadata.MethodArgs;
 			TargetMethods = new();
 			TargetType = metadata.Target;
+			MethodType = metadata.MethodType;
 
 			Identifier = type.GetCustomAttribute<HookAttribute.Identifier>()?.Value ?? $"{Guid.NewGuid():N}";
 			Options = type.GetCustomAttribute<HookAttribute.Options>()?.Value ?? HookFlags.None;
@@ -202,7 +206,7 @@ public class HookEx : IDisposable, IHook
 			if (prefix is null && postfix is null && transpiler is null)
 				throw new Exception($"(prefix, postfix, transpiler not found");
 
-			if (TargetMethod is null || TargetMethod.Count() == 0)
+			if (TargetMethod is null || TargetMethod.Length == 0)
 				throw new Exception($"target method not found");
 		}
 		catch (System.Exception e)
@@ -272,7 +276,12 @@ public class HookEx : IDisposable, IHook
 	}
 
 	public MethodInfo GetTargetMethodInfo()
-		=> AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null;
+		=> MethodType switch
+		{
+			MethodType.Getter => AccessTools.PropertyGetter(TargetType, TargetMethod),
+			MethodType.Setter => AccessTools.PropertySetter(TargetType, TargetMethod),
+			_ => AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null
+		};
 
 	public void SetStatus(HookState Status, string error = null)
 	{

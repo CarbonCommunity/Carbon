@@ -77,7 +77,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module && module.GetEnabled())
+			if (hookable is IModule module && module.IsEnabled())
 			{
 				try
 				{
@@ -92,7 +92,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module && module.GetEnabled())
+			if (hookable is IModule module && module.IsEnabled())
 			{
 				try
 				{
@@ -109,7 +109,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	{
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module && module.GetEnabled())
+			if (hookable is IModule module && module.IsEnabled())
 			{
 				try
 				{
@@ -189,7 +189,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 
 		foreach (var hookable in _cache)
 		{
-			if (hookable is IModule module && module.GetEnabled())
+			if (hookable is IModule module && module.IsEnabled())
 			{
 				try
 				{
@@ -198,6 +198,21 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				catch (Exception ex)
 				{
 					Logger.Error($"Failed module InitEnd for {module?.GetType().FullName}", ex);
+				}
+			}
+		}
+
+		foreach (var hookable in _cache)
+		{
+			if (hookable is IModule module && module.IsEnabled())
+			{
+				try
+				{
+					module.OnEnableStatus();
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
 				}
 			}
 		}
