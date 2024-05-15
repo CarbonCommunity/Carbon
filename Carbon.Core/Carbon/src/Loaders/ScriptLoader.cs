@@ -297,7 +297,7 @@ public class ScriptLoader : IScriptLoader
 		{
 			foreach (var require in AsyncLoader.Requires)
 			{
-				var plugin = Community.Runtime.CorePlugin.plugins.Find(require);
+				var plugin = Community.Runtime.Core.plugins.Find(require);
 				if (plugin == null)
 				{
 					Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
@@ -376,7 +376,7 @@ public class ScriptLoader : IScriptLoader
 #endif
 
 				// OnCompilationFail
-				HookCaller.CallStaticHook(150731668, InitialSource.ContextFilePath, compilationFailure);
+				HookCaller.CallStaticHook(2719094727, InitialSource.ContextFilePath, compilationFailure);
 
 				if (Community.Runtime.Config.Compiler.UnloadOnFailure)
 				{
@@ -486,7 +486,7 @@ public class ScriptLoader : IScriptLoader
 					Plugin.InternalApplyAllPluginReferences();
 
 					// OnPluginLoaded
-					HookCaller.CallStaticHook(4143864509, rustPlugin);
+					HookCaller.CallStaticHook(3051933177, rustPlugin);
 				}
 			}
 			catch (Exception exception)

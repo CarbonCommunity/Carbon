@@ -49,7 +49,7 @@ public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 			{
 				Loader = new ScriptLoader();
 
-				Community.Runtime.CorePlugin.webrequest.Enqueue(File, null, (error, result) =>
+				Community.Runtime.Core.webrequest.Enqueue(File, null, (error, result) =>
 				{
 					Logger.Log($"Downloaded '{File}': {result.Length}");
 
@@ -62,7 +62,7 @@ public class WebScriptProcessor : BaseProcessor, IWebScriptProcessor
 						Content = result
 					});
 					Loader.Load();
-				}, Community.Runtime.CorePlugin);
+				}, Community.Runtime.Core);
 			}
 			catch (Exception ex)
 			{
