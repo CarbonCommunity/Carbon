@@ -16,9 +16,16 @@ on:
 
       carbon_branch:
         description: 'Carbon Branch'
-        required: false
+        required: true
         default: 'develop'
-        type: branch
+        type: choice
+        options:
+        - develop
+        - preview
+        - production
+        - rust_beta/staging
+        - rust_beta/aux01
+        - rust_beta/aux02
 
       rust_branch:
         description: 'Rust Branch'
@@ -79,6 +86,7 @@ jobs:
     - name: 🔗 Checkout source code from github
       uses: actions/checkout@v3
       with:
+        ref: ${{ inputs.carbon_branch }}
         token: ${{ secrets.PAT_ALL_REPO }}
         submodules: recursive
         
