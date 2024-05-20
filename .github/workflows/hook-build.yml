@@ -104,7 +104,7 @@ jobs:
 
         if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
             set OXIDE_HOOKS=%OXIDE_HOOKS_OVERRIDE%
-        )
+        )e
         
         set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
 
@@ -125,7 +125,14 @@ jobs:
         )
 
         call discord.bat %RUST_BRANCH% %PROTOCOL%
-        
+
+  upload-windows:
+    name: ⬆️ Upload
+    needs: bootstrap
+    runs-on: windows-latest
+    continue-on-error: false
+    
+    steps:  
     - name: ⬆️ Artifacts - Upload
       uses: actions/upload-artifact@v3
       with:
