@@ -98,8 +98,6 @@ jobs:
     - name: 🔨 Built Carbon Hooks on Windows
       shell: cmd
       run: |
-        call %GITHUB_WORKSPACE%\setup.bat
-
         set OXIDE_HOOKS=https://carbonmod.gg/redist/oxide/%RUST_BRANCH%.opj
 
         if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
