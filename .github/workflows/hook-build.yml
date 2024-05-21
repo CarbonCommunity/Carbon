@@ -122,6 +122,7 @@ jobs:
             echo Release build is disabled.
         )
 
+        cd %ROOT%
         call discord.bat %RUST_BRANCH% %PROTOCOL%
         
     - name: ⬆️ Artifacts - Upload
