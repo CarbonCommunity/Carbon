@@ -85,8 +85,8 @@ jobs:
       shell: bash
       run: |
         export VERSION=${{ needs.bootstrap.outputs.version }}
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix "" "production_build"
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix "" "production_build"
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix "PROD" "production_build"
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix "PROD" "production_build"
         
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -134,8 +134,8 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release . production_build
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal . production_build
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release PROD production_build
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal PROD production_build
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
