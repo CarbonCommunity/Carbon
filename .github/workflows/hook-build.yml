@@ -98,8 +98,6 @@ jobs:
     - name: 🔨 Built Carbon Hooks on Windows
       shell: cmd
       run: |
-        call %GITHUB_WORKSPACE%\setup.bat
-
         set OXIDE_HOOKS=https://carbonmod.gg/redist/oxide/%RUST_BRANCH%.opj
 
         if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
@@ -124,6 +122,7 @@ jobs:
             echo Release build is disabled.
         )
 
+        cd %ROOT%
         call discord.bat %RUST_BRANCH% %PROTOCOL%
         
     - name: ⬆️ Artifacts - Upload
@@ -133,7 +132,7 @@ jobs:
         path: |
           Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/*
           
-    - name: ⬆️ FTP - Upload Debug - Carbon.Hooks.Community
+    - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Community)
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.debug }}
       with:
@@ -143,7 +142,7 @@ jobs:
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
-    - name: ⬆️ FTP - Upload DebugUnix - Carbon.Hooks.Community
+    - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Community)
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.debug }}
       with:
@@ -153,7 +152,7 @@ jobs:
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         
-    - name: ⬆️ FTP - Upload Debug - Carbon.Hooks.Oxide
+    - name: ⬆️ FTP - Upload Debug (Carbon.Hooks.Oxide)
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.debug }}
       with:
@@ -163,7 +162,7 @@ jobs:
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
-    - name: ⬆️ FTP - Upload DebugUnix - Carbon.Hooks.Oxide
+    - name: ⬆️ FTP - Upload DebugUnix (Carbon.Hooks.Oxide)
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.debug }}
       with:
@@ -173,7 +172,7 @@ jobs:
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
-    - name: ⬆️ FTP - Upload Release - Carbon.Hooks.Community
+    - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Community)
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.release }}
       with:
@@ -183,7 +182,7 @@ jobs:
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
-    - name: ⬆️ FTP - Upload ReleaseUnix - Carbon.Hooks.Community
+    - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Community)
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.release }}
       with:
@@ -193,7 +192,7 @@ jobs:
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         
-    - name: ⬆️ FTP - Upload Release - Carbon.Hooks.Oxide
+    - name: ⬆️ FTP - Upload Release (Carbon.Hooks.Oxide)
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.release }}
       with:
@@ -203,7 +202,7 @@ jobs:
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
-    - name: ⬆️ FTP - Upload ReleaseUnix - Carbon.Hooks.Oxide
+    - name: ⬆️ FTP - Upload ReleaseUnix (Carbon.Hooks.Oxide)
       uses: tomasbkk/action-ftp-upload@v1.0
       if: ${{ inputs.release }}
       with:
