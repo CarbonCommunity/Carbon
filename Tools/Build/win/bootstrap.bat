@@ -23,9 +23,9 @@ rem Inits and downloads the submodules
 git -C "%BOOTSTRAP_ROOT%" submodule init > NUL
 git -C "%BOOTSTRAP_ROOT%" submodule update > NUL
 
-git -C "%BOOTSTRAP_ROOT%/Tools/DepotDownloader" submodule init > NUL
-git -C "%BOOTSTRAP_ROOT%/Tools/DepotDownloader" fetch init > NUL
-git -C "%BOOTSTRAP_ROOT%/Tools/DepotDownloader" pull init > NUL
+git -C "%BOOTSTRAP_ROOT%/Tools/DepotDownloader" checkout > NUL
+git -C "%BOOTSTRAP_ROOT%/Tools/DepotDownloader" fetch > NUL
+git -C "%BOOTSTRAP_ROOT%/Tools/DepotDownloader" pull > NUL
 
 cd %BOOTSTRAP_ROOT%
 for /f %%i in ('git branch --show-current') do set CURRENT_BRANCH=%%i
