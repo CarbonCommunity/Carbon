@@ -22,7 +22,6 @@ ROOT="$(realpath "${BASE}/../../../")"
 git -C "${ROOT}" submodule init
 git -C "${ROOT}" submodule update
 git -C "${ROOT}" submodule foreach git checkout
-git -C "${ROOT}" submodule foreach git pull *
 
 CURRENT_BRANCH=$(git branch --show-current)
 
