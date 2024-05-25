@@ -20,8 +20,12 @@ xcopy /s /i /y "%BOOTSTRAP_ROOT%\.githooks\*" "%BOOTSTRAP_ROOT%\.git\hooks" > NU
 echo * Updated - git hooks.
 
 rem Inits and downloads the submodules
-git -C "%BOOTSTRAP_ROOT%" submodule init
-git -C "%BOOTSTRAP_ROOT%" submodule update
+git -C "%BOOTSTRAP_ROOT%" submodule init > NUL
+git -C "%BOOTSTRAP_ROOT%" submodule update > NUL
+
+git -C "%BOOTSTRAP_ROOT%/Tools/DepotDownloader" submodule init > NUL
+git -C "%BOOTSTRAP_ROOT%/Tools/DepotDownloader" fetch init > NUL
+git -C "%BOOTSTRAP_ROOT%/Tools/DepotDownloader" pull init > NUL
 
 cd %BOOTSTRAP_ROOT%
 for /f %%i in ('git branch --show-current') do set CURRENT_BRANCH=%%i
