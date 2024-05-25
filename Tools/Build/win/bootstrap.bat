@@ -21,7 +21,7 @@ echo * Updated - git hooks.
 
 rem Inits and downloads the submodules
 git -C "%BOOTSTRAP_ROOT%" submodule init
-git -C "%BOOTSTRAP_ROOT%" submodule update --init --recursive
+git -C "%BOOTSTRAP_ROOT%" submodule update
 git -C "%BOOTSTRAP_ROOT%" submodule foreach git checkout
 git -C "%BOOTSTRAP_ROOT%" submodule foreach git pull
 
