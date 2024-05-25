@@ -23,7 +23,7 @@ rem Inits and downloads the submodules
 git -C "%BOOTSTRAP_ROOT%" submodule init
 git -C "%BOOTSTRAP_ROOT%" submodule update
 git -C "%BOOTSTRAP_ROOT%" submodule foreach git checkout
-git -C "%BOOTSTRAP_ROOT%" submodule foreach git pull
+git -C "%BOOTSTRAP_ROOT%" submodule foreach git pull *
 
 cd %BOOTSTRAP_ROOT%
 for /f %%i in ('git branch --show-current') do set CURRENT_BRANCH=%%i
