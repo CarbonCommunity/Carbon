@@ -4,13 +4,13 @@
 ::
 @echo off
 
-set ROOT="%cd%/Tools/Build/win"
+set SUPERROOT="%cd%\Tools\Build\win"
 
-cd %ROOT%
-bootstrap.bat
+cd %SUPERROOT%
+call bootstrap.bat
 
-cd %ROOT%
-build_native.bat
+cd %SUPERROOT%
+call build_native.bat
 
-cd %ROOT%
-build.bat
+cd %SUPERROOT%
+call build.bat
