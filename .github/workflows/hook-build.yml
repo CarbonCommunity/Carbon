@@ -97,7 +97,7 @@ jobs:
 
     - name: 🔨 Built Carbon Hooks on Windows
       shell: cmd
-      run: |
+      run: |            
         set OXIDE_HOOKS=https://carbonmod.gg/redist/oxide/%RUST_BRANCH%.opj
 
         if NOT "%OXIDE_HOOKS_OVERRIDE%" EQU "" (
@@ -106,6 +106,8 @@ jobs:
         
         set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
 
+        call %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
+        
         if %DEBUG_BUILD% EQU true (
             cd %ROOT%
             echo Debug build is enabled.
