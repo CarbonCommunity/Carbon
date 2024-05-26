@@ -22,6 +22,7 @@ echo * Updated - git hooks.
 rem Inits and downloads the submodules
 git -C "%BOOTSTRAP_ROOT%" submodule init
 git -C "%BOOTSTRAP_ROOT%" submodule update
+git -C "%BOOTSTRAP_ROOT%" submodule foreach git checkout
 
 cd %BOOTSTRAP_ROOT%
 for /f %%i in ('git branch --show-current') do set CURRENT_BRANCH=%%i
@@ -42,7 +43,7 @@ FOR %%O IN (DepotDownloader) DO (
 	echo ** Build '%%O'
 	dotnet restore "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --nologo --force > NUL
 	dotnet clean   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --nologo > NUL
-	dotnet build   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --no-restore --no-incremental > NUL
+	dotnet build   "%BOOTSTRAP_ROOT%\Tools\%%O" --verbosity quiet --configuration Release --no-restore --no-incremental
 	echo    done.
 )
 echo * Finsihed - building submodules.
