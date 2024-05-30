@@ -203,7 +203,15 @@ public class ScriptLoader : IScriptLoader
 	{
 		if (string.IsNullOrEmpty(InitialSource.Content) && !string.IsNullOrEmpty(InitialSource.FilePath) && OsEx.File.Exists(InitialSource.FilePath))
 		{
-			yield return ReadFileAsync(InitialSource.FilePath, content => InitialSource.Content = content);
+			yield return ReadFileAsync(InitialSource.FilePath, content =>
+			{
+				if(InitialSource == null || string.IsNullOrEmpty(content))
+				{
+					return;
+				}
+
+				InitialSource.Content = content;
+			});
 		}
 
 		if (Parser != null)
