@@ -133,7 +133,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 	}
 	public void Build(string context, params Type[] types)
 	{
-		var _cache = Pool.GetList<BaseModule>();
+		var cache = Pool.GetList<BaseModule>();
 
 		foreach (var type in types)
 		{
@@ -146,10 +146,10 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 
 			var module = Activator.CreateInstance(type) as BaseModule;
 			module.Context = context;
-			_cache.Add(module);
+			cache.Add(module);
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
 			if (hookable is IModule)
 			{
@@ -157,7 +157,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 			}
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
 			if (hookable is IModule module)
 			{
@@ -172,7 +172,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 			}
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
 			if (hookable is IModule module)
 			{
@@ -187,7 +187,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 			}
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
 			if (hookable is IModule module && module.IsEnabled())
 			{
@@ -202,7 +202,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 			}
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
 			if (hookable is IModule module && module.IsEnabled())
 			{
@@ -217,7 +217,40 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 			}
 		}
 
-		Pool.FreeList(ref _cache);
+		if (Community.IsServerInitialized)
+		{
+			foreach (var hookable in cache)
+			{
+				if (hookable is IModule module && module.IsEnabled())
+				{
+					try
+					{
+						module.OnServerInit(true);
+					}
+					catch (Exception ex)
+					{
+						Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
+					}
+				}
+			}
+
+			foreach (var hookable in cache)
+			{
+				if (hookable is IModule module && module.IsEnabled())
+				{
+					try
+					{
+						module.OnPostServerInit(true);
+					}
+					catch (Exception ex)
+					{
+						Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
+					}
+				}
+			}
+		}
+
+		Pool.FreeList(ref cache);
 	}
 	public void Uninstall(IModule module)
 	{
