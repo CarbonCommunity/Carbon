@@ -16,13 +16,14 @@ using Facepunch;
 
 namespace Carbon.Managers;
 
-public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
+public class ModuleProcessor : BaseProcessor, IModuleProcessor
 {
 	public override string Name => "Module Processor";
+	public override bool EnableWatcher => false;
 
 	List<BaseHookable> IModuleProcessor.Modules { get => _modules; }
 
-	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(200);
+	internal List<BaseHookable> _modules { get; set; } = new(200);
 
 	public void Init()
 	{
@@ -54,8 +55,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				{
 					if (module is BaseModule baseModule)
 					{
-						if (baseModule.Context is string context1 && m.Payload is string context2 &&
-							context1.Equals(context2))
+						if (baseModule.Context is string context1 && m.Payload is string context2 && context1.Equals(context2))
 						{
 							baseModule.Shutdown();
 						}
@@ -260,10 +260,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 		}
 
 		_modules.Clear();
-	}
 
-	void IDisposable.Dispose()
-	{
-		Dispose();
+		base.Dispose();
 	}
 }
