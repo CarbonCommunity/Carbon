@@ -137,9 +137,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 
 		foreach (var type in types)
 		{
-			if (type.IsAbstract ||
-				type.BaseType == null ||
-				!type.IsSubclassOf(typeof(BaseModule)))
+			if (type.IsAbstract || type.BaseType == null || !type.IsSubclassOf(typeof(BaseModule)))
 			{
 				continue;
 			}
@@ -159,61 +157,57 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 
 		foreach (var hookable in cache)
 		{
-			if (hookable is IModule module)
+			if (hookable is not IModule module) continue;
+
+			try
 			{
-				try
-				{
-					module.Init();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"Failed module Init for {module?.GetType().FullName}", ex);
-				}
+				module.Init();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed module Init for {module?.GetType().FullName}", ex);
 			}
 		}
 
 		foreach (var hookable in cache)
 		{
-			if (hookable is IModule module)
+			if (hookable is not IModule module) continue;
+
+			try
 			{
-				try
-				{
-					module.Load();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"Failed module Load for {module?.GetType().FullName}", ex);
-				}
+				module.Load();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed module Load for {module?.GetType().FullName}", ex);
 			}
 		}
 
 		foreach (var hookable in cache)
 		{
-			if (hookable is IModule module && module.IsEnabled())
+			if (hookable is not IModule module || !module.IsEnabled()) continue;
+
+			try
 			{
-				try
-				{
-					module.InitEnd();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"Failed module InitEnd for {module?.GetType().FullName}", ex);
-				}
+				module.InitEnd();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed module InitEnd for {module?.GetType().FullName}", ex);
 			}
 		}
 
 		foreach (var hookable in cache)
 		{
-			if (hookable is IModule module && module.IsEnabled())
+			if (hookable is not IModule module || !module.IsEnabled()) continue;
+
+			try
 			{
-				try
-				{
-					module.OnEnableStatus();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
-				}
+				module.OnEnableStatus();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
 			}
 		}
 
@@ -221,31 +215,29 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 		{
 			foreach (var hookable in cache)
 			{
-				if (hookable is IModule module && module.IsEnabled())
+				if (hookable is not IModule module || !module.IsEnabled()) continue;
+
+				try
 				{
-					try
-					{
-						module.OnServerInit(true);
-					}
-					catch (Exception ex)
-					{
-						Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
-					}
+					module.OnServerInit(true);
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
 				}
 			}
 
 			foreach (var hookable in cache)
 			{
-				if (hookable is IModule module && module.IsEnabled())
+				if (hookable is not IModule module || !module.IsEnabled()) continue;
+
+				try
 				{
-					try
-					{
-						module.OnPostServerInit(true);
-					}
-					catch (Exception ex)
-					{
-						Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
-					}
+					module.OnPostServerInit(true);
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
 				}
 			}
 		}
