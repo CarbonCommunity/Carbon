@@ -225,7 +225,7 @@ public class CommunityInternal : Community
 			ClearCommands(all: true);
 
 			ClearPlugins(full: true);
-			ModLoader.LoadedPackages.Clear();
+			ModLoader.Packages.Clear();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
 
 #if WIN
