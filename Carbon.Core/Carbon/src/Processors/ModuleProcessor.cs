@@ -16,13 +16,14 @@ using Facepunch;
 
 namespace Carbon.Managers;
 
-public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
+public class ModuleProcessor : BaseProcessor, IModuleProcessor
 {
 	public override string Name => "Module Processor";
+	public override bool EnableWatcher => false;
 
 	List<BaseHookable> IModuleProcessor.Modules { get => _modules; }
 
-	internal List<BaseHookable> _modules { get; set; } = new List<BaseHookable>(200);
+	internal List<BaseHookable> _modules { get; set; } = new(200);
 
 	public void Init()
 	{
@@ -54,8 +55,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 				{
 					if (module is BaseModule baseModule)
 					{
-						if (baseModule.Context is string context1 && m.Payload is string context2 &&
-							context1.Equals(context2))
+						if (baseModule.Context is string context1 && m.Payload is string context2 && context1.Equals(context2))
 						{
 							baseModule.Shutdown();
 						}
@@ -133,23 +133,21 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 	}
 	public void Build(string context, params Type[] types)
 	{
-		var _cache = Pool.GetList<BaseModule>();
+		var cache = Pool.GetList<BaseModule>();
 
 		foreach (var type in types)
 		{
-			if (type.IsAbstract ||
-				type.BaseType == null ||
-				!type.IsSubclassOf(typeof(BaseModule)))
+			if (type.IsAbstract || type.BaseType == null || !type.IsSubclassOf(typeof(BaseModule)))
 			{
 				continue;
 			}
 
 			var module = Activator.CreateInstance(type) as BaseModule;
 			module.Context = context;
-			_cache.Add(module);
+			cache.Add(module);
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
 			if (hookable is IModule)
 			{
@@ -157,58 +155,85 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			}
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
-			if (hookable is IModule module)
+			if (hookable is not IModule module) continue;
+
+			try
 			{
-				try
-				{
-					module.Init();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"Failed module Init for {module?.GetType().FullName}", ex);
-				}
+				module.Init();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed module Init for {module?.GetType().FullName}", ex);
 			}
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
-			if (hookable is IModule module)
+			if (hookable is not IModule module) continue;
+
+			try
 			{
-				try
-				{
-					module.Load();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"Failed module Load for {module?.GetType().FullName}", ex);
-				}
+				module.Load();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed module Load for {module?.GetType().FullName}", ex);
 			}
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
-			if (hookable is IModule module && module.IsEnabled())
+			if (hookable is not IModule module || !module.IsEnabled()) continue;
+
+			try
 			{
-				try
-				{
-					module.InitEnd();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"Failed module InitEnd for {module?.GetType().FullName}", ex);
-				}
+				module.InitEnd();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed module InitEnd for {module?.GetType().FullName}", ex);
 			}
 		}
 
-		foreach (var hookable in _cache)
+		foreach (var hookable in cache)
 		{
-			if (hookable is IModule module && module.IsEnabled())
+			if (hookable is not IModule module || !module.IsEnabled()) continue;
+
+			try
 			{
+				module.OnEnableStatus();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
+			}
+		}
+
+		if (Community.IsServerInitialized)
+		{
+			foreach (var hookable in cache)
+			{
+				if (hookable is not IModule module || !module.IsEnabled()) continue;
+
 				try
 				{
-					module.OnEnableStatus();
+					module.OnServerInit(true);
+				}
+				catch (Exception ex)
+				{
+					Logger.Error($"Failed module OnEnableStatus for {module?.GetType().FullName}", ex);
+				}
+			}
+
+			foreach (var hookable in cache)
+			{
+				if (hookable is not IModule module || !module.IsEnabled()) continue;
+
+				try
+				{
+					module.OnPostServerInit(true);
 				}
 				catch (Exception ex)
 				{
@@ -217,7 +242,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 			}
 		}
 
-		Pool.FreeList(ref _cache);
+		Pool.FreeList(ref cache);
 	}
 	public void Uninstall(IModule module)
 	{
@@ -260,10 +285,7 @@ public class ModuleProcessor : BaseProcessor, IDisposable, IModuleProcessor
 		}
 
 		_modules.Clear();
-	}
 
-	void IDisposable.Dispose()
-	{
-		Dispose();
+		base.Dispose();
 	}
 }
