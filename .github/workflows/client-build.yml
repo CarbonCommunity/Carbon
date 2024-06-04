@@ -34,7 +34,7 @@ jobs:
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=2.1.$(curl -s -L 'https://carbonmod.gg/version?id=client&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
+          echo "version=2.8.$(curl -s -L 'https://carbonmod.gg/version?id=client&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
 
   # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
