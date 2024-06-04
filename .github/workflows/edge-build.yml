@@ -32,7 +32,7 @@ jobs:
 
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
-
+              
       - name: 📅 Prepare the environment
         id: step1
         shell: bash
@@ -41,7 +41,7 @@ jobs:
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=2.$(curl -s 'https://carbonmod.gg/version?token=${{secrets.VERSIONS_TOKEN}}' | jq -r '.version')" >> $GITHUB_OUTPUT
+          echo "version=1.0" >> $GITHUB_OUTPUT
 
   # BUILD LINUX ----------------------------------------------------------------
   build-linux:
