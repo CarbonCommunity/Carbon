@@ -191,7 +191,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		ShowAllPlayersLoading();
 
-		foreach (var package in ModLoader.LoadedPackages)
+		foreach (var package in ModLoader.Packages)
 		{
 			foreach (var plugin in package.Plugins)
 			{
@@ -224,7 +224,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 			OnEnable();
 
-			foreach (var package in ModLoader.LoadedPackages)
+			foreach (var package in ModLoader.Packages)
 			{
 				foreach (var plugin in package.Plugins)
 				{
