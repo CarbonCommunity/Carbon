@@ -55,6 +55,11 @@ echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
 
 
 set TAG=%1
+
+if "%TAG%" EQU "" (
+	set TAG=Debug
+)
+
 set TAG=%TAG:Unix=%
 
 echo "%BUILD_TARGET%" | findstr /C:"Unix" >NUL && (
