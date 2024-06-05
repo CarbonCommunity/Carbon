@@ -9,21 +9,6 @@
 	</Target>
 
 	<!--
-		If .version filed does not exist then create it.
-		0.2023.328.1512
-	-->
-	<Target Name="BuildVersionMetadata" AfterTargets="_GenerateRestoreProjectSpec">
-		<PropertyGroup>
-			<BuildVersion>0.$([System.DateTime]::UtcNow.ToString('yyyy.MM)).$([System.DateTime]::UtcNow.ToString('ddHHmm'))</BuildVersion>
-		</PropertyGroup>
-
-		<ItemGroup Condition="!Exists('$(MSBuildProjectDirectory)\bin\.version')">
-			<Message Text="[$(AssemblyName)] Saving build version metadata to disk" Importance="high" />
-			<WriteLinesToFile File="$(MSBuildProjectDirectory)\bin\.version" Overwrite="true" Lines="$(BuildVersion)" />
-		</ItemGroup>
-	</Target>
-
-	<!--
 		Outputs basic information about the build
 	-->
 	<Target Name="CarbonPreBuildEvent" BeforeTargets="PreBuildEvent">
@@ -110,11 +95,32 @@
 	-->
 	<Target Name="BuildVersionMetadata" AfterTargets="Release">
 		<PropertyGroup>
+			<GitCommitBranch>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitbranch').Trim())</GitCommitBranch>
+			<GitCommitHashLong>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchl').Replace("--long", "").Trim())</GitCommitHashLong>
+			<GitCommitHashShort>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitchs').Trim())</GitCommitHashShort>
+			<GitCommitUrl>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.giturl').Trim().Replace('.git', ''))/commit/$(GitCommitHashLong.Trim())</GitCommitUrl>
+			<GitCommitAuthor>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitauthor').Trim())</GitCommitAuthor>
+			<GitCommitComment>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitcomment').Replace('"', '""').Trim())</GitCommitComment>
+			<GitCommitTag>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gittag').Trim())</GitCommitTag>
+			<GitCommitDate>$([System.IO.File]::ReadAllText('$(SolutionDir).tmp\.gitdate').Trim())</GitCommitDate>
+			<InformationalVersion>$(VersionPrefix)-$(VersionSuffix)-$(GitCommitBranch)-$(GitCommitHashShort)</InformationalVersion>
+
 			<InfoContents>
 {
-	"Version": "$(InformationalVersion)",
+	"Version": "$(Version)",
+	"InformationalVersion": "$(InformationalVersion)",
 	"Protocol": "$(CarbonProtocol)",
-	"Platform": "$(OperatingSystemCapitalized)"
+	"Platform": "$(OperatingSystemCapitalized)",
+	"Commit": {
+		"Branch": "$(GitCommitBranch)",
+		"HashLong": "$(GitCommitHashLong)",
+		"HashShort": "$(GitCommitHashShort)",
+		"Url": "$(GitCommitUrl)",
+		"Author": "$(GitCommitAuthor)",
+		"Comment": "$(GitCommitComment)",
+		"Tag": "$(GitCommitTag)",
+		"Date": "$(GitCommitDate)"
+	}
 }
 			</InfoContents>
 		</PropertyGroup>
