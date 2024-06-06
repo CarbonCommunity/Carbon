@@ -32,15 +32,16 @@ jobs:
 
       - name: 🔗 Checkout source code from github
         uses: actions/checkout@v3
-
+              
       - name: 📅 Prepare the environment
         id: step1
+        shell: bash
         run: |
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=$(date +'1.%Y.%q%j.%M%S')" >> $GITHUB_OUTPUT
+          echo "version=2.1.$(curl -s -L 'https://carbonmod.gg/version?id=edge&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
 
   # BUILD LINUX ----------------------------------------------------------------
   build-linux:
@@ -63,7 +64,7 @@ jobs:
       - name: 🛤️ Setup the dotnet build environment
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 8.0.x
 
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
@@ -81,8 +82,8 @@ jobs:
         shell: bash
         run: |
           export VERSION=${{ needs.bootstrap.outputs.version }}
-          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix "" "edge_build"
-          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix "" "edge_build"
+          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix "EDGE" "edge_build"
+          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix "EDGE" "edge_build"
 
       - name: ⬆️ Upload the artifacts
         uses: actions/upload-artifact@v3
@@ -111,7 +112,7 @@ jobs:
       - name: 🛤️ Setup the dotnet build environment
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 8.0.x
 
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
@@ -129,8 +130,8 @@ jobs:
         shell: cmd
         run: |
           set VERSION=${{ needs.bootstrap.outputs.version }}
-          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug . edge_build
-          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal . edge_build
+          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug EDGE edge_build
+          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal EDGE edge_build
 
       - name: ⬆️ Upload the artifacts
         uses: actions/upload-artifact@v3

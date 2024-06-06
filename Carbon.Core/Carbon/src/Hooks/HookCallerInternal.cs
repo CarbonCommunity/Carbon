@@ -101,9 +101,9 @@ public class HookCallerInternal : HookCallerCommon
 
 		hookable.BuildHookCache(flags);
 
-		List<CachedHook> hooks = null;
+		CachedHookInstance hookInstance = default;
 
-		if (hookable.HookPool != null && !hookable.HookPool.TryGetValue(hookId, out hooks))
+		if (hookable.HookPool != null && !hookable.HookPool.TryGetValue(hookId, out hookInstance))
 		{
 			return null;
 		}
@@ -116,9 +116,9 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			var hook = (CachedHook)default;
 
-			if (hooks != null && hooks.Count > 0)
+			if (hookInstance.IsValid())
 			{
-				hook = hooks[0];
+				hook = hookInstance.PrimaryHook;
 			}
 
 			hookable.TrackStart();
@@ -184,9 +184,9 @@ public class HookCallerInternal : HookCallerCommon
 		}
 		else
 		{
-			if (hooks != null)
+			if (hookInstance.IsValid())
 			{
-				foreach (var cachedHook in hooks)
+				foreach (var cachedHook in hookInstance.Hooks)
 				{
 					try
 					{

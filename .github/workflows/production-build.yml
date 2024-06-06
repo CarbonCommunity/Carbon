@@ -42,7 +42,7 @@ jobs:
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "wipe=$( [ $(date +%u) -eq 4 ] && [ $(date +%d) -le 7 ] && echo true || echo false )" >> $GITHUB_OUTPUT
-          echo "version=$(date +'1.%Y.%q%j.%M%S')" >> $GITHUB_OUTPUT
+          echo "version=2.0.$(curl -s -L 'https://carbonmod.gg/version?id=production&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
 
   # BUILD LINUX ----------------------------------------------------------------
   build-linux:
@@ -67,7 +67,7 @@ jobs:
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - uses: dtolnay/rust-toolchain@stable
     - uses: ClementTsang/cargo-action@v0.0.3
@@ -85,8 +85,8 @@ jobs:
       shell: bash
       run: |
         export VERSION=${{ needs.bootstrap.outputs.version }}
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix "" "production_build"
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix "" "production_build"
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix "PROD" "production_build"
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix "PROD" "production_build"
         
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3
@@ -116,7 +116,7 @@ jobs:
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - uses: dtolnay/rust-toolchain@stable
     - uses: ClementTsang/cargo-action@v0.0.3
@@ -134,8 +134,8 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release . production_build
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal . production_build
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release PROD production_build
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal PROD production_build
 
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v3

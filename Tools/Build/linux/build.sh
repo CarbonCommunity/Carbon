@@ -48,6 +48,11 @@ fi
 
 
 TAG="$1"
+
+if [[ "${TAG}" == "" ]]; then
+	TAG="Debug"
+fi
+
 TAG="${TAG//Unix/}"
 
 if [[ "${TARGET}" == *"Unix" ]]; then
