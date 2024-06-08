@@ -195,6 +195,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var id = Path.GetFileNameWithoutExtension(InitialSource.FilePath);
 
 		_injectReference(id, "0Harmony", references, _libraryDirectories);
+		_injectReference(id, "Newtonsoft.Json", references, _libraryDirectories, true);
 
 		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
 		{
