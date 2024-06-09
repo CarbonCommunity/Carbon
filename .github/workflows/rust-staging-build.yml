@@ -89,8 +89,8 @@ jobs:
         shell: bash
         run: |
           export VERSION=${{ needs.bootstrap.outputs.version }}
-          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix STAGING "rustbeta_staging"
-          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix STAGING "rustbeta_staging"
+          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix RUST_STAGING "rustbeta_staging"
+          ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix RUST_STAGING "rustbeta_staging"
 
       - name: ⬆️ Upload the artifacts
         uses: actions/upload-artifact@v3
@@ -143,8 +143,8 @@ jobs:
         shell: cmd
         run: |
           set VERSION=${{ needs.bootstrap.outputs.version }}
-          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug STAGING rustbeta_staging
-          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal STAGING rustbeta_staging
+          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug RUST_STAGING rustbeta_staging
+          call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal RUST_STAGING rustbeta_staging
 
       - name: ⬆️ Upload the artifacts
         uses: actions/upload-artifact@v3
