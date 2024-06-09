@@ -59,14 +59,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 	internal static ConcurrentDictionary<string, byte[]> _extensionCompilationCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _referenceCache = new();
 	internal static Dictionary<string, PortableExecutableReference> _extensionReferenceCache = new();
-	internal static readonly string[] _libraryDirectories = new[]
-	{
+	internal static readonly string[] _libraryDirectories =
+	[
 		Defines.GetLibFolder(),
 		Defines.GetManagedFolder(),
 		Defines.GetRustManagedFolder(),
 		Defines.GetManagedModulesFolder(),
 		Defines.GetExtensionsFolder()
-	};
+	];
 
 	internal static byte[] _getPlugin(string name)
 	{
@@ -147,12 +147,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 				{
 					foreach (var file in OsEx.Folder.GetFilesWithExtension(directory, "dll"))
 					{
-						if (file.Contains(name))
-						{
-							raw = OsEx.File.ReadBytes(file);
-							found = true;
-							break;
-						}
+						if (!file.Contains(name)) continue;
+						raw = OsEx.File.ReadBytes(file);
+						found = true;
+						break;
 					}
 
 					if (found) break;
@@ -169,12 +167,11 @@ public class ScriptCompilationThread : BaseThreadedJob
 			var processedReference = MetadataReference.CreateFromStream(mem);
 
 			references.Add(processedReference);
-			if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
-			else _referenceCache[name] = processedReference;
+			_referenceCache[name] = processedReference;
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
 		}
 	}
-	internal void _injectExtensionReference(string id, string name, List<MetadataReference> references)
+	internal void _injectExtensionReference(string name, List<MetadataReference> references)
 	{
 		if (_extensionReferenceCache.TryGetValue(name, out var reference))
 		{
@@ -198,6 +195,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var id = Path.GetFileNameWithoutExtension(InitialSource.FilePath);
 
 		_injectReference(id, "0Harmony", references, _libraryDirectories);
+		_injectReference(id, "Newtonsoft.Json", references, _libraryDirectories, true);
 
 		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
 		{
@@ -233,7 +231,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 		{
 			try
 			{
-				_injectExtensionReference(id, Path.GetFileName(item.Value.Key), references);
+				_injectExtensionReference(Path.GetFileName(item.Value.Key), references);
 			}
 			catch (System.Exception ex)
 			{
@@ -283,7 +281,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				var extensionFile = Path.Combine(Defines.GetExtensionsFolder(), $"{reference}.dll");
 				if (OsEx.File.Exists(extensionFile))
 				{
-					_injectExtensionReference(reference, extensionFile, references);
+					_injectExtensionReference(extensionFile, references);
 					continue;
 				}
 

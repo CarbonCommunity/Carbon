@@ -214,7 +214,7 @@ public class ScriptLoader : IScriptLoader
 			});
 		}
 
-		if (Parser != null)
+		if (Parser != null && Sources != null)
 		{
 			for(int i = 0; i < Sources.Count; i++)
 			{
