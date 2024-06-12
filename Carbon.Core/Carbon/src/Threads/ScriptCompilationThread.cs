@@ -164,7 +164,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			using var mem = new MemoryStream(raw);
 			var processedReference = MetadataReference.CreateFromStream(mem);
-
+			
 			references.Add(processedReference);
 			_referenceCache[name] = processedReference;
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
@@ -284,7 +284,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 					_injectExtensionReference(extensionFile, references);
 					continue;
 				}
-				
+
 				var libFile = Path.Combine(Defines.GetLibFolder(), $"{reference}.dll");
 				if (OsEx.File.Exists(libFile))
 				{
