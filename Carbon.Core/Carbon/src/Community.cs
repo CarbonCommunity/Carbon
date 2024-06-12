@@ -101,6 +101,11 @@ public class CommunityInternal : Community
 
 		_registerProcessors();
 	}
+	internal void _installTest()
+	{
+		Carbon.Test.Integrations.Logger = new Logger();
+		Carbon.Logger.Log($"Initialized Carbon.Test backend");
+	}
 	internal void _registerProcessors()
 	{
 		if (ScriptProcessor != null) ScriptProcessor?.Start();
@@ -167,6 +172,7 @@ public class CommunityInternal : Community
 
 		_handleThreads();
 		_installProcessors();
+		_installTest();
 
 		Events.Subscribe(CarbonEvent.HooksInstalled, args =>
 		{
