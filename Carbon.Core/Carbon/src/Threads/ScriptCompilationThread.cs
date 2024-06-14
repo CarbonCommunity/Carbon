@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
-using Oxide.Plugins;
 
 /*
  *
@@ -165,7 +164,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			using var mem = new MemoryStream(raw);
 			var processedReference = MetadataReference.CreateFromStream(mem);
-
+			
 			references.Add(processedReference);
 			_referenceCache[name] = processedReference;
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
@@ -195,7 +194,6 @@ public class ScriptCompilationThread : BaseThreadedJob
 		var id = Path.GetFileNameWithoutExtension(InitialSource.FilePath);
 
 		_injectReference(id, "0Harmony", references, _libraryDirectories);
-		_injectReference(id, "Newtonsoft.Json", references, _libraryDirectories, true);
 
 		foreach (var item in Community.Runtime.AssemblyEx.RefWhitelist)
 		{
@@ -218,8 +216,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 				var processedReference = MetadataReference.CreateFromStream(mem);
 
 				references.Add(processedReference);
-				if (!_referenceCache.ContainsKey(name)) _referenceCache.Add(name, processedReference);
-				else _referenceCache[name] = processedReference;
+				_referenceCache[name] = processedReference;
 			}
 			catch (System.Exception ex)
 			{
@@ -271,7 +268,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 				using var dllStream = new MemoryStream(requiredPlugin);
 				references.Add(MetadataReference.CreateFromStream(dllStream));
 			}
-			catch { /* do nothing */ }
+			catch (Exception exception)
+			{
+				Logger.Error($"Failed loading required plugin for '{InitialSource.ContextFileName}': {require}", exception);
+			}
 		}
 
 		foreach (var reference in References)
@@ -295,11 +295,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 				var managedFile = Path.Combine(Defines.GetRustManagedFolder(), $"{reference}.dll");
 				if (OsEx.File.Exists(managedFile))
 				{
-					_injectReference(reference, managedFile, references, _libraryDirectories );
+					_injectReference(reference, managedFile, references, _libraryDirectories);
 					continue;
 				}
 			}
-			catch { /* do nothing */ }
+			catch (Exception exception)
+			{
+				Logger.Error($"Failed loading reference for '{InitialSource.ContextFileName}': {reference}", exception);
+			}
 		}
 
 		base.Start();

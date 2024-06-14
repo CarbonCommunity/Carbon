@@ -353,7 +353,7 @@ public class ScriptLoader : IScriptLoader
 		{
 			if (AsyncLoader.Exceptions != null && AsyncLoader.Exceptions.Count > 0)
 			{
-				Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFilePath}':");
+				Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFileName}':");
 				for (int i = 0; i < AsyncLoader.Exceptions.Count; i++)
 				{
 					var error = AsyncLoader.Exceptions[i];
