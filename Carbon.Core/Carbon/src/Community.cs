@@ -62,9 +62,9 @@ public class CommunityInternal : Community
 		Core.IInit();
 		Core.ILoadDefaultMessages();
 
-		ModLoader.RegisterPackage(Core.Package = ModLoader.ModPackage.Get("Carbon Community", true).AddPlugin(Core));
-		ModLoader.RegisterPackage(Plugins = ModLoader.ModPackage.Get("Scripts", false));
-		ModLoader.RegisterPackage(ZipPlugins = ModLoader.ModPackage.Get("Zip Scripts", false));
+		ModLoader.RegisterPackage(Core.Package = ModLoader.Package.Get("Carbon Community", true).AddPlugin(Core));
+		ModLoader.RegisterPackage(Plugins = ModLoader.Package.Get("Scripts", false));
+		ModLoader.RegisterPackage(ZipPlugins = ModLoader.Package.Get("Zip Scripts", false));
 
 		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "c");
 		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "carbon", hidden: true);
