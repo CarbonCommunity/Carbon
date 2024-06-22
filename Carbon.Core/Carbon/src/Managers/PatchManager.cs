@@ -488,12 +488,31 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	private IEnumerable<HookEx> GetHookDependencyTree(HookEx hook)
 	{
-		return hook.Dependencies.SelectMany(x => GetHookByFullName(x).SelectMany(y => GetHookDependencyTree(y).Concat(new [] { y })));
+		foreach (var dependency in hook.Dependencies)
+		{
+			foreach (var hookEx in GetHookByFullName(dependency))
+			{
+				foreach (var tree in GetHookDependencyTree(hookEx))
+				{
+					yield return tree;
+				}
+
+				yield return hookEx;
+			}
+		}
 	}
 
 	private IEnumerable<HookEx> GetHookDependantTree(HookEx hook)
 	{
-		return _patches.Where(x => x.Dependencies.Contains(hook.HookFullName)).SelectMany(x => GetHookDependantTree(x).Concat(new [] { x }));
+		foreach (var hookEx in _patches.Where(x => x.Dependencies.Contains(hook.HookFullName)))
+		{
+			foreach (var tree in GetHookDependantTree(hookEx))
+			{
+				yield return tree;
+			}
+
+			yield return hookEx;
+		}
 	}
 
 	private IEnumerable<HookEx> LoadedHooks
