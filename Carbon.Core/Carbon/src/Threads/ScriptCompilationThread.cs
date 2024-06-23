@@ -164,7 +164,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			using var mem = new MemoryStream(raw);
 			var processedReference = MetadataReference.CreateFromStream(mem);
-			
+
 			references.Add(processedReference);
 			_referenceCache[name] = processedReference;
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
@@ -503,6 +503,18 @@ public class ScriptCompilationThread : BaseThreadedJob
 						{
 							Logger.Error($"Couldn't mark assembly for profiling", ex);
 						}
+
+						try
+						{
+							Assemblies.Plugins.Update(Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
+								? InitialSource.FileName
+								: InitialSource.ContextFileName), Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath);
+						}
+						catch (Exception ex)
+						{
+							Logger.Error($"Couldn't cache assembly in Carbon's global database", ex);
+						}
+
 					}
 				}
 			}
