@@ -187,7 +187,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		_doReload = false;
 		enabled = true;
 	}
-	
+
 	public void Fetch()
 	{
 		Community.Runtime.Events.Trigger(CarbonEvent.HookFetchStart, EventArgs.Empty);
