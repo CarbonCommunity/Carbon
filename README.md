@@ -37,6 +37,9 @@ Join our official [Discord server][discord] for support, more frequent developme
 To help us and work with us on the project, or get started with Carbon's structure, follow this for understanding how it works.
 The project is split in various essential and mostly independent [components](https://github.com/CarbonCommunity/Carbon/tree/develop/Carbon.Core/Carbon.Components), making it easier to organise and follow.
 
+### Getting Started
+Upon cloning Carbon, all you need to execute is [`setup.bat`](https://github.com/CarbonCommunity/Carbon/blob/develop/setup.bat) to initialize the entire project and its dependencies.
+
 ### Branches
 The following branches are shared across all Component and Hook projects and synchronized accordingly with the main project ([this one](https://github.com/CarbonCommunity/Carbon)) and its branches.
 - `develop` branch is the primary base branch of Carbon. It's used to be merged into Rust beta branches as well as the `production` (live) branch.
