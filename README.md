@@ -81,6 +81,9 @@ Carbon's hooks are managed in a separate location:
 Each Carbon version has its own protocol which relative to that, so does the hooks that get automatically updated upon boot.
 You can find the directory [here](https://carbonmod.gg/redist/server).
 
+### Building
+To locally build Carbon from scratch, execute the [`build.bat`](https://github.com/CarbonCommunity/Carbon/tree/develop/Tools/Build/win) file, and find the results in the root of Carbon, under `./Release`.
+
 ## :heart: Sponsor
 
 If you would like to [sponsor][patreon] the project the best way is to use [Patreon].
