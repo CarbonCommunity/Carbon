@@ -343,14 +343,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("MINIMAL");
 #endif
 
-#if STAGING
-			conditionals.Add("STAGING");
-#elif RELEASE
-			conditionals.Add("RELEASE");
-#elif AUX01
-			conditionals.Add("AUX01");
-#elif AUX02
-			conditionals.Add("AUX02");
+#if RUST_STAGING
+			conditionals.Add("RUST_STAGING");
+#elif RUST_RELEASE
+			conditionals.Add("RUST_RELEASE");
+#elif RUST_AUX01
+			conditionals.Add("RUST_AUX01");
+#elif RUST_AUX02
+			conditionals.Add("RUST_AUX02");
 #endif
 
 			string pdbFilename =

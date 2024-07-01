@@ -52,8 +52,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	private Queue<string> _workQueue;
 	private List<Subscription> _subscribers;
 	private readonly Dictionary<string, string> _checksums = new();
-	private static bool InitialHooksInstalled = true;
-	private static bool ForceUpdate;
+	private static bool FullFramePatch;
 	private static bool InitialOnEnable;
 
 	public void Enqueue(string identifier)
@@ -146,6 +145,10 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			Logger.Debug($" - Installing static hooks");
 			foreach (HookEx hook in _staticHooks.Where(x => !x.IsInstalled))
 				Subscribe(hook.Identifier, "Carbon.Static");
+
+			FullFramePatch = true;
+
+			Update();
 		}
 
 		if (!InitialOnEnable)
@@ -290,7 +293,8 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			return;
 		}
 
-		var limit = !InitialHooksInstalled || ForceUpdate ? int.MaxValue : PatchLimitPerCycle;
+		var limit = FullFramePatch ? int.MaxValue : PatchLimitPerCycle;
+		var count = _workQueue.Count;
 
 		while (_workQueue.Count > 0 && limit-- > 0)
 		{
@@ -316,9 +320,8 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 					checksum = GetMethodMSILHash(hook.GetTargetMethodInfo());
 
-					hasValidChecksum =
-						hook.IsChecksumIgnored || string.IsNullOrEmpty(hook.Checksum)
-						|| string.IsNullOrEmpty(checksum) || checksum == hook.Checksum;
+					hasValidChecksum = hook.IsChecksumIgnored || string.IsNullOrEmpty(hook.Checksum)
+					                                          || string.IsNullOrEmpty(checksum) || checksum == hook.Checksum;
 				}
 
 				switch (hasSubscribers)
@@ -340,7 +343,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 						break;
 				}
 
-#if !(STAGING || RELEASE || AUX01 || AUX02)
+#if !(RUST_STAGING || RUST_RELEASE || RUST_AUX01 || RUST_AUX02)
 				if (!hasValidChecksum)
 				{
 					if (!WarnExclusions.Contains(hook.HookFullName))
@@ -362,14 +365,10 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			}
 		}
 
-		if (!InitialHooksInstalled)
+		if (FullFramePatch)
 		{
-			InitialHooksInstalled = true;
-		}
-
-		if (ForceUpdate)
-		{
-			ForceUpdate = false;
+			FullFramePatch = false;
+			Community.Runtime.Events.Trigger(CarbonEvent.HooksPatchedFullFrame, CarbonEventArgs.Empty);
 		}
 	}
 
@@ -556,7 +555,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 	public void ForceUpdateHooks()
 	{
-		ForceUpdate = true;
+		FullFramePatch = true;
 		Update();
 	}
 
