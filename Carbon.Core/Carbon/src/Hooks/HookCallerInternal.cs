@@ -260,7 +260,7 @@ public class HookCallerInternal : HookCallerCommon
 				var afterMemory = hookable.TotalMemoryUsed;
 				var totalMemory = afterMemory - beforeMemory;
 
-				hook.OnFired(hookable, afterHookTime, totalMemory);
+				hook?.OnFired(hookable, afterHookTime, totalMemory);
 
 				var afterHookTimeMs = afterHookTime.TotalMilliseconds;
 

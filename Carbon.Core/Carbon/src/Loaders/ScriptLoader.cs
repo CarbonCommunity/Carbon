@@ -43,7 +43,7 @@ public class ScriptLoader : IScriptLoader
 	public bool HasRequires { get; set; }
 
 	public IBaseProcessor.IProcess Process { get; set; }
-	public ModLoader.ModPackage Mod { get; set; }
+	public ModLoader.Package Mod { get; set; }
 	public IBaseProcessor.IParser Parser { get; set; }
 	public ScriptCompilationThread AsyncLoader { get; set; } = new();
 
