@@ -69,7 +69,7 @@ The following branches are shared across all Component and Hook projects and syn
 - [Carbon.SDK](https://github.com/CarbonCommunity/Carbon.SDK/tree/develop): Infrastructural and contractual features with no implementation. An easy way to identify and organise the structure of our systems.
 - [Carbon.Modules](https://github.com/CarbonCommunity/Carbon.Modules/tree/develop): Carbon optional modules expanding functionality, enhanced QoL and tools.
 - [Carbon.Compat](https://github.com/CarbonCommunity/Carbon.Compat/tree/develop): Previously known as Carbon Compatibility Loader written by Patrette (community member).
-- [Carbon.Test](https://github.com/CarbonCommunity/Carbon.Test/tree/develop): Integral implementation for automated testing rules and events.
+- [Carbon.Test](https://github.com/CarbonCommunity/Carbon.Test/tree/main): Integral implementation for automated testing rules and events.
 
 ### Hooks
 Carbon's hooks are managed in a separate location:
