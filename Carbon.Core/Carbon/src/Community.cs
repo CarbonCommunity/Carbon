@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using API.Events;
-using Carbon.Client;
 using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -95,7 +94,6 @@ public class CommunityInternal : Community
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = gameObject.AddComponent<ModuleProcessor>();
-			CarbonClientManager = new CarbonClientManager();
 			Entities = new Entities();
 		}
 
@@ -179,7 +177,6 @@ public class CommunityInternal : Community
 			ClearCommands();
 			_installCore();
 			ModuleProcessor.Init();
-			CarbonClientManager.Init();
 
 			Events.Trigger(
 				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
@@ -214,10 +211,6 @@ public class CommunityInternal : Community
 
 		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
-
-		Client.RPC.Init();
-
-		Client.Client.Init();
 
 		Entities.Init();
 	}
