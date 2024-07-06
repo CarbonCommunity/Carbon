@@ -156,8 +156,6 @@ public class CommunityInternal : Community
 
 		LoadConfig();
 
-		LoadClientConfig();
-
 		LoadMonoProfilerConfig();
 
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
