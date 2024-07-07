@@ -24,6 +24,20 @@ git -C "%BOOTSTRAP_ROOT%" submodule init
 git -C "%BOOTSTRAP_ROOT%" submodule update
 git -C "%BOOTSTRAP_ROOT%" submodule foreach git checkout
 
+cd %BOOTSTRAP_ROOT%
+for /f %%i in ('git branch --show-current') do set CURRENT_BRANCH=%%i
+
+echo * Handling component submodules..
+FOR %%P IN (Carbon.Core/Carbon.Components/Carbon.Bootstrap Carbon.Core/Carbon.Components/Carbon.Common Carbon.Core/Carbon.Components/Carbon.Common.Client Carbon.Core/Carbon.Components/Carbon.Compat Carbon.Core/Carbon.Components/Carbon.Modules Carbon.Core/Carbon.Components/Carbon.Preloader Carbon.Core/Carbon.Components/Carbon.SDK Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community) DO (
+	echo ** Updating '%%P'
+	cd %BOOTSTRAP_ROOT%/%%P
+	git checkout %CURRENT_BRANCH% > NUL
+	git fetch > NUL
+	git pull > NUL
+	echo    done.
+)
+echo * Finished - handling component submodules.
+
 echo * Building submodules..
 FOR %%O IN (DepotDownloader) DO (
 	echo ** Build '%%O'

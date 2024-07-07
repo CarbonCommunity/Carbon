@@ -76,8 +76,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	{
 		"IOnServerCommand",
 		"IOnRunCommandLine",
-		"SingleCharCmdPrefix [patch]",
-		"OnSendCommand [list]"
+		"SingleCharCmdPrefix [patch]"
 	};
 
 	private void Awake()

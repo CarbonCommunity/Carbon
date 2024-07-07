@@ -19,6 +19,7 @@
 	<ItemGroup>
 		<PackageReference Include="Mono.Cecil" Version="0.11.5" />
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
+		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common.Client\Carbon.Common.Client.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
