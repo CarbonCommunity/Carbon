@@ -162,7 +162,6 @@ public class CommunityInternal : Community
 
 		Carbon.Logger.InitTaskExceptions();
 		Carbon.Logger.Log("Loaded config");
-		Carbon.Logger.Log("Loaded Client config");
 
 		Defines.Initialize();
 
