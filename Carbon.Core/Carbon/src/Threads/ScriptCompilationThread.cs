@@ -164,7 +164,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			using var mem = new MemoryStream(raw);
 			var processedReference = MetadataReference.CreateFromStream(mem);
-			
+
 			references.Add(processedReference);
 			_referenceCache[name] = processedReference;
 			Logger.Debug(id, $"Added common reference '{name}'", 4);
@@ -343,14 +343,14 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("MINIMAL");
 #endif
 
-#if STAGING
-			conditionals.Add("STAGING");
-#elif RELEASE
-			conditionals.Add("RELEASE");
-#elif AUX01
-			conditionals.Add("AUX01");
-#elif AUX02
-			conditionals.Add("AUX02");
+#if RUST_STAGING
+			conditionals.Add("RUST_STAGING");
+#elif RUST_RELEASE
+			conditionals.Add("RUST_RELEASE");
+#elif RUST_AUX01
+			conditionals.Add("RUST_AUX01");
+#elif RUST_AUX02
+			conditionals.Add("RUST_AUX02");
 #endif
 
 			string pdbFilename =
@@ -503,6 +503,18 @@ public class ScriptCompilationThread : BaseThreadedJob
 						{
 							Logger.Error($"Couldn't mark assembly for profiling", ex);
 						}
+
+						try
+						{
+							Assemblies.Plugins.Update(Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
+								? InitialSource.FileName
+								: InitialSource.ContextFileName), Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath);
+						}
+						catch (Exception ex)
+						{
+							Logger.Error($"Couldn't cache assembly in Carbon's global database", ex);
+						}
+
 					}
 				}
 			}

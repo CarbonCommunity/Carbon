@@ -37,7 +37,7 @@ dotnet   build "%BUILD_ROOT%\Carbon.Core\Carbon.Components\Carbon.Client\CarbonC
 
 set CLIENT=%BUILD_ROOT%\Carbon.Core\Carbon.Components\Carbon.Client
 set TOOLS=%CLIENT%\.tools
-set INPUT=%CLIENT%\bin\%BUILD_TARGET%\net48
+set INPUT=%CLIENT%\bin\%BUILD_TARGET%\net481
 set OUTPUT=%BUILD_ROOT%\Release\.tmp\client\%BUILD_TARGET%
 
 echo Create post-build structure

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using API.Events;
-using Carbon.Client;
 using Carbon.Components;
 using Carbon.Core;
 using Carbon.Extensions;
@@ -62,9 +61,9 @@ public class CommunityInternal : Community
 		Core.IInit();
 		Core.ILoadDefaultMessages();
 
-		ModLoader.RegisterPackage(Core.Package = ModLoader.ModPackage.Get("Carbon Community", true).AddPlugin(Core));
-		ModLoader.RegisterPackage(Plugins = ModLoader.ModPackage.Get("Scripts", false));
-		ModLoader.RegisterPackage(ZipPlugins = ModLoader.ModPackage.Get("Zip Scripts", false));
+		ModLoader.RegisterPackage(Core.Package = ModLoader.Package.Get("Carbon Community", true).AddPlugin(Core));
+		ModLoader.RegisterPackage(Plugins = ModLoader.Package.Get("Scripts", false));
+		ModLoader.RegisterPackage(ZipPlugins = ModLoader.Package.Get("Zip Scripts", false));
 
 		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "c");
 		ModLoader.ProcessCommands(typeof(CorePlugin), Core, prefix: "carbon", hidden: true);
@@ -95,7 +94,6 @@ public class CommunityInternal : Community
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = gameObject.AddComponent<ModuleProcessor>();
-			CarbonClientManager = new CarbonClientManager();
 			Entities = new Entities();
 		}
 
@@ -158,15 +156,12 @@ public class CommunityInternal : Community
 
 		LoadConfig();
 
-		LoadClientConfig();
-
 		LoadMonoProfilerConfig();
 
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
 		Carbon.Logger.InitTaskExceptions();
 		Carbon.Logger.Log("Loaded config");
-		Carbon.Logger.Log("Loaded Client config");
 
 		Defines.Initialize();
 
@@ -179,7 +174,6 @@ public class CommunityInternal : Community
 			ClearCommands();
 			_installCore();
 			ModuleProcessor.Init();
-			CarbonClientManager.Init();
 
 			Events.Trigger(
 				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
@@ -214,10 +208,6 @@ public class CommunityInternal : Community
 
 		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
-
-		Client.RPC.Init();
-
-		Client.Client.Init();
 
 		Entities.Init();
 	}
