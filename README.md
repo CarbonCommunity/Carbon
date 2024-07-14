@@ -4,7 +4,6 @@
   <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/edge_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/edge-build.yml/badge.svg" /></a>
   <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/preview_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/preview-build.yml/badge.svg" /></a>
   <a href="https://github.com/CarbonCommunity/Carbon/releases/latest"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/production-build.yml/badge.svg" /></a>
-  <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/client_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/client-build.yml/badge.svg" /></a>
   <br />
     <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_staging_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/rust-staging-build.yml/badge.svg" /></a>
     <a href="https://github.com/CarbonCommunity/Carbon/releases/tag/rustbeta_release_build"><img src="https://github.com/CarbonCommunity/Carbon/actions/workflows/rust-release-build.yml/badge.svg" /></a>
