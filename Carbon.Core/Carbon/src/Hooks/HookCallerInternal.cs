@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Carbon.Base;
 using Carbon.Components;
-using Carbon.Extensions;
 using Carbon.Pooling;
 using Facepunch;
 using Oxide.Core.Plugins;
@@ -25,7 +23,7 @@ public class HookCallerInternal : HookCallerCommon
 	{
 		if (!_argumentBuffer.TryGetValue(count, out var pool))
 		{
-			_argumentBuffer.Add(count, pool = new HookArgPool(count, 15));
+			_argumentBuffer.AddOrUpdate(count, new HookArgPool(count, 15), (_, value) => value);
 		}
 
 		return pool.Take();
@@ -86,10 +84,13 @@ public class HookCallerInternal : HookCallerCommon
 	}
 	public override void ReturnBuffer(object[] buffer)
 	{
-		if (_argumentBuffer.TryGetValue(buffer.Length, out var pool))
+		if (!_argumentBuffer.TryGetValue(buffer.Length, out var pool))
 		{
-			pool.Return(buffer);
+			pool = new HookArgPool(buffer.Length, 15);
+			_argumentBuffer.AddOrUpdate(buffer.Length, pool, (_, value) => value);
 		}
+
+		pool.Return(buffer);
 	}
 
 	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args)
