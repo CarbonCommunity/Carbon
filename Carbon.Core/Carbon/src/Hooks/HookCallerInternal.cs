@@ -23,7 +23,7 @@ public class HookCallerInternal : HookCallerCommon
 	{
 		if (!_argumentBuffer.TryGetValue(count, out var pool))
 		{
-			_argumentBuffer.AddOrUpdate(count, new HookArgPool(count, 15), (_, value) => value);
+			_argumentBuffer.AddOrUpdate(count, pool = new HookArgPool(count, 15), (_, value) => value);
 		}
 
 		return pool.Take();
