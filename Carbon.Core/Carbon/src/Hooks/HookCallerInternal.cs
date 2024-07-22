@@ -21,11 +21,8 @@ public class HookCallerInternal : HookCallerCommon
 {
 	public override object[] AllocateBuffer(int count)
 	{
-		if (!_argumentBuffer.TryGetValue(count, out var pool))
-		{
-			_argumentBuffer.AddOrUpdate(count, pool = new HookArgPool(count, 15), (_, value) => value);
-		}
-
+		if (_argumentBuffer.TryGetValue(count, out var pool)) return pool.Take();
+		_argumentBuffer[count] = pool = new HookArgPool(count, 15);
 		return pool.Take();
 	}
 	public override object[] RescaleBuffer(object[] oldBuffer, int newScale, CachedHook hook)
@@ -86,8 +83,7 @@ public class HookCallerInternal : HookCallerCommon
 	{
 		if (!_argumentBuffer.TryGetValue(buffer.Length, out var pool))
 		{
-			pool = new HookArgPool(buffer.Length, 15);
-			_argumentBuffer.AddOrUpdate(buffer.Length, pool, (_, value) => value);
+			_argumentBuffer[buffer.Length] = pool = new HookArgPool(buffer.Length, 15);
 		}
 
 		pool.Return(buffer);
