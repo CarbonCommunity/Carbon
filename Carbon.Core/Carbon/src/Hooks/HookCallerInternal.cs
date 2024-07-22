@@ -185,7 +185,7 @@ public class HookCallerInternal : HookCallerCommon
 		}
 		else
 		{
-			if (hookInstance.IsValid())
+			if (hookInstance != null && hookInstance.IsValid())
 			{
 				foreach (var cachedHook in hookInstance.Hooks)
 				{
