@@ -522,25 +522,25 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	{ get => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Concat(_metadataHooks); }
 
 	private IEnumerable<HookEx> GetHookByName(string name)
-		=> LoadedHooks.Where(x => x.HookName.Equals(name, StringComparison.InvariantCulture)) ?? null;
+		=> LoadedHooks.Where(x => x.HookName.Equals(name)) ?? null;
 
 	private IEnumerable<HookEx> GetHookByFullName(string name)
-		=> LoadedHooks.Where(x => x.HookFullName.Equals(name, StringComparison.InvariantCulture)) ?? null;
+		=> LoadedHooks.Where(x => x.HookFullName.Equals(name)) ?? null;
 
 	private HookEx GetHookById(string identifier)
-		=> LoadedHooks.FirstOrDefault(x => x.Identifier.Equals(identifier, StringComparison.InvariantCulture)) ?? null;
+		=> LoadedHooks.FirstOrDefault(x => x.Identifier.Equals(identifier)) ?? null;
 
 	private IEnumerable<HookEx> GetHookByNameAll(string name)
-		=> Hooks.Where(x => x.HookName.Equals(name, StringComparison.InvariantCulture)) ?? null;
+		=> Hooks.Where(x => x.HookName.Equals(name)) ?? null;
 
 	private IEnumerable<HookEx> GetHookByFullNameAll(string name)
-		=> Hooks.Where(x => x.HookFullName.Equals(name, StringComparison.InvariantCulture)) ?? null;
+		=> Hooks.Where(x => x.HookFullName.Equals(name)) ?? null;
 
 	private HookEx GetHookByIdAll(string identifier)
-		=> Hooks.FirstOrDefault(x => x.Identifier.Equals(identifier, StringComparison.InvariantCulture)) ?? null;
+		=> Hooks.FirstOrDefault(x => x.Identifier.Equals(identifier)) ?? null;
 
 	internal bool IsHookLoaded(HookEx hook)
-		=> LoadedHooks.Any(x => x.HookFullName.Equals(hook.HookFullName, StringComparison.InvariantCulture) && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
+		=> LoadedHooks.Any(x => x.HookFullName.Equals(hook.HookFullName) && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
 
 	public bool IsHook(string hookName)
 	{
@@ -578,21 +578,20 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	public IEnumerable<IHook> InstalledDynamicHooks
 	{ get => _dynamicHooks.Where(x => x.IsInstalled); }
 
-
 	private bool HookIsSubscribedBy(string identifier, string subscriber)
-		=> _subscribers?.Where(x => x.Identifier.Equals(identifier, StringComparison.InvariantCulture)).Any(x => x.Subscriber == subscriber) ?? false;
+		=> _subscribers?.Where(x => x.Identifier.Equals(identifier)).Any(x => x.Subscriber == subscriber) ?? false;
 
 	private bool HookHasSubscribers(string identifier)
-		=> _subscribers?.Any(x => x.Identifier.Equals(identifier, StringComparison.InvariantCulture)) ?? false;
+		=> _subscribers?.Any(x => x.Identifier.Equals(identifier)) ?? false;
 
 	public int GetHookSubscriberCount(string identifier)
-		=> _subscribers.Count(x => x.Identifier.Equals(identifier, StringComparison.InvariantCulture));
+		=> _subscribers.Count(x => x.Identifier.Equals(identifier));
 
 	private void AddSubscriber(string identifier, string subscriber)
 		=> _subscribers.Add(item: new Subscription { Identifier = identifier, Subscriber = subscriber });
 
 	private void RemoveSubscriber(string identifier, string subscriber)
-		=> _subscribers.RemoveAll(x => x.Identifier.Equals(identifier, StringComparison.InvariantCulture) && x.Subscriber.Equals(subscriber, StringComparison.InvariantCulture));
+		=> _subscribers.RemoveAll(x => x.Identifier.Equals(identifier) && x.Subscriber.Equals(subscriber));
 
 
 	public void Subscribe(string hookName, string requester)
@@ -661,6 +660,11 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		}
 	}
 
+	public IEnumerable<string> GetHookSubscribers(string identifier)
+	{
+		return _subscribers.Where(x => x.Identifier.Equals(identifier)).Select(x => x.Subscriber);
+	}
+
 	public void Unsubscribe(string hookName, string requester)
 	{
 		try
@@ -718,6 +722,16 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		{
 			Logger.Error($"Error while unsubscribing hook '{hook}'", e);
 			return;
+		}
+	}
+
+	public void UnsubscribeAll(string hookName)
+	{
+		var subscribers = GetHookSubscribers(hookName);
+
+		foreach (var subscriber in subscribers)
+		{
+			Unsubscribe(hookName, subscriber);
 		}
 	}
 

@@ -195,13 +195,13 @@ public class HookEx : IDisposable, IHook
 		try
 		{
 			if (_runtime.Prefix != null)
-				prefix = new HarmonyMethod(_runtime.Prefix);
+				prefix = new HarmonyMethod(_runtime.Prefix, Priority.VeryHigh);
 
 			if (_runtime.Postfix != null)
-				postfix = new HarmonyMethod(_runtime.Postfix);
+				postfix = new HarmonyMethod(_runtime.Postfix, Priority.VeryHigh);
 
 			if (_runtime.Transpiler != null)
-				transpiler = new HarmonyMethod(_runtime.Transpiler);
+				transpiler = new HarmonyMethod(_runtime.Transpiler, Priority.VeryHigh);
 
 			if (prefix is null && postfix is null && transpiler is null)
 				throw new Exception($"(prefix, postfix, transpiler not found");
