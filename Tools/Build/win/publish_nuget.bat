@@ -6,7 +6,7 @@
 
 set HOME=%cd%
 set API_KEY=%1
-set VERSION=%~n2
+set VERSION=%2
 
 cd "%~dp0\..\..\..\Carbon.Core"
 dotnet pack -o .nugets -c Release /p:PackageVersion=%VERSION% --no-build
