@@ -8,9 +8,6 @@ concurrency: build-rust-release
 on:
   workflow_dispatch:
 
-  schedule:
-    - cron: '00 19 * * *'
-
 jobs:
   bootstrap:
     name: 🥾 Bootstrap
@@ -86,6 +83,7 @@ jobs:
       shell: bash
       run: |
         export VERSION=${{ needs.bootstrap.outputs.version }}
+        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix RUST_RELEASE "rustbeta_release"
         ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix RUST_RELEASE "rustbeta_release"
         ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix RUST_RELEASE "rustbeta_release"
         
@@ -94,6 +92,8 @@ jobs:
       with:
         name: build-release-linux
         path: |
+          Release/Carbon.Linux.Release.tar.gz
+          Release/Carbon.Linux.Release.info
           Release/Carbon.Linux.Debug.tar.gz
           Release/Carbon.Linux.Debug.info
           Release/Carbon.Linux.Minimal.tar.gz
@@ -139,6 +139,7 @@ jobs:
       shell: cmd
       run: |
         set VERSION=${{ needs.bootstrap.outputs.version }}
+        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release RUST_RELEASE rustbeta_release
         call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug RUST_RELEASE rustbeta_release
         call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal RUST_RELEASE rustbeta_release
 
@@ -147,6 +148,8 @@ jobs:
       with:
         name: build-release-windows
         path: |
+          Release/Carbon.Windows.Release.zip
+          Release/Carbon.Windows.Release.info
           Release/Carbon.Windows.Debug.zip
           Release/Carbon.Windows.Debug.info
           Release/Carbon.Windows.Minimal.zip
@@ -207,6 +210,10 @@ jobs:
 
           [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
         files: |
+          Release/build-release-linux/Carbon.Linux.Release.info
+          Release/build-release-linux/Carbon.Linux.Release.tar.gz
+          Release/build-release-windows/Carbon.Windows.Release.info
+          Release/build-release-windows/Carbon.Windows.Release.zip
           Release/build-release-linux/Carbon.Linux.Debug.info
           Release/build-release-linux/Carbon.Linux.Debug.tar.gz
           Release/build-release-windows/Carbon.Windows.Debug.info

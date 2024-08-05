@@ -109,16 +109,18 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 	{
 		foreach (var hookable in _modules)
 		{
-			if (hookable is IModule module && module.IsEnabled())
+			if (hookable is not IModule module || !module.IsEnabled())
 			{
-				try
-				{
-					module.OnServerSaved();
-				}
-				catch (Exception ex)
-				{
-					Logger.Error($"[ModuleProcessor] Failed OnServerSave for '{hookable.Name}'", ex);
-				}
+				continue;
+			}
+
+			try
+			{
+				module.OnServerSaved();
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"[ModuleProcessor] Failed OnServerSave for '{hookable.Name}'", ex);
 			}
 		}
 	}

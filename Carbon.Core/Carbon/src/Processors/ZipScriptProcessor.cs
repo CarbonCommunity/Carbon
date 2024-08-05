@@ -24,6 +24,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.Watchers.ZipScriptWatchers;
 	public override string Folder => Defines.GetScriptsFolder();
 	public override string Extension => ".cszip";
+	public override float Rate => Community.Runtime.Config.Processors.ZipScriptProcessingRate;
 	public override Type IndexedType => typeof(ZipScript);
 
 	public override void Start()
