@@ -21,6 +21,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 	public override bool EnableWatcher => !Community.IsConfigReady || Community.Runtime.Config.Watchers.ScriptWatchers;
 	public override string Folder => Defines.GetScriptsFolder();
 	public override string Extension => ".cs";
+	public override float Rate => Community.Runtime.Config.Processors.ScriptProcessingRate;
 	public override Type IndexedType => typeof(Script);
 
 	public override void Start()

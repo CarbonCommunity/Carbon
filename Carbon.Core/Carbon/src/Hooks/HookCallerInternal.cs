@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Carbon.Base;
 using Carbon.Components;
-using Carbon.Extensions;
 using Carbon.Pooling;
 using Facepunch;
 using Oxide.Core.Plugins;
@@ -23,11 +21,8 @@ public class HookCallerInternal : HookCallerCommon
 {
 	public override object[] AllocateBuffer(int count)
 	{
-		if (!_argumentBuffer.TryGetValue(count, out var pool))
-		{
-			_argumentBuffer.Add(count, pool = new HookArgPool(count, 15));
-		}
-
+		if (_argumentBuffer.TryGetValue(count, out var pool)) return pool.Take();
+		_argumentBuffer[count] = pool = new HookArgPool(count, 15);
 		return pool.Take();
 	}
 	public override object[] RescaleBuffer(object[] oldBuffer, int newScale, CachedHook hook)
@@ -86,10 +81,12 @@ public class HookCallerInternal : HookCallerCommon
 	}
 	public override void ReturnBuffer(object[] buffer)
 	{
-		if (_argumentBuffer.TryGetValue(buffer.Length, out var pool))
+		if (!_argumentBuffer.TryGetValue(buffer.Length, out var pool))
 		{
-			pool.Return(buffer);
+			_argumentBuffer[buffer.Length] = pool = new HookArgPool(buffer.Length, 15);
 		}
+
+		pool.Return(buffer);
 	}
 
 	public override object CallHook<T>(T hookable, uint hookId, BindingFlags flags, object[] args)
@@ -176,7 +173,7 @@ public class HookCallerInternal : HookCallerCommon
 					hook?.OnLagSpike(hookable);
 				}
 
-				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
+				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, wasLagSpike, hook, hookable);
 			}
 
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
@@ -184,7 +181,7 @@ public class HookCallerInternal : HookCallerCommon
 		}
 		else
 		{
-			if (hookInstance.IsValid())
+			if (hookInstance != null && hookInstance.IsValid())
 			{
 				foreach (var cachedHook in hookInstance.Hooks)
 				{
@@ -278,7 +275,7 @@ public class HookCallerInternal : HookCallerCommon
 							hook.OnLagSpike(hookable);
 						}
 
-						Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
+						Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, wasLagSpike, hook, hookable);
 					}
 				}
 

@@ -98,6 +98,40 @@ jobs:
           Release/Carbon.Linux.Minimal.tar.gz
           Release/Carbon.Linux.Minimal.info
 
+    - name: 🗑️ Delete existing previous release tag
+      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
+      with:
+        delete_release: true
+        tag_name: productionprev_build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 🐧 Backup previous production build
+      shell: bash
+      run: |
+        git tag -d production_build || true
+        git tag productionprev_build || true
+        git push origin productionprev_build || true
+        git push origin :refs/tags/production_build || true
+
+    - name: Create previous production build release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Get the release data associated with the old tag
+        release_data=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/tags/production_build")
+        
+        # Get the release ID and upload URL from the release data
+        release_id=$(echo "$release_data" | jq -r '.id')
+        upload_url=$(echo "$release_data" | jq -r '.upload_url' | sed 's/{.*}//')
+
+        # Update the release with the new tag
+        curl -s -X PATCH -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{\"tag_name\": \"productionprev_build\", \"draft\": false, \"prerelease\": true}" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
+          
   # BUILD WINDOWS --------------------------------------------------------------
   build-windows:
     name: 💻 Windows
