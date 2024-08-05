@@ -173,7 +173,7 @@ public class HookCallerInternal : HookCallerCommon
 					hook?.OnLagSpike(hookable);
 				}
 
-				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
+				Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, wasLagSpike, hook, hookable);
 			}
 
 			HookCaller.ConflictCheck(conflicts, ref result, hookId);
@@ -275,7 +275,7 @@ public class HookCallerInternal : HookCallerCommon
 							hook.OnLagSpike(hookable);
 						}
 
-						Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, hook, hookable, wasLagSpike);
+						Analytics.plugin_time_warn(readableHook, basePlugin, afterHookTimeMs, totalMemory, wasLagSpike, hook, hookable);
 					}
 				}
 
