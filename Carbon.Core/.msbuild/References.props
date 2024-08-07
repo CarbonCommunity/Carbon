@@ -24,14 +24,9 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.10.0" />
 		<PackageReference Include="SharpCompress" Version="0.37.2" />
+		<PackageReference Include="ZstdSharp.Port" Version="0.8.0" />
 		<PackageReference Include="Mono.Cecil" Version="0.11.5" />
 		<PackageReference Update="Microsoft.Unity.Analyzers" Version="1.19.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		</PackageReference>
-		
-		<!-- Unity code analyzers -->
-		<PackageReference Include="Microsoft.Unity.Analyzers" Version="1.16.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
