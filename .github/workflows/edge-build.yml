@@ -6,6 +6,8 @@ name: Edge Build
 concurrency: build-3-edge
 
 on:
+  workflow_dispatch:
+  
   push:
     branches:
       - develop
