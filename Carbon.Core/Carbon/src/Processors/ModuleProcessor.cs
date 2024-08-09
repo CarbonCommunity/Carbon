@@ -7,13 +7,6 @@ using Carbon.Base.Interfaces;
 using Carbon.Contracts;
 using Facepunch;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Managers;
 
 public class ModuleProcessor : BaseProcessor, IModuleProcessor

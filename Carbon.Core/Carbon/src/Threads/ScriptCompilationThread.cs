@@ -20,13 +20,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Jobs;
 
 public class ScriptCompilationThread : BaseThreadedJob
@@ -245,7 +238,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		public string FilePath;
 		public CompilerError Error;
-		public CompilerException(string filePath, CompilerError error) { FilePath = filePath; Error = error; }
+
+		public CompilerException(string filePath, CompilerError error)
+		{
+			FilePath = filePath;
+			Error = error;
+		}
 
 		public override string ToString()
 		{

@@ -23,82 +23,32 @@ public class HookEx : IDisposable, IHook
 	private readonly TypeInfo _patchMethod;
 
 
-	public string HookName
-	{ get; }
+	public string HookName { get; }
+	public string HookFullName { get; }
+	public HookFlags Options { get; set; }
+	public Type TargetType { get; }
+	public MethodType MethodType { get; }
+	public string TargetMethod { get; }
+	public List<MethodBase> TargetMethods { get; }
+	public Type[] TargetMethodArgs { get; }
+	public string Identifier { get; }
+	public string ShortIdentifier => Identifier[^6..];
+	public string Checksum { get; }
+	public string[] Dependencies { get; }
+	public bool IsPatch => Options.HasFlag(HookFlags.Patch);
+	public bool IsStaticHook => Options.HasFlag(HookFlags.Static);
+	public bool IsDynamicHook => !Options.HasFlag(HookFlags.Static) && !Options.HasFlag(HookFlags.Patch);
+	public bool IsHidden => Options.HasFlag(HookFlags.Hidden);
+	public bool IsChecksumIgnored => Options.HasFlag(HookFlags.IgnoreChecksum);
+	public bool IsLoaded => _runtime.Status is HookState.Success or HookState.Warning or HookState.Failure or HookState.Inactive;
+	public bool IsInstalled => _runtime.Status is HookState.Success or HookState.Warning;
+	public bool IsFailed => _runtime.Status is HookState.Failure;
+	public HookState Status { get => _runtime.Status; set => _runtime.Status = value; }
 
-	public string HookFullName
-	{ get; }
+	public string PatchMethodName => _patchMethod.Name;
+	public string LastError => _runtime.LastError;
 
-	public HookFlags Options
-	{ get; set; }
-
-	public Type TargetType
-	{ get; }
-
-	public MethodType MethodType
-	{ get; }
-
-	public string TargetMethod
-	{ get; }
-
-	public List<MethodBase> TargetMethods
-	{ get; }
-
-	public Type[] TargetMethodArgs
-	{ get; }
-
-	public string Identifier
-	{ get; }
-
-	public string ShortIdentifier
-	{ get => Identifier[^6..]; }
-
-	public string Checksum
-	{ get; }
-
-	public string[] Dependencies
-	{ get; }
-
-
-	public bool IsPatch
-	{ get => Options.HasFlag(HookFlags.Patch); }
-
-	public bool IsStaticHook
-	{ get => Options.HasFlag(HookFlags.Static); }
-
-	public bool IsDynamicHook
-	{ get => !Options.HasFlag(HookFlags.Static) && !Options.HasFlag(HookFlags.Patch); }
-
-	public bool IsHidden
-	{ get => Options.HasFlag(HookFlags.Hidden); }
-
-	public bool IsChecksumIgnored
-	{ get => Options.HasFlag(HookFlags.IgnoreChecksum); }
-
-	public bool IsLoaded
-	{ get => _runtime.Status is HookState.Success or HookState.Warning or HookState.Failure or HookState.Inactive; }
-
-	public bool IsInstalled
-	{ get => _runtime.Status is HookState.Success or HookState.Warning; }
-
-	public bool IsFailed
-	{ get => _runtime.Status is HookState.Failure; }
-
-	public override string ToString()
-		=> $"{HookName}[{ShortIdentifier}]";
-
-	public bool HasDependencies()
-		=> Dependencies is { Length: > 0 };
-
-	public string PatchMethodName
-	{ get => _patchMethod.Name; }
-
-	public HookState Status
-	{ get => _runtime.Status; set => _runtime.Status = value; }
-
-	public string LastError
-	{ get => _runtime.LastError; set => _runtime.LastError = value; }
-
+	public override string ToString() => $"{HookName}[{ShortIdentifier}]";
 
 	public HookEx(TypeInfo type)
 	{
@@ -114,12 +64,12 @@ public class HookEx : IDisposable, IHook
 			if (metadata == default)
 				throw new Exception($"Metadata information is invalid or was not found");
 
-			Dependencies = new string[0];
+			Dependencies = [];
 			HookFullName = metadata.FullName;
 			HookName = metadata.Name;
 			TargetMethod = metadata.Method;
 			TargetMethodArgs = metadata.MethodArgs;
-			TargetMethods = new();
+			TargetMethods = [];
 			TargetType = metadata.Target;
 			MethodType = metadata.MethodType;
 
@@ -232,7 +182,7 @@ public class HookEx : IDisposable, IHook
 #if DEBUG
 		catch (HarmonyException e)
 		{
-			StringBuilder sb = new StringBuilder();
+			var sb = PoolEx.GetStringBuilder();
 			Logger.Error($"Error while patching hook '{this}' index:{e.GetErrorIndex()} offset:{e.GetErrorOffset()}", e);
 			sb.AppendLine($"{e.InnerException?.Message.Trim() ?? string.Empty}");
 
@@ -241,7 +191,7 @@ public class HookEx : IDisposable, IHook
 				sb.AppendLine($"\t{x++:000} {instruction.Key:X4}: {instruction.Value}");
 
 			Logger.Error(sb.ToString());
-			sb = default;
+			PoolEx.FreeStringBuilder(ref sb);
 			return false;
 		}
 #endif
@@ -255,7 +205,6 @@ public class HookEx : IDisposable, IHook
 
 		return true;
 	}
-
 	public bool RemovePatch()
 	{
 		try
@@ -274,14 +223,15 @@ public class HookEx : IDisposable, IHook
 			return false;
 		}
 	}
-
 	public MethodInfo GetTargetMethodInfo()
-		=> MethodType switch
+	{
+		return MethodType switch
 		{
 			MethodType.Getter => AccessTools.PropertyGetter(TargetType, TargetMethod),
 			MethodType.Setter => AccessTools.PropertySetter(TargetType, TargetMethod),
 			_ => AccessTools.Method(TargetType, TargetMethod, TargetMethodArgs) ?? null
 		};
+	}
 
 	public void SetStatus(HookState Status, string error = null)
 	{
@@ -289,22 +239,24 @@ public class HookEx : IDisposable, IHook
 		_runtime.LastError = error;
 	}
 
-	private bool _disposing;
+	public bool HasDependencies() => Dependencies is { Length: > 0 };
+
+	private bool hasDisposed;
 
 	protected virtual void Dispose(bool disposing)
 	{
-		if (!_disposing)
+		if (hasDisposed)
 		{
-			// managed resources
-			if (disposing)
-			{
-				RemovePatch();
-			}
-
-			// unmanaged resources
-			_runtime.HarmonyHandler = null;
-			_disposing = true;
+			return;
 		}
+
+		if (disposing)
+		{
+			RemovePatch();
+		}
+
+		_runtime.HarmonyHandler = null;
+		hasDisposed = true;
 	}
 
 	public void Dispose()
