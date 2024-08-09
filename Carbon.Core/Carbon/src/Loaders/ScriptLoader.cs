@@ -327,12 +327,7 @@ public class ScriptLoader : IScriptLoader
 
 		var requiresResult = requires.ToArray();
 
-#if DISABLE_ASYNC_LOADING
-		AsyncLoader.ThreadFunction();
-		AsyncLoader.IsDone = true;
-#else
 		AsyncLoader?.Start();
-#endif
 
 		while (AsyncLoader != null && !AsyncLoader.IsDone)
 		{
@@ -502,6 +497,11 @@ public class ScriptLoader : IScriptLoader
 			}
 
 			yield return null;
+		}
+
+		if (firstPlugin)
+		{
+			Logger.Error($"Invalid plugin format in '{AsyncLoader.InitialSource.ContextFileName}'. Namespace must be Carbon|Oxide.Plugins and inherited class must be Carbon|Rust|CovalencePlugin.");
 		}
 
 		AsyncLoader?.Dispose();
