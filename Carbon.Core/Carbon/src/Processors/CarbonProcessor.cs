@@ -4,13 +4,6 @@ using API.Commands;
 using Carbon.Base;
 using Carbon.Contracts;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Managers;
 
 public class CarbonProcessor : BaseProcessor, ICarbonProcessor

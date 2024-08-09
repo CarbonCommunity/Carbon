@@ -245,7 +245,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		public string FilePath;
 		public CompilerError Error;
-		public CompilerException(string filePath, CompilerError error) { FilePath = filePath; Error = error; }
+
+		public CompilerException(string filePath, CompilerError error)
+		{
+			FilePath = filePath;
+			Error = error;
+		}
 
 		public override string ToString()
 		{

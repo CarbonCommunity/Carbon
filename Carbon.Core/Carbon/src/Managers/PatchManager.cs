@@ -6,20 +6,12 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using API.Abstracts;
-using API.Commands;
 using API.Events;
 using API.Hooks;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
 using Network;
-
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
 
 namespace Carbon.Hooks;
 #pragma warning disable IDE0051
