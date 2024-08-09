@@ -6,13 +6,6 @@ using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Core;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Managers;
 
 public class ScriptProcessor : BaseProcessor, IScriptProcessor
@@ -26,12 +19,12 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 	public override void Start()
 	{
-		BlacklistPattern = new[]
-		{
+		BlacklistPattern =
+		[
 			"backups",
 			"debug",
 			"cszip_dev"
-		};
+		];
 
 		base.Start();
 

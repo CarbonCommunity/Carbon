@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using API.Events;
 using Carbon.Base;
@@ -16,13 +15,6 @@ using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Managers;
 
 public class ScriptLoader : IScriptLoader
@@ -33,8 +25,8 @@ public class ScriptLoader : IScriptLoader
 
 	public bool BypassFileNameChecks { get; set; }
 
-	public List<IScript> Scripts { get; set; } = new();
-	public List<ISource> Sources { get; set; } = new();
+	public List<IScript> Scripts { get; set; } = [];
+	public List<ISource> Sources { get; set; } = [];
 
 	public bool IsCore { get; set; }
 	public bool IsExtension { get; set; }
@@ -154,12 +146,18 @@ public class ScriptLoader : IScriptLoader
 			{
 				inUse = !RunFileUseChecks();
 
-				if (!inUse) continue;
+				if (!inUse)
+				{
+					break;
+				}
 
 				attempts++;
 				await AsyncEx.WaitForSeconds(0.2f);
 
-				if (attempts < BusyFileAttempts) continue;
+				if (attempts < BusyFileAttempts)
+				{
+					continue;
+				}
 
 				inUse = false;
 				success = false;
