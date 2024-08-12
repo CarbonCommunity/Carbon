@@ -320,6 +320,11 @@ public class ScriptLoader : IScriptLoader
 			ModLoader.AddPostBatchFailedRequiree(InitialSource.ContextFilePath);
 			HasFinished = true;
 			Facepunch.Pool.FreeList(ref requires);
+
+			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
+			{
+				ModLoader.IsBatchComplete = true;
+			}
 			yield break;
 		}
 
