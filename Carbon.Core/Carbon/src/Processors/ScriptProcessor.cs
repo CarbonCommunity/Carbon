@@ -37,7 +37,10 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		{
 			if (instance.Value is Script script)
 			{
-				if (script.Loader != null && !script.Loader.HasFinished) return false;
+				if (script.Loader != null && !script.Loader.HasFinished)
+				{
+					return false;
+				}
 			}
 		}
 
@@ -49,7 +52,10 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		{
 			if (instance.Value is Script script)
 			{
-				if (script.Loader != null && !script.Loader.HasRequires && !script.Loader.HasFinished) return false;
+				if (script.Loader != null && !script.Loader.HasRequires && !script.Loader.HasFinished)
+				{
+					return false;
+				}
 			}
 		}
 
@@ -61,7 +67,10 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		{
 			if (instance.Value is Script script)
 			{
-				if (script.Loader != null && !script.Loader.IsExtension && !script.Loader.HasFinished) return false;
+				if (script.Loader != null && !script.Loader.IsExtension && !script.Loader.HasFinished)
+				{
+					return false;
+				}
 			}
 		}
 

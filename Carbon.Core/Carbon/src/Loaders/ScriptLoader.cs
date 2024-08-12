@@ -66,15 +66,23 @@ public class ScriptLoader : IScriptLoader
 		var extensionPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetExtensionsFolder(), "cs");
 		var plugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cs", option: config.Watchers.ScriptWatcherOption);
 		var zipPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetScriptsFolder(), "cszip", option: config.Watchers.ScriptWatcherOption);
+		var count = 0;
 
-		ExecuteProcess(Community.Runtime.ScriptProcessor, false, extensionPlugins, plugins);
-		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, zipPlugins);
+		ExecuteProcess(Community.Runtime.ScriptProcessor, false, except, ref count, extensionPlugins, plugins);
+		ExecuteProcess(Community.Runtime.ZipScriptProcessor, false, except, ref count, zipPlugins);
 
 #if DEBUG
 		var zipDevPlugins = OsEx.Folder.GetFilesWithExtension(Defines.GetZipDevFolder(), "cs", option: SearchOption.AllDirectories);
-		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, zipDevPlugins);
+		ExecuteProcess(Community.Runtime.ZipDevScriptProcessor, true, except, ref count, zipDevPlugins);
 #endif
-		void ExecuteProcess(IScriptProcessor processor, bool folderMode, params string[][] folders)
+
+		if(count == 0)
+		{
+			ModLoader.IsBatchComplete = true;
+			Community.Runtime.Events.Trigger(CarbonEvent.AllPluginsLoaded, EventArgs.Empty);
+		}
+
+		static void ExecuteProcess(IScriptProcessor processor, bool folderMode, IEnumerable<string> except, ref int count, params string[][] folders)
 		{
 			processor.Clear();
 
@@ -82,15 +90,23 @@ public class ScriptLoader : IScriptLoader
 			{
 				foreach (var file in files)
 				{
-					if (processor.IsBlacklisted(file) || (except != null && except.Any(x => file.Contains(x)))) continue;
+					if (processor.IsBlacklisted(file) || (except != null && except.Any(x => file.Contains(x))))
+					{
+						continue;
+					}
 
 					var folder = Path.GetDirectoryName(file);
 
 					var id = folderMode ? folder : Path.GetFileNameWithoutExtension(file);
-					if (processor.InstanceBuffer.ContainsKey(id)) continue;
+
+					if (processor.InstanceBuffer.ContainsKey(id))
+					{
+						continue;
+					}
 
 					var plugin = new ScriptProcessor.Script { File = folderMode ? folder : file };
 					processor.InstanceBuffer.Add(id, plugin);
+					count++;
 				}
 			}
 
@@ -309,7 +325,10 @@ public class ScriptLoader : IScriptLoader
 					Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
 					noRequiresFound = true;
 				}
-				else requires.Add(plugin);
+				else
+				{
+					requires.Add(plugin);
+				}
 			}
 		}
 
@@ -320,6 +339,11 @@ public class ScriptLoader : IScriptLoader
 			ModLoader.AddPostBatchFailedRequiree(InitialSource.ContextFilePath);
 			HasFinished = true;
 			Facepunch.Pool.FreeList(ref requires);
+
+			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
+			{
+				ModLoader.IsBatchComplete = true;
+			}
 			yield break;
 		}
 
@@ -327,12 +351,7 @@ public class ScriptLoader : IScriptLoader
 
 		var requiresResult = requires.ToArray();
 
-#if DISABLE_ASYNC_LOADING
-		AsyncLoader.ThreadFunction();
-		AsyncLoader.IsDone = true;
-#else
 		AsyncLoader?.Start();
-#endif
 
 		while (AsyncLoader != null && !AsyncLoader.IsDone)
 		{
@@ -502,6 +521,11 @@ public class ScriptLoader : IScriptLoader
 			}
 
 			yield return null;
+		}
+
+		if (firstPlugin)
+		{
+			Logger.Error($"Invalid plugin format in '{AsyncLoader.InitialSource.ContextFileName}'. Namespace must be Carbon|Oxide.Plugins and inherited class must be Carbon|Rust|CovalencePlugin.");
 		}
 
 		AsyncLoader?.Dispose();

@@ -419,8 +419,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 					pdbFilename, ClassList);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
-				InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
-				trees.Add(partialTree.SyntaxTree);
+
+				if (partialTree != null)
+				{
+					InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
+					trees.Add(partialTree.SyntaxTree);
+				}
 			}
 
 			var options = new CSharpCompilationOptions(
@@ -429,7 +433,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 #if DEBUG
 				Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
 #else
-					OptimizationLevel.Release,
+				OptimizationLevel.Release,
 #endif
 				deterministic: true, warningLevel: 4,
 				allowUnsafe: true
