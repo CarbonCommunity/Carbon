@@ -24,16 +24,6 @@ git -C "%BOOTSTRAP_ROOT%" submodule init
 git -C "%BOOTSTRAP_ROOT%" submodule update
 git -C "%BOOTSTRAP_ROOT%" submodule foreach git checkout
 
-set HOOK_INTERNAL=%BOOTSTRAP_ROOT%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal
-
-if "%2" EQU "INTS" (
-	if exist %HOOK_INTERNAL% (
-		git pull
-	) else (
-		git clone https://github.com/CarbonCommunity/Carbon.Hooks.git %BOOTSTRAP_ROOT%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal"
-	)
-)
-
 echo * Building submodules..
 FOR %%O IN (DepotDownloader) DO (
 	echo ** Build '%%O'
