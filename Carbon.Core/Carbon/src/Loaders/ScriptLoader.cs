@@ -340,7 +340,7 @@ public class ScriptLoader : IScriptLoader
 			HasFinished = true;
 			Facepunch.Pool.FreeList(ref requires);
 
-			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
+			if (Community.AllProcessorsFinalized)
 			{
 				ModLoader.IsBatchComplete = true;
 			}
@@ -424,7 +424,7 @@ public class ScriptLoader : IScriptLoader
 			AsyncLoader.Exceptions = AsyncLoader.Warnings = null;
 			HasFinished = true;
 
-			if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
+			if (Community.AllProcessorsFinalized)
 			{
 				ModLoader.OnPluginProcessFinished();
 			}
@@ -532,7 +532,7 @@ public class ScriptLoader : IScriptLoader
 
 		HasFinished = true;
 
-		if (Community.Runtime.ScriptProcessor.AllPendingScriptsComplete())
+		if (Community.AllProcessorsFinalized)
 		{
 			ModLoader.OnPluginProcessFinished();
 		}
