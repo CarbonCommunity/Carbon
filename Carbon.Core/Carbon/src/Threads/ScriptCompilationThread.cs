@@ -20,13 +20,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Jobs;
 
 public class ScriptCompilationThread : BaseThreadedJob
@@ -245,7 +238,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		public string FilePath;
 		public CompilerError Error;
-		public CompilerException(string filePath, CompilerError error) { FilePath = filePath; Error = error; }
+
+		public CompilerException(string filePath, CompilerError error)
+		{
+			FilePath = filePath;
+			Error = error;
+		}
 
 		public override string ToString()
 		{
@@ -421,8 +419,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 					pdbFilename, ClassList);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
-				InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
-				trees.Add(partialTree.SyntaxTree);
+
+				if (partialTree != null)
+				{
+					InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
+					trees.Add(partialTree.SyntaxTree);
+				}
 			}
 
 			var options = new CSharpCompilationOptions(
@@ -431,7 +433,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 #if DEBUG
 				Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
 #else
-					OptimizationLevel.Release,
+				OptimizationLevel.Release,
 #endif
 				deterministic: true, warningLevel: 4,
 				allowUnsafe: true
