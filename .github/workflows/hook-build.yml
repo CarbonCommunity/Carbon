@@ -106,7 +106,7 @@ jobs:
         
         set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
 
-        call %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat %RUST_BRANCH% INTS
+        call %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat %RUST_BRANCH%
         
         if %DEBUG_BUILD% EQU true (
             cd %ROOT%
