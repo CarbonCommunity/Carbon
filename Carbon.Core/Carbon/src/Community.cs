@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
 using API.Events;
 using Carbon.Components;
 using Carbon.Core;
@@ -12,13 +11,6 @@ using Oxide.Core;
 using System.Linq;
 using API.Commands;
 using UnityEngine;
-
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
 
 namespace Carbon;
 
@@ -216,8 +208,7 @@ public class CommunityInternal : Community
 
 			_uninstallProcessors();
 			ClearCommands(all: true);
-
-			ClearPlugins(full: true);
+			ClearPlugins(all: true);
 			ModLoader.Packages.Clear();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
 

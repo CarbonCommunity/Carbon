@@ -2,19 +2,11 @@
 using System.Collections;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
-
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
 
 namespace Carbon.Managers;
 
@@ -118,7 +110,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 		{
 			try
 			{
-				ModLoader.GetOrCreateFailedCompilation(File).Clear();
+				ModLoader.GetOrCreateFailedCompilation(File, true);
 
 				if (!OsEx.File.Exists(File))
 				{
