@@ -110,7 +110,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 		{
 			try
 			{
-				ModLoader.GetOrCreateFailedCompilation(File, true);
+				ModLoader.GetCompilationResult(File, true);
 
 				if (!OsEx.File.Exists(File))
 				{
@@ -137,7 +137,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 								ContextFilePath = File,
 								ContextFileName = Path.GetFileName(File),
 								FilePath = entry.FullName,
-								FileName = entry.Name,
+								FileName = entry.FullName,
 								Content = stream.ReadToEnd()
 							});
 						}

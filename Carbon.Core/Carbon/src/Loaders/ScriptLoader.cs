@@ -378,7 +378,7 @@ public class ScriptLoader : IScriptLoader
 					Logger.Error($"  {i + 1:n0}. {print}");
 				}
 
-				var compilationFailure = ModLoader.GetOrCreateFailedCompilation(InitialSource.ContextFilePath);
+				var compilationFailure = ModLoader.GetCompilationResult(InitialSource.ContextFilePath);
 				compilationFailure.Clear();
 
 				compilationFailure.RollbackType = ModLoader.GetRegisteredType(InitialSource.ContextFilePath);
