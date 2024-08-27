@@ -137,7 +137,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 								ContextFilePath = File,
 								ContextFileName = Path.GetFileName(File),
 								FilePath = entry.FullName,
-								FileName = entry.FullName,
+								FileName = entry.Name,
 								Content = stream.ReadToEnd()
 							});
 						}
