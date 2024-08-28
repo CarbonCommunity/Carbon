@@ -8,13 +8,6 @@ using Oxide.Core.Plugins;
 using UnityEngine;
 using static Carbon.Base.BaseHookable;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Hooks;
 
 public class HookCallerInternal : HookCallerCommon
@@ -106,7 +99,7 @@ public class HookCallerInternal : HookCallerCommon
 		}
 
 		var result = (object)null;
-		var conflicts = Pool.GetList<Conflict>();
+		var conflicts = Pool.Get<List<Conflict>>();
 		var hasRescaledBuffer = false;
 
 		if (hookable.InternalCallHookOverriden)
@@ -295,7 +288,7 @@ public class HookCallerInternal : HookCallerCommon
 				HookCaller.Caller.ReturnBuffer(buffer);
 			}
 
-			Pool.FreeList(ref conflicts);
+			Pool.FreeUnmanaged(ref conflicts);
 		}
 
 		return result;
@@ -321,8 +314,6 @@ public class HookCallerInternal : HookCallerCommon
 
 	internal static bool SequenceEqual(Type[] source, object[] target)
 	{
-		var equal = true;
-
 		for(int i = 0; i < source.Length; i++)
 		{
 			var sourceItem = source[i];
@@ -332,11 +323,10 @@ public class HookCallerInternal : HookCallerCommon
 				sourceItem != targetItem &&
 				!sourceItem.IsAssignableFrom(targetItem))
 			{
-				equal = false;
-				break;
+				return false;
 			}
 		}
 
-		return equal;
+		return true;
 	}
 }

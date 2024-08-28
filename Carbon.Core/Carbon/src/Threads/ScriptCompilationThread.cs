@@ -20,13 +20,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Jobs;
 
 public class ScriptCompilationThread : BaseThreadedJob
@@ -245,7 +238,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 	{
 		public string FilePath;
 		public CompilerError Error;
-		public CompilerException(string filePath, CompilerError error) { FilePath = filePath; Error = error; }
+
+		public CompilerException(string filePath, CompilerError error)
+		{
+			FilePath = filePath;
+			Error = error;
+		}
 
 		public override string ToString()
 		{
@@ -320,8 +318,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Exceptions.Clear();
 			Warnings.Clear();
 
-			var trees = Facepunch.Pool.GetList<SyntaxTree>();
-			var conditionals = Facepunch.Pool.GetList<string>();
+			var trees = Facepunch.Pool.Get<List<SyntaxTree>>();
+			var conditionals = Facepunch.Pool.Get<List<string>>();
 
 			_stopwatch = Facepunch.Pool.Get<Stopwatch>();
 
@@ -421,8 +419,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 					pdbFilename, ClassList);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
-				InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
-				trees.Add(partialTree.SyntaxTree);
+
+				if (partialTree != null)
+				{
+					InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
+					trees.Add(partialTree.SyntaxTree);
+				}
 			}
 
 			var options = new CSharpCompilationOptions(
@@ -431,7 +433,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 #if DEBUG
 				Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
 #else
-					OptimizationLevel.Release,
+				OptimizationLevel.Release,
 #endif
 				deterministic: true, warningLevel: 4,
 				allowUnsafe: true
@@ -446,8 +448,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				var emit = compilation.Emit(dllStream, options: _emitOptions);
 
-				var errors = Facepunch.Pool.GetList<string>();
-				var warnings = Facepunch.Pool.GetList<string>();
+				var errors = Facepunch.Pool.Get<List<string>>();
+				var warnings = Facepunch.Pool.Get<List<string>>();
 
 				foreach (var error in emit.Diagnostics)
 				{
@@ -480,8 +482,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					}
 				}
 
-				Facepunch.Pool.FreeList(ref errors);
-				Facepunch.Pool.FreeList(ref warnings);
+				Facepunch.Pool.FreeUnmanaged(ref errors);
+				Facepunch.Pool.FreeUnmanaged(ref warnings);
 
 				if (emit.Success)
 				{
@@ -521,12 +523,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 			references.Clear();
 			references = null;
-			Facepunch.Pool.FreeList(ref conditionals);
-			Facepunch.Pool.FreeList(ref trees);
+			Facepunch.Pool.FreeUnmanaged(ref conditionals);
+			Facepunch.Pool.FreeUnmanaged(ref trees);
 
 			CompileTime = _stopwatch.Elapsed;
 			_stopwatch.Reset();
-			Facepunch.Pool.Free(ref _stopwatch);
+			Facepunch.Pool.FreeUnsafe(ref _stopwatch);
 
 			if (Assembly == null) return;
 
