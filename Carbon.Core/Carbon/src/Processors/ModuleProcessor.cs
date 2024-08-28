@@ -41,7 +41,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 		{
 			if (e is ModuleEventArgs m)
 			{
-				var pool = Pool.GetList<BaseHookable>();
+				var pool = Pool.Get<List<BaseHookable>>();
 				pool.AddRange(_modules);
 
 				foreach (var module in pool)
@@ -55,7 +55,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 					}
 				}
 
-				Pool.FreeList(ref pool);
+				Pool.FreeUnmanaged(ref pool);
 			}
 		});
 
@@ -128,7 +128,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 	}
 	public void Build(string context, params Type[] types)
 	{
-		var cache = Pool.GetList<BaseModule>();
+		var cache = Pool.Get<List<BaseModule>>();
 
 		foreach (var type in types)
 		{
@@ -237,7 +237,7 @@ public class ModuleProcessor : BaseProcessor, IModuleProcessor
 			}
 		}
 
-		Pool.FreeList(ref cache);
+		Pool.FreeUnmanaged(ref cache);
 	}
 	public void Uninstall(IModule module)
 	{

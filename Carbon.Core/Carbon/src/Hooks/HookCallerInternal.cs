@@ -99,7 +99,7 @@ public class HookCallerInternal : HookCallerCommon
 		}
 
 		var result = (object)null;
-		var conflicts = Pool.GetList<Conflict>();
+		var conflicts = Pool.Get<List<Conflict>>();
 		var hasRescaledBuffer = false;
 
 		if (hookable.InternalCallHookOverriden)
@@ -288,7 +288,7 @@ public class HookCallerInternal : HookCallerCommon
 				HookCaller.Caller.ReturnBuffer(buffer);
 			}
 
-			Pool.FreeList(ref conflicts);
+			Pool.FreeUnmanaged(ref conflicts);
 		}
 
 		return result;
