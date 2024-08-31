@@ -131,7 +131,10 @@ public class ScriptLoader : IScriptLoader
 
 				plugin.Instance.Package.Plugins?.RemoveAll(x => x == plugin.Instance);
 
-				if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
+				if (plugin.Instance.IsExtension)
+				{
+					ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
+				}
 
 				try
 				{
@@ -484,8 +487,6 @@ public class ScriptLoader : IScriptLoader
 							Line = x.Error.Line
 						}).ToArray();
 #endif
-
-						p.ProcessorProcess = Process;
 						plugin.IsCore = IsCore;
 
 						p.Hooks = AsyncLoader.Hooks[type];
@@ -493,7 +494,7 @@ public class ScriptLoader : IScriptLoader
 						p.PluginReferences = AsyncLoader.PluginReferences[type];
 
 						p.Requires = requiresResult;
-						p.SetProcessor(Community.Runtime.ScriptProcessor);
+						p.SetProcessor(Community.Runtime.ScriptProcessor, Process);
 						p.CompileTime = AsyncLoader.CompileTime;
 						p.InternalCallHookGenTime = AsyncLoader.InternalCallHookGenTime;
 						p.InternalCallHookSource = AsyncLoader.InternalCallHookSource;
@@ -543,6 +544,8 @@ public class ScriptLoader : IScriptLoader
 
 	public void Dispose()
 	{
+		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
+
 		HasFinished = true;
 
 		AsyncLoader?.Abort();
@@ -568,8 +571,6 @@ public class ScriptLoader : IScriptLoader
 		Scripts?.Clear();
 		Sources = null;
 		Scripts = null;
-
-		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
 	}
 
 	[Serializable]
