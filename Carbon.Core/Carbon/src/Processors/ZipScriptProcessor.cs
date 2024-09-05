@@ -110,7 +110,7 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 		{
 			try
 			{
-				ModLoader.GetOrCreateFailedCompilation(File, true);
+				ModLoader.GetCompilationResult(File, true);
 
 				if (!OsEx.File.Exists(File))
 				{

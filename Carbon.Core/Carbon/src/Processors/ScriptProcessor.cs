@@ -118,7 +118,7 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 		{
 			try
 			{
-				ModLoader.GetOrCreateFailedCompilation(File).Clear();
+				ModLoader.GetCompilationResult(File).Clear();
 
 				Loader = new ScriptLoader
 				{

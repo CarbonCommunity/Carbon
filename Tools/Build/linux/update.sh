@@ -10,7 +10,7 @@ BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 ROOT="$(realpath "${BASE}/../../../")"
 
 # Get the target depot argument
-TARGET=${1:-public}
+TARGET=${1:-release}
 
 mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
 	--plugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core" \
@@ -44,7 +44,7 @@ for OS in windows linux; do
 	# Download rust binary libs
 	"${ROOT}/Tools/DepotDownloader/DepotDownloader/bin/Release/net8.0/DepotDownloader" \
 		-os ${OS} -validate -app 258550 -branch ${TARGET} -filelist \
-		"${ROOT}/Tools/Helpers/258550_refs.txt" -dir "${ROOT}/Rust/${OS}"
+		"${ROOT}/Tools/Helpers/258550_refs.txt" -dir "${ROOT}/Rust/${OS}" -debug
 
 	# Show me all you've got baby
 	mono "${ROOT}/Tools/Helpers/Publicizer.exe" \

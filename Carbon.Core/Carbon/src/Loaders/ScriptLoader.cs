@@ -131,7 +131,10 @@ public class ScriptLoader : IScriptLoader
 
 				plugin.Instance.Package.Plugins?.RemoveAll(x => x == plugin.Instance);
 
-				if (plugin.Instance.IsExtension) ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
+				if (plugin.Instance.IsExtension)
+				{
+					ScriptCompilationThread._clearExtensionPlugin(plugin.Instance.FilePath);
+				}
 
 				try
 				{
@@ -259,8 +262,8 @@ public class ScriptLoader : IScriptLoader
 		}
 
 		var lines = Sources.Where(x => !string.IsNullOrEmpty(x.Content)).SelectMany(x => x.Content.Split('\n'));
-		var resultReferences = Facepunch.Pool.GetList<string>();
-		var resultRequires = Facepunch.Pool.GetList<string>();
+		var resultReferences = Facepunch.Pool.Get<List<string>>();
+		var resultRequires = Facepunch.Pool.Get<List<string>>();
 
 		if (lines != null)
 		{
@@ -301,8 +304,8 @@ public class ScriptLoader : IScriptLoader
 			AsyncLoader.Requires = resultRequires?.ToArray();
 			AsyncLoader.IsExtension = IsExtension;
 		}
-		Facepunch.Pool.FreeList(ref resultReferences);
-		Facepunch.Pool.FreeList(ref resultRequires);
+		Facepunch.Pool.FreeUnmanaged(ref resultReferences);
+		Facepunch.Pool.FreeUnmanaged(ref resultRequires);
 
 		if (AsyncLoader != null) HasRequires = AsyncLoader.Requires.Length > 0;
 
@@ -313,7 +316,7 @@ public class ScriptLoader : IScriptLoader
 			yield return null;
 		}
 
-		var requires = Facepunch.Pool.GetList<Plugin>();
+		var requires = Facepunch.Pool.Get<List<Plugin>>();
 		var noRequiresFound = false;
 		if (AsyncLoader != null)
 		{
@@ -338,7 +341,7 @@ public class ScriptLoader : IScriptLoader
 		{
 			ModLoader.AddPostBatchFailedRequiree(InitialSource.ContextFilePath);
 			HasFinished = true;
-			Facepunch.Pool.FreeList(ref requires);
+			Facepunch.Pool.FreeUnmanaged(ref requires);
 
 			if (Community.AllProcessorsFinalized)
 			{
@@ -378,7 +381,7 @@ public class ScriptLoader : IScriptLoader
 					Logger.Error($"  {i + 1:n0}. {print}");
 				}
 
-				var compilationFailure = ModLoader.GetOrCreateFailedCompilation(InitialSource.ContextFilePath);
+				var compilationFailure = ModLoader.GetCompilationResult(InitialSource.ContextFilePath);
 				compilationFailure.Clear();
 
 				compilationFailure.RollbackType = ModLoader.GetRegisteredType(InitialSource.ContextFilePath);
@@ -484,8 +487,6 @@ public class ScriptLoader : IScriptLoader
 							Line = x.Error.Line
 						}).ToArray();
 #endif
-
-						p.ProcessorProcess = Process;
 						plugin.IsCore = IsCore;
 
 						p.Hooks = AsyncLoader.Hooks[type];
@@ -493,7 +494,7 @@ public class ScriptLoader : IScriptLoader
 						p.PluginReferences = AsyncLoader.PluginReferences[type];
 
 						p.Requires = requiresResult;
-						p.SetProcessor(Community.Runtime.ScriptProcessor);
+						p.SetProcessor(Community.Runtime.ScriptProcessor, Process);
 						p.CompileTime = AsyncLoader.CompileTime;
 						p.InternalCallHookGenTime = AsyncLoader.InternalCallHookGenTime;
 						p.InternalCallHookSource = AsyncLoader.InternalCallHookSource;
@@ -537,12 +538,14 @@ public class ScriptLoader : IScriptLoader
 			ModLoader.OnPluginProcessFinished();
 		}
 
-		Facepunch.Pool.FreeList(ref requires);
+		Facepunch.Pool.FreeUnmanaged(ref requires);
 		yield return null;
 	}
 
 	public void Dispose()
 	{
+		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
+
 		HasFinished = true;
 
 		AsyncLoader?.Abort();
@@ -568,8 +571,6 @@ public class ScriptLoader : IScriptLoader
 		Scripts?.Clear();
 		Sources = null;
 		Scripts = null;
-
-		Community.Runtime.ScriptProcessor.StopCoroutine(Compile());
 	}
 
 	[Serializable]
