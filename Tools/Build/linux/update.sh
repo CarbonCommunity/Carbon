@@ -44,7 +44,7 @@ for OS in windows linux; do
 	# Download rust binary libs
 	"${ROOT}/Tools/DepotDownloader/DepotDownloader/bin/Release/net8.0/DepotDownloader" \
 		-os ${OS} -validate -app 258550 -branch ${TARGET} -filelist \
-		"${ROOT}/Tools/Helpers/258550_refs.txt" -dir "${ROOT}/Rust/${OS}"
+		"${ROOT}/Tools/Helpers/258550_refs.txt" -dir "${ROOT}/Rust/${OS}" -debug
 
 	# Show me all you've got baby
 	mono "${ROOT}/Tools/Helpers/Publicizer.exe" \

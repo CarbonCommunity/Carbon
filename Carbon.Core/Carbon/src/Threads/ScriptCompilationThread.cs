@@ -381,8 +381,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				tree = tree.WithRootAndOptions(root, parseOptions);
 
-				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex,
-					    ClassList))
+				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
 					var @class = ClassList[0];
 
@@ -453,7 +452,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				foreach (var error in emit.Diagnostics)
 				{
-					if (errors.Contains(error.Id) || warnings.Contains(error.Id)) continue;
+					if (errors.Contains(error.Id) || warnings.Contains(error.Id))
+					{
+						continue;
+					}
 
 					var span = error.Location.GetMappedLineSpan().Span;
 
@@ -490,33 +492,27 @@ public class ScriptCompilationThread : BaseThreadedJob
 					var assembly = dllStream.ToArray();
 					if (assembly != null)
 					{
-						if (IsExtension) _overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+						if (IsExtension)
+						{
+							_overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+						}
+
 						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
 						Assembly = Assembly.Load(assembly);
 
 						try
 						{
-							MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly,
-								Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
-									? InitialSource.FileName
-									: InitialSource.ContextFileName), true);
-						}
-						catch (Exception ex)
-						{
-							Logger.Error($"Couldn't mark assembly for profiling", ex);
-						}
-
-						try
-						{
-							Assemblies.Plugins.Update(Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
+							var name = Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
 								? InitialSource.FileName
-								: InitialSource.ContextFileName), Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath);
+								: InitialSource.ContextFileName);
+
+							var isProfiled = MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly, name, true);
+							Assemblies.Plugins.Update(name, Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath, isProfiled);
 						}
 						catch (Exception ex)
 						{
 							Logger.Error($"Couldn't cache assembly in Carbon's global database", ex);
 						}
-
 					}
 				}
 			}
