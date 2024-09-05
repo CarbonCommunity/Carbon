@@ -162,7 +162,7 @@ public class ZipDevScriptProcessor : BaseProcessor, IZipDevScriptProcessor
 
 			try
 			{
-				ModLoader.GetOrCreateFailedCompilation(File).Clear();
+				ModLoader.GetCompilationResult(File).Clear();
 
 				if (!OsEx.Folder.Exists(File))
 				{
