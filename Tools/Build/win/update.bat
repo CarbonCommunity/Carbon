@@ -10,7 +10,7 @@ popd
 
 rem Get the target depot argument
 if "%1" EQU "" (
-	set UPDATE_TARGET=public
+	set UPDATE_TARGET=release
 ) else (
 	set UPDATE_TARGET=%1
 )
@@ -43,7 +43,7 @@ FOR %%O IN (windows linux) DO (
 	rem Download rust binary libs
 	"%UPDATE_ROOT%\Tools\DepotDownloader\DepotDownloader\bin\Release\net8.0\DepotDownloader.exe" ^
 		-os %%O -validate -app 258550 -branch %UPDATE_TARGET% -filelist ^
-		"%UPDATE_ROOT%\Tools\Helpers\258550_refs.txt" -dir "%UPDATE_ROOT%\Rust\%%O" -debug
+		"%UPDATE_ROOT%\Tools\Helpers\258550_refs.txt" -dir "%UPDATE_ROOT%\Rust\%%O"
 
 	echo Publicizing %%O Rust Assembly-CSharp..
 
