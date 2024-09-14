@@ -46,3 +46,6 @@
 	path = Carbon.Core/Carbon.Components/Carbon.Test
 	url = https://github.com/CarbonCommunity/Carbon.Test.git
 	branch = .
+[submodule "Tools/DepotDownloader"]
+	path = Tools/DepotDownloader
+	url = https://github.com/CarbonCommunity/Carbon.Depot.git
