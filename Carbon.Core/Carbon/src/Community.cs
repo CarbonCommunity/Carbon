@@ -208,8 +208,7 @@ public class CommunityInternal : Community
 
 			_uninstallProcessors();
 			ClearCommands(all: true);
-
-			ClearPlugins(full: true);
+			ClearPlugins(all: true);
 			ModLoader.Packages.Clear();
 			UnityEngine.Debug.Log($"Unloaded Carbon.");
 

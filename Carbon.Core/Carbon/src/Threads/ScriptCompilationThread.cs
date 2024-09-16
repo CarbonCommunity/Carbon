@@ -318,8 +318,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 			Exceptions.Clear();
 			Warnings.Clear();
 
-			var trees = Facepunch.Pool.GetList<SyntaxTree>();
-			var conditionals = Facepunch.Pool.GetList<string>();
+			var trees = Facepunch.Pool.Get<List<SyntaxTree>>();
+			var conditionals = Facepunch.Pool.Get<List<string>>();
 
 			_stopwatch = Facepunch.Pool.Get<Stopwatch>();
 
@@ -381,8 +381,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 				tree = tree.WithRootAndOptions(root, parseOptions);
 
-				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex,
-					    ClassList))
+				if (HookCaller.FindPluginInfo(root, out var @namespace, out var namespaceIndex, out var classIndex, ClassList))
 				{
 					var @class = ClassList[0];
 
@@ -419,8 +418,12 @@ public class ScriptCompilationThread : BaseThreadedJob
 					pdbFilename, ClassList);
 
 				InternalCallHookGenTime = _stopwatch.Elapsed;
-				InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
-				trees.Add(partialTree.SyntaxTree);
+
+				if (partialTree != null)
+				{
+					InternalCallHookSource = partialTree.NormalizeWhitespace().ToFullString();
+					trees.Add(partialTree.SyntaxTree);
+				}
 			}
 
 			var options = new CSharpCompilationOptions(
@@ -429,7 +432,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 #if DEBUG
 				Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release,
 #else
-					OptimizationLevel.Release,
+				OptimizationLevel.Release,
 #endif
 				deterministic: true, warningLevel: 4,
 				allowUnsafe: true
@@ -444,12 +447,15 @@ public class ScriptCompilationThread : BaseThreadedJob
 			{
 				var emit = compilation.Emit(dllStream, options: _emitOptions);
 
-				var errors = Facepunch.Pool.GetList<string>();
-				var warnings = Facepunch.Pool.GetList<string>();
+				var errors = Facepunch.Pool.Get<List<string>>();
+				var warnings = Facepunch.Pool.Get<List<string>>();
 
 				foreach (var error in emit.Diagnostics)
 				{
-					if (errors.Contains(error.Id) || warnings.Contains(error.Id)) continue;
+					if (errors.Contains(error.Id) || warnings.Contains(error.Id))
+					{
+						continue;
+					}
 
 					var span = error.Location.GetMappedLineSpan().Span;
 
@@ -478,53 +484,47 @@ public class ScriptCompilationThread : BaseThreadedJob
 					}
 				}
 
-				Facepunch.Pool.FreeList(ref errors);
-				Facepunch.Pool.FreeList(ref warnings);
+				Facepunch.Pool.FreeUnmanaged(ref errors);
+				Facepunch.Pool.FreeUnmanaged(ref warnings);
 
 				if (emit.Success)
 				{
 					var assembly = dllStream.ToArray();
 					if (assembly != null)
 					{
-						if (IsExtension) _overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+						if (IsExtension)
+						{
+							_overrideExtensionPlugin(InitialSource.ContextFilePath, assembly);
+						}
+
 						_overridePlugin(Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath), assembly);
 						Assembly = Assembly.Load(assembly);
 
 						try
 						{
-							MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly,
-								Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
-									? InitialSource.FileName
-									: InitialSource.ContextFileName), true);
-						}
-						catch (Exception ex)
-						{
-							Logger.Error($"Couldn't mark assembly for profiling", ex);
-						}
-
-						try
-						{
-							Assemblies.Plugins.Update(Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
+							var name = Path.GetFileNameWithoutExtension(string.IsNullOrEmpty(InitialSource.ContextFileName)
 								? InitialSource.FileName
-								: InitialSource.ContextFileName), Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath);
+								: InitialSource.ContextFileName);
+
+							var isProfiled = MonoProfiler.TryStartProfileFor(MonoProfilerConfig.ProfileTypes.Plugin, Assembly, name, true);
+							Assemblies.Plugins.Update(name, Assembly, string.IsNullOrEmpty(InitialSource.ContextFilePath) ? InitialSource.FilePath : InitialSource.ContextFilePath, isProfiled);
 						}
 						catch (Exception ex)
 						{
 							Logger.Error($"Couldn't cache assembly in Carbon's global database", ex);
 						}
-
 					}
 				}
 			}
 
 			references.Clear();
 			references = null;
-			Facepunch.Pool.FreeList(ref conditionals);
-			Facepunch.Pool.FreeList(ref trees);
+			Facepunch.Pool.FreeUnmanaged(ref conditionals);
+			Facepunch.Pool.FreeUnmanaged(ref trees);
 
 			CompileTime = _stopwatch.Elapsed;
 			_stopwatch.Reset();
-			Facepunch.Pool.Free(ref _stopwatch);
+			Facepunch.Pool.FreeUnsafe(ref _stopwatch);
 
 			if (Assembly == null) return;
 

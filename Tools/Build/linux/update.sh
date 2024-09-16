@@ -10,7 +10,7 @@ BASE="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 ROOT="$(realpath "${BASE}/../../../")"
 
 # Get the target depot argument
-TARGET=${1:-public}
+TARGET=${1:-release}
 
 mono "${ROOT}/Tools/Helpers/CodeGen.exe" \
 	--plugininput "${ROOT}/Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Core" \
