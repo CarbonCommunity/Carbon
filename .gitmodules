@@ -34,16 +34,13 @@
 	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community
 	url = https://github.com/CarbonCommunity/Carbon.Hooks.Community.git
 	branch = .
-<<<<<<< HEAD
 [submodule "Carbon.Core/Carbon.Components/Carbon.Compiler"]
 	path = Carbon.Core/Carbon.Components/Carbon.Compiler
 	url = https://github.com/CarbonCommunity/Carbon.Compiler.git
-=======
 [submodule "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal"]
 	path = Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal
 	url = https://github.com/CarbonCommunity/Carbon.Hooks.git
 	branch = main
->>>>>>> origin/develop
 [submodule "Carbon.Core/Carbon.Native"]
 	path = Carbon.Core/Carbon.Native
 	url = https://github.com/CarbonCommunity/Carbon.Native.git
