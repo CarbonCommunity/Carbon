@@ -164,8 +164,7 @@ public class CommunityInternal : Community
 			_installCore();
 			ModuleProcessor.Init();
 
-			Events.Trigger(
-				CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
+			Events.Trigger(CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		});
 
 		Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
