@@ -11,6 +11,7 @@ using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Jobs;
+using Facepunch;
 using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
@@ -505,7 +506,10 @@ public class ScriptLoader : IScriptLoader
 				{
 					plugin.Instance = rustPlugin;
 
-					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, new CarbonEventArgs(rustPlugin));
+					var arg = Pool.Get<CarbonEventArgs>();
+					arg.Init(rustPlugin);
+					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, arg);
+					Pool.Free(ref arg);
 
 					ModLoader.RegisterType(AsyncLoader.InitialSource.ContextFilePath, type);
 
