@@ -111,7 +111,6 @@
 	"InformationalVersion": "$(InformationalVersion)",
 	"Protocol": "$(CarbonProtocol)",
 	"Platform": "$(OperatingSystemCapitalized)",
-	"Config": "$(Configuration)",
 	"Commit": {
 		"Branch": "$(GitCommitBranch)",
 		"HashLong": "$(GitCommitHashLong)",

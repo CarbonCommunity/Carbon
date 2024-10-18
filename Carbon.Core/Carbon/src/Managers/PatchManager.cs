@@ -507,27 +507,44 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		}
 	}
 
-	private IEnumerable<HookEx> LoadedHooks => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Where(x => x.IsLoaded);
+	private IEnumerable<HookEx> LoadedHooks
+	{ get => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Where(x => x.IsLoaded); }
 
-	private IEnumerable<HookEx> Hooks => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Concat(_metadataHooks);
+	private IEnumerable<HookEx> Hooks
+	{ get => _patches.Concat(_dynamicHooks).Concat(_staticHooks).Concat(_metadataHooks); }
 
-	private IEnumerable<HookEx> GetHookByName(string name) => LoadedHooks.Where(x => x.HookName.Equals(name)) ?? null;
+	private IEnumerable<HookEx> GetHookByName(string name)
+		=> LoadedHooks.Where(x => x.HookName.Equals(name)) ?? null;
 
-	private IEnumerable<HookEx> GetHookByFullName(string name) => LoadedHooks.Where(x => x.HookFullName.Equals(name)) ?? null;
+	private IEnumerable<HookEx> GetHookByFullName(string name)
+		=> LoadedHooks.Where(x => x.HookFullName.Equals(name)) ?? null;
 
-	private HookEx GetHookById(string identifier) => LoadedHooks.FirstOrDefault(x => x.Identifier.Equals(identifier)) ?? null;
+	private HookEx GetHookById(string identifier)
+		=> LoadedHooks.FirstOrDefault(x => x.Identifier.Equals(identifier)) ?? null;
 
-	private IEnumerable<HookEx> GetHookByNameAll(string name) => Hooks.Where(x => x.HookName.Equals(name)) ?? null;
+	private IEnumerable<HookEx> GetHookByNameAll(string name)
+		=> Hooks.Where(x => x.HookName.Equals(name)) ?? null;
 
-	private IEnumerable<HookEx> GetHookByFullNameAll(string name) => Hooks.Where(x => x.HookFullName.Equals(name)) ?? null;
+	private IEnumerable<HookEx> GetHookByFullNameAll(string name)
+		=> Hooks.Where(x => x.HookFullName.Equals(name)) ?? null;
 
-	private HookEx GetHookByIdAll(string identifier) => Hooks.FirstOrDefault(x => x.Identifier.Equals(identifier)) ?? null;
+	private HookEx GetHookByIdAll(string identifier)
+		=> Hooks.FirstOrDefault(x => x.Identifier.Equals(identifier)) ?? null;
 
-	internal bool IsHookLoaded(HookEx hook) => LoadedHooks.Any(x => x.HookFullName.Equals(hook.HookFullName) && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
+	internal bool IsHookLoaded(HookEx hook)
+		=> LoadedHooks.Any(x => x.HookFullName.Equals(hook.HookFullName) && x.TargetType == hook.TargetType && x.TargetMethod == hook.TargetMethod && (x.TargetMethodArgs?.SequenceEqual(hook.TargetMethodArgs) ?? true));
 
-	public bool IsHook(string hookName) => GetHookByNameAll(hookName).Any();
+	public bool IsHook(string hookName)
+	{
+		var hooks = GetHookByNameAll(hookName);
+		return hooks.Any();
+	}
 
-	public bool IsHookLoaded(string hookName) => GetHookByName(hookName).Any(IsHookLoaded);
+	public bool IsHookLoaded(string hookName)
+	{
+		var hooks = GetHookByName(hookName);
+		return hooks.Any() && hooks.Any(IsHookLoaded);
+	}
 
 	public void ForceUpdateHooks()
 	{
@@ -553,37 +570,35 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 	public IEnumerable<IHook> InstalledDynamicHooks
 	{ get => _dynamicHooks.Where(x => x.IsInstalled); }
 
-	private bool HookIsSubscribedBy(string hookName, string subscriber)
-		=> _subscribers?.Where(x => x.Identifier.Equals(hookName)).Any(x => x.Subscriber == subscriber) ?? false;
+	private bool HookIsSubscribedBy(string identifier, string subscriber)
+		=> _subscribers?.Where(x => x.Identifier.Equals(identifier)).Any(x => x.Subscriber == subscriber) ?? false;
 
-	private bool HookHasSubscribers(string hookName)
-		=> _subscribers?.Any(x => x.Identifier.Equals(hookName)) ?? false;
+	private bool HookHasSubscribers(string identifier)
+		=> _subscribers?.Any(x => x.Identifier.Equals(identifier)) ?? false;
 
-	public int GetHookSubscriberCount(string hookName) => _subscribers.Count(x => x.Identifier.Equals(hookName));
+	public int GetHookSubscriberCount(string identifier)
+		=> _subscribers.Count(x => x.Identifier.Equals(identifier));
 
-	private void AddSubscriber(string hookName, string subscriber)
-	{
-		_subscribers.Add(item: new Subscription { Identifier = hookName, Subscriber = subscriber });
-	}
+	private void AddSubscriber(string identifier, string subscriber)
+		=> _subscribers.Add(item: new Subscription { Identifier = identifier, Subscriber = subscriber });
 
-	private void RemoveSubscriber(string hookName, string subscriber)
-	{
-		_subscribers.RemoveAll(x => x.Identifier.Equals(hookName) && x.Subscriber.Equals(subscriber));	}
+	private void RemoveSubscriber(string identifier, string subscriber)
+		=> _subscribers.RemoveAll(x => x.Identifier.Equals(identifier) && x.Subscriber.Equals(subscriber));
 
 
 	public void Subscribe(string hookName, string requester)
 	{
 		try
 		{
-			var hook = GetHookById(hookName);
+			HookEx single = GetHookById(hookName);
 
-			if (hook != null && !HookIsSubscribedBy(hook.Identifier, requester))
+			if (single != null && !HookIsSubscribedBy(single.Identifier, requester))
 			{
-				Subscribe(hook, requester);
+				Subscribe(single, requester);
 				return;
 			}
 
-			var hooks = GetHookByName(hookName);
+			IEnumerable<HookEx> hooks = GetHookByName(hookName);
 
 			if (!hooks.Any())
 			{
@@ -591,16 +606,19 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				return;
 			};
 
-			foreach (var item in hooks.Where(hook => !HookIsSubscribedBy(hook.Identifier, requester)))
-			{
-				Subscribe(item, requester);
-			}
+			IEnumerable<HookEx> list = hooks
+				.Where(hook => !HookIsSubscribedBy(hook.Identifier, requester));
 
+			foreach (HookEx hook in list)
+				Subscribe(hook, requester);
+
+			list = default;
 			hooks = default;
 		}
 		catch (Exception e)
 		{
 			Logger.Error($"Error while subscribing hook '{hookName}'", e);
+			return;
 		}
 	}
 
@@ -634,9 +652,9 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		}
 	}
 
-	public IEnumerable<string> GetHookSubscribers(string hookName)
+	public IEnumerable<string> GetHookSubscribers(string identifier)
 	{
-		return _subscribers.Where(x => x.Identifier.Equals(hookName)).Select(x => x.Subscriber);
+		return _subscribers.Where(x => x.Identifier.Equals(identifier)).Select(x => x.Subscriber);
 	}
 
 	public void Unsubscribe(string hookName, string requester)
@@ -660,9 +678,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			};
 
 			foreach (HookEx hook in hooks.Where(hook => HookIsSubscribedBy(hook.Identifier, requester)).Reverse())
-			{
 				Unsubscribe(hook, requester);
-			}
 
 			hooks = default;
 		}
@@ -710,8 +726,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			Unsubscribe(hookName, subscriber);
 		}
 	}
-
-	public bool AnySubscribers(string hookName) => _subscribers.Any(x => x.Identifier.Equals(hookName));
 
 	public static string GetMethodMSILHash(MethodInfo method)
 		=> SHA1(method?.GetMethodBody()?.GetILAsByteArray());
