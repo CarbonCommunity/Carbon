@@ -2,8 +2,6 @@
 
 namespace Carbon.Core;
 
-#pragma warning disable IDE0051
-
 public partial class CorePlugin
 {
 	private void IOnCarbonClientReady(ICarbonConnection client)
@@ -14,6 +12,9 @@ public partial class CorePlugin
 		}
 
 		Logger.Log($"{client.Username}[{client.UserId}] is ready");
+
+		var connection = Network.Net.sv.FindConnection(client.Connection);
+		Community.Runtime.CarbonClient.SendRequestToPlayer(connection);
 	}
 
 	private void OnClientAddonsDownload(ICarbonConnection client)
