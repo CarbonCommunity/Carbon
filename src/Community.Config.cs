@@ -3,6 +3,7 @@ using API.Assembly;
 using API.Commands;
 using API.Contracts;
 using API.Events;
+using Carbon.Client;
 using Carbon.Profiler;
 using Facepunch;
 using Newtonsoft.Json;
@@ -13,6 +14,7 @@ public partial class Community
 {
 	public Config Config { get; set; }
 	public MonoProfilerConfig MonoProfilerConfig { get; set; }
+	public ClientConfig ClientConfig { get; set; }
 
 	/// <summary>
 	/// Load Carbon config from disk.
@@ -113,7 +115,10 @@ public partial class Community
 
 			Logger.CoreLog.SplitSize = (int)(Config.Logging.LogSplitSize * 1000000f);
 
-			if (needsSave) SaveConfig();
+			if (needsSave)
+			{
+				SaveConfig();
+			}
 		}
 
 		if (Config.Analytics.Enabled)
@@ -131,7 +136,7 @@ public partial class Community
 	/// </summary>
 	public void SaveConfig()
 	{
-		if (Config == null) Config = new Config();
+		Config ??= new Config();
 
 		OsEx.File.Create(Defines.GetConfigFile(), JsonConvert.SerializeObject(Config, Formatting.Indented));
 	}
@@ -153,7 +158,10 @@ public partial class Community
 			MonoProfilerConfig = JsonConvert.DeserializeObject<MonoProfilerConfig>(OsEx.File.ReadText(Defines.GetMonoProfilerConfigFile()));
 		}
 
-		if (needsSave) SaveMonoProfilerConfig();
+		if (needsSave)
+		{
+			SaveMonoProfilerConfig();
+		}
 	}
 
 	/// <summary>
@@ -164,5 +172,39 @@ public partial class Community
 		MonoProfilerConfig ??= new();
 
 		OsEx.File.Create(Defines.GetMonoProfilerConfigFile(), JsonConvert.SerializeObject(MonoProfilerConfig, Formatting.Indented));
+	}
+
+	/// <summary>
+	/// Load Carbon MonoProfiler config from disk.
+	/// </summary>
+	public void LoadClientConfig()
+	{
+		var needsSave = false;
+
+		if (!OsEx.File.Exists(Defines.GetClientConfigFile()))
+		{
+			ClientConfig ??= new();
+			needsSave = true;
+		}
+		else
+		{
+			ClientConfig = JsonConvert.DeserializeObject<ClientConfig>(OsEx.File.ReadText(Defines.GetClientConfigFile()));
+			ClientConfig.RefreshAddonCache();
+		}
+
+		if (needsSave)
+		{
+			SaveClientConfig();
+		}
+	}
+
+	/// <summary>
+	/// Save Carbon MonoProfiler config to disk.
+	/// </summary>
+	public void SaveClientConfig()
+	{
+		ClientConfig ??= new();
+
+		OsEx.File.Create(Defines.GetClientConfigFile(), JsonConvert.SerializeObject(ClientConfig, Formatting.Indented));
 	}
 }

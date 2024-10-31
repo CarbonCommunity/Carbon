@@ -342,7 +342,7 @@ public partial class AdminModule
 				module.Load();
 				SetTab(ap.Player, SetupWizard.Make());
 				Draw(ap.Player);
-			}, null);
+			}, null, fullscreen: true);
 
 		Draw(ap.Player);
 	}

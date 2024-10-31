@@ -54,7 +54,7 @@ public class Lang : Library
 
 		var data = Interface.Oxide.Permission.GetUserData(userId, true);
 
-		if (data.Language.Equals(lang))
+		if (!string.IsNullOrEmpty(data.Language) && data.Language.Equals(lang))
 		{
 			return;
 		}

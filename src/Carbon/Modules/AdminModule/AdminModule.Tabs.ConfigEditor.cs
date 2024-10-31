@@ -19,7 +19,7 @@ public partial class AdminModule
 		{
 		}
 
-		public static ConfigEditor Make(string json, Action<PlayerSession, JObject> onCancel, Action<PlayerSession, JObject> onSave, Action<PlayerSession, JObject> onSaveAndReload, string[] blacklist = null)
+		public static ConfigEditor Make(string json, Action<PlayerSession, JObject> onCancel, Action<PlayerSession, JObject> onSave, Action<PlayerSession, JObject> onSaveAndReload, bool fullscreen = false, string[] blacklist = null)
 		{
 			var tab = new ConfigEditor("configeditor", "Config Editor", Community.Runtime.Core)
 			{
@@ -27,7 +27,8 @@ public partial class AdminModule
 				OnSave = onSave,
 				OnSaveAndReload = onSaveAndReload,
 				OnCancel = onCancel,
-				Blacklist = blacklist
+				Blacklist = blacklist,
+				IsFullscreen = fullscreen
 			};
 
 			tab._draw();

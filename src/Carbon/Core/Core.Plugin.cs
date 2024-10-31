@@ -140,36 +140,6 @@ public partial class CorePlugin : CarbonPlugin
 #endif
 	}
 
-	private void OnPlayerDisconnected(BasePlayer player, string reason)
-	{
-		// OnUserDisconnected
-		HookCaller.CallStaticHook(649612044, player?.AsIPlayer(), reason);
-
-		if (player.IsAdmin && !player.IsOnGround())
-		{
-			var newPosition = player.transform.position;
-
-			if (UnityEngine.Physics.Raycast(newPosition, Vector3.down, out var hit, float.MaxValue, ~0, queryTriggerInteraction: QueryTriggerInteraction.Ignore))
-			{
-				newPosition.y = hit.point.y;
-
-				if (Vector3.Distance(player.transform.position, newPosition) > 3.5f)
-				{
-					player.SetServerFall(false);
-					player.Teleport(newPosition);
-					player.estimatedVelocity = Vector3.zero;
-					NextFrame(() =>
-					{
-						if (player != null)
-						{
-							player.SetServerFall(true);
-						}
-					});
-					Logger.Warn($"Moved admin player {player.net.connection} on the object underneath so it doesn't die from fall damage.");
-				}
-			}
-		}
-	}
 	private void OnPluginLoaded(Plugin plugin)
 	{
 		var eventArg = Pool.Get<CarbonEventArgs>();

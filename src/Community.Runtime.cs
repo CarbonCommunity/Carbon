@@ -4,6 +4,7 @@ using API.Commands;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
+using Carbon.Client.SDK;
 
 namespace Carbon;
 
@@ -34,6 +35,8 @@ public partial class Community
 #endif
 
 	public ICarbonProcessor CarbonProcessor { get; set; }
+
+	public ICarbonClientManager CarbonClient { get; set; }
 
 	public static bool IsServerInitialized { get; internal set; }
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;

@@ -150,7 +150,7 @@ public partial class AdminModule
 
 							Singleton.SetTab(ap.Player, "modules");
 							Singleton.Draw(ap.Player);
-						}, null, _configBlacklist);
+						}, null, blacklist: _configBlacklist);
 				});
 			}
 		}

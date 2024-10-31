@@ -14,6 +14,7 @@ public abstract class BaseModule : BaseHookable
 	public virtual bool ForceDisabled => false;
 
 	public virtual bool ManualCommands => false;
+	public virtual bool ConfigVersionChecks => true;
 
 	public abstract void OnServerInit(bool initial);
 	public abstract void OnPostServerInit(bool initial);
@@ -153,6 +154,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			{
 				ModuleConfiguration.Enabled = true;
 			}
+
 			shouldSave = true;
 		}
 		else
@@ -161,7 +163,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			{
 				ModuleConfiguration = Config.ReadObject<Configuration>();
 
-				if (ModuleConfiguration.HasConfigStructureChanged())
+				if (ConfigVersionChecks && ModuleConfiguration.HasConfigStructureChanged())
 				{
 					shouldSave = true;
 				}
@@ -173,7 +175,11 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		}
 
 		ConfigInstance = ModuleConfiguration.Config;
-		if (ForceEnabled) ModuleConfiguration.Enabled = true;
+
+		if (ForceEnabled)
+		{
+			ModuleConfiguration.Enabled = true;
+		}
 
 		if (typeof(D) != typeof(EmptyModuleData))
 		{
@@ -195,9 +201,15 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			}
 		}
 
-		if (PreLoadShouldSave(newConfig, newData)) shouldSave = true;
+		if (PreLoadShouldSave(newConfig, newData))
+		{
+			shouldSave = true;
+		}
 
-		if (shouldSave) Save();
+		if (shouldSave)
+		{
+			Save();
+		}
 	}
 	public override void Save()
 	{
