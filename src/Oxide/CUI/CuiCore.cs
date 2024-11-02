@@ -236,6 +236,9 @@ public class CuiImageComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("skinid")]
 	public ulong SkinId { get; set; }
+
+	[JsonProperty("steamid")]
+	public ulong SteamId { get; set; }
 }
 public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 {
