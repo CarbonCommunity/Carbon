@@ -236,9 +236,6 @@ public class CuiImageComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("skinid")]
 	public ulong SkinId { get; set; }
-
-	[JsonProperty("steamid")]
-	public ulong SteamId { get; set; }
 }
 public class CuiInputFieldComponent : ICuiComponent, ICuiColor
 {
@@ -327,6 +324,9 @@ public class CuiRawImageComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("fadeIn")]
 	public float FadeIn { get; set; }
+
+	[JsonProperty("steamid")]
+	public string SteamId { get; set; }
 }
 public class CuiRectTransformComponent : CuiRectTransform, ICuiComponent
 {
