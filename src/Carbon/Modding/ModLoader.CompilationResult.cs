@@ -24,6 +24,15 @@ public static partial class ModLoader
 			return result;
 		}
 
+		public void AppendError(Trace trace)
+		{
+			Errors.Add(trace);
+		}
+		public void AppendWarning(Trace trace)
+		{
+			Warnings.Add(trace);
+		}
+
 		public void AppendErrors(IEnumerable<Trace> traces)
 		{
 			Errors.AddRange(traces);
