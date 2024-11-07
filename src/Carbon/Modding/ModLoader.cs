@@ -237,6 +237,8 @@ public static partial class ModLoader
 
 		plugin.IsPrecompiled = precompiled;
 
+		preInit?.Invoke(plugin);
+
 		try
 		{
 			constructor?.Invoke(instance, null);
@@ -248,7 +250,13 @@ public static partial class ModLoader
 			// OnConstructorFail
 			HookCaller.CallStaticHook(2684549964, plugin, ex);
 
-			Logger.Error($"Failed executing constructor for {plugin.ToPrettyString()}. This is fatal! Unloading plugin.", ex);
+			var innerException = ex.InnerException;
+			var compilationFailure = GetCompilationResult(plugin.FilePath);
+			Trace trace = default;
+			trace.Message = $"Constructor threw an exception ({innerException.Message})";
+			trace.Number = ".ctor";
+			compilationFailure.AppendError(trace);
+			Logger.Error($"Failed executing constructor for {plugin.ToPrettyString()}. This is fatal!", ex);
 			return false;
 		}
 
@@ -263,8 +271,6 @@ public static partial class ModLoader
 		}
 
 		package.AddPlugin(plugin);
-
-		preInit?.Invoke(plugin);
 
 		plugin.ILoadConfig();
 		plugin.ILoadDefaultMessages();

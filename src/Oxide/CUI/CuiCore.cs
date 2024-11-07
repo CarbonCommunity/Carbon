@@ -324,6 +324,9 @@ public class CuiRawImageComponent : ICuiComponent, ICuiColor
 
 	[JsonProperty("fadeIn")]
 	public float FadeIn { get; set; }
+
+	[JsonProperty("steamid")]
+	public string SteamId { get; set; }
 }
 public class CuiRectTransformComponent : CuiRectTransform, ICuiComponent
 {
