@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text;
+using Facepunch;
+using Newtonsoft.Json;
 using MathEx = Carbon.Extensions.MathEx;
 
 /*
@@ -96,28 +98,26 @@ public partial class MonoProfiler
 
 		public string ToTable()
 		{
-			var builder = PoolEx.GetStringBuilder();
-
+			var builder = Pool.Get<StringBuilder>();
 			builder.AppendLine(Assemblies.ToTable());
 			builder.AppendLine(Calls.ToTable());
 			builder.AppendLine(Memory.ToTable());
 			builder.AppendLine(GC.ToTable());
 
 			var result = builder.ToString();
-			PoolEx.FreeStringBuilder(ref builder);
+			Pool.FreeUnmanaged(ref builder);
 			return result;
 		}
 		public string ToCSV()
 		{
-			var builder = PoolEx.GetStringBuilder();
-
+			var builder = Pool.Get<StringBuilder>();
 			builder.AppendLine(Assemblies.ToCSV());
 			builder.AppendLine(Calls.ToCSV());
 			builder.AppendLine(Memory.ToCSV());
 			builder.AppendLine(GC.ToCSV());
 
 			var result = builder.ToString();
-			PoolEx.FreeStringBuilder(ref builder);
+			Pool.FreeUnmanaged(ref builder);
 			return result;
 		}
 		public string ToJson(bool indented)

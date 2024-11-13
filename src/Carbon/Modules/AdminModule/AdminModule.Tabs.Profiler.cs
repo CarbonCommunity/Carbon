@@ -919,7 +919,7 @@ public partial class AdminModule
 
 		if (!MonoProfiler.IsRecording && ap.Player.serverInput.IsDown(BUTTON.SPRINT))
 		{
-			var dictionary = PoolEx.GetDictionary<string, ModalModule.Modal.Field>();
+			var dictionary = Pool.Get<Dictionary<string, ModalModule.Modal.Field>>();
 
 			dictionary["duration"] = ModalModule.Modal.Field.Make("Duration", ModalModule.Modal.Field.FieldTypes.Float, true, 3f, customIsInvalid: field => field.Value.ToString().ToFloat() <= 0 ? "Duration must be above zero." : string.Empty);
 			dictionary["calls"] = ModalModule.Modal.Field.Make("Calls", ModalModule.Modal.Field.FieldTypes.Boolean, false, true);
@@ -953,13 +953,13 @@ public partial class AdminModule
 
 				Analytics.profiler_started(profilerArgs, true);
 
-				PoolEx.FreeDictionary(ref dictionary);
+				Pool.FreeUnmanaged(ref dictionary);
 
 				ap.SelectedTab.OnChange(ap, ap.SelectedTab);
 				Draw(player);
 			}, onCancel: () =>
 			{
-				PoolEx.FreeDictionary(ref dictionary);
+				Pool.FreeUnmanaged(ref dictionary);
 
 				ap.SelectedTab.OnChange(ap, ap.SelectedTab);
 				Draw(player);
@@ -1131,8 +1131,7 @@ public partial class AdminModule
 
 		if (!MonoProfiler.IsRecording)
 		{
-			var dictionary = PoolEx.GetDictionary<string, ModalModule.Modal.Field>();
-
+			var dictionary = Pool.Get<Dictionary<string, ModalModule.Modal.Field>>();
 			dictionary["duration"] = ModalModule.Modal.Field.Make("Duration", ModalModule.Modal.Field.FieldTypes.Float, true, 3f,
 				customIsInvalid: field => field.Get<float>() <= 0 ? "Duration must be above zero." : field.Get<float>() > 100 ? $"You cannot record above {TimeEx.Format(100, shortName: false).ToLower()}." : string.Empty);
 			dictionary["rate"] = ModalModule.Modal.Field.Make("Rate", ModalModule.Modal.Field.FieldTypes.Float, true, 1f,
@@ -1169,13 +1168,13 @@ public partial class AdminModule
 				});
 				Analytics.profiler_tl_started(profilerArgs);
 
-				PoolEx.FreeDictionary(ref dictionary);
+				Pool.FreeUnmanaged(ref dictionary);
 
 				ap.SelectedTab.OnChange(ap, ap.SelectedTab);
 				Draw(player);
 			}, onCancel: () =>
 			{
-				PoolEx.FreeDictionary(ref dictionary);
+				Pool.FreeUnmanaged(ref dictionary);
 
 				ap.SelectedTab.OnChange(ap, ap.SelectedTab);
 				Draw(player);

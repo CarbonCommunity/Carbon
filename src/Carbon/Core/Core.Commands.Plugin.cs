@@ -586,7 +586,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		var builder = PoolEx.GetStringBuilder();
+		var builder = Pool.Get<StringBuilder>();
 		var count = 1;
 
 		using (var table = new StringTable("Chat Commands"))
@@ -625,7 +625,7 @@ public partial class CorePlugin
 		}
 
 		arg.ReplyWith(builder.ToString());
-		PoolEx.FreeStringBuilder(ref builder);
+		Pool.FreeUnmanaged(ref builder);
 	}
 
 	[ConsoleCommand("reloadconfig", "Reloads a plugin's config file. This might have unexpected results, use cautiously.")]

@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using System.Text;
+using Facepunch;
 
 namespace Carbon.Core;
 
@@ -60,7 +61,7 @@ public partial class CorePlugin
 	[ConsoleCommand("commit", "Information about the Git commit of this build.")]
 	private void Commit(ConsoleSystem.Arg arg)
 	{
-		var builder = PoolEx.GetStringBuilder();
+		var builder = Pool.Get<StringBuilder>();
 		var added = Build.Git.Changes.Count(x => x.Type == Build.Git.AssetChange.ChangeTypes.Added);
 		var modified = Build.Git.Changes.Count(x => x.Type == Build.Git.AssetChange.ChangeTypes.Modified);
 		var deleted = Build.Git.Changes.Count(x => x.Type == Build.Git.AssetChange.ChangeTypes.Deleted);
@@ -76,7 +77,7 @@ public partial class CorePlugin
 		builder.AppendLine($" Changes:  {added} added, {modified} modified, {deleted} deleted");
 
 		arg.ReplyWith(builder.ToString());
-		PoolEx.FreeStringBuilder(ref builder);
+		Pool.FreeUnmanaged(ref builder);
 	}
 
 	[ConsoleCommand("whymodded", "Prints an intricate list of all the reasons why the server is set to modded and solutions to fix it.")]

@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using Carbon.Profiler;
+using Facepunch;
 
 /*
  *
@@ -62,7 +63,7 @@ public partial class MonoProfiler
 			writer.Write(sample.IsCompared);
 			writer.Write((int)sample.Comparison.Duration);
 
-			var mappedAssemblies = PoolEx.GetDictionary<string, int>();
+			var mappedAssemblies = Pool.Get<Dictionary<string, int>>();
 
 			writer.Write(sample.Assemblies.Count);
 			for (int i = 0; i < sample.Assemblies.Count; i++)
@@ -134,7 +135,7 @@ public partial class MonoProfiler
 			writer.Write((int)sample.GC.comparison.calls_c);
 			writer.Write((int)sample.GC.comparison.total_time_c);
 
-			PoolEx.FreeDictionary(ref mappedAssemblies);
+			Pool.FreeUnmanaged(ref mappedAssemblies);
 		}
 
 		return memoryStream.ToArray();
@@ -161,7 +162,7 @@ public partial class MonoProfiler
 		sample.IsCompared = reader.ReadBoolean();
 		sample.Comparison.Duration = (Sample.Difference)reader.ReadInt32();
 
-		var names = PoolEx.GetDictionary<int, AssemblyNameEntry>();
+		var names = Pool.Get<Dictionary<int, AssemblyNameEntry>>();
 
 		var assemblyLength = reader.ReadInt32();
 		for (int i = 0; i < assemblyLength; i++)
@@ -240,7 +241,7 @@ public partial class MonoProfiler
 		sample.GC.total_time = reader.ReadUInt64();
 		sample.FromDisk = true;
 
-		PoolEx.FreeDictionary(ref names);
+		Pool.FreeUnmanaged(ref names);
 		return sample;
 	}
 }
