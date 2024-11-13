@@ -473,7 +473,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 	}
 	public void DeleteAllImages(string url)
 	{
-		var temp = PoolEx.GetDictionary<string, uint>();
+		var temp = Pool.Get<Dictionary<string, uint>>();
 
 		foreach (var map in _protoData.Map)
 		{
@@ -486,7 +486,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 			_protoData.Map.Remove(map.Key);
 		}
 
-		PoolEx.FreeDictionary(ref temp);
+		Pool.FreeUnmanaged(ref temp);
 	}
 
 	public uint GetQRCode(string text, int pixels = 20, bool transparent = false, bool quietZones = true, bool whiteMode = false)

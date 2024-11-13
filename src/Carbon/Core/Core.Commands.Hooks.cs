@@ -1,4 +1,6 @@
-﻿using API.Hooks;
+﻿using System.Text;
+using API.Hooks;
+using Facepunch;
 using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Core;
@@ -178,13 +180,13 @@ public partial class CorePlugin
 		var hookName = isUid ? HookStringPool.GetOrAdd(name.ToUint()) : name;
 		var hookId = isUid ? name.ToUint() : HookStringPool.GetOrAdd(name);
 
-		var output = PoolEx.GetStringBuilder();
+		var output = Pool.Get<StringBuilder>();
 
 		const string byteFormat = "{0}{1}";
 
 		output.AppendLine($"Information for {hookName}[{hookId}]");
 		{
-			var plugins = PoolEx.GetDictionary<BaseHookable, CachedHookInstance>();
+			var plugins = Pool.Get<Dictionary<BaseHookable, CachedHookInstance>>();
 			{
 				foreach (var package in ModLoader.Packages)
 				{
@@ -212,7 +214,7 @@ public partial class CorePlugin
 					$"{plugin.Value.Hooks.Count(x => x.IsAsync):n0} / {plugin.Value.Hooks.Count:n0}");
 			}
 
-			var modules = PoolEx.GetDictionary<BaseHookable, CachedHookInstance>();
+			var modules = Pool.Get<Dictionary<BaseHookable, CachedHookInstance>>();
 			{
 				foreach (var module in Community.Runtime.ModuleProcessor.Modules)
 				{
@@ -259,9 +261,9 @@ public partial class CorePlugin
 
 			arg.ReplyWith(output.ToString());
 
-			PoolEx.FreeStringBuilder(ref output);
-			PoolEx.FreeDictionary(ref plugins);
-			PoolEx.FreeDictionary(ref modules);
+			Pool.FreeUnmanaged(ref output);
+			Pool.FreeUnmanaged(ref plugins);
+			Pool.FreeUnmanaged(ref modules);
 		}
 	}
 
