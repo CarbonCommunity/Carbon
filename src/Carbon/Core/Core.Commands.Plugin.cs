@@ -218,15 +218,15 @@ public partial class CorePlugin
 				{
 					foreach (var argValue in arg.Args)
 					{
-						Do(argValue);
+						Do(argValue, arg);
 					}
 				}
 				else
 				{
-					Do(name);
+					Do(name, arg);
 				}
 
-				static void Do(string name)
+				static void Do(string name, ConsoleSystem.Arg arg)
 				{
 					var path = GetPluginPath(name);
 					var plugin = ModLoader.FindPlugin(name);
@@ -314,7 +314,7 @@ public partial class CorePlugin
 
 					if (plugin == null)
 					{
-						Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
+						Community.Runtime.Core.LoadPlugin(arg);
 					}
 					else if (plugin.IsPrecompiled)
 					{
@@ -327,7 +327,7 @@ public partial class CorePlugin
 
 	[ConsoleCommand("load", "Loads all mods and/or plugins. E.g 'c.load * <except[]>' to load everything, 'c.load PluginA [PluginB..]' to load multiple.")]
 	[AuthLevel(2)]
-	private void LoadPlugin(ConsoleSystem.Arg arg)
+	internal void LoadPlugin(ConsoleSystem.Arg arg)
 	{
 		if (!arg.HasArgs(1))
 		{
@@ -379,6 +379,7 @@ public partial class CorePlugin
 					{
 						Community.Runtime.ScriptProcessor.ClearIgnore(path.Value);
 						Community.Runtime.ScriptProcessor.Prepare(path.Key, path.Value);
+						Logger.Warn($"Requested '{path.Key}' for compilation");
 						return;
 					}
 
