@@ -507,9 +507,15 @@ public partial class AdminModule
 		public static void GeneratePermissions(Tab tab,  PlayerSession ap, Permission perms, BaseHookable hookable, KeyValuePair<string, UserData> player, string selectedGroup)
 		{
 			var grantAllStatus = ap.GetStorage(tab, "toggleall", true);
+			var filter = ap.GetStorage(tab, "permfilter", string.Empty)?.Trim().ToLower();
 
 			tab.ClearColumn(3);
 			tab.AddName(3, "Permissions", TextAnchor.MiddleLeft);
+			tab.AddInput(3, "Search", ap => ap.GetStorage(tab, "permfilter", string.Empty), (ap, args) =>
+			{
+				ap.SetStorage(tab, "permfilter", args.ToString(" "));
+				GeneratePermissions(tab, ap, perms, hookable, player, selectedGroup);
+			});
 			tab.AddButton(3, grantAllStatus ? "Grant All" : "Revoke All", ap =>
 			{
 				foreach (var perm in perms.GetPermissions(hookable))
@@ -549,6 +555,11 @@ public partial class AdminModule
 
 			foreach (var perm in perms.GetPermissions(hookable))
 			{
+				if (!string.IsNullOrEmpty(filter) && !perm.Contains(filter, CompareOptions.OrdinalIgnoreCase))
+				{
+					continue;
+				}
+
 				if (string.IsNullOrEmpty(selectedGroup))
 				{
 					var isInherited = false;

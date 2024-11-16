@@ -1,4 +1,6 @@
-﻿namespace Carbon.Base;
+﻿using Facepunch;
+
+namespace Carbon.Base;
 
 public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProcessor
 {
@@ -189,7 +191,7 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 			catch (Exception ex) { Logger.Error($" Processor error: '{item.Key}'", ex); }
 		}
 
-		var temp = PoolEx.GetDictionary<string, IBaseProcessor.IProcess>();
+		var temp = Pool.Get<Dictionary<string, IBaseProcessor.IProcess>>();
 
 		foreach (var instance in InstanceBuffer)
 		{
@@ -202,11 +204,16 @@ public abstract class BaseProcessor : FacepunchBehaviour, IDisposable, IBaseProc
 		}
 		else
 		{
-			foreach (var instance in temp.Where(instance => !except.Any(instance.Value.File.Contains)))
+			foreach (var instance in temp)
 			{
-				InstanceBuffer.Remove(instance.Key);
+				if (!except.Any(instance.Value.File.Contains))
+				{
+					InstanceBuffer.Remove(instance.Key);
+				}
 			}
 		}
+
+		Pool.FreeUnmanaged(ref temp);
 	}
 	public virtual void Ignore(string file)
 	{
