@@ -12,7 +12,7 @@ public partial class MonoProfiler
 	/// <summary>
 	/// Rust-side native protocol.
 	/// </summary>
-	public const int NATIVE_PROTOCOL = 3;
+	public const int NATIVE_PROTOCOL = 4;
 
 	/// <summary>
 	/// Managed-side protocol. Primarily used by locally stored profiles.
