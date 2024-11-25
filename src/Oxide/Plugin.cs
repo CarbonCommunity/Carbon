@@ -662,6 +662,7 @@ public class Plugin : BaseHookable, IDisposable
 	}
 	protected virtual void LoadDefaultConfig()
 	{
+		CallHook(nameof(LoadDefaultConfig));
 	}
 	protected virtual void SaveConfig()
 	{
