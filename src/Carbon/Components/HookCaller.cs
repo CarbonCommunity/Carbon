@@ -32,7 +32,7 @@ public class HookCallerCommon
 			}
 		}
 
-		public object[] Take()
+		public object[] Rent()
 		{
 			return _pool.Count > 0 ? _pool.Dequeue() : new object[_length];
 		}

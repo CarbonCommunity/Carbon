@@ -648,7 +648,7 @@ public class Plugin : BaseHookable, IDisposable
 
 		if (!Config.Exists(null))
 		{
-			LoadDefaultConfig();
+			CallHook(nameof(LoadDefaultConfig));
 			SaveConfig();
 		}
 		try
