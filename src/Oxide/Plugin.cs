@@ -648,7 +648,7 @@ public class Plugin : BaseHookable, IDisposable
 
 		if (!Config.Exists(null))
 		{
-			LoadDefaultConfig();
+			CallHook(nameof(LoadDefaultConfig));
 			SaveConfig();
 		}
 		try
@@ -662,7 +662,6 @@ public class Plugin : BaseHookable, IDisposable
 	}
 	protected virtual void LoadDefaultConfig()
 	{
-		CallHook(nameof(LoadDefaultConfig));
 	}
 	protected virtual void SaveConfig()
 	{

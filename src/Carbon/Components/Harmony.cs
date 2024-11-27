@@ -5,7 +5,7 @@ namespace Carbon.Components;
 
 public class Harmony
 {
-	public static Dictionary<Assembly, List<object>> ModHooks = new();
+	public static Dictionary<Assembly, List<IHarmonyModHooks>> ModHooks = new();
 	public static List<PatchInfoEntry> CurrentPatches = new();
 
 	public static int PatchAll(Assembly assembly) => PatchAll(assembly, null);
