@@ -1,6 +1,4 @@
-﻿using API.Assembly;
-
-namespace Carbon.Core;
+﻿namespace Carbon.Core;
 
 public partial class CorePlugin
 {
@@ -16,7 +14,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		foreach (var ext in Community.Runtime.AssemblyEx.Extensions.Loaded)
+		foreach (var ext in Community.Runtime.AssemblyEx.HarmonyMods.Loaded)
 		{
 			var folder = Path.GetDirectoryName(ext.Value.Key);
 			var file = Path.GetFileNameWithoutExtension(ext.Value.Key);
@@ -24,14 +22,13 @@ public partial class CorePlugin
 			if (folder.Equals(Defines.GetHarmonyFolder(), StringComparison.InvariantCultureIgnoreCase) &&
 			    file.Equals(mod, StringComparison.InvariantCultureIgnoreCase))
 			{
-				args.ReplyWith($"HarmonyMod with name '{file}' already loaded. Unload it first with 'c.harmonyunload'.");
+				Community.Runtime.AssemblyEx.HarmonyMods.Unload(ext.Value.Key, "Command");
+				Community.Runtime.AssemblyEx.HarmonyMods.Load(ext.Value.Key, "Command");
 				return;
 			}
 		}
 
-		Community.Runtime.AssemblyEx.Extensions.CurrentExtensionType =
-			IExtensionManager.ExtensionTypes.HarmonyModHotload;
-		Community.Runtime.AssemblyEx.Extensions.Load(Path.Combine(Defines.GetHarmonyFolder(), $"{mod}.dll"), "Command");
+		Community.Runtime.AssemblyEx.HarmonyMods.Load(Path.Combine(Defines.GetHarmonyFolder(), $"{mod}.dll"), "Command");
 	}
 
 	[ConsoleCommand("harmonyunload", "Unloads a mod from 'carbon/harmony'. The equivalent of Rust's `harmony.unload` that's been stripped away under framework management.")]
@@ -46,7 +43,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		foreach (var ext in Community.Runtime.AssemblyEx.Extensions.Loaded)
+		foreach (var ext in Community.Runtime.AssemblyEx.HarmonyMods.Loaded)
 		{
 			var folder = Path.GetDirectoryName(ext.Value.Key);
 			var file = Path.GetFileNameWithoutExtension(ext.Value.Key);
@@ -54,9 +51,7 @@ public partial class CorePlugin
 			if (folder.Equals(Defines.GetHarmonyFolder(), StringComparison.InvariantCultureIgnoreCase) &&
 			    file.Equals(mod, StringComparison.InvariantCultureIgnoreCase))
 			{
-				Community.Runtime.AssemblyEx.Extensions.CurrentExtensionType =
-					IExtensionManager.ExtensionTypes.HarmonyModHotload;
-				Community.Runtime.AssemblyEx.Extensions.Unload(ext.Value.Key, "Command");
+				Community.Runtime.AssemblyEx.HarmonyMods.Unload(ext.Value.Key, "Command");
 				break;
 			}
 		}

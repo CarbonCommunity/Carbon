@@ -276,7 +276,7 @@ public partial class AdminModule
 					entity.SendNetworkUpdate();
 				});
 				tab.AddButton(column, "Edit Flags", ap => { DrawEntitySettings(tab, 0, ap); DrawEntityFlags(tab, ap, 1); });
-				tab.AddInput(column, "Position", ap => multiSelection ? MultiselectionReplacement : $"{entity.transform.position} [{PhoneController.PositionToGridCoord(entity.transform.position)}]", null);
+				tab.AddInput(column, "Position", ap => multiSelection ? MultiselectionReplacement : $"{entity.transform.position} [{MapHelper.PositionToString(entity.transform.position)}]", null);
 				tab.AddInput(column, "Rotation", ap => multiSelection ? MultiselectionReplacement : $"{entity.ServerRotation.eulerAngles}", null);
 
 				if (sameTypeSelection)

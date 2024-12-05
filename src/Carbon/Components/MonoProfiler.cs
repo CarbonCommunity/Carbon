@@ -44,6 +44,7 @@ public static unsafe partial class MonoProfiler
 	public static Dictionary<IntPtr, string> MethodMap = new();
 	public static TimeSpan DataProcessingTime;
 	public static TimeSpan DurationTime;
+
 	public static TimeSpan CurrentDurationTime => (_durationTimer?.Elapsed).GetValueOrDefault();
 
 	private static Stopwatch _dataProcessTimer;
@@ -60,6 +61,8 @@ public static unsafe partial class MonoProfiler
 		NotInitialized = 4,
 		CorruptedState = 5,
 		UnknownError = 6,
+		Busy = 7,
+		NoOp = 8
 	}
 
 	/// <summary>
@@ -627,7 +630,8 @@ public static unsafe partial class MonoProfiler
 		Timings = 1 << 3,
 		Calls = 1 << 4,
 		FastResume = 1 << 5, // Pass this when you're toggling the profiler multiple times on the same frame
-		GCEvents = 1 << 6
+		GCEvents = 1 << 6,
+		StackWalkAllocations = 1 << 7
 	}
 
 	public static bool Enabled { get; }

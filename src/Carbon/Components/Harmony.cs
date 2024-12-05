@@ -5,7 +5,7 @@ namespace Carbon.Components;
 
 public class Harmony
 {
-	public static Dictionary<Assembly, List<object>> ModHooks = new();
+	public static Dictionary<Assembly, List<IHarmonyModHooks>> ModHooks = new();
 	public static List<PatchInfoEntry> CurrentPatches = new();
 
 	public static int PatchAll(Assembly assembly) => PatchAll(assembly, null);
@@ -15,7 +15,7 @@ public class Harmony
 		var assemblyName = assembly.GetName().Name;
 		var harmony = new HarmonyLib.Harmony($"com.compat-harmony.{(string.IsNullOrEmpty(fileName) ? assemblyName : fileName)}");
 
-		foreach (var type in assembly.GetTypes().Where(x => x.GetCustomAttribute<HarmonyPatch>() != null))
+		foreach (var type in assembly.GetTypes().Where(x => x.GetCustomAttributes<HarmonyPatch>() is IEnumerable<HarmonyPatch> attributes && attributes.Count() > 0))
 		{
 			try
 			{
