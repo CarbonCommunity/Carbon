@@ -22,7 +22,8 @@ public partial class CorePlugin
 			if (folder.Equals(Defines.GetHarmonyFolder(), StringComparison.InvariantCultureIgnoreCase) &&
 			    file.Equals(mod, StringComparison.InvariantCultureIgnoreCase))
 			{
-				args.ReplyWith($"HarmonyMod with name '{file}' already loaded. Unload it first with 'c.harmonyunload'.");
+				Community.Runtime.AssemblyEx.HarmonyMods.Unload(ext.Value.Key, "Command");
+				Community.Runtime.AssemblyEx.HarmonyMods.Load(ext.Value.Key, "Command");
 				return;
 			}
 		}

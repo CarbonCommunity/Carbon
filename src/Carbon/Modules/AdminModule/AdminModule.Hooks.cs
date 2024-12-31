@@ -78,7 +78,10 @@ public partial class AdminModule
 			return null;
 		}
 
-		if (!Singleton.HasAccess(owner, "entities.loot_players")) return null;
+		if (!Singleton.HasAccess(owner, "entities.loot_players"))
+		{
+			return null;
+		}
 		OpenContainer(GetPlayerSession(owner), item.contents, null);
 		return ItemContainer.CanAcceptResult.CannotAccept;
 	}
@@ -91,12 +94,7 @@ public partial class AdminModule
 
 	public static bool AcceptOnBackpack(Item backpack)
 	{
-		if (EntitiesTab.LastContainerLooter == null || EntitiesTab.LastContainerLooter.Player?.inventory?.loot?.containers[0] != backpack.contents)
-		{
-			return false;
-		}
-
-		return true;
+		return EntitiesTab.LastContainerLooter != null && EntitiesTab.LastContainerLooter.Player?.inventory?.loot?.containers[0] == backpack.contents;
 	}
 #endif
 }
