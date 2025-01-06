@@ -223,7 +223,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		using (var table = new StringTable(string.Empty, "Id", "Hook", "Time", "Fires", "Memory", "Lag", "Subscribed", "Async & Overrides"))
+		using (var table = new StringTable(string.Empty, "Id", "Hook", "Time", "Fires", "Memory", "Lag", "Exceptions", "Subscribed", "Async & Overrides"))
 		{
 			IEnumerable<List<CachedHook>> array = mode switch
 			{
@@ -231,6 +231,7 @@ public partial class CorePlugin
 				"-m" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.MemoryUsage)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.MemoryUsage))).Select(x => x.Value.Hooks),
 				"-f" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.TimesFired)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.TimesFired))).Select(x => x.Value.Hooks),
 				"-ls" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.LagSpikes)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.LagSpikes))).Select(x => x.Value.Hooks),
+				"-ex" => (flip ? module.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.Exceptions)) : module.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.Exceptions))).Select(x => x.Value.Hooks),
 				_ => module.HookPool.Select(x => x.Value.Hooks)
 			};
 
@@ -257,6 +258,7 @@ public partial class CorePlugin
 				var hookAsyncCount = hook.Count(x => x.IsAsync);
 				var hookTimesFired = hook.Sum(x => x.TimesFired);
 				var hookLagSpikes = hook.Sum(x => x.LagSpikes);
+				var hookException = hook.Sum(x => x.Exceptions);
 
 				table.AddRow(string.Empty,
 					hookId,
@@ -265,6 +267,7 @@ public partial class CorePlugin
 					hookTimesFired == 0 ? string.Empty : $"{hookTimesFired:n0}",
 					hookMemoryUsage == 0 ? string.Empty : $"{ByteEx.Format(hookMemoryUsage, shortName: true).ToLower()}",
 					hookLagSpikes == 0 ? string.Empty : $"{hookLagSpikes:n0}",
+					hookException == 0 ? string.Empty : $"{hookException:n0}",
 					!module.IgnoredHooks.Contains(hookId) ? "*" : string.Empty,
 					$"{hookAsyncCount:n0} / {hookCount:n0}");
 			}

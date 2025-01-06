@@ -103,6 +103,16 @@ public partial class Community
 				});
 			}
 
+			if (Config.Publicizer.PublicizedAssemblies == null)
+			{
+				Config.Publicizer.PublicizedAssemblies =
+				[
+					"Assembly",
+					"Facepunch",
+					"Rust"
+				];
+			}
+
 			if (Config.Aliases.Count == 0)
 			{
 				Config.Aliases["carbon"] = "c.version";

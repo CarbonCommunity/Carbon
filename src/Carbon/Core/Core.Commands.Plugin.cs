@@ -32,7 +32,7 @@ public partial class CorePlugin
 
 			default:
 				{
-					using var body = new StringTable("#", "Package", "Author", "Version", "Hook Time", "Hook Fires", "Hook Memory", "Hook Lag", "Compile Time", "Uptime");
+					using var body = new StringTable("#", "Package", "Author", "Version", "Hook Time", "Hook Fires", "Hook Memory", "Hook Lag", "Hook Exceptions", "Compile Time", "Uptime");
 					var count = 1;
 
 					foreach (var mod in ModLoader.Packages)
@@ -40,7 +40,7 @@ public partial class CorePlugin
 						body.AddRow($"{count:n0}",
 							$"{mod.Name}{(mod.Plugins.Count >= 1 ? $" ({mod.Plugins.Count:n0})" : string.Empty)}",
 							string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
-							string.Empty, string.Empty);
+							string.Empty, string.Empty, string.Empty);
 
 						IEnumerable<RustPlugin> array = mode switch
 						{
@@ -67,6 +67,7 @@ public partial class CorePlugin
 								plugin.TotalHookFires == 0 ? string.Empty : $"{plugin.TotalHookFires:n0}",
 								plugin.TotalMemoryUsed == 0 ? string.Empty : $"{ByteEx.Format(plugin.TotalMemoryUsed, shortName: true, stringFormat: "{0}{1}").ToLower()}",
 								plugin.TotalHookLagSpikes == 0 ? string.Empty : $"{plugin.TotalHookLagSpikes:n0}",
+								plugin.TotalHookExceptions == 0 ? string.Empty : $"{plugin.TotalHookExceptions:n0}",
 								plugin.IsPrecompiled
 									? string.Empty
 									: $"{plugin.CompileTime.TotalMilliseconds:0}ms [{plugin.InternalCallHookGenTime.TotalMilliseconds:0}ms]",
@@ -386,7 +387,7 @@ public partial class CorePlugin
 					Logger.Warn($"Plugin {name} was not found or was typed incorrectly.");
 				}
 				break;
-			
+
 		}
 	}
 
@@ -486,7 +487,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		using (var table = new StringTable(string.Empty, "Id", "Hook", "Time", "Fires", "Memory", "Lag", "Subscribed", "Async & Overrides"))
+		using (var table = new StringTable(string.Empty, "Id", "Hook", "Time", "Fires", "Memory", "Lag", "Exceptions", "Subscribed", "Async & Overrides"))
 		{
 			IEnumerable<List<CachedHook>> array = mode switch
 			{
@@ -494,6 +495,7 @@ public partial class CorePlugin
 				"-m" => (flip ? plugin.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.MemoryUsage)) : plugin.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.MemoryUsage))).Select(x => x.Value.Hooks),
 				"-f" => (flip ? plugin.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.TimesFired)) : plugin.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.TimesFired))).Select(x => x.Value.Hooks),
 				"-ls" => (flip ? plugin.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.LagSpikes)) : plugin.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.LagSpikes))).Select(x => x.Value.Hooks),
+				"-ex" => (flip ? plugin.HookPool.OrderBy(x => x.Value.Hooks.Sum(x => x.Exceptions)) : plugin.HookPool.OrderByDescending(x => x.Value.Hooks.Sum(x => x.Exceptions))).Select(x => x.Value.Hooks),
 				_ => plugin.HookPool.Select(x => x.Value.Hooks)
 			};
 
@@ -520,6 +522,7 @@ public partial class CorePlugin
 				var hookAsyncCount = hook.Count(x => x.IsAsync);
 				var hookTimesFired = hook.Sum(x => x.TimesFired);
 				var hookLagSpikes = hook.Sum(x => x.LagSpikes);
+				var hookExceptions = hook.Sum(x => x.Exceptions);
 
 				table.AddRow(string.Empty,
 					hookId,
@@ -528,6 +531,7 @@ public partial class CorePlugin
 					hookTimesFired == 0 ? string.Empty : $"{hookTimesFired:n0}",
 					hookMemoryUsage == 0 ? string.Empty : $"{ByteEx.Format(hookMemoryUsage, shortName: true).ToLower()}",
 					hookLagSpikes == 0 ? string.Empty : $"{hookLagSpikes:n0}",
+					hookExceptions == 0 ? string.Empty : $"{hookExceptions:n0}",
 					!plugin.IgnoredHooks.Contains(hookId) ? "*" : string.Empty,
 					$"{hookAsyncCount:n0} / {hookCount:n0}");
 

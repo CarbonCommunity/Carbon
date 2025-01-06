@@ -15,6 +15,8 @@ public static partial class ModLoader
 	internal static List<string> PostBatchFailedRequirees { get; } = new();
 	internal static bool FirstLoadSinceStartup { get; set; } = true;
 
+	private static object[] argBuffer = new object[1];
+
 	internal const string CARBON_PLUGIN = "CarbonPlugin";
 	internal const string RUST_PLUGIN = "RustPlugin";
 	internal const string COVALENCE_PLUGIN = "CovalencePlugin";
@@ -457,7 +459,8 @@ public static partial class ModLoader
 					Reference = hookable,
 					Callback = arg =>
 					{
-						var result = method.Invoke(hookable, new object[] { arg });
+						argBuffer[0] = arg;
+						var result = method.Invoke(hookable, argBuffer);
 
 						if (result != null)
 						{

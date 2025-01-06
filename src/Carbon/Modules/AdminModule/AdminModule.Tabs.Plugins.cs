@@ -1078,9 +1078,8 @@ public partial class AdminModule
 								var name = jobject["files"][0]["name"].ToString();
 								var file = jobject["files"][0]["url"].ToString();
 								var path = Path.Combine(Defines.GetScriptsFolder(), name);
-								jobject = null;
 
-								core.webrequest.EnqueueData(file, null, (error, source) =>
+								core.webrequest.EnqueueData(file, null, (_, source) =>
 								{
 									plugin.IsBusy = false;
 
@@ -1172,7 +1171,7 @@ public partial class AdminModule
 								var path = Path.Combine(Defines.GetScriptsFolder(), name);
 								jobject = null;
 
-								core.webrequest.Enqueue(file, null, (error, source) =>
+								core.webrequest.Enqueue(file, null, (_, source) =>
 								{
 									plugin.IsBusy = false;
 
@@ -1224,7 +1223,7 @@ public partial class AdminModule
 
 			#region Auth
 
-			[ProtoBuf.ProtoMember(50, IsRequired = false)]
+			[ProtoMember(50, IsRequired = false)]
 			public LoggedInUser User { get; set; }
 
 			public string AuthRequestEndpoint => "https://codefling.com/auth/?pin={0}";
