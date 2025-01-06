@@ -200,7 +200,6 @@ public partial struct Analytics
 			                    $"{Community.Runtime.MonoProfilerConfig.Harmony.Count}h").
 			Include("args", $"{args}").
 			Submit("profiler_tl_started");
-
 	}
 
 	/// <summary>
@@ -224,6 +223,20 @@ public partial struct Analytics
 			Include("args", $"{args}").
 			Include("duration", $"{TimeEx.Format(duration).ToLower()}").
 			Submit("profiler_tl_ended");
+	}
+
+	/// <summary>
+	/// Metric executed when an admin logs into Codefling through the Admin module.
+	/// </summary>
+	public static void codefling_login()
+	{
+		if (!Enabled)
+		{
+			return;
+		}
+
+		Singleton.
+			Submit("codefling_login");
 	}
 
 	public enum WizardProgress

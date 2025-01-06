@@ -56,6 +56,7 @@ public class BaseHookable
 		public bool IsAsync;
 		public bool IsDebugged;
 
+		public int Exceptions;
 		public int LagSpikes;
 		public int TimesFired;
 		public TimeSpan HookTime;
@@ -68,6 +69,7 @@ public class BaseHookable
 
 		public void Reset()
 		{
+			Exceptions = 0;
 			LagSpikes = 0;
 			TimesFired = 0;
 			HookTime = default;
@@ -83,7 +85,7 @@ public class BaseHookable
 			HookTime += hookTime;
 			MemoryUsage += memoryUsed;
 
-			TimesFired++;
+			Interlocked.Increment(ref TimesFired);
 
 			if (IsDebugged)
 			{
@@ -93,7 +95,11 @@ public class BaseHookable
 		public void OnLagSpike(BaseHookable hookable)
 		{
 			hookable.TotalHookLagSpikes++;
-			LagSpikes++;
+			Interlocked.Increment(ref LagSpikes);
+		}
+		public void OnException()
+		{
+			Interlocked.Increment(ref Exceptions);
 		}
 
 		public static CachedHook Make(string hookName, uint hookId, BaseHookable hookable, MethodInfo method)
@@ -128,17 +134,11 @@ public class BaseHookable
 	[JsonProperty]
 	public virtual VersionNumber Version { get; set; }
 
-	[JsonProperty]
-	public TimeSpan TotalHookTime { get; internal set; }
-
-	[JsonProperty]
-	public int TotalHookFires { get; internal set; }
-
-	[JsonProperty]
-	public double TotalMemoryUsed { get; internal set; }
-
-	[JsonProperty]
-	public int TotalHookLagSpikes { get; internal set; }
+	[JsonProperty] public TimeSpan TotalHookTime;
+	[JsonProperty] public int TotalHookFires;
+	[JsonProperty] public double TotalMemoryUsed;
+	[JsonProperty] public int TotalHookLagSpikes;
+	[JsonProperty] public int TotalHookExceptions;
 
 	[JsonProperty]
 	public double Uptime => _initializationTime.GetValueOrDefault();
@@ -194,6 +194,17 @@ public class BaseHookable
 #endif
 
 		_trackStopwatch.Reset();
+	}
+
+	protected void OnException(uint hook)
+	{
+		Interlocked.Increment(ref TotalHookExceptions);
+
+		var overrides = HookPool[hook].Hooks;
+		foreach (var element in overrides)
+		{
+			element.OnException();
+		}
 	}
 
 	#endregion

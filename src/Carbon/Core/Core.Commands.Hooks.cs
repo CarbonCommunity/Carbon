@@ -11,7 +11,7 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void HooksCall(ConsoleSystem.Arg args)
 	{
-		using var table = new StringTable("#", "Hook", "Id", "Type", "Status", "Time", "Fires", "Memory", "Lag", "Subs");
+		using var table = new StringTable("#", "Hook", "Id", "Type", "Status", "Time", "Fires", "Memory", "Lag", "Exceptions", "Subs");
 		var count = 1;
 		var success = 0;
 		var warning = 0;
@@ -69,6 +69,7 @@ public partial class CorePlugin
 						var fires = HookCaller.GetTotalFires(hook);
 						var memory = HookCaller.GetTotalMemory(hook);
 						var lagSpikes = HookCaller.GetTotalLagSpikes(hook);
+						var exceptions = HookCaller.GetTotalExceptions(hook);
 
 						table.AddRow(
 							$"{count++:n0}",
@@ -80,6 +81,7 @@ public partial class CorePlugin
 							fires == 0 ? string.Empty : $"{fires}",
 							memory == 0 ? string.Empty : $"{ByteEx.Format(memory, shortName: true).ToLower()}",
 							lagSpikes == 0 ? string.Empty : $"{lagSpikes}",
+							exceptions == 0 ? string.Empty : $"{exceptions}",
 							iHook.IsStaticHook ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(iHook.Identifier),3}"
 						);
 					}
@@ -142,6 +144,7 @@ public partial class CorePlugin
 						var fires = HookCaller.GetTotalFires(hook);
 						var memory = HookCaller.GetTotalMemory(hook);
 						var lagSpikes = HookCaller.GetTotalLagSpikes(hook);
+						var exceptions = HookCaller.GetTotalExceptions(hook);
 
 						table.AddRow(
 							$"{count++:n0}",
@@ -153,6 +156,7 @@ public partial class CorePlugin
 							fires == 0 ? string.Empty : $"{fires:n0}",
 							memory == 0 ? string.Empty : $"{ByteEx.Format(memory, shortName: true).ToLower()}",
 							lagSpikes == 0 ? string.Empty : $"{lagSpikes:n0}",
+							exceptions == 0 ? string.Empty : $"{exceptions:n0}",
 							(iHook.IsStaticHook) ? "N/A" : $"{Community.Runtime.HookManager.GetHookSubscriberCount(iHook.Identifier),3}"
 						);
 					}
@@ -200,7 +204,7 @@ public partial class CorePlugin
 				}
 			}
 
-			using var table = new StringTable(string.Empty, $"Plugins ({plugins.Count:n0})", "Time", "Fires", "Memory", "Lag", "Async & Overrides");
+			using var table = new StringTable(string.Empty, $"Plugins ({plugins.Count:n0})", "Time", "Fires", "Memory", "Lag", "Exceptions", "Async & Overrides");
 
 			foreach (var plugin in plugins)
 			{
@@ -211,6 +215,7 @@ public partial class CorePlugin
 					hook.TimesFired == 0 ? string.Empty : $"{hook.TimesFired:n0}",
 					hook.MemoryUsage == 0 ? string.Empty : ByteEx.Format(hook.MemoryUsage, stringFormat: byteFormat).ToLower(),
 					hook.LagSpikes == 0 ? string.Empty : $"{hook.LagSpikes:n0}",
+					hook.Exceptions == 0 ? string.Empty : $"{hook.Exceptions:n0}",
 					$"{plugin.Value.Hooks.Count(x => x.IsAsync):n0} / {plugin.Value.Hooks.Count:n0}");
 			}
 
@@ -226,7 +231,7 @@ public partial class CorePlugin
 				}
 			}
 
-			table.AddRow(string.Empty, $"Modules ({modules.Count:n0})", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+			table.AddRow(string.Empty, $"Modules ({modules.Count:n0})", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
 
 			foreach (var module in modules)
 			{
@@ -237,6 +242,7 @@ public partial class CorePlugin
 					hook.TimesFired == 0 ? string.Empty : $"{hook.TimesFired:n0}",
 					hook.MemoryUsage == 0 ? string.Empty : ByteEx.Format(hook.MemoryUsage, stringFormat: byteFormat).ToLower(),
 					hook.LagSpikes == 0 ? string.Empty : $"{hook.LagSpikes:n0}",
+					hook.Exceptions == 0 ? string.Empty : $"{hook.Exceptions:n0}",
 					$"{module.Value.Hooks.Count(x => x.IsAsync):n0} / {module.Value.Hooks.Count:n0}");
 			}
 
@@ -248,13 +254,16 @@ public partial class CorePlugin
 			                  modules.Sum(x => x.Value.Hooks.Sum(y => y.MemoryUsage));
 			var totalLag = plugins.Sum(x => x.Value.Hooks.Sum(y => y.LagSpikes)) +
 			               modules.Sum(x => x.Value.Hooks.Sum(y => y.LagSpikes));
+			var totalExceptions = plugins.Sum(x => x.Value.Hooks.Sum(y => y.Exceptions)) +
+			               modules.Sum(x => x.Value.Hooks.Sum(y => y.Exceptions));
 
-			table.AddRow(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+			table.AddRow(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
 			table.AddRow(string.Empty, "Total",
 				totalTime == 0 ? string.Empty : $"{totalTime:0}ms",
 				totalFires == 0 ? string.Empty : $"{totalFires:n0}",
 				totalMemory == 0 ? string.Empty : $"{ByteEx.Format(totalMemory).ToLower()}",
 				totalLag == 0 ? string.Empty : $"{totalLag:n0}",
+				totalExceptions == 0 ? string.Empty : $"{totalExceptions:n0}",
 				string.Empty);
 
 			output.AppendLine(table.ToStringMinimal().TrimEnd());
