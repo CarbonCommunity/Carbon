@@ -1275,8 +1275,8 @@ public partial class AdminModule
 								User.AccessTokenEncoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(User.AccessToken));
 								ValidationTimer.Destroy();
 								ValidationTimer = null;
-								jobject = null;
 								_headers[AuthHeader.Key.ToString()] = string.Format(AuthHeader.Value, User.AccessToken);
+								Analytics.codefling_login();
 
 								User.PendingResult = LoggedInUser.RequestResult.Complete;
 								onComplete?.Invoke();
