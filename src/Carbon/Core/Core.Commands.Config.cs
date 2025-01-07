@@ -47,11 +47,7 @@ public partial class CorePlugin
 			Community.Runtime.SaveConfig();
 		}
 	}
-
-	[CommandVar("harmonywatchers", "When disabled, you must load/unload Harmony mods manually with `c.harmonyload` or `c.harmonyunload`.")]
-	[AuthLevel(2)]
-	private bool HarmonyWatchers { get { return Community.Runtime.Config.Watchers.HarmonyWatchers; } set { Community.Runtime.Config.Watchers.HarmonyWatchers = value; Community.Runtime.SaveConfig(); } }
-
+	
 	[CommandVar("modulewatchers", "When disabled, modules only get loaded when the server boots.")]
 	[AuthLevel(2)]
 	private bool ModuleWatchers { get { return Community.Runtime.Config.Watchers.ModuleWatchers; } set { Community.Runtime.Config.Watchers.ModuleWatchers = value; Community.Runtime.SaveConfig(); } }
