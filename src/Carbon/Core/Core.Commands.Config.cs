@@ -47,7 +47,7 @@ public partial class CorePlugin
 			Community.Runtime.SaveConfig();
 		}
 	}
-	
+
 	[CommandVar("modulewatchers", "When disabled, modules only get loaded when the server boots.")]
 	[AuthLevel(2)]
 	private bool ModuleWatchers { get { return Community.Runtime.Config.Watchers.ModuleWatchers; } set { Community.Runtime.Config.Watchers.ModuleWatchers = value; Community.Runtime.SaveConfig(); } }
@@ -153,6 +153,16 @@ public partial class CorePlugin
 			return;
 		}
 
+		if (alias.Equals(command, StringComparison.OrdinalIgnoreCase))
+		{
+			arg.ReplyWith("Don't be silly");
+			return;
+		}
+
+		var warn = ConsoleSystem.Index.All.Any(x => x.FullName.Equals(alias, StringComparison.OrdinalIgnoreCase))
+			? " (BEWARE! The alias you used is the name of an existent Rust command. Unassign this alias to make it accessible.)"
+			: null;
+
 		if (!Community.Runtime.Config.IsValidAlias(alias, out var reason))
 		{
 			arg.ReplyWith($"Invalid alias detected. Using '{reason}' is prohibited.");
@@ -161,14 +171,14 @@ public partial class CorePlugin
 
 		if (Community.Runtime.Config.Aliases.TryGetValue(alias, out var existentCommand))
 		{
-			arg.ReplyWith($"Overriding alias '{alias}' -> {command}:\n Old: {existentCommand}");
+			arg.ReplyWith($"Overriding alias '{alias}' -> {command}:\n Old: {existentCommand}{warn}");
 			Community.Runtime.Config.Aliases[alias] = command;
 			Community.Runtime.SaveConfig();
 			return;
 		}
 
 		Community.Runtime.Config.Aliases[alias] = command;
-		arg.ReplyWith($"Assigned alias '{alias}' -> {command}");
+		arg.ReplyWith($"Assigned alias '{alias}' -> {command}{warn}");
 		Community.Runtime.SaveConfig();
 	}
 

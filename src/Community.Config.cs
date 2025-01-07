@@ -75,7 +75,7 @@ public partial class Community
 			{
 				var invalidAliases = Pool.Get<List<string>>();
 				invalidAliases.AddRange(from alias in Config.Aliases
-										where !Config.IsValidAlias(alias.Key, out _)
+										where !Config.IsValidAlias(alias.Key, out _) || alias.Key == alias.Value
 										select alias.Key);
 
 				foreach (var invalidAlias in invalidAliases)
@@ -90,6 +90,17 @@ public partial class Community
 				}
 
 				Pool.FreeUnmanaged(ref invalidAliases);
+
+				foreach (var alias in Config.Aliases)
+				{
+					if (!ConsoleSystem.Index.All.Any(x =>
+						    x.FullName.Equals(alias.Key, StringComparison.OrdinalIgnoreCase)))
+					{
+						continue;
+					}
+
+					Logger.Warn($" Alias '{alias.Key}' overrides an already existing Rust command");
+				}
 			}
 
 			if (Config.Prefixes.Count == 0)
@@ -120,8 +131,12 @@ public partial class Community
 			if (Config.Aliases.Count == 0)
 			{
 				Config.Aliases["carbon"] = "c.version";
-				Config.Aliases["harmony.load"] = "c.harmonyload";
-				Config.Aliases["harmony.unload"] = "c.harmonyunload";
+				needsSave = true;
+			}
+			else if (Config.Aliases.Remove("harmony.load") ||
+			         Config.Aliases.Remove("harmony.unload"))
+			{
+				needsSave = true;
 			}
 
 			// Mandatory for across the board access
