@@ -29,21 +29,21 @@ public partial class CorePlugin
 					switch (option2)
 					{
 						case "-p":
-							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.LoadedPatches;
 							break;
 
 						case "-s":
-							hooks = Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.LoadedStaticHooks;
 							break;
 
 						case "-d":
-							hooks = Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.LoadedDynamicHooks;
 							break;
 
 						default:
-							hooks = Community.Runtime.HookManager.LoadedPatches.Where(x => !x.IsHidden);
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks.Where(x => !x.IsHidden));
-							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks.Where(x => !x.IsHidden));
+							hooks = Community.Runtime.HookManager.LoadedPatches;
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedStaticHooks);
+							hooks = hooks.Concat(Community.Runtime.HookManager.LoadedDynamicHooks);
 							break;
 					}
 
@@ -98,15 +98,15 @@ public partial class CorePlugin
 					switch (option1)
 					{
 						case "-p":
-							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.InstalledPatches;
 							break;
 
 						case "-s":
-							hooks = Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.InstalledStaticHooks;
 							break;
 
 						case "-d":
-							hooks = Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.InstalledDynamicHooks;
 							break;
 
 						default:
@@ -115,11 +115,11 @@ public partial class CorePlugin
 							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledStaticHooks);
 							hooks = hooks.Concat(Community.Runtime.HookManager.InstalledDynamicHooks);
 #else
-							hooks = Community.Runtime.HookManager.InstalledPatches.Where(x => !x.IsHidden);
+							hooks = Community.Runtime.HookManager.InstalledPatches;
 							hooks = hooks.Concat(
-								Community.Runtime.HookManager.InstalledStaticHooks.Where(x => !x.IsHidden));
+								Community.Runtime.HookManager.InstalledStaticHooks);
 							hooks = hooks.Concat(
-								Community.Runtime.HookManager.InstalledDynamicHooks.Where(x => !x.IsHidden));
+								Community.Runtime.HookManager.InstalledDynamicHooks);
 #endif
 							break;
 					}
