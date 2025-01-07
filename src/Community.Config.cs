@@ -80,10 +80,7 @@ public partial class Community
 
 				foreach (var invalidAlias in invalidAliases)
 				{
-					if (!Config.Aliases.Remove(invalidAlias))
-					{
-						continue;
-					}
+					Config.Aliases.Remove(invalidAlias);
 					Logger.Warn($" Removed invalid alias: {invalidAlias}");
 				}
 
