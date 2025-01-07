@@ -1,4 +1,5 @@
-﻿using Facepunch;
+﻿using API.Events;
+using Facepunch;
 
 namespace Carbon.Core;
 
@@ -9,7 +10,7 @@ public partial class CorePlugin
 	internal static bool _isPlayerTakingDamage = false;
 	internal static readonly string[] _emptyStringArray = new string[0];
 
-	internal static object IOnServerInitialized()
+	internal object IOnServerInitialized(bool inited)
 	{
 		if (!Community.IsServerInitialized)
 		{
@@ -18,7 +19,17 @@ public partial class CorePlugin
 			Analytics.on_server_initialized();
 		}
 
+		if (!ConVar.Server.autoUploadMap)
+		{
+			Community.Runtime.MarkServerInitialized(true);
+		}
+
+		Community.Runtime.Events.Trigger(CarbonEvent.OnServerInitialized, EventArgs.Empty);
 		return null;
+	}
+	internal static object IOnServerInitialized()
+	{
+		return Community.Runtime.Core.IOnServerInitialized(true);
 	}
 	internal static object IOnServerShutdown()
 	{
