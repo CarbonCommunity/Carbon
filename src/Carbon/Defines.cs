@@ -168,6 +168,14 @@ public class Defines
 
 		return folder;
 	}
+	public static string GetDeveloperFolder()
+	{
+		_initializeCommandLine();
+		var folder = Path.GetFullPath(Path.Combine(GetRootFolder(), "developer"));
+		Directory.CreateDirectory(folder);
+
+		return folder;
+	}
 	public static string GetManagedFolder()
 	{
 		_initializeCommandLine();
