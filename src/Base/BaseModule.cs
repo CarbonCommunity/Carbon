@@ -60,12 +60,9 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 	public new virtual string Name => "Not set";
 	public Permission Permissions;
 
-	protected void Puts(object message)
-		=> Logger.Log($"[{Name}] {message}");
-	protected void PutsError(object message, Exception ex = null)
-		=> Logger.Error($"[{Name}] {message}", ex);
-	protected void PutsWarn(object message)
-		=> Logger.Warn($"[{Name}] {message}");
+	protected void Puts(object message) => Logger.Log($"[{Name}] {message}");
+	protected void PutsError(object message, Exception ex = null) => Logger.Error($"[{Name}] {message}", ex);
+	protected void PutsWarn(object message) => Logger.Warn($"[{Name}] {message}");
 
 	public virtual void Dispose()
 	{
