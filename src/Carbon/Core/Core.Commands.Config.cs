@@ -2,6 +2,34 @@
 
 public partial class CorePlugin
 {
+	[ConsoleCommand("editconfig", "When ran by an admin client, the Carbon Admin module will open up a config editor.")]
+	private void EditConfig(ConsoleSystem.Arg arg)
+	{
+		if (arg.Player() is not BasePlayer player)
+		{
+			arg.ReplyWith("Only admin clients can run this command");
+			return;
+		}
+
+		var file = arg.GetString(0);
+		if (!OsEx.File.Exists(file))
+		{
+			arg.ReplyWith($"File '{file}' does not exist");
+			return;
+		}
+
+		AdminModule.Singleton.SetTab(player, AdminModule.ConfigEditor.Make(OsEx.File.ReadText(file), (_, _) =>
+		{
+			AdminModule.Singleton.SetTab(player, 0);
+			AdminModule.Singleton.Close(player);
+		}, (_, jobj) =>
+		{
+			OsEx.File.Create(file, jobj.ToString(Newtonsoft.Json.Formatting.Indented));
+			AdminModule.Singleton.SetTab(player, 0);
+			AdminModule.Singleton.Close(player);
+		}, null, true));
+	}
+
 	[CommandVar("developermode", "Enables developer mode which grants a few features that are designed and used by the developers.")]
 	[AuthLevel(2)]
 	private bool DeveloperMode { get { return Community.Runtime.Config.DeveloperMode; } set { Community.Runtime.Config.DeveloperMode = value; Community.Runtime.SaveConfig(); } }
