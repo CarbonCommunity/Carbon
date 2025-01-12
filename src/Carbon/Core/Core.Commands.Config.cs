@@ -2,6 +2,7 @@
 
 public partial class CorePlugin
 {
+#if !MINIMAL
 	[ConsoleCommand("editconfig", "When ran by an admin client, the Carbon Admin module will open up a config editor.")]
 	private void EditConfig(ConsoleSystem.Arg arg)
 	{
@@ -29,6 +30,7 @@ public partial class CorePlugin
 			AdminModule.Singleton.Close(player);
 		}, null, true));
 	}
+#endif
 
 	[CommandVar("developermode", "Enables developer mode which grants a few features that are designed and used by the developers.")]
 	[AuthLevel(2)]
