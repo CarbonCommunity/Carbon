@@ -2,6 +2,10 @@
 
 public partial class CorePlugin
 {
+	[CommandVar("developermode", "Enables developer mode which grants a few features that are designed and used by the developers.")]
+	[AuthLevel(2)]
+	private bool DeveloperMode { get { return Community.Runtime.Config.DeveloperMode; } set { Community.Runtime.Config.DeveloperMode = value; Community.Runtime.SaveConfig(); } }
+
 	[ConsoleCommand("loadconfig", "Loads Carbon config from file.")]
 	[AuthLevel(2)]
 	private void CarbonLoadConfig(ConsoleSystem.Arg arg)

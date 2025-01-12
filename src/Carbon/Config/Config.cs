@@ -6,6 +6,7 @@ namespace Carbon.Core;
 [Serializable]
 public class Config
 {
+	public bool DeveloperMode { get; set; } = false;
 	public bool IsModded { get; set; } = true;
 	public List<Command.Prefix> Prefixes { get; set; } = new();
 	public Dictionary<string, string> Aliases { get; set; }
