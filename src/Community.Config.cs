@@ -123,7 +123,6 @@ public partial class Community
 					"Facepunch.Network.dll",
 					"Facepunch.Nexus.dll",
 					"Rust.Clans.Local.dll",
-					"Rust.Harmony.dll",
 					"Rust.Data.dll"
 				];
 			}
