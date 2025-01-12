@@ -3,6 +3,7 @@
 public partial class CorePlugin
 {
 #if !MINIMAL
+	[Conditional("!MINIMAL")]
 	[ConsoleCommand("editconfig", "When ran by an admin client, the Carbon Admin module will open up a config editor.")]
 	private void EditConfig(ConsoleSystem.Arg arg)
 	{
