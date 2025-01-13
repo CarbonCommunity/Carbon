@@ -244,17 +244,31 @@ public static class HookCaller
 	}
 	public static void ConflictCheck(List<Conflict> conflicts, ref object result, uint hookId)
 	{
-		if (conflicts == null || conflicts.Count <= 1) return;
+		if (conflicts == null || conflicts.Count <= 1)
+		{
+			return;
+		}
 
 		var localResult = result = conflicts[0].Result;
-		var differentResults =  conflicts.Any(conflict => localResult != null && conflict.Result.ToString() != localResult.ToString());
+		var differentResults = false;
 
-		if (differentResults)
+		foreach (var conflict in conflicts)
 		{
-			var readableHook = HookStringPool.GetOrAdd(hookId);
-			Logger.Warn($" Hook conflict while calling '{readableHook}[{hookId}]': {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToString(", ", " and ")}");
-			result = conflicts[^1].Result;
+			if (localResult == null || conflict.Result == localResult)
+			{
+				continue;
+			}
+			differentResults = true;
+			break;
 		}
+
+		if (!differentResults)
+		{
+			return;
+		}
+
+		Logger.Warn($" Hook conflict while calling '{ HookStringPool.GetOrAdd(hookId)}[{hookId}]': {conflicts.Select(x => $"{x.Hookable.Name} {x.Hookable.Version} [{x.Result}]").ToString(", ", " and ")}");
+		result = conflicts[^1].Result;
 	}
 
 	#region Hook Overrides
