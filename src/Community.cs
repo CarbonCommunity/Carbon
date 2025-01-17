@@ -78,7 +78,7 @@ public partial class Community
 #if WIN
 		if (!IsConfigReady || !Config.Misc.ShowConsoleInfo) return;
 
-		if (!IsServerInitialized) return;
+		if (!IsServerInitialized || ServerConsole.Instance == null) return;
 		if (ServerConsole.Instance.input.statusText.Length != 4) ServerConsole.Instance.input.statusText = new string[4];
 
 		var version =

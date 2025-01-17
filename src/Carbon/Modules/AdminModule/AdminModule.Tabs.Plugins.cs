@@ -1168,7 +1168,7 @@ public partial class AdminModule
 								var jobject = JObject.Parse(source);
 								var name = jobject["files"][0]["name"].ToString();
 								var file = jobject["files"][0]["url"].ToString();
-								var path = Path.Combine(Defines.GetScriptsFolder(), name);
+								var path = Path.Combine(Defines.GetScriptsFolder(), plugin.File);
 								jobject = null;
 
 								core.webrequest.Enqueue(file, null, (_, source) =>
