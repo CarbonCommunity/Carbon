@@ -57,6 +57,9 @@ public partial class Community
 			if (!Config.Compiler.ConditionalCompilationSymbols.Contains("RUST"))
 				Config.Compiler.ConditionalCompilationSymbols.Add("RUST");
 
+			if (!Config.Compiler.ConditionalCompilationSymbols.Contains("OXIDE_PUBLICIZED"))
+				Config.Compiler.ConditionalCompilationSymbols.Add("OXIDE_PUBLICIZED");
+
 			Config.Compiler.ConditionalCompilationSymbols =
 				Config.Compiler.ConditionalCompilationSymbols.Distinct().ToList();
 
