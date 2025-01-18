@@ -124,6 +124,15 @@ public class Lang : Library
 		if (newPhrases == phrases || save) SaveMessageFile(plugin.Name, lang);
 	}
 
+	public string GetMessageByLanguage(string key, Plugin plugin, string lang = "en")
+	{
+		if (string.IsNullOrEmpty(key) || plugin == null)
+		{
+			return key;
+		}
+
+		return GetMessage(key, plugin, lang: lang);
+	}
 	public string GetMessage(string key, BaseHookable hookable, string player = null, string lang = null)
 	{
 		if (string.IsNullOrEmpty(lang)) lang = GetLanguage(player);
