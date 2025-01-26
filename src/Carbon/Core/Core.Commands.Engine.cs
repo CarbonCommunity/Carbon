@@ -139,5 +139,9 @@ public partial class CorePlugin
 
 	[CommandVar("lang", "Current server language for Carbon and plugins loaded.")]
 	[AuthLevel(2)]
-	private string Lang { get { return lang.GetServerLanguage(); } set { lang.SetServerLanguage(value); } }
+	private string Lang
+	{
+		get => lang.GetServerLanguage();
+		set => lang.SetServerLanguage(value);
+	}
 }
