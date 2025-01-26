@@ -114,6 +114,7 @@ public class Config
 	public class PublicizerConfig
 	{
 		public List<string> PublicizedAssemblies { get; set; }
+		public List<string> PublicizerMemberIgnores { get; set; }
 	}
 
 	public class MiscConfig

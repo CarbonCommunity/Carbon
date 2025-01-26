@@ -117,19 +117,23 @@ public partial class Community
 				});
 			}
 
-			if (Config.Publicizer.PublicizedAssemblies == null)
-			{
-				Config.Publicizer.PublicizedAssemblies =
-				[
-					"Assembly-CSharp.dll",
-					"Facepunch.Console.dll",
-					"Facepunch.Network.dll",
-					"Facepunch.Nexus.dll",
-					"Rust.Clans.Local.dll",
-					"Rust.Harmony.dll",
-					"Rust.Data.dll"
-				];
-			}
+			Config.Publicizer.PublicizedAssemblies ??=
+			[
+				"Assembly-CSharp.dll",
+				"Facepunch.Console.dll",
+				"Facepunch.Network.dll",
+				"Facepunch.Nexus.dll",
+				"Rust.Clans.Local.dll",
+				"Rust.Harmony.dll",
+				"Rust.Data.dll"
+			];
+
+			Config.Publicizer.PublicizerMemberIgnores ??=
+			[
+				"^HiddenValueBase$",
+				"^HiddenValue`1$",
+				"^Pool$"
+			];
 
 			if (Config.Aliases.Count == 0)
 			{
