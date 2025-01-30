@@ -97,6 +97,9 @@ public partial class AdminModule
 					if (hookable is not BaseModule module) continue;
 					if (!condition(module)) continue;
 
+					var moduleConfigFile = Path.Combine(Defines.GetModulesFolder(), module.Name, "config.json");
+					var exists = OsEx.File.Exists(moduleConfigFile);
+
 					tab.AddButtonArray(0,
 						new Tab.OptionButton(hookable.Name, ap =>
 							{
@@ -117,7 +120,11 @@ public partial class AdminModule
 								module.IsEnabled() ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None),
 						new Tab.OptionButton("Edit Config", ap =>
 							{
-								var moduleConfigFile = Path.Combine(Defines.GetModulesFolder(), module.Name, "config.json");
+								if (!exists)
+								{
+									return;
+								}
+
 								ap.SelectedTab = ConfigEditor.Make(OsEx.File.ReadText(moduleConfigFile),
 									(ap, _) =>
 									{
@@ -137,7 +144,7 @@ public partial class AdminModule
 										Singleton.Draw(ap.Player);
 									}, null, blacklist: _configBlacklist);
 							},
-							type: ap => Tab.OptionButton.Types.None));
+							type: ap => exists ? Tab.OptionButton.Types.Warned : Tab.OptionButton.Types.None));
 				}
 			}
 		}
