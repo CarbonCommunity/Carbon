@@ -13,5 +13,16 @@ public static partial class ModLoader
 		{
 			return this.Select(package => package.FindPlugin(name)).FirstOrDefault(plugin => plugin != null);
 		}
+
+		public void GetAllHookables(List<RustPlugin> plugins)
+		{
+			foreach (var hookable in this)
+			{
+				foreach (var plugin in hookable.Plugins)
+				{
+					plugins.Add(plugin);
+				}
+			}
+		}
 	}
 }
