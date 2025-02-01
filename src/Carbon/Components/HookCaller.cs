@@ -254,7 +254,7 @@ public static class HookCaller
 
 		foreach (var conflict in conflicts)
 		{
-			if (localResult == null || conflict.Result == localResult)
+			if (localResult == null || (conflict.Result != null && conflict.Result.Equals(localResult)))
 			{
 				continue;
 			}

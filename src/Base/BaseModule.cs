@@ -381,7 +381,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		ModLoader.RemoveCommands(this);
 
 		UnsubscribeAll();
-		Permissions.UnregisterPermissions(this);
+		Permissions?.UnregisterPermissions(this);
 
 		if (Hooks.Count > 0)
 		{

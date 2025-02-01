@@ -63,7 +63,14 @@ public partial class CorePlugin
 
 		Logger.Log($"Shutting down Carbon..");
 		Interface.Oxide.OnShutdown();
-		Community.Runtime.ScriptProcessor.Clear();
+
+		var plugins = Pool.Get<List<RustPlugin>>();
+		ModLoader.Packages.GetAllHookables(plugins);
+		foreach (var plugin in plugins)
+		{
+			ModLoader.UninitializePlugin(plugin, unloadDependantPlugins: false);
+		}
+		Pool.FreeUnmanaged(ref plugins);
 
 		return null;
 	}
