@@ -87,16 +87,24 @@ public class OxideMod
 		}
 	}
 
-	public void LoadPlugin(string name)
+	public bool LoadPlugin(string name)
 	{
+		CorePlugin.RefreshOrderedFiles();
+
 		var path = CorePlugin.GetPluginPath(name);
 
+		if (string.IsNullOrEmpty(path.Key))
+		{
+			return false;
+		}
+
 		Community.Runtime.ScriptProcessor.Prepare(path.Key, path.Value);
+		return true;
 	}
 
-	public void ReloadPlugin(string name)
+	public bool ReloadPlugin(string name)
 	{
-		LoadPlugin(name);
+		return LoadPlugin(name);
 	}
 
 	public bool UnloadPlugin(string name)
@@ -110,6 +118,19 @@ public class OxideMod
 		instance.Dispose();
 		Community.Runtime.ScriptProcessor.Remove(name);
 		return true;
+	}
+
+	public void ReloadAllPlugins(IList<string> skip = null)
+	{
+		foreach (var plugin in Community.Runtime.ScriptProcessor.InstanceBuffer)
+		{
+			if (skip != null && skip.Any(x => plugin.Key.Contains(x)))
+			{
+				continue;
+			}
+
+			plugin.Value.MarkDirty();
+		}
 	}
 
 	public void UnloadAllPlugins(IList<string> skip = null)
