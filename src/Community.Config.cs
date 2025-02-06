@@ -16,6 +16,16 @@ public partial class Community
 	public MonoProfilerConfig MonoProfilerConfig { get; set; }
 	public ClientConfig ClientConfig { get; set; }
 
+	public void ForceEnsurePublicizedAssembly(string value, ref bool needsSave)
+	{
+		if (Config.Publicizer.PublicizedAssemblies.Contains(value))
+		{
+			return;
+		}
+		Config.Publicizer.PublicizedAssemblies.Add(value);
+		needsSave = true;
+	}
+
 	/// <summary>
 	/// Load Carbon config from disk.
 	/// </summary>
@@ -117,16 +127,15 @@ public partial class Community
 				});
 			}
 
-			Config.Publicizer.PublicizedAssemblies ??=
-			[
-				"Assembly-CSharp.dll",
-				"Facepunch.Console.dll",
-				"Facepunch.Network.dll",
-				"Facepunch.Nexus.dll",
-				"Rust.Clans.Local.dll",
-				"Rust.Harmony.dll",
-				"Rust.Data.dll"
-			];
+			Config.Publicizer.PublicizedAssemblies ??= new();
+			ForceEnsurePublicizedAssembly("Assembly-CSharp.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Facepunch.Console.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Facepunch.Network.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Facepunch.Nexus.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Rust.Clans.Local.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Rust.Harmony.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Rust.Global.dll", ref needsSave);
+			ForceEnsurePublicizedAssembly("Rust.Data.dll", ref needsSave);
 
 			Config.Publicizer.PublicizerMemberIgnores ??=
 			[
