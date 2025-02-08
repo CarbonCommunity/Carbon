@@ -425,7 +425,7 @@ public class Permission : Library
 
 		if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.ModeratorDefaultGroup))
 		{
-			if (!player.IsAdmin || (player.net.connection != null && player.net.connection.authLevel == 1))
+			if (!player.IsAdmin && (player.net.connection != null && player.net.connection.authLevel == 1))
 			{
 				AddUserGroup(player.UserIDString, Community.Runtime.Config.Permissions.ModeratorDefaultGroup);
 			}
