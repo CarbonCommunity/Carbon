@@ -146,7 +146,7 @@ public class Timers : Library
 	}
 }
 
-public class Timer : Library
+public class Timer : IDisposable
 {
 	public Plugin Plugin { get; set; }
 
@@ -248,10 +248,8 @@ public class Timer : Library
 	{
 		Destroy();
 	}
-	public override void Dispose()
+	public void Dispose()
 	{
 		Destroy();
-
-		base.Dispose();
 	}
 }
