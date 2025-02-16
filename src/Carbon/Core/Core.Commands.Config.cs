@@ -246,4 +246,52 @@ public partial class CorePlugin
 	{
 		arg.ReplyWith($"Found {Community.Runtime.Config.Aliases.Count:n0} {Community.Runtime.Config.Aliases.Count.Plural("alias", "aliases")}:\n{Community.Runtime.Config.Aliases.Select(x => $" {x.Key} -> {x.Value}").ToString("\n")}");
 	}
+
+	[ConsoleCommand("changeversion", "It changes the current Carbon version you're running. Next reboot will swap to the overriden version. Run `c.changeversion` for syntax.")]
+	[AuthLevel(2)]
+	private void ChangeVersion(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs())
+		{
+			arg.ReplyWith($"Version override change syntax:\n" +
+			              $"eg. c.changeversion rustbeta_staging Debug\n" +
+			              $"eg. c.changeversion production Minimal\n"+
+			              $"eg. c.changeversion reset\n" +
+			              $"NOTE: When you've set the version override, self updating will enable itself automatically as it's required for the version change process.");
+			return;
+		}
+
+		var txt = Path.Combine(Defines.GetTempFolder(), "versionoverride.txt");
+
+		if (arg.GetString(0).Equals("reset", StringComparison.OrdinalIgnoreCase))
+		{
+			OsEx.File.Delete(txt);
+			arg.ReplyWith("Reset version change. Next server reboot won't change your current Carbon version.");
+			return;
+		}
+
+		var tag = arg.GetString(0, "edge").Replace("_build", string.Empty);
+		var config = arg.GetString(1, "Debug");
+		var os =
+#if UNIX
+			"Linux";
+#else
+			"Windows";
+#endif
+		var extension =
+#if UNIX
+			"tar.gz";
+#else
+			"zip";
+#endif
+		var url = $"http://github.com/CarbonCommunity/Carbon/releases/download/{tag}_build/Carbon.{os}.{config}.{extension}";
+		OsEx.File.Create(txt, url);
+		arg.ReplyWith($"Overriding Carbon version to {tag} ({config}). Next server reboot will swap to the overriden version.");
+
+		if (!Community.Runtime.Config.SelfUpdating.Enabled)
+		{
+			Community.Runtime.Config.SelfUpdating.Enabled = true;
+			Community.Runtime.SaveConfig();
+		}
+	}
 }

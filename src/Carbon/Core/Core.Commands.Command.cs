@@ -8,7 +8,7 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void Find(ConsoleSystem.Arg arg)
 	{
-		using var body = new StringTable("Console Command", "Value", "Help");
+		using var body = new StringTable("command", "value", "help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.GetString(0) : null;
 
 		foreach (var command in Community.Runtime.CommandManager.ClientConsole)
@@ -50,7 +50,7 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void FindChat(ConsoleSystem.Arg arg)
 	{
-		using var body = new StringTable("Chat Command", "Help");
+		using var body = new StringTable("command", "help");
 		var filter = arg.Args != null && arg.Args.Length > 0 ? arg.GetString(0) : null;
 
 		foreach (var command in Community.Runtime.CommandManager.Chat)

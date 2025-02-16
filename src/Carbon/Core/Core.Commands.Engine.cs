@@ -16,10 +16,10 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void Help(ConsoleSystem.Arg arg)
 	{
-		arg.ReplyWith($"To get started, run the `c.find c.` or `c.find carbon` to list all Carbon commands.\n" +
+		arg.ReplyWith($"To get started, run the `c.find c.` to list all Carbon commands.\n" +
 			$"To list all currently loaded plugins, execute `c.plugins`.\n" +
 			$"For more information, please visit https://docs.carbonmod.gg or join the Discord server at https://discord.gg/carbonmod\n" +
-			$"You're currently running {Community.Runtime.Analytics.InformationalVersion}.");
+			$"You're currently running {Community.Runtime.Analytics.Version}.");
 	}
 
 	[ConsoleCommand("version", "Version information of the Carbon build and Rust.")]
@@ -84,7 +84,7 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void WhyModded(ConsoleSystem.Arg arg)
 	{
-		using var table = new StringTable("Reason", "Type", "Quick Fix");
+		using var table = new StringTable("reason", "type", "quick fix");
 
 		if (Community.Runtime.Config.IsModded)
 		{

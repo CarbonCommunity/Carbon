@@ -7,9 +7,9 @@ namespace Oxide.Game.Rust.Cui;
 
 public static class CuiHelper
 {
-	public static Dictionary<BasePlayer, HashSet<string>> ActivePanels { get; internal set; } = new();
+	public static Dictionary<BasePlayer, HashSet<string>> ActivePanels { get; } = new();
 
-	internal static JsonSerializerSettings _cuiSettings = new()
+	private static JsonSerializerSettings _cuiSettings = new()
 	{
 		DefaultValueHandling = DefaultValueHandling.Ignore
 	};

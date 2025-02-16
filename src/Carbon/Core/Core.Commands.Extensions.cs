@@ -6,7 +6,7 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void Extensions(ConsoleSystem.Arg arg)
 	{
-		using var body = new StringTable("#", "Extension", "Type");
+		using var body = new StringTable("#", "extension", "type");
 		var count = 1;
 
 		foreach (var mod in Community.Runtime.AssemblyEx.Extensions.Loaded)

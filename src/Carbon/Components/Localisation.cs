@@ -13,12 +13,15 @@ public struct Localisation
 		["unknown_chat_cmd_1"] = "<color=orange>Unknown command:</color> {0}",
 		["unknown_chat_cmd_2"] = "<color=orange>Unknown command:</color> {0}\n<size=12s>Suggesting: {1}</size>",
 		["unknown_chat_cmd_separator_1"] = ", ",
-		["unknown_chat_cmd_separator_2"] = " or "
+		["unknown_chat_cmd_separator_2"] = " or ",
+		["no_perm"] = "You don't have any of the required permissions to run this command.",
+		["no_group"] = "You aren't in any of the required groups to run this command.",
+		["no_auth"] = $"You don't have the minimum auth level [{{0}}] required to execute this command [your level: {{1}}]."
 	};
 
 	public static string Get(string key, string playerId)
 	{
-		return Core.lang.GetMessage(key, Core, playerId, Community.Runtime.Config.Language);
+		return Core.lang.GetMessage(key, Core, playerId, Core.lang.GetLanguage(playerId));
 	}
 	public static string Get(string key, string playerId, params object[] format)
 	{

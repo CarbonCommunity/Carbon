@@ -12,74 +12,81 @@ public class Command : Library
 		get; set;
 	}
 
-	internal readonly Func<API.Commands.Command, API.Commands.Command.Args, bool> _playerExecute = (cmd, args) =>
+	private Func<API.Commands.Command, API.Commands.Command.Args, bool> OnPlayerExecute(bool isChat)
 	{
-		if (args is PlayerArgs playerArgs && playerArgs != null)
+		return (cmd, args) =>
 		{
-			var player = playerArgs.Player as BasePlayer;
-			var authenticatedCommand = cmd as AuthenticatedCommand;
-
-			if (player != null && authenticatedCommand != null)
+			if (args is PlayerArgs playerArgs && playerArgs != null)
 			{
-				if (authenticatedCommand.Auth.Permissions != null)
+				var player = playerArgs.Player as BasePlayer;
+				var authenticatedCommand = cmd as AuthenticatedCommand;
+
+				if (player != null && authenticatedCommand != null)
 				{
-					var hasPerm = authenticatedCommand.Auth.Permissions.Count(x => !string.IsNullOrEmpty(x)) == 0;
-					foreach (var permission in authenticatedCommand.Auth.Permissions)
+					if (authenticatedCommand.Auth.Permissions != null)
 					{
-						if (Community.Runtime.Core.permission.UserHasPermission(player.UserIDString, permission))
+						var hasPerm = authenticatedCommand.Auth.Permissions.Count(x => !string.IsNullOrEmpty(x)) == 0;
+						foreach (var permission in authenticatedCommand.Auth.Permissions)
 						{
-							hasPerm = true;
-							break;
+							if (Community.Runtime.Core.permission.UserHasPermission(player.UserIDString, permission))
+							{
+								hasPerm = true;
+								break;
+							}
+						}
+
+						if (!hasPerm)
+						{
+							if (isChat) player.ChatMessage(Localisation.Get("no_perm", player.UserIDString));
+							else player.ConsoleMessage(Localisation.Get("no_perm", player.UserIDString));
+							return false;
 						}
 					}
 
-					if (!hasPerm)
+					if (authenticatedCommand.Auth.Groups != null)
 					{
-						player?.ConsoleMessage($"You don't have any of the required permissions to run this command.");
-						return false;
-					}
-				}
-
-				if (authenticatedCommand.Auth.Groups != null)
-				{
-					var hasGroup = authenticatedCommand.Auth.Groups.Count(x => !string.IsNullOrEmpty(x)) == 0;
-					foreach (var group in authenticatedCommand.Auth.Groups)
-					{
-						if (Community.Runtime.Core.permission.UserHasGroup(player.UserIDString, group))
+						var hasGroup = authenticatedCommand.Auth.Groups.Count(x => !string.IsNullOrEmpty(x)) == 0;
+						foreach (var group in authenticatedCommand.Auth.Groups)
 						{
-							hasGroup = true;
-							break;
+							if (Community.Runtime.Core.permission.UserHasGroup(player.UserIDString, group))
+							{
+								hasGroup = true;
+								break;
+							}
+						}
+
+						if (!hasGroup)
+						{
+							if (isChat) player.ChatMessage(Localisation.Get("no_group", player.UserIDString));
+							else player.ConsoleMessage(Localisation.Get("no_group", player.UserIDString));
+							return false;
 						}
 					}
 
-					if (!hasGroup)
+					if (authenticatedCommand.Auth.AuthLevel != -1)
 					{
-						player?.ConsoleMessage($"You aren't in any of the required groups to run this command.");
+						var hasAuth = player.Connection.authLevel >= authenticatedCommand.Auth.AuthLevel;
+
+						if (!hasAuth)
+						{
+							if (isChat) player.ChatMessage(Localisation.Get("no_auth", player.UserIDString, authenticatedCommand.Auth.AuthLevel, player.Connection.authLevel));
+							else player.ConsoleMessage(Localisation.Get("no_auth", player.UserIDString, authenticatedCommand.Auth.AuthLevel, player.Connection.authLevel));
+							return false;
+						}
+					}
+
+					if (!(Community.Runtime.Config.Permissions.BypassAdminCooldowns && player.Connection.authLevel > 1) && CarbonPlugin.IsCommandCooledDown(player, cmd.Name, authenticatedCommand.Auth.Cooldown, out var timeLeft, true))
+					{
+						if (isChat) player.ChatMessage(Localisation.Get("cooldown_player", player.UserIDString, TimeEx.Format(timeLeft).ToLower()));
+						else player.ConsoleMessage(Localisation.Get("cooldown_player", player.UserIDString, TimeEx.Format(timeLeft).ToLower()));
 						return false;
 					}
-				}
-
-				if (authenticatedCommand.Auth.AuthLevel != -1)
-				{
-					var hasAuth = player.Connection.authLevel >= authenticatedCommand.Auth.AuthLevel;
-
-					if (!hasAuth)
-					{
-						player?.ConsoleMessage($"You don't have the minimum auth level [{authenticatedCommand.Auth.AuthLevel}] required to execute this command [your level: {player.Connection.authLevel}].");
-						return false;
-					}
-				}
-
-				if (!(Community.Runtime.Config.Permissions.BypassAdminCooldowns && player.Connection.authLevel > 1) && CarbonPlugin.IsCommandCooledDown(player, cmd.Name, authenticatedCommand.Auth.Cooldown, out var timeLeft, true))
-				{
-					player.ChatMessage(Localisation.Get("cooldown_player", player.UserIDString, TimeEx.Format(timeLeft).ToLower()));
-					return false;
 				}
 			}
-		}
 
-		return true;
-	};
+			return true;
+		};
+	}
 
 	public void AddChatCommand(string command, BaseHookable plugin, Action<BasePlayer, string, string[]> callback, string help = null, object reference = null, string[] permissions = null, string[] groups = null, int authLevel = -1, int cooldown = 0, bool isHidden = false, bool @protected = false, bool silent = false)
 	{
@@ -106,7 +113,7 @@ public class Command : Library
 				Groups = groups,
 				Cooldown = cooldown,
 			},
-			CanExecute = _playerExecute
+			CanExecute = OnPlayerExecute(true)
 		};
 		cmd.SetFlag(CommandFlags.Hidden, isHidden);
 		cmd.SetFlag(CommandFlags.Protected, @protected);
@@ -238,7 +245,7 @@ public class Command : Library
 					Groups = groups,
 					Cooldown = cooldown,
 				},
-				CanExecute = _playerExecute,
+				CanExecute = OnPlayerExecute(false)
 			};
 			cmd.SetFlag(CommandFlags.Hidden, isHidden);
 			cmd.SetFlag(CommandFlags.Protected, @protected);
@@ -261,7 +268,7 @@ public class Command : Library
 				},
 				Help = help,
 				Token = reference,
-				CanExecute = _playerExecute,
+				CanExecute = OnPlayerExecute(false)
 			};
 			cmd.SetFlag(CommandFlags.Hidden, isHidden);
 			cmd.SetFlag(CommandFlags.Protected, @protected);

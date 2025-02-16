@@ -11,7 +11,7 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void HooksCall(ConsoleSystem.Arg args)
 	{
-		using var table = new StringTable("#", "Hook", "Id", "Type", "Status", "Time", "Fires", "Memory", "Lag", "Exceptions", "Subs");
+		using var table = new StringTable("#", "hook", "id", "type", "status", "time", "fires", "memory", "lag", "exceptions", "subs");
 		var count = 1;
 		var success = 0;
 		var warning = 0;
@@ -204,7 +204,7 @@ public partial class CorePlugin
 				}
 			}
 
-			using var table = new StringTable(string.Empty, $"Plugins ({plugins.Count:n0})", "Time", "Fires", "Memory", "Lag", "Exceptions", "Async & Overrides");
+			using var table = new StringTable(string.Empty, $"plugins ({plugins.Count:n0})", "time", "fires", "memory", "lag", "exceptions", "async / hooks");
 
 			foreach (var plugin in plugins)
 			{

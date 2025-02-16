@@ -8,7 +8,7 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void TestBeds(ConsoleSystem.Arg arg)
 	{
-		using var table = new StringTable(string.Empty, "Bed", "Tests");
+		using var table = new StringTable(string.Empty, "context", "tests");
 
 		foreach (var bed in Integrations.Banks)
 		{
