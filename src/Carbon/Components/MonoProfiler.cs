@@ -126,7 +126,7 @@ public static unsafe partial class MonoProfiler
 
 		public string ToTable()
 		{
-			using StringTable table = new StringTable("Assembly", "Total Time", "(%)", "Calls", "Memory Usage");
+			using StringTable table = new StringTable("assembly", "total time", "(%)", "calls", "memory usage");
 
 			foreach(AssemblyRecord record in this)
 			{
@@ -233,7 +233,7 @@ public static unsafe partial class MonoProfiler
 
 		public string ToTable()
 		{
-			using StringTable table = new StringTable("Assembly", "Method", "Total Time", "(%)", "Own Time", "(%)", "Calls", "Total Memory", "Own Memory");
+			using StringTable table = new StringTable("assembly", "method", "total time", "(%)", "own time", "(%)", "calls", "total memory", "own memory");
 
 			foreach (CallRecord record in this)
 			{
@@ -339,7 +339,7 @@ public static unsafe partial class MonoProfiler
 
 		public string ToTable()
 		{
-			using StringTable table = new StringTable("Assembly", "Class", "Allocations", "Total Alloc. Size", "Instance Size");
+			using StringTable table = new StringTable("assembly", "class", "allocations", "total alloc. size", "instance size");
 
 			foreach (MemoryRecord record in this)
 			{
@@ -431,7 +431,7 @@ public static unsafe partial class MonoProfiler
 
 		public string ToTable()
 		{
-			using StringTable table = new StringTable("Calls", "Total Time");
+			using StringTable table = new StringTable("calls", "total time");
 
 			table.AddRow($" {calls:n0}", $"{GetTotalTime()}");
 
@@ -441,11 +441,8 @@ public static unsafe partial class MonoProfiler
 		{
 			StringBuilder builder = Pool.Get<StringBuilder>();
 
-			builder.AppendLine("Calls," +
-			                   "Total Time");
-
-			builder.AppendLine($"{calls}," +
-			                   $"{GetTotalTime()}");
+			builder.AppendLine("Calls," + "Total Time");
+			builder.AppendLine($"{calls}," + $"{GetTotalTime()}");
 
 			string result = builder.ToString();
 			Pool.FreeUnmanaged(ref builder);
@@ -770,7 +767,7 @@ public static unsafe partial class MonoProfiler
 
 		static void PrintWarn()
 		{
-			using StringTable table = new StringTable(" Duration", "Processing", "Assemblies", "Calls");
+			using StringTable table = new StringTable(" duration", "processing", "assemblies", "calls");
 
 			table.AddRow(
 				$" {TimeEx.Format(DurationTime.TotalSeconds).ToLower()}",

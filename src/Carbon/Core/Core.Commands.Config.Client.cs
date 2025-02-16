@@ -77,7 +77,7 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void ClientStats(ConsoleSystem.Arg args)
 	{
-		using var table = new StringTable("Addons", "Assets", "Spawnable Prefabs", "Prefabs (Custom)", "Prefabs (Rust)", "Entities");
+		using var table = new StringTable("addons", "assets", "spawnable prefabs", "prefabs (custom)", "prefabs (rust)", "entities");
 
 		table.AddRow(
 			Community.Runtime.CarbonClient.AddonCount.ToString("n0"),

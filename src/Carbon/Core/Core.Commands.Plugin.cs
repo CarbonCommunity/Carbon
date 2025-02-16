@@ -32,7 +32,7 @@ public partial class CorePlugin
 
 			default:
 				{
-					using var body = new StringTable("#", "Package", "Author", "Version", "Hook Time", "Hook Fires", "Hook Memory", "Hook Lag", "Hook Exceptions", "Compile Time", "Uptime");
+					using var body = new StringTable("#", "package", "author", "version", "hook time", "hook fires", "hook memory", "hook lag", "hook exceptions", "compile time", "uptime");
 					var count = 1;
 
 					foreach (var mod in ModLoader.Packages)
@@ -77,14 +77,14 @@ public partial class CorePlugin
 						count++;
 					}
 
-					using var unloaded = new StringTable("*", $"Unloaded Plugins ({Community.Runtime.ScriptProcessor.IgnoreList.Count:n0})");
+					using var unloaded = new StringTable("*", $"unloaded plugins ({Community.Runtime.ScriptProcessor.IgnoreList.Count:n0})");
 
 					foreach (var unloadedPlugin in Community.Runtime.ScriptProcessor.IgnoreList)
 					{
 						unloaded.AddRow(string.Empty, Path.GetFileName(unloadedPlugin));
 					}
 
-					using var failed = new StringTable("*", $"Failed Plugins ({ModLoader.FailedCompilations.Count(x => x.Value.HasFailed()):n0})", "Line", "Stacktrace");
+					using var failed = new StringTable("*", $"failed plugins ({ModLoader.FailedCompilations.Count(x => x.Value.HasFailed()):n0})", "Line", "Stacktrace");
 
 					foreach (var compilation in ModLoader.FailedCompilations.Values)
 					{
@@ -487,7 +487,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		using (var table = new StringTable(string.Empty, "Id", "Hook", "Time", "Fires", "Memory", "Lag", "Exceptions", "Subscribed", "Async & Overrides"))
+		using (var table = new StringTable(string.Empty, "id", "hook", "time", "fires", "memory", "lag", "exceptions", "subscribed", "async / hooks"))
 		{
 			IEnumerable<List<CachedHook>> array = mode switch
 			{
@@ -593,7 +593,7 @@ public partial class CorePlugin
 		var builder = Pool.Get<StringBuilder>();
 		var count = 1;
 
-		using (var table = new StringTable("Chat Commands"))
+		using (var table = new StringTable("chat commands"))
 		{
 			foreach (var command in Community.Runtime.CommandManager.Chat.Where(x => x.Reference == plugin).Distinct())
 			{
@@ -610,7 +610,7 @@ public partial class CorePlugin
 			builder.AppendLine(table.ToStringMinimal());
 		}
 
-		using (var table = new StringTable("Console Commands"))
+		using (var table = new StringTable("console commands"))
 		{
 			count = 1;
 			foreach (var command in Community.Runtime.CommandManager.ClientConsole.Where(x => x.Reference == plugin))

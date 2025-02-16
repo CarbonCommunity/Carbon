@@ -125,7 +125,7 @@ public partial class CorePlugin
 		var mode = arg.GetString(0);
 		var flip = arg.GetString(0).Equals("-asc") || arg.GetString(1).Equals("-asc");
 
-		using var print = new StringTable( "Name", "Enabled", "Version", "Time", "Fires", "Memory", "Lag", "Uptime");
+		using var print = new StringTable( "name", "enabled", "version", "time", "fires", "memory", "lag", "uptime");
 
 		IEnumerable<BaseHookable> array = mode switch
 		{
@@ -223,7 +223,7 @@ public partial class CorePlugin
 			return;
 		}
 
-		using (var table = new StringTable(string.Empty, "Id", "Hook", "Time", "Fires", "Memory", "Lag", "Exceptions", "Subscribed", "Async & Overrides"))
+		using (var table = new StringTable(string.Empty, "id", "hook", "time", "fires", "memory", "lag", "exceptions", "subscribed", "async / hooks"))
 		{
 			IEnumerable<List<CachedHook>> array = mode switch
 			{
