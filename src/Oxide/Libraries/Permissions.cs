@@ -147,15 +147,14 @@ public class Permission : Library
 
 		var playerDefaultGroup = Community.Runtime.Config.Permissions.PlayerDefaultGroup;
 		var adminDefaultGroup = Community.Runtime.Config.Permissions.AdminDefaultGroup;
+		var moderatorDefaultGroup = Community.Runtime.Config.Permissions.ModeratorDefaultGroup;
 
-		if (!GroupExists(playerDefaultGroup))
-		{
-			CreateGroup(playerDefaultGroup, playerDefaultGroup?.ToCamelCase(), 0);
-		}
-		if (!GroupExists(adminDefaultGroup))
-		{
-			CreateGroup(adminDefaultGroup, adminDefaultGroup?.ToCamelCase(), 1);
-		}
+		if (!string.IsNullOrEmpty(playerDefaultGroup) && !GroupExists(playerDefaultGroup))
+			CreateGroup(playerDefaultGroup, playerDefaultGroup.ToCamelCase(), 0);
+		if (!string.IsNullOrEmpty(adminDefaultGroup) && !GroupExists(adminDefaultGroup))
+			CreateGroup(adminDefaultGroup, adminDefaultGroup.ToCamelCase(), 1);
+		if (!string.IsNullOrEmpty(moderatorDefaultGroup) && !GroupExists(moderatorDefaultGroup))
+			CreateGroup(moderatorDefaultGroup, moderatorDefaultGroup.ToCamelCase(), 1);
 
 		IsLoaded = true;
 
@@ -413,7 +412,7 @@ public class Permission : Library
 
 		if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.AdminDefaultGroup))
 		{
-			if (player.IsAdmin || (player.net.connection != null && player.net.connection.authLevel == 2))
+			if (player.net is { connection.authLevel: 2 })
 			{
 				AddUserGroup(player.UserIDString, Community.Runtime.Config.Permissions.AdminDefaultGroup);
 			}
@@ -425,7 +424,7 @@ public class Permission : Library
 
 		if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.ModeratorDefaultGroup))
 		{
-			if (!player.IsAdmin && (player.net.connection != null && player.net.connection.authLevel == 1))
+			if (player.net is { connection.authLevel: 1 })
 			{
 				AddUserGroup(player.UserIDString, Community.Runtime.Config.Permissions.ModeratorDefaultGroup);
 			}
@@ -840,7 +839,7 @@ public class Permission : Library
 			if (!perm.Equals(StarStr))
 			{
 				perm = perm.TrimEnd(Star);
-				
+
 				return userData.Perms.RemoveWhere(s =>
 				{
 					if (!s.StartsWith(perm))
