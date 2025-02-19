@@ -1206,6 +1206,7 @@ public partial class AdminModule
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
+				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
 				plugin.ExistentPlugin = null;
 			}
@@ -1508,6 +1509,7 @@ public partial class AdminModule
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
+				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
 				plugin.ExistentPlugin = null;
 			}
@@ -1760,7 +1762,8 @@ public partial class AdminModule
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"));
 				plugin.ExistentPlugin = null;
 			}
 		}
