@@ -133,11 +133,11 @@ public partial class AdminModule
 			return tab;
 		}
 
-		public static List<Plugin> GetPlugins(Vendor vendor, Tab tab, PlayerSession ap)
+		public static List<Plugin> GetPlugins(Vendor vendor, Tab tab, PlayerSession ap, int pluginCount)
 		{
-			return GetPlugins(vendor, tab, ap, out _);
+			return GetPlugins(vendor, tab, ap, out _, pluginCount);
 		}
-		public static List<Plugin> GetPlugins(Vendor vendor, Tab tab, PlayerSession ap, out int maxPages)
+		public static List<Plugin> GetPlugins(Vendor vendor, Tab tab, PlayerSession ap, out int maxPages, int pluginCount)
 		{
 			maxPages = 0;
 
@@ -260,19 +260,20 @@ public partial class AdminModule
 
 					plugins = null;
 
-					maxPages = (customList.Count - 1) / 15;
+					maxPages = (customList.Count - 1) / pluginCount;
 
 					var page2 = ap.GetStorage(tab, "page", 0);
 					if (page2 > maxPages) ap.SetStorage(tab, "page", maxPages);
 
-					var page = 15 * page2;
-					var count = (page + 15).Clamp(0, customList.Count);
+					var page = pluginCount * page2;
+					var count = (page + pluginCount).Clamp(0, customList.Count);
 
 					if (count > 0)
 					{
 						for (int i = page; i < count; i++)
 						{
-							try { resultList.Add(customList[i]); } catch { }
+							try { resultList.Add(customList[i]); }
+							catch { break; }
 						}
 					}
 				}
@@ -291,7 +292,7 @@ public partial class AdminModule
 
 		public static void DownloadThumbnails(Vendor vendor, Tab tab, PlayerSession ap)
 		{
-			var plugins = GetPlugins(vendor, tab, ap);
+			var plugins = GetPlugins(vendor, tab, ap, 15);
 
 			var images = Facepunch.Pool.Get<List<string>>();
 			var imagesSafe = Facepunch.Pool.Get<List<string>>();
@@ -321,21 +322,22 @@ public partial class AdminModule
 
 		public static void Draw(CUI cui, CuiElementContainer container, string parent, Tab tab, PlayerSession ap)
 		{
-			ap.SetDefaultStorage(tab, "vendor", VendorTypes.Installed.ToString());
+			ap.SetDefaultStorage(tab, "vendor", VendorTypes.Installed);
 
 			var header = cui.CreatePanel(container, parent, "0.2 0.2 0.2 0.5",
 				xMin: 0f, xMax: 1f, yMin: 0.95f, yMax: 1f);
 
-			var vendorName = ap.GetStorage(tab, "vendor", VendorTypes.Installed.ToString());
-			var vendor = GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), vendorName));
+			var vendorType = ap.GetStorage(tab, "vendor", VendorTypes.Installed);
+			var vendor = GetVendor(vendorType);
 
 			var vendors = Enum.GetNames(typeof(VendorTypes));
 			var cuts = 1f / vendors.Length;
 			var offset = 0f;
 			foreach (var value in vendors)
 			{
-				var v = GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), value));
-				cui.CreateProtectedButton(container, header, vendorName == value ? "0.3 0.72 0.25 0.8" : "0.2 0.2 0.2 0.3", "1 1 1 0.7", $"<b>{value.Replace("_", ".")}</b>{(v == null ? "" : $" — {v?.BarInfo}")}", 11,
+				var vType = (VendorTypes)Enum.Parse(typeof(VendorTypes), value);
+				var v = GetVendor(vType);
+				cui.CreateProtectedButton(container, header, vendorType == vType ? "0.3 0.72 0.25 0.8" : "0.2 0.2 0.2 0.3", "1 1 1 0.7", $"<b>{value.Replace("_", ".")}</b>{(v == null ? "" : $" — {v?.BarInfo}")}", 11,
 					xMin: offset, xMax: offset + cuts, command: $"pluginbrowser.changetab {value}");
 				offset += cuts;
 			}
@@ -350,7 +352,7 @@ public partial class AdminModule
 			var row = 0f;
 			var yOffset = 0.05f;
 
-			var plugins = GetPlugins(vendor, tab, ap, out var maxPages);
+			var plugins = GetPlugins(vendor, tab, ap, out var maxPages, 15);
 
 			for (int i = 0; i < 15; i++)
 			{
@@ -488,7 +490,7 @@ public partial class AdminModule
 
 			var selectedPlugin = ap.GetStorage<Plugin>(tab, "selectedplugin");
 
-			if (selectedPlugin.IsValid)
+			if (selectedPlugin != null)
 			{
 				vendor.CheckMetadata(selectedPlugin.Id, () => { Singleton.Draw(ap.Player); });
 
@@ -1711,15 +1713,15 @@ public partial class AdminModule
 
 						var existent = FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 
-						if (!existent.IsValid)
+						if (existent == null)
 						{
 							existent = CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 
-							if (!existent.IsValid)
+							if (existent == null)
 							{
 								existent = uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 
-								if (!existent.IsValid)
+								if (existent == null)
 								{
 									existent = new Plugin
 									{
@@ -1821,7 +1823,7 @@ public partial class AdminModule
 		}
 
 		[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-		public struct Plugin
+		public class Plugin
 		{
 			public string Id;
 			public string Name;
@@ -1854,13 +1856,10 @@ public partial class AdminModule
 			}
 
 			[ProtoIgnore]
-			public readonly bool HasRating => Rating != -1;
+			public bool HasRating => Rating != -1;
 
 			[ProtoIgnore]
-			public readonly bool HasPrice => OriginalPrice != "Null";
-
-			[ProtoIgnore]
-			public readonly bool IsValid => !string.IsNullOrEmpty(Id);
+			public bool HasPrice => OriginalPrice != "Null";
 
 			public bool HasInvalidImage()
 			{
@@ -1904,12 +1903,10 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor2 = ap.SetStorage(tab, "vendor", args.Args[0]);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor2));
+		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), args.Args[0])));
 		vendor.Refresh();
 		PluginsTab.TagFilter.Clear();
-
+		PluginsTab.DropdownShow = false;
 		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 		Singleton.Draw(args.Player());
 	}
@@ -1924,8 +1921,7 @@ public partial class AdminModule
 
 		var ap = Singleton.GetPlayerSession(player);
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		var arg = new string[args.Args.Length];
 		Array.Copy(args.Args, arg, args.Args.Length);
 
@@ -2045,10 +2041,9 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
-		PluginsTab.GetPlugins(vendor, tab, ap, out var maxPages);
+		PluginsTab.GetPlugins(vendor, tab, ap, out var maxPages, 15);
 
 		var page = ap.GetStorage(tab, "page", 0);
 
@@ -2082,8 +2077,7 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
 		var filter = args.Args.ToString(" ");
@@ -2102,8 +2096,7 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
 		var search = ap.SetStorage(tab, "search", args.Args.ToString(" "));
@@ -2122,8 +2115,7 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 
 		if (vendor is PluginsTab.Installed) return;
 
@@ -2166,8 +2158,7 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
 		ap.SetStorage(tab, "selectedplugin", vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[0]));
@@ -2181,8 +2172,7 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
 		ap.SetStorage(tab, "selectedplugin", (PluginsTab.Plugin)default);
@@ -2196,11 +2186,10 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
-		var plugins = PluginsTab.GetPlugins(vendor, tab, ap);
+		var plugins = PluginsTab.GetPlugins(vendor, tab, ap, 15);
 		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.Args[0].ToInt();
 		ap.SetStorage(tab, "selectedplugin", plugins[nextPage > plugins.Count - 1 ? 0 : nextPage < 0 ? plugins.Count - 1 : nextPage]);
 		Facepunch.Pool.FreeUnmanaged(ref plugins);
@@ -2216,7 +2205,7 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 
 		switch (args.Args[0])
 		{
@@ -2256,19 +2245,18 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor = ap.GetStorage<string>(tab, "vendor");
 
-		var vendor2 = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
-		if (vendor2 is PluginsTab.IVendorAuthenticated auth)
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
+		if (vendor is PluginsTab.IVendorAuthenticated auth)
 		{
 			if (auth.IsLoggedIn)
 			{
 				tab.CreateDialog("Are you sure you want to log out?", onConfirm: ap =>
 				{
 					auth.User = null;
-					vendor2.Refresh();
+					vendor.Refresh();
 					Singleton.Draw(args.Player());
-					if (vendor2 is PluginsTab.IVendorStored store) store.Save();
+					if (vendor is PluginsTab.IVendorStored store) store.Save();
 				}, null);
 			}
 			else
@@ -2316,10 +2304,8 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor = ap.GetStorage<string>(tab, "vendor");
-
-		var vendor2 = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
-		if (vendor2 is PluginsTab.IVendorAuthenticated auth)
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
+		if (vendor is PluginsTab.IVendorAuthenticated auth)
 		{
 			auth.User = null;
 			auth.ValidationTimer?.Destroy();
@@ -2342,7 +2328,7 @@ public partial class AdminModule
 
 		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Name.Equals(args.GetString(1), StringComparison.InvariantCultureIgnoreCase));
 
-		if (!plugin.IsValid)
+		if (plugin == null)
 		{
 			Singleton.PutsWarn($"Cannot find that plugin.");
 			return;
