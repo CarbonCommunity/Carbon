@@ -1207,7 +1207,7 @@ public partial class AdminModule
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -1510,7 +1510,7 @@ public partial class AdminModule
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -1763,7 +1763,7 @@ public partial class AdminModule
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"));
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName));
 				plugin.ExistentPlugin = null;
 			}
 		}
