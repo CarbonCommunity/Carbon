@@ -67,7 +67,7 @@ public class Plugin : BaseHookable, IDisposable
 
 	public static implicit operator bool(Plugin target)
 	{
-		return target != null && target.HasInitialized;
+		return target != null;
 	}
 
 	public virtual bool IInit()
@@ -166,7 +166,10 @@ public class Plugin : BaseHookable, IDisposable
 
 	internal bool InternalApplyPluginReferences()
 	{
-		if (PluginReferences == null) return true;
+		if (PluginReferences == null)
+		{
+			return true;
+		}
 
 		foreach (var attribute in PluginReferences)
 		{
@@ -185,8 +188,7 @@ public class Plugin : BaseHookable, IDisposable
 					var info = field.FieldType.GetCustomAttribute<InfoAttribute>();
 					if (info == null)
 					{
-						Carbon.Logger.Warn(
-							$"You're trying to reference a non-plugin instance: {name}[{field.FieldType.Name}]");
+						Carbon.Logger.Warn($"You're trying to reference a non-plugin instance: {name}[{field.FieldType.Name}]");
 						continue;
 					}
 
@@ -203,8 +205,7 @@ public class Plugin : BaseHookable, IDisposable
 
 					if (version.IsValid() && plugin.Version < version)
 					{
-						Logger.Warn(
-							$"Plugin '{Name} by {Author} v{Version}' references a required plugin which is outdated: {plugin.Name} by {plugin.Author} v{plugin.Version} < v{version}");
+						Logger.Warn($"Plugin '{Name} by {Author} v{Version}' references a required plugin which is outdated: {plugin.Name} by {plugin.Author} v{plugin.Version} < v{version}");
 						return false;
 					}
 					else
@@ -225,8 +226,7 @@ public class Plugin : BaseHookable, IDisposable
 					{
 						ModLoader.PostBatchFailedRequirees.Add(FilePath);
 						ModLoader.AddPendingRequiree(path, FilePath);
-						Logger.Warn(
-							$"Plugin '{Name} by {Author} v{Version}' references a required plugin which is not loaded: {name}");
+						Logger.Warn($"Plugin '{Name} by {Author} v{Version}' references a required plugin which is not loaded: {name}");
 						return false;
 					}
 				}
