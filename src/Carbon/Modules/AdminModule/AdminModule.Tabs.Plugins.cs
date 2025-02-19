@@ -894,7 +894,6 @@ public partial class AdminModule
 				var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
 				Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
 				var auth = this as IVendorAuthenticated;
-				var isAuthed = auth != null;
 
 				foreach (var plugin in FetchedPlugins)
 				{
@@ -902,17 +901,14 @@ public partial class AdminModule
 					{
 						var fileName = Path.GetFileName(plugin.File);
 						var fileNameNoExtension = Path.GetFileNameWithoutExtension(plugin.File);
-						if (isAuthed)
-						{
-							plugin.SetOwned(auth.User != null && auth.User.OwnedFiles.Contains(plugin.Id));
-						}
+						plugin.SetOwned(auth.User != null && auth.User.OwnedFiles.Contains(plugin.Id));
 
 						foreach (var existentPlugin in plugins)
 						{
 							if ((!string.IsNullOrEmpty(existentPlugin.FileName) &&
-							     existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
-							    existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase)) ||
-							    (!string.IsNullOrEmpty(existentPlugin.Name) &&
+							     (existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
+							     existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase))) ||
+							    (!string.IsNullOrEmpty(existentPlugin.Name) && !string.IsNullOrEmpty(plugin.Name) &&
 							     existentPlugin.Name.Equals(plugin.Name, StringComparison.OrdinalIgnoreCase)))
 							{
 								plugin.SetExistentPlugin(existentPlugin);
@@ -1422,9 +1418,9 @@ public partial class AdminModule
 					foreach (var existentPlugin in plugins)
 					{
 						if ((!string.IsNullOrEmpty(existentPlugin.FileName) &&
-						     existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
-						     existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase)) ||
-						    (!string.IsNullOrEmpty(existentPlugin.Name) &&
+						     (existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
+						      existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase))) ||
+						    (!string.IsNullOrEmpty(existentPlugin.Name) && !string.IsNullOrEmpty(plugin.Name) &&
 						     existentPlugin.Name.Equals(plugin.Name, StringComparison.OrdinalIgnoreCase)))
 						{
 							plugin.SetExistentPlugin(existentPlugin);
