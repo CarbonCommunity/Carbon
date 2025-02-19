@@ -768,7 +768,6 @@ public partial class AdminModule
 			public IEnumerable<Plugin> InstalledData;
 			public IEnumerable<Plugin> OutOfDateData;
 			public IEnumerable<Plugin> OwnedData;
-			public IEnumerable<string> PopularTags;
 
 			public virtual string ListEndpoint { get; }
 			public virtual string DownloadEndpoint { get; }
@@ -886,27 +885,37 @@ public partial class AdminModule
 
 			internal Dictionary<string, string> _headers = new();
 
-			public const string _backSlashes = "\\";
+			private readonly static string _backSlashes = "\\";
 
 			public override void Refresh()
 			{
 				if (FetchedPlugins == null) return;
 
-				var plugins = Community.Runtime.Core.plugins.GetAll();
+				var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+				Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
 				var auth = this as IVendorAuthenticated;
+				var isAuthed = auth != null;
 
 				foreach (var plugin in FetchedPlugins)
 				{
 					try
 					{
-						var name = Path.GetFileName(plugin.File);
-						plugin.SetOwned(auth.User != null && auth.User.OwnedFiles.Contains(plugin.Id));
+						var fileName = Path.GetFileName(plugin.File);
+						var fileNameNoExtension = Path.GetFileNameWithoutExtension(plugin.File);
+						if (isAuthed)
+						{
+							plugin.SetOwned(auth.User != null && auth.User.OwnedFiles.Contains(plugin.Id));
+						}
 
 						foreach (var existentPlugin in plugins)
 						{
-							if (existentPlugin.FileName == name)
+							if ((!string.IsNullOrEmpty(existentPlugin.FileName) &&
+							     existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
+							    existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase)) ||
+							    (!string.IsNullOrEmpty(existentPlugin.Name) &&
+							     existentPlugin.Name.Equals(plugin.Name, StringComparison.OrdinalIgnoreCase)))
 							{
-								plugin.SetExistentPlugin((RustPlugin)existentPlugin);
+								plugin.SetExistentPlugin(existentPlugin);
 								break;
 							}
 						}
@@ -917,32 +926,13 @@ public partial class AdminModule
 					}
 				}
 
-				Array.Clear(plugins, 0, plugins.Length);
-				plugins = null;
+				Facepunch.Pool.FreeUnmanaged(ref plugins);
 
 				PriceData = FetchedPlugins.Where(x => x.Status == Status.Approved).OrderBy(x => x.OriginalPrice.ToFloat());
 				AuthorData = FetchedPlugins.Where(x => x.Status == Status.Approved).OrderBy(x => x.Author);
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled());
 				OutOfDateData = FetchedPlugins.Where(x => x.Status == Status.Approved).Where(x => x.IsInstalled() && !x.IsUpToDate());
 				OwnedData = FetchedPlugins.Where(x => x.Owned);
-
-				var tags = Facepunch.Pool.Get<List<string>>();
-				foreach (var plugin in FetchedPlugins)
-				{
-					if (plugin.Tags == null || plugin.Tags.Count() == 0) continue;
-
-					foreach (var tag in plugin.Tags)
-					{
-						var processedTag = tag?.ToLower()?.Trim();
-
-						if (!string.IsNullOrEmpty(processedTag) && !tags.Contains(processedTag) && processedTag != "{}")
-						{
-							tags.Add(processedTag);
-						}
-					}
-				}
-				PopularTags = tags;
-				Facepunch.Pool.FreeUnmanaged(ref tags);
 			}
 			public override void FetchList(Action<Vendor> callback = null)
 			{
@@ -955,9 +945,10 @@ public partial class AdminModule
 					}
 
 					FetchedPlugins.Clear();
-					var plugins = Community.Runtime.Core.plugins.GetAll();
-
-					ParseData(data, false, false);
+					var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+					Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
+					ParseData(data, false, false, FetchedPlugins, callback, this, plugins);
+					Facepunch.Pool.FreeUnmanaged(ref plugins);
 
 					Community.Runtime.Core.webrequest.Enqueue(List2Endpoint, null, (error, data) =>
 					{
@@ -967,12 +958,15 @@ public partial class AdminModule
 							return;
 						}
 
-						ParseData(data, true, true);
+						var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+						Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
+						ParseData(data, true, true, FetchedPlugins, callback, this, plugins);
+						Facepunch.Pool.FreeUnmanaged(ref plugins);
 
 						VersionCheck();
 					}, Community.Runtime.Core);
 
-					void ParseData(string data, bool doSave, bool insert)
+					static void ParseData(string data, bool doSave, bool insert, List<Plugin> fetchedPlugins, Action<Vendor> callback, Vendor vendor, List<RustPlugin> plugins)
 					{
 						try
 						{
@@ -1017,21 +1011,22 @@ public partial class AdminModule
 
 								if (insert)
 								{
-									FetchedPlugins.Insert(0, plugin);
+									fetchedPlugins.Insert(0, plugin);
 								}
 								else
 								{
-									FetchedPlugins.Add(plugin);
+									fetchedPlugins.Add(plugin);
 								}
 							}
 
 							if (doSave)
 							{
-								callback?.Invoke(this);
+								callback?.Invoke(vendor);
 
-								Logger.Log($"[{Type} Tab] Fetched latest plugin information.");
+								Logger.Log($"[{vendor.GetType()} Tab] Fetched latest plugin information.");
 
-								Save();
+								if (vendor is IVendorStored stored)
+									stored.Save();
 							}
 						}
 						catch (Exception ex)
@@ -1406,7 +1401,6 @@ public partial class AdminModule
 			public override float LogoRatio => 0.2f;
 			public override string Hero => "umod_hero";
 
-
 			public override string BarInfo => $"{FetchedPlugins.Count:n0} free";
 
 			public override string ListEndpoint => "https://umod.org/plugins/search.json?page=[ID]&sort=title&sortdir=asc&categories%5B0%5D=universal&categories%5B1%5D=rust";
@@ -1422,11 +1416,16 @@ public partial class AdminModule
 
 				foreach (var plugin in FetchedPlugins)
 				{
-					var name = Path.GetFileName(plugin.File);
+					var fileName = Path.GetFileName(plugin.File);
+					var fileNameNoExtension = Path.GetFileNameWithoutExtension(plugin.File);
 
 					foreach (var existentPlugin in plugins)
 					{
-						if (existentPlugin.FileName == name)
+						if ((!string.IsNullOrEmpty(existentPlugin.FileName) &&
+						     existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
+						     existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase)) ||
+						    (!string.IsNullOrEmpty(existentPlugin.Name) &&
+						     existentPlugin.Name.Equals(plugin.Name, StringComparison.OrdinalIgnoreCase)))
 						{
 							plugin.SetExistentPlugin(existentPlugin);
 							break;
@@ -1441,22 +1440,6 @@ public partial class AdminModule
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled());
 				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate());
 				OwnedData = FetchedPlugins.Where(x => x.Owned);
-
-				var tags = Facepunch.Pool.Get<List<string>>();
-				foreach (var plugin in FetchedPlugins)
-				{
-					foreach (var tag in plugin.Tags)
-					{
-						var processedTag = tag.ToLower().Trim();
-
-						if (!tags.Contains(processedTag))
-						{
-							tags.Add(processedTag);
-						}
-					}
-				}
-				PopularTags = tags;
-				Facepunch.Pool.FreeUnmanaged(ref tags);
 			}
 			public override void FetchList(Action<Vendor> callback = null)
 			{
@@ -1582,7 +1565,6 @@ public partial class AdminModule
 					return;
 				}
 
-				var plugins = Community.Runtime.Core.plugins.GetAll();
 
 				Community.Runtime.Core.webrequest.Enqueue(ListEndpoint.Replace("[ID]", $"{page}"), null, (error, data) =>
 				{
@@ -1594,6 +1576,8 @@ public partial class AdminModule
 
 					var list = JObject.Parse(data);
 					var file = list["data"];
+					var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+					Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
 					foreach (var plugin in file)
 					{
 						var image = plugin["icon_url"]?.ToString();
@@ -1624,13 +1608,12 @@ public partial class AdminModule
 
 						if (!FetchedPlugins.Any(x => x.Name == p.Name)) FetchedPlugins.Add(p);
 					}
+					Facepunch.Pool.FreeUnmanaged(ref plugins);
 
 					if (page % (maxPage / 4) == 0 || page == maxPage - 1)
 					{
 						Logger.Log($"Caching plugin metadata page {page} out of {maxPage}");
 					}
-
-					list = null;
 				}, Community.Runtime.Core);
 				Community.Runtime.Core.timer.In(5f, () => FetchPage(page + 1, maxPage, callback));
 			}
