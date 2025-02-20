@@ -1850,7 +1850,8 @@ public partial class AdminModule
 			public bool CarbonCompatible;
 			public bool Owned;
 
-			internal RustPlugin ExistentPlugin;
+			[ProtoIgnore]
+			public RustPlugin ExistentPlugin;
 			internal bool IsBusy;
 
 			public Plugin()
@@ -1921,22 +1922,34 @@ public partial class AdminModule
 
 		var ap = Singleton.GetPlayerSession(player);
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
+		var vendorType = ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed);
+		var vendor = PluginsTab.GetVendor(vendorType);
 		var arg = new string[args.Args.Length];
 		Array.Copy(args.Args, arg, args.Args.Length);
 
 		switch (arg[0])
 		{
 			case "0":
-				vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+				if (vendorType == PluginsTab.VendorTypes.Installed)
+					tab.CreateDialog($"To download a file, please select a vendor first.", null, null);
+				else
+					vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
 				Array.Clear(arg, 0, arg.Length);
 				break;
 			case "1":
-				tab.CreateDialog($"Are you sure you want to update '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
+				if (vendorType == PluginsTab.VendorTypes.Installed)
 				{
-					vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+					tab.CreateDialog($"To update a file, please select a vendor first.", null);
 					Array.Clear(arg, 0, arg.Length);
-				}, null);
+				}
+				else
+				{
+					tab.CreateDialog($"Are you sure you want to update '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
+					{
+						vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+						Array.Clear(arg, 0, arg.Length);
+					}, null);
+				}
 				break;
 
 			case "2":
