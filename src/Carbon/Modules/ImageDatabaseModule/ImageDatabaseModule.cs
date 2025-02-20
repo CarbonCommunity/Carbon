@@ -60,7 +60,8 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 		["empty_star"] = "https://carbonmod.gg/assets/media/cui/pluginstab/empty_star.png",
 		["half_star"] = "https://carbonmod.gg/assets/media/cui/pluginstab/half_star.png",
 		["full_star"] = "https://carbonmod.gg/assets/media/cui/pluginstab/full_star.png",
-		["top_left"] = "https://carbonmod.gg/assets/media/cui/pluginstab/top_left.png"
+		["top_left"] = "https://carbonmod.gg/assets/media/cui/pluginstab/top_left.png",
+		["default_profile"] = "https://carbonmod.gg/assets/media/cui/pluginstab/default_profile.jpg"
 	};
 
 	internal string _getProtoDataPath()
