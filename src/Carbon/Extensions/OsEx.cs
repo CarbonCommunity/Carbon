@@ -182,7 +182,7 @@ public class OsEx
 			{
 				if (Exists(folder))
 				{
-					foreach (var file in Directory.GetFiles(folder, extension.Contains(Dot) ? $"*{extension}" : string.Format("*.{0}", extension), option))
+					foreach (var file in Directory.GetFiles(folder, extension.Contains(Dot) ? $"*{extension}" : $"*.{extension}", option))
 					{
 						System.IO.File.Delete(file);
 					}
@@ -193,7 +193,7 @@ public class OsEx
 		{
 			if (Directory.Exists(folder) && !string.IsNullOrEmpty(folder))
 			{
-				foreach (var file in Directory.GetFiles(folder, extension.Contains(Dot) ? $"*{extension}" : string.Format("*.{0}", extension), option))
+				foreach (var file in Directory.GetFiles(folder, extension.Contains(Dot) ? $"*{extension}" : $"*.{extension}", option))
 				{
 					if (exceptions.Any(x => x != Path.GetFileName(file)))
 					{
