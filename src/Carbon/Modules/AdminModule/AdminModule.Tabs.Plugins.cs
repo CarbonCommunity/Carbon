@@ -319,7 +319,6 @@ public partial class AdminModule
 			Facepunch.Pool.FreeUnmanaged(ref images);
 			Facepunch.Pool.FreeUnmanaged(ref imagesSafe);
 		}
-
 		public static void Draw(CUI cui, CuiElementContainer container, string parent, Tab tab, PlayerSession ap)
 		{
 			ap.SetDefaultStorage(tab, "vendor", VendorTypes.Installed);
@@ -1874,13 +1873,11 @@ public partial class AdminModule
 			}
 			public bool IsInstalled()
 			{
-				return ExistentPlugin != null;
+				return ExistentPlugin != null && ExistentPlugin.IsLoaded;
 			}
 			public string CurrentVersion()
 			{
-				if (ExistentPlugin == null) return "N/A";
-
-				return ExistentPlugin.Version.ToString();
+				return !IsInstalled() ? "N/A" : ExistentPlugin.Version.ToString();
 			}
 			public bool IsPaid()
 			{

@@ -48,7 +48,6 @@ public partial class AdminModule
 
 				if (!pluginFiles.Any())
 				{
-					AddText(0, $"No localisation files found for '{TargetPlugin.ToPrettyString()}'", 10, "1 1 1 0.5");
 					continue;
 				}
 

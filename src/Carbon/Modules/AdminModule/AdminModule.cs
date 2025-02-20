@@ -211,6 +211,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		base.OnDisabled(initialized);
 	}
 
+	public override void Shutdown()
+	{
+		Save();
+		base.Shutdown();
+	}
+
 	public override void Load()
 	{
 		base.Load();
