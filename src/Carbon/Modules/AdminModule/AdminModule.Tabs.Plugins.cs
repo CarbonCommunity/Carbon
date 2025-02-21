@@ -193,7 +193,7 @@ public partial class AdminModule
 						{
 							var btn = cui.CreateProtectedButton(container, panel,
 								isSelected ? "#af3726" : "#454239", Cache.CUI.BlankColor, string.Empty, 0,
-								xMin: 0.05f, xMax: 0.05f, OxMin: optionsOffset, OxMax: optionsOffset + optionsWidth, command: $"selectvendor {text}");
+								xMin: 0.05f, xMax: 0.05f, OxMin: optionsOffset, OxMax: optionsOffset + optionsWidth, command: $"pluginbrowser.search {text}");
 							cui.CreateImage(container, btn, "fade", Cache.CUI.WhiteColor);
 							cui.CreateText(container, btn, !isSelected ? "1 1 1 0.4" : "1 0.8 0.8 1",
 								text.ToUpper(), 12, font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: isSelected ? 0.3f : 0f);
@@ -265,7 +265,7 @@ public partial class AdminModule
 							var refresh = cui.CreateProtectedButton(container, contentPanel,
 								"0.2 0.3 0.5 0.9", Cache.CUI.BlankColor, string.Empty, 00,
 								xMin: 0.26f, xMax: 0.295f, yMin: 1, yMax: 1, OyMin: -130, OyMax: -100,
-								command: "pluginbrowser.interact 15");
+								command: "pluginbrowser.refreshvendor");
 							cui.CreateImage(container, refresh, "reload", "0.3 0.5 0.8 1", xMin: 0.2f,
 								xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
 							cui.CreateImage(container, refresh, "fade", Cache.CUI.WhiteColor);
@@ -2072,7 +2072,18 @@ public partial class AdminModule
 	private void PluginBrowserChange(Arg args)
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
+		var player = ap.Player;
 		var tab = Singleton.GetTab(ap.Player);
+		var vendorName = args.GetString(0);
+
+		if (vendorName == "LIST")
+		{
+			ap.SetStorage(tab, "listview", true);
+			tab.OnChange.Invoke(ap, tab);
+			Singleton.Draw(player);
+			return;
+		}
+
 		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), args.Args[0])));
 		vendor.Refresh();
 		PluginsTab.TagFilter.Clear();
@@ -2197,41 +2208,6 @@ public partial class AdminModule
 					Array.Clear(arg, 0, arg.Length);
 				}
 				break;
-			case "15":
-			{
-				tab.CreateDialog($"Are you sure you want to fetch the {vendor.Type} plugin list?", ap =>
-				{
-					var id = string.Empty;
-					switch (vendor)
-					{
-						case PluginsTab.Codefling:
-							id = "cf";
-							break;
-
-						case PluginsTab.uMod:
-							id = "umod";
-							break;
-					}
-
-					var dataPath = Path.Combine(Defines.GetDataFolder(), $"vendordata_{id}.db");
-					OsEx.File.Delete(dataPath);
-
-					if (vendor is PluginsTab.IVendorStored stored && !stored.Load())
-					{
-						vendor.FetchList(vendor => vendor.Refresh());
-						vendor.Refresh();
-					}
-					if (vendor is PluginsTab.IVendorAuthenticated auth)
-					{
-						auth.RefreshUser(ap);
-					}
-
-					Singleton.Draw(player);
-				}, null);
-
-				Singleton.Draw(player);
-				break;
-			}
 		}
 
 		Singleton.Draw(args.Player());
@@ -2274,25 +2250,6 @@ public partial class AdminModule
 	}
 
 	[Conditional("!MINIMAL")]
-	[ProtectedCommand("pluginbrowser.tagfilter")]
-	private void PluginBrowserTagFilter(Arg args)
-	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		vendor.Refresh();
-
-		var filter = args.Args.ToString(" ");
-
-		if (PluginsTab.TagFilter.Contains(filter)) PluginsTab.TagFilter.Remove(filter);
-		else PluginsTab.TagFilter.Add(filter);
-
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
-
-		Singleton.Draw(args.Player());
-	}
-
-	[Conditional("!MINIMAL")]
 	[ProtectedCommand("pluginbrowser.search")]
 	private void PluginBrowserSearch(Arg args)
 	{
@@ -2321,7 +2278,7 @@ public partial class AdminModule
 
 		if (vendor is PluginsTab.Installed) return;
 
-		tab.CreateDialog("Are you sure you want to redownload the plugin list?\nThis might take a while.", ap =>
+		tab.CreateDialog($"Are you sure you want to fetch the {vendor.Type} plugin list?", ap =>
 		{
 			var id = string.Empty;
 			switch (vendor)
@@ -2348,10 +2305,8 @@ public partial class AdminModule
 				auth.RefreshUser(ap);
 			}
 
-			Singleton.Draw(args.Player());
+			Singleton.Draw(ap.Player);
 		}, null);
-
-		Singleton.Draw(args.Player());
 	}
 
 	[Conditional("!MINIMAL")]
