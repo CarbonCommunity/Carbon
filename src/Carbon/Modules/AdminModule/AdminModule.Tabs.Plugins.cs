@@ -100,7 +100,7 @@ public partial class AdminModule
 			OsEx.Folder.Create(Path.Combine(Defines.GetScriptsFolder(), "backups"));
 
 			Tab tab = null;
-			tab = new Tab("newplugins", "New Plugins", Community.Runtime.Core, onChange: (session, tab1) =>
+			tab = new Tab("plugins", "Plugins", Community.Runtime.Core, onChange: (session, tab1) =>
 			{
 				tab.AddColumn(0, true);
 				tab.AddColumn(1, true);
@@ -2132,22 +2132,30 @@ public partial class AdminModule
 			{
 				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
 				var path = Path.Combine(Defines.GetConfigsFolder(), plugin.Config.Filename);
-				Singleton.SetTab(ap.Player, ConfigEditor.Make(OsEx.File.ReadText(path),
-					(ap, jobject) =>
-					{
-						Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
-					},
-					(ap, jobject) =>
-					{
-						OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
-						Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
-					},
-					(ap, jobject) =>
-					{
-						OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
-						plugin.ProcessorProcess.MarkDirty();
-						Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
-					}));
+				if (OsEx.File.Exists(path))
+				{
+					Singleton.SetTab(ap.Player, ConfigEditor.Make(OsEx.File.ReadText(path),
+						(ap, jobject) =>
+						{
+							Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
+						},
+						(ap, jobject) =>
+						{
+							OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
+							Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
+						},
+						(ap, jobject) =>
+						{
+							OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
+							plugin.ProcessorProcess.MarkDirty();
+							Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
+						}));
+				}
+
+				else
+				{
+					args.ReplyWith($"Config file not found at '{path}'");
+				}
 				Array.Clear(arg, 0, arg.Length);
 				break;
 			}
