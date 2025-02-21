@@ -420,10 +420,10 @@ public partial class AdminModule
 							xMin: 0.05f, xMax: 0.14f, yMin: 0.2f, yMax: 0.8f);
 						cui.CreateProtectedInputField(container, search, accentReadableColor,
 							string.IsNullOrEmpty(searchInput) ? "Search..." : searchInput, 13, 50, false,
-							xMin: 0.17f, command: "searchpage", align: TextAnchor.MiddleLeft,
+							xMin: 0.17f, command: "pluginbrowser.search", align: TextAnchor.MiddleLeft,
 							needsKeyboard: true);
 						var clearSearch = cui.CreateProtectedButton(container, search, Cache.CUI.BlankColor,
-							Cache.CUI.BlankColor, string.Empty, 0, xMin: 0.9f, command: "searchpage ");
+							Cache.CUI.BlankColor, string.Empty, 0, xMin: 0.9f, command: "pluginbrowser.search ");
 						cui.CreateImage(container, clearSearch, "close", pageButtonColorLightDark,
 							xMin: 0.5f, xMax: 0.5f, yMin: 0.5f, yMax: 0.5f, OxMin: -5, OxMax: 5, OyMin: -5,
 							OyMax: 5);
@@ -2275,9 +2275,12 @@ public partial class AdminModule
 		vendor.Refresh();
 
 		var search = ap.SetStorage(tab, "search", args.Args.ToString(" "));
-		var page = ap.SetStorage(tab, "page", 0);
+		ap.SetStorage(tab, "page", 0);
 
-		if (search == "Search...") ap.SetStorage(tab, "search", string.Empty);
+		if (search == "Search...")
+		{
+			ap.SetStorage(tab, "search", string.Empty);
+		}
 
 		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 
