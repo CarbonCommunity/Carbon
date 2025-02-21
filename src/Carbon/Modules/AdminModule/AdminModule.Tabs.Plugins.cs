@@ -193,7 +193,7 @@ public partial class AdminModule
 						{
 							var btn = cui.CreateProtectedButton(container, panel,
 								isSelected ? "#af3726" : "#454239", Cache.CUI.BlankColor, string.Empty, 0,
-								xMin: 0.05f, xMax: 0.05f, OxMin: optionsOffset, OxMax: optionsOffset + optionsWidth, command: $"pluginbrowser.search {text}");
+								xMin: 0.05f, xMax: 0.05f, OxMin: optionsOffset, OxMax: optionsOffset + optionsWidth, command: $"pluginbrowser.changetab {text}");
 							cui.CreateImage(container, btn, "fade", Cache.CUI.WhiteColor);
 							cui.CreateText(container, btn, !isSelected ? "1 1 1 0.4" : "1 0.8 0.8 1",
 								text.ToUpper(), 12, font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: isSelected ? 0.3f : 0f);
@@ -319,7 +319,7 @@ public partial class AdminModule
 
 							var displayVendor = plugin.HasNoImage() || plugin.HasInvalidImage();
 							var card = cui.CreateProtectedButton(container, contentPanel, "0.1 0.1 0.1 0.7",
-								Cache.CUI.BlankColor, null, 0, command: $"openplugin {plugin.Id}", xMin: 0,
+								Cache.CUI.BlankColor, null, 0, command: $"pluginbrowser.selectplugin {plugin.Id}", xMin: 0,
 								xMax: 0, yMin: 1, yMax: 1,
 								OxMin: currentWidth, OxMax: currentWidth + cardWidth,
 								OyMin: -(currentHeight + cardHeight), OyMax: -currentHeight);
@@ -515,7 +515,6 @@ public partial class AdminModule
 								Cache.CUI.BlankColor,
 								out var selectedContent, out _, out var selectedVerticalBar);
 
-							var selectedHeight = 600.Clamp(500, int.MaxValue);
 							const float detailBarThickness = 2;
 							const float detailBarOffset = 475;
 
@@ -545,7 +544,7 @@ public partial class AdminModule
 								OyMin: -(detailBarOffset + detailBarThickness), OyMax: -detailBarOffset);
 
 							cui.CreateProtectedButton(container, selectedScroll, Cache.CUI.BlankColor,
-								Cache.CUI.BlankColor, string.Empty, 0, command: "closeplugin");
+								Cache.CUI.BlankColor, string.Empty, 0, command: "pluginbrowser.deselectplugin");
 
 							var changelog = cui.CreatePanel(container, selectedScroll, "0.2 0.2 0.2 0.9",
 								xMin: 0.05f, xMax: 0.95f, yMin: 1, OyMin: -700, OyMax: -500);
@@ -2193,21 +2192,38 @@ public partial class AdminModule
 				break;
 			}
 			case "10":
+			{
+				var pluginName = arg.Skip(1).ToString(" ");
+				if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
 				{
-					var pluginName = arg.Skip(1).ToString(" ");
-					if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
-					{
-						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
-						Logger.Log($" [{vendor.Type}] Unfavorited plugin '{pluginName}'");
-					}
-					else
-					{
-						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
-						Logger.Log($" [{vendor.Type}] Favorited plugin '{pluginName}'");
-					}
-					Array.Clear(arg, 0, arg.Length);
+					PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
+					Logger.Log($" [{vendor.Type}] Unfavorited plugin '{pluginName}'");
+				}
+				else
+				{
+					PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
+					Logger.Log($" [{vendor.Type}] Favorited plugin '{pluginName}'");
+				}
+				Array.Clear(arg, 0, arg.Length);
+				break;
+			}
+			case "11":
+			{
+				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(args.GetString(1), StringComparison.InvariantCultureIgnoreCase));
+				var fileName = Path.GetFileNameWithoutExtension(plugin.File);
+				var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginPath(fileName).Value);
+				if (plugin.IsInstalled())
+				{
+					ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.unload \"{fileName}\"");
+					Singleton.Draw(player);
+				}
+				else if(isLoadable)
+				{
+					ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.load \"{fileName}\"");
+					Singleton.Draw(player);
 				}
 				break;
+			}
 		}
 
 		Singleton.Draw(args.Player());
@@ -2311,30 +2327,116 @@ public partial class AdminModule
 
 	[Conditional("!MINIMAL")]
 	[ProtectedCommand("pluginbrowser.selectplugin")]
-	private void PluginBrowserSelectPlugin(Arg args)
+	private void PluginBrowserSelectPlugin(Arg arg)
 	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		vendor.Refresh();
+		var session = Singleton.GetPlayerSession(arg.Player());
+		var tab = session.SelectedTab;
+		var vendor = PluginsTab.GetVendor(session.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
+		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(arg.GetString(0)));
+		session.SetStorage(tab, "selectedplugin", plugin);
 
-		ap.SetStorage(tab, "selectedplugin", vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[0]));
+		const string accentReadableColor = "0.8 0.8 0.8 0.6";
+		const float fadeTime = 1f;
+		const string starEmpty = "☆";
+		const string starFull = "★";
 
-		Singleton.Draw(args.Player());
+		using var cui = new CUI(Singleton.Handler);
+		using var update = cui.UpdatePool();
+
+		if (!DateTime.TryParse(plugin.Date, out var date))
+		{
+			date = DateTime.Now;
+		}
+
+		update.Add(cui.UpdatePanel("selectedpluginpnl", "0.1 0.1 0.1 0.5", xMin: 0.0001f, xMax: 1f, yMin: 0.0001f, yMax: 1, blur: false));
+		update.Add(cui.UpdateClientImage("selectedpluginicn", url: plugin.Image, "1 1 1 0.85", xMin: 0, xMax: 1, yMin: 1, yMax: 1, OyMin: -1000, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedpluginname", Cache.CUI.WhiteColor, text: plugin.Name, 35, xMin: 0.05f, yMin: 1, OyMin: -400, font: CUI.Handler.FontTypes.RobotoCondensedBold, align: TextAnchor.LowerLeft, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedpluginprice", plugin.IsPaid() ? "#e0e344" : "#44e3db", text: plugin.IsPaid() ? $"${plugin.OriginalPrice.ToFloat():0.00}" : "FREE", 25, xMax: 0.925f, yMin: 1, OyMin: -400, font: CUI.Handler.FontTypes.RobotoCondensedBold, align: TextAnchor.LowerRight, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedpluginchlog", accentReadableColor, text: plugin.Changelog, 13, align: TextAnchor.UpperLeft, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedplugindesc", accentReadableColor, text: plugin.Description, 12, xMin: 0.05f, xMax: 0.95f, yMin: 1, OyMin: -470, OyMax: -420, font: CUI.Handler.FontTypes.RobotoCondensedRegular, align: TextAnchor.UpperLeft, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedpluginrdate", accentReadableColor, text: $"{date.Day} {date:MMMM}, {date.Year:0000}", 15, yMax: 0.5f, align: TextAnchor.MiddleCenter, font: CUI.Handler.FontTypes.RobotoCondensedRegular, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedplugininfo", color: accentReadableColor, text: $"by <b>{(plugin.Author)}</b>  <b>•</b>  v{plugin.Version}  <b>•</b>  Updated on {plugin.UpdateDate}  <b>•</b>  {plugin.DownloadCount:n0} downloads", 12, xMin: 0.05f, xMax: 0.95f, yMin: 1, OyMin: -450, OyMax: -400, align: TextAnchor.UpperLeft, fadeIn: fadeTime));
+
+		var builder = Facepunch.Pool.Get<StringBuilder>();
+
+		for (int i = 0; i < 5; i++)
+		{
+			builder.Append(plugin.Rating <= i ? starEmpty : starFull);
+		}
+
+		update.Add(cui.UpdateText("selectedpluginrating", accentReadableColor, builder.ToString(), 18, xMin: 0.3f, xMax: 0.7f, yMin: 0.7f, yMax: 0.75f, align: TextAnchor.UpperCenter));
+		Facepunch.Pool.FreeUnmanaged(ref builder);
+
+		if (plugin.IsInstalled())
+		{
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#b84242", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 2 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#f7a3a3", text: "UNINSTALL", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "trashcan", "#f7a3a3"));
+			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.WhiteColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", "#b84242", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b2_txt", "#f7a3a3", text: "UNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b2_icn", "installed", "#f7a3a3"));
+			update.Add(cui.UpdateImage("selectedplugin_b2_fade", "fade", Cache.CUI.WhiteColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b3", "0.2 0.2 0.2 0.8", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 3 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b3_txt", "0.8 0.8 0.8 0.8", text: "CONFIG", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b3_icn", "file", "0.8 0.8 0.8 0.8"));
+			update.Add(cui.UpdateImage("selectedplugin_b3_fade", "fade", Cache.CUI.WhiteColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b4", "0.2 0.2 0.2 0.8", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 5 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b4_txt", "0.8 0.8 0.8 0.8", text: "LANG", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b4_icn", "translate", "0.8 0.8 0.8 0.8"));
+			update.Add(cui.UpdateImage("selectedplugin_b4_fade", "fade", Cache.CUI.WhiteColor));
+
+			var isOutdated = !plugin.IsUpToDate();
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b5", $"0.2 0.2 0.2 {(isOutdated ? 0.8f : 0.2f)}", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: isOutdated ? $"pluginbrowser.interact 1 {plugin.Id}" : string.Empty));
+			update.Add(cui.UpdateText("selectedplugin_b5_txt", "0.8 0.8 0.8 0.8", text: "UPDATE", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b5_icn", "clouddl", "0.8 0.8 0.8 0.8"));
+			update.Add(cui.UpdateImage("selectedplugin_b5_fade", "fade", Cache.CUI.WhiteColor));
+		}
+		else
+		{
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 0 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#d9f7a3", text: "DOWNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "clouddl", "#d9f7a3"));
+			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.BlankColor));
+
+			var isLoadable =
+				!string.IsNullOrEmpty(CorePlugin.GetPluginPath(Path.GetFileNameWithoutExtension(plugin.File)).Value);
+			Logger.Log(CorePlugin.GetPluginPath(plugin.Name).Value);
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", !isLoadable ? CUI.HexToRustColor("#8db842", 0.4f) : "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b2_txt", "#d9f7a3", text: "LOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b2_icn", "installed", "#d9f7a3"));
+			update.Add(cui.UpdateImage("selectedplugin_b2_fade", "fade", Cache.CUI.WhiteColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b3", Cache.CUI.BlankColor, Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft));
+			update.Add(cui.UpdateText("selectedplugin_b3_txt", Cache.CUI.BlankColor, text: string.Empty, 0));
+			update.Add(cui.UpdateImage("selectedplugin_b3_icn", "trashcan", Cache.CUI.BlankColor));
+			update.Add(cui.UpdateImage("selectedplugin_b3_fade", "fade", Cache.CUI.BlankColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b4", Cache.CUI.BlankColor, Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft));
+			update.Add(cui.UpdateText("selectedplugin_b4_txt", Cache.CUI.BlankColor, text: string.Empty, 0));
+			update.Add(cui.UpdateImage("selectedplugin_b4_icn", "trashcan", Cache.CUI.BlankColor));
+			update.Add(cui.UpdateImage("selectedplugin_b4_fade", "fade", Cache.CUI.BlankColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b5", Cache.CUI.BlankColor, Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft));
+			update.Add(cui.UpdateText("selectedplugin_b5_txt", Cache.CUI.BlankColor, text: string.Empty, 0));
+			update.Add(cui.UpdateImage("selectedplugin_b5_icn", "trashcan", Cache.CUI.BlankColor));
+			update.Add(cui.UpdateImage("selectedplugin_b5_fade", "fade", Cache.CUI.BlankColor));
+		}
+
+		update.Send(arg.Player());
 	}
 
 	[Conditional("!MINIMAL")]
 	[ProtectedCommand("pluginbrowser.deselectplugin")]
-	private void PluginBrowserDeselectPlugin(Arg args)
+	private void PluginBrowserDeselectPlugin(Arg arg)
 	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		vendor.Refresh();
-
-		ap.SetStorage(tab, "selectedplugin", (PluginsTab.Plugin)default);
-
-		Singleton.Draw(args.Player());
+		using var cui = new CUI(Singleton.Handler);
+		using var update = cui.UpdatePool();
+		update.Add(cui.UpdatePanel("selectedpluginpnl", Cache.CUI.BlankColor, xMin: 0, xMax: 0, yMin: -1000, yMax: -1000, blur: false));
+		update.Send(arg.Player());
 	}
 
 	[Conditional("!MINIMAL")]
