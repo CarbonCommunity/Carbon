@@ -357,6 +357,8 @@ public partial class AdminModule
 							var currentlyDisplaying = ConVarSnapshots.Snapshots.Count(x =>
 								string.IsNullOrEmpty(convarSearch) || x.Key.Contains(convarSearch));
 
+							tab.AddText(1, "Changing the following values will not be stored anywhere. This page is simply for informational purposes.\nIf you want Rust to load up your changes, please add them in 'server/identity/cfg/server.cfg'.", 8, "1 1 1 0.5", TextAnchor.MiddleCenter);
+
 							if (string.IsNullOrEmpty(convarSearch))
 							{
 								tab.AddInput(1, $"Search ({currentlyDisplaying:n0})", ap => convarSearch, 0, false,
