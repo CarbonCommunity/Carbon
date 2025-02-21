@@ -187,7 +187,7 @@ public partial class AdminModule
 							CreateTabButton(cui, container, options, vendor, selectedVendor.BarInfo.ToUpper(), isSelected, ref optionsOffset);
 						}
 
-						CreateTabButton(cui, container, options, "LIST", "SHOW IN LIST VIEW", true, ref optionsOffset);
+						// CreateTabButton(cui, container, options, "LIST", "SHOW IN LIST VIEW", true, ref optionsOffset);
 
 						static void CreateTabButton(CUI cui, CuiElementContainer container, string panel, string text, string subtext, bool isSelected, ref float optionsOffset)
 						{
