@@ -2326,6 +2326,7 @@ public partial class AdminModule
 
 			Singleton.Draw(ap.Player);
 		}, null);
+		Singleton.Draw(ap.Player);
 	}
 
 	[Conditional("!MINIMAL")]
