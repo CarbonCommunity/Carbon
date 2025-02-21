@@ -84,7 +84,7 @@ public partial class CorePlugin
 						unloaded.AddRow(string.Empty, Path.GetFileName(unloadedPlugin));
 					}
 
-					using var failed = new StringTable("*", $"failed plugins ({ModLoader.FailedCompilations.Count(x => x.Value.HasFailed()):n0})", "Line", "Stacktrace");
+					using var failed = new StringTable("*", $"failed plugins ({ModLoader.FailedCompilations.Count(x => x.Value.HasFailed()):n0})", "line", "stacktrace");
 
 					foreach (var compilation in ModLoader.FailedCompilations.Values)
 					{

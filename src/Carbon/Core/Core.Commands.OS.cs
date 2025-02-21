@@ -92,10 +92,18 @@ public partial class CorePlugin
 		arg.ReplyWith($"Opened '{folder}'");
 	}
 
-	[ConsoleCommand("delete", "Locally deletes a file or directory relative to the server root. . Syntax: c.deleteext \"path/to\" \"cs\"")]
+	[ConsoleCommand("delete", "Locally deletes a file or directory relative to the server root. Syntax: c.deleteext \"path/to\"")]
 	[AuthLevel(2)]
 	private void Delete(ConsoleSystem.Arg arg)
 	{
+		if (!arg.HasArgs())
+		{
+			arg.ReplyWith($"No arguments provided!\n" +
+			              $"Syntax: c.deleteext \"path/to\"\n" +
+			              $"Syntax: c.deleteext \"path/to/file.txt\"");
+			return;
+		}
+
 		var path = Path.Combine(Defines.GetRootFolder(), arg.GetString(0));
 		OsEx.File.Delete(path);
 		OsEx.Folder.Delete(path);
@@ -106,6 +114,13 @@ public partial class CorePlugin
 	[AuthLevel(2)]
 	private void DeleteExt(ConsoleSystem.Arg arg)
 	{
+		if (!arg.HasArgs(2))
+		{
+			arg.ReplyWith($"Not enough arguments provided!\n" +
+			              $"Syntax: c.deleteext \"path/to\" \"cs\"");
+			return;
+		}
+
 		var folder = Path.Combine(Defines.GetRootFolder(), arg.GetString(0));
 		var extension = arg.GetString(1);
 
