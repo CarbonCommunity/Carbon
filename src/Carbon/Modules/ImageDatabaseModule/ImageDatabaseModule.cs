@@ -51,6 +51,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 		["minimize"] = "https://carbonmod.gg/assets/media/cui/minimize.png",
 		["folder"] = "https://carbonmod.gg/assets/media/cui/folder.png",
 		["file"] = "https://carbonmod.gg/assets/media/cui/file.png",
+		["translate"] = "https://carbonmod.gg/assets/media/cui/translate.png",
 		["cf_hero"] = "https://carbonmod.gg/assets/media/cui/pluginstab/cf_hero.png",
 		["umod_hero"] = "https://carbonmod.gg/assets/media/cui/pluginstab/umod_hero.png",
 		["installed_hero"] = "https://carbonmod.gg/assets/media/cui/pluginstab/installed_hero.png",
@@ -58,7 +59,9 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 		["fade_flip"] = "https://carbonmod.gg/assets/media/cui/pluginstab/fade_flip.png",
 		["empty_star"] = "https://carbonmod.gg/assets/media/cui/pluginstab/empty_star.png",
 		["half_star"] = "https://carbonmod.gg/assets/media/cui/pluginstab/half_star.png",
-		["full_star"] = "https://carbonmod.gg/assets/media/cui/pluginstab/full_star.png"
+		["full_star"] = "https://carbonmod.gg/assets/media/cui/pluginstab/full_star.png",
+		["top_left"] = "https://carbonmod.gg/assets/media/cui/pluginstab/top_left.png",
+		["default_profile"] = "https://carbonmod.gg/assets/media/cui/pluginstab/default_profile.jpg"
 	};
 
 	internal string _getProtoDataPath()
@@ -222,7 +225,7 @@ public partial class ImageDatabaseModule : CarbonModule<ImageDatabaseConfig, Emp
 
 		return false;
 	}
-	
+
 	public void QueueBatch(bool @override, IEnumerable<string> urls)
 	{
 		if (urls == null || !urls.Any())

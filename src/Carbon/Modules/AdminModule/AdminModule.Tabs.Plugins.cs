@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Oxide.Game.Rust.Cui;
 using ProtoBuf;
+using UnityEngine.UI;
 using static ConsoleSystem;
 using Timer = Oxide.Plugins.Timer;
 
@@ -71,6 +72,8 @@ public partial class AdminModule
 			"peanus"
 		];
 
+		public static Tab TabInstance;
+
 		public static Vendor CodeflingInstance;
 		public static Vendor uModInstance;
 		public static Vendor LocalInstance;
@@ -96,14 +99,616 @@ public partial class AdminModule
 		{
 			OsEx.Folder.Create(Path.Combine(Defines.GetScriptsFolder(), "backups"));
 
-			var tab = new Tab("plugins", "Plugins", Community.Runtime.Core, (ap, t) =>
+			Tab tab = null;
+			tab = new Tab("plugins", "Plugins", Community.Runtime.Core, onChange: (session, tab1) =>
 			{
-				ap.SetStorage(t, "selectedplugin", (Plugin)default);
-				LocalInstance?.Refresh();
-			}, "plugins.use")
-			{
-				Override = (t, cui, container, parent, ap) => Draw(cui, container, parent, t, ap)
-			};
+				tab.AddColumn(0, true);
+				tab.AddColumn(1, true);
+
+				var listView = session.GetStorage(tab, "listview", false);
+				if (listView)
+				{
+					tab.Override = null;
+					tab.AddButton(0, "Main View", ap =>
+					{
+						ap.SetStorage(tab, "listview", false);
+						tab.OnChange?.Invoke(ap, tab);
+						Singleton.Draw(ap.Player);
+					});
+
+					var search = session.GetStorage(tab, "search", string.Empty);
+					tab.AddInput(0, "Search", _ => search, (ap, args) =>
+					{
+						search = ap.SetStorage(tab, "search", args.ToString(" "));
+						tab.OnChange?.Invoke(ap, tab);
+					});
+
+					var selectedPlugin = session.GetStorage<Plugin>(tab, "selectedplugin");
+					var vendors = Enum.GetNames(typeof(VendorTypes));
+					for (int i = 0; i < vendors.Length; i++)
+					{
+						var vendor = vendors[i];
+						tab.AddName(0, vendor);
+
+						var plugins = GetPlugins(GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), vendor)), tab, session, out _, int.MaxValue);
+						for (int p = 0; p < plugins.Count; p++)
+						{
+							var plugin = plugins[p];
+
+							if (!string.IsNullOrEmpty(search) && (!plugin.Name.Contains(search, CompareOptions.IgnoreCase) &&
+							                                      !plugin.Author.Contains(search, CompareOptions.IgnoreCase)))
+							{
+								continue;
+							}
+
+							tab.AddButton(0, $"{plugin.Name}  <size=8>{plugin.CurrentVersion()}  {plugin.Author}</size>", ap =>
+							{
+								session.SetStorage(tab, "selectedplugin", plugin);
+								tab.OnChange?.Invoke(ap, tab);
+							}, ap => plugin == selectedPlugin ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
+						}
+						Facepunch.Pool.FreeUnmanaged(ref plugins);
+					}
+
+					if (selectedPlugin != null)
+					{
+						var isLoaded = selectedPlugin.IsInstalled();
+						tab.AddInput(1, "Name", ap => selectedPlugin.Name);
+						tab.AddInput(1, "Author", ap => selectedPlugin.Author);
+						tab.AddInput(1, "Version", ap => selectedPlugin.Version);
+						tab.AddName(1, "Settings");
+						tab.AddButtonArray(1, 0f, new Tab.OptionButton("Reload", ap =>
+						{
+							if (isLoaded)
+							{
+								selectedPlugin.ExistentPlugin.ProcessorProcess.MarkDirty();
+							}
+						}, ap => isLoaded ? Tab.OptionButton.Types.Warned : Tab.OptionButton.Types.None));
+					}
+				}
+				else
+				{
+					tab.Override = (tab, cui, container, panel, ap) =>
+					{
+						cui.CreatePanel(container, panel, Cache.CUI.BlackColor);
+
+						const string starEmpty = "☆";
+						const string starFull = "★";
+						const float optionsHeight = 0.07f;
+						const float optionsWidth = 100f;
+						const float optionsSpacing = 2f;
+						var optionsOffset = 0f;
+						var selectedVendor = GetVendor(ap.GetStorage(tab, "vendor", VendorTypes.Installed));
+						var options = cui.CreatePanel(container, panel, "#1f1f1d", yMin: 1f - optionsHeight);
+
+						foreach (var vendor in Enum.GetNames(typeof(VendorTypes)))
+						{
+							var isSelected = selectedVendor.GetType().Name == vendor;
+							CreateTabButton(cui, container, options, vendor, selectedVendor.BarInfo.ToUpper(), isSelected, ref optionsOffset);
+						}
+
+						// CreateTabButton(cui, container, options, "LIST", "SHOW IN LIST VIEW", true, ref optionsOffset);
+
+						static void CreateTabButton(CUI cui, CuiElementContainer container, string panel, string text, string subtext, bool isSelected, ref float optionsOffset)
+						{
+							var btn = cui.CreateProtectedButton(container, panel,
+								isSelected ? "#af3726" : "#454239", Cache.CUI.BlankColor, string.Empty, 0,
+								xMin: 0.05f, xMax: 0.05f, OxMin: optionsOffset, OxMax: optionsOffset + optionsWidth, command: $"pluginbrowser.changetab {text}");
+							cui.CreateImage(container, btn, "fade", Cache.CUI.WhiteColor);
+							cui.CreateText(container, btn, !isSelected ? "1 1 1 0.4" : "1 0.8 0.8 1",
+								text.ToUpper(), 12, font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: isSelected ? 0.3f : 0f);
+
+							if (isSelected)
+							{
+								cui.CreateText(container, btn, "1 0.8 0.8 0.5", subtext, 10, yMax: 0.5f);
+							}
+
+							optionsOffset += optionsWidth + optionsSpacing;
+						}
+
+						var scroll = cui.CreateScrollView(container, panel, true, false,
+							ScrollRect.MovementType.Elastic, 0.1f, true, 0.1f, 150,
+							Cache.CUI.BlankColor, out var content, out _, out var verticalBar, yMax: 1f - optionsHeight);
+
+						const float cardWidth = 150;
+						const float cardWidthMargin = 50;
+						const float cardHeight = 190;
+						const float cardHeightMargin = 150;
+						const float cardSpacing = 10;
+						const float cardAnimDuration = 0.2f;
+						const string accentReadableColor = "0.8 0.8 0.8 0.6";
+
+						const string pageButtonColor = "0.2 0.2 0.2 0.9";
+						const string pageButtonColorDark = "0.2 0.2 0.2 0.5";
+						const string pageButtonColorLightDark = "0.4 0.4 0.4 0.8";
+
+						var searchInput = ap.GetStorage(tab, "search", string.Empty);
+						var plugins = GetPlugins(selectedVendor, tab, ap, out var maxPages, 75);
+						var page = ap.GetOrCreatePage(230);
+						var count = (float)plugins.Count();
+						var rows = Mathf.Ceil(count / 5f) - 2;
+						var height = (cardHeightMargin + (rows * (cardHeight + cardSpacing))).Clamp(30f, int.MaxValue);
+						page.TotalPages = maxPages;
+						page.Check();
+
+						content.AnchorMin = "0 0";
+						content.AnchorMax = "1 1";
+						content.OffsetMin = $"0 -{height}";
+						content.OffsetMax = $"0 0";
+						verticalBar.Size = 7;
+						verticalBar.AutoHide = false;
+
+						cui.CreateImage(container, scroll, selectedVendor.Hero, Cache.CUI.WhiteColor,
+							yMin: 1, yMax: 1, OyMin: -500);
+
+						var contentPanel = cui.CreatePanel(container, scroll, "0 0.1 0.3 0.4", yMin: 1,
+							yMax: 1, OyMin: -(height + 450));
+
+						if (!plugins.Any())
+						{
+							cui.CreateText(container, contentPanel, "0.4 0.4 0.4 0.5",
+								"No plugins available", 10);
+						}
+
+						cui.CreateText(container, contentPanel, "0.8 0.8 0.8 0.9",
+							selectedVendor.Type.ToUpper(), 32, xMin: 0.04f, yMin: 1, yMax: 1, OyMin: -100,
+							OyMax: -30, font: CUI.Handler.FontTypes.RobotoCondensedBold,
+							align: TextAnchor.UpperLeft);
+						cui.CreateText(container, contentPanel, "0.6 0.6 0.6 0.9",
+							"The largest marketplace for Rust community-driven content.", 15, xMin: 0.04f,
+							yMin: 1, yMax: 1, OyMin: -100, OyMax: -70,
+							font: CUI.Handler.FontTypes.RobotoCondensedRegular,
+							align: TextAnchor.UpperLeft);
+
+						if (selectedVendor.CanRefresh)
+						{
+							var refresh = cui.CreateProtectedButton(container, contentPanel,
+								"0.2 0.3 0.5 0.9", Cache.CUI.BlankColor, string.Empty, 00,
+								xMin: 0.26f, xMax: 0.295f, yMin: 1, yMax: 1, OyMin: -130, OyMax: -100,
+								command: "pluginbrowser.refreshvendor");
+							cui.CreateImage(container, refresh, "reload", "0.3 0.5 0.8 1", xMin: 0.2f,
+								xMax: 0.8f, yMin: 0.2f, yMax: 0.8f);
+							cui.CreateImage(container, refresh, "fade", Cache.CUI.WhiteColor);
+						}
+
+						if (selectedVendor is IVendorAuthenticated authVendor)
+						{
+							var defaultProfile = Singleton.ImageDatabase.GetKeyImage("default_profile");
+							cui.CreateClientImage(container, contentPanel,
+								authVendor != null && authVendor.IsLoggedIn ? authVendor.User.AvatarUrl : defaultProfile,
+								"1 1 1 0.7", xMin: 0.91f, xMax: 0.96f, yMin: 1, yMax: 1, OyMin: -65,
+								OyMax: -20);
+							cui.CreateText(container, contentPanel, "0.8 0.8 0.8 0.9",
+								authVendor != null && authVendor.IsLoggedIn
+									? authVendor.User?.DisplayName?.ToUpper()
+									: "GUEST", 15, xMax: 0.90f, yMin: 1, yMax: 1, OyMin: -100, OyMax: -30,
+								font: CUI.Handler.FontTypes.RobotoCondensedBold,
+								align: TextAnchor.UpperRight);
+							cui.CreateText(container, contentPanel, "0.85 0.8 0.1 0.9",
+								authVendor != null && authVendor.IsLoggedIn
+									? authVendor.User?.Authority?.ToUpper()
+									: "NOT AUTHENTICATED", 10, xMax: 0.90f, yMin: 1, yMax: 1, OyMin: -100,
+								OyMax: -50, font: CUI.Handler.FontTypes.RobotoCondensedRegular,
+								align: TextAnchor.UpperRight);
+
+							if (authVendor != null)
+							{
+								cui.CreateProtectedButton(container, contentPanel,
+									authVendor != null && authVendor.IsLoggedIn
+										? "0.55 0.1 0.1 1"
+										: "0.1 0.55 0.1 1",
+									authVendor != null && authVendor.IsLoggedIn
+										? "1 0.5 0.5 1"
+										: "0.5 1 0.5 1",
+									authVendor != null && authVendor.IsLoggedIn ? "LOG OUT" : "LOG IN", 10,
+									xMin: 0.85f, xMax: 0.9f, yMin: 1, yMax: 1, OyMin: -90, OyMax: -70,
+									font: CUI.Handler.FontTypes.RobotoCondensedBold,
+									command: "pluginbrowser.login");
+							}
+						}
+
+						var currentWidth = cardWidthMargin;
+						var currentHeight = cardHeightMargin;
+						var index = 0;
+						var currentAnim = 1f;
+						var vendorLogo = Singleton.ImageDatabase.GetKeyImage(selectedVendor.Logo);
+
+						foreach (var plugin in plugins)
+						{
+							index++;
+
+							var displayVendor = plugin.HasNoImage() || plugin.HasInvalidImage();
+							var card = cui.CreateProtectedButton(container, contentPanel, "0.1 0.1 0.1 0.7",
+								Cache.CUI.BlankColor, null, 0, command: $"pluginbrowser.selectplugin {plugin.Id}", xMin: 0,
+								xMax: 0, yMin: 1, yMax: 1,
+								OxMin: currentWidth, OxMax: currentWidth + cardWidth,
+								OyMin: -(currentHeight + cardHeight), OyMax: -currentHeight);
+							var image = cui.CreateClientImage(container, card, plugin.ImageThumbnail,
+								displayVendor ? "0 0 0 0" : "1 1 1 0.95", yMin: 1, OyMin: -cardWidth,
+								fadeIn: currentAnim);
+							if (displayVendor)
+							{
+								cui.CreatePanel(container, image, "1 1 1 0.15");
+								cui.CreateImage(container, image, vendorLogo, "0.15 0.15 0.15 0.9",
+									xMin: 0.2f, xMax: 0.8f, yMin: 0.2f + selectedVendor.LogoRatio,
+									yMax: 0.8f - selectedVendor.LogoRatio);
+							}
+
+							cui.CreateImage(container, card, "fade", Cache.CUI.WhiteColor);
+
+							// cui.CreateText(container, card, pageButtonColorLightDark, (index * (page.CurrentPage + 1)).ToString(), 8, yMin: 0, yMax: 0, OyMin: -10);
+
+							if (plugin.IsInstalled())
+							{
+								var outOfDate = !plugin.IsUpToDate();
+								var installed = cui.CreatePanel(container, image,
+									outOfDate ? "0.9 0.5 0.1 0.6" : "0.5 0.9 0.1 0.6", yMin: 0.9f);
+								cui.CreateText(container, installed,
+									outOfDate ? "1 0.75 0.5 1" : "0.75 1 0.5 1",
+									(outOfDate ? "OUTDATED" : "INSTALLED").SpacedString(1), 8,
+									font: CUI.Handler.FontTypes.RobotoCondensedBold);
+							}
+
+							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(plugin.Name);
+							var favourite = cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor,
+								Cache.CUI.BlankColor, string.Empty, 0,
+								xMin: 0, xMax: 0, yMin: 1, OxMax: 30, OyMin: -30,
+								command: $"pluginbrowser.interact 10 {plugin.Name}");
+							cui.CreateImage(container, favourite, "top_left",
+								isFavourited ? "0.7 0.2 0.2 0.6" : "0.1 0.1 0.1 0.2");
+							cui.CreateImage(container, favourite, "star",
+								isFavourited ? "0.9 0.5 0.4" : "0.1 0.1 0.1 0.5", xMin: 0.075f, xMax: 0.5f,
+								yMin: 0.5f, yMax: 0.9f);
+
+							cui.CreateText(container, card, Cache.CUI.WhiteColor,
+								plugin.Name.Truncate(17, elipsis: "...", countElipsisLength: false), 12,
+								xMin: 0.05f, yMax: 0.165f,
+								font: CUI.Handler.FontTypes.RobotoCondensedBold,
+								align: TextAnchor.UpperLeft, fadeIn: currentAnim);
+							cui.CreateText(container, card, accentReadableColor, $"by {plugin.Author}", 8,
+								xMin: 0.05f, yMax: 0.085f,
+								font: CUI.Handler.FontTypes.RobotoCondensedRegular,
+								align: TextAnchor.UpperLeft, fadeIn: currentAnim);
+
+							if (plugin.HasPrice)
+							{
+								cui.CreateText(container, card, plugin.IsPaid() ? "#e0e344" : "#44e3db",
+									plugin.IsPaid() ? $"${plugin.OriginalPrice.ToFloat():0.00}" : "FREE",
+									10, xMax: 0.95f, yMax: 0.155f,
+									font: CUI.Handler.FontTypes.RobotoCondensedBold,
+									align: TextAnchor.UpperRight, fadeIn: currentAnim);
+							}
+
+							if (plugin.Rating != -1)
+							{
+								var builder = Facepunch.Pool.Get<StringBuilder>();
+
+								for (int i = 0; i < 5; i++)
+								{
+									builder.Append(plugin.Rating <= i ? starEmpty : starFull);
+								}
+
+								cui.CreateText(container, card, accentReadableColor, builder.ToString(), 12,
+									xMin: 0.565f, xMax: 0.96f, yMin: 0.02f, yMax: 0.08f,
+									align: TextAnchor.UpperRight);
+								Facepunch.Pool.FreeUnmanaged(ref builder);
+							}
+
+							if (plugin.Owned)
+							{
+								var badge = cui.CreatePanel(container, image, "0 0.4 0.8 0.9", yMax: 0.1f);
+								cui.CreateText(container, badge, "0.5 0.75 1 1",
+									"PURCHASED".SpacedString(1), 8,
+									font: Components.CUI.Handler.FontTypes.RobotoCondensedBold);
+							}
+
+							currentWidth += cardWidth + cardSpacing;
+
+							if (index % 5 == 0)
+							{
+								currentHeight += cardHeight + cardSpacing;
+								currentWidth = cardWidthMargin;
+							}
+
+							currentAnim += cardAnimDuration;
+						}
+
+						var search = cui.CreatePanel(container, contentPanel, pageButtonColor, xMin: 0.04f,
+							xMax: 0.25f, yMin: 1, yMax: 1, OyMin: -130, OyMax: -100);
+						cui.CreateImage(container, search, "fade", Cache.CUI.WhiteColor);
+						cui.CreateImage(container, search, "magnifying-glass", accentReadableColor,
+							xMin: 0.05f, xMax: 0.14f, yMin: 0.2f, yMax: 0.8f);
+						cui.CreateProtectedInputField(container, search, accentReadableColor,
+							string.IsNullOrEmpty(searchInput) ? "Search..." : searchInput, 13, 50, false,
+							xMin: 0.17f, command: "searchpage", align: TextAnchor.MiddleLeft,
+							needsKeyboard: true);
+						var clearSearch = cui.CreateProtectedButton(container, search, Cache.CUI.BlankColor,
+							Cache.CUI.BlankColor, string.Empty, 0, xMin: 0.9f, command: "searchpage ");
+						cui.CreateImage(container, clearSearch, "close", pageButtonColorLightDark,
+							xMin: 0.5f, xMax: 0.5f, yMin: 0.5f, yMax: 0.5f, OxMin: -5, OxMax: 5, OyMin: -5,
+							OyMax: 5);
+
+						var sortId = (int)ap.GetStorage(tab, "filter", FilterTypes.None);
+						var sort = cui.CreateProtectedButton(container, contentPanel, pageButtonColor,
+							Cache.CUI.BlankColor, string.Empty, 0, xMin: 0.7f, xMax: 0.9f, yMin: 1, yMax: 1,
+							OyMin: -130, OyMax: -100, command: "pluginbrowser.changesetting filter_dd");
+						cui.CreateImage(container, sort, "fade", Cache.CUI.WhiteColor);
+						cui.CreateImage(container, sort, "sort", accentReadableColor, xMin: 0.05f,
+							xMax: 0.14f, yMin: 0.2f, yMax: 0.8f);
+						cui.CreateText(container, sort, accentReadableColor, DropdownOptions[sortId], 13,
+							xMin: 0.17f, align: TextAnchor.MiddleLeft);
+						if (DropdownShow)
+						{
+							const float optionHeight = 0.85f;
+							float currentOptionHeight = 0;
+							for (int i = 0; i < DropdownOptions.Length; i++)
+							{
+								var min = currentOptionHeight;
+								var max = currentOptionHeight - optionHeight;
+								var button = cui.CreateProtectedButton(container, sort,
+									sortId == i ? pageButtonColorLightDark : pageButtonColor,
+									Cache.CUI.BlankColor, string.Empty, 0, yMin: max, yMax: min,
+									command: $"pluginbrowser.changesetting filter_dd true call {i}");
+								cui.CreateText(container, button, accentReadableColor, DropdownOptions[i],
+									13, xMin: 0.07f, align: TextAnchor.MiddleLeft);
+								currentOptionHeight -= optionHeight;
+							}
+						}
+
+						PaginationButtons(cui, container, contentPanel, page, yMin: 1, yMax: 1, oYMin: -130,
+							oYMax: -100);
+
+						if (plugins.Any())
+						{
+							PaginationButtons(cui, container, contentPanel, page);
+						}
+
+						static void PaginationButtons(CUI cui, CuiElementContainer container, string parent,
+							PlayerSession.Page page, float xMin = 0.5f, float xMax = 0.5f, float yMin = 0,
+							float yMax = 0, float oXMin = -100, float oXMax = 100, float oYMin = 10,
+							float oYMax = 40)
+						{
+							var pageOffset = 0f;
+							var pagination = cui.CreatePanel(container, parent, Cache.CUI.BlankColor,
+								xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax, OxMin: -100, OxMax: 100,
+								OyMin: oYMin, OyMax: oYMax);
+
+							PaginationButton(ref pageOffset, cui, container, pagination, "<<",
+								command: "changepage -2");
+							PaginationButton(ref pageOffset, cui, container, pagination, "<",
+								command: "changepage -1");
+							var pageInput = cui.CreatePanel(container, pagination, pageButtonColorDark,
+								xMax: 0, OxMin: pageOffset, OxMax: pageOffset + 70f);
+							cui.CreateImage(container, pageInput, "fade", Cache.CUI.WhiteColor);
+							cui.CreateText(container, pageInput, pageButtonColorLightDark,
+								$"/ {page.TotalPages:n0}", 10, xMin: 0.5f, align: TextAnchor.MiddleLeft);
+							cui.CreateProtectedInputField(container, pageInput, Cache.CUI.WhiteColor,
+								$"{page.CurrentPage + 1}", 10, 60, false, align: TextAnchor.MiddleRight,
+								xMax: 0.45f, command: "changepage");
+							pageOffset += 75f;
+							PaginationButton(ref pageOffset, cui, container, pagination, ">",
+								command: "changepage 1");
+							PaginationButton(ref pageOffset, cui, container, pagination, ">>",
+								command: "changepage -3");
+						}
+
+						static void PaginationButton(ref float pageOffset, CUI cui,
+							CuiElementContainer container, string parent, string text,
+							bool disabled = false, string command = null)
+						{
+							var paginationLeft = cui.CreateProtectedButton(container, parent,
+								pageButtonColor, "0.7 0.7 0.7 0.4", text, 10, command: command, xMin: 0,
+								xMax: 0, OxMin: pageOffset, OxMax: pageOffset + 30f);
+							cui.CreateImage(container, paginationLeft, "fade", Cache.CUI.WhiteColor);
+
+							pageOffset += 35f;
+						}
+
+						var selectedPlugin = cui.CreatePanel(container, panel, Cache.CUI.BlankColor,
+							xMin: 0, xMax: 0, yMin: 0, yMax: 0, id: "selectedpluginpnl");
+						{
+							cui.CreatePanel(container, selectedPlugin, "0 0 0 0.6", blur: true);
+							cui.CreatePanel(container, selectedPlugin, "0 0 0 0.6");
+
+							var selectedScroll = cui.CreateScrollView(container, selectedPlugin, true,
+								false, UnityEngine.UI.ScrollRect.MovementType.Elastic, 0.1f, true, 0.1f, 50,
+								Cache.CUI.BlankColor,
+								out var selectedContent, out _, out var selectedVerticalBar);
+
+							const float detailBarThickness = 2;
+							const float detailBarOffset = 475;
+
+							selectedContent.AnchorMin = "0 0";
+							selectedContent.AnchorMax = "1 1";
+							selectedContent.OffsetMin = $"0 -250";
+							selectedContent.OffsetMax = $"0 0";
+							selectedVerticalBar.Size = 7;
+							selectedVerticalBar.AutoHide = false;
+
+							var icon = cui.CreateClientImage(container, selectedScroll, string.Empty,
+								Cache.CUI.BlankColor, id: "selectedpluginicn");
+							cui.CreateImage(container, icon, "hero_fade", "0 0.1 0.2 1");
+							cui.CreatePanel(container, selectedScroll, "0 0.1 0.2 1", OyMax: -1000);
+							cui.CreatePanel(container, icon, "0 0 0 0.2");
+
+							cui.CreateText(container, selectedScroll, Cache.CUI.WhiteColor, string.Empty, 0,
+								align: TextAnchor.UpperLeft, id: "selectedpluginname");
+							cui.CreateText(container, selectedScroll, Cache.CUI.WhiteColor, string.Empty, 0,
+								align: TextAnchor.UpperLeft, id: "selectedpluginprice");
+							cui.CreateText(container, selectedScroll, Cache.CUI.WhiteColor, string.Empty, 0,
+								align: TextAnchor.UpperLeft, id: "selectedplugindesc");
+							cui.CreateText(container, selectedScroll, accentReadableColor, string.Empty, 0,
+								align: TextAnchor.UpperLeft, id: "selectedplugininfo");
+							cui.CreatePanel(container, selectedScroll, "0.7 0.7 0.7 0.3", xMin: 0.05f,
+								xMax: 0.95f, yMin: 1, yMax: 1,
+								OyMin: -(detailBarOffset + detailBarThickness), OyMax: -detailBarOffset);
+
+							cui.CreateProtectedButton(container, selectedScroll, Cache.CUI.BlankColor,
+								Cache.CUI.BlankColor, string.Empty, 0, command: "pluginbrowser.deselectplugin");
+
+							var changelog = cui.CreatePanel(container, selectedScroll, "0.2 0.2 0.2 0.9",
+								xMin: 0.05f, xMax: 0.95f, yMin: 1, OyMin: -700, OyMax: -500);
+							cui.CreateImage(container, changelog, "fade", Cache.CUI.WhiteColor);
+							cui.CreateText(container, changelog, "1 1 1 0.8", "VERSION CHANGES", 13,
+								font: CUI.Handler.FontTypes.RobotoCondensedBold, xMin: 0.02f, yMax: 0.95f,
+								align: TextAnchor.UpperLeft);
+							cui.CreatePanel(container, changelog, "0.7 0.7 0.7 0.2", xMin: 0.78f,
+								xMax: 0.78f, yMin: 0.05f, yMax: 0.95f, OxMin: -detailBarThickness);
+
+							var version = cui.CreatePanel(container, changelog, Cache.CUI.BlankColor,
+								xMin: 0.78f);
+							cui.CreateText(container, version, "1 1 1 0.2", "RELEASE DATE", 12, yMax: 0.7f,
+								align: TextAnchor.MiddleCenter,
+								font: CUI.Handler.FontTypes.RobotoCondensedBold);
+							cui.CreateText(container, version, accentReadableColor, "14 June", 15,
+								yMax: 0.8f, align: TextAnchor.MiddleCenter,
+								font: CUI.Handler.FontTypes.RobotoCondensedRegular,
+								id: "selectedpluginrdate");
+							cui.CreatePanel(container, version, "0.7 0.7 0.7 0.2", xMin: 0.3f, xMax: 0.7f,
+								yMin: 0.55f, yMax: 0.55f, OyMin: -detailBarThickness);
+
+							cui.CreateText(container, version, "1 1 1 0.2", "RATING", 12, yMin: 0.65f,
+								align: TextAnchor.MiddleCenter,
+								font: CUI.Handler.FontTypes.RobotoCondensedBold);
+							cui.CreateText(container, version, Cache.CUI.BlankColor, string.Empty, 0,
+								xMin: 0.3f, xMax: 0.7f, yMin: 0.7f, yMax: 0.75f,
+								align: TextAnchor.UpperCenter, id: "selectedpluginrating");
+
+							var changelogScroll = cui.CreateScrollView(container, changelog, true, false,
+								UnityEngine.UI.ScrollRect.MovementType.Elastic, 0.1f, true, 0.1f, 50,
+								Cache.CUI.BlankColor,
+								out var changelogContent, out _, out var changelogVerticalBar, xMin: 0.02f,
+								xMax: 0.72f, yMin: 0.1f, yMax: 0.8f);
+
+							changelogContent.AnchorMin = "0 0";
+							changelogContent.AnchorMax = "1 1";
+							changelogContent.OffsetMin = $"0 -100";
+							changelogContent.OffsetMax = $"0 0";
+							changelogVerticalBar.HandleColor =
+								changelogVerticalBar.TrackColor = Cache.CUI.BlankColor;
+							changelogVerticalBar.Size = 0;
+							changelogVerticalBar.AutoHide = true;
+
+							cui.CreateText(container, changelogScroll, "1 1 1 0.7", "lorem ipsum", 13,
+								align: TextAnchor.UpperLeft, id: "selectedpluginchlog");
+							cui.CreateImage(container, selectedPlugin, "fade_flip", "0 0 0 1", yMin: 1,
+								OyMin: -75);
+
+							var closeButton = cui.CreateProtectedButton(container, selectedPlugin,
+								"0.2 0.2 0.2 0.9", Cache.CUI.BlankColor, string.Empty, 0,
+								command: "closeplugin", xMin: 0.05f, xMax: 0.08f, yMin: 0.9f, yMax: 0.955f);
+							cui.CreateImage(container, closeButton, "close", "0.7 0.7 0.7 0.4", xMin: 0.3f,
+								xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
+							cui.CreateImage(container, closeButton, "fade", Cache.CUI.WhiteColor);
+
+							var buttonOffset = 0f;
+							DrawButton(cui, container, selectedPlugin, "selectedplugin_b1",
+								"selectedplugin_b1_icn", "selectedplugin_b1_txt", "selectedplugin_b1_fade",
+								100, ref buttonOffset);
+							DrawButton(cui, container, selectedPlugin, "selectedplugin_b2",
+								"selectedplugin_b2_icn", "selectedplugin_b2_txt", "selectedplugin_b2_fade",
+								90, ref buttonOffset);
+							DrawButton(cui, container, selectedPlugin, "selectedplugin_b3",
+								"selectedplugin_b3_icn", "selectedplugin_b3_txt", "selectedplugin_b3_fade",
+								80, ref buttonOffset);
+							DrawButton(cui, container, selectedPlugin, "selectedplugin_b4",
+								"selectedplugin_b4_icn", "selectedplugin_b4_txt", "selectedplugin_b4_fade",
+								75, ref buttonOffset);
+							DrawButton(cui, container, selectedPlugin, "selectedplugin_b5",
+								"selectedplugin_b5_icn", "selectedplugin_b5_txt", "selectedplugin_b5_fade",
+								80, ref buttonOffset);
+
+							static void DrawButton(CUI cui, CuiElementContainer container, string parent,
+								string btn, string icn, string txt, string fade, float width,
+								ref float offset)
+							{
+								var button = cui.CreateProtectedButton(container, parent, "0.5 0.5 0.5 0.5",
+									Cache.CUI.BlankColor, string.Empty, 0, command: null, xMin: 0.09f,
+									xMax: 0.09f, OxMin: offset, OxMax: offset + width, yMin: 0.9f,
+									yMax: 0.955f, id: btn);
+								cui.CreateImage(container, button, "graph", Cache.CUI.BlankColor, xMin: 0,
+									xMax: 0, yMin: 0.5f, yMax: 0.5f, OxMin: 5, OxMax: 25, OyMin: -10,
+									OyMax: 10, id: icn);
+								cui.CreateText(container, button, Cache.CUI.BlankColor, string.Empty, 0,
+									align: TextAnchor.MiddleCenter, xMin: 0.2f,
+									font: CUI.Handler.FontTypes.RobotoCondensedBold, id: txt);
+								cui.CreateImage(container, button, "fade", Cache.CUI.BlankColor, id: fade);
+								offset += width + 5;
+							}
+						}
+
+						var auth = selectedVendor as IVendorAuthenticated;
+
+						if (auth != null)
+						{
+							if (auth.IsLoggedIn && auth.User != null && auth.User.PendingAccessToken)
+							{
+								var mainPanel = cui.CreatePanel(container, panel, "0.15 0.15 0.15 0.35",
+									blur: true);
+								cui.CreatePanel(container, mainPanel, "0 0 0 0.9");
+
+								cui.CreateText(container, panel, "1 1 1 1", $"{selectedVendor.Type} Auth",
+									25, xMin: 0.51f, yMax: 0.75f, align: TextAnchor.UpperLeft,
+									font: CUI.Handler.FontTypes.RobotoCondensedBold);
+								cui.CreateText(container, panel, "1 1 1 0.5",
+									$"Securely log into your {selectedVendor.Type} account through OAuth-based login!\n\nScan the QR code or go to the URL, log into {selectedVendor.Type} and type in the provided authentication code below to complete the login process.",
+									15, xMin: 0.51f, xMax: 0.9f, yMax: 0.67f, align: TextAnchor.UpperLeft);
+								cui.CreateText(container, panel, "1 1 1 1", "Authorization code:", 13,
+									xMin: 0.51f, yMax: 0.35f, align: TextAnchor.UpperLeft);
+
+								cui.CreateProtectedButton(container, parent: panel,
+									color: Cache.CUI.BlankColor,
+									textColor: Cache.CUI.BlankColor,
+									text: string.Empty, 0,
+									command: "pluginbrowser.closelogin");
+
+								var image = cui.CreatePanel(container, panel, "1 1 1 1", xMin: 0.12f,
+									xMax: 0.45f, yMin: 0.2f, yMax: 0.8f);
+								var code = string.Format(auth.AuthRequestEndpoint, auth.AuthCode);
+
+								cui.CreateQRCodeImage(container, image, code,
+									brandUrl: selectedVendor.Logo,
+									brandColor: "0 0 0 1",
+									brandBgColor: "1 1 1 1", 15, true, true, "0 0 0 1", xMin: 0, xMax: 1,
+									yMin: 0, yMax: 1);
+								var pan = cui.CreatePanel(container, panel, "0.1 0.1 0.1 1", xMin: 0.5f,
+									xMax: 0.8f, yMin: 0.21f, yMax: 0.31f);
+								var authUrl = cui.CreatePanel(container, image, "0.1 0.1 0.1 0.8", yMax: 0,
+									OyMin: -20);
+								cui.CreateInputField(container, authUrl, "1 1 1 1",
+									auth.AuthRequestEndpointPreview, 9, 0, true);
+								cui.CreateInputField(container, pan, "1 1 1 1", auth.AuthCode, 30, 0, true,
+									xMin: 0.05f,
+									align: TextAnchor.MiddleLeft,
+									font: CUI.Handler.FontTypes.RobotoCondensedBold);
+
+								if (auth.User.PendingResult != LoggedInUser.RequestResult.None)
+								{
+									var icon = string.Empty;
+									var color = string.Empty;
+
+									switch (auth.User.PendingResult)
+									{
+										case LoggedInUser.RequestResult.Complete:
+											icon = "checkmark";
+											color = "#81c740";
+											break;
+									}
+
+									if (!string.IsNullOrEmpty(icon))
+									{
+										cui.CreatePanel(container, image, "0 0 0 0.4", blur: true);
+										cui.CreateImage(container, image, icon, color, xMin: 0.3f,
+											xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
+									}
+								}
+							}
+						}
+
+						Facepunch.Pool.FreeUnmanaged(ref plugins);
+					};
+				}
+			});
 
 			CodeflingInstance = new Codefling();
 			if (CodeflingInstance is IVendorStored cfStored && !cfStored.Load())
@@ -129,15 +734,14 @@ public partial class AdminModule
 			LocalInstance.Refresh();
 
 			ServerOwner.Load();
-
-			return tab;
+			return TabInstance = tab;
 		}
 
-		public static List<Plugin> GetPlugins(Vendor vendor, Tab tab, PlayerSession ap)
+		public static List<Plugin> GetPlugins(Vendor vendor, Tab tab, PlayerSession ap, int pluginCount)
 		{
-			return GetPlugins(vendor, tab, ap, out _);
+			return GetPlugins(vendor, tab, ap, out _, pluginCount);
 		}
-		public static List<Plugin> GetPlugins(Vendor vendor, Tab tab, PlayerSession ap, out int maxPages)
+		public static List<Plugin> GetPlugins(Vendor vendor, Tab tab, PlayerSession ap, out int maxPages, int pluginCount)
 		{
 			maxPages = 0;
 
@@ -260,19 +864,20 @@ public partial class AdminModule
 
 					plugins = null;
 
-					maxPages = (customList.Count - 1) / 15;
+					maxPages = (customList.Count - 1) / pluginCount;
 
 					var page2 = ap.GetStorage(tab, "page", 0);
 					if (page2 > maxPages) ap.SetStorage(tab, "page", maxPages);
 
-					var page = 15 * page2;
-					var count = (page + 15).Clamp(0, customList.Count);
+					var page = pluginCount * page2;
+					var count = (page + pluginCount).Clamp(0, customList.Count);
 
 					if (count > 0)
 					{
 						for (int i = page; i < count; i++)
 						{
-							try { resultList.Add(customList[i]); } catch { }
+							try { resultList.Add(customList[i]); }
+							catch { break; }
 						}
 					}
 				}
@@ -291,7 +896,7 @@ public partial class AdminModule
 
 		public static void DownloadThumbnails(Vendor vendor, Tab tab, PlayerSession ap)
 		{
-			var plugins = GetPlugins(vendor, tab, ap);
+			var plugins = GetPlugins(vendor, tab, ap, 15);
 
 			var images = Facepunch.Pool.Get<List<string>>();
 			var imagesSafe = Facepunch.Pool.Get<List<string>>();
@@ -319,433 +924,6 @@ public partial class AdminModule
 			Facepunch.Pool.FreeUnmanaged(ref imagesSafe);
 		}
 
-		public static void Draw(CUI cui, CuiElementContainer container, string parent, Tab tab, PlayerSession ap)
-		{
-			ap.SetDefaultStorage(tab, "vendor", VendorTypes.Installed.ToString());
-
-			var header = cui.CreatePanel(container, parent, "0.2 0.2 0.2 0.5",
-				xMin: 0f, xMax: 1f, yMin: 0.95f, yMax: 1f);
-
-			var vendorName = ap.GetStorage(tab, "vendor", VendorTypes.Installed.ToString());
-			var vendor = GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), vendorName));
-
-			var vendors = Enum.GetNames(typeof(VendorTypes));
-			var cuts = 1f / vendors.Length;
-			var offset = 0f;
-			foreach (var value in vendors)
-			{
-				var v = GetVendor((VendorTypes)Enum.Parse(typeof(VendorTypes), value));
-				cui.CreateProtectedButton(container, header, vendorName == value ? "0.3 0.72 0.25 0.8" : "0.2 0.2 0.2 0.3", "1 1 1 0.7", $"<b>{value.Replace("_", ".")}</b>{(v == null ? "" : $" — {v?.BarInfo}")}", 11,
-					xMin: offset, xMax: offset + cuts, command: $"pluginbrowser.changetab {value}");
-				offset += cuts;
-			}
-
-			var grid = cui.CreatePanel(container, parent, "0.2 0.2 0.2 0.3",
-				xMin: 0f, xMax: 0.8f, yMin: 0, yMax: 0.95f);
-
-			var spacing = 0.015f;
-			var columnSize = 0.195f - spacing;
-			var rowSize = 0.3f - spacing;
-			var column = 0.02f;
-			var row = 0f;
-			var yOffset = 0.05f;
-
-			var plugins = GetPlugins(vendor, tab, ap, out var maxPages);
-
-			for (int i = 0; i < 15; i++)
-			{
-				if (i > plugins.Count() - 1) continue;
-
-				var plugin = plugins.ElementAt(i);
-
-				var card = cui.CreatePanel(container, grid, "0.2 0.2 0.2 0.4",
-					xMin: column, xMax: column + columnSize, yMin: 0.69f + row - yOffset, yMax: 0.97f + row - yOffset);
-
-				if (plugin.Owned)
-				{
-					cui.CreateImage(container, card, "glow", "1 1 1 0.5", OxMin: -20, OxMax: 20, OyMin: -20, OyMax: 20);
-				}
-
-				if (plugin.HasNoImage() || Singleton.DataInstance.HidePluginIcons)
-				{
-					cui.CreatePanel(container, card, "0.2 0.2 0.2 0.5");
-					cui.CreateImage(container, card, vendor.Logo, "0.2 0.2 0.2 0.85", xMin: 0.2f, xMax: 0.8f, yMin: 0.2f + vendor.LogoRatio, yMax: 0.8f - vendor.LogoRatio);
-				}
-				else
-				{
-					if (Singleton.ImageDatabase.HasImage(plugin.ImageThumbnail))
-					{
-						cui.CreateImage(container, card, plugin.ImageThumbnail, "1 1 1 1");
-					}
-					else
-					{
-						cui.CreateClientImage(container, card, plugin.ImageThumbnail, "1 1 1 1");
-					}
-				}
-
-				var cardTitle = cui.CreatePanel(container, card, "0 0 0 0.9", yMax: 0.25f);
-				cui.CreatePanel(container, cardTitle, "0 0 0 0.2", blur: true);
-
-				cui.CreateText(container, cardTitle, "1 1 1 1", plugin.Name, 11, xMin: 0.05f, yMax: 0.87f, align: TextAnchor.UpperLeft);
-				cui.CreateText(container, cardTitle, "0.6 0.6 0.3 0.8", $"by <b>{(plugin.ExistentPlugin != null ? plugin.ExistentPlugin.Author : plugin.Author)}</b>", 9, xMin: 0.05f, yMin: 0.15f, align: TextAnchor.LowerLeft);
-				cui.CreateText(container, cardTitle, "0.6 0.75 0.3 0.8", plugin.IsPaid() ? $"<b>${plugin.OriginalPrice}</b>" : "<b>FREE</b>", 11, xMax: 0.95f, yMin: 0.1f, align: TextAnchor.LowerRight);
-
-				var shadowShift = -0.003f;
-				cui.CreateText(container, card, "0 0 0 0.9", $"v{plugin.Version}", 9, xMax: 0.97f, yMax: 0.95f, OyMin: shadowShift, OxMin: shadowShift, OyMax: shadowShift, OxMax: shadowShift, align: TextAnchor.UpperRight);
-				cui.CreateText(container, card, "0.6 0.75 0.3 1", $"v{plugin.Version}", 9, xMax: 0.97f, yMax: 0.95f, align: TextAnchor.UpperRight);
-
-				var shadowShift2 = 0.1f;
-				if (plugin.IsInstalled())
-				{
-					cui.CreateImage(container, card, "installed", "0 0 0 0.9", xMin: 0.04f, xMax: 0.16f, yMin: 0.83f, yMax: 0.95f, OyMin: shadowShift2, OxMin: -shadowShift2, OyMax: shadowShift2, OxMax: -shadowShift2);
-					cui.CreateImage(container, card, "installed", plugin.IsUpToDate() ? "0.6 0.75 0.3 1" : "0.85 0.4 0.3 1", xMin: 0.04f, xMax: 0.16f, yMin: 0.83f, yMax: 0.95f);
-				}
-
-				cui.CreateProtectedButton(container, card, "0 0 0 0", "0 0 0 0", string.Empty, 0, command: $"pluginbrowser.selectplugin {plugin.Id}");
-
-				var favouriteButton = cui.CreateProtectedButton(container, card, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.84f, xMax: 0.97f, yMin: 0.73f, yMax: 0.86f, command: $"pluginbrowser.interact 10 {plugin.Name}");
-				cui.CreateImage(container, favouriteButton, "star", ServerOwner.Singleton.FavouritePlugins.Contains(plugin.Name) ? "0.9 0.8 0.4 0.95" : "0.2 0.2 0.2 0.4");
-
-				var autoUpdateButton = cui.CreateProtectedButton(container, card, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.84f, xMax: 0.97f, yMin: 0.59f, yMax: 0.72f, command: $"pluginbrowser.interact 11 {plugin.Name}");
-				cui.CreateImage(container, autoUpdateButton, "update-pending", ServerOwner.Singleton.AutoUpdate.Contains(plugin.Name) ? "0.8 0.4 0.9 0.95" : "0.2 0.2 0.2 0.4");
-
-				column += columnSize + spacing;
-
-				if (i % 5 == 4)
-				{
-					row -= rowSize + spacing;
-					column = 0.02f;
-				}
-			}
-
-			if (plugins.Count == 0)
-			{
-				cui.CreateText(container, parent, "1 1 1 0.5", "No plugins found for that query", 10, align: TextAnchor.MiddleCenter, yMax: 0.95f);
-			}
-
-			var sidebar = cui.CreatePanel(container, parent, "0.2 0.2 0.2 0.3",
-				xMin: 0.80f, xMax: 1f, yMax: 0.93f);
-
-			var topbar = cui.CreatePanel(container, parent, "0.1 0.1 0.1 0.7",
-				xMin: 0f, xMax: 0.8f, yMin: 0.89f, yMax: 0.94f);
-
-			var drop = cui.CreatePanel(container, sidebar, "0 0 0 0", yMin: 0.95f, OxMin: -155);
-			Singleton.TabPanelDropdown(cui, PlaceboPage, container, drop, null, $"pluginbrowser.changesetting filter_dd", 1, 0, (int)ap.GetStorage(tab, "filter", FilterTypes.None), DropdownOptions, null, DropdownShow);
-
-			const float topbarYScale = 0.1f;
-			cui.CreateText(container, topbar, "1 1 1 1", plugins.Count > 0 ? $"/ {maxPages + 1:n0}" : "NONE", plugins.Count > 0 ? 10 : 8, xMin: plugins.Count > 0 ? 0.925f : 0.92f, xMax: 0.996f, align: TextAnchor.MiddleLeft);
-			if (plugins.Count != 0) cui.CreateProtectedInputField(container, topbar, "1 1 1 1", $"{ap.GetStorage(tab, "page", 0) + 1}", 10, 3, false, xMin: 0.8f, xMax: 0.92f, align: TextAnchor.MiddleRight, command: $"pluginbrowser.page ");
-			cui.CreateProtectedButton(container, topbar, "0.4 0.7 0.3 0.8", "1 1 1 0.6", "<", 10, xMin: 0.86f, xMax: 0.886f, yMin: topbarYScale, yMax: 1f - topbarYScale, command: "pluginbrowser.page -1");
-			cui.CreateProtectedButton(container, topbar, "0.4 0.7 0.3 0.8", "1 1 1 0.6", ">", 10, xMin: 0.97f, xMax: 0.996f, yMin: topbarYScale, yMax: 1f - topbarYScale, command: "pluginbrowser.page +1");
-
-			var filterSectionOffset = 0.45f;
-			var filterSectionOffsetSize = 0.1f;
-			var tagsOption = cui.CreatePanel(container, sidebar, "0 0 0 0", yMin: filterSectionOffset - filterSectionOffsetSize, yMax: filterSectionOffset - 0.05f);
-			var rowNumber = 0;
-			var count = 0;
-			var countPerRow = 3;
-			var buttonSize = 1f / countPerRow;
-			var buttonOffset = 0f;
-			var rows = 7;
-			foreach (var tag in PopularTags.Take(countPerRow * rows))
-			{
-				count++;
-
-				cui.CreateProtectedButton(container, tagsOption, TagFilter.Contains(tag) ? "#b08d2e" : "0.2 0.2 0.2 0.5", "1 1 1 0.6", tag.ToUpper(), 8,
-					xMin: buttonOffset, xMax: buttonOffset += buttonSize,
-					OyMin: rowNumber * -25, OyMax: rowNumber * -25, command: $"pluginbrowser.tagfilter {tag}");
-
-				if (count % countPerRow == 0)
-				{
-					buttonOffset = 0;
-					rowNumber++;
-				}
-			}
-
-			var auth = vendor as IVendorAuthenticated;
-
-			if (auth != null)
-			{
-				var user = cui.CreatePanel(container, topbar, "0 0 0 0", xMax: 0.275f);
-
-				if (auth.IsLoggedIn) cui.CreateClientImage(container, user, auth.User.AvatarUrl, "1 1 1 0.8", xMin: 0.02f, xMax: 0.12f, yMin: 0.1f, yMax: 0.9f);
-				cui.CreateText(container, user, "1 1 1 0.9", auth.IsLoggedIn ? auth.User.DisplayName : "Not logged-in", 10, xMin: auth.IsLoggedIn ? 0.14f : 0.025f, yMax: 0.9f, align: TextAnchor.UpperLeft);
-				cui.CreateText(container, user, "1 1 0.3 0.9", auth.IsLoggedIn ? $"as {auth.User.Authority}" : "Login to explore premium plugins!", 8, xMin: auth.IsLoggedIn ? 0.14f : 0.025f, yMin: 0.1f, align: TextAnchor.LowerLeft);
-				cui.CreateProtectedButton(container, user, auth.IsLoggedIn ? "0.8 0.1 0 0.8" : "0.1 0.8 0 0.8", "1 1 1 0.5", auth.IsLoggedIn ? "<b>LOGOUT</b>" : "<b>LOGIN</b>", 8, xMin: 0.75f, xMax: 0.975f, command: "pluginbrowser.login");
-			}
-
-			var isInstalled = vendor is Installed;
-			var searchQuery = ap.GetStorage<string>(tab, "search");
-			var search = cui.CreatePanel(container, topbar, "0 0 0 0", xMin: 0.6f, xMax: 0.855f, yMin: 0f, OyMax: -0.5f);
-			cui.CreateProtectedInputField(container, search, string.IsNullOrEmpty(searchQuery) ? "0.8 0.8 0.8 0.6" : "1 1 1 1", string.IsNullOrEmpty(searchQuery) ? "Search..." : searchQuery, 10, 20, false, xMin: 0.06f, align: TextAnchor.MiddleLeft, needsKeyboard: Singleton.HandleEnableNeedsKeyboard(ap), command: "pluginbrowser.search  ");
-			cui.CreateProtectedButton(container, search, string.IsNullOrEmpty(searchQuery) ? "0.2 0.2 0.2 0.8" : "#d43131", "1 1 1 0.6", "X", 10, xMin: 0.95f, yMin: topbarYScale, yMax: 1f - topbarYScale, OxMin: -30, OxMax: -22.5f, command: "pluginbrowser.search  ");
-
-			var reloadButton = cui.CreateProtectedButton(container, search, isInstalled ? "0.2 0.2 0.2 0.4" : "0.2 0.2 0.2 0.8", "1 1 1 0.6", string.Empty, 0, xMin: 0.9f, xMax: 1, yMin: topbarYScale, yMax: 1f - topbarYScale, command: "pluginbrowser.refreshvendor");
-			cui.CreateImage(container, reloadButton, "reload", "1 1 1 0.4", xMin: 0.225f, xMax: 0.775f, yMin: 0.25f, yMax: 0.75f);
-
-			if (TagFilter.Contains("peanus")) cui.CreateClientImage(container, grid, "https://media.discordapp.net/attachments/1078801277565272104/1085062151221293066/15ox1d_1.jpg?width=827&height=675", "1 1 1 1", xMax: 0.8f);
-			if (TagFilter.Contains("banan")) cui.CreateClientImage(container, grid, "https://upload.wikimedia.org/wikipedia/commons/2/23/Banan.jpg", "1 1 1 1", xMax: 0.8f);
-
-			var selectedPlugin = ap.GetStorage<Plugin>(tab, "selectedplugin");
-
-			if (selectedPlugin.IsValid)
-			{
-				vendor.CheckMetadata(selectedPlugin.Id, () => { Singleton.Draw(ap.Player); });
-
-				var mainPanel = cui.CreatePanel(container, parent, "0.15 0.15 0.15 0.35", blur: true);
-				cui.CreatePanel(container, mainPanel, "0 0 0 0.9");
-
-				var image = cui.CreatePanel(container, parent, "0 0 0 0.5", xMin: 0.08f, xMax: 0.45f, yMin: 0.15f, yMax: 0.85f);
-
-				if (selectedPlugin.HasNoImage())
-				{
-					cui.ImageDatabase.Queue(selectedPlugin.Image);
-					cui.CreateImage(container, image, vendor.Logo, "0.2 0.2 0.2 0.4", xMin: 0.2f, xMax: 0.8f, yMin: 0.2f + vendor.LogoRatio, yMax: 0.8f - vendor.LogoRatio);
-				}
-				else if (!cui.ImageDatabase.HasImage(selectedPlugin.Image))
-				{
-					cui.ImageDatabase.Queue(selectedPlugin.Image);
-					cui.CreateClientImage(container, image, selectedPlugin.Image, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
-				}
-				else
-				{
-					cui.CreateImage(container, image, selectedPlugin.Image, "1 1 1 1", xMin: 0.05f, xMax: 0.95f, yMin: 0.05f, yMax: 0.95f);
-				}
-
-				var pluginName = cui.CreateText(container, mainPanel, "1 1 1 1", selectedPlugin.Name, 25, xMin: 0.505f, yMax: 0.8f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
-				cui.CreateText(container, mainPanel, "1 1 1 0.5", $"by <b>{(selectedPlugin.ExistentPlugin != null ? selectedPlugin.ExistentPlugin.Author : selectedPlugin.Author)}</b>  <b>•</b>  v{selectedPlugin.Version}  <b>•</b>  Updated on {selectedPlugin.UpdateDate}  <b>•</b>  {selectedPlugin.DownloadCount:n0} downloads", 11, xMin: 0.48f, yMax: 0.74f, align: TextAnchor.UpperLeft);
-				cui.CreateText(container, mainPanel, "1 1 1 0.3", $"{(!selectedPlugin.HasLookup ? "Fetching metdata..." : $"{selectedPlugin.Description}\n\n{selectedPlugin.Changelog}")}", 11, xMin: 0.48f, xMax: 0.85f, yMax: 0.635f, align: TextAnchor.UpperLeft);
-				const float badgeYMin = 5;
-				const float badgeYMax = 20;
-				var priceBadge = cui.CreatePanel(container, pluginName, "0.3 0.4 0.9 0.25", xMax: 0f, yMin: 1, OyMin: badgeYMin, OyMax: badgeYMax, OxMax: 40);
-				cui.CreateText(container, priceBadge, "0.4 0.5 1 1", selectedPlugin.IsPaid() ? $"${selectedPlugin.OriginalPrice}" : "FREE", 8);
-
-				if (selectedPlugin.Owned)
-				{
-					var ownedBadge = cui.CreatePanel(container, pluginName, "0.9 0.4 0.3 0.25", xMax: 0f, yMin: 1, OyMin: badgeYMin, OyMax: badgeYMax, OxMin: 42, OxMax: 90);
-					cui.CreateText(container, ownedBadge, "1 0.5 0.4 1", "★ OWNED", 8);
-				}
-
-				cui.CreateProtectedButton(container, mainPanel, "0 0 0 0", "0 0 0 0", string.Empty, 0, align: TextAnchor.MiddleCenter, command: "pluginbrowser.deselectplugin");
-
-				var favouriteButton = cui.CreateProtectedButton(container, mainPanel, "0 0 0 0", "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: 0.495f, yMin: 0.755f, yMax: 0.785f, command: $"pluginbrowser.interact 10 {selectedPlugin.Name}");
-				cui.CreateImage(container, favouriteButton, "star", ServerOwner.Singleton.FavouritePlugins.Contains(selectedPlugin.Name) ? "0.9 0.8 0.4 0.95" : "0.2 0.2 0.2 0.4");
-
-				#region Tags
-
-				var tagOffset = 0f;
-				var tagSpacing = 0.012f;
-				var tags = cui.CreatePanel(container, mainPanel, "0 0 0 0", xMin: 0.48f, xMax: 0.8f, yMin: 0.66f, yMax: 0.7f);
-				var tempTags = Facepunch.Pool.Get<List<string>>();
-				var counter = 0;
-
-				if (selectedPlugin.Tags != null && selectedPlugin.Tags.Count() > 0)
-				{
-					foreach (var tag in selectedPlugin.Tags)
-					{
-						counter += tag.Length;
-						tempTags.Add(tag);
-
-						if (counter > 50)
-						{
-							break;
-						}
-					}
-				}
-
-				foreach (var tag in tempTags)
-				{
-					if (string.IsNullOrEmpty(tag)) continue;
-
-					var size = ((float)tag.Length).Scale(0, 5, 0.03f, 0.125f);
-					var bg = cui.CreateProtectedButton(container, tags, TagFilter.Contains(tag) ? "0.8 0.3 0.3 0.8" : "0.2 0.2 0.2 0.4", "1 1 1 1", tag.ToUpper(), 8, xMin: tagOffset, xMax: tagOffset + size, command: $"pluginbrowser.tagfilter {tag}");
-
-					tagOffset += size + tagSpacing;
-				}
-
-				Facepunch.Pool.FreeUnmanaged(ref tempTags);
-
-				#endregion
-
-				cui.CreateProtectedButton(container, mainPanel, "#2f802f", "1 1 1 1", "<", 10, align: TextAnchor.MiddleCenter, command: "pluginbrowser.changeselectedplugin -1", xMin: 0f, xMax: 0.02f, yMin: 0.45f, yMax: 0.55f);
-				cui.CreateProtectedButton(container, mainPanel, "#2f802f", "1 1 1 1", ">", 10, align: TextAnchor.MiddleCenter, command: "pluginbrowser.changeselectedplugin 1", xMin: 0.98f, xMax: 1f, yMin: 0.45f, yMax: 0.55f);
-
-				cui.CreateProtectedButton(container, parent: mainPanel,
-					color: "0.6 0.2 0.2 0.9",
-					textColor: "1 0.5 0.5 1",
-					text: "X", 9,
-					xMin: 0.965f, xMax: 0.99f, yMin: 0.955f, yMax: 0.99f,
-					command: "pluginbrowser.deselectplugin",
-					font: CUI.Handler.FontTypes.DroidSansMono);
-
-				if (Singleton.HasAccess(ap.Player, "plugins.setup"))
-				{
-					var buttonColor = string.Empty;
-					var elementColor = string.Empty;
-					var icon = string.Empty;
-					var status = string.Empty;
-					var scale = 0f;
-					var callMode = 0;
-					var isAdmin = auth != null && auth.IsLoggedIn && auth.User.IsAdmin;
-
-					if (!selectedPlugin.IsInstalled())
-					{
-						if (!isAdmin && !selectedPlugin.Owned && selectedPlugin.IsPaid())
-						{
-							buttonColor = "#2f802f";
-							elementColor = "#75f475";
-							icon = "shopping";
-							status = "BUY NOW";
-							scale = 0.572f;
-							callMode = 3;
-						}
-						else
-						{
-							if (!selectedPlugin.IsBusy)
-							{
-								buttonColor = "#2f802f";
-								elementColor = "#75f475";
-								status = "DOWNLOAD";
-								icon = "clouddl";
-								scale = 0.595f;
-								callMode = 0;
-							}
-							else
-							{
-								buttonColor = "#78772e";
-								elementColor = "#c3bd5b";
-								icon = "clouddl";
-								status = "IN PROGRESS";
-								scale = 0.595f;
-							}
-						}
-					}
-					else
-					{
-						if (selectedPlugin.IsUpToDate())
-						{
-							buttonColor = "#802f2f";
-							elementColor = "#c35b5b";
-							icon = "trashcan";
-							status = "REMOVE";
-							scale = 0.564f;
-							callMode = 2;
-						}
-						else
-						{
-							buttonColor = "#2f802f";
-							elementColor = "#75f475";
-							icon = "clouddl";
-							status = "UPDATE";
-							scale = 0.564f;
-							callMode = 1;
-						}
-					}
-
-					if (vendor is not Installed)
-					{
-						if (isAdmin || selectedPlugin.Owned || !selectedPlugin.IsPaid() || selectedPlugin.IsInstalled())
-						{
-							var mainButton = cui.CreateProtectedButton(container, mainPanel, buttonColor, "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: scale, yMin: 0.175f, yMax: 0.235f, align: TextAnchor.MiddleRight, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact {callMode} {selectedPlugin.Id}");
-							cui.CreateText(container, mainButton, elementColor, status, 11, xMax: 0.88f, align: TextAnchor.MiddleRight);
-							cui.CreateImage(container, mainButton, icon, elementColor, xMin: 0.1f, xMax: 0.3f, yMin: 0.2f, yMax: 0.8f);
-						}
-
-						if(selectedPlugin.IsInstalled())
-						{
-							var secondaryButton = cui.CreateProtectedButton(container, mainPanel, "#802f2f", "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: scale, yMin: 0.175f, yMax: 0.235f, OxMin: 82, OxMax: 82, align: TextAnchor.MiddleRight, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 4 {selectedPlugin.Id}");
-							cui.CreateText(container, secondaryButton, "#c35b5b", "RELOAD", 11, xMax: 0.88f, align: TextAnchor.MiddleRight);
-							cui.CreateImage(container, secondaryButton, "reload", "#c35b5b", xMin: 0.075f, xMax: 0.315f, yMin: 0.2f, yMax: 0.8f);
-						}
-					}
-					else if(selectedPlugin.IsInstalled())
-					{
-						var secondaryButton = cui.CreateProtectedButton(container, mainPanel, "#802f2f", "0 0 0 0", string.Empty, 0, xMin: 0.48f, xMax: scale, yMin: 0.175f, yMax: 0.235f, align: TextAnchor.MiddleRight, command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 4 {selectedPlugin.Id}");
-						cui.CreateText(container, secondaryButton, "#c35b5b", "RELOAD", 11, xMax: 0.88f, align: TextAnchor.MiddleRight);
-						cui.CreateImage(container, secondaryButton, "reload", "#c35b5b", xMin: 0.075f, xMax: 0.315f, yMin: 0.2f, yMax: 0.8f);
-					}
-
-					if (selectedPlugin.IsInstalled())
-					{
-						var path = Path.Combine(Defines.GetConfigsFolder(), selectedPlugin.ExistentPlugin.Config.Filename);
-
-						if (OsEx.File.Exists(path))
-						{
-							cui.CreateProtectedButton(container, mainPanel, "0.1 0.1 0.1 0.8", "0.7 0.7 0.7 0.7", "EDIT CONFIG", 11,
-								xMin: 0.48f, xMax: 0.564f, yMin: 0.175f, yMax: 0.235f, OyMin: 35, OyMax: 35,
-								command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 3 {selectedPlugin.Id}");
-
-							cui.CreateProtectedButton(container, mainPanel, "0.1 0.1 0.1 0.8", "0.7 0.7 0.7 0.7", "EDIT LANG", 11,
-								xMin: 0.48f, xMax: 0.56f, yMin: 0.175f, yMax: 0.235f, OyMin: 35, OyMax: 35, OxMin: 82, OxMax: 82,
-								command: selectedPlugin.IsBusy ? "" : $"pluginbrowser.interact 5 {selectedPlugin.Id}");
-						}
-					}
-				}
-			}
-
-			if (auth != null)
-			{
-				if (auth.IsLoggedIn && auth.User.PendingAccessToken)
-				{
-					var mainPanel = cui.CreatePanel(container, parent, "0.15 0.15 0.15 0.35", blur: true);
-					cui.CreatePanel(container, mainPanel, "0 0 0 0.9");
-
-					var image = cui.CreatePanel(container, parent, "1 1 1 1", xMin: 0.12f, xMax: 0.45f, yMin: 0.2f, yMax: 0.8f);
-
-					var code = string.Format(auth.AuthRequestEndpoint, auth.AuthCode);
-					var qr = cui.CreateQRCodeImage(container, image, code,
-						brandUrl: vendor.Logo,
-						brandColor: "0 0 0 1",
-						brandBgColor: "1 1 1 1", 15, true, true, "0 0 0 1", xMin: 0, xMax: 1, yMin: 0, yMax: 1);
-					var authUrl = cui.CreatePanel(container, image, "0.1 0.1 0.1 0.8", yMax: 0, OyMin: -20);
-					cui.CreateInputField(container, authUrl, "1 1 1 1", auth.AuthRequestEndpointPreview, 9, 0, true);
-
-					if (auth.User.PendingResult != LoggedInUser.RequestResult.None)
-					{
-						var icon = string.Empty;
-						var color = string.Empty;
-
-						switch (auth.User.PendingResult)
-						{
-							case LoggedInUser.RequestResult.Complete:
-								icon = "checkmark";
-								color = "#81c740";
-								break;
-						}
-
-						if (!string.IsNullOrEmpty(icon))
-						{
-							cui.CreatePanel(container, image, "0 0 0 0.4", blur: true);
-							cui.CreateImage(container, image, icon, color, xMin: 0.3f, xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
-						}
-					}
-
-					cui.CreateText(container, parent, "1 1 1 1", $"{vendor.Type} Auth", 25, xMin: 0.51f, yMax: 0.75f, align: TextAnchor.UpperLeft, font: CUI.Handler.FontTypes.RobotoCondensedBold);
-					cui.CreateText(container, parent, "1 1 1 0.5", $"Securely log into your {vendor.Type} account through OAuth-based login!\n\nScan the QR code or go to the URL, log into {vendor.Type} and type in the provided authentication code below to complete the login process.", 15, xMin: 0.51f, xMax: 0.9f, yMax: 0.67f, align: TextAnchor.UpperLeft);
-
-					cui.CreateText(container, parent, "1 1 1 1", "Authorization code:", 13, xMin: 0.51f, yMax: 0.35f, align: TextAnchor.UpperLeft);
-					var pan = cui.CreatePanel(container, parent, "0.1 0.1 0.1 1",
-						xMin: 0.5f, xMax: 0.8f,
-						yMin: 0.21f, yMax: 0.31f);
-
-					cui.CreateInputField(container, pan, "1 1 1 1", auth.AuthCode, 30, 0, true,
-						xMin: 0.05f,
-						align: TextAnchor.MiddleLeft,
-						font: CUI.Handler.FontTypes.RobotoCondensedBold);
-
-					cui.CreateProtectedButton(container, parent: mainPanel,
-						color: "0.6 0.2 0.2 0.9",
-						textColor: "1 0.5 0.5 1",
-						text: "X", 9,
-						xMin: 0.965f, xMax: 0.99f, yMin: 0.955f, yMax: 0.99f,
-						command: "pluginbrowser.closelogin",
-						font: CUI.Handler.FontTypes.DroidSansMono);
-				}
-			}
-
-			Facepunch.Pool.FreeUnmanaged(ref plugins);
-		}
-
 		#region Vendors
 
 		[ProtoContract]
@@ -768,7 +946,6 @@ public partial class AdminModule
 			public IEnumerable<Plugin> InstalledData;
 			public IEnumerable<Plugin> OutOfDateData;
 			public IEnumerable<Plugin> OwnedData;
-			public IEnumerable<string> PopularTags;
 
 			public virtual string ListEndpoint { get; }
 			public virtual string DownloadEndpoint { get; }
@@ -790,7 +967,7 @@ public partial class AdminModule
 			{
 				foreach (var plugin in FetchedPlugins)
 				{
-					if (plugin.IsInstalled() && ServerOwner.Singleton.IsAutoUpdatable(plugin.Name) && !plugin.IsUpToDate())
+					if (plugin.IsInstalled() && !plugin.IsUpToDate())
 					{
 						// 3156772569 aka OnPluginOutdated
 						HookCaller.CallStaticHook(3156772569, plugin.Name, new VersionNumber(plugin.CurrentVersion()), new VersionNumber(plugin.Version), plugin.ExistentPlugin, Type);
@@ -886,27 +1063,33 @@ public partial class AdminModule
 
 			internal Dictionary<string, string> _headers = new();
 
-			public const string _backSlashes = "\\";
+			private readonly static string _backSlashes = "\\";
 
 			public override void Refresh()
 			{
 				if (FetchedPlugins == null) return;
 
-				var plugins = Community.Runtime.Core.plugins.GetAll();
+				var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+				Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
 				var auth = this as IVendorAuthenticated;
 
 				foreach (var plugin in FetchedPlugins)
 				{
 					try
 					{
-						var name = Path.GetFileName(plugin.File);
+						var fileName = Path.GetFileName(plugin.File);
+						var fileNameNoExtension = Path.GetFileNameWithoutExtension(plugin.File);
 						plugin.SetOwned(auth.User != null && auth.User.OwnedFiles.Contains(plugin.Id));
 
 						foreach (var existentPlugin in plugins)
 						{
-							if (existentPlugin.FileName == name)
+							if ((!string.IsNullOrEmpty(existentPlugin.FileName) &&
+							     (existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
+							     existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase))) ||
+							    (!string.IsNullOrEmpty(existentPlugin.Name) && !string.IsNullOrEmpty(plugin.Name) &&
+							     existentPlugin.Name.Equals(plugin.Name, StringComparison.OrdinalIgnoreCase)))
 							{
-								plugin.SetExistentPlugin((RustPlugin)existentPlugin);
+								plugin.SetExistentPlugin(existentPlugin);
 								break;
 							}
 						}
@@ -917,32 +1100,13 @@ public partial class AdminModule
 					}
 				}
 
-				Array.Clear(plugins, 0, plugins.Length);
-				plugins = null;
+				Facepunch.Pool.FreeUnmanaged(ref plugins);
 
 				PriceData = FetchedPlugins.Where(x => x.Status == Status.Approved).OrderBy(x => x.OriginalPrice.ToFloat());
 				AuthorData = FetchedPlugins.Where(x => x.Status == Status.Approved).OrderBy(x => x.Author);
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled());
 				OutOfDateData = FetchedPlugins.Where(x => x.Status == Status.Approved).Where(x => x.IsInstalled() && !x.IsUpToDate());
 				OwnedData = FetchedPlugins.Where(x => x.Owned);
-
-				var tags = Facepunch.Pool.Get<List<string>>();
-				foreach (var plugin in FetchedPlugins)
-				{
-					if (plugin.Tags == null || plugin.Tags.Count() == 0) continue;
-
-					foreach (var tag in plugin.Tags)
-					{
-						var processedTag = tag?.ToLower()?.Trim();
-
-						if (!string.IsNullOrEmpty(processedTag) && !tags.Contains(processedTag) && processedTag != "{}")
-						{
-							tags.Add(processedTag);
-						}
-					}
-				}
-				PopularTags = tags;
-				Facepunch.Pool.FreeUnmanaged(ref tags);
 			}
 			public override void FetchList(Action<Vendor> callback = null)
 			{
@@ -955,9 +1119,10 @@ public partial class AdminModule
 					}
 
 					FetchedPlugins.Clear();
-					var plugins = Community.Runtime.Core.plugins.GetAll();
-
-					ParseData(data, false, false);
+					var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+					Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
+					ParseData(data, false, false, FetchedPlugins, callback, this, plugins);
+					Facepunch.Pool.FreeUnmanaged(ref plugins);
 
 					Community.Runtime.Core.webrequest.Enqueue(List2Endpoint, null, (error, data) =>
 					{
@@ -967,12 +1132,15 @@ public partial class AdminModule
 							return;
 						}
 
-						ParseData(data, true, true);
+						var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+						Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
+						ParseData(data, true, true, FetchedPlugins, callback, this, plugins);
+						Facepunch.Pool.FreeUnmanaged(ref plugins);
 
 						VersionCheck();
 					}, Community.Runtime.Core);
 
-					void ParseData(string data, bool doSave, bool insert)
+					static void ParseData(string data, bool doSave, bool insert, List<Plugin> fetchedPlugins, Action<Vendor> callback, Vendor vendor, List<RustPlugin> plugins)
 					{
 						try
 						{
@@ -1017,21 +1185,22 @@ public partial class AdminModule
 
 								if (insert)
 								{
-									FetchedPlugins.Insert(0, plugin);
+									fetchedPlugins.Insert(0, plugin);
 								}
 								else
 								{
-									FetchedPlugins.Add(plugin);
+									fetchedPlugins.Add(plugin);
 								}
 							}
 
 							if (doSave)
 							{
-								callback?.Invoke(this);
+								callback?.Invoke(vendor);
 
-								Logger.Log($"[{Type} Tab] Fetched latest plugin information.");
+								Logger.Log($"[{vendor.GetType()} Tab] Fetched latest plugin information.");
 
-								Save();
+								if (vendor is IVendorStored stored)
+									stored.Save();
 							}
 						}
 						catch (Exception ex)
@@ -1213,7 +1382,8 @@ public partial class AdminModule
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -1406,7 +1576,6 @@ public partial class AdminModule
 			public override float LogoRatio => 0.2f;
 			public override string Hero => "umod_hero";
 
-
 			public override string BarInfo => $"{FetchedPlugins.Count:n0} free";
 
 			public override string ListEndpoint => "https://umod.org/plugins/search.json?page=[ID]&sort=title&sortdir=asc&categories%5B0%5D=universal&categories%5B1%5D=rust";
@@ -1422,11 +1591,16 @@ public partial class AdminModule
 
 				foreach (var plugin in FetchedPlugins)
 				{
-					var name = Path.GetFileName(plugin.File);
+					var fileName = Path.GetFileName(plugin.File);
+					var fileNameNoExtension = Path.GetFileNameWithoutExtension(plugin.File);
 
 					foreach (var existentPlugin in plugins)
 					{
-						if (existentPlugin.FileName == name)
+						if ((!string.IsNullOrEmpty(existentPlugin.FileName) &&
+						     (existentPlugin.FileName.Equals(fileName, StringComparison.OrdinalIgnoreCase) ||
+						      existentPlugin.FileName.Equals(fileNameNoExtension, StringComparison.OrdinalIgnoreCase))) ||
+						    (!string.IsNullOrEmpty(existentPlugin.Name) && !string.IsNullOrEmpty(plugin.Name) &&
+						     existentPlugin.Name.Equals(plugin.Name, StringComparison.OrdinalIgnoreCase)))
 						{
 							plugin.SetExistentPlugin(existentPlugin);
 							break;
@@ -1441,22 +1615,6 @@ public partial class AdminModule
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled());
 				OutOfDateData = FetchedPlugins.Where(x => x.IsInstalled() && !x.IsUpToDate());
 				OwnedData = FetchedPlugins.Where(x => x.Owned);
-
-				var tags = Facepunch.Pool.Get<List<string>>();
-				foreach (var plugin in FetchedPlugins)
-				{
-					foreach (var tag in plugin.Tags)
-					{
-						var processedTag = tag.ToLower().Trim();
-
-						if (!tags.Contains(processedTag))
-						{
-							tags.Add(processedTag);
-						}
-					}
-				}
-				PopularTags = tags;
-				Facepunch.Pool.FreeUnmanaged(ref tags);
 			}
 			public override void FetchList(Action<Vendor> callback = null)
 			{
@@ -1527,7 +1685,8 @@ public partial class AdminModule
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
@@ -1582,7 +1741,6 @@ public partial class AdminModule
 					return;
 				}
 
-				var plugins = Community.Runtime.Core.plugins.GetAll();
 
 				Community.Runtime.Core.webrequest.Enqueue(ListEndpoint.Replace("[ID]", $"{page}"), null, (error, data) =>
 				{
@@ -1594,6 +1752,8 @@ public partial class AdminModule
 
 					var list = JObject.Parse(data);
 					var file = list["data"];
+					var plugins = Facepunch.Pool.Get<List<RustPlugin>>();
+					Community.Runtime.Core.plugins.GetAllNonAlloc(plugins);
 					foreach (var plugin in file)
 					{
 						var image = plugin["icon_url"]?.ToString();
@@ -1624,13 +1784,12 @@ public partial class AdminModule
 
 						if (!FetchedPlugins.Any(x => x.Name == p.Name)) FetchedPlugins.Add(p);
 					}
+					Facepunch.Pool.FreeUnmanaged(ref plugins);
 
 					if (page % (maxPage / 4) == 0 || page == maxPage - 1)
 					{
 						Logger.Log($"Caching plugin metadata page {page} out of {maxPage}");
 					}
-
-					list = null;
 				}, Community.Runtime.Core);
 				Community.Runtime.Core.timer.In(5f, () => FetchPage(page + 1, maxPage, callback));
 			}
@@ -1732,15 +1891,15 @@ public partial class AdminModule
 
 						var existent = FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 
-						if (!existent.IsValid)
+						if (existent == null)
 						{
 							existent = CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 
-							if (!existent.IsValid)
+							if (existent == null)
 							{
 								existent = uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 
-								if (!existent.IsValid)
+								if (existent == null)
 								{
 									existent = new Plugin
 									{
@@ -1779,7 +1938,8 @@ public partial class AdminModule
 			public override void Uninstall(string id)
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", $"{plugin.ExistentPlugin.FileName}.cs"), true);
+				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName));
 				plugin.ExistentPlugin = null;
 			}
 		}
@@ -1791,14 +1951,6 @@ public partial class AdminModule
 
 			[ProtoMember(1)]
 			public List<string> FavouritePlugins = new();
-
-			[ProtoMember(2)]
-			public List<string> AutoUpdate = new();
-
-			public bool IsAutoUpdatable(string pluginName)
-			{
-				return AutoUpdate.Contains(pluginName);
-			}
 
 			public static void Load()
 			{
@@ -1815,7 +1967,6 @@ public partial class AdminModule
 					Singleton = Serializer.Deserialize<ServerOwner>(file);
 
 					Singleton.FavouritePlugins ??= new();
-					Singleton.AutoUpdate ??= new();
 				}
 				catch (Exception ex)
 				{
@@ -1842,7 +1993,7 @@ public partial class AdminModule
 		}
 
 		[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-		public struct Plugin
+		public class Plugin
 		{
 			public string Id;
 			public string Name;
@@ -1867,7 +2018,8 @@ public partial class AdminModule
 			public bool CarbonCompatible;
 			public bool Owned;
 
-			internal RustPlugin ExistentPlugin;
+			[ProtoIgnore]
+			public RustPlugin ExistentPlugin;
 			internal bool IsBusy;
 
 			public Plugin()
@@ -1875,13 +2027,10 @@ public partial class AdminModule
 			}
 
 			[ProtoIgnore]
-			public readonly bool HasRating => Rating != -1;
+			public bool HasRating => Rating != -1;
 
 			[ProtoIgnore]
-			public readonly bool HasPrice => OriginalPrice != "Null";
-
-			[ProtoIgnore]
-			public readonly bool IsValid => !string.IsNullOrEmpty(Id);
+			public bool HasPrice => OriginalPrice != "Null";
 
 			public bool HasInvalidImage()
 			{
@@ -1893,13 +2042,11 @@ public partial class AdminModule
 			}
 			public bool IsInstalled()
 			{
-				return ExistentPlugin != null;
+				return ExistentPlugin != null && ExistentPlugin.IsLoaded;
 			}
 			public string CurrentVersion()
 			{
-				if (ExistentPlugin == null) return "N/A";
-
-				return ExistentPlugin.Version.ToString();
+				return !IsInstalled() ? "N/A" : ExistentPlugin.Version.ToString();
 			}
 			public bool IsPaid()
 			{
@@ -1924,13 +2071,22 @@ public partial class AdminModule
 	private void PluginBrowserChange(Arg args)
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
+		var player = ap.Player;
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor2 = ap.SetStorage(tab, "vendor", args.Args[0]);
+		var vendorName = args.GetString(0);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor2));
+		if (vendorName == "LIST")
+		{
+			ap.SetStorage(tab, "listview", true);
+			tab.OnChange.Invoke(ap, tab);
+			Singleton.Draw(player);
+			return;
+		}
+
+		var vendor = PluginsTab.GetVendor(ap.SetStorage(tab, "vendor", (PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), args.Args[0])));
 		vendor.Refresh();
 		PluginsTab.TagFilter.Clear();
-
+		PluginsTab.DropdownShow = false;
 		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
 		Singleton.Draw(args.Player());
 	}
@@ -1945,25 +2101,35 @@ public partial class AdminModule
 
 		var ap = Singleton.GetPlayerSession(player);
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendorType = ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed);
+		var vendor = PluginsTab.GetVendor(vendorType);
 		var arg = new string[args.Args.Length];
 		Array.Copy(args.Args, arg, args.Args.Length);
 
 		switch (arg[0])
 		{
 			case "0":
-				vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+				if (vendorType == PluginsTab.VendorTypes.Installed)
+					tab.CreateDialog($"To download a file, please select a vendor first.", null, null);
+				else
+					vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
 				Array.Clear(arg, 0, arg.Length);
 				break;
 			case "1":
-				tab.CreateDialog($"Are you sure you want to update '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
+				if (vendorType == PluginsTab.VendorTypes.Installed)
 				{
-					vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+					tab.CreateDialog($"To update a file, please select a vendor first.", null);
 					Array.Clear(arg, 0, arg.Length);
-				}, null);
+				}
+				else
+				{
+					tab.CreateDialog($"Are you sure you want to update '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
+					{
+						vendor.Download(arg[1], () => Singleton.Draw(args.Player()));
+						Array.Clear(arg, 0, arg.Length);
+					}, null);
+				}
 				break;
-
 			case "2":
 				tab.CreateDialog($"Are you sure you want to uninstall '{ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin").Name}'?", ap =>
 				{
@@ -1972,31 +2138,37 @@ public partial class AdminModule
 					Array.Clear(arg, 0, arg.Length);
 				}, null);
 				break;
-
 			case "3":
 			{
 				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
 				var path = Path.Combine(Defines.GetConfigsFolder(), plugin.Config.Filename);
-				Singleton.SetTab(ap.Player, ConfigEditor.Make(OsEx.File.ReadText(path),
-					(ap, jobject) =>
-					{
-						Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
-					},
-					(ap, jobject) =>
-					{
-						OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
-						Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
-					},
-					(ap, jobject) =>
-					{
-						OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
-						plugin.ProcessorProcess.MarkDirty();
-						Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
-					}));
+				if (OsEx.File.Exists(path))
+				{
+					Singleton.SetTab(ap.Player, ConfigEditor.Make(OsEx.File.ReadText(path),
+						(ap, jobject) =>
+						{
+							Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
+						},
+						(ap, jobject) =>
+						{
+							OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
+							Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
+						},
+						(ap, jobject) =>
+						{
+							OsEx.File.Create(path, jobject.ToString(Formatting.Indented));
+							plugin.ProcessorProcess.MarkDirty();
+							Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "plugins", false));
+						}));
+				}
+
+				else
+				{
+					args.ReplyWith($"Config file not found at '{path}'");
+				}
 				Array.Clear(arg, 0, arg.Length);
 				break;
 			}
-
 			case "4":
 			{
 				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
@@ -2008,7 +2180,6 @@ public partial class AdminModule
 				}
 				break;
 			}
-
 			case "5":
 			{
 				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
@@ -2020,41 +2191,39 @@ public partial class AdminModule
 					}));
 				break;
 			}
-
 			case "10":
+			{
+				var pluginName = arg.Skip(1).ToString(" ");
+				if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
 				{
-					var pluginName = arg.Skip(1).ToString(" ");
-					if (PluginsTab.ServerOwner.Singleton.FavouritePlugins.Contains(pluginName))
-					{
-						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
-						Logger.Log($" [{vendor.Type}] Unfavorited plugin '{pluginName}'");
-					}
-					else
-					{
-						PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
-						Logger.Log($" [{vendor.Type}] Favorited plugin '{pluginName}'");
-					}
-					Array.Clear(arg, 0, arg.Length);
+					PluginsTab.ServerOwner.Singleton.FavouritePlugins.Remove(pluginName);
+					Logger.Log($" [{vendor.Type}] Unfavorited plugin '{pluginName}'");
 				}
+				else
+				{
+					PluginsTab.ServerOwner.Singleton.FavouritePlugins.Add(pluginName);
+					Logger.Log($" [{vendor.Type}] Favorited plugin '{pluginName}'");
+				}
+				Array.Clear(arg, 0, arg.Length);
 				break;
-
+			}
 			case "11":
+			{
+				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(args.GetString(1), StringComparison.InvariantCultureIgnoreCase));
+				var fileName = Path.GetFileNameWithoutExtension(plugin.File);
+				var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginPath(fileName).Value);
+				if (plugin.IsInstalled())
 				{
-					var pluginName = arg.Skip(1).ToString(" ");
-					if (PluginsTab.ServerOwner.Singleton.AutoUpdate.Contains(pluginName))
-					{
-						PluginsTab.ServerOwner.Singleton.AutoUpdate.Remove(pluginName);
-						Logger.Log($" [{vendor.Type}] Marked plugin '{pluginName}' for auto-update");
-					}
-					else
-					{
-						PluginsTab.ServerOwner.Singleton.AutoUpdate.Add(pluginName);
-						Logger.Log($" [{vendor.Type}] Unmarked plugin '{pluginName}' for auto-update");
-					}
-					Array.Clear(arg, 0, arg.Length);
+					ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.unload \"{fileName}\"");
+					Singleton.Draw(player);
+				}
+				else if(isLoadable)
+				{
+					ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.load \"{fileName}\"");
+					Singleton.Draw(player);
 				}
 				break;
-
+			}
 		}
 
 		Singleton.Draw(args.Player());
@@ -2066,10 +2235,9 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
-		PluginsTab.GetPlugins(vendor, tab, ap, out var maxPages);
+		PluginsTab.GetPlugins(vendor, tab, ap, out var maxPages, 15);
 
 		var page = ap.GetStorage(tab, "page", 0);
 
@@ -2098,33 +2266,12 @@ public partial class AdminModule
 	}
 
 	[Conditional("!MINIMAL")]
-	[ProtectedCommand("pluginbrowser.tagfilter")]
-	private void PluginBrowserTagFilter(Arg args)
-	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
-		vendor.Refresh();
-
-		var filter = args.Args.ToString(" ");
-
-		if (PluginsTab.TagFilter.Contains(filter)) PluginsTab.TagFilter.Remove(filter);
-		else PluginsTab.TagFilter.Add(filter);
-
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
-
-		Singleton.Draw(args.Player());
-	}
-
-	[Conditional("!MINIMAL")]
 	[ProtectedCommand("pluginbrowser.search")]
 	private void PluginBrowserSearch(Arg args)
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
 		var search = ap.SetStorage(tab, "search", args.Args.ToString(" "));
@@ -2143,12 +2290,11 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 
 		if (vendor is PluginsTab.Installed) return;
 
-		tab.CreateDialog("Are you sure you want to redownload the plugin list?\nThis might take a while.", ap =>
+		tab.CreateDialog($"Are you sure you want to fetch the {vendor.Type} plugin list?", ap =>
 		{
 			var id = string.Empty;
 			switch (vendor)
@@ -2175,40 +2321,122 @@ public partial class AdminModule
 				auth.RefreshUser(ap);
 			}
 
-			Singleton.Draw(args.Player());
+			Singleton.Draw(ap.Player);
 		}, null);
-
-		Singleton.Draw(args.Player());
 	}
 
 	[Conditional("!MINIMAL")]
 	[ProtectedCommand("pluginbrowser.selectplugin")]
-	private void PluginBrowserSelectPlugin(Arg args)
+	private void PluginBrowserSelectPlugin(Arg arg)
 	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var tab = Singleton.GetTab(ap.Player);
+		var session = Singleton.GetPlayerSession(arg.Player());
+		var tab = session.SelectedTab;
+		var vendor = PluginsTab.GetVendor(session.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
+		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(arg.GetString(0)));
+		session.SetStorage(tab, "selectedplugin", plugin);
 
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
-		vendor.Refresh();
+		const string accentReadableColor = "0.8 0.8 0.8 0.6";
+		const float fadeTime = 1f;
+		const string starEmpty = "☆";
+		const string starFull = "★";
 
-		ap.SetStorage(tab, "selectedplugin", vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[0]));
+		using var cui = new CUI(Singleton.Handler);
+		using var update = cui.UpdatePool();
 
-		Singleton.Draw(args.Player());
+		if (!DateTime.TryParse(plugin.Date, out var date))
+		{
+			date = DateTime.Now;
+		}
+
+		update.Add(cui.UpdatePanel("selectedpluginpnl", "0.1 0.1 0.1 0.5", xMin: 0.0001f, xMax: 1f, yMin: 0.0001f, yMax: 1, blur: false));
+		update.Add(cui.UpdateClientImage("selectedpluginicn", url: plugin.Image, "1 1 1 0.85", xMin: 0, xMax: 1, yMin: 1, yMax: 1, OyMin: -1000, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedpluginname", Cache.CUI.WhiteColor, text: plugin.Name, 35, xMin: 0.05f, yMin: 1, OyMin: -400, font: CUI.Handler.FontTypes.RobotoCondensedBold, align: TextAnchor.LowerLeft, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedpluginprice", plugin.IsPaid() ? "#e0e344" : "#44e3db", text: plugin.IsPaid() ? $"${plugin.OriginalPrice.ToFloat():0.00}" : "FREE", 25, xMax: 0.925f, yMin: 1, OyMin: -400, font: CUI.Handler.FontTypes.RobotoCondensedBold, align: TextAnchor.LowerRight, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedpluginchlog", accentReadableColor, text: plugin.Changelog, 13, align: TextAnchor.UpperLeft, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedplugindesc", accentReadableColor, text: plugin.Description, 12, xMin: 0.05f, xMax: 0.95f, yMin: 1, OyMin: -470, OyMax: -420, font: CUI.Handler.FontTypes.RobotoCondensedRegular, align: TextAnchor.UpperLeft, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedpluginrdate", accentReadableColor, text: $"{date.Day} {date:MMMM}, {date.Year:0000}", 15, yMax: 0.5f, align: TextAnchor.MiddleCenter, font: CUI.Handler.FontTypes.RobotoCondensedRegular, fadeIn: fadeTime));
+		update.Add(cui.UpdateText("selectedplugininfo", color: accentReadableColor, text: $"by <b>{(plugin.Author)}</b>  <b>•</b>  v{plugin.Version}  <b>•</b>  Updated on {plugin.UpdateDate}  <b>•</b>  {plugin.DownloadCount:n0} downloads", 12, xMin: 0.05f, xMax: 0.95f, yMin: 1, OyMin: -450, OyMax: -400, align: TextAnchor.UpperLeft, fadeIn: fadeTime));
+
+		var builder = Facepunch.Pool.Get<StringBuilder>();
+
+		for (int i = 0; i < 5; i++)
+		{
+			builder.Append(plugin.Rating <= i ? starEmpty : starFull);
+		}
+
+		update.Add(cui.UpdateText("selectedpluginrating", accentReadableColor, builder.ToString(), 18, xMin: 0.3f, xMax: 0.7f, yMin: 0.7f, yMax: 0.75f, align: TextAnchor.UpperCenter));
+		Facepunch.Pool.FreeUnmanaged(ref builder);
+
+		if (plugin.IsInstalled())
+		{
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#b84242", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 2 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#f7a3a3", text: "UNINSTALL", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "trashcan", "#f7a3a3"));
+			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.WhiteColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", "#b84242", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b2_txt", "#f7a3a3", text: "UNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b2_icn", "installed", "#f7a3a3"));
+			update.Add(cui.UpdateImage("selectedplugin_b2_fade", "fade", Cache.CUI.WhiteColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b3", "0.2 0.2 0.2 0.8", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 3 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b3_txt", "0.8 0.8 0.8 0.8", text: "CONFIG", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b3_icn", "file", "0.8 0.8 0.8 0.8"));
+			update.Add(cui.UpdateImage("selectedplugin_b3_fade", "fade", Cache.CUI.WhiteColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b4", "0.2 0.2 0.2 0.8", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 5 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b4_txt", "0.8 0.8 0.8 0.8", text: "LANG", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b4_icn", "translate", "0.8 0.8 0.8 0.8"));
+			update.Add(cui.UpdateImage("selectedplugin_b4_fade", "fade", Cache.CUI.WhiteColor));
+
+			var isOutdated = !plugin.IsUpToDate();
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b5", $"0.2 0.2 0.2 {(isOutdated ? 0.8f : 0.2f)}", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: isOutdated ? $"pluginbrowser.interact 1 {plugin.Id}" : string.Empty));
+			update.Add(cui.UpdateText("selectedplugin_b5_txt", "0.8 0.8 0.8 0.8", text: "UPDATE", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b5_icn", "clouddl", "0.8 0.8 0.8 0.8"));
+			update.Add(cui.UpdateImage("selectedplugin_b5_fade", "fade", Cache.CUI.WhiteColor));
+		}
+		else
+		{
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 0 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#d9f7a3", text: "DOWNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "clouddl", "#d9f7a3"));
+			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.BlankColor));
+
+			var isLoadable =
+				!string.IsNullOrEmpty(CorePlugin.GetPluginPath(Path.GetFileNameWithoutExtension(plugin.File)).Value);
+			Logger.Log(CorePlugin.GetPluginPath(plugin.Name).Value);
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", !isLoadable ? CUI.HexToRustColor("#8db842", 0.4f) : "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 {plugin.Id}"));
+			update.Add(cui.UpdateText("selectedplugin_b2_txt", "#d9f7a3", text: "LOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			update.Add(cui.UpdateImage("selectedplugin_b2_icn", "installed", "#d9f7a3"));
+			update.Add(cui.UpdateImage("selectedplugin_b2_fade", "fade", Cache.CUI.WhiteColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b3", Cache.CUI.BlankColor, Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft));
+			update.Add(cui.UpdateText("selectedplugin_b3_txt", Cache.CUI.BlankColor, text: string.Empty, 0));
+			update.Add(cui.UpdateImage("selectedplugin_b3_icn", "trashcan", Cache.CUI.BlankColor));
+			update.Add(cui.UpdateImage("selectedplugin_b3_fade", "fade", Cache.CUI.BlankColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b4", Cache.CUI.BlankColor, Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft));
+			update.Add(cui.UpdateText("selectedplugin_b4_txt", Cache.CUI.BlankColor, text: string.Empty, 0));
+			update.Add(cui.UpdateImage("selectedplugin_b4_icn", "trashcan", Cache.CUI.BlankColor));
+			update.Add(cui.UpdateImage("selectedplugin_b4_fade", "fade", Cache.CUI.BlankColor));
+
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b5", Cache.CUI.BlankColor, Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft));
+			update.Add(cui.UpdateText("selectedplugin_b5_txt", Cache.CUI.BlankColor, text: string.Empty, 0));
+			update.Add(cui.UpdateImage("selectedplugin_b5_icn", "trashcan", Cache.CUI.BlankColor));
+			update.Add(cui.UpdateImage("selectedplugin_b5_fade", "fade", Cache.CUI.BlankColor));
+		}
+
+		update.Send(arg.Player());
 	}
 
 	[Conditional("!MINIMAL")]
 	[ProtectedCommand("pluginbrowser.deselectplugin")]
-	private void PluginBrowserDeselectPlugin(Arg args)
+	private void PluginBrowserDeselectPlugin(Arg arg)
 	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
-		vendor.Refresh();
-
-		ap.SetStorage(tab, "selectedplugin", (PluginsTab.Plugin)default);
-
-		Singleton.Draw(args.Player());
+		using var cui = new CUI(Singleton.Handler);
+		using var update = cui.UpdatePool();
+		update.Add(cui.UpdatePanel("selectedpluginpnl", Cache.CUI.BlankColor, xMin: 0, xMax: 0, yMin: -1000, yMax: -1000, blur: false));
+		update.Send(arg.Player());
 	}
 
 	[Conditional("!MINIMAL")]
@@ -2217,11 +2445,10 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 		vendor.Refresh();
 
-		var plugins = PluginsTab.GetPlugins(vendor, tab, ap);
+		var plugins = PluginsTab.GetPlugins(vendor, tab, ap, 15);
 		var nextPage = plugins.IndexOf(ap.GetStorage<PluginsTab.Plugin>(tab, "selectedplugin")) + args.Args[0].ToInt();
 		ap.SetStorage(tab, "selectedplugin", plugins[nextPage > plugins.Count - 1 ? 0 : nextPage < 0 ? plugins.Count - 1 : nextPage]);
 		Facepunch.Pool.FreeUnmanaged(ref plugins);
@@ -2237,7 +2464,7 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed.ToString())));
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
 
 		switch (args.Args[0])
 		{
@@ -2276,33 +2503,34 @@ public partial class AdminModule
 	private void PluginBrowserLogin(Arg args)
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
+		var player = ap.Player;
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor = ap.GetStorage<string>(tab, "vendor");
 
-		var vendor2 = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
-		if (vendor2 is PluginsTab.IVendorAuthenticated auth)
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
+		if (vendor is PluginsTab.IVendorAuthenticated auth)
 		{
 			if (auth.IsLoggedIn)
 			{
 				tab.CreateDialog("Are you sure you want to log out?", onConfirm: ap =>
 				{
 					auth.User = null;
-					vendor2.Refresh();
-					Singleton.Draw(args.Player());
-					if (vendor2 is PluginsTab.IVendorStored store) store.Save();
+					vendor.Refresh();
+
+					Singleton.Draw(player);
+
+					if (vendor is PluginsTab.IVendorStored store)
+					{
+						store.Save();
+					}
 				}, null);
 			}
 			else
 			{
 				auth.AuthCode = Extensions.StringEx.Truncate(Guid.NewGuid().ToString(), 6).ToUpper();
-				auth.User = new PluginsTab.LoggedInUser
-				{
-					PendingAccessToken = true
-				};
+				auth.User = new PluginsTab.LoggedInUser { PendingAccessToken = true };
 
 				var currentCode = auth.AuthCode;
 				var core = Community.Runtime.Core;
-				var authHeader = auth.AuthHeader;
 
 				core.timer.In(5f, () =>
 				{
@@ -2317,18 +2545,18 @@ public partial class AdminModule
 						core.timer.In(2f, () =>
 						{
 							auth.User.PendingAccessToken = false;
-							Singleton.Draw(args.Player());
+							Singleton.Draw(player);
 
 							auth.RefreshUser(ap);
 						});
 
-						Singleton.Draw(args.Player());
+						Singleton.Draw(player);
 					});
 				});
 			}
-		}
 
-		Singleton.Draw(args.Player());
+			Singleton.Draw(args.Player());
+		}
 	}
 
 	[Conditional("!MINIMAL")]
@@ -2337,10 +2565,8 @@ public partial class AdminModule
 	{
 		var ap = Singleton.GetPlayerSession(args.Player());
 		var tab = Singleton.GetTab(ap.Player);
-		var vendor = ap.GetStorage<string>(tab, "vendor");
-
-		var vendor2 = PluginsTab.GetVendor((PluginsTab.VendorTypes)Enum.Parse(typeof(PluginsTab.VendorTypes), vendor));
-		if (vendor2 is PluginsTab.IVendorAuthenticated auth)
+		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
+		if (vendor is PluginsTab.IVendorAuthenticated auth)
 		{
 			auth.User = null;
 			auth.ValidationTimer?.Destroy();
@@ -2363,7 +2589,7 @@ public partial class AdminModule
 
 		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Name.Equals(args.GetString(1), StringComparison.InvariantCultureIgnoreCase));
 
-		if (!plugin.IsValid)
+		if (plugin == null)
 		{
 			Singleton.PutsWarn($"Cannot find that plugin.");
 			return;
