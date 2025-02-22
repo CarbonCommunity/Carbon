@@ -39,6 +39,7 @@ public static class CUIBuilder
 	private const char zero = '0';
 	private const char dot = '.';
 	private const char whitespace = ' ';
+	private const float zeroFloat = 0;
 
 	private static readonly long[] _pow10 = {
 		1L, 10L, 100L, 1_000L, 10_000L, 100_000L,
@@ -51,6 +52,11 @@ public static class CUIBuilder
 	{
 		int startsAt = startIndex;
 		int index = startIndex;
+		if (value == zeroFloat)
+		{
+			buffer[index++] = zero;
+			return index - startsAt;
+		}
 		if (value < 0)
 		{
 			buffer[index++] = minus;
