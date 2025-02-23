@@ -596,7 +596,7 @@ public partial class AdminModule
 
 							var closeButton = cui.CreateProtectedButton(container, selectedPlugin,
 								"0.2 0.2 0.2 0.9", Cache.CUI.BlankColor, string.Empty, 0,
-								command: "closeplugin", xMin: 0.05f, xMax: 0.08f, yMin: 0.9f, yMax: 0.955f);
+								command: "pluginbrowser.deselectplugin", xMin: 0.05f, xMax: 0.08f, yMin: 0.9f, yMax: 0.955f);
 							cui.CreateImage(container, closeButton, "close", "0.7 0.7 0.7 0.4", xMin: 0.3f,
 								xMax: 0.7f, yMin: 0.3f, yMax: 0.7f);
 							cui.CreateImage(container, closeButton, "fade", Cache.CUI.WhiteColor);
