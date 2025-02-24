@@ -405,12 +405,12 @@ public class Permission : Library
 			user.Language = Community.Runtime.Config.Language;
 		}
 
-		if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.PlayerDefaultGroup))
+		if (Community.Runtime.Config.Permissions.AutoGrantPlayerGroup && !string.IsNullOrEmpty(Community.Runtime.Config.Permissions.PlayerDefaultGroup))
 		{
 			AddUserGroup(player.UserIDString, Community.Runtime.Config.Permissions.PlayerDefaultGroup);
 		}
 
-		if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.AdminDefaultGroup))
+		if (Community.Runtime.Config.Permissions.AutoGrantAdminGroup && !string.IsNullOrEmpty(Community.Runtime.Config.Permissions.AdminDefaultGroup))
 		{
 			if (player.net is { connection.authLevel: 2 })
 			{
@@ -422,7 +422,7 @@ public class Permission : Library
 			}
 		}
 
-		if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.ModeratorDefaultGroup))
+		if (Community.Runtime.Config.Permissions.AutoGrantModeratorGroup &&!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.ModeratorDefaultGroup))
 		{
 			if (player.net is { connection.authLevel: 1 })
 			{
@@ -434,18 +434,18 @@ public class Permission : Library
 			}
 		}
 
-		var iplayerValue = (RustPlayer)null;
+		RustPlayer rustPlayer;
 
 		if (iPlayerField.GetValue(player) == null)
 		{
-			iPlayerField.SetValue(player, iplayerValue = new RustPlayer(player));
+			iPlayerField.SetValue(player, rustPlayer = new RustPlayer(player));
 		}
 		else
 		{
-			iplayerValue = (RustPlayer)iPlayerField.GetValue(player);
+			rustPlayer = (RustPlayer)iPlayerField.GetValue(player);
 		}
 
-		iplayerValue.Object = player;
+		rustPlayer.Object = player;
 	}
 	public virtual void UpdateNickname(string id, string nickname)
 	{
