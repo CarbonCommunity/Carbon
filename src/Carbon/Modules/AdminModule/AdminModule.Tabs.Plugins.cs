@@ -474,9 +474,9 @@ public partial class AdminModule
 								OyMin: oYMin, OyMax: oYMax);
 
 							PaginationButton(ref pageOffset, cui, container, pagination, "<<",
-								command: "changepage -2");
+								command: "pluginbrowser.page -2");
 							PaginationButton(ref pageOffset, cui, container, pagination, "<",
-								command: "changepage -1");
+								command: "pluginbrowser.page -1");
 							var pageInput = cui.CreatePanel(container, pagination, pageButtonColorDark,
 								xMax: 0, OxMin: pageOffset, OxMax: pageOffset + 70f);
 							cui.CreateImage(container, pageInput, "fade", Cache.CUI.WhiteColor);
@@ -484,12 +484,12 @@ public partial class AdminModule
 								$"/ {page.TotalPages:n0}", 10, xMin: 0.5f, align: TextAnchor.MiddleLeft);
 							cui.CreateProtectedInputField(container, pageInput, Cache.CUI.WhiteColor,
 								$"{page.CurrentPage + 1}", 10, 60, false, align: TextAnchor.MiddleRight,
-								xMax: 0.45f, command: "changepage");
+								xMax: 0.45f, command: "pluginbrowser.page");
 							pageOffset += 75f;
 							PaginationButton(ref pageOffset, cui, container, pagination, ">",
-								command: "changepage 1");
+								command: "pluginbrowser.page 1");
 							PaginationButton(ref pageOffset, cui, container, pagination, ">>",
-								command: "changepage -3");
+								command: "pluginbrowser.page -3");
 						}
 
 						static void PaginationButton(ref float pageOffset, CUI cui,
@@ -2231,38 +2231,79 @@ public partial class AdminModule
 
 	[Conditional("!MINIMAL")]
 	[ProtectedCommand("pluginbrowser.page")]
-	private void PluginBrowserPage(Arg args)
+	private void PluginBrowserPage(Arg arg)
 	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		vendor.Refresh();
-		PluginsTab.GetPlugins(vendor, tab, ap, out var maxPages, 15);
+		var player = arg.Player();
+		var ap = Singleton.GetPlayerSession(player);
+		var page = ap.GetOrCreatePage(230);
+		var offset = arg.GetInt(0);
+		var currentPage = page.CurrentPage;
 
-		var page = ap.GetStorage(tab, "page", 0);
-
-		switch (args.Args[0])
+		switch (offset)
 		{
-			case "+1":
-				page++;
+			case 0:
+			{
+				page.CurrentPage = 0;
 				break;
-			case "-1":
-				page--;
+			}
+
+			case 1:
+			{
+				page.CurrentPage++;
+
+				if(page.CurrentPage > page.TotalPages - 1)
+				{
+					page.CurrentPage = 0;
+				}
 				break;
+			}
+
+			case -1:
+			{
+				page.CurrentPage--;
+
+				if (page.CurrentPage < 0)
+				{
+					page.CurrentPage = page.TotalPages - 1;
+				}
+				break;
+			}
+
+			case -2:
+			{
+				page.CurrentPage = 0;
+				break;
+			}
+
+			case -3:
+			{
+				page.CurrentPage = page.TotalPages - 1;
+				break;
+			}
 
 			default:
-				page = args.Args[0].ToInt() - 1;
+			{
+				page.CurrentPage = offset - 1;
 				break;
+			}
 		}
 
-		if (page < 0) page = maxPages;
-		else if (page > maxPages) page = 0;
+		if (page.CurrentPage <= 0)
+		{
+			page.CurrentPage = 0;
+		}
+		else if (page.CurrentPage > page.TotalPages)
+		{
+			page.CurrentPage = page.TotalPages - 1;
+		}
 
-		ap.SetStorage(tab, "page", page);
+		ap.SetStorage(ap.SelectedTab, "page", page.CurrentPage);
+		PluginsTab.DropdownShow = false;
 
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
-
-		Singleton.Draw(args.Player());
+		if(currentPage != page.CurrentPage)
+		{
+			Singleton.Draw(player);
+		}
 	}
 
 	[Conditional("!MINIMAL")]
