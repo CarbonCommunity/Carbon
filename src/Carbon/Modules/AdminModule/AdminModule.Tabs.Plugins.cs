@@ -474,9 +474,9 @@ public partial class AdminModule
 								OyMin: oYMin, OyMax: oYMax);
 
 							PaginationButton(ref pageOffset, cui, container, pagination, "<<",
-								command: "changepage -2");
+								command: "pluginbrowser.page -2");
 							PaginationButton(ref pageOffset, cui, container, pagination, "<",
-								command: "changepage -1");
+								command: "pluginbrowser.page -1");
 							var pageInput = cui.CreatePanel(container, pagination, pageButtonColorDark,
 								xMax: 0, OxMin: pageOffset, OxMax: pageOffset + 70f);
 							cui.CreateImage(container, pageInput, "fade", Cache.CUI.WhiteColor);
@@ -484,12 +484,12 @@ public partial class AdminModule
 								$"/ {page.TotalPages:n0}", 10, xMin: 0.5f, align: TextAnchor.MiddleLeft);
 							cui.CreateProtectedInputField(container, pageInput, Cache.CUI.WhiteColor,
 								$"{page.CurrentPage + 1}", 10, 60, false, align: TextAnchor.MiddleRight,
-								xMax: 0.45f, command: "changepage");
+								xMax: 0.45f, command: "pluginbrowser.page");
 							pageOffset += 75f;
 							PaginationButton(ref pageOffset, cui, container, pagination, ">",
-								command: "changepage 1");
+								command: "pluginbrowser.page 1");
 							PaginationButton(ref pageOffset, cui, container, pagination, ">>",
-								command: "changepage -3");
+								command: "pluginbrowser.page -3");
 						}
 
 						static void PaginationButton(ref float pageOffset, CUI cui,
