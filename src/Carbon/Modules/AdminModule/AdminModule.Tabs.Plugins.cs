@@ -2231,38 +2231,79 @@ public partial class AdminModule
 
 	[Conditional("!MINIMAL")]
 	[ProtectedCommand("pluginbrowser.page")]
-	private void PluginBrowserPage(Arg args)
+	private void PluginBrowserPage(Arg arg)
 	{
-		var ap = Singleton.GetPlayerSession(args.Player());
-		var tab = Singleton.GetTab(ap.Player);
-		var vendor = PluginsTab.GetVendor(ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		vendor.Refresh();
-		PluginsTab.GetPlugins(vendor, tab, ap, out var maxPages, 15);
+		var player = arg.Player();
+		var ap = Singleton.GetPlayerSession(player);
+		var page = ap.GetOrCreatePage(230);
+		var offset = arg.GetInt(0);
+		var currentPage = page.CurrentPage;
 
-		var page = ap.GetStorage(tab, "page", 0);
-
-		switch (args.Args[0])
+		switch (offset)
 		{
-			case "+1":
-				page++;
+			case 0:
+			{
+				page.CurrentPage = 0;
 				break;
-			case "-1":
-				page--;
+			}
+
+			case 1:
+			{
+				page.CurrentPage++;
+
+				if(page.CurrentPage > page.TotalPages - 1)
+				{
+					page.CurrentPage = 0;
+				}
 				break;
+			}
+
+			case -1:
+			{
+				page.CurrentPage--;
+
+				if (page.CurrentPage < 0)
+				{
+					page.CurrentPage = page.TotalPages - 1;
+				}
+				break;
+			}
+
+			case -2:
+			{
+				page.CurrentPage = 0;
+				break;
+			}
+
+			case -3:
+			{
+				page.CurrentPage = page.TotalPages - 1;
+				break;
+			}
 
 			default:
-				page = args.Args[0].ToInt() - 1;
+			{
+				page.CurrentPage = offset - 1;
 				break;
+			}
 		}
 
-		if (page < 0) page = maxPages;
-		else if (page > maxPages) page = 0;
+		if (page.CurrentPage <= 0)
+		{
+			page.CurrentPage = 0;
+		}
+		else if (page.CurrentPage > page.TotalPages)
+		{
+			page.CurrentPage = page.TotalPages - 1;
+		}
 
-		ap.SetStorage(tab, "page", page);
+		ap.SetStorage(ap.SelectedTab, "page", page.CurrentPage);
+		PluginsTab.DropdownShow = false;
 
-		PluginsTab.DownloadThumbnails(vendor, tab, Singleton.GetPlayerSession(args.Player()));
-
-		Singleton.Draw(args.Player());
+		if(currentPage != page.CurrentPage)
+		{
+			Singleton.Draw(player);
+		}
 	}
 
 	[Conditional("!MINIMAL")]
