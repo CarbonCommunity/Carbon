@@ -365,7 +365,7 @@ public struct LuiBuilderInstance : IDisposable
                     switch (component.type)
                     {
                         case LuiCompType.RectTransform:
-	                        LuiRectTransform rect = component as LuiRectTransform;
+	                        LuiRectTransformComp rect = component as LuiRectTransformComp;
                             found++;
                             this.WriteField(NamedFields.anchorMin, rect.anchor.anchorMin);
                             this.WriteComma();
@@ -376,7 +376,7 @@ public struct LuiBuilderInstance : IDisposable
                             this.WriteField(NamedFields.offsetMax, rect.offset.offsetMax);
                             break;
                         case LuiCompType.Image:
-	                        LuiImagePanel img = component as LuiImagePanel;
+	                        LuiImageComp img = component as LuiImageComp;
                             found++;
                             this.WriteField(NamedFields.color, img.color);
                             break;
