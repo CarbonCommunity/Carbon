@@ -5,17 +5,96 @@ namespace Carbon.Core;
 
 public partial class CorePlugin
 {
-	[CommandVar("defaultplayergroup", "The default group for any player with the regular authority level they get assigned to.")]
+	[CommandVar("default_player_group", "The default group for any player with the regular authority level they get assigned to.")]
 	[AuthLevel(2)]
-	private string DefaultPlayerGroup { get { return Community.Runtime.Config.Permissions.PlayerDefaultGroup; } set { Community.Runtime.Config.Permissions.PlayerDefaultGroup = value; } }
+	private string DefaultPlayerGroup
+	{
+		get
+		{
+			return Community.Runtime.Config.Permissions.PlayerDefaultGroup;
+		}
+		set
+		{
+			Community.Runtime.Config.Permissions.PlayerDefaultGroup = value;
+			Community.Runtime.SaveConfig();
+		}
+	}
 
-	[CommandVar("defaultadmingroup", "The default group players with auth-level 2 get assigned to.")]
+	[CommandVar("default_admin_group", "The default group players with auth-level 2 get assigned to.")]
 	[AuthLevel(2)]
-	private string DefaultAdminGroup { get { return Community.Runtime.Config.Permissions.AdminDefaultGroup; } set { Community.Runtime.Config.Permissions.AdminDefaultGroup = value; } }
+	private string DefaultAdminGroup
+	{
+		get
+		{
+			return Community.Runtime.Config.Permissions.AdminDefaultGroup;
+		}
+		set
+		{
+			Community.Runtime.Config.Permissions.AdminDefaultGroup = value;
+			Community.Runtime.SaveConfig();
+		}
+	}
 
-	[CommandVar("defaultmoderatorgroup", "The default group players with auth-level 1 get assigned to.")]
+	[CommandVar("default_mod_group", "The default group players with auth-level 1 get assigned to.")]
 	[AuthLevel(2)]
-	private string DefaultModeratorGroup { get { return Community.Runtime.Config.Permissions.ModeratorDefaultGroup; } set { Community.Runtime.Config.Permissions.ModeratorDefaultGroup = value; } }
+	private string DefaultModeratorGroup
+	{
+		get
+		{
+			return Community.Runtime.Config.Permissions.ModeratorDefaultGroup;
+
+		}
+		set
+		{
+			Community.Runtime.Config.Permissions.ModeratorDefaultGroup = value;
+			Community.Runtime.SaveConfig();
+		}
+	}
+
+	[CommandVar("autogrant_player_group", "Carbon should automatically grant (newer) players the default player group to them.")]
+	[AuthLevel(2)]
+	private bool AutoGrantPlayerGroup
+	{
+		get
+		{
+			return Community.Runtime.Config.Permissions.AutoGrantPlayerGroup;
+		}
+		set
+		{
+			Community.Runtime.Config.Permissions.AutoGrantPlayerGroup = value;
+			Community.Runtime.SaveConfig();
+		}
+	}
+
+	[CommandVar("autogrant_admin_group", "Carbon should automatically grant (auth level 2) players the default admin group to them.")]
+	[AuthLevel(2)]
+	private bool AutoGrantAdminGroup
+	{
+		get
+		{
+			return Community.Runtime.Config.Permissions.AutoGrantAdminGroup;
+		}
+		set
+		{
+			Community.Runtime.Config.Permissions.AutoGrantAdminGroup = value;
+			Community.Runtime.SaveConfig();
+		}
+	}
+
+	[CommandVar("autogrant_mod_group", "Carbon should automatically grant (auth level 1) players the default moderator group to them.")]
+	[AuthLevel(2)]
+	private bool AutoGrantModeratorGroup
+	{
+		get
+		{
+			return Community.Runtime.Config.Permissions.AutoGrantModeratorGroup;
+		}
+		set
+		{
+			Community.Runtime.Config.Permissions.AutoGrantModeratorGroup = value;
+			Community.Runtime.SaveConfig();
+		}
+	}
 
 	[ConsoleCommand("grant", "Grant one or more permissions to users or groups. Do 'c.grant' for syntax info.")]
 	[AuthLevel(2)]
