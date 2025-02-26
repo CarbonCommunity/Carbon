@@ -13,7 +13,7 @@ namespace Carbon;
 public partial class Community
 {
 	public Config Config { get; set; }
-	public MonoProfilerConfig MonoProfilerConfig { get; set; }
+	public MonoProfilerConfig MonoProfilerConfig => MonoProfilerConfig.Instance;
 	public ClientConfig ClientConfig { get; set; }
 
 	public void ForceEnsurePublicizedAssembly(string value, ref bool needsSave)
@@ -191,22 +191,7 @@ public partial class Community
 	/// </summary>
 	public void LoadMonoProfilerConfig()
 	{
-		var needsSave = false;
-
-		if (!OsEx.File.Exists(Defines.GetMonoProfilerConfigFile()))
-		{
-			MonoProfilerConfig ??= new();
-			needsSave = true;
-		}
-		else
-		{
-			MonoProfilerConfig = JsonConvert.DeserializeObject<MonoProfilerConfig>(OsEx.File.ReadText(Defines.GetMonoProfilerConfigFile()));
-		}
-
-		if (needsSave)
-		{
-			SaveMonoProfilerConfig();
-		}
+		MonoProfilerConfig.Load(Defines.GetMonoProfilerConfigFile());
 	}
 
 	/// <summary>
@@ -214,7 +199,7 @@ public partial class Community
 	/// </summary>
 	public void SaveMonoProfilerConfig()
 	{
-		MonoProfilerConfig ??= new();
+		MonoProfilerConfig.Instance ??= new();
 
 		OsEx.File.Create(Defines.GetMonoProfilerConfigFile(), JsonConvert.SerializeObject(MonoProfilerConfig, Formatting.Indented));
 	}
