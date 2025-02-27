@@ -199,9 +199,7 @@ public partial class Community
 	/// </summary>
 	public void SaveMonoProfilerConfig()
 	{
-		MonoProfilerConfig.Instance ??= new();
-
-		OsEx.File.Create(Defines.GetMonoProfilerConfigFile(), JsonConvert.SerializeObject(MonoProfilerConfig, Formatting.Indented));
+		MonoProfilerConfig.Save(Defines.GetMonoProfilerConfigFile());
 	}
 
 	/// <summary>
