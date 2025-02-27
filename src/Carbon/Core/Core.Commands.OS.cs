@@ -131,4 +131,33 @@ public partial class CorePlugin
 			arg.ReplyWith($"Deleted '{files[i]}'");
 		}
 	}
+
+	[ConsoleCommand("createplugin", "It creates a new plugin in the plugins folder. Syntax: c.createplugin \"PluginName\" \"Author\" \"Description\"")]
+	[AuthLevel(2)]
+	private void CreatePlugin(ConsoleSystem.Arg arg)
+	{
+		var name = arg.GetString(0, "NewPlugin");
+		var sanitizedName = name.Replace(" ", string.Empty);
+		var fileName = Path.Combine(Defines.GetScriptsFolder(), sanitizedName + ".cs");
+
+		if (OsEx.File.Exists(fileName))
+		{
+			arg.ReplyWith("A plugin with the same name already exists.");
+			return;
+		}
+
+		var author = arg.GetString(1, Environment.UserName);
+		var description = arg.GetString(2, "New cool plugin that does things!");
+		OsEx.File.Create(fileName,
+			content: $"namespace Carbon.Plugins;\n\n" +
+			         $"[Info(\"{name}\", \"{author}\", \"1.0\")]\n" +
+			         $"[Description(\"{description}\")]\n" +
+			         $"public class {sanitizedName} : CarbonPlugin\n" +
+			         $"{{\n" +
+			         $"\tprivate void OnServerInitialized()\n" +
+			         $"\t{{\n" +
+			         $"\t\tPuts(\"New plugin is here!\");\n" +
+			         $"\t}}\n" +
+			         $"}}");
+	}
 }
