@@ -26,7 +26,14 @@ public static class LUIBuilder
 
 	public static string BuildElementId(string elementId, int id)
 	{
-		char[] charBuffer = new char[elementId.Length + 12];
+		int value = id;
+		int idLength = 0;
+		while (value > 0)
+		{
+			idLength++;
+			value /= 10;
+		}
+		char[] charBuffer = new char[elementId.Length + 1 + idLength];
 		int charIndex = 0;
 		for (int i = 0; i < elementId.Length; i++)
 			charBuffer[charIndex++] = elementId[i];
@@ -42,31 +49,31 @@ public static class LUIBuilder
 	#region Field Builders
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteStartObject(this LuiBuilderInstance inst) => inst.Write(startObject);
+    public static void WriteStartObject(this ref LuiBuilderInstance inst) => inst.Write(startObject);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteEndObject(this LuiBuilderInstance inst) => inst.Write(endObject);
+    public static void WriteEndObject(this ref LuiBuilderInstance inst) => inst.Write(endObject);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteStartArray(this LuiBuilderInstance inst) => inst.Write(startArray);
+    public static void WriteStartArray(this ref LuiBuilderInstance inst) => inst.Write(startArray);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteEndArray(this LuiBuilderInstance inst) => inst.Write(endArray);
+    public static void WriteEndArray(this ref LuiBuilderInstance inst) => inst.Write(endArray);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteComma(this LuiBuilderInstance inst) => inst.Write(coma);
+    public static void WriteComma(this ref LuiBuilderInstance inst) => inst.Write(coma);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteMark(this LuiBuilderInstance inst) => inst.Write(mark);
+    public static void WriteMark(this ref LuiBuilderInstance inst) => inst.Write(mark);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteDots(this LuiBuilderInstance inst) => inst.Write(dots);
+    public static void WriteDots(this ref LuiBuilderInstance inst) => inst.Write(dots);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteSpace(this LuiBuilderInstance inst) => inst.Write(whitespace);
+    public static void WriteSpace(this ref LuiBuilderInstance inst) => inst.Write(whitespace);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteStartObject(this LuiBuilderInstance inst, string key)
+    public static void WriteStartObject(this ref LuiBuilderInstance inst, string key)
     {
 	    inst.WriteMark();
 	    inst.Write(key);
@@ -76,7 +83,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteStartArray(this LuiBuilderInstance inst, string key)
+    public static void WriteStartArray(this ref LuiBuilderInstance inst, string key)
     {
 	    inst.WriteMark();
 	    inst.Write(key);
@@ -86,7 +93,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this LuiBuilderInstance inst, string key, int value)
+    public static void WriteField(this ref LuiBuilderInstance inst, string key, int value)
     {
 	    inst.WriteMark();
 	    inst.Write(key);
@@ -96,7 +103,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this LuiBuilderInstance inst, string key, Vector2 value)
+    public static void WriteField(this ref LuiBuilderInstance inst, string key, Vector2 value)
     {
 	    inst.WriteMark();
 	    inst.Write(key);
@@ -110,7 +117,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this LuiBuilderInstance inst, string key, float value)
+    public static void WriteField(this ref LuiBuilderInstance inst, string key, float value)
     {
 	    inst.WriteMark();
 	    inst.Write(key);
@@ -120,7 +127,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this LuiBuilderInstance inst, string key, ulong value)
+    public static void WriteField(this ref LuiBuilderInstance inst, string key, ulong value)
     {
 	    inst.WriteMark();
 	    inst.Write(key);
@@ -130,7 +137,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this LuiBuilderInstance inst, string key, bool value)
+    public static void WriteField(this ref LuiBuilderInstance inst, string key, bool value)
     {
 	    inst.WriteMark();
 	    inst.Write(key);
@@ -143,7 +150,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteField(this LuiBuilderInstance inst, string key, string value)
+    public static void WriteField(this ref LuiBuilderInstance inst, string key, string value)
     {
 	    inst.WriteMark();
 	    inst.Write(key);
@@ -170,7 +177,7 @@ public static class LUIBuilder
 		}
 	}
 
-	private const int segmentCheck = 4000;
+	private const int segmentCheck = 2048;
 
 	private const char startObject = '{';
 	private const char endObject = '}';
@@ -194,7 +201,7 @@ public static class LUIBuilder
 	};
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this LuiBuilderInstance inst, char character)
+    private static void Write(this ref LuiBuilderInstance inst, char character)
     {
 	    inst._charBuffer[inst._charIndex] = character;
 	    inst._charIndex++;
@@ -203,7 +210,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this LuiBuilderInstance inst, int value)
+    private static void Write(this ref LuiBuilderInstance inst, int value)
     {
         Span<char> tempBuffer = stackalloc char[11];
         int written = WriteIntDigits(value, tempBuffer);
@@ -214,10 +221,10 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this LuiBuilderInstance inst, float value)
+    private static void Write(this ref LuiBuilderInstance inst, float value)
     {
         Span<char> tempBuffer = stackalloc char[16];
-        int written = WriteFloatDigits(value, tempBuffer, 3);
+        int written = WriteFloatDigits(value, tempBuffer);
         tempBuffer.Slice(0, written).CopyTo(inst._charBuffer.AsSpan(inst._charIndex));
         inst._charIndex += written;
         if (inst._charIndex >= segmentCheck)
@@ -225,7 +232,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this LuiBuilderInstance inst, ulong value)
+    private static void Write(this ref LuiBuilderInstance inst, ulong value)
     {
 	    Span<char> tempBuffer = stackalloc char[16];
 	    int written = WriteUlongDigits(value, tempBuffer);
@@ -236,7 +243,7 @@ public static class LUIBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(this LuiBuilderInstance inst, string text)
+    private static void Write(this ref LuiBuilderInstance inst, string text)
     {
         int length = text.Length;
         Span<char> buffer = inst._charBuffer.AsSpan();
@@ -333,7 +340,7 @@ public struct LuiBuilderInstance : IDisposable
 	private LUIBuilder.WriteArray[] _segments = ArrayPool<LUIBuilder.WriteArray>.Shared.Rent(100);
 	private int _segmentCount = 0;
 
-	private const int maxSegmentSize = 5000;
+	private const int maxSegmentSize = 4096;
 
 	public readonly char[] _charBuffer = new char[maxSegmentSize];
 
@@ -964,7 +971,7 @@ public struct LuiBuilderInstance : IDisposable
 
 	    string jsonString = Encoding.UTF8.GetString(buffer);
 	    //string jsonString = "";
-	    ArrayPool<byte>.Shared.Return(buffer);
+	    //ArrayPool<byte>.Shared.Return(buffer);
 	    return jsonString;
     }
 
@@ -974,7 +981,7 @@ public struct LuiBuilderInstance : IDisposable
 	    int totalSize = 0;
 	    for (int i = 0; i < _segmentCount; i++)
 		    totalSize += _segments[i].size;
-	    byte[] buffer = ArrayPool<byte>.Shared.Rent(totalSize);
+	    byte[] buffer = new byte[totalSize];
 	    int offset = 0;
 
 	    for (int i = 0; i < _segmentCount; i++)
