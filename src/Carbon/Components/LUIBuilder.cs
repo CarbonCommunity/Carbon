@@ -194,7 +194,7 @@ public static class LUIBuilder
 	};
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Write(LuiBuilderInstance inst, char character)
+    private static void Write(this LuiBuilderInstance inst, char character)
     {
 	    inst._charBuffer[inst._charIndex] = character;
 	    inst._charIndex++;
@@ -343,8 +343,19 @@ public struct LuiBuilderInstance : IDisposable
 	{
 		return type switch
 		{
-			LuiCompType.RectTransform => "RectTransform",
+			LuiCompType.Text => "UnityEngine.UI.Text",
 			LuiCompType.Image => "UnityEngine.UI.Image",
+			LuiCompType.RawImage => "UnityEngine.UI.RawImage",
+			LuiCompType.Button => "UnityEngine.UI.Button",
+			LuiCompType.Outline => "UnityEngine.UI.Outline",
+			LuiCompType.InputField => "UnityEngine.UI.InputField",
+			LuiCompType.NeedsCursor => "NeedsCursor",
+			LuiCompType.RectTransform => "RectTransform",
+			LuiCompType.Countdown => "Countdown",
+			LuiCompType.Draggable => "Draggable",
+			LuiCompType.Slot  => "Slot",
+			LuiCompType.NeedsKeyboard => "NeedsKeyboard",
+			LuiCompType.ScrollView => "UnityEngine.UI.ScrollView"
 		};
 	}
 
