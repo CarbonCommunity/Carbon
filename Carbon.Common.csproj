@@ -24,7 +24,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Carbon.Test\Carbon.Test.csproj" />
+		<ProjectReference Include="..\Carbon.Test\Carbon.Test.csproj" />
+		<ProjectReference Include="..\..\Carbon.Profiler\Carbon.Profiler.csproj" />
 	</ItemGroup>
 
 	<Choose>

@@ -69,7 +69,7 @@ public partial class CorePlugin
 	{
 		if (!MonoProfiler.IsRecording)
 		{
-			arg.ReplyWith("No profiling process active.");
+			arg.ReplyWith("No profiling process active");
 			return;
 		}
 
@@ -77,13 +77,13 @@ public partial class CorePlugin
 		ProfileSample.Clear();
 	}
 
-	[ConsoleCommand("profiler.print", "If any parsed data available, it'll print basic and advanced information. Include -f to print to file. (-c=CSV, -j=JSON, -t=Table, -p=ProtoBuf [default])")]
+	[ConsoleCommand("profiler.print", "If any parsed data available, it'll print basic and advanced information. (-c=CSV, -j=JSON, -t=Table, -p=ProtoBuf [default])")]
 	[AuthLevel(2)]
 	private void ProfilerPrint(ConsoleSystem.Arg arg)
 	{
 		if (MonoProfiler.IsRecording)
 		{
-			arg.ReplyWith("Profiler is actively recording.");
+			arg.ReplyWith("Profiler is actively recording");
 			return;
 		}
 
