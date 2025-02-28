@@ -170,7 +170,15 @@ public class Timer : IDisposable
 	{
 		TimesTriggered = 0;
 		Repetitions = repetitions;
-		Delay = delay;
+
+		if (delay < 0)
+		{
+			delay = Delay;
+		}
+		else
+		{
+			Delay = delay;
+		}
 
 		if (Destroyed)
 		{
