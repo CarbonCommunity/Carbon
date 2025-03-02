@@ -208,7 +208,7 @@ public partial class AdminModule
 
 						var scroll = cui.CreateScrollView(container, panel, true, false,
 							ScrollRect.MovementType.Elastic, 0.1f, true, 0.1f, 150,
-							Cache.CUI.BlankColor, out var content, out _, out var verticalBar, yMax: 1f - optionsHeight);
+							out var content, out _, out var verticalBar, yMax: 1f - optionsHeight);
 
 						const float cardWidth = 150;
 						const float cardWidthMargin = 50;
@@ -512,7 +512,6 @@ public partial class AdminModule
 
 							var selectedScroll = cui.CreateScrollView(container, selectedPlugin, true,
 								false, UnityEngine.UI.ScrollRect.MovementType.Elastic, 0.1f, true, 0.1f, 50,
-								Cache.CUI.BlankColor,
 								out var selectedContent, out _, out var selectedVerticalBar);
 
 							const float detailBarThickness = 2;
@@ -576,7 +575,6 @@ public partial class AdminModule
 
 							var changelogScroll = cui.CreateScrollView(container, changelog, true, false,
 								UnityEngine.UI.ScrollRect.MovementType.Elastic, 0.1f, true, 0.1f, 50,
-								Cache.CUI.BlankColor,
 								out var changelogContent, out _, out var changelogVerticalBar, xMin: 0.02f,
 								xMax: 0.72f, yMin: 0.1f, yMax: 0.8f);
 

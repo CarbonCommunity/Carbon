@@ -1138,7 +1138,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		var scroll = cui.CreateScrollView(container, panel, false, true,
 			ScrollRect.MovementType.Clamped,
-			0.5f, true, 0.3f, 120, "0 0",
+			0.5f, true, 0.3f, 120,
 			out var content, out var hScroll, out _,
 			xMin: 0);
 

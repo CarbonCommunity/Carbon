@@ -155,7 +155,7 @@ public partial class FileModule : CarbonModule<EmptyModuleConfig, EmptyModuleDat
 
 			var scroll = cui.CreateScrollView(container, background, true, false,
 				ScrollRect.MovementType.Elastic, 0.1f,
-				true, 0.1f, 30, "0 0", out var content, out _,
+				true, 0.1f, 30, out var content, out _,
 				out var verticalScrollbar,
 				yMax: 0.85f, xMin: 0.01f, OyMin: 0.04f);
 
