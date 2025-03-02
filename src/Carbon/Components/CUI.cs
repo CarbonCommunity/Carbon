@@ -703,6 +703,9 @@ public readonly struct CUI : IDisposable
 			if (_scrollViews.Count == 0)
 			{
 				element = new CuiScrollViewComponent();
+				element.ContentTransform ??= new();
+				element.HorizontalScrollbar ??= TakeFromPoolScrollbar();
+				element.VerticalScrollbar ??= TakeFromPoolScrollbar();
 			}
 			else
 			{
@@ -714,7 +717,7 @@ public readonly struct CUI : IDisposable
 				element.Inertia = _defaultScrollView.Inertia;
 				element.DecelerationRate = _defaultScrollView.DecelerationRate;
 				element.ScrollSensitivity = _defaultScrollView.ScrollSensitivity;
-				element.ContentTransform = new();
+				element.ContentTransform ??= new();
 				element.ContentTransform.AnchorMin = "0 0";
 				element.ContentTransform.AnchorMax = "1 1";
 				element.ContentTransform.OffsetMin = "0 0";
