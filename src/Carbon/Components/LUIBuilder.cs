@@ -362,7 +362,8 @@ public struct LuiBuilderInstance : IDisposable
 			LuiCompType.Draggable => "Draggable",
 			LuiCompType.Slot  => "Slot",
 			LuiCompType.NeedsKeyboard => "NeedsKeyboard",
-			LuiCompType.ScrollView => "UnityEngine.UI.ScrollView"
+			LuiCompType.ScrollView => "UnityEngine.UI.ScrollView",
+			_ => "UnityEngine.UI.Image"
 		};
 	}
 
@@ -376,11 +377,23 @@ public struct LuiBuilderInstance : IDisposable
         {
             elementCounter++;
             this.WriteStartObject();
-            this.WriteField("parent", element.parent);
-            if (!string.IsNullOrEmpty(element.name))
+            if (element.update)
             {
-	            this.WriteComma();
 	            this.WriteField("name", element.name);
+	            if (!string.IsNullOrEmpty(element.parent))
+	            {
+		            this.WriteComma();
+		            this.WriteField("parent", element.parent);
+	            }
+            }
+            else
+            {
+	            this.WriteField("parent", element.parent);
+	            if (!string.IsNullOrEmpty(element.name))
+	            {
+		            this.WriteComma();
+		            this.WriteField("name", element.name);
+	            }
             }
             if (element.destroyUi != null)
             {
@@ -736,10 +749,10 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("numberFormat", countdown.numberFormat);
 		                    }
-		                    if (countdown.destroyIfNone)
+		                    if (!countdown.destroyIfDone)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("destroyIfNone", true);
+			                    this.WriteField("destroyIfDone", false);
 		                    }
 		                    if (countdown.command != null)
 		                    {
