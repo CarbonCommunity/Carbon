@@ -2,13 +2,13 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Carbon.Common.Carbon.Components;
+namespace Carbon.Components;
 
 public static class LUIBuilder
 {
-
 	#region Old CUI Improvements
-	private static readonly char[] charPreset = new char[32]; //Max 4 chars with 8 chars as no ui x/y should be bigger than 1280
+
+	private static readonly char[] charPreset = new char[32]; //Max 4 values with 8 chars as no ui x/y should be bigger than 1280
 
 	public static string GetStringFloat(params float[] values)
 	{
@@ -370,7 +370,6 @@ public struct LuiBuilderInstance : IDisposable
 	public LuiBuilderInstance(LUI cui)
     {
         this.WriteStartArray();
-
         int elementCount = cui.elements.Count;
         int elementCounter = 0;
         foreach (var element in cui.elements)
@@ -981,7 +980,6 @@ public struct LuiBuilderInstance : IDisposable
     public string GetJsonString()
     {
 	    byte[] buffer = GetMergedBytes();
-
 	    string jsonString = Encoding.UTF8.GetString(buffer);
 	    //string jsonString = "";
 	    //ArrayPool<byte>.Shared.Return(buffer);

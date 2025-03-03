@@ -2,7 +2,7 @@
 using Network;
 using UnityEngine.UI;
 
-namespace Carbon.Common.Carbon.Components;
+namespace Carbon.Components;
 
 public class LUI : IDisposable
 {
@@ -10,6 +10,10 @@ public class LUI : IDisposable
 
 	private readonly CUI _parent;
 
+	/// <summary>
+	/// Boolean that changes default generation of element names.
+	/// With this option disabled, you cannot create UI hierarchy without manual name input.
+	/// </summary>
 	public bool generateNames = true;
 
 	public LUI(CUI cui)
@@ -17,6 +21,9 @@ public class LUI : IDisposable
 		_parent = cui;
 	}
 
+	/// <summary>
+	/// Name of last created container. Used for easy new element creation to last parent without creating variable for that.
+	/// </summary>
 	public string lastName = string.Empty;
 
 	#region Core Panel
@@ -71,6 +78,9 @@ public class LUI : IDisposable
 		return cont;
 	}
 
+	/// <summary>
+	/// Creates update container without any fields assigned.
+	/// </summary>
 	public LuiContainer Update(string name)
 	{
 		LuiContainer cont = LuiPool.GetContainer();
@@ -114,6 +124,9 @@ public class LUI : IDisposable
 
 	#region Panel Creation
 
+	/// <summary>
+	/// Creates empty container without anything. Shouldn't be used outside LUI library, but in rare cases might be useful.
+	/// </summary>
 	public LuiContainer CreateEmptyContainer(string parent, string name = "")
 	{
 		LuiContainer cont = LuiPool.GetContainer();
@@ -287,14 +300,15 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateDraggable(LuiContainer container, LuiPosition position, LuiOffset offset, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(container.name, position, offset, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
-	public LuiContainer CreateDraggable(LuiContainer container, LuiOffset offset, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(container.name, LuiPosition.None, offset, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
-	public LuiContainer CreateDraggable(string parent, LuiOffset offset, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(parent, LuiPosition.None, offset, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
+	public LuiContainer CreateDraggable(LuiContainer container, LuiPosition position, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(container.name, position, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
+	public LuiContainer CreateDraggable(LuiContainer container, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(container.name, LuiPosition.None, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
+	public LuiContainer CreateDraggable(string parent, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "") => CreateDraggable(parent, LuiPosition.None, offset, color, filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping, name);
 
-	public LuiContainer CreateDraggable(string parent, LuiPosition position, LuiOffset offset, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "")
+	public LuiContainer CreateDraggable(string parent, LuiPosition position, LuiOffset offset, string color, string filter = null, bool dropAnywhere = true, bool keepOnTop = false, bool limitToParent = false, float maxDistance = -1f, bool allowSwapping = false, string name = "")
 	{
 		LuiContainer cont = CreateEmptyContainer(parent, name);
 		cont.SetAnchorAndOffset(position, offset);
+		cont.SetColor(color);
 		cont.SetDraggable(filter, dropAnywhere, keepOnTop, limitToParent, maxDistance, allowSwapping);
 		elements.Add(cont);
 		return cont;
@@ -328,10 +342,19 @@ public class LUI : IDisposable
 
 	#endregion
 
+	/// <summary>
+	/// Builds and sends UI to player.
+	/// </summary>
 	public void SendUi(BasePlayer player) => Send(new SendInfo(player.Connection));
 
+	/// <summary>
+	/// Builds and sends UI to player. Preffered SendUi(BasePlayer) over this method.
+	/// </summary>
 	public void SendUiJson(BasePlayer player) => SendJson(new SendInfo(player.Connection));
 
+	/// <summary>
+	/// Returns string JSON of currently builded UI.
+	/// </summary>
 	public string ToJson()
 	{
 		using LuiBuilderInstance cbi = new LuiBuilderInstance(this);
@@ -401,6 +424,10 @@ public class LUI : IDisposable
 			return this;
 		}
 
+	    /// <summary>
+	    /// Updates or creates new component in current element.
+		/// Recommended to use only when there is no built-in method for that.
+	    /// </summary>
 		public T UpdateComp<T>() where T : LuiCompBase
 		{
 			//if (!update)
@@ -1244,6 +1271,7 @@ public class LUI : IDisposable
 
 public static class LuiColors
 {
+	public const string Transparent = "0.0 0.0 0.0 0.0";
 	public const string White = "1.0 1.0 1.0 1.0";
 	public const string Gray = "0.5 0.5 0.5 1.0";
 	public const string Black = "0.0 0.0 0.0 1.0";
@@ -1362,11 +1390,6 @@ public readonly struct LuiPosition
 	public static readonly LuiPosition LowerLeft = new(0, 0, 0, 0);
 	public static readonly LuiPosition LowerCenter = new(.5f, 0, .5f, 0);
 	public static readonly LuiPosition LowerRight = new(1, 0, 1, 0);
-
-	public static readonly LuiPosition Upper = new(0, 1, 1, 1);
-	public static readonly LuiPosition Lower = new(0, 0, 1, 0);
-	public static readonly LuiPosition Left = new(0, 0, 0, 1);
-	public static readonly LuiPosition Right = new(1, 0, 1, 1);
 
 	public readonly Vector2 anchorMin;
 	public readonly Vector2 anchorMax;
@@ -1493,7 +1516,6 @@ public class LuiButtonComp : LuiCompBase
 	public string disabledColor;
 	public float colorMultiplier = -1;
 	public float fadeDuration = -1;
-
 
 	public LuiButtonComp()
 	{
@@ -1648,13 +1670,14 @@ public struct LuiScrollbar
 	public string trackColor;
 }
 
-public enum DraggablePositionSendType //Probably will be added to CUI soon
+//Comment out when draggables will be out and there won't be anything like that in CUI.
+/*public enum DraggablePositionSendType
 {
 	NormalizedScreen = 0,
 	NormalizedParent = 1,
 	Relative = 2,
 	RelativeAnchor = 3,
-}
+}*/
 
 public static class LuiPool
 {
@@ -1987,6 +2010,4 @@ public static class LuiPool
 	}
 
 	public static void ReturnContainer(LUI.LuiContainer container) => _containers.Push(container);
-
-
 }

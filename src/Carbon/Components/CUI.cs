@@ -1,5 +1,4 @@
-﻿using Carbon.Common.Carbon.Components;
-using Network;
+﻿using Network;
 using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 using static Carbon.Components.CUI;
