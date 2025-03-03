@@ -87,19 +87,14 @@ public partial class AdminModule
 		}
 		public Tab InsertRow(int column, int index, Option row, bool hidden = false)
 		{
-			column = Mathf.Min(0, column);
 			row.CurrentlyHidden = row.Hidden = hidden;
 
-			if (Columns.TryGetValue(column, out var options))
+			if (!Columns.TryGetValue(column, out var options))
 			{
-				options.Insert(index, row);
-			}
-			else
-			{
-
 				Columns[column] = options = new();
-				options.Insert(index, row);
 			}
+
+			options.Insert(index, row);
 
 			return this;
 		}
@@ -336,7 +331,7 @@ public partial class AdminModule
 		{
 			foreach (var column in Columns)
 			{
-				column.Value.Clear();
+				column.Value.ClearToPool();
 			}
 
 			Columns.Clear();
