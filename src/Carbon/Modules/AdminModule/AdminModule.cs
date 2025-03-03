@@ -1436,48 +1436,48 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 									{
 										case Tab.OptionName name:
 											Singleton.TabPanelName(cui, container, panel, name.Name, rowHeight, rowIndex, name.Align);
-											HandleReveal(0f);
+											HandleReveal(0f, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionButton button:
 											Singleton.TabPanelButton(cui, container, panel, button.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, button.Type == null ? Tab.OptionButton.Types.None : button.Type.Invoke(ap), button.Align);
-											HandleReveal(0f);
+											HandleReveal(0f, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionText text:
 											Singleton.TabPanelText(cui, container, panel, text.Name, text.Size, text.Color, rowHeight, rowIndex, text.Align, text.Font, text.IsInput);
-											HandleReveal(0f);
+											HandleReveal(0f, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionInput input:
 											Singleton.TabPanelInput(cui, container, panel, input.Name, input.Placeholder?.Invoke(ap), PanelId + $".callaction {i} {actualI}", input.CharacterLimit, input.ReadOnly, rowHeight, rowIndex, ap, option: input);
-											HandleReveal(Singleton.DataInstance.Colors.OptionWidth);
-											HandleInputHighlight(Singleton.DataInstance.Colors.OptionWidth);
+											HandleReveal(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
+											HandleInputHighlight(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, ap, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionEnum @enum:
 											Singleton.TabPanelEnum(cui, container, panel, @enum.Name, @enum.Text?.Invoke(ap), PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-											HandleReveal(Singleton.DataInstance.Colors.OptionWidth);
+											HandleReveal(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionToggle toggle:
 											Singleton.TabPanelToggle(cui, container, panel, toggle.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, toggle.IsOn != null ? toggle.IsOn.Invoke(ap) : false, tab);
-											HandleReveal(Singleton.DataInstance.Colors.OptionWidth);
+											HandleReveal(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionRadio radio:
 											Singleton.TabPanelRadio(cui, container, panel, radio.Name, radio.Index == tab.Radios[radio.Id].Selected, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-											HandleReveal(Singleton.DataInstance.Colors.OptionWidth);
+											HandleReveal(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionDropdown dropdown:
 											Singleton.TabPanelDropdown(cui, ap._selectedDropdownPage, container, panel, dropdown.Name, PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex, dropdown.Index.Invoke(ap), dropdown.Options, dropdown.OptionsIcons, ap._selectedDropdown == dropdown);
-											HandleReveal(Singleton.DataInstance.Colors.OptionWidth);
+											HandleReveal(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionRange range:
 											Singleton.TabPanelRange(cui, container, panel, range.Name, PanelId + $".callaction {i} {actualI}", range.Text?.Invoke(ap), range.Min, range.Max, range.Value == null ? 0 : range.Value.Invoke(ap), rowHeight, rowIndex);
-											HandleReveal(Singleton.DataInstance.Colors.OptionWidth);
+											HandleReveal(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionButtonArray array:
@@ -1486,13 +1486,13 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 										case Tab.OptionInputButton inputButton:
 											Singleton.TabPanelInputButton(cui, container, panel, inputButton.Name, PanelId + $".callaction {i} {actualI}", inputButton.ButtonPriority, inputButton.Input, inputButton.Button, ap, rowHeight, rowIndex, option: inputButton);
-											HandleReveal(Singleton.DataInstance.Colors.OptionWidth);
-											HandleInputHighlight(Singleton.DataInstance.Colors.OptionWidth, 1f - inputButton.ButtonPriority, "input");
+											HandleReveal(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
+											HandleInputHighlight(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, ap, rowIndex, rowHeight, i, actualI, 1f - inputButton.ButtonPriority, "input");
 											break;
 
 										case Tab.OptionColor color:
 											Singleton.TabPanelColor(cui, container, panel, color.Name, color.Color?.Invoke() ?? "0.1 0.1 0.1 0.5", PanelId + $".callaction {i} {actualI}", rowHeight, rowIndex);
-											HandleReveal(Singleton.DataInstance.Colors.OptionWidth);
+											HandleReveal(Singleton.DataInstance.Colors.OptionWidth, row, cui, container, panel, rowIndex, rowHeight, i, actualI);
 											break;
 
 										case Tab.OptionWidget widget:
@@ -1506,7 +1506,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 									#region Reveal
 
-									void HandleReveal(float xMin)
+									static void HandleReveal(float xMin, Tab.Option row, CUI cui, CuiElementContainer container, string panel, float rowIndex, float rowHeight, int i, int actualI)
 									{
 										if (!row.CurrentlyHidden) return;
 
@@ -1521,7 +1521,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 											color: Cache.CUI.BlankColor, textColor: "1 1 1 0.5", text: "REVEAL".SpacedString(1), 8, command: PanelId + $".callaction {i} {actualI}");
 									}
 
-									void HandleInputHighlight(float xMin, float xMax = 0.985f, string command = null)
+									static void HandleInputHighlight(float xMin, Tab.Option row, CUI cui, CuiElementContainer container, string panel, PlayerSession ap, float rowIndex, float rowHeight, int i, int actualI, float xMax = 0.985f, string command = null)
 									{
 										if (row == ap.Input) return;
 
