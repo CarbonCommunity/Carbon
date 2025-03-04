@@ -273,7 +273,7 @@ public partial class AdminModule
 				};
 			}
 
-			AddWidget(0, 0, (ap, cui, container, panel) =>
+			AddWidget(-1, 0, (ap, cui, container, panel) =>
 			{
 				var tabSpacing = 1;
 				const float offset = -46f;
@@ -390,7 +390,7 @@ public partial class AdminModule
 
 			var subtab = session.GetStorage<SubtabTypes>(this, "subtab");
 
-			AddButtonArray(1, new OptionButton("Calls", ap =>
+			AddButtonArray(-2, new OptionButton("Calls", ap =>
 				{
 					session.SetStorage(this, "subtab", SubtabTypes.Calls);
 					DrawSubtabs(session, assembly);
