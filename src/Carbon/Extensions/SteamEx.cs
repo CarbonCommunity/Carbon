@@ -10,7 +10,7 @@
 		return id > 76561197960265728UL;
 	}
 
-	public static bool IsSteamId(this EncryptedValue<ulong> id)
+	public static bool IsSteamId(this BasePlayer.EncryptedValue<ulong> id)
 	{
 		return id > 76561197960265728UL;
 	}
