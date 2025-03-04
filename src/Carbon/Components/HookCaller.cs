@@ -1392,12 +1392,10 @@ public static class HookCaller
 		var @namespace = (BaseNamespaceDeclarationSyntax)null;
 		var namespaceIndex = 0;
 		var classIndex = 0;
-		var isTemp = false;
 
 		if (classList == null)
 		{
 			classList = new List<ClassDeclarationSyntax>();
-			isTemp = true;
 			FindPluginInfo(input, out @namespace, out _, out _, classList);
 		}
 		else
