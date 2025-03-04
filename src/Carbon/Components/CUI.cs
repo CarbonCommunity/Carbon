@@ -12,6 +12,9 @@ namespace Carbon.Components;
 public readonly struct CUI : IDisposable
 {
 	public Handler Manager { get; }
+
+	public LUI v2 { get; }
+
 	public ImageDatabaseModule ImageDatabase { get; }
 	public Handler.Cache CacheInstance => Manager.CacheInstance;
 
@@ -26,7 +29,14 @@ public readonly struct CUI : IDisposable
 		Hud,
 		HudMenu,
 		Under,
-		UnderNonScaled
+		UnderNonScaled,
+		Inventory,
+		TechTree,
+		Crafting,
+		Contacts,
+		Clans,
+		Map
+
 	}
 
 	/// <summary>
@@ -42,6 +52,12 @@ public readonly struct CUI : IDisposable
 			ClientPanels.HudMenu => "Hud.Menu",
 			ClientPanels.Under => "Under",
 			ClientPanels.UnderNonScaled => "UnderNonScaled",
+			ClientPanels.Inventory => "Inventory",
+			ClientPanels.TechTree => "TechTree",
+			ClientPanels.Crafting => "Crafting",
+			ClientPanels.Contacts => "Contacts",
+			ClientPanels.Clans => "Clans",
+			ClientPanels.Map => "Map",
 			_ => "Overlay",
 		};
 	}
@@ -49,6 +65,7 @@ public readonly struct CUI : IDisposable
 	public CUI(Handler manager)
 	{
 		Manager = manager;
+		v2 = new LUI(this);
 		ImageDatabase = BaseModule.GetModule<ImageDatabaseModule>();
 	}
 
@@ -87,10 +104,10 @@ public readonly struct CUI : IDisposable
 		}
 
 		var rect = Manager.TakeFromPoolRect();
-		rect.AnchorMin = $"{xMin} {yMin}";
-		rect.AnchorMax = $"{xMax} {yMax}";
-		rect.OffsetMin = $"{OxMin} {OyMin}";
-		rect.OffsetMax = $"{OxMax} {OyMax}";
+		rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+		rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+		rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+		rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 		element.Components.Add(rect);
 
 		if (needsCursor) element.Components.Add(Manager.TakeFromPoolNeedsCursor());
@@ -183,10 +200,9 @@ public readonly struct CUI : IDisposable
 	{
 		if (!ColorUtility.TryParseHtmlString(hexColor, out var color))
 		{
-			return $"1 1 1{(includeAlpha ? $" {alpha.GetValueOrDefault(1)}" : "")}";
+			return LUIBuilder.GetStringFloat(1, 1, 1, alpha.GetValueOrDefault(1));
 		}
-
-		return $"{color.r} {color.g} {color.b}{(includeAlpha ? $" {alpha ?? color.a}" : "")}";
+		return LUIBuilder.GetStringFloat(color.r, color.g, color.b, alpha ?? color.a);
 	}
 	public static string RustToHexColor(string rustColor, float? alpha = null, bool includeAlpha = true)
 	{
@@ -309,6 +325,7 @@ public readonly struct CUI : IDisposable
 	/// </summary>
 	public void Dispose()
 	{
+		v2.Dispose();
 		Manager.SendToPool();
 	}
 
@@ -367,7 +384,7 @@ public readonly struct CUI : IDisposable
 		public string AppendId()
 		{
 			_currentId++;
-			return $"{Identifier}_{_currentId}";
+			return LUIBuilder.BuildElementId(Identifier, _currentId);
 		}
 		public void SendToPool<T>(T element) where T : ICuiComponent
 		{
@@ -1008,10 +1025,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1048,10 +1065,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1085,10 +1102,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1155,10 +1172,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1181,10 +1198,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1219,10 +1236,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1256,10 +1273,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1294,10 +1311,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1354,10 +1371,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
