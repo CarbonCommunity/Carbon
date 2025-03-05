@@ -1,12 +1,10 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using Carbon.Base.Interfaces;
 using HarmonyLib;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Carbon.HookCallerCommon;
-using Pool = Facepunch.Pool;
 
 namespace Carbon;
 
@@ -157,7 +155,7 @@ public static class HookCaller
 		}
 
 		var result = (object)null;
-		var conflicts = Pool.Get<List<Conflict>>();
+		var conflicts = Facepunch.Pool.Get<List<Conflict>>();
 
 		for (int i = 0; i < Community.Runtime.ModuleProcessor.Modules.Count; i++)
 		{
@@ -213,7 +211,7 @@ public static class HookCaller
 
 		ConflictCheck(conflicts, ref result, hookId);
 
-		Pool.FreeUnmanaged(ref conflicts);
+		Facepunch.Pool.FreeUnmanaged(ref conflicts);
 
 		return result;
 	}
@@ -1394,12 +1392,10 @@ public static class HookCaller
 		var @namespace = (BaseNamespaceDeclarationSyntax)null;
 		var namespaceIndex = 0;
 		var classIndex = 0;
-		var isTemp = false;
 
 		if (classList == null)
 		{
-			classList = Pool.Get<List<ClassDeclarationSyntax>>();
-			isTemp = true;
+			classList = new List<ClassDeclarationSyntax>();
 			FindPluginInfo(input, out @namespace, out _, out _, classList);
 		}
 		else
@@ -1411,11 +1407,6 @@ public static class HookCaller
 
 		if(classList.Count == 0)
 		{
-			if (isTemp)
-			{
-				Pool.FreeUnmanaged(ref classList);
-			}
-
 			output = null;
 			generatedMethod = null;
 			isPartial = default;
@@ -1433,11 +1424,6 @@ public static class HookCaller
 
 		var methodDeclarations = new List<MethodDeclarationSyntax>();
 		methodDeclarations.AddRange(classList.SelectMany(x => x.ChildNodes()).OfType<MethodDeclarationSyntax>());
-
-		if (isTemp)
-		{
-			Pool.FreeUnmanaged(ref classList);
-		}
 
 		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
 		var privateMethods0 = methodDeclarations.Where(md => (md.Modifiers.Count == 0 || md.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword) && !modifier.IsKind(SyntaxKind.StaticKeyword)) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);

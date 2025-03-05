@@ -58,7 +58,7 @@
 		</When>
 	</Choose>
 
-	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec">
+	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec" Condition="Exists('$(SolutionDir).tmp\.gitbranch')">
 		<WriteLinesToFile File="$(MSBuildProjectDirectory)\src\Carbon\Build.cs" Overwrite="true" Lines="$(BuildMetadataCode)" />
 	</Target>
 
