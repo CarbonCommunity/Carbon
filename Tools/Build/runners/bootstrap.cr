@@ -5,6 +5,9 @@ Warn("Git Hooks");
 	Copy.Folder(".githooks", ".git/hooks");
 }
 
+Git.Run("config", "--global", "--add", "safe.directory", "'*'");
+Git.Run("config", "--local", "--add", "safe.directory", "'*'");
+
 Warn("Git Setup");
 {
 	Git.Run("-C", Home, "submodule", "init");
@@ -18,5 +21,3 @@ Warn("Building Submodules");
 	DotNet.Run("clean", PathEnquotes(Home, "Tools", "DepotDownloader"));
 	DotNet.Run("build", PathEnquotes(Home, "Tools", "DepotDownloader"), "--no-restore", "--no-incremental");
 }
-
-Run(Path(Home, "Tools", "Build", "runners", "update.cr"));

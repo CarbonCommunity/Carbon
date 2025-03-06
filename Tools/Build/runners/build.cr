@@ -16,6 +16,7 @@ Warn($"Cargo Target: {cargoTarget}");
 Directories.Delete(Path(Home, "Release", ".tmp", target));
 Files.Delete(Path(Home, "Release", $"Carbon.{target}.tar.gz"));
 
+DotNet.ExitOnError(true);
 DotNet.Run("restore", PathEnquotes(Home, "Carbon.Core"));
 DotNet.Run("clean", PathEnquotes(Home, "Carbon.Core"), "--configuration", target);
 DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target, "--no-restore",

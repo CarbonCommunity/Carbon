@@ -3,7 +3,7 @@
 public class Files : Executor
 {
 	public override string? Name => "Files";
-	
+
 	[Expose("Gets a list of all files in a directory")]
 	public string[] Get(string folder, string search = "*") => Directory.GetFiles(folder, search);
 
@@ -28,6 +28,9 @@ public class Files : Executor
 		File.Copy(target, destination, true);
 		Warn($"{(alreadyExisted ? "Overwrote" : "Copied")} file to '{destination}'");
 	}
+
+	[Expose("Checks if a file exists")]
+	public bool Exists(string target) => File.Exists(target);
 
 	[Expose("Deletes a file if the file exists")]
 	public void Delete(string target)
