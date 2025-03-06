@@ -57,11 +57,11 @@ public class Program : Executor
 			{
 				output += reader.ReadToEnd();
 			}
-			using (var reader = process!.StandardError)
+			using (var reader = process.StandardError)
 			{
 				output += reader.ReadToEnd();
 			}
-			process!.WaitForExit();
+			process.WaitForExit();
 		}
 		catch (Exception ex)
 		{
