@@ -12,6 +12,7 @@ on:
         options:
           - "false"
           - "true"
+
 jobs:
   build:
     name: Preview Build
@@ -144,7 +145,7 @@ jobs:
           draft: false
           prerelease: true
           tag_name: preview_build
-          name: "Preview Build — v${{ needs.bootstrap.outputs.version }}"
+          name: "Preview Build — v${{ needs.build.outputs.version }}"
           body: |
             This is a manually triggered development build of Carbon based on the `preview` branch which includes pre-production changes and upcoming features (for testing purposes).
                     
@@ -157,7 +158,7 @@ jobs:
             2. Unzip the archive to the root of your Rust Dedicated Server.
             3. Restart the server and enjoy.
 
-            ${{ needs.build-linux.outputs.build_info }}
+            ${{ needs.build.outputs.build_info }}
 
             [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
           files: |
