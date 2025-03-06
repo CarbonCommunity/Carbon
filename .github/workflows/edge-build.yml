@@ -30,6 +30,7 @@ jobs:
       - name: Git Clone
         uses: actions/checkout@v3
         with:
+          ref: develop
           token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
           

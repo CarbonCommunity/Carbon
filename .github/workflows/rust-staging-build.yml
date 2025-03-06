@@ -25,6 +25,7 @@ jobs:
       - name: Git Clone
         uses: actions/checkout@v3
         with:
+          ref: rust_beta/staging
           token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
           
