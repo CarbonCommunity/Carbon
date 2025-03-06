@@ -31,7 +31,7 @@ jobs:
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "version=2.7.$(curl -s -L 'https://carbonmod.gg/version?id=aux03&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
-          git config --global --add safe.directory '*'
+          git config --global --add safe.directory /__w/Carbon/Carbon
           
       - name: Git Clone
         uses: actions/checkout@v3
