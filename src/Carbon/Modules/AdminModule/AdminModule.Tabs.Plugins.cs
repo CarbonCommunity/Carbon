@@ -117,7 +117,7 @@ public partial class AdminModule
 					});
 
 					var search = session.GetStorage(tab, "search", string.Empty);
-					tab.AddInput(0, "Search", _ => search, (ap, args) =>
+					tab.AddInput(-1, "Search", _ => search, (ap, args) =>
 					{
 						search = ap.SetStorage(tab, "search", args.ToString(" "));
 						tab.OnChange?.Invoke(ap, tab);

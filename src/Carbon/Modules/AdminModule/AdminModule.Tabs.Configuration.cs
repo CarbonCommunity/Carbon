@@ -190,7 +190,7 @@ public partial class AdminModule
 			{
 				tab.ClearColumn(0);
 				{
-					tab.AddButton(0, "< Go Back", ap => Singleton.SetTab(session.Player, 0),
+					tab.AddButton(-1, "< Go Back", ap => Singleton.SetTab(session.Player, 0),
 						ap => AdminModule.Tab.OptionButton.Types.Selected);
 
 					tab.AddName(0, "Configuration");
@@ -324,7 +324,7 @@ public partial class AdminModule
 				{
 					var configTab = session.GetStorage(tab, "configtab", ConfigTabs.ConVars);
 
-					tab.AddButtonArray(1,
+					tab.AddButtonArray(-2,
 						new OptionButton("ConVars", ap =>
 							{
 								session.SetStorage(tab, "configtab", ConfigTabs.ConVars);

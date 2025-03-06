@@ -6,6 +6,8 @@
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+
+	<Import Project="..\..\Carbon.Tools\Carbon.Generator.Shared\Carbon.Generator.Shared.projitems" Label="Shared" />
 	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
@@ -58,7 +60,7 @@
 		</When>
 	</Choose>
 
-	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec">
+	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec" Condition="Exists('$(SolutionDir).tmp\.gitbranch')">
 		<WriteLinesToFile File="$(MSBuildProjectDirectory)\src\Carbon\Build.cs" Overwrite="true" Lines="$(BuildMetadataCode)" />
 	</Target>
 

@@ -65,16 +65,21 @@ public partial class AdminModule
 		}
 		public Tab AddRow(int column, Option row, bool hidden = false)
 		{
+			var isPinned = column < 0;
+			column = Mathf.Abs(column) - (isPinned ? 1 : 0);
 			row.CurrentlyHidden = row.Hidden = hidden;
 
-			if (Columns.TryGetValue(column, out var options))
+			if (!Columns.TryGetValue(column, out var options))
 			{
-				options.Add(row);
+				Columns[column] = options = new();
+			}
+
+			if (isPinned)
+			{
+				options.pinnedOption = row;
 			}
 			else
 			{
-
-				Columns[column] = options = new();
 				options.Add(row);
 			}
 
@@ -84,16 +89,12 @@ public partial class AdminModule
 		{
 			row.CurrentlyHidden = row.Hidden = hidden;
 
-			if (Columns.TryGetValue(column, out var options))
+			if (!Columns.TryGetValue(column, out var options))
 			{
-				options.Insert(index, row);
-			}
-			else
-			{
-
 				Columns[column] = options = new();
-				options.Insert(index, row);
 			}
+
+			options.Insert(index, row);
 
 			return this;
 		}
@@ -280,8 +281,7 @@ public partial class AdminModule
 
 			return AddRow(column, option);
 		}
-		public Tab AddChart(int column, string name, TextAnchor nameAlign, int nameSize, IEnumerable<Components.Graphics.Chart.Layer> layers,
-			IEnumerable<string> verticalLabels, IEnumerable<string> horizontalLabels, Components.Graphics.Chart.ChartSettings settings, bool responsive = true)
+		public Tab AddChart(int column, string name, TextAnchor nameAlign, int nameSize, IEnumerable<Components.Graphics.Chart.Layer> layers, IEnumerable<string> verticalLabels, IEnumerable<string> horizontalLabels, Components.Graphics.Chart.ChartSettings settings, bool responsive = true)
 		{
 			var space = Pool.Get<OptionSpace>();
 			var chartIndex = Columns[column].Count;
@@ -319,16 +319,19 @@ public partial class AdminModule
 		}
 		public void ResetHiddens()
 		{
-			foreach (var row in Columns.SelectMany(column => column.Value))
+			foreach (var column in Columns)
 			{
-				row.CurrentlyHidden = row.Hidden;
+				foreach (var row in column.Value)
+				{
+					row.CurrentlyHidden = row.Hidden;
+				}
 			}
 		}
 		public void Dispose()
 		{
 			foreach (var column in Columns)
 			{
-				column.Value.Clear();
+				column.Value.ClearToPool();
 			}
 
 			Columns.Clear();
@@ -371,6 +374,8 @@ public partial class AdminModule
 
 		public class OptionPool : List<Option>
 		{
+			public Option pinnedOption;
+
 			public void ClearToPool()
 			{
 				ReturnToPool();
@@ -378,6 +383,10 @@ public partial class AdminModule
 			}
 			public void ReturnToPool()
 			{
+				if (pinnedOption != null)
+				{
+					Pool.Free(ref pinnedOption);
+				}
 				for (int i = 0; i < Count; i++)
 				{
 					var option = this[i];
