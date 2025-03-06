@@ -91,7 +91,7 @@ jobs:
       - name: Carbon Build
         shell: bash
         run: |
-          export VERSION=${{ needs.bootstrap.outputs.version }}
+          export VERSION=${{ needs.build.outputs.version }}
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Debug EDGE edge_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr DebugUnix EDGE edge_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Minimal EDGE edge_build
@@ -113,7 +113,7 @@ jobs:
 
   release-on-commit:
     name: Edge Release
-    needs: ["bootstrap", "build"]
+    needs: ["build"]
     runs-on: ubuntu-latest
 
     steps:
@@ -144,7 +144,7 @@ jobs:
           draft: false
           prerelease: true
           tag_name: edge_build
-          name: "Edge Build — v${{ needs.bootstrap.outputs.version }}"
+          name: "Edge Build — v${{ needs.build.outputs.version }}"
           body: |
             This is a development build of Carbon based on the latest commit pushed to the repository.
             This build is best used to test the very last changes that can be found in the commit history list, since the [preview] and [stable] builds.
