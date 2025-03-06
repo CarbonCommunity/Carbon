@@ -26,8 +26,8 @@ jobs:
       tag: ${{ steps.step1.outputs.tag }}
       ref: ${{ steps.step1.outputs.ref }}
       version: ${{ steps.step1.outputs.version }}
-      artifact: build-preview-${{ needs.build.outputs.ref }}-linux
-      build_info: Built at ${{ needs.build.outputs.date }} ${{ needs.build.outputs.clock }} based on commit ${{ needs.build.outputs.ref }}.
+      artifact: build-develop-${{ steps.step1.outputs.ref }}-linux
+      build_info: Built at ${{ steps.step1.outputs.date }} ${{ steps.step1.outputs.clock }} based on commit ${{ steps.step1.outputs.ref }}.
 
     steps:   
       - name: Git Clone
@@ -92,7 +92,7 @@ jobs:
       - name: Carbon Build
         shell: bash
         run: |
-          export VERSION=${{ needs.build.outputs.version }}
+          export VERSION=${{ steps.step1.outputs.version }}
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Debug PREVIEW preview_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr DebugUnix PREVIEW preview_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Minimal PREVIEW preview_build
