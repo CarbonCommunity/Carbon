@@ -18,5 +18,3 @@ Warn("Building Submodules");
 	DotNet.Run("clean", PathEnquotes(Home, "Tools", "DepotDownloader"));
 	DotNet.Run("build", PathEnquotes(Home, "Tools", "DepotDownloader"), "--no-restore", "--no-incremental");
 }
-
-Run(Path(Home, "Tools", "Build", "runners", "update.cr"));
