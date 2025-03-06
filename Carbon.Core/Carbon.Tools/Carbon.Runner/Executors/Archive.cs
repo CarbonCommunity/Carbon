@@ -26,7 +26,7 @@ public class Archive : Executor
 			File.Delete(destination);
 		}
 
-		new Program().Setup("tar").WorkingDirectory(directory).Run("zcf", InternalRunner.PathEnquotes(destination), InternalRunner.PathEnquotes("*"));
+		new Program().Setup("tar").Run("-zcvf", InternalRunner.PathEnquotes(destination), "-C", InternalRunner.PathEnquotes(directory));
 		Warn($"Created TAR file: {destination}");
 	}
 }
