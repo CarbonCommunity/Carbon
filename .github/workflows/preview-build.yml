@@ -1,5 +1,5 @@
 name: Preview Build
-concurrency: build-2-preview
+concurrency: build-preview
 
 on:
   workflow_dispatch:
@@ -13,9 +13,11 @@ on:
           - "false"
           - "true"
 jobs:
-  bootstrap:
-    name: 🥾 Bootstrap
+  build:
+    name: Preview Build
     runs-on: ubuntu-latest
+    container: rust:bullseye
+    continue-on-error: false
 
     outputs:
       date: ${{ steps.step1.outputs.date }}
@@ -23,42 +25,27 @@ jobs:
       tag: ${{ steps.step1.outputs.tag }}
       ref: ${{ steps.step1.outputs.ref }}
       version: ${{ steps.step1.outputs.version }}
+      artifact: build-develop-${{ needs.build.outputs.ref }}-linux
+      build_info: Built at ${{ needs.build.outputs.date }} ${{ needs.build.outputs.clock }} based on commit ${{ needs.build.outputs.ref }}.
 
-    steps:
-      - name: 🔗 Checkout source code from github
+    steps:   
+      - name: Git Clone
         uses: actions/checkout@v3
         with:
-          ref: preview
-
-      - name: 📅 Prepare the environment
+          token: ${{ secrets.PAT_ALL_REPO }}
+          submodules: recursive
+          
+      - name: Environment Setup
         id: step1
+        shell: bash
         run: |
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=2.2.$(curl -s -L 'https://carbonmod.gg/version?id=preview&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
-
-  build:
-    name: 🐧 Linux
-    needs: bootstrap
-    runs-on: ubuntu-latest
-    container: rust:bullseye
-    continue-on-error: false
-
-    outputs:
-      artifact: build-preview-${{ needs.bootstrap.outputs.ref }}-linux
-      build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
-
-    steps:
-      - name: 🔗 Checkout source code from github
-        uses: actions/checkout@v3
-        with:
-          ref: preview
-          token: ${{ secrets.PAT_ALL_REPO }}
-          submodules: recursive
-          
-      - name: 🔨 Rust update
+          echo "version=2.1.$(curl -s -L 'https://carbonmod.gg/version?id=edge&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
+ 
+      - name: Rust Setup
         shell: bash
         run: |
           apt update
@@ -74,49 +61,46 @@ jobs:
           which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
           x86_64-w64-mingw32-dlltool --version
 
-      - name: 🛤️ Setup the dotnet build environment
+      - name: Dotnet Setup
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 8.0.406
+          
+      - name: Carbon.Native Toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: ClementTsang/cargo-action@v0.0.3
+      - name: Carbon.Native Build (Linux)
+        uses: ClementTsang/cargo-action@v0.0.3
         with:
           command: build
           args: -r --target x86_64-unknown-linux-gnu
           directory: Carbon.Core/Carbon.Native
           
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: ClementTsang/cargo-action@v0.0.3
+      - name: Carbon.Native Build (Windows)
+        uses: ClementTsang/cargo-action@v0.0.3
         with:
           command: build
           args: -r --target x86_64-pc-windows-gnu
           directory: Carbon.Core/Carbon.Native
 
-      - name: 🔨 Setup the Carbon build environment
+      - name: Carbon Bootstrap
         shell: bash
         run: |
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cr
 
-      - name: 🔨 Setup the Carbon build environment (Staging)
+      - name: Carbon Build
         shell: bash
         run: |
-          ${GITHUB_WORKSPACE}/Tools/Build/linux/update_staging.sh
-        if: ${{ inputs.staging == 'true' }}
-
-      - name: 🐧 Built Carbon on Linux
-        shell: bash
-        run: |
-          export VERSION=${{ needs.bootstrap.outputs.version }}
+          export VERSION=${{ needs.build.outputs.version }}
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Debug PREVIEW preview_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr DebugUnix PREVIEW preview_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Minimal PREVIEW preview_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr MinimalUnix PREVIEW preview_build
 
-      - name: ⬆️ Upload the artifacts
+      - name: Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-preview
+          name: build-develop
           path: |
             Release/Carbon.Linux.Debug.tar.gz
             Release/Carbon.Linux.Debug.info
@@ -127,11 +111,10 @@ jobs:
             Release/Carbon.Windows.Minimal.zip
             Release/Carbon.Windows.Minimal.info
 
-  release-on-schedule:
-    name: 💾 Preview Release
-    needs: ["bootstrap", "build"]
+  release-on-commit:
+    name: Preview Release
+    needs: ["build"]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - name: 🗑️ Delete existing release tag
@@ -181,7 +164,7 @@ jobs:
             Release/build-preview/Carbon.Linux.Debug.info
             Release/build-preview/Carbon.Linux.Debug.tar.gz
             Release/build-preview/Carbon.Windows.Debug.info
-            Release/build-preview/Carbon.Windows.Debug.zip
+            Release/build-preview/Carbon.Windows.Debug.zip     
             Release/build-preview/Carbon.Linux.Minimal.info
             Release/build-preview/Carbon.Linux.Minimal.tar.gz
             Release/build-preview/Carbon.Windows.Minimal.info
