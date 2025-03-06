@@ -15,19 +15,18 @@ on:
 jobs:
   build:
     name: Build (Windows & Linux)
-    needs: bootstrap
     runs-on: ubuntu-latest
     container: rust:bullseye
     continue-on-error: false
 
     outputs:
-      artifact: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
-      build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
       date: ${{ steps.step1.outputs.date }}
       clock: ${{ steps.step1.outputs.clock }}
       tag: ${{ steps.step1.outputs.tag }}
       ref: ${{ steps.step1.outputs.ref }}
       version: ${{ steps.step1.outputs.version }}
+      artifact: build-develop-${{ needs.build.outputs.ref }}-linux
+      build_info: Built at ${{ needs.build.outputs.date }} ${{ needs.build.outputs.clock }} based on commit ${{ needs.build.outputs.ref }}.
 
     steps:   
       - name: Git Clone
