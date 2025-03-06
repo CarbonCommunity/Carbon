@@ -16,6 +16,7 @@ public class InternalRunner
 	public static Files Files = new();
 	public static Directories Directories = new();
 	public static Archive Archive = new();
+	public static Pwsh Pwsh = new();
 
 	public string[] Args { get; set; }
 	public static string Home => Environment.CurrentDirectory;
