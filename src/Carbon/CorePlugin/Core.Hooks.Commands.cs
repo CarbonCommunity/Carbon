@@ -119,7 +119,7 @@ public partial class CorePlugin
 			{
 				value = "1";
 			}
-s
+
 			var key = @switch.Key[1..];
 			var options = ConsoleSystem.Option.Unrestricted;
 			options.PrintOutput = false;
