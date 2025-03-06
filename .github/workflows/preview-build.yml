@@ -99,7 +99,7 @@ jobs:
       - name: Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-preview
+          name: build
           path: |
             Release/Carbon.Linux.Debug.tar.gz
             Release/Carbon.Linux.Debug.info
@@ -158,11 +158,11 @@ jobs:
 
             [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
           files: |
-            Release/build-preview/Carbon.Linux.Debug.info
-            Release/build-preview/Carbon.Linux.Debug.tar.gz
-            Release/build-preview/Carbon.Windows.Debug.info
-            Release/build-preview/Carbon.Windows.Debug.zip     
-            Release/build-preview/Carbon.Linux.Minimal.info
-            Release/build-preview/Carbon.Linux.Minimal.tar.gz
-            Release/build-preview/Carbon.Windows.Minimal.info
-            Release/build-preview/Carbon.Windows.Minimal.zip
+            Release/build/Carbon.Linux.Debug.info
+            Release/build/Carbon.Linux.Debug.tar.gz
+            Release/build/Carbon.Windows.Debug.info
+            Release/build/Carbon.Windows.Debug.zip     
+            Release/build/Carbon.Linux.Minimal.info
+            Release/build/Carbon.Linux.Minimal.tar.gz
+            Release/build/Carbon.Windows.Minimal.info
+            Release/build/Carbon.Windows.Minimal.zip
