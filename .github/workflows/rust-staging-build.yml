@@ -20,13 +20,12 @@ jobs:
       tag: ${{ steps.step1.outputs.tag }}
       ref: ${{ steps.step1.outputs.ref }}
       version: ${{ steps.step1.outputs.version }}
-      artifact: build-develop-${{ steps.step1.outputs.ref }}-linux
-      build_info: Built at ${{ steps.step1.outputs.date }} ${{ steps.step1.outputs.clock }} based on commit ${{ steps.step1.outputs.ref }}.
 
     steps:   
       - name: Git Clone
         uses: actions/checkout@v3
         with:
+          ref: rust_beta/staging
           token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
           
@@ -38,7 +37,7 @@ jobs:
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=2.1.$(curl -s -L 'https://carbonmod.gg/version?id=staging&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
+          echo "version=2.3.$(curl -s -L 'https://carbonmod.gg/version?id=staging&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
  
       - name: Rust Setup
         shell: bash
@@ -95,7 +94,7 @@ jobs:
       - name: Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-develop
+          name: build
           path: |
             Release/Carbon.Linux.Debug.tar.gz
             Release/Carbon.Linux.Debug.info
@@ -153,15 +152,13 @@ jobs:
             2. Unzip the archive to the root of your Rust Dedicated Server.
             3. Restart the server and enjoy.
 
-            ${{ needs.build.outputs.build_info }}
-
             [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
           files: |
-            Release/build-develop/Carbon.Linux.Debug.info
-            Release/build-develop/Carbon.Linux.Debug.tar.gz
-            Release/build-develop/Carbon.Windows.Debug.info
-            Release/build-develop/Carbon.Windows.Debug.zip     
-            Release/build-develop/Carbon.Linux.Minimal.info
-            Release/build-develop/Carbon.Linux.Minimal.tar.gz
-            Release/build-develop/Carbon.Windows.Minimal.info
-            Release/build-develop/Carbon.Windows.Minimal.zip
+            Release/build/Carbon.Linux.Debug.info
+            Release/build/Carbon.Linux.Debug.tar.gz
+            Release/build/Carbon.Linux.Minimal.info
+            Release/build/Carbon.Linux.Minimal.tar.gz
+            Release/build/Carbon.Windows.Debug.info
+            Release/build/Carbon.Windows.Debug.zip     
+            Release/build/Carbon.Windows.Minimal.info
+            Release/build/Carbon.Windows.Minimal.zip
