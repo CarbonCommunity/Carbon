@@ -122,11 +122,15 @@ jobs:
             Release/Carbon.Linux.Debug.info
             Release/Carbon.Linux.Minimal.tar.gz
             Release/Carbon.Linux.Minimal.info
+            Release/Carbon.Windows.Debug.zip
+            Release/Carbon.Windows.Debug.info
+            Release/Carbon.Windows.Minimal.zip
+            Release/Carbon.Windows.Minimal.info
 
   release-on-schedule:
     name: 💾 Preview Release
     needs: ["bootstrap", "build"]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
 
     steps:
