@@ -5,6 +5,8 @@ Warn("Git Hooks");
 	Copy.Folder(".githooks", ".git/hooks");
 }
 
+Git.Run("config", "--global", "--add", "safe.directory", "'*'");
+
 Warn("Git Setup");
 {
 	Git.Run("-C", Home, "submodule", "init");
