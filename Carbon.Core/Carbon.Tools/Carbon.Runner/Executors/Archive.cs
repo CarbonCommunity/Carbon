@@ -26,7 +26,17 @@ public class Archive : Executor
 			File.Delete(destination);
 		}
 
-		new Program().Setup("tar").Run("-zcvf", InternalRunner.PathEnquotes(destination), "-C", InternalRunner.PathEnquotes(directory));
+		var temp = InternalRunner.Path(destination + ".tmp");
+
+		TarFile.CreateFromDirectory(directory, temp, false);
+
+		using (var originalFileStream = new FileStream(temp, FileMode.Open, FileAccess.Read))
+		using (var compressedFileStream = new FileStream(destination, FileMode.Create))
+		using (var gzipStream = new GZipStream(compressedFileStream, CompressionLevel.Optimal))
+		{
+			originalFileStream.CopyTo(gzipStream);
+		}
+
 		Warn($"Created TAR file: {destination}");
 	}
 }
