@@ -1,5 +1,5 @@
 name: Edge Build
-concurrency: build-3-edge
+concurrency: build-edge
 
 on:
   workflow_dispatch:
@@ -39,7 +39,7 @@ jobs:
           echo "version=2.1.$(curl -s -L 'https://carbonmod.gg/version?id=edge&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
 
   build:
-    name: 🐧 Linux
+    name: Build (Windows & Linux)
     needs: bootstrap
     runs-on: ubuntu-latest
     container: rust:bullseye
@@ -48,15 +48,30 @@ jobs:
     outputs:
       artifact: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
       build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
+      date: ${{ steps.step1.outputs.date }}
+      clock: ${{ steps.step1.outputs.clock }}
+      tag: ${{ steps.step1.outputs.tag }}
+      ref: ${{ steps.step1.outputs.ref }}
+      version: ${{ steps.step1.outputs.version }}
 
     steps:   
-      - name: 🔗 Checkout source code from github
+      - name: Git Clone
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
           
-      - name: 🔨 Rust update
+      - name: Environment Setup
+        id: step1
+        shell: bash
+        run: |
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
+          echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
+          echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "version=2.1.$(curl -s -L 'https://carbonmod.gg/version?id=edge&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
+ 
+      - name: Rust Setup
         shell: bash
         run: |
           apt update
@@ -72,11 +87,12 @@ jobs:
           which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
           x86_64-w64-mingw32-dlltool --version
 
-      - name: 🛤️ Setup the dotnet build environment
+      - name: Dotnet Setup
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 8.0.406
 
+      - name: Carbon.Native Build (Linux)
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
         with:
@@ -84,6 +100,7 @@ jobs:
           args: -r --target x86_64-unknown-linux-gnu
           directory: Carbon.Core/Carbon.Native
           
+      - name: Carbon.Native Build (Windows)
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
         with:
@@ -91,12 +108,12 @@ jobs:
           args: -r --target x86_64-pc-windows-gnu
           directory: Carbon.Core/Carbon.Native
 
-      - name: 🔨 Setup the Carbon build environment
+      - name: Carbon Bootstrap
         shell: bash
         run: |
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cr
 
-      - name: 🐧 Built Carbon on Linux
+      - name: Carbon Build
         shell: bash
         run: |
           export VERSION=${{ needs.bootstrap.outputs.version }}
@@ -105,7 +122,7 @@ jobs:
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Minimal EDGE edge_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr MinimalUnix EDGE edge_build
 
-      - name: ⬆️ Upload the artifacts
+      - name: Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-develop
@@ -120,7 +137,7 @@ jobs:
             Release/Carbon.Windows.Minimal.info
 
   release-on-commit:
-    name: 💾 Edge Release
+    name: Edge Release
     needs: ["bootstrap", "build"]
     runs-on: ubuntu-latest
 
