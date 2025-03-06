@@ -66,32 +66,23 @@ env:
   ACTION_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
-  bootstrap:
-    name: 🥾 Bootstrap
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 🔗 Checkout source code from github
-        uses: actions/checkout@v3
-
-  build-windows:
-    name: 💻 Windows
-    needs: bootstrap
+  build:
+    name: Hooks Build
     runs-on: windows-latest
     continue-on-error: false
     
     steps:
-    - name: 🔗 Checkout source code from github
+    - name: Git Clone
       uses: actions/checkout@v3
       with:
         ref: ${{ inputs.carbon_branch }}
         token: ${{ secrets.PAT_ALL_REPO }}
         submodules: recursive
         
-    - name: 🛤️ Setup the dotnet build environment
+    - name: Environment Setup
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 8.0.406
 
     - name: 🔨 Built Carbon Hooks on Windows
       shell: cmd
@@ -103,8 +94,6 @@ jobs:
         )
         
         set ROOT=%GITHUB_WORKSPACE%\Carbon.Core\Carbon.Hooks\Carbon.Hooks.Internal\Buildroot\Scripts
-
-        call %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat %RUST_BRANCH%
         
         if %DEBUG_BUILD% EQU true (
             cd %ROOT%
