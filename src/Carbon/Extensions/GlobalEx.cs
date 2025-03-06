@@ -10,11 +10,6 @@
 		return id > 76561197960265728UL;
 	}
 
-	public static bool IsSteamId(this EncryptedValue<ulong> id)
-	{
-		return id > 76561197960265728UL;
-	}
-
 	[Obsolete("This method is deprecated! Use effect.Clear() instead.")]
 	public static void Clear(this Effect effect, bool _)
 	{
