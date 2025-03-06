@@ -1,218 +1,164 @@
-name: Rust (aux02) Build
-concurrency: build-rust-aux02
+name: Rust (AUX02) Build
+concurrency: build-aux02
 
 on:
   workflow_dispatch:
 
   schedule:
-    - cron: '00 19 * * *'
+    - cron: "00 19 * * *"
 
 jobs:
-  bootstrap:
-    name: 🥾 Bootstrap
+  build:
+    name: Rust (AUX02) Build
     runs-on: ubuntu-latest
+    container: rust:bullseye
+    continue-on-error: false
 
     outputs:
-      date:    ${{ steps.step1.outputs.date }}
-      clock:   ${{ steps.step1.outputs.clock }}
-      tag:     ${{ steps.step1.outputs.tag }}
-      ref:     ${{ steps.step1.outputs.ref }}
-      wipe:    ${{ steps.step1.outputs.wipe }}
+      date: ${{ steps.step1.outputs.date }}
+      clock: ${{ steps.step1.outputs.clock }}
+      tag: ${{ steps.step1.outputs.tag }}
+      ref: ${{ steps.step1.outputs.ref }}
       version: ${{ steps.step1.outputs.version }}
 
-    steps:
-      #- name: Log environment
-      #  uses: crazy-max/ghaction-dump-context@v1
-
-      - name: 🔗 Checkout source code from github
+    steps:   
+      - name: Git Clone
         uses: actions/checkout@v3
         with:
           ref: rust_beta/aux02
-
-      - name: 📅 Prepare the environment
+          token: ${{ secrets.PAT_ALL_REPO }}
+          submodules: recursive
+          
+      - name: Environment Setup
         id: step1
+        shell: bash
         run: |
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "wipe=$( [ $(date +%u) -eq 4 ] && [ $(date +%d) -le 7 ] && echo true || echo false )" >> $GITHUB_OUTPUT
-          echo "version=2.6.$(curl -s -L 'https://carbonmod.gg/version?id=aux02&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
-
-  # BUILD LINUX ----------------------------------------------------------------
-  build-linux:
-    name: 🐧 Linux
-    needs: bootstrap
-    runs-on: ubuntu-20.04
-    continue-on-error: true
-
-    outputs:
-      wipe: ${{ needs.bootstrap.outputs.wipe }}
-      artifact: build-aux02-${{ needs.bootstrap.outputs.ref }}-linux
-      build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
-    
-    steps:
-    - name: 🔗 Checkout source code from github
-      uses: actions/checkout@v3
-      with:
-        ref: rust_beta/aux02
-        token: ${{ secrets.PAT_ALL_REPO }}
-        submodules: recursive
-
-    - name: 🛤️ Setup the dotnet build environment
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 8.0.x
-
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: ClementTsang/cargo-action@v0.0.3
-      with:
-        command: build
-        args: -r --target x86_64-unknown-linux-gnu
-        directory: Carbon.Core/Carbon.Native
-        
-    - name: 🔨 Setup the Carbon build environment
-      shell: bash
-      run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
-
-    - name: 🔨 Setup the Carbon build environment (aux02)
-      shell: bash
-      run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/update_aux02.sh
-        
-    - name: 🐧 Built Carbon on Linux
-      shell: bash
-      run: |
-        export VERSION=${{ needs.bootstrap.outputs.version }}
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh DebugUnix RUST_AUX02 "rustbeta_aux02"
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix RUST_AUX02 "rustbeta_aux02"
-        
-    - name: ⬆️ Upload the artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-aux02-linux
-        path: |
-          Release/Carbon.Linux.Debug.tar.gz
-          Release/Carbon.Linux.Debug.info
-          Release/Carbon.Linux.Minimal.tar.gz
-          Release/Carbon.Linux.Minimal.info
-
-  # BUILD WINDOWS --------------------------------------------------------------
-  build-windows:
-    name: 💻 Windows
-    needs: bootstrap
-    runs-on: windows-latest
-    continue-on-error: true
-    
-    steps:
-    - name: 🔗 Checkout source code from github
-      uses: actions/checkout@v3
-      with:
-        ref: rust_beta/aux02
-        token: ${{ secrets.PAT_ALL_REPO }}
-        submodules: recursive
-
-    - name: 🛤️ Setup the dotnet build environment
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 8.0.x
-
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: ClementTsang/cargo-action@v0.0.3
-      with:
-        command: build
-        args: -r --target x86_64-pc-windows-msvc
-        directory: Carbon.Core/Carbon.Native
-        
-    - name: 🔨 Setup the Carbon build environment
-      shell: cmd
-      run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
-
-    - name: 🔨 Setup the Carbon build environment (aux02)
-      shell: cmd
-      run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\update_aux02.bat
-        
-    - name: 🔨 Built Carbon on Windows
-      shell: cmd
-      run: |
-        set VERSION=${{ needs.bootstrap.outputs.version }}
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Debug RUST_AUX02 rustbeta_aux02
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal RUST_AUX02 rustbeta_aux02
-
-    - name: ⬆️ Upload the artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-aux02-windows
-        path: |
-          Release/Carbon.Windows.Debug.zip
-          Release/Carbon.Windows.Debug.info
-          Release/Carbon.Windows.Minimal.zip
-          Release/Carbon.Windows.Minimal.info
-
-
-  # RELEASE --------------------------------------------------------------------
-  release-on-schedule:
-    name: 💾 Rust (aux02) Release
-    needs: [ "bootstrap", "build-linux", "build-windows" ]
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-    # only release if triggered by the scheduler
-    # or if manually triggered by a developer
-
-    steps:
-    - name: 🗑️ Delete existing release tag
-      uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
-      with:
-        delete_release: true
-        tag_name: rustbeta_aux02_build
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: 💤 Sleep for 5 seconds
-      run: sleep 5s
-      shell: bash
-
-    - name: ⬇️ Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: Release
-
-    - name: Display structure of downloaded files
-      run: ls -R
-      working-directory: Release
-
-    - name: 🏷️ Update release tag
-      uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
-      with:
-        draft: false
-        prerelease: true
-        tag_name: rustbeta_aux02_build
-        name: 'Rust (aux02) Build — v${{ needs.bootstrap.outputs.version }}'
-        body: |
-          This is a manually triggered development build of Carbon based on the `rust_beta/aux02` branch.
-          This build might and probably will be very unstable and its sole purpose is for testing and/or exploring Rust's future update features in a modded environment.
-                  
-          This build is targeted at developers or testers.
-          The general public is advised to use one of the [stable] builds.
-          Since it's manually triggered, we're confident you should use this build to test out the latest Carbon changes.
-
-          ### How to install
-          1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
-          2. Unzip the archive to the root of your Rust Dedicated Server.
-          3. Restart the server and enjoy.
+          echo "version=2.1.$(curl -s -L 'https://carbonmod.gg/version?id=aux02&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
+ 
+      - name: Rust Setup
+        shell: bash
+        run: |
+          apt update
+          apt install -y mingw-w64
           
-          ${{ needs.build-linux.outputs.build_info }}
+          rustup install stable
+          rustup default stable
+          rustup target add x86_64-pc-windows-gnu
+          rustup component add rust-std --target x86_64-pc-windows-gnu
+          rustup show
+          rustc --print sysroot
+          
+          which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
+          x86_64-w64-mingw32-dlltool --version
 
-          [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
-        files: |
-          Release/build-aux02-linux/Carbon.Linux.Debug.info
-          Release/build-aux02-linux/Carbon.Linux.Debug.tar.gz
-          Release/build-aux02-windows/Carbon.Windows.Debug.info
-          Release/build-aux02-windows/Carbon.Windows.Debug.zip
-          Release/build-aux02-linux/Carbon.Linux.Minimal.info
-          Release/build-aux02-linux/Carbon.Linux.Minimal.tar.gz
-          Release/build-aux02-windows/Carbon.Windows.Minimal.info
-          Release/build-aux02-windows/Carbon.Windows.Minimal.zip
+      - name: Dotnet Setup
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 8.0.406
+          
+      - name: Carbon.Native Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Carbon.Native Build (Linux)
+        uses: ClementTsang/cargo-action@v0.0.3
+        with:
+          command: build
+          args: -r --target x86_64-unknown-linux-gnu
+          directory: Carbon.Core/Carbon.Native
+          
+      - name: Carbon.Native Build (Windows)
+        uses: ClementTsang/cargo-action@v0.0.3
+        with:
+          command: build
+          args: -r --target x86_64-pc-windows-gnu
+          directory: Carbon.Core/Carbon.Native
+
+      - name: Carbon Bootstrap
+        shell: bash
+        run: |
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cr
+
+      - name: Carbon Build
+        shell: bash
+        run: |
+          export VERSION=${{ steps.step1.outputs.version }}
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Debug RUST_AUX02 rustbeta_aux02_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr DebugUnix RUST_AUX02 rustbeta_aux02_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Minimal RUST_AUX02 rustbeta_aux02_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr MinimalUnix RUST_AUX02 rustbeta_aux02_build
+
+      - name: Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            Release/Carbon.Linux.Debug.tar.gz
+            Release/Carbon.Linux.Debug.info
+            Release/Carbon.Linux.Minimal.tar.gz
+            Release/Carbon.Linux.Minimal.info
+            Release/Carbon.Windows.Debug.zip
+            Release/Carbon.Windows.Debug.info
+            Release/Carbon.Windows.Minimal.zip
+            Release/Carbon.Windows.Minimal.info
+
+  release-on-commit:
+    name: Rust (AUX02) Release
+    needs: ["build"]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🗑️ Delete existing release tag
+        uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
+        with:
+          delete_release: true
+          tag_name: rustbeta_aux02_build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 💤 Sleep for 5 seconds
+        run: sleep 5s
+        shell: bash
+
+      - name: ⬇️ Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: Release
+
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: Release
+
+      - name: 🏷️ Update release tag
+        uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
+        with:
+          draft: false
+          prerelease: true
+          tag_name: rustbeta_aux02_build
+          name: "Rust (AUX02) Build — v${{ needs.build.outputs.version }}"
+          body: |
+            This is a manually triggered development build of Carbon based on the `rust_beta/aux02` branch.
+            This build might and probably will be very unstable and its sole purpose is for testing and/or exploring Rust's future update features in a modded environment.
+                    
+            This build is targeted at developers or testers.
+            The general public is advised to use one of the [stable] builds.
+            Since it's manually triggered, we're confident you should use this build to test out the latest Carbon changes.
+
+            ### How to install
+            1. Download the `Carbon.[Windows|Linux].Debug` archive from the attachments below.
+            2. Unzip the archive to the root of your Rust Dedicated Server.
+            3. Restart the server and enjoy.
+
+            [stable]: https://github.com/CarbonCommunity/Carbon.Core/releases/latest
+          files: |
+            Release/build/Carbon.Linux.Debug.info
+            Release/build/Carbon.Linux.Debug.tar.gz
+            Release/build/Carbon.Linux.Minimal.info
+            Release/build/Carbon.Linux.Minimal.tar.gz
+            Release/build/Carbon.Windows.Debug.info
+            Release/build/Carbon.Windows.Debug.zip     
+            Release/build/Carbon.Windows.Minimal.info
+            Release/build/Carbon.Windows.Minimal.zip
