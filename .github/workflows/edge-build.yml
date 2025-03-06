@@ -119,7 +119,6 @@ jobs:
             Release/Carbon.Windows.Minimal.zip
             Release/Carbon.Windows.Minimal.info
 
-  # RELEASE --------------------------------------------------------------------
   release-on-commit:
     name: 💾 Edge Release
     needs: ["bootstrap", "build"]
