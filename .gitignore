@@ -19,5 +19,6 @@
 .[Rr]edist/
 
 # Code gen
+[Bb]uild.cs
 [Gg]enerated/
 *-Generated.cs
