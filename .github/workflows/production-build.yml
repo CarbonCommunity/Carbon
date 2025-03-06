@@ -1,7 +1,3 @@
-###
-### Copyright (c) 2024 Carbon Community 
-### All rights reserved
-###
 name: Production Build
 concurrency: build-1-production
 
@@ -11,7 +7,7 @@ on:
 jobs:
   bootstrap:
     name: 🥾 Bootstrap
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     outputs:
       date:    ${{ steps.step1.outputs.date }}
@@ -40,11 +36,11 @@ jobs:
           echo "wipe=$( [ $(date +%u) -eq 4 ] && [ $(date +%d) -le 7 ] && echo true || echo false )" >> $GITHUB_OUTPUT
           echo "version=2.0.$(curl -s -L 'https://carbonmod.gg/version?id=production&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
 
-  # BUILD LINUX ----------------------------------------------------------------
-  build-linux:
+  build:
     name: 🐧 Linux
     needs: bootstrap
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    container: rust:bullseye
     continue-on-error: false
 
     outputs:
@@ -59,12 +55,28 @@ jobs:
         ref: production
         token: ${{ secrets.PAT_ALL_REPO }}
         submodules: recursive
+          
+    - name: 🔨 Rust update
+      shell: bash
+      run: |
+        apt update
+        apt install -y mingw-w64
+        
+        rustup install stable
+        rustup default stable
+        rustup target add x86_64-pc-windows-gnu
+        rustup component add rust-std --target x86_64-pc-windows-gnu
+        rustup show
+        rustc --print sysroot
+        
+        which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
+        x86_64-w64-mingw32-dlltool --version
 
     - name: 🛤️ Setup the dotnet build environment
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 8.0.x
-
+          dotnet-version: 8.0.406
+          
     - uses: dtolnay/rust-toolchain@stable
     - uses: ClementTsang/cargo-action@v0.0.3
       with:
@@ -76,30 +88,38 @@ jobs:
     - uses: ClementTsang/cargo-action@v0.0.3
       with:
         command: build
-        args: --target x86_64-unknown-linux-gnu --profile prod
+        args: -r --target x86_64-pc-windows-gnu
         directory: Carbon.Core/Carbon.Native
-        
+
     - name: 🔨 Setup the Carbon build environment
       shell: bash
       run: |
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cr
 
     - name: 🐧 Built Carbon on Linux
       shell: bash
       run: |
         export VERSION=${{ needs.bootstrap.outputs.version }}
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh ReleaseUnix "PROD" "production_build"
-        ${GITHUB_WORKSPACE}/Tools/Build/linux/build.sh MinimalUnix "PROD" "production_build"
-        
+        dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Release PROD production_build
+        dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr ReleaseUnix PROD production_build
+        dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Minimal PROD production_build
+        dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr MinimalUnix PROD production_build
+        dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr MinimalUnix PROD production_build
+        dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/nuget.cr ${{ secrets.NUGET_API }} ${{ needs.bootstrap.outputs.version }}
+   
     - name: ⬆️ Upload the artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: build-production-linux
+        name: build-production
         path: |
           Release/Carbon.Linux.Release.tar.gz
           Release/Carbon.Linux.Release.info
           Release/Carbon.Linux.Minimal.tar.gz
           Release/Carbon.Linux.Minimal.info
+          Release/Carbon.Windows.Release.zip
+          Release/Carbon.Windows.Release.info
+          Release/Carbon.Windows.Minimal.zip
+          Release/Carbon.Windows.Minimal.info
 
     - name: 🗑️ Delete existing previous release tag
       uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
@@ -134,72 +154,11 @@ jobs:
           -H "Content-Type: application/json" \
           -d "{\"tag_name\": \"productionprev_build\", \"draft\": false, \"prerelease\": true}" \
           "https://api.github.com/repos/${{ github.repository }}/releases/$release_id"
-          
-  # BUILD WINDOWS --------------------------------------------------------------
-  build-windows:
-    name: 💻 Windows
-    needs: bootstrap
-    runs-on: windows-latest
-    continue-on-error: false
     
-    steps:
-    - name: 🔗 Checkout source code from github
-      uses: actions/checkout@v3
-      with:
-        ref: production
-        token: ${{ secrets.PAT_ALL_REPO }}
-        submodules: recursive
-
-    - name: 🛤️ Setup the dotnet build environment
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 8.0.x
-
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: ClementTsang/cargo-action@v0.0.3
-      with:
-        command: build
-        args: -r --target x86_64-pc-windows-msvc
-        directory: Carbon.Core/Carbon.Native
-        
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: ClementTsang/cargo-action@v0.0.3
-      with:
-        command: build
-        args: --target x86_64-pc-windows-msvc --profile prod
-        directory: Carbon.Core/Carbon.Native
-        
-    - name: 🔨 Setup the Carbon build environment
-      shell: cmd
-      run: |
-        %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
-
-    - name: 🔨 Built Carbon on Windows
-      shell: cmd
-      run: |
-        set VERSION=${{ needs.bootstrap.outputs.version }}
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Release PROD production_build
-        call %GITHUB_WORKSPACE%\Tools\Build\win\build.bat Minimal PROD production_build
-
-    - name: ⬆️ Upload the artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-production-windows
-        path: |
-          Release/Carbon.Windows.Release.zip
-          Release/Carbon.Windows.Release.info
-          Release/Carbon.Windows.Minimal.zip
-          Release/Carbon.Windows.Minimal.info
-
-    - name: 🔨 Upload NuGet package
-      shell: cmd
-      run: | 
-        %GITHUB_WORKSPACE%\Tools\Build\win\publish_nuget.bat ${{ secrets.NUGET_API }} ${{ needs.bootstrap.outputs.version }}
-
   # RELEASE --------------------------------------------------------------------
   release-on-schedule:
     name: 💾 Production Release
-    needs: [ "bootstrap", "build-linux", "build-windows" ]
+    needs: [ "bootstrap", "build" ]
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'push') || (github.event_name == 'workflow_dispatch') || (github.event_name == 'schedule' && needs.build-linux.outputs.wipe == 'true') }}
 
@@ -226,7 +185,7 @@ jobs:
       working-directory: Release
 
     - name: 🏷️ Update release tag
-      uses: softprops/action-gh-release@d4e8205d7e959a9107da6396278b2f1f07af0f9b
+      uses: softprops/action-gh-release@a92196038060e0c673cf3ba5b98710dd716731df
       with:
         draft: false
         prerelease: false
@@ -243,11 +202,11 @@ jobs:
           
           ${{ needs.build-linux.outputs.build_info }}
         files: |
-          Release/build-production-linux/Carbon.Linux.Release.info
-          Release/build-production-linux/Carbon.Linux.Release.tar.gz
-          Release/build-production-windows/Carbon.Windows.Release.info
-          Release/build-production-windows/Carbon.Windows.Release.zip
-          Release/build-production-linux/Carbon.Linux.Minimal.info
-          Release/build-production-linux/Carbon.Linux.Minimal.tar.gz
-          Release/build-production-windows/Carbon.Windows.Minimal.info
-          Release/build-production-windows/Carbon.Windows.Minimal.zip
+          Release/build-production/Carbon.Linux.Release.info
+          Release/build-production/Carbon.Linux.Release.tar.gz
+          Release/build-production/Carbon.Windows.Release.info
+          Release/build-production/Carbon.Windows.Release.zip
+          Release/build-production/Carbon.Linux.Minimal.info
+          Release/build-production/Carbon.Linux.Minimal.tar.gz
+          Release/build-production/Carbon.Windows.Minimal.info
+          Release/build-production/Carbon.Windows.Minimal.zip
