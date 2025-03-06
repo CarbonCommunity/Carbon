@@ -7,7 +7,7 @@ on:
 jobs:
   bootstrap:
     name: 🥾 Bootstrap
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     outputs:
       date: ${{ steps.step1.outputs.date }}
@@ -37,7 +37,7 @@ jobs:
   build-linux:
     name: 🐧 Linux
     needs: bootstrap
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     continue-on-error: false
 
     outputs:
@@ -54,7 +54,7 @@ jobs:
       - name: 🛤️ Setup the dotnet build environment
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.200
 
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
@@ -98,7 +98,7 @@ jobs:
       - name: 🛤️ Setup the dotnet build environment
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.200
 
       - uses: dtolnay/rust-toolchain@stable
       - uses: ClementTsang/cargo-action@v0.0.3
@@ -129,7 +129,7 @@ jobs:
   release-on-commit:
     name: 💾 Profiler Release
     needs: ["bootstrap", "build-linux", "build-windows"]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: 🗑️ Delete existing release tag
