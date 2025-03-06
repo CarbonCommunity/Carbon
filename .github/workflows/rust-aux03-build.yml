@@ -22,6 +22,13 @@ jobs:
       version: ${{ steps.step1.outputs.version }}
 
     steps:   
+      - name: Git Clone
+        uses: actions/checkout@v3
+        with:
+          ref: rust_beta/aux03
+          token: ${{ secrets.PAT_ALL_REPO }}
+          submodules: recursive
+          
       - name: Environment Setup
         id: step1
         shell: bash
@@ -32,13 +39,6 @@ jobs:
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "version=2.7.$(curl -s -L 'https://carbonmod.gg/version?id=aux03&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
           git config --global --add safe.directory '*'
-          
-      - name: Git Clone
-        uses: actions/checkout@v3
-        with:
-          ref: rust_beta/aux03
-          token: ${{ secrets.PAT_ALL_REPO }}
-          submodules: recursive
           
       - name: Rust Setup
         shell: bash
