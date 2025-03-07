@@ -90,7 +90,7 @@ jobs:
       - name: Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-develop-linux
+          name: build
           path: |
             Release/Carbon.Linux.Profiler.tar.gz
             Release/Carbon.Windows.Profiler.zip
