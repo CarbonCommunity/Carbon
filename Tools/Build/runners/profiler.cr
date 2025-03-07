@@ -1,8 +1,11 @@
 var target = GetArg(1, "Debug");
 var defines = GetArg(2);
+var tag = GetArg(3, "edge_build");
 var version = GetVariable("VERSION");
 var cargoTarget = target.Equals("Debug") || target.Equals("DebugUnix") || target.Equals("Minimal") || target.Equals("MinimalUnix") ? "release" : "prod";
 var isUnix = target.Contains("Unix");
+
+Run(Path(Home, "Tools", "Build", "runners", "git.cr"), tag);
 
 DotNet.ExitOnError(true);
 DotNet.Run("restore", PathEnquotes(Home, "Carbon.Core"));

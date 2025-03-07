@@ -84,7 +84,7 @@ jobs:
       - name: Profiler Build
         shell: bash
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cr
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cr Release HARMONYMOD profiler_build
       
       - name: Artifacts
         uses: actions/upload-artifact@v4

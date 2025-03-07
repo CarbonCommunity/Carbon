@@ -1,7 +1,7 @@
 var target = GetArg(1, "Debug");
 var defines = GetArg(2);
-var version = GetVariable("VERSION");
 var tag = GetArg(3, "edge_build");
+var version = GetVariable("VERSION");
 var cargoTarget = target.Equals("Debug") || target.Equals("DebugUnix") || target.Equals("Minimal") || target.Equals("MinimalUnix") ? "release" : "prod";
 var isUnix = target.Contains("Unix");
 
@@ -23,7 +23,8 @@ DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target
 	$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
 
 Files.Copy(Path(Home, "Tools", "Helpers", "Carbon.targets"), Path(Home, "Release", ".tmp", target, "Carbon.targets"));
-if(target.Contains("Unix"))
+
+if(isUnix)
 {
 	Files.Copy(Path(Home, "Tools", "Helpers", "carbon.sh"), Path(Home, "Release", ".tmp", target));
 	Files.Copy(Path(Home, "Tools", "Helpers", "environment.sh"), Path(Home, "Release", ".tmp", target, "carbon", "tools"));
