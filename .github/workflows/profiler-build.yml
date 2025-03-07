@@ -75,11 +75,6 @@ jobs:
           args: -r --target x86_64-pc-windows-gnu
           directory: Carbon.Core/Carbon.Native
   
-      - name: 🔨 Setup the Carbon build environment
-        shell: bash
-        run: |
-          ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
-
       - name: Carbon Bootstrap
         shell: bash
         run: |
