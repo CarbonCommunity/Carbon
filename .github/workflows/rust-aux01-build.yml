@@ -1,4 +1,4 @@
-name: Rust (AUX01) Build
+name: Rust (Aux01) Build
 concurrency: build-aux01
 
 on:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Rust (AUX01) Build
+    name: Rust (Aux01) Build
     runs-on: ubuntu-latest
     container: rust:bullseye
     continue-on-error: false
@@ -108,7 +108,7 @@ jobs:
             Release/Carbon.Windows.Minimal.info
 
   release-on-commit:
-    name: Rust (AUX01) Release
+    name: Rust (Aux01) Release
     needs: ["build"]
     runs-on: ubuntu-latest
 
@@ -140,7 +140,7 @@ jobs:
           draft: false
           prerelease: true
           tag_name: rustbeta_aux01_build
-          name: "Rust (AUX01) Build — v${{ needs.build.outputs.version }}"
+          name: "Rust (Aux01) Build — v${{ needs.build.outputs.version }}"
           body: |
             This is a manually triggered development build of Carbon based on the `rust_beta/aux01` branch.
             This build might and probably will be very unstable and its sole purpose is for testing and/or exploring Rust's future update features in a modded environment.
