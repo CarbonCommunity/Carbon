@@ -84,7 +84,8 @@ jobs:
       - name: Profiler Build
         shell: bash
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cr Release HARMONYMOD profiler_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cr Debug HARMONYMOD profiler_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cr DebugUnix HARMONYMOD profiler_build
       
       - name: Artifacts
         uses: actions/upload-artifact@v4
@@ -137,5 +138,5 @@ jobs:
             2. Unzip the archive to the HarmonyMods directory of your Rust Dedicated Server.
             3. Start the server and enjoy, or run `harmony.load Carbon.Profiler`.
           files: |
-            Release/build-develop-windows/Carbon.Windows.Profiler.zip     
-            Release/build-develop-linux/Carbon.Linux.Profiler.tar.gz     
+            Release/build/Carbon.Windows.Profiler.zip     
+            Release/build/Carbon.Linux.Profiler.tar.gz     
