@@ -34,7 +34,6 @@ public class HookEx : IDisposable, IHook
 	public Type[] TargetMethodArgs { get; }
 	public string Identifier { get; }
 	public string ShortIdentifier => Identifier[^6..];
-	public string Checksum { get; }
 	public string[] Dependencies { get; }
 	public bool IsPatch => Options.HasFlag(HookFlags.Patch);
 	public bool IsStaticHook => Options.HasFlag(HookFlags.Static);
@@ -76,7 +75,6 @@ public class HookEx : IDisposable, IHook
 
 			Identifier = type.GetCustomAttribute<HookAttribute.Identifier>()?.Value ?? $"{Guid.NewGuid():N}";
 			Options = type.GetCustomAttribute<HookAttribute.Options>()?.Value ?? HookFlags.None;
-			Checksum = type.GetCustomAttribute<HookAttribute.Checksum>()?.Value ?? default;
 
 			if (Attribute.IsDefined(type, typeof(HookAttribute.Dependencies), false))
 				Dependencies = type.GetCustomAttribute<HookAttribute.Dependencies>()?.Value ?? default;

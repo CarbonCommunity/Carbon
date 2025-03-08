@@ -47,7 +47,8 @@ public class InternalRunner
 	public static void Warn(object message) => Write(message, ConsoleColor.DarkYellow);
 	public static void Error(object message) => Write(message, ConsoleColor.DarkRed);
 
-	public static string GetVariable(string variable) => Environment.GetEnvironmentVariable(variable)!;
+	public static string GetVariable(string variable) => Environment.GetEnvironmentVariable(variable, EnvironmentVariableTarget.Process)!;
+	public static void SetVariable(string variable, string value) => Environment.SetEnvironmentVariable(variable, value, EnvironmentVariableTarget.Process);
 	public static void Run(string file, params string[] args)
 	{
 		Run(file, args, false);

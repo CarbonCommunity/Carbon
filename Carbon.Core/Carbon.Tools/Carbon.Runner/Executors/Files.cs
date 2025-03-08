@@ -1,4 +1,6 @@
-﻿namespace Carbon.Runner.Executors;
+﻿using System.Security.Cryptography;
+
+namespace Carbon.Runner.Executors;
 
 public class Files : Executor
 {
@@ -43,5 +45,17 @@ public class Files : Executor
 
 		File.Delete(target);
 		Warn($"Deleted file: '{target}'");
+	}
+
+	[Expose("Gets the hash of a file")]
+	public uint Hash(string fileName)
+	{
+		if (!File.Exists(fileName))
+		{
+			Error($"File not found: {fileName}");
+			return 0;
+		}
+
+		return BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(fileName)), 0);
 	}
 }
