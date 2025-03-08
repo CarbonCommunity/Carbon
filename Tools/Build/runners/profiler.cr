@@ -28,6 +28,7 @@ if(isUnix)
 else
 {
 	Files.Copy(Path(Home, "Carbon.Core", "Carbon.Native", "target", "x86_64-pc-windows-gnu", cargoTarget, "CarbonNative.dll"), Path(Home, "Release", ".tmp", target, "profiler", "native"));
+
 	if(!noArchive)
 	{
 		Archive.Zip(Path(Home, "Release", ".tmp", target, "profiler"), Path(Home, "Release", $"Carbon.{tos}.Profiler.zip"));
