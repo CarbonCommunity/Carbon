@@ -8,6 +8,7 @@ public class Program : Executor
 
 	private string workingDirectory = Environment.CurrentDirectory;
 	internal string? programFile;
+	internal bool exitOnError;
 
 	[Expose("Starts and runs a program")]
 	public override void Run(params string[] args)
@@ -15,19 +16,26 @@ public class Program : Executor
 		try
 		{
 			Log(string.Join(" ", args));
-			Process.Start(new ProcessStartInfo
+			var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = programFile,
 				Arguments = string.Join(" ", args),
 				WorkingDirectory = workingDirectory,
 				UseShellExecute = false
-			})!.WaitForExit();
+			});
+			process!.WaitForExit();
+
+			if (exitOnError && process.ExitCode != 0)
+			{
+				InternalRunner.Exit(process.ExitCode);
+			}
 		}
 		catch (Exception ex)
 		{
 			Error($"Failed Run(..) ({ex.Message})\n{ex.StackTrace}");
 		}
 	}
+
 	[Expose("Starts and runs a program and returns the output string")]
 	public override string RunOutput(params string[] args)
 	{
@@ -46,14 +54,14 @@ public class Program : Executor
 			});
 
 			using (var reader = process!.StandardOutput)
-			{	
-				output += reader.ReadToEnd();
-			}
-			using (var reader = process!.StandardError)
 			{
 				output += reader.ReadToEnd();
 			}
-			process!.WaitForExit();
+			using (var reader = process.StandardError)
+			{
+				output += reader.ReadToEnd();
+			}
+			process.WaitForExit();
 		}
 		catch (Exception ex)
 		{
@@ -67,6 +75,13 @@ public class Program : Executor
 	public Program WorkingDirectory(string workingDirectory)
 	{
 		this.workingDirectory = workingDirectory;
+		return this;
+	}
+
+	[Expose("It ensures to shut down the process with a non-successful error code")]
+	public Program ExitOnError(bool wants)
+	{
+		this.exitOnError = wants;
 		return this;
 	}
 

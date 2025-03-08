@@ -1,4 +1,4 @@
-name: Rust (AUX02) Build
+name: Rust (Aux02) Build
 concurrency: build-aux02
 
 on:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Rust (AUX02) Build
+    name: Rust (Aux02) Build
     runs-on: ubuntu-latest
     container: rust:bullseye
     continue-on-error: false
@@ -37,8 +37,9 @@ jobs:
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=2.1.$(curl -s -L 'https://carbonmod.gg/version?id=aux02&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
- 
+          echo "version=2.6.$(curl -s -L 'https://carbonmod.gg/version?id=aux02&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
+          git config --global --add safe.directory /__w/Carbon/Carbon
+          
       - name: Rust Setup
         shell: bash
         run: |
@@ -81,6 +82,7 @@ jobs:
         shell: bash
         run: |
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cr
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cr aux02
 
       - name: Carbon Build
         shell: bash
@@ -106,7 +108,7 @@ jobs:
             Release/Carbon.Windows.Minimal.info
 
   release-on-commit:
-    name: Rust (AUX02) Release
+    name: Rust (Aux02) Release
     needs: ["build"]
     runs-on: ubuntu-latest
 
@@ -138,7 +140,7 @@ jobs:
           draft: false
           prerelease: true
           tag_name: rustbeta_aux02_build
-          name: "Rust (AUX02) Build — v${{ needs.build.outputs.version }}"
+          name: "Rust (Aux02) Build — v${{ needs.build.outputs.version }}"
           body: |
             This is a manually triggered development build of Carbon based on the `rust_beta/aux02` branch.
             This build might and probably will be very unstable and its sole purpose is for testing and/or exploring Rust's future update features in a modded environment.

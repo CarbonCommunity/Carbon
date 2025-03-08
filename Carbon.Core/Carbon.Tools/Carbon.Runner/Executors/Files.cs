@@ -1,9 +1,11 @@
-﻿namespace Carbon.Runner.Executors;
+﻿using System.Security.Cryptography;
+
+namespace Carbon.Runner.Executors;
 
 public class Files : Executor
 {
 	public override string? Name => "Files";
-	
+
 	[Expose("Gets a list of all files in a directory")]
 	public string[] Get(string folder, string search = "*") => Directory.GetFiles(folder, search);
 
@@ -29,6 +31,9 @@ public class Files : Executor
 		Warn($"{(alreadyExisted ? "Overwrote" : "Copied")} file to '{destination}'");
 	}
 
+	[Expose("Checks if a file exists")]
+	public bool Exists(string target) => File.Exists(target);
+
 	[Expose("Deletes a file if the file exists")]
 	public void Delete(string target)
 	{
@@ -40,5 +45,17 @@ public class Files : Executor
 
 		File.Delete(target);
 		Warn($"Deleted file: '{target}'");
+	}
+
+	[Expose("Gets the hash of a file")]
+	public uint Hash(string fileName)
+	{
+		if (!File.Exists(fileName))
+		{
+			Error($"File not found: {fileName}");
+			return 0;
+		}
+
+		return BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(fileName)), 0);
 	}
 }
