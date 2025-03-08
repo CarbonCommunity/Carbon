@@ -1,2 +1,7 @@
-@echo off
-call "%~dp0\update.bat" staging
+@echo OFF
+
+set ROOT=%cd%
+cd ../../..
+
+dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cr staging
+cd %ROOT%
