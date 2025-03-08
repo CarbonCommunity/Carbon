@@ -1,3 +1,7 @@
-@echo off
-call "%~dp0\build.bat" Release
-call "%~dp0\build.bat" ReleaseUnix
+@echo OFF
+
+set ROOT=%cd%
+cd ../../..
+
+dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Release EDGE edge_build
+cd %ROOT%
