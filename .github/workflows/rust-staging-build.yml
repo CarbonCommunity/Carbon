@@ -37,8 +37,9 @@ jobs:
           echo "clock=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=2.1.$(curl -s -L 'https://carbonmod.gg/version?id=staging&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
- 
+          echo "version=2.3.$(curl -s -L 'https://carbonmod.gg/version?id=staging&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
+          git config --global --add safe.directory /__w/Carbon/Carbon
+
       - name: Rust Setup
         shell: bash
         run: |
@@ -81,6 +82,7 @@ jobs:
         shell: bash
         run: |
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cr
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cr staging
 
       - name: Carbon Build
         shell: bash
