@@ -1,6 +1,6 @@
 ﻿using Carbon.Publicizer;
 
-var input = args[1];
+var input = args[0];
 var patchableFiles = Directory.EnumerateFiles(input);
 
 Config.Init(null!);

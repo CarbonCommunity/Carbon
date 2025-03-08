@@ -345,6 +345,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				var currentChecksum = BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(typeof(ServerMgr).Assembly.Location)), 0).ToString();
 				if (!checksum.Equals(currentChecksum))
 				{
+					Logger.Warn($" {checksum} /= {currentChecksum}'");
 					foreach (var hook in stats.Hooks)
 					{
 						Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
