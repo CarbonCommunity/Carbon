@@ -58,6 +58,27 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		_workQueue.Enqueue(identifier);
 	}
 
+	private static readonly string RustHeartbeat = typeof(ServerMgr).Assembly.Location;
+
+	private static readonly string RustHash = Path.Combine(Path.GetDirectoryName(RustHeartbeat), ".hash");
+
+	private static readonly string RustChecksum = BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(RustHeartbeat)), 0).ToString();
+
+	private static void SaveRustChecksum()
+	{
+		File.WriteAllText(RustHash, RustChecksum);
+	}
+
+	private static bool HasRustUpdated()
+	{
+		if (!File.Exists(RustHash))
+		{
+			return true;
+		}
+
+		return !File.ReadAllText(RustHash).Equals(RustChecksum);
+	}
+
 	private static readonly string[] Files =
 	{
 		"Carbon.Hooks.Base.dll",
@@ -80,22 +101,23 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		enabled = false;
 
-		var doHookUpdate = !CommandLineEx.GetArgumentExists("+carbon.skiphookupdates");
+		var doHookUpdate = HasRustUpdated() && !CommandLineEx.GetArgumentExists("+carbon.skiphookupdates");
 
 		if (doHookUpdate)
 		{
 			Logger.Log("Updating hooks...");
 
-			Updater.DoUpdate((bool result) =>
+			Updater.DoUpdate(result =>
 			{
 				if (!result)
 					Logger.Error($"Unable to update the hooks at this time, please try again later");
 				enabled = true;
+				SaveRustChecksum();
 			});
 		}
 		else
 		{
-			Logger.Log("Hook updates disabled, loading from disk...");
+			Logger.Log("Loading hooks from disk...");
 			Invoke(() => enabled = true, 0.1f);
 		}
 	}
@@ -108,12 +130,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		foreach (string file in Files)
 		{
-			//FIXMENOW
-			//string path = Path.Combine(Defines.GetManagedFolder(), file);
-
-			//if (Supervisor.ASM.IsLoaded(Path.GetFileName(path)))
-			//	Supervisor.ASM.UnloadModule(path, false);
-
 			LoadHooksFromFile(file);
 		}
 
@@ -342,7 +358,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			if (hooks.GetType("Carbon.Hooks._Meta") is Type type)
 			{
 				var checksum = (string)type.GetField("Checksum").GetValue(null);
-				var currentChecksum = BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(typeof(ServerMgr).Assembly.Location)), 0).ToString();
+				var currentChecksum = RustChecksum;
 				if (!checksum.Equals(currentChecksum))
 				{
 					Logger.Warn($" {checksum} /= {currentChecksum}'");
