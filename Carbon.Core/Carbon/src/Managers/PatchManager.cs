@@ -338,6 +338,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
 				+ $" from file '{Path.GetFileName(fileName)}' in {sw.ElapsedMilliseconds}ms");
 
+#if !(RUST_STAGING || RUST_RELEASE || RUST_AUX01 || RUST_AUX02 || RUST_AUX03)
 			if (hooks.GetType("Carbon.Hooks._Meta") is Type type)
 			{
 				var checksum = (string)type.GetField("Checksum").GetValue(null);
@@ -351,6 +352,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					}
 				}
 			}
+#endif
 		}
 		catch (System.Exception)
 		{
