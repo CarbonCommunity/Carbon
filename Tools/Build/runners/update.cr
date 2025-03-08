@@ -16,6 +16,10 @@ void DownloadRustFiles(string platform)
 		"-filelist", PathEnquotes(Home, "Tools", "Helpers", "258550_refs.txt"),
 		"-dir", PathEnquotes(Home, "Rust", platform));
 		
+	var hash = Files.Hash(Path(Home, "Rust", platform, "RustDedicated_Data", "Managed", "Assembly-CSharp.dll")).ToString();
+	SetVariable($"ASMSHARP_{platform}_HASH".ToUpper(), hash);
+	Log($"Assembly-CSharp = {hash} [hash]");
+
 	DotNet.Run("run",
 		"--project", PathEnquotes(Home, "Carbon.Core", "Carbon.Tools", "Carbon.Publicizer"), 
 		"-input", PathEnquotes(Home, "Rust", platform, "RustDedicated_Data", "Managed"),
