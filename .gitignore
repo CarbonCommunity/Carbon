@@ -15,7 +15,7 @@
 *.csproj.user
 
 # Code gen
-[Bb]uild.cs
+Carbon.Core/Carbon.Components/Carbon.Common/src/Carbon/Build.cs
 [Gg]enerated/
 [Tt]ools/Runtime
 

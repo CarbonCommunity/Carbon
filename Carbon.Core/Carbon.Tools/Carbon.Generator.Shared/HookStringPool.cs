@@ -3,6 +3,8 @@ using System.Text;
 
 namespace Carbon.Pooling;
 
+#pragma warning disable
+
 public class HookStringPool
 {
 	public static Dictionary<string, uint> HookNamePoolString = new();

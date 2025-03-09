@@ -1,5 +1,7 @@
 ﻿using CommandLine;
 
+#pragma warning disable
+
 public class CommandLineArguments
 {
 	[Option("plugininput", Required = false, HelpText = "Path to the plugin folder")]
