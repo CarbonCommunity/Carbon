@@ -1,4 +1,4 @@
-var branch = GetArg(1, "release");
+var branch = GetArg(1, "public");
 
 Warn($"Branch: {branch}");
 
@@ -16,11 +16,12 @@ void DownloadRustFiles(string platform)
 		"-filelist", PathEnquotes(Home, "Tools", "Helpers", "258550_refs.txt"),
 		"-dir", PathEnquotes(Home, "Rust", platform));
 		
-	DotNet.Run("run",
-		"--project", PathEnquotes(Home, "Carbon.Core", "Carbon.Tools", "Carbon.Publicizer"), 
-		"-input", PathEnquotes(Home, "Rust", platform, "RustDedicated_Data", "Managed"),
-		"-carbon.rustrootdir", PathEnquotes(Home, "Rust", platform),
-		"-carbon.logdir", PathEnquotes(Home, "Rust", platform));
+	var hash = Files.Hash(Path(Home, "Rust", platform, "RustDedicated_Data", "Managed", "Assembly-CSharp.dll")).ToString();
+	Files.Create(Path(Home, "Rust", platform, "RustDedicated_Data", "Managed", ".hash"), hash);
+	Log($"Assembly-CSharp = {hash} [hash]");
+
+	DotNet.Run("run", "--project", PathEnquotes(Home, "Carbon.Core", "Carbon.Tools", "Carbon.Publicizer"), 
+		PathEnquotes(Home, "Rust", platform, "RustDedicated_Data", "Managed"));
 }
 
 DotNet.Run("run", "--project", PathEnquotes(Home, "Carbon.Core", "Carbon.Tools", "Carbon.Generator"),

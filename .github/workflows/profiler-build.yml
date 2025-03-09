@@ -1,13 +1,15 @@
 name: Profiler Build
-concurrency: build-3-profiler
+concurrency: build-profiler
 
 on:
   workflow_dispatch:
 
 jobs:
-  bootstrap:
-    name: 🥾 Bootstrap
-    runs-on: ubuntu-22.04
+  build:
+    name: Profiler Build
+    runs-on: ubuntu-latest
+    container: rust:bullseye
+    continue-on-error: false
 
     outputs:
       date: ${{ steps.step1.outputs.date }}
@@ -17,13 +19,14 @@ jobs:
       version: ${{ steps.step1.outputs.version }}
 
     steps:
-      #- name: Log environment
-      #  uses: crazy-max/ghaction-dump-context@v1
-
-      - name: 🔗 Checkout source code from github
+      - name: Git Clone
         uses: actions/checkout@v3
-              
-      - name: 📅 Prepare the environment
+        with:
+          ref: develop
+          token: ${{ secrets.PAT_ALL_REPO }}
+          submodules: recursive
+
+      - name: Environment Setup
         id: step1
         shell: bash
         run: |
@@ -32,104 +35,70 @@ jobs:
           echo "tag=$(date +'%Yd%j')" >> $GITHUB_OUTPUT
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "version=2.8.$(curl -s -L 'https://carbonmod.gg/version?id=profiler&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
+          git config --global --add safe.directory /__w/Carbon/Carbon
 
-  # BUILD LINUX ----------------------------------------------------------------
-  build-linux:
-    name: 🐧 Linux
-    needs: bootstrap
-    runs-on: ubuntu-22.04
-    continue-on-error: false
+      - name: Rust Setup
+        shell: bash
+        run: |
+          apt update
+          apt install -y mingw-w64
 
-    outputs:
-      artifact: build-develop-${{ needs.bootstrap.outputs.ref }}-linux
-      build_info: Built at ${{ needs.bootstrap.outputs.date }} ${{ needs.bootstrap.outputs.clock }} based on commit ${{ needs.bootstrap.outputs.ref }}.
+          rustup install stable
+          rustup default stable
+          rustup target add x86_64-pc-windows-gnu
+          rustup component add rust-std --target x86_64-pc-windows-gnu
+          rustup show
+          rustc --print sysroot
 
-    steps:
-      - name: 🔗 Checkout source code from github
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.PAT_ALL_REPO }}
-          submodules: recursive
+          which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
+          x86_64-w64-mingw32-dlltool --version
 
-      - name: 🛤️ Setup the dotnet build environment
+      - name: Dotnet Setup
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 9.0.200
+          dotnet-version: 8.0.406
 
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: ClementTsang/cargo-action@v0.0.3
+      - name: Carbon.Native Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Carbon.Native Build (Linux)
+        uses: ClementTsang/cargo-action@v0.0.3
         with:
           command: build
-          args: --target x86_64-unknown-linux-gnu --profile prod
+          args: -r --target x86_64-unknown-linux-gnu
           directory: Carbon.Core/Carbon.Native
 
-      - name: 🔨 Setup the Carbon build environment
+      - name: Carbon.Native Build (Windows)
+        uses: ClementTsang/cargo-action@v0.0.3
+        with:
+          command: build
+          args: -r --target x86_64-pc-windows-gnu
+          directory: Carbon.Core/Carbon.Native
+
+      - name: Carbon Bootstrap
         shell: bash
         run: |
-          ${GITHUB_WORKSPACE}/Tools/Build/linux/bootstrap.sh
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs
 
-      - name: 🐧 Built Carbon on Linux
+      - name: Profiler Build
         shell: bash
         run: |
-          export VERSION=${{ needs.bootstrap.outputs.version }}
-          ${GITHUB_WORKSPACE}/Tools/Build/linux/build_profiler.sh ReleaseUnix HARMONYMOD
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs Debug HARMONYMOD profiler_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs DebugUnix HARMONYMOD profiler_build
 
-      - name: ⬆️ Upload the artifacts
+      - name: Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-develop-linux
+          name: build
           path: |
             Release/Carbon.Linux.Profiler.tar.gz
-            
-  # BUILD WINDOWS --------------------------------------------------------------
-  build-windows:
-    name: 💻 Windows
-    needs: bootstrap
-    runs-on: windows-latest
-    continue-on-error: false
-
-    steps:
-      - name: 🔗 Checkout source code from github
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.PAT_ALL_REPO }}
-          submodules: recursive
-
-      - name: 🛤️ Setup the dotnet build environment
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: 9.0.200
-
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: ClementTsang/cargo-action@v0.0.3
-        with:
-          command: build
-          args: --target x86_64-pc-windows-msvc --profile prod
-          directory: Carbon.Core/Carbon.Native
-          
-      - name: 🔨 Setup the Carbon build environment
-        shell: cmd
-        run: |
-          %GITHUB_WORKSPACE%\Tools\Build\win\bootstrap.bat
-
-      - name: 🔨 Built Carbon on Windows
-        shell: cmd
-        run: |
-          set VERSION=${{ needs.bootstrap.outputs.version }}
-          call %GITHUB_WORKSPACE%\Tools\Build\win\build_profiler.bat Release HARMONYMOD
-
-      - name: ⬆️ Upload the artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-develop-windows
-          path: |
             Release/Carbon.Windows.Profiler.zip
 
-  # RELEASE --------------------------------------------------------------------
   release-on-commit:
-    name: 💾 Profiler Release
-    needs: ["bootstrap", "build-linux", "build-windows"]
-    runs-on: ubuntu-22.04
+    name: Profiler Release
+    needs: ["build"]
+    runs-on: ubuntu-latest
 
     steps:
       - name: 🗑️ Delete existing release tag
@@ -159,7 +128,7 @@ jobs:
           draft: false
           prerelease: true
           tag_name: profiler_build
-          name: "Profiler Build — v${{ needs.bootstrap.outputs.version }}"
+          name: "Profiler Build — v${{ needs.build.outputs.version }}"
           body: |
             This is an out-of-the-box build of the Carbon.Profiler dedicated to be working on vanilla and/or Oxide servers.
             Run `find carbon` upon server boot to get further command instructions.
@@ -168,8 +137,6 @@ jobs:
             1. Download the `Carbon.[Windows|Linux].Profiler` archive from the attachments below.
             2. Unzip the archive to the HarmonyMods directory of your Rust Dedicated Server.
             3. Start the server and enjoy, or run `harmony.load Carbon.Profiler`.
-
-            ${{ needs.build-linux.outputs.build_info }}
           files: |
-            Release/build-develop-windows/Carbon.Windows.Profiler.zip     
-            Release/build-develop-linux/Carbon.Linux.Profiler.tar.gz     
+            Release/build/Carbon.Windows.Profiler.zip     
+            Release/build/Carbon.Linux.Profiler.tar.gz

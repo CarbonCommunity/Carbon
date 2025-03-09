@@ -1,2 +1,7 @@
-@echo off
-call "%~dp0\update.bat" aux01
+@echo OFF
+
+set ROOT=%cd%
+cd ../../..
+
+dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs aux01
+cd %ROOT%

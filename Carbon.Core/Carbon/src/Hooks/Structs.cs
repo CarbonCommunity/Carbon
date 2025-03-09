@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
+using System.Reflection;
 using API.Hooks;
 using HarmonyLib;
 
@@ -32,6 +33,7 @@ public struct TaskStatus
 	public int Patch;
 	public int Dynamic;
 	public int Metadata;
+	public List<HookEx> Hooks;
 
 	public readonly int Total => Static + Patch + Dynamic + Metadata;
 }

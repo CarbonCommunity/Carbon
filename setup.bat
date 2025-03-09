@@ -10,7 +10,4 @@ cd %SUPERROOT%
 call bootstrap.bat
 
 cd %SUPERROOT%
-call build_native.bat
-
-cd %SUPERROOT%
-call build.bat
+call build_debug_noarchive.bat

@@ -16,6 +16,7 @@ public class InternalRunner
 	public static Files Files = new();
 	public static Directories Directories = new();
 	public static Archive Archive = new();
+	public static Pwsh Pwsh = new();
 
 	public string[] Args { get; set; }
 	public static string Home => Environment.CurrentDirectory;
@@ -27,6 +28,7 @@ public class InternalRunner
 	public static string PathEnquotes(params string[] paths) => $"\"{Path(paths)}\"";
 
 	public bool HasArgs(int minArgs) => Args.Length >= minArgs;
+	public bool HasArg(string arg) => Args.Contains(arg, StringComparer.OrdinalIgnoreCase);
 	public string GetArg(int index, string? defaultValue = null)
 	{
 		if (index >= Args.Length)
@@ -46,7 +48,8 @@ public class InternalRunner
 	public static void Warn(object message) => Write(message, ConsoleColor.DarkYellow);
 	public static void Error(object message) => Write(message, ConsoleColor.DarkRed);
 
-	public static string GetVariable(string variable) => Environment.GetEnvironmentVariable(variable)!;
+	public static string GetVariable(string variable) => Environment.GetEnvironmentVariable(variable, EnvironmentVariableTarget.Process)!;
+	public static void SetVariable(string variable, string value) => Environment.SetEnvironmentVariable(variable, value, EnvironmentVariableTarget.Process);
 	public static void Run(string file, params string[] args)
 	{
 		Run(file, args, false);
