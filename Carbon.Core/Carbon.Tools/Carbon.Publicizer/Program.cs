@@ -1,5 +1,7 @@
 ﻿using Carbon.Publicizer;
 
+#pragma warning disable
+
 var input = args[0];
 var patchableFiles = Directory.EnumerateFiles(input);
 

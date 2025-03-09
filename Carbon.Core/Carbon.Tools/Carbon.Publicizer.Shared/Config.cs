@@ -6,6 +6,8 @@ using Newtonsoft.Json;
 
 namespace Carbon.Publicizer;
 
+#pragma warning disable
+
 [Serializable]
 public class Config
 {

@@ -36,23 +36,23 @@ jobs:
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "version=2.8.$(curl -s -L 'https://carbonmod.gg/version?id=profiler&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
           git config --global --add safe.directory /__w/Carbon/Carbon
-         
+
       - name: Rust Setup
         shell: bash
         run: |
           apt update
           apt install -y mingw-w64
-          
+
           rustup install stable
           rustup default stable
           rustup target add x86_64-pc-windows-gnu
           rustup component add rust-std --target x86_64-pc-windows-gnu
           rustup show
           rustc --print sysroot
-          
+
           which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
           x86_64-w64-mingw32-dlltool --version
-  
+
       - name: Dotnet Setup
         uses: actions/setup-dotnet@v2
         with:
@@ -60,33 +60,33 @@ jobs:
 
       - name: Carbon.Native Toolchain
         uses: dtolnay/rust-toolchain@stable
-  
+
       - name: Carbon.Native Build (Linux)
         uses: ClementTsang/cargo-action@v0.0.3
         with:
           command: build
           args: -r --target x86_64-unknown-linux-gnu
           directory: Carbon.Core/Carbon.Native
-          
+
       - name: Carbon.Native Build (Windows)
         uses: ClementTsang/cargo-action@v0.0.3
         with:
           command: build
           args: -r --target x86_64-pc-windows-gnu
           directory: Carbon.Core/Carbon.Native
-  
+
       - name: Carbon Bootstrap
         shell: bash
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cr
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cr
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs
 
       - name: Profiler Build
         shell: bash
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cr Debug HARMONYMOD profiler_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cr DebugUnix HARMONYMOD profiler_build
-      
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs Debug HARMONYMOD profiler_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs DebugUnix HARMONYMOD profiler_build
+
       - name: Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -94,7 +94,7 @@ jobs:
           path: |
             Release/Carbon.Linux.Profiler.tar.gz
             Release/Carbon.Windows.Profiler.zip
-            
+
   release-on-commit:
     name: Profiler Release
     needs: ["build"]
@@ -139,4 +139,4 @@ jobs:
             3. Start the server and enjoy, or run `harmony.load Carbon.Profiler`.
           files: |
             Release/build/Carbon.Windows.Profiler.zip     
-            Release/build/Carbon.Linux.Profiler.tar.gz     
+            Release/build/Carbon.Linux.Profiler.tar.gz

@@ -28,6 +28,7 @@ public class InternalRunner
 	public static string PathEnquotes(params string[] paths) => $"\"{Path(paths)}\"";
 
 	public bool HasArgs(int minArgs) => Args.Length >= minArgs;
+	public bool HasArg(string arg) => Args.Contains(arg, StringComparer.OrdinalIgnoreCase);
 	public string GetArg(int index, string? defaultValue = null)
 	{
 		if (index >= Args.Length)
