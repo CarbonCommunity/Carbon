@@ -6,7 +6,7 @@ var cargoTarget = target.Equals("Debug") || target.Equals("DebugUnix") || target
 var isUnix = target.Contains("Unix");
 var noArchive = HasArg("-noarchive");
 
-Run(Path(Home, "Tools", "Build", "runners", "git.cr"), tag);
+Run(Path(Home, "Tools", "Build", "runners", "git.cs"), tag);
 
 DotNet.ExitOnError(true);
 DotNet.Run("restore", PathEnquotes(Home, "Carbon.Core"));

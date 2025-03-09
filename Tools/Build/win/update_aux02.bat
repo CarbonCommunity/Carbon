@@ -3,5 +3,5 @@
 set ROOT=%cd%
 cd ../../..
 
-dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cr aux02
+dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs aux02
 cd %ROOT%
