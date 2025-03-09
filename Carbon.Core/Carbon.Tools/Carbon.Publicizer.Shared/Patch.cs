@@ -7,6 +7,8 @@ using Mono.Cecil;
 
 namespace Carbon.Publicizer;
 
+#pragma warning disable
+
 public class Patch : IDisposable
 {
 	public static CarbonAssemblyResolver AssemblyResolver;

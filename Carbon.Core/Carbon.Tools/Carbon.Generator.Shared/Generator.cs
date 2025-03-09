@@ -7,6 +7,8 @@ using HarmonyLib;
 
 namespace Carbon.Generator;
 
+#pragma warning disable
+
 public class InternalCallHook
 {
 	public static void Generate(CompilationUnitSyntax input, out CompilationUnitSyntax output, out MethodDeclarationSyntax generatedMethod, out bool isPartial, bool baseCall = false, string baseName = "plugin", List<ClassDeclarationSyntax> classList = null)
@@ -127,7 +129,7 @@ public class InternalCallHook
 				var methodName = method.Identifier.ValueText;
 				var parameters0 = method.ParameterList.Parameters.Select(x =>
 				{
-					var type = x.Type.ToString().Replace("?", string.Empty);
+					var type = x.Type!.ToString().Replace("?", string.Empty);
 					parameterIndex++;
 
 					if (x.Modifiers.Any(x => x.IsKind(SyntaxKind.OutKeyword)))
@@ -249,8 +251,7 @@ public class InternalCallHook
 			return;
 		}
 
-		var @namespace = (BaseNamespaceDeclarationSyntax)null;
-		var @class = (ClassDeclarationSyntax)null;
+		BaseNamespaceDeclarationSyntax @namespace;
 
 		if (classes == null)
 		{
@@ -262,10 +263,9 @@ public class InternalCallHook
 			@namespace = classes[0].Parent as BaseNamespaceDeclarationSyntax;
 		}
 
-		@class = classes[0];
-
+		var @class = classes[0];
 		var usings = input.Usings;
-		var subUsings = @namespace.Usings;
+		var subUsings = @namespace!.Usings;
 
 		var source = @$"{string.Join("\n", usings.Select(x => x.ToString()))}
 
