@@ -6,7 +6,7 @@ var cargoTarget = target.Equals("Debug") || target.Equals("DebugUnix") || target
 var isUnix = target.Contains("Unix");
 var noArchive = HasArg("-noarchive");
 
-Run(Path(Home, "Tools", "Build", "runners", "git.cr"), tag);
+Run(Path(Home, "Tools", "Build", "runners", "git.cs"), tag);
 
 Warn($"Tag: {tag}");
 Warn($"Target: {target}");
@@ -30,14 +30,14 @@ var finalTarget = target.Replace("Unix", string.Empty);
 
 Directories.Delete(Path(Home, "Release", ".tmp", target, "profiler"));
 
-if(isUnix)
+if (isUnix)
 {
 	Files.Copy(Path(Home, "Tools", "Helpers", "carbon.sh"), Path(Home, "Release", ".tmp", target));
 	Files.Copy(Path(Home, "Tools", "Helpers", "environment.sh"), Path(Home, "Release", ".tmp", target, "carbon", "tools"));
 	Files.Copy(Path(Home, "Tools", "UnityDoorstop", "linux", "x64", "libdoorstop.so"), Path(Home, "Release", ".tmp", target));
 	Files.Copy(Path(Home, "Carbon.Core", "Carbon.Native", "target", "x86_64-unknown-linux-gnu", cargoTarget, "libCarbonNative.so"), Path(Home, "Release", ".tmp", target, "carbon", "native"));
-	
-	if(!noArchive)
+
+	if (!noArchive)
 	{
 		Archive.Tar(Path(Home, "Release", ".tmp", target), Path(Home, "Release", $"Carbon.{tos}.{finalTarget}.tar.gz"));
 	}
@@ -47,9 +47,9 @@ else
 	Files.Copy(Path(Home, "Tools", "Helpers", "doorstop_config.ini"), Path(Home, "Release", ".tmp", target));
 	Files.Copy(Path(Home, "Tools", "UnityDoorstop", "windows", "x64", "doorstop.dll"), Path(Home, "Release", ".tmp", target, "winhttp.dll"));
 	Files.Copy(Path(Home, "Carbon.Core", "Carbon.Native", "target", "x86_64-pc-windows-gnu", cargoTarget, "CarbonNative.dll"), Path(Home, "Release", ".tmp", target, "carbon", "native"));
-	
-	if(!noArchive)
-	{	
+
+	if (!noArchive)
+	{
 		Archive.Zip(Path(Home, "Release", ".tmp", target), Path(Home, "Release", $"Carbon.{tos}.{finalTarget}.zip"));
 	}
 }
