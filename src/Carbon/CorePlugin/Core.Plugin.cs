@@ -11,6 +11,8 @@ public partial class CorePlugin : CarbonPlugin
 {
 	public static Dictionary<string, string> OrderedFiles { get; } = new Dictionary<string, string>();
 
+	public override bool AutoPatch => true;
+
 	public static void RefreshOrderedFiles()
 	{
 		OrderedFiles.Clear();

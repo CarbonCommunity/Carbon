@@ -1,12 +1,12 @@
-﻿namespace Carbon.Core;
+﻿using HarmonyLib;
+
+namespace Carbon.Core;
 
 #pragma warning disable IDE0051
 
 public partial class CorePlugin
 {
 #if !MINIMAL
-
-	#region Implementation
 
 	[Conditional("!MINIMAL")]
 	internal object IRecyclerThinkSpeed(Recycler recycler)
@@ -136,7 +136,51 @@ public partial class CorePlugin
 		return null;
 	}
 
-	#endregion
+	[AutoPatch, HarmonyPatch]
+	public class GivePatch
+	{
+		public static List<BasePlayer> giverPlayers = new();
+
+		public static IEnumerable<MethodBase> TargetMethods()
+		{
+			var parameters = new[] { typeof(ConsoleSystem.Arg) };
+			yield return AccessTools.Method(typeof(ConVar.Inventory), nameof(ConVar.Inventory.give), parameters);
+			yield return AccessTools.Method(typeof(ConVar.Inventory), nameof(ConVar.Inventory.giveall), parameters);
+			yield return AccessTools.Method(typeof(ConVar.Inventory), nameof(ConVar.Inventory.givearm), parameters);
+			yield return AccessTools.Method(typeof(ConVar.Inventory), nameof(ConVar.Inventory.giveBp), parameters);
+			yield return AccessTools.Method(typeof(ConVar.Inventory), nameof(ConVar.Inventory.giveid), parameters);
+			yield return AccessTools.Method(typeof(ConVar.Inventory), nameof(ConVar.Inventory.giveto), parameters);
+		}
+
+		public static void Prefix(ConsoleSystem.Arg arg)
+		{
+			if (!Community.Runtime.Core.NoGiveNoticesCache)
+			{
+				return;
+			}
+
+			var player = arg.Player();
+			if (player != null && !giverPlayers.Contains(player))
+			{
+				giverPlayers.Add(player);
+			}
+		}
+	}
+
+	[AutoPatch, HarmonyPatch(typeof(Item), nameof(Item.SetItemOwnership), typeof(BasePlayer), typeof(Translate.Phrase))]
+	public class OwnershipPatch
+	{
+		public static bool Prefix(BasePlayer player, Translate.Phrase reason)
+		{
+			if (GivePatch.giverPlayers.Contains(player))
+			{
+				GivePatch.giverPlayers.Remove(player);
+				return false;
+			}
+
+			return true;
+		}
+	}
 
 #endif
 }
