@@ -7,6 +7,8 @@ using Mono.Cecil.Rocks;
 
 namespace Carbon.Publicizer;
 
+#pragma warning disable
+
 public class AssemblyCSharp() : Patch(RustManagedDirectory, "Assembly-CSharp.dll")
 {
 	public override bool Execute()

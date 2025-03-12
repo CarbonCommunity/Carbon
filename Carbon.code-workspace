@@ -25,11 +25,11 @@
       "**/.git/subtree-cache/**": true,
       "**/node_modules/*/**": true
     },
-    "omnisharp.organizeImportsOnFormat": true,
     "[csharp]": {
       "editor.defaultFormatter": "ms-dotnettools.csharp"
     },
-    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+    "dotnet.formatting.organizeImportsOnFormat": true
   },
   "extensions": {
     "recommendations": [

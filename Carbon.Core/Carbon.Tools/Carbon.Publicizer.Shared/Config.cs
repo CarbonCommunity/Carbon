@@ -6,6 +6,8 @@ using Newtonsoft.Json;
 
 namespace Carbon.Publicizer;
 
+#pragma warning disable
+
 [Serializable]
 public class Config
 {
@@ -67,6 +69,7 @@ public class Config
 		Singleton.ForceEnsurePublicizedAssembly("Facepunch.Network.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Facepunch.Nexus.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.Clans.Local.dll");
+		Singleton.ForceEnsurePublicizedAssembly("Rust.FileSystem.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.Harmony.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.Global.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.Data.dll");

@@ -5,6 +5,8 @@ using Mono.Cecil.Cil;
 
 namespace Carbon.Publicizer;
 
+#pragma warning disable
+
 public class RustHarmony() : Patch(RustManagedDirectory, "Rust.Harmony.dll")
 {
 	public override bool Execute()

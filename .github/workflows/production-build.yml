@@ -18,14 +18,14 @@ jobs:
       ref: ${{ steps.step1.outputs.ref }}
       version: ${{ steps.step1.outputs.version }}
 
-    steps:   
+    steps:
       - name: Git Clone
         uses: actions/checkout@v3
         with:
           ref: production
           token: ${{ secrets.PAT_ALL_REPO }}
           submodules: recursive
-          
+
       - name: Environment Setup
         id: step1
         shell: bash
@@ -36,20 +36,20 @@ jobs:
           echo "ref=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "version=2.0.$(curl -s -L 'https://carbonmod.gg/version?id=production&token=${{secrets.VERSIONS_TOKEN}}')" >> $GITHUB_OUTPUT
           git config --global --add safe.directory /__w/Carbon/Carbon
-          
+
       - name: Rust Setup
         shell: bash
         run: |
           apt update
           apt install -y mingw-w64
-          
+
           rustup install stable
           rustup default stable
           rustup target add x86_64-pc-windows-gnu
           rustup component add rust-std --target x86_64-pc-windows-gnu
           rustup show
           rustc --print sysroot
-          
+
           which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
           x86_64-w64-mingw32-dlltool --version
 
@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 8.0.406
-          
+
       - name: Carbon.Native Toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -67,7 +67,7 @@ jobs:
           command: build
           args: -r --target x86_64-unknown-linux-gnu
           directory: Carbon.Core/Carbon.Native
-          
+
       - name: Carbon.Native Build (Windows)
         uses: ClementTsang/cargo-action@v0.0.3
         with:
@@ -75,21 +75,35 @@ jobs:
           args: -r --target x86_64-pc-windows-gnu
           directory: Carbon.Core/Carbon.Native
 
+      - name: Carbon.Native Build (Linux) (PROD)
+        uses: ClementTsang/cargo-action@v0.0.3
+        with:
+          command: build
+          args: --profile prod --target x86_64-unknown-linux-gnu
+          directory: Carbon.Core/Carbon.Native
+          
+      - name: Carbon.Native Build (Windows) (PROD)
+        uses: ClementTsang/cargo-action@v0.0.3
+        with:
+          command: build
+          args: --profile prod --target x86_64-pc-windows-gnu
+          directory: Carbon.Core/Carbon.Native
+          
       - name: Carbon Bootstrap
         shell: bash
         run: |
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cr
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cr
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/bootstrap.cs
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/update.cs
 
       - name: Carbon Build
         shell: bash
         run: |
           export VERSION=${{ steps.step1.outputs.version }}
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Release PROD production_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr Minimal PROD production_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr ReleaseUnix PROD production_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cr MinimalUnix PROD production_build
-          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/nuget.cr ${{ secrets.NUGET_API }} ${{ steps.step1.outputs.version }}
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Release PROD production_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs Minimal PROD production_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs ReleaseUnix PROD production_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/build.cs MinimalUnix PROD production_build
+          dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/nuget.cs ${{ secrets.NUGET_API }} ${{ steps.step1.outputs.version }}
 
       - name: Artifacts
         uses: actions/upload-artifact@v4
