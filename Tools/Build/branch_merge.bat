@@ -1,15 +1,4 @@
-::
-:: Copyright (c) 2022-2023 Carbon Community 
-:: All rights reserved
-::
 @echo off
-
-echo   ______ _______ ______ ______ _______ _______ 
-echo  ^|      ^|   _   ^|   __ \   __ \       ^|    ^|  ^|
-echo  ^|   ---^|       ^|      ^<   __ ^<   -   ^|       ^|
-echo  ^|______^|___^|___^|___^|__^|______/_______^|__^|____^|
-echo                           discord.gg/carbonmod
-echo.
 
 pushd %~dp0..\..
 set BOOTSTRAP_ROOT=%CD%
