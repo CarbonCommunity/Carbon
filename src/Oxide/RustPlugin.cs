@@ -89,8 +89,7 @@ public class RustPlugin : Plugin
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void Puts(object message)
-		=> Carbon.Logger.Log($"[{Title}] {message}");
+	public void Puts(object message) => Logger.Log($"[{Title}] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
@@ -98,40 +97,35 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="args"></param>
-	public void Puts(object message, params object[] args)
-		=> Carbon.Logger.Log($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
+	public void Puts(object message, params object[] args) => Logger.Log($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void Log(object message)
-		=> Carbon.Logger.Log($"[{Title}] {message}");
+	public void Log(object message) => Logger.Log($"[{Title}] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void Log(object message, params object[] args)
-		=> Carbon.Logger.Log($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
+	public void Log(object message, params object[] args) => Logger.Log($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogWarning(object message)
-		=> Carbon.Logger.Warn($"[{Title}] {message}");
+	public void LogWarning(object message) => Logger.Warn($"[{Title}] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogWarning(object message, params object[] args)
-		=> Carbon.Logger.Warn($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
+	public void LogWarning(object message, params object[] args) => Logger.Warn($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -139,8 +133,7 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="ex"></param>
-	public void LogError(object message, Exception ex)
-		=> Carbon.Logger.Error($"[{Title}] {message}", ex);
+	public void LogError(object message, Exception ex) => Logger.Error($"[{Title}] {message}", ex);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -148,24 +141,21 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="ex"></param>
-	public void LogError(object message, Exception ex, params object[] args)
-		=> Carbon.Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", ex);
+	public void LogError(object message, Exception ex, params object[] args) => Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", ex);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogError(object message)
-		=> Carbon.Logger.Error($"[{Title}] {message}", null);
+	public void LogError(object message) => Logger.Error($"[{Title}] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogError(object message, params object[] args)
-		=> Carbon.Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", null);
+	public void LogError(object message, params object[] args) => Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", null);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
@@ -173,8 +163,7 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="args"></param>
-	public void PrintWarning(object format, params object[] args)
-		=> Carbon.Logger.Warn($"[{Title}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString() ?? string.Empty, args))}");
+	public void PrintWarning(object format, params object[] args) => Logger.Warn($"[{Title}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -182,16 +171,14 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="args"></param>
-	public void PrintError(object format, params object[] args)
-		=> Carbon.Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString () ?? string.Empty, args))}");
+	public void PrintError(object format, params object[] args) => Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString () ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void RaiseError(object message)
-		=> Carbon.Logger.Error($"[{Title}] {message}", null);
+	public void RaiseError(object message) => Logger.Error($"[{Title}] {message}", null);
 
 	protected void LogToFile(string filename, string text, Plugin plugin = null, bool timeStamp = true, bool anotherBool = false)
 	{
@@ -258,58 +245,6 @@ public class RustPlugin : Plugin
 	{
 		return $"{Title} v{Version} by {Author}";
 	}
-
-	#region AutoPatch
-
-	private HarmonyLib.Harmony _harmonyInstanceCache;
-	protected string HarmonyId => $"com.carbon.{Name}";
-	protected HarmonyLib.Harmony HarmonyInstance => _harmonyInstanceCache ??= new HarmonyLib.Harmony(HarmonyId);
-
-	public void IProcessPatches()
-	{
-		foreach (var type in HookableType.GetNestedTypes(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
-		{
-			var attribute = type.GetCustomAttributes(typeof(AutoPatchAttribute), false);
-
-			if (attribute.Length < 1)
-			{
-				continue;
-			}
-
-			try
-			{
-				var harmonyMethods = HarmonyInstance.CreateClassProcessor(type)?.Patch();
-
-				if (harmonyMethods == null || harmonyMethods.Count == 0)
-				{
-					Logger.Warn($"AutoPatch attribute found on '{type.Name}' for {ToPrettyString()} but no HarmonyPatch methods found. Skipping.");
-					continue;
-				}
-
-				foreach (MethodInfo method in harmonyMethods)
-				{
-					Logger.Log($"Automatically Harmony patched '{method.Name}' method for {ToPrettyString()}. ({type.Name})");
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"Failed to automatically Harmony patch '{type.Name}' for {ToPrettyString()}", ex);
-			}
-		}
-	}
-	public void IProcessUnpatches()
-	{
-		try
-		{
-			HarmonyInstance?.UnpatchAll(HarmonyId);
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"Failed auto unpatching {HarmonyId} for {ToPrettyString()}", ex);
-		}
-	}
-
-	#endregion
 
 	#region Printing
 
