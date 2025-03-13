@@ -11,16 +11,6 @@ public class CarbonPlugin : RustPlugin
 		CuiHandler = new CUI.Handler();
 	}
 
-	public override bool IInit()
-	{
-		if (!base.IInit())
-		{
-			return false;
-		}
-
-		return true;
-	}
-
 	#region CUI
 
 	public CUI CreateCUI()
