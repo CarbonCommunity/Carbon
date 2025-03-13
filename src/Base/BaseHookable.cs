@@ -252,7 +252,7 @@ public class BaseHookable
 		var instance = GetHarmonyInstance(order);
 		if (instance != null)
 		{
-			return false;
+			return true;
 		}
 
 		instance = GetHarmonyInstance(order, true);
