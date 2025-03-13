@@ -484,7 +484,7 @@ public class LUI : IDisposable
 				if (color != null)
 					text.color = color;
 				if (!update)
-					text.align = nameof(alignment);
+					text.align = alignment.ToString();
 			}
 			else
 			{
@@ -495,7 +495,7 @@ public class LUI : IDisposable
 				if (color != null)
 					text.color = color;
 				if (!update)
-					text.align = nameof(alignment);
+					text.align = alignment.ToString();
 				luiComponents.Add(text.type, text);
 			}
 			return this;
@@ -540,7 +540,7 @@ public class LUI : IDisposable
 			else
 			{
 				text = LuiPool.GetText();
-				text.align = nameof(align);
+				text.align = align.ToString();
 				luiComponents.Add(text.type, text);
 			}
 			return this;
@@ -586,6 +586,14 @@ public class LUI : IDisposable
 			{
 				img.material = material;
 			}
+			else if (luiComponents.TryGetValue<LuiButtonComp>(LuiCompType.Button, out var button))
+			{
+				button.material = material;
+			}
+			else if (luiComponents.TryGetValue<LuiRawImageComp>(LuiCompType.RawImage, out var rawImg))
+			{
+				rawImg.material = material;
+			}
 			else
 			{
 				img = LuiPool.GetImage();
@@ -606,6 +614,20 @@ public class LUI : IDisposable
 				}
 				if (color != null)
 					img.color = color;
+			}
+			else if (luiComponents.TryGetValue<LuiButtonComp>(LuiCompType.Button, out var button))
+			{
+				if (sprite != null)
+					button.sprite = sprite;
+				if (color != null)
+					button.color = color;
+			}
+			else if (luiComponents.TryGetValue<LuiRawImageComp>(LuiCompType.RawImage, out var rawImg))
+			{
+				if (sprite != null)
+					rawImg.sprite = sprite;
+				if (color != null)
+					rawImg.color = color;
 			}
 			else
 			{
@@ -902,7 +924,7 @@ public class LUI : IDisposable
 					input.characterLimit = charLimit;
 				if (!update)
 				{
-					input.align = nameof(alignment);
+					input.align = alignment.ToString();
 					input.font = nameof(font);
 				}
 			}
@@ -921,7 +943,7 @@ public class LUI : IDisposable
 					input.characterLimit = charLimit;
 				if (!update)
 				{
-					input.align = nameof(alignment);
+					input.align = alignment.ToString();
 					input.font = nameof(font);
 				}
 				luiComponents.Add(input.type, input);
