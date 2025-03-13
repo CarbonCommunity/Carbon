@@ -156,7 +156,7 @@ jobs:
         with:
           draft: false
           prerelease: true
-          tag_name: rustbeta_release_build
+          tag_name: qa
           name: "QA Build — v${{ needs.build.outputs.version }}"
           body: |
             This is a manually triggered build of Carbon based on the `qa` branch.
