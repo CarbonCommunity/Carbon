@@ -277,44 +277,50 @@ public class BaseHookable
 
 				if (harmonyMethods == null || harmonyMethods.Count == 0)
 				{
-					Logger.Warn($"[{Name}] AutoPatch attribute found on '{type.Name}' but no HarmonyPatch methods found. Skipping..");
+					Logger.Warn($"[{Name}] AutoPatch attribute found on '{type.Name}' but no HarmonyPatch methods found. Skipping.. [{order}]");
 					continue;
 				}
 
 				foreach (MethodInfo method in harmonyMethods)
 				{
-					Logger.Log($"[{Name}] Automatically Harmony patched '{method.Name}' ({type.Name}) method.");
+					Logger.Log($"[{Name}] Automatically Harmony patched '{method.Name}' ({type.Name}) method [{order}].");
 				}
 
-				var successMethod = HookableType.GetMethod(attribute.PatchSuccessCallback, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic);
-				if (successMethod != null)
+				if (!string.IsNullOrEmpty(attribute.PatchSuccessCallback))
 				{
-					try
+					var successMethod = HookableType.GetMethod(attribute.PatchSuccessCallback);
+					if (successMethod != null)
 					{
-						successMethod.Invoke(this, null);
-					}
-					catch (Exception ex)
-					{
-						Logger.Error($"[{Name}] Failed to execute successful automatic Harmony patch callback '{type.Name}': {attribute.PatchSuccessCallback}", ex);
+						try
+						{
+							successMethod.Invoke(this, []);
+						}
+						catch (Exception ex)
+						{
+							Logger.Error($"[{Name}] Failed to execute successful automatic Harmony patch callback '{type.Name}': {attribute.PatchSuccessCallback} [{order}]", ex);
+						}
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				var failureMethod = HookableType.GetMethod(attribute.PatchFailureCallback, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic);
-				if (failureMethod != null)
+				if (!string.IsNullOrEmpty(attribute.PatchFailureCallback))
 				{
-					try
+					var failureMethod = HookableType.GetMethod(attribute.PatchFailureCallback);
+					if (failureMethod != null)
 					{
-						failureMethod.Invoke(this, null);
-					}
-					catch (Exception ex2)
-					{
-						Logger.Error($"[{Name}] Failed to execute successful automatic Harmony patch callback '{type.Name}': {attribute.PatchSuccessCallback}", ex2);
+						try
+						{
+							failureMethod.Invoke(this, []);
+						}
+						catch (Exception ex2)
+						{
+							Logger.Error($"[{Name}] Failed to execute successful automatic Harmony patch callback '{type.Name}': {attribute.PatchSuccessCallback} [{order}]", ex2);
+						}
 					}
 				}
 
-				Logger.Error($"[{Name}] Failed to automatically Harmony patch '{type.Name}'", ex);
+				Logger.Error($"[{Name}] Failed to automatically Harmony patch '{type.Name}' [{order}]", ex);
 
 				if (attribute.IsRequired)
 				{
@@ -331,12 +337,12 @@ public class BaseHookable
 			var count = RemoveHarmonyInstance(order);
 			if (!silent && count > 0)
 			{
-				Logger.Log($"[{Name}] Automatically Harmony unpatched {count:n0} {count.Plural("method", "methods")}.");
+				Logger.Log($"[{Name}] Automatically Harmony unpatched {count:n0} {count.Plural("method", "methods")} [{order}].");
 			}
 		}
 		catch (Exception ex)
 		{
-			Logger.Error($"[{Name}] Failed auto unpatching {GetHarmonyId(order)}", ex);
+			Logger.Error($"[{Name}] Failed auto unpatching {GetHarmonyId(order)} [{order}]", ex);
 		}
 	}
 
