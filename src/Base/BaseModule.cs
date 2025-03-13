@@ -346,8 +346,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 				Puts($"Subscribed to {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
 			}
 		}
-
-		DoHarmonyPatch();
 	}
 
 	public void OnEnableStatus()
@@ -387,8 +385,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		{
 			Puts($"Unsubscribed from {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
 		}
-
-		DoHarmonyUnpatch();
 	}
 	public override void Shutdown()
 	{
@@ -396,78 +392,6 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 
 		Community.Runtime.ModuleProcessor.Uninstall(this);
 	}
-
-	#region Harmony
-
-	public Harmony HarmonyInstance;
-
-	public virtual string HarmonyDomain => $"com.carbon-module.{Name}".Replace(" ", string.Empty).ToLower();
-
-	public virtual bool AutoPatch => false;
-
-	public virtual void DoHarmonyPatch()
-	{
-		if (!AutoPatch)
-		{
-			return;
-		}
-
-		if (HarmonyInstance == null)
-		{
-			HarmonyInstance = new(HarmonyDomain);
-		}
-
-		foreach (var type in Type.GetNestedTypes(BindingFlags.DeclaredOnly | BindingFlags.Public |
-		                                         BindingFlags.NonPublic | BindingFlags.Static))
-		{
-			try
-			{
-				var harmonyMethods = HarmonyInstance.CreateClassProcessor(type)?.Patch();
-
-				if (harmonyMethods == null || harmonyMethods.Count == 0)
-				{
-					continue;
-				}
-
-				foreach (MethodInfo method in harmonyMethods)
-				{
-					Logger.Warn($"[{HarmonyDomain}] Patched '{method.Name}' method. ({type.Name})");
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"[{HarmonyDomain}] Failed to patch '{type.Name}'", ex);
-			}
-		}
-	}
-
-	public virtual void DoHarmonyUnpatch()
-	{
-		if (!AutoPatch)
-		{
-			return;
-		}
-
-		try
-		{
-			if (HarmonyInstance != null)
-			{
-				foreach (var method in HarmonyInstance.GetPatchedMethods())
-				{
-					Logger.Warn($"[{HarmonyDomain}] Unpatched '{method.Name}' method. ({method.DeclaringType.Name})");
-				}
-			}
-
-			HarmonyInstance?.UnpatchAll(HarmonyDomain);
-			HarmonyInstance = null;
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"[{HarmonyDomain}] Failed unpatching for {ToPrettyString()}", ex);
-		}
-	}
-
-	#endregion
 
 	#region Localisation
 
