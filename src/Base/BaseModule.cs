@@ -386,7 +386,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		{
 			Puts($"Unsubscribed from {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
 		}
-		IProcessUnpatches();
+		IProcessUnpatches(false);
 	}
 	public override void Shutdown()
 	{

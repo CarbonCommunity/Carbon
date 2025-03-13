@@ -31,7 +31,6 @@ public class BaseHookable
 			}
 		}
 	}
-
 	public class CachedHookInstance
 	{
 		public CachedHook PrimaryHook;
@@ -233,18 +232,18 @@ public class BaseHookable
 
 				if (harmonyMethods == null || harmonyMethods.Count == 0)
 				{
-					Logger.Warn($"AutoPatch attribute found on '{type.Name}' for {ToPrettyString()} but no HarmonyPatch methods found. Skipping.");
+					Logger.Warn($"[{Name}] AutoPatch attribute found on '{type.Name}' but no HarmonyPatch methods found. Skipping..");
 					continue;
 				}
 
 				foreach (MethodInfo method in harmonyMethods)
 				{
-					Logger.Log($"Automatically Harmony patched '{method.Name}' method for {ToPrettyString()}. ({type.Name})");
+					Logger.Log($"[{Name}] Automatically Harmony patched '{method.Name}' ({type.Name}) method.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"Failed to automatically Harmony patch '{type.Name}' for {ToPrettyString()}", ex);
+				Logger.Error($"[{Name}] Failed to automatically Harmony patch '{type.Name}'", ex);
 
 				if (attribute.IsRequired)
 				{
@@ -254,15 +253,20 @@ public class BaseHookable
 		}
 		return true;
 	}
-	public void IProcessUnpatches()
+	public void IProcessUnpatches(bool silent = true)
 	{
 		try
 		{
+			var count = HarmonyInstance == null ? 0 : HarmonyInstance.GetPatchedMethods().Count();
 			HarmonyInstance?.UnpatchAll(HarmonyId);
+			if (!silent && count > 0)
+			{
+				Logger.Log($"[{Name}] Automatically Harmony unpatched {count:n0} {count.Plural("method", "methods")}.");
+			}
 		}
 		catch (Exception ex)
 		{
-			Logger.Error($"Failed auto unpatching {HarmonyId} for {ToPrettyString()}", ex);
+			Logger.Error($"[{Name}] Failed auto unpatching {HarmonyId}", ex);
 		}
 	}
 
