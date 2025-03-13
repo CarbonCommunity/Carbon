@@ -363,6 +363,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 			conditionals.Add("RUST_AUX02");
 #elif RUST_AUX03
 			conditionals.Add("RUST_AUX03");
+#elif QA
+			conditionals.Add("QA");
 #endif
 
 			string pdbFilename =
