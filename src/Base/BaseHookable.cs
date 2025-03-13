@@ -216,6 +216,11 @@ public class BaseHookable
 
 	public bool IProcessPatches()
 	{
+		if (_harmonyInstanceCache != null)
+		{
+			return false;
+		}
+
 		var types = HookableType.GetNestedTypes(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 		foreach (var type in types)
 		{
@@ -257,8 +262,9 @@ public class BaseHookable
 	{
 		try
 		{
-			var count = HarmonyInstance == null ? 0 : HarmonyInstance.GetPatchedMethods().Count();
-			HarmonyInstance?.UnpatchAll(HarmonyId);
+			var count = _harmonyInstanceCache == null ? 0 : _harmonyInstanceCache.GetPatchedMethods().Count();
+			_harmonyInstanceCache?.UnpatchAll(HarmonyId);
+			_harmonyInstanceCache = null;
 			if (!silent && count > 0)
 			{
 				Logger.Log($"[{Name}] Automatically Harmony unpatched {count:n0} {count.Plural("method", "methods")}.");
