@@ -586,14 +586,6 @@ public class LUI : IDisposable
 			{
 				img.material = material;
 			}
-			else if (luiComponents.TryGetValue<LuiButtonComp>(LuiCompType.Button, out var button))
-			{
-				button.material = material;
-			}
-			else if (luiComponents.TryGetValue<LuiRawImageComp>(LuiCompType.RawImage, out var rawImg))
-			{
-				rawImg.material = material;
-			}
 			else
 			{
 				img = LuiPool.GetImage();
@@ -614,20 +606,6 @@ public class LUI : IDisposable
 				}
 				if (color != null)
 					img.color = color;
-			}
-			else if (luiComponents.TryGetValue<LuiButtonComp>(LuiCompType.Button, out var button))
-			{
-				if (sprite != null)
-					button.sprite = sprite;
-				if (color != null)
-					button.color = color;
-			}
-			else if (luiComponents.TryGetValue<LuiRawImageComp>(LuiCompType.RawImage, out var rawImg))
-			{
-				if (sprite != null)
-					rawImg.sprite = sprite;
-				if (color != null)
-					rawImg.color = color;
 			}
 			else
 			{
