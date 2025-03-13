@@ -54,6 +54,7 @@ public class CommunityInternal : Community
 		Core.IsCorePlugin = Core.IsPrecompiled = true;
 		Core.IInit();
 		Core.ILoadDefaultMessages();
+		Core.IProcessPatches();
 
 		ModLoader.RegisterPackage(Core.Package = ModLoader.Package.Get("Carbon Community", true).AddPlugin(Core));
 		ModLoader.RegisterPackage(Plugins = ModLoader.Package.Get("Scripts", false));
