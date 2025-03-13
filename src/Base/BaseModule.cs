@@ -346,7 +346,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 			}
 		}
 
-		IProcessPatches();
+		ApplyOrderedPatches(AutoPatchAttribute.Orders.AfterPluginInit);
 	}
 
 	public void OnEnableStatus()
@@ -386,7 +386,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		{
 			Puts($"Unsubscribed from {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
 		}
-		IProcessUnpatches(false);
+		UnapplyOrderedPatches(false);
 	}
 	public override void Shutdown()
 	{

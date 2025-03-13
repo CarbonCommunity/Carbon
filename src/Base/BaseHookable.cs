@@ -210,17 +210,52 @@ public class BaseHookable
 
 	#region AutoPatch
 
-	private HarmonyLib.Harmony _harmonyInstanceCache;
-	protected string HarmonyId => $"com.carbon.{Name}";
-	protected HarmonyLib.Harmony HarmonyInstance => _harmonyInstanceCache ??= new HarmonyLib.Harmony(HarmonyId);
+	private Dictionary<AutoPatchAttribute.Orders, HarmonyLib.Harmony> _harmonyInstanceCache = new();
 
-	public bool IProcessPatches()
+	protected string GetHarmonyId(AutoPatchAttribute.Orders order = AutoPatchAttribute.Orders.AfterPluginInit)
 	{
-		if (_harmonyInstanceCache != null)
+		return $"com.carbon.{Name}.{order}";
+	}
+
+	protected string HarmonyId => GetHarmonyId();
+
+	protected HarmonyLib.Harmony GetHarmonyInstance(AutoPatchAttribute.Orders order, bool createIfNotExists = false)
+	{
+		if (_harmonyInstanceCache.TryGetValue(order, out var instance))
+		{
+			return instance;
+		}
+		if (!createIfNotExists)
+		{
+			return null;
+		}
+		return _harmonyInstanceCache[order] = new HarmonyLib.Harmony(GetHarmonyId(order));
+	}
+
+	protected HarmonyLib.Harmony HarmonyInstance => GetHarmonyInstance(AutoPatchAttribute.Orders.AfterPluginInit, true);
+
+	protected int RemoveHarmonyInstance(AutoPatchAttribute.Orders order)
+	{
+		if (_harmonyInstanceCache.TryGetValue(order, out var instance))
+		{
+			var count = instance.GetPatchedMethods()?.Count();
+			instance.UnpatchAll(GetHarmonyId(order));
+			_harmonyInstanceCache.Remove(order);
+			return count.GetValueOrDefault();
+		}
+
+		return 0;
+	}
+
+	public bool ApplyOrderedPatches(AutoPatchAttribute.Orders order)
+	{
+		var instance = GetHarmonyInstance(order);
+		if (instance != null)
 		{
 			return false;
 		}
 
+		instance = GetHarmonyInstance(order, true);
 		var types = HookableType.GetNestedTypes(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 		foreach (var type in types)
 		{
@@ -231,9 +266,14 @@ public class BaseHookable
 				continue;
 			}
 
+			if (attribute.Order != order)
+			{
+				continue;
+			}
+
 			try
 			{
-				var harmonyMethods = HarmonyInstance.CreateClassProcessor(type)?.Patch();
+				var harmonyMethods = instance.CreateClassProcessor(type)?.Patch();
 
 				if (harmonyMethods == null || harmonyMethods.Count == 0)
 				{
@@ -245,9 +285,35 @@ public class BaseHookable
 				{
 					Logger.Log($"[{Name}] Automatically Harmony patched '{method.Name}' ({type.Name}) method.");
 				}
+
+				var successMethod = HookableType.GetMethod(attribute.PatchSuccessCallback, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic);
+				if (successMethod != null)
+				{
+					try
+					{
+						successMethod.Invoke(this, null);
+					}
+					catch (Exception ex)
+					{
+						Logger.Error($"[{Name}] Failed to execute successful automatic Harmony patch callback '{type.Name}': {attribute.PatchSuccessCallback}", ex);
+					}
+				}
 			}
 			catch (Exception ex)
 			{
+				var failureMethod = HookableType.GetMethod(attribute.PatchFailureCallback, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic);
+				if (failureMethod != null)
+				{
+					try
+					{
+						failureMethod.Invoke(this, null);
+					}
+					catch (Exception ex2)
+					{
+						Logger.Error($"[{Name}] Failed to execute successful automatic Harmony patch callback '{type.Name}': {attribute.PatchSuccessCallback}", ex2);
+					}
+				}
+
 				Logger.Error($"[{Name}] Failed to automatically Harmony patch '{type.Name}'", ex);
 
 				if (attribute.IsRequired)
@@ -258,13 +324,11 @@ public class BaseHookable
 		}
 		return true;
 	}
-	public void IProcessUnpatches(bool silent = true)
+	public void UnapplyOrderedPatches(AutoPatchAttribute.Orders order, bool silent = true)
 	{
 		try
 		{
-			var count = _harmonyInstanceCache == null ? 0 : _harmonyInstanceCache.GetPatchedMethods().Count();
-			_harmonyInstanceCache?.UnpatchAll(HarmonyId);
-			_harmonyInstanceCache = null;
+			var count = RemoveHarmonyInstance(order);
 			if (!silent && count > 0)
 			{
 				Logger.Log($"[{Name}] Automatically Harmony unpatched {count:n0} {count.Plural("method", "methods")}.");
@@ -272,7 +336,7 @@ public class BaseHookable
 		}
 		catch (Exception ex)
 		{
-			Logger.Error($"[{Name}] Failed auto unpatching {HarmonyId}", ex);
+			Logger.Error($"[{Name}] Failed auto unpatching {GetHarmonyId(order)}", ex);
 		}
 	}
 
