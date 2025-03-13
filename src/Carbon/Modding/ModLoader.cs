@@ -286,7 +286,15 @@ public static partial class ModLoader
 			}
 		}
 
-		plugin.IProcessPatches();
+		if (!plugin.IProcessPatches())
+		{
+			if (UninitializePlugin(plugin, true))
+			{
+				package.RemovePlugin(plugin);
+				return false;
+			}
+		}
+
 		plugin.ILoad();
 
 		if (!plugin.ManualCommands)

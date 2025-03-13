@@ -31,7 +31,6 @@ public class BaseHookable
 			}
 		}
 	}
-
 	public class CachedHookInstance
 	{
 		public CachedHook PrimaryHook;
@@ -204,6 +203,70 @@ public class BaseHookable
 		foreach (var element in overrides)
 		{
 			element.OnException();
+		}
+	}
+
+	#endregion
+
+	#region AutoPatch
+
+	private HarmonyLib.Harmony _harmonyInstanceCache;
+	protected string HarmonyId => $"com.carbon.{Name}";
+	protected HarmonyLib.Harmony HarmonyInstance => _harmonyInstanceCache ??= new HarmonyLib.Harmony(HarmonyId);
+
+	public bool IProcessPatches()
+	{
+		var types = HookableType.GetNestedTypes(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+		foreach (var type in types)
+		{
+			var attribute = type.GetCustomAttribute<AutoPatchAttribute>(false);
+
+			if (attribute == null)
+			{
+				continue;
+			}
+
+			try
+			{
+				var harmonyMethods = HarmonyInstance.CreateClassProcessor(type)?.Patch();
+
+				if (harmonyMethods == null || harmonyMethods.Count == 0)
+				{
+					Logger.Warn($"[{Name}] AutoPatch attribute found on '{type.Name}' but no HarmonyPatch methods found. Skipping..");
+					continue;
+				}
+
+				foreach (MethodInfo method in harmonyMethods)
+				{
+					Logger.Log($"[{Name}] Automatically Harmony patched '{method.Name}' ({type.Name}) method.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Error($"[{Name}] Failed to automatically Harmony patch '{type.Name}'", ex);
+
+				if (attribute.IsRequired)
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	public void IProcessUnpatches(bool silent = true)
+	{
+		try
+		{
+			var count = HarmonyInstance == null ? 0 : HarmonyInstance.GetPatchedMethods().Count();
+			HarmonyInstance?.UnpatchAll(HarmonyId);
+			if (!silent && count > 0)
+			{
+				Logger.Log($"[{Name}] Automatically Harmony unpatched {count:n0} {count.Plural("method", "methods")}.");
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"[{Name}] Failed auto unpatching {HarmonyId}", ex);
 		}
 	}
 
