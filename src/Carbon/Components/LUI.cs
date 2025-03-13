@@ -520,12 +520,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiTextComp>(LuiCompType.Text, out var text))
 			{
-				text.font = nameof(font);
+				text.font = font.ToString();
 			}
 			else
 			{
 				text = LuiPool.GetText();
-				text.font = nameof(font);
+				text.font = font.ToString();
 				luiComponents.Add(text.type, text);
 			}
 			return this;
@@ -535,7 +535,7 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiTextComp>(LuiCompType.Text, out var text))
 			{
-				text.align = nameof(align);
+				text.align = align.ToString();
 			}
 			else
 			{
@@ -550,12 +550,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiTextComp>(LuiCompType.Text, out var text))
 			{
-				text.verticalOverflow = nameof(verticalOverflow);
+				text.verticalOverflow = verticalOverflow.ToString();
 			}
 			else
 			{
 				text = LuiPool.GetText();
-				text.verticalOverflow = nameof(verticalOverflow);
+				text.verticalOverflow = verticalOverflow.ToString();
 				luiComponents.Add(text.type, text);
 			}
 			return this;
@@ -602,7 +602,7 @@ public class LUI : IDisposable
 				if (sprite != null)
 				{
 					img.sprite = sprite;
-					img.imageType = nameof(imageType);
+					img.imageType = imageType.ToString();
 				}
 				if (color != null)
 					img.color = color;
@@ -613,7 +613,7 @@ public class LUI : IDisposable
 				if (sprite != null)
 				{
 					img.sprite = sprite;
-					img.imageType = nameof(imageType);
+					img.imageType = imageType.ToString();
 				}
 				if (color != null)
 					img.color = color;
@@ -832,13 +832,13 @@ public class LUI : IDisposable
 			if (luiComponents.TryGetValue<LuiButtonComp>(LuiCompType.Button, out var button))
 			{
 				button.sprite = sprite;
-				button.imageType = nameof(imageType);
+				button.imageType = imageType.ToString();
 			}
 			else
 			{
 				button = LuiPool.GetButton();
 				button.sprite = sprite;
-				button.imageType = nameof(imageType);
+				button.imageType = imageType.ToString();
 				luiComponents.Add(button.type, button);
 			}
 			return this;
@@ -903,7 +903,7 @@ public class LUI : IDisposable
 				if (!update)
 				{
 					input.align = alignment.ToString();
-					input.font = nameof(font);
+					input.font = font.ToString();
 				}
 			}
 			else
@@ -922,7 +922,7 @@ public class LUI : IDisposable
 				if (!update)
 				{
 					input.align = alignment.ToString();
-					input.font = nameof(font);
+					input.font = font.ToString();
 				}
 				luiComponents.Add(input.type, input);
 			}
@@ -995,12 +995,12 @@ public class LUI : IDisposable
 		{
 			if (luiComponents.TryGetValue<LuiInputComp>(LuiCompType.InputField, out var input))
 			{
-				input.lineType = nameof(lineType);
+				input.lineType = lineType.ToString();
 			}
 			else
 			{
 				input = LuiPool.GetInput();
-				input.lineType = nameof(lineType);
+				input.lineType = lineType.ToString();
 				luiComponents.Add(input.type, input);
 			}
 			return this;
@@ -1213,7 +1213,7 @@ public class LUI : IDisposable
 				{
 					scroll.vertical = vertical;
 					scroll.horizontal = horizontal;
-					scroll.movementType = nameof(movementType);
+					scroll.movementType = movementType.ToString();
 					scroll.inertia = inertia;
 				}
 				if (elasticity != 0)
@@ -1232,7 +1232,7 @@ public class LUI : IDisposable
 				{
 					scroll.vertical = vertical;
 					scroll.horizontal = horizontal;
-					scroll.movementType = nameof(movementType);
+					scroll.movementType = movementType.ToString();
 					scroll.inertia = inertia;
 				}
 				if (elasticity != 0)
