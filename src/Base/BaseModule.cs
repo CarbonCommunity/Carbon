@@ -1,6 +1,5 @@
 ﻿using Carbon.Base.Interfaces;
 using Defines = Carbon.Core.Defines;
-using Harmony = HarmonyLib.Harmony;
 
 namespace Carbon.Base;
 
@@ -346,6 +345,8 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 				Puts($"Subscribed to {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
 			}
 		}
+
+		IProcessPatches();
 	}
 
 	public void OnEnableStatus()
@@ -385,6 +386,7 @@ public abstract class CarbonModule<C, D> : BaseModule, IModule
 		{
 			Puts($"Unsubscribed from {Hooks.Count:n0} {Hooks.Count.Plural("hook", "hooks")}.");
 		}
+		IProcessUnpatches();
 	}
 	public override void Shutdown()
 	{
