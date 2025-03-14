@@ -80,9 +80,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		enabled = false;
 
-		var doHookUpdate = !CommandLineEx.GetArgumentExists("+carbon.skiphookupdates");
-
-		if (doHookUpdate)
+		if (Community.Runtime.Config.SelfUpdating.HookUpdates)
 		{
 			Logger.Log("Updating hooks...");
 
