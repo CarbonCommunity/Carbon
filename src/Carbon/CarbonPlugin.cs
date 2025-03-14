@@ -11,27 +11,6 @@ public class CarbonPlugin : RustPlugin
 		CuiHandler = new CUI.Handler();
 	}
 
-	public override bool IInit()
-	{
-		if (!base.IInit())
-		{
-			return false;
-		}
-
-		if (AutoPatch && !ApplyPatch())
-		{
-			return false;
-		}
-
-		return true;
-	}
-	public override void IUnload()
-	{
-		UnapplyPatch();
-
-		base.IUnload();
-	}
-
 	#region CUI
 
 	public CUI CreateCUI()
@@ -90,55 +69,6 @@ public class CarbonPlugin : RustPlugin
 	{
 		public string Command;
 		public DateTime LastCall;
-	}
-
-	#endregion
-
-	#region Harmony
-
-	public virtual bool AutoPatch => false;
-
-	public string Domain => $"com.carbon.{Name}.{Author}";
-
-	public HarmonyLib.Harmony _CARBON_PATCH;
-
-	public bool ApplyPatch()
-	{
-		if (!UnapplyPatch())
-		{
-			return false;
-		}
-
-		try
-		{
-			_CARBON_PATCH = new HarmonyLib.Harmony(Domain);
-			_CARBON_PATCH.PatchAll(HookableType.Assembly);
-			return true;
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"Failed auto-patching Harmony methods for '{ToPrettyString()}'", ex);
-			return false;
-		}
-	}
-	public bool UnapplyPatch()
-	{
-		if (_CARBON_PATCH == null)
-		{
-			return true;
-		}
-
-		try
-		{
-			_CARBON_PATCH.UnpatchAll(Domain);
-			_CARBON_PATCH = null;
-			return true;
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"Failed un-patching Harmony methods for '{ToPrettyString()}'", ex);
-			return false;
-		}
 	}
 
 	#endregion
