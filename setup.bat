@@ -1,7 +1,3 @@
-::
-:: Copyright (c) 2022-2023 Carbon Community 
-:: All rights reserved
-::
 @echo off
 
 set SUPERROOT="%cd%\Tools\Build\win"
