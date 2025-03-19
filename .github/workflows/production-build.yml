@@ -75,6 +75,20 @@ jobs:
           args: -r --target x86_64-pc-windows-gnu
           directory: Carbon.Core/Carbon.Native
 
+      - name: Carbon.Native Build (Linux) (PROD)
+        uses: ClementTsang/cargo-action@v0.0.3
+        with:
+          command: build
+          args: --profile prod --target x86_64-unknown-linux-gnu
+          directory: Carbon.Core/Carbon.Native
+          
+      - name: Carbon.Native Build (Windows) (PROD)
+        uses: ClementTsang/cargo-action@v0.0.3
+        with:
+          command: build
+          args: --profile prod --target x86_64-pc-windows-gnu
+          directory: Carbon.Core/Carbon.Native
+          
       - name: Carbon Bootstrap
         shell: bash
         run: |
