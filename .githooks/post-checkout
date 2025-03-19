@@ -3,17 +3,33 @@
 
 set -e
 
-# Get the previous branch name
-previous_branch=$(git branch --contains ${1})
-previous_branch=`echo $previous_branch | sed 's/ *$//g'`
-
-# Get the new branch name
+previous_branch=$(git rev-parse --abbrev-ref @{-1} 2>/dev/null || echo "unknown")
 new_branch=$(git symbolic-ref -q --short HEAD)
 
-pushd "$(dirname "$0")/../../.."
+pushd "$(dirname "$0")/../../.." > /dev/null
 BOOTSTRAP_ROOT=$(pwd)
 
-for P in "Carbon.Core/Carbon.Components/Carbon.Bootstrap" "Carbon.Core/Carbon.Components/Carbon.Common" "Carbon.Core/Carbon.Components/Carbon.Compat" "Carbon.Core/Carbon.Components/Carbon.Modules" "Carbon.Core/Carbon.Components/Carbon.Preloader" "Carbon.Core/Carbon.Components/Carbon.SDK" "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Base" "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Oxide" "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Community"; do
-    cd "$BOOTSTRAP_ROOT/Carbon.Core/$P"
-	git fetch origin "${new_branch}" && git checkout --track "origin/${new_branch}" || git checkout -b "${new_branch}" "origin/${new_branch}" || true
+paths=(
+    "Carbon.Components/Carbon.Bootstrap"
+    "Carbon.Components/Carbon.Common"
+    "Carbon.Components/Carbon.Compat"
+    "Carbon.Components/Carbon.Modules"
+    "Carbon.Components/Carbon.Preloader"
+    "Carbon.Components/Carbon.SDK"
+    "Carbon.Hooks/Carbon.Hooks.Base"
+    "Carbon.Hooks/Carbon.Hooks.Oxide"
+    "Carbon.Hooks/Carbon.Hooks.Community"
+)
+
+for P in "${paths[@]}"; do
+    target_dir="$BOOTSTRAP_ROOT/Carbon.Core/$P"
+
+    if [ -d "$target_dir" ]; then
+        cd "$target_dir"
+        git fetch origin "${new_branch}" && git checkout --track "origin/${new_branch}" || git checkout -b "${new_branch}" "origin/${new_branch}" || true
+    else
+        echo "Skipping: Directory $target_dir does not exist."
+    fi
 done
+
+popd > /dev/null
