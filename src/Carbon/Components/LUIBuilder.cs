@@ -272,11 +272,13 @@ public static class LUIBuilder
 			value = -value;
 		}
 		int intPart = (int)value;
-		index += WriteIntDigits(intPart, buffer.Slice(index));
-		buffer[index++] = dot;
 		float fractional = value - intPart;
 		long factor = _pow10[precision];
 		long fracAsInt = (long)(fractional * factor + 0.5f);
+		if (fracAsInt == _pow10[precision])
+			intPart++;
+		index += WriteIntDigits(intPart, buffer[index..]);
+		buffer[index++] = dot;
 		int fracStart = index;
 		for (int i = 0; i < precision; i++)
 		{
