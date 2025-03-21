@@ -80,9 +80,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		enabled = false;
 
-		var doHookUpdate = !CommandLineEx.GetArgumentExists("+carbon.skiphookupdates");
-
-		if (doHookUpdate)
+		if (Community.Runtime.Config.SelfUpdating.HookUpdates)
 		{
 			Logger.Log("Updating hooks...");
 
@@ -349,7 +347,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					foreach (var hook in stats.Hooks)
 					{
 						Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
-						hook.SetStatus(HookState.Warning, "Invalid checksum");
 					}
 				}
 			}
