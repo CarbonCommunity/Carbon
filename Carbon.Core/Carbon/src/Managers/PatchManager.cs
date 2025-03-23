@@ -347,7 +347,6 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 					foreach (var hook in stats.Hooks)
 					{
 						Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
-						hook.SetStatus(HookState.Warning, "Invalid checksum");
 					}
 				}
 			}
