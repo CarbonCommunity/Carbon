@@ -281,7 +281,8 @@ partial class {@class.Identifier.ValueText}
 #if DEBUG
 		if (isPartial)
 		{
-			path = Path.Combine(debugOutputPath, $"{Path.GetFileNameWithoutExtension(fileName)}.Internal.cs");
+			string fileNameWithNewExt = $"{Path.GetFileNameWithoutExtension(fileName)}.Internal.cs";
+			path = debugOutputPath != null ? Path.Combine(debugOutputPath, fileNameWithNewExt) : fileNameWithNewExt;
 			output = CSharpSyntaxTree.ParseText(source, options, path, Encoding.UTF8).GetCompilationUnitRoot().NormalizeWhitespace();
 			File.WriteAllText(path, output.ToFullString());
 		}
