@@ -195,7 +195,7 @@ public class RustPlugin : Plugin
 		{
 			string subFolder = Path.GetDirectoryName(filename);
 			string fileOnly = Path.GetFileNameWithoutExtension(filename);
-        
+
 			logFolder = string.IsNullOrEmpty(subFolder)
 				? Defines.GetLogsFolder()
 				: Path.Combine(Defines.GetLogsFolder(), subFolder);
@@ -207,9 +207,9 @@ public class RustPlugin : Plugin
 		else
 		{
 			logFolder = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
-			finalFileName = timeStamp
-				? string.Concat(plugin.Name.ToLower(), "_", filename.ToLower(), "-", now.ToString("yyyy-MM-dd"), ".txt")
-				: string.Concat(plugin.Name.ToLower(), "_", filename.ToLower(), ".txt");
+			finalFileName = (timeStamp
+				? string.Concat(plugin.Name, "_", filename, "-", now.ToString("yyyy-MM-dd"), ".txt")
+				: string.Concat(plugin.Name, "_", filename, ".txt")).ToLower();
 		}
 
 		OsEx.Folder.Create(logFolder);
