@@ -184,26 +184,43 @@ public class RustPlugin : Plugin
 
 	protected void LogToFile(string filename, string text, Plugin plugin = null, bool timeStamp = true, bool anotherBool = false)
 	{
-		string logFolder;
+		if (string.IsNullOrEmpty(filename) || string.IsNullOrEmpty(text))
+			return;
+
+		DateTime now = DateTime.Now;
+
+		string logFolder, finalFileName;
 
 		if (plugin == null)
 		{
-			var subFolder = Path.GetDirectoryName(filename);
-			filename = Path.GetFileName(filename);
-			logFolder = Path.Combine(Defines.GetLogsFolder(), subFolder) + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
+			string subFolder = Path.GetDirectoryName(filename);
+			string fileOnly = Path.GetFileNameWithoutExtension(filename);
+        
+			logFolder = string.IsNullOrEmpty(subFolder)
+				? Defines.GetLogsFolder()
+				: Path.Combine(Defines.GetLogsFolder(), subFolder);
+
+			finalFileName = timeStamp
+				? string.Concat(fileOnly, "-", now.ToString("yyyy-MM-dd"), ".txt")
+				: string.Concat(fileOnly, ".txt");
 		}
 		else
 		{
 			logFolder = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
-			filename = plugin.Name.ToLower() + "_" + filename.ToLower() + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
+			finalFileName = timeStamp
+				? string.Concat(plugin.Name.ToLower(), "_", filename.ToLower(), "-", now.ToString("yyyy-MM-dd"), ".txt")
+				: string.Concat(plugin.Name.ToLower(), "_", filename.ToLower(), ".txt");
 		}
 
-		if (!Directory.Exists(logFolder))
-		{
-			Directory.CreateDirectory(logFolder);
-		}
+		OsEx.Folder.Create(logFolder);
 
-		File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
+		string fullPath = Path.Combine(logFolder, Utility.CleanPath(finalFileName));
+
+		string logEntry = timeStamp
+			? string.Concat("[", now.ToString("yyyy-MM-dd HH:mm:ss"), "] ", text, Environment.NewLine)
+			: string.Concat(text, Environment.NewLine);
+
+		OsEx.File.Append(fullPath, logEntry);
 	}
 
 	#endregion
