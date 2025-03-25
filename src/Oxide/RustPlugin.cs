@@ -275,14 +275,37 @@ public class RustPlugin : Plugin
 	{
 		if (((player != null) ? player.net : null) != null)
 		{
+			#if !MINIMAL
+			player.SendConsoleCommand("chat.add", 2, Community.Runtime.Core.DefaultServerChatId, (args.Length != 0) ? string.Format(format, args) : format);
+			#else
 			player.SendConsoleCommand("chat.add", 2, 0, (args.Length != 0) ? string.Format(format, args) : format);
+			#endif
 		}
 	}
 	protected void PrintToChat(string format, params object[] args)
 	{
 		if (BasePlayer.activePlayerList.Count >= 1)
 		{
+			#if !MINIMAL
+			ConsoleNetwork.BroadcastToAllClients("chat.add", 2, Community.Runtime.Core.DefaultServerChatId, (args.Length != 0) ? string.Format(format, args) : format);
+			#else
 			ConsoleNetwork.BroadcastToAllClients("chat.add", 2, 0, (args.Length != 0) ? string.Format(format, args) : format);
+			#endif
+		}
+	}
+	
+	protected void PrintToChat(BasePlayer player, string format, long chatId, params object[] args)
+	{
+		if (((player != null) ? player.net : null) != null)
+		{
+			player.SendConsoleCommand("chat.add", 2, chatId, (args.Length != 0) ? string.Format(format, args) : format);
+		}
+	}
+	protected void PrintToChat(string format, long chatId, params object[] args)
+	{
+		if (BasePlayer.activePlayerList.Count >= 1)
+		{
+			ConsoleNetwork.BroadcastToAllClients("chat.add", 2, chatId, (args.Length != 0) ? string.Format(format, args) : format);
 		}
 	}
 
