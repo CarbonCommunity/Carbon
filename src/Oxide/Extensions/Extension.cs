@@ -26,6 +26,5 @@ public class Extension
 	{
 		Manager = manager ?? new();
 		ExtensionManager.extensionCache.Add(this);
-		Carbon.Logger.Log("Extension ctor: " + GetType().FullName);
 	}
 }
