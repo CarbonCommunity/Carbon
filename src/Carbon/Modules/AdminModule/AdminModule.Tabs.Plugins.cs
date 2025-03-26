@@ -2035,10 +2035,6 @@ public partial class AdminModule
 
 			internal bool IsBusy;
 
-			public Plugin()
-			{
-			}
-
 			[ProtoIgnore]
 			public bool HasRating => Rating != -1;
 
