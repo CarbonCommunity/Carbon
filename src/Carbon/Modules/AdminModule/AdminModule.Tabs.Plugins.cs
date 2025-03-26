@@ -1858,7 +1858,7 @@ public partial class AdminModule
 
 			public override bool CanRefresh => false;
 
-			internal string[] _defaultTags = ["carbon", "oxide"];
+			private string[] _defaultTags = ["carbon", "oxide"];
 
 			public override void CheckMetadata(string id, Action callback)
 			{
@@ -1887,41 +1887,52 @@ public partial class AdminModule
 					{
 						if (plugin.IsCorePlugin) continue;
 
-						var existent = FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
+						var installed = FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
+						var codefling = CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
+						var umod = uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 
-						if (existent == null)
+						if (installed == null)
 						{
-							existent = CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
-
-							if (existent == null)
-							{
-								existent = uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
-
-								if (existent == null)
-								{
-									existent = new Plugin
-									{
-										Name = plugin.Name,
-										Author = plugin.Author,
-										Version = plugin.Version.ToString(),
-										ExistentPlugin = plugin,
-										Description = "This is an unlisted plugin.",
-										Tags = _defaultTags,
-										File = plugin.FileName,
-										Id = plugin.Name,
-										UpdateDate = DateTime.UtcNow.ToString(),
-										Rating = -1
-									};
-								}
-
-							}
-
-							FetchedPlugins.Add(existent);
+							installed = codefling;
 						}
+
+						if (installed == null)
+						{
+							installed = umod;
+						}
+
+						if (installed == null)
+						{
+							installed = new Plugin
+							{
+								Name = plugin.Name,
+								Author = plugin.Author,
+								Version = plugin.Version.ToString(),
+								ExistentPlugin = plugin,
+								Description = "This is an unlisted plugin.",
+								Tags = _defaultTags,
+								File = plugin.FileName,
+								Id = plugin.Name,
+								UpdateDate = DateTime.UtcNow.ToString(),
+								Rating = -1
+							};
+						}
+
+						if (codefling != null)
+						{
+							installed.MarkFoundOn(VendorTypes.Codefling);
+						}
+
+						if (umod != null)
+						{
+							installed.MarkFoundOn(VendorTypes.uMod);
+						}
+
+						FetchedPlugins.Add(installed);
 					}
 				}
 
-				FetchedPlugins = FetchedPlugins.OrderBy(x => x.Name).ToList();
+				FetchedPlugins = [.. FetchedPlugins.OrderBy(x => x.Name)];
 				PriceData = FetchedPlugins.OrderBy(x => x.OriginalPrice);
 				AuthorData = FetchedPlugins.OrderBy(x => x.Author);
 				InstalledData = FetchedPlugins.Where(x => x.IsInstalled());
@@ -1945,7 +1956,7 @@ public partial class AdminModule
 		[ProtoContract]
 		public class ServerOwner
 		{
-			public static ServerOwner Singleton { get; internal set; } = new ServerOwner();
+			public static ServerOwner Singleton { get; internal set; } = new();
 
 			[ProtoMember(1)]
 			public List<string> FavouritePlugins = new();
@@ -2017,7 +2028,11 @@ public partial class AdminModule
 			public bool Owned;
 
 			[ProtoIgnore]
+			public List<VendorTypes> AvailableOn;
+
+			[ProtoIgnore]
 			public RustPlugin ExistentPlugin;
+
 			internal bool IsBusy;
 
 			public Plugin()
@@ -2029,6 +2044,19 @@ public partial class AdminModule
 
 			[ProtoIgnore]
 			public bool HasPrice => OriginalPrice != "Null";
+
+			public void MarkFoundOn(VendorTypes vendor)
+			{
+				AvailableOn ??= new();
+				if (!AvailableOn.Contains(vendor))
+				{
+					AvailableOn.Add(vendor);
+				}
+			}
+			public void MarkUnknown()
+			{
+				AvailableOn = null;
+			}
 
 			public bool HasInvalidImage()
 			{
