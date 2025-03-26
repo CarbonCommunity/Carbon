@@ -246,8 +246,7 @@ public partial class AdminModule
 
 						if (!plugins.Any())
 						{
-							cui.CreateText(container, contentPanel, "0.4 0.4 0.4 0.5",
-								"No plugins available", 10);
+							cui.CreateText(container, contentPanel, "0.4 0.4 0.4 0.5", "No plugins available", 10);
 						}
 
 						cui.CreateText(container, contentPanel, "0.8 0.8 0.8 0.9",
@@ -349,6 +348,12 @@ public partial class AdminModule
 									font: CUI.Handler.FontTypes.RobotoCondensedBold);
 							}
 
+							if (selectedVendor == LocalInstance && plugin.AvailableOn != null && plugin.AvailableOn.Count > 1)
+							{
+								cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor, "0.75 1 0.5 0.8", plugin.PreferredVendor.ToString().ToUpper().SpacedString(1), 8, font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: 0.83f, yMax: 0.92f,
+									command: $"pluginbrowser.interact 12 {plugin.Name}");
+							}
+
 							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(plugin.Name);
 							var favourite = cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor,
 								Cache.CUI.BlankColor, string.Empty, 0,
@@ -399,7 +404,7 @@ public partial class AdminModule
 								var badge = cui.CreatePanel(container, image, "0 0.4 0.8 0.9", yMax: 0.1f);
 								cui.CreateText(container, badge, "0.5 0.75 1 1",
 									"PURCHASED".SpacedString(1), 8,
-									font: Components.CUI.Handler.FontTypes.RobotoCondensedBold);
+									font: CUI.Handler.FontTypes.RobotoCondensedBold);
 							}
 
 							currentWidth += cardWidth + cardSpacing;
@@ -1160,8 +1165,8 @@ public partial class AdminModule
 									UpdateDate = token["updated"]?.ToString(),
 									Changelog = token["changelog"]?.ToString().Replace(_backSlashes, string.Empty),
 									File = token["fileName"]?.ToString(),
-									Image = $"https://codefling.com/cdn-cgi/image/width=1250,height=1250,quality=100,blur=25,fit=cover,format=jpeg/{token["primaryScreenshot"]?.ToString()}",
-									ImageThumbnail = $"https://codefling.com/cdn-cgi/image/width=246,height=246,quality=75,fit=cover,format=jpeg/{token["primaryScreenshot"]?.ToString()}",
+									Image = $"https://codefling.com/cdn-cgi/image/width=1250,height=1250,quality=100,blur=25,fit=cover,format=jpeg/{token["primaryScreenshot"]}",
+									ImageThumbnail = $"https://codefling.com/cdn-cgi/image/width=246,height=246,quality=75,fit=cover,format=jpeg/{token["primaryScreenshot"]}",
 									Tags = token["tags"]?.Select(x => x.ToString()),
 									DownloadCount = (token["downloads"]?.ToString().ToInt()).GetValueOrDefault(),
 									// Dependencies = token["file_depends"]?.ToString().Split(),
@@ -1908,11 +1913,13 @@ public partial class AdminModule
 						if (codefling != null)
 						{
 							installed.MarkFoundOn(VendorTypes.Codefling);
+							codefling.MarkFoundOn(VendorTypes.Codefling);
 						}
 
 						if (umod != null)
 						{
 							installed.MarkFoundOn(VendorTypes.uMod);
+							umod.MarkFoundOn(VendorTypes.uMod);
 						}
 
 						FetchedPlugins.Add(installed);
@@ -2013,6 +2020,7 @@ public partial class AdminModule
 			public Status Status = Status.Approved;
 			public bool CarbonCompatible;
 			public bool Owned;
+			public VendorTypes PreferredVendor;
 
 			[ProtoIgnore]
 			public List<VendorTypes> AvailableOn;
@@ -2030,15 +2038,16 @@ public partial class AdminModule
 
 			public void MarkFoundOn(VendorTypes vendor)
 			{
+				var foundFirst = AvailableOn == null;
 				AvailableOn ??= new();
 				if (!AvailableOn.Contains(vendor))
 				{
 					AvailableOn.Add(vendor);
+					if (foundFirst)
+					{
+						PreferredVendor = vendor;
+					}
 				}
-			}
-			public void MarkUnknown()
-			{
-				AvailableOn = null;
 			}
 
 			public bool HasInvalidImage()
@@ -2149,7 +2158,8 @@ public partial class AdminModule
 				break;
 			case "3":
 			{
-				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
+				var pluginName = args.GetString(1);
+				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(pluginName)).ExistentPlugin;
 				var path = Path.Combine(Defines.GetConfigsFolder(), plugin.Config.Filename);
 				if (OsEx.File.Exists(path))
 				{
@@ -2180,7 +2190,8 @@ public partial class AdminModule
 			}
 			case "4":
 			{
-				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
+				var pluginName = args.GetString(1);
+				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(pluginName)).ExistentPlugin;
 
 				if (plugin != null)
 				{
@@ -2191,7 +2202,8 @@ public partial class AdminModule
 			}
 			case "5":
 			{
-				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id == args.Args[1]).ExistentPlugin;
+				var pluginName = args.GetString(1);
+				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(pluginName)).ExistentPlugin;
 
 				Singleton.SetTab(ap.Player, LangEditor.Make(plugin,
 					(ap) =>
@@ -2231,6 +2243,14 @@ public partial class AdminModule
 					ConsoleSystem.Run(ConsoleSystem.Option.Server, $"c.load \"{fileName}\"");
 					Singleton.Draw(player);
 				}
+				break;
+			}
+			case "12":
+			{
+				var pluginName = args.GetString(1);
+				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(pluginName, StringComparison.InvariantCultureIgnoreCase));
+				plugin.PreferredVendor = plugin.AvailableOn.FirstOrDefault(x => x != plugin.PreferredVendor);
+				Singleton.Draw(player);
 				break;
 			}
 		}
@@ -2458,7 +2478,7 @@ public partial class AdminModule
 
 			var isLoadable =
 				!string.IsNullOrEmpty(CorePlugin.GetPluginPath(Path.GetFileNameWithoutExtension(plugin.File)).Value);
-			Logger.Log(CorePlugin.GetPluginPath(plugin.Name).Value);
+
 			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", !isLoadable ? CUI.HexToRustColor("#8db842", 0.4f) : "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 {plugin.Id}"));
 			update.Add(cui.UpdateText("selectedplugin_b2_txt", "#d9f7a3", text: "LOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b2_icn", "installed", "#d9f7a3"));
