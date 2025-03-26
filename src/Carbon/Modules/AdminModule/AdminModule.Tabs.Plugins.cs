@@ -2248,7 +2248,7 @@ public partial class AdminModule
 			case "12":
 			{
 				var pluginName = args.GetString(1);
-				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(pluginName, StringComparison.InvariantCultureIgnoreCase));
+				var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Name.Equals(pluginName, StringComparison.InvariantCultureIgnoreCase));
 				plugin.PreferredVendor = plugin.AvailableOn.FirstOrDefault(x => x != plugin.PreferredVendor);
 				Singleton.Draw(player);
 				break;
