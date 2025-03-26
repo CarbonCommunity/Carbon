@@ -1891,32 +1891,19 @@ public partial class AdminModule
 						var codefling = CodeflingInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 						var umod = uModInstance.FetchedPlugins.FirstOrDefault(x => x.ExistentPlugin == plugin);
 
-						if (installed == null)
+						installed ??= (codefling ?? umod) ?? new Plugin
 						{
-							installed = codefling;
-						}
-
-						if (installed == null)
-						{
-							installed = umod;
-						}
-
-						if (installed == null)
-						{
-							installed = new Plugin
-							{
-								Name = plugin.Name,
-								Author = plugin.Author,
-								Version = plugin.Version.ToString(),
-								ExistentPlugin = plugin,
-								Description = "This is an unlisted plugin.",
-								Tags = _defaultTags,
-								File = plugin.FileName,
-								Id = plugin.Name,
-								UpdateDate = DateTime.UtcNow.ToString(),
-								Rating = -1
-							};
-						}
+							Name = plugin.Name,
+							Author = plugin.Author,
+							Version = plugin.Version.ToString(),
+							ExistentPlugin = plugin,
+							Description = "This is an unlisted plugin.",
+							Tags = _defaultTags,
+							File = plugin.FileName,
+							Id = plugin.Name,
+							UpdateDate = DateTime.UtcNow.ToString(),
+							Rating = -1
+						};
 
 						if (codefling != null)
 						{
