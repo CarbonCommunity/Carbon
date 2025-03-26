@@ -161,7 +161,6 @@ public partial class CorePlugin
 
 					if (plugin.Requires is { Length: > 0 })
 					{
-						Logger.Warn($"Skipping {plugin} as the parent should do the heavy duty");
 						continue;
 					}
 
@@ -425,7 +424,6 @@ public partial class CorePlugin
 
 						if (plugin.Requires is { Length: > 0 })
 						{
-							Logger.Warn($"Skipping {plugin} as the parent should do the heavy duty");
 							continue;
 						}
 
