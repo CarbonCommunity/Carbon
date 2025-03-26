@@ -21,5 +21,10 @@ public class Extension
 	public ExtensionManager Manager { get; } = new();
 
 	public Extension() { }
-	public Extension(ExtensionManager manager) { Manager = manager ?? new(); }
+
+	public Extension(ExtensionManager manager)
+	{
+		Manager = manager ?? new();
+		ExtensionManager.extensionCache.Add(this);
+	}
 }
