@@ -382,13 +382,29 @@ public class OxideMod
 		return instance as T;
 	}
 
-	public Extension GetExtension(string name = null)
+	public Extension GetExtension(string name)
 	{
+		if (string.IsNullOrEmpty(name))
+		{
+			return null;
+		}
+
+		foreach (var extension in ExtensionManager.extensionCache)
+		{
+			if (extension.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+			{
+				return extension;
+			}
+		}
+
 		return null;
 	}
 
 	public void LoadExtension(string name)
 	{
+		var path = Path.Combine(Defines.GetExtensionsFolder(), name + ".dll");
+		Logger.Log("Loading extension: " + path);
+		Community.Runtime.AssemblyEx.Extensions.Load(path, "OxideMod.LoadExtension");
 	}
 
 	public void LoadAllPlugins(bool init = false)

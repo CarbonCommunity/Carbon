@@ -2,6 +2,8 @@
 
 public class ExtensionManager
 {
+	internal static List<Extension> extensionCache = new();
+
 	private List<PluginLoader> pluginloaders = new();
 
 	public IEnumerable<PluginLoader> GetPluginLoaders() => pluginloaders;
