@@ -1935,7 +1935,9 @@ public partial class AdminModule
 						installed.TryMarkFoundOn(codefling);
 						if (installed.PreferredVendor == VendorTypes.Installed && installed.AvailableOn != null && installed.AvailableOn.Count > 0)
 						{
-							installed.PreferredVendor = installed.AvailableOn[0].PreferredVendor;
+							var initialVendorPlugin = installed.AvailableOn[0];
+							installed.PreferredVendor = initialVendorPlugin.PreferredVendor;
+							installed.PreferredVendorPlugin = initialVendorPlugin;
 						}
 					}
 				}
