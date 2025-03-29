@@ -692,6 +692,9 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteField("autofocus", true);
 		                    }
 		                    break;
+	                    case LuiCompType.NeedsCursor:
+		                    found++;
+		                    break;
                         case LuiCompType.RectTransform:
 	                        LuiRectTransformComp rect = component as LuiRectTransformComp;
                             found++;
@@ -838,6 +841,9 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("filter", slot.filter);
 		                    }
+		                    break;
+	                    case LuiCompType.NeedsKeyboard:
+		                    found++;
 		                    break;
 	                    case LuiCompType.ScrollView:
 		                    LuiScrollComp scroll = component as LuiScrollComp;

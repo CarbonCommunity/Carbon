@@ -142,10 +142,11 @@ public partial class CorePlugin
 		switch (name)
 		{
 			case "*":
-				var plugins = Pool.Get<List<RustPlugin>>();
+			{
+				using var plugins = Pool.Get<PooledList<RustPlugin>>();
 				plugins.AddRange(Community.Runtime.Plugins.Plugins);
 
-				foreach(var plugin in plugins)
+				foreach (var plugin in plugins)
 				{
 					if (!plugin.HasInitialized)
 					{
@@ -158,10 +159,15 @@ public partial class CorePlugin
 						continue;
 					}
 
-					var hooks = Pool.Get<List<uint>>();
-					var hookMethods = Pool.Get<List<HookMethodAttribute>>();
-					var pluginReferences = Pool.Get<List<PluginReferenceAttribute>>();
-					var requires = Pool.Get<List<Plugin>>();
+					if (plugin.Requires is { Length: > 0 })
+					{
+						continue;
+					}
+
+					using var hooks = Pool.Get<PooledList<uint>>();
+					using var hookMethods = Pool.Get<PooledList<HookMethodAttribute>>();
+					using var pluginReferences = Pool.Get<PooledList<PluginReferenceAttribute>>();
+					using var requires = Pool.Get<PooledList<Plugin>>();
 					var process = plugin.ProcessorProcess;
 					hooks.AddRange(plugin.Hooks);
 					hookMethods.AddRange(plugin.HookMethods);
@@ -188,11 +194,6 @@ public partial class CorePlugin
 						p.FileName = plugin.FileName;
 					});
 
-					Pool.FreeUnmanaged(ref hooks);
-					Pool.FreeUnmanaged(ref hookMethods);
-					Pool.FreeUnmanaged(ref pluginReferences);
-					Pool.FreeUnmanaged(ref requires);
-
 					var eventArg = Pool.Get<CarbonEventArgs>();
 					eventArg.Init(newPlugin);
 					Community.Runtime.Events.Trigger(CarbonEvent.PluginPreload, eventArg);
@@ -209,10 +210,9 @@ public partial class CorePlugin
 					HookCaller.CallStaticHook(3051933177, newPlugin);
 				}
 
-				Pool.FreeUnmanaged(ref plugins);
-
 				ModLoader.OnPluginProcessFinished();
 				break;
+			}
 
 			default:
 				if (name.Contains(' '))
@@ -407,11 +407,12 @@ public partial class CorePlugin
 		switch (name)
 		{
 			case "*":
+			{
 				var except = arg.Args.Skip(1);
 				{
 					Community.Runtime.ScriptProcessor.Clear(except);
 
-					var plugins = Pool.Get<List<RustPlugin>>();
+					using var plugins = Pool.Get<PooledList<RustPlugin>>();
 					plugins.AddRange(Community.Runtime.Plugins.Plugins);
 
 					foreach (var plugin in plugins)
@@ -421,13 +422,17 @@ public partial class CorePlugin
 							continue;
 						}
 
+						if (plugin.Requires is { Length: > 0 })
+						{
+							continue;
+						}
+
 						ModLoader.UninitializePlugin(plugin);
 						Community.Runtime.ScriptProcessor.Ignore(plugin.Name);
 					}
-
-					Pool.FreeUnmanaged(ref plugins);
 				}
 				break;
+			}
 			default:
 				if (name.Contains(' '))
 				{

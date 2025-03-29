@@ -124,10 +124,12 @@ public class LUI : IDisposable
 
 	#region Panel Creation
 
+	public LuiContainer CreateEmptyContainer(LuiContainer container, string name = "", bool add = false) => CreateEmptyContainer(container.name, name, add);
+
 	/// <summary>
 	/// Creates empty container without anything. Shouldn't be used outside LUI library, but in rare cases might be useful.
 	/// </summary>
-	public LuiContainer CreateEmptyContainer(string parent, string name = "")
+	public LuiContainer CreateEmptyContainer(string parent, string name = "", bool add = false)
 	{
 		LuiContainer cont = LuiPool.GetContainer();
 		cont.parent = parent;
@@ -139,6 +141,8 @@ public class LUI : IDisposable
 			lastName = newName;
 			cont.name = newName;
 		}
+		if (add)
+			elements.Add(cont);
 		return cont;
 	}
 
@@ -670,6 +674,21 @@ public class LUI : IDisposable
 			{
 				img = LuiPool.GetImage();
 				img.material = material;
+				luiComponents.Add(img.type, img);
+			}
+			return this;
+		}
+
+		public LuiContainer SetImageType(UnityEngine.UI.Image.Type imageType)
+		{
+			if (luiComponents.TryGetValue<LuiImageComp>(LuiCompType.Image, out var img))
+			{
+				img.imageType = GetImageType(imageType);
+			}
+			else
+			{
+				img = LuiPool.GetImage();
+				img.imageType = GetImageType(imageType);
 				luiComponents.Add(img.type, img);
 			}
 			return this;
