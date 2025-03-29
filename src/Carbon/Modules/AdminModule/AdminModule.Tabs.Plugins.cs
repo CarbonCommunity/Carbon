@@ -1223,7 +1223,7 @@ public partial class AdminModule
 			}
 			public override void Download(string id, Action onTimeout = null)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				plugin.IsBusy = true;
 				plugin.DownloadCount++;
 
@@ -1392,7 +1392,7 @@ public partial class AdminModule
 			}
 			public override void Uninstall(string id)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
@@ -1658,7 +1658,7 @@ public partial class AdminModule
 			}
 			public override void Download(string id, Action onTimeout = null)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				var path = Path.Combine(Defines.GetScriptsFolder(), plugin.File);
 				var url = DownloadEndpoint.Replace("[ID]", plugin.Name);
 
@@ -1695,14 +1695,14 @@ public partial class AdminModule
 			}
 			public override void Uninstall(string id)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				if (plugin.HasLookup) return;
 
 				Community.Runtime.Core.webrequest.Enqueue(PluginLookupEndpoint.Replace("[ID]", plugin.Name.ToLower().Trim()), null, (error, data) =>
