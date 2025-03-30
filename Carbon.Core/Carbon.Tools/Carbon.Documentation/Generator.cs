@@ -6,19 +6,44 @@ public sealed class Generator
 {
 	public static CommandLineArguments Arguments;
 
+	private static Dictionary<string, Assembly> _assemblyCache = new();
+
 	public static void Generate()
 	{
-		var oxideHooks = LoadAssembly(Arguments.OxideHooks);
+		var files = Directory.GetFiles(Arguments.Carbon, "*.dll", SearchOption.AllDirectories);
+		AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
+		{
+			var name = args.Name.Substring(0, args.Name.IndexOf(' ') - 1);
+			if (!_assemblyCache.TryGetValue(name, out var assembly))
+			{
+				var assemblyFile = files.FirstOrDefault(x => x.Contains(name, StringComparison.OrdinalIgnoreCase));
+				if (string.IsNullOrEmpty(assemblyFile))
+				{
+					return null;
+				}
 
-		Console.WriteLine($"{oxideHooks.GetExportedTypes().Length}");
+				Console.WriteLine($" Resolving assembly '{Path.GetFullPath(assemblyFile)}'");
+				_assemblyCache[name] = assembly = Assembly.LoadFrom(assemblyFile);
+			}
+			return assembly;
+		};
+
+		var oxideHooks = LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Oxide.dll"));
+
+		Console.WriteLine($"{oxideHooks?.GetTypes()?.Length}");
 	}
 
 	private static Assembly LoadAssembly(string path)
 	{
+		path = Path.GetFullPath(path);
+
 		if (!File.Exists(path))
 		{
+			Console.WriteLine($"Couldn't find assembly: {path}");
 			return null;
 		}
+
+		Console.WriteLine($"Loading assembly: {path}");
 
 		var raw = File.ReadAllBytes(path);
 		if (IndexOf(raw, _needleBuffer) == 0)

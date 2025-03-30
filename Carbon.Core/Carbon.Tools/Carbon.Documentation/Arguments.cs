@@ -4,6 +4,6 @@
 
 public class CommandLineArguments
 {
-	[Option("oxide.hooks", Required = true, HelpText = "The Carbon.Hooks.Oxide DLL file")]
-	public string OxideHooks { get; set; }
+	[Option("carbon", Required = true, HelpText = "The carbon root directory")]
+	public string Carbon { get; set; }
 }
