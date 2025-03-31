@@ -185,11 +185,11 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateImage(LuiContainer container, LuiPosition position, LuiOffset offset, uint png, string color = LuiColors.White, string name = "") => CreateImage(container.name, position, offset, png, color, name);
-	public LuiContainer CreateImage(LuiContainer container, LuiOffset offset, uint png, string color = LuiColors.White, string name = "") => CreateImage(container.name, LuiPosition.None, offset, png, color, name);
-	public LuiContainer CreateImage(string parent, LuiOffset offset, uint png, string color = LuiColors.White, string name = "") => CreateImage(parent, LuiPosition.None, offset, png, color, name);
+	public LuiContainer CreateImage(LuiContainer container, LuiPosition position, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => CreateImage(container.name, position, offset, png, color, name);
+	public LuiContainer CreateImage(LuiContainer container, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => CreateImage(container.name, LuiPosition.None, offset, png, color, name);
+	public LuiContainer CreateImage(string parent, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => CreateImage(parent, LuiPosition.None, offset, png, color, name);
 
-	public LuiContainer CreateImage(string parent, LuiPosition position, LuiOffset offset, uint png, string color = LuiColors.White, string name = "")
+	public LuiContainer CreateImage(string parent, LuiPosition position, LuiOffset offset, string png, string color = LuiColors.White, string name = "")
 	{
 		LuiContainer cont = CreateEmptyContainer(parent, name);
 		cont.SetAnchorAndOffset(position, offset);
@@ -208,7 +208,7 @@ public class LUI : IDisposable
 		if (_parent.ImageDatabase.HasImage(dbName))
 		{
 			cont.SetAnchorAndOffset(position, offset);
-			cont.SetImage(_parent.ImageDatabase.GetImage(dbName), color);
+			cont.SetImage(_parent.ImageDatabase.GetImageString(dbName), color);
 		}
 		else
 		{
@@ -721,11 +721,11 @@ public class LUI : IDisposable
 			return this;
 		}
 
-		public LuiContainer SetImage(uint png = 0, string color = null)
+		public LuiContainer SetImage(string png = null, string color = null)
 		{
 			if (luiComponents.TryGetValue<LuiImageComp>(LuiCompType.Image, out var img))
 			{
-				if (png != 0)
+				if (png != null)
 					img.png = png;
 				if (color != null)
 					img.color = color;
@@ -733,7 +733,7 @@ public class LUI : IDisposable
 			else
 			{
 				img = LuiPool.GetImage();
-				if (png != 0)
+				if (png != null)
 					img.png = png;
 				if (color != null)
 					img.color = color;
@@ -1576,7 +1576,7 @@ public class LuiImageComp : LuiCompBase
 	public string material;
 	public string color;
 	public string imageType;
-	public uint png;
+	public string png;
 	public int itemid;
 	public ulong skinid;
 
@@ -1847,7 +1847,7 @@ public static class LuiPool
 		comp.material = null;
 		comp.color = null;
 		comp.imageType = null;
-		comp.png = 0;
+		comp.png = null;
 		comp.itemid = 0;
 		comp.skinid = 0;
 		comp.fadeIn = 0;
