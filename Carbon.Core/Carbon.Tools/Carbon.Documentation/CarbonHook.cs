@@ -10,10 +10,22 @@ public struct CarbonHook
 {
 	public static Dictionary<string, int> iterations = new();
 
+	[Flags]
+	public enum HookFlags
+	{
+		None = 0,
+		Static = 1,
+		Patch = 2,
+		Hidden = 4,
+		IgnoreChecksum = 8,
+		MetadataOnly = 16
+	}
+
 	public string name;
 	public string fullName;
 	public string category;
 	public Parameter[] parameters;
+	public HookFlags flags;
 	[JsonIgnore]
 	public string[] descriptions;
 	[JsonIgnore]
@@ -58,6 +70,7 @@ public struct CarbonHook
 
 		var category = attributes.FirstOrDefault(x => x.GetType().Name.Equals("Category"));
 		var returnType = attributes.FirstOrDefault(x => x.GetType().Name.Equals("Return"));
+		var optionsType = attributes.FirstOrDefault(x => x.GetType().Name.Equals("Options"));
 		var parameters = attributes.Where(x => x.GetType().Name.Equals("Parameter"));
 		var isOxideCompatbile = attributes.FirstOrDefault(x => x.GetType().Name.Equals("OxideCompatible")) != null;
 
@@ -80,6 +93,10 @@ public struct CarbonHook
 		hook.carbonCompatible = true;
 		hook.oxideCompatible = isOxideHooks || isOxideCompatbile;
 		hook.hooksAssembly = referenceAssembly;
+		if (optionsType != null)
+		{
+			hook.flags = (HookFlags)optionsType.GetType().GetProperty("Value").GetValue(optionsType);
+		}
 		hook.parameters = parameters.Select(x =>
 		{
 			var name = parametersType.GetProperty("Name").GetValue(x) as string;

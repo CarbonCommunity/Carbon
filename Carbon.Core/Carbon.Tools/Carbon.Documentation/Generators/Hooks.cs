@@ -57,11 +57,20 @@ public static class Hooks
 				builder.Append($"<Badge type=\"info\" text=\"{hook.category}\"/>");
 				if (hook.carbonCompatible)
 				{
-					builder.Append("<Badge type=\"danger\" text=\"Carbon Compatible\"/>");
+					builder.Append("[<Badge type=\"danger\" text=\"Carbon Compatible\"/>](https://github.com/CarbonCommunity/Carbon)");
 				}
 				if (hook.oxideCompatible)
 				{
-					builder.Append("<Badge type=\"warning\" text=\"Oxide Compatible\"/>");
+					builder.Append("[<Badge type=\"warning\" text=\"Oxide Compatible\"/>](https://github.com/OxideMod/Oxide.Rust)");
+				}
+				var flags = hook.flags.ToString().Split(",", StringSplitOptions.RemoveEmptyEntries);
+				foreach (var flag in flags)
+				{
+					if (flag.Equals("None", StringComparison.CurrentCultureIgnoreCase))
+					{
+						continue;
+					}
+					builder.Append($"<Badge type=\"info\" text=\"{flag}\"/>");
 				}
 				builder.AppendLine();
 				if (hook.descriptions != null && hook.descriptions.Any())
