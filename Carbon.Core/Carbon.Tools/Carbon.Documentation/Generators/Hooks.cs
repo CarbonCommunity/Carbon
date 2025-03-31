@@ -56,8 +56,16 @@ public static class Hooks
 					builder.Append("<Badge type=\"warning\" text=\"Oxide Compatible\"/>");
 				}
 				builder.AppendLine();
-				builder.AppendLine($"# {hook.fullName}");
-				builder.AppendLine($"No description.");
+				builder.AppendLine($"# {hook.name}");
+				if (hook.descriptions != null && hook.descriptions.Any())
+				{
+					var moreThanOne = hook.descriptions.Length > 1;
+					foreach (var description in hook.descriptions)
+					{
+						builder.AppendLine($"{(moreThanOne ? "- " : string.Empty)}{description}");
+					}
+				}
+				else builder.AppendLine($"No description.");
 				builder.AppendLine($"### Return");
 				builder.AppendLine($"Returning a non-null value cancels default behavior.");
 				builder.AppendLine();
@@ -66,7 +74,7 @@ public static class Hooks
 				builder.AppendLine($"```csharp [Example]");
 				builder.AppendLine($"private {(hook.returnType == null ? "void" : GetType(hook.returnType.FullName))} {hook.name}()");
 				builder.AppendLine($"{{");
-				builder.AppendLine($"	Puts(\"Called!\");");
+				builder.AppendLine($"	Puts(\"{hook.name} has been fired!\");");
 				if (hook.returnType != null && hook.returnType.GetType() != typeof(void))
 				{
 					builder.AppendLine($"	return ({GetPrettyTypeName(hook.returnType)})default;");

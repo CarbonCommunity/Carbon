@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using Carbon.Components;
+using Carbon.Documentation.Generators;
+using Newtonsoft.Json;
 
 namespace Carbon.Documentation;
 
@@ -10,16 +12,31 @@ public struct CarbonHook
 	public string name;
 	public string fullName;
 	public string category;
+	[JsonIgnore]
+	public string[] descriptions;
+	[JsonIgnore]
 	public Type target;
+	[JsonIgnore]
 	public MethodInfo method;
+	[JsonIgnore]
 	public Assembly assembly;
+	[JsonIgnore]
 	public Assembly hooksAssembly;
+	[JsonIgnore]
 	public Type returnType;
 	public bool carbonCompatible;
 	public bool oxideCompatible;
 	public string methodSource;
+	[JsonIgnore]
 	public int iteration;
 
+	public string targetName => target?.FullName;
+	public string methodName => method?.Name;
+	public string assemblyName => assembly?.GetName().Name;
+	public string hooksAssemblyName => hooksAssembly?.GetName().Name;
+	public string returnTypeName => returnType?.FullName ?? "void";
+
+	[JsonIgnore]
 	public readonly bool IsValid => !string.IsNullOrEmpty(name);
 
 	public static CarbonHook Parse(IEnumerable<Attribute> attributes, Assembly referenceAssembly, bool isOxideHooks)
@@ -52,11 +69,16 @@ public struct CarbonHook
 		hook.carbonCompatible = true;
 		hook.oxideCompatible = isOxideHooks || isOxideCompatbile;
 		hook.hooksAssembly = referenceAssembly;
+		var researchedHook = HooksAIResearch.hooks.FirstOrDefault(x => x.hook.Equals(hook.name));
+		if (!string.IsNullOrEmpty(researchedHook.hook))
+		{
+			hook.descriptions = researchedHook.descriptions;
+		}
 		if (!string.IsNullOrEmpty(methodName))
 		{
 			if (methodArgs == null)
 			{
-				hook.method = hook.target?.GetMethods().FirstOrDefault(x => x.Name.Equals(methodName)) ?? hook.target?.GetMethods().FirstOrDefault(x => x.Name.Equals(methodName));
+				hook.method = hook.target?.GetMethod(methodName, 0) ?? hook.target?.GetMethods().FirstOrDefault(x => x.Name.Equals(methodName));
 			}
 			else
 			{
