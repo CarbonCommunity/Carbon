@@ -10,6 +10,8 @@ public class LUI : IDisposable
 
 	private readonly CUI _parent;
 
+	private ImageDatabaseModule imgDb { get; }
+
 	/// <summary>
 	/// Boolean that changes default generation of element names.
 	/// With this option disabled, you cannot create UI hierarchy without manual name input.
@@ -19,6 +21,7 @@ public class LUI : IDisposable
 	public LUI(CUI cui)
 	{
 		_parent = cui;
+		imgDb = BaseModule.GetModule<ImageDatabaseModule>();
 	}
 
 	/// <summary>
@@ -205,10 +208,10 @@ public class LUI : IDisposable
 	public LuiContainer CreateImageFromDb(string parent, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "")
 	{
 		LuiContainer cont = CreateEmptyContainer(parent, name);
-		if (_parent.ImageDatabase.HasImage(dbName))
+		if (imgDb.HasImage(dbName))
 		{
 			cont.SetAnchorAndOffset(position, offset);
-			cont.SetImage(_parent.ImageDatabase.GetImageString(dbName), color);
+			cont.SetImage(imgDb.GetImageString(dbName), color);
 		}
 		else
 		{
