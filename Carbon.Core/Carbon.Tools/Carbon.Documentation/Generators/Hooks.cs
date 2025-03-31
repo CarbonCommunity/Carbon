@@ -38,6 +38,13 @@ public static class Hooks
 		var builder = new StringBuilder();
 		foreach (var hook in Oxide.Concat(Community).Concat(Base))
 		{
+			if (hook.category.Equals("_patches", StringComparison.CurrentCultureIgnoreCase) ||
+			    (hook.name.StartsWith("i", StringComparison.CurrentCultureIgnoreCase) && !hook.name.Equals("Init") && !hook.name.Equals("InitLogging")) ||
+			    hook.name.Contains('['))
+			{
+				continue;
+			}
+
 			var categoryDirectory = Path.Combine(Generator.Arguments.Docs, "hooks", hook.category);
 			if (!Directory.Exists(categoryDirectory))
 			{
@@ -46,38 +53,47 @@ public static class Hooks
 
 			var hookFile = Path.Combine(categoryDirectory, $"{hook.name}{(hook.iteration is 0 ? string.Empty : $" [{hook.iteration}]")}.md");
 			{
+				builder.AppendLine($"# {hook.name}");
+				builder.Append($"<Badge type=\"info\" text=\"{hook.category}\"/>");
 				if (hook.carbonCompatible)
 				{
 					builder.Append("<Badge type=\"danger\" text=\"Carbon Compatible\"/>");
 				}
-
 				if (hook.oxideCompatible)
 				{
 					builder.Append("<Badge type=\"warning\" text=\"Oxide Compatible\"/>");
 				}
 				builder.AppendLine();
-				builder.AppendLine($"# {hook.name}");
 				if (hook.descriptions != null && hook.descriptions.Any())
 				{
 					var moreThanOne = hook.descriptions.Length > 1;
 					foreach (var description in hook.descriptions)
 					{
 						builder.AppendLine($"{(moreThanOne ? "- " : string.Empty)}{description}");
+						builder.AppendLine();
 					}
 				}
 				else builder.AppendLine($"No description.");
 				builder.AppendLine($"### Return");
-				builder.AppendLine($"Returning a non-null value cancels default behavior.");
+				if (hook.returnType != typeof(void))
+				{
+					builder.AppendLine($"Returning a non-null value cancels default behavior.");
+				}
+				else
+				{
+					builder.AppendLine($"No return behavior.");
+				}
 				builder.AppendLine();
 				builder.AppendLine($"### Usage");
 				builder.AppendLine($"::: code-group");
 				builder.AppendLine($"```csharp [Example]");
-				builder.AppendLine($"private {(hook.returnType == null ? "void" : GetType(hook.returnType.FullName))} {hook.name}()");
+				var returnTypeText = hook.returnType == null ? "void" : GetType(hook.returnType.FullName);
+				builder.AppendLine($"private {(returnTypeText)} {hook.name}({string.Join(", ", hook.parameters.Select(x => $"{GetType(x.type.FullName)} {x.name}"))})");
 				builder.AppendLine($"{{");
 				builder.AppendLine($"	Puts(\"{hook.name} has been fired!\");");
 				if (hook.returnType != null && hook.returnType.GetType() != typeof(void))
 				{
-					builder.AppendLine($"	return ({GetPrettyTypeName(hook.returnType)})default;");
+					builder.AppendLine($"	return ({returnTypeText})default;");
 				}
 				builder.AppendLine($"}}");
 				builder.AppendLine($"```");

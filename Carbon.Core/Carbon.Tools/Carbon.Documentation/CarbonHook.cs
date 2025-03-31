@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.InteropServices;
 using Carbon.Components;
 using Carbon.Documentation.Generators;
 using Newtonsoft.Json;
@@ -12,6 +13,7 @@ public struct CarbonHook
 	public string name;
 	public string fullName;
 	public string category;
+	public Parameter[] parameters;
 	[JsonIgnore]
 	public string[] descriptions;
 	[JsonIgnore]
@@ -39,6 +41,13 @@ public struct CarbonHook
 	[JsonIgnore]
 	public readonly bool IsValid => !string.IsNullOrEmpty(name);
 
+	public struct Parameter
+	{
+		public string name;
+		public Type type;
+		public bool optional;
+	}
+
 	public static CarbonHook Parse(IEnumerable<Attribute> attributes, Assembly referenceAssembly, bool isOxideHooks)
 	{
 		var patch = attributes.FirstOrDefault(x => x.GetType().Name.Equals("Patch"));
@@ -49,9 +58,11 @@ public struct CarbonHook
 
 		var category = attributes.FirstOrDefault(x => x.GetType().Name.Equals("Category"));
 		var returnType = attributes.FirstOrDefault(x => x.GetType().Name.Equals("Return"));
+		var parameters = attributes.Where(x => x.GetType().Name.Equals("Parameter"));
 		var isOxideCompatbile = attributes.FirstOrDefault(x => x.GetType().Name.Equals("OxideCompatible")) != null;
 
 		Type patchType = patch.GetType();
+		Type parametersType = parameters.FirstOrDefault()?.GetType();
 		CarbonHook hook = default;
 		string methodName = patchType?.GetProperty("Method").GetValue(patch) as string;
 		Type[] methodArgs = patchType?.GetProperty("MethodArgs").GetValue(patch) as Type[];
@@ -69,6 +80,22 @@ public struct CarbonHook
 		hook.carbonCompatible = true;
 		hook.oxideCompatible = isOxideHooks || isOxideCompatbile;
 		hook.hooksAssembly = referenceAssembly;
+		hook.parameters = parameters.Select(x =>
+		{
+			var name = parametersType.GetProperty("Name").GetValue(x) as string;
+			var type = parametersType.GetProperty("Type").GetValue(x) as Type;
+			if (name.Equals("self", StringComparison.CurrentCultureIgnoreCase))
+			{
+				name = char.ToLower(type.Name[0]) + type.Name.Substring(1, type.Name.Length - 1);
+			}
+
+			return new Parameter
+			{
+				name = name,
+				type = type,
+				optional = (bool)parametersType.GetProperty("Optional").GetValue(x)
+			};
+		}).ToArray();
 		var researchedHook = HooksAIResearch.hooks.FirstOrDefault(x => x.hook.Equals(hook.name));
 		if (!string.IsNullOrEmpty(researchedHook.hook))
 		{
