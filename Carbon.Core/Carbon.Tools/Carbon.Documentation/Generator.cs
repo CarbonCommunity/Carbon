@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Carbon.Documentation.Generators;
 
 #pragma warning disable
 
@@ -6,32 +7,38 @@ public sealed class Generator
 {
 	public static CommandLineArguments Arguments;
 
-	private static Dictionary<string, Assembly> _assemblyCache = new();
-
 	public static void Generate()
 	{
-		var files = Directory.GetFiles(Arguments.Carbon, "*.dll", SearchOption.AllDirectories);
+		var files = Directory.GetFiles(Arguments.Carbon, "*.dll", SearchOption.AllDirectories).Concat(
+										 Directory.GetFiles(Arguments.Rust, "*.dll", SearchOption.AllDirectories));
 		AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
 		{
-			var name = args.Name.Substring(0, args.Name.IndexOf(' ') - 1);
+			var name = args.Name[..(args.Name.IndexOf(' ') - 1)];
 			if (!_assemblyCache.TryGetValue(name, out var assembly))
 			{
-				var assemblyFile = files.FirstOrDefault(x => x.Contains(name, StringComparison.OrdinalIgnoreCase));
+				var assemblyFile = files.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x).Equals(name, StringComparison.OrdinalIgnoreCase));
 				if (string.IsNullOrEmpty(assemblyFile))
 				{
 					return null;
 				}
 
-				Console.WriteLine($" Resolving assembly '{Path.GetFullPath(assemblyFile)}'");
+				assemblyFile = Path.GetFullPath(assemblyFile);
+				Console.WriteLine($" Resolving assembly '{name}' @ {assemblyFile}");
 				_assemblyCache[name] = assembly = Assembly.LoadFrom(assemblyFile);
 			}
 			return assembly;
 		};
 
-		var oxideHooks = LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Oxide.dll"));
-
-		Console.WriteLine($"{oxideHooks?.GetTypes()?.Length}");
+		LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "Carbon.Common.dll"));
+		Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Oxide.dll")), Hooks.Oxide, true);
+		Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Community.dll")), Hooks.Community, false);
+		Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Base.dll")), Hooks.Base, false);
+		Hooks.GenerateHooks();
 	}
+
+	#region Helpers
+
+	private static Dictionary<string, Assembly> _assemblyCache = new();
 
 	private static Assembly LoadAssembly(string path)
 	{
@@ -102,4 +109,6 @@ public sealed class Generator
 		}
 		return -1;
 	}
+
+	#endregion
 }

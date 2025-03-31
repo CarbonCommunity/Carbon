@@ -1,0 +1,74 @@
+﻿using System.Reflection;
+using Carbon.Components;
+
+namespace Carbon.Documentation;
+
+public struct CarbonHook
+{
+	public static Dictionary<string, int> iterations = new();
+
+	public string name;
+	public string fullName;
+	public string category;
+	public Type target;
+	public MethodInfo method;
+	public Assembly assembly;
+	public Assembly hooksAssembly;
+	public Type returnType;
+	public bool carbonCompatible;
+	public bool oxideCompatible;
+	public string methodSource;
+	public int iteration;
+
+	public readonly bool IsValid => !string.IsNullOrEmpty(name);
+
+	public static CarbonHook Parse(IEnumerable<Attribute> attributes, Assembly referenceAssembly, bool isOxideHooks)
+	{
+		var patch = attributes.FirstOrDefault(x => x.GetType().Name.Equals("Patch"));
+		if (patch == null)
+		{
+			return default;
+		}
+
+		var category = attributes.FirstOrDefault(x => x.GetType().Name.Equals("Category"));
+		var returnType = attributes.FirstOrDefault(x => x.GetType().Name.Equals("Return"));
+		var isOxideCompatbile = attributes.FirstOrDefault(x => x.GetType().Name.Equals("OxideCompatible")) != null;
+
+		Type patchType = patch.GetType();
+		CarbonHook hook = default;
+		string methodName = patchType?.GetProperty("Method").GetValue(patch) as string;
+		Type[] methodArgs = patchType?.GetProperty("MethodArgs").GetValue(patch) as Type[];
+		hook.name = patchType.GetProperty("Name").GetValue(patch) as string;
+		hook.fullName = patchType.GetProperty("FullName").GetValue(patch) as string;
+		if (iterations.TryGetValue(hook.fullName, out var iteration))
+		{
+			hook.fullName += $" [{iteration:n0}]";
+			iterations[hook.fullName] = iteration + 1;
+		}
+		else iterations[hook.fullName] = 1;
+		hook.target = patchType.GetProperty("Target").GetValue(patch) as Type;
+		hook.assembly = hook.target?.Assembly;
+		hook.returnType = returnType?.GetType().GetProperty("Type").GetValue(returnType) as Type;
+		hook.carbonCompatible = true;
+		hook.oxideCompatible = isOxideHooks || isOxideCompatbile;
+		hook.hooksAssembly = referenceAssembly;
+		if (!string.IsNullOrEmpty(methodName))
+		{
+			if (methodArgs == null)
+			{
+				hook.method = hook.target?.GetMethods().FirstOrDefault(x => x.Name.Equals(methodName)) ?? hook.target?.GetMethods().FirstOrDefault(x => x.Name.Equals(methodName));
+			}
+			else
+			{
+				hook.method = hook.target?.GetMethod(methodName, 0, methodArgs) ?? hook.target?.GetMethods().FirstOrDefault(x => x.Name.Equals(methodName));
+			}
+		}
+		hook.category = category?.GetType().GetProperty("Name").GetValue(category) as string ?? "Global";
+		if (hook.assembly != null && hook.target != null && hook.method != null)
+		{
+			hook.methodSource = SourceCodeBank.Parse(hook.assembly.Location).ParseMethod(hook.target.FullName, hook.method.Name);
+		}
+
+		return hook;
+	}
+}
