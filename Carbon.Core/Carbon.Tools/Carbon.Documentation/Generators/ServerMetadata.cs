@@ -13,16 +13,17 @@ public static partial class ServerMetadata
 
 	private static void Load()
 	{
-		var serverRoot = Path.Combine(Generator.Arguments.Docs, "..", "tools", "Server", "win", "server");
-		Entities = JsonConvert.DeserializeObject<Structure.Entity[]>(File.ReadAllText(Path.Combine(serverRoot, "gen_entities.json")));
-		Prefabs = JsonConvert.DeserializeObject<Structure.Prefab[]>(File.ReadAllText(Path.Combine(serverRoot, "gen_prefabs.json")));
-		Items = JsonConvert.DeserializeObject<Structure.Item[]>(File.ReadAllText(Path.Combine(serverRoot, "gen_items.json")));
+		var serverRoot = Path.Combine(Generator.Arguments.Docs, "public", "rust");
+		Entities = JsonConvert.DeserializeObject<Structure.Entity[]>(File.ReadAllText(Path.Combine(serverRoot, "entities.json")));
+		Prefabs = JsonConvert.DeserializeObject<Structure.Prefab[]>(File.ReadAllText(Path.Combine(serverRoot, "prefabs.json")));
+		Items = JsonConvert.DeserializeObject<Structure.Item[]>(File.ReadAllText(Path.Combine(serverRoot, "items.json")));
 	}
 
 	public static void Generate()
 	{
 		Load();
 
+		GeneratePrefabs();
 		GenerateEntities();
 		GenerateItems();
 	}
