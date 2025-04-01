@@ -20,14 +20,14 @@ public partial class ServerMetadata
 			Builder.AppendLine($"| --- |");
 			foreach (var prefab in singularEntities)
 			{
-				Builder.AppendLine($"| <Badge type=\"info\" text=\"{prefab.Type}\"/> <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+				Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"info\" text=\"{prefab.Type}\"/> <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
 			}
 			File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "entities", "0Singulars.md"), Builder.ToString());
 		}
 
 		Builder.Clear();
 		Builder.AppendLine($"# All Entities");
-		Builder.AppendLine($"The following list contains information of a total of <Badge type=\"warning\" text=\"{Entities.Count():n0}\"/>\n entities.");
+		Builder.AppendLine($"The following list contains information of a total of <Badge type=\"warning\" text=\"{Entities.Length:n0}\"/>\n entities.");
 		Builder.AppendLine();
 		Builder.AppendLine($"## API");
 		Builder.AppendLine($"Here's the API endpoint for you to use in your projects.");
@@ -39,7 +39,7 @@ public partial class ServerMetadata
 		foreach (var prefab in Entities)
 		{
 			var isSingular = singularEntities.Contains(prefab);
-			Builder.AppendLine($"| {(isSingular ? string.Empty : $"<a href='{prefab.Type}'>")}<Badge type=\"info\" text=\"{prefab.Type}\"/>{(isSingular ? string.Empty : "</a>")} <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+			Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> {(isSingular ? string.Empty : $"<a href='{prefab.Type}'>")}<Badge type=\"{(isSingular ? "info" : "warning")}\" text=\"{prefab.Type}\"/>{(isSingular ? string.Empty : "</a>")} <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
 		}
 		File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "entities", "0All.md"), Builder.ToString());
 
@@ -59,7 +59,8 @@ public partial class ServerMetadata
 			Builder.AppendLine($"| --- |");
 			foreach (var prefab in entities)
 			{
-				Builder.AppendLine($"| <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+				var isSingular = singularEntities.Contains(prefab);
+				Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
 			}
 			File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "entities", $"{entities.Key}.md"), Builder.ToString());
 		}
