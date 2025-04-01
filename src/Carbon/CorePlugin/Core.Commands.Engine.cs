@@ -17,9 +17,20 @@ public partial class CorePlugin
 	private void Help(ConsoleSystem.Arg arg)
 	{
 		arg.ReplyWith($"To get started, run the `c.find c.` to list all Carbon commands.\n" +
-			$"To list all currently loaded plugins, execute `c.plugins`.\n" +
-			$"For more information, please visit https://docs.carbonmod.gg or join the Discord server at https://discord.gg/carbonmod\n" +
-			$"You're currently running {Community.Runtime.Analytics.Version}.");
+		              $"To list all currently loaded plugins, execute `c.plugins`.\n" +
+		              $"For more information, please visit https://docs.carbonmod.gg or join the Discord server at https://discord.gg/carbonmod\n" +
+		              $"You're currently running {Community.Runtime.Analytics.Version}.");
+	}
+
+	private void HarmonyMods(ConsoleSystem.Arg arg)
+	{
+		using var table = new StringTable("name", "hooks", "methods");
+		foreach (var mod in HarmonyLoader.loadedMods)
+		{
+			var harmonyInstance = mod.Harmony.harmonyObject as HarmonyLib.Harmony;
+			table.AddRow(mod.Name, mod.Hooks.Count.ToString("n0"), harmonyInstance.GetPatchedMethods().Count().ToString("n0"));
+		}
+		arg.ReplyWith(table.ToStringMinimal());
 	}
 
 	[ConsoleCommand("version", "Version information of the Carbon build and Rust.")]

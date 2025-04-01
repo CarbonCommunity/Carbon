@@ -54,6 +54,7 @@ public class Config
 	public class SelfUpdatingConfig
 	{
 		public bool Enabled { get; set; } = true;
+		public bool HookUpdates { get; set; } = true;
 	}
 
 	public class CompilerConfig

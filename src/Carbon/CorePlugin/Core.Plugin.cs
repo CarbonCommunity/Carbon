@@ -90,7 +90,8 @@ public partial class CorePlugin : CarbonPlugin
 			Logger.CoreLog.Flush();
 		});
 
-		cmd.AddConsoleCommand("help", this, nameof(Help), authLevel: 2);
+		cmd.AddConsoleCommand("help", this, nameof(Help), authLevel: 2, help: "HELP!");
+		cmd.AddConsoleCommand("harmony.mods", this, nameof(HarmonyMods), authLevel: 2, help: "Prints a full list of all active HarmonyMods processed by Rust.");
 
 		return true;
 	}
