@@ -21,7 +21,7 @@ public partial class ServerMetadata
 			{
 				Builder.AppendLine($"\t<tr {(item.Hidden ? "style=\"background-color:#300000;\"" : string.Empty)}>");
 				{
-					Builder.AppendLine($"\t\t<td style=\"width:20%;\">");
+					Builder.AppendLine($"\t\t<td style=\"width:15%;\">");
 					{
 						Builder.AppendLine($"\t\t\t<img src=\"https://carbonmod.gg/assets/media/items/{item.ShortName}.png\">");
 					}
@@ -29,8 +29,8 @@ public partial class ServerMetadata
 
 					Builder.AppendLine($"\t\t<td>");
 					{
-						Builder.AppendLine($"\t\t<strong>{item.DisplayName}</strong><br>");
-						Builder.AppendLine($"\t<code>{item.Id}</code> <code>{item.ShortName}</code> <code>Stack: {item.Stack}</code> <br> <code>Rarity: {item.Rarity}</code><br>");
+						Builder.AppendLine($"\t<h5 id=\"{item.ShortName}\"><a href=\"{item.Category}#{item.ShortName}\"><Badge type=\"tip\" text=\"#\"/></a> {item.DisplayName}</h5> ");
+						Builder.AppendLine($"\t<Badge type=\"info\" text=\"{item.Id}\"/> <Badge type=\"info\" text=\"{item.ShortName}\"/> <Badge type=\"warning\" text=\"x{item.Stack}\"/> <Badge type=\"warning\" text=\"{item.Rarity}\"/>{(item.Hidden ? $" <Badge type=\"danger\" text=\"Hidden\"/>" : string.Empty)}<br>");
 						Builder.AppendLine($"\t{item.Description}");
 
 					}
