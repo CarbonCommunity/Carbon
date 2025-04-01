@@ -34,8 +34,9 @@ public sealed class Generator
 		Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Oxide.dll")), Hooks.Oxide, true);
 		Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Community.dll")), Hooks.Community, false);
 		Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Base.dll")), Hooks.Base, false);
-		Hooks.GenerateHooks();
-		HooksAIMetadata.Generate();
+		//Hooks.GenerateHooks();
+		//HooksAIMetadata.Generate();
+		ServerMetadata.Generate();
 	}
 
 	#region Helpers
