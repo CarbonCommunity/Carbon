@@ -29,12 +29,17 @@ public partial class ServerMetadata
 		Builder.AppendLine($"# All Entities");
 		Builder.AppendLine($"The following list contains information of a total of <Badge type=\"warning\" text=\"{Entities.Count():n0}\"/>\n entities.");
 		Builder.AppendLine();
+		Builder.AppendLine($"## API");
+		Builder.AppendLine($"Here's the API endpoint for you to use in your projects.");
+		Builder.AppendLine($"<CarbonButton href=\"/Carbon.Documentation/rust/entities.json\" text=\"Entities API\" icon=\"gtk\" external=\"true\"/>");
+		Builder.AppendLine();
 		Builder.AppendLine($"---");
 		Builder.AppendLine($"| Entity Type, ID & Path |");
 		Builder.AppendLine($"| --- |");
 		foreach (var prefab in Entities)
 		{
-			Builder.AppendLine($"| <Badge type=\"info\" text=\"{prefab.Type}\"/> <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+			var isSingular = singularEntities.Contains(prefab);
+			Builder.AppendLine($"| {(isSingular ? string.Empty : $"<a href='{prefab.Type}'>")}<Badge type=\"info\" text=\"{prefab.Type}\"/>{(isSingular ? string.Empty : "</a>")} <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
 		}
 		File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "entities", "0All.md"), Builder.ToString());
 

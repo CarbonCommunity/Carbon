@@ -81,6 +81,10 @@ public partial class ServerMetadata
 		Builder.AppendLine($"# All Prefabs");
 		Builder.AppendLine($"The following list contains information of a total of <Badge type=\"warning\" text=\"{Prefabs.Length:n0}\"/>\n prefabs.");
 		Builder.AppendLine();
+		Builder.AppendLine($"## API");
+		Builder.AppendLine($"Here's the API endpoint for you to use in your projects.");
+		Builder.AppendLine($"<CarbonButton href=\"/Carbon.Documentation/rust/prefabs.json\" text=\"Prefab API\" icon=\"accusoft\" external=\"true\"/>");
+		Builder.AppendLine();
 		Builder.AppendLine($"---");
 		Builder.AppendLine($"| Entity Type, ID & Path |");
 		Builder.AppendLine($"| --- |");

@@ -14,6 +14,11 @@ public partial class ServerMetadata
 		Builder.AppendLine($"# All Items");
 		Builder.AppendLine($"Full list of all <Badge type=\"danger\" text=\"{Items.Count():n0}\"/> items.");
 		Builder.AppendLine();
+
+		Builder.AppendLine($"## API");
+		Builder.AppendLine($"Here's the API endpoint for you to use in your projects.");
+		Builder.AppendLine($"<CarbonButton href=\"/Carbon.Documentation/rust/items.json\" text=\"Items API\" icon=\"buffer\" external=\"true\"/>");
+		Builder.AppendLine();
 		foreach (var items in groupedItems)
 		{
 			Builder.AppendLine($"## {items.Key}");
