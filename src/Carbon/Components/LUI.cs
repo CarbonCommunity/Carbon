@@ -294,14 +294,15 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateCountdown(LuiContainer container, LuiPosition position, LuiOffset offset, int startTime, int endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, position, offset, startTime, endTime, step, interval, command, isProtected, name);
-	public LuiContainer CreateCountdown(LuiContainer container, LuiOffset offset, int startTime, int endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, LuiPosition.None, offset, startTime, endTime, step, interval, command, isProtected, name);
-	public LuiContainer CreateCountdown(string parent, LuiOffset offset, int startTime, int endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(parent, LuiPosition.None, offset, startTime, endTime, step, interval, command, isProtected, name);
+	public LuiContainer CreateCountdown(LuiContainer container, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, position, offset, startTime, endTime, step, interval, command, isProtected, name);
+	public LuiContainer CreateCountdown(LuiContainer container, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, LuiPosition.None, offset, startTime, endTime, step, interval, command, isProtected, name);
+	public LuiContainer CreateCountdown(string parent, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(parent, LuiPosition.None, offset, startTime, endTime, step, interval, command, isProtected, name);
 
-	public LuiContainer CreateCountdown(string parent, LuiPosition position, LuiOffset offset, int startTime, int endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "")
+	public LuiContainer CreateCountdown(string parent, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, int startTime, int endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "")
 	{
 		LuiContainer cont = CreateEmptyContainer(parent, name);
 		cont.SetAnchorAndOffset(position, offset);
+		cont.SetText(text, fontSize, color, alignment);
 		cont.SetCountdown(startTime, endTime, step, interval, isProtected ? Community.Protect(command) : command);
 		elements.Add(cont);
 		return cont;
@@ -1207,7 +1208,7 @@ public class LUI : IDisposable
 
 		#region Container Methods - LuiCountdownComp
 
-		public LuiContainer SetCountdown(int startTime, int endTime, float step = 1, float interval = 1, string command = null)
+		public LuiContainer SetCountdown(float startTime, float endTime, float step = 1, float interval = 1, string command = null, string numberFormat = null)
 		{
 			if (luiComponents.TryGetValue<LuiCountdownComp>(LuiCompType.Countdown, out var countdown))
 			{
@@ -1219,6 +1220,8 @@ public class LUI : IDisposable
 					countdown.interval = interval;
 				if (command != null)
 					countdown.command = command;
+				if (numberFormat != null)
+					countdown.numberFormat = numberFormat;
 			}
 			else
 			{
@@ -1231,6 +1234,23 @@ public class LUI : IDisposable
 					countdown.interval = interval;
 				if (command != null)
 					countdown.command = command;
+				if (numberFormat != null)
+					countdown.numberFormat = numberFormat;
+				luiComponents.Add(countdown.type, countdown);
+			}
+			return this;
+		}
+
+		public LuiContainer SetCountdownDestroy(bool destroy)
+		{
+			if (luiComponents.TryGetValue<LuiCountdownComp>(LuiCompType.Countdown, out var countdown))
+			{
+				countdown.destroyIfDone = destroy;
+			}
+			else
+			{
+				countdown = LuiPool.GetCountdown();
+				countdown.destroyIfDone = destroy;
 				luiComponents.Add(countdown.type, countdown);
 			}
 			return this;
