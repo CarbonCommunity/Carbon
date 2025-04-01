@@ -490,7 +490,7 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("imageType", image.imageType);
 		                    }
-		                    if (image.png != 0)
+		                    if (image.png != null)
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("png", image.png);

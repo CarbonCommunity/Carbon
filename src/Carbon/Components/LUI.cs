@@ -10,6 +10,8 @@ public class LUI : IDisposable
 
 	private readonly CUI _parent;
 
+	private ImageDatabaseModule imgDb { get; }
+
 	/// <summary>
 	/// Boolean that changes default generation of element names.
 	/// With this option disabled, you cannot create UI hierarchy without manual name input.
@@ -19,6 +21,7 @@ public class LUI : IDisposable
 	public LUI(CUI cui)
 	{
 		_parent = cui;
+		imgDb = BaseModule.GetModule<ImageDatabaseModule>();
 	}
 
 	/// <summary>
@@ -185,11 +188,11 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateImage(LuiContainer container, LuiPosition position, LuiOffset offset, uint png, string color = LuiColors.White, string name = "") => CreateImage(container.name, position, offset, png, color, name);
-	public LuiContainer CreateImage(LuiContainer container, LuiOffset offset, uint png, string color = LuiColors.White, string name = "") => CreateImage(container.name, LuiPosition.None, offset, png, color, name);
-	public LuiContainer CreateImage(string parent, LuiOffset offset, uint png, string color = LuiColors.White, string name = "") => CreateImage(parent, LuiPosition.None, offset, png, color, name);
+	public LuiContainer CreateImage(LuiContainer container, LuiPosition position, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => CreateImage(container.name, position, offset, png, color, name);
+	public LuiContainer CreateImage(LuiContainer container, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => CreateImage(container.name, LuiPosition.None, offset, png, color, name);
+	public LuiContainer CreateImage(string parent, LuiOffset offset, string png, string color = LuiColors.White, string name = "") => CreateImage(parent, LuiPosition.None, offset, png, color, name);
 
-	public LuiContainer CreateImage(string parent, LuiPosition position, LuiOffset offset, uint png, string color = LuiColors.White, string name = "")
+	public LuiContainer CreateImage(string parent, LuiPosition position, LuiOffset offset, string png, string color = LuiColors.White, string name = "")
 	{
 		LuiContainer cont = CreateEmptyContainer(parent, name);
 		cont.SetAnchorAndOffset(position, offset);
@@ -205,10 +208,10 @@ public class LUI : IDisposable
 	public LuiContainer CreateImageFromDb(string parent, LuiPosition position, LuiOffset offset, string dbName, string color = LuiColors.White, string name = "")
 	{
 		LuiContainer cont = CreateEmptyContainer(parent, name);
-		if (_parent.ImageDatabase.HasImage(dbName))
+		if (imgDb.HasImage(dbName))
 		{
 			cont.SetAnchorAndOffset(position, offset);
-			cont.SetImage(_parent.ImageDatabase.GetImage(dbName), color);
+			cont.SetImage(imgDb.GetImageString(dbName), color);
 		}
 		else
 		{
@@ -291,14 +294,15 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateCountdown(LuiContainer container, LuiPosition position, LuiOffset offset, int startTime, int endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, position, offset, startTime, endTime, step, interval, command, isProtected, name);
-	public LuiContainer CreateCountdown(LuiContainer container, LuiOffset offset, int startTime, int endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, LuiPosition.None, offset, startTime, endTime, step, interval, command, isProtected, name);
-	public LuiContainer CreateCountdown(string parent, LuiOffset offset, int startTime, int endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(parent, LuiPosition.None, offset, startTime, endTime, step, interval, command, isProtected, name);
+	public LuiContainer CreateCountdown(LuiContainer container, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, position, offset, fontSize, color, text, alignment, startTime, endTime, step, interval, command, isProtected, name);
+	public LuiContainer CreateCountdown(LuiContainer container, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(container.name, LuiPosition.None, offset, fontSize, color, text, alignment, startTime, endTime, step, interval, command, isProtected, name);
+	public LuiContainer CreateCountdown(string parent, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "") => CreateCountdown(parent, LuiPosition.None, offset, fontSize, color, text, alignment, startTime, endTime, step, interval, command, isProtected, name);
 
-	public LuiContainer CreateCountdown(string parent, LuiPosition position, LuiOffset offset, int startTime, int endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "")
+	public LuiContainer CreateCountdown(string parent, LuiPosition position, LuiOffset offset, int fontSize, string color, string text, TextAnchor alignment, float startTime, float endTime, float step = 1, float interval = 1, string command = null, bool isProtected = true, string name = "")
 	{
 		LuiContainer cont = CreateEmptyContainer(parent, name);
 		cont.SetAnchorAndOffset(position, offset);
+		cont.SetText(text, fontSize, color, alignment);
 		cont.SetCountdown(startTime, endTime, step, interval, isProtected ? Community.Protect(command) : command);
 		elements.Add(cont);
 		return cont;
@@ -721,11 +725,11 @@ public class LUI : IDisposable
 			return this;
 		}
 
-		public LuiContainer SetImage(uint png = 0, string color = null)
+		public LuiContainer SetImage(string png = null, string color = null)
 		{
 			if (luiComponents.TryGetValue<LuiImageComp>(LuiCompType.Image, out var img))
 			{
-				if (png != 0)
+				if (png != null)
 					img.png = png;
 				if (color != null)
 					img.color = color;
@@ -733,7 +737,7 @@ public class LUI : IDisposable
 			else
 			{
 				img = LuiPool.GetImage();
-				if (png != 0)
+				if (png != null)
 					img.png = png;
 				if (color != null)
 					img.color = color;
@@ -1204,7 +1208,7 @@ public class LUI : IDisposable
 
 		#region Container Methods - LuiCountdownComp
 
-		public LuiContainer SetCountdown(int startTime, int endTime, float step = 1, float interval = 1, string command = null)
+		public LuiContainer SetCountdown(float startTime, float endTime, float step = 1, float interval = 1, string command = null, string numberFormat = null)
 		{
 			if (luiComponents.TryGetValue<LuiCountdownComp>(LuiCompType.Countdown, out var countdown))
 			{
@@ -1216,6 +1220,8 @@ public class LUI : IDisposable
 					countdown.interval = interval;
 				if (command != null)
 					countdown.command = command;
+				if (numberFormat != null)
+					countdown.numberFormat = numberFormat;
 			}
 			else
 			{
@@ -1228,6 +1234,23 @@ public class LUI : IDisposable
 					countdown.interval = interval;
 				if (command != null)
 					countdown.command = command;
+				if (numberFormat != null)
+					countdown.numberFormat = numberFormat;
+				luiComponents.Add(countdown.type, countdown);
+			}
+			return this;
+		}
+
+		public LuiContainer SetCountdownDestroy(bool destroy)
+		{
+			if (luiComponents.TryGetValue<LuiCountdownComp>(LuiCompType.Countdown, out var countdown))
+			{
+				countdown.destroyIfDone = destroy;
+			}
+			else
+			{
+				countdown = LuiPool.GetCountdown();
+				countdown.destroyIfDone = destroy;
 				luiComponents.Add(countdown.type, countdown);
 			}
 			return this;
@@ -1576,7 +1599,7 @@ public class LuiImageComp : LuiCompBase
 	public string material;
 	public string color;
 	public string imageType;
-	public uint png;
+	public string png;
 	public int itemid;
 	public ulong skinid;
 
@@ -1847,7 +1870,7 @@ public static class LuiPool
 		comp.material = null;
 		comp.color = null;
 		comp.imageType = null;
-		comp.png = 0;
+		comp.png = null;
 		comp.itemid = 0;
 		comp.skinid = 0;
 		comp.fadeIn = 0;
