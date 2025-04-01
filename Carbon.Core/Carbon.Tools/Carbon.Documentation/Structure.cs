@@ -2,6 +2,56 @@
 
 public class Structure
 {
+
+	public enum Flag
+	{
+		NoDropping = 1,
+		NotStraightToBelt = 2,
+		NotAllowedInBelt = 4,
+		Backpack = 8,
+	}
+
+	public enum ItemCategory
+	{
+		Weapon,
+		Construction,
+		Items,
+		Resources,
+		Attire,
+		Tool,
+		Medical,
+		Food,
+		Ammunition,
+		Traps,
+		Misc,
+		All,
+		Common,
+		Component,
+		Search,
+		Favourite,
+		Electrical,
+		Fun,
+	}
+
+	public enum Rarity
+	{
+		None,
+		Common,
+		Uncommon,
+		Rare,
+		VeryRare,
+	}
+
+	public enum spawnType
+	{
+		GENERIC,
+		PLAYER,
+		TOWN,
+		AIRDROP,
+		CRASHSITE,
+		ROADSIDE,
+	}
+
 	public class Item
 	{
 		public long Id { get; set; }
@@ -10,9 +60,9 @@ public class Structure
 		public string Description { get; set; }
 		public int Stack { get; set; }
 		public bool Hidden { get; set; }
-		public int Flags { get; set; }
-		public int Category { get; set; }
-		public int Rarity { get; set; }
+		public Flag Flags { get; set; }
+		public ItemCategory Category { get; set; }
+		public Rarity Rarity { get; set; }
 	}
 
 	public class Entity
@@ -33,7 +83,7 @@ public class Structure
 		public Ingredient[] Ingredients { get; set; }
 		public Item Item { get; set; }
 		public bool UserCraftable { get; set; }
-		public int Rarity { get; set; }
+		public Rarity Rarity { get; set; }
 		public int CraftAmount { get; set; }
 		public int ScrapRequired { get; set; }
 		public int WorkbenchLevelRequired { get; set; }
@@ -52,6 +102,7 @@ public class Structure
 		public RangeItem[] Items { get; set; } = new RangeItem[0];
 		public SpawnSlotItem[] SpawnSlotItems { get; set; } = new SpawnSlotItem[0];
 		public int ScrapAmount { get; set; }
+		public spawnType SpawnType { get; set; }
 
 		public class RangeItem : Item
 		{
