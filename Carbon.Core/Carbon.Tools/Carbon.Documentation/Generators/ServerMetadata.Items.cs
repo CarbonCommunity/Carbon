@@ -31,7 +31,7 @@ public partial class ServerMetadata
 					{
 						var flagsText = item.Flags.ToString();
 						Builder.AppendLine($"\t<h5 id=\"{item.ShortName}\"><a href=\"{item.Category}#{item.ShortName}\"><Badge type=\"tip\" text=\"#\"/></a> {item.DisplayName} {(flagsText != "0" ? string.Join(' ', flagsText.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => $"<Badge type=\"tip\" text=\"{x}\"/>")) : string.Empty)}</h5> ");
-						Builder.AppendLine($"\t<Badge type=\"info\" text=\"{item.Id}\"/> <Badge type=\"info\" text=\"{item.ShortName}\"/> <Badge type=\"warning\" text=\"x{item.Stack}\"/> <Badge type=\"warning\" text=\"{item.Rarity}\"/>{(item.Hidden ? $" <Badge type=\"danger\" text=\"Hidden\"/>" : string.Empty)}<br>");
+						Builder.AppendLine($"\t<Badge type=\"info\" text=\"{item.Id}\"/> <Badge type=\"info\" text=\"{item.ShortName}\"/> <Badge type=\"warning\" text=\"x{item.Stack}\"/> {(item.Rarity != Structure.Rarity.None ? $"<Badge type=\"warning\" text=\"{item.Rarity}\"/>" : string.Empty)}{(item.Hidden ? $" <Badge type=\"danger\" text=\"Hidden\"/>" : string.Empty)}<br>");
 						Builder.AppendLine($"\t{item.Description}");
 					}
 					Builder.AppendLine($"</td>");

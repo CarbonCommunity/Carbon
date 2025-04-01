@@ -24,6 +24,20 @@ public partial class ServerMetadata
 			}
 			File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "entities", "0Singulars.md"), Builder.ToString());
 		}
+
+		Builder.Clear();
+		Builder.AppendLine($"# All Entities");
+		Builder.AppendLine($"The following list contains information of a total of <Badge type=\"warning\" text=\"{Entities.Count():n0}\"/>\n entities.");
+		Builder.AppendLine();
+		Builder.AppendLine($"---");
+		Builder.AppendLine($"| Entity Type, ID & Path |");
+		Builder.AppendLine($"| --- |");
+		foreach (var prefab in Entities)
+		{
+			Builder.AppendLine($"| <Badge type=\"info\" text=\"{prefab.Type}\"/> <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+		}
+		File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "entities", "0All.md"), Builder.ToString());
+
 		foreach (var entities in groupedEntities)
 		{
 			if (entities.Count() == 1)
