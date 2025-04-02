@@ -31,12 +31,13 @@ public sealed class Generator
 
 		LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "Carbon.Common.dll"));
 		HooksAIResearch.LoadResearch();
-		Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Oxide.dll")), Hooks.Oxide, true);
-		Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Community.dll")), Hooks.Community, false);
-		Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Base.dll")), Hooks.Base, false);
+		//Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Oxide.dll")), Hooks.Oxide, true);
+		//Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Community.dll")), Hooks.Community, false);
+		//Hooks.CollectHooks(LoadAssembly(Path.Combine(Arguments.Carbon, "managed", "hooks", "Carbon.Hooks.Base.dll")), Hooks.Base, false);
 		//Hooks.GenerateHooks();
 		//HooksAIMetadata.Generate();
 		ServerMetadata.Generate();
+		Changelogs.Generate();
 	}
 
 	#region Helpers
