@@ -80,7 +80,6 @@ public class Structure
 
 	public class Blueprint
 	{
-		public Ingredient[] Ingredients { get; set; }
 		public Item Item { get; set; }
 		public bool UserCraftable { get; set; }
 		public Rarity Rarity { get; set; }
@@ -89,6 +88,7 @@ public class Structure
 		public int WorkbenchLevelRequired { get; set; }
 		public bool NeedsSteamItem { get; set; }
 		public bool NeedsSteamDLC { get; set; }
+		public Ingredient[] Ingredients { get; set; }
 
 		public class Ingredient
 		{
