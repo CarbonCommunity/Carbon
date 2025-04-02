@@ -319,15 +319,19 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var log = condition.Split('\n');
 			var result = log[0];
 			Array.Clear(log, 0, log.Length);
-			// _logQueue.Add($"<color={_logColor[type]}>{StringEx.Truncate(result, 105)}</color>");
 			_logQueue.Add(StringEx.Truncate(result, 85));
 		}
-		catch { }
+		catch
+		{
+		}
 	}
 
 	public bool HasAccess(BasePlayer player, string access)
 	{
-		if ((player != null && player.Connection.authLevel == 2)) return true;
+		if ((player != null && player.IsConnected && player.Connection.authLevel == 2))
+		{
+			return true;
+		}
 
 		if (Permissions.UserHasPermission(player.UserIDString, $"adminmodule.{access}"))
 		{
