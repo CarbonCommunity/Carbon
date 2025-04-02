@@ -488,7 +488,7 @@ public struct LuiBuilderInstance : IDisposable
 		                    if (image.imageType != null)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("imageType", image.imageType);
+			                    this.WriteField("imagetype", image.imageType);
 		                    }
 		                    if (image.png != null)
 		                    {
@@ -566,7 +566,7 @@ public struct LuiBuilderInstance : IDisposable
 		                    if (button.imageType != null)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("imageType", button.imageType);
+			                    this.WriteField("imagetype", button.imageType);
 		                    }
 		                    if (button.normalColor != null)
 		                    {
