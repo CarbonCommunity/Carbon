@@ -20,7 +20,7 @@ public partial class ServerMetadata
 			Builder.AppendLine($"| --- |");
 			foreach (var prefab in singularEntities)
 			{
-				Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"info\" text=\"{prefab.Type}\"/> <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+				Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"info\" text=\"{prefab.Type}\"/> <Badge type=\"tip\" text=\"{prefab.ID}\"/> {(string.Join(" ", prefab.Components.Where(x => !x.Equals(prefab.Type)).Select(x => $"<Badge type=\"info\" text=\"{x}\"/>")))} <br> {prefab.Path} |");
 			}
 			File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "entities", "0Singulars.md"), Builder.ToString());
 		}
@@ -39,7 +39,7 @@ public partial class ServerMetadata
 		foreach (var prefab in Entities)
 		{
 			var isSingular = singularEntities.Contains(prefab);
-			Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> {(isSingular ? string.Empty : $"<a href='{prefab.Type}'>")}<Badge type=\"{(isSingular ? "info" : "warning")}\" text=\"{prefab.Type}\"/>{(isSingular ? string.Empty : "</a>")} <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+			Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> {(isSingular ? string.Empty : $"<a href='{prefab.Type}'>")}<Badge type=\"{(isSingular ? "info" : "warning")}\" text=\"{prefab.Type}\"/>{(isSingular ? string.Empty : "</a>")} <Badge type=\"tip\" text=\"{prefab.ID}\"/> {(string.Join(" ", prefab.Components.Where(x => !x.Equals(prefab.Type)).Select(x => $"<Badge type=\"info\" text=\"{x}\"/>")))} <br> {prefab.Path} |");
 		}
 		File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "entities", "0All.md"), Builder.ToString());
 
@@ -59,8 +59,7 @@ public partial class ServerMetadata
 			Builder.AppendLine($"| --- |");
 			foreach (var prefab in entities)
 			{
-				var isSingular = singularEntities.Contains(prefab);
-				Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+				Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"tip\" text=\"{prefab.ID}\"/> {(string.Join(" ", prefab.Components.Where(x => !x.Equals(prefab.Type)).Select(x => $"<Badge type=\"info\" text=\"{x}\"/>")))} <br> {prefab.Path} |");
 			}
 			File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "entities", $"{entities.Key}.md"), Builder.ToString());
 		}

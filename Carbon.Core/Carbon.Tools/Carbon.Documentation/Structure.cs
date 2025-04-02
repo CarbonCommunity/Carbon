@@ -65,17 +65,17 @@ public class Structure
 		public Rarity Rarity { get; set; }
 	}
 
-	public class Entity
+	public class Entity : Prefab
+	{
+	}
+
+	public class Prefab
 	{
 		public string Type { get; set; }
 		public string Path { get; set; }
 		public string Name { get; set; }
+		public string[] Components { get; set; }
 		public uint ID { get; set; }
-	}
-
-	public class Prefab : Entity
-	{
-
 	}
 
 	public class Blueprint
