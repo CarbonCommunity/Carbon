@@ -10,6 +10,7 @@ using Oxide.Game.Rust.Cui;
 using ProtoBuf;
 using UnityEngine.UI;
 using static ConsoleSystem;
+using Exception = System.Exception;
 using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Modules;
@@ -326,7 +327,7 @@ public partial class AdminModule
 							}
 							var displayVendor = plugin.HasNoImage() || plugin.HasInvalidImage();
 							var card = cui.CreateProtectedButton(container, contentPanel, "0.1 0.1 0.1 0.7",
-								Cache.CUI.BlankColor, null, 0, command: $"pluginbrowser.selectplugin \"{plugin.Name}\"", xMin: 0,
+								Cache.CUI.BlankColor, null, 0, command: $"pluginbrowser.selectplugin \"{plugin.File}\"", xMin: 0,
 								xMax: 0, yMin: 1, yMax: 1,
 								OxMin: currentWidth, OxMax: currentWidth + cardWidth,
 								OyMin: -(currentHeight + cardHeight), OyMax: -currentHeight);
@@ -358,14 +359,14 @@ public partial class AdminModule
 
 							if (selectedVendor == LocalInstance && originalPlugin.AvailableOn != null && originalPlugin.AvailableOn.Count > 1)
 							{
-								cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor, "0.75 1 0.5 0.8", originalPlugin.PreferredVendor.ToString().ToUpper().SpacedString(1), 8, font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: 0.83f, yMax: 0.92f, command: $"pluginbrowser.interact 12 \"{plugin.Name}\"");
+								cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor, "0.75 1 0.5 0.8", originalPlugin.PreferredVendor.ToString().ToUpper().SpacedString(1), 8, font: CUI.Handler.FontTypes.RobotoCondensedBold, yMin: 0.83f, yMax: 0.92f, command: $"pluginbrowser.interact 12 \"{plugin.File}\"");
 							}
 
 							var isFavourited = ServerOwner.Singleton.FavouritePlugins.Contains(plugin.Name);
 							var favourite = cui.CreateProtectedButton(container, card, Cache.CUI.BlankColor,
 								Cache.CUI.BlankColor, string.Empty, 0,
 								xMin: 0, xMax: 0, yMin: 1, OxMax: 30, OyMin: -30,
-								command: $"pluginbrowser.interact 10 \"{plugin.Name}\"");
+								command: $"pluginbrowser.interact 10 \"{plugin.File}\"");
 							cui.CreateImage(container, favourite, "top_left",
 								isFavourited ? "0.7 0.2 0.2 0.6" : "0.1 0.1 0.1 0.2");
 							cui.CreateImage(container, favourite, "star",
@@ -2145,8 +2146,8 @@ public partial class AdminModule
 		var tab = Singleton.GetTab(ap.Player);
 		var vendorType = ap.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed);
 		var vendor = PluginsTab.GetVendor(vendorType);
-		var pluginName = args.GetString(1).Replace("\"", string.Empty);
-		var tabPlugin = ap.GetStorage<PluginsTab.Plugin>(tab, "plugin") ?? vendor.FetchedPlugins.FirstOrDefault(x => x.Id.Equals(pluginName) || x.Name.Equals(pluginName));
+		var pluginName = args.Args.Skip(1).ToString(" ").Replace("\"", string.Empty).Trim();
+		var tabPlugin = ap.GetStorage<PluginsTab.Plugin>(tab, "plugin") ?? vendor.FetchedPlugins.FirstOrDefault(x => x.File.Equals(pluginName));
 		var mainTabPlugin = tabPlugin;
 		if (tabPlugin.PreferredVendorPlugin != null)
 		{
@@ -2421,11 +2422,19 @@ public partial class AdminModule
 		var session = Singleton.GetPlayerSession(arg.Player());
 		var tab = session.SelectedTab;
 		var vendor = PluginsTab.GetVendor(session.GetStorage(tab, "vendor", PluginsTab.VendorTypes.Installed));
-		var pluginName = arg.GetString(0).Replace("\"", string.Empty);
-		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.Name.Equals(pluginName, StringComparison.CurrentCultureIgnoreCase) || x.Id.Equals(pluginName, StringComparison.CurrentCultureIgnoreCase));
-		if (plugin.PreferredVendorPlugin != null)
+		var pluginName = arg.FullString.Replace("\"", string.Empty).Trim();
+		var plugin = vendor.FetchedPlugins.FirstOrDefault(x => x.File.Equals(pluginName, StringComparison.CurrentCultureIgnoreCase));
+		try
 		{
-			plugin = plugin.PreferredVendorPlugin;
+			if (plugin.PreferredVendorPlugin != null)
+			{
+				plugin = plugin.PreferredVendorPlugin;
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"Failed {pluginName}", ex);
+			return;
 		}
 		session.SetStorage(tab, "selectedplugin", plugin);
 
@@ -2463,42 +2472,42 @@ public partial class AdminModule
 
 		if (plugin.IsInstalled())
 		{
-			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#b84242", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 2 \"{plugin.Name}\""));
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#b84242", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 2 \"{plugin.File}\""));
 			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#f7a3a3", text: "UNINSTALL", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "trashcan", "#f7a3a3"));
 			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.WhiteColor));
 
-			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", "#b84242", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 \"{plugin.Name}\""));
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", "#b84242", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 \"{plugin.File}\""));
 			update.Add(cui.UpdateText("selectedplugin_b2_txt", "#f7a3a3", text: "UNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b2_icn", "installed", "#f7a3a3"));
 			update.Add(cui.UpdateImage("selectedplugin_b2_fade", "fade", Cache.CUI.WhiteColor));
 
-			update.Add(cui.UpdateProtectedButton("selectedplugin_b3", "0.2 0.2 0.2 0.8", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 3 \"{plugin.Name}\""));
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b3", "0.2 0.2 0.2 0.8", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 3 \"{plugin.File}\""));
 			update.Add(cui.UpdateText("selectedplugin_b3_txt", "0.8 0.8 0.8 0.8", text: "CONFIG", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b3_icn", "file", "0.8 0.8 0.8 0.8"));
 			update.Add(cui.UpdateImage("selectedplugin_b3_fade", "fade", Cache.CUI.WhiteColor));
 
-			update.Add(cui.UpdateProtectedButton("selectedplugin_b4", "0.2 0.2 0.2 0.8", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 5 \"{plugin.Name}\""));
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b4", "0.2 0.2 0.2 0.8", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 5 \"{plugin.File}\""));
 			update.Add(cui.UpdateText("selectedplugin_b4_txt", "0.8 0.8 0.8 0.8", text: "LANG", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b4_icn", "translate", "0.8 0.8 0.8 0.8"));
 			update.Add(cui.UpdateImage("selectedplugin_b4_fade", "fade", Cache.CUI.WhiteColor));
 
 			var isOutdated = !plugin.IsUpToDate();
-			update.Add(cui.UpdateProtectedButton("selectedplugin_b5", $"0.2 0.2 0.2 {(isOutdated ? 0.8f : 0.2f)}", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: isOutdated ? $"pluginbrowser.interact 1 \"{plugin.Name}\"" : string.Empty));
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b5", $"0.2 0.2 0.2 {(isOutdated ? 0.8f : 0.2f)}", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: isOutdated ? $"pluginbrowser.interact 1 \"{plugin.File}\"" : string.Empty));
 			update.Add(cui.UpdateText("selectedplugin_b5_txt", "0.8 0.8 0.8 0.8", text: "UPDATE", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b5_icn", "clouddl", "0.8 0.8 0.8 0.8"));
 			update.Add(cui.UpdateImage("selectedplugin_b5_fade", "fade", Cache.CUI.WhiteColor));
 		}
 		else
 		{
-			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 0 \"{plugin.Name}\""));
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 0 \"{plugin.File}\""));
 			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#d9f7a3", text: "DOWNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "clouddl", "#d9f7a3"));
 			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.BlankColor));
 
 			var isLoadable = !string.IsNullOrEmpty(CorePlugin.GetPluginPath(Path.GetFileNameWithoutExtension(plugin.File)).Value);
 
-			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", !isLoadable ? CUI.HexToRustColor("#8db842", 0.4f) : "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 \"{plugin.Name}\""));
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b2", !isLoadable ? CUI.HexToRustColor("#8db842", 0.4f) : "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 11 \"{plugin.File}\""));
 			update.Add(cui.UpdateText("selectedplugin_b2_txt", "#d9f7a3", text: "LOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b2_icn", "installed", "#d9f7a3"));
 			update.Add(cui.UpdateImage("selectedplugin_b2_fade", "fade", Cache.CUI.WhiteColor));
