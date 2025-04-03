@@ -316,23 +316,28 @@ public static class LUIBuilder
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static int WriteIntDigits(int value, Span<char> buffer)
-	{
-		if (value == 0)
-		{
-			buffer[0] = zero;
-			return 1;
-		}
-		int index = 0;
-		while (value > 0)
-		{
-			buffer[index++] = (char)(zero + (value % 10));
-			value /= 10;
-		}
-		for (int i = 0, j = index - 1; i < j; i++, j--)
-			(buffer[i], buffer[j]) = (buffer[j], buffer[i]);
-		return index;
-	}
+    private static int WriteIntDigits(int value, Span<char> buffer)
+    {
+        if (value == 0)
+        {
+            buffer[0] = zero;
+            return 1;
+        }
+        int index = 0;
+        bool isBelow = value < 0;
+        if (isBelow)
+            value = -value;
+        while (value > 0)
+        {
+            buffer[index++] = (char)(zero + (value % 10));
+            value /= 10;
+        }
+        if (isBelow)
+            buffer[index++] = minus;
+        for (int i = 0, j = index - 1; i < j; i++, j--)
+            (buffer[i], buffer[j]) = (buffer[j], buffer[i]);
+        return index;
+    }
 
 	#endregion
 }
