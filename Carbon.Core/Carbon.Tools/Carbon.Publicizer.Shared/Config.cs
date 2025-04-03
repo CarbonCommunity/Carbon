@@ -68,6 +68,7 @@ public class Config
 		Singleton.ForceEnsurePublicizedAssembly("Facepunch.Console.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Facepunch.Network.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Facepunch.Nexus.dll");
+		Singleton.ForceEnsurePublicizedAssembly("Facepunch.Ping.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.Clans.Local.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.FileSystem.dll");
 		Singleton.ForceEnsurePublicizedAssembly("Rust.Harmony.dll");

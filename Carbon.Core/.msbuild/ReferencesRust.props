@@ -13,7 +13,6 @@
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.Unity.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Facepunch.UnityEngine.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Fleck.dll" Private="false" />
-		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Mono.Data.Sqlite.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Newtonsoft.Json.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Data.dll" Private="false" />
 		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\Rust.Global.dll" Private="false" />

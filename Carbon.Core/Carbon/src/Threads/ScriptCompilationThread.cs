@@ -15,6 +15,7 @@ using Carbon.Core;
 using Carbon.Extensions;
 using Carbon.Pooling;
 using Carbon.Profiler;
+using Facepunch;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -181,7 +182,10 @@ public class ScriptCompilationThread : BaseThreadedJob
 		else
 		{
 			var raw = Community.Runtime.AssemblyEx.Read(name, _libraryDirectories);
-			if (raw == null) return;
+			if (raw == null)
+			{
+				return;
+			}
 
 			using var mem = new MemoryStream(raw);
 			var processedReference = MetadataReference.CreateFromStream(mem);
@@ -279,6 +283,7 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 		}
 
+		var missingReferences = Pool.Get<List<string>>();
 		foreach (var reference in References)
 		{
 			try
@@ -308,6 +313,8 @@ public class ScriptCompilationThread : BaseThreadedJob
 					_injectReference(reference, managedFile, references, _libraryDirectories);
 					continue;
 				}
+
+				missingReferences.Add(reference);
 			}
 			catch (Exception exception)
 			{
@@ -315,6 +322,19 @@ public class ScriptCompilationThread : BaseThreadedJob
 			}
 		}
 
+		if (missingReferences.Count > 0)
+		{
+			Logger.Error($"Failed compiling '{InitialSource.ContextFileName}':");
+			foreach (var reference in missingReferences)
+			{
+				Logger.Warn($" Couldn't find reference '{reference}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
+			}
+			IsDone = true;
+			Pool.FreeUnmanaged(ref missingReferences);
+			return;
+		}
+
+		Pool.FreeUnmanaged(ref missingReferences);
 		base.Start();
 	}
 	public override void ThreadFunction()
