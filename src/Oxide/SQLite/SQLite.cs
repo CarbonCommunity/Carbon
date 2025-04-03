@@ -219,7 +219,7 @@ public class SQLite : Library, IDatabaseProvider
 			throw new Exception("Only access to Carbon directory!");
 		}
 
-		string conStr = $"Data Source={filename};";
+		string conStr = $"Data Source={filename};Version=3;";
 		Connection connection;
 		if (_connections.TryGetValue(conStr, out connection))
 		{
