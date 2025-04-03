@@ -5,42 +5,62 @@ public class Copy : Executor
 	public override string? Name => "Copy";
 
 	[Expose("Copies an entire folder and its subdirectories to a destination")]
-	public void Folder(string source, string destination, bool overwrite = true)
+	public void Folder(string source, string destination, bool overwrite = true, bool optional = false)
 	{
-		if (!Directory.Exists(source))
+		try
 		{
-			Error($"Could not find source folder: {source}");
-			return;
+			if (!Directory.Exists(source))
+			{
+				Error($"Could not find source folder: {source}");
+				return;
+			}
+
+			var folderInfo = new DirectoryInfo(source);
+			var folders = folderInfo.GetDirectories();
+			Directory.CreateDirectory(destination);
+
+			var files = folderInfo.GetFiles();
+			foreach (var file in files)
+			{
+				var tempPath = InternalRunner.Path(destination, file.Name);
+				file.CopyTo(tempPath, overwrite);
+				Log($"Copied file: {file.Name}");
+			}
+
+			foreach (var subDirectory in folders)
+			{
+				var tempPath = InternalRunner.Path(destination, subDirectory.Name);
+				Folder(subDirectory.FullName, tempPath, overwrite);
+				Log($"Copied folder: {subDirectory.Name}");
+			}
 		}
-
-		var folderInfo = new DirectoryInfo(source);
-		var folders = folderInfo.GetDirectories();
-		Directory.CreateDirectory(destination);
-
-		var files = folderInfo.GetFiles();
-		foreach (var file in files)
+		catch (Exception e)
 		{
-			var tempPath = InternalRunner.Path(destination, file.Name);
-			file.CopyTo(tempPath, overwrite);
-			Log($"Copied file: {file.Name}");
-		}
-
-		foreach (var subDirectory in folders)
-		{
-			var tempPath = InternalRunner.Path(destination, subDirectory.Name);
-			Folder(subDirectory.FullName, tempPath, overwrite);
-			Log($"Copied folder: {subDirectory.Name}");
+			if (!optional)
+			{
+				Error($"Failed Copy.Folder: {e.Message}");
+			}
 		}
 	}
 
 	[Expose("Copies a specific file to a destination")]
-	public void File(string source, string destination, bool overwrite = true)
+	public void File(string source, string destination, bool overwrite = true, bool optional = false)
 	{
-		if (!System.IO.File.Exists(source))
+		try
 		{
-			Error($"Could not find source file: {source}");
-			return;
+			if (!System.IO.File.Exists(source))
+			{
+				Error($"Could not find source file: {source}");
+				return;
+			}
+			System.IO.File.Copy(source, destination, overwrite);
 		}
-		System.IO.File.Copy(source, destination, overwrite);
+		catch (Exception e)
+		{
+			if (!optional)
+			{
+				Error($"Failed Copy.File: {e.Message}");
+			}
+		}
 	}
 }
