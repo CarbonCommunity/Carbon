@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using Microsoft.Data.Sqlite;
+using Mono.Data.Sqlite;
 using Logger = Carbon.Logger;
 
 namespace Oxide.Core.SQLite.Libraries;
@@ -219,7 +219,7 @@ public class SQLite : Library, IDatabaseProvider
 			throw new Exception("Only access to Carbon directory!");
 		}
 
-		string conStr = $"Data Source={filename};Version=3;";
+		string conStr = $"Data Source={filename};";
 		Connection connection;
 		if (_connections.TryGetValue(conStr, out connection))
 		{
