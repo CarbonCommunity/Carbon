@@ -65,22 +65,21 @@ public class Structure
 		public Rarity Rarity { get; set; }
 	}
 
-	public class Entity
+	public class Entity : Prefab
+	{
+	}
+
+	public class Prefab
 	{
 		public string Type { get; set; }
 		public string Path { get; set; }
 		public string Name { get; set; }
+		public string[] Components { get; set; }
 		public uint ID { get; set; }
-	}
-
-	public class Prefab : Entity
-	{
-
 	}
 
 	public class Blueprint
 	{
-		public Ingredient[] Ingredients { get; set; }
 		public Item Item { get; set; }
 		public bool UserCraftable { get; set; }
 		public Rarity Rarity { get; set; }
@@ -89,6 +88,7 @@ public class Structure
 		public int WorkbenchLevelRequired { get; set; }
 		public bool NeedsSteamItem { get; set; }
 		public bool NeedsSteamDLC { get; set; }
+		public Ingredient[] Ingredients { get; set; }
 
 		public class Ingredient
 		{

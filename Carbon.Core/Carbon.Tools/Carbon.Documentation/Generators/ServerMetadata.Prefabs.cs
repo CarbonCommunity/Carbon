@@ -90,7 +90,7 @@ public partial class ServerMetadata
 		Builder.AppendLine($"| --- |");
 		foreach (var prefab in Prefabs)
 		{
-			Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"info\" text=\"{(Categories.FirstOrDefault(c => prefab.Path.StartsWith(c.Value, StringComparison.CurrentCultureIgnoreCase)).Key ?? "Other")}\"/> <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+			Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"info\" text=\"{(Categories.FirstOrDefault(c => prefab.Path.StartsWith(c.Value, StringComparison.CurrentCultureIgnoreCase)).Key ?? "Other")}\"/> <Badge type=\"tip\" text=\"{prefab.ID}\"/> {(string.Join(" ", prefab.Components.Select(x => $"<Badge type=\"info\" text=\"{x}\"/>")))} <br> {prefab.Path} |");
 		}
 		File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "prefabs", "0All.md"), Builder.ToString());
 
@@ -110,7 +110,7 @@ public partial class ServerMetadata
 			Builder.AppendLine($"| --- |");
 			foreach (var prefab in entities)
 			{
-				Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"tip\" text=\"{prefab.ID}\"/> <br> {prefab.Path} |");
+				Builder.AppendLine($"| <a href=\"#{prefab.ID}\"><Badge id=\"{prefab.ID}\" type=\"tip\" text=\"#\"/></a> <Badge type=\"tip\" text=\"{prefab.ID}\"/> {(string.Join(" ", prefab.Components.Select(x => $"<Badge type=\"info\" text=\"{x}\"/>")))} <br> {prefab.Path} |");
 			}
 			File.WriteAllText(Path.Combine(Generator.Arguments.Docs, "references", "prefabs", $"{entities.Key}.md"), Builder.ToString());
 		}
