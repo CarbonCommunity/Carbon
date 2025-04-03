@@ -331,7 +331,7 @@ public readonly struct CUI : IDisposable
 
 	public class Handler
 	{
-		internal string Identifier { get; } = RandomEx.GetRandomString(4);
+		internal string Identifier { get; set; } = RandomEx.GetRandomString(4);
 
 		public Cache CacheInstance = new();
 		public int Pooled => _containerPool.Count + _elements.Count + _images.Count + _rawImages.Count + _texts.Count + _buttons.Count + _inputFields.Count + _rects.Count + _needsCursors.Count + _needsKeyboards.Count;
@@ -432,6 +432,7 @@ public readonly struct CUI : IDisposable
 			}
 
 			_queue.Clear();
+			Identifier = RandomEx.GetRandomString(4);
 			_currentId = 0;
 		}
 
