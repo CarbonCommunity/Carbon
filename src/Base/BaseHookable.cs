@@ -239,7 +239,10 @@ public class BaseHookable
 		if (_harmonyInstanceCache.TryGetValue(order, out var instance))
 		{
 			var count = instance.GetPatchedMethods()?.Count();
-			instance.UnpatchAll(GetHarmonyId(order));
+			if (count > 0)
+			{
+				instance.UnpatchAll(GetHarmonyId(order));
+			}
 			_harmonyInstanceCache.Remove(order);
 			return count.GetValueOrDefault();
 		}
@@ -252,7 +255,7 @@ public class BaseHookable
 		var instance = GetHarmonyInstance(order);
 		if (instance != null)
 		{
-			return false;
+			return true;
 		}
 
 		instance = GetHarmonyInstance(order, true);

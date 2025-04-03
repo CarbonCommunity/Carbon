@@ -67,7 +67,7 @@ public class MySql : Library, IDatabaseProvider
 		if (dictionary.TryGetValue(conStr, out var connection))
 		{
 			DbConnection con = connection.Con;
-			Logger.Warn($"Already open connection ({con?.ConnectionString}), using existing instead...");
+			Logger.Warn($"Already open connection for MySQL, using existing instead...");
 		}
 		else
 		{

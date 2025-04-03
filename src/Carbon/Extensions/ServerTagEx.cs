@@ -6,16 +6,18 @@ public static class ServerTagEx
 	{
 		var tags = Steamworks.SteamServer.GameTags;
 
-		if (compact)
+		if (tags.Contains($",{tag}"))
 		{
-			if (tags.Contains(tag)) return;
-			var indexOf = tags.IndexOf('^');
-
-			Steamworks.SteamServer.GameTags = indexOf > 0 ? tags.Insert(indexOf, tag) : $"{tags}{(tags.EndsWith(",") ? string.Empty : ",")}{tag}";
 			return;
 		}
 
-		if (tags.Contains($",{tag}")) return;
+		if (compact)
+		{
+			var indexOf = tags.IndexOf('^');
+			Steamworks.SteamServer.GameTags = indexOf > 0 ? tags.Insert(indexOf, tag + ",") : $"{tags}{(tags.EndsWith(",") ? string.Empty : ",")}{tag}";
+			return;
+		}
+
 
 		Steamworks.SteamServer.GameTags = $"{tags},{tag}";
 	}

@@ -272,11 +272,13 @@ public static class LUIBuilder
 			value = -value;
 		}
 		int intPart = (int)value;
-		index += WriteIntDigits(intPart, buffer.Slice(index));
-		buffer[index++] = dot;
 		float fractional = value - intPart;
 		long factor = _pow10[precision];
 		long fracAsInt = (long)(fractional * factor + 0.5f);
+		if (fracAsInt == _pow10[precision])
+			intPart++;
+		index += WriteIntDigits(intPart, buffer[index..]);
+		buffer[index++] = dot;
 		int fracStart = index;
 		for (int i = 0; i < precision; i++)
 		{
@@ -314,23 +316,28 @@ public static class LUIBuilder
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static int WriteIntDigits(int value, Span<char> buffer)
-	{
-		if (value == 0)
-		{
-			buffer[0] = zero;
-			return 1;
-		}
-		int index = 0;
-		while (value > 0)
-		{
-			buffer[index++] = (char)(zero + (value % 10));
-			value /= 10;
-		}
-		for (int i = 0, j = index - 1; i < j; i++, j--)
-			(buffer[i], buffer[j]) = (buffer[j], buffer[i]);
-		return index;
-	}
+    private static int WriteIntDigits(int value, Span<char> buffer)
+    {
+        if (value == 0)
+        {
+            buffer[0] = zero;
+            return 1;
+        }
+        int index = 0;
+        bool isBelow = value < 0;
+        if (isBelow)
+            value = -value;
+        while (value > 0)
+        {
+            buffer[index++] = (char)(zero + (value % 10));
+            value /= 10;
+        }
+        if (isBelow)
+            buffer[index++] = minus;
+        for (int i = 0, j = index - 1; i < j; i++, j--)
+            (buffer[i], buffer[j]) = (buffer[j], buffer[i]);
+        return index;
+    }
 
 	#endregion
 }
@@ -486,9 +493,9 @@ public struct LuiBuilderInstance : IDisposable
 		                    if (image.imageType != null)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("imageType", image.imageType);
+			                    this.WriteField("imagetype", image.imageType);
 		                    }
-		                    if (image.png != 0)
+		                    if (image.png != null)
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("png", image.png);
@@ -564,7 +571,7 @@ public struct LuiBuilderInstance : IDisposable
 		                    if (button.imageType != null)
 		                    {
 			                    this.WriteComma();
-			                    this.WriteField("imageType", button.imageType);
+			                    this.WriteField("imagetype", button.imageType);
 		                    }
 		                    if (button.normalColor != null)
 		                    {
@@ -689,6 +696,9 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("autofocus", true);
 		                    }
+		                    break;
+	                    case LuiCompType.NeedsCursor:
+		                    found++;
 		                    break;
                         case LuiCompType.RectTransform:
 	                        LuiRectTransformComp rect = component as LuiRectTransformComp;
@@ -836,6 +846,9 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("filter", slot.filter);
 		                    }
+		                    break;
+	                    case LuiCompType.NeedsKeyboard:
+		                    found++;
 		                    break;
 	                    case LuiCompType.ScrollView:
 		                    LuiScrollComp scroll = component as LuiScrollComp;
