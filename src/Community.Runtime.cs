@@ -93,6 +93,10 @@ public partial class Community
 		if (_protectCommands.TryGetValue(command, out string cmdPrefix))
 			return _protectMap[name] = $"{cmdPrefix} {arguments}".TrimEnd();
 		else
-			return _protectCommands[command] = $"carbonprotecc_{RandomEx.GetRandomString(command.Length, command + RuntimeId)}".TrimEnd();
+		{
+			_protectCommands[command] = $"carbonprotecc_{RandomEx.GetRandomString(command.Length, command + RuntimeId)}".TrimEnd();
+			return _protectMap[name] = $"{_protectCommands[command]} {arguments}".TrimEnd();
+		}
+
 	}
 }
