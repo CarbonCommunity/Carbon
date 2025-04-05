@@ -3,15 +3,6 @@ concurrency: build-preview
 
 on:
   workflow_dispatch:
-    inputs:
-      staging:
-        description: "Staging Branch"
-        required: false
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
 
 jobs:
   build:
