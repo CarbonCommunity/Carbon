@@ -195,6 +195,7 @@ public class HookCallerInternal : HookCallerCommon
 							if (currentResult != null)
 							{
 								HookCaller.ResultOverride(conflicts, hookable, hookId, result = currentResult);
+								break;
 							}
 						}
 					}

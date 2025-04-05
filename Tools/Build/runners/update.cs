@@ -25,7 +25,8 @@ void DownloadRustFiles(string platform)
 }
 
 DotNet.Run("run", "--project", PathEnquotes(Home, "Carbon.Core", "Carbon.Tools", "Carbon.Generator"),
-	"--plugininput", PathEnquotes(Home, "Carbon.Core", "Carbon.Components", "Carbon.Common", "src", "Carbon", "CorePlugin"));
+				  "--plugininput", PathEnquotes(Home, "Carbon.Core", "Carbon.Components", "Carbon.Common", "src", "Carbon", "CorePlugin"),
+				  "--rust", PathEnquotes(Home, "Rust", "windows", "RustDedicated_Data", "Managed"));
 
 var modules = new System.Collections.Generic.List<string>();
 modules.AddRange(Directories.Get(Path(Home, "Carbon.Core", "Carbon.Components", "Carbon.Common", "src", "Carbon", "Modules")));
@@ -35,4 +36,5 @@ var modulePaths = string.Join(";", modules);
 DotNet.Run("run", "--project", PathEnquotes(Home, "Carbon.Core", "Carbon.Tools", "Carbon.Generator"),
 	"--plugininput", $"\"{modulePaths}\"",
 	"--pluginnamespace", "Carbon.Modules",
-	"--basename", "module");
+	"--basename", "module",
+	"--rust", PathEnquotes(Home, "Rust", "windows", "RustDedicated_Data", "Managed"));
