@@ -59,6 +59,10 @@ public class ComponentConverter : JsonConverter
 				type = typeof(CuiRectTransformComponent);
 				break;
 
+			case "UnityEngine.UI.ScrollView":
+				type = typeof(CuiScrollViewComponent);
+				break;
+
 			default:
 				return null;
 		}
@@ -426,44 +430,35 @@ public class CuiScrollViewComponent : ICuiComponent
 	public string Type => "UnityEngine.UI.ScrollView";
 
 	[JsonProperty("vertical")]
-	public bool Vertical { get; set; } = true;
+	public bool Vertical { get; set; }
 
 	[JsonProperty("horizontal")]
-	public bool Horizontal { get; set; } = true;
+	public bool Horizontal { get; set; }
 
-	[JsonConverter(typeof(StringEnumConverter))]
 	[JsonProperty("movementType")]
-	public ScrollRect.MovementType MovementType { get; set; } = ScrollRect.MovementType.Elastic;
+	[JsonConverter(typeof(StringEnumConverter))]
+	public ScrollRect.MovementType MovementType { get; set; }
 
 	[JsonProperty("elasticity")]
-	public float Elasticity { get; set; } = 0.25f;
+	public float Elasticity { get; set; }
 
 	[JsonProperty("inertia")]
-	public bool Inertia { get; set; } = true;
+	public bool Inertia { get; set; }
 
 	[JsonProperty("decelerationRate")]
-	public float DecelerationRate { get; set; } = 0.3f;
+	public float DecelerationRate { get; set; }
 
 	[JsonProperty("scrollSensitivity")]
-	public float ScrollSensitivity { get; set; } = 3.0f;
-
-	[JsonProperty("maskSoftness")]
-	public string MaskSoftness { get; set; } = "0 0";
+	public float ScrollSensitivity { get; set; }
 
 	[JsonProperty("contentTransform")]
-	public CuiRectTransform ContentTransform { get; set; } = new()
-	{
-		AnchorMin = "0 0",
-		AnchorMax = "1 1",
-		OffsetMin = "0 -200",
-		OffsetMax = "0 0"
-	};
+	public CuiRectTransform ContentTransform { get; set; }
 
 	[JsonProperty("horizontalScrollbar")]
-	public CuiScrollbar HorizontalScrollbar { get; set; } = new();
+	public CuiScrollbar HorizontalScrollbar { get; set; }
 
 	[JsonProperty("verticalScrollbar")]
-	public CuiScrollbar VerticalScrollbar { get; set; } = new();
+	public CuiScrollbar VerticalScrollbar { get; set; }
 }
 public class CuiScrollbar : ICuiComponent
 {

@@ -6,13 +6,15 @@
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
+
+	<Import Project="..\..\Carbon.Tools\Carbon.Generator.Shared\Carbon.Generator.Shared.projitems" Label="Shared" />
 	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
 		<PackageReference Include="MySql.Data" Version="8.0.32.1" />
-		<PackageReference Include="protobuf-net.Core" Version="3.2.30" />
-		<PackageReference Include="protobuf-net" Version="3.2.30" />
+		<PackageReference Include="protobuf-net.Core" Version="3.2.46" />
+		<PackageReference Include="protobuf-net" Version="3.2.46" />
 		<PackageReference Include="QRCoder" Version="1.6.0" />
 		<PackageReference Include="System.Data.SQLite" Version="1.0.118" />
 		<PackageReference Include="System.IO.Compression" Version="4.3.0" />
@@ -58,7 +60,7 @@
 		</When>
 	</Choose>
 
-	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec">
+	<Target Name="GitMetadata" AfterTargets="_GenerateRestoreProjectSpec" Condition="Exists('$(SolutionDir).tmp\.gitbranch')">
 		<WriteLinesToFile File="$(MSBuildProjectDirectory)\src\Carbon\Build.cs" Overwrite="true" Lines="$(BuildMetadataCode)" />
 	</Target>
 

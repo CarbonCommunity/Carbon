@@ -1,4 +1,4 @@
-﻿public static class SteamEx
+﻿public static class GlobalEx
 {
 	public static bool IsSteamId(this string id)
 	{
@@ -10,8 +10,9 @@
 		return id > 76561197960265728UL;
 	}
 
-	public static bool IsSteamId(this BasePlayer.EncryptedValue<ulong> id)
+	[Obsolete("This method is deprecated! Use effect.Clear() instead.")]
+	public static void Clear(this Effect effect, bool _)
 	{
-		return id > 76561197960265728UL;
+		effect.Clear();
 	}
 }

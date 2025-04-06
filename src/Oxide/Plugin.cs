@@ -102,9 +102,14 @@ public class Plugin : BaseHookable, IDisposable
 
 		TrackInit();
 
+		if (!ApplyOrderedPatches(AutoPatchAttribute.Orders.AfterPluginInit))
+		{
+			return false;
+		}
+
 		return true;
 	}
-	internal virtual void ILoad()
+	internal virtual bool ILoad()
 	{
 		using (TimeMeasure.New($"Load on '{ToPrettyString()}'"))
 		{
@@ -130,6 +135,13 @@ public class Plugin : BaseHookable, IDisposable
 		}
 
 		Load();
+
+		if (!ApplyOrderedPatches(AutoPatchAttribute.Orders.AfterPluginLoad))
+		{
+			return false;
+		}
+
+		return true;
 	}
 	public virtual void Load()
 	{

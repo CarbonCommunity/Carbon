@@ -378,8 +378,8 @@ public class Command : Library
 
 					result = arguments.ToArray();
 
-					// OnConsoleCommand
-					if (HookCaller.CallStaticHook(39952195, arg) == null)
+					// OnConsoleCommand / OnServerCommand
+					if (HookCaller.CallStaticHook(39952195, arg) == null && HookCaller.CallStaticHook(2535152661, arg) == null)
 					{
 						methodInfo?.Invoke(plugin, result);
 
@@ -425,8 +425,8 @@ public class Command : Library
 				arguments.Add(arg);
 				result = arguments.ToArray();
 
-				// OnConsoleCommand
-				if (HookCaller.CallStaticHook(39952195, arg) == null)
+				// OnConsoleCommand / OnServerCommand
+				if (HookCaller.CallStaticHook(39952195, arg) == null && HookCaller.CallStaticHook(2535152661, arg) == null)
 				{
 					callback.Invoke(arg);
 

@@ -63,14 +63,25 @@ public partial class CorePlugin
 				var phrase = core.lang.GetMessage("unknown_chat_cmd_2", core, player.UserIDString);
 				var sep1 = core.lang.GetMessage("unknown_chat_cmd_separator_1", core, player.UserIDString);
 				var sep2 = core.lang.GetMessage("unknown_chat_cmd_separator_2", core, player.UserIDString);
+				var textMessage = string.Format(phrase, message, result.Select(x => $"{prefix.Value}{x.Result}").ToString(sep1, sep2));
 
-				player.ChatMessage(string.Format(phrase, message, result.Select(x => $"{prefix.Value}{x.Result}").ToString(sep1, sep2)));
+#if !MINIMAL
+				player.SendConsoleCommand("chat.add", 2, Community.Runtime.Core.DefaultServerChatId, textMessage);
+#else
+				player.ChatMessage(textMessage);
+#endif
 			}
 			else
 			{
 				var core = Community.Runtime.Core;
 				var phrase = core.lang.GetMessage("unknown_chat_cmd_1", core, player.UserIDString);
-				player.ChatMessage(string.Format(phrase, message));
+				var textMessage = string.Format(phrase, message);
+
+#if !MINIMAL
+				player.SendConsoleCommand("chat.add", 2, Community.Runtime.Core.DefaultServerChatId, textMessage);
+#else
+				player.ChatMessage(textMessage);
+#endif
 			}
 		}
 		catch (Exception ex) { Logger.Error($"Failed IOnPlayerCommand.", ex); }

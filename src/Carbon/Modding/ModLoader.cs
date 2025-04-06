@@ -1,5 +1,6 @@
 ﻿using API.Events;
 using Carbon.Profiler;
+using Facepunch;
 using Newtonsoft.Json;
 
 namespace Carbon.Core;
@@ -58,7 +59,10 @@ public static partial class ModLoader
 
 	public static List<string> GetRequirees(Plugin initial)
 	{
-		if (string.IsNullOrEmpty(initial.FilePath)) return null;
+		if (string.IsNullOrEmpty(initial.FilePath))
+		{
+			return null;
+		}
 
 		if (PendingRequirees.TryGetValue(initial.FilePath, out var requirees))
 		{
@@ -72,7 +76,7 @@ public static partial class ModLoader
 	{
 		if (!PendingRequirees.TryGetValue(initial, out var requirees))
 		{
-			PendingRequirees.Add(initial, requirees = new List<string>(20));
+			PendingRequirees.Add(initial, requirees = Pool.Get<List<string>>());
 		}
 
 		if (!requirees.Contains(requiree))
@@ -105,18 +109,12 @@ public static partial class ModLoader
 	}
 	public static void ClearAllRequirees()
 	{
-		var requirees = new Dictionary<string, List<string>>();
-		foreach (var requiree in PendingRequirees) requirees.Add(requiree.Key, requiree.Value);
-
-		foreach (var requiree in requirees)
+		foreach (var requiree in PendingRequirees)
 		{
-			requiree.Value.Clear();
-			PendingRequirees[requiree.Key] = null;
+			var self = requiree.Value;
+			Pool.FreeUnmanaged(ref self);
 		}
-
 		PendingRequirees.Clear();
-		requirees.Clear();
-		requirees = null;
 	}
 	public static void ClearAllErrored()
 	{
@@ -277,7 +275,7 @@ public static partial class ModLoader
 		plugin.ILoadConfig();
 		plugin.ILoadDefaultMessages();
 
-		if (!plugin.IInit())
+		if (!plugin.IInit() || !plugin.ILoad())
 		{
 			if (UninitializePlugin(plugin, true))
 			{
@@ -285,9 +283,6 @@ public static partial class ModLoader
 				return false;
 			}
 		}
-
-		plugin.IProcessPatches();
-		plugin.ILoad();
 
 		if (!plugin.ManualCommands)
 		{
@@ -311,7 +306,10 @@ public static partial class ModLoader
 			return true;
 		}
 
-		plugin.IProcessUnpatches();
+		plugin.UnapplyOrderedPatches(AutoPatchAttribute.Orders.Delayed);
+		plugin.UnapplyOrderedPatches(AutoPatchAttribute.Orders.AfterOnServerInitialized);
+		plugin.UnapplyOrderedPatches(AutoPatchAttribute.Orders.AfterPluginLoad);
+		plugin.UnapplyOrderedPatches(AutoPatchAttribute.Orders.AfterPluginInit);
 
 		if (unloadDependantPlugins)
 		{
@@ -673,14 +671,19 @@ public static partial class ModLoader
 			{
 				Logger.Error($"Failed applying PluginReferences for '{plugin.ToPrettyString()}'", exception);
 			}
-		}
 
-		foreach (var plugin in plugins.Where(plugin => !plugin.HasInitialized))
-		{
-			counter++;
+			if (!plugin.HasInitialized)
+			{
+				counter++;
 
-			plugin.HasInitialized = true;
-			plugin.CallHook("OnServerInitialized", FirstLoadSinceStartup);
+				plugin.HasInitialized = true;
+				plugin.CallHook("OnServerInitialized", FirstLoadSinceStartup);
+
+				if (!plugin.ApplyOrderedPatches(AutoPatchAttribute.Orders.AfterOnServerInitialized))
+				{
+					UninitializePlugin(plugin);
+				}
+			}
 		}
 
 		FirstLoadSinceStartup = false;

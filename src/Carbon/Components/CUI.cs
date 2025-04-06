@@ -12,6 +12,9 @@ namespace Carbon.Components;
 public readonly struct CUI : IDisposable
 {
 	public Handler Manager { get; }
+
+	public LUI v2 { get; }
+
 	public ImageDatabaseModule ImageDatabase { get; }
 	public Handler.Cache CacheInstance => Manager.CacheInstance;
 
@@ -26,7 +29,14 @@ public readonly struct CUI : IDisposable
 		Hud,
 		HudMenu,
 		Under,
-		UnderNonScaled
+		UnderNonScaled,
+		Inventory,
+		TechTree,
+		Crafting,
+		Contacts,
+		Clans,
+		Map
+
 	}
 
 	/// <summary>
@@ -42,6 +52,12 @@ public readonly struct CUI : IDisposable
 			ClientPanels.HudMenu => "Hud.Menu",
 			ClientPanels.Under => "Under",
 			ClientPanels.UnderNonScaled => "UnderNonScaled",
+			ClientPanels.Inventory => "Inventory",
+			ClientPanels.TechTree => "TechTree",
+			ClientPanels.Crafting => "Crafting",
+			ClientPanels.Contacts => "Contacts",
+			ClientPanels.Clans => "Clans",
+			ClientPanels.Map => "Map",
 			_ => "Overlay",
 		};
 	}
@@ -49,6 +65,7 @@ public readonly struct CUI : IDisposable
 	public CUI(Handler manager)
 	{
 		Manager = manager;
+		v2 = new LUI(this);
 		ImageDatabase = BaseModule.GetModule<ImageDatabaseModule>();
 	}
 
@@ -87,10 +104,10 @@ public readonly struct CUI : IDisposable
 		}
 
 		var rect = Manager.TakeFromPoolRect();
-		rect.AnchorMin = $"{xMin} {yMin}";
-		rect.AnchorMax = $"{xMax} {yMax}";
-		rect.OffsetMin = $"{OxMin} {OyMin}";
-		rect.OffsetMax = $"{OxMax} {OyMax}";
+		rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+		rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+		rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+		rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 		element.Components.Add(rect);
 
 		if (needsCursor) element.Components.Add(Manager.TakeFromPoolNeedsCursor());
@@ -174,19 +191,18 @@ public readonly struct CUI : IDisposable
 	{
 		return Manager.Countdown(container, parent, startTime, endTime, step, command, fadeIn, fadeOut, id, destroyUi, update);
 	}
-	public Pair<string, CuiElement> CreateScrollView(CuiElementContainer container, string parent,bool vertical, bool horizontal, ScrollRect.MovementType movementType, float elasticity, bool inertia, float decelerationRate, float scrollSensitivity, string maskSoftness, out CuiRectTransform contentTransformComponent, out CuiScrollbar horizontalScrollBar, out CuiScrollbar verticalScrollBar, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string id = null, string destroyUi = null, bool update = false)
+	public Pair<string, CuiElement> CreateScrollView(CuiElementContainer container, string parent,bool vertical, bool horizontal, ScrollRect.MovementType movementType, float elasticity, bool inertia, float decelerationRate, float scrollSensitivity, out CuiRectTransform contentTransformComponent, out CuiScrollbar horizontalScrollBar, out CuiScrollbar verticalScrollBar, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string id = null, string destroyUi = null, bool update = false)
 	{
-		return Manager.ScrollView(container, parent, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, maskSoftness, out contentTransformComponent, out horizontalScrollBar, out verticalScrollBar, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, id, destroyUi, update);
+		return Manager.ScrollView(container, parent, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, out contentTransformComponent, out horizontalScrollBar, out verticalScrollBar, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, id, destroyUi, update);
 	}
 
 	public static string HexToRustColor(string hexColor, float? alpha = null, bool includeAlpha = true)
 	{
 		if (!ColorUtility.TryParseHtmlString(hexColor, out var color))
 		{
-			return $"1 1 1{(includeAlpha ? $" {alpha.GetValueOrDefault(1)}" : "")}";
+			return LUIBuilder.GetStringFloat(1, 1, 1, alpha.GetValueOrDefault(1));
 		}
-
-		return $"{color.r} {color.g} {color.b}{(includeAlpha ? $" {alpha ?? color.a}" : "")}";
+		return LUIBuilder.GetStringFloat(color.r, color.g, color.b, alpha ?? color.a);
 	}
 	public static string RustToHexColor(string rustColor, float? alpha = null, bool includeAlpha = true)
 	{
@@ -261,7 +277,7 @@ public readonly struct CUI : IDisposable
 	#endregion
 
 	/// <summary>
-	/// Pair of one sub-element. 
+	/// Pair of one sub-element.
 	/// </summary>
 	/// <typeparam name="T1">Key identifier.</typeparam>
 	public struct Pair<T1, T2>
@@ -309,12 +325,13 @@ public readonly struct CUI : IDisposable
 	/// </summary>
 	public void Dispose()
 	{
+		v2.Dispose();
 		Manager.SendToPool();
 	}
 
 	public class Handler
 	{
-		internal string Identifier { get; } = RandomEx.GetRandomString(4);
+		internal string Identifier { get; set; } = RandomEx.GetRandomString(4);
 
 		public Cache CacheInstance = new();
 		public int Pooled => _containerPool.Count + _elements.Count + _images.Count + _rawImages.Count + _texts.Count + _buttons.Count + _inputFields.Count + _rects.Count + _needsCursors.Count + _needsKeyboards.Count;
@@ -367,7 +384,7 @@ public readonly struct CUI : IDisposable
 		public string AppendId()
 		{
 			_currentId++;
-			return $"{Identifier}_{_currentId}";
+			return LUIBuilder.BuildElementId(Identifier, _currentId);
 		}
 		public void SendToPool<T>(T element) where T : ICuiComponent
 		{
@@ -415,6 +432,7 @@ public readonly struct CUI : IDisposable
 			}
 
 			_queue.Clear();
+			Identifier = RandomEx.GetRandomString(4);
 			_currentId = 0;
 		}
 
@@ -703,6 +721,9 @@ public readonly struct CUI : IDisposable
 			if (_scrollViews.Count == 0)
 			{
 				element = new CuiScrollViewComponent();
+				element.ContentTransform ??= new();
+				element.HorizontalScrollbar ??= TakeFromPoolScrollbar();
+				element.VerticalScrollbar ??= TakeFromPoolScrollbar();
 			}
 			else
 			{
@@ -714,8 +735,7 @@ public readonly struct CUI : IDisposable
 				element.Inertia = _defaultScrollView.Inertia;
 				element.DecelerationRate = _defaultScrollView.DecelerationRate;
 				element.ScrollSensitivity = _defaultScrollView.ScrollSensitivity;
-				element.MaskSoftness = _defaultScrollView.MaskSoftness;
-				element.ContentTransform = new();
+				element.ContentTransform ??= new();
 				element.ContentTransform.AnchorMin = "0 0";
 				element.ContentTransform.AnchorMax = "1 1";
 				element.ContentTransform.OffsetMin = "0 0";
@@ -986,9 +1006,9 @@ public static class CUIStatics
 	{
 		return cui.CreateCountdown(null, null, startTime, endTime, step, command, fadeIn, fadeOut, id, destroyUi, true);
 	}
-	public static Pair<string, CuiElement> UpdateScrollView(this CUI cui, string id, bool vertical, bool horizontal, ScrollRect.MovementType movementType, float elasticity, bool inertia, float decelerationRate, float scrollSensitivity, string maskSoftness, out CuiRectTransform contentTransformComponent, out CuiScrollbar horizontalScrollBar, out CuiScrollbar verticalScrollBar, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
+	public static Pair<string, CuiElement> UpdateScrollView(this CUI cui, string id, bool vertical, bool horizontal, ScrollRect.MovementType movementType, float elasticity, bool inertia, float decelerationRate, float scrollSensitivity, out CuiRectTransform contentTransformComponent, out CuiScrollbar horizontalScrollBar, out CuiScrollbar verticalScrollBar, float xMin = 0f, float xMax = 1f, float yMin = 0f, float yMax = 1f, float OxMin = 0f, float OxMax = 0f, float OyMin = 0f, float OyMax = 0f, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string destroyUi = null)
 	{
-		return cui.CreateScrollView(null, null, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, maskSoftness, out contentTransformComponent, out horizontalScrollBar, out verticalScrollBar, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, id, destroyUi, true);
+		return cui.CreateScrollView(null, null, vertical, horizontal, movementType, elasticity, inertia, decelerationRate, scrollSensitivity, out contentTransformComponent, out horizontalScrollBar, out verticalScrollBar, xMin, xMax, yMin, yMax, OxMin, OxMax, OyMin, OyMax, fadeIn, fadeOut, needsCursor, needsKeyboard, id, destroyUi, true);
 	}
 
 	public static Pair<string, CuiElement> Panel(this Handler cui, CuiElementContainer container, string parent, string color, string material, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, bool blur = false, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string outlineColor = null, string outlineDistance = null, bool outlineUseGraphicAlpha = false, string id = null, string destroyUi = null, bool update = false)
@@ -1006,10 +1026,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1046,10 +1066,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1083,10 +1103,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1153,10 +1173,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1179,10 +1199,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1217,10 +1237,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1254,10 +1274,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1292,10 +1312,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 
@@ -1330,7 +1350,7 @@ public static class CUIStatics
 		if (!update) container?.Add(element);
 		return new Pair<string, CuiElement>(id, element);
 	}
-	public static Pair<string, CuiElement> ScrollView(this Handler cui, CuiElementContainer container, string parent, bool vertical, bool horizontal, ScrollRect.MovementType movementType, float elasticity, bool inertia, float decelerationRate, float scrollSensitivity, string maskSoftness, out CuiRectTransform contentTransformComponent, out CuiScrollbar horizontalScrollBar, out CuiScrollbar verticalScrollBar, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string id = null, string destroyUi = null, bool update = false)
+	public static Pair<string, CuiElement> ScrollView(this Handler cui, CuiElementContainer container, string parent, bool vertical, bool horizontal, ScrollRect.MovementType movementType, float elasticity, bool inertia, float decelerationRate, float scrollSensitivity, out CuiRectTransform contentTransformComponent, out CuiScrollbar horizontalScrollBar, out CuiScrollbar verticalScrollBar, float xMin, float xMax, float yMin, float yMax, float OxMin, float OxMax, float OyMin, float OyMax, float fadeIn = 0f, float fadeOut = 0f, bool needsCursor = false, bool needsKeyboard = false, string id = null, string destroyUi = null, bool update = false)
 	{
 		if (id == null) id = cui.AppendId();
 		var element = cui.TakeFromPool(id, parent, fadeOut, destroyUi, update);
@@ -1343,7 +1363,6 @@ public static class CUIStatics
 		scrollview.Inertia = inertia;
 		scrollview.DecelerationRate = decelerationRate;
 		scrollview.ScrollSensitivity = scrollSensitivity;
-		scrollview.MaskSoftness = maskSoftness;
 		contentTransformComponent = scrollview.ContentTransform;
 		horizontalScrollBar = scrollview.HorizontalScrollbar;
 		verticalScrollBar = scrollview.VerticalScrollbar;
@@ -1353,10 +1372,10 @@ public static class CUIStatics
 		if (!update || (update && (xMin != 0 || xMax != 1 || yMin != 0 || yMax != 1)))
 		{
 			var rect = cui.TakeFromPoolRect();
-			rect.AnchorMin = $"{xMin} {yMin}";
-			rect.AnchorMax = $"{xMax} {yMax}";
-			rect.OffsetMin = $"{OxMin} {OyMin}";
-			rect.OffsetMax = $"{OxMax} {OyMax}";
+			rect.AnchorMin = LUIBuilder.GetStringFloat(xMin, yMin);
+			rect.AnchorMax = LUIBuilder.GetStringFloat(xMax, yMax);
+			rect.OffsetMin = LUIBuilder.GetStringFloat(OxMin, OyMin);
+			rect.OffsetMax = LUIBuilder.GetStringFloat(OxMax, OyMax);
 			element.Components.Add(rect);
 		}
 

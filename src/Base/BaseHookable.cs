@@ -31,7 +31,6 @@ public class BaseHookable
 			}
 		}
 	}
-
 	public class CachedHookInstance
 	{
 		public CachedHook PrimaryHook;
@@ -204,6 +203,149 @@ public class BaseHookable
 		foreach (var element in overrides)
 		{
 			element.OnException();
+		}
+	}
+
+	#endregion
+
+	#region AutoPatch
+
+	private Dictionary<AutoPatchAttribute.Orders, HarmonyLib.Harmony> _harmonyInstanceCache = new();
+
+	protected string GetHarmonyId(AutoPatchAttribute.Orders order = AutoPatchAttribute.Orders.AfterPluginInit)
+	{
+		return $"com.carbon.{Name}.{order}";
+	}
+
+	protected string HarmonyId => GetHarmonyId();
+
+	protected HarmonyLib.Harmony GetHarmonyInstance(AutoPatchAttribute.Orders order, bool createIfNotExists = false)
+	{
+		if (_harmonyInstanceCache.TryGetValue(order, out var instance))
+		{
+			return instance;
+		}
+		if (!createIfNotExists)
+		{
+			return null;
+		}
+		return _harmonyInstanceCache[order] = new HarmonyLib.Harmony(GetHarmonyId(order));
+	}
+
+	protected HarmonyLib.Harmony HarmonyInstance => GetHarmonyInstance(AutoPatchAttribute.Orders.AfterPluginInit, true);
+
+	protected int RemoveHarmonyInstance(AutoPatchAttribute.Orders order)
+	{
+		if (_harmonyInstanceCache.TryGetValue(order, out var instance))
+		{
+			var count = instance.GetPatchedMethods()?.Count();
+			if (count > 0)
+			{
+				instance.UnpatchAll(GetHarmonyId(order));
+			}
+			_harmonyInstanceCache.Remove(order);
+			return count.GetValueOrDefault();
+		}
+
+		return 0;
+	}
+
+	public bool ApplyOrderedPatches(AutoPatchAttribute.Orders order)
+	{
+		var instance = GetHarmonyInstance(order);
+		if (instance != null)
+		{
+			return true;
+		}
+
+		instance = GetHarmonyInstance(order, true);
+		var types = HookableType.GetNestedTypes(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+		foreach (var type in types)
+		{
+			var attribute = type.GetCustomAttribute<AutoPatchAttribute>(false);
+
+			if (attribute == null)
+			{
+				continue;
+			}
+
+			if (attribute.Order != order)
+			{
+				continue;
+			}
+
+			try
+			{
+				var harmonyMethods = instance.CreateClassProcessor(type)?.Patch();
+
+				if (harmonyMethods == null || harmonyMethods.Count == 0)
+				{
+					Logger.Warn($"[{Name}] AutoPatch attribute found on '{type.Name}' but no HarmonyPatch methods found. Skipping.. [{order}]");
+					continue;
+				}
+
+				foreach (MethodInfo method in harmonyMethods)
+				{
+					Logger.Log($"[{Name}] Automatically Harmony patched '{method.Name}' ({type.Name}) method [{order}].");
+				}
+
+				if (!string.IsNullOrEmpty(attribute.PatchSuccessCallback))
+				{
+					var successMethod = HookableType.GetMethod(attribute.PatchSuccessCallback);
+					if (successMethod != null)
+					{
+						try
+						{
+							successMethod.Invoke(this, []);
+						}
+						catch (Exception ex)
+						{
+							Logger.Error($"[{Name}] Failed to execute successful automatic Harmony patch callback '{type.Name}': {attribute.PatchSuccessCallback} [{order}]", ex);
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				if (!string.IsNullOrEmpty(attribute.PatchFailureCallback))
+				{
+					var failureMethod = HookableType.GetMethod(attribute.PatchFailureCallback);
+					if (failureMethod != null)
+					{
+						try
+						{
+							failureMethod.Invoke(this, []);
+						}
+						catch (Exception ex2)
+						{
+							Logger.Error($"[{Name}] Failed to execute successful automatic Harmony patch callback '{type.Name}': {attribute.PatchSuccessCallback} [{order}]", ex2);
+						}
+					}
+				}
+
+				Logger.Error($"[{Name}] Failed to automatically Harmony patch '{type.Name}' [{order}]", ex);
+
+				if (attribute.IsRequired)
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	public void UnapplyOrderedPatches(AutoPatchAttribute.Orders order, bool silent = true)
+	{
+		try
+		{
+			var count = RemoveHarmonyInstance(order);
+			if (!silent && count > 0)
+			{
+				Logger.Log($"[{Name}] Automatically Harmony unpatched {count:n0} {count.Plural("method", "methods")} [{order}].");
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.Error($"[{Name}] Failed auto unpatching {GetHarmonyId(order)} [{order}]", ex);
 		}
 	}
 

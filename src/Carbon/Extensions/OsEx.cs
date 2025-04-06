@@ -44,6 +44,14 @@ public class OsEx
 				}
 			}
 		}
+		
+		public static void Append(string file, string content)
+		{
+			if (!string.IsNullOrEmpty(file))
+			{
+				System.IO.File.AppendAllText(file, content);
+			}
+		}
 
 		public static string Copy(string file, string destination, bool overwrite = true)
 		{

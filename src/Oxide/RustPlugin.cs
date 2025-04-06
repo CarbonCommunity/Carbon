@@ -25,6 +25,7 @@ public class RustPlugin : Plugin
 		Package = mod;
 		Setup(name, author, version, description);
 	}
+
 	public virtual void Setup(string name, string author, VersionNumber version, string description)
 	{
 		Name = GetType().Name;
@@ -49,6 +50,7 @@ public class RustPlugin : Plugin
 
 		HookableType = GetType();
 	}
+
 	public override void Dispose()
 	{
 		permission.UnregisterPermissions(this);
@@ -89,8 +91,7 @@ public class RustPlugin : Plugin
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void Puts(object message)
-		=> Carbon.Logger.Log($"[{Title}] {message}");
+	public void Puts(object message) => Logger.Log($"[{Title}] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
@@ -98,40 +99,35 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="args"></param>
-	public void Puts(object message, params object[] args)
-		=> Carbon.Logger.Log($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
+	public void Puts(object message, params object[] args) => Logger.Log($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void Log(object message)
-		=> Carbon.Logger.Log($"[{Title}] {message}");
+	public void Log(object message) => Logger.Log($"[{Title}] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'NOTICE'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void Log(object message, params object[] args)
-		=> Carbon.Logger.Log($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
+	public void Log(object message, params object[] args) => Logger.Log($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogWarning(object message)
-		=> Carbon.Logger.Warn($"[{Title}] {message}");
+	public void LogWarning(object message) => Logger.Warn($"[{Title}] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogWarning(object message, params object[] args)
-		=> Carbon.Logger.Warn($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
+	public void LogWarning(object message, params object[] args) => Logger.Warn($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -139,8 +135,7 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="ex"></param>
-	public void LogError(object message, Exception ex)
-		=> Carbon.Logger.Error($"[{Title}] {message}", ex);
+	public void LogError(object message, Exception ex) => Logger.Error($"[{Title}] {message}", ex);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -148,24 +143,21 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="ex"></param>
-	public void LogError(object message, Exception ex, params object[] args)
-		=> Carbon.Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", ex);
+	public void LogError(object message, Exception ex, params object[] args) => Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", ex);
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogError(object message)
-		=> Carbon.Logger.Error($"[{Title}] {message}", null);
+	public void LogError(object message) => Logger.Error($"[{Title}] {message}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void LogError(object message, params object[] args)
-		=> Carbon.Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}", null);
+	public void LogError(object message, params object[] args) => Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? message : string.Format(message?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'WARNING'.
@@ -173,8 +165,7 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="args"></param>
-	public void PrintWarning(object format, params object[] args)
-		=> Carbon.Logger.Warn($"[{Title}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString() ?? string.Empty, args))}");
+	public void PrintWarning(object format, params object[] args) => Logger.Warn($"[{Title}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
@@ -182,39 +173,54 @@ public class RustPlugin : Plugin
 	/// </summary>
 	/// <param name="message"></param>
 	/// <param name="args"></param>
-	public void PrintError(object format, params object[] args)
-		=> Carbon.Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString () ?? string.Empty, args))}");
+	public void PrintError(object format, params object[] args) => Logger.Error($"[{Title}] {(args == null || args.Length == 0 ? format : string.Format(format?.ToString() ?? string.Empty, args))}");
 
 	/// <summary>
 	/// Outputs to the game's console a message with severity level 'ERROR'.
 	/// NOTE: Oxide compatibility layer.
 	/// </summary>
 	/// <param name="message"></param>
-	public void RaiseError(object message)
-		=> Carbon.Logger.Error($"[{Title}] {message}", null);
+	public void RaiseError(object message) => Logger.Error($"[{Title}] {message}", null);
 
 	protected void LogToFile(string filename, string text, Plugin plugin = null, bool timeStamp = true, bool anotherBool = false)
 	{
-		string logFolder;
+		if (string.IsNullOrEmpty(filename) || string.IsNullOrEmpty(text))
+			return;
+
+		DateTime now = DateTime.Now;
+
+		string logFolder, finalFileName;
 
 		if (plugin == null)
 		{
-			var subFolder = Path.GetDirectoryName(filename);
-			filename = Path.GetFileName(filename);
-			logFolder = Path.Combine(Defines.GetLogsFolder(), subFolder) + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
+			string subFolder = Path.GetDirectoryName(filename);
+			string fileOnly = Path.GetFileNameWithoutExtension(filename);
+
+			logFolder = string.IsNullOrEmpty(subFolder)
+				? Defines.GetLogsFolder()
+				: Path.Combine(Defines.GetLogsFolder(), subFolder);
+
+			finalFileName = timeStamp
+				? string.Concat(fileOnly, "-", now.ToString("yyyy-MM-dd"), ".txt")
+				: string.Concat(fileOnly, ".txt");
 		}
 		else
 		{
 			logFolder = Path.Combine(Defines.GetLogsFolder(), plugin.Name);
-			filename = plugin.Name.ToLower() + "_" + filename.ToLower() + (timeStamp ? $"-{DateTime.Now:yyyy-MM-dd}" : "") + ".txt";
+			finalFileName = (timeStamp
+				? string.Concat(plugin.Name, "_", filename, "-", now.ToString("yyyy-MM-dd"), ".txt")
+				: string.Concat(plugin.Name, "_", filename, ".txt")).ToLower();
 		}
 
-		if (!Directory.Exists(logFolder))
-		{
-			Directory.CreateDirectory(logFolder);
-		}
+		OsEx.Folder.Create(logFolder);
 
-		File.AppendAllText(Path.Combine(logFolder, Utility.CleanPath(filename)), (timeStamp ? $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {text}" : text) + Environment.NewLine);
+		string fullPath = Path.Combine(logFolder, Utility.CleanPath(finalFileName));
+
+		string logEntry = timeStamp
+			? string.Concat("[", now.ToString("yyyy-MM-dd HH:mm:ss"), "] ", text, Environment.NewLine)
+			: string.Concat(text, Environment.NewLine);
+
+		OsEx.File.Append(fullPath, logEntry);
 	}
 
 	#endregion
@@ -259,64 +265,13 @@ public class RustPlugin : Plugin
 		return $"{Title} v{Version} by {Author}";
 	}
 
-	#region AutoPatch
-
-	private HarmonyLib.Harmony _harmonyInstanceCache;
-	protected string HarmonyId => $"com.carbon.{Name}";
-	protected HarmonyLib.Harmony HarmonyInstance => _harmonyInstanceCache ??= new HarmonyLib.Harmony(HarmonyId);
-
-	public void IProcessPatches()
-	{
-		foreach (var type in HookableType.GetNestedTypes(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static))
-		{
-			var attribute = type.GetCustomAttributes(typeof(AutoPatchAttribute), false);
-
-			if (attribute.Length < 1)
-			{
-				continue;
-			}
-
-			try
-			{
-				var harmonyMethods = HarmonyInstance.CreateClassProcessor(type)?.Patch();
-
-				if (harmonyMethods == null || harmonyMethods.Count == 0)
-				{
-					Logger.Warn($"AutoPatch attribute found on '{type.Name}' for {ToPrettyString()} but no HarmonyPatch methods found. Skipping.");
-					continue;
-				}
-
-				foreach (MethodInfo method in harmonyMethods)
-				{
-					Logger.Log($"Automatically Harmony patched '{method.Name}' method for {ToPrettyString()}. ({type.Name})");
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Error($"Failed to automatically Harmony patch '{type.Name}' for {ToPrettyString()}", ex);
-			}
-		}
-	}
-	public void IProcessUnpatches()
-	{
-		try
-		{
-			HarmonyInstance?.UnpatchAll(HarmonyId);
-		}
-		catch (Exception ex)
-		{
-			Logger.Error($"Failed auto unpatching {HarmonyId} for {ToPrettyString()}", ex);
-		}
-	}
-
-	#endregion
-
 	#region Printing
 
 	protected void PrintWarning(object message)
 	{
 		LogWarning(message);
 	}
+
 	protected void PrintWarning(string format, params object[] args)
 	{
 		LogWarning(format, args);
@@ -324,11 +279,13 @@ public class RustPlugin : Plugin
 
 	protected void PrintToConsole(BasePlayer player, string format, params object[] args)
 	{
-		if (((player != null) ? player.net : null) != null)
+		if (player == null || player.net == null)
 		{
-			player.SendConsoleCommand("echo " + ((args.Length != 0) ? string.Format(format, args) : format));
+			return;
 		}
+		player.SendConsoleCommand("echo " + ((args.Length != 0) ? string.Format(format, args) : format));
 	}
+
 	protected void PrintToConsole(string format, params object[] args)
 	{
 		if (BasePlayer.activePlayerList.Count >= 1)
@@ -336,70 +293,95 @@ public class RustPlugin : Plugin
 			ConsoleNetwork.BroadcastToAllClients("echo " + ((args.Length != 0) ? string.Format(format, args) : format));
 		}
 	}
+
 	protected void PrintToChat(BasePlayer player, string format, params object[] args)
 	{
-		if (((player != null) ? player.net : null) != null)
+		if (player == null || player.net == null)
 		{
-			player.SendConsoleCommand("chat.add", 2, 0, (args.Length != 0) ? string.Format(format, args) : format);
+			return;
 		}
+
+#if !MINIMAL
+		player.SendConsoleCommand("chat.add", 2, Community.Runtime.Core.DefaultServerChatId, (args.Length != 0) ? string.Format(format, args) : format);
+#else
+		player.SendConsoleCommand("chat.add", 2, 0, (args.Length != 0) ? string.Format(format, args) : format);
+#endif
 	}
+
 	protected void PrintToChat(string format, params object[] args)
 	{
-		if (BasePlayer.activePlayerList.Count >= 1)
+		if (BasePlayer.activePlayerList.Count == 0)
 		{
+			return;
+		}
+#if !MINIMAL
+			ConsoleNetwork.BroadcastToAllClients("chat.add", 2, Community.Runtime.Core.DefaultServerChatId, (args.Length != 0) ? string.Format(format, args) : format);
+#else
 			ConsoleNetwork.BroadcastToAllClients("chat.add", 2, 0, (args.Length != 0) ? string.Format(format, args) : format);
+#endif
+	}
+
+	protected void PrintToChat(BasePlayer player, string format, long chatId, params object[] args)
+	{
+		if (player == null || player.net == null)
+		{
+			return;
+		}
+		player.SendConsoleCommand("chat.add", 2, chatId, (args.Length != 0) ? string.Format(format, args) : format);
+	}
+
+	protected void PrintToChat(string format, long chatId, params object[] args)
+	{
+		if (BasePlayer.activePlayerList.Count > 0)
+		{
+			ConsoleNetwork.BroadcastToAllClients("chat.add", 2, chatId, (args.Length != 0) ? string.Format(format, args) : format);
 		}
 	}
 
 	protected void SendReply(ConsoleSystem.Arg arg, string format, params object[] args)
 	{
-		var text = (args != null && args.Length != 0) ? string.Format(format, args) : format;
-
 		if (arg != null || arg.Connection != null)
 		{
 			var connection = arg.Connection;
 			var basePlayer = connection?.player as BasePlayer;
 
-			if (((basePlayer != null) ? basePlayer.net : null) != null)
+			if (basePlayer != null && basePlayer.net != null)
 			{
-				basePlayer.SendConsoleCommand($"echo {text}");
+				basePlayer.SendConsoleCommand($"echo {((args != null && args.Length != 0) ? string.Format(format, args) : format)}");
 				return;
 			}
 		}
-
-		Puts(text, null);
+		Puts(format, args);
 	}
+
 	protected void SendReply(BasePlayer player, string format, params object[] args)
 	{
 		PrintToChat(player, format, args);
 	}
+
 	protected void SendWarning(ConsoleSystem.Arg arg, string format, params object[] args)
 	{
 		var connection = arg.Connection;
 		var basePlayer = connection?.player as BasePlayer;
-		var text = (args != null && args.Length != 0) ? string.Format(format, args) : format;
 
-		if (((basePlayer != null) ? basePlayer.net : null) != null)
+		if (basePlayer != null && basePlayer.net != null)
 		{
-			basePlayer.SendConsoleCommand($"echo {text}");
+			basePlayer.SendConsoleCommand($"echo {((args != null && args.Length != 0) ? string.Format(format, args) : format)}");
 			return;
 		}
-
-		Debug.LogWarning(text);
+		PrintWarning(format, args);;
 	}
+
 	protected void SendError(ConsoleSystem.Arg arg, string format, params object[] args)
 	{
 		var connection = arg.Connection;
 		var basePlayer = connection?.player as BasePlayer;
-		var text = (args != null && args.Length != 0) ? string.Format(format, args) : format;
-
-		if (((basePlayer != null) ? basePlayer.net : null) != null)
+		if (basePlayer != null && basePlayer.net != null)
 		{
-			basePlayer.SendConsoleCommand($"echo {text}");
+			basePlayer.SendConsoleCommand($"echo {((args != null && args.Length != 0) ? string.Format(format, args) : format)}");
 			return;
 		}
-
-		Debug.LogError(text);
+		PrintError(format, args);;
 	}
 
 	#endregion
@@ -434,6 +416,7 @@ public class RustPlugin : Plugin
 			}
 		}
 	}
+
 	protected void AddCovalenceCommand(string[] commands, string callback, params string[] perms)
 	{
 		foreach (var command in commands)
@@ -468,6 +451,7 @@ public class RustPlugin : Plugin
 			}
 		}
 	}
+
 	protected void AddUniversalCommand(string[] commands, string callback, params string[] perms)
 	{
 		foreach (var command in commands)
