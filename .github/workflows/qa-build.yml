@@ -134,7 +134,7 @@ jobs:
         uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
         with:
           delete_release: true
-          tag_name: qa
+          tag_name: qa_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -156,7 +156,7 @@ jobs:
         with:
           draft: false
           prerelease: true
-          tag_name: qa
+          tag_name: qa_build
           name: "QA Build — v${{ needs.build.outputs.version }}"
           body: |
             This is a manually triggered build of Carbon based on the `qa` branch.

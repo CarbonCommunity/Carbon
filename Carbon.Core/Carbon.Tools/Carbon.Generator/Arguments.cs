@@ -4,8 +4,11 @@
 
 public class CommandLineArguments
 {
-	[Option("plugininput", Required = false, HelpText = "Path to the plugin folder")]
+	[Option("plugininput", Required = true, HelpText = "Path to the plugin folder")]
 	public string PluginInput { get; set; }
+
+	[Option("rust", Required = true, HelpText = "Path to the Rust folder")]
+	public string Rust { get; set; }
 
 	[Option("pluginnamespace", Required = false, HelpText = "Plugin namespace")]
 	public string PluginNamespace { get; set; } = @"Carbon.Core";
