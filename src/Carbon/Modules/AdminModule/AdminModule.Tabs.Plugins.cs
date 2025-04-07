@@ -1092,7 +1092,7 @@ public partial class AdminModule
 					{
 						var fileName = Path.GetFileName(plugin.File);
 						var fileNameNoExtension = Path.GetFileNameWithoutExtension(plugin.File);
-						plugin.SetOwned(auth.User != null && auth.User.OwnedFiles.Contains(plugin.Id));
+						plugin.SetOwned(auth.User != null && (auth.User.IsAdmin || auth.User.OwnedFiles.Contains(plugin.Id)));
 
 						foreach (var existentPlugin in plugins)
 						{
@@ -2113,7 +2113,7 @@ public partial class AdminModule
 			}
 			public bool IsPaid()
 			{
-				return OriginalPrice != "FREE" && OriginalPrice != "Null";
+				return !string.IsNullOrEmpty(OriginalPrice) && OriginalPrice != "FREE" && OriginalPrice != "Null";
 			}
 			public bool IsUpToDate()
 			{
@@ -2517,8 +2517,9 @@ public partial class AdminModule
 		}
 		else
 		{
-			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 0 \"{plugin.File}\""));
-			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#d9f7a3", text: "DOWNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			var canDownload = plugin.GetPreferredVendor() != PluginsTab.LocalInstance && !plugin.IsPaid() || plugin.Owned || (plugin.AvailableOn != null && plugin.AvailableOn.Count > 1);
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", !canDownload ? CUI.HexToRustColor("#8db842", 0.4f) : "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: canDownload ? $"pluginbrowser.interact 0 \"{plugin.File}\"" : string.Empty));
+			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#d9f7a3", text: canDownload ? "DOWNLOAD" : "CAN'T DOWNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "clouddl", "#d9f7a3"));
 			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.BlankColor));
 
