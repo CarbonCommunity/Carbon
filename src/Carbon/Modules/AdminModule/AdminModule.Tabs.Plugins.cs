@@ -1224,7 +1224,13 @@ public partial class AdminModule
 			}
 			public override void Download(string id, Action onTimeout = null)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				if (plugin == null)
+				{
+					Logger.Error($"Couldn't find '{id}' on {Type}");
+				}
 				plugin.IsBusy = true;
 				plugin.DownloadCount++;
 
@@ -1393,7 +1399,9 @@ public partial class AdminModule
 			}
 			public override void Uninstall(string id)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
@@ -1659,7 +1667,9 @@ public partial class AdminModule
 			}
 			public override void Download(string id, Action onTimeout = null)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				var path = Path.Combine(Defines.GetScriptsFolder(), plugin.File);
 				var url = DownloadEndpoint.Replace("[ID]", plugin.Name);
 
@@ -1696,14 +1706,18 @@ public partial class AdminModule
 			}
 			public override void Uninstall(string id)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				if (plugin.HasLookup) return;
 
 				Community.Runtime.Core.webrequest.Enqueue(PluginLookupEndpoint.Replace("[ID]", plugin.Name.ToLower().Trim()), null, (error, data) =>
@@ -2160,10 +2174,7 @@ public partial class AdminModule
 		switch (arg[0])
 		{
 			case "0":
-				if (vendorType == PluginsTab.VendorTypes.Installed)
-					tab.CreateDialog($"To download a file, please select a vendor first.", null, null);
-				else
-					tabPlugin.GetPreferredVendor().Download(pluginName, () => Singleton.Draw(args.Player()));
+				tabPlugin.GetPreferredVendor().Download(pluginName, () => Singleton.Draw(args.Player()));
 				Array.Clear(arg, 0, arg.Length);
 				break;
 			case "1":
