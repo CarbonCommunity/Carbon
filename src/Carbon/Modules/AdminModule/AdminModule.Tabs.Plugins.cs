@@ -257,7 +257,7 @@ public partial class AdminModule
 							OyMax: -30, font: CUI.Handler.FontTypes.RobotoCondensedBold,
 							align: TextAnchor.UpperLeft);
 						cui.CreateText(container, contentPanel, "0.6 0.6 0.6 0.9",
-							"The largest marketplace for Rust community-driven content.", 15, xMin: 0.04f,
+							selectedVendor.Tagline, 15, xMin: 0.04f,
 							yMin: 1, yMax: 1, OyMin: -100, OyMax: -70,
 							font: CUI.Handler.FontTypes.RobotoCondensedRegular,
 							align: TextAnchor.UpperLeft);
@@ -947,6 +947,7 @@ public partial class AdminModule
 			public virtual string Logo { get; }
 			public virtual float LogoRatio { get; }
 			public virtual string Hero { get; }
+			public virtual string Tagline { get; }
 
 			public virtual bool CanRefresh { get; } = true;
 
@@ -1065,6 +1066,7 @@ public partial class AdminModule
 			public override string Logo => "cflogo";
 			public override float LogoRatio => 0f;
 			public override string Hero => "cf_hero";
+			public override string Tagline => "The largest marketplace for Rust community-driven content.";
 
 			public override string BarInfo => $"{FetchedPlugins.Count(x => !x.IsPaid()):n0} free, {FetchedPlugins.Count(x => x.IsPaid()):n0} paid";
 
@@ -1595,6 +1597,7 @@ public partial class AdminModule
 			public override string Logo => "umodlogo";
 			public override float LogoRatio => 0.2f;
 			public override string Hero => "umod_hero";
+			public override string Tagline => "A large platform for free plugins curated by the Oxide team.";
 
 			public override string BarInfo => $"{FetchedPlugins.Count:n0} free";
 
@@ -1878,6 +1881,7 @@ public partial class AdminModule
 			public override string Url => "none";
 			public override string Logo => "carbonw";
 			public override string Hero => "installed_hero";
+			public override string Tagline => "All actively loaded plugins. Items with no metadata most likely don't exist on the public vendors.";
 
 			public override float LogoRatio => 0.23f;
 			public override string ListEndpoint => string.Empty;
@@ -1894,6 +1898,16 @@ public partial class AdminModule
 
 			public override void Download(string id, Action onTimeout = null)
 			{
+			}
+
+			public override void Uninstall(string id)
+			{
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName));
+				plugin.ExistentPlugin = null;
 			}
 
 			public override void FetchList(Action<Vendor> callback = null)
@@ -1966,14 +1980,6 @@ public partial class AdminModule
 
 			public void Save()
 			{
-			}
-
-			public override void Uninstall(string id)
-			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName));
-				plugin.ExistentPlugin = null;
 			}
 		}
 
