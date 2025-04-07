@@ -257,7 +257,7 @@ public partial class AdminModule
 							OyMax: -30, font: CUI.Handler.FontTypes.RobotoCondensedBold,
 							align: TextAnchor.UpperLeft);
 						cui.CreateText(container, contentPanel, "0.6 0.6 0.6 0.9",
-							"The largest marketplace for Rust community-driven content.", 15, xMin: 0.04f,
+							selectedVendor.Tagline, 15, xMin: 0.04f,
 							yMin: 1, yMax: 1, OyMin: -100, OyMax: -70,
 							font: CUI.Handler.FontTypes.RobotoCondensedRegular,
 							align: TextAnchor.UpperLeft);
@@ -947,6 +947,7 @@ public partial class AdminModule
 			public virtual string Logo { get; }
 			public virtual float LogoRatio { get; }
 			public virtual string Hero { get; }
+			public virtual string Tagline { get; }
 
 			public virtual bool CanRefresh { get; } = true;
 
@@ -1065,6 +1066,7 @@ public partial class AdminModule
 			public override string Logo => "cflogo";
 			public override float LogoRatio => 0f;
 			public override string Hero => "cf_hero";
+			public override string Tagline => "The largest marketplace for Rust community-driven content.";
 
 			public override string BarInfo => $"{FetchedPlugins.Count(x => !x.IsPaid()):n0} free, {FetchedPlugins.Count(x => x.IsPaid()):n0} paid";
 
@@ -1090,7 +1092,7 @@ public partial class AdminModule
 					{
 						var fileName = Path.GetFileName(plugin.File);
 						var fileNameNoExtension = Path.GetFileNameWithoutExtension(plugin.File);
-						plugin.SetOwned(auth.User != null && auth.User.OwnedFiles.Contains(plugin.Id));
+						plugin.SetOwned(auth.User != null && (auth.User.IsAdmin || auth.User.OwnedFiles.Contains(plugin.Id)));
 
 						foreach (var existentPlugin in plugins)
 						{
@@ -1224,7 +1226,13 @@ public partial class AdminModule
 			}
 			public override void Download(string id, Action onTimeout = null)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				if (plugin == null)
+				{
+					Logger.Error($"Couldn't find '{id}' on {Type}");
+				}
 				plugin.IsBusy = true;
 				plugin.DownloadCount++;
 
@@ -1393,7 +1401,9 @@ public partial class AdminModule
 			}
 			public override void Uninstall(string id)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
@@ -1587,6 +1597,7 @@ public partial class AdminModule
 			public override string Logo => "umodlogo";
 			public override float LogoRatio => 0.2f;
 			public override string Hero => "umod_hero";
+			public override string Tagline => "A large platform for free plugins curated by the Oxide team.";
 
 			public override string BarInfo => $"{FetchedPlugins.Count:n0} free";
 
@@ -1659,7 +1670,9 @@ public partial class AdminModule
 			}
 			public override void Download(string id, Action onTimeout = null)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				var path = Path.Combine(Defines.GetScriptsFolder(), plugin.File);
 				var url = DownloadEndpoint.Replace("[ID]", plugin.Name);
 
@@ -1696,14 +1709,18 @@ public partial class AdminModule
 			}
 			public override void Uninstall(string id)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
 			}
 			public override void CheckMetadata(string id, Action onMetadataRetrieved)
 			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				if (plugin.HasLookup) return;
 
 				Community.Runtime.Core.webrequest.Enqueue(PluginLookupEndpoint.Replace("[ID]", plugin.Name.ToLower().Trim()), null, (error, data) =>
@@ -1864,6 +1881,7 @@ public partial class AdminModule
 			public override string Url => "none";
 			public override string Logo => "carbonw";
 			public override string Hero => "installed_hero";
+			public override string Tagline => "All actively loaded plugins. Items with no metadata most likely don't exist on the public vendors.";
 
 			public override float LogoRatio => 0.23f;
 			public override string ListEndpoint => string.Empty;
@@ -1880,6 +1898,16 @@ public partial class AdminModule
 
 			public override void Download(string id, Action onTimeout = null)
 			{
+			}
+
+			public override void Uninstall(string id)
+			{
+				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
+				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
+				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName));
+				plugin.ExistentPlugin = null;
 			}
 
 			public override void FetchList(Action<Vendor> callback = null)
@@ -1952,14 +1980,6 @@ public partial class AdminModule
 
 			public void Save()
 			{
-			}
-
-			public override void Uninstall(string id)
-			{
-				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id == id);
-				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
-				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName));
-				plugin.ExistentPlugin = null;
 			}
 		}
 
@@ -2093,7 +2113,7 @@ public partial class AdminModule
 			}
 			public bool IsPaid()
 			{
-				return OriginalPrice != "FREE" && OriginalPrice != "Null";
+				return !string.IsNullOrEmpty(OriginalPrice) && OriginalPrice != "FREE" && OriginalPrice != "Null";
 			}
 			public bool IsUpToDate()
 			{
@@ -2160,10 +2180,7 @@ public partial class AdminModule
 		switch (arg[0])
 		{
 			case "0":
-				if (vendorType == PluginsTab.VendorTypes.Installed)
-					tab.CreateDialog($"To download a file, please select a vendor first.", null, null);
-				else
-					tabPlugin.GetPreferredVendor().Download(pluginName, () => Singleton.Draw(args.Player()));
+				tabPlugin.GetPreferredVendor().Download(pluginName, () => Singleton.Draw(args.Player()));
 				Array.Clear(arg, 0, arg.Length);
 				break;
 			case "1":
@@ -2500,8 +2517,9 @@ public partial class AdminModule
 		}
 		else
 		{
-			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: $"pluginbrowser.interact 0 \"{plugin.File}\""));
-			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#d9f7a3", text: "DOWNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
+			var canDownload = plugin.GetPreferredVendor() != PluginsTab.LocalInstance && !plugin.IsPaid() || plugin.Owned || (plugin.AvailableOn != null && plugin.AvailableOn.Count > 1);
+			update.Add(cui.UpdateProtectedButton("selectedplugin_b1", !canDownload ? CUI.HexToRustColor("#8db842", 0.4f) : "#8db842", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: canDownload ? $"pluginbrowser.interact 0 \"{plugin.File}\"" : string.Empty));
+			update.Add(cui.UpdateText("selectedplugin_b1_txt", "#d9f7a3", text: canDownload ? "DOWNLOAD" : "CAN'T DOWNLOAD", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b1_icn", "clouddl", "#d9f7a3"));
 			update.Add(cui.UpdateImage("selectedplugin_b1_fade", "fade", Cache.CUI.BlankColor));
 
