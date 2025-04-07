@@ -1,9 +1,14 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using Carbon.Pooling;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using HarmonyLib;
+using Mono.Cecil;
 
 namespace Carbon.Generator;
 
@@ -11,10 +16,74 @@ namespace Carbon.Generator;
 
 public class InternalCallHook
 {
+	public static List<AssemblyDefinition> Assemblies = new();
+
+	internal static Dictionary<string, int> InheritanceCache = new();
+
+	private static TypeDefinition? FindTypeInAssemblies(string fullName)
+	{
+		foreach (var assembly in Assemblies)
+		{
+			var type = assembly.MainModule.GetType(fullName);
+			if (type != null)
+			{
+				return type;
+			}
+
+			type = assembly.MainModule.Types.FirstOrDefault(t => t.FullName == fullName);
+			if (type != null)
+			{
+				return type;
+			}
+		}
+
+		return null;
+	}
+
+	private static int GetInheritanceDepth(TypeDefinition type)
+	{
+		if (InheritanceCache.TryGetValue(type.FullName, out int depth))
+		{
+			return depth;
+		}
+
+		var current = type.BaseType;
+
+		while (current != null)
+		{
+			var resolved = current.Resolve();
+			if (resolved == null)
+				break;
+
+			depth++;
+			current = resolved.BaseType;
+		}
+		InheritanceCache[type.FullName] = depth;
+		return depth;
+	}
+
+	public static int GetMethodParameterDepthScore(MethodDeclarationSyntax method)
+	{
+		var totalDepth = 0;
+
+		foreach (var param in method.ParameterList.Parameters)
+		{
+			var typeName = param.Type?.ToString();
+			if (typeName == null)
+				continue;
+
+			var type = FindTypeInAssemblies(typeName);
+			if (type != null)
+			{
+				totalDepth += GetInheritanceDepth(type);
+			}
+		}
+
+		return totalDepth;
+	}
+
 	public static void Generate(CompilationUnitSyntax input, out CompilationUnitSyntax output, out MethodDeclarationSyntax generatedMethod, out bool isPartial, bool baseCall = false, string baseName = "plugin", List<ClassDeclarationSyntax> classList = null)
 	{
-		var methodContents = $"\n\tvar length = args?.Length;\ntry {{ switch(hook) {{ ";
-
 		var @namespace = (BaseNamespaceDeclarationSyntax)null;
 		var namespaceIndex = 0;
 		var classIndex = 0;
@@ -54,7 +123,6 @@ public class InternalCallHook
 		var hookableMethods = new Dictionary<uint, List<MethodDeclarationSyntax>>();
 		var privateMethods0 = methodDeclarations.Where(md => (md.Modifiers.Count == 0 || md.Modifiers.All(modifier => !modifier.IsKind(SyntaxKind.PublicKeyword) && !modifier.IsKind(SyntaxKind.StaticKeyword)) || md.AttributeLists.Any(x => x.Attributes.Any(y => y.Name.ToString() == "HookMethod"))) && md.TypeParameterList == null);
 		var privateMethods = privateMethods0.OrderBy(x => x.Identifier.ValueText);
-		privateMethods0 = null;
 
 		foreach (var method in privateMethods)
 		{
@@ -94,9 +162,7 @@ public class InternalCallHook
 				}
 				else if (context.ToString().Contains("\""))
 				{
-					var value = AccessTools
-						.Field(AccessTools.TypeByName(classList.FirstOrDefault().Identifier.Text),
-							context.ToString().Replace("\"", string.Empty))?.GetValue(null)?.ToString();
+					var value = AccessTools.Field(AccessTools.TypeByName(classList.FirstOrDefault().Identifier.Text), context.ToString().Replace("\"", string.Empty))?.GetValue(null)?.ToString();
 
 					if (!string.IsNullOrEmpty(value))
 					{
@@ -115,16 +181,31 @@ public class InternalCallHook
 			list.Add(method);
 		}
 
+		var maxArgs = hookableMethods.Count == 0 ? 0 : hookableMethods.Max(x => x.Value.Max(y => y.ParameterList.Parameters.Count));
+		var methodContents = $"\n\tvar length = args?.Length;\n";
+
+		for (int i = 0; i < maxArgs; i++)
+		{
+			methodContents += $"var narg{i} = length > {i} ? args[{i}] : null; ";
+		}
+
+		methodContents += $"try {{ switch(hook) {{ ";
 		foreach (var group in hookableMethods)
 		{
 			methodContents += $"\t\t\t\n// {group.Value[0].Identifier.ValueText} aka {group.Key}\n\t\t\tcase {group.Key}:\n\t\t\t{{";
 
 			var overrideCount = 1;
 
-			for (int i = 0; i < group.Value.Count; i++)
+			var orderedGroup = group.Value
+				.Select(m => (Method: m, Score: GetMethodParameterDepthScore(m)))
+				.OrderByDescending(x => x.Score)
+				.Select(x => x.Method);
+			var i = -1;
+			foreach (var method in orderedGroup)
 			{
+				i++;
+
 				var parameterIndex = -1;
-				var method = group.Value[i];
 				var conditional = method.AttributeLists.Select(x => x.Attributes.FirstOrDefault(x => ((IdentifierNameSyntax)x.Name).Identifier.Text == "Conditional"))?.FirstOrDefault()?.ArgumentList?.Arguments[0].ToString().Replace("\"", string.Empty);
 				var methodName = method.Identifier.ValueText;
 				var parameters0 = method.ParameterList.Parameters.Select(x =>
@@ -139,7 +220,7 @@ public class InternalCallHook
 
 					if (x.Default != null || x.Type is NullableTypeSyntax)
 					{
-						return $"length > {parameterIndex} && args[{parameterIndex}] is {type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : ({type})default";
+						return $"narg{parameterIndex} is {type} arg{parameterIndex}_{i} ? arg{parameterIndex}_{i} : ({type})default";
 					}
 
 					if (x.Modifiers.Any(x => x.IsKind(SyntaxKind.RefKeyword)))
@@ -151,8 +232,6 @@ public class InternalCallHook
 				});
 
 				var parameters = parameters0.ToArray();
-				var requiredParameters = method.ParameterList.Parameters.Where(x => x.Default == null && x.Type is not NullableTypeSyntax);
-
 				var refSets = string.Empty;
 				parameterIndex = 0;
 				foreach (var @ref in method.ParameterList.Parameters)
@@ -177,8 +256,8 @@ public class InternalCallHook
 					{
 						var type = parameter.Type.ToString().Replace("global::", string.Empty);
 
-						varText += $"var narg{parameterIndex}_{i} = length > {parameterIndex} ? args[{parameterIndex}] is {type} or null : true;\nvar arg{parameterIndex}_{i} = length > {parameterIndex} && narg{parameterIndex}_{i} ? ({type})(args[{parameterIndex}] ?? ({type})default) : ({type})default;\n";
-						parameterText += !IsUnmanagedType(parameter.Type) ? $"narg{parameterIndex}_{i} && " : $"(narg{parameterIndex}_{i} || args[{parameterIndex}] == null) && ";
+						varText += $"var narg{parameterIndex}_{i} = narg{parameterIndex} is {type} or null;\nvar arg{parameterIndex}_{i} = narg{parameterIndex}_{i} ? ({type})(narg{parameterIndex} ?? ({type})default) : ({type})default;\n";
+						parameterText += !IsUnmanagedType(parameter.Type) ? $"narg{parameterIndex}_{i} && " : $"(narg{parameterIndex}_{i} || narg{parameterIndex} == null) && ";
 					}
 				}
 
@@ -188,14 +267,10 @@ public class InternalCallHook
 				}
 
 				methodContents += $"{(string.IsNullOrEmpty(conditional) ? string.Empty : $"\n#if {conditional}")}\t\t\t\n\t\t\t\t" +
-					$"{varText}{(string.IsNullOrEmpty(parameterText) ? string.Empty : $"if({parameterText}) {{")} {(method.ReturnType.ToString() != "void" ? $"return " : string.Empty)}" +
-					$"{methodName}({string.Join(", ", parameters)}); {refSets} " +
+					$"{varText}{(string.IsNullOrEmpty(parameterText) ? string.Empty : $"if({parameterText}) {{")}" +
+					$"{(method.ReturnType.ToString() != "void" ? "return" : string.Empty)} {methodName}({string.Join(", ", parameters)}); {refSets} " +
+					$"{(method.ReturnType.ToString() != "void" ? string.Empty : "return null;")}" +
 					$"{(string.IsNullOrEmpty(parameterText) ? string.Empty : $"}}")}{(string.IsNullOrEmpty(conditional) ? string.Empty : $"\n#endif")}\n";
-
-				Array.Clear(parameters, 0, parameters.Length);
-				parameters = null;
-				parameters0 = null;
-				requiredParameters = null;
 
 				overrideCount++;
 			}
@@ -230,13 +305,11 @@ public class InternalCallHook
 		#region Cleanup
 
 		methodDeclarations.Clear();
-		methodDeclarations = null;
 		foreach (var hookableMethod in hookableMethods)
 		{
 			hookableMethod.Value.Clear();
 		}
 		hookableMethods.Clear();
-		hookableMethods = null;
 
 		#endregion
 	}

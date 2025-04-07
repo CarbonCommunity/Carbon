@@ -96,7 +96,7 @@ public class Patch : IDisposable
 			return assembly;
 		}
 
-		protected void RegisterAssembly (AssemblyDefinition assembly)
+		public void RegisterAssembly (AssemblyDefinition assembly)
 		{
 			if (assembly == null)
 				throw new ArgumentNullException (nameof(assembly));

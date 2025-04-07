@@ -9,7 +9,6 @@ public static class Hooks
 	public static List<CarbonHook> Oxide = new();
 	public static List<CarbonHook> Community = new();
 	public static List<CarbonHook> Base = new();
-
 	public static void CollectHooks(Assembly hookAssembly, List<CarbonHook> hooks, bool isOxideHooks)
 	{
 		foreach (var type in hookAssembly.GetTypes())
