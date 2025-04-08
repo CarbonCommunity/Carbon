@@ -12,7 +12,7 @@ DotNet.ExitOnError(true);
 DotNet.Run("restore", PathEnquotes(Home, "Carbon.Core"));
 DotNet.Run("clean", PathEnquotes(Home, "Carbon.Core"), "--configuration", target);
 DotNet.Run("build", PathEnquotes(Home, "Carbon.Core"), "--configuration", target, "--no-restore",
-	$"/p:UserConstants=\"{defines}\"", $"/p:Version=\"{version}\"");
+	$"/p:UserConstants=\"{defines}\"", $"/p:UserVersion=\"{version}\"");
 
 var tos = isUnix ? "Linux" : "Windows";
 
