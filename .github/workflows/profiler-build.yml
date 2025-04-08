@@ -84,6 +84,7 @@ jobs:
       - name: Profiler Build
         shell: bash
         run: |
+          export VERSION=${{ steps.step1.outputs.version }}
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs Debug HARMONYMOD profiler_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs DebugUnix HARMONYMOD profiler_build
 
