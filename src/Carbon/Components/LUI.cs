@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Network;
+using Oxide.Game.Rust.Cui;
 using UnityEngine.UI;
 
 namespace Carbon.Components;
@@ -478,6 +479,25 @@ public class LUI : IDisposable
 			ScrollRect.MovementType.Elastic => nameof(ScrollRect.MovementType.Elastic),
 			ScrollRect.MovementType.Clamped => nameof(ScrollRect.MovementType.Clamped),
 			_ => nameof(ScrollRect.MovementType.Unrestricted)
+		};
+	}
+
+	public static string GetTimerFormat(TimerFormat format)
+	{
+		return format switch
+		{
+			TimerFormat.None => nameof(TimerFormat.None),
+			TimerFormat.SecondsHundreth => nameof(TimerFormat.SecondsHundreth),
+			TimerFormat.MinutesSeconds => nameof(TimerFormat.MinutesSeconds),
+			TimerFormat.MinutesSecondsHundreth => nameof(TimerFormat.MinutesSecondsHundreth),
+			TimerFormat.HoursMinutes => nameof(TimerFormat.HoursMinutes),
+			TimerFormat.HoursMinutesSeconds => nameof(TimerFormat.HoursMinutesSeconds),
+			TimerFormat.HoursMinutesSecondsMilliseconds => nameof(TimerFormat.HoursMinutesSecondsMilliseconds),
+			TimerFormat.HoursMinutesSecondsTenths => nameof(TimerFormat.HoursMinutesSecondsTenths),
+			TimerFormat.DaysHoursMinutes => nameof(TimerFormat.DaysHoursMinutes),
+			TimerFormat.DaysHoursMinutesSeconds => nameof(TimerFormat.DaysHoursMinutesSeconds),
+			TimerFormat.Custom => nameof(TimerFormat.Custom),
+			_ => nameof(TimerFormat.None)
 		};
 	}
 
@@ -1256,6 +1276,21 @@ public class LUI : IDisposable
 			return this;
 		}
 
+		public LuiContainer SetCountdownTimerFormat(TimerFormat format)
+		{
+			if (luiComponents.TryGetValue<LuiCountdownComp>(LuiCompType.Countdown, out var countdown))
+			{
+				countdown.timerFormat = GetTimerFormat(format);
+			}
+			else
+			{
+				countdown = LuiPool.GetCountdown();
+				countdown.timerFormat = GetTimerFormat(format);
+				luiComponents.Add(countdown.type, countdown);
+			}
+			return this;
+		}
+
 		#endregion
 
 		#region Container Methods - LuiDraggableComp
@@ -1379,6 +1414,7 @@ public class LUI : IDisposable
 			}
 			else
 			{
+				scroll = LuiPool.GetScroll();
 				scroll.anchor = pos;
 				scroll.offset = offset;
 				luiComponents.Add(scroll.type, scroll);
@@ -1792,13 +1828,29 @@ public struct LuiScrollbar
 	public string trackColor;
 }
 
-//Comment out when draggables will be out and there won't be anything like that in CUI.
+//Uncomment when draggables will be out and there won't be anything like that in CUI.
 /*public enum DraggablePositionSendType
 {
 	NormalizedScreen = 0,
 	NormalizedParent = 1,
 	Relative = 2,
 	RelativeAnchor = 3,
+}*/
+
+//Currently it relies on Oxide CUI enum, uncomment if it shouldn't.
+/*public enum TimerFormat
+{
+	None,
+	SecondsHundreth,
+	MinutesSeconds,
+	MinutesSecondsHundreth,
+	HoursMinutes,
+	HoursMinutesSeconds,
+	HoursMinutesSecondsMilliseconds,
+	HoursMinutesSecondsTenths,
+	DaysHoursMinutes,
+	DaysHoursMinutesSeconds,
+	Custom
 }*/
 
 public static class LuiPool
