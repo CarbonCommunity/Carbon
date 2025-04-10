@@ -263,8 +263,8 @@ public class ScriptLoader : IScriptLoader
 		}
 
 		var lines = Sources.Where(x => !string.IsNullOrEmpty(x.Content)).SelectMany(x => x.Content.Split('\n'));
-		var resultReferences = Facepunch.Pool.Get<List<string>>();
-		var resultRequires = Facepunch.Pool.Get<List<string>>();
+		var resultReferences = Pool.Get<List<string>>();
+		var resultRequires = Pool.Get<List<string>>();
 
 		if (lines != null)
 		{
@@ -305,8 +305,8 @@ public class ScriptLoader : IScriptLoader
 			AsyncLoader.Requires = resultRequires?.ToArray();
 			AsyncLoader.IsExtension = IsExtension;
 		}
-		Facepunch.Pool.FreeUnmanaged(ref resultReferences);
-		Facepunch.Pool.FreeUnmanaged(ref resultRequires);
+		Pool.FreeUnmanaged(ref resultReferences);
+		Pool.FreeUnmanaged(ref resultRequires);
 
 		if (AsyncLoader != null) HasRequires = AsyncLoader.Requires.Length > 0;
 
@@ -317,8 +317,8 @@ public class ScriptLoader : IScriptLoader
 			yield return null;
 		}
 
-		var requires = Facepunch.Pool.Get<List<Plugin>>();
-		var noRequiresFound = false;
+		var requires = Pool.Get<List<Plugin>>();
+		var missingRequires = Pool.Get<List<string>>();
 		if (AsyncLoader != null)
 		{
 			foreach (var require in AsyncLoader.Requires)
@@ -326,8 +326,7 @@ public class ScriptLoader : IScriptLoader
 				var plugin = Community.Runtime.Core.plugins.Find(require);
 				if (plugin == null)
 				{
-					Logger.Warn($"Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
-					noRequiresFound = true;
+					missingRequires.Add(require);
 				}
 				else
 				{
@@ -338,11 +337,18 @@ public class ScriptLoader : IScriptLoader
 
 		yield return null;
 
-		if (noRequiresFound)
+		if (missingRequires.Count > 0)
 		{
+			Logger.Error($"Failed compiling '{AsyncLoader.InitialSource.ContextFileName}':");
+			foreach (var require in missingRequires)
+			{
+				Logger.Warn($" Couldn't find required plugin '{require}' for '{(!string.IsNullOrEmpty(InitialSource.ContextFilePath) ? Path.GetFileNameWithoutExtension(InitialSource.ContextFilePath) : "<unknown>")}'");
+			}
+
 			ModLoader.AddPostBatchFailedRequiree(InitialSource.ContextFilePath);
 			HasFinished = true;
-			Facepunch.Pool.FreeUnmanaged(ref requires);
+			Pool.FreeUnmanaged(ref requires);
+			Pool.FreeUnmanaged(ref missingRequires);
 
 			if (Community.AllProcessorsFinalized)
 			{
@@ -365,6 +371,8 @@ public class ScriptLoader : IScriptLoader
 		if (AsyncLoader == null)
 		{
 			HasFinished = true;
+			Pool.FreeUnmanaged(ref requires);
+			Pool.FreeUnmanaged(ref missingRequires);
 			yield break;
 		}
 
@@ -431,6 +439,8 @@ public class ScriptLoader : IScriptLoader
 			AsyncLoader.Warnings?.Clear();
 			AsyncLoader.Exceptions = AsyncLoader.Warnings = null;
 			HasFinished = true;
+			Pool.FreeUnmanaged(ref requires);
+			Pool.FreeUnmanaged(ref missingRequires);
 
 			if (Community.AllProcessorsFinalized)
 			{
@@ -441,6 +451,8 @@ public class ScriptLoader : IScriptLoader
 
 		if (AsyncLoader == null)
 		{
+			Pool.FreeUnmanaged(ref requires);
+			Pool.FreeUnmanaged(ref missingRequires);
 			yield break;
 		}
 
@@ -551,7 +563,8 @@ public class ScriptLoader : IScriptLoader
 			ModLoader.OnPluginProcessFinished();
 		}
 
-		Facepunch.Pool.FreeUnmanaged(ref requires);
+		Pool.FreeUnmanaged(ref requires);
+		Pool.FreeUnmanaged(ref missingRequires);
 		yield return null;
 	}
 

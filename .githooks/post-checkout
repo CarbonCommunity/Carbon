@@ -22,11 +22,15 @@ paths=(
 )
 
 for P in "${paths[@]}"; do
-    target_dir="$BOOTSTRAP_ROOT/Carbon.Core/$P"
+    target_dir="$BOOTSTRAP_ROOT/Carbon.Core/Carbon.Core/$P"
 
     if [ -d "$target_dir" ]; then
         cd "$target_dir"
-        git fetch origin "${new_branch}" && git checkout --track "origin/${new_branch}" || git checkout -b "${new_branch}" "origin/${new_branch}" || true
+        git fetch origin "${new_branch}" || true
+		git checkout -b "${new_branch}" "origin/${new_branch}" || true
+		git checkout --track "origin/${new_branch}" || true
+		git checkout "${new_branch}" || true
+		git pull
     else
         echo "Skipping: Directory $target_dir does not exist."
     fi

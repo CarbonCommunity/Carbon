@@ -1,13 +1,47 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Text;
+using Carbon.Generator;
+using Carbon.Publicizer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Mono.Cecil;
 
 #pragma warning disable
 
 public sealed class Generator
 {
 	public static CommandLineArguments Arguments;
+
+	internal static bool hasLoaded;
+
+	public static void Prewarm()
+	{
+		if (hasLoaded)
+		{
+			return;
+		}
+
+		hasLoaded = true;
+		var resolver = new Patch.CarbonAssemblyResolver();
+		var readerParameters = new ReaderParameters { AssemblyResolver = resolver };
+		resolver.AddSearchDirectory(Arguments.Rust);
+
+		foreach (var assembly in Directory.GetFiles(Arguments.Rust, "*.dll"))
+		{
+			try
+			{
+				using var memoryStream = new MemoryStream(File.ReadAllBytes(assembly));
+				var asm = AssemblyDefinition.ReadAssembly(memoryStream, readerParameters);
+				InternalCallHook.Assemblies.Add(asm);
+				resolver.RegisterAssembly(asm);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed {assembly} ({ex.Message})\n{ex.StackTrace}");
+			}
+		}
+	}
 
 	public static void Generate()
 	{

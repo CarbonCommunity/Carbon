@@ -80,9 +80,7 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 
 		enabled = false;
 
-		var doHookUpdate = !CommandLineEx.GetArgumentExists("+carbon.skiphookupdates");
-
-		if (doHookUpdate)
+		if (Community.Runtime.Config.SelfUpdating.HookUpdates)
 		{
 			Logger.Log("Updating hooks...");
 
@@ -309,16 +307,16 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 		}
 	}
 
-	private void LoadHooksFromFile(string fileName)
+	private void LoadHooksFromFile(string filePath)
 	{
 		try
 		{
 			// delegates asm loading to Carbon.Loader
-			Assembly hooks = Community.Runtime.AssemblyEx.Hooks.Load(fileName, "HookManager.LoadHooksFromFile");
+			Assembly hooks = Community.Runtime.AssemblyEx.Hooks.Load(filePath, "HookManager.LoadHooksFromFile");
 
 			if (hooks == null)
 			{
-				Logger.Error($"Error while loading hooks from '{fileName}'.");
+				Logger.Error($"Error while loading hooks from '{filePath}'.");
 				Logger.Error($"Either the file is corrupt or has an unsupported format/version.");
 				return;
 			}
@@ -335,8 +333,8 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 			TaskStatus stats = LoadHooks(types);
 			if (stats.Total == 0) return;
 
-			Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic})"
-				+ $" from file '{Path.GetFileName(fileName)}' in {sw.ElapsedMilliseconds}ms");
+			var fileName = Path.GetFileName(filePath);
+			Logger.Log($"- Loaded {stats.Total} hooks ({stats.Patch}/{stats.Static}/{stats.Dynamic}) from file '{fileName}' in {sw.ElapsedMilliseconds}ms");
 
 #if !(RUST_STAGING || RUST_RELEASE || RUST_AUX01 || RUST_AUX02 || RUST_AUX03 || QA)
 			if (hooks.GetType("Carbon.Hooks._Meta") is Type type)
@@ -345,19 +343,14 @@ public sealed class PatchManager : CarbonBehaviour, IPatchManager, IDisposable
 				var currentChecksum = BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(typeof(ServerMgr).Assembly.Location)), 0).ToString();
 				if (!checksum.Equals(currentChecksum))
 				{
-					Logger.Warn($" {checksum} /= {currentChecksum}'");
-					foreach (var hook in stats.Hooks)
-					{
-						Logger.Warn($"Checksum validation failed for '{hook.TargetType}.{hook.TargetMethod}' [{hook.HookFullName}]");
-						hook.SetStatus(HookState.Warning, "Invalid checksum");
-					}
+					Logger.Warn($"Checksum validation failed for Rust has failed ({currentChecksum} =/ {checksum}) - [{fileName}]");
 				}
 			}
 #endif
 		}
 		catch (System.Exception)
 		{
-			Logger.Error($"- Error while loading hooks from file '{Path.GetFileName(fileName)}'");
+			Logger.Error($"- Error while loading hooks from file '{Path.GetFileName(filePath)}'");
 			return;
 		}
 	}
