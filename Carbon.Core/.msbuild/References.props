@@ -16,7 +16,6 @@
 		<PackageReference Include="Lib.Harmony" Version="2.3.5" />
 		<PackageReference Include="SharpCompress" Version="0.32.2" />
 		<PackageReference Include="ZstdSharp.Port" Version="0.8.0" />
-		<PackageReference Include="UniTask" Version="2.5.10" />
 		<PackageReference Include="Mono.Data.Sqlite" Version="1.0.61" />
 
 		<!-- Carbon API -->
