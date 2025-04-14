@@ -58,3 +58,6 @@
 [submodule "Carbon.Core/Carbon.Profiler"]
 	path = Carbon.Core/Carbon.Profiler
 	url = https://github.com/CarbonCommunity/Carbon.Profiler.git
+[submodule "Carbon.Core/Carbon.UniTask"]
+	path = Carbon.Core/Carbon.UniTask
+	url = https://github.com/CarbonCommunity/Carbon.UniTask.git
