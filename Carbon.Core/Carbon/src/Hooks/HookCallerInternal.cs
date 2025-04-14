@@ -14,12 +14,12 @@ public class HookCallerInternal : HookCallerCommon
 {
 	public override object[] AllocateBuffer(int count)
 	{
-		if (_argumentBuffer.TryGetValue(count, out var pool))
+		if (ArgBuffer.TryGetValue(count, out var pool))
 		{
 			return pool.Rent();
 		}
 
-		_argumentBuffer[count] = pool = new HookArgPool(count, 15);
+		ArgBuffer[count] = pool = new HookArgPool(count);
 		return pool.Rent();
 	}
 	public override object[] RescaleBuffer(object[] oldBuffer, int newScale, CachedHook hook)
@@ -78,9 +78,9 @@ public class HookCallerInternal : HookCallerCommon
 	}
 	public override void ReturnBuffer(object[] buffer)
 	{
-		if (!_argumentBuffer.TryGetValue(buffer.Length, out var pool))
+		if (!ArgBuffer.TryGetValue(buffer.Length, out var pool))
 		{
-			_argumentBuffer[buffer.Length] = pool = new HookArgPool(buffer.Length, 15);
+			ArgBuffer[buffer.Length] = pool = new HookArgPool(buffer.Length);
 		}
 
 		pool.Return(buffer);
@@ -301,11 +301,11 @@ public class HookCallerInternal : HookCallerCommon
 
 		var now = DateTime.Now;
 
-		if (!_lastDeprecatedWarningAt.TryGetValue(oldHook, out var lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
+		if (!DeprecatedWarningBuffer.TryGetValue(oldHook, out var lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
 		{
-			_lastDeprecatedWarningAt[oldHook] = now;
+			DeprecatedWarningBuffer[oldHook] = now;
 
-			Carbon.Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
+			Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 		}
 
 		return CallHook(plugin, newHook, flags, args);

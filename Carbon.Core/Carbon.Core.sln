@@ -47,6 +47,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Carbon.Publicizer.Shared", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.Documentation", "Carbon.Tools\Carbon.Documentation\Carbon.Documentation.csproj", "{495AD4A9-D24E-4338-B1AE-4E338BB9DA99}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Carbon.UniTask", "Carbon.UniTask\src\Carbon.UniTask.csproj", "{1A100547-E579-3E23-FA88-3FA99EEA3358}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -471,6 +473,30 @@ Global
 		{495AD4A9-D24E-4338-B1AE-4E338BB9DA99}.ReleaseUnix|Any CPU.Build.0 = Debug|Any CPU
 		{495AD4A9-D24E-4338-B1AE-4E338BB9DA99}.ReleaseUnix|x64.ActiveCfg = Debug|Any CPU
 		{495AD4A9-D24E-4338-B1AE-4E338BB9DA99}.ReleaseUnix|x64.Build.0 = Debug|Any CPU
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Debug|Any CPU.Build.0 = Debug|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Debug|x64.ActiveCfg = Debug|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Debug|x64.Build.0 = Debug|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.DebugUnix|Any CPU.ActiveCfg = DebugUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.DebugUnix|Any CPU.Build.0 = DebugUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.DebugUnix|x64.ActiveCfg = DebugUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.DebugUnix|x64.Build.0 = DebugUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Minimal|Any CPU.ActiveCfg = Minimal|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Minimal|Any CPU.Build.0 = Minimal|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Minimal|x64.ActiveCfg = Minimal|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Minimal|x64.Build.0 = Minimal|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.MinimalUnix|Any CPU.ActiveCfg = MinimalUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.MinimalUnix|Any CPU.Build.0 = MinimalUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.MinimalUnix|x64.ActiveCfg = MinimalUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.MinimalUnix|x64.Build.0 = MinimalUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Release|Any CPU.ActiveCfg = Release|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Release|Any CPU.Build.0 = Release|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Release|x64.ActiveCfg = Release|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.Release|x64.Build.0 = Release|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.ReleaseUnix|Any CPU.ActiveCfg = ReleaseUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.ReleaseUnix|Any CPU.Build.0 = ReleaseUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.ReleaseUnix|x64.ActiveCfg = ReleaseUnix|x64
+		{1A100547-E579-3E23-FA88-3FA99EEA3358}.ReleaseUnix|x64.Build.0 = ReleaseUnix|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -504,5 +530,6 @@ Global
 		Carbon.Tools\Carbon.Publicizer.Shared\Carbon.Publicizer.Shared.projitems*{206fef5d-2782-4954-8272-2ab61b2695b7}*SharedItemsImports = 13
 		Carbon.Tools\Carbon.Generator.Shared\Carbon.Generator.Shared.projitems*{531a79e2-9d4e-4c69-b277-d668f515c209}*SharedItemsImports = 5
 		Carbon.Tools\Carbon.Generator.Shared\Carbon.Generator.Shared.projitems*{edb9021b-9267-49e2-b1ca-4ca756854684}*SharedItemsImports = 5
+		Carbon.Tools\Carbon.Publicizer.Shared\Carbon.Publicizer.Shared.projitems*{edb9021b-9267-49e2-b1ca-4ca756854684}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
