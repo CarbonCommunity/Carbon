@@ -10,29 +10,30 @@ namespace Carbon;
 
 public class HookCallerCommon
 {
-	public Dictionary<int, HookArgPool> _argumentBuffer = new();
-	public Dictionary<uint, DateTime> _lastDeprecatedWarningAt = new();
+	public readonly Dictionary<int, HookArgPool> ArgBuffer = [];
+	public readonly Dictionary<uint, DateTime> DeprecatedWarningBuffer = [];
 
-	public struct HookArgPool
+	public readonly struct HookArgPool
 	{
-		internal Queue<object[]> _pool;
-		internal int _length;
+		public static readonly int BufferSize = 256;
 
-		public HookArgPool(int length, int count)
+		private readonly int length;
+		private readonly Queue<object[]> pool;
+
+		public HookArgPool(int length)
 		{
-			this._length = length;
+			this.length = length;
+			pool = new Queue<object[]>(BufferSize);
 
-			_pool = new Queue<object[]>(count);
-
-			for (int i = 0; i < count; i++)
+			for (int i = 0; i < BufferSize; i++)
 			{
-				_pool.Enqueue(new object[length]);
+				this.pool.Enqueue(new object[length]);
 			}
 		}
 
 		public object[] Rent()
 		{
-			return _pool.Count > 0 ? _pool.Dequeue() : new object[_length];
+			return pool.Count > 0 ? pool.Dequeue() : new object[length];
 		}
 		public void Return(object[] array)
 		{
@@ -41,7 +42,7 @@ public class HookCallerCommon
 				array[i] = default;
 			}
 
-			_pool.Enqueue(array);
+			pool.Enqueue(array);
 		}
 	}
 
@@ -224,9 +225,9 @@ public static class HookCaller
 
 		DateTime now = DateTime.Now;
 
-		if (!Caller._lastDeprecatedWarningAt.TryGetValue(oldHookId, out DateTime lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
+		if (!Caller.DeprecatedWarningBuffer.TryGetValue(oldHookId, out DateTime lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
 		{
-			Caller._lastDeprecatedWarningAt[oldHookId] = now;
+			Caller.DeprecatedWarningBuffer[oldHookId] = now;
 
 			Carbon.Logger.Warn($"A plugin is using deprecated hook '{oldHookId}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHookId}'");
 		}
