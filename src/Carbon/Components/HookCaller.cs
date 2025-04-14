@@ -10,8 +10,8 @@ namespace Carbon;
 
 public class HookCallerCommon
 {
-	public readonly Dictionary<int, HookArgPool> ArgBuffer = [];
-	public readonly Dictionary<uint, DateTime> DeprecatedWarningBuffer = [];
+	public readonly Dictionary<int, HookArgPool> _argumentBuffer = [];
+	public readonly Dictionary<uint, DateTime> _lastDeprecatedWarningAt = [];
 
 	public readonly struct HookArgPool
 	{
@@ -225,9 +225,9 @@ public static class HookCaller
 
 		DateTime now = DateTime.Now;
 
-		if (!Caller.DeprecatedWarningBuffer.TryGetValue(oldHookId, out DateTime lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
+		if (!Caller._lastDeprecatedWarningAt.TryGetValue(oldHookId, out DateTime lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
 		{
-			Caller.DeprecatedWarningBuffer[oldHookId] = now;
+			Caller._lastDeprecatedWarningAt[oldHookId] = now;
 
 			Carbon.Logger.Warn($"A plugin is using deprecated hook '{oldHookId}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHookId}'");
 		}
