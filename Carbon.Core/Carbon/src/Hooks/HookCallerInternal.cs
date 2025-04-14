@@ -14,12 +14,12 @@ public class HookCallerInternal : HookCallerCommon
 {
 	public override object[] AllocateBuffer(int count)
 	{
-		if (ArgBuffer.TryGetValue(count, out var pool))
+		if (_argumentBuffer.TryGetValue(count, out var pool))
 		{
 			return pool.Rent();
 		}
 
-		ArgBuffer[count] = pool = new HookArgPool(count);
+		_argumentBuffer[count] = pool = new HookArgPool(count);
 		return pool.Rent();
 	}
 	public override object[] RescaleBuffer(object[] oldBuffer, int newScale, CachedHook hook)
@@ -78,9 +78,9 @@ public class HookCallerInternal : HookCallerCommon
 	}
 	public override void ReturnBuffer(object[] buffer)
 	{
-		if (!ArgBuffer.TryGetValue(buffer.Length, out var pool))
+		if (!_argumentBuffer.TryGetValue(buffer.Length, out var pool))
 		{
-			ArgBuffer[buffer.Length] = pool = new HookArgPool(buffer.Length);
+			_argumentBuffer[buffer.Length] = pool = new HookArgPool(buffer.Length);
 		}
 
 		pool.Return(buffer);
@@ -301,9 +301,9 @@ public class HookCallerInternal : HookCallerCommon
 
 		var now = DateTime.Now;
 
-		if (!DeprecatedWarningBuffer.TryGetValue(oldHook, out var lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
+		if (!_lastDeprecatedWarningAt.TryGetValue(oldHook, out var lastWarningAt) || (now - lastWarningAt).TotalSeconds > 3600f)
 		{
-			DeprecatedWarningBuffer[oldHook] = now;
+			_lastDeprecatedWarningAt[oldHook] = now;
 
 			Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 		}
