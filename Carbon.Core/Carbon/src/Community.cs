@@ -11,7 +11,6 @@ using Oxide.Core;
 using System.Linq;
 using API.Commands;
 using UnityEngine;
-using Carbon.Client;
 using Carbon.Jobs;
 
 namespace Carbon;
@@ -88,7 +87,6 @@ public class CommunityInternal : Community
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = gameObject.AddComponent<ModuleProcessor>();
 			Entities = new Entities();
-			CarbonClient = new CarbonClientManager();
 		}
 
 		_registerProcessors();
@@ -150,7 +148,6 @@ public class CommunityInternal : Community
 
 		LoadConfig();
 		LoadMonoProfilerConfig();
-		LoadClientConfig();
 
 		Compat.Init();
 
@@ -170,7 +167,6 @@ public class CommunityInternal : Community
 			ClearCommands();
 			_installCore();
 			ModuleProcessor.Init();
-			CarbonClient.Init();
 
 			Events.Trigger(CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		});
@@ -204,8 +200,6 @@ public class CommunityInternal : Community
 
 		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
-
-		Client.Client.Init();
 
 		Entities.Init();
 	}

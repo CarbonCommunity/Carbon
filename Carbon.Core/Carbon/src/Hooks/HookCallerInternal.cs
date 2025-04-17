@@ -19,7 +19,7 @@ public class HookCallerInternal : HookCallerCommon
 			return pool.Rent();
 		}
 
-		_argumentBuffer[count] = pool = new HookArgPool(count, 15);
+		_argumentBuffer[count] = pool = new HookArgPool(count);
 		return pool.Rent();
 	}
 	public override object[] RescaleBuffer(object[] oldBuffer, int newScale, CachedHook hook)
@@ -80,7 +80,7 @@ public class HookCallerInternal : HookCallerCommon
 	{
 		if (!_argumentBuffer.TryGetValue(buffer.Length, out var pool))
 		{
-			_argumentBuffer[buffer.Length] = pool = new HookArgPool(buffer.Length, 15);
+			_argumentBuffer[buffer.Length] = pool = new HookArgPool(buffer.Length);
 		}
 
 		pool.Return(buffer);
@@ -305,7 +305,7 @@ public class HookCallerInternal : HookCallerCommon
 		{
 			_lastDeprecatedWarningAt[oldHook] = now;
 
-			Carbon.Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
+			Logger.Warn($"'{plugin.Name} v{plugin.Version}' is using deprecated hook '{oldHook}', which will stop working on {expireDate.ToString("D")}. Please ask the author to update to '{newHook}'");
 		}
 
 		return CallHook(plugin, newHook, flags, args);
