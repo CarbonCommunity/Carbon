@@ -235,36 +235,30 @@ public class LUI : IDisposable
 		return cont;
 	}
 
-	public LuiContainer CreateItemIcon(LuiContainer container, LuiPosition position, LuiOffset offset, string shortname, ulong skinId = 0, string name = "") => CreateItemIcon(container.name, position, offset, shortname, skinId, name);
-	public LuiContainer CreateItemIcon(LuiContainer container, LuiOffset offset, string shortname, ulong skinId = 0, string name = "") => CreateItemIcon(container.name, LuiPosition.None, offset, shortname, skinId, name);
-	public LuiContainer CreateItemIcon(string parent, LuiOffset offset, string shortname, ulong skinId = 0, string name = "") => CreateItemIcon(parent, LuiPosition.None, offset, shortname, skinId, name);
+	public LuiContainer CreateItemIcon(LuiContainer container, LuiPosition position, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(container.name, position, offset, shortname, skinId, color, name);
+	public LuiContainer CreateItemIcon(LuiContainer container, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(container.name, LuiPosition.None, offset, shortname, skinId, color, name);
+	public LuiContainer CreateItemIcon(string parent, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(parent, LuiPosition.None, offset, shortname, skinId, color, name);
 
-	public LuiContainer CreateItemIcon(string parent, LuiPosition position, LuiOffset offset, string shortname, ulong skinId = 0, string name = "")
+	public LuiContainer CreateItemIcon(string parent, LuiPosition position, LuiOffset offset, string shortname, ulong skinId = 0, string color = "", string name = "")
 	{
-		LuiContainer cont = CreateEmptyContainer(parent, name);
 		ItemDefinition def = ItemManager.FindItemDefinition(shortname);
 		if (def)
-		{
-			cont.SetAnchorAndOffset(position, offset);
-			cont.SetItemIcon(def.itemid, skinId);
-		}
-		else
-		{
-			Logger.Warn($"[LUI] We couldn't find '{shortname}' as valid item shortname. Ignoring.");
-		}
-		elements.Add(cont);
-		return cont;
+			return CreateItemIcon(parent, position, offset, def.itemid, skinId, color, name);
+		Logger.Warn($"[LUI] We couldn't find '{shortname}' as valid item shortname. Ignoring.");
+		return null;
 	}
 
-	public LuiContainer CreateItemIcon(LuiContainer container, LuiPosition position, LuiOffset offset, int itemId, ulong skinId = 0, string name = "") => CreateItemIcon(container.name, position, offset, itemId, skinId, name);
-	public LuiContainer CreateItemIcon(LuiContainer container, LuiOffset offset, int itemId, ulong skinId = 0, string name = "") => CreateItemIcon(container.name, LuiPosition.None, offset, itemId, skinId, name);
-	public LuiContainer CreateItemIcon(string parent, LuiOffset offset, int itemId, ulong skinId = 0, string name = "") => CreateItemIcon(parent, LuiPosition.None, offset, itemId, skinId, name);
+	public LuiContainer CreateItemIcon(LuiContainer container, LuiPosition position, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(container.name, position, offset, itemId, skinId, color, name);
+	public LuiContainer CreateItemIcon(LuiContainer container, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(container.name, LuiPosition.None, offset, itemId, skinId, color, name);
+	public LuiContainer CreateItemIcon(string parent, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "") => CreateItemIcon(parent, LuiPosition.None, offset, itemId, skinId, color, name);
 
-	public LuiContainer CreateItemIcon(string parent, LuiPosition position, LuiOffset offset, int itemId, ulong skinId = 0, string name = "")
+	public LuiContainer CreateItemIcon(string parent, LuiPosition position, LuiOffset offset, int itemId, ulong skinId = 0, string color = "", string name = "")
 	{
 		LuiContainer cont = CreateEmptyContainer(parent, name);
 		cont.SetAnchorAndOffset(position, offset);
 		cont.SetItemIcon(itemId, skinId);
+		if (color != string.Empty)
+			cont.SetColor(color);
 		elements.Add(cont);
 		return cont;
 	}
