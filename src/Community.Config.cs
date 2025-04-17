@@ -3,7 +3,6 @@ using API.Assembly;
 using API.Commands;
 using API.Contracts;
 using API.Events;
-using Carbon.Client;
 using Carbon.Profiler;
 using Facepunch;
 using Newtonsoft.Json;
@@ -14,7 +13,6 @@ public partial class Community
 {
 	public Config Config { get; set; }
 	public MonoProfilerConfig MonoProfilerConfig => MonoProfilerConfig.Instance;
-	public ClientConfig ClientConfig { get; set; }
 
 	public void ForceEnsurePublicizedAssembly(string value, ref bool needsSave)
 	{
@@ -203,39 +201,5 @@ public partial class Community
 	public void SaveMonoProfilerConfig()
 	{
 		MonoProfilerConfig.Save(Defines.GetMonoProfilerConfigFile());
-	}
-
-	/// <summary>
-	/// Load Carbon MonoProfiler config from disk.
-	/// </summary>
-	public void LoadClientConfig()
-	{
-		var needsSave = false;
-
-		if (!OsEx.File.Exists(Defines.GetClientConfigFile()))
-		{
-			ClientConfig ??= new();
-			needsSave = true;
-		}
-		else
-		{
-			ClientConfig = JsonConvert.DeserializeObject<ClientConfig>(OsEx.File.ReadText(Defines.GetClientConfigFile()));
-			ClientConfig.RefreshAddonCache();
-		}
-
-		if (needsSave)
-		{
-			SaveClientConfig();
-		}
-	}
-
-	/// <summary>
-	/// Save Carbon MonoProfiler config to disk.
-	/// </summary>
-	public void SaveClientConfig()
-	{
-		ClientConfig ??= new();
-
-		OsEx.File.Create(Defines.GetClientConfigFile(), JsonConvert.SerializeObject(ClientConfig, Formatting.Indented));
 	}
 }
