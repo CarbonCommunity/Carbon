@@ -61,12 +61,12 @@ jobs:
           which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
           x86_64-w64-mingw32-dlltool --version
 
-      - name: Dotnet Setup
+      - name: Setup .NET 8 SDK
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 8.0.406
 
-      - name: Dotnet Setup
+      - name: Setup .NET 9 SDK
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 9.0.203

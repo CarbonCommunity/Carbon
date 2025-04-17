@@ -78,11 +78,16 @@ jobs:
         ref: ${{ inputs.carbon_branch }}
         token: ${{ secrets.PAT_ALL_REPO }}
         submodules: recursive
-        
-    - name: Environment Setup
+
+    - name: Setup .NET 8 SDK
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 8.0.406
+
+    - name: Setup .NET 9 SDK
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 9.0.203
 
     - name: 🔨 Built Carbon Hooks on Windows
       shell: cmd
