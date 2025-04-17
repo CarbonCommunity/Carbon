@@ -64,7 +64,7 @@ jobs:
       - name: Dotnet Setup
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 9.0.100-preview.3
+          dotnet-version: 9.0.203
 
       - name: Carbon.Native Toolchain
         uses: dtolnay/rust-toolchain@stable
