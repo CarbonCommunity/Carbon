@@ -58,11 +58,6 @@ public class Defines
 		_initializeCommandLine();
 		return Path.Combine(GetRootFolder(), "config.json");
 	}
-	public static string GetClientConfigFile()
-	{
-		_initializeCommandLine();
-		return Path.Combine(GetRootFolder(), "config.client.json");
-	}
 	public static string GetMonoProfilerConfigFile()
 	{
 		_initializeCommandLine();

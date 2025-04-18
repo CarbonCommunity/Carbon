@@ -6,6 +6,7 @@ namespace Carbon;
 /// <summary>
 /// Carbon component centralized place of accessing Rust spawned entities.
 /// </summary>
+[Obsolete("Entities is going to be no longer used and later on permanently removed.")]
 public class Entities
 {
 	public static void Init()
@@ -103,7 +104,7 @@ public class Entities
 	/// <summary>
 	/// Gets all entities of BaseEntity. If inherited is true, it returns everything spawnable on the server, otherwise ONLY entities with BaseEntity as base class.
 	/// </summary>
-	public static Map<BaseEntity> GetAll(bool inherited = true) 
+	public static Map<BaseEntity> GetAll(bool inherited = true)
 	{
 		var map = new Map<BaseEntity>
 		{
