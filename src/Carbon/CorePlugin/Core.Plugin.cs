@@ -155,18 +155,6 @@ public partial class CorePlugin : CarbonPlugin
 		Community.Runtime.Events.Trigger(CarbonEvent.PluginUnloaded, eventArg);
 		Pool.Free(ref eventArg);
 	}
-	private void OnEntitySpawned(BaseEntity entity)
-	{
-		Entities.AddMap(entity);
-	}
-	private void OnEntityDeath(BaseCombatEntity entity, HitInfo info)
-	{
-		Entities.RemoveMap(entity);
-	}
-	private void OnEntityKill(BaseEntity entity)
-	{
-		Entities.RemoveMap(entity);
-	}
 
 	internal static StackTraceLogType _defaultLogTrace;
 	internal static StackTraceLogType _defaultWarningTrace;
