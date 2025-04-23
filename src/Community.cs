@@ -63,8 +63,6 @@ public partial class Community
 		}
 	}
 
-	public Entities Entities { get; set; }
-
 	public void MarkServerInitialized(bool wants)
 	{
 		IsServerInitialized = wants;
