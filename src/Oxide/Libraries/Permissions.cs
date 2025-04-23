@@ -392,11 +392,6 @@ public class Permission : Library
 			return;
 		}
 
-		if (player.displayName.Contains("\\"))
-		{
-			player.displayName = player.displayName.Replace("\\", string.Empty);
-		}
-
 		var user = GetUserData(player.UserIDString, addIfNotExisting: true);
 		user.Player = player.AsIPlayer();
 		user.LastSeenNickname = player.displayName;
