@@ -86,7 +86,6 @@ public class CommunityInternal : Community
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = gameObject.AddComponent<ModuleProcessor>();
-			Entities = new Entities();
 		}
 
 		_registerProcessors();
@@ -200,8 +199,6 @@ public class CommunityInternal : Community
 
 		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
-
-		Entities.Init();
 	}
 	public override void Uninitialize()
 	{
@@ -225,9 +222,7 @@ public class CommunityInternal : Community
 			}
 			catch { }
 #endif
-
-			Entities.Dispose();
-
+			
 			Carbon.Logger.Dispose();
 
 			Events.Trigger(CarbonEvent.CarbonShutdownComplete, EventArgs.Empty);
