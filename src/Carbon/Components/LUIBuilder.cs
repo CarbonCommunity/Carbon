@@ -535,7 +535,7 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("url", rawImage.url);
 		                    }
-		                    if (rawImage.steamid != 0)
+		                    if (rawImage.steamid != null)
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("steamid", rawImage.steamid);
