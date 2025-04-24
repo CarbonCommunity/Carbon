@@ -144,10 +144,6 @@ public class ScriptProcessor : BaseProcessor, IScriptProcessor
 
 	public class ScriptParser : Parser, IBaseProcessor.IParser
 	{
-		internal const string QuoteReplacer = "[CARBONQUOTE]";
-		internal const string Quote = "\\\"";
-		internal const string NewLineReplacer = "[CARBONNEWLINE]";
-		internal const string NewLine = "\\n";
 		internal const string FOOT = "FindObjectsOfType";
 
 		public override void Process(string file, string input, out string output)
