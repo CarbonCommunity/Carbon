@@ -327,7 +327,7 @@ public partial class AdminModule
 				}
 			}
 		}
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			foreach (var column in Columns)
 			{
