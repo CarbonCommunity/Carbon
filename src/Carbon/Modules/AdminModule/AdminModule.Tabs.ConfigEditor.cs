@@ -14,15 +14,15 @@ public partial class AdminModule
 		internal Action<PlayerSession, JObject> OnSave, OnSaveAndReload, OnCancel;
 		internal const string Spacing = " ";
 		internal string[] Blacklist;
+
+		const string LegendSuffix = "Legend";
 		internal Dictionary<string, int> LegendIndex;
 		internal Dictionary<string, string[]> LegendOptions;
-		internal Dictionary<string, JToken[]> LegendValues;
 
 		public ConfigEditor(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
 			LegendIndex = Facepunch.Pool.Get<Dictionary<string, int>>();
 			LegendOptions = Facepunch.Pool.Get<Dictionary<string, string[]>>();
-			LegendValues = Facepunch.Pool.Get<Dictionary<string, JToken[]>>();
 		}
 
 		public static ConfigEditor Make(string json, Action<PlayerSession, JObject> onCancel, Action<PlayerSession, JObject> onSave, Action<PlayerSession, JObject> onSaveAndReload, bool fullscreen = false, string[] blacklist = null)
@@ -57,57 +57,41 @@ public partial class AdminModule
 			{
 				foreach (var token in inner)
 				{
-					if (token.Value is JObject legendObj)
+					if (token.Value is not JObject legendObj)
+						continue;
+
+					if (token.Key.EndsWith(LegendSuffix))
 					{
-						if (token.Key.EndsWith("Legend"))
+						var baseName = token.Key[..^LegendSuffix.Length].Trim();
+						var baseToken = legendObj.Parent?.Parent?[baseName];
+
+						if (baseToken != null)
 						{
-							LegendOptions[token.Key] = [.. legendObj.Properties().Select(x => x.Name)];
-							LegendValues[token.Key] = [.. legendObj.Properties().Select(x => x.Value)];
+							LegendOptions[token.Key] = [.. legendObj.Properties().Select(p => p.Name)];
+
+							var baseTokenValue = baseToken.ToString();
+							var defaultValue = legendObj.Properties()
+								.FirstOrDefault(p => p.Name == baseTokenValue)
+								?? legendObj.Properties().First();
+
+							LegendIndex[token.Key] = legendObj.Properties().IndexOf(defaultValue);
+
+							continue;
 						}
-
-						createLegendMap(legendObj);
 					}
-				}
-			}
 
-			void populateDefaultIndexes(JObject inner)
-			{
-				if (LegendOptions.Count == 0)
-					return;
-
-				foreach (var token in inner)
-				{
-					if (token.Value is JObject jObj)
-						populateDefaultIndexes(jObj);
-
-					var legendKey = token.Key.Trim() + "Legend";
-					if (LegendValues.TryGetValue(legendKey, out var values))
-					{
-						var idx = values.IndexOf(token.Value);
-						LegendIndex[legendKey] = Math.Max(0, idx);
-					}
+					createLegendMap(legendObj);
 				}
 			}
 
 			createLegendMap(Entry);
-			populateDefaultIndexes(Entry);
-
-			for (int i = LegendOptions.Count - 1; i >= 0; i--)
-			{
-				var legend = LegendOptions.ElementAt(i);
-				if (!LegendIndex.ContainsKey(legend.Key))
-				{
-					LegendOptions.Remove(legend.Key);
-					LegendValues.Remove(legend.Key);
-				}
-			}
 
 			foreach (var token in Entry)
 			{
 				if (token.Value is JObject)
 				{
 					var trimKey = token.Key.Trim();
-					if (LegendOptions.Count == 0 || !trimKey.EndsWith("Legend") || !LegendOptions.ContainsKey(trimKey))
+					if (LegendOptions.Count == 0 || !trimKey.EndsWith(LegendSuffix) || !LegendOptions.ContainsKey(trimKey))
 						AddName(0, $"{token.Key}");
 				}
 
@@ -122,7 +106,7 @@ public partial class AdminModule
 			}
 
 			var trimName = name.Trim();
-			if (LegendOptions.Count > 0 && LegendOptions.ContainsKey(trimName + "Legend"))
+			if (LegendOptions.Count > 0 && LegendOptions.ContainsKey(trimName + LegendSuffix))
 				return;
 
 			switch (token)
@@ -187,17 +171,27 @@ public partial class AdminModule
 							if (LegendIndex.Count > 0 && LegendOptions.Count > 0
 								&& LegendIndex.TryGetValue(trimName, out var idx)
 								&& LegendOptions.TryGetValue(trimName, out var options)
-								&& LegendValues.TryGetValue(trimName, out var values))
+								&& usableToken is JObject tokenObject)
 							{
-								var baseName = trimName[..^"Legend".Length];
+								var baseName = trimName[..^LegendSuffix.Length];
+
 								AddDropdown(column, baseName,
-									ap => Math.Max(0, LegendIndex[trimName]),
+									ap => Mathf.Clamp(LegendIndex[trimName], 0, options.Length - 1),
 									(ap, i) =>
 									{
+										var baseToken = tokenObject.Parent?.Parent?[baseName];
+										if (baseToken == null)
+										{
+											// This is already handled and we shouldn't get here. Something in the config must have changed.
+											throw new InvalidOperationException($"Failed to find token for '{baseToken}', please validate configuration and try again.");
+										}
+
+										var newValue = tokenObject.Properties().ElementAt(i).Value;
+										baseToken.Replace(newValue);
+
 										LegendIndex[trimName] = i;
-										var entry = token.Parent[baseName] is JProperty property ? property.Value : token.Parent[baseName];
-										entry.Replace(entry = values[i]);
-									}, options, tooltip: $"The selected value of the '{baseName}' property.");
+									},
+									options, tooltip: $"The selected value of the '{baseName}' property.");
 							}
 							else
 							{
@@ -303,7 +297,6 @@ public partial class AdminModule
 
 			Facepunch.Pool.FreeUnmanaged(ref LegendIndex);
 			Facepunch.Pool.FreeUnmanaged(ref LegendOptions);
-			Facepunch.Pool.FreeUnmanaged(ref LegendValues);
 		}
 	}
 }
