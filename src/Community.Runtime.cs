@@ -4,7 +4,6 @@ using API.Commands;
 using API.Contracts;
 using API.Events;
 using API.Hooks;
-using Carbon.Client.SDK;
 
 namespace Carbon;
 
@@ -36,8 +35,6 @@ public partial class Community
 
 	public ICarbonProcessor CarbonProcessor { get; set; }
 
-	public ICarbonClientManager CarbonClient { get; set; }
-
 	public static bool IsServerInitialized { get; internal set; }
 	public static bool IsConfigReady => Runtime != null && Runtime.Config != null;
 	public static bool AllProcessorsFinalized => Runtime.ScriptProcessor.AllPendingScriptsComplete() &&
@@ -55,6 +52,7 @@ public partial class Community
 
 	internal static string _runtimeId;
 	internal static Dictionary<string, string> _protectMap = new();
+	internal static Dictionary<string, string> _protectCommands = new();
 
 	public static string RuntimeId
 	{
@@ -80,19 +78,22 @@ public partial class Community
 	public static string Protect(string name)
 	{
 		if (string.IsNullOrEmpty(name))
-		{
 			return string.Empty;
-		}
 
 		if (_protectMap.TryGetValue(name, out var result))
-		{
 			return result;
-		}
 
 		using var split = TempArray<string>.New(name.Split(' '));
 		var command = split.array[0];
 		var arguments = split.array.Skip(1).ToString(" ");
 
-		return _protectMap[name] = $"carbonprotecc_{RandomEx.GetRandomString(command.Length, command + RuntimeId, command.Length)} {arguments}".TrimEnd();
+		if (_protectCommands.TryGetValue(command, out string cmdPrefix))
+			return _protectMap[name] = $"{cmdPrefix} {arguments}".TrimEnd();
+		else
+		{
+			_protectCommands[command] = $"carbonprotecc_{RandomEx.GetRandomString(command.Length, command + RuntimeId)}".TrimEnd();
+			return _protectMap[name] = $"{_protectCommands[command]} {arguments}".TrimEnd();
+		}
+
 	}
 }

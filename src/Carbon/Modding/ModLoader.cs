@@ -1,5 +1,6 @@
 ﻿using API.Events;
 using Carbon.Profiler;
+using Facepunch;
 using Newtonsoft.Json;
 
 namespace Carbon.Core;
@@ -58,7 +59,10 @@ public static partial class ModLoader
 
 	public static List<string> GetRequirees(Plugin initial)
 	{
-		if (string.IsNullOrEmpty(initial.FilePath)) return null;
+		if (string.IsNullOrEmpty(initial.FilePath))
+		{
+			return null;
+		}
 
 		if (PendingRequirees.TryGetValue(initial.FilePath, out var requirees))
 		{
@@ -72,7 +76,7 @@ public static partial class ModLoader
 	{
 		if (!PendingRequirees.TryGetValue(initial, out var requirees))
 		{
-			PendingRequirees.Add(initial, requirees = new List<string>(20));
+			PendingRequirees.Add(initial, requirees = Pool.Get<List<string>>());
 		}
 
 		if (!requirees.Contains(requiree))
@@ -105,18 +109,12 @@ public static partial class ModLoader
 	}
 	public static void ClearAllRequirees()
 	{
-		var requirees = new Dictionary<string, List<string>>();
-		foreach (var requiree in PendingRequirees) requirees.Add(requiree.Key, requiree.Value);
-
-		foreach (var requiree in requirees)
+		foreach (var requiree in PendingRequirees)
 		{
-			requiree.Value.Clear();
-			PendingRequirees[requiree.Key] = null;
+			var self = requiree.Value;
+			Pool.FreeUnmanaged(ref self);
 		}
-
 		PendingRequirees.Clear();
-		requirees.Clear();
-		requirees = null;
 	}
 	public static void ClearAllErrored()
 	{
