@@ -14,15 +14,9 @@ public partial class AdminModule
 		internal Action<PlayerSession, JObject> OnSave, OnSaveAndReload, OnCancel;
 		internal const string Spacing = " ";
 		internal string[] Blacklist;
-		internal Dictionary<string, int> LegendIndex;
-		internal Dictionary<string, string[]> LegendOptions;
-		internal Dictionary<string, JToken[]> LegendValues;
 
 		public ConfigEditor(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
-			LegendIndex = Facepunch.Pool.Get<Dictionary<string, int>>();
-			LegendOptions = Facepunch.Pool.Get<Dictionary<string, string[]>>();
-			LegendValues = Facepunch.Pool.Get<Dictionary<string, JToken[]>>();
 		}
 
 		public static ConfigEditor Make(string json, Action<PlayerSession, JObject> onCancel, Action<PlayerSession, JObject> onSave, Action<PlayerSession, JObject> onSaveAndReload, bool fullscreen = false, string[] blacklist = null)
@@ -53,63 +47,9 @@ public partial class AdminModule
 			AddButtonArray(-1, list.ToArray());
 			Facepunch.Pool.FreeUnmanaged(ref list);
 
-			void createLegendMap(JObject inner)
-			{
-				foreach (var token in inner)
-				{
-					if (token.Value is JObject legendObj)
-					{
-						if (token.Key.EndsWith("Legend"))
-						{
-							LegendOptions[token.Key] = [.. legendObj.Properties().Select(x => x.Name)];
-							LegendValues[token.Key] = [.. legendObj.Properties().Select(x => x.Value)];
-						}
-
-						createLegendMap(legendObj);
-					}
-				}
-			}
-
-			void populateDefaultIndexes(JObject inner)
-			{
-				if (LegendOptions.Count == 0)
-					return;
-
-				foreach (var token in inner)
-				{
-					if (token.Value is JObject jObj)
-						populateDefaultIndexes(jObj);
-
-					var legendKey = token.Key.Trim() + "Legend";
-					if (LegendValues.TryGetValue(legendKey, out var values))
-					{
-						var idx = values.IndexOf(token.Value);
-						LegendIndex[legendKey] = Math.Max(0, idx);
-					}
-				}
-			}
-
-			createLegendMap(Entry);
-			populateDefaultIndexes(Entry);
-
-			for (int i = LegendOptions.Count - 1; i >= 0; i--)
-			{
-				var legend = LegendOptions.ElementAt(i);
-				if (!LegendIndex.ContainsKey(legend.Key))
-				{
-					LegendOptions.Remove(legend.Key);
-					LegendValues.Remove(legend.Key);
-				}
-			}
-
 			foreach (var token in Entry)
 			{
-				if (token.Value is JObject)
-				{
-					var trimKey = token.Key.Trim();
-					if (LegendOptions.Count == 0 || !trimKey.EndsWith("Legend") || !LegendOptions.ContainsKey(trimKey))
-						AddName(0, $"{token.Key}");
-				}
+				if (token.Value is JObject) AddName(0, $"{token.Key}");
 
 				_recurseBuild(token.Key, token.Value, 0, 0);
 			}
@@ -120,10 +60,6 @@ public partial class AdminModule
 			{
 				return;
 			}
-
-			var trimName = name.Trim();
-			if (LegendOptions.Count > 0 && LegendOptions.ContainsKey(trimName + "Legend"))
-				return;
 
 			switch (token)
 			{
@@ -184,39 +120,22 @@ public partial class AdminModule
 							break;
 
 						case JTokenType.Object:
-							if (LegendIndex.Count > 0 && LegendOptions.Count > 0
-								&& LegendIndex.TryGetValue(trimName, out var idx)
-								&& LegendOptions.TryGetValue(trimName, out var options)
-								&& LegendValues.TryGetValue(trimName, out var values))
+							var newLevel = level + 1;
+							if (token.Parent is JArray array)
 							{
-								var baseName = trimName[..^"Legend".Length];
-								AddDropdown(column, baseName,
-									ap => Math.Max(0, LegendIndex[trimName]),
-									(ap, i) =>
+								AddInputButton(column, null, 0.2f,
+									new OptionInput(null, ap => $"{array.IndexOf(token)}", 0, true, null),
+									new OptionButton("Remove", TextAnchor.MiddleCenter, ap =>
 									{
-										LegendIndex[trimName] = i;
-										var entry = token.Parent[baseName] is JProperty property ? property.Value : token.Parent[baseName];
-										entry.Replace(entry = values[i]);
-									}, options, tooltip: $"The selected value of the '{baseName}' property.");
-							}
-							else
-							{
-								var newLevel = level + 1;
-								if (token.Parent is JArray array)
-								{
-									AddInputButton(column, null, 0.2f,
-										new OptionInput(null, ap => $"{array.IndexOf(token)}", 0, true, null),
-										new OptionButton("Remove", TextAnchor.MiddleCenter, ap =>
-										{
-											array.Remove(token);
-											ClearColumn(column);
-											// DrawArray(name, array, 0, true);
-											_drawArray(name, array, level, column, ap);
-										}, ap => OptionButton.Types.Important));
+										array.Remove(token);
+										ClearColumn(column);
+										// DrawArray(name, array, 0, true);
+										_drawArray(name, array, level, column, ap);
+									}, ap => OptionButton.Types.Important));
 
-								}
-								DrawArray(name, token, newLevel);
 							}
+							DrawArray(name, token, newLevel);
+
 							break;
 					}
 					break;
@@ -295,15 +214,6 @@ public partial class AdminModule
 					_drawArray(name, array, level, column, ap);
 				}, ap2 => OptionButton.Types.Selected);
 			}
-		}
-
-		public override void Dispose()
-		{
-			base.Dispose();
-
-			Facepunch.Pool.FreeUnmanaged(ref LegendIndex);
-			Facepunch.Pool.FreeUnmanaged(ref LegendOptions);
-			Facepunch.Pool.FreeUnmanaged(ref LegendValues);
 		}
 	}
 }
