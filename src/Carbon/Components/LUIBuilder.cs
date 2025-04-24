@@ -234,7 +234,7 @@ public static class LUIBuilder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void Write(this ref LuiBuilderInstance inst, ulong value)
     {
-	    Span<char> tempBuffer = stackalloc char[16];
+	    Span<char> tempBuffer = stackalloc char[20];
 	    int written = WriteUlongDigits(value, tempBuffer);
 	    tempBuffer.Slice(0, written).CopyTo(inst._charBuffer.AsSpan(inst._charIndex));
 	    inst._charIndex += written;
