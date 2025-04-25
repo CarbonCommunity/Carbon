@@ -15,8 +15,14 @@ public partial class AdminModule
 		internal const string Spacing = " ";
 		internal string[] Blacklist;
 
+		const string LegendSuffix = "Legend";
+		internal Dictionary<string, int> LegendIndex;
+		internal Dictionary<string, string[]> LegendOptions;
+
 		public ConfigEditor(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
+			LegendIndex = Facepunch.Pool.Get<Dictionary<string, int>>();
+			LegendOptions = Facepunch.Pool.Get<Dictionary<string, string[]>>();
 		}
 
 		public static ConfigEditor Make(string json, Action<PlayerSession, JObject> onCancel, Action<PlayerSession, JObject> onSave, Action<PlayerSession, JObject> onSaveAndReload, bool fullscreen = false, string[] blacklist = null)
@@ -47,9 +53,47 @@ public partial class AdminModule
 			AddButtonArray(-1, list.ToArray());
 			Facepunch.Pool.FreeUnmanaged(ref list);
 
+			void createLegendMap(JObject inner)
+			{
+				foreach (var token in inner)
+				{
+					if (token.Value is not JObject legendObj)
+						continue;
+
+					if (token.Key.EndsWith(LegendSuffix))
+					{
+						var baseName = token.Key[..^LegendSuffix.Length].Trim();
+						var baseToken = legendObj.Parent?.Parent?[baseName];
+
+						if (baseToken != null)
+						{
+							LegendOptions[token.Key] = [.. legendObj.Properties().Select(p => p.Name)];
+
+							var baseTokenValue = baseToken.ToString();
+							var defaultValue = legendObj.Properties()
+								.FirstOrDefault(p => p.Name == baseTokenValue)
+								?? legendObj.Properties().First();
+
+							LegendIndex[token.Key] = legendObj.Properties().IndexOf(defaultValue);
+
+							continue;
+						}
+					}
+
+					createLegendMap(legendObj);
+				}
+			}
+
+			createLegendMap(Entry);
+
 			foreach (var token in Entry)
 			{
-				if (token.Value is JObject) AddName(0, $"{token.Key}");
+				if (token.Value is JObject)
+				{
+					var trimKey = token.Key.Trim();
+					if (LegendOptions.Count == 0 || !trimKey.EndsWith(LegendSuffix) || !LegendOptions.ContainsKey(trimKey))
+						AddName(0, $"{token.Key}");
+				}
 
 				_recurseBuild(token.Key, token.Value, 0, 0);
 			}
@@ -60,6 +104,10 @@ public partial class AdminModule
 			{
 				return;
 			}
+
+			var trimName = name.Trim();
+			if (LegendOptions.Count > 0 && LegendOptions.ContainsKey(trimName + LegendSuffix))
+				return;
 
 			switch (token)
 			{
@@ -120,22 +168,49 @@ public partial class AdminModule
 							break;
 
 						case JTokenType.Object:
-							var newLevel = level + 1;
-							if (token.Parent is JArray array)
+							if (LegendIndex.Count > 0 && LegendOptions.Count > 0
+								&& LegendIndex.TryGetValue(trimName, out var idx)
+								&& LegendOptions.TryGetValue(trimName, out var options)
+								&& usableToken is JObject tokenObject)
 							{
-								AddInputButton(column, null, 0.2f,
-									new OptionInput(null, ap => $"{array.IndexOf(token)}", 0, true, null),
-									new OptionButton("Remove", TextAnchor.MiddleCenter, ap =>
+								var baseName = trimName[..^LegendSuffix.Length];
+
+								AddDropdown(column, baseName,
+									ap => Mathf.Clamp(LegendIndex[trimName], 0, options.Length - 1),
+									(ap, i) =>
 									{
-										array.Remove(token);
-										ClearColumn(column);
-										// DrawArray(name, array, 0, true);
-										_drawArray(name, array, level, column, ap);
-									}, ap => OptionButton.Types.Important));
+										var baseToken = tokenObject.Parent?.Parent?[baseName];
+										if (baseToken == null)
+										{
+											// This is already handled and we shouldn't get here. Something in the config must have changed.
+											throw new InvalidOperationException($"Failed to find token for '{baseToken}', please validate configuration and try again.");
+										}
 
+										var newValue = tokenObject.Properties().ElementAt(i).Value;
+										baseToken.Replace(newValue);
+
+										LegendIndex[trimName] = i;
+									},
+									options, tooltip: $"The selected value of the '{baseName}' property.");
 							}
-							DrawArray(name, token, newLevel);
+							else
+							{
+								var newLevel = level + 1;
+								if (token.Parent is JArray array)
+								{
+									AddInputButton(column, null, 0.2f,
+										new OptionInput(null, ap => $"{array.IndexOf(token)}", 0, true, null),
+										new OptionButton("Remove", TextAnchor.MiddleCenter, ap =>
+										{
+											array.Remove(token);
+											ClearColumn(column);
+											// DrawArray(name, array, 0, true);
+											_drawArray(name, array, level, column, ap);
+										}, ap => OptionButton.Types.Important));
 
+								}
+								DrawArray(name, token, newLevel);
+							}
 							break;
 					}
 					break;
@@ -214,6 +289,14 @@ public partial class AdminModule
 					_drawArray(name, array, level, column, ap);
 				}, ap2 => OptionButton.Types.Selected);
 			}
+		}
+
+		public override void Dispose()
+		{
+			base.Dispose();
+
+			Facepunch.Pool.FreeUnmanaged(ref LegendIndex);
+			Facepunch.Pool.FreeUnmanaged(ref LegendOptions);
 		}
 	}
 }
