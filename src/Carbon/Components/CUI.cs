@@ -1402,7 +1402,7 @@ public static class CUIStatics
 		write.String(container.ToJson());
 
 		var bytes = new byte[write.Length];
-		Array.Copy(write.Data, bytes, write.Length);
+		Array.Copy(write.stream._buffer, bytes, write.Length);
 
 		Facepunch.Pool.Free(ref write);
 
@@ -1412,9 +1412,8 @@ public static class CUIStatics
 	{
 		var write = Net.sv.StartWrite();
 		write.PacketID(Message.Type.RPCMessage);
-		write.EnsureCapacity(data.Length);
-		Array.Copy(data, 0, write.Data,write.Length , data.Length);
-		write._length += data.Length;
+		Array.Copy(data, 0, write.stream._buffer,write.Length , data.Length);
+		write.stream._length += data.Length;
 		write.Send(new SendInfo(player.Connection));
 	}
 	public static void SendUpdate(this Pair<string, CuiElement> pair, BasePlayer player)

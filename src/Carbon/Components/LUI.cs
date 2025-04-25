@@ -802,7 +802,7 @@ public class LUI : IDisposable
 			return this;
 		}
 
-		public LuiContainer SetSteamIcon(ulong steamid, string color = null)
+		public LuiContainer SetSteamIcon(string steamid, string color = null)
 		{
 			if (luiComponents.TryGetValue<LuiRawImageComp>(LuiCompType.RawImage, out var img))
 			{
@@ -1645,7 +1645,7 @@ public class LuiRawImageComp : LuiCompBase
 	public string color;
 	public string material;
 	public string url;
-	public ulong steamid;
+	public string steamid;
 
 	public LuiRawImageComp()
 	{
@@ -1934,7 +1934,7 @@ public static class LuiPool
 		comp.color = null;
 		comp.material = null;
 		comp.url = null;
-		comp.steamid = 0;
+		comp.steamid = null;
 		comp.fadeIn = 0;
 		return comp;
 	}
