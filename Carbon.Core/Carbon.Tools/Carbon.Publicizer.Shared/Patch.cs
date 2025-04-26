@@ -226,8 +226,7 @@ public class Patch : IDisposable
 
 			foreach (var field in type.Fields)
 			{
-				var fullName = $"{type.Name}.{field.Name}";
-				if (field.IsPublic || Config.Singleton.Publicizer.IsMemberIgnored(fullName))
+				if (Config.Singleton.Publicizer.IsMemberIgnored($"{type.Name}.{field.Name}"))
 				{
 					continue;
 				}
@@ -235,18 +234,12 @@ public class Patch : IDisposable
 				var hasEvent = false;
 				foreach (var ev in type.Events)
 				{
-					if (ev.Name != field.Name)
-					{
-						continue;
-					}
+					if (ev.Name != field.Name) continue;
 					hasEvent = true;
 					break;
 				}
 
-				if (hasEvent)
-				{
-					continue;
-				}
+				if (hasEvent) continue;
 
 				var hasSerializeFieldAttribute = false;
 				foreach (var attribute in field.CustomAttributes)
@@ -256,15 +249,8 @@ public class Patch : IDisposable
 					break;
 				}
 
-				if (!hasSerializeFieldAttribute)
-				{
+				if (!field.IsPublic && !hasSerializeFieldAttribute)
 					field.IsNotSerialized = true;
-				}
-
-				if (Config.Singleton.Publicizer.IsMemberUnitySerialized(fullName))
-				{
-					field.IsNotSerialized = false;
-				}
 
 				field.IsPublic = true;
 			}
