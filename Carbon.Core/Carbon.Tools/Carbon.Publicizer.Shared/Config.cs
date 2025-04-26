@@ -28,6 +28,7 @@ public class Config
 	public class PublicizerConfig
 	{
 		public List<string> PublicizedAssemblies { get; set; } = new();
+
 		public List<string> PublicizerMemberIgnores { get; set; } =
 		[
 			@"^HiddenValueBase$",
@@ -35,15 +36,34 @@ public class Config
 			@"^Pool$"
 		];
 
+		public List<string> PublicizerMemberUnitySerialized { get; set; } =
+		[
+			@"^BaseEntity.triggers$"
+		];
+
 		public bool IsMemberIgnored(string name)
 		{
-			foreach (var item in PublicizerMemberIgnores)
+			for (int i = 0; i < PublicizerMemberIgnores.Count; i++)
 			{
-				if (Regex.IsMatch(name, item))
+				if (Regex.IsMatch(name, PublicizerMemberIgnores[i]))
 				{
 					return true;
 				}
 			}
+
+			return false;
+		}
+
+		public bool IsMemberUnitySerialized(string name)
+		{
+			for (int i = 0; i < PublicizerMemberUnitySerialized.Count; i++)
+			{
+				if (Regex.IsMatch(name, PublicizerMemberUnitySerialized[i]))
+				{
+					return true;
+				}
+			}
+
 			return false;
 		}
 	}
