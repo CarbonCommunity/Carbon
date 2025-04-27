@@ -42,15 +42,15 @@ public class Defines
 		if (_commandLineInitialized) return;
 		_commandLineInitialized = true;
 
-		_customRootFolder = CommandLineEx.GetArgumentResult("-carbon.rootdir");
-		_customScriptFolder = CommandLineEx.GetArgumentResult("-carbon.scriptdir");
-		_customConfigFolder = CommandLineEx.GetArgumentResult("-carbon.configdir");
-		_customDataFolder = CommandLineEx.GetArgumentResult("-carbon.datadir");
-		_customLangFolder = CommandLineEx.GetArgumentResult("-carbon.langdir");
-		_customModuleFolder = CommandLineEx.GetArgumentResult("-carbon.moduledir");
-		_customExtensionsFolder = CommandLineEx.GetArgumentResult("-carbon.extdir");
-		_customLogsFolder = CommandLineEx.GetArgumentResult("-carbon.logdir");
-		_customProfilesFolder = CommandLineEx.GetArgumentResult("-carbon.profiledir");
+		_customRootFolder = Switches.GetRootDir();
+		_customScriptFolder = Switches.GetScriptDir();
+		_customConfigFolder = Switches.GetConfigDir();
+		_customDataFolder = Switches.GetDataDir();
+		_customLangFolder = Switches.GetLangDir();
+		_customModuleFolder = Switches.GetModuleDir();
+		_customExtensionsFolder = Switches.GetExtDir();
+		_customLogsFolder = Switches.GetLogDir();
+		_customProfilesFolder = Switches.GetProfileDir();
 	}
 
 	public static string GetConfigFile()
