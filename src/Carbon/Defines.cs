@@ -68,6 +68,10 @@ public class Defines
 		_initializeCommandLine();
 		return Path.Combine(GetRootFolder(), "config.auto.json");
 	}
+	public static string GetVaultFile()
+	{
+		return Path.Combine(GetRustIdentityFolder(), "carbon.vault");
+	}
 
 	public static string GetRootFolder()
 	{
@@ -232,5 +236,9 @@ public class Defines
 		var folder = Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath, "Managed")));
 
 		return folder;
+	}
+	public static string GetRustIdentityFolder()
+	{
+		return Path.GetFullPath(Path.Combine(Path.Combine(Application.dataPath, "..", "server", ConVar.Server.identity)));
 	}
 }
