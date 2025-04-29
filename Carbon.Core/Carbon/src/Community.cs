@@ -11,7 +11,6 @@ using Oxide.Core;
 using System.Linq;
 using API.Commands;
 using UnityEngine;
-using Carbon.Client;
 using Carbon.Jobs;
 
 namespace Carbon;
@@ -87,8 +86,6 @@ public class CommunityInternal : Community
 			CarbonProcessor = gameObject.AddComponent<CarbonProcessor>();
 			HookManager = gameObject.AddComponent<PatchManager>();
 			ModuleProcessor = gameObject.AddComponent<ModuleProcessor>();
-			Entities = new Entities();
-			CarbonClient = new CarbonClientManager();
 		}
 
 		_registerProcessors();
@@ -150,16 +147,17 @@ public class CommunityInternal : Community
 
 		LoadConfig();
 		LoadMonoProfilerConfig();
-		LoadClientConfig();
 
 		Compat.Init();
 
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
-		Carbon.Logger.InitTaskExceptions();
-		Carbon.Logger.Log("Loaded config");
+		Logger.InitTaskExceptions();
+		Logger.Log("Loaded config");
 
 		Defines.Initialize();
+
+		Vault.Load();
 
 		_handleThreads();
 		_installProcessors();
@@ -170,7 +168,6 @@ public class CommunityInternal : Community
 			ClearCommands();
 			_installCore();
 			ModuleProcessor.Init();
-			CarbonClient.Init();
 
 			Events.Trigger(CarbonEvent.HookValidatorRefreshed, EventArgs.Empty);
 		});
@@ -204,10 +201,6 @@ public class CommunityInternal : Community
 
 		Logger.Log($"Loaded.");
 		Events.Trigger(CarbonEvent.CarbonStartupComplete, EventArgs.Empty);
-
-		Client.Client.Init();
-
-		Entities.Init();
 	}
 	public override void Uninitialize()
 	{
@@ -231,8 +224,6 @@ public class CommunityInternal : Community
 			}
 			catch { }
 #endif
-
-			Entities.Dispose();
 
 			Carbon.Logger.Dispose();
 

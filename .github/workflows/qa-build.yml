@@ -53,10 +53,15 @@ jobs:
           which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
           x86_64-w64-mingw32-dlltool --version
 
-      - name: Dotnet Setup
+      - name: Setup .NET 8 SDK
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 8.0.406
+      
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 9.0.203
 
       - name: Carbon.Native Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -134,7 +139,7 @@ jobs:
         uses: dev-drprasad/delete-tag-and-release@92d94d77429cb0436597047a92369526a5824f50
         with:
           delete_release: true
-          tag_name: qa
+          tag_name: qa_build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -156,7 +161,7 @@ jobs:
         with:
           draft: false
           prerelease: true
-          tag_name: qa
+          tag_name: qa_build
           name: "QA Build — v${{ needs.build.outputs.version }}"
           body: |
             This is a manually triggered build of Carbon based on the `qa` branch.

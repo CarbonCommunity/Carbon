@@ -53,10 +53,15 @@ jobs:
           which x86_64-w64-mingw32-dlltool || echo "dlltool not found"
           x86_64-w64-mingw32-dlltool --version
 
-      - name: Dotnet Setup
+      - name: Setup .NET 8 SDK
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 8.0.406
+      
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 9.0.203
 
       - name: Carbon.Native Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -84,6 +89,7 @@ jobs:
       - name: Profiler Build
         shell: bash
         run: |
+          export VERSION=${{ steps.step1.outputs.version }}
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs Debug HARMONYMOD profiler_build
           dotnet run --project Carbon.Core/Carbon.Tools/Carbon.Runner Tools/Build/runners/profiler.cs DebugUnix HARMONYMOD profiler_build
 

@@ -78,11 +78,16 @@ jobs:
         ref: ${{ inputs.carbon_branch }}
         token: ${{ secrets.PAT_ALL_REPO }}
         submodules: recursive
-        
-    - name: Environment Setup
+
+    - name: Setup .NET 8 SDK
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 8.0.406
+
+    - name: Setup .NET 9 SDK
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 9.0.203
 
     - name: 🔨 Built Carbon Hooks on Windows
       shell: cmd
@@ -127,7 +132,7 @@ jobs:
       with:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
-        host: 147.135.88.204
+        host: ${{ secrets.FTP_IP }}
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
@@ -137,7 +142,7 @@ jobs:
       with:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
-        host: 147.135.88.204
+        host: ${{ secrets.FTP_IP }}
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         
@@ -147,7 +152,7 @@ jobs:
       with:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
-        host: 147.135.88.204
+        host: ${{ secrets.FTP_IP }}
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/debug/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
@@ -157,7 +162,7 @@ jobs:
       with:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
-        host: 147.135.88.204
+        host: ${{ secrets.FTP_IP }}
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/debugunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
@@ -167,7 +172,7 @@ jobs:
       with:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
-        host: 147.135.88.204
+        host: ${{ secrets.FTP_IP }}
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
 
@@ -177,7 +182,7 @@ jobs:
       with:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
-        host: 147.135.88.204
+        host: ${{ secrets.FTP_IP }}
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         dest: "server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Community.dll"
         
@@ -187,7 +192,7 @@ jobs:
       with:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
-        host: 147.135.88.204
+        host: ${{ secrets.FTP_IP }}
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/release/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
 
@@ -197,6 +202,6 @@ jobs:
       with:
         user: redist@carbonmod.gg
         password: ${{ secrets.FTP_PWD }}
-        host: 147.135.88.204
+        host: ${{ secrets.FTP_IP }}
         src: "Carbon.Core/Carbon.Hooks/Carbon.Hooks.Internal/FTP/server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"
         dest: "server/releaseunix/${{ inputs.protocol }}/carbon/managed/hooks/Carbon.Hooks.Oxide.dll"

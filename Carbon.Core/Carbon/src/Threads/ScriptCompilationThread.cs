@@ -13,6 +13,7 @@ using Carbon.Components;
 using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
+using Carbon.Generator;
 using Carbon.Pooling;
 using Carbon.Profiler;
 using Facepunch;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
+using Mono.Cecil;
 
 namespace Carbon.Jobs;
 
@@ -244,6 +246,64 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 		return references;
 	}
+	private static bool hasLoaded;
+
+	public class CarbonAssemblyResolver : BaseAssemblyResolver
+	{
+		readonly IDictionary<string, AssemblyDefinition> cache = new Dictionary<string, AssemblyDefinition>(StringComparer.Ordinal);
+
+		public override AssemblyDefinition Resolve(AssemblyNameReference name)
+		{
+			if (cache.TryGetValue(name.FullName, out var assembly))
+				return assembly;
+
+			var directories = GetSearchDirectories();
+			foreach (var directory in directories)
+			{
+				var files = Directory.GetFiles(directory, "*.dll", SearchOption.AllDirectories);
+				foreach (var file in files)
+				{
+					var fileName = Path.GetFileNameWithoutExtension(file);
+					if (fileName.Equals(name.Name, StringComparison.OrdinalIgnoreCase))
+					{
+						using var stream = new MemoryStream(File.ReadAllBytes(file));
+						assembly = AssemblyDefinition.ReadAssembly(stream);
+						break;
+					}
+				}
+
+				if (assembly != null)
+				{
+					break;
+				}
+			}
+
+			cache[name.FullName] = assembly;
+			return assembly;
+		}
+
+		public void RegisterAssembly(AssemblyDefinition assembly)
+		{
+			if (assembly == null)
+				throw new ArgumentNullException(nameof(assembly));
+
+			var name = assembly.Name.FullName;
+			if (cache.ContainsKey(name))
+				return;
+
+			cache[name] = assembly;
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			foreach (var assembly in cache.Values)
+				assembly.Dispose();
+
+			cache.Clear();
+
+			base.Dispose(disposing);
+		}
+	}
 
 	public class CompilerException : Exception
 	{
@@ -264,8 +324,36 @@ public class ScriptCompilationThread : BaseThreadedJob
 
 	private List<MetadataReference> references;
 
+	public static void PrewarmInternalHookGenerator()
+	{
+		if (hasLoaded)
+		{
+			return;
+		}
+
+		hasLoaded = true;
+		var resolver = new CarbonAssemblyResolver();
+		var readerParameters = new ReaderParameters { AssemblyResolver = resolver };
+		resolver.AddSearchDirectory(Defines.GetRustManagedFolder());
+
+		foreach (var assembly in Directory.GetFiles(Defines.GetRustManagedFolder(), "*.dll"))
+		{
+			try
+			{
+				using var memoryStream = new MemoryStream(File.ReadAllBytes(assembly));
+				var asm = AssemblyDefinition.ReadAssembly(memoryStream, readerParameters);
+				InternalCallHook.Assemblies.Add(asm);
+				resolver.RegisterAssembly(asm);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Failed {assembly} ({ex.Message})\n{ex.StackTrace}");
+			}
+		}
+	}
 	public override void Start()
 	{
+		PrewarmInternalHookGenerator();
 		references = _addReferences();
 
 		foreach (var require in Requires)

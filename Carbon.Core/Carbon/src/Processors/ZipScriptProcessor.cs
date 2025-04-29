@@ -155,11 +155,6 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 
 	public class ZipScriptParser : Parser, IBaseProcessor.IParser
 	{
-		internal const string QuoteReplacer = "[CARBONQUOTE]";
-		internal const string Quote = "\\\"";
-		internal const string NewLineReplacer = "[CARBONNEWLINE]";
-		internal const string NewLine = "\\n";
-		internal const string Harmony = "Harmony";
 		internal const string FOOT = "FindObjectsOfType";
 
 		public override void Process(string file, string input, out string output)
@@ -177,11 +172,6 @@ public class ZipScriptProcessor : BaseProcessor, IZipScriptProcessor
 					// else output = input;
 
 					#endregion
-
-					if (input.Contains(Harmony))
-					{
-						Logger.Warn($" Warning! '{Path.GetFileNameWithoutExtension(file)}' uses Harmony. That may cause instability, use at your own discretion!");
-					}
 
 					if (input.Contains(FOOT))
 					{
