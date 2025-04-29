@@ -1,4 +1,5 @@
 ﻿using API.Events;
+using Cysharp.Threading.Tasks;
 using Application = UnityEngine.Application;
 
 namespace Carbon;
@@ -62,8 +63,6 @@ public partial class Community
 		}
 	}
 
-	public Entities Entities { get; set; }
-
 	public void MarkServerInitialized(bool wants)
 	{
 		IsServerInitialized = wants;
@@ -98,7 +97,7 @@ public partial class Community
 
 	public virtual void Initialize()
 	{
-
+		UniTaskInjector.Inject(SynchronizationContext.Current, Thread.CurrentThread.ManagedThreadId, injectTimings: InjectPlayerLoopTimings.Minimum);
 	}
 	public virtual void Uninitialize()
 	{

@@ -331,7 +331,7 @@ public readonly struct CUI : IDisposable
 
 	public class Handler
 	{
-		internal string Identifier { get; } = RandomEx.GetRandomString(4);
+		internal string Identifier { get; set; } = RandomEx.GetRandomString(4);
 
 		public Cache CacheInstance = new();
 		public int Pooled => _containerPool.Count + _elements.Count + _images.Count + _rawImages.Count + _texts.Count + _buttons.Count + _inputFields.Count + _rects.Count + _needsCursors.Count + _needsKeyboards.Count;
@@ -432,6 +432,7 @@ public readonly struct CUI : IDisposable
 			}
 
 			_queue.Clear();
+			Identifier = RandomEx.GetRandomString(4);
 			_currentId = 0;
 		}
 
@@ -1401,7 +1402,7 @@ public static class CUIStatics
 		write.String(container.ToJson());
 
 		var bytes = new byte[write.Length];
-		Array.Copy(write.Data, bytes, write.Length);
+		Array.Copy(write.stream._buffer, bytes, write.Length);
 
 		Facepunch.Pool.Free(ref write);
 
@@ -1411,9 +1412,8 @@ public static class CUIStatics
 	{
 		var write = Net.sv.StartWrite();
 		write.PacketID(Message.Type.RPCMessage);
-		write.EnsureCapacity(data.Length);
-		Array.Copy(data, 0, write.Data,write.Length , data.Length);
-		write._length += data.Length;
+		Array.Copy(data, 0, write.stream._buffer,write.Length , data.Length);
+		write.stream._length += data.Length;
 		write.Send(new SendInfo(player.Connection));
 	}
 	public static void SendUpdate(this Pair<string, CuiElement> pair, BasePlayer player)

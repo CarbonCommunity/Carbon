@@ -99,31 +99,29 @@ public partial class AdminModule
 			var maximumRange = (int)World.Size;
 			var range = ap3.GetStorage(tab, "range", maximumRange);
 
-			var map = Entities.GetAllFiltered(entity =>
+			var map = BaseNetworkable.serverEntities.OfType<BaseEntity>().Where(entity =>
 			{
-					if (entity == null || entity.transform == null)
-					{
-						return false;
-					}
+				if (entity == null || entity.transform == null)
+				{
+					return false;
+				}
 
-					if (validateFilter != null && !validateFilter(entity))
-					{
-						return false;
-					}
+				if (validateFilter != null && !validateFilter(entity))
+				{
+					return false;
+				}
 
-					if (range != -1 && (ap3.Player != null &&
-					                    Vector3.Distance(ap3.Player.transform.position, entity.transform.position) >
-					                    range))
-					{
-						return false;
-					}
+				if (range != -1 && (ap3.Player != null && Vector3.Distance(ap3.Player.transform.position, entity.transform.position) > range))
+				{
+					return false;
+				}
 
-					return entity.name.Contains(usedFilter, CompareOptions.OrdinalIgnoreCase)
-					       || entity.GetType().Name.Contains(usedFilter, CompareOptions.OrdinalIgnoreCase)
-					       || entity.OwnerID.ToString().Equals(usedFilter, StringComparison.OrdinalIgnoreCase)
-					       || entity.skinID.ToString().Equals(usedFilter, StringComparison.OrdinalIgnoreCase);
-			}, true);
-			EntityCount = string.IsNullOrEmpty(usedFilter) ? 0 : map.Pool.Count;
+				return entity.name.Contains(usedFilter, CompareOptions.OrdinalIgnoreCase)
+				       || entity.GetType().Name.Contains(usedFilter, CompareOptions.OrdinalIgnoreCase)
+				       || entity.OwnerID.ToString().Equals(usedFilter, StringComparison.OrdinalIgnoreCase)
+				       || entity.skinID.ToString().Equals(usedFilter, StringComparison.OrdinalIgnoreCase);
+			});
+			EntityCount = string.IsNullOrEmpty(usedFilter) ? 0 : map.Count();
 
 			tab.AddRange(0, "Range", 0, maximumRange, ap => range, (ap, value) => { try { ap.SetStorage(tab, "range", (int)value); DrawEntities(tab, ap); } catch (Exception ex) { Logger.Error($"Oof", ex); } }, ap => $"{range:0.0}m");
 			tab.AddName(0, $"Entities  ({EntityCount:n0})", TextAnchor.MiddleLeft);
@@ -149,7 +147,7 @@ public partial class AdminModule
 
 			if (!string.IsNullOrEmpty(usedFilter))
 			{
-				foreach (var entity in map.Pool)
+				foreach (var entity in map)
 				{
 					var name = entity switch
 					{
@@ -172,8 +170,6 @@ public partial class AdminModule
 						DrawEntitySettings(tab, 1, ap);
 					}, ap => selectedEntitites.Contains(entity) ? Tab.OptionButton.Types.Selected : Tab.OptionButton.Types.None);
 				}
-
-				map.Dispose();
 			}
 
 			if (EntityCount == 0)

@@ -483,7 +483,7 @@ public partial class CorePlugin
 		var name = arg.GetString(0).ToLower();
 		var mode = arg.GetString(1);
 		var flip = arg.GetString(2).Equals("-asc");
-		var plugin = ModLoader.Packages.SelectMany(x => x.Plugins).FirstOrDefault(x => x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase) || x.Name.Contains(name, CompareOptions.OrdinalIgnoreCase));
+		var plugin = ModLoader.Packages.FindPlugin(name);
 		var count = 1;
 
 		if (plugin == null)

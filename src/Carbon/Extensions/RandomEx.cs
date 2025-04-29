@@ -4,20 +4,20 @@ namespace Carbon.Extensions;
 
 public class RandomEx
 {
-	public static Random Random = new Random();
+	public static Random rand = new();
 	public const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 	#region String
 
+	private static readonly char[] uiId = new char[4];
+
 	public static string GetRandomString(int size)
 	{
-		Random ??= new Random(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
-
-		var randomChars = new char[size];
+		char[] randomChars = size == 4 ? uiId : new char[size];
 
 		for (var i = 0; i < size; i++)
 		{
-			randomChars[i] = Chars[Random.Next(Chars.Length)];
+			randomChars[i] = Chars[rand.Next(Chars.Length)];
 		}
 
 		var str = new string(randomChars);
@@ -27,13 +27,11 @@ public class RandomEx
 
 	public static string GetRandomString(int size, string chars)
 	{
-		Random ??= new Random(UnityEngine.Random.Range(int.MinValue, int.MaxValue));
-
 		var randomChars = new char[size];
 
 		for (var i = 0; i < size; i++)
 		{
-			randomChars[i] = chars[Random.Next(chars.Length)];
+			randomChars[i] = chars[rand.Next(chars.Length)];
 		}
 
 		var str = new string(randomChars);
@@ -42,13 +40,12 @@ public class RandomEx
 	}
 	public static string GetRandomString(int size, int seed)
 	{
-		Random = null;
-		Random = new Random(seed);
+		Random tempRand = new Random(seed);
 		var randomChars = new char[size];
 
 		for (var i = 0; i < size; i++)
 		{
-			randomChars[i] = Chars[Random.Next(Chars.Length)];
+			randomChars[i] = Chars[tempRand.Next(Chars.Length)];
 		}
 
 		var str = new string(randomChars);
@@ -57,13 +54,12 @@ public class RandomEx
 	}
 	public static string GetRandomString(int size, string chars, int seed)
 	{
-		Random = null;
-		Random = new Random(seed);
+		Random tempRand = new Random(seed);
 		var randomChars = new char[size];
 
 		for (var i = 0; i < size; i++)
 		{
-			randomChars[i] = chars[Random.Next(chars.Length)];
+			randomChars[i] = chars[tempRand.Next(chars.Length)];
 		}
 
 		var str = new string(randomChars);
@@ -75,66 +71,34 @@ public class RandomEx
 
 	#region Integer
 
-	public static int GetRandomInteger(int min, int max)
-	{
-		if (Random == null)
-		{
-			Random = new Random();
-		}
-
-		return Random.Next(min, max);
-	}
-	public static int GetRandomInteger()
-	{
-		if (Random == null)
-		{
-			Random = new Random();
-		}
-
-		return Random.Next(int.MinValue, int.MaxValue);
-	}
+	public static int GetRandomInteger(int min, int max) => rand.Next(min, max);
+	public static int GetRandomInteger() => rand.Next(int.MinValue, int.MaxValue);
 	public static int GetRandomInteger(int seed)
 	{
-		Random = new Random(seed);
-		return Random.Next(int.MinValue, int.MaxValue);
+		Random tempRand = new Random(seed);
+		return tempRand.Next(int.MinValue, int.MaxValue);
 	}
 	public static int GetRandomInteger(int min, int max, int seed)
 	{
-		Random = new Random(seed);
-		return Random.Next(min, max);
+		Random tempRand = new Random(seed);
+		return tempRand.Next(min, max);
 	}
 
 	#endregion
 
 	#region Float
 
-	public static float GetRandomFloat(float min, float max)
-	{
-		if (Random == null)
-		{
-			Random = new Random();
-		}
-
-		return (float)Random.NextDouble() * (max - min) + min;
-	}
-	public static float GetRandomFloat()
-	{
-		if (Random == null)
-		{
-			Random = new Random();
-		}
-
-		return (float)Random.NextDouble();
-	}
+	public static float GetRandomFloat(float min, float max) => (float)rand.NextDouble() * (max - min) + min;
+	public static float GetRandomFloat() => (float)rand.NextDouble();
 	public static float GetRandomFloat(int seed)
 	{
-		Random = new Random(seed);
-		return (float)Random.NextDouble() * (float.MaxValue - float.MinValue) + float.MinValue;
+		Random tempRand = new Random(seed);
+		return (float)tempRand.NextDouble() * (float.MaxValue - float.MinValue) + float.MinValue;
 	}
 	public static float GetRandomFloat(float min, float max, int seed)
 	{
-		Random = new Random(seed);
-		return (float)Random.NextDouble() * (max - min) + min;
+		Random tempRand = new Random(seed);
+		return (float)tempRand.NextDouble() * (max - min) + min;
 	}
 
 	#endregion
@@ -143,11 +107,6 @@ public class RandomEx
 
 	public static string GetShuffledString(string str)
 	{
-		if (Random == null)
-		{
-			Random = new Random();
-		}
-
 		var chars = str.ToCharArray();
 		var length = chars.Length;
 
@@ -155,7 +114,7 @@ public class RandomEx
 		{
 			length--;
 
-			var randomLength = Random.Next(length + 1);
+			var randomLength = rand.Next(length + 1);
 			var value = chars[randomLength];
 
 			chars[randomLength] = chars[length];
@@ -166,7 +125,7 @@ public class RandomEx
 	}
 	public static string GetShuffledString(string str, int seed)
 	{
-		Random = new Random(seed);
+		Random tempRand = new Random(seed);
 		var chars = str.ToCharArray();
 		var length = chars.Length;
 
@@ -174,7 +133,7 @@ public class RandomEx
 		{
 			length--;
 
-			var RandomLength = Random.Next(length + 1);
+			var RandomLength = tempRand.Next(length + 1);
 			var value = chars[RandomLength];
 
 			chars[RandomLength] = chars[length];
