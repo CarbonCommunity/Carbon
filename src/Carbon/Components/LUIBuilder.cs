@@ -535,6 +535,11 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("url", rawImage.url);
 		                    }
+		                    if (rawImage.png != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("png", rawImage.png);
+		                    }
 		                    if (rawImage.steamid != null)
 		                    {
 			                    this.WriteComma();
