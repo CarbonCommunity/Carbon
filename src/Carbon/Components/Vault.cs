@@ -1,7 +1,9 @@
 ﻿using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Shims;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -146,9 +148,11 @@ public class Vault
 	    item.hash = encrypted ? EncryptData(buffer, CARBON_ID, out salt) : buffer;
 	    item.salt = salt;
 	    item.cache = value;
+	    item.runtimeId = "{" + factory + ":" + name + "}";
 	    if (!hasItem)
 	    {
 		    factoryInstance.AddItem(item);
+		    Save(true);
 	    }
 	    return true;
     }
@@ -160,7 +164,13 @@ public class Vault
 		    return false;
 	    }
 
-	    return CreateFactory(Pool.Get(factory)).RemoveItem(Pool.Get(name));
+	    if (CreateFactory(Pool.Get(factory)).RemoveItem(Pool.Get(name)))
+	    {
+		    Save(true);
+		    return true;
+	    }
+
+	    return false;
     }
     public static string Get(string factory, string name)
     {
@@ -177,11 +187,7 @@ public class Vault
 		    Logger.Warn($"Identifier with '{name}' for factory '{factory}' does not exist in the Carbon.Vault");
 		    return null;
 	    }
-	    if (string.IsNullOrEmpty(item.cache))
-	    {
-		    item.cache = Encoding.UTF8.GetString(item.encrypted ? DecryptData(item.hash, CARBON_ID, item.salt) : item.hash);
-	    }
-	    return item.cache;
+	    return item.GetCache();
     }
 
     public static void Save(bool silent = false)
@@ -256,6 +262,7 @@ public class Vault
 					    item.salt = reader.ReadBytes(reader.ReadInt32());
 				    }
 				    item.encrypted = reader.ReadBoolean();
+				    item.runtimeId = "{" + Pool.Get(factory.id) + ":" + Pool.Get(item.id) + "}";
 				    factory.AddItem(item);
 			    }
 			    FACTORIES.Add(factory);
@@ -267,6 +274,55 @@ public class Vault
 	    {
 		    Logger.Error($"Failed loading Carbon.Vault", ex);
 	    }
+    }
+
+    public static string ReverseReplacement(string source, bool encrypted = true)
+    {
+	    if (string.IsNullOrEmpty(source))
+	    {
+		    return null;
+	    }
+	    for (int f = 0; f < FACTORIES.Count; f++)
+	    {
+		    var factory = FACTORIES[f];
+		    for (int i = 0; i < factory.Count; i++)
+		    {
+			    var item = factory[i];
+			    if (!encrypted && item.encrypted)
+			    {
+				    continue;
+			    }
+			    if (item.GetCache().Equals(source))
+			    {
+				    return item.runtimeId;
+			    }
+		    }
+	    }
+	    return null;
+    }
+    public static string ApplyReplacement(string source, bool encrypted = true)
+    {
+	    if (string.IsNullOrEmpty(source))
+	    {
+		    return null;
+	    }
+	    for (int f = 0; f < FACTORIES.Count; f++)
+	    {
+		    var factory = FACTORIES[f];
+		    for (int i = 0; i < factory.Count; i++)
+		    {
+			    var item = factory[i];
+			    if (!encrypted && item.encrypted)
+			    {
+				    continue;
+			    }
+			    if (source.Equals(item.runtimeId))
+			    {
+				    return item.GetCache();
+			    }
+		    }
+	    }
+	    return null;
     }
 
     public class Factory : List<Item>, Facepunch.Pool.IPooled
@@ -329,9 +385,16 @@ public class Vault
     {
 	    public uint id;
 	    public bool encrypted;
+	    internal string runtimeId;
 	    internal string cache;
 	    internal byte[] salt;
 	    internal byte[] hash;
+
+	    public string GetCache()
+	    {
+		    if (string.IsNullOrEmpty(cache)) cache = Encoding.UTF8.GetString(encrypted ? DecryptData(hash, CARBON_ID, salt) : hash);
+		    return cache;
+	    }
 
 	    public void EnterPool()
 	    {
@@ -391,6 +454,38 @@ public class Vault
 	    private static uint ManifestHash(string str)
 	    {
 		    return string.IsNullOrEmpty(str) ? 0 : BitConverter.ToUInt32(new MD5CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(str)), 0);
+	    }
+    }
+
+    [Preserve]
+    public class Protected : JsonConverter
+    {
+	    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	    {
+		    if (value is not string strVal)
+		    {
+			    writer.WriteNull();
+			    return;
+		    }
+
+		    writer.WriteValue(ReverseReplacement(strVal) ?? strVal);
+	    }
+
+	    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+	    {
+		    var value = reader.Value?.ToString();
+
+		    if (string.IsNullOrEmpty(value))
+		    {
+			    return null;
+		    }
+
+		    return ApplyReplacement(value);
+	    }
+
+	    public override bool CanConvert(Type objectType)
+	    {
+		    return objectType == typeof(string);
 	    }
     }
 }
