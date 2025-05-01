@@ -19,6 +19,7 @@ on:
         - develop
         - preview
         - production
+        - rust_beta/release
         - rust_beta/staging
         - rust_beta/aux01
         - rust_beta/aux02
