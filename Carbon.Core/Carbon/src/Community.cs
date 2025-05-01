@@ -152,10 +152,12 @@ public class CommunityInternal : Community
 
 		Events.Trigger(CarbonEvent.CarbonStartup, EventArgs.Empty);
 
-		Carbon.Logger.InitTaskExceptions();
-		Carbon.Logger.Log("Loaded config");
+		Logger.InitTaskExceptions();
+		Logger.Log("Loaded config");
 
 		Defines.Initialize();
+
+		Vault.Load();
 
 		_handleThreads();
 		_installProcessors();
@@ -222,7 +224,7 @@ public class CommunityInternal : Community
 			}
 			catch { }
 #endif
-			
+
 			Carbon.Logger.Dispose();
 
 			Events.Trigger(CarbonEvent.CarbonShutdownComplete, EventArgs.Empty);
