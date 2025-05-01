@@ -986,6 +986,11 @@ public partial class AdminModule
 					}
 				}
 			}
+
+			public override string ToString()
+			{
+				return Type + " Vendor";
+			}
 		}
 
 		public interface IVendorStored
@@ -1210,7 +1215,7 @@ public partial class AdminModule
 							{
 								callback?.Invoke(vendor);
 
-								Logger.Log($"[{vendor.GetType()} Tab] Fetched latest plugin information.");
+								Logger.Log($"[{vendor} Tab] Fetched latest plugin information.");
 
 								if (vendor is IVendorStored stored)
 									stored.Save();
