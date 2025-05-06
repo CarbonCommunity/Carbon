@@ -2463,6 +2463,7 @@ public class AdminData
 	public bool BackgroundBlur = true;
 	public float BackgroundOpacity = 0.75f;
 	public DataColors Colors = new();
+	public Dictionary<string, bool> TabsHiddenStatus = new();
 
 	public class DataColors
 	{

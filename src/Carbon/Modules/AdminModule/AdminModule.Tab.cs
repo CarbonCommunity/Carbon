@@ -17,6 +17,7 @@ public partial class AdminModule
 		public Dictionary<string, Radio> Radios = new();
 		public TabDialog Dialog;
 		public bool IsFullscreen;
+		public bool IsHidden;
 
 		public Tab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null, string access = null)
 		{
