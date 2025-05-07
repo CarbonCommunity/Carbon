@@ -10,23 +10,27 @@ public partial class AdminModule
 		var player = args.Player();
 		var ap = GetPlayerSession(player);
 		var previous = ap.SelectedTab;
+		var value = args.GetString(0);
 
 		ap.Clear();
 
-		if (int.TryParse(args.Args[0], out int index))
+		var availableTabs = Tabs.Where(x => !DataInstance.IsTabHidden(x.Id));
+		switch (value)
 		{
-			SetTab(player, index);
-			ap.SelectedTab = Tabs[index];
-		}
-		else
-		{
-			var indexOf = Tabs.IndexOf(previous);
-			indexOf = args.Args[0] == "up" ? indexOf + 1 : indexOf - 1;
+			case "next":
+			case "prev":
+				var count = availableTabs.Count();
+				var indexOf = availableTabs.IndexOf(previous);
+				indexOf = value == "next" ? indexOf + 1 : indexOf - 1;
 
-			if (indexOf > Tabs.Count - 1) indexOf = 0;
-			else if (indexOf < 0) indexOf = Tabs.Count - 1;
+				if (indexOf > count - 1) indexOf = 0;
+				else if (indexOf < 0) indexOf = count - 1;
+				SetTab(player, indexOf);
+				break;
 
-			SetTab(player, indexOf);
+			default:
+				SetTab(player, availableTabs.FirstOrDefault(x => x.Id.Equals(value)));
+				break;
 		}
 	}
 
@@ -36,7 +40,7 @@ public partial class AdminModule
 	{
 		var player = args.Player();
 
-		if (CallColumnRow(player, args.Args[0].ToInt(), args.Args[1].ToInt(), args.Args.Skip(2).Count() > 0 ? args.Args.Skip(2) : Array.Empty<string>()))
+		if (CallColumnRow(player, args.GetInt(0), args.GetInt(1), args.Args.Skip(2).Any() ? args.Args.Skip(2) : Array.Empty<string>()))
 			Draw(player);
 	}
 

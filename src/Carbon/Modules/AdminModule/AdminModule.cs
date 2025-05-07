@@ -1333,25 +1333,25 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 					try
 					{
 						var tabButtons = cui.CreatePanel(container, parent: main, id: null,
-							color: "0 0 0 0.6",
-							xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
+							color: "0 0 0 0.6", xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
 
 						TabButton(cui, container, tabButtons, "<", PanelId + ".changetab down", 0.03f, 0);
 						TabButton(cui, container, tabButtons, ">", PanelId + ".changetab up", 0.03f, 0.97f);
 
+						var availableTabs = Tabs.Where(x => !DataInstance.IsTabHidden(x.Id));
 						var tabIndex = 0.03f;
-						var amount = Tabs.Count;
+						var amount = availableTabs.Count();
 						var tabWidth = amount == 0 ? 0f : 0.94f / amount;
 
 						for (int i = ap.TabSkip; i < amount; i++)
 						{
-							var _tab = Tabs[ap.TabSkip + i];
+							var _tab = availableTabs.ElementAt(ap.TabSkip + i);
 							if (DataInstance.IsTabHidden(_tab.Id))
 							{
 								continue;
 							}
 							var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
-							TabButton(cui, container, tabButtons, $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccess(player, _tab.Access));
+							TabButton(cui, container, tabButtons, $"{(availableTabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {_tab.Id}", tabWidth, tabIndex, availableTabs.IndexOf(ap.SelectedTab) == i, !HasAccess(player, _tab.Access));
 							tabIndex += tabWidth;
 						}
 					}
