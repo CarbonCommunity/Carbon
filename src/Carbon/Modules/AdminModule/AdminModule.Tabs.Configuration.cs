@@ -197,16 +197,14 @@ public partial class AdminModule
 						(ap, index) => Singleton.ConfigInstance.MinimumAuthLevel = index, AuthLevels);
 
 					tab.AddName(0, "Tabs");
-					tab.AddToggle(0, "Display Entities",
-						ap => Singleton.ConfigInstance.DisableEntitiesTab =
-							!Singleton.ConfigInstance.DisableEntitiesTab,
-						ap => !Singleton.ConfigInstance.DisableEntitiesTab);
-					tab.AddToggle(0, "Display Plugins",
-						ap => Singleton.ConfigInstance.DisablePluginsTab = !Singleton.ConfigInstance.DisablePluginsTab,
-						ap => !Singleton.ConfigInstance.DisablePluginsTab);
-					tab.AddToggle(0, "Display Console",
-						ap => Singleton.ConfigInstance.DisableConsole = !Singleton.ConfigInstance.DisableConsole,
-						ap => !Singleton.ConfigInstance.DisableConsole);
+					for (int i = 0; i < Singleton.Tabs.Count; i++)
+					{
+						var t = Singleton.Tabs[i];
+						tab.AddToggle(0, t.Name,
+							ap => Singleton.DataInstance.MarkTabHidden(t.Id, !Singleton.DataInstance.IsTabHidden(t.Id)),
+							ap => !Singleton.DataInstance.IsTabHidden(t.Id));
+					}
+
 					tab.AddButton(0, "Apply Changes", ap =>
 						{
 							if (_applyChangesTimeSince > _applyChangesCooldown)

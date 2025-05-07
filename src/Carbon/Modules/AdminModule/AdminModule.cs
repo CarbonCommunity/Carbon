@@ -346,11 +346,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		RegisterTab(CarbonTab.Get());
 		RegisterTab(PlayersTab.Get());
-		if (!ConfigInstance.DisableEntitiesTab) RegisterTab(EntitiesTab.Get());
+		RegisterTab(EntitiesTab.Get());
 		RegisterTab(PermissionsTab.Get());
 		RegisterTab(ModulesTab.Get());
 		RegisterTab(EnvironmentTab.Get());
-		if (!ConfigInstance.DisablePluginsTab) RegisterTab(PluginsTab.Get());
+		RegisterTab(PluginsTab.Get());
 	}
 
 	[Conditional("!MINIMAL")]
@@ -1346,6 +1346,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						for (int i = ap.TabSkip; i < amount; i++)
 						{
 							var _tab = Tabs[ap.TabSkip + i];
+							if (DataInstance.IsTabHidden(_tab.Id))
+							{
+								continue;
+							}
 							var plugin = _tab.Plugin.IsCorePlugin ? string.Empty : $"<size=8>\nby {_tab.Plugin?.Name}</size>";
 							TabButton(cui, container, tabButtons, $"{(Tabs.IndexOf(ap.SelectedTab) == i ? $"<b>{_tab.Name}</b>" : _tab.Name)}{plugin}", PanelId + $".changetab {i}", tabWidth, tabIndex, Tabs.IndexOf(ap.SelectedTab) == i, !HasAccess(player, _tab.Access));
 							tabIndex += tabWidth;
@@ -2438,9 +2442,6 @@ public class AdminConfig
 	[JsonProperty("OpenCommands")]
 	public string[] OpenCommands = ["cp", "cpanel"];
 	public int MinimumAuthLevel = 2;
-	public bool DisableEntitiesTab = true;
-	public bool DisablePluginsTab = false;
-	public bool DisableConsole = false;
 	public bool SpectatingInfoOverlay = true;
 	public bool SpectatingEndTeleportBack = false;
 	public List<ActionButton> QuickActions = new();
