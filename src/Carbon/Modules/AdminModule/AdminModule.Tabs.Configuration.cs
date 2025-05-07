@@ -12,16 +12,15 @@ public partial class AdminModule
 {
 	public class ConfigurationTab : Tab
 	{
-		public ConfigurationTab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) :
-			base(id, name, plugin, onChange)
+		public ConfigurationTab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
 		}
 
-		internal static ConfigurationTab _instance;
-		internal const float _applyChangesCooldown = 60;
-		internal static TimeSince _applyChangesTimeSince = _applyChangesCooldown;
+		private static ConfigurationTab _instance;
+		private const float _applyChangesCooldown = 60;
+		private static TimeSince _applyChangesTimeSince = _applyChangesCooldown;
 
-		public static readonly string[] AuthLevels = new[] { "User", "Moderator", "Admin", "Developer" };
+		public static readonly string[] AuthLevels = ["User", "Moderator", "Admin", "Developer"];
 
 		public enum ConfigTabs
 		{
@@ -32,7 +31,7 @@ public partial class AdminModule
 
 		public static ConfigurationTab GetOrCache() => _instance ??= Make();
 
-		public static ConfigurationTab Make()
+		private static ConfigurationTab Make()
 		{
 			var tab = new ConfigurationTab("configuration", "Configuration", Community.Runtime.Core,
 				(session, tab) =>

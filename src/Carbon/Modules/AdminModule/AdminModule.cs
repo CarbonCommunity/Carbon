@@ -2465,6 +2465,16 @@ public class AdminData
 	public DataColors Colors = new();
 	public Dictionary<string, bool> TabsHiddenStatus = new();
 
+	public bool IsTabHidden(string id)
+	{
+		return TabsHiddenStatus.TryGetValue(id, out var hidden) && hidden;
+	}
+
+	public void MarkTabHidden(string id, bool wants)
+	{
+		TabsHiddenStatus[id] = wants;
+	}
+
 	public class DataColors
 	{
 		public string SelectedTabColor = "0.4 0.7 0.2";
