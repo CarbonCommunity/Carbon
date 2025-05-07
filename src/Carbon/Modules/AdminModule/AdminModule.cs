@@ -2445,6 +2445,7 @@ public class AdminConfig
 	public bool SpectatingInfoOverlay = true;
 	public bool SpectatingEndTeleportBack = false;
 	public List<ActionButton> QuickActions = new();
+	public bool HideConsole = false;
 
 	public class ActionButton
 	{
@@ -2457,7 +2458,6 @@ public class AdminConfig
 }
 public class AdminData
 {
-	[JsonProperty("WizardDisplayed")]
 	public bool WizardDisplayed = false;
 	public bool HidePluginIcons = false;
 	public bool Maximize = false;
