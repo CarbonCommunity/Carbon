@@ -2517,6 +2517,10 @@ public partial class AdminModule
 			update.Add(cui.UpdateImage("selectedplugin_b4_fade", "fade", Cache.CUI.WhiteColor));
 
 			var isOutdated = !plugin.IsUpToDate();
+			if (plugin.IsPaid() && !plugin.Owned)
+			{
+				isOutdated = false;
+			}
 			update.Add(cui.UpdateProtectedButton("selectedplugin_b5", $"0.2 0.2 0.2 {(isOutdated ? 0.8f : 0.2f)}", Cache.CUI.BlankColor, text: string.Empty, 0, align: TextAnchor.LowerLeft, command: isOutdated ? $"pluginbrowser.interact 1 \"{Path.GetFileNameWithoutExtension(plugin.File)}\"" : string.Empty));
 			update.Add(cui.UpdateText("selectedplugin_b5_txt", "0.8 0.8 0.8 0.8", text: "UPDATE", 12, align: TextAnchor.MiddleCenter, xMin: 0.2f, font: CUI.Handler.FontTypes.RobotoCondensedBold));
 			update.Add(cui.UpdateImage("selectedplugin_b5_icn", "clouddl", "0.8 0.8 0.8 0.8"));
