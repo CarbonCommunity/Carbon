@@ -12,6 +12,7 @@ namespace Carbon.Modules;
 
 public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 {
+	public static readonly string Title = "<b>Admin Centre</b>";
 	public override string Name => "Admin";
 	public override VersionNumber Version => new(1, 8, 0);
 	public override Type Type => typeof(AdminModule);
@@ -1322,7 +1323,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 					cui.CreateText(container, parent: main,
 						color: "1 1 1 0.8",
-						text: "<b>Admin Settings</b>", 18,
+						text: Title, 18,
 						xMin: 0.0175f, yMin: 0.8f, xMax: 1f, yMax: 0.97f,
 						align: TextAnchor.UpperLeft,
 						font: Handler.FontTypes.RobotoCondensedBold);
