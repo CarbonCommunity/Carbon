@@ -123,9 +123,9 @@ public partial struct Analytics
 	}
 
 	/// <summary>
-	/// Metric executed whenever an administrator is skipping the AdminModule splash screen panel.
+	/// Metric executed whenever an administrator is met with the greet splash screen panel.
 	/// </summary>
-	public static void admin_module_wizard(WizardProgress progress)
+	public static void admin_module_greet_continue()
 	{
 		if (!Enabled)
 		{
@@ -133,9 +133,7 @@ public partial struct Analytics
 		}
 
 		Singleton.
-			Include("walkthrough", progress == WizardProgress.Walkthrough).
-			Include("skipped", progress == WizardProgress.Skipped).
-			Submit("admin_module_wizard");
+			Submit("admin_module_greet_continue");
 	}
 
 	/// <summary>
@@ -237,11 +235,5 @@ public partial struct Analytics
 
 		Singleton.
 			Submit("codefling_login");
-	}
-
-	public enum WizardProgress
-	{
-		Walkthrough,
-		Skipped
 	}
 }
