@@ -248,6 +248,9 @@ public partial class AdminModule
 					tab.AddRange(0, "Background Image Opacity", 0f, 100f, ap => Singleton.DataInstance.BackgroundImageOpacity * 100f,
 						(ap, value) => Singleton.DataInstance.BackgroundImageOpacity = value * 0.01f, ap => Singleton.DataInstance.BackgroundImageOpacity.ToString("0.0"));
 
+					tab.AddRange(0, "Background Column Opacity", 0f, 100f, ap => Singleton.DataInstance.BackgroundColumnOpacity * 100f,
+						(ap, value) => Singleton.DataInstance.BackgroundColumnOpacity = value * 0.01f, ap => Singleton.DataInstance.BackgroundColumnOpacity.ToString("0.0"));
+
 					tab.AddRange(0, "Title Underline Opacity", 0f, 100f,
 						ap => Singleton.DataInstance.Colors.TitleUnderlineOpacity * 100f,
 						(ap, value) =>

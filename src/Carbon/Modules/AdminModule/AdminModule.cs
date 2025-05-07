@@ -1399,10 +1399,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 							for (int i = tab.Columns.Count; i-- > 0;)
 							{
 								var rows = tab.Columns[i];
-								var panel = cui.CreatePanel(container, panels, color: "0 0 0 0.5",
+								var panel = cui.CreatePanel(container, panels, color: "0 0 0 " + DataInstance.BackgroundColumnOpacity,
 									xMin: panelIndex, xMax: panelIndex + panelWidth - spacing, yMin: 0, yMax: 1, id: $"sub{i}");
 
-								cui.CreateImage(container, panel, "fade", Cache.CUI.WhiteColor);
+								cui.CreateImage(container, panel, "fade", "1 1 1 " + DataInstance.BackgroundColumnOpacity);
 
 								#region Rows
 
@@ -2462,6 +2462,7 @@ public class AdminData
 	public float BackgroundImageOpacity = 0.75f;
 	public string BackgroundImage = "http://carbonmod.gg/assets/media/carbon-full-bg.png";
 	public Vector2 BackgroundImageYAnchor = new(0.15f, 1);
+	public float BackgroundColumnOpacity = 0.5f;
 	public DataColors Colors = new();
 	public Dictionary<string, bool> TabsHiddenStatus = new();
 
