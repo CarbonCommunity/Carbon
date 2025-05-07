@@ -986,6 +986,11 @@ public partial class AdminModule
 					}
 				}
 			}
+
+			public override string ToString()
+			{
+				return Type + " Vendor";
+			}
 		}
 
 		public interface IVendorStored
@@ -1210,7 +1215,7 @@ public partial class AdminModule
 							{
 								callback?.Invoke(vendor);
 
-								Logger.Log($"[{vendor.GetType()} Tab] Fetched latest plugin information.");
+								Logger.Log($"[{vendor} Tab] Fetched latest plugin information.");
 
 								if (vendor is IVendorStored stored)
 									stored.Save();
@@ -1227,7 +1232,7 @@ public partial class AdminModule
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
 				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				                                                Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				if (plugin == null)
 				{
 					Logger.Error($"Couldn't find '{id}' on {Type}");
@@ -1265,7 +1270,7 @@ public partial class AdminModule
 								var jobject = JObject.Parse(source);
 								var name = jobject["files"][0]["name"].ToString();
 								var file = jobject["files"][0]["url"].ToString();
-								var path = Path.Combine(Defines.GetScriptsFolder(), name);
+								var path = plugin.ExistentPlugin == null ? Path.Combine(Defines.GetScriptsFolder(), name) : plugin.ExistentPlugin.FilePath;
 
 								core.webrequest.EnqueueData(file, null, (_, source) =>
 								{
@@ -1287,6 +1292,7 @@ public partial class AdminModule
 										entryStream.CopyTo(memoryStream);
 										var bytes = memoryStream.ToArray();
 
+										OsEx.File.Move(path, Path.Combine(Defines.GetScriptsFolder(), "backups", Path.GetFileName(path)));
 										OsEx.File.Create(path, bytes);
 										Singleton.Puts($" Extracted plugin {context} file '{entry.Name}'");
 									}
@@ -1300,6 +1306,7 @@ public partial class AdminModule
 													using var reader = new StreamReader(file.Open());
 													var fileSource = reader.ReadToEnd();
 
+													OsEx.File.Move(Path.Combine(Defines.GetScriptsFolder(), file.Name), Path.Combine(Defines.GetScriptsFolder(), "backups", file.Name));
 													OsEx.File.Create(Path.Combine(Defines.GetScriptsFolder(), file.Name), fileSource);
 													Singleton.Puts($" Extracted plugin file {file.Name}");
 												}
@@ -1307,7 +1314,7 @@ public partial class AdminModule
 
 											case dllExtension:
 												{
-													StoreFile(file, Path.Combine(Defines.GetLibFolder(), file.Name), "extension");
+													StoreFile(file, Path.Combine(Defines.GetLibFolder(), $"{file.Name}"), "extension");
 												}
 												break;
 
@@ -1354,16 +1361,15 @@ public partial class AdminModule
 								}
 
 								var jobject = JObject.Parse(source);
-								var name = jobject["files"][0]["name"].ToString();
 								var file = jobject["files"][0]["url"].ToString();
-								var path = Path.Combine(Defines.GetScriptsFolder(), plugin.File);
-								jobject = null;
+								var path = plugin.ExistentPlugin == null ? Path.Combine(Defines.GetScriptsFolder(), plugin.File) : plugin.ExistentPlugin.FilePath;
 
 								core.webrequest.Enqueue(file, null, (_, source) =>
 								{
 									plugin.IsBusy = false;
 
 									Singleton.Puts($"Downloaded {plugin.Name}");
+									OsEx.File.Move(path, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.File));
 									OsEx.File.Create(path, source);
 								}, core, headers: _headers);
 
@@ -1373,7 +1379,7 @@ public partial class AdminModule
 				}
 				else
 				{
-					var path = Path.Combine(Defines.GetScriptsFolder(), plugin.File);
+					var path = plugin.ExistentPlugin == null ? Path.Combine(Defines.GetScriptsFolder(), plugin.File) : plugin.ExistentPlugin.FilePath;
 					var url = DownloadEndpoint.Replace("[ID]", id);
 
 					core.webrequest.Enqueue(url, null, (error, source) =>
@@ -1389,6 +1395,7 @@ public partial class AdminModule
 						if (!source.StartsWith("<!DOCTYPE html>"))
 						{
 							Singleton.Puts($"Downloaded {plugin.Name}");
+							OsEx.File.Move(path, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.File));
 							OsEx.File.Create(path, source);
 						}
 					}, core, headers: new Dictionary<string, string>
@@ -1402,7 +1409,7 @@ public partial class AdminModule
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
 				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				                                                Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
@@ -1671,8 +1678,8 @@ public partial class AdminModule
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
 				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
-				var path = Path.Combine(Defines.GetScriptsFolder(), plugin.File);
+				                                                Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				var path = plugin.ExistentPlugin == null ? Path.Combine(Defines.GetScriptsFolder(), plugin.File) : plugin.ExistentPlugin.FilePath;
 				var url = DownloadEndpoint.Replace("[ID]", plugin.Name);
 
 				plugin.IsBusy = true;
@@ -1695,6 +1702,7 @@ public partial class AdminModule
 					}
 
 					Singleton.Puts($"Downloaded {plugin.Name}");
+					OsEx.File.Move(path, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.File));
 					OsEx.File.Create(path, source);
 
 					plugin.IsBusy = false;
@@ -1710,7 +1718,7 @@ public partial class AdminModule
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
 				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				                                                Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName), true);
 				plugin.ExistentPlugin = null;
@@ -1719,7 +1727,7 @@ public partial class AdminModule
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
 				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				                                                Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				if (plugin.HasLookup) return;
 
 				Community.Runtime.Core.webrequest.Enqueue(PluginLookupEndpoint.Replace("[ID]", plugin.Name.ToLower().Trim()), null, (error, data) =>
@@ -1903,7 +1911,7 @@ public partial class AdminModule
 			{
 				var plugin = FetchedPlugins.FirstOrDefault(x => x.Id.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
 				                                                x.Name.Equals(id, StringComparison.CurrentCultureIgnoreCase) ||
-				                                                x.File.Equals(id, StringComparison.CurrentCultureIgnoreCase));
+				                                                Path.GetFileNameWithoutExtension(x.File).Equals(id, StringComparison.CurrentCultureIgnoreCase));
 				ModLoader.UninitializePlugin(plugin.ExistentPlugin);
 				OsEx.File.Move(plugin.ExistentPlugin.FilePath, Path.Combine(Defines.GetScriptsFolder(), "backups", plugin.ExistentPlugin.FileName));
 				plugin.ExistentPlugin = null;

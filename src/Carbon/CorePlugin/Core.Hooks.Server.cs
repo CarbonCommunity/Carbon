@@ -31,7 +31,7 @@ public partial class CorePlugin
 			var player = BasePlayer.FindByID(steamId)?.AsIPlayer();
 
 			// OnPlayerUnbanned
-			HookCaller.CallStaticHook(1455743240, player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
+			HookCaller.CallStaticHook(1455743240, player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, steamId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);
 
 			// OnUserUnbanned
 			HookCaller.CallStaticHook(339730350, player == null || string.IsNullOrEmpty(player.Name) ? _blankUnnamed : player.Name, playerId, player == null || string.IsNullOrEmpty(player.Address) ? _blankZero : player.Address);

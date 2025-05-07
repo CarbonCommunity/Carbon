@@ -234,7 +234,7 @@ public static class LUIBuilder
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void Write(this ref LuiBuilderInstance inst, ulong value)
     {
-	    Span<char> tempBuffer = stackalloc char[16];
+	    Span<char> tempBuffer = stackalloc char[20];
 	    int written = WriteUlongDigits(value, tempBuffer);
 	    tempBuffer.Slice(0, written).CopyTo(inst._charBuffer.AsSpan(inst._charIndex));
 	    inst._charIndex += written;
@@ -344,7 +344,8 @@ public static class LUIBuilder
 
 public struct LuiBuilderInstance : IDisposable
 {
-	private LUIBuilder.WriteArray[] _segments = ArrayPool<LUIBuilder.WriteArray>.Shared.Rent(100);
+	private static int _segmentLimit = 100;
+	private LUIBuilder.WriteArray[] _segments = ArrayPool<LUIBuilder.WriteArray>.Shared.Rent(_segmentLimit);
 	private int _segmentCount = 0;
 
 	private const int maxSegmentSize = 4096;
@@ -534,7 +535,12 @@ public struct LuiBuilderInstance : IDisposable
 			                    this.WriteComma();
 			                    this.WriteField("url", rawImage.url);
 		                    }
-		                    if (rawImage.steamid != 0)
+		                    if (rawImage.png != null)
+		                    {
+			                    this.WriteComma();
+			                    this.WriteField("png", rawImage.png);
+		                    }
+		                    if (rawImage.steamid != null)
 		                    {
 			                    this.WriteComma();
 			                    this.WriteField("steamid", rawImage.steamid);
@@ -1022,6 +1028,15 @@ public struct LuiBuilderInstance : IDisposable
 	    if (_charIndex == 0) return;
 	    byte[] segment = ArrayPool<byte>.Shared.Rent(maxSegmentSize);
 	    int size = Encoding.UTF8.GetBytes(_charBuffer, 0, _charIndex, segment, 0);
+	    if (_segmentCount == _segmentLimit)
+	    {
+		    _segmentLimit *= 2;
+		    var _tempArray = ArrayPool<LUIBuilder.WriteArray>.Shared.Rent(_segmentLimit);
+		    Array.Copy(_segments, _tempArray, _segmentCount);
+		    ArrayPool<LUIBuilder.WriteArray>.Shared.Return(_segments, clearArray: true);
+		    _segments = _tempArray;
+		    _segmentCount = 0;
+	    }
 	    _segments[_segmentCount++] = new LUIBuilder.WriteArray(segment, size);
 	    _charIndex = 0;
     }
@@ -1031,6 +1046,6 @@ public struct LuiBuilderInstance : IDisposable
 	    _charIndex = 0;
 	    for (int i = 0; i < _segmentCount; i++)
 		    ArrayPool<byte>.Shared.Return(_segments[i].values);
-	    ArrayPool<LUIBuilder.WriteArray>.Shared.Return(_segments);
+	    ArrayPool<LUIBuilder.WriteArray>.Shared.Return(_segments, clearArray: true);
     }
 }
