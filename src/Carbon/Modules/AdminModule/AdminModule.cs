@@ -1300,6 +1300,11 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 				tab = ap.SelectedTab = SetupWizard.Make();
 			}
 
+			if(ap.SelectedTab != null && (!string.IsNullOrEmpty(ap.SelectedTab.Access) && !HasAccess(player, ap.SelectedTab.Access) || DataInstance.IsTabHidden(ap.SelectedTab.Id)))
+			{
+				ap.SelectedTab = null;
+			}
+
 			using var cui = new CUI(Handler);
 
 			var container = cui.CreateContainer(PanelId,
