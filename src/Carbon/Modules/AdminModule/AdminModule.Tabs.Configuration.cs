@@ -12,16 +12,15 @@ public partial class AdminModule
 {
 	public class ConfigurationTab : Tab
 	{
-		public ConfigurationTab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) :
-			base(id, name, plugin, onChange)
+		public ConfigurationTab(string id, string name, RustPlugin plugin, Action<PlayerSession, Tab> onChange = null) : base(id, name, plugin, onChange)
 		{
 		}
 
-		internal static ConfigurationTab _instance;
-		internal const float _applyChangesCooldown = 60;
-		internal static TimeSince _applyChangesTimeSince = _applyChangesCooldown;
+		private static ConfigurationTab _instance;
+		private const float _applyChangesCooldown = 60;
+		private static TimeSince _applyChangesTimeSince = _applyChangesCooldown;
 
-		public static readonly string[] AuthLevels = new[] { "User", "Moderator", "Admin", "Developer" };
+		public static readonly string[] AuthLevels = ["User", "Moderator", "Admin", "Developer"];
 
 		public enum ConfigTabs
 		{
@@ -32,7 +31,7 @@ public partial class AdminModule
 
 		public static ConfigurationTab GetOrCache() => _instance ??= Make();
 
-		public static ConfigurationTab Make()
+		private static ConfigurationTab Make()
 		{
 			var tab = new ConfigurationTab("configuration", "Configuration", Community.Runtime.Core,
 				(session, tab) =>
@@ -190,7 +189,7 @@ public partial class AdminModule
 			{
 				tab.ClearColumn(0);
 				{
-					tab.AddButton(-1, "< Go Back", ap => Singleton.SetTab(session.Player, 0),
+					tab.AddButton(-1, "< Go Back", ap => Singleton.SetTab(session.Player, "carbon"),
 						ap => AdminModule.Tab.OptionButton.Types.Selected);
 
 					tab.AddName(0, "Configuration");
@@ -198,16 +197,14 @@ public partial class AdminModule
 						(ap, index) => Singleton.ConfigInstance.MinimumAuthLevel = index, AuthLevels);
 
 					tab.AddName(0, "Tabs");
-					tab.AddToggle(0, "Display Entities",
-						ap => Singleton.ConfigInstance.DisableEntitiesTab =
-							!Singleton.ConfigInstance.DisableEntitiesTab,
-						ap => !Singleton.ConfigInstance.DisableEntitiesTab);
-					tab.AddToggle(0, "Display Plugins",
-						ap => Singleton.ConfigInstance.DisablePluginsTab = !Singleton.ConfigInstance.DisablePluginsTab,
-						ap => !Singleton.ConfigInstance.DisablePluginsTab);
-					tab.AddToggle(0, "Display Console",
-						ap => Singleton.ConfigInstance.DisableConsole = !Singleton.ConfigInstance.DisableConsole,
-						ap => !Singleton.ConfigInstance.DisableConsole);
+					for (int i = 0; i < Singleton.Tabs.Count; i++)
+					{
+						var t = Singleton.Tabs[i];
+						tab.AddToggle(0, t.Name,
+							ap => Singleton.DataInstance.MarkTabHidden(t.Id, !Singleton.DataInstance.IsTabHidden(t.Id)),
+							ap => !Singleton.DataInstance.IsTabHidden(t.Id));
+					}
+
 					tab.AddButton(0, "Apply Changes", ap =>
 						{
 							if (_applyChangesTimeSince > _applyChangesCooldown)

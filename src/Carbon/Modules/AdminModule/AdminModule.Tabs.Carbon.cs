@@ -111,7 +111,7 @@ public partial class AdminModule
 					tab.AddInput(0, Singleton.GetPhrase("mods", ap.Player.UserIDString),
 						ap => $"{Community.Runtime.Plugins.Plugins.Count:n0}", null);
 
-					if (!Singleton.ConfigInstance.DisableConsole && Singleton.HasAccess(ap.Player, "carbon.server_console"))
+					if (!Singleton.ConfigInstance.HideConsole && Singleton.HasAccess(ap.Player, "carbon.server_console"))
 					{
 						tab.AddName(0, Singleton.GetPhrase("console", ap.Player.UserIDString), TextAnchor.MiddleLeft);
 						foreach (var log in _logQueue)
