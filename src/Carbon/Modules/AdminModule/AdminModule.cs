@@ -49,7 +49,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 	const string SpectatePanelId = "carbonmodularuispectate";
 	readonly string[] AdminPermissions =
 	[
-		"wizard",
+		"greet",
 		"config.use",
 		"carbon.use",
 		"carbon.quickactions",
@@ -201,6 +201,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			Permissions.RegisterPermission($"adminmodule.{perm}", this);
 		}
+
+		ImageDatabase.Queue(DataInstance.BackgroundImage);
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -234,7 +236,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 		if (ModuleConfiguration.HasConfigStructureChanged())
 		{
-			DataInstance.WizardDisplayed = false;
+			DataInstance.GreetDisplayed = false;
 		}
 	}
 	public override void Save()
@@ -1294,10 +1296,9 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var tab = GetTab(player);
 			ap.IsInMenu = true;
 
-			if (CanAccess(player) && !DataInstance.WizardDisplayed
-				&& (tab != null && tab.Id != "setupwizard" && tab.Id != "configeditor") && HasAccess(player, "wizard"))
+			if (CanAccess(player) && !DataInstance.GreetDisplayed && (tab != null && tab.Id != "greet" && tab.Id != "configeditor") && HasAccess(player, "greet"))
 			{
-				tab = ap.SelectedTab = SetupWizard.Make();
+				tab = ap.SelectedTab = Greet.Make();
 			}
 
 			if(ap.SelectedTab != null && (!string.IsNullOrEmpty(ap.SelectedTab.Access) && !HasAccess(player, ap.SelectedTab.Access) || DataInstance.IsTabHidden(ap.SelectedTab.Id)))
@@ -1326,6 +1327,8 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 			var main = cui.CreatePanel(container, shade,
 				color: "0 0 0 0.5",
 				blur: DataInstance.BackgroundBlur);
+
+			cui.CreateImage(container, main, DataInstance.BackgroundImage, "1 1 1 " + DataInstance.BackgroundImageOpacity, yMin: DataInstance.BackgroundImageYAnchor.x, yMax: DataInstance.BackgroundImageYAnchor.y);
 
 			using (TimeMeasure.New($"{Name}.Main"))
 			{
@@ -2451,11 +2454,14 @@ public class AdminConfig
 }
 public class AdminData
 {
-	public bool WizardDisplayed = false;
+	public bool GreetDisplayed = false;
 	public bool HidePluginIcons = false;
 	public bool Maximize = false;
 	public bool BackgroundBlur = true;
 	public float BackgroundOpacity = 0.75f;
+	public float BackgroundImageOpacity = 0.75f;
+	public string BackgroundImage = "http://carbonmod.gg/assets/media/carbon-full-bg.png";
+	public Vector2 BackgroundImageYAnchor = new(0.15f, 1);
 	public DataColors Colors = new();
 	public Dictionary<string, bool> TabsHiddenStatus = new();
 
@@ -2482,5 +2488,6 @@ public class AdminData
 		public string OptionNameColor = $"1 1 1 0.7";
 		public float TitleUnderlineOpacity = 0.9f;
 		public float OptionWidth = 0.475f;
+
 	}
 }
