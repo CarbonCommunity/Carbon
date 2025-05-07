@@ -189,7 +189,7 @@ public partial class AdminModule
 			{
 				tab.ClearColumn(0);
 				{
-					tab.AddButton(-1, "< Go Back", ap => Singleton.SetTab(session.Player, 0),
+					tab.AddButton(-1, "< Go Back", ap => Singleton.SetTab(session.Player, "carbon"),
 						ap => AdminModule.Tab.OptionButton.Types.Selected);
 
 					tab.AddName(0, "Configuration");

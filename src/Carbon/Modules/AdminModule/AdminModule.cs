@@ -152,7 +152,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		{
 			var action = new Action<BasePlayer, string, string[]>((player, cmd, args) =>
 			{
-				if (!CanAccess(player)) return;
+				if (!CanAccess(player))
+				{
+					return;
+				}
 
 				var ap = GetPlayerSession(player);
 
@@ -164,8 +167,12 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 				if (ap.SelectedTab == null)
 				{
-					ap.SelectedTab = Tabs.FirstOrDefault(x => HasAccess(player, x.Access));
+					ap.SelectedTab = Tabs.FirstOrDefault(x => !DataInstance.IsTabHidden(x.Id) && HasAccess(player, x.Access));
 					ap.Clear();
+				}
+				else if(DataInstance.IsTabHidden(ap.SelectedTab.Id) || !HasAccess(player, ap.SelectedTab.Access))
+				{
+					ap.SelectedTab = null;
 				}
 
 				var tab = GetTab(player);
@@ -1317,7 +1324,7 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 
 			using (TimeMeasure.New($"{Name}.Main"))
 			{
-				if (tab == null || !tab.IsFullscreen)
+				if (tab is not { IsFullscreen: true })
 				{
 					#region Title
 
@@ -1336,13 +1343,10 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 						var tabButtons = cui.CreatePanel(container, parent: main, id: null,
 							color: "0 0 0 0.6", xMin: 0.01f, xMax: 0.99f, yMin: 0.875f, yMax: 0.92f);
 
-						TabButton(cui, container, tabButtons, "<", PanelId + ".changetab down", 0.03f, 0);
-						TabButton(cui, container, tabButtons, ">", PanelId + ".changetab up", 0.03f, 0.97f);
-
 						var availableTabs = Tabs.Where(x => !DataInstance.IsTabHidden(x.Id));
-						var tabIndex = 0.03f;
+						var tabIndex = 0f;
 						var amount = availableTabs.Count();
-						var tabWidth = amount == 0 ? 0f : 0.94f / amount;
+						var tabWidth = amount == 0 ? 0f : 1f / amount;
 
 						for (int i = ap.TabSkip; i < amount; i++)
 						{
@@ -1763,39 +1767,18 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var previous = ap.SelectedTab;
 
-		var tab = Tabs.FirstOrDefault(x => HasAccess(player, x.Access) && x.Id == id);
+		var tab = Tabs.FirstOrDefault(x => !DataInstance.IsTabHidden(x.Id) && HasAccess(player, x.Access) && x.Id == id);
 		if (tab != null)
 		{
 			ap.Tooltip = null;
-			ap.SelectedTab = tab;
 			if (onChange) try { tab?.OnChange?.Invoke(ap, tab); } catch { }
 		}
+		ap.SelectedTab = tab;
 
 		if (ap.SelectedTab != previous)
 		{
 			ap.Input = ap.PreviousInput = null;
-			ap.SelectedTab.ResetHiddens();
-			Draw(player);
-		}
-	}
-	public void SetTab(BasePlayer player, int index, bool onChange = true)
-	{
-		var ap = GetPlayerSession(player);
-		var previous = ap.SelectedTab;
-
-		var lookupTab = Tabs[index];
-		var tab = HasAccess(player, lookupTab.Access) ? lookupTab : Tabs.FirstOrDefault(x => !DataInstance.IsTabHidden(x.Id) && HasAccess(player, x.Access));
-		if (tab != null)
-		{
-			ap.Tooltip = null;
-			ap.SelectedTab = tab;
-			if (onChange) try { tab?.OnChange?.Invoke(ap, tab); } catch { }
-		}
-
-		if (ap.SelectedTab != previous)
-		{
-			ap.Input = ap.PreviousInput = null;
-			ap.SelectedTab.ResetHiddens();
+			ap.SelectedTab?.ResetHiddens();
 			Draw(player);
 		}
 	}
@@ -1804,18 +1787,22 @@ public partial class AdminModule : CarbonModule<AdminConfig, AdminData>
 		var ap = GetPlayerSession(player);
 		var previous = ap.SelectedTab;
 
-		tab = string.IsNullOrEmpty(tab.Access) ? tab : HasAccess(player, tab.Access) ? tab : Tabs.FirstOrDefault(x => HasAccess(player, x.Access));
+		tab = string.IsNullOrEmpty(tab.Access) ? tab : HasAccess(player, tab.Access) ? tab : Tabs.FirstOrDefault(x => !DataInstance.IsTabHidden(x.Id) && HasAccess(player, x.Access));
+		if (DataInstance.IsTabHidden(tab.Id))
+		{
+			tab = null;
+		}
 		if (tab != null)
 		{
 			ap.Tooltip = null;
-			ap.SelectedTab = tab;
 			if (onChange) try { tab?.OnChange?.Invoke(ap, tab); } catch { }
 		}
+		ap.SelectedTab = tab;
 
 		if (ap.SelectedTab != previous)
 		{
 			ap.Input = ap.PreviousInput = null;
-			ap.SelectedTab.ResetHiddens();
+			ap.SelectedTab?.ResetHiddens();
 			Draw(player);
 		}
 	}

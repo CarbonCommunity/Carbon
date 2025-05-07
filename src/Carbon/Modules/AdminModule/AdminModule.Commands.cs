@@ -15,23 +15,7 @@ public partial class AdminModule
 		ap.Clear();
 
 		var availableTabs = Tabs.Where(x => !DataInstance.IsTabHidden(x.Id));
-		switch (value)
-		{
-			case "next":
-			case "prev":
-				var count = availableTabs.Count();
-				var indexOf = availableTabs.IndexOf(previous);
-				indexOf = value == "next" ? indexOf + 1 : indexOf - 1;
-
-				if (indexOf > count - 1) indexOf = 0;
-				else if (indexOf < 0) indexOf = count - 1;
-				SetTab(player, indexOf);
-				break;
-
-			default:
-				SetTab(player, availableTabs.FirstOrDefault(x => x.Id.Equals(value)));
-				break;
-		}
+		SetTab(player, availableTabs.FirstOrDefault(x => x.Id.Equals(value)));
 	}
 
 	[Conditional("!MINIMAL")]
@@ -89,7 +73,7 @@ public partial class AdminModule
 
 		if (GetTab(player).Id == "configuration")
 		{
-			SetTab(player, 0);
+			SetTab(player, "carbon");
 		}
 		else
 		{
@@ -105,7 +89,7 @@ public partial class AdminModule
 
 		if (GetTab(player).Id == "profiler")
 		{
-			SetTab(player, 0);
+			SetTab(player, "carbon");
 		}
 		else
 		{

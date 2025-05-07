@@ -130,7 +130,7 @@ public partial class AdminModule
 
 				Singleton.DataInstance.WizardDisplayed = true;
 				Singleton.GenerateTabs();
-				Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, 0));
+				Community.Runtime.Core.NextTick(() => Singleton.SetTab(ap.Player, "carbon"));
 			}));
 
 			return tab;
@@ -274,7 +274,7 @@ public partial class AdminModule
 			Community.Runtime.Core.NextTick(() =>
 			{
 				Save();
-				Singleton.SetTab(ap.Player, 0);
+				Singleton.SetTab(ap.Player, "carbon");
 				Draw(ap.Player);
 			});
 		}
